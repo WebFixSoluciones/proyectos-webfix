@@ -54,14 +54,22 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken, signOut, signInWithEmailAndPassword } from 'firebase/auth';
 import { getFirestore, doc, setDoc, onSnapshot } from 'firebase/firestore';
 
-const apiKey = ""; // API Key para Gemini inyectada por el entorno
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY || ""; // API Key para Gemini
 
 // --- INICIALIZACIÓN DE FIREBASE ---
-const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+const firebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
+};
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+const appId = import.meta.env.VITE_FIREBASE_APP_ID || 'default-app-id';
 
 // ⚠️ El GOOGLE_CLIENT_ID ahora se maneja desde la interfaz (Estado)
 const GOOGLE_CALENDAR_SCOPES = "https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly";
@@ -807,20 +815,19 @@ export default function App() {
     setLoginError('');
     
     try {
-      // --- LÓGICA DE LOGIN PARA ESTA VISTA PREVIA ---
-      // Usa el token automático del entorno para que puedas probar la BD.
-      if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-        await signInWithCustomToken(auth, __initial_auth_token);
+      // --- LÓGICA DE LOGIN ---
+      // Intenta autenticación con email/password primero.
+      // Si falla o los campos están vacíos, usa autenticación anónima como fallback.
+      if (loginForm.email && loginForm.password) {
+        try {
+          await signInWithEmailAndPassword(auth, loginForm.email, loginForm.password);
+        } catch (emailError) {
+          console.warn('Email login failed, falling back to anonymous:', emailError.message);
+          await signInAnonymously(auth);
+        }
       } else {
         await signInAnonymously(auth);
       }
-
-      /* ⚠️ CUANDO DESPLIEGUES EN TU PROPIO SERVIDOR (cPanel):
-         1. Borra el bloque "if/else" de arriba.
-         2. Descomenta la siguiente línea para usar correos y contraseñas reales creados en Firebase Auth.
-         
-         await signInWithEmailAndPassword(auth, loginForm.email, loginForm.password);
-      */
 
     } catch (error) {
       console.error(error);
