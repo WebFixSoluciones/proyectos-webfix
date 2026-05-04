@@ -54,22 +54,22 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken, signOut, signInWithEmailAndPassword } from 'firebase/auth';
 import { getFirestore, doc, setDoc, onSnapshot } from 'firebase/firestore';
 
-const apiKey = import.meta.env.VITE_GEMINI_API_KEY || ""; // API Key para Gemini
+const apiKey = ""; // API Key para Gemini (configura tu clave aquí si usas IA)
 
 // --- INICIALIZACIÓN DE FIREBASE ---
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
+  apiKey: "AIzaSyBRw4Mi3m6gke6vBNTIaL99ewgGMjwB4ns",
+  authDomain: "proyectos-webfix.firebaseapp.com",
+  projectId: "proyectos-webfix",
+  storageBucket: "proyectos-webfix.firebasestorage.app",
+  messagingSenderId: "625295446429",
+  appId: "1:625295446429:web:95fa8147488a6ab3a65f74",
+  measurementId: "G-YY0ZWZXTDY",
 };
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const appId = import.meta.env.VITE_FIREBASE_APP_ID || 'default-app-id';
+const appId = "1:625295446429:web:95fa8147488a6ab3a65f74";
 
 // ⚠️ El GOOGLE_CLIENT_ID ahora se maneja desde la interfaz (Estado)
 const GOOGLE_CALENDAR_SCOPES = "https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly";
