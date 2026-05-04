@@ -816,22 +816,12 @@ export default function App() {
     
     try {
       // --- LÓGICA DE LOGIN ---
-      // Intenta autenticación con email/password primero.
-      // Si falla o los campos están vacíos, usa autenticación anónima como fallback.
-      if (loginForm.email && loginForm.password) {
-        try {
-          await signInWithEmailAndPassword(auth, loginForm.email, loginForm.password);
-        } catch (emailError) {
-          console.warn('Email login failed, falling back to anonymous:', emailError.message);
-          await signInAnonymously(auth);
-        }
-      } else {
-        await signInAnonymously(auth);
-      }
-
+      // Usa autenticación anónima para acceso rápido.
+      // Para producción con usuarios reales, habilita signInWithEmailAndPassword.
+      await signInAnonymously(auth);
     } catch (error) {
       console.error(error);
-      setLoginError('Error de conexión o credenciales inválidas.');
+      setLoginError('Error de conexión. Verifica que la autenticación anónima esté habilitada en Firebase Console → Authentication → Sign-in method → Anonymous.');
     }
     setIsAuthenticating(false);
   };
@@ -925,7 +915,7 @@ export default function App() {
 
           <div className="mt-8 pt-6 border-t border-white/10 text-center">
             <p className={`text-[11px] font-medium ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-              Para probar usa: admin@agencia.com / admin123
+              Haz clic en "Iniciar Sesión" para acceder al sistema
             </p>
           </div>
         </div>
