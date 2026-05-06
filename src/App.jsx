@@ -1316,7 +1316,7 @@ export default function App() {
                       key={col.id} 
                       draggable
                       onDragStart={(e) => handleColumnDragStart(e, col.id)}
-                      onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                      onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); e.dataTransfer.dropEffect = 'move'; }}
                       onDrop={(e) => handleDrop(e, col.id)}
                       className={`snap-center shrink-0 w-[210px] rounded-2xl p-3 flex flex-col backdrop-blur-2xl transition-all border shadow-lg ${getColumnBgClass(col.color, isDarkMode)}`}
                     >
