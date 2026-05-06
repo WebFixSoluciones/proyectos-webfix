@@ -401,34 +401,44 @@ export default function App() {
   const handleDragStart = (e, taskId) => {
     e.stopPropagation();
     e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('taskId', taskId);
-    e.dataTransfer.setData('text/plain', taskId);
+    const payload = JSON.stringify({ type: 'task', id: taskId });
+    e.dataTransfer.setData('text/plain', payload);
   };
 
   const handleColumnDragStart = (e, colId) => {
     e.stopPropagation();
     e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('colId', colId);
-    e.dataTransfer.setData('text/plain', colId);
+    const payload = JSON.stringify({ type: 'column', id: colId });
+    e.dataTransfer.setData('text/plain', payload);
   };
 
   const handleDrop = (e, newStatus) => {
     e.preventDefault();
     e.stopPropagation();
-    const taskId = e.dataTransfer.getData('taskId');
-    const draggedColId = e.dataTransfer.getData('colId');
-
-    if (taskId) {
-      handleUpdateTaskStatus(taskId, newStatus);
-    } else if (draggedColId && draggedColId !== newStatus) {
-      const newCols = [...(activePage.columns || DEFAULT_COLUMNS)];
-      const draggedIdx = newCols.findIndex(c => c.id === draggedColId);
-      const targetIdx = newCols.findIndex(c => c.id === newStatus);
-      if (draggedIdx > -1 && targetIdx > -1) {
-        const [removed] = newCols.splice(draggedIdx, 1);
-        newCols.splice(targetIdx, 0, removed);
-        updateActivePage({ columns: newCols });
+    
+    try {
+      const payloadStr = e.dataTransfer.getData('text/plain');
+      if (!payloadStr) return;
+      
+      const payload = JSON.parse(payloadStr);
+      
+      if (payload.type === 'task') {
+        handleUpdateTaskStatus(payload.id, newStatus);
+      } else if (payload.type === 'column') {
+        const draggedColId = payload.id;
+        if (draggedColId && draggedColId !== newStatus) {
+          const newCols = [...(activePage.columns || DEFAULT_COLUMNS)];
+          const draggedIdx = newCols.findIndex(c => c.id === draggedColId);
+          const targetIdx = newCols.findIndex(c => c.id === newStatus);
+          if (draggedIdx > -1 && targetIdx > -1) {
+            const [removed] = newCols.splice(draggedIdx, 1);
+            newCols.splice(targetIdx, 0, removed);
+            updateActivePage({ columns: newCols });
+          }
+        }
       }
+    } catch (err) {
+      console.error("Error en Drag and Drop:", err);
     }
   };
 
