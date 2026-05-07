@@ -860,28 +860,28 @@ export default function App() {
           </button>
         </div>
 
-        <div className={`w-full max-w-md p-8 sm:p-10 rounded-[2.5rem] flex flex-col backdrop-blur-2xl transition-all border shadow-[0_0_60px_rgba(0,0,0,0.5)] ${isDarkMode ? 'bg-[#1a1a1a]/40 border-white/10' : 'bg-white/60 border-white/40'}`}>
-          <div className="flex justify-center mb-6">
-            <div className={`p-4 rounded-3xl ${isDarkMode ? 'bg-blue-500/20 text-blue-400 border border-blue-500/20 shadow-[0_0_30px_rgba(59,130,246,0.2)]' : 'bg-blue-100 text-blue-600 border border-white/50'}`}>
-              <Lock size={32} />
+        <div className={`w-full max-w-sm p-6 sm:p-8 rounded-[2rem] flex flex-col backdrop-blur-2xl transition-all border shadow-[0_0_50px_rgba(0,0,0,0.3)] ${isDarkMode ? 'bg-[#1a1a1a]/40 border-white/10' : 'bg-white/60 border-white/40'}`}>
+          <div className="flex justify-center mb-5">
+            <div className={`p-3 rounded-2xl ${isDarkMode ? 'bg-blue-500/20 text-blue-400 border border-blue-500/20 shadow-[0_0_30px_rgba(59,130,246,0.2)]' : 'bg-blue-100 text-blue-600 border border-white/50'}`}>
+              <Lock size={24} />
             </div>
           </div>
           
-          <h2 className="text-3xl font-extrabold text-center tracking-tight mb-2">Acceso al Sistema</h2>
-          <p className={`text-center text-sm font-medium mb-8 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Ingresa tus credenciales para continuar al panel de control de la agencia.</p>
+          <h2 className={`text-2xl font-light text-center tracking-wide mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Acceso al Sistema</h2>
+          <p className={`text-center text-xs font-light tracking-wide mb-6 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Ingresa tus credenciales para continuar al panel de control.</p>
 
-          <form onSubmit={handleLogin} className="space-y-5">
+          <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className={`block text-[10px] font-bold uppercase tracking-wider mb-2 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Correo Electrónico</label>
+              <label className={`block text-[9px] font-light uppercase tracking-[0.2em] mb-1.5 ml-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Correo Electrónico</label>
               <div className="relative">
-                <div className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-                  <Mail size={18} />
+                <div className={`absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  <Mail size={16} />
                 </div>
                 <input 
                   type="email" 
                   value={loginForm.email}
                   onChange={(e) => setLoginForm({...loginForm, email: e.target.value})}
-                  className={`w-full text-base font-semibold pl-11 pr-4 py-3.5 rounded-2xl outline-none transition-all shadow-inner ${currentGlassInput}`} 
+                  className={`w-full text-sm font-light tracking-wide pl-10 pr-3 py-2.5 rounded-xl outline-none transition-all shadow-inner ${currentGlassInput}`} 
                   placeholder="admin@agencia.com" 
                   required
                 />
@@ -889,16 +889,16 @@ export default function App() {
             </div>
 
             <div>
-              <label className={`block text-[10px] font-bold uppercase tracking-wider mb-2 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Contraseña</label>
+              <label className={`block text-[9px] font-light uppercase tracking-[0.2em] mb-1.5 ml-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Contraseña</label>
               <div className="relative">
-                <div className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-                  <Key size={18} />
+                <div className={`absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  <Key size={16} />
                 </div>
                 <input 
                   type="password" 
                   value={loginForm.password}
                   onChange={(e) => setLoginForm({...loginForm, password: e.target.value})}
-                  className={`w-full text-base font-semibold pl-11 pr-4 py-3.5 rounded-2xl outline-none transition-all shadow-inner ${currentGlassInput}`} 
+                  className={`w-full text-sm font-light tracking-wide pl-10 pr-3 py-2.5 rounded-xl outline-none transition-all shadow-inner ${currentGlassInput}`} 
                   placeholder="••••••••" 
                   required
                 />
@@ -906,7 +906,7 @@ export default function App() {
             </div>
 
             {loginError && (
-              <div className={`p-3 rounded-xl text-xs font-semibold flex items-center justify-center text-center animate-in fade-in zoom-in duration-300 ${isDarkMode ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-red-50 text-red-600 border border-red-100'}`}>
+              <div className={`p-2 rounded-lg text-xs font-light tracking-wide flex items-center justify-center text-center animate-in fade-in zoom-in duration-300 ${isDarkMode ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-red-50 text-red-600 border border-red-100'}`}>
                 {loginError}
               </div>
             )}
@@ -914,23 +914,23 @@ export default function App() {
             <button 
               type="submit" 
               disabled={isAuthenticating}
-              className={`w-full flex items-center justify-center gap-2 mt-4 py-4 rounded-2xl text-base font-bold transition-all shadow-lg hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:translate-y-0 ${isDarkMode ? 'bg-blue-600 text-white shadow-blue-900/50 hover:bg-blue-500' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+              className={`w-full flex items-center justify-center gap-2 mt-2 py-3 rounded-xl text-sm font-light tracking-wide transition-all shadow-md hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:translate-y-0 ${isDarkMode ? 'bg-blue-600/90 text-white border border-blue-500/50 hover:bg-blue-500' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
             >
               {isAuthenticating ? (
                 <>
-                  <RefreshCw size={20} className="animate-spin" /> Verificando...
+                  <RefreshCw size={16} className="animate-spin" /> Verificando...
                 </>
               ) : (
                 <>
-                  Iniciar Sesión <ArrowRight size={20} />
+                  Iniciar Sesión <ArrowRight size={16} />
                 </>
               )}
             </button>
           </form>
 
-          <div className="mt-8 pt-6 border-t border-white/10 text-center">
-            <p className={`text-[11px] font-medium ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-              Haz clic en "Iniciar Sesión" para acceder al sistema
+          <div className="mt-6 pt-5 border-t border-white/10 text-center">
+            <p className={`text-[10px] font-light tracking-widest uppercase ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+              Sistema Centralizado
             </p>
           </div>
         </div>
