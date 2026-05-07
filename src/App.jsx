@@ -47,8 +47,28 @@ import {
   Key,
   ArrowRight,
   Cloud,
-  Settings
+  Settings,
+  GripVertical
 } from 'lucide-react';
+
+import {
+  DndContext,
+  DragOverlay,
+  closestCorners,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  horizontalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 import { initializeApp } from 'firebase/app';
 import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken, signOut, signInWithEmailAndPassword } from 'firebase/auth';
@@ -149,6 +169,215 @@ const IconRenderer = ({ name, size = 18, className = "" }) => {
     case 'trash': return <Trash2 size={size} className={className} />;
     default: return <FileText size={size} className={className} />;
   }
+};
+
+// --- COMPONENTES DND-KIT ---
+const SortableTaskItem = ({ 
+  task, isDarkMode, users, editingTaskId, editingTaskContent, 
+  setEditingTaskContent, handleInlineSave, setEditingTaskId, 
+  startEditingTask, setDrawerTask, activePageId 
+}) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging
+  } = useSortable({ id: task.id, data: { type: 'Task', task } });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : 1,
+  };
+
+  const assignedUser = task.assigneeId ? users.find(u => u.id === task.assigneeId) : null;
+
+  return (
+    <div 
+      ref={setNodeRef} 
+      style={style}
+      className={`group p-2.5 rounded-xl border transition-all duration-300 relative backdrop-blur-xl ${
+        isDarkMode 
+          ? 'bg-white/[0.05] border-white/10 hover:border-white/20 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.3)] hover:bg-white/[0.08]' 
+          : 'bg-white/80 border-white hover:border-blue-200 shadow-sm hover:bg-white'
+      } ${isDragging ? 'z-50 shadow-2xl scale-105' : ''}`}
+    >
+      <div className="flex justify-between items-start mb-2">
+        <div className="flex items-start gap-2 w-full">
+          <div 
+            {...attributes} 
+            {...listeners} 
+            className={`cursor-grab active:cursor-grabbing mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity ${isDarkMode ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'}`}
+          >
+            <GripVertical size={14} />
+          </div>
+          
+          <div className="flex-1 w-full pr-4">
+            {editingTaskId === task.id ? (
+              <textarea
+                autoFocus
+                value={editingTaskContent}
+                onChange={(e) => setEditingTaskContent(e.target.value)}
+                onBlur={() => { handleInlineSave(task.id, editingTaskContent); setEditingTaskId(null); }}
+                onKeyDown={(e) => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleInlineSave(task.id, editingTaskContent); setEditingTaskId(null); } }}
+                onClick={(e) => e.stopPropagation()}
+                onPointerDown={(e) => e.stopPropagation()}
+                className={`w-full text-xs font-light leading-tight px-1.5 py-1 rounded-lg outline-none bg-black/20 backdrop-blur-md border border-white/20 text-white shadow-inner resize-none overflow-hidden`}
+                rows={2}
+              />
+            ) : (
+              <p 
+                onClick={(e) => startEditingTask(e, task)}
+                onPointerDown={(e) => e.stopPropagation()}
+                title="Clic para editar título"
+                className={`text-xs font-light leading-tight cursor-text transition-colors hover:text-blue-400 ${isDarkMode ? 'text-gray-100' : 'text-gray-800'} w-full`}
+              >
+                {task.content}
+              </p>
+            )}
+          </div>
+        </div>
+        
+        <button 
+          onClick={() => setDrawerTask({ ...task, projectId: activePageId })}
+          onPointerDown={(e) => e.stopPropagation()}
+          className={`absolute top-2.5 right-2.5 opacity-0 group-hover:opacity-100 p-1.5 rounded-lg transition-all shrink-0 backdrop-blur-xl shadow-sm ${isDarkMode ? 'bg-white/20 text-white hover:bg-blue-500 border border-white/10' : 'bg-white/90 text-gray-800 hover:text-white hover:bg-blue-500 border border-gray-200'}`}
+          title="Editar detalles completos"
+        >
+          <Pencil size={12} />
+        </button>
+      </div>
+
+      {task.meetLink && (
+        <a href={task.meetLink} target="_blank" rel="noopener noreferrer" onPointerDown={(e) => e.stopPropagation()} className={`inline-flex items-center gap-1.5 px-2 py-1 mb-2 ml-5 rounded-md text-[10px] font-bold transition-all shadow-sm ${isDarkMode ? 'bg-blue-600/30 text-blue-300 hover:bg-blue-600/50 border border-blue-500/20' : 'bg-blue-100 text-blue-700 hover:bg-blue-200 border border-blue-200'}`}>
+          <Video size={10} /> Unirse a Meet
+        </a>
+      )}
+
+      <div className="flex items-center justify-between mt-1 ml-5">
+        {task.notes && task.notes.length > 0 ? (
+          <div className="relative group/tooltip w-max">
+            <span className={`flex items-center gap-1 text-[10px] px-2 py-1 rounded-lg font-semibold cursor-help transition-all shadow-sm ${
+              isDarkMode 
+                ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30 hover:bg-yellow-500/30' 
+                : 'bg-yellow-100/80 text-yellow-700 border border-yellow-200 hover:bg-yellow-200'
+            }`}>
+              <MessageSquare size={10} /> {task.notes.length}
+            </span>
+            <div className={`absolute bottom-full left-0 mb-2 w-64 p-3 rounded-xl shadow-[0_5px_20px_-5px_rgba(0,0,0,0.5)] opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all duration-300 z-50 backdrop-blur-3xl border ${isDarkMode ? 'bg-gray-900/90 border-white/10' : 'bg-white/95 border-gray-200'}`}>
+              <h4 className={`text-[10px] font-bold uppercase tracking-wider mb-2 pb-1.5 border-b ${isDarkMode ? 'text-gray-400 border-white/10' : 'text-gray-500 border-gray-100'}`}>Notas Históricas</h4>
+              <div className="space-y-3 max-h-40 overflow-y-auto pr-1 custom-scrollbar">
+                {task.notes.map(note => (
+                  <div key={note.id} className="text-xs">
+                    <span className={`block text-[9px] font-medium mb-0.5 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>{note.date}</span>
+                    <p className={`leading-relaxed font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{note.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : <div />}
+
+        {assignedUser && (
+          <div title={`Asignado a: ${assignedUser.name}`} className={`w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold text-white shadow-inner bg-gradient-to-br ${assignedUser.color}`}>
+            {assignedUser.initials}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const SortableColumn = ({ 
+  col, isDarkMode, children, cycleColumnColor, editingColumnId, 
+  editingColumnTitle, setEditingColumnTitle, saveColumnTitle, 
+  startEditingColumn, activePageTasks, openNewTaskDrawer, handleDeleteColumn,
+  getColumnBgClass, getColorClass
+}) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging
+  } = useSortable({ id: col.id, data: { type: 'Column', column: col } });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : 1,
+  };
+
+  return (
+    <div 
+      ref={setNodeRef}
+      style={style}
+      className={`snap-center shrink-0 w-[210px] rounded-2xl p-3 flex flex-col backdrop-blur-2xl transition-all border shadow-lg ${getColumnBgClass(col.color, isDarkMode)} ${isDragging ? 'z-40 shadow-2xl scale-105' : ''}`}
+    >
+      {/* HEADER COLUMNA */}
+      <div className="flex items-center justify-between mb-4 group/col px-1">
+        <div className="flex items-center gap-2">
+          <div 
+            {...attributes} 
+            {...listeners} 
+            className={`cursor-grab active:cursor-grabbing ${isDarkMode ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'}`}
+          >
+            <GripVertical size={14} />
+          </div>
+
+          <button 
+             onClick={(e) => { e.stopPropagation(); cycleColumnColor(col.id); }}
+             onPointerDown={(e) => e.stopPropagation()}
+             title="Cambiar color de fondo"
+             className={`w-3 h-3 rounded-full transition-transform hover:scale-125 shadow-inner ${COLUMN_COLORS.find(c => c.id === (col.color || 'gray'))?.dot || 'bg-gray-400'}`}
+          />
+          
+          {editingColumnId === col.id ? (
+            <input
+              type="text"
+              autoFocus
+              value={editingColumnTitle}
+              onChange={(e) => setEditingColumnTitle(e.target.value)}
+              onBlur={saveColumnTitle}
+              onKeyDown={(e) => { if(e.key === 'Enter') saveColumnTitle(); }}
+              onPointerDown={(e) => e.stopPropagation()}
+              className={`font-light text-xs px-2 py-0.5 rounded-md outline-none bg-black/20 backdrop-blur-md border border-white/20 w-28 text-white shadow-inner`}
+            />
+          ) : (
+            <button 
+               onClick={(e) => { e.stopPropagation(); startEditingColumn(col); }}
+               onPointerDown={(e) => e.stopPropagation()}
+               title="Clic para editar nombre"
+               className={`font-light text-xs px-2 py-0.5 rounded-md transition-all truncate max-w-[130px] hover:scale-105 shadow-sm ${getColorClass(col.color)} cursor-text`}
+            >
+              {col.title}
+            </button>
+          )}
+          
+          <span className={`opacity-0 group-hover/col:opacity-100 transition-opacity text-[8px] font-medium w-4 h-4 flex items-center justify-center rounded-full shadow-sm border ${isDarkMode ? 'bg-white/10 text-white border-white/20' : 'bg-white/80 text-gray-800 border-white/50'}`}>
+            {activePageTasks.filter(t => t.status === col.id).length}
+          </span>
+        </div>
+        
+        <div className="flex items-center gap-1 opacity-0 group-hover/col:opacity-100 transition-opacity">
+          <button onClick={() => openNewTaskDrawer(col.id)} onPointerDown={(e) => e.stopPropagation()} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'bg-white/5 hover:bg-white/20 text-white' : 'bg-black/5 hover:bg-white text-gray-800'}`} title="Añadir tarea aquí">
+            <Plus size={14} />
+          </button>
+          <button onClick={() => handleDeleteColumn(col.id)} onPointerDown={(e) => e.stopPropagation()} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'bg-red-500/10 hover:bg-red-500/40 text-red-300' : 'bg-red-100 hover:bg-red-200 text-red-600'}`} title="Eliminar columna">
+            <X size={12} />
+          </button>
+        </div>
+      </div>
+      
+      {/* CONTENIDO (TAREAS Y BOTÓN) */}
+      <div className="flex-1 flex flex-col">
+        {children}
+      </div>
+    </div>
+  );
 };
 
 export default function App() {
@@ -476,56 +705,96 @@ export default function App() {
     setEditingTaskId(null);
   };
 
-  // --- Lógica de Drag & Drop ---
-  const DRAG_MIME = 'application/x-kanban-payload';
-  
-  const handleDragStart = (e, taskId) => {
-    e.stopPropagation();
-    e.dataTransfer.effectAllowed = 'move';
-    const payload = JSON.stringify({ type: 'task', id: taskId });
-    e.dataTransfer.setData(DRAG_MIME, payload);
-    e.dataTransfer.setData('text/plain', payload); // Fallback
+  // --- Lógica de Drag & Drop (@dnd-kit) ---
+  const [activeDragTask, setActiveDragTask] = useState(null);
+  const [activeDragCol, setActiveDragCol] = useState(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  const onDragStart = (event) => {
+    const { active } = event;
+    if (active.data.current?.type === 'Column') {
+      setActiveDragCol(active.data.current.column);
+      return;
+    }
+    if (active.data.current?.type === 'Task') {
+      setActiveDragTask(active.data.current.task);
+      return;
+    }
   };
 
-  const handleColumnDragStart = (e, colId) => {
-    e.stopPropagation();
-    e.dataTransfer.effectAllowed = 'move';
-    const payload = JSON.stringify({ type: 'column', id: colId });
-    e.dataTransfer.setData(DRAG_MIME, payload);
-    e.dataTransfer.setData('text/plain', payload); // Fallback
-  };
-
-  const handleDrop = (e, newStatus) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const onDragOver = (event) => {
+    const { active, over } = event;
+    if (!over) return;
     
-    try {
-      // Intentar leer del MIME custom primero, luego fallback a text/plain
-      let payloadStr = e.dataTransfer.getData(DRAG_MIME) || e.dataTransfer.getData('text/plain');
-      if (!payloadStr) return;
-      
-      // Validar que sea JSON antes de parsear
-      if (!payloadStr.startsWith('{')) return;
-      
-      const payload = JSON.parse(payloadStr);
-      
-      if (payload.type === 'task') {
-        handleUpdateTaskStatus(payload.id, newStatus);
-      } else if (payload.type === 'column') {
-        const draggedColId = payload.id;
-        if (draggedColId && draggedColId !== newStatus) {
-          const newCols = [...(activePage.columns || DEFAULT_COLUMNS)];
-          const draggedIdx = newCols.findIndex(c => c.id === draggedColId);
-          const targetIdx = newCols.findIndex(c => c.id === newStatus);
-          if (draggedIdx > -1 && targetIdx > -1) {
-            const [removed] = newCols.splice(draggedIdx, 1);
-            newCols.splice(targetIdx, 0, removed);
-            updateActivePage({ columns: newCols });
-          }
+    const activeId = active.id;
+    const overId = over.id;
+    if (activeId === overId) return;
+
+    const isActiveTask = active.data.current?.type === 'Task';
+    const isOverTask = over.data.current?.type === 'Task';
+    const isOverColumn = over.data.current?.type === 'Column';
+
+    if (!isActiveTask) return;
+
+    if (isActiveTask && isOverColumn) {
+       handleUpdateTaskStatus(activeId, overId);
+    } else if (isActiveTask && isOverTask) {
+       const overTask = over.data.current.task;
+       if (active.data.current.task.status !== overTask.status) {
+         handleUpdateTaskStatus(activeId, overTask.status);
+       }
+    }
+  };
+
+  const onDragEnd = async (event) => {
+    setActiveDragTask(null);
+    setActiveDragCol(null);
+    
+    const { active, over } = event;
+    if (!over) return;
+
+    const activeId = active.id;
+    const overId = over.id;
+    if (activeId === overId) return;
+
+    const isActiveColumn = active.data.current?.type === 'Column';
+    const isActiveTask = active.data.current?.type === 'Task';
+
+    if (isActiveColumn) {
+      const newCols = [...(activePage.columns || DEFAULT_COLUMNS)];
+      const draggedIdx = newCols.findIndex(c => c.id === activeId);
+      const targetIdx = newCols.findIndex(c => c.id === overId);
+      if (draggedIdx > -1 && targetIdx > -1) {
+        updateActivePage({ columns: arrayMove(newCols, draggedIdx, targetIdx) });
+      }
+    } else if (isActiveTask) {
+      // Reordenamiento dentro de la misma columna
+      const overTask = over.data.current?.task;
+      if (overTask && active.data.current.task.status === overTask.status) {
+        const columnTasks = globalTasks.filter(t => t.status === overTask.status && t.projectId === activePage.id);
+        const oldIndex = columnTasks.findIndex(t => t.id === activeId);
+        const newIndex = columnTasks.findIndex(t => t.id === overId);
+        
+        if (oldIndex !== newIndex) {
+          const reordered = arrayMove(columnTasks, oldIndex, newIndex);
+          // Actualizamos los globalTasks manteniendo las tareas de otros proyectos/columnas
+          const otherTasks = globalTasks.filter(t => t.status !== overTask.status || t.projectId !== activePage.id);
+          setGlobalTasks([...otherTasks, ...reordered]);
+          // En un sistema real, guardaríamos el campo 'order' en Firebase aquí para cada tarea reordenada.
+          // Para esta simplificación, si no existe el campo order, actualizamos solo local, pero es recomendable persistir:
+          try {
+            const batch = writeBatch(db);
+            reordered.forEach((t, i) => {
+              batch.set(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', t.id), { order: i }, { merge: true });
+            });
+            batch.commit();
+          } catch(e) { console.error("Error persistiendo orden:", e); }
         }
       }
-    } catch (err) {
-      console.error("Error en Drag and Drop:", err);
     }
   };
 
@@ -1488,179 +1757,93 @@ export default function App() {
 
                 {currentProjectView === 'board' ? (
                 /* REDUJE EL GAP-5 A GAP-4 PARA MAS ESPACIO */
-                <div className="flex flex-row gap-4 overflow-x-auto pb-6 items-start min-h-[50vh] snap-x custom-scrollbar w-full">
-                  {(activePage.columns || DEFAULT_COLUMNS).map(col => (
-                    <div 
-                      key={col.id} 
-                      draggable
-                      onDragStart={(e) => handleColumnDragStart(e, col.id)}
-                      onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); e.dataTransfer.dropEffect = 'move'; }}
-                      onDrop={(e) => handleDrop(e, col.id)}
-                      className={`snap-center shrink-0 w-[210px] rounded-2xl p-3 flex flex-col backdrop-blur-2xl transition-all border shadow-lg ${getColumnBgClass(col.color, isDarkMode)}`}
-                    >
-                      {/* HEADER COLUMNA */}
-                      <div className="flex items-center justify-between mb-4 group/col px-1">
-                        <div className="flex items-center gap-2">
-                          <button 
-                             onClick={(e) => { e.stopPropagation(); cycleColumnColor(col.id); }}
-                             title="Cambiar color de fondo"
-                             className={`w-3 h-3 rounded-full transition-transform hover:scale-125 shadow-inner ${COLUMN_COLORS.find(c => c.id === (col.color || 'gray'))?.dot || 'bg-gray-400'}`}
-                          />
-                          
-                          {editingColumnId === col.id ? (
-                            <input
-                              type="text"
-                              autoFocus
-                              value={editingColumnTitle}
-                              onChange={(e) => setEditingColumnTitle(e.target.value)}
-                              onBlur={saveColumnTitle}
-                              onKeyDown={(e) => { if(e.key === 'Enter') saveColumnTitle(); }}
-                              className={`font-light text-xs px-2 py-0.5 rounded-md outline-none bg-black/20 backdrop-blur-md border border-white/20 w-28 text-white shadow-inner`}
-                            />
-                          ) : (
-                            <button 
-                               onClick={(e) => { e.stopPropagation(); startEditingColumn(col); }}
-                               title="Clic para editar nombre"
-                               className={`font-light text-xs px-2 py-0.5 rounded-md transition-all truncate max-w-[130px] hover:scale-105 shadow-sm ${getColorClass(col.color)} cursor-text`}
-                            >
-                              {col.title}
-                            </button>
-                          )}
-                          
-                          <span className={`opacity-0 group-hover/col:opacity-100 transition-opacity text-[8px] font-medium w-4 h-4 flex items-center justify-center rounded-full shadow-sm border ${isDarkMode ? 'bg-white/10 text-white border-white/20' : 'bg-white/80 text-gray-800 border-white/50'}`}>
-                            {(activePage.tasks || []).filter(t => t.status === col.id).length}
-                          </span>
-                        </div>
-                        
-                        <div className="flex items-center gap-1 opacity-0 group-hover/col:opacity-100 transition-opacity">
-                          <button onClick={() => openNewTaskDrawer(col.id)} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'bg-white/5 hover:bg-white/20 text-white' : 'bg-black/5 hover:bg-white text-gray-800'}`} title="Añadir tarea aquí">
-                            <Plus size={14} />
-                          </button>
-                          <button onClick={() => handleDeleteColumn(col.id)} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'bg-red-500/10 hover:bg-red-500/40 text-red-300' : 'bg-red-100 hover:bg-red-200 text-red-600'}`} title="Eliminar columna">
-                            <X size={12} />
-                          </button>
-                        </div>
-                      </div>
-                      
-                      {/* LISTA DE TAREAS (DRAGGABLE) */}
-                      <div className="space-y-2 flex-1 min-h-[40px]">
-                        {(activePage.tasks || []).filter(t => t.status === col.id).map(task => {
-                          const assignedUser = task.assigneeId ? users.find(u => u.id === task.assigneeId) : null;
-                          
-                          return (
-                            <div 
-                              key={task.id} 
-                              draggable={editingTaskId !== task.id}
-                              onDragStart={(e) => handleDragStart(e, task.id)}
-                              className={`group p-2.5 rounded-xl border cursor-grab active:cursor-grabbing transition-all duration-300 ${editingTaskId !== task.id ? 'hover:-translate-y-0.5 hover:shadow-md' : ''} relative backdrop-blur-xl ${
-                                isDarkMode 
-                                  ? 'bg-white/[0.05] border-white/10 hover:border-white/20 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.3)] hover:bg-white/[0.08]' 
-                                  : 'bg-white/80 border-white hover:border-blue-200 shadow-sm hover:bg-white'
-                              }`}
-                            >
-                              <div className="flex justify-between items-start mb-2">
-                                {editingTaskId === task.id ? (
-                                  <textarea
-                                    autoFocus
-                                    value={editingTaskContent}
-                                    onChange={(e) => {
-                                      setEditingTaskContent(e.target.value);
-                                      // Actualización en tiempo real para UI
-                                      setGlobalTasks(globalTasks.map(t =>
-                                        t.id === task.id ? { ...t, content: e.target.value } : t
-                                      ));
-                                      // Guardado síncrono en Firebase (sin await para no bloquear UI)
-                                      setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', task.id), { content: e.target.value }, { merge: true }).catch((err) => console.error('inline save err:', err));
+                <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={onDragStart} onDragOver={onDragOver} onDragEnd={onDragEnd}>
+                  <div className="flex flex-row gap-4 overflow-x-auto pb-6 items-start min-h-[50vh] snap-x custom-scrollbar w-full">
+                    <SortableContext items={(activePage.columns || DEFAULT_COLUMNS).map(c => c.id)} strategy={horizontalListSortingStrategy}>
+                      {(activePage.columns || DEFAULT_COLUMNS).map(col => {
+                        const colTasks = (activePage.tasks || []).filter(t => t.status === col.id).sort((a, b) => (a.order || 0) - (b.order || 0));
+                        return (
+                          <SortableColumn 
+                            key={col.id} 
+                            col={col} 
+                            isDarkMode={isDarkMode}
+                            cycleColumnColor={cycleColumnColor}
+                            editingColumnId={editingColumnId}
+                            editingColumnTitle={editingColumnTitle}
+                            setEditingColumnTitle={setEditingColumnTitle}
+                            saveColumnTitle={saveColumnTitle}
+                            startEditingColumn={startEditingColumn}
+                            activePageTasks={activePage.tasks || []}
+                            openNewTaskDrawer={openNewTaskDrawer}
+                            handleDeleteColumn={handleDeleteColumn}
+                            getColumnBgClass={getColumnBgClass}
+                            getColorClass={getColorClass}
+                          >
+                            <SortableContext items={colTasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
+                              <div className="space-y-2 flex-1 min-h-[40px]">
+                                {colTasks.map(task => (
+                                  <SortableTaskItem 
+                                    key={task.id} 
+                                    task={task} 
+                                    isDarkMode={isDarkMode} 
+                                    users={users}
+                                    editingTaskId={editingTaskId}
+                                    editingTaskContent={editingTaskContent}
+                                    setEditingTaskContent={(val) => {
+                                      setEditingTaskContent(val);
+                                      setGlobalTasks(globalTasks.map(t => t.id === task.id ? { ...t, content: val } : t));
+                                      setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', task.id), { content: val }, { merge: true }).catch((err) => console.error('inline save err:', err));
                                     }}
-                                    onBlur={() => setEditingTaskId(null)}
-                                    onKeyDown={(e) => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); setEditingTaskId(null); } }}
-                                    onClick={(e) => e.stopPropagation()}
-                                    className={`w-full text-xs font-light leading-tight px-1.5 py-1 rounded-lg outline-none bg-black/20 backdrop-blur-md border border-white/20 text-white shadow-inner resize-none overflow-hidden pr-6 mr-2`}
-                                    rows={2}
+                                    handleInlineSave={() => setEditingTaskId(null)}
+                                    setEditingTaskId={setEditingTaskId}
+                                    startEditingTask={startEditingTask}
+                                    setDrawerTask={setDrawerTask}
+                                    activePageId={activePage.id}
                                   />
-                                ) : (
-                                  <p 
-                                    onClick={(e) => startEditingTask(e, task)}
-                                    title="Clic para editar título"
-                                    className={`text-xs font-light leading-tight cursor-text transition-colors hover:text-blue-400 ${isDarkMode ? 'text-gray-100' : 'text-gray-800'} pr-6 w-full`}
-                                  >
-                                    {task.content}
-                                  </p>
-                                )}
-                                <button 
-                                  onClick={() => setDrawerTask({ ...task, projectId: activePage.id })}
-                                  className={`absolute top-2.5 right-2.5 opacity-0 group-hover:opacity-100 p-1.5 rounded-lg transition-all shrink-0 backdrop-blur-xl shadow-sm ${isDarkMode ? 'bg-white/20 text-white hover:bg-blue-500 border border-white/10' : 'bg-white/90 text-gray-800 hover:text-white hover:bg-blue-500 border border-gray-200'}`}
-                                  title="Editar detalles completos"
-                                >
-                                  <Pencil size={12} />
-                                </button>
+                                ))}
                               </div>
+                            </SortableContext>
+                            
+                            {/* Botón "+ Nuevo" al final estilo Glass */}
+                            <button 
+                              onClick={() => openNewTaskDrawer(col.id)}
+                              className={`mt-4 flex items-center gap-2 w-full px-3 py-2 rounded-xl text-xs font-semibold transition-all border ${isDarkMode ? 'bg-white/5 border-transparent text-gray-400 hover:bg-white/10 hover:text-white' : 'bg-white/40 border-transparent text-gray-600 hover:bg-white/60 hover:text-gray-900'}`}
+                            >
+                              <Plus size={14} /> Añadir tarea
+                            </button>
+                          </SortableColumn>
+                        );
+                      })}
+                    </SortableContext>
 
-                              {/* Accesos rápidos a Meet en la Tarjeta */}
-                              {task.meetLink && (
-                                <a href={task.meetLink} target="_blank" rel="noopener noreferrer" className={`inline-flex items-center gap-1.5 px-2 py-1 mb-2 rounded-md text-[10px] font-bold transition-all shadow-sm ${isDarkMode ? 'bg-blue-600/30 text-blue-300 hover:bg-blue-600/50 border border-blue-500/20' : 'bg-blue-100 text-blue-700 hover:bg-blue-200 border border-blue-200'}`}>
-                                  <Video size={10} /> Unirse a Meet
-                                </a>
-                              )}
-
-                              <div className="flex items-center justify-between mt-1">
-                                {/* Badge flotante de Notas */}
-                                {task.notes && task.notes.length > 0 ? (
-                                  <div className="relative group/tooltip w-max">
-                                    <span className={`flex items-center gap-1 text-[10px] px-2 py-1 rounded-lg font-semibold cursor-help transition-all shadow-sm ${
-                                      isDarkMode 
-                                        ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30 hover:bg-yellow-500/30' 
-                                        : 'bg-yellow-100/80 text-yellow-700 border border-yellow-200 hover:bg-yellow-200'
-                                    }`}>
-                                      <MessageSquare size={10} /> {task.notes.length}
-                                    </span>
-                                    
-                                    {/* Tooltip flotante */}
-                                    <div className={`absolute bottom-full left-0 mb-2 w-64 p-3 rounded-xl shadow-[0_5px_20px_-5px_rgba(0,0,0,0.5)] opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all duration-300 z-50 backdrop-blur-3xl border ${isDarkMode ? 'bg-gray-900/90 border-white/10' : 'bg-white/95 border-gray-200'}`}>
-                                      <h4 className={`text-[10px] font-bold uppercase tracking-wider mb-2 pb-1.5 border-b ${isDarkMode ? 'text-gray-400 border-white/10' : 'text-gray-500 border-gray-100'}`}>Notas Históricas</h4>
-                                      <div className="space-y-3 max-h-40 overflow-y-auto pr-1 custom-scrollbar">
-                                        {task.notes.map(note => (
-                                          <div key={note.id} className="text-xs">
-                                            <span className={`block text-[9px] font-medium mb-0.5 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>{note.date}</span>
-                                            <p className={`leading-relaxed font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{note.text}</p>
-                                          </div>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  </div>
-                                ) : <div />}
-
-                                {/* Avatar Assignee */}
-                                {assignedUser && (
-                                  <div title={`Asignado a: ${assignedUser.name}`} className={`w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold text-white shadow-inner bg-gradient-to-br ${assignedUser.color}`}>
-                                    {assignedUser.initials}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          )
-                        })}
+                    {/* Nueva Columna */}
+                    <div className={`shrink-0 w-[210px] rounded-2xl p-3 border border-dashed flex items-start backdrop-blur-2xl transition-all ${isDarkMode ? 'bg-white/[0.02] border-white/20 hover:bg-white/[0.05]' : 'bg-white/30 border-gray-400 hover:bg-white/50'}`}>
+                      <div className="w-full flex flex-col gap-3">
+                        <input type="text" value={newColumnName} onChange={(e) => setNewColumnName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleAddColumn()} placeholder="Nombre nueva columna..." className={`w-full text-sm font-medium rounded-xl px-3 py-2 outline-none transition-shadow shadow-inner ${isDarkMode ? glassInputDark : glassInputLight}`} />
+                        <button onClick={handleAddColumn} className={`flex items-center justify-center gap-2 w-full p-2 rounded-xl transition-all text-xs font-semibold shadow-sm ${isDarkMode ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-black/5 text-gray-800 hover:bg-black/10'}`}><Plus size={14} /> Crear Columna</button>
                       </div>
-
-                      {/* Botón "+ Nuevo" al final estilo Glass */}
-                      <button 
-                        onClick={() => openNewTaskDrawer(col.id)}
-                        className={`mt-4 flex items-center gap-2 w-full px-3 py-2 rounded-xl text-xs font-semibold transition-all border ${isDarkMode ? 'bg-white/5 border-transparent text-gray-400 hover:bg-white/10 hover:text-white' : 'bg-white/40 border-transparent text-gray-600 hover:bg-white/60 hover:text-gray-900'}`}
-                      >
-                        <Plus size={14} /> Añadir tarea
-                      </button>
                     </div>
-                  ))}
 
-                  {/* Nueva Columna */}
-                  <div className={`shrink-0 w-[210px] rounded-2xl p-3 border border-dashed flex items-start backdrop-blur-2xl transition-all ${isDarkMode ? 'bg-white/[0.02] border-white/20 hover:bg-white/[0.05]' : 'bg-white/30 border-gray-400 hover:bg-white/50'}`}>
-                    <div className="w-full flex flex-col gap-3">
-                      <input type="text" value={newColumnName} onChange={(e) => setNewColumnName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleAddColumn()} placeholder="Nombre nueva columna..." className={`w-full text-sm font-medium rounded-xl px-3 py-2 outline-none transition-shadow shadow-inner ${isDarkMode ? glassInputDark : glassInputLight}`} />
-                      <button onClick={handleAddColumn} className={`flex items-center justify-center gap-2 w-full p-2 rounded-xl transition-all text-xs font-semibold shadow-sm ${isDarkMode ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-black/5 text-gray-800 hover:bg-black/10'}`}><Plus size={14} /> Crear Columna</button>
-                    </div>
+                    <DragOverlay>
+                      {activeDragCol ? (
+                        <div className={`shrink-0 w-[210px] rounded-2xl p-3 flex flex-col backdrop-blur-2xl transition-all border shadow-2xl opacity-80 rotate-2 scale-105 ${getColumnBgClass(activeDragCol.color, isDarkMode)}`}>
+                           <div className="flex items-center gap-2 mb-4 px-1">
+                             <GripVertical size={14} className="text-white" />
+                             <span className="font-light text-xs px-2 py-0.5 rounded-md text-white shadow-sm">{activeDragCol.title}</span>
+                           </div>
+                        </div>
+                      ) : activeDragTask ? (
+                        <div className={`p-2.5 rounded-xl border shadow-2xl opacity-80 rotate-2 scale-105 backdrop-blur-xl ${isDarkMode ? 'bg-white/[0.08] border-white/20' : 'bg-white border-blue-200'}`}>
+                          <div className="flex gap-2">
+                             <GripVertical size={14} className={isDarkMode ? 'text-gray-300' : 'text-gray-600'} />
+                             <p className={`text-xs font-light leading-tight ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>{activeDragTask.content}</p>
+                          </div>
+                        </div>
+                      ) : null}
+                    </DragOverlay>
+
                   </div>
-
-                </div>
+                </DndContext>
                 ) : (
                   /* VISTA DE LISTA (LIST VIEW) */
                   <div className="space-y-6 pb-12">
