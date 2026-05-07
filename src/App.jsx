@@ -969,13 +969,19 @@ export default function App() {
     setLoginError('');
     
     try {
-      // --- LÓGICA DE LOGIN ---
-      // Usa autenticación anónima para acceso rápido.
-      // Para producción con usuarios reales, habilita signInWithEmailAndPassword.
-      await signInAnonymously(auth);
+      await signInWithEmailAndPassword(auth, loginForm.email.trim(), loginForm.password);
     } catch (error) {
-      console.error(error);
-      setLoginError('Error de conexión. Verifica que la autenticación anónima esté habilitada en Firebase Console → Authentication → Sign-in method → Anonymous.');
+      console.error('Login error:', error.code);
+      const errorMessages = {
+        'auth/invalid-email': 'El correo electrónico no es válido.',
+        'auth/user-disabled': 'Esta cuenta ha sido deshabilitada.',
+        'auth/user-not-found': 'No existe una cuenta con ese correo.',
+        'auth/wrong-password': 'Contraseña incorrecta.',
+        'auth/invalid-credential': 'Credenciales inválidas. Verifica tu correo y contraseña.',
+        'auth/too-many-requests': 'Demasiados intentos. Espera un momento e intenta de nuevo.',
+        'auth/network-request-failed': 'Error de red. Verifica tu conexión a internet.',
+      };
+      setLoginError(errorMessages[error.code] || 'Error al iniciar sesión. Intenta de nuevo.');
     }
     setIsAuthenticating(false);
   };
