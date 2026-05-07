@@ -52,7 +52,7 @@ import {
 
 import { initializeApp } from 'firebase/app';
 import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken, signOut, signInWithEmailAndPassword } from 'firebase/auth';
-import { getFirestore, doc, setDoc, onSnapshot } from 'firebase/firestore';
+import { getFirestore, doc, setDoc, onSnapshot, collection, updateDoc, deleteDoc, writeBatch, getDocs, getDoc } from 'firebase/firestore';
 
 const apiKey = ""; // API Key para Gemini (configura tu clave aquí si usas IA)
 
@@ -250,31 +250,105 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
-  // 2. Cargar datos de Firestore al iniciar sesión
+  // 2. Cargar datos de Firestore (Opción B: Colecciones separadas)
+  const [globalTasks, setGlobalTasks] = useState([]);
+
   useEffect(() => {
     if (!isAuthenticated || !auth.currentUser) return;
 
-    // Ruta segura estructurada de Firestore
-    const stateRef = doc(db, 'artifacts', appId, 'public', 'data', 'appState', 'main');
-    const unsubscribe = onSnapshot(stateRef, (docSnap) => {
-        if (docSnap.exists()) {
-            const data = docSnap.data();
-            isRemoteUpdate.current = true; // Prevenir ciclo infinito de guardado
-            if (data.pages) setPages(data.pages);
-            if (data.users) setUsers(data.users);
-            if (data.trash) setTrash(data.trash);
-            if (data.googleClientId) setGoogleClientId(data.googleClientId);
-        } else {
-            // Generar documento inicial si está vacío
-            setDoc(stateRef, { pages: INITIAL_PAGES, users: MOCK_USERS, trash: [], googleClientId: '' });
+    // Referencias a colecciones
+    const pagesCol = collection(db, 'artifacts', appId, 'public', 'data', 'pages');
+    const tasksCol = collection(db, 'artifacts', appId, 'public', 'data', 'tasks');
+    const metaDoc = doc(db, 'artifacts', appId, 'public', 'data', 'meta', 'info');
+
+    // Función de Migración (Solo corre si la colección pages está vacía pero existe el doc antiguo)
+    const runMigrationIfNeeded = async () => {
+      try {
+        const pSnap = await getDocs(pagesCol);
+        if (pSnap.empty) {
+          const oldDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'appState', 'main');
+          const oldDocSnap = await getDoc(oldDocRef);
+          if (oldDocSnap.exists() && oldDocSnap.data().pages) {
+            console.log("Migrando datos de un solo documento a colecciones...");
+            const batch = writeBatch(db);
+            const data = oldDocSnap.data();
+            
+            // Migrar páginas
+            data.pages.forEach(p => {
+              const pRef = doc(pagesCol, p.id);
+              const pCopy = { ...p };
+              delete pCopy.tasks; // No guardamos tareas dentro del documento del proyecto
+              batch.set(pRef, pCopy);
+              
+              // Migrar tareas del proyecto
+              if (p.tasks && p.tasks.length > 0) {
+                p.tasks.forEach(t => {
+                  const tRef = doc(tasksCol, t.id);
+                  batch.set(tRef, { ...t, projectId: p.id });
+                });
+              }
+            });
+
+            // Migrar meta info
+            batch.set(metaDoc, { 
+              users: data.users || MOCK_USERS, 
+              trash: data.trash || [],
+              googleClientId: data.googleClientId || ''
+            });
+
+            await batch.commit();
+            console.log("Migración exitosa.");
+          } else {
+            // Inicialización limpia
+            const batch = writeBatch(db);
+            INITIAL_PAGES.forEach(p => {
+              const pRef = doc(pagesCol, p.id);
+              const pCopy = { ...p };
+              delete pCopy.tasks;
+              batch.set(pRef, pCopy);
+              if (p.tasks) {
+                p.tasks.forEach(t => {
+                  batch.set(doc(tasksCol, t.id), { ...t, projectId: p.id });
+                });
+              }
+            });
+            batch.set(metaDoc, { users: MOCK_USERS, trash: [], googleClientId: '' });
+            await batch.commit();
+          }
         }
-        setIsCloudSynced(true);
-    }, (error) => {
-        console.error("Error sincronizando con Firebase:", error);
+      } catch (e) { console.error("Error en migración/inicialización:", e); }
+    };
+
+    runMigrationIfNeeded().then(() => {
+      // 1. Escuchar Páginas
+      const unsubPages = onSnapshot(pagesCol, snap => {
+        const pData = snap.docs.map(d => d.data());
+        setPages(pData);
+      });
+      // 2. Escuchar Tareas
+      const unsubTasks = onSnapshot(tasksCol, snap => {
+        const tData = snap.docs.map(d => d.data());
+        setGlobalTasks(tData);
+      });
+      // 3. Escuchar Meta (Users, Trash, Settings)
+      const unsubMeta = onSnapshot(metaDoc, snap => {
+        if (snap.exists()) {
+          const data = snap.data();
+          if (data.users) setUsers(data.users);
+          if (data.trash) setTrash(data.trash);
+          if (data.googleClientId) setGoogleClientId(data.googleClientId);
+        }
+      });
+
+      setIsCloudSynced(true);
+
+      // Guardamos referencias para desmontar si es necesario (useEffect cleanup no puede manejar promesas de forma limpia aquí)
+      window.__unsubFirestore = () => { unsubPages(); unsubTasks(); unsubMeta(); };
     });
 
-    return () => unsubscribe();
+    return () => { if (window.__unsubFirestore) window.__unsubFirestore(); };
   }, [isAuthenticated]);
+
 
   // (El useEffect de auto-guardado con debounce ha sido eliminado para la Opción A - Sincronización explícita)  // Determinar página activa
   let activePage;
@@ -288,6 +362,9 @@ export default function App() {
     activePage = { id: 'trash', title: 'Papelera', icon: 'trash', type: 'trash' };
   } else {
     activePage = pages.find(p => p.id === activePageId) || { id: 'empty', title: 'Sin páginas', type: 'empty' };
+    if (activePage.type === 'project') {
+      activePage = { ...activePage, tasks: globalTasks.filter(t => t.projectId === activePage.id) };
+    }
   }
     
   const contentRef = useRef(null);
@@ -299,24 +376,28 @@ export default function App() {
     }
   }, [activePage?.content, activePageId]);
 
-  const addPage = () => {
+  const addPage = async () => {
     const newPage = { id: Date.now().toString(), title: 'Nueva página', content: '', icon: 'file-text', type: 'doc' };
-    const newPages = [...pages, newPage];
-    setPages(newPages);
+    setPages([...pages, newPage]);
     setActivePageId(newPage.id);
-    forceCloudSync(newPages, null, null, false);
+    try {
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'pages', newPage.id), newPage);
+      showToast('Guardado', 'success');
+    } catch (e) { showToast('Error', 'error'); }
   };
 
-  const addProject = () => {
-    const newProject = { id: Date.now().toString(), title: 'Nuevo Proyecto', content: '', icon: 'project', type: 'project', leadId: '', columns: [...DEFAULT_COLUMNS], tasks: [] };
-    const newPages = [...pages, newProject];
-    setPages(newPages);
+  const addProject = async () => {
+    const newProject = { id: Date.now().toString(), title: 'Nuevo Proyecto', content: '', icon: 'project', type: 'project', leadId: '', columns: [...DEFAULT_COLUMNS] };
+    setPages([...pages, newProject]);
     setActivePageId(newProject.id);
-    forceCloudSync(newPages, null, null, false);
+    try {
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'pages', newProject.id), newProject);
+      showToast('Guardado', 'success');
+    } catch (e) { showToast('Error', 'error'); }
   };
 
   // --- Lógica de Columnas ---
-  const handleAddColumn = () => {
+  const handleAddColumn = async () => {
     if (!newColumnName.trim() || activePage.type !== 'project') return;
     const newCol = { id: `col-${Date.now()}`, title: newColumnName.trim(), color: 'gray' };
     const updatedColumns = [...(activePage.columns || DEFAULT_COLUMNS), newCol];
@@ -324,11 +405,20 @@ export default function App() {
     setNewColumnName('');
   };
 
-  const handleDeleteColumn = (colId) => {
+  const handleDeleteColumn = async (colId) => {
     if (activePage.type !== 'project') return;
     const updatedColumns = (activePage.columns || []).filter(c => c.id !== colId);
-    const updatedTasks = (activePage.tasks || []).filter(t => t.status !== colId);
-    updateActivePage({ columns: updatedColumns, tasks: updatedTasks });
+    updateActivePage({ columns: updatedColumns });
+    
+    // Tareas que estaban en la columna se borran
+    const tasksToDelete = globalTasks.filter(t => t.projectId === activePageId && t.status === colId);
+    if (tasksToDelete.length > 0) {
+      const batch = writeBatch(db);
+      tasksToDelete.forEach(t => {
+        batch.delete(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', t.id));
+      });
+      await batch.commit();
+    }
   };
 
   const cycleColumnColor = (colId) => {
@@ -375,12 +465,14 @@ export default function App() {
     setEditingTaskContent(task.content);
   };
 
-  const saveTaskContent = () => {
+  const saveTaskContent = async () => {
     if (editingTaskId && editingTaskContent.trim()) {
-      const updatedTasks = (activePage.tasks || []).map(t =>
+      setGlobalTasks(globalTasks.map(t =>
         t.id === editingTaskId ? { ...t, content: editingTaskContent.trim() } : t
-      );
-      updateActivePage({ tasks: updatedTasks });
+      ));
+      try {
+        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', editingTaskId), { content: editingTaskContent.trim() });
+      } catch (e) { showToast('Error al guardar', 'error'); }
     }
     setEditingTaskId(null);
   };
@@ -452,28 +544,26 @@ export default function App() {
     });
   };
 
-  const saveDrawerTask = () => {
+  const saveDrawerTask = async () => {
     if (!drawerTask || !drawerTask.content.trim()) return;
-    setPages(prevPages => prevPages.map(page => {
-      if (page.type === 'project' && page.tasks?.some(t => t.id === drawerTask.id) && page.id !== drawerTask.projectId) {
-        return { ...page, tasks: page.tasks.filter(t => t.id !== drawerTask.id) };
-      }
-      if (page.id === drawerTask.projectId) {
-        const existingTaskIndex = (page.tasks || []).findIndex(t => t.id === drawerTask.id);
-        const newTasks = [...(page.tasks || [])];
-        if (existingTaskIndex >= 0) {
-          newTasks[existingTaskIndex] = drawerTask;
-        } else {
-          newTasks.push(drawerTask);
-        }
-        return { ...page, tasks: newTasks };
-      }
-      return page;
-    }));
+    const isNew = !globalTasks.some(t => t.id === drawerTask.id);
+    
+    // Optimistic Update
+    if (isNew) {
+      setGlobalTasks([...globalTasks, drawerTask]);
+    } else {
+      setGlobalTasks(globalTasks.map(t => t.id === drawerTask.id ? drawerTask : t));
+    }
+    
     setDrawerTask(null);
+
+    try {
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', drawerTask.id), drawerTask);
+      showToast('Tarea guardada', 'success');
+    } catch (e) { showToast('Error', 'error'); }
   };
 
-  const convertEventToTask = (event) => {
+  const convertEventToTask = async (event) => {
     const projects = pages.filter(p => p.type === 'project');
     if (projects.length === 0) {
       alert("Crea un proyecto primero para poder convertir el evento en tarea.");
@@ -491,25 +581,27 @@ export default function App() {
       notes: []
     };
     
-    setPages(prevPages => prevPages.map(p => {
-      if(p.id === targetProject.id) {
-        return { ...p, tasks: [...(p.tasks || []), newTask] };
-      }
-      return p;
-    }));
-    alert(`¡Evento convertido! Tarea añadida al proyecto: "${targetProject.title}"`);
+    setGlobalTasks([...globalTasks, newTask]);
+    
+    try {
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', newTask.id), newTask);
+      alert(`¡Evento convertido! Tarea añadida al proyecto: "${targetProject.title}"`);
+    } catch (e) { showToast('Error al guardar', 'error'); }
   };
 
-  const handleUpdateTaskStatus = (taskId, newStatus) => {
-    const updatedTasks = (activePage.tasks || []).map(t => 
-      t.id === taskId ? { ...t, status: newStatus } : t
-    );
-    updateActivePage({ tasks: updatedTasks });
+  const handleUpdateTaskStatus = async (taskId, newStatus) => {
+    setGlobalTasks(globalTasks.map(t => t.id === taskId ? { ...t, status: newStatus } : t));
+    try {
+      await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', taskId), { status: newStatus });
+    } catch (e) { showToast('Error', 'error'); }
   };
 
-  const handleDeleteTask = (taskId) => {
-    const updatedTasks = (activePage.tasks || []).filter(t => t.id !== taskId);
-    updateActivePage({ tasks: updatedTasks });
+  const handleDeleteTask = async (taskId) => {
+    setGlobalTasks(globalTasks.filter(t => t.id !== taskId));
+    try {
+      await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', taskId));
+      showToast('Tarea eliminada', 'success');
+    } catch (e) { showToast('Error', 'error'); }
   };
 
   const handleDeleteTaskFromDrawer = () => {
@@ -564,51 +656,29 @@ export default function App() {
 
   // --- Lógica del Sistema Base ---
   
-  // Guardado Forzado Inmediato (salta el debounce para acciones críticas como borrar o crear)
-  const forceCloudSync = async (latestPages, latestTrash, latestUsers, silent = false) => {
-    if (latestPages === INITIAL_PAGES) return; // Guardia de seguridad
-    try {
-      if (!silent) setIsSaving(true);
-      const stateRef = doc(db, 'artifacts', appId, 'public', 'data', 'appState', 'main');
-      await setDoc(stateRef, { 
-        pages: latestPages || pages, 
-        users: latestUsers || users, 
-        trash: latestTrash || trash, 
-        googleClientId 
-      }, { merge: true });
-      if (!silent) {
-        setIsSaving(false);
-        showToast('Guardado', 'success');
-      }
-    } catch (e) {
-      console.error("Error en sincronización forzada:", e);
-      if (!silent) {
-        setIsSaving(false);
-        showToast('Error al guardar', 'error');
-      }
-    }
-  };
-
-  const deletePage = (id, e) => {
+  const deletePage = async (id, e) => {
     if (e) e.stopPropagation();
     const pageToDelete = pages.find(p => p.id === id);
     if (!pageToDelete) return;
     
     const newTrash = [...trash, pageToDelete];
     setTrash(newTrash);
-    
-    const newPages = pages.filter(p => p.id !== id);
-    setPages(newPages);
+    setPages(pages.filter(p => p.id !== id));
     
     if (activePageId === id) {
-      setActivePageId(newPages.length > 0 ? newPages[0].id : 'trash');
+      setActivePageId(pages.filter(p => p.id !== id).length > 0 ? pages.filter(p => p.id !== id)[0].id : 'trash');
     }
     
-    // Guardamos forzosamente para que no se pierda si el usuario da F5 inmediatamente
-    forceCloudSync(newPages, newTrash);
+    try {
+      const batch = writeBatch(db);
+      batch.delete(doc(db, 'artifacts', appId, 'public', 'data', 'pages', id));
+      batch.update(doc(db, 'artifacts', appId, 'public', 'data', 'meta', 'info'), { trash: newTrash });
+      await batch.commit();
+      showToast('Enviado a papelera', 'success');
+    } catch (e) { showToast('Error', 'error'); }
   };
 
-  const restorePage = (id) => {
+  const restorePage = async (id) => {
     const pageToRestore = trash.find(p => p.id === id);
     if (!pageToRestore) return;
     const newPages = [...pages, pageToRestore];
@@ -616,19 +686,34 @@ export default function App() {
     setPages(newPages);
     setTrash(newTrash);
     setActivePageId(id);
-    forceCloudSync(newPages, newTrash);
+    
+    try {
+      const batch = writeBatch(db);
+      batch.set(doc(db, 'artifacts', appId, 'public', 'data', 'pages', id), pageToRestore);
+      batch.update(doc(db, 'artifacts', appId, 'public', 'data', 'meta', 'info'), { trash: newTrash });
+      await batch.commit();
+      showToast('Restaurado', 'success');
+    } catch (e) { showToast('Error', 'error'); }
   };
 
-  const permanentlyDeletePage = (id) => {
+  const permanentlyDeletePage = async (id) => {
     const newTrash = trash.filter(p => p.id !== id);
     setTrash(newTrash);
-    forceCloudSync(null, newTrash);
+    try {
+      await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'meta', 'info'), { trash: newTrash });
+      showToast('Eliminado', 'success');
+    } catch (e) { showToast('Error', 'error'); }
   };
   
-  const updateActivePage = (updates, silent = true) => {
-    const newPages = pages.map(p => p.id === activePageId ? { ...p, ...updates } : p);
-    setPages(newPages);
-    forceCloudSync(newPages, null, null, silent);
+  const updateActivePage = async (updates, silent = true) => {
+    setPages(pages.map(p => p.id === activePageId ? { ...p, ...updates } : p));
+    try {
+      if (!silent) setIsSaving(true);
+      await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'pages', activePageId), updates);
+      if (!silent) { setIsSaving(false); showToast('Guardado', 'success'); }
+    } catch (e) { 
+      if (!silent) { setIsSaving(false); showToast('Error', 'error'); }
+    }
   };
 
   // --- FUNCIONES REALES DE GOOGLE CALENDAR & MEET ---
@@ -751,7 +836,7 @@ export default function App() {
 
   const exportToCSV = () => {
     const pList = pages.filter(p => p.type === 'project');
-    let tasksToExport = pList.flatMap(p => p.tasks || []);
+    let tasksToExport = globalTasks;
     
     if (reportFilters.projectId !== 'all') tasksToExport = tasksToExport.filter(t => t.projectId === reportFilters.projectId);
     if (reportFilters.status !== 'all') tasksToExport = tasksToExport.filter(t => t.status === reportFilters.status);
@@ -824,7 +909,7 @@ export default function App() {
     setIsGeneratingReport(true);
     const projectData = projectsList.map(p => ({
       title: p.title,
-      tasks: (p.tasks || []).map(t => `[${t.status}] ${t.content}`).join(', ')
+      tasks: globalTasks.filter(t => t.projectId === p.id).map(t => `[${t.status}] ${t.content}`).join(', ')
     }));
     const prompt = `Actúa como un Director de Operaciones de una agencia de diseño y desarrollo web. Analiza el siguiente estado de los proyectos y tareas del equipo: ${JSON.stringify(projectData)}. Escribe un resumen ejecutivo y motivacional de máximo 3 párrafos en español destacando: 1. El progreso general. 2. Posibles riesgos o cuellos de botella. 3. Una recomendación clave para el equipo.`;
     const result = await callGeminiAPI(prompt);
@@ -852,7 +937,7 @@ export default function App() {
   };
 
   const projectsList = pages.filter(p => p.type === 'project');
-  const allTasksGlobal = projectsList.flatMap(p => p.tasks || []);
+  const allTasksGlobal = globalTasks;
 
   const currentGlassPanel = isDarkMode ? glassPanelDark : glassPanelLight;
 
@@ -1454,11 +1539,12 @@ export default function App() {
                                     value={editingTaskContent}
                                     onChange={(e) => {
                                       setEditingTaskContent(e.target.value);
-                                      // Actualización en tiempo real para forzar sincronización
-                                      const updatedTasks = (activePage.tasks || []).map(t =>
+                                      // Actualización en tiempo real para UI
+                                      setGlobalTasks(globalTasks.map(t =>
                                         t.id === task.id ? { ...t, content: e.target.value } : t
-                                      );
-                                      updateActivePage({ tasks: updatedTasks });
+                                      ));
+                                      // Guardado síncrono en Firebase (sin await para no bloquear UI)
+                                      updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', task.id), { content: e.target.value }).catch(() => {});
                                     }}
                                     onBlur={() => setEditingTaskId(null)}
                                     onKeyDown={(e) => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); setEditingTaskId(null); } }}
@@ -1707,10 +1793,10 @@ export default function App() {
             <div className={`flex items-center justify-between px-6 py-4 border-b shrink-0 ${isDarkMode ? 'border-white/10' : 'border-black/5'}`}>
               <div className="flex items-center gap-3">
                 <div className={`p-2 rounded-xl shadow-inner ${isDarkMode ? 'bg-white/10 text-white border border-white/10' : 'bg-blue-100 text-blue-600 border border-white/50'}`}><Briefcase size={18} /></div>
-                <h2 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{drawerTask.id && pages.some(p => p.tasks?.some(t => t.id === drawerTask.id)) ? 'Detalles de Tarea' : 'Crear Tarea'}</h2>
+                <h2 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{drawerTask.id && globalTasks.some(t => t.id === drawerTask.id) ? 'Detalles de Tarea' : 'Crear Tarea'}</h2>
               </div>
               <div className="flex items-center gap-1">
-                {drawerTask.id && pages.some(p => p.tasks?.some(t => t.id === drawerTask.id)) && (
+                {drawerTask.id && globalTasks.some(t => t.id === drawerTask.id) && (
                   <button onClick={handleDeleteTaskFromDrawer} className={`p-2 rounded-lg transition-all shadow-sm ${isDarkMode ? 'bg-red-500/10 hover:bg-red-500/30 text-red-400 border border-red-500/20' : 'bg-red-50 hover:bg-red-100 text-red-500 border border-red-100'}`} title="Eliminar tarea">
                     <Trash2 size={16} />
                   </button>
