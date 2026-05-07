@@ -320,14 +320,14 @@ export default function App() {
     };
 
     runMigrationIfNeeded().then(() => {
-      // 1. Escuchar Páginas
+      // 1. Escuchar Páginas (spread con doc.id para garantizar ID)
       const unsubPages = onSnapshot(pagesCol, snap => {
-        const pData = snap.docs.map(d => d.data());
+        const pData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         setPages(pData);
       });
-      // 2. Escuchar Tareas
+      // 2. Escuchar Tareas (spread con doc.id)
       const unsubTasks = onSnapshot(tasksCol, snap => {
-        const tData = snap.docs.map(d => d.data());
+        const tData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         setGlobalTasks(tData);
       });
       // 3. Escuchar Meta (Users, Trash, Settings)
@@ -336,13 +336,12 @@ export default function App() {
           const data = snap.data();
           if (data.users) setUsers(data.users);
           if (data.trash) setTrash(data.trash);
-          if (data.googleClientId) setGoogleClientId(data.googleClientId);
+          if (data.googleClientId !== undefined) setGoogleClientId(data.googleClientId);
         }
       });
 
       setIsCloudSynced(true);
 
-      // Guardamos referencias para desmontar si es necesario (useEffect cleanup no puede manejar promesas de forma limpia aquí)
       window.__unsubFirestore = () => { unsubPages(); unsubTasks(); unsubMeta(); };
     });
 
@@ -471,8 +470,8 @@ export default function App() {
         t.id === editingTaskId ? { ...t, content: editingTaskContent.trim() } : t
       ));
       try {
-        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', editingTaskId), { content: editingTaskContent.trim() });
-      } catch (e) { showToast('Error al guardar', 'error'); }
+        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', editingTaskId), { content: editingTaskContent.trim() }, { merge: true });
+      } catch (e) { console.error('Error saveTaskContent:', e); showToast('Error al guardar', 'error'); }
     }
     setEditingTaskId(null);
   };
@@ -592,8 +591,8 @@ export default function App() {
   const handleUpdateTaskStatus = async (taskId, newStatus) => {
     setGlobalTasks(globalTasks.map(t => t.id === taskId ? { ...t, status: newStatus } : t));
     try {
-      await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', taskId), { status: newStatus });
-    } catch (e) { showToast('Error', 'error'); }
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', taskId), { status: newStatus }, { merge: true });
+    } catch (e) { console.error('Error updateTaskStatus:', e); showToast('Error', 'error'); }
   };
 
   const handleDeleteTask = async (taskId) => {
@@ -623,24 +622,34 @@ export default function App() {
     });
   };
 
-  const saveDrawerUser = () => {
+  const saveDrawerUser = async () => {
     if (!drawerUser || !drawerUser.name.trim()) return;
     const initials = drawerUser.name.trim().split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase() || 'U';
     const userToSave = { ...drawerUser, initials, name: drawerUser.name.trim() };
     
+    let newUsers;
     if (drawerUser.isNew) {
       delete userToSave.isNew;
-      setUsers([...users, userToSave]);
+      newUsers = [...users, userToSave];
     } else {
-      setUsers(users.map(u => u.id === userToSave.id ? userToSave : u));
+      newUsers = users.map(u => u.id === userToSave.id ? userToSave : u);
     }
+    setUsers(newUsers);
     setDrawerUser(null);
+    try {
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'meta', 'info'), { users: newUsers }, { merge: true });
+      showToast('Usuario guardado', 'success');
+    } catch (e) { console.error('Error saveDrawerUser:', e); showToast('Error', 'error'); }
   };
 
-  const deleteUser = (id, e) => {
+  const deleteUser = async (id, e) => {
     if (e) e.stopPropagation();
-    setUsers(users.filter(u => u.id !== id));
+    const newUsers = users.filter(u => u.id !== id);
+    setUsers(newUsers);
     if (drawerUser && drawerUser.id === id) setDrawerUser(null);
+    try {
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'meta', 'info'), { users: newUsers }, { merge: true });
+    } catch (e) { console.error('Error deleteUser:', e); }
   };
 
   const addQuickNote = () => {
@@ -672,10 +681,10 @@ export default function App() {
     try {
       const batch = writeBatch(db);
       batch.delete(doc(db, 'artifacts', appId, 'public', 'data', 'pages', id));
-      batch.update(doc(db, 'artifacts', appId, 'public', 'data', 'meta', 'info'), { trash: newTrash });
+      batch.set(doc(db, 'artifacts', appId, 'public', 'data', 'meta', 'info'), { trash: newTrash }, { merge: true });
       await batch.commit();
       showToast('Enviado a papelera', 'success');
-    } catch (e) { showToast('Error', 'error'); }
+    } catch (e) { console.error('Error deletePage:', e); showToast('Error', 'error'); }
   };
 
   const restorePage = async (id) => {
@@ -690,29 +699,32 @@ export default function App() {
     try {
       const batch = writeBatch(db);
       batch.set(doc(db, 'artifacts', appId, 'public', 'data', 'pages', id), pageToRestore);
-      batch.update(doc(db, 'artifacts', appId, 'public', 'data', 'meta', 'info'), { trash: newTrash });
+      batch.set(doc(db, 'artifacts', appId, 'public', 'data', 'meta', 'info'), { trash: newTrash }, { merge: true });
       await batch.commit();
       showToast('Restaurado', 'success');
-    } catch (e) { showToast('Error', 'error'); }
+    } catch (e) { console.error('Error restorePage:', e); showToast('Error', 'error'); }
   };
 
   const permanentlyDeletePage = async (id) => {
     const newTrash = trash.filter(p => p.id !== id);
     setTrash(newTrash);
     try {
-      await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'meta', 'info'), { trash: newTrash });
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'meta', 'info'), { trash: newTrash }, { merge: true });
       showToast('Eliminado', 'success');
-    } catch (e) { showToast('Error', 'error'); }
+    } catch (e) { console.error('Error permanentlyDelete:', e); showToast('Error', 'error'); }
   };
   
   const updateActivePage = async (updates, silent = true) => {
     setPages(pages.map(p => p.id === activePageId ? { ...p, ...updates } : p));
     try {
       if (!silent) setIsSaving(true);
-      await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'pages', activePageId), updates);
+      // Usamos setDoc con merge para que funcione incluso si el doc no existe aún
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'pages', activePageId), updates, { merge: true });
       if (!silent) { setIsSaving(false); showToast('Guardado', 'success'); }
     } catch (e) { 
-      if (!silent) { setIsSaving(false); showToast('Error', 'error'); }
+      console.error('Error updateActivePage:', e);
+      setIsSaving(false);
+      showToast('Error al guardar', 'error');
     }
   };
 
@@ -1254,7 +1266,7 @@ export default function App() {
                   
                   <div className="space-y-5">
                     {projectsList.length > 0 ? projectsList.map(project => {
-                      const pTasks = project.tasks || [];
+                      const pTasks = globalTasks.filter(t => t.projectId === project.id);
                       const pDone = pTasks.filter(t => t.status === 'done').length;
                       const pTotal = pTasks.length;
                       const progressPercent = pTotal > 0 ? Math.round((pDone / pTotal) * 100) : 0;
@@ -1544,7 +1556,7 @@ export default function App() {
                                         t.id === task.id ? { ...t, content: e.target.value } : t
                                       ));
                                       // Guardado síncrono en Firebase (sin await para no bloquear UI)
-                                      updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', task.id), { content: e.target.value }).catch(() => {});
+                                      setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', task.id), { content: e.target.value }, { merge: true }).catch((err) => console.error('inline save err:', err));
                                     }}
                                     onBlur={() => setEditingTaskId(null)}
                                     onKeyDown={(e) => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); setEditingTaskId(null); } }}
@@ -2095,7 +2107,7 @@ export default function App() {
             </div>
             
             <div className={`px-6 py-4 border-t flex justify-end shrink-0 ${isDarkMode ? 'border-white/10 bg-black/20 backdrop-blur-md' : 'border-black/5 bg-white/40 backdrop-blur-md'}`}>
-              <button onClick={() => setIsSettingsOpen(false)} className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-transform shadow-sm hover:scale-105 ${isDarkMode ? 'bg-blue-600 text-white shadow-blue-900/50' : 'bg-blue-600 text-white hover:bg-blue-700'}`}><Save size={16} /> Listo</button>
+              <button onClick={async () => { setIsSettingsOpen(false); try { await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'meta', 'info'), { googleClientId }, { merge: true }); showToast('Configuración guardada', 'success'); } catch(e) { console.error('Error settings:', e); showToast('Error', 'error'); } }} className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-transform shadow-sm hover:scale-105 ${isDarkMode ? 'bg-blue-600 text-white shadow-blue-900/50' : 'bg-blue-600 text-white hover:bg-blue-700'}`}><Save size={16} /> Listo</button>
             </div>
           </>
         )}
