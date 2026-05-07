@@ -953,78 +953,78 @@ export default function App() {
       <div className={`absolute bottom-[-10%] left-[20%] w-[40rem] h-[40rem] rounded-full mix-blend-screen filter blur-[120px] opacity-30 pointer-events-none -z-10 ${isDarkMode ? 'bg-emerald-900' : 'bg-emerald-300'}`}></div>
 
       {/* Sidebar Overlay on Mobile */}
-      {isSidebarOpen && <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 md:hidden" onClick={() => setIsSidebarOpen(false)} />}
+      {isSidebarOpen && <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 md:hidden transition-opacity duration-300" onClick={() => setIsSidebarOpen(false)} />}
       
       {/* Sidebar */}
-      <div className={`flex flex-col border-r transition-all duration-300 z-50 backdrop-blur-3xl absolute md:relative h-full ${isSidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0 w-0 hidden md:flex md:w-16'} ${isDarkMode ? 'bg-[#121212]/90 border-white/5' : 'bg-white/90 border-white/40'}`}>
+      <div className={`flex flex-col border-r transition-all duration-300 z-50 backdrop-blur-3xl absolute md:relative h-full ${isSidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0 w-0 hidden md:flex md:w-16'} ${isDarkMode ? 'bg-[#0f0f11]/95 border-white/5' : 'bg-[#f8f9fa]/95 border-black/5'}`}>
         
         {/* Main Navigation Area */}
-        <div className="pt-4 pb-3 px-3 border-b border-white/5 space-y-1">
+        <div className="pt-5 pb-4 px-3 border-b border-white/5 space-y-1">
           <button 
-            onClick={() => setActivePageId('dashboard')} 
-            className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${activePageId === 'dashboard' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-white/60 text-gray-900 shadow-sm') : (isDarkMode ? 'text-gray-400 hover:bg-white/5 hover:text-gray-200' : 'text-gray-600 hover:bg-white/50')}`}
+            onClick={() => { setActivePageId('dashboard'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
+            className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all tracking-wide ${activePageId === 'dashboard' ? (isDarkMode ? 'bg-white/10 text-white font-medium' : 'bg-black/5 text-gray-900 font-medium') : (isDarkMode ? 'text-gray-400 hover:bg-white/5 hover:text-white font-light' : 'text-gray-500 hover:bg-black/5 hover:text-gray-900 font-light')}`}
           >
-            <LayoutDashboard size={16} className={isDarkMode ? 'text-blue-400' : 'text-blue-600'} />
+            <LayoutDashboard size={18} className={activePageId === 'dashboard' ? (isDarkMode ? 'text-blue-400' : 'text-blue-600') : ''} />
             {isSidebarOpen && <span>Mi Espacio</span>}
           </button>
           
           <button 
-            onClick={() => setActivePageId('calendar')} 
-            className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${activePageId === 'calendar' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-white/60 text-gray-900 shadow-sm') : (isDarkMode ? 'text-gray-400 hover:bg-white/5 hover:text-gray-200' : 'text-gray-600 hover:bg-white/50')}`}
+            onClick={() => { setActivePageId('calendar'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
+            className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all tracking-wide ${activePageId === 'calendar' ? (isDarkMode ? 'bg-white/10 text-white font-medium' : 'bg-black/5 text-gray-900 font-medium') : (isDarkMode ? 'text-gray-400 hover:bg-white/5 hover:text-white font-light' : 'text-gray-500 hover:bg-black/5 hover:text-gray-900 font-light')}`}
           >
-            <CalendarDays size={16} className={isDarkMode ? 'text-purple-400' : 'text-purple-600'} />
+            <CalendarDays size={18} className={activePageId === 'calendar' ? (isDarkMode ? 'text-purple-400' : 'text-purple-600') : ''} />
             {isSidebarOpen && <span>Calendario</span>}
           </button>
 
           <button 
-            onClick={() => setActivePageId('team')} 
-            className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${activePageId === 'team' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-white/60 text-gray-900 shadow-sm') : (isDarkMode ? 'text-gray-400 hover:bg-white/5 hover:text-gray-200' : 'text-gray-600 hover:bg-white/50')}`}
+            onClick={() => { setActivePageId('team'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
+            className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all tracking-wide ${activePageId === 'team' ? (isDarkMode ? 'bg-white/10 text-white font-medium' : 'bg-black/5 text-gray-900 font-medium') : (isDarkMode ? 'text-gray-400 hover:bg-white/5 hover:text-white font-light' : 'text-gray-500 hover:bg-black/5 hover:text-gray-900 font-light')}`}
           >
-            <Users size={16} className={isDarkMode ? 'text-emerald-400' : 'text-emerald-600'} />
+            <Users size={18} className={activePageId === 'team' ? (isDarkMode ? 'text-emerald-400' : 'text-emerald-600') : ''} />
             {isSidebarOpen && <span>Equipo</span>}
           </button>
         </div>
 
         {/* Quick Actions */}
         <div className="px-3 pb-3 mb-1 border-b border-white/5 space-y-1 mt-3">
-          <button onClick={addPage} className={`flex items-center gap-3 w-full px-3 py-1.5 text-sm rounded-xl transition-colors font-medium ${isDarkMode ? 'text-gray-400 hover:bg-white/5 hover:text-gray-200' : 'text-gray-600 hover:bg-white/50 hover:text-gray-900'}`}>
+          <button onClick={() => { addPage(); if(window.innerWidth < 768) setIsSidebarOpen(false); }} className={`flex items-center gap-3 w-full px-3 py-2 text-xs rounded-xl transition-colors tracking-wide font-light ${isDarkMode ? 'text-gray-400 hover:bg-white/5 hover:text-white' : 'text-gray-500 hover:bg-black/5 hover:text-gray-900'}`}>
             <Plus size={16} />{isSidebarOpen && <span>Nueva página</span>}
           </button>
-          <button onClick={addProject} className={`flex items-center gap-3 w-full px-3 py-1.5 text-sm rounded-xl transition-colors font-medium ${isDarkMode ? 'text-gray-400 hover:bg-white/5 hover:text-gray-200' : 'text-gray-600 hover:bg-white/50 hover:text-gray-900'}`}>
+          <button onClick={() => { addProject(); if(window.innerWidth < 768) setIsSidebarOpen(false); }} className={`flex items-center gap-3 w-full px-3 py-2 text-xs rounded-xl transition-colors tracking-wide font-light ${isDarkMode ? 'text-gray-400 hover:bg-white/5 hover:text-white' : 'text-gray-500 hover:bg-black/5 hover:text-gray-900'}`}>
             <Briefcase size={16} />{isSidebarOpen && <span>Nuevo proyecto</span>}
           </button>
-          <button onClick={() => openNewTaskDrawer('todo')} className={`flex items-center gap-3 w-full px-3 py-1.5 text-sm rounded-xl transition-colors font-medium ${isDarkMode ? 'text-blue-400 hover:bg-white/5' : 'text-blue-600 hover:bg-white/50'}`}>
+          <button onClick={() => { openNewTaskDrawer('todo'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} className={`flex items-center gap-3 w-full px-3 py-2 text-xs rounded-xl transition-colors tracking-wide font-medium ${isDarkMode ? 'text-blue-400 hover:bg-blue-500/10' : 'text-blue-600 hover:bg-blue-50'}`}>
             <CheckSquare size={16} />{isSidebarOpen && <span>Nueva tarea</span>}
           </button>
         </div>
 
         {/* Pages List */}
         <div className="flex-1 overflow-y-auto px-3 space-y-0.5 custom-scrollbar">
-          {isSidebarOpen && <div className={`text-[11px] font-semibold uppercase tracking-wider px-3 py-2 mt-1 mb-1 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>Proyectos y Docs</div>}
+          {isSidebarOpen && <div className={`text-[9px] font-bold uppercase tracking-[0.2em] px-3 py-3 mt-1 mb-1 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>Proyectos y Docs</div>}
           {pages.map(page => (
-            <div key={page.id} onClick={() => setActivePageId(page.id)} className={`group flex items-center justify-between px-3 py-1.5 rounded-xl cursor-pointer text-sm transition-all ${activePageId === page.id ? (isDarkMode ? 'bg-white/10 font-medium text-white shadow-sm' : 'bg-white/60 font-medium text-gray-900 shadow-sm') : (isDarkMode ? 'hover:bg-white/5 text-gray-400 hover:text-gray-200' : 'hover:bg-white/40 text-gray-600')}`}>
+            <div key={page.id} onClick={() => { setActivePageId(page.id); if(window.innerWidth < 768) setIsSidebarOpen(false); }} className={`group flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer text-xs tracking-wide transition-all ${activePageId === page.id ? (isDarkMode ? 'bg-white/10 font-medium text-white' : 'bg-black/5 font-medium text-gray-900') : (isDarkMode ? 'hover:bg-white/5 text-gray-400 hover:text-white font-light' : 'hover:bg-black/5 text-gray-500 hover:text-gray-900 font-light')}`}>
               <div className="flex items-center gap-3 overflow-hidden">
-                <span className={`shrink-0 ${isDarkMode ? 'text-gray-400 group-hover:text-gray-300' : 'text-gray-500 group-hover:text-gray-700'}`}>
+                <span className={`shrink-0 ${activePageId === page.id ? (isDarkMode ? 'text-gray-200' : 'text-gray-700') : (isDarkMode ? 'text-gray-500 group-hover:text-gray-300' : 'text-gray-400 group-hover:text-gray-600')}`}>
                   <IconRenderer name={page.icon} size={14} />
                 </span>
                 {isSidebarOpen && <span className="truncate">{page.title || 'Sin título'}</span>}
               </div>
-              {isSidebarOpen && <button onClick={(e) => deletePage(page.id, e)} className={`opacity-0 group-hover:opacity-100 p-1 rounded-md transition-all ${isDarkMode ? 'hover:bg-white/10 text-gray-400 hover:text-red-400' : 'hover:bg-white/50 text-gray-400 hover:text-red-500'}`}><Trash2 size={14} /></button>}
+              {isSidebarOpen && <button onClick={(e) => { e.stopPropagation(); deletePage(page.id, e); }} className={`opacity-0 group-hover:opacity-100 p-1.5 rounded-lg transition-all ${isDarkMode ? 'hover:bg-white/10 text-gray-500 hover:text-red-400' : 'hover:bg-black/10 text-gray-400 hover:text-red-500'}`}><Trash2 size={12} /></button>}
             </div>
           ))}
         </div>
 
-        <div className={`p-3 border-t ${isDarkMode ? 'border-white/5' : 'border-white/40'}`}>
-          <button onClick={() => setActivePageId('trash')} className={`flex items-center justify-between w-full px-3 py-2 text-sm rounded-xl transition-all ${activePageId === 'trash' ? (isDarkMode ? 'bg-red-500/20 text-red-300 font-medium border border-red-500/20' : 'bg-red-100/60 text-red-700 font-medium border border-red-200/50') : (isDarkMode ? 'text-gray-400 hover:bg-white/5' : 'text-gray-600 hover:bg-white/50')}`}>
+        <div className={`p-3 border-t ${isDarkMode ? 'border-white/5' : 'border-black/5'}`}>
+          <button onClick={() => { setActivePageId('trash'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} className={`flex items-center justify-between w-full px-3 py-2 text-xs rounded-xl tracking-wide transition-all ${activePageId === 'trash' ? (isDarkMode ? 'bg-red-500/10 text-red-400 font-medium' : 'bg-red-50 text-red-600 font-medium') : (isDarkMode ? 'text-gray-400 hover:bg-white/5 font-light' : 'text-gray-500 hover:bg-black/5 font-light')}`}>
             <div className="flex items-center gap-3">
               <Trash2 size={14} className={activePageId === 'trash' ? (isDarkMode ? 'text-red-400' : 'text-red-600') : ''} />
               {isSidebarOpen && <span>Papelera</span>}
             </div>
-            {isSidebarOpen && trash.length > 0 && <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${isDarkMode ? 'bg-white/10 text-gray-300' : 'bg-black/5 text-gray-600'}`}>{trash.length}</span>}
+            {isSidebarOpen && trash.length > 0 && <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold ${isDarkMode ? 'bg-white/10 text-gray-300' : 'bg-black/10 text-gray-600'}`}>{trash.length}</span>}
           </button>
           
           {/* BOTON DE CERRAR SESION */}
-          <button onClick={handleLogout} className={`mt-2 flex items-center gap-3 w-full px-3 py-2 text-sm rounded-xl transition-colors font-medium ${isDarkMode ? 'text-gray-400 hover:bg-white/5 hover:text-gray-200' : 'text-gray-600 hover:bg-white/50 hover:text-gray-900'}`}>
+          <button onClick={() => { handleLogout(); if(window.innerWidth < 768) setIsSidebarOpen(false); }} className={`mt-2 flex items-center gap-3 w-full px-3 py-2 text-xs rounded-xl tracking-wide transition-colors font-light ${isDarkMode ? 'text-gray-400 hover:bg-white/5 hover:text-white' : 'text-gray-500 hover:bg-black/5 hover:text-gray-900'}`}>
             <LogOut size={14} />{isSidebarOpen && <span>Cerrar Sesión</span>}
           </button>
         </div>
@@ -1042,21 +1042,20 @@ export default function App() {
               <span className="truncate max-w-[200px]">{activePage.title || 'Sin título'}</span>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 md:gap-2">
             
             {/* ESTADO DE SINCRONIZACIÓN NUBE */}
-            <div className={`hidden md:flex text-[10px] px-3 py-1.5 rounded-lg font-bold tracking-wider uppercase items-center gap-2 transition-all ${isDarkMode ? 'bg-white/5 text-gray-400' : 'bg-white/60 text-gray-600'}`}>
+            <div className={`hidden md:flex text-[9px] px-2.5 py-1 rounded-md font-bold tracking-[0.1em] uppercase items-center gap-1.5 transition-all ${isDarkMode ? 'bg-white/5 text-gray-400 border border-white/5' : 'bg-black/5 text-gray-500 border border-black/5'}`}>
               {isSaving ? (
-                <><RefreshCw size={12} className="animate-spin text-blue-400" /> Guardando...</>
+                <><RefreshCw size={10} className="animate-spin text-blue-400" /> Guardando</>
               ) : (
-                <><Cloud size={12} className={isDarkMode ? "text-emerald-400" : "text-emerald-600"} /> Sincronizado</>
+                <><Cloud size={10} className={isDarkMode ? "text-emerald-400" : "text-emerald-600"} /> Sincronizado</>
               )}
             </div>
 
-            <button onClick={() => setIsSettingsOpen(true)} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-white/10 text-gray-400' : 'hover:bg-white/60 text-gray-600'}`} title="Ajustes e Integraciones"><Settings size={18} /></button>
-            <button onClick={() => setIsDarkMode(!isDarkMode)} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-white/10 text-gray-300' : 'hover:bg-white/60 text-gray-600'}`} title={isDarkMode ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}>{isDarkMode ? <Sun size={16} /> : <Moon size={16} />}</button>
-            <button className={`text-xs px-3 py-1.5 rounded-lg transition-colors font-medium ${isDarkMode ? 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/5' : 'bg-white/60 text-gray-700 hover:bg-white/80 border border-white/40'}`}>Compartir</button>
-            <button className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-white/10 text-gray-400' : 'hover:bg-white/60 text-gray-600'}`}><MoreHorizontal size={18} /></button>
+            <button onClick={() => setIsSettingsOpen(true)} className={`p-2 rounded-xl transition-colors ${isDarkMode ? 'hover:bg-white/10 text-gray-400' : 'hover:bg-black/5 text-gray-600'}`} title="Ajustes e Integraciones"><Settings size={16} /></button>
+            <button onClick={() => setIsDarkMode(!isDarkMode)} className={`p-2 rounded-xl transition-colors ${isDarkMode ? 'hover:bg-white/10 text-gray-300' : 'hover:bg-black/5 text-gray-600'}`} title={isDarkMode ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}>{isDarkMode ? <Sun size={16} /> : <Moon size={16} />}</button>
+            <button className={`p-2 rounded-xl transition-colors ${isDarkMode ? 'hover:bg-white/10 text-gray-400' : 'hover:bg-black/5 text-gray-600'}`}><MoreHorizontal size={16} /></button>
           </div>
         </div>
 
