@@ -477,18 +477,22 @@ export default function App() {
   };
 
   // --- Lógica de Drag & Drop ---
+  const DRAG_MIME = 'application/x-kanban-payload';
+  
   const handleDragStart = (e, taskId) => {
     e.stopPropagation();
     e.dataTransfer.effectAllowed = 'move';
     const payload = JSON.stringify({ type: 'task', id: taskId });
-    e.dataTransfer.setData('text/plain', payload);
+    e.dataTransfer.setData(DRAG_MIME, payload);
+    e.dataTransfer.setData('text/plain', payload); // Fallback
   };
 
   const handleColumnDragStart = (e, colId) => {
     e.stopPropagation();
     e.dataTransfer.effectAllowed = 'move';
     const payload = JSON.stringify({ type: 'column', id: colId });
-    e.dataTransfer.setData('text/plain', payload);
+    e.dataTransfer.setData(DRAG_MIME, payload);
+    e.dataTransfer.setData('text/plain', payload); // Fallback
   };
 
   const handleDrop = (e, newStatus) => {
@@ -496,8 +500,12 @@ export default function App() {
     e.stopPropagation();
     
     try {
-      const payloadStr = e.dataTransfer.getData('text/plain');
+      // Intentar leer del MIME custom primero, luego fallback a text/plain
+      let payloadStr = e.dataTransfer.getData(DRAG_MIME) || e.dataTransfer.getData('text/plain');
       if (!payloadStr) return;
+      
+      // Validar que sea JSON antes de parsear
+      if (!payloadStr.startsWith('{')) return;
       
       const payload = JSON.parse(payloadStr);
       
