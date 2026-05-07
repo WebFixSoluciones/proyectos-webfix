@@ -870,7 +870,25 @@ export default function App() {
   };
 
   const handleLogout = async () => {
+    try {
+      // Limpiar cachés locales y de sesión
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Limpiar cachés del navegador (Service Workers, etc.) si está disponible
+      if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        await Promise.all(cacheNames.map(name => caches.delete(name)));
+      }
+    } catch (error) {
+      console.error("Error limpiando las cachés:", error);
+    }
+    
+    // Cerrar sesión en Firebase
     await signOut(auth);
+    
+    // Recargar la página para limpiar toda la memoria y estados de React
+    window.location.reload();
   };
 
   // --- PANTALLA DE LOGIN ---
