@@ -276,6 +276,12 @@ export default function App() {
         return;
     }
 
+    // 🛡️ GUARDIA DE SEGURIDAD: Previene que la app sobrescriba los datos en la nube con los datos por defecto iniciales
+    // Esto ocurre a veces al recargar la app por actualizaciones en Vercel o GitHub debido a condiciones de carrera en React.
+    if (pages === INITIAL_PAGES) {
+        return;
+    }
+
     setIsSaving(true);
     // Espera 1.2s después del último cambio para no saturar la base de datos (Debounce)
     const timeoutId = setTimeout(async () => {
