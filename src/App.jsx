@@ -283,7 +283,7 @@ export default function App() {
     }
 
     setIsSaving(true);
-    // Espera 1.2s después del último cambio para no saturar la base de datos (Debounce)
+    // Espera 500ms después del último cambio para no saturar la base de datos (Debounce más rápido)
     const timeoutId = setTimeout(async () => {
         try {
             const stateRef = doc(db, 'artifacts', appId, 'public', 'data', 'appState', 'main');
@@ -293,7 +293,7 @@ export default function App() {
         } finally {
             setIsSaving(false);
         }
-    }, 1200); 
+    }, 500); 
 
     return () => clearTimeout(timeoutId);
   }, [pages, users, trash, googleClientId, isAuthenticated, isCloudSynced]);
@@ -581,14 +581,36 @@ export default function App() {
   };
 
   // --- Lógica del Sistema Base ---
+  
+  // Guardado Forzado Inmediato (salta el debounce para acciones críticas como borrar o crear)
+  const forceCloudSync = async (latestPages, latestTrash) => {
+    try {
+      setIsSaving(true);
+      const stateRef = doc(db, 'artifacts', appId, 'public', 'data', 'appState', 'main');
+      await setDoc(stateRef, { pages: latestPages, users, trash: latestTrash, googleClientId }, { merge: true });
+      setIsSaving(false);
+    } catch (e) {
+      console.error("Error en sincronización forzada:", e);
+    }
+  };
+
   const deletePage = (id, e) => {
-    e.stopPropagation();
+    if (e) e.stopPropagation();
     const pageToDelete = pages.find(p => p.id === id);
     if (!pageToDelete) return;
-    setTrash([...trash, pageToDelete]);
+    
+    const newTrash = [...trash, pageToDelete];
+    setTrash(newTrash);
+    
     const newPages = pages.filter(p => p.id !== id);
     setPages(newPages);
-    if (activePageId === id) setActivePageId(newPages.length > 0 ? newPages[0].id : 'trash');
+    
+    if (activePageId === id) {
+      setActivePageId(newPages.length > 0 ? newPages[0].id : 'trash');
+    }
+    
+    // Guardamos forzosamente para que no se pierda si el usuario da F5 inmediatamente
+    forceCloudSync(newPages, newTrash);
   };
 
   const restorePage = (id) => {
@@ -1398,9 +1420,16 @@ export default function App() {
                                   <textarea
                                     autoFocus
                                     value={editingTaskContent}
-                                    onChange={(e) => setEditingTaskContent(e.target.value)}
-                                    onBlur={saveTaskContent}
-                                    onKeyDown={(e) => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); saveTaskContent(); } }}
+                                    onChange={(e) => {
+                                      setEditingTaskContent(e.target.value);
+                                      // Actualización en tiempo real para forzar sincronización
+                                      const updatedTasks = (activePage.tasks || []).map(t =>
+                                        t.id === task.id ? { ...t, content: e.target.value } : t
+                                      );
+                                      updateActivePage({ tasks: updatedTasks });
+                                    }}
+                                    onBlur={() => setEditingTaskId(null)}
+                                    onKeyDown={(e) => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); setEditingTaskId(null); } }}
                                     onClick={(e) => e.stopPropagation()}
                                     className={`w-full text-xs font-light leading-tight px-1.5 py-1 rounded-lg outline-none bg-black/20 backdrop-blur-md border border-white/20 text-white shadow-inner resize-none overflow-hidden pr-6 mr-2`}
                                     rows={2}
