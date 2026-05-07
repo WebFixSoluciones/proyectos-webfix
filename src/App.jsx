@@ -166,6 +166,7 @@ export default function App() {
   
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [newColumnName, setNewColumnName] = useState('');
+  const [currentProjectView, setCurrentProjectView] = useState('board'); // 'board' o 'list'
   
   const [editingColumnId, setEditingColumnId] = useState(null);
   const [editingColumnTitle, setEditingColumnTitle] = useState('');
@@ -195,11 +196,21 @@ export default function App() {
   const [dashboardReport, setDashboardReport] = useState('');
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
 
-  // --- ESTADOS DE FIREBASE Y SINCRONIZACIÓN ---
   const [isCloudSynced, setIsCloudSynced] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const isInitialMount = useRef(true);
   const isRemoteUpdate = useRef(false);
+
+  // --- SISTEMA DE TOASTS MINIMALISTAS ---
+  const [toasts, setToasts] = useState([]);
+
+  const showToast = (message, type = 'success') => {
+    const id = Date.now() + Math.random();
+    setToasts(prev => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id));
+    }, 3000); // Se oculta después de 3 segundos
+  };
 
   // --- CARGAR LIBRERÍA DE GOOGLE (GIS) Y FUENTE INTER ---
   useEffect(() => {
@@ -265,40 +276,7 @@ export default function App() {
     return () => unsubscribe();
   }, [isAuthenticated]);
 
-  // 3. Guardado Automático (Auto-Save) en Firestore cuando detecta cambios locales
-  useEffect(() => {
-    if (isInitialMount.current) { isInitialMount.current = false; return; }
-    if (!isAuthenticated || !isCloudSynced) return;
-    
-    // Si el cambio vino de la nube, no volvemos a subirlo
-    if (isRemoteUpdate.current) {
-        isRemoteUpdate.current = false;
-        return;
-    }
-
-    // 🛡️ GUARDIA DE SEGURIDAD: Previene que la app sobrescriba los datos en la nube con los datos por defecto iniciales
-    // Esto ocurre a veces al recargar la app por actualizaciones en Vercel o GitHub debido a condiciones de carrera en React.
-    if (pages === INITIAL_PAGES) {
-        return;
-    }
-
-    setIsSaving(true);
-    // Espera 500ms después del último cambio para no saturar la base de datos (Debounce más rápido)
-    const timeoutId = setTimeout(async () => {
-        try {
-            const stateRef = doc(db, 'artifacts', appId, 'public', 'data', 'appState', 'main');
-            await setDoc(stateRef, { pages, users, trash, googleClientId }, { merge: true });
-        } catch (e) {
-            console.error("Error guardando progreso:", e);
-        } finally {
-            setIsSaving(false);
-        }
-    }, 500); 
-
-    return () => clearTimeout(timeoutId);
-  }, [pages, users, trash, googleClientId, isAuthenticated, isCloudSynced]);
-
-  // Determinar página activa
+  // (El useEffect de auto-guardado con debounce ha sido eliminado para la Opción A - Sincronización explícita)  // Determinar página activa
   let activePage;
   if (activePageId === 'dashboard') {
     activePage = { id: 'dashboard', title: 'Dashboard', icon: 'dashboard', type: 'dashboard' };
@@ -323,14 +301,18 @@ export default function App() {
 
   const addPage = () => {
     const newPage = { id: Date.now().toString(), title: 'Nueva página', content: '', icon: 'file-text', type: 'doc' };
-    setPages([...pages, newPage]);
+    const newPages = [...pages, newPage];
+    setPages(newPages);
     setActivePageId(newPage.id);
+    forceCloudSync(newPages, null, null, false);
   };
 
   const addProject = () => {
     const newProject = { id: Date.now().toString(), title: 'Nuevo Proyecto', content: '', icon: 'project', type: 'project', leadId: '', columns: [...DEFAULT_COLUMNS], tasks: [] };
-    setPages([...pages, newProject]);
+    const newPages = [...pages, newProject];
+    setPages(newPages);
     setActivePageId(newProject.id);
+    forceCloudSync(newPages, null, null, false);
   };
 
   // --- Lógica de Columnas ---
@@ -583,14 +565,27 @@ export default function App() {
   // --- Lógica del Sistema Base ---
   
   // Guardado Forzado Inmediato (salta el debounce para acciones críticas como borrar o crear)
-  const forceCloudSync = async (latestPages, latestTrash) => {
+  const forceCloudSync = async (latestPages, latestTrash, latestUsers, silent = false) => {
+    if (latestPages === INITIAL_PAGES) return; // Guardia de seguridad
     try {
-      setIsSaving(true);
+      if (!silent) setIsSaving(true);
       const stateRef = doc(db, 'artifacts', appId, 'public', 'data', 'appState', 'main');
-      await setDoc(stateRef, { pages: latestPages, users, trash: latestTrash, googleClientId }, { merge: true });
-      setIsSaving(false);
+      await setDoc(stateRef, { 
+        pages: latestPages || pages, 
+        users: latestUsers || users, 
+        trash: latestTrash || trash, 
+        googleClientId 
+      }, { merge: true });
+      if (!silent) {
+        setIsSaving(false);
+        showToast('Guardado', 'success');
+      }
     } catch (e) {
       console.error("Error en sincronización forzada:", e);
+      if (!silent) {
+        setIsSaving(false);
+        showToast('Error al guardar', 'error');
+      }
     }
   };
 
@@ -616,14 +611,25 @@ export default function App() {
   const restorePage = (id) => {
     const pageToRestore = trash.find(p => p.id === id);
     if (!pageToRestore) return;
-    setPages([...pages, pageToRestore]);
-    setTrash(trash.filter(p => p.id !== id));
+    const newPages = [...pages, pageToRestore];
+    const newTrash = trash.filter(p => p.id !== id);
+    setPages(newPages);
+    setTrash(newTrash);
     setActivePageId(id);
+    forceCloudSync(newPages, newTrash);
   };
 
-  const permanentlyDeletePage = (id) => setTrash(trash.filter(p => p.id !== id));
+  const permanentlyDeletePage = (id) => {
+    const newTrash = trash.filter(p => p.id !== id);
+    setTrash(newTrash);
+    forceCloudSync(null, newTrash);
+  };
   
-  const updateActivePage = (updates) => setPages(pages.map(p => p.id === activePageId ? { ...p, ...updates } : p));
+  const updateActivePage = (updates, silent = true) => {
+    const newPages = pages.map(p => p.id === activePageId ? { ...p, ...updates } : p);
+    setPages(newPages);
+    forceCloudSync(newPages, null, null, silent);
+  };
 
   // --- FUNCIONES REALES DE GOOGLE CALENDAR & MEET ---
 
@@ -1355,15 +1361,22 @@ export default function App() {
               </>
             )}
 
-            {/* KANBAN BOARD (Proyectos) */}
+            {/* KANBAN BOARD & LIST (Proyectos) */}
             {activePage.type === 'project' && (
               <div className="mt-6 animate-in fade-in duration-500 relative z-0">
-                <div className={`flex items-center gap-2 mb-6 text-xs font-semibold uppercase tracking-wider border-b pb-3 ${isDarkMode ? 'text-gray-400 border-white/10' : 'text-gray-500 border-gray-200'}`}>
-                  <ListTodo size={16} />
-                  <span>Tablero de Tareas</span>
+                <div className={`flex items-center justify-between mb-6 border-b pb-3 ${isDarkMode ? 'border-white/10' : 'border-gray-200'}`}>
+                  <div className={`flex items-center gap-2 text-xs font-semibold uppercase tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    {currentProjectView === 'board' ? <ListTodo size={16} /> : <AlignLeft size={16} />}
+                    <span>{currentProjectView === 'board' ? 'Tablero de Tareas' : 'Lista de Tareas'}</span>
+                  </div>
+                  <div className={`flex p-1 rounded-lg ${isDarkMode ? 'bg-white/5' : 'bg-black/5'}`}>
+                    <button onClick={() => setCurrentProjectView('board')} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${currentProjectView === 'board' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-white text-gray-900 shadow-sm') : (isDarkMode ? 'text-gray-500 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700')}`}>Tablero</button>
+                    <button onClick={() => setCurrentProjectView('list')} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${currentProjectView === 'list' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-white text-gray-900 shadow-sm') : (isDarkMode ? 'text-gray-500 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700')}`}>Lista</button>
+                  </div>
                 </div>
 
-                {/* Reduje el gap-5 a gap-4 para ganar un poco más de espacio entre columnas */}
+                {currentProjectView === 'board' ? (
+                /* REDUJE EL GAP-5 A GAP-4 PARA MAS ESPACIO */
                 <div className="flex flex-row gap-4 overflow-x-auto pb-6 items-start min-h-[50vh] snap-x custom-scrollbar w-full">
                   {(activePage.columns || DEFAULT_COLUMNS).map(col => (
                     <div 
@@ -1536,6 +1549,60 @@ export default function App() {
                   </div>
 
                 </div>
+                ) : (
+                  /* VISTA DE LISTA (LIST VIEW) */
+                  <div className="space-y-6 pb-12">
+                    {(activePage.columns || DEFAULT_COLUMNS).map(col => {
+                      const colTasks = (activePage.tasks || []).filter(t => t.status === col.id);
+                      return (
+                        <div key={col.id} className={`rounded-xl border backdrop-blur-sm shadow-sm ${isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-white/50 border-gray-200'}`}>
+                          {/* Encabezado del Grupo */}
+                          <div className={`flex items-center gap-2 px-4 py-3 border-b ${isDarkMode ? 'border-white/10 bg-white/[0.03]' : 'border-gray-200 bg-gray-50'} rounded-t-xl`}>
+                            <div className={`w-2.5 h-2.5 rounded-full shadow-inner ${COLUMN_COLORS.find(c => c.id === (col.color || 'gray'))?.dot || 'bg-gray-400'}`} />
+                            <span className={`text-sm font-semibold tracking-wide ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>{col.title}</span>
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isDarkMode ? 'bg-white/10 text-gray-400' : 'bg-black/5 text-gray-600'}`}>{colTasks.length}</span>
+                          </div>
+                          {/* Lista de Tareas */}
+                          <div className={`divide-y ${isDarkMode ? 'divide-white/5' : 'divide-gray-100'}`}>
+                            {colTasks.length === 0 ? (
+                              <div className={`px-4 py-3 text-xs italic font-light ${isDarkMode ? 'text-gray-600' : 'text-gray-400'}`}>Sin tareas en esta sección.</div>
+                            ) : (
+                              colTasks.map(task => {
+                                const assignedUser = task.assigneeId ? users.find(u => u.id === task.assigneeId) : null;
+                                return (
+                                  <div key={task.id} className={`group flex flex-col md:flex-row md:items-center justify-between px-4 py-3 transition-colors cursor-pointer gap-3 ${isDarkMode ? 'hover:bg-white/[0.03]' : 'hover:bg-black/[0.03]'}`} onClick={() => setDrawerTask({ ...task, projectId: activePage.id })}>
+                                    <div className="flex items-center gap-3 md:w-1/2">
+                                      <div className={`p-0.5 rounded-md border flex shrink-0 items-center justify-center transition-colors ${isDarkMode ? 'border-gray-600 text-transparent group-hover:border-gray-400' : 'border-gray-400 text-transparent group-hover:border-gray-600'}`}>
+                                        <CheckSquare size={14} className="opacity-0 group-hover:opacity-100" />
+                                      </div>
+                                      <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-300 group-hover:text-white' : 'text-gray-700 group-hover:text-black'}`}>{task.content}</span>
+                                    </div>
+                                    <div className="flex items-center gap-4 md:w-1/2 md:justify-end ml-7 md:ml-0">
+                                      {task.meetLink && <span className={`flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-md opacity-70 group-hover:opacity-100 transition-opacity ${isDarkMode ? 'bg-blue-500/20 text-blue-300 border border-blue-500/20' : 'bg-blue-100 text-blue-700 border border-blue-200'}`}><Video size={10} /> Videollamada</span>}
+                                      {assignedUser ? (
+                                        <div className={`flex items-center gap-2 opacity-70 group-hover:opacity-100 transition-opacity min-w-[120px] justify-end`}>
+                                          <span className={`text-xs font-semibold truncate ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{assignedUser.name}</span>
+                                          <div className={`w-6 h-6 rounded-full flex shrink-0 items-center justify-center text-[10px] font-bold text-white shadow-inner bg-gradient-to-br ${assignedUser.color}`}>{assignedUser.initials}</div>
+                                        </div>
+                                      ) : (
+                                        <div className={`min-w-[120px]`}></div>
+                                      )}
+                                    </div>
+                                  </div>
+                                );
+                              })
+                            )}
+                            {/* Añadir nueva tarea a esta lista */}
+                            <div className={`px-4 py-3 transition-colors cursor-pointer rounded-b-xl flex items-center gap-2 ${isDarkMode ? 'hover:bg-white/[0.03] text-gray-500 hover:text-gray-300' : 'hover:bg-black/[0.03] text-gray-500 hover:text-gray-700'}`} onClick={() => openNewTaskDrawer(col.id)}>
+                              <Plus size={14} />
+                              <span className="text-xs font-semibold tracking-wide">Añadir nueva tarea</span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
 
@@ -1946,6 +2013,19 @@ export default function App() {
             </div>
           </>
         )}
+      </div>
+      </div>
+
+      {/* Contenedor de Toasts (Notificaciones Flotantes Minimalistas) */}
+      <div className="fixed bottom-6 right-6 z-[100] flex flex-col gap-2 pointer-events-none">
+        {toasts.map(toast => (
+          <div key={toast.id} className={`animate-in slide-in-from-bottom-5 fade-in duration-300 flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-lg pointer-events-auto backdrop-blur-md border ${isDarkMode ? 'bg-[#1a1a1a]/90 border-white/10 text-white' : 'bg-white/90 border-gray-200 text-gray-800'}`}>
+            {toast.type === 'success' && <CheckCircle2 size={16} className="text-emerald-500" />}
+            {toast.type === 'error' && <X size={16} className="text-red-500" />}
+            {toast.type === 'sync' && <Cloud size={16} className="text-blue-500 animate-pulse" />}
+            <span className="text-xs font-semibold tracking-wide">{toast.message}</span>
+          </div>
+        ))}
       </div>
 
     </div>
