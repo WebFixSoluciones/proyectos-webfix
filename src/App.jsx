@@ -1048,6 +1048,7 @@ export default function App() {
                   <IconRenderer name={page.icon} size={14} />
                 </span>
                 {isSidebarOpen && <span className="truncate">{page.title || 'Sin título'}</span>}
+              </div>
               {isSidebarOpen && <button onClick={(e) => { e.stopPropagation(); deletePage(page.id, e); }} className={`opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1.5 rounded-lg transition-all ${isDarkMode ? 'text-gray-500 hover:bg-white/10 hover:text-red-400' : 'text-gray-400 hover:bg-black/10 hover:text-red-500'}`}><Trash2 size={14} /></button>}
             </div>
           ))}
