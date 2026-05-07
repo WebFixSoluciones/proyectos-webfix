@@ -1008,8 +1008,7 @@ export default function App() {
                   <IconRenderer name={page.icon} size={14} />
                 </span>
                 {isSidebarOpen && <span className="truncate">{page.title || 'Sin título'}</span>}
-              </div>
-              {isSidebarOpen && <button onClick={(e) => { e.stopPropagation(); deletePage(page.id, e); }} className={`opacity-0 group-hover:opacity-100 p-1.5 rounded-lg transition-all ${isDarkMode ? 'hover:bg-white/10 text-gray-500 hover:text-red-400' : 'hover:bg-black/10 text-gray-400 hover:text-red-500'}`}><Trash2 size={12} /></button>}
+              {isSidebarOpen && <button onClick={(e) => { e.stopPropagation(); deletePage(page.id, e); }} className={`opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1.5 rounded-lg transition-all ${isDarkMode ? 'text-gray-500 hover:bg-white/10 hover:text-red-400' : 'text-gray-400 hover:bg-black/10 hover:text-red-500'}`}><Trash2 size={14} /></button>}
             </div>
           ))}
         </div>
@@ -1055,7 +1054,13 @@ export default function App() {
 
             <button onClick={() => setIsSettingsOpen(true)} className={`p-2 rounded-xl transition-colors ${isDarkMode ? 'hover:bg-white/10 text-gray-400' : 'hover:bg-black/5 text-gray-600'}`} title="Ajustes e Integraciones"><Settings size={16} /></button>
             <button onClick={() => setIsDarkMode(!isDarkMode)} className={`p-2 rounded-xl transition-colors ${isDarkMode ? 'hover:bg-white/10 text-gray-300' : 'hover:bg-black/5 text-gray-600'}`} title={isDarkMode ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}>{isDarkMode ? <Sun size={16} /> : <Moon size={16} />}</button>
-            <button className={`p-2 rounded-xl transition-colors ${isDarkMode ? 'hover:bg-white/10 text-gray-400' : 'hover:bg-black/5 text-gray-600'}`}><MoreHorizontal size={16} /></button>
+            
+            {/* Eliminar Proyecto desde el Header */}
+            {(activePage.type === 'project' || activePage.type === 'doc') ? (
+              <button onClick={(e) => deletePage(activePageId, e)} className={`p-2 rounded-xl transition-colors ${isDarkMode ? 'hover:bg-red-500/20 text-gray-400 hover:text-red-400' : 'hover:bg-red-50 text-gray-600 hover:text-red-600'}`} title="Eliminar"><Trash2 size={16} /></button>
+            ) : (
+              <div className="w-8"></div> /* Spacer para mantener alineación */
+            )}
           </div>
         </div>
 
