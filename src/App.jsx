@@ -946,8 +946,11 @@ export default function App() {
       <div className={`absolute top-[20%] right-[-10%] w-[35rem] h-[35rem] rounded-full mix-blend-screen filter blur-[100px] opacity-30 pointer-events-none -z-10 ${isDarkMode ? 'bg-blue-900' : 'bg-blue-300'}`}></div>
       <div className={`absolute bottom-[-10%] left-[20%] w-[40rem] h-[40rem] rounded-full mix-blend-screen filter blur-[120px] opacity-30 pointer-events-none -z-10 ${isDarkMode ? 'bg-emerald-900' : 'bg-emerald-300'}`}></div>
 
+      {/* Sidebar Overlay on Mobile */}
+      {isSidebarOpen && <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 md:hidden" onClick={() => setIsSidebarOpen(false)} />}
+      
       {/* Sidebar */}
-      <div className={`flex flex-col border-r transition-all duration-300 z-10 backdrop-blur-2xl ${isSidebarOpen ? 'w-64' : 'w-0 hidden md:flex md:w-16'} ${isDarkMode ? 'bg-[#121212]/50 border-white/5' : 'bg-white/40 border-white/40'}`}>
+      <div className={`flex flex-col border-r transition-all duration-300 z-50 backdrop-blur-3xl absolute md:relative h-full ${isSidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0 w-0 hidden md:flex md:w-16'} ${isDarkMode ? 'bg-[#121212]/90 border-white/5' : 'bg-white/90 border-white/40'}`}>
         
         {/* Main Navigation Area */}
         <div className="pt-4 pb-3 px-3 border-b border-white/5 space-y-1">
@@ -1310,7 +1313,7 @@ export default function App() {
                 </div>
 
                 {/* Reduje el gap-5 a gap-4 para ganar un poco más de espacio entre columnas */}
-                <div className="flex flex-col md:flex-row gap-4 overflow-x-auto pb-6 items-start min-h-[50vh] snap-x custom-scrollbar">
+                <div className="flex flex-row gap-4 overflow-x-auto pb-6 items-start min-h-[50vh] snap-x custom-scrollbar w-full">
                   {(activePage.columns || DEFAULT_COLUMNS).map(col => (
                     <div 
                       key={col.id} 
