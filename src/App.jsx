@@ -70,26 +70,12 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
-import { initializeApp } from 'firebase/app';
-import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken, signOut, signInWithEmailAndPassword } from 'firebase/auth';
-import { getFirestore, doc, setDoc, onSnapshot, collection, updateDoc, deleteDoc, writeBatch, getDocs, getDoc } from 'firebase/firestore';
+import { onAuthStateChanged, signInAnonymously, signInWithCustomToken, signOut, signInWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc, onSnapshot, collection, updateDoc, deleteDoc, writeBatch, getDocs, getDoc } from 'firebase/firestore';
+
+import { auth, db, appId } from './firebase';
 
 const apiKey = ""; // API Key para Gemini (configura tu clave aquí si usas IA)
-
-// --- INICIALIZACIÓN DE FIREBASE ---
-const firebaseConfig = {
-  apiKey: "AIzaSyBRw4Mi3m6gke6vBNTIaL99ewgGMjwB4ns",
-  authDomain: "proyectos-webfix.firebaseapp.com",
-  projectId: "proyectos-webfix",
-  storageBucket: "proyectos-webfix.firebasestorage.app",
-  messagingSenderId: "625295446429",
-  appId: "1:625295446429:web:95fa8147488a6ab3a65f74",
-  measurementId: "G-YY0ZWZXTDY",
-};
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const appId = "1:625295446429:web:95fa8147488a6ab3a65f74";
 
 // ⚠️ El GOOGLE_CLIENT_ID ahora se maneja desde la interfaz (Estado)
 const GOOGLE_CALENDAR_SCOPES = "https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly";
@@ -257,28 +243,39 @@ const SortableTaskItem = ({
       )}
 
       <div className="flex items-center justify-between mt-1 ml-5">
-        {task.notes && task.notes.length > 0 ? (
-          <div className="relative group/tooltip w-max">
-            <span className={`flex items-center gap-1 text-[10px] px-2 py-1 rounded-lg font-semibold cursor-help transition-all shadow-sm ${
-              isDarkMode 
-                ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30 hover:bg-yellow-500/30' 
-                : 'bg-yellow-100/80 text-yellow-700 border border-yellow-200 hover:bg-yellow-200'
-            }`}>
-              <MessageSquare size={10} /> {task.notes.length}
-            </span>
-            <div className={`absolute bottom-full left-0 mb-2 w-64 p-3 rounded-xl shadow-[0_5px_20px_-5px_rgba(0,0,0,0.5)] opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all duration-300 z-50 backdrop-blur-3xl border ${isDarkMode ? 'bg-gray-900/90 border-white/10' : 'bg-white/95 border-gray-200'}`}>
-              <h4 className={`text-[10px] font-bold uppercase tracking-wider mb-2 pb-1.5 border-b ${isDarkMode ? 'text-gray-400 border-white/10' : 'text-gray-500 border-gray-100'}`}>Notas Históricas</h4>
-              <div className="space-y-3 max-h-40 overflow-y-auto pr-1 custom-scrollbar">
-                {task.notes.map(note => (
-                  <div key={note.id} className="text-xs">
-                    <span className={`block text-[9px] font-medium mb-0.5 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>{note.date}</span>
-                    <p className={`leading-relaxed font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{note.text}</p>
-                  </div>
-                ))}
+        <div className="flex items-center gap-1.5">
+          {task.notes && task.notes.length > 0 && (
+            <div className="relative group/tooltip w-max">
+              <span className={`flex items-center gap-1 text-[10px] px-2 py-1 rounded-lg font-semibold cursor-help transition-all shadow-sm ${
+                isDarkMode 
+                  ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30 hover:bg-yellow-500/30' 
+                  : 'bg-yellow-100/80 text-yellow-700 border border-yellow-200 hover:bg-yellow-200'
+              }`}>
+                <MessageSquare size={10} /> {task.notes.length}
+              </span>
+              <div className={`absolute bottom-full left-0 mb-2 w-64 p-3 rounded-xl shadow-[0_5px_20px_-5px_rgba(0,0,0,0.5)] opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all duration-300 z-50 backdrop-blur-3xl border ${isDarkMode ? 'bg-gray-900/90 border-white/10' : 'bg-white/95 border-gray-200'}`}>
+                <h4 className={`text-[10px] font-bold uppercase tracking-wider mb-2 pb-1.5 border-b ${isDarkMode ? 'text-gray-400 border-white/10' : 'text-gray-500 border-gray-100'}`}>Notas Históricas</h4>
+                <div className="space-y-3 max-h-40 overflow-y-auto pr-1 custom-scrollbar">
+                  {task.notes.map(note => (
+                    <div key={note.id} className="text-xs">
+                      <span className={`block text-[9px] font-medium mb-0.5 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>{note.date}</span>
+                      <p className={`leading-relaxed font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{note.text}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
-        ) : <div />}
+          )}
+          {task.subtasks && task.subtasks.length > 0 && (
+            <span className={`flex items-center gap-1 text-[10px] px-2 py-1 rounded-lg font-semibold transition-all shadow-sm ${
+              isDarkMode 
+                ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' 
+                : 'bg-indigo-100/80 text-indigo-700 border border-indigo-200'
+            }`}>
+              <ListTodo size={10} /> {task.subtasks.filter(s => s.completed).length}/{task.subtasks.length}
+            </span>
+          )}
+        </div>
 
         {assignedUser && (
           <div title={`Asignado a: ${assignedUser.name}`} className={`w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold text-white shadow-inner bg-gradient-to-br ${assignedUser.color}`}>
@@ -405,6 +402,11 @@ export default function App() {
 
   const [drawerTask, setDrawerTask] = useState(null);
   const [quickNoteText, setQuickNoteText] = useState('');
+  const [newSubtaskText, setNewSubtaskText] = useState('');
+
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [activeTimerTaskId, setActiveTimerTaskId] = useState(null);
+  const [elapsedTime, setElapsedTime] = useState(0);
 
   const [drawerUser, setDrawerUser] = useState(null);
 
@@ -478,6 +480,16 @@ export default function App() {
     });
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    let interval;
+    if (isTimerRunning) {
+      interval = setInterval(() => {
+        setElapsedTime(prev => prev + 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [isTimerRunning]);
 
   // 2. Cargar datos de Firestore (Opción B: Colecciones separadas)
   const [globalTasks, setGlobalTasks] = useState([]);
@@ -816,7 +828,9 @@ export default function App() {
       assigneeId: '',
       description: '',
       meetLink: '',
-      notes: []
+      notes: [],
+      subtasks: [],
+      timeSpent: 0
     });
   };
 
@@ -854,7 +868,9 @@ export default function App() {
       assigneeId: '',
       description: `Tarea generada desde el evento del calendario.\nHora: ${event.time} - ${event.date}`,
       meetLink: event.meetLink,
-      notes: []
+      notes: [],
+      subtasks: [],
+      timeSpent: 0
     };
     
     setGlobalTasks([...globalTasks, newTask]);
@@ -939,6 +955,47 @@ export default function App() {
     setDrawerTask(prev => ({ ...prev, notes: [...(prev.notes || []), newNote] }));
     setQuickNoteText('');
   };
+
+  const addSubtask = () => {
+    if (!newSubtaskText.trim()) return;
+    setDrawerTask(prev => ({
+      ...prev,
+      subtasks: [...(prev.subtasks || []), { id: Date.now().toString(), text: newSubtaskText.trim(), completed: false }]
+    }));
+    setNewSubtaskText('');
+  };
+
+  const toggleSubtask = (id) => {
+    setDrawerTask(prev => ({
+      ...prev,
+      subtasks: (prev.subtasks || []).map(st => st.id === id ? { ...st, completed: !st.completed } : st)
+    }));
+  };
+
+  const removeSubtask = (id) => {
+    setDrawerTask(prev => ({
+      ...prev,
+      subtasks: (prev.subtasks || []).filter(st => st.id !== id)
+    }));
+  };
+
+  const toggleTimer = () => {
+    if (isTimerRunning && activeTimerTaskId === drawerTask.id) {
+      setIsTimerRunning(false);
+      setDrawerTask(prev => ({ ...prev, timeSpent: (prev.timeSpent || 0) + elapsedTime }));
+      setActiveTimerTaskId(null);
+      setElapsedTime(0);
+    } else {
+      if (isTimerRunning) {
+        alert("Ya hay un temporizador corriendo en otra tarea. Detenlo primero.");
+        return;
+      }
+      setIsTimerRunning(true);
+      setActiveTimerTaskId(drawerTask.id);
+      setElapsedTime(0);
+    }
+  };
+
 
   // --- Lógica del Sistema Base ---
   
@@ -1210,12 +1267,22 @@ export default function App() {
 
   const generateTaskPlan = async () => {
     if (!drawerTask || !drawerTask.content) return;
-    const prompt = `Actúa como un Tech Lead o Senior Designer. Crea un checklist paso a paso para resolver de forma experta la siguiente tarea: "${drawerTask.content}". Devuelve solo los pasos, como una lista en viñetas. Máximo 5 pasos concisos.`;
+    const prompt = `Actúa como un Tech Lead o Senior Designer. Crea un checklist paso a paso para resolver de forma experta la siguiente tarea: "${drawerTask.content}". Devuelve solo los pasos, como una lista simple (cada línea empezando con un guión o asterisco). Máximo 5 pasos concisos. No agregues introducciones ni conclusiones.`;
     const result = await callGeminiAPI(prompt);
     if (result && !result.includes("❌ Error")) {
+       const newSubtasks = result
+         .split('\n')
+         .map(line => line.replace(/^[-*•]\s*/, '').replace(/^\d+\.\s*/, '').trim())
+         .filter(line => line.length > 0)
+         .map(text => ({
+           id: Math.random().toString(36).substring(2, 11),
+           text: text.replace(/\*\*/g, ''), // quitar negritas de markdown si hay
+           completed: false
+         }));
+       
        setDrawerTask(prev => ({
          ...prev,
-         description: (prev.description ? prev.description + '\n\n' : '') + '✨ **Plan de Acción sugerido por IA:**\n' + result
+         subtasks: [...(prev.subtasks || []), ...newSubtasks]
        }));
     }
   };
@@ -1538,6 +1605,54 @@ export default function App() {
                     </div>
                     <p className="text-3xl font-bold">{allTasksGlobal.filter(t => t.status === 'done').length}</p>
                   </div>
+                </div>
+
+                {/* Gráfico de Distribución de Estado */}
+                <div className={`p-6 rounded-2xl mb-6 ${currentGlassPanel}`}>
+                  <h3 className={`text-lg font-semibold mb-5 flex items-center gap-2 ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                    <BarChart3 size={18} className={isDarkMode ? 'text-blue-400' : 'text-blue-500'} /> 
+                    Distribución de Tareas por Estado
+                  </h3>
+                  {allTasksGlobal.length > 0 ? (
+                    <div className="space-y-4">
+                      <div className={`h-4 w-full rounded-full overflow-hidden flex backdrop-blur-md border shadow-inner ${isDarkMode ? 'border-white/10 bg-black/20' : 'border-gray-200 bg-gray-100'}`}>
+                        {['todo', 'in-progress', 'review', 'done'].map(statusId => {
+                          const count = allTasksGlobal.filter(t => t.status === statusId).length;
+                          const percent = Math.round((count / allTasksGlobal.length) * 100);
+                          const colDef = DEFAULT_COLUMNS.find(c => c.id === statusId);
+                          let bgClass = "bg-gray-400";
+                          if (statusId === 'todo') bgClass = 'bg-blue-500 hover:bg-blue-400';
+                          if (statusId === 'in-progress') bgClass = 'bg-yellow-500 hover:bg-yellow-400';
+                          if (statusId === 'review') bgClass = 'bg-purple-500 hover:bg-purple-400';
+                          if (statusId === 'done') bgClass = 'bg-green-500 hover:bg-green-400';
+                          
+                          return count > 0 ? (
+                            <div key={statusId} title={`${colDef?.title}: ${count} (${percent}%)`} className={`h-full ${bgClass} transition-all duration-1000 cursor-pointer`} style={{ width: `${percent}%` }} />
+                          ) : null;
+                        })}
+                      </div>
+                      <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-medium">
+                        {['todo', 'in-progress', 'review', 'done'].map(statusId => {
+                          const count = allTasksGlobal.filter(t => t.status === statusId).length;
+                          const colDef = DEFAULT_COLUMNS.find(c => c.id === statusId);
+                          let dotClass = "bg-gray-400";
+                          if (statusId === 'todo') dotClass = 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]';
+                          if (statusId === 'in-progress') dotClass = 'bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.8)]';
+                          if (statusId === 'review') dotClass = 'bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.8)]';
+                          if (statusId === 'done') dotClass = 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]';
+                          
+                          return (
+                            <div key={statusId} className={`flex items-center gap-1.5 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                              <span className={`w-2.5 h-2.5 rounded-full ${dotClass}`}></span>
+                              {colDef?.title}: <span className="font-bold">{count}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className={`text-center py-4 text-sm italic ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>No hay tareas para graficar.</div>
+                  )}
                 </div>
 
                 {/* Lista de Proyectos con Progreso */}
@@ -2015,6 +2130,26 @@ export default function App() {
             </div>
 
             <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6 custom-scrollbar">
+              <div className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 mb-2 shadow-inner">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-full ${isTimerRunning && activeTimerTaskId === drawerTask.id ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-blue-500/20 text-blue-400'}`}>
+                    <Clock size={16} />
+                  </div>
+                  <div>
+                    <p className={`text-[10px] font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Tiempo Invertido</p>
+                    <p className={`text-sm font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                      {Math.floor(((drawerTask.timeSpent || 0) + (isTimerRunning && activeTimerTaskId === drawerTask.id ? elapsedTime : 0)) / 60)} min {((drawerTask.timeSpent || 0) + (isTimerRunning && activeTimerTaskId === drawerTask.id ? elapsedTime : 0)) % 60} seg
+                    </p>
+                  </div>
+                </div>
+                <button 
+                  onClick={toggleTimer}
+                  className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all shadow-sm ${isTimerRunning && activeTimerTaskId === drawerTask.id ? 'bg-red-500 hover:bg-red-600 text-white shadow-red-500/30' : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/30'}`}
+                >
+                  {isTimerRunning && activeTimerTaskId === drawerTask.id ? 'Detener' : 'Iniciar'}
+                </button>
+              </div>
+
               <div className="space-y-4">
                 <div>
                   <label className={`block text-[10px] font-bold uppercase tracking-wider mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>¿Qué hay que hacer?</label>
@@ -2103,6 +2238,37 @@ export default function App() {
                 </div>
               </div>
 
+              <div className={`h-px w-full ${isDarkMode ? 'bg-white/10' : 'bg-black/10'}`}></div>
+
+              {/* CHECKLIST / SUBTAREAS */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}><ListTodo size={14} className={isDarkMode ? 'text-indigo-400' : 'text-indigo-500'} /> Subtareas (Checklist)</label>
+                  {drawerTask.subtasks && drawerTask.subtasks.length > 0 && (
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isDarkMode ? 'bg-indigo-500/20 text-indigo-300' : 'bg-indigo-100 text-indigo-700'}`}>
+                      {drawerTask.subtasks.filter(s => s.completed).length} / {drawerTask.subtasks.length}
+                    </span>
+                  )}
+                </div>
+                
+                <div className="space-y-2 mb-3">
+                  {(drawerTask.subtasks || []).map(st => (
+                    <div key={st.id} className={`flex items-center gap-2 p-2 rounded-lg border ${isDarkMode ? 'bg-black/20 border-white/10' : 'bg-white/50 border-gray-200'} group`}>
+                      <button onClick={() => toggleSubtask(st.id)} className={`w-4 h-4 rounded flex shrink-0 items-center justify-center border transition-all ${st.completed ? 'bg-indigo-500 border-indigo-500 text-white' : (isDarkMode ? 'border-gray-500 hover:border-gray-300' : 'border-gray-400 hover:border-gray-600')}`}>
+                         {st.completed && <CheckSquare size={10} />}
+                      </button>
+                      <span className={`flex-1 text-xs font-medium ${st.completed ? 'line-through opacity-50' : ''} ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>{st.text}</span>
+                      <button onClick={() => removeSubtask(st.id)} className={`opacity-0 group-hover:opacity-100 p-1 rounded transition-colors ${isDarkMode ? 'text-red-400 hover:bg-red-500/20' : 'text-red-500 hover:bg-red-100'}`}><X size={12} /></button>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex gap-2">
+                  <input type="text" value={newSubtaskText} onChange={(e) => setNewSubtaskText(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addSubtask()} placeholder="Agregar un paso o subtarea..." className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-lg outline-none transition-all shadow-inner ${currentGlassInput}`} />
+                  <button onClick={addSubtask} disabled={!newSubtaskText.trim()} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-50 ${isDarkMode ? 'bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/40 border border-indigo-500/30' : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'}`}><Plus size={14}/></button>
+                </div>
+              </div>
+              
               <div className={`h-px w-full ${isDarkMode ? 'bg-white/10' : 'bg-black/10'}`}></div>
 
               <div>
