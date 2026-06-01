@@ -74,6 +74,7 @@ import { onAuthStateChanged, signInAnonymously, signInWithCustomToken, signOut, 
 import { doc, setDoc, onSnapshot, collection, updateDoc, deleteDoc, writeBatch, getDocs, getDoc } from 'firebase/firestore';
 
 import { auth, db, appId } from './firebase';
+import FinanceModule from './components/finances/FinanceModule';
 
 const apiKey = ""; // API Key para Gemini (configura tu clave aquí si usas IA)
 
@@ -595,6 +596,8 @@ export default function App() {
   let activePage;
   if (activePageId === 'dashboard') {
     activePage = { id: 'dashboard', title: 'Dashboard', icon: 'dashboard', type: 'dashboard' };
+  } else if (activePageId === 'finances') {
+    activePage = { id: 'finances', title: 'Finanzas y SRI', icon: 'finances', type: 'finances' };
   } else if (activePageId === 'calendar') {
     activePage = { id: 'calendar', title: 'Calendario y Reuniones', icon: 'calendar', type: 'calendar' };
   } else if (activePageId === 'team') {
@@ -1219,12 +1222,27 @@ export default function App() {
     }
   };
 
-  const handleDownloadBackup = () => {
+  const handleDownloadBackup = async () => {
+    let financeTx = [];
+    let financeTp = [];
+    try {
+      const txSnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'finances_transactions'));
+      financeTx = txSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const tpSnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'finances_third_parties'));
+      financeTp = tpSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch (err) {
+      console.warn("Could not fetch finance data for backup", err);
+    }
+
     const backupData = {
       pages,
       tasks: globalTasks,
       users,
       trash,
+      finances: {
+        transactions: financeTx,
+        thirdParties: financeTp
+      },
       timestamp: new Date().toISOString()
     };
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
@@ -1531,6 +1549,14 @@ export default function App() {
             <Users size={18} className={activePageId === 'team' ? (isDarkMode ? 'text-emerald-400' : 'text-emerald-600') : ''} />
             {isSidebarOpen && <span>Equipo</span>}
           </button>
+
+          <button 
+            onClick={() => { setActivePageId('finances'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
+            className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all tracking-wide ${activePageId === 'finances' ? (isDarkMode ? 'bg-white/10 text-white font-medium' : 'bg-black/5 text-gray-900 font-medium') : (isDarkMode ? 'text-gray-400 hover:bg-white/5 hover:text-white font-light' : 'text-gray-500 hover:bg-black/5 hover:text-gray-900 font-light')}`}
+          >
+            <DollarSign size={18} className={activePageId === 'finances' ? (isDarkMode ? 'text-emerald-400' : 'text-emerald-600') : ''} />
+            {isSidebarOpen && <span>Contabilidad</span>}
+          </button>
         </div>
 
         {/* Quick Actions */}
@@ -1614,9 +1640,14 @@ export default function App() {
         </div>
 
         {/* Editor Area */}
-        <div className={`flex-1 overflow-y-auto pb-12 pt-4 scroll-smooth custom-scrollbar ${activePage.type === 'project' ? 'px-4 md:px-8 lg:px-10' : 'px-6 md:px-12 lg:px-24'}`}>
-          <div className={`mx-auto ${activePage.type === 'project' ? 'max-w-[1800px]' : 'max-w-4xl'}`}>
+        <div className={`flex-1 overflow-y-auto pb-12 pt-4 scroll-smooth custom-scrollbar ${activePage.type === 'project' ? 'px-4 md:px-8 lg:px-10' : activePage.type === 'finances' ? 'px-0 pt-0' : 'px-6 md:px-12 lg:px-24'}`}>
+          <div className={`mx-auto ${activePage.type === 'project' || activePage.type === 'finances' ? 'max-w-[1800px] h-full' : 'max-w-4xl'}`}>
             
+            {/* VISTA: FINANZAS Y CONTABILIDAD */}
+            {activePage.type === 'finances' && (
+              <FinanceModule isDarkMode={isDarkMode} showToast={showToast} />
+            )}
+
             {/* VISTA: DASHBOARD */}
             {activePage.type === 'dashboard' && (
               <div className="animate-in fade-in duration-500">
