@@ -23,6 +23,11 @@ export default function FinanceModule({ isDarkMode, showToast }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isChatOpen, setIsChatOpen] = useState(false);
 
+  // Estados de sub-navegación ERP
+  const [subTabVentas, setSubTabVentas] = useState('pos');
+  const [subTabSri, setSubTabSri] = useState('nota_credito');
+  const [subTabPersonas, setSubTabPersonas] = useState('cliente');
+
   // Estados centralizados para el modal de Facturación / SRI
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTx, setEditingTx] = useState(null);
@@ -89,22 +94,23 @@ export default function FinanceModule({ isDarkMode, showToast }) {
       quoteNumber: quote.quoteNumber
     };
     handleOpenFormModal(prefilled);
-    setActiveTab('transactions');
+    setActiveTab('ventas');
+    setSubTabVentas('facturas');
   };
 
   // Checkout desde Punto de Venta (POS)
   const handlePOSCheckout = (invoiceData) => {
     handleOpenFormModal(invoiceData);
-    setActiveTab('transactions');
+    setActiveTab('ventas');
+    setSubTabVentas('facturas');
   };
 
   const tabs = [
     { id: 'dashboard', label: 'Resumen', icon: PieChart },
-    { id: 'pos', label: 'Ventas / POS', icon: ShoppingCart },
-    { id: 'transactions', label: 'Comprobantes', icon: FileText },
-    { id: 'quotes', label: 'Cotizaciones', icon: Bookmark },
+    { id: 'ventas', label: 'Ventas', icon: ShoppingCart },
+    { id: 'sri_docs', label: 'Documentos SRI', icon: FileText },
     { id: 'products', label: 'Inventario', icon: Package },
-    { id: 'third_parties', label: 'Contactos', icon: Users },
+    { id: 'personas', label: 'Personas', icon: Users },
     { id: 'reports', label: 'Reportes', icon: Download },
     { id: 'settings', label: 'Configuración', icon: Settings },
   ];
@@ -119,7 +125,7 @@ export default function FinanceModule({ isDarkMode, showToast }) {
           </div>
           <div>
             <h1 className="text-xl font-bold tracking-tight">ERP Ventas y Facturación SRI</h1>
-            <p className={`text-[10px] mt-0.5 ${isDarkMode ? 'text-gray-400' : 'text-gray-700 font-medium'}`}>
+            <p className={`text-[10px] mt-0.5 ${isDarkMode ? 'text-gray-400' : 'text-gray-705 font-medium'}`}>
               Gestión modular de inventario, punto de venta, cotizaciones comerciales y facturación electrónica autorizada
             </p>
           </div>
@@ -148,8 +154,8 @@ export default function FinanceModule({ isDarkMode, showToast }) {
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                     isActive 
-                      ? isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-white text-gray-950 font-bold border border-gray-200/60 shadow-sm'
-                      : isDarkMode ? 'text-gray-400 hover:text-gray-200 hover:bg-white/5' : 'text-gray-600 hover:text-gray-900 hover:bg-black/5'
+                      ? isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-white text-gray-950 font-bold border border-gray-205/60 shadow-sm'
+                      : isDarkMode ? 'text-gray-400 hover:text-gray-200 hover:bg-white/5' : 'text-gray-650 hover:text-gray-900 hover:bg-black/5'
                   }`}
                 >
                   <Icon size={13} />
@@ -161,6 +167,69 @@ export default function FinanceModule({ isDarkMode, showToast }) {
         </div>
       </div>
 
+      {/* SUB-NAVEGACIÓN SI ACTIVE TAB TIENE SUB-TABS */}
+      {['ventas', 'sri_docs', 'personas'].includes(activeTab) && (
+        <div className={`flex items-center gap-2 px-8 py-2 border-b shrink-0 ${isDarkMode ? 'border-white/5 bg-[#121214]' : 'border-gray-250 bg-gray-50'}`}>
+          <span className={`text-[9px] font-black uppercase tracking-wider ${isDarkMode ? 'text-gray-500' : 'text-gray-600'}`}>Módulo:</span>
+          <div className="flex gap-1.5 overflow-x-auto whitespace-nowrap scrollbar-none">
+            {activeTab === 'ventas' && [
+              { id: 'pos', label: 'Punto de Venta (POS)' },
+              { id: 'quotes', label: 'Cotizaciones (Proformas)' },
+              { id: 'facturas', label: 'Facturas de Venta' }
+            ].map(sub => (
+              <button
+                key={sub.id}
+                onClick={() => setSubTabVentas(sub.id)}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all border ${
+                  subTabVentas === sub.id
+                    ? (isDarkMode ? 'bg-blue-500/20 text-blue-450 border-blue-500/30' : 'bg-blue-600 text-white border-blue-600 shadow-sm')
+                    : (isDarkMode ? 'border-transparent text-gray-400 hover:text-gray-200' : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-black/5')
+                }`}
+              >
+                {sub.label}
+              </button>
+            ))}
+
+            {activeTab === 'sri_docs' && [
+              { id: 'nota_credito', label: 'Notas de Crédito' },
+              { id: 'nota_debito', label: 'Notas de Débito' },
+              { id: 'retencion', label: 'Retenciones' },
+              { id: 'guia_remision', label: 'Guías de Remisión' },
+              { id: 'liquidacion', label: 'Liquidaciones de Compra' }
+            ].map(sub => (
+              <button
+                key={sub.id}
+                onClick={() => setSubTabSri(sub.id)}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all border ${
+                  subTabSri === sub.id
+                    ? (isDarkMode ? 'bg-emerald-500/20 text-emerald-450 border-emerald-500/30' : 'bg-emerald-600 text-white border-emerald-600 shadow-sm')
+                    : (isDarkMode ? 'border-transparent text-gray-400 hover:text-gray-200' : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-black/5')
+                }`}
+              >
+                {sub.label}
+              </button>
+            ))}
+
+            {activeTab === 'personas' && [
+              { id: 'cliente', label: 'Clientes' },
+              { id: 'proveedor', label: 'Proveedores' }
+            ].map(sub => (
+              <button
+                key={sub.id}
+                onClick={() => setSubTabPersonas(sub.id)}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all border ${
+                  subTabPersonas === sub.id
+                    ? (isDarkMode ? 'bg-purple-500/20 text-purple-450 border-purple-500/30' : 'bg-purple-600 text-white border-purple-600 shadow-sm')
+                    : (isDarkMode ? 'border-transparent text-gray-400 hover:text-gray-200' : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-black/5')
+                }`}
+              >
+                {sub.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* CUERPO PRINCIPAL CON DIVISION DE CHAT */}
       <div className="flex flex-1 overflow-hidden min-h-0 bg-transparent">
         <div className={`flex-1 overflow-y-auto px-8 py-6 custom-scrollbar ${isDarkMode ? 'bg-[#0f0f11]' : 'bg-[#f8f9fa]'}`}>
@@ -171,11 +240,34 @@ export default function FinanceModule({ isDarkMode, showToast }) {
           ) : (
             <>
               {activeTab === 'dashboard' && <FinanceDashboard transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} db={db} appId={appId} />}
-              {activeTab === 'pos' && <PosView products={products} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} appId={appId} onCheckout={handlePOSCheckout} />}
-              {activeTab === 'transactions' && <TransactionsView transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} />}
-              {activeTab === 'quotes' && <QuotesView products={products} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} appId={appId} onPromoteToInvoice={handlePromoteToInvoice} />}
-              {activeTab === 'products' && <ProductsView isDarkMode={isDarkMode} showToast={showToast} db={db} appId={appId} />}
-              {activeTab === 'third_parties' && <ThirdPartiesView thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} appId={appId} />}
+              
+              {/* SECCIÓN VENTAS */}
+              {activeTab === 'ventas' && subTabVentas === 'pos' && (
+                <PosView products={products} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} appId={appId} onCheckout={handlePOSCheckout} />
+              )}
+              {activeTab === 'ventas' && subTabVentas === 'quotes' && (
+                <QuotesView products={products} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} appId={appId} onPromoteToInvoice={handlePromoteToInvoice} />
+              )}
+              {activeTab === 'ventas' && subTabVentas === 'facturas' && (
+                <TransactionsView transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} forcedDocType="factura" />
+              )}
+
+              {/* SECCIÓN DOCUMENTOS SRI */}
+              {activeTab === 'sri_docs' && (
+                <TransactionsView transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} forcedDocType={subTabSri} />
+              )}
+
+              {/* SECCIÓN INVENTARIO */}
+              {activeTab === 'products' && (
+                <ProductsView isDarkMode={isDarkMode} showToast={showToast} db={db} appId={appId} />
+              )}
+
+              {/* SECCIÓN PERSONAS */}
+              {activeTab === 'personas' && (
+                <ThirdPartiesView thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} appId={appId} forcedType={subTabPersonas} />
+              )}
+
+              {/* REPORTES Y CONFIGURACIÓN */}
               {activeTab === 'reports' && <ReportsView transactions={transactions} isDarkMode={isDarkMode} showToast={showToast} />}
               {activeTab === 'settings' && <FinanceSettings isDarkMode={isDarkMode} showToast={showToast} db={db} appId={appId} />}
             </>

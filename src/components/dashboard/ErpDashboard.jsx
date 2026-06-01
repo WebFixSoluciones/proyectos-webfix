@@ -54,7 +54,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
     const txCol = collection(db, 'artifacts', appId, 'public', 'data', 'finances_transactions');
     const tpCol = collection(db, 'artifacts', appId, 'public', 'data', 'finances_third_parties');
     const prodCol = collection(db, 'artifacts', appId, 'public', 'data', 'finances_products');
-    const settingsRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings');
+    const settingsRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config');
 
     const unsubTx = onSnapshot(txCol, (snap) => {
       const txData = snap.docs.map(d => ({ id: d.id, ...d.data() }));

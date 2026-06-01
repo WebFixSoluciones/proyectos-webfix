@@ -44,7 +44,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     if (!appId || !db) return;
     async function loadSriConfig() {
       try {
-        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings');
+        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config');
         const snap = await getDoc(docRef);
         if (snap.exists()) {
           setSriConfig(snap.data());
@@ -295,7 +295,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId), finalTx);
       
       const nextSec = Number(sec) + 1;
-      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings'), {
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config'), {
         secuencialFactura: nextSec
       }, { merge: true });
 

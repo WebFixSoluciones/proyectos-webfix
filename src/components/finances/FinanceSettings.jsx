@@ -28,7 +28,7 @@ export default function FinanceSettings({ isDarkMode, showToast, db, appId }) {
     async function loadSettings() {
       if (!appId) return;
       try {
-        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings');
+        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config');
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           setSriConfig(prev => ({ ...prev, ...docSnap.data() }));
@@ -60,7 +60,7 @@ export default function FinanceSettings({ isDarkMode, showToast, db, appId }) {
 
     try {
       // Guardar en Firestore
-      const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings');
+      const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config');
       await setDoc(docRef, sriConfig, { merge: true });
 
       // Guardar Gemini Key en localStorage

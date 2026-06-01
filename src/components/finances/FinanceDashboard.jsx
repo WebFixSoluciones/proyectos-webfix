@@ -9,7 +9,7 @@ export default function FinanceDashboard({ transactions, thirdParties, isDarkMod
     if (!appId || !db) return;
     async function loadSettings() {
       try {
-        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings');
+        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config');
         const snap = await getDoc(docRef);
         if (snap.exists()) {
           setSettings(snap.data());

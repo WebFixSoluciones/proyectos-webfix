@@ -1,15 +1,21 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Plus, Search, Trash2, Edit2, FileText, CheckCircle2, AlertCircle, UploadCloud, Sparkles, AlertTriangle } from 'lucide-react';
 import { doc, deleteDoc, setDoc } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { analizarComprobanteConGemini, parsearXMLComprobante } from '../../services/geminiService';
 
-export default function TransactionsView({ transactions, thirdParties, isDarkMode, showToast, db, storage, appId, onOpenForm }) {
+export default function TransactionsView({ transactions, thirdParties, isDarkMode, showToast, db, storage, appId, onOpenForm, forcedDocType }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
-  const [filterDocType, setFilterDocType] = useState('all'); // Filtro por Tipo de Comprobante SRI
+  const [filterDocType, setFilterDocType] = useState(forcedDocType || 'all'); // Filtro por Tipo de Comprobante SRI
   const [filterMonth, setFilterMonth] = useState('all');
   const [filterYear, setFilterYear] = useState('all');
+
+  useEffect(() => {
+    if (forcedDocType) {
+      setFilterDocType(forcedDocType);
+    }
+  }, [forcedDocType]);
   
   // Estados de IA y Carga
   const [isDragging, setIsDragging] = useState(false);
@@ -261,24 +267,26 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
       </div>
 
       {/* TABS DE TIPO DE DOCUMENTO SRI */}
-      <div className={`flex p-1 gap-1 rounded-2xl border overflow-x-auto custom-scrollbar whitespace-nowrap ${isDarkMode ? 'bg-black/30 border-white/10' : 'bg-gray-100/70 border-gray-200 shadow-inner'}`}>
-        {docTypeTabs.map(tab => {
-          const isActive = filterDocType === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setFilterDocType(tab.id)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                isActive 
-                  ? isDarkMode ? 'bg-white/15 text-white shadow-sm' : 'bg-white text-gray-900 border border-gray-300/40 shadow-sm'
-                  : isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              {tab.label}
-            </button>
-          );
-        })}
-      </div>
+      {!forcedDocType && (
+        <div className={`flex p-1 gap-1 rounded-2xl border overflow-x-auto custom-scrollbar whitespace-nowrap ${isDarkMode ? 'bg-black/30 border-white/10' : 'bg-gray-100/70 border-gray-200 shadow-inner'}`}>
+          {docTypeTabs.map(tab => {
+            const isActive = filterDocType === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setFilterDocType(tab.id)}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                  isActive 
+                    ? isDarkMode ? 'bg-white/15 text-white shadow-sm' : 'bg-white text-gray-900 border border-gray-300/40 shadow-sm'
+                    : isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* FILTROS Y BUSQUEDA */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -309,10 +317,32 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
         </div>
 
         <button 
-          onClick={() => onOpenForm(null)}
+          onClick={() => {
+            if (forcedDocType) {
+              onOpenForm({
+                id: '',
+                type: forcedDocType === 'liquidacion' || forcedDocType === 'retencion' ? 'egreso' : 'ingreso',
+                documentType: forcedDocType,
+                date: new Date().toISOString().split('T')[0],
+                currency: 'USD',
+                baseImponible: 0,
+                ivaPorcentaje: 15,
+                ivaValor: 0,
+                retencionFuente: 0,
+                retencionIva: 0,
+                total: 0,
+                paymentMethod: 'transferencia',
+                paymentStatus: 'pendiente',
+                sriStatus: 'pendiente',
+                items: []
+              });
+            } else {
+              onOpenForm(null);
+            }
+          }}
           className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold transition-transform shadow-sm hover:-translate-y-0.5 ${isDarkMode ? 'bg-blue-600 text-white hover:bg-blue-500' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
         >
-          <Plus size={14} /> Registrar Comprobante
+          <Plus size={14} /> Registrar {forcedDocType ? docTypeTabs.find(t => t.id === forcedDocType)?.label : 'Comprobante'}
         </button>
       </div>
 

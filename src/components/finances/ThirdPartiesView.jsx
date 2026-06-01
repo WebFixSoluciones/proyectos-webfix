@@ -2,15 +2,16 @@ import React, { useState } from 'react';
 import { Plus, Users, Search, Trash2, Edit2 } from 'lucide-react';
 import { doc, setDoc, deleteDoc } from 'firebase/firestore';
 
-export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, db, appId }) {
+export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, db, appId, forcedType }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState({ id: '', name: '', ruc: '', email: '', type: 'cliente' });
+  const [formData, setFormData] = useState({ id: '', name: '', ruc: '', email: '', type: forcedType || 'cliente' });
 
-  const filtered = thirdParties.filter(tp => 
-    tp.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    tp.ruc.includes(searchTerm)
-  );
+  const filtered = thirdParties.filter(tp => {
+    const matchesSearch = tp.name.toLowerCase().includes(searchTerm.toLowerCase()) || tp.ruc.includes(searchTerm);
+    const matchesType = !forcedType || tp.type === forcedType;
+    return matchesSearch && matchesType;
+  });
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -25,13 +26,13 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
         name: formData.name,
         ruc: formData.ruc,
         email: formData.email,
-        type: formData.type,
+        type: formData.type || forcedType || 'cliente',
         updatedAt: new Date().toISOString()
       }, { merge: true });
 
       showToast('Contacto guardado exitosamente', 'success');
       setIsModalOpen(false);
-      setFormData({ id: '', name: '', ruc: '', email: '', type: 'cliente' });
+      setFormData({ id: '', name: '', ruc: '', email: '', type: forcedType || 'cliente' });
     } catch (err) {
       console.error(err);
       showToast('Error al guardar contacto', 'error');
@@ -63,17 +64,17 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
           <Search size={16} className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
           <input 
             type="text" 
-            placeholder="Buscar por nombre o RUC..." 
+            placeholder={`Buscar por nombre o RUC...`} 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="bg-transparent border-none outline-none text-sm w-full"
           />
         </div>
         <button 
-          onClick={() => { setFormData({ id: '', name: '', ruc: '', email: '', type: 'cliente' }); setIsModalOpen(true); }}
+          onClick={() => { setFormData({ id: '', name: '', ruc: '', email: '', type: forcedType || 'cliente' }); setIsModalOpen(true); }}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-transform shadow-sm hover:-translate-y-0.5 ${isDarkMode ? 'bg-emerald-600 text-white hover:bg-emerald-500' : 'bg-emerald-600 text-white hover:bg-emerald-700'}`}
         >
-          <Plus size={16} /> Nuevo Contacto
+          <Plus size={16} /> Nuevo {forcedType === 'cliente' ? 'Cliente' : forcedType === 'proveedor' ? 'Proveedor' : 'Contacto'}
         </button>
       </div>
 
@@ -84,7 +85,7 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
               <tr>
                 <th className="px-6 py-4">Nombre / Razón Social</th>
                 <th className="px-6 py-4">RUC / CI</th>
-                <th className="px-6 py-4">Tipo</th>
+                {!forcedType && <th className="px-6 py-4">Tipo</th>}
                 <th className="px-6 py-4">Correo</th>
                 <th className="px-6 py-4 text-right">Acciones</th>
               </tr>
@@ -94,11 +95,13 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
                 <tr key={tp.id} className={`transition-colors ${isDarkMode ? 'hover:bg-white/5' : 'hover:bg-gray-50'}`}>
                   <td className="px-6 py-4 font-medium">{tp.name}</td>
                   <td className="px-6 py-4 font-mono text-xs">{tp.ruc}</td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${tp.type === 'cliente' ? 'bg-blue-500/20 text-blue-500' : 'bg-purple-500/20 text-purple-500'}`}>
-                      {tp.type}
-                    </span>
-                  </td>
+                  {!forcedType && (
+                    <td className="px-6 py-4">
+                      <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${tp.type === 'cliente' ? 'bg-blue-500/20 text-blue-500' : 'bg-purple-500/20 text-purple-500'}`}>
+                        {tp.type}
+                      </span>
+                    </td>
+                  )}
                   <td className="px-6 py-4 text-xs">{tp.email || '-'}</td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
@@ -110,7 +113,7 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan="5" className="px-6 py-8 text-center text-gray-500 italic">No se encontraron contactos.</td>
+                  <td colSpan={forcedType ? "4" : "5"} className="px-6 py-8 text-center text-gray-500 italic">No se encontraron registros.</td>
                 </tr>
               )}
             </tbody>
@@ -122,7 +125,7 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
           <div className={`w-full max-w-md p-6 rounded-2xl shadow-2xl ${isDarkMode ? 'bg-[#1a1a1c] border border-white/10' : 'bg-white border border-gray-200'}`}>
-            <h2 className="text-xl font-bold mb-6">{formData.id ? 'Editar' : 'Nuevo'} Contacto SRI</h2>
+            <h2 className="text-xl font-bold mb-6">{formData.id ? 'Editar' : 'Nuevo'} {forcedType === 'cliente' ? 'Cliente' : forcedType === 'proveedor' ? 'Proveedor' : 'Contacto'} SRI</h2>
             
             <form onSubmit={handleSave} className="space-y-4">
               <div>
@@ -131,17 +134,19 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
               </div>
               
               <div className="grid grid-cols-2 gap-4">
-                <div>
+                <div className={forcedType ? "col-span-2" : "col-span-1"}>
                   <label className="block text-xs font-semibold mb-1.5 uppercase text-gray-500">RUC / CI</label>
                   <input type="text" required value={formData.ruc} onChange={e => setFormData({...formData, ruc: e.target.value})} className={inputClass} placeholder="1700000000001" />
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold mb-1.5 uppercase text-gray-500">Tipo</label>
-                  <select value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})} className={inputClass}>
-                    <option value="cliente" className="text-black">Cliente</option>
-                    <option value="proveedor" className="text-black">Proveedor</option>
-                  </select>
-                </div>
+                {!forcedType && (
+                  <div>
+                    <label className="block text-xs font-semibold mb-1.5 uppercase text-gray-500">Tipo</label>
+                    <select value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})} className={inputClass}>
+                      <option value="cliente" className="text-black">Cliente</option>
+                      <option value="proveedor" className="text-black">Proveedor</option>
+                    </select>
+                  </div>
+                )}
               </div>
 
               <div>

@@ -1232,7 +1232,7 @@ export default function App() {
       financeTx = txSnap.docs.map(d => ({ id: d.id, ...d.data() }));
       const tpSnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'finances_third_parties'));
       financeTp = tpSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-      const settingsSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings'));
+      const settingsSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config'));
       if (settingsSnap.exists()) {
         financeSettings = settingsSnap.data();
       }
