@@ -279,15 +279,15 @@ export default function TransactionForm({ tx, onClose, thirdParties, isDarkMode,
   const inputClass = `w-full text-xs px-3 py-2.5 rounded-xl outline-none transition-all border ${
     isDarkMode 
       ? 'bg-black/25 border-white/10 text-white focus:border-blue-500/50 disabled:opacity-50' 
-      : 'bg-white border-gray-200 text-gray-900 focus:border-blue-500/50 disabled:bg-gray-100 disabled:opacity-75'
+      : 'bg-white border-gray-355 text-gray-950 focus:border-blue-600 focus:ring-1 focus:ring-blue-600/35 disabled:bg-gray-150 disabled:opacity-75 font-medium'
   }`;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in">
-      <div className={`w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl custom-scrollbar ${isDarkMode ? 'bg-[#151517] border border-white/10' : 'bg-[#f8f9fa] border border-gray-200'}`}>
+      <div className={`w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl custom-scrollbar ${isDarkMode ? 'bg-[#151517] border border-white/10' : 'bg-white border border-gray-300'}`}>
         
         {/* HEADER */}
-        <div className={`sticky top-0 z-10 flex items-center justify-between px-6 py-4 border-b backdrop-blur-md ${isDarkMode ? 'border-white/5 bg-[#151517]/95' : 'border-gray-200 bg-[#f8f9fa]/95'}`}>
+        <div className={`sticky top-0 z-10 flex items-center justify-between px-6 py-4 border-b backdrop-blur-md ${isDarkMode ? 'border-white/5 bg-[#151517]/95' : 'border-gray-300 bg-gray-50/95'}`}>
           <div className="flex items-center gap-3">
             <div className={`p-2 rounded-xl ${formData.type === 'ingreso' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
               <Calculator size={18} />
@@ -340,18 +340,18 @@ export default function TransactionForm({ tx, onClose, thirdParties, isDarkMode,
             <div className="md:col-span-2 space-y-6">
               
               {/* BLOQUE 1: COMPROBANTE */}
-              <div className={`p-5 rounded-2xl border ${isDarkMode ? 'bg-black/15 border-white/5' : 'bg-white border-gray-100'}`}>
-                <h3 className="text-[10px] font-bold uppercase tracking-wider mb-4 text-gray-500">Datos Tributarios</h3>
+              <div className={`p-5 rounded-2xl border ${isDarkMode ? 'bg-black/15 border-white/5' : 'bg-gray-50 border-gray-300'}`}>
+                <h3 className={`text-[10px] font-bold uppercase tracking-wider mb-4 ${isDarkMode ? 'text-gray-500' : 'text-gray-800'}`}>Datos Tributarios</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">Tipo Transacción</label>
+                    <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Tipo Transacción</label>
                     <select disabled={!isEditable} value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})} className={inputClass}>
                       <option value="ingreso" className="text-black">Ingreso (Ventas Emitidas)</option>
                       <option value="egreso" className="text-black">Egreso (Gastos / Compras)</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">Tipo Documento</label>
+                    <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Tipo Documento</label>
                     <select disabled={!isEditable} value={formData.documentType} onChange={e => setFormData({...formData, documentType: e.target.value})} className={inputClass}>
                       <option value="factura" className="text-black">Factura Electrónica</option>
                       <option value="nota_venta" className="text-black">Nota de Venta</option>
@@ -365,9 +365,9 @@ export default function TransactionForm({ tx, onClose, thirdParties, isDarkMode,
                   
                   {formData.type === 'ingreso' && isEditable ? (
                     <div>
-                      <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">Secuencial Factura (SRI)</label>
+                      <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Secuencial Factura (SRI)</label>
                       <div className="flex gap-2">
-                        <span className={`px-3 py-2 text-xs rounded-xl border flex items-center bg-white/5 border-white/10 text-gray-400 font-mono`}>
+                        <span className={`px-3 py-2 text-xs rounded-xl border flex items-center bg-white/5 border-white/10 text-gray-400 font-mono ${isDarkMode ? '' : 'bg-gray-200 border-gray-300 text-gray-800 font-bold'}`}>
                           {sriConfig?.establecimiento || '001'}-{sriConfig?.puntoEmision || '001'}
                         </span>
                         <input type="number" required value={formData.secuencial} onChange={e => setFormData({...formData, secuencial: e.target.value})} className={inputClass} placeholder="1" />
@@ -375,13 +375,13 @@ export default function TransactionForm({ tx, onClose, thirdParties, isDarkMode,
                     </div>
                   ) : (
                     <div>
-                      <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">Número de Documento</label>
+                      <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Número de Documento</label>
                       <input disabled={!isEditable} type="text" value={formData.documentNumber} onChange={e => setFormData({...formData, documentNumber: e.target.value})} className={inputClass} placeholder="001-001-000000001" />
                     </div>
                   )}
 
                   <div>
-                    <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">Categoría Contable</label>
+                    <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Categoría Contable</label>
                     <select disabled={!isEditable} value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className={inputClass}>
                       <option value="ventas" className="text-black">Ventas / Honorarios</option>
                       <option value="costos" className="text-black">Costos Operativos</option>
@@ -393,12 +393,12 @@ export default function TransactionForm({ tx, onClose, thirdParties, isDarkMode,
                   </div>
                   
                   <div>
-                    <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">Fecha de Emisión</label>
+                    <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Fecha de Emisión</label>
                     <input disabled={!isEditable} type="date" required value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} className={inputClass} />
                   </div>
                   
                   <div>
-                    <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">Moneda / Divisa</label>
+                    <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Moneda / Divisa</label>
                     <select disabled={!isEditable} value={formData.currency} onChange={e => setFormData({...formData, currency: e.target.value})} className={inputClass}>
                       <option value="USD" className="text-black">Dólares (USD)</option>
                       <option value="EUR" className="text-black">Euros (EUR)</option>
@@ -406,7 +406,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, isDarkMode,
                   </div>
 
                   <div className="sm:col-span-2">
-                    <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">Tercero (Cliente o Proveedor)</label>
+                    <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Tercero (Cliente o Proveedor)</label>
                     <select disabled={!isEditable} required value={formData.thirdPartyId} onChange={e => setFormData({...formData, thirdPartyId: e.target.value})} className={inputClass}>
                       <option value="" disabled className="text-gray-400">Selecciona un contacto...</option>
                       {thirdParties.map(tp => (
@@ -418,15 +418,15 @@ export default function TransactionForm({ tx, onClose, thirdParties, isDarkMode,
               </div>
 
               {/* BLOQUE 2: VALORES E IMPUESTOS */}
-              <div className={`p-5 rounded-2xl border ${isDarkMode ? 'bg-black/15 border-white/5' : 'bg-white border-gray-100'}`}>
-                <h3 className="text-[10px] font-bold uppercase tracking-wider mb-4 text-gray-500">Valores e Impuestos</h3>
+              <div className={`p-5 rounded-2xl border ${isDarkMode ? 'bg-black/15 border-white/5' : 'bg-gray-50 border-gray-300'}`}>
+                <h3 className={`text-[10px] font-bold uppercase tracking-wider mb-4 ${isDarkMode ? 'text-gray-500' : 'text-gray-800'}`}>Valores e Impuestos</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                   <div>
-                    <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">Base Imponible</label>
+                    <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Base Imponible</label>
                     <input disabled={!isEditable} type="number" step="0.01" value={formData.baseImponible} onChange={e => setFormData({...formData, baseImponible: e.target.value})} className={inputClass} />
                   </div>
                   <div>
-                    <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">% IVA</label>
+                    <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>% IVA</label>
                     <select disabled={!isEditable} value={formData.ivaPorcentaje} onChange={e => setFormData({...formData, ivaPorcentaje: e.target.value})} className={inputClass}>
                       <option value="15" className="text-black">15% (Actual)</option>
                       <option value="12" className="text-black">12% (Anterior)</option>
@@ -434,21 +434,21 @@ export default function TransactionForm({ tx, onClose, thirdParties, isDarkMode,
                     </select>
                   </div>
                   <div>
-                    <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">Ret. Fuente (Renta)</label>
+                    <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Ret. Fuente (Renta)</label>
                     <input disabled={!isEditable} type="number" step="0.01" value={formData.retencionFuente} onChange={e => setFormData({...formData, retencionFuente: e.target.value})} className={inputClass} />
                   </div>
                   <div>
-                    <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">Retención de IVA</label>
+                    <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Retención de IVA</label>
                     <input disabled={!isEditable} type="number" step="0.01" value={formData.retencionIva} onChange={e => setFormData({...formData, retencionIva: e.target.value})} className={inputClass} />
                   </div>
                 </div>
 
-                <div className={`mt-5 p-4 rounded-xl flex justify-between items-center ${isDarkMode ? 'bg-blue-500/10 border border-blue-500/15 text-blue-400' : 'bg-blue-50 border border-blue-100 text-blue-800'}`}>
+                <div className={`mt-5 p-4 rounded-xl flex justify-between items-center ${isDarkMode ? 'bg-blue-500/10 border border-blue-500/15 text-blue-400' : 'bg-blue-50 border border-blue-300 text-blue-950 font-semibold'}`}>
                   <div>
                     <p className="text-[9px] font-bold uppercase tracking-wider">Total a Cobrar/Pagar (Neto)</p>
                     <p className="text-[10px] opacity-80 mt-0.5">Base (${formData.baseImponible}) + IVA (${formData.ivaValor}) - Retenciones (${Number(formData.retencionFuente) + Number(formData.retencionIva)})</p>
                   </div>
-                  <p className={`text-xl font-black ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>${formData.total}</p>
+                  <p className={`text-xl font-black ${isDarkMode ? 'text-white' : 'text-gray-950'}`}>${formData.total}</p>
                 </div>
               </div>
 
@@ -458,12 +458,12 @@ export default function TransactionForm({ tx, onClose, thirdParties, isDarkMode,
             <div className="space-y-6">
               
               {/* ESTADO PAGO */}
-              <div className={`p-5 rounded-2xl border ${isDarkMode ? 'bg-black/15 border-white/5' : 'bg-white border-gray-100'}`}>
-                <h3 className="text-[10px] font-bold uppercase tracking-wider mb-3 text-gray-500">Flujo Financiero</h3>
+              <div className={`p-5 rounded-2xl border ${isDarkMode ? 'bg-black/15 border-white/5' : 'bg-gray-50 border-gray-300'}`}>
+                <h3 className={`text-[10px] font-bold uppercase tracking-wider mb-3 ${isDarkMode ? 'text-gray-500' : 'text-gray-800'}`}>Flujo Financiero</h3>
                 <div className="space-y-3">
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="block text-[9px] font-bold uppercase mb-1 text-gray-500">Método</label>
+                      <label className={`block text-[9px] font-bold uppercase mb-1 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Método</label>
                       <select disabled={!isEditable} value={formData.paymentMethod} onChange={e => setFormData({...formData, paymentMethod: e.target.value})} className={inputClass}>
                         <option value="transferencia" className="text-black">Transferencia</option>
                         <option value="efectivo" className="text-black">Efectivo</option>
@@ -471,7 +471,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, isDarkMode,
                       </select>
                     </div>
                     <div>
-                      <label className="block text-[9px] font-bold uppercase mb-1 text-gray-500">Estado Pago</label>
+                      <label className={`block text-[9px] font-bold uppercase mb-1 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Estado Pago</label>
                       <select disabled={!isEditable} value={formData.paymentStatus} onChange={e => setFormData({...formData, paymentStatus: e.target.value})} className={inputClass}>
                         <option value="pendiente" className="text-black">Pendiente</option>
                         <option value="pagado" className="text-black">Pagado</option>
@@ -482,15 +482,15 @@ export default function TransactionForm({ tx, onClose, thirdParties, isDarkMode,
               </div>
 
               {/* ARCHIVOS SRI ADJUNTOS */}
-              <div className={`p-5 rounded-2xl border ${isDarkMode ? 'bg-black/15 border-white/5' : 'bg-white border-gray-100'}`}>
-                <h3 className="text-[10px] font-bold uppercase tracking-wider mb-3 text-gray-500 flex justify-between items-center">
+              <div className={`p-5 rounded-2xl border ${isDarkMode ? 'bg-black/15 border-white/5' : 'bg-gray-50 border-gray-300'}`}>
+                <h3 className={`text-[10px] font-bold uppercase tracking-wider mb-3 flex justify-between items-center ${isDarkMode ? 'text-gray-500' : 'text-gray-800'}`}>
                   Documentos Digitales
                   {isUploading && <span className="text-[9px] text-blue-500 animate-pulse">Subiendo...</span>}
                 </h3>
                 
                 <div className="space-y-2">
                   <div className="flex gap-2">
-                    <label className={`flex-1 flex items-center justify-center gap-1.5 p-2.5 rounded-xl border border-dashed cursor-pointer transition-colors ${formData.xmlUrl ? 'border-emerald-500/30 bg-emerald-500/5 text-emerald-500' : 'border-white/10 hover:bg-white/5 text-gray-400'}`}>
+                    <label className={`flex-1 flex items-center justify-center gap-1.5 p-2.5 rounded-xl border border-dashed cursor-pointer transition-colors ${formData.xmlUrl ? 'border-emerald-500/30 bg-emerald-500/5 text-emerald-500' : 'border-gray-400 hover:bg-gray-200 text-gray-800 font-semibold bg-white'}`}>
                       <input type="file" accept=".xml" className="hidden" onChange={(e) => handleFileUpload(e, 'xml')} disabled={isUploading || !isEditable}/>
                       {formData.xmlUrl ? <CheckCircle2 size={13}/> : <UploadCloud size={13}/>}
                       <span className="text-[10px] font-bold">{formData.xmlUrl ? 'XML Guardado' : 'Subir XML'}</span>
@@ -499,7 +499,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, isDarkMode,
                   </div>
 
                   <div className="flex gap-2">
-                    <label className={`flex-1 flex items-center justify-center gap-1.5 p-2.5 rounded-xl border border-dashed cursor-pointer transition-colors ${formData.pdfUrl ? 'border-emerald-500/30 bg-emerald-500/5 text-emerald-500' : 'border-white/10 hover:bg-white/5 text-gray-400'}`}>
+                    <label className={`flex-1 flex items-center justify-center gap-1.5 p-2.5 rounded-xl border border-dashed cursor-pointer transition-colors ${formData.pdfUrl ? 'border-emerald-500/30 bg-emerald-500/5 text-emerald-500' : 'border-gray-400 hover:bg-gray-200 text-gray-800 font-semibold bg-white'}`}>
                       <input type="file" accept=".pdf" className="hidden" onChange={(e) => handleFileUpload(e, 'pdf')} disabled={isUploading || !isEditable}/>
                       {formData.pdfUrl ? <CheckCircle2 size={13}/> : <UploadCloud size={13}/>}
                       <span className="text-[10px] font-bold">{formData.pdfUrl ? 'PDF RIDE' : 'Subir PDF'}</span>
@@ -538,7 +538,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, isDarkMode,
         </div>
 
         {/* BOTTOM ACCIONES BAR */}
-        <div className={`sticky bottom-0 z-10 flex items-center justify-between px-6 py-4 border-t backdrop-blur-md ${isDarkMode ? 'border-white/5 bg-[#151517]/95' : 'border-gray-200 bg-[#f8f9fa]/95'}`}>
+        <div className={`sticky bottom-0 z-10 flex items-center justify-between px-6 py-4 border-t backdrop-blur-md ${isDarkMode ? 'border-white/5 bg-[#151517]/95' : 'border-gray-300 bg-gray-50/95'}`}>
           <div className="flex gap-2">
             {isAuthorized && (
               <>
@@ -553,7 +553,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, isDarkMode,
           </div>
           
           <div className="flex gap-3.5">
-            <button type="button" onClick={onClose} className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition-colors ${isDarkMode ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-gray-100 text-gray-700'}`}>Cancelar</button>
+            <button type="button" onClick={onClose} className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition-colors ${isDarkMode ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-gray-200 text-gray-800 font-semibold'}`}>Cancelar</button>
             {isEditable && (
               <>
                 <button type="button" onClick={handleSave} disabled={isUploading || isEmitting} className="px-4 py-2.5 rounded-xl text-xs font-semibold bg-blue-600/20 text-blue-400 hover:bg-blue-600/35 border border-blue-500/10 transition-transform hover:-translate-y-0.5">Guardar Borrador</button>

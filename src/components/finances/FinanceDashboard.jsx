@@ -64,7 +64,7 @@ export default function FinanceDashboard({ transactions, thirdParties, isDarkMod
   const cardClass = `p-6 rounded-2xl border backdrop-blur-xl transition-all shadow-sm ${
     isDarkMode 
       ? 'bg-[#151517] border-white/5 hover:border-white/10' 
-      : 'bg-white border-gray-100 hover:border-gray-200'
+      : 'bg-white border-gray-300/80 hover:border-gray-400/80 shadow-[0_2px_12px_rgba(0,0,0,0.02)]'
   }`;
 
   return (
@@ -77,24 +77,24 @@ export default function FinanceDashboard({ transactions, thirdParties, isDarkMod
             ? 'bg-red-500/10 border-red-500/20 text-red-400'
             : certStatus === 'warning'
             ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-400'
-            : 'bg-blue-500/5 border-blue-500/10 text-gray-400'
+            : isDarkMode ? 'bg-blue-500/5 border-blue-500/10 text-gray-400' : 'bg-blue-50 border-blue-300 text-blue-950 font-medium'
         }`}>
           <div className="flex items-center gap-3">
-            <ShieldAlert size={20} />
+            <ShieldAlert size={20} className={isDarkMode ? '' : 'text-blue-600'} />
             <div>
-              <p className="text-xs font-bold">
+              <p className={`text-xs font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                 {certStatus === 'expired' && "Firma Electrónica Expirada"}
                 {certStatus === 'warning' && `La Firma Electrónica expira pronto (en ${certDaysLeft} días)`}
                 {certStatus === 'none' && "Falta cargar Firma Electrónica (.p12) en Configuración"}
               </p>
-              <p className="text-[10px] opacity-80">
+              <p className={`text-[10px] opacity-90 ${isDarkMode ? 'text-gray-400' : 'text-gray-700'}`}>
                 {certStatus === 'none'
                   ? "Para poder emitir XML autorizados por el SRI, sube tu certificado digital en la pestaña de Configuración."
                   : "Por favor renueva o verifica tu certificado de firma para evitar rechazos en las facturas."}
               </p>
             </div>
           </div>
-          <div className="px-3 py-1 rounded-lg text-[10px] font-bold border uppercase shrink-0">
+          <div className={`px-3 py-1 rounded-lg text-[10px] font-bold border uppercase shrink-0 ${isDarkMode ? 'border-white/10' : 'border-blue-300 bg-blue-100 text-blue-800'}`}>
             {certStatus === 'none' ? 'Incompleto' : certStatus === 'expired' ? 'Expirado' : 'Urgente'}
           </div>
         </div>
@@ -106,53 +106,53 @@ export default function FinanceDashboard({ transactions, thirdParties, isDarkMod
         {/* INGRESOS */}
         <div className={cardClass}>
           <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Ventas (Mes)</span>
-            <div className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}`}>
+            <span className={`text-[10px] font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Ventas (Mes)</span>
+            <div className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-100 text-emerald-700'}`}>
               <TrendingUp size={16} />
             </div>
           </div>
-          <p className="text-2xl font-black text-emerald-500">${totalIncome.toFixed(2)}</p>
-          <p className="text-[9px] text-gray-500 mt-1">IVA Cobrado: ${ivaVentas.toFixed(2)}</p>
+          <p className={`text-2xl font-black ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>${totalIncome.toFixed(2)}</p>
+          <p className={`text-[9px] mt-1 ${isDarkMode ? 'text-gray-500' : 'text-gray-600 font-semibold'}`}>IVA Cobrado: ${ivaVentas.toFixed(2)}</p>
         </div>
 
         {/* EGRESOS */}
         <div className={cardClass}>
           <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Gastos (Mes)</span>
-            <div className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-red-500/10 text-red-400' : 'bg-red-50 text-red-600'}`}>
+            <span className={`text-[10px] font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Gastos (Mes)</span>
+            <div className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-red-500/10 text-red-400' : 'bg-red-100 text-red-700'}`}>
               <TrendingDown size={16} />
             </div>
           </div>
-          <p className="text-2xl font-black text-red-500">${totalExpense.toFixed(2)}</p>
-          <p className="text-[9px] text-gray-500 mt-1">IVA Pagado: ${ivaCompras.toFixed(2)}</p>
+          <p className={`text-2xl font-black ${isDarkMode ? 'text-red-400' : 'text-red-600'}`}>${totalExpense.toFixed(2)}</p>
+          <p className={`text-[9px] mt-1 ${isDarkMode ? 'text-gray-500' : 'text-gray-600 font-semibold'}`}>IVA Pagado: ${ivaCompras.toFixed(2)}</p>
         </div>
 
         {/* MARGEN */}
         <div className={cardClass}>
           <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Flujo Neto</span>
-            <div className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
+            <span className={`text-[10px] font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Flujo Neto</span>
+            <div className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-100 text-blue-700'}`}>
               <DollarSign size={16} />
             </div>
           </div>
-          <p className={`text-2xl font-black ${netMargin >= 0 ? (isDarkMode ? 'text-white' : 'text-gray-900') : 'text-red-500'}`}>
+          <p className={`text-2xl font-black ${netMargin >= 0 ? (isDarkMode ? 'text-white' : 'text-gray-950') : 'text-red-600'}`}>
             ${netMargin.toFixed(2)}
           </p>
-          <p className="text-[9px] text-gray-500 mt-1">Rendimiento mensual</p>
+          <p className={`text-[9px] mt-1 ${isDarkMode ? 'text-gray-500' : 'text-gray-600 font-semibold'}`}>Rendimiento mensual</p>
         </div>
 
         {/* BALANCE IVA */}
         <div className={cardClass}>
           <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">IVA por Declarar</span>
-            <div className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-purple-500/10 text-purple-400' : 'bg-purple-50 text-purple-600'}`}>
+            <span className={`text-[10px] font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>IVA por Declarar</span>
+            <div className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-purple-500/10 text-purple-400' : 'bg-purple-100 text-purple-700'}`}>
               <Award size={16} />
             </div>
           </div>
-          <p className={`text-2xl font-black ${ivaEstimado >= 0 ? 'text-purple-500' : 'text-blue-500'}`}>
+          <p className={`text-2xl font-black ${ivaEstimado >= 0 ? (isDarkMode ? 'text-purple-400' : 'text-purple-700') : (isDarkMode ? 'text-blue-400' : 'text-blue-600')}`}>
             ${Math.abs(ivaEstimado).toFixed(2)}
           </p>
-          <p className="text-[9px] text-gray-500 mt-1">
+          <p className={`text-[9px] mt-1 ${isDarkMode ? 'text-gray-500' : 'text-gray-600 font-semibold'}`}>
             {ivaEstimado >= 0 ? "A pagar al SRI" : "Saldo a favor (Crédito)"}
           </p>
         </div>
@@ -164,27 +164,27 @@ export default function FinanceDashboard({ transactions, thirdParties, isDarkMod
         
         {/* ESTADOS SRI */}
         <div className={`${cardClass} md:col-span-1`}>
-          <div className="flex items-center gap-2 mb-5 pb-3 border-b border-white/5">
-            <FileText size={16} className="text-blue-500" />
-            <h3 className="text-xs font-bold uppercase tracking-wider">Estados de Emisión SRI</h3>
+          <div className={`flex items-center gap-2 mb-5 pb-3 border-b ${isDarkMode ? 'border-white/5' : 'border-gray-200'}`}>
+            <FileText size={16} className={isDarkMode ? 'text-blue-500' : 'text-blue-600'} />
+            <h3 className={`text-xs font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>Estados de Emisión SRI</h3>
           </div>
           
           <div className="space-y-3.5">
             {[
-              { key: 'autorizado', label: 'Autorizados', color: 'bg-emerald-500' },
-              { key: 'pendiente', label: 'Pendientes', color: 'bg-yellow-500' },
-              { key: 'rechazado', label: 'Rechazados', color: 'bg-red-500' },
-              { key: 'anulado', label: 'Anulados', color: 'bg-gray-500' }
+              { key: 'autorizado', label: 'Autorizados', color: 'bg-emerald-600' },
+              { key: 'pendiente', label: 'Pendientes', color: 'bg-yellow-600' },
+              { key: 'rechazado', label: 'Rechazados', color: 'bg-red-600' },
+              { key: 'anulado', label: 'Anulados', color: 'bg-gray-600' }
             ].map(item => {
               const count = statusCounts[item.key] || 0;
               const pct = transactions.length > 0 ? (count / transactions.length) * 100 : 0;
               return (
                 <div key={item.key}>
-                  <div className="flex justify-between items-center text-[10px] font-bold uppercase text-gray-400 mb-1">
+                  <div className={`flex justify-between items-center text-[10px] font-bold uppercase mb-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-700'}`}>
                     <span>{item.label}</span>
                     <span>{count} ({pct.toFixed(0)}%)</span>
                   </div>
-                  <div className="w-full h-1.5 rounded-full bg-white/5 overflow-hidden">
+                  <div className={`w-full h-1.5 rounded-full overflow-hidden ${isDarkMode ? 'bg-white/5' : 'bg-gray-200'}`}>
                     <div className={`h-full ${item.color}`} style={{ width: `${pct}%` }}></div>
                   </div>
                 </div>
@@ -195,9 +195,9 @@ export default function FinanceDashboard({ transactions, thirdParties, isDarkMod
 
         {/* CUENTAS Y PAGOS */}
         <div className={`${cardClass} md:col-span-2`}>
-          <div className="flex items-center gap-2 mb-5 pb-3 border-b border-white/5">
-            <Clock size={16} className="text-yellow-500" />
-            <h3 className="text-xs font-bold uppercase tracking-wider">Comprobantes por Cobrar / Pagar</h3>
+          <div className={`flex items-center gap-2 mb-5 pb-3 border-b ${isDarkMode ? 'border-white/5' : 'border-gray-200'}`}>
+            <Clock size={16} className={isDarkMode ? 'text-yellow-500' : 'text-yellow-600'} />
+            <h3 className={`text-xs font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>Comprobantes por Cobrar / Pagar</h3>
           </div>
 
           {pendingPayments.length > 0 ? (
@@ -205,12 +205,12 @@ export default function FinanceDashboard({ transactions, thirdParties, isDarkMod
               {pendingPayments.map(tx => {
                 const thirdParty = thirdParties.find(tp => tp.id === tx.thirdPartyId);
                 return (
-                  <div key={tx.id} className={`p-3 rounded-xl border flex justify-between items-center ${isDarkMode ? 'bg-black/25 border-white/5' : 'bg-gray-50 border-gray-100'}`}>
+                  <div key={tx.id} className={`p-3 rounded-xl border flex justify-between items-center ${isDarkMode ? 'bg-black/25 border-white/5' : 'bg-gray-50 border-gray-200'}`}>
                     <div className="truncate pr-2">
-                      <p className="text-[10px] font-bold text-gray-300 truncate">{thirdParty?.name || 'Desconocido'}</p>
-                      <p className="text-[9px] text-gray-500 mt-0.5">{tx.documentNumber || 'Factura S/N'} - {tx.date}</p>
+                      <p className={`text-[10px] font-bold truncate ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>{thirdParty?.name || 'Desconocido'}</p>
+                      <p className={`text-[9px] mt-0.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-600'}`}>{tx.documentNumber || 'Factura S/N'} - {tx.date}</p>
                     </div>
-                    <span className={`text-xs font-bold shrink-0 ${tx.type === 'ingreso' ? 'text-emerald-500' : 'text-red-500'}`}>
+                    <span className={`text-xs font-bold shrink-0 ${tx.type === 'ingreso' ? (isDarkMode ? 'text-emerald-400' : 'text-emerald-600') : (isDarkMode ? 'text-red-400' : 'text-red-600')}`}>
                       ${Number(tx.total || 0).toFixed(2)}
                     </span>
                   </div>
@@ -219,7 +219,7 @@ export default function FinanceDashboard({ transactions, thirdParties, isDarkMod
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-10">
-              <CheckCircle2 size={32} className="text-emerald-500 opacity-60 mb-2" />
+              <CheckCircle2 size={32} className={`opacity-60 mb-2 ${isDarkMode ? 'text-emerald-500' : 'text-emerald-600'}`} />
               <p className="text-xs italic text-gray-500">No hay cobros ni pagos pendientes.</p>
             </div>
           )}

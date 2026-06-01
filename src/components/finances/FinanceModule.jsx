@@ -55,14 +55,14 @@ export default function FinanceModule({ isDarkMode, showToast }) {
   return (
     <div className={`flex flex-col h-full w-full animate-in fade-in duration-500 overflow-hidden`}>
       {/* HEADER FINANZAS */}
-      <div className={`flex items-center justify-between px-8 py-4 border-b shrink-0 ${isDarkMode ? 'border-white/10 bg-[#0f0f11]' : 'border-black/5 bg-white'}`}>
+      <div className={`flex items-center justify-between px-8 py-4 border-b shrink-0 ${isDarkMode ? 'border-white/10 bg-[#0f0f11]' : 'border-gray-350 bg-white'}`}>
         <div className="flex items-center gap-4">
-          <div className={`p-2.5 rounded-xl shadow-inner border ${isDarkMode ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/20' : 'bg-emerald-100 text-emerald-600 border-emerald-200'}`}>
+          <div className={`p-2.5 rounded-xl shadow-inner border ${isDarkMode ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/20' : 'bg-emerald-100/80 text-emerald-800 border-emerald-300'}`}>
             <DollarSign size={20} />
           </div>
           <div>
             <h1 className="text-xl font-bold tracking-tight">Finanzas y Facturación SRI</h1>
-            <p className={`text-[10px] mt-0.5 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+            <p className={`text-[10px] mt-0.5 ${isDarkMode ? 'text-gray-400' : 'text-gray-700 font-medium'}`}>
               Emisión de comprobantes electrónicos autorizados y automatización de gastos con IA
             </p>
           </div>
@@ -75,13 +75,13 @@ export default function FinanceModule({ isDarkMode, showToast }) {
             className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all border ${
               isChatOpen 
                 ? 'bg-purple-600 border-purple-600 text-white shadow-md' 
-                : (isDarkMode ? 'bg-purple-500/10 border-purple-500/20 text-purple-400 hover:bg-purple-500/20' : 'bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100')
+                : (isDarkMode ? 'bg-purple-500/10 border-purple-500/20 text-purple-400 hover:bg-purple-500/20' : 'bg-purple-50 border-purple-300 text-purple-900 hover:bg-purple-100')
             }`}
           >
             <Sparkles size={13} /> Asistente AI
           </button>
 
-          <div className={`flex p-1 rounded-xl border shadow-inner ${isDarkMode ? 'bg-black/40 border-white/10' : 'bg-gray-100/50 border-gray-200'}`}>
+          <div className={`flex p-1 rounded-xl border shadow-inner ${isDarkMode ? 'bg-black/40 border-white/10' : 'bg-gray-200/60 border-gray-300/80'}`}>
             {tabs.map(tab => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -91,8 +91,8 @@ export default function FinanceModule({ isDarkMode, showToast }) {
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                     isActive 
-                      ? isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-white text-gray-900 shadow-sm'
-                      : isDarkMode ? 'text-gray-400 hover:text-gray-200 hover:bg-white/5' : 'text-gray-500 hover:text-gray-700 hover:bg-black/5'
+                      ? isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-white text-gray-950 font-bold border border-gray-200/60 shadow-sm'
+                      : isDarkMode ? 'text-gray-400 hover:text-gray-200 hover:bg-white/5' : 'text-gray-600 hover:text-gray-900 hover:bg-black/5'
                   }`}
                 >
                   <Icon size={13} />

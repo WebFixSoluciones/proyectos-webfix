@@ -180,12 +180,28 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
   };
 
   const getStatusBadge = (status) => {
+    const baseClass = "flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-md font-bold uppercase border";
     switch(status) {
-      case 'autorizado': return <span className="flex items-center gap-1 text-[10px] px-2 py-1 rounded-md bg-emerald-500/20 text-emerald-500 font-bold uppercase"><CheckCircle2 size={10}/> Autorizado</span>;
-      case 'pendiente': return <span className="flex items-center gap-1 text-[10px] px-2 py-1 rounded-md bg-yellow-500/20 text-yellow-500 font-bold uppercase"><AlertCircle size={10}/> Pendiente</span>;
-      case 'anulado': return <span className="flex items-center gap-1 text-[10px] px-2 py-1 rounded-md bg-red-500/20 text-red-500 font-bold uppercase">Anulado</span>;
-      case 'rechazado': return <span className="flex items-center gap-1 text-[10px] px-2 py-1 rounded-md bg-red-500/20 text-red-500 font-bold uppercase"><AlertTriangle size={10}/> Rechazado</span>;
-      default: return <span className="text-[10px] px-2 py-1 rounded-md bg-gray-500/20 text-gray-500 font-bold uppercase">{status || 'Borrador'}</span>;
+      case 'autorizado': 
+        return isDarkMode 
+          ? <span className={`${baseClass} bg-emerald-500/20 text-emerald-400 border-emerald-500/20`}><CheckCircle2 size={10}/> Autorizado</span>
+          : <span className={`${baseClass} bg-emerald-100 text-emerald-800 border-emerald-300`}><CheckCircle2 size={10}/> Autorizado</span>;
+      case 'pendiente': 
+        return isDarkMode 
+          ? <span className={`${baseClass} bg-yellow-500/20 text-yellow-400 border-yellow-500/20`}><AlertCircle size={10}/> Pendiente</span>
+          : <span className={`${baseClass} bg-yellow-100 text-yellow-800 border-yellow-300`}><AlertCircle size={10}/> Pendiente</span>;
+      case 'anulado': 
+        return isDarkMode 
+          ? <span className={`${baseClass} bg-red-500/20 text-red-400 border-red-500/20`}>Anulado</span>
+          : <span className={`${baseClass} bg-red-100 text-red-800 border-red-300`}>Anulado</span>;
+      case 'rechazado': 
+        return isDarkMode 
+          ? <span className={`${baseClass} bg-red-500/20 text-red-400 border-red-500/20`}><AlertTriangle size={10}/> Rechazado</span>
+          : <span className={`${baseClass} bg-red-100 text-red-800 border-red-300`}><AlertTriangle size={10}/> Rechazado</span>;
+      default: 
+        return isDarkMode 
+          ? <span className="text-[10px] px-2 py-0.5 rounded-md bg-gray-550/20 text-gray-400 border border-white/5 font-bold uppercase">{status || 'Borrador'}</span>
+          : <span className="text-[10px] px-2 py-0.5 rounded-md bg-gray-150 text-gray-700 border border-gray-300 font-bold uppercase">{status || 'Borrador'}</span>;
     }
   };
 
@@ -201,7 +217,7 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
         className={`relative border-2 border-dashed rounded-3xl p-6 flex flex-col items-center justify-center transition-all cursor-pointer overflow-hidden ${
           isDragging 
             ? 'border-purple-500 bg-purple-500/5 shadow-2xl scale-[1.01]' 
-            : (isDarkMode ? 'border-white/10 hover:border-white/20 bg-white/[0.01]' : 'border-gray-200 hover:border-gray-300 bg-white')
+            : (isDarkMode ? 'border-white/10 hover:border-white/20 bg-white/[0.01]' : 'border-gray-350 hover:border-gray-400 bg-white')
         }`}
       >
         <input 
@@ -219,12 +235,12 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center text-center space-y-2">
-            <div className={`p-3 rounded-2xl ${isDarkMode ? 'bg-purple-500/10 text-purple-400' : 'bg-purple-50 text-purple-600'}`}>
+            <div className={`p-3 rounded-2xl ${isDarkMode ? 'bg-purple-500/10 text-purple-400' : 'bg-purple-100 text-purple-800'}`}>
               <Sparkles size={24} />
             </div>
             <div>
-              <p className="text-xs font-bold">Captura Inteligente IA / Carga XML</p>
-              <p className="text-[10px] text-gray-500 mt-1 max-w-md leading-normal">
+              <p className="text-xs font-bold text-gray-900">Captura Inteligente IA / Carga XML</p>
+              <p className={`text-[10px] mt-1 max-w-md leading-normal ${isDarkMode ? 'text-gray-500' : 'text-gray-700 font-medium'}`}>
                 Arrastra tu factura (PDF, XML, Imagen) aquí. Gemini la clasificará y auto-completará los campos del formulario de forma instantánea.
               </p>
             </div>
@@ -235,26 +251,26 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
       {/* FILTROS Y BUSQUEDA */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
-          <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border w-full sm:w-64 ${isDarkMode ? 'bg-black/20 border-white/10' : 'bg-white border-gray-200'}`}>
-            <Search size={14} className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
+          <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border w-full sm:w-64 ${isDarkMode ? 'bg-black/20 border-white/10' : 'bg-white border-gray-350'}`}>
+            <Search size={14} className={isDarkMode ? 'text-gray-500' : 'text-gray-600'} />
             <input 
               type="text" 
               placeholder="Buscar documento o tercero..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="bg-transparent border-none outline-none text-xs w-full"
+              className="bg-transparent border-none outline-none text-xs w-full text-gray-900"
             />
           </div>
-          <select value={filterType} onChange={e => setFilterType(e.target.value)} className={`px-2.5 py-2 rounded-xl border text-xs outline-none ${isDarkMode ? 'bg-black/20 border-white/10 text-gray-300' : 'bg-white border-gray-200 text-gray-700'}`}>
+          <select value={filterType} onChange={e => setFilterType(e.target.value)} className={`px-2.5 py-2 rounded-xl border text-xs outline-none ${isDarkMode ? 'bg-black/20 border-white/10 text-gray-300' : 'bg-white border-gray-350 text-gray-800 font-medium'}`}>
             <option value="all" className="text-black">Todos los tipos</option>
             <option value="ingreso" className="text-black">Ingresos (Ventas)</option>
             <option value="egreso" className="text-black">Egresos (Compras)</option>
           </select>
-          <select value={filterMonth} onChange={e => setFilterMonth(e.target.value)} className={`px-2.5 py-2 rounded-xl border text-xs outline-none ${isDarkMode ? 'bg-black/20 border-white/10 text-gray-300' : 'bg-white border-gray-200 text-gray-700'}`}>
+          <select value={filterMonth} onChange={e => setFilterMonth(e.target.value)} className={`px-2.5 py-2 rounded-xl border text-xs outline-none ${isDarkMode ? 'bg-black/20 border-white/10 text-gray-300' : 'bg-white border-gray-350 text-gray-800 font-medium'}`}>
             <option value="all" className="text-black">Mes</option>
             {['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'].map((m, i) => <option key={i} value={i} className="text-black">{m}</option>)}
           </select>
-          <select value={filterYear} onChange={e => setFilterYear(e.target.value)} className={`px-2.5 py-2 rounded-xl border text-xs outline-none ${isDarkMode ? 'bg-black/20 border-white/10 text-gray-300' : 'bg-white border-gray-200 text-gray-700'}`}>
+          <select value={filterYear} onChange={e => setFilterYear(e.target.value)} className={`px-2.5 py-2 rounded-xl border text-xs outline-none ${isDarkMode ? 'bg-black/20 border-white/10 text-gray-300' : 'bg-white border-gray-350 text-gray-800 font-medium'}`}>
             <option value="all" className="text-black">Año</option>
             {[2023, 2024, 2025, 2026, 2027].map(y => <option key={y} value={y} className="text-black">{y}</option>)}
           </select>
@@ -269,10 +285,10 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
       </div>
 
       {/* TABLA DE COMPROBANTES */}
-      <div className={`rounded-2xl border overflow-hidden backdrop-blur-xl ${isDarkMode ? 'border-white/10 bg-white/[0.02]' : 'border-gray-200 bg-white'}`}>
+      <div className={`rounded-2xl border overflow-hidden backdrop-blur-xl ${isDarkMode ? 'border-white/10 bg-white/[0.02]' : 'border-gray-350 bg-white'}`}>
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left text-xs whitespace-nowrap">
-            <thead className={`text-[10px] uppercase font-bold tracking-wider ${isDarkMode ? 'bg-black/40 text-gray-400' : 'bg-gray-50 text-gray-500'}`}>
+            <thead className={`text-[10px] uppercase font-bold tracking-wider ${isDarkMode ? 'bg-black/40 text-gray-400' : 'bg-gray-100 text-gray-800 border-b border-gray-300'}`}>
               <tr>
                 <th className="px-6 py-4">Fecha</th>
                 <th className="px-6 py-4">Tipo</th>
@@ -284,31 +300,31 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
                 <th className="px-6 py-4 text-right">Acciones</th>
               </tr>
             </thead>
-            <tbody className={`divide-y ${isDarkMode ? 'divide-white/5' : 'divide-gray-100'}`}>
+            <tbody className={`divide-y ${isDarkMode ? 'divide-white/5' : 'divide-gray-300/60'}`}>
               {filtered.map(tx => (
-                <tr key={tx.id} className={`transition-colors ${isDarkMode ? 'hover:bg-white/5' : 'hover:bg-gray-50'}`}>
-                  <td className="px-6 py-4">{tx.date}</td>
+                <tr key={tx.id} className={`transition-colors ${isDarkMode ? 'hover:bg-white/5' : 'hover:bg-gray-100/40'}`}>
+                  <td className={`px-6 py-4 ${isDarkMode ? '' : 'text-gray-900 font-medium'}`}>{tx.date}</td>
                   <td className="px-6 py-4">
-                    <span className={`px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider ${tx.type === 'ingreso' ? 'bg-emerald-500/20 text-emerald-500' : 'bg-red-500/20 text-red-500'}`}>
+                    <span className={`px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider ${tx.type === 'ingreso' ? (isDarkMode ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-100 text-emerald-800 border border-emerald-300') : (isDarkMode ? 'bg-red-500/20 text-red-400' : 'bg-red-100 text-red-800 border border-red-300')}`}>
                       {tx.type}
                     </span>
                   </td>
-                  <td className="px-6 py-4 font-mono text-[10px]">{tx.documentNumber || '-'}</td>
-                  <td className="px-6 py-4 font-medium truncate max-w-[200px]" title={thirdParties.find(tp => tp.id === tx.thirdPartyId)?.name}>
+                  <td className={`px-6 py-4 font-mono text-[10px] ${isDarkMode ? '' : 'text-gray-900 font-semibold'}`}>{tx.documentNumber || '-'}</td>
+                  <td className={`px-6 py-4 font-medium truncate max-w-[200px] ${isDarkMode ? '' : 'text-gray-950 font-bold'}`} title={thirdParties.find(tp => tp.id === tx.thirdPartyId)?.name}>
                     {thirdParties.find(tp => tp.id === tx.thirdPartyId)?.name || 'Desconocido'}
                   </td>
-                  <td className="px-6 py-4 font-bold">${Number(tx.total || 0).toFixed(2)}</td>
+                  <td className={`px-6 py-4 font-bold ${isDarkMode ? '' : 'text-gray-950 font-black'}`}>${Number(tx.total || 0).toFixed(2)}</td>
                   <td className="px-6 py-4">{getStatusBadge(tx.sriStatus)}</td>
                   <td className="px-6 py-4">
                     <div className="flex gap-1.5">
-                      {tx.xmlUrl ? <a href={tx.xmlUrl} target="_blank" rel="noreferrer" className="p-1 rounded bg-blue-500/20 text-blue-500 hover:bg-blue-500/40" title="Ver XML"><FileText size={12}/></a> : <span className="p-1 rounded bg-gray-500/20 text-gray-500 opacity-40"><FileText size={12}/></span>}
-                      {tx.pdfUrl ? <a href={tx.pdfUrl} target="_blank" rel="noreferrer" className="p-1 rounded bg-red-500/20 text-red-500 hover:bg-red-500/40" title="Ver PDF"><FileText size={12}/></a> : <span className="p-1 rounded bg-gray-500/20 text-gray-500 opacity-40"><FileText size={12}/></span>}
+                      {tx.xmlUrl ? <a href={tx.xmlUrl} target="_blank" rel="noreferrer" className="p-1.5 rounded bg-blue-500/20 text-blue-500 hover:bg-blue-500/40" title="Ver XML"><FileText size={12}/></a> : <span className="p-1.5 rounded bg-gray-500/10 text-gray-400 border border-gray-200 opacity-60"><FileText size={12}/></span>}
+                      {tx.pdfUrl ? <a href={tx.pdfUrl} target="_blank" rel="noreferrer" className="p-1.5 rounded bg-red-500/20 text-red-500 hover:bg-red-500/40" title="Ver PDF"><FileText size={12}/></a> : <span className="p-1.5 rounded bg-gray-500/10 text-gray-400 border border-gray-200 opacity-60"><FileText size={12}/></span>}
                     </div>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-1.5">
-                      <button onClick={() => { setEditingTx(tx); setIsModalOpen(true); }} className="p-1.5 rounded-lg hover:bg-blue-500/20 text-blue-500 transition-colors"><Edit2 size={13}/></button>
-                      <button onClick={() => handleDelete(tx.id)} className="p-1.5 rounded-lg hover:bg-red-500/20 text-red-500 transition-colors"><Trash2 size={13}/></button>
+                      <button onClick={() => { setEditingTx(tx); setIsModalOpen(true); }} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-blue-500/20 text-blue-500' : 'hover:bg-blue-100 text-blue-700 border border-blue-200'}`}><Edit2 size={13}/></button>
+                      <button onClick={() => handleDelete(tx.id)} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-red-500/20 text-red-500' : 'hover:bg-red-100 text-red-600 border border-red-200'}`}><Trash2 size={13}/></button>
                     </div>
                   </td>
                 </tr>
