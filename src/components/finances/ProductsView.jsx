@@ -18,7 +18,11 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
     ivaCategory: 15,
     stock: 0,
     minStock: 5,
-    type: 'producto' // 'producto' o 'servicio'
+    type: 'producto', // 'producto' o 'servicio'
+    marca: '',
+    categoria: '',
+    bodega: 'Bodega Central',
+    codigoBarras: ''
   });
 
   useEffect(() => {
@@ -52,6 +56,10 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
         stock: formData.type === 'servicio' ? 0 : (parseInt(formData.stock) || 0),
         minStock: formData.type === 'servicio' ? 0 : (parseInt(formData.minStock) || 0),
         type: formData.type,
+        marca: formData.marca || '',
+        categoria: formData.categoria || '',
+        bodega: formData.bodega || 'Bodega Central',
+        codigoBarras: formData.codigoBarras || '',
         updatedAt: new Date().toISOString()
       };
 
@@ -87,7 +95,11 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
       ivaCategory: 15,
       stock: 0,
       minStock: 5,
-      type: 'producto'
+      type: 'producto',
+      marca: '',
+      categoria: '',
+      bodega: 'Bodega Central',
+      codigoBarras: ''
     });
   };
 
@@ -164,7 +176,12 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
                     <tr key={p.id} className={`transition-colors ${isDarkMode ? 'hover:bg-white/5' : 'hover:bg-gray-100/40'}`}>
                       <td className={`px-6 py-4 font-mono text-[10px] ${isDarkMode ? '' : 'text-gray-900 font-bold'}`}>{p.sku}</td>
                       <td className={`px-6 py-4 font-medium truncate max-w-[220px] ${isDarkMode ? '' : 'text-gray-950 font-bold'}`}>
-                        {p.name}
+                        <div className="font-bold text-xs">{p.name}</div>
+                        <div className="flex flex-wrap gap-1 mt-1 text-[8px] font-bold uppercase tracking-wider text-gray-500">
+                          {p.marca && <span className="bg-gray-500/10 px-1 py-0.5 rounded">Marca: {p.marca}</span>}
+                          {p.categoria && <span className="bg-gray-500/10 px-1 py-0.5 rounded">Cat: {p.categoria}</span>}
+                          {p.bodega && <span className="bg-blue-500/10 text-blue-500 px-1 py-0.5 rounded">Bodega: {p.bodega}</span>}
+                        </div>
                         {p.description && <p className="text-[9px] text-gray-500 font-normal truncate mt-0.5" title={p.description}>{p.description}</p>}
                       </td>
                       <td className="px-6 py-4">
@@ -258,6 +275,23 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
                     <option value="12" className="text-black">12% IVA</option>
                     <option value="0" className="text-black">0% IVA</option>
                   </select>
+                </div>
+
+                <div>
+                  <label className={`block text-xs font-semibold mb-1.5 uppercase ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Marca</label>
+                  <input type="text" value={formData.marca || ''} onChange={e => setFormData({...formData, marca: e.target.value})} className={inputClass} placeholder="Ej. Dell, Samsung" />
+                </div>
+                <div>
+                  <label className={`block text-xs font-semibold mb-1.5 uppercase ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Categoría</label>
+                  <input type="text" value={formData.categoria || ''} onChange={e => setFormData({...formData, categoria: e.target.value})} className={inputClass} placeholder="Ej. Laptops, Monitores" />
+                </div>
+                <div>
+                  <label className={`block text-xs font-semibold mb-1.5 uppercase ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Bodega / Ubicación</label>
+                  <input type="text" value={formData.bodega || ''} onChange={e => setFormData({...formData, bodega: e.target.value})} className={inputClass} placeholder="Ej. Bodega Central" />
+                </div>
+                <div>
+                  <label className={`block text-xs font-semibold mb-1.5 uppercase ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Código de Barras</label>
+                  <input type="text" value={formData.codigoBarras || ''} onChange={e => setFormData({...formData, codigoBarras: e.target.value})} className={inputClass} placeholder="7501055300075" />
                 </div>
 
                 {formData.type === 'producto' && (

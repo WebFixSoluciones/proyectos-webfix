@@ -1,12 +1,38 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Trash2, FileText, CheckCircle2, ChevronRight, AlertCircle, ShoppingBag } from 'lucide-react';
-import { collection, onSnapshot, doc, setDoc, deleteDoc } from 'firebase/firestore';
+import { Plus, Search, Trash2, Edit2, FileText, CheckCircle2, ChevronRight, AlertCircle, ShoppingBag } from 'lucide-react';
+import { collection, onSnapshot, doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
 
 export default function QuotesView({ products, thirdParties, isDarkMode, showToast, db, appId, onPromoteToInvoice }) {
   const [quotes, setQuotes] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [companyConfig, setCompanyConfig] = useState(null);
+
+  useEffect(() => {
+    if (!appId || !db) return;
+    async function loadCompanyConfig() {
+      try {
+        const snap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config'));
+        if (snap.exists()) {
+          const data = snap.data();
+          setCompanyConfig(data);
+          if (!data.logoUrl || !data.ruc || !data.razonSocial) {
+            setIsBlocked(true);
+          } else {
+            setIsBlocked(false);
+          }
+        } else {
+          setIsBlocked(true);
+        }
+      } catch (err) {
+        console.error(err);
+        setIsBlocked(true);
+      }
+    }
+    loadCompanyConfig();
+  }, [appId, db]);
   
   // Datos del formulario de Cotización
   const [formData, setFormData] = useState({
@@ -206,22 +232,49 @@ export default function QuotesView({ products, thirdParties, isDarkMode, showToa
   return (
     <div className="space-y-6">
       
+      {/* ALERTA DE BLOQUEO POR CONFIGURACIÓN DE EMPRESA */}
+      {isBlocked && (
+        <div className="p-5 rounded-2xl border border-dashed border-red-500/30 bg-red-500/10 text-red-500 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-in slide-in-from-top-2 duration-300">
+          <div className="flex items-start gap-3">
+            <AlertCircle size={20} className="shrink-0 mt-0.5" />
+            <div className="text-xs">
+              <p className="font-bold">Emisión de Cotizaciones Bloqueada</p>
+              <p className="opacity-90 mt-0.5">Normativa Comercial: No se pueden emitir proformas sin configurar la Razón Social, RUC y el **Logo Corporativo** de la empresa.</p>
+            </div>
+          </div>
+          <span className="text-[9px] px-2.5 py-1 rounded bg-red-500 text-white font-black uppercase tracking-wider shrink-0">Configuración Requerida</span>
+        </div>
+      )}
+
       {/* HEADER ACCIONES */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border w-full sm:w-80 ${isDarkMode ? 'bg-black/20 border-white/10' : 'bg-white border-gray-355'}`}>
-          <Search size={14} className={isDarkMode ? 'text-gray-500' : 'text-gray-600'} />
+          <Search size={14} className={isDarkMode ? 'text-gray-500' : 'text-gray-605'} />
           <input 
             type="text" 
             placeholder="Buscar por número o cliente..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="bg-transparent border-none outline-none text-xs w-full text-gray-900"
+            disabled={isBlocked}
           />
         </div>
         
         <button 
-          onClick={() => { resetForm(); setIsModalOpen(true); }}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold transition-transform shadow-sm hover:-translate-y-0.5 ${isDarkMode ? 'bg-blue-600 text-white hover:bg-blue-500' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+          onClick={() => { 
+            if (isBlocked) {
+              showToast("Completa la Razón Social, RUC y Logo en Configuración primero", "error");
+              return;
+            }
+            resetForm(); 
+            setIsModalOpen(true); 
+          }}
+          disabled={isBlocked}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold transition-all shadow-sm ${
+            isBlocked 
+              ? 'bg-gray-450/20 text-gray-500 border border-white/5 cursor-not-allowed opacity-50' 
+              : (isDarkMode ? 'bg-blue-600 text-white hover:bg-blue-500 hover:-translate-y-0.5' : 'bg-blue-600 text-white hover:bg-blue-700 hover:-translate-y-0.5')
+          }`}
         >
           <Plus size={14} /> Nueva Cotización
         </button>

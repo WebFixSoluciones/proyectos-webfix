@@ -36,7 +36,7 @@ export default function FinanceModule({ mode = 'contabilidad', isDarkMode, showT
   const [isChatOpen, setIsChatOpen] = useState(false);
 
   // Estados de sub-navegación ERP
-  const [subTabVentas, setSubTabVentas] = useState('pos');
+  const [subTabVentas, setSubTabVentas] = useState('facturas');
   const [subTabSri, setSubTabSri] = useState('nota_credito');
   const [subTabPersonas, setSubTabPersonas] = useState('cliente');
 
@@ -224,9 +224,9 @@ export default function FinanceModule({ mode = 'contabilidad', isDarkMode, showT
           <span className={`text-[9px] font-black uppercase tracking-wider ${isDarkMode ? 'text-gray-500' : 'text-gray-600'}`}>Módulo:</span>
           <div className="flex gap-1.5 overflow-x-auto whitespace-nowrap scrollbar-none">
             {activeTab === 'ventas' && [
+              { id: 'facturas', label: 'Facturas de Venta' },
               { id: 'pos', label: 'Punto de Venta (POS)' },
-              { id: 'quotes', label: 'Cotizaciones (Proformas)' },
-              { id: 'facturas', label: 'Facturas de Venta' }
+              { id: 'quotes', label: 'Cotizaciones (Proformas)' }
             ].map(sub => (
               <button
                 key={sub.id}
@@ -320,7 +320,7 @@ export default function FinanceModule({ mode = 'contabilidad', isDarkMode, showT
 
               {/* REPORTES Y CONFIGURACIÓN */}
               {activeTab === 'reports' && <ReportsView transactions={transactions} isDarkMode={isDarkMode} showToast={showToast} />}
-              {activeTab === 'settings' && <FinanceSettings isDarkMode={isDarkMode} showToast={showToast} db={db} appId={appId} />}
+              {activeTab === 'settings' && <FinanceSettings isDarkMode={isDarkMode} showToast={showToast} db={db} storage={storage} appId={appId} />}
             </>
           )}
         </div>

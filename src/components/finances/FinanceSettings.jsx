@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Shield, Award, Sparkles, Key, Eye, EyeOff, Save, CheckCircle2 } from 'lucide-react';
+import { Settings, Shield, Award, Sparkles, Key, Eye, EyeOff, Save, CheckCircle2, UploadCloud, Trash2 } from 'lucide-react';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 
-export default function FinanceSettings({ isDarkMode, showToast, db, appId }) {
+export default function FinanceSettings({ isDarkMode, showToast, db, storage, appId }) {
   const [loading, setLoading] = useState(true);
   const [showKey, setShowKey] = useState(false);
   const [sriConfig, setSriConfig] = useState({
@@ -18,10 +19,45 @@ export default function FinanceSettings({ isDarkMode, showToast, db, appId }) {
     certificadoCargado: false,
     certificadoNombre: '',
     certificadoClave: '',
-    certificadoVence: ''
+    certificadoVence: '',
+    logoUrl: '',
+    correoContacto: '',
+    telefonoContacto: '',
+    cotizacionFormatoActivo: 'basico'
   });
   
   const [geminiKey, setGeminiKey] = useState('');
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      showToast("El archivo debe ser una imagen", "error");
+      return;
+    }
+
+    setIsUploadingLogo(true);
+    try {
+      const extension = file.name.split('.').pop();
+      const path = `artifacts/${appId}/finances/logo_${new Date().getTime()}.${extension}`;
+      const storageRef = ref(storage, path);
+      const uploadTask = await uploadBytesResumable(storageRef, file);
+      const downloadURL = await getDownloadURL(uploadTask.ref);
+      
+      setSriConfig(prev => ({
+        ...prev,
+        logoUrl: downloadURL
+      }));
+      showToast("Logo de empresa subido exitosamente", "success");
+    } catch (err) {
+      console.error(err);
+      showToast("Error al subir el logo", "error");
+    } finally {
+      setIsUploadingLogo(false);
+    }
+  };
 
   // Cargar configuraciones de Firestore
   useEffect(() => {
@@ -242,6 +278,56 @@ export default function FinanceSettings({ isDarkMode, showToast, db, appId }) {
                   </button>
                 </div>
                 <p className="text-[9px] text-gray-500 mt-2 leading-relaxed">Necesaria para la extracción de datos de gastos (OCR) y respuestas del chat contable. Consíguela gratis en Google AI Studio.</p>
+              </div>
+            </div>
+          </div>
+
+          {/* CONFIGURACIÓN COMERCIAL Y LOGO */}
+          <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-white border-gray-200'}`}>
+            <div className="flex items-center gap-2 mb-4 pb-2 border-b border-white/10">
+              <Settings size={18} className="text-blue-500" />
+              <h3 className="text-base font-bold">Datos Comerciales / Proformas</h3>
+            </div>
+            
+            <div className="space-y-4">
+              {/* Carga de Logo */}
+              <div>
+                <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-500">Logo Corporativo (Obligatorio para Cotizaciones)</label>
+                {sriConfig.logoUrl ? (
+                  <div className="flex items-center gap-3 p-3 rounded-xl border border-dashed border-emerald-500/30 bg-emerald-500/5">
+                    <img src={sriConfig.logoUrl} alt="Logo" className="w-12 h-12 object-contain bg-white rounded-lg p-1 animate-in fade-in" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold text-emerald-450">Logo Cargado</p>
+                      <button type="button" onClick={() => setSriConfig({...sriConfig, logoUrl: ''})} className="text-[10px] text-red-500 hover:underline font-bold mt-0.5">Eliminar Logo</button>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <label className={`w-full flex flex-col items-center justify-center gap-2 p-4 rounded-xl border border-dashed cursor-pointer transition-colors ${isDarkMode ? 'border-white/20 hover:bg-white/5 text-gray-400' : 'border-gray-300 hover:bg-gray-50 text-gray-600'}`}>
+                      <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} disabled={isUploadingLogo} />
+                      <UploadCloud size={20} className={isUploadingLogo ? 'animate-bounce text-blue-500' : 'text-gray-550'} />
+                      <span className="text-xs font-semibold">{isUploadingLogo ? 'Subiendo...' : 'Subir Imagen de Logo'}</span>
+                    </label>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-500">Correo de Contacto</label>
+                <input type="email" value={sriConfig.correoContacto || ''} onChange={e => setSriConfig({...sriConfig, correoContacto: e.target.value})} className={inputClass} placeholder="ventas@empresa.com" />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-500">Teléfono de Contacto</label>
+                <input type="text" value={sriConfig.telefonoContacto || ''} onChange={e => setSriConfig({...sriConfig, telefonoContacto: e.target.value})} className={inputClass} placeholder="0998765432" />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-500">Plantilla de Cotización</label>
+                <select value={sriConfig.cotizacionFormatoActivo || 'basico'} onChange={e => setSriConfig({...sriConfig, cotizacionFormatoActivo: e.target.value})} className={inputClass}>
+                  <option value="basico" className="text-black">Plantilla Clásica (PDF)</option>
+                  <option value="premium" className="text-black">Plantilla Moderna (Flat/Premium)</option>
+                </select>
               </div>
             </div>
           </div>
