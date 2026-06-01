@@ -75,6 +75,7 @@ import { doc, setDoc, onSnapshot, collection, updateDoc, deleteDoc, writeBatch, 
 
 import { auth, db, appId } from './firebase';
 import FinanceModule from './components/finances/FinanceModule';
+import ErpDashboard from './components/dashboard/ErpDashboard';
 
 const apiKey = ""; // API Key para Gemini (configura tu clave aquí si usas IA)
 
@@ -1656,167 +1657,14 @@ export default function App() {
 
             {/* VISTA: DASHBOARD */}
             {activePage.type === 'dashboard' && (
-              <div className="animate-in fade-in duration-500">
-                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8 pb-4 border-b border-white/10">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2.5 rounded-xl ${isDarkMode ? 'bg-blue-500/20 text-blue-400 border border-blue-500/20 shadow-[0_0_20px_rgba(59,130,246,0.1)]' : 'bg-blue-100 text-blue-600 border border-white/50'}`}>
-                      <LayoutDashboard size={24} />
-                    </div>
-                    <div>
-                      <h1 className="text-2xl font-bold tracking-tight">Resumen del Espacio</h1>
-                      <p className={`text-sm mt-0.5 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Métricas y progreso en tiempo real.</p>
-                    </div>
-                  </div>
-                  <button onClick={() => setIsReportDrawerOpen(true)} className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-transform shadow-sm hover:-translate-y-0.5 ${isDarkMode ? 'bg-white/10 text-white shadow-white/5 hover:bg-white/20 border border-white/10' : 'bg-gray-900 text-white hover:bg-gray-800'}`}>
-                    <Download size={16} /> Exportar Informes
-                  </button>
-                </div>
-
-                {/* Tarjetas de Métricas Generales */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                  <div className={`p-5 rounded-2xl ${currentGlassPanel} hover:-translate-y-0.5 transition-transform duration-300`}>
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className={`text-xs font-semibold uppercase tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Proyectos</h3>
-                      <div className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-indigo-500/20 text-indigo-400' : 'bg-indigo-100 text-indigo-600'}`}><FolderOpen size={16} /></div>
-                    </div>
-                    <p className="text-3xl font-bold">{projectsList.length}</p>
-                  </div>
-                  
-                  <div className={`p-5 rounded-2xl ${currentGlassPanel} hover:-translate-y-0.5 transition-transform duration-300`}>
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className={`text-xs font-semibold uppercase tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Pendientes</h3>
-                      <div className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-yellow-500/20 text-yellow-400' : 'bg-yellow-100 text-yellow-600'}`}><CircleDashed size={16} /></div>
-                    </div>
-                    <p className="text-3xl font-bold">{allTasksGlobal.filter(t => t.status !== 'done').length}</p>
-                  </div>
-
-                  <div className={`p-5 rounded-2xl ${currentGlassPanel} hover:-translate-y-0.5 transition-transform duration-300`}>
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className={`text-xs font-semibold uppercase tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Completadas</h3>
-                      <div className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-green-500/20 text-green-400' : 'bg-green-100 text-green-600'}`}><CheckCircle2 size={16} /></div>
-                    </div>
-                    <p className="text-3xl font-bold">{allTasksGlobal.filter(t => t.status === 'done').length}</p>
-                  </div>
-                </div>
-
-                {/* Gráfico de Distribución de Estado */}
-                <div className={`p-6 rounded-2xl mb-6 ${currentGlassPanel}`}>
-                  <h3 className={`text-lg font-semibold mb-5 flex items-center gap-2 ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-                    <BarChart3 size={18} className={isDarkMode ? 'text-blue-400' : 'text-blue-500'} /> 
-                    Distribución de Tareas por Estado
-                  </h3>
-                  {allTasksGlobal.length > 0 ? (
-                    <div className="space-y-4">
-                      <div className={`h-4 w-full rounded-full overflow-hidden flex backdrop-blur-md border shadow-inner ${isDarkMode ? 'border-white/10 bg-black/20' : 'border-gray-200 bg-gray-100'}`}>
-                        {Array.from(new Set(projectsList.flatMap(p => (p.columns || DEFAULT_COLUMNS).map(c => c.id)))).map((statusId, i) => {
-                          const count = allTasksGlobal.filter(t => t.status === statusId).length;
-                          const percent = Math.round((count / (allTasksGlobal.length || 1)) * 100);
-                          const colDef = projectsList.flatMap(p => (p.columns || DEFAULT_COLUMNS)).find(c => c.id === statusId) || { title: statusId, color: 'gray' };
-                          const bgClass = getColorClass(colDef.color || 'gray').split(' ')[0] || 'bg-gray-400';
-                          
-                          return count > 0 ? (
-                            <div key={statusId} title={`${colDef.title}: ${count} (${percent}%)`} className={`h-full ${bgClass} transition-all duration-1000 cursor-pointer`} style={{ width: `${percent}%` }} />
-                          ) : null;
-                        })}
-                      </div>
-                      <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-medium">
-                        {Array.from(new Set(projectsList.flatMap(p => (p.columns || DEFAULT_COLUMNS).map(c => c.id)))).map((statusId) => {
-                          const count = allTasksGlobal.filter(t => t.status === statusId).length;
-                          const colDef = projectsList.flatMap(p => (p.columns || DEFAULT_COLUMNS)).find(c => c.id === statusId) || { title: statusId, color: 'gray' };
-                          const dotClass = COLUMN_COLORS.find(c => c.id === (colDef.color || 'gray'))?.dot || 'bg-gray-400';
-                          
-                          return count > 0 ? (
-                            <div key={statusId} className={`flex items-center gap-1.5 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                              <span className={`w-2.5 h-2.5 rounded-full ${dotClass}`}></span>
-                              {colDef.title}: <span className="font-bold">{count}</span>
-                            </div>
-                          ) : null;
-                        })}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className={`text-center py-4 text-sm italic ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>No hay tareas para graficar.</div>
-                  )}
-                </div>
-
-                {/* Lista de Proyectos con Progreso */}
-                <div className={`p-6 rounded-2xl mb-6 ${currentGlassPanel}`}>
-                  <h3 className={`text-lg font-semibold mb-5 flex items-center gap-2 ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-                    <BarChart3 size={18} className={isDarkMode ? 'text-blue-400' : 'text-blue-500'} /> 
-                    Progreso por Proyecto
-                  </h3>
-                  
-                  <div className="space-y-5">
-                    {projectsList.length > 0 ? projectsList.map(project => {
-                      const pTasks = globalTasks.filter(t => t.projectId === project.id);
-                      const pDone = pTasks.filter(t => t.status === 'done').length;
-                      const pTotal = pTasks.length;
-                      const progressPercent = pTotal > 0 ? Math.round((pDone / pTotal) * 100) : 0;
-                      
-                      return (
-                        <div key={project.id} className="group">
-                          <div className="flex items-center justify-between mb-2 cursor-pointer" onClick={() => setActivePageId(project.id)}>
-                            <div className="flex items-center gap-2 font-medium text-sm hover:underline decoration-white/30 underline-offset-4">
-                              <span className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-white/5' : 'bg-black/5'}`}>
-                                <IconRenderer name={project.icon} size={14} className={isDarkMode ? 'text-gray-300' : 'text-gray-600'} />
-                              </span>
-                              {project.title}
-                            </div>
-                            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${isDarkMode ? 'bg-white/10 text-gray-200' : 'bg-black/10 text-gray-800'}`}>{progressPercent}%</span>
-                          </div>
-                          <div className={`h-2 w-full rounded-full overflow-hidden backdrop-blur-md border ${isDarkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-white/50'}`}>
-                            <div 
-                              className={`h-full rounded-full transition-all duration-1000 ${progressPercent === 100 ? 'bg-gradient-to-r from-emerald-400 to-green-500' : 'bg-gradient-to-r from-blue-400 to-indigo-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]'}`} 
-                              style={{ width: `${progressPercent}%` }}
-                            />
-                          </div>
-                          <div className={`text-xs mt-2 flex justify-end gap-3 font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                            <span className="flex items-center gap-1"><CheckCircle2 size={12} className={isDarkMode ? 'text-green-400' : 'text-green-600'} /> {pDone} hechas</span>
-                            <span className="flex items-center gap-1"><ListTodo size={12} className={isDarkMode ? 'text-blue-400' : 'text-blue-600'} /> {pTotal} total</span>
-                          </div>
-                        </div>
-                      )
-                    }) : (
-                      <div className={`text-center py-6 text-sm italic ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>No tienes proyectos activos para mostrar métricas.</div>
-                    )}
-                  </div>
-                </div>
-
-                {/* AI Dashboard Report */}
-                <div className={`p-6 rounded-2xl ${glassPanelDark} relative overflow-hidden`}>
-                  <div className="absolute top-0 right-0 w-48 h-48 bg-purple-500/20 rounded-full blur-[40px] pointer-events-none -z-10"></div>
-                  
-                  <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 mb-4">
-                    <h3 className={`text-lg font-semibold flex items-center gap-2 ${isDarkMode ? 'text-purple-300' : 'text-purple-100'}`}>
-                      <div className="p-1.5 rounded-lg bg-purple-500/20 text-purple-400 border border-purple-500/30">
-                        <Sparkles size={16} />
-                      </div>
-                      Análisis Estratégico de IA
-                    </h3>
-                    <button 
-                      onClick={generateDashboardReport}
-                      disabled={isGeneratingReport}
-                      className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all shadow-sm disabled:opacity-50 hover:-translate-y-0.5 ${isDarkMode ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-purple-500/20 border border-purple-500/50' : 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white border border-purple-400'}`}
-                    >
-                      {isGeneratingReport ? <RefreshCw size={14} className="animate-spin" /> : <Wand2 size={14} />} 
-                      {dashboardReport ? 'Actualizar Reporte' : 'Generar Reporte'}
-                    </button>
-                  </div>
-                  {dashboardReport ? (
-                    <div className={`text-sm leading-relaxed ${isDarkMode ? 'text-gray-200' : 'text-gray-100'} p-4 rounded-xl bg-black/20 backdrop-blur-md border border-white/5`}>
-                      {dashboardReport.split('\n').map((line, i) => (
-                        <p key={i} className="mb-2 last:mb-0">{line.replace(/\*\*/g, '')}</p>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="p-4 rounded-xl bg-black/10 border border-white/5 backdrop-blur-sm text-center">
-                      <p className={`text-xs italic ${isDarkMode ? 'text-purple-300/70' : 'text-purple-200/90'}`}>
-                        Haz clic en "Generar Reporte" para que Gemini analice el estado actual y te dé un resumen ejecutivo detallado.
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
+              <ErpDashboard 
+                projectsList={projectsList} 
+                allTasksGlobal={allTasksGlobal} 
+                isDarkMode={isDarkMode} 
+                setActivePageId={setActivePageId} 
+                db={db} 
+                appId={appId} 
+              />
             )}
 
             {/* VISTA: EQUIPO Y ROLES */}

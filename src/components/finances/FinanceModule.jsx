@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  DollarSign, PieChart, Users, FileText, Download, Settings, Sparkles
+  DollarSign, PieChart, Users, FileText, Download, Settings, Sparkles, ShoppingCart, Package, Bookmark
 } from 'lucide-react';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db, storage, appId } from '../../firebase';
@@ -10,24 +10,33 @@ import ThirdPartiesView from './ThirdPartiesView';
 import ReportsView from './ReportsView';
 import FinanceSettings from './FinanceSettings';
 import FinanceChat from './FinanceChat';
+import ProductsView from './ProductsView';
+import QuotesView from './QuotesView';
+import PosView from './PosView';
+import TransactionForm from './TransactionForm';
 
 export default function FinanceModule({ isDarkMode, showToast }) {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [transactions, setTransactions] = useState([]);
   const [thirdParties, setThirdParties] = useState([]);
+  const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isChatOpen, setIsChatOpen] = useState(false);
 
+  // Estados centralizados para el modal de Facturación / SRI
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingTx, setEditingTx] = useState(null);
+
   // Cargar datos de Firebase
   useEffect(() => {
-    if (!appId) return;
+    if (!appId || !db) return;
 
     const txCol = collection(db, 'artifacts', appId, 'public', 'data', 'finances_transactions');
     const tpCol = collection(db, 'artifacts', appId, 'public', 'data', 'finances_third_parties');
+    const prodCol = collection(db, 'artifacts', appId, 'public', 'data', 'finances_products');
 
     const unsubTx = onSnapshot(txCol, (snap) => {
       const txData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      // Ordenar por fecha descendente
       txData.sort((a, b) => new Date(b.date) - new Date(a.date));
       setTransactions(txData);
       setIsLoading(false);
@@ -38,17 +47,65 @@ export default function FinanceModule({ isDarkMode, showToast }) {
       setThirdParties(tpData);
     });
 
+    const unsubProd = onSnapshot(prodCol, (snap) => {
+      const prodData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      setProducts(prodData);
+    });
+
     return () => {
       unsubTx();
       unsubTp();
+      unsubProd();
     };
-  }, [appId]);
+  }, [appId, db]);
+
+  // Abrir modal de factura prellenada (desde POS o Cotizaciones)
+  const handleOpenFormModal = (prefilledData = null) => {
+    setEditingTx(prefilledData);
+    setIsModalOpen(true);
+  };
+
+  // Convertir cotización a Factura
+  const handlePromoteToInvoice = (quote) => {
+    const prefilled = {
+      id: '',
+      type: 'ingreso',
+      date: new Date().toISOString().split('T')[0],
+      documentType: 'factura',
+      thirdPartyId: quote.thirdPartyId,
+      category: 'ventas',
+      currency: 'USD',
+      baseImponible: Number(quote.subtotal),
+      ivaPorcentaje: 15,
+      ivaValor: Number(quote.ivaValor),
+      retencionFuente: 0,
+      retencionIva: 0,
+      total: Number(quote.total),
+      paymentMethod: 'transferencia',
+      paymentStatus: 'pendiente',
+      sriStatus: 'pendiente',
+      items: quote.items || [],
+      isPromotedFromQuote: true,
+      quoteNumber: quote.quoteNumber
+    };
+    handleOpenFormModal(prefilled);
+    setActiveTab('transactions');
+  };
+
+  // Checkout desde Punto de Venta (POS)
+  const handlePOSCheckout = (invoiceData) => {
+    handleOpenFormModal(invoiceData);
+    setActiveTab('transactions');
+  };
 
   const tabs = [
     { id: 'dashboard', label: 'Resumen', icon: PieChart },
+    { id: 'pos', label: 'Ventas / POS', icon: ShoppingCart },
     { id: 'transactions', label: 'Comprobantes', icon: FileText },
-    { id: 'third_parties', label: 'Contactos (SRI)', icon: Users },
-    { id: 'reports', label: 'Reportes y Cierres', icon: Download },
+    { id: 'quotes', label: 'Cotizaciones', icon: Bookmark },
+    { id: 'products', label: 'Inventario', icon: Package },
+    { id: 'third_parties', label: 'Contactos', icon: Users },
+    { id: 'reports', label: 'Reportes', icon: Download },
     { id: 'settings', label: 'Configuración', icon: Settings },
   ];
 
@@ -61,9 +118,9 @@ export default function FinanceModule({ isDarkMode, showToast }) {
             <DollarSign size={20} />
           </div>
           <div>
-            <h1 className="text-xl font-bold tracking-tight">Finanzas y Facturación SRI</h1>
+            <h1 className="text-xl font-bold tracking-tight">ERP Ventas y Facturación SRI</h1>
             <p className={`text-[10px] mt-0.5 ${isDarkMode ? 'text-gray-400' : 'text-gray-700 font-medium'}`}>
-              Emisión de comprobantes electrónicos autorizados y automatización de gastos con IA
+              Gestión modular de inventario, punto de venta, cotizaciones comerciales y facturación electrónica autorizada
             </p>
           </div>
         </div>
@@ -114,7 +171,10 @@ export default function FinanceModule({ isDarkMode, showToast }) {
           ) : (
             <>
               {activeTab === 'dashboard' && <FinanceDashboard transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} db={db} appId={appId} />}
-              {activeTab === 'transactions' && <TransactionsView transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} storage={storage} appId={appId} />}
+              {activeTab === 'pos' && <PosView products={products} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} appId={appId} onCheckout={handlePOSCheckout} />}
+              {activeTab === 'transactions' && <TransactionsView transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} />}
+              {activeTab === 'quotes' && <QuotesView products={products} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} appId={appId} onPromoteToInvoice={handlePromoteToInvoice} />}
+              {activeTab === 'products' && <ProductsView isDarkMode={isDarkMode} showToast={showToast} db={db} appId={appId} />}
               {activeTab === 'third_parties' && <ThirdPartiesView thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} appId={appId} />}
               {activeTab === 'reports' && <ReportsView transactions={transactions} isDarkMode={isDarkMode} showToast={showToast} />}
               {activeTab === 'settings' && <FinanceSettings isDarkMode={isDarkMode} showToast={showToast} db={db} appId={appId} />}
@@ -128,6 +188,21 @@ export default function FinanceModule({ isDarkMode, showToast }) {
           </div>
         )}
       </div>
+
+      {/* MODAL GLOBAL DE FACTURACIÓN (COMPARTIDO) */}
+      {isModalOpen && (
+        <TransactionForm 
+          tx={editingTx} 
+          onClose={() => setIsModalOpen(false)} 
+          thirdParties={thirdParties} 
+          products={products}
+          isDarkMode={isDarkMode} 
+          showToast={showToast} 
+          db={db} 
+          storage={storage} 
+          appId={appId} 
+        />
+      )}
     </div>
   );
 }

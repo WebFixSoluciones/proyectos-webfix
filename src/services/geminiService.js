@@ -236,3 +236,95 @@ Por favor, utiliza estos datos reales para responder preguntas como sumas, filtr
   const reply = result.candidates?.[0]?.content?.parts?.[0]?.text || "No obtuve respuesta de la IA.";
   return reply;
 }
+
+// Analizar el contexto consolidado del ERP (Proyectos, Tareas, Inventario, Finanzas, Clientes)
+export async function analizarERPContextoConGemini(projects, tasks, products, transactions, thirdParties) {
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    throw new Error("No se ha configurado la clave API de Gemini. Por favor configúrala en Ajustes.");
+  }
+
+  const totalProjects = projects.length;
+  const totalTasks = tasks.length;
+  const pendingTasks = tasks.filter(t => t.status !== 'done').length;
+  const completedTasks = tasks.filter(t => t.status === 'done').length;
+  
+  // Productos en bajo stock (stock <= minStock)
+  const lowStockProducts = products.filter(p => p.type === 'producto' && Number(p.stock) <= Number(p.minStock)).map(p => ({
+    name: p.name,
+    sku: p.sku,
+    stock: p.stock,
+    minStock: p.minStock
+  }));
+
+  // Resumen Financiero
+  let totalIncome = 0;
+  let totalExpense = 0;
+  let outstandingCollections = 0; // Cuentas por cobrar
+  
+  transactions.forEach(t => {
+    const val = Number(t.total) || 0;
+    if (t.type === 'ingreso') {
+      totalIncome += val;
+      if (t.paymentStatus === 'pendiente') {
+        outstandingCollections += val;
+      }
+    } else if (t.type === 'egreso') {
+      totalExpense += val;
+    }
+  });
+
+  const contextData = {
+    proyectos: {
+      total: totalProjects,
+      tareasTotales: totalTasks,
+      tareasPendientes: pendingTasks,
+      tareasCompletadas: completedTasks
+    },
+    inventario: {
+      totalItems: products.length,
+      bajoStock: lowStockProducts
+    },
+    finanzas: {
+      ingresosTotales: totalIncome.toFixed(2),
+      egresosTotales: totalExpense.toFixed(2),
+      cuentasPorCobrar: outstandingCollections.toFixed(2),
+      balanceNeto: (totalIncome - totalExpense).toFixed(2)
+    }
+  };
+
+  const prompt = `Eres un Consultor Estratégico de Negocios y Asesor de IA (AI ERP Advisor) de nivel premium integrado en el ERP de la empresa.
+Analiza la siguiente información consolidada de la empresa (Proyectos, Tareas, Inventario y Finanzas) y genera un diagnóstico estratégico e informe ejecutivo:
+${JSON.stringify(contextData)}
+
+Por favor, elabora un informe en español que sea profesional, motivador y directo al punto.
+Usa formato de Markdown claro con viñetas y emojis.
+El informe debe incluir:
+1. **Análisis de Estado**: Resumen rápido de la salud del negocio (proyectos y finanzas).
+2. **Alertas Críticas**: Llama la atención sobre productos específicos que estén con stock crítico y requieran reposición inmediata, o tareas pendientes acumuladas, o deudas/cobros importantes de clientes que comprometan la liquidez.
+3. **Recomendaciones de Acción**: Sugerencias claras y concretas de negocio para mejorar el flujo de caja, la rotación de inventarios o la agilidad de los proyectos.
+
+Mantén el informe conciso y accionable.`;
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      contents: [{
+        parts: [{ text: prompt }]
+      }]
+    })
+  });
+
+  if (!response.ok) {
+    const errData = await response.json();
+    throw new Error(errData.error?.message || "Error al conectar con la API de Gemini");
+  }
+
+  const result = await response.json();
+  return result.candidates?.[0]?.content?.parts?.[0]?.text || "No obtuve respuesta de la IA.";
+}

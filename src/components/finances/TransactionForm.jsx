@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, UploadCloud, Calculator, FileText, CheckCircle2, AlertTriangle, Sparkles, Terminal, ShieldAlert, Download } from 'lucide-react';
+import { X, UploadCloud, Calculator, FileText, CheckCircle2, AlertTriangle, Sparkles, Terminal, ShieldAlert, Download, Plus, Trash2 } from 'lucide-react';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { validarIdentificacion, generarFacturaXML, simularTransmisionSRI } from '../../services/sriService';
 
-export default function TransactionForm({ tx, onClose, thirdParties, isDarkMode, showToast, db, storage, appId }) {
+export default function TransactionForm({ tx, onClose, thirdParties, products = [], isDarkMode, showToast, db, storage, appId }) {
   const [sriConfig, setSriConfig] = useState(null);
   
   const [formData, setFormData] = useState({
@@ -30,7 +30,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, isDarkMode,
     xmlPath: '',
     pdfPath: '',
     secuencial: '1',
-    claveAcceso: ''
+    claveAcceso: '',
+    items: [] // Filas de productos desglosadas
   });
 
   const [isUploading, setIsUploading] = useState(false);
@@ -47,9 +48,12 @@ export default function TransactionForm({ tx, onClose, thirdParties, isDarkMode,
         const snap = await getDoc(docRef);
         if (snap.exists()) {
           setSriConfig(snap.data());
-          // Si es una nueva venta, proponer el siguiente secuencial y número de documento
+          // Cargar el secuencial factura del emisor si es nuevo
           if (!tx) {
-            const nextSec = snap.data().establecimiento + '-' + snap.data().puntoEmision() + '-';
+            setFormData(prev => ({
+              ...prev,
+              secuencial: String(snap.data().secuencialFactura || 1)
+            }));
           }
         }
       } catch (err) {
@@ -61,28 +65,105 @@ export default function TransactionForm({ tx, onClose, thirdParties, isDarkMode,
 
   useEffect(() => {
     if (tx) {
-      setFormData(tx);
+      setFormData(prev => ({
+        ...prev,
+        items: [], // Valor por defecto
+        ...tx
+      }));
     }
   }, [tx]);
 
-  // Cálculo automático del total
+  // Cálculo automático del total y desglose de items
   useEffect(() => {
-    const base = Number(formData.baseImponible) || 0;
-    const ivaPerc = Number(formData.ivaPorcentaje) || 0;
-    const ivaVal = Number((base * (ivaPerc / 100)).toFixed(2));
+    const hasItems = formData.items && formData.items.length > 0;
     
-    const retFuente = Number(formData.retencionFuente) || 0;
-    const retIva = Number(formData.retencionIva) || 0;
-    
-    // Total = Base + IVA - Retenciones
-    const total = base + ivaVal - retFuente - retIva;
-    
+    if (hasItems) {
+      let subtotal = 0;
+      let ivaVal = 0;
+      
+      formData.items.forEach(item => {
+        const lineSub = (parseFloat(item.price) || 0) * (parseInt(item.quantity) || 1);
+        const lineIva = lineSub * ((parseInt(item.ivaCategory) || 15) / 100);
+        subtotal += lineSub;
+        ivaVal += lineIva;
+      });
+
+      const retFuente = Number(formData.retencionFuente) || 0;
+      const retIva = Number(formData.retencionIva) || 0;
+      const totalVal = subtotal + ivaVal - retFuente - retIva;
+
+      setFormData(prev => ({
+        ...prev,
+        baseImponible: subtotal.toFixed(2),
+        ivaValor: ivaVal.toFixed(2),
+        total: totalVal.toFixed(2)
+      }));
+    } else {
+      // Flujo de cálculo manual
+      const base = Number(formData.baseImponible) || 0;
+      const ivaPerc = Number(formData.ivaPorcentaje) || 0;
+      const ivaVal = Number((base * (ivaPerc / 100)).toFixed(2));
+      
+      const retFuente = Number(formData.retencionFuente) || 0;
+      const retIva = Number(formData.retencionIva) || 0;
+      
+      const totalVal = base + ivaVal - retFuente - retIva;
+      
+      setFormData(prev => ({
+        ...prev,
+        ivaValor: ivaVal,
+        total: totalVal.toFixed(2)
+      }));
+    }
+  }, [
+    formData.baseImponible, 
+    formData.ivaPorcentaje, 
+    formData.retencionFuente, 
+    formData.retencionIva, 
+    formData.items
+  ]);
+
+  // Métodos para el desglose de productos
+  const handleAddItem = () => {
     setFormData(prev => ({
       ...prev,
-      ivaValor: ivaVal,
-      total: total.toFixed(2)
+      items: [
+        ...(prev.items || []),
+        { productId: '', name: '', price: 0, quantity: 1, ivaCategory: 15 }
+      ]
     }));
-  }, [formData.baseImponible, formData.ivaPorcentaje, formData.retencionFuente, formData.retencionIva]);
+  };
+
+  const handleRemoveItem = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      items: (prev.items || []).filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleItemChange = (index, field, value) => {
+    const updatedItems = [...(formData.items || [])];
+    
+    if (field === 'productId') {
+      const prod = products.find(p => p.id === value);
+      if (prod) {
+        updatedItems[index] = {
+          ...updatedItems[index],
+          productId: value,
+          name: prod.name,
+          price: prod.price,
+          ivaCategory: prod.ivaCategory
+        };
+      }
+    } else {
+      updatedItems[index] = {
+        ...updatedItems[index],
+        [field]: value
+      };
+    }
+
+    setFormData(prev => ({ ...prev, items: updatedItems }));
+  };
 
   const handleFileUpload = async (e, fileType) => {
     const file = e.target.files[0];
@@ -118,7 +199,6 @@ export default function TransactionForm({ tx, onClose, thirdParties, isDarkMode,
     }
   };
 
-  // Validaciones antes de guardar/emitir
   const validateForm = () => {
     if (!formData.thirdPartyId) {
       showToast('Selecciona un tercero', 'error');
@@ -131,19 +211,16 @@ export default function TransactionForm({ tx, onClose, thirdParties, isDarkMode,
       return false;
     }
 
-    // Validar RUC del Receptor
     if (!validarIdentificacion(matchedTercero.ruc)) {
       showToast(`El RUC/CI del contacto (${matchedTercero.ruc}) es incorrecto`, 'error');
       return false;
     }
 
-    // Validar total no negativo
     if (Number(formData.total) < 0) {
       showToast('El total liquidado no puede ser menor a cero', 'error');
       return false;
     }
 
-    // Validar formato de documento número
     if (formData.documentNumber && !/^\d{3}-\d{3}-\d{9}$/.test(formData.documentNumber)) {
       showToast('El número de comprobante debe tener el formato 000-000-000000000', 'error');
       return false;
@@ -173,7 +250,6 @@ export default function TransactionForm({ tx, onClose, thirdParties, isDarkMode,
     }
   };
 
-  // Emitir y Transmitir al SRI electrónicamente
   const handleEmitirSRI = async () => {
     if (!sriConfig) {
       showToast("Configura los datos del emisor SRI primero", "error");
@@ -187,14 +263,11 @@ export default function TransactionForm({ tx, onClose, thirdParties, isDarkMode,
     setSriLogs([]);
 
     try {
-      // 1. Generar secuencial si no está configurado
       const sec = formData.secuencial || '1';
       const docNum = `${sriConfig.establecimiento}-${sriConfig.puntoEmision}-${String(sec).padStart(9, '0')}`;
       
-      // 2. Generar XML estructurado
       const { xml, claveAcceso } = generarFacturaXML(sriConfig, { ...formData, secuencial: sec }, matchedTercero);
       
-      // 3. Ejecutar simulación de transmisión SRI
       const result = await simularTransmisionSRI(
         {
           rucReceptor: matchedTercero.ruc,
@@ -206,7 +279,6 @@ export default function TransactionForm({ tx, onClose, thirdParties, isDarkMode,
         (logs) => setSriLogs(logs)
       );
 
-      // 4. Guardar datos autorizados en Firestore y bloquear edición
       const docId = formData.id || `tx_${new Date().getTime()}`;
       const finalTx = {
         ...formData,
@@ -222,7 +294,6 @@ export default function TransactionForm({ tx, onClose, thirdParties, isDarkMode,
 
       await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId), finalTx);
       
-      // Actualizar secuencial en configuraciones del emisor
       const nextSec = Number(sec) + 1;
       await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings'), {
         secuencialFactura: nextSec
@@ -240,9 +311,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, isDarkMode,
     }
   };
 
-  // Anulación del documento
   const handleAnular = async () => {
-    if (window.confirm("¿Estás seguro de que deseas ANULAR este comprobante ante el SRI? Esta acción no se puede deshacer y tiene implicaciones fiscales.")) {
+    if (window.confirm("¿Estás seguro de que deseas ANULAR este comprobante ante el SRI?")) {
       try {
         const docId = formData.id;
         await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId), {
@@ -253,12 +323,11 @@ export default function TransactionForm({ tx, onClose, thirdParties, isDarkMode,
         setFormData(prev => ({ ...prev, sriStatus: 'anulado' }));
         showToast("Comprobante anulado tributariamente", "success");
       } catch (e) {
-        showToast("Error al anular comprobante", "error");
+        showToast("Error al anular", "error");
       }
     }
   };
 
-  // Descargar XML generado
   const downloadXMLFile = () => {
     if (!formData.claveAcceso) return;
     const element = document.createElement("a");
@@ -275,16 +344,17 @@ export default function TransactionForm({ tx, onClose, thirdParties, isDarkMode,
   const isAuthorized = formData.sriStatus === 'autorizado';
   const isAnulado = formData.sriStatus === 'anulado';
   const isEditable = !isAuthorized && !isAnulado;
+  const hasItems = formData.items && formData.items.length > 0;
 
   const inputClass = `w-full text-xs px-3 py-2.5 rounded-xl outline-none transition-all border ${
     isDarkMode 
       ? 'bg-black/25 border-white/10 text-white focus:border-blue-500/50 disabled:opacity-50' 
-      : 'bg-white border-gray-355 text-gray-950 focus:border-blue-600 focus:ring-1 focus:ring-blue-600/35 disabled:bg-gray-150 disabled:opacity-75 font-medium'
+      : 'bg-white border-gray-355 text-gray-955 focus:border-blue-600 focus:ring-1 focus:ring-blue-600/35 disabled:bg-gray-150 disabled:opacity-75 font-medium'
   }`;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in">
-      <div className={`w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl custom-scrollbar ${isDarkMode ? 'bg-[#151517] border border-white/10' : 'bg-white border border-gray-300'}`}>
+      <div className={`w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl custom-scrollbar ${isDarkMode ? 'bg-[#151517] border border-white/10' : 'bg-white border border-gray-300'}`}>
         
         {/* HEADER */}
         <div className={`sticky top-0 z-10 flex items-center justify-between px-6 py-4 border-b backdrop-blur-md ${isDarkMode ? 'border-white/5 bg-[#151517]/95' : 'border-gray-300 bg-gray-50/95'}`}>
@@ -302,13 +372,13 @@ export default function TransactionForm({ tx, onClose, thirdParties, isDarkMode,
           <button onClick={onClose} className="p-2 rounded-lg hover:bg-white/5 transition-colors"><X size={18}/></button>
         </div>
 
-        {/* ALERTA DE BLOQUEO DE EDICION */}
+        {/* ALERTAS */}
         {isAuthorized && (
           <div className="mx-6 mt-4 p-4 rounded-xl border border-dashed bg-emerald-500/10 border-emerald-500/20 text-emerald-400 flex items-center gap-3">
             <CheckCircle2 size={20} className="shrink-0" />
             <div className="text-xs">
               <p className="font-bold">Comprobante Autorizado por el SRI</p>
-              <p className="opacity-80">Este documento tiene efectos fiscales y no puede ser editado ni eliminado. Para corregirlo, emita una Nota de Crédito o proceda con la anulación.</p>
+              <p className="opacity-80">Este documento tiene efectos fiscales y no puede ser editado ni eliminado. Para corregirlo, emita una Nota de Crédito.</p>
             </div>
           </div>
         )}
@@ -323,23 +393,13 @@ export default function TransactionForm({ tx, onClose, thirdParties, isDarkMode,
           </div>
         )}
 
-        {/* AI DETECTED ALERT */}
-        {formData.isAIDetected && isEditable && (
-          <div className="mx-6 mt-4 p-3 rounded-xl border border-dashed bg-purple-500/15 border-purple-500/30 text-purple-400 flex items-center gap-2">
-            <Sparkles size={16} className="animate-pulse" />
-            <p className="text-[10px] font-semibold">
-              Datos extraídos automáticamente por Gemini IA. Por favor, valide los campos antes de guardar.
-            </p>
-          </div>
-        )}
-
         <div className="p-6 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             
             {/* COLUMNA FORMULARIO */}
             <div className="md:col-span-2 space-y-6">
               
-              {/* BLOQUE 1: COMPROBANTE */}
+              {/* BLOQUE 1: DATOS TRIBUTARIOS */}
               <div className={`p-5 rounded-2xl border ${isDarkMode ? 'bg-black/15 border-white/5' : 'bg-gray-50 border-gray-300'}`}>
                 <h3 className={`text-[10px] font-bold uppercase tracking-wider mb-4 ${isDarkMode ? 'text-gray-500' : 'text-gray-800'}`}>Datos Tributarios</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -359,7 +419,6 @@ export default function TransactionForm({ tx, onClose, thirdParties, isDarkMode,
                       <option value="retencion" className="text-black">Comprobante de Retención</option>
                       <option value="nota_credito" className="text-black">Nota de Crédito</option>
                       <option value="nota_debito" className="text-black">Nota de Débito</option>
-                      <option value="guia_remision" className="text-black">Guía de Remisión</option>
                     </select>
                   </div>
                   
@@ -398,7 +457,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, isDarkMode,
                   </div>
                   
                   <div>
-                    <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Moneda / Divisa</label>
+                    <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Moneda</label>
                     <select disabled={!isEditable} value={formData.currency} onChange={e => setFormData({...formData, currency: e.target.value})} className={inputClass}>
                       <option value="USD" className="text-black">Dólares (USD)</option>
                       <option value="EUR" className="text-black">Euros (EUR)</option>
@@ -417,17 +476,84 @@ export default function TransactionForm({ tx, onClose, thirdParties, isDarkMode,
                 </div>
               </div>
 
+              {/* BLOQUE DESGLOSE DE PRODUCTOS (LÍNEAS) */}
+              <div className={`p-5 rounded-2xl border ${isDarkMode ? 'bg-black/15 border-white/5' : 'bg-gray-50 border-gray-300'}`}>
+                <div className="flex justify-between items-center border-b border-white/5 pb-3 mb-4">
+                  <h3 className={`text-[10px] font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-500' : 'text-gray-800'}`}>Detalle del Comprobante</h3>
+                  {isEditable && (
+                    <button type="button" onClick={handleAddItem} className="px-2.5 py-1 rounded bg-blue-600 hover:bg-blue-500 text-white font-bold text-[9px] uppercase flex items-center gap-1">
+                      <Plus size={10} /> Agregar Ítem
+                    </button>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  {(formData.items || []).map((item, index) => (
+                    <div key={index} className={`flex flex-col sm:flex-row items-center gap-2 p-2 rounded-xl border ${isDarkMode ? 'bg-black/20 border-white/5' : 'bg-white border-gray-200 shadow-sm'}`}>
+                      <div className="flex-1 w-full">
+                        <select 
+                          disabled={!isEditable}
+                          value={item.productId} 
+                          onChange={(e) => handleItemChange(index, 'productId', e.target.value)} 
+                          className={inputClass}
+                        >
+                          <option value="" disabled className="text-gray-400">Seleccionar Producto...</option>
+                          {products.map(p => (
+                            <option key={p.id} value={p.id} className="text-black">{p.sku} - {p.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="w-full sm:w-20">
+                        <input 
+                          disabled={!isEditable}
+                          type="number" 
+                          placeholder="Cant." 
+                          required 
+                          min={1} 
+                          value={item.quantity} 
+                          onChange={(e) => handleItemChange(index, 'quantity', e.target.value)} 
+                          className={inputClass} 
+                        />
+                      </div>
+                      <div className="w-full sm:w-28">
+                        <input 
+                          disabled={!isEditable}
+                          type="number" 
+                          step="0.01" 
+                          placeholder="Precio" 
+                          required 
+                          value={item.price} 
+                          onChange={(e) => handleItemChange(index, 'price', e.target.value)} 
+                          className={inputClass} 
+                        />
+                      </div>
+                      <div className="text-xs font-bold w-full sm:w-20 text-center shrink-0">
+                        ${((parseFloat(item.price) || 0) * (parseInt(item.quantity) || 1)).toFixed(2)}
+                      </div>
+                      {isEditable && (
+                        <button type="button" onClick={() => handleRemoveItem(index)} className="p-2 rounded-lg hover:bg-red-600/20 text-red-500">
+                          <Trash2 size={13} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  {(!formData.items || formData.items.length === 0) && (
+                    <p className="text-center text-[10px] text-gray-500 italic py-2">Registrando comprobante como valor manual plano.</p>
+                  )}
+                </div>
+              </div>
+
               {/* BLOQUE 2: VALORES E IMPUESTOS */}
               <div className={`p-5 rounded-2xl border ${isDarkMode ? 'bg-black/15 border-white/5' : 'bg-gray-50 border-gray-300'}`}>
                 <h3 className={`text-[10px] font-bold uppercase tracking-wider mb-4 ${isDarkMode ? 'text-gray-500' : 'text-gray-800'}`}>Valores e Impuestos</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                   <div>
                     <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Base Imponible</label>
-                    <input disabled={!isEditable} type="number" step="0.01" value={formData.baseImponible} onChange={e => setFormData({...formData, baseImponible: e.target.value})} className={inputClass} />
+                    <input disabled={!isEditable || hasItems} type="number" step="0.01" value={formData.baseImponible} onChange={e => setFormData({...formData, baseImponible: e.target.value})} className={inputClass} />
                   </div>
                   <div>
                     <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>% IVA</label>
-                    <select disabled={!isEditable} value={formData.ivaPorcentaje} onChange={e => setFormData({...formData, ivaPorcentaje: e.target.value})} className={inputClass}>
+                    <select disabled={!isEditable || hasItems} value={formData.ivaPorcentaje} onChange={e => setFormData({...formData, ivaPorcentaje: e.target.value})} className={inputClass}>
                       <option value="15" className="text-black">15% (Actual)</option>
                       <option value="12" className="text-black">12% (Anterior)</option>
                       <option value="0" className="text-black">0% exento</option>
@@ -448,7 +574,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, isDarkMode,
                     <p className="text-[9px] font-bold uppercase tracking-wider">Total a Cobrar/Pagar (Neto)</p>
                     <p className="text-[10px] opacity-80 mt-0.5">Base (${formData.baseImponible}) + IVA (${formData.ivaValor}) - Retenciones (${Number(formData.retencionFuente) + Number(formData.retencionIva)})</p>
                   </div>
-                  <p className={`text-xl font-black ${isDarkMode ? 'text-white' : 'text-gray-950'}`}>${formData.total}</p>
+                  <p className={`text-xl font-black ${isDarkMode ? 'text-white' : 'text-gray-955'}`}>${formData.total}</p>
                 </div>
               </div>
 
@@ -490,7 +616,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, isDarkMode,
                 
                 <div className="space-y-2">
                   <div className="flex gap-2">
-                    <label className={`flex-1 flex items-center justify-center gap-1.5 p-2.5 rounded-xl border border-dashed cursor-pointer transition-colors ${formData.xmlUrl ? 'border-emerald-500/30 bg-emerald-500/5 text-emerald-500' : 'border-gray-400 hover:bg-gray-200 text-gray-800 font-semibold bg-white'}`}>
+                    <label className={`flex-1 flex items-center justify-center gap-1.5 p-2.5 rounded-xl border border-dashed cursor-pointer transition-colors ${formData.xmlUrl ? 'border-emerald-500/30 bg-emerald-500/5 text-emerald-500' : 'border-gray-400 hover:bg-gray-200 text-gray-850 font-semibold bg-white'}`}>
                       <input type="file" accept=".xml" className="hidden" onChange={(e) => handleFileUpload(e, 'xml')} disabled={isUploading || !isEditable}/>
                       {formData.xmlUrl ? <CheckCircle2 size={13}/> : <UploadCloud size={13}/>}
                       <span className="text-[10px] font-bold">{formData.xmlUrl ? 'XML Guardado' : 'Subir XML'}</span>
@@ -499,7 +625,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, isDarkMode,
                   </div>
 
                   <div className="flex gap-2">
-                    <label className={`flex-1 flex items-center justify-center gap-1.5 p-2.5 rounded-xl border border-dashed cursor-pointer transition-colors ${formData.pdfUrl ? 'border-emerald-500/30 bg-emerald-500/5 text-emerald-500' : 'border-gray-400 hover:bg-gray-200 text-gray-800 font-semibold bg-white'}`}>
+                    <label className={`flex-1 flex items-center justify-center gap-1.5 p-2.5 rounded-xl border border-dashed cursor-pointer transition-colors ${formData.pdfUrl ? 'border-emerald-500/30 bg-emerald-500/5 text-emerald-500' : 'border-gray-400 hover:bg-gray-200 text-gray-850 font-semibold bg-white'}`}>
                       <input type="file" accept=".pdf" className="hidden" onChange={(e) => handleFileUpload(e, 'pdf')} disabled={isUploading || !isEditable}/>
                       {formData.pdfUrl ? <CheckCircle2 size={13}/> : <UploadCloud size={13}/>}
                       <span className="text-[10px] font-bold">{formData.pdfUrl ? 'PDF RIDE' : 'Subir PDF'}</span>
@@ -553,7 +679,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, isDarkMode,
           </div>
           
           <div className="flex gap-3.5">
-            <button type="button" onClick={onClose} className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition-colors ${isDarkMode ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-gray-200 text-gray-800 font-semibold'}`}>Cancelar</button>
+            <button type="button" onClick={onClose} className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition-colors ${isDarkMode ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-gray-100 text-gray-700 font-semibold'}`}>Cancelar</button>
             {isEditable && (
               <>
                 <button type="button" onClick={handleSave} disabled={isUploading || isEmitting} className="px-4 py-2.5 rounded-xl text-xs font-semibold bg-blue-600/20 text-blue-400 hover:bg-blue-600/35 border border-blue-500/10 transition-transform hover:-translate-y-0.5">Guardar Borrador</button>

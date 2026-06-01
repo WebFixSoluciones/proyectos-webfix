@@ -1,17 +1,15 @@
 import React, { useState, useRef } from 'react';
-import { Plus, Search, Filter, Trash2, Edit2, FileText, CheckCircle2, AlertCircle, UploadCloud, Sparkles, AlertTriangle } from 'lucide-react';
+import { Plus, Search, Trash2, Edit2, FileText, CheckCircle2, AlertCircle, UploadCloud, Sparkles, AlertTriangle } from 'lucide-react';
 import { doc, deleteDoc, setDoc } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { analizarComprobanteConGemini, parsearXMLComprobante } from '../../services/geminiService';
-import TransactionForm from './TransactionForm';
 
-export default function TransactionsView({ transactions, thirdParties, isDarkMode, showToast, db, storage, appId }) {
+export default function TransactionsView({ transactions, thirdParties, isDarkMode, showToast, db, storage, appId, onOpenForm }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
+  const [filterDocType, setFilterDocType] = useState('all'); // Filtro por Tipo de Comprobante SRI
   const [filterMonth, setFilterMonth] = useState('all');
   const [filterYear, setFilterYear] = useState('all');
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingTx, setEditingTx] = useState(null);
   
   // Estados de IA y Carga
   const [isDragging, setIsDragging] = useState(false);
@@ -23,6 +21,7 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
     const matchesSearch = (tx.documentNumber || '').includes(searchTerm) || 
                           (thirdParties.find(tp => tp.id === tx.thirdPartyId)?.name || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = filterType === 'all' || tx.type === filterType;
+    const matchesDocType = filterDocType === 'all' || tx.documentType === filterDocType;
     
     let matchesMonth = true;
     let matchesYear = true;
@@ -32,7 +31,7 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
       if (filterYear !== 'all') matchesYear = d.getFullYear().toString() === filterYear;
     }
 
-    return matchesSearch && matchesType && matchesMonth && matchesYear;
+    return matchesSearch && matchesType && matchesDocType && matchesMonth && matchesYear;
   });
 
   // Procesar archivo (PDF, Imagen o XML) para captura inteligente
@@ -65,7 +64,7 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
       // 3. Identificar o Crear Tercero (Cliente/Proveedor)
       let thirdPartyId = '';
       if (extracted.ruc) {
-        const matchedTp = thirdParties.find(tp => tp.ruc === extracted.ruc);
+        const matchedTp = thirdParties.find(tp => tp.ruc === matchedRucFormat(extracted.ruc));
         if (matchedTp) {
           thirdPartyId = matchedTp.id;
           showToast(`Proveedor encontrado: ${matchedTp.name}`, 'success');
@@ -74,7 +73,7 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
           const newTpId = `tp_${new Date().getTime()}`;
           const newTp = {
             name: extracted.razonSocial || 'Nuevo Proveedor Extraído',
-            ruc: extracted.ruc,
+            ruc: matchedRucFormat(extracted.ruc),
             email: extracted.email || '',
             phone: extracted.phone || '',
             type: 'proveedor',
@@ -86,7 +85,7 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
         }
       }
 
-      // 4. Detectar duplicados en base a RUC/Contacto y Número Documento
+      // 4. Detectar duplicados
       const isDuplicate = transactions.some(tx => 
         tx.thirdPartyId === thirdPartyId && 
         tx.documentNumber === extracted.documentNumber && 
@@ -94,10 +93,10 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
       );
 
       if (isDuplicate) {
-        showToast("Advertencia: Este número de comprobante ya está registrado para este proveedor.", "error");
+        showToast("Advertencia: Este número de comprobante ya está registrado.", "error");
       }
 
-      // 5. Subir archivo a Storage para guardar respaldo
+      // 5. Subir archivo a Storage
       let downloadURL = '';
       let storagePath = '';
       try {
@@ -108,13 +107,13 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
         downloadURL = await getDownloadURL(uploadTask.ref);
         storagePath = path;
       } catch (storageErr) {
-        console.error("Error al subir archivo a Storage", storageErr);
+        console.error(storageErr);
       }
 
-      // 6. Configurar objeto para abrir en el formulario
+      // 6. Enviar datos al formulario central
       const newTxData = {
-        id: '', // Vacío para registrar uno nuevo
-        type: 'egreso', // Asumir egreso para capturas de compras
+        id: '',
+        type: 'egreso',
         date: extracted.date || new Date().toISOString().split('T')[0],
         documentType: 'factura',
         documentNumber: extracted.documentNumber || '',
@@ -138,8 +137,7 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
         isDuplicateWarning: isDuplicate
       };
 
-      setEditingTx(newTxData);
-      setIsModalOpen(true);
+      onOpenForm(newTxData);
       showToast("Datos leídos con éxito. Revisa el formulario.", "success");
 
     } catch (err) {
@@ -148,6 +146,10 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
     } finally {
       setIsAnalyzing(false);
     }
+  };
+
+  const matchedRucFormat = (rucStr) => {
+    return String(rucStr).trim();
   };
 
   const handleDragOver = (e) => {
@@ -205,10 +207,20 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
     }
   };
 
+  const docTypeTabs = [
+    { id: 'all', label: 'Todos' },
+    { id: 'factura', label: 'Facturas' },
+    { id: 'retencion', label: 'Retenciones' },
+    { id: 'nota_credito', label: 'N. Crédito' },
+    { id: 'nota_debito', label: 'N. Débito' },
+    { id: 'guia_remision', label: 'Guías' },
+    { id: 'liquidacion', label: 'Liquidaciones' }
+  ];
+
   return (
     <div className="animate-in slide-in-from-bottom-4 duration-500 space-y-6">
       
-      {/* DRAG AND DROP ZONE PREMIUM */}
+      {/* DRAG AND DROP ZONE */}
       <div 
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -217,7 +229,7 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
         className={`relative border-2 border-dashed rounded-3xl p-6 flex flex-col items-center justify-center transition-all cursor-pointer overflow-hidden ${
           isDragging 
             ? 'border-purple-500 bg-purple-500/5 shadow-2xl scale-[1.01]' 
-            : (isDarkMode ? 'border-white/10 hover:border-white/20 bg-white/[0.01]' : 'border-gray-350 hover:border-gray-400 bg-white')
+            : (isDarkMode ? 'border-white/10 hover:border-white/20 bg-white/[0.01]' : 'border-gray-355 hover:border-gray-400 bg-white')
         }`}
       >
         <input 
@@ -248,11 +260,31 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
         )}
       </div>
 
+      {/* TABS DE TIPO DE DOCUMENTO SRI */}
+      <div className={`flex p-1 gap-1 rounded-2xl border overflow-x-auto custom-scrollbar whitespace-nowrap ${isDarkMode ? 'bg-black/30 border-white/10' : 'bg-gray-100/70 border-gray-200 shadow-inner'}`}>
+        {docTypeTabs.map(tab => {
+          const isActive = filterDocType === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setFilterDocType(tab.id)}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                isActive 
+                  ? isDarkMode ? 'bg-white/15 text-white shadow-sm' : 'bg-white text-gray-900 border border-gray-300/40 shadow-sm'
+                  : isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+
       {/* FILTROS Y BUSQUEDA */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
-          <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border w-full sm:w-64 ${isDarkMode ? 'bg-black/20 border-white/10' : 'bg-white border-gray-350'}`}>
-            <Search size={14} className={isDarkMode ? 'text-gray-500' : 'text-gray-600'} />
+          <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border w-full sm:w-64 ${isDarkMode ? 'bg-black/20 border-white/10' : 'bg-white border-gray-355'}`}>
+            <Search size={14} className={isDarkMode ? 'text-gray-500' : 'text-gray-650'} />
             <input 
               type="text" 
               placeholder="Buscar documento o tercero..." 
@@ -261,23 +293,23 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
               className="bg-transparent border-none outline-none text-xs w-full text-gray-900"
             />
           </div>
-          <select value={filterType} onChange={e => setFilterType(e.target.value)} className={`px-2.5 py-2 rounded-xl border text-xs outline-none ${isDarkMode ? 'bg-black/20 border-white/10 text-gray-300' : 'bg-white border-gray-350 text-gray-800 font-medium'}`}>
+          <select value={filterType} onChange={e => setFilterType(e.target.value)} className={`px-2.5 py-2 rounded-xl border text-xs outline-none ${isDarkMode ? 'bg-black/20 border-white/10 text-gray-300' : 'bg-white border-gray-355 text-gray-800 font-medium'}`}>
             <option value="all" className="text-black">Todos los tipos</option>
             <option value="ingreso" className="text-black">Ingresos (Ventas)</option>
             <option value="egreso" className="text-black">Egresos (Compras)</option>
           </select>
-          <select value={filterMonth} onChange={e => setFilterMonth(e.target.value)} className={`px-2.5 py-2 rounded-xl border text-xs outline-none ${isDarkMode ? 'bg-black/20 border-white/10 text-gray-300' : 'bg-white border-gray-350 text-gray-800 font-medium'}`}>
+          <select value={filterMonth} onChange={e => setFilterMonth(e.target.value)} className={`px-2.5 py-2 rounded-xl border text-xs outline-none ${isDarkMode ? 'bg-black/20 border-white/10 text-gray-300' : 'bg-white border-gray-355 text-gray-800 font-medium'}`}>
             <option value="all" className="text-black">Mes</option>
             {['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'].map((m, i) => <option key={i} value={i} className="text-black">{m}</option>)}
           </select>
-          <select value={filterYear} onChange={e => setFilterYear(e.target.value)} className={`px-2.5 py-2 rounded-xl border text-xs outline-none ${isDarkMode ? 'bg-black/20 border-white/10 text-gray-300' : 'bg-white border-gray-350 text-gray-800 font-medium'}`}>
+          <select value={filterYear} onChange={e => setFilterYear(e.target.value)} className={`px-2.5 py-2 rounded-xl border text-xs outline-none ${isDarkMode ? 'bg-black/20 border-white/10 text-gray-300' : 'bg-white border-gray-355 text-gray-800 font-medium'}`}>
             <option value="all" className="text-black">Año</option>
             {[2023, 2024, 2025, 2026, 2027].map(y => <option key={y} value={y} className="text-black">{y}</option>)}
           </select>
         </div>
 
         <button 
-          onClick={() => { setEditingTx(null); setIsModalOpen(true); }}
+          onClick={() => onOpenForm(null)}
           className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold transition-transform shadow-sm hover:-translate-y-0.5 ${isDarkMode ? 'bg-blue-600 text-white hover:bg-blue-500' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
         >
           <Plus size={14} /> Registrar Comprobante
@@ -285,7 +317,7 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
       </div>
 
       {/* TABLA DE COMPROBANTES */}
-      <div className={`rounded-2xl border overflow-hidden backdrop-blur-xl ${isDarkMode ? 'border-white/10 bg-white/[0.02]' : 'border-gray-350 bg-white'}`}>
+      <div className={`rounded-2xl border overflow-hidden backdrop-blur-xl ${isDarkMode ? 'border-white/10 bg-white/[0.02]' : 'border-gray-355 bg-white shadow-sm'}`}>
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left text-xs whitespace-nowrap">
             <thead className={`text-[10px] uppercase font-bold tracking-wider ${isDarkMode ? 'bg-black/40 text-gray-400' : 'bg-gray-100 text-gray-800 border-b border-gray-300'}`}>
@@ -323,7 +355,7 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-1.5">
-                      <button onClick={() => { setEditingTx(tx); setIsModalOpen(true); }} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-blue-500/20 text-blue-500' : 'hover:bg-blue-100 text-blue-700 border border-blue-200'}`}><Edit2 size={13}/></button>
+                      <button onClick={() => onOpenForm(tx)} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-blue-500/20 text-blue-500' : 'hover:bg-blue-100 text-blue-700 border border-blue-200'}`}><Edit2 size={13}/></button>
                       <button onClick={() => handleDelete(tx.id)} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-red-500/20 text-red-500' : 'hover:bg-red-100 text-red-600 border border-red-200'}`}><Trash2 size={13}/></button>
                     </div>
                   </td>
@@ -338,19 +370,6 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
           </table>
         </div>
       </div>
-
-      {isModalOpen && (
-        <TransactionForm 
-          tx={editingTx} 
-          onClose={() => setIsModalOpen(false)} 
-          thirdParties={thirdParties} 
-          isDarkMode={isDarkMode} 
-          showToast={showToast} 
-          db={db} 
-          storage={storage} 
-          appId={appId} 
-        />
-      )}
 
     </div>
   );
