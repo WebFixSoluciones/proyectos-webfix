@@ -260,3 +260,118 @@ function empaquetarResolucionSRI(ambiente) {
   const num = Math.floor(10000000 + Math.random() * 90000000);
   return `${ambiente === '2' ? 'PROD' : 'TEST'}-AUT-${num}`;
 }
+
+// Consulta simulada de RUC / CI desde la base de datos del SRI
+export async function consultarRucSri(rucOrCi) {
+  // Simular retraso de red
+  await new Promise(resolve => setTimeout(resolve, 800));
+
+  const clean = String(rucOrCi).trim();
+  if (clean.length !== 10 && clean.length !== 13) {
+    throw new Error("La identificación debe tener 10 (Cédula) o 13 (RUC) dígitos.");
+  }
+
+  const esEmpresa = clean.startsWith('179') || clean.startsWith('099') || clean.substring(2, 3) === '9';
+  
+  // Base de datos de prueba predefinida
+  const testDatabase = {
+    '1790000000001': {
+      name: 'WEBFIX SOLUCIONES TECNOLOGICAS S.A.',
+      ruc: '1790000000001',
+      tipoIdentificacion: 'ruc',
+      direccion: 'Av. de los Shyris N34-102 y Holanda, Edificio Alfa, Oficina 5A, Quito',
+      telefono: '022987654',
+      email: 'facturacion@webfix.com.ec',
+      tipoContribuyente: 'general',
+      razonSocial: 'WEBFIX SOLUCIONES TECNOLOGICAS S.A.'
+    },
+    '1792345678001': {
+      name: 'CORPORACION FAVORITA C.A.',
+      ruc: '1792345678001',
+      tipoIdentificacion: 'ruc',
+      direccion: 'Av. General Enríquez s/n y Vía Cotogchoa, Sangolquí',
+      telefono: '022999000',
+      email: 'proveedores@favorita.com',
+      tipoContribuyente: 'general',
+      razonSocial: 'CORPORACION FAVORITA C.A.'
+    },
+    '0992345678001': {
+      name: 'DISENOS Y DESARROLLOS WEB ECUADOR CIA. LTDA.',
+      ruc: '0992345678001',
+      tipoIdentificacion: 'ruc',
+      direccion: 'Av. Francisco de Orellana, Edificio World Trade Center, Guayaquil',
+      telefono: '042630120',
+      email: 'info@webdev.com.ec',
+      tipoContribuyente: 'rimpe_emprendedor',
+      razonSocial: 'DISENOS Y DESARROLLOS WEB ECUADOR CIA. LTDA.'
+    },
+    '1712345678': {
+      name: 'JUAN CARLOS PEREZ GOMEZ',
+      ruc: '1712345678',
+      tipoIdentificacion: 'cedula',
+      direccion: 'Calle Larga 12-45 y Benigno Malo, Cuenca',
+      telefono: '0998765432',
+      email: 'juan.perez@gmail.com',
+      tipoContribuyente: 'rimpe_popular',
+      razonSocial: 'JUAN CARLOS PEREZ GOMEZ'
+    },
+    '1723456789': {
+      name: 'MARIA BELEN TORRES RUIZ',
+      ruc: '1723456789',
+      tipoIdentificacion: 'cedula',
+      direccion: 'Av. República del Salvador N36-140 y Suecia, Quito',
+      telefono: '0987654321',
+      email: 'maria.torres@outlook.com',
+      tipoContribuyente: 'rimpe_emprendedor',
+      razonSocial: 'MARIA BELEN TORRES RUIZ'
+    }
+  };
+
+  if (testDatabase[clean]) {
+    return testDatabase[clean];
+  }
+
+  // Generador dinámico de datos realistas
+  const nombresRandom = ["TECNOLOGIAS DE VANGUARDIA", "SERVICIOS INTEGRALES", "CONSTRUCTORA ANDINA", "ALIMENTOS FRESCOS", "IMPORTADORA DEL VALLE"];
+  const sufijosRandom = ["S.A.", "CIA. LTDA.", "C.A.", "S.A.S."];
+  const personasRandom = ["CARLOS ALBERTO SILVA MORA", "ANA GABRIELA ESPINOSA DIAZ", "LORENA ELIZABETH MEJIA REYES", "ROBERTO ESTEBAN VEGA PAZ"];
+  const direccionesRandom = [
+    "Av. Amazonas N21-220 y Robles, Quito",
+    "Calle 10 de Agosto y Tarqui, Ambato",
+    "Av. Carlos Julio Arosemena Km 2.5, Guayaquil",
+    "Calle Bolívar 5-80 y Tarqui, Loja",
+    "Av. Remigio Crespo Toral 4-90, Cuenca"
+  ];
+
+  if (esEmpresa) {
+    const idxName = Math.floor(Math.random() * nombresRandom.length);
+    const idxSuf = Math.floor(Math.random() * sufijosRandom.length);
+    const idxDir = Math.floor(Math.random() * direccionesRandom.length);
+    const companyName = `${nombresRandom[idxName]} ${sufijosRandom[idxSuf]}`;
+    return {
+      name: companyName,
+      ruc: clean,
+      tipoIdentificacion: 'ruc',
+      direccion: direccionesRandom[idxDir],
+      telefono: '0' + (2 + Math.floor(Math.random() * 7)) + Math.floor(1000000 + Math.random() * 9000000),
+      email: `facturacion@${companyName.toLowerCase().replace(/[^a-z]/g, '')}.com.ec`,
+      tipoContribuyente: Math.random() > 0.5 ? 'general' : 'rimpe_emprendedor',
+      razonSocial: companyName
+    };
+  } else {
+    const idxPers = Math.floor(Math.random() * personasRandom.length);
+    const idxDir = Math.floor(Math.random() * direccionesRandom.length);
+    const personName = personasRandom[idxPers];
+    const isRucPerson = clean.length === 13;
+    return {
+      name: personName,
+      ruc: clean,
+      tipoIdentificacion: isRucPerson ? 'ruc' : 'cedula',
+      direccion: direccionesRandom[idxDir],
+      telefono: '09' + Math.floor(10000000 + Math.random() * 90000000),
+      email: `${personName.toLowerCase().split(' ')[0]}.${personName.toLowerCase().split(' ')[2] || 'user'}@gmail.com`,
+      tipoContribuyente: Math.random() > 0.5 ? 'rimpe_popular' : 'rimpe_emprendedor',
+      razonSocial: personName
+    };
+  }
+}

@@ -21,6 +21,8 @@ import {
   X,
   CalendarDays,
   DollarSign,
+  ShoppingCart,
+  Package,
   AlignLeft,
   Save,
   Maximize2,
@@ -155,6 +157,10 @@ const IconRenderer = ({ name, size = 18, className = "" }) => {
     case 'calendar': return <CalendarDays size={size} className={className} />;
     case 'team': return <Users size={size} className={className} />;
     case 'trash': return <Trash2 size={size} className={className} />;
+    case 'ventas': return <ShoppingCart size={size} className={className} />;
+    case 'finances': return <DollarSign size={size} className={className} />;
+    case 'inventario': return <Package size={size} className={className} />;
+    case 'personas': return <Users size={size} className={className} />;
     default: return <FileText size={size} className={className} />;
   }
 };
@@ -598,7 +604,13 @@ export default function App() {
   if (activePageId === 'dashboard') {
     activePage = { id: 'dashboard', title: 'Dashboard', icon: 'dashboard', type: 'dashboard' };
   } else if (activePageId === 'finances') {
-    activePage = { id: 'finances', title: 'Finanzas y SRI', icon: 'finances', type: 'finances' };
+    activePage = { id: 'finances', title: 'Contabilidad', icon: 'finances', type: 'finances' };
+  } else if (activePageId === 'ventas') {
+    activePage = { id: 'ventas', title: 'Ventas y Facturación', icon: 'ventas', type: 'ventas' };
+  } else if (activePageId === 'inventario') {
+    activePage = { id: 'inventario', title: 'Inventario', icon: 'inventario', type: 'inventario' };
+  } else if (activePageId === 'personas') {
+    activePage = { id: 'personas', title: 'Personas', icon: 'personas', type: 'personas' };
   } else if (activePageId === 'calendar') {
     activePage = { id: 'calendar', title: 'Calendario y Reuniones', icon: 'calendar', type: 'calendar' };
   } else if (activePageId === 'team') {
@@ -1532,18 +1544,50 @@ export default function App() {
       <div className={`flex flex-col border-r transition-all duration-300 z-50 backdrop-blur-3xl absolute md:relative h-full ${isSidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0 w-0 hidden md:flex md:w-16'} ${isDarkMode ? 'bg-[#0f0f11]/95 border-white/5' : 'bg-[#f8f9fa]/95 border-black/5'}`}>
         
         {/* Main Navigation Area */}
-        <div className="pt-5 pb-4 px-3 border-b border-white/5 space-y-1">
+        <div className="pt-5 pb-4 px-3 border-b border-white/5 space-y-1 text-xs md:text-sm">
           <button 
             onClick={() => { setActivePageId('dashboard'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
-            className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all tracking-wide ${activePageId === 'dashboard' ? (isDarkMode ? 'bg-white/10 text-white font-medium' : 'bg-black/5 text-gray-900 font-medium') : (isDarkMode ? 'text-gray-400 hover:bg-white/5 hover:text-white font-light' : 'text-gray-500 hover:bg-black/5 hover:text-gray-900 font-light')}`}
+            className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all tracking-wide font-semibold ${activePageId === 'dashboard' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm border border-white/5' : 'bg-black/5 text-gray-900 border border-black/5') : (isDarkMode ? 'text-gray-450 hover:bg-white/5 hover:text-white' : 'text-gray-650 hover:bg-black/5 hover:text-gray-900')}`}
           >
             <LayoutDashboard size={18} className={activePageId === 'dashboard' ? (isDarkMode ? 'text-blue-400' : 'text-blue-600') : ''} />
             {isSidebarOpen && <span>Mi Espacio</span>}
           </button>
+
+          <button 
+            onClick={() => { setActivePageId('ventas'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
+            className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all tracking-wide font-semibold ${activePageId === 'ventas' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm border border-white/5' : 'bg-black/5 text-gray-900 border border-black/5') : (isDarkMode ? 'text-gray-450 hover:bg-white/5 hover:text-white' : 'text-gray-650 hover:bg-black/5 hover:text-gray-900')}`}
+          >
+            <ShoppingCart size={18} className={activePageId === 'ventas' ? (isDarkMode ? 'text-orange-400' : 'text-orange-600') : ''} />
+            {isSidebarOpen && <span>Ventas</span>}
+          </button>
+
+          <button 
+            onClick={() => { setActivePageId('finances'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
+            className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all tracking-wide font-semibold ${activePageId === 'finances' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm border border-white/5' : 'bg-black/5 text-gray-900 border border-black/5') : (isDarkMode ? 'text-gray-450 hover:bg-white/5 hover:text-white' : 'text-gray-650 hover:bg-black/5 hover:text-gray-900')}`}
+          >
+            <DollarSign size={18} className={activePageId === 'finances' ? (isDarkMode ? 'text-emerald-400' : 'text-emerald-600') : ''} />
+            {isSidebarOpen && <span>Contabilidad</span>}
+          </button>
+
+          <button 
+            onClick={() => { setActivePageId('inventario'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
+            className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all tracking-wide font-semibold ${activePageId === 'inventario' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm border border-white/5' : 'bg-black/5 text-gray-900 border border-black/5') : (isDarkMode ? 'text-gray-450 hover:bg-white/5 hover:text-white' : 'text-gray-650 hover:bg-black/5 hover:text-gray-900')}`}
+          >
+            <Package size={18} className={activePageId === 'inventario' ? (isDarkMode ? 'text-sky-400' : 'text-sky-600') : ''} />
+            {isSidebarOpen && <span>Inventario</span>}
+          </button>
+
+          <button 
+            onClick={() => { setActivePageId('personas'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
+            className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all tracking-wide font-semibold ${activePageId === 'personas' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm border border-white/5' : 'bg-black/5 text-gray-900 border border-black/5') : (isDarkMode ? 'text-gray-450 hover:bg-white/5 hover:text-white' : 'text-gray-650 hover:bg-black/5 hover:text-gray-900')}`}
+          >
+            <Users size={18} className={activePageId === 'personas' ? (isDarkMode ? 'text-teal-400' : 'text-teal-600') : ''} />
+            {isSidebarOpen && <span>Personas</span>}
+          </button>
           
           <button 
             onClick={() => { setActivePageId('calendar'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
-            className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all tracking-wide ${activePageId === 'calendar' ? (isDarkMode ? 'bg-white/10 text-white font-medium' : 'bg-black/5 text-gray-900 font-medium') : (isDarkMode ? 'text-gray-400 hover:bg-white/5 hover:text-white font-light' : 'text-gray-500 hover:bg-black/5 hover:text-gray-900 font-light')}`}
+            className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all tracking-wide font-semibold ${activePageId === 'calendar' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm border border-white/5' : 'bg-black/5 text-gray-900 border border-black/5') : (isDarkMode ? 'text-gray-450 hover:bg-white/5 hover:text-white' : 'text-gray-650 hover:bg-black/5 hover:text-gray-900')}`}
           >
             <CalendarDays size={18} className={activePageId === 'calendar' ? (isDarkMode ? 'text-purple-400' : 'text-purple-600') : ''} />
             {isSidebarOpen && <span>Calendario</span>}
@@ -1551,18 +1595,10 @@ export default function App() {
 
           <button 
             onClick={() => { setActivePageId('team'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
-            className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all tracking-wide ${activePageId === 'team' ? (isDarkMode ? 'bg-white/10 text-white font-medium' : 'bg-black/5 text-gray-900 font-medium') : (isDarkMode ? 'text-gray-400 hover:bg-white/5 hover:text-white font-light' : 'text-gray-500 hover:bg-black/5 hover:text-gray-900 font-light')}`}
+            className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all tracking-wide font-semibold ${activePageId === 'team' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm border border-white/5' : 'bg-black/5 text-gray-900 border border-black/5') : (isDarkMode ? 'text-gray-450 hover:bg-white/5 hover:text-white' : 'text-gray-650 hover:bg-black/5 hover:text-gray-900')}`}
           >
-            <Users size={18} className={activePageId === 'team' ? (isDarkMode ? 'text-emerald-400' : 'text-emerald-600') : ''} />
+            <Users size={18} className={activePageId === 'team' ? (isDarkMode ? 'text-yellow-400' : 'text-yellow-600') : ''} />
             {isSidebarOpen && <span>Equipo</span>}
-          </button>
-
-          <button 
-            onClick={() => { setActivePageId('finances'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
-            className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all tracking-wide ${activePageId === 'finances' ? (isDarkMode ? 'bg-white/10 text-white font-medium' : 'bg-black/5 text-gray-900 font-medium') : (isDarkMode ? 'text-gray-400 hover:bg-white/5 hover:text-white font-light' : 'text-gray-500 hover:bg-black/5 hover:text-gray-900 font-light')}`}
-          >
-            <DollarSign size={18} className={activePageId === 'finances' ? (isDarkMode ? 'text-emerald-400' : 'text-emerald-600') : ''} />
-            {isSidebarOpen && <span>Contabilidad</span>}
           </button>
         </div>
 
@@ -1647,12 +1683,21 @@ export default function App() {
         </div>
 
         {/* Editor Area */}
-        <div className={`flex-1 overflow-y-auto pb-12 pt-4 scroll-smooth custom-scrollbar ${activePage.type === 'project' ? 'px-4 md:px-8 lg:px-10' : activePage.type === 'finances' ? 'px-0 pt-0' : 'px-6 md:px-12 lg:px-24'}`}>
-          <div className={`mx-auto ${activePage.type === 'project' || activePage.type === 'finances' ? 'max-w-[1800px] h-full' : 'max-w-4xl'}`}>
+        <div className={`flex-1 overflow-y-auto pb-12 pt-4 scroll-smooth custom-scrollbar ${activePage.type === 'project' ? 'px-4 md:px-8 lg:px-10' : ['finances', 'ventas', 'inventario', 'personas'].includes(activePage.type) ? 'px-0 pt-0' : 'px-6 md:px-12 lg:px-24'}`}>
+          <div className={`mx-auto ${activePage.type === 'project' || ['finances', 'ventas', 'inventario', 'personas'].includes(activePage.type) ? 'max-w-[1800px] h-full' : 'max-w-4xl'}`}>
             
-            {/* VISTA: FINANZAS Y CONTABILIDAD */}
+            {/* VISTAS FINANCIERAS MODULARES */}
             {activePage.type === 'finances' && (
-              <FinanceModule isDarkMode={isDarkMode} showToast={showToast} />
+              <FinanceModule mode="contabilidad" isDarkMode={isDarkMode} showToast={showToast} />
+            )}
+            {activePage.type === 'ventas' && (
+              <FinanceModule mode="ventas" isDarkMode={isDarkMode} showToast={showToast} />
+            )}
+            {activePage.type === 'inventario' && (
+              <FinanceModule mode="inventario" isDarkMode={isDarkMode} showToast={showToast} />
+            )}
+            {activePage.type === 'personas' && (
+              <FinanceModule mode="personas" isDarkMode={isDarkMode} showToast={showToast} />
             )}
 
             {/* VISTA: DASHBOARD */}
@@ -1714,7 +1759,7 @@ export default function App() {
         )}
 
             {/* Cabecera común para Doc y Project (Minimalista e Inline) */}
-            {activePage.type !== 'trash' && activePage.type !== 'empty' && activePage.type !== 'dashboard' && activePage.type !== 'calendar' && activePage.type !== 'team' && (
+            {!['trash', 'empty', 'dashboard', 'calendar', 'team', 'finances', 'ventas', 'inventario', 'personas'].includes(activePage.type) && (
               <div className="mb-8">
                 <div className="group relative flex items-center gap-3">
                    <div className={`p-2.5 rounded-xl transition-colors backdrop-blur-md border ${isDarkMode ? 'bg-white/5 border-white/10 text-gray-200 shadow-sm' : 'bg-white/60 border-gray-200 text-gray-700 shadow-sm'}`}>

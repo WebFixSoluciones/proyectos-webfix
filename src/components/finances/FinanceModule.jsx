@@ -15,8 +15,20 @@ import QuotesView from './QuotesView';
 import PosView from './PosView';
 import TransactionForm from './TransactionForm';
 
-export default function FinanceModule({ isDarkMode, showToast }) {
-  const [activeTab, setActiveTab] = useState('dashboard');
+export default function FinanceModule({ mode = 'contabilidad', isDarkMode, showToast }) {
+  const getInitialTab = (m) => {
+    if (m === 'ventas') return 'ventas';
+    if (m === 'inventario') return 'products';
+    if (m === 'personas') return 'personas';
+    return 'dashboard'; // 'contabilidad'
+  };
+
+  const [activeTab, setActiveTab] = useState(() => getInitialTab(mode));
+
+  // Sync state if mode changes
+  useEffect(() => {
+    setActiveTab(getInitialTab(mode));
+  }, [mode]);
   const [transactions, setTransactions] = useState([]);
   const [thirdParties, setThirdParties] = useState([]);
   const [products, setProducts] = useState([]);
@@ -105,15 +117,52 @@ export default function FinanceModule({ isDarkMode, showToast }) {
     setSubTabVentas('facturas');
   };
 
-  const tabs = [
-    { id: 'dashboard', label: 'Resumen', icon: PieChart },
-    { id: 'ventas', label: 'Ventas', icon: ShoppingCart },
-    { id: 'sri_docs', label: 'Documentos SRI', icon: FileText },
-    { id: 'products', label: 'Inventario', icon: Package },
-    { id: 'personas', label: 'Personas', icon: Users },
-    { id: 'reports', label: 'Reportes', icon: Download },
-    { id: 'settings', label: 'Configuración', icon: Settings },
-  ];
+  const getModuleHeader = () => {
+    switch (mode) {
+      case 'ventas':
+        return {
+          title: 'Módulo de Ventas y Proformas',
+          desc: 'Punto de Venta (POS), cotizaciones comerciales y facturas de venta autorizadas',
+          icon: ShoppingCart
+        };
+      case 'inventario':
+        return {
+          title: 'Módulo de Inventario',
+          desc: 'Catálogo de productos y servicios con parametrización de IVA del SRI',
+          icon: Package
+        };
+      case 'personas':
+        return {
+          title: 'Gestión de Personas',
+          desc: 'Base de datos unificada de clientes y proveedores con validación de datos SRI',
+          icon: Users
+        };
+      case 'contabilidad':
+      default:
+        return {
+          title: 'ERP Contabilidad y Tributación',
+          desc: 'Control de ingresos/egresos, reportes contables y documentos electrónicos autorizados',
+          icon: DollarSign
+        };
+    }
+  };
+
+  const moduleHeader = getModuleHeader();
+  const ModuleIcon = moduleHeader.icon;
+
+  const getTabsForMode = () => {
+    if (mode === 'contabilidad') {
+      return [
+        { id: 'dashboard', label: 'Resumen', icon: PieChart },
+        { id: 'sri_docs', label: 'Documentos SRI', icon: FileText },
+        { id: 'reports', label: 'Reportes', icon: Download },
+        { id: 'settings', label: 'Configuración', icon: Settings },
+      ];
+    }
+    return [];
+  };
+
+  const displayedTabs = getTabsForMode();
 
   return (
     <div className={`flex flex-col h-full w-full animate-in fade-in duration-500 overflow-hidden`}>
@@ -121,12 +170,12 @@ export default function FinanceModule({ isDarkMode, showToast }) {
       <div className={`flex items-center justify-between px-8 py-4 border-b shrink-0 ${isDarkMode ? 'border-white/10 bg-[#0f0f11]' : 'border-gray-350 bg-white'}`}>
         <div className="flex items-center gap-4">
           <div className={`p-2.5 rounded-xl shadow-inner border ${isDarkMode ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/20' : 'bg-emerald-100/80 text-emerald-800 border-emerald-300'}`}>
-            <DollarSign size={20} />
+            <ModuleIcon size={20} />
           </div>
           <div>
-            <h1 className="text-xl font-bold tracking-tight">ERP Ventas y Facturación SRI</h1>
+            <h1 className="text-xl font-bold tracking-tight">{moduleHeader.title}</h1>
             <p className={`text-[10px] mt-0.5 ${isDarkMode ? 'text-gray-400' : 'text-gray-705 font-medium'}`}>
-              Gestión modular de inventario, punto de venta, cotizaciones comerciales y facturación electrónica autorizada
+              {moduleHeader.desc}
             </p>
           </div>
         </div>
@@ -144,26 +193,28 @@ export default function FinanceModule({ isDarkMode, showToast }) {
             <Sparkles size={13} /> Asistente AI
           </button>
 
-          <div className={`flex p-1 rounded-xl border shadow-inner ${isDarkMode ? 'bg-black/40 border-white/10' : 'bg-gray-200/60 border-gray-300/80'}`}>
-            {tabs.map(tab => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                    isActive 
-                      ? isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-white text-gray-950 font-bold border border-gray-205/60 shadow-sm'
-                      : isDarkMode ? 'text-gray-400 hover:text-gray-200 hover:bg-white/5' : 'text-gray-650 hover:text-gray-900 hover:bg-black/5'
-                  }`}
-                >
-                  <Icon size={13} />
-                  {tab.label}
-                </button>
-              );
-            })}
-          </div>
+          {displayedTabs.length > 0 && (
+            <div className={`flex p-1 rounded-xl border shadow-inner ${isDarkMode ? 'bg-black/40 border-white/10' : 'bg-gray-200/60 border-gray-300/80'}`}>
+              {displayedTabs.map(tab => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                      isActive 
+                        ? isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-white text-gray-950 font-bold border border-gray-205/60 shadow-sm'
+                        : isDarkMode ? 'text-gray-400 hover:text-gray-200 hover:bg-white/5' : 'text-gray-650 hover:text-gray-900 hover:bg-black/5'
+                    }`}
+                  >
+                    <Icon size={13} />
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
 

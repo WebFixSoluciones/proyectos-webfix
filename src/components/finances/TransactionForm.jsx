@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, UploadCloud, Calculator, FileText, CheckCircle2, AlertTriangle, Sparkles, Terminal, ShieldAlert, Download, Plus, Trash2 } from 'lucide-react';
+import { X, UploadCloud, Calculator, FileText, CheckCircle2, AlertTriangle, Sparkles, Terminal, ShieldAlert, Download, Plus, Trash2, RefreshCw } from 'lucide-react';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { validarIdentificacion, generarFacturaXML, simularTransmisionSRI } from '../../services/sriService';
+import { validarIdentificacion, generarFacturaXML, simularTransmisionSRI, consultarRucSri } from '../../services/sriService';
 
 export default function TransactionForm({ tx, onClose, thirdParties, products = [], isDarkMode, showToast, db, storage, appId }) {
   const [sriConfig, setSriConfig] = useState(null);
@@ -38,6 +38,74 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   const [isEmitting, setIsEmitting] = useState(false);
   const [sriLogs, setSriLogs] = useState([]);
   const fileInputRef = useRef(null);
+
+  // States for Quick Contact Creation Modal (SRI)
+  const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
+  const [isQueryingSri, setIsQueryingSri] = useState(false);
+  const [quickAddFormData, setQuickAddFormData] = useState({
+    name: '',
+    ruc: '',
+    email: '',
+    tipoIdentificacion: 'ruc',
+    direccion: '',
+    telefono: '',
+    tipoContribuyente: 'general'
+  });
+
+  const queryQuickAddSRI = async () => {
+    if (!quickAddFormData.ruc) {
+      showToast('Por favor, ingresa un número de RUC o Cédula', 'error');
+      return;
+    }
+    setIsQueryingSri(true);
+    try {
+      const result = await consultarRucSri(quickAddFormData.ruc);
+      setQuickAddFormData(prev => ({
+        ...prev,
+        name: result.name,
+        tipoIdentificacion: result.tipoIdentificacion,
+        direccion: result.direccion,
+        telefono: result.telefono,
+        email: result.email || prev.email,
+        tipoContribuyente: result.tipoContribuyente || 'general'
+      }));
+      showToast('Datos fiscales cargados exitosamente desde el SRI', 'success');
+    } catch (e) {
+      console.error(e);
+      showToast(e.message || 'Error al consultar datos en el SRI', 'error');
+    } finally {
+      setIsQueryingSri(false);
+    }
+  };
+
+  const handleQuickAddSave = async (e) => {
+    e.preventDefault();
+    if (!quickAddFormData.name || !quickAddFormData.ruc) {
+      showToast('Nombre y RUC/Identificación son obligatorios', 'error');
+      return;
+    }
+    try {
+      const docId = `tp_${new Date().getTime()}`;
+      const relationType = formData.type === 'ingreso' ? 'cliente' : 'proveedor';
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_third_parties', docId), {
+        name: quickAddFormData.name,
+        ruc: quickAddFormData.ruc,
+        email: quickAddFormData.email || '',
+        type: relationType,
+        tipoIdentificacion: quickAddFormData.tipoIdentificacion || 'ruc',
+        direccion: quickAddFormData.direccion || '',
+        telefono: quickAddFormData.telefono || '',
+        tipoContribuyente: quickAddFormData.tipoContribuyente || 'general',
+        updatedAt: new Date().toISOString()
+      });
+      showToast('Contacto guardado y seleccionado', 'success');
+      setFormData(prev => ({ ...prev, thirdPartyId: docId }));
+      setIsQuickAddOpen(false);
+    } catch (err) {
+      console.error(err);
+      showToast('Error al guardar contacto', 'error');
+    }
+  };
 
   // Cargar configuraciones del Emisor SRI
   useEffect(() => {
@@ -466,12 +534,48 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
                   <div className="sm:col-span-2">
                     <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Tercero (Cliente o Proveedor)</label>
-                    <select disabled={!isEditable} required value={formData.thirdPartyId} onChange={e => setFormData({...formData, thirdPartyId: e.target.value})} className={inputClass}>
-                      <option value="" disabled className="text-gray-400">Selecciona un contacto...</option>
-                      {thirdParties.map(tp => (
-                        <option key={tp.id} value={tp.id} className="text-black">{tp.name} - RUC: {tp.ruc}</option>
-                      ))}
-                    </select>
+                    <div className="flex gap-2">
+                      <select 
+                        disabled={!isEditable} 
+                        required 
+                        value={formData.thirdPartyId} 
+                        onChange={e => setFormData({...formData, thirdPartyId: e.target.value})} 
+                        className={inputClass}
+                      >
+                        <option value="" disabled className="text-gray-400">Selecciona un contacto...</option>
+                        {thirdParties
+                          .filter(tp => formData.type === 'ingreso' ? tp.type === 'cliente' : tp.type === 'proveedor')
+                          .map(tp => (
+                            <option key={tp.id} value={tp.id} className="text-black">{tp.name} - RUC: {tp.ruc}</option>
+                          ))
+                        }
+                      </select>
+                      {isEditable && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setQuickAddFormData({
+                              name: '',
+                              ruc: '',
+                              email: '',
+                              tipoIdentificacion: 'ruc',
+                              direccion: '',
+                              telefono: '',
+                              tipoContribuyente: 'general'
+                            });
+                            setIsQuickAddOpen(true);
+                          }}
+                          className={`px-3.5 rounded-xl border flex items-center justify-center transition-all shrink-0 ${
+                            isDarkMode 
+                              ? 'bg-blue-600/20 text-blue-400 border-blue-500/30 hover:bg-blue-500/30' 
+                              : 'bg-blue-50 border-blue-200 text-blue-800 hover:bg-blue-100 shadow-sm'
+                          }`}
+                          title="Crear Contacto Rápido"
+                        >
+                          <Plus size={14} />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -692,6 +796,135 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
             )}
           </div>
         </div>
+
+        {/* MODAL CREAR CONTACTO RAPIDO */}
+        {isQuickAddOpen && (
+          <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-in fade-in">
+            <div className={`w-full max-w-md p-6 rounded-3xl shadow-2xl ${isDarkMode ? 'bg-[#151517] border border-white/10' : 'bg-white border border-gray-200'}`}>
+              <h3 className="text-sm font-black mb-4">
+                Nuevo {formData.type === 'ingreso' ? 'Cliente' : 'Proveedor'} (Rápido)
+              </h3>
+              
+              <form onSubmit={handleQuickAddSave} className="space-y-3.5">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[9px] font-bold uppercase mb-1 text-gray-500">Identificación</label>
+                    <select 
+                      value={quickAddFormData.tipoIdentificacion || 'ruc'} 
+                      onChange={e => setQuickAddFormData({...quickAddFormData, tipoIdentificacion: e.target.value})} 
+                      className={inputClass}
+                    >
+                      <option value="ruc" className="text-black">RUC</option>
+                      <option value="cedula" className="text-black">Cédula</option>
+                      <option value="pasaporte" className="text-black">Pasaporte</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[9px] font-bold uppercase mb-1 text-gray-500">Número</label>
+                    <div className="flex gap-1.5">
+                      <input 
+                        type="text" 
+                        required 
+                        value={quickAddFormData.ruc} 
+                        onChange={e => setQuickAddFormData({...quickAddFormData, ruc: e.target.value})} 
+                        className={inputClass} 
+                        placeholder="1790000000001" 
+                      />
+                      <button
+                        type="button"
+                        disabled={isQueryingSri}
+                        onClick={queryQuickAddSRI}
+                        className={`px-3.5 rounded-xl border flex items-center justify-center transition-all shrink-0 ${
+                          isDarkMode 
+                            ? 'bg-purple-600/20 text-purple-400 border-purple-500/30 hover:bg-purple-500/30' 
+                            : 'bg-purple-50 border-purple-200 text-purple-800 hover:bg-purple-100 shadow-sm'
+                        }`}
+                        title="Consultar SRI"
+                      >
+                        {isQueryingSri ? <RefreshCw size={13} className="animate-spin" /> : <Sparkles size={13} />}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[9px] font-bold uppercase mb-1 text-gray-500">Razón Social / Nombres</label>
+                  <input 
+                    type="text" 
+                    required 
+                    value={quickAddFormData.name} 
+                    onChange={e => setQuickAddFormData({...quickAddFormData, name: e.target.value})} 
+                    className={inputClass} 
+                    placeholder="Ej. Juan Pérez" 
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[9px] font-bold uppercase mb-1 text-gray-500">Teléfono</label>
+                    <input 
+                      type="text" 
+                      value={quickAddFormData.telefono || ''} 
+                      onChange={e => setQuickAddFormData({...quickAddFormData, telefono: e.target.value})} 
+                      className={inputClass} 
+                      placeholder="0998765432" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[9px] font-bold uppercase mb-1 text-gray-500">Régimen</label>
+                    <select 
+                      value={quickAddFormData.tipoContribuyente || 'general'} 
+                      onChange={e => setQuickAddFormData({...quickAddFormData, tipoContribuyente: e.target.value})} 
+                      className={inputClass}
+                    >
+                      <option value="general" className="text-black">General</option>
+                      <option value="rimpe_popular" className="text-black">RIMPE Popular</option>
+                      <option value="rimpe_emprendedor" className="text-black">RIMPE Emprendedor</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[9px] font-bold uppercase mb-1 text-gray-500">Dirección</label>
+                  <input 
+                    type="text" 
+                    value={quickAddFormData.direccion || ''} 
+                    onChange={e => setQuickAddFormData({...quickAddFormData, direccion: e.target.value})} 
+                    className={inputClass} 
+                    placeholder="Av. de los Shyris, Quito" 
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[9px] font-bold uppercase mb-1 text-gray-500">Correo Electrónico</label>
+                  <input 
+                    type="email" 
+                    value={quickAddFormData.email || ''} 
+                    onChange={e => setQuickAddFormData({...quickAddFormData, email: e.target.value})} 
+                    className={inputClass} 
+                    placeholder="correo@ejemplo.com" 
+                  />
+                </div>
+
+                <div className="flex justify-end gap-2.5 mt-5 pt-3 border-t border-white/5">
+                  <button 
+                    type="button" 
+                    onClick={() => setIsQuickAddOpen(false)} 
+                    className={`px-3.5 py-2 rounded-xl text-xs font-semibold ${isDarkMode ? 'hover:bg-white/10 text-gray-300' : 'hover:bg-gray-100 text-gray-700'}`}
+                  >
+                    Cancelar
+                  </button>
+                  <button 
+                    type="submit" 
+                    className="px-4 py-2 rounded-xl text-xs font-black bg-emerald-600 text-white hover:bg-emerald-500 transition-transform hover:-translate-y-0.5 shadow-md"
+                  >
+                    Guardar y Seleccionar
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>
