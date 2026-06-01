@@ -1225,11 +1225,16 @@ export default function App() {
   const handleDownloadBackup = async () => {
     let financeTx = [];
     let financeTp = [];
+    let financeSettings = null;
     try {
       const txSnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'finances_transactions'));
       financeTx = txSnap.docs.map(d => ({ id: d.id, ...d.data() }));
       const tpSnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'finances_third_parties'));
       financeTp = tpSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const settingsSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings'));
+      if (settingsSnap.exists()) {
+        financeSettings = settingsSnap.data();
+      }
     } catch (err) {
       console.warn("Could not fetch finance data for backup", err);
     }
@@ -1241,7 +1246,8 @@ export default function App() {
       trash,
       finances: {
         transactions: financeTx,
-        thirdParties: financeTp
+        thirdParties: financeTp,
+        settings: financeSettings
       },
       timestamp: new Date().toISOString()
     };
