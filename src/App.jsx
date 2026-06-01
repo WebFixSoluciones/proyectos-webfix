@@ -569,6 +569,7 @@ export default function App() {
       // 2. Escuchar Tareas (spread con doc.id)
       const unsubTasks = onSnapshot(tasksCol, snap => {
         const tData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        tData.sort((a, b) => (a.order || 0) - (b.order || 0));
         setGlobalTasks(tData);
       });
       // 3. Escuchar Meta (Users, Trash, Settings)
@@ -817,7 +818,8 @@ export default function App() {
       if (!task) return;
       
       const currentStatus = task.status;
-      const columnTasks = globalTasks.filter(t => t.status === currentStatus && t.projectId === activePage.id);
+      // IMPORTANTE: Asegurar que columnTasks esté bien ordenado localmente antes de reordenar
+      const columnTasks = globalTasks.filter(t => t.status === currentStatus && t.projectId === activePage.id).sort((a, b) => (a.order || 0) - (b.order || 0));
       
       const oldIndex = columnTasks.findIndex(t => t.id === activeId);
       const newIndex = columnTasks.findIndex(t => t.id === overId);
