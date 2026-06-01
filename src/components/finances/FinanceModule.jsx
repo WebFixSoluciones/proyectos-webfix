@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  DollarSign, PieChart, Users, FileText, Download, Settings, Sparkles, ShoppingCart, Package, Bookmark
+  DollarSign, PieChart, Users, FileText, Download, Settings, Sparkles, ShoppingCart, Package, Bookmark,
+  ArrowDownCircle, ArrowUpCircle
 } from 'lucide-react';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db, storage, appId } from '../../firebase';
@@ -14,6 +15,7 @@ import ProductsView from './ProductsView';
 import QuotesView from './QuotesView';
 import PosView from './PosView';
 import TransactionForm from './TransactionForm';
+import AccountsReceivablePayable from './AccountsReceivablePayable';
 
 export default function FinanceModule({ mode = 'contabilidad', isDarkMode, showToast }) {
   const getInitialTab = (m) => {
@@ -155,6 +157,8 @@ export default function FinanceModule({ mode = 'contabilidad', isDarkMode, showT
       return [
         { id: 'dashboard', label: 'Resumen', icon: PieChart },
         { id: 'sri_docs', label: 'Documentos SRI', icon: FileText },
+        { id: 'cxc', label: 'Cuentas por Cobrar', icon: ArrowDownCircle },
+        { id: 'cxp', label: 'Cuentas por Pagar', icon: ArrowUpCircle },
         { id: 'reports', label: 'Reportes', icon: Download },
         { id: 'settings', label: 'Configuración', icon: Settings },
       ];
@@ -316,6 +320,16 @@ export default function FinanceModule({ mode = 'contabilidad', isDarkMode, showT
               {/* SECCIÓN PERSONAS */}
               {activeTab === 'personas' && (
                 <ThirdPartiesView thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} appId={appId} forcedType={subTabPersonas} />
+              )}
+
+              {/* SECCIÓN CUENTAS POR COBRAR (CxC) */}
+              {activeTab === 'cxc' && (
+                <AccountsReceivablePayable type="cxc" transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} appId={appId} />
+              )}
+
+              {/* SECCIÓN CUENTAS POR PAGAR (CxP) */}
+              {activeTab === 'cxp' && (
+                <AccountsReceivablePayable type="cxp" transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} appId={appId} />
               )}
 
               {/* REPORTES Y CONFIGURACIÓN */}

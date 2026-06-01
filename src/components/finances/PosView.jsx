@@ -495,7 +495,7 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
   // PANTALLA 1: APERTURA DE CAJA
   if (!activeSession) {
     return (
-      <div className="fixed inset-0 z-50 bg-[#0c0c0e] text-white flex items-center justify-center p-4 backdrop-blur-md">
+      <div className="fixed inset-0 z-[100] bg-[#0c0c0e] text-white flex items-center justify-center p-4 backdrop-blur-md">
         <div className="w-full max-w-md p-8 rounded-3xl bg-[#141416] border border-white/10 shadow-2xl space-y-6">
           <div className="text-center space-y-2">
             <div className="mx-auto w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center border border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.1)]">
@@ -547,7 +547,7 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
 
   // PANTALLA 2: POS PRINCIPAL EN PANTALLA COMPLETA
   return (
-    <div className="fixed inset-0 z-50 bg-[#0c0c0e] text-white flex flex-col overflow-hidden animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-[100] bg-[#0c0c0e] text-white flex flex-col overflow-hidden animate-in fade-in duration-300">
       
       {/* TOP HEADER POS */}
       <div className="h-16 px-6 border-b border-white/5 flex items-center justify-between shrink-0 bg-[#121214]/80 backdrop-blur-md">
@@ -812,7 +812,7 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
 
       {/* APERTURA Y CIERRE DE CAJA DIALOG */}
       {isClosingOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in">
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in">
           <div className="w-full max-w-md p-6 rounded-3xl bg-[#141416] border border-white/10 shadow-2xl">
             <h3 className="text-sm font-black mb-4 flex items-center gap-2 text-red-400">
               <ShieldAlert size={16} /> Arqueo y Cierre de Caja
@@ -875,7 +875,7 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
 
       {/* CHECKOUT WIZARD MODAL (FULLSCREEN PASOS) */}
       {isCheckoutOpen && (
-        <div className="fixed inset-0 z-[100] bg-[#0c0c0e]/95 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in">
+        <div className="fixed inset-0 z-[110] bg-[#0c0c0e]/95 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in">
           <div className="w-full max-w-2xl bg-[#141416] border border-white/10 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
             
             {/* WIZARD PROGRESS HEADER */}

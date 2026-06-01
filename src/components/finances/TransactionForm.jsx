@@ -566,18 +566,16 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       if (formData.items && formData.items.length > 0) {
         const invalid = formData.items.some(item => !item.productId || Number(item.quantity) <= 0 || Number(item.price) < 0);
         if (invalid) {
-          showToast('Asegúrate de que todos los ítems agregados tengan un producto, cantidad y precio válido', 'error');
+          showToast('Asegúrate de que todos los ítems detallados tengan un producto, cantidad y precio válido', 'error');
           return;
         }
       }
-    }
-    if (currentStep === 3) {
       if (Number(formData.total) < 0) {
         showToast('El valor total del comprobante no puede ser menor a cero', 'error');
         return;
       }
     }
-    if (currentStep === 4) {
+    if (currentStep === 3) {
       const paymentStatus = calculatePaymentStatus();
       if (!paymentStatus.isValid) {
         showToast(paymentStatus.error, 'error');
@@ -585,7 +583,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       }
     }
     
-    setCurrentStep(prev => Math.min(prev + 1, 5));
+    setCurrentStep(prev => Math.min(prev + 1, 4));
   };
 
   const handlePrevStep = () => {
@@ -600,10 +598,9 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
   const steps = [
     { id: 1, name: 'Cabecera' },
-    { id: 2, name: 'Productos' },
-    { id: 3, name: 'Liquidación' },
-    { id: 4, name: 'Forma Pago' },
-    { id: 5, name: 'Emisión SRI' }
+    { id: 2, name: 'Detalles e Impuestos' },
+    { id: 3, name: 'Forma Pago' },
+    { id: 4, name: 'Emisión SRI' }
   ];
 
   const matchedTercero = thirdParties.find(tp => tp.id === formData.thirdPartyId);
@@ -652,19 +649,17 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
       {/* STEP INDICATOR BAR */}
       <div className={`px-6 py-4 border-b shrink-0 ${isDarkMode ? 'border-white/5 bg-[#121214]' : 'border-gray-200 bg-white'}`}>
-        <div className="flex items-center justify-between max-w-4xl mx-auto">
+        <div className="flex items-center justify-between max-w-3xl mx-auto">
           {steps.map((step, idx) => (
             <React.Fragment key={step.id}>
               <button
                 type="button"
                 onClick={() => {
-                  // Allow jumping to steps if editable or if viewing an already saved transaction
                   if (!isEditable) {
                     setCurrentStep(step.id);
                     return;
                   }
                   
-                  // Simple validation progression checks
                   if (step.id > 1 && !formData.thirdPartyId) {
                     showToast('Selecciona primero un cliente o proveedor en el Paso 1', 'error');
                     return;
@@ -676,7 +671,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       return;
                     }
                   }
-                  if (step.id > 4) {
+                  if (step.id > 3) {
                     const pStatus = calculatePaymentStatus();
                     if (!pStatus.isValid) {
                       showToast(pStatus.error, 'error');
@@ -765,7 +760,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         ...formData, 
                         type: newType,
                         category: newType === 'ingreso' ? 'ventas' : 'costos',
-                        thirdPartyId: '' // Limpiar tercero al cambiar tipo
+                        thirdPartyId: ''
                       });
                     }} 
                     className={inputClass}
@@ -912,65 +907,52 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
           </div>
         )}
 
-        {/* STEP 2: DETALLE DE PRODUCTOS */}
+        {/* STEP 2: DETALLES DE PRODUCTOS Y IMPUESTOS (LIQUIDACION COMBINADA) */}
         {currentStep === 2 && (
-          <div className="space-y-6 animate-in fade-in slide-in-from-bottom duration-250">
-            <div className={`p-6 rounded-3xl border shadow-sm ${isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'}`}>
-              <div className="flex justify-between items-center border-b pb-3 mb-4 border-gray-200 dark:border-white/5">
-                <div className="flex items-center gap-2">
-                  <Calculator className="text-purple-500" size={16} />
-                  <h3 className="text-xs font-bold uppercase tracking-wider">Detalle del Comprobante (Productos/Servicios)</h3>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom duration-250">
+            
+            {/* SECCION PRODUCTOS */}
+            <div className="lg:col-span-2 space-y-4">
+              <div className={`p-6 rounded-3xl border shadow-sm ${isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'}`}>
+                <div className="flex justify-between items-center border-b pb-3 mb-4 border-gray-200 dark:border-white/5">
+                  <div className="flex items-center gap-2">
+                    <Layers className="text-blue-500" size={16} />
+                    <h3 className="text-xs font-bold uppercase tracking-wider">Productos / Servicios</h3>
+                  </div>
+                  {isEditable && (
+                    <button 
+                      type="button" 
+                      onClick={handleAddItem} 
+                      className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase flex items-center gap-1.5 shadow-sm transition-transform hover:-translate-y-0.5"
+                    >
+                      <Plus size={12} /> Añadir Fila
+                    </button>
+                  )}
                 </div>
-                {isEditable && (
-                  <button 
-                    type="button" 
-                    onClick={handleAddItem} 
-                    className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase flex items-center gap-1.5 shadow-sm transition-transform hover:-translate-y-0.5"
-                  >
-                    <Plus size={12} /> Agregar Ítem
-                  </button>
-                )}
-              </div>
 
-              <div className="space-y-3">
-                {(formData.items || []).map((item, index) => (
-                  <div key={index} className={`flex flex-col md:flex-row items-center gap-3 p-3 rounded-2xl border transition-all ${
-                    isDarkMode ? 'bg-black/20 border-white/5' : 'bg-gray-50 border-gray-200 shadow-sm'
-                  }`}>
-                    
-                    {/* SELECTOR PRODUCTO */}
-                    <div className="flex-1 w-full">
-                      <label className="block text-[8px] font-bold uppercase text-gray-500 mb-1">Producto / Servicio</label>
-                      <select 
-                        disabled={!isEditable}
-                        value={item.productId} 
-                        onChange={(e) => handleItemChange(index, 'productId', e.target.value)} 
-                        className={inputClass}
-                      >
-                        <option value="" disabled>Seleccionar Producto...</option>
-                        {products.map(p => (
-                          <option key={p.id} value={p.id}>
-                            {p.codigoBarras ? `[${p.codigoBarras}]` : p.sku ? `[${p.sku}]` : ''} {p.name} — ${Number(p.price).toFixed(2)}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                <div className="space-y-3 max-h-[50vh] overflow-y-auto pr-1 custom-scrollbar">
+                  {(formData.items || []).map((item, index) => (
+                    <div key={index} className={`flex flex-col sm:flex-row items-center gap-2.5 p-3 rounded-2xl border transition-all ${
+                      isDarkMode ? 'bg-black/20 border-white/5' : 'bg-gray-50 border-gray-200 shadow-sm'
+                    }`}>
+                      
+                      <div className="flex-1 w-full text-xs">
+                        <select 
+                          disabled={!isEditable}
+                          value={item.productId} 
+                          onChange={(e) => handleItemChange(index, 'productId', e.target.value)} 
+                          className={inputClass}
+                        >
+                          <option value="" disabled>Seleccionar Producto...</option>
+                          {products.map(p => (
+                            <option key={p.id} value={p.id} className="text-black">
+                              {p.codigoBarras ? `[${p.codigoBarras}]` : p.sku ? `[${p.sku}]` : ''} {p.name} — ${Number(p.price).toFixed(2)}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
 
-                    {/* CANTIDAD */}
-                    <div className="w-full md:w-28">
-                      <label className="block text-[8px] font-bold uppercase text-gray-500 mb-1">Cantidad</label>
-                      <div className="flex items-center gap-1">
-                        {isEditable && (
-                          <button 
-                            type="button" 
-                            onClick={() => handleItemChange(index, 'quantity', Math.max(1, (parseInt(item.quantity) || 1) - 1))}
-                            className={`p-2 rounded-lg border text-xs font-bold transition-all ${
-                              isDarkMode ? 'border-white/10 hover:bg-white/5' : 'border-gray-300 hover:bg-gray-100'
-                            }`}
-                          >
-                            -
-                          </button>
-                        )}
+                      <div className="w-full sm:w-24">
                         <input 
                           disabled={!isEditable}
                           type="number" 
@@ -979,87 +961,59 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                           value={item.quantity} 
                           onChange={(e) => handleItemChange(index, 'quantity', e.target.value)} 
                           className={`${inputClass} text-center font-bold`} 
+                          placeholder="Cant"
                         />
-                        {isEditable && (
-                          <button 
-                            type="button" 
-                            onClick={() => handleItemChange(index, 'quantity', (parseInt(item.quantity) || 1) + 1)}
-                            className={`p-2 rounded-lg border text-xs font-bold transition-all ${
-                              isDarkMode ? 'border-white/10 hover:bg-white/5' : 'border-gray-300 hover:bg-gray-100'
-                            }`}
-                          >
-                            +
-                          </button>
-                        )}
                       </div>
-                    </div>
 
-                    {/* PRECIO UNITARIO */}
-                    <div className="w-full md:w-32">
-                      <label className="block text-[8px] font-bold uppercase text-gray-500 mb-1">Precio Unitario ($)</label>
-                      <input 
-                        disabled={!isEditable}
-                        type="number" 
-                        step="0.01" 
-                        required 
-                        value={item.price} 
-                        onChange={(e) => handleItemChange(index, 'price', e.target.value)} 
-                        className={`${inputClass} font-semibold`} 
-                      />
-                    </div>
+                      <div className="w-full sm:w-28">
+                        <input 
+                          disabled={!isEditable}
+                          type="number" 
+                          step="0.01" 
+                          required 
+                          value={item.price} 
+                          onChange={(e) => handleItemChange(index, 'price', e.target.value)} 
+                          className={`${inputClass} font-semibold`} 
+                          placeholder="Precio"
+                        />
+                      </div>
 
-                    {/* SUB-TOTAL */}
-                    <div className="w-full md:w-28 text-center shrink-0">
-                      <span className="block text-[8px] font-bold uppercase text-gray-500 mb-1">Total Fila</span>
-                      <span className="text-xs font-black">
+                      <div className="text-xs font-black w-full sm:w-20 text-center shrink-0">
                         ${((parseFloat(item.price) || 0) * (parseInt(item.quantity) || 1)).toFixed(2)}
-                      </span>
-                    </div>
+                      </div>
 
-                    {/* ACCIONES */}
-                    {isEditable && (
-                      <div className="mt-2 md:mt-4 shrink-0">
+                      {isEditable && (
                         <button 
                           type="button" 
                           onClick={() => handleRemoveItem(index)} 
-                          className="p-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/10 transition-colors"
-                          title="Eliminar fila"
+                          className="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-500"
                         >
-                          <Trash2 size={14} />
+                          <Trash2 size={13} />
                         </button>
-                      </div>
-                    )}
-                  </div>
-                ))}
+                      )}
+                    </div>
+                  ))}
 
-                {(!formData.items || formData.items.length === 0) && (
-                  <div className={`p-8 rounded-3xl border border-dashed text-center ${
-                    isDarkMode ? 'border-white/5 text-gray-500 bg-black/10' : 'border-gray-300 text-gray-500 bg-gray-50'
-                  }`}>
-                    <p className="text-xs font-semibold">No se han registrado productos en el detalle.</p>
-                    <p className="text-[10px] mt-1 opacity-70">Puedes agregar productos del inventario arriba, o continuar para registrar un monto manual plano en el paso de Liquidación.</p>
-                  </div>
-                )}
+                  {(!formData.items || formData.items.length === 0) && (
+                    <div className="py-10 text-center text-gray-500 text-xs italic">
+                      No se han registrado productos. Puedes agregar filas arriba o configurar el valor general a la derecha de forma manual.
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        )}
 
-        {/* STEP 3: IMPUESTOS Y RETENCIONES */}
-        {currentStep === 3 && (
-          <div className="space-y-6 animate-in fade-in slide-in-from-bottom duration-250">
-            <div className={`p-6 rounded-3xl border shadow-sm grid grid-cols-1 md:grid-cols-3 gap-6 ${
-              isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'
-            }`}>
-              
-              {/* INPUTS DE LIQUIDACION */}
-              <div className="md:col-span-2 space-y-4">
-                <div className="flex items-center gap-2 mb-2 border-b pb-3 border-gray-200 dark:border-white/5">
-                  <Calculator className="text-blue-500" size={16} />
-                  <h3 className="text-xs font-bold uppercase tracking-wider">Cálculo de Impuestos y Retenciones</h3>
-                </div>
+            {/* SECCION LIQUIDACION DE IMPUESTOS */}
+            <div className="space-y-4">
+              <div className={`p-6 rounded-3xl border shadow-sm flex flex-col justify-between h-full ${
+                isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'
+              }`}>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 border-b pb-3 border-gray-200 dark:border-white/5">
+                    <Calculator className="text-purple-500" size={16} />
+                    <h3 className="text-xs font-bold uppercase tracking-wider">Totales e Impuestos</h3>
+                  </div>
 
-                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Base Imponible ($)</label>
                     <input 
@@ -1070,111 +1024,95 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       onChange={e => setFormData({...formData, baseImponible: e.target.value})} 
                       className={inputClass} 
                     />
-                    {hasItems && <p className="text-[8px] text-gray-500 mt-1">Calculado automáticamente desde el desglose de productos del paso anterior.</p>}
+                    {hasItems && <p className="text-[8px] text-gray-500 mt-1">Calculado automáticamente desde el listado de productos.</p>}
                   </div>
 
                   <div>
-                    <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>% de IVA</label>
+                    <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Tarifa IVA (%)</label>
                     <select 
                       disabled={!isEditable || hasItems} 
                       value={formData.ivaPorcentaje} 
                       onChange={e => setFormData({...formData, ivaPorcentaje: e.target.value})} 
                       className={inputClass}
                     >
-                      <option value="15">15% (Ecuador Actual)</option>
+                      <option value="15">15% (Actual)</option>
                       <option value="12">12%</option>
-                      <option value="0">0% exento</option>
+                      <option value="0">0%</option>
                     </select>
                   </div>
 
-                  <div>
-                    <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Retención en la Fuente (Renta)</label>
-                    <input 
-                      disabled={!isEditable} 
-                      type="number" 
-                      step="0.01" 
-                      value={formData.retencionFuente} 
-                      onChange={e => setFormData({...formData, retencionFuente: e.target.value})} 
-                      className={inputClass} 
-                      placeholder="0.00"
-                    />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Ret. Renta ($)</label>
+                      <input 
+                        disabled={!isEditable} 
+                        type="number" 
+                        step="0.01" 
+                        value={formData.retencionFuente} 
+                        onChange={e => setFormData({...formData, retencionFuente: e.target.value})} 
+                        className={inputClass} 
+                        placeholder="0.00"
+                      />
+                    </div>
+                    <div>
+                      <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Ret. IVA ($)</label>
+                      <input 
+                        disabled={!isEditable} 
+                        type="number" 
+                        step="0.01" 
+                        value={formData.retencionIva} 
+                        onChange={e => setFormData({...formData, retencionIva: e.target.value})} 
+                        className={inputClass} 
+                        placeholder="0.00"
+                      />
+                    </div>
                   </div>
 
-                  <div>
-                    <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Retención de IVA</label>
-                    <input 
-                      disabled={!isEditable} 
-                      type="number" 
-                      step="0.01" 
-                      value={formData.retencionIva} 
-                      onChange={e => setFormData({...formData, retencionIva: e.target.value})} 
-                      className={inputClass} 
-                      placeholder="0.00"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* PANEL RESUMEN TOTALES */}
-              <div className={`p-5 rounded-2xl border flex flex-col justify-between ${
-                isDarkMode ? 'bg-black/20 border-white/5' : 'bg-gray-50 border-gray-200'
-              }`}>
-                <div>
-                  <h4 className="text-[10px] font-black uppercase text-gray-500 mb-4 tracking-wider">Desglose de Liquidación</h4>
-                  <div className="space-y-2.5 text-xs">
+                  <div className={`p-4 rounded-2xl border text-xs space-y-2 mt-4 ${
+                    isDarkMode ? 'bg-black/10 border-white/5' : 'bg-gray-50 border-gray-250'
+                  }`}>
                     <div className="flex justify-between">
-                      <span className="text-gray-400">Subtotal (Base):</span>
-                      <span className="font-semibold">${Number(formData.baseImponible).toFixed(2)}</span>
+                      <span className="text-gray-400">Subtotal:</span>
+                      <span className="font-bold">${Number(formData.baseImponible).toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-400">IVA ({formData.ivaPorcentaje}%):</span>
-                      <span className="font-semibold">${Number(formData.ivaValor).toFixed(2)}</span>
+                      <span className="font-bold">${Number(formData.ivaValor).toFixed(2)}</span>
                     </div>
                     {(Number(formData.retencionFuente) > 0 || Number(formData.retencionIva) > 0) && (
-                      <div className="border-t border-dashed my-2 pt-2 space-y-1">
-                        {Number(formData.retencionFuente) > 0 && (
-                          <div className="flex justify-between text-red-400">
-                            <span>Ret. Fuente (-):</span>
-                            <span>-${Number(formData.retencionFuente).toFixed(2)}</span>
-                          </div>
-                        )}
-                        {Number(formData.retencionIva) > 0 && (
-                          <div className="flex justify-between text-red-400">
-                            <span>Ret. IVA (-):</span>
-                            <span>-${Number(formData.retencionIva).toFixed(2)}</span>
-                          </div>
-                        )}
+                      <div className="flex justify-between text-red-500">
+                        <span>Retenciones:</span>
+                        <span className="font-bold">-${(Number(formData.retencionFuente) + Number(formData.retencionIva)).toFixed(2)}</span>
                       </div>
                     )}
                   </div>
                 </div>
 
-                <div className={`mt-6 p-4 rounded-xl border ${
+                <div className={`mt-6 p-4 rounded-xl border flex justify-between items-center ${
                   isDarkMode ? 'bg-blue-600/10 border-blue-500/20 text-blue-400' : 'bg-blue-50 border-blue-200 text-blue-900 font-semibold'
                 }`}>
-                  <p className="text-[8px] font-black uppercase tracking-wider">Total Líquido Neto</p>
-                  <p className={`text-2xl font-black ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                  <span className="text-[9px] font-black uppercase tracking-wider">Total Líquido:</span>
+                  <span className={`text-xl font-black ${isDarkMode ? 'text-white' : 'text-gray-950'}`}>
                     ${formData.total}
-                  </p>
+                  </span>
                 </div>
               </div>
-
             </div>
+
           </div>
         )}
 
-        {/* STEP 4: MÉTODOS DE PAGO */}
-        {currentStep === 4 && (
+        {/* STEP 3: MÉTODOS DE PAGO */}
+        {currentStep === 3 && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom duration-250">
             <div className={`p-6 rounded-3xl border shadow-sm grid grid-cols-1 md:grid-cols-3 gap-6 ${
               isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'
             }`}>
               
-              {/* FORMULARIO DE COBROS COMBINADOS */}
               <div className="md:col-span-2 space-y-4">
                 <div className="flex items-center gap-2 mb-2 border-b pb-3 border-gray-200 dark:border-white/5">
                   <DollarSign className="text-emerald-500" size={16} />
-                  <h3 className="text-xs font-bold uppercase tracking-wider">Registro de Formas de Pago (Ecuador)</h3>
+                  <h3 className="text-xs font-bold uppercase tracking-wider">Formas de Pago Combinadas (Ecuador)</h3>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1224,7 +1162,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       value={payments.transferenciaRef} 
                       onChange={e => setPayments({...payments, transferenciaRef: e.target.value})} 
                       className={`${inputClass} py-1.5 text-[10px] mt-2`} 
-                      placeholder="Referencia Bancaria / Banco" 
+                      placeholder="Referencia / Banco" 
                     />
                   </div>
 
@@ -1253,7 +1191,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       value={payments.tarjetaRef} 
                       onChange={e => setPayments({...payments, tarjetaRef: e.target.value})} 
                       className={`${inputClass} py-1.5 text-[10px] mt-2`} 
-                      placeholder="Nro de Lote / Código Autorización" 
+                      placeholder="Nro Lote / Autorización" 
                     />
                   </div>
 
@@ -1282,25 +1220,24 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       value={payments.cruceRef} 
                       onChange={e => setPayments({...payments, cruceRef: e.target.value})} 
                       className={`${inputClass} py-1.5 text-[10px] mt-2`} 
-                      placeholder="Documento por Cobrar/Pagar relacionado" 
+                      placeholder="Nro Documento Compensado" 
                     />
                   </div>
                 </div>
               </div>
 
-              {/* RECONCILIACION DE COBRO */}
               <div className={`p-5 rounded-2xl border flex flex-col justify-between ${
                 isDarkMode ? 'bg-black/20 border-white/5' : 'bg-gray-50 border-gray-200'
               }`}>
                 <div>
-                  <h4 className="text-[10px] font-black uppercase text-gray-500 mb-4 tracking-wider">Estado de la Liquidación</h4>
+                  <h4 className="text-[10px] font-black uppercase text-gray-500 mb-4 tracking-wider">Estado Contable del Cobro</h4>
                   <div className="space-y-3.5 text-xs">
                     <div className="flex justify-between">
-                      <span className="text-gray-400">Monto total de factura:</span>
+                      <span className="text-gray-400">Total a pagar:</span>
                       <span className="font-bold">${Number(formData.total).toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-400">Total registrado:</span>
+                      <span className="text-gray-400">Total abonado:</span>
                       <span className="font-bold text-blue-500">${totalPaid.toFixed(2)}</span>
                     </div>
 
@@ -1309,12 +1246,12 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         <div>
                           {paymentStatus.vuelto > 0 ? (
                             <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/15 text-emerald-400 text-center font-bold">
-                              <p className="text-[8px] uppercase font-black">Vuelto en Efectivo</p>
+                              <p className="text-[8px] uppercase font-black">Vuelto/Cambio en Efectivo</p>
                               <p className="text-lg">${paymentStatus.vuelto.toFixed(2)}</p>
                             </div>
                           ) : (
                             <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/15 text-emerald-400 text-center text-[10px] font-bold">
-                              El cobro cubre exactamente la factura.
+                              El balance del pago cubre exactamente el total.
                             </div>
                           )}
                         </div>
@@ -1327,29 +1264,24 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     </div>
                   </div>
                 </div>
-
-                <div className="text-[10px] text-gray-500 italic mt-4">
-                  El sistema ERP valida que todo ingreso o gasto posea sus métodos de pago detallados para el correcto balance del libro contable diario.
-                </div>
               </div>
 
             </div>
           </div>
         )}
 
-        {/* STEP 5: RESUMEN Y EMISION */}
-        {currentStep === 5 && (
+        {/* STEP 4: EMISIÓN Y AUTORIZACIÓN SRI */}
+        {currentStep === 4 && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom duration-250">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               
-              {/* RESUMEN DATOS DE DOCUMENTO */}
               <div className="md:col-span-2 space-y-6">
                 
                 {/* TARJETA RESUMEN GENERAL */}
                 <div className={`p-6 rounded-3xl border shadow-sm ${isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'}`}>
                   <div className="flex items-center gap-2 mb-4 border-b pb-3 border-gray-200 dark:border-white/5">
                     <FileText className="text-blue-500" size={16} />
-                    <h3 className="text-xs font-bold uppercase tracking-wider">Resumen de Transacción</h3>
+                    <h3 className="text-xs font-bold uppercase tracking-wider">Resumen del Comprobante</h3>
                   </div>
 
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-xs">
@@ -1362,11 +1294,11 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       <p className="font-mono">{matchedTercero?.ruc || 'No asignado'}</p>
                     </div>
                     <div>
-                      <p className="text-[9px] uppercase text-gray-500">Fecha de Emisión</p>
+                      <p className="text-[9px] uppercase text-gray-500">Fecha Emisión</p>
                       <p className="font-semibold">{formData.date}</p>
                     </div>
                     <div>
-                      <p className="text-[9px] uppercase text-gray-500">Tipo de Comprobante</p>
+                      <p className="text-[9px] uppercase text-gray-500">Documento</p>
                       <p className="font-bold capitalize">{formData.documentType.replace('_', ' ')}</p>
                     </div>
                     {formData.type === 'ingreso' && (
@@ -1378,14 +1310,14 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       </div>
                     )}
                     <div>
-                      <p className="text-[9px] uppercase text-gray-500">Categoría</p>
+                      <p className="text-[9px] uppercase text-gray-500">Categoría Contable</p>
                       <p className="font-bold capitalize">{formData.category.replace('_', ' ')}</p>
                     </div>
                   </div>
 
                   {formData.items && formData.items.length > 0 && (
                     <div className="mt-6 border-t border-white/5 pt-4">
-                      <p className="text-[9px] uppercase text-gray-500 mb-2 font-bold">Productos Incluidos</p>
+                      <p className="text-[9px] uppercase text-gray-500 mb-2 font-bold">Líneas de Productos</p>
                       <div className="space-y-1">
                         {formData.items.map((it, i) => (
                           <div key={i} className="flex justify-between text-[11px] py-1 border-b border-dashed border-white/5">
@@ -1431,7 +1363,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   <div className="p-4 rounded-3xl bg-black border border-white/10 text-white font-mono text-[10px] space-y-2.5 max-h-[220px] overflow-y-auto custom-scrollbar">
                     <div className="flex items-center gap-1.5 border-b border-white/10 pb-1.5 text-gray-400">
                       <Terminal size={12} />
-                      <span>Bitácora Fiscal SRI (Ecuador)</span>
+                      <span>Consola SRI (Ecuador)</span>
                     </div>
                     <div className="space-y-1.5">
                       {sriLogs.map((log, i) => (
@@ -1444,7 +1376,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     {isEmitting && (
                       <div className="flex gap-1.5 items-center text-purple-400 animate-pulse pt-1">
                         <span className="h-1.5 w-1.5 rounded-full bg-purple-400 animate-ping"></span>
-                        <span>Firmando XML y autorizando SRI...</span>
+                        <span>Autorizando SRI en tiempo real...</span>
                       </div>
                     )}
                   </div>
@@ -1455,7 +1387,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               {/* PANEL LATERAL DE FINANCIACIÓN */}
               <div className="space-y-6">
                 <div className={`p-5 rounded-3xl border shadow-sm ${isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'}`}>
-                  <h4 className="text-[10px] font-black uppercase text-gray-500 mb-4 tracking-wider">Totales y Cobro</h4>
+                  <h4 className="text-[10px] font-black uppercase text-gray-500 mb-4 tracking-wider">Liquidación y Cobro</h4>
                   
                   <div className="space-y-3 text-xs">
                     <div className="flex justify-between">
@@ -1463,11 +1395,11 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       <span className="font-semibold">${Number(formData.baseImponible).toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-400">Valor IVA:</span>
+                      <span className="text-gray-400">IVA ({formData.ivaPorcentaje}%):</span>
                       <span className="font-semibold">${Number(formData.ivaValor).toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-400">Retenciones totales:</span>
+                      <span className="text-gray-400">Retenciones:</span>
                       <span className="font-semibold text-red-500">
                         -${(Number(formData.retencionFuente) + Number(formData.retencionIva)).toFixed(2)}
                       </span>
@@ -1484,11 +1416,11 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       {efVal > 0 && <div className="flex justify-between"><span>Efectivo:</span><span className="font-bold">${efVal.toFixed(2)}</span></div>}
                       {trVal > 0 && <div className="flex justify-between"><span>Transferencia:</span><span className="font-bold">${trVal.toFixed(2)}</span></div>}
                       {tjVal > 0 && <div className="flex justify-between"><span>Tarjeta:</span><span className="font-bold">${tjVal.toFixed(2)}</span></div>}
-                      {crVal > 0 && <div className="flex justify-between"><span>Cruce:</span><span className="font-bold">${crVal.toFixed(2)}</span></div>}
+                      {crVal > 0 && <div className="flex justify-between"><span>Cruce Cuentas:</span><span className="font-bold">${crVal.toFixed(2)}</span></div>}
                     </div>
                     {paymentStatus.vuelto > 0 && (
                       <div className="mt-2 p-2 rounded-xl bg-emerald-500/10 text-emerald-400 text-center text-xs font-bold">
-                        Vuelto entregado: ${paymentStatus.vuelto.toFixed(2)}
+                        Cambio/Vuelto: ${paymentStatus.vuelto.toFixed(2)}
                       </div>
                     )}
                   </div>
@@ -1512,10 +1444,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                           type="button" 
                           onClick={handleEmitirSRI} 
                           disabled={isUploading || isEmitting} 
-                          className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl text-xs font-black bg-blue-600 text-white hover:bg-blue-500 shadow-md transition-all uppercase tracking-wide"
+                          className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl text-xs font-black bg-blue-600 text-white hover:bg-blue-500 shadow-md transition-all uppercase tracking-wide animate-pulse"
                         >
                           <Sparkles size={14} />
-                          <span>Emitir y Firmar SRI</span>
+                          <span>Firma y Autorización SRI</span>
                         </button>
                       )}
                     </>
@@ -1572,10 +1504,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         </button>
 
         <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-          Paso {currentStep} de 5
+          Paso {currentStep} de 4
         </span>
 
-        {currentStep < 5 ? (
+        {currentStep < 4 ? (
           <button
             type="button"
             onClick={handleNextStep}
