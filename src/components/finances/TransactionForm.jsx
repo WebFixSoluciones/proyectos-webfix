@@ -11,6 +11,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, isDarkMode,
     documentType: 'factura',
     documentNumber: '',
     thirdPartyId: '',
+    category: 'ventas', // categoría contable
+    currency: 'USD',
     baseImponible: 0,
     ivaPorcentaje: 15,
     ivaValor: 0,
@@ -122,7 +124,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, isDarkMode,
       const docId = formData.id || `tx_${new Date().getTime()}`;
       await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId), {
         ...formData,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
+        updatedBy: 'Usuario Actual' // Reemplazar con Auth info si está disponible
       }, { merge: true });
 
       showToast('Transacción guardada', 'success');
@@ -173,6 +176,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, isDarkMode,
                   <option value="factura" className="text-black">Factura Electrónica</option>
                   <option value="nota_venta" className="text-black">Nota de Venta (RISE/RIMPE)</option>
                   <option value="liquidacion" className="text-black">Liquidación de Compra</option>
+                  <option value="retencion" className="text-black">Comprobante de Retención</option>
+                  <option value="nota_credito" className="text-black">Nota de Crédito</option>
+                  <option value="nota_debito" className="text-black">Nota de Débito</option>
+                  <option value="guia_remision" className="text-black">Guía de Remisión</option>
                   <option value="recibo" className="text-black">Recibo Interno</option>
                 </select>
               </div>
@@ -181,10 +188,29 @@ export default function TransactionForm({ tx, onClose, thirdParties, isDarkMode,
                 <input type="text" value={formData.documentNumber} onChange={e => setFormData({...formData, documentNumber: e.target.value})} className={inputClass} placeholder="000-000-000000000" />
               </div>
               <div>
+                <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-500">Categoría Contable</label>
+                <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className={inputClass}>
+                  <option value="ventas" className="text-black">Ventas / Honorarios</option>
+                  <option value="costos" className="text-black">Costos Operativos</option>
+                  <option value="gastos_administrativos" className="text-black">Gastos Administrativos</option>
+                  <option value="gastos_marketing" className="text-black">Gastos Marketing</option>
+                  <option value="activos" className="text-black">Compra de Activos</option>
+                  <option value="otros" className="text-black">Otros</option>
+                </select>
+              </div>
+              <div>
                 <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-500">Fecha de Emisión</label>
                 <input type="date" required value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} className={inputClass} />
               </div>
-              <div className="md:col-span-2">
+              <div>
+                <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-500">Moneda</label>
+                <select value={formData.currency} onChange={e => setFormData({...formData, currency: e.target.value})} className={inputClass}>
+                  <option value="USD" className="text-black">Dólares (USD)</option>
+                  <option value="EUR" className="text-black">Euros (EUR)</option>
+                  <option value="COP" className="text-black">Pesos Colombianos (COP)</option>
+                </select>
+              </div>
+              <div className="md:col-span-3">
                 <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-500">Tercero (Cliente/Proveedor)</label>
                 <select required value={formData.thirdPartyId} onChange={e => setFormData({...formData, thirdPartyId: e.target.value})} className={inputClass}>
                   <option value="" disabled className="text-gray-400">Selecciona un contacto...</option>
@@ -240,6 +266,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, isDarkMode,
                 <div>
                   <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-500">Estado SRI</label>
                   <select value={formData.sriStatus} onChange={e => setFormData({...formData, sriStatus: e.target.value})} className={inputClass}>
+                    <option value="emitido" className="text-black">Emitido / Borrador</option>
+                    <option value="enviado" className="text-black">Enviado al SRI</option>
                     <option value="pendiente" className="text-black">Pendiente de Autorización</option>
                     <option value="autorizado" className="text-black">Autorizado</option>
                     <option value="rechazado" className="text-black">Rechazado SRI</option>

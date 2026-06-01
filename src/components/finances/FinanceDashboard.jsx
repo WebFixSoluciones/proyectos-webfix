@@ -17,6 +17,8 @@ export default function FinanceDashboard({ transactions, thirdParties, isDarkMod
   const netMargin = totalIncome - totalExpense;
 
   const pendingTx = transactions.filter(t => t.paymentStatus === 'pendiente');
+  const missingFilesTx = transactions.filter(t => !t.xmlUrl || !t.pdfUrl);
+  const sriPendingTx = transactions.filter(t => t.sriStatus === 'pendiente' || t.sriStatus === 'emitido');
 
   const cardClass = `p-6 rounded-2xl border backdrop-blur-xl transition-all shadow-sm ${
     isDarkMode 
@@ -95,9 +97,9 @@ export default function FinanceDashboard({ transactions, thirdParties, isDarkMod
             <p className="text-sm">
               El panel de control SRI valida los comprobantes electrónicos pendientes de autorización.
             </p>
-            {transactions.filter(t => t.sriStatus === 'pendiente').length > 0 ? (
+            {sriPendingTx.length > 0 ? (
               <p className="mt-2 font-bold text-xs uppercase tracking-wider">
-                Tienes comprobantes pendientes de envío al SRI.
+                Tienes {sriPendingTx.length} comprobantes pendientes de envío/autorización.
               </p>
             ) : (
               <p className="mt-2 font-bold text-xs uppercase tracking-wider text-emerald-500">
@@ -105,6 +107,15 @@ export default function FinanceDashboard({ transactions, thirdParties, isDarkMod
               </p>
             )}
           </div>
+
+          {missingFilesTx.length > 0 && (
+            <div className={`p-4 mt-4 rounded-xl border border-dashed ${isDarkMode ? 'bg-orange-500/10 border-orange-500/20 text-orange-300' : 'bg-orange-50 border-orange-200 text-orange-700'}`}>
+              <p className="text-sm font-semibold flex items-center gap-1"><AlertCircle size={14}/> Faltan respaldos físicos</p>
+              <p className="mt-1 font-bold text-xs uppercase tracking-wider">
+                {missingFilesTx.length} transacciones no tienen XML o RIDE adjunto.
+              </p>
+            </div>
+          )}
         </div>
       </div>
 

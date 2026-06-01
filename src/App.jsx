@@ -2545,6 +2545,24 @@ export default function App() {
                 </div>
               </div>
 
+              {/* Firma Electrónica SRI */}
+              <div className="space-y-4 mb-8">
+                <div className="flex items-center gap-2 mb-4 pb-2 border-b border-white/10">
+                  <Download size={16} className={isDarkMode ? 'text-purple-400' : 'text-purple-600'} />
+                  <h3 className="font-semibold text-sm">Firma Electrónica SRI (.p12)</h3>
+                </div>
+                <p className={`text-xs leading-relaxed ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Sube tu firma y contraseña para emitir facturas al SRI automáticamente.
+                </p>
+                <div className="flex flex-col gap-2">
+                  <input type="password" placeholder="Contraseña de la firma" className={`w-full text-xs px-3 py-2.5 rounded-lg outline-none border ${isDarkMode ? 'bg-black/20 border-white/10 text-white' : 'bg-white border-purple-200 text-black'}`} />
+                  <label className={`w-full flex justify-center items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${isDarkMode ? 'bg-purple-600/20 text-purple-400 hover:bg-purple-600/30 border border-purple-500/30' : 'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>
+                    <input type="file" accept=".p12,.pfx" className="hidden" />
+                    Subir archivo de Firma (.p12)
+                  </label>
+                </div>
+              </div>
+
               {/* Sección Backup */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2 mb-4 pb-2 border-b border-white/10">
