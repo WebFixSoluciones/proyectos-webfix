@@ -184,7 +184,7 @@ const SortableTaskItem = ({
     <div 
       ref={setNodeRef} 
       style={style}
-      className={`group p-2.5 rounded-xl border transition-all duration-300 relative backdrop-blur-xl ${
+      className={`group p-2 rounded-lg border transition-all duration-300 relative backdrop-blur-xl ${
         isDarkMode 
           ? 'bg-white/[0.05] border-white/10 hover:border-white/20 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.3)] hover:bg-white/[0.08]' 
           : 'bg-white/80 border-white hover:border-blue-200 shadow-sm hover:bg-white'
@@ -312,7 +312,7 @@ const SortableColumn = ({
     <div 
       ref={setNodeRef}
       style={style}
-      className={`snap-center shrink-0 w-[210px] rounded-2xl p-3 flex flex-col backdrop-blur-2xl transition-all border shadow-lg ${getColumnBgClass(col.color, isDarkMode)} ${isDragging ? 'z-40 shadow-2xl scale-105' : ''}`}
+      className={`snap-center shrink-0 w-[200px] rounded-xl p-2.5 flex flex-col backdrop-blur-2xl transition-all border shadow-lg ${getColumnBgClass(col.color, isDarkMode)} ${isDragging ? 'z-40 shadow-2xl scale-105' : ''}`}
     >
       {/* HEADER COLUMNA */}
       <div className="flex items-center justify-between mb-4 group/col px-1">
@@ -611,8 +611,10 @@ export default function App() {
 
   useEffect(() => {
     if (contentRef.current && activePage.type === 'doc') {
+      const scrollPos = window.scrollY;
       contentRef.current.style.height = 'auto';
       contentRef.current.style.height = contentRef.current.scrollHeight + 'px';
+      window.scrollTo(0, scrollPos);
     }
   }, [activePage?.content, activePageId]);
 
@@ -752,14 +754,40 @@ export default function App() {
 
     if (!isActiveTask) return;
 
-    if (isActiveTask && isOverColumn) {
-       handleUpdateTaskStatus(activeId, overId);
-    } else if (isActiveTask && isOverTask) {
-       const overTask = over.data.current.task;
-       if (active.data.current.task.status !== overTask.status) {
-         handleUpdateTaskStatus(activeId, overTask.status);
-       }
-    }
+    // Actualización local para la transición suave de UI
+    setGlobalTasks((prevTasks) => {
+      const activeIndex = prevTasks.findIndex(t => t.id === activeId);
+      if (activeIndex === -1) return prevTasks;
+      
+      let newStatus = prevTasks[activeIndex].status;
+      let overIndex = -1;
+      
+      if (isOverColumn) {
+        newStatus = overId;
+      } else if (isOverTask) {
+        const overTask = over.data.current.task;
+        newStatus = overTask.status;
+        overIndex = prevTasks.findIndex(t => t.id === overId);
+      }
+      
+      if (prevTasks[activeIndex].status === newStatus) {
+        return prevTasks; // Mismo status, onDragEnd lo maneja
+      }
+
+      // Si cambia de status, movemos el elemento en el array local optimísticamente
+      const newTasks = [...prevTasks];
+      const activeTask = { ...newTasks[activeIndex], status: newStatus };
+      newTasks.splice(activeIndex, 1);
+      
+      if (overIndex >= 0) {
+        const insertIndex = newTasks.findIndex(t => t.id === overId);
+        newTasks.splice(insertIndex, 0, activeTask);
+      } else {
+        newTasks.push(activeTask);
+      }
+      
+      return newTasks;
+    });
   };
 
   const onDragEnd = async (event) => {
@@ -771,12 +799,12 @@ export default function App() {
 
     const activeId = active.id;
     const overId = over.id;
-    if (activeId === overId) return;
 
     const isActiveColumn = active.data.current?.type === 'Column';
     const isActiveTask = active.data.current?.type === 'Task';
 
     if (isActiveColumn) {
+      if (activeId === overId) return;
       const newCols = [...(activePage.columns || DEFAULT_COLUMNS)];
       const draggedIdx = newCols.findIndex(c => c.id === activeId);
       const targetIdx = newCols.findIndex(c => c.id === overId);
@@ -784,29 +812,38 @@ export default function App() {
         updateActivePage({ columns: arrayMove(newCols, draggedIdx, targetIdx) });
       }
     } else if (isActiveTask) {
-      // Reordenamiento dentro de la misma columna
-      const overTask = over.data.current?.task;
-      if (overTask && active.data.current.task.status === overTask.status) {
-        const columnTasks = globalTasks.filter(t => t.status === overTask.status && t.projectId === activePage.id);
-        const oldIndex = columnTasks.findIndex(t => t.id === activeId);
-        const newIndex = columnTasks.findIndex(t => t.id === overId);
-        
-        if (oldIndex !== newIndex) {
-          const reordered = arrayMove(columnTasks, oldIndex, newIndex);
-          // Actualizamos los globalTasks manteniendo las tareas de otros proyectos/columnas
-          const otherTasks = globalTasks.filter(t => t.status !== overTask.status || t.projectId !== activePage.id);
-          setGlobalTasks([...otherTasks, ...reordered]);
-          // En un sistema real, guardaríamos el campo 'order' en Firebase aquí para cada tarea reordenada.
-          // Para esta simplificación, si no existe el campo order, actualizamos solo local, pero es recomendable persistir:
-          try {
-            const batch = writeBatch(db);
-            reordered.forEach((t, i) => {
-              batch.set(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', t.id), { order: i }, { merge: true });
-            });
-            batch.commit();
-          } catch(e) { console.error("Error persistiendo orden:", e); }
-        }
+      // Reordenamiento y asignación final de status
+      const task = globalTasks.find(t => t.id === activeId);
+      if (!task) return;
+      
+      const currentStatus = task.status;
+      const columnTasks = globalTasks.filter(t => t.status === currentStatus && t.projectId === activePage.id);
+      
+      const oldIndex = columnTasks.findIndex(t => t.id === activeId);
+      const newIndex = columnTasks.findIndex(t => t.id === overId);
+      
+      let reordered = columnTasks;
+      if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+        reordered = arrayMove(columnTasks, oldIndex, newIndex);
       }
+      
+      // Asignar nuevos valores de 'order'
+      const updatedTasks = reordered.map((t, i) => ({ ...t, order: i }));
+      
+      // Actualizar estado local definitivamente con el orden correcto
+      setGlobalTasks(prevTasks => {
+        const otherTasks = prevTasks.filter(t => t.status !== currentStatus || t.projectId !== activePage.id);
+        return [...otherTasks, ...updatedTasks];
+      });
+
+      // Guardar en Firebase una sola vez por lote
+      try {
+        const batch = writeBatch(db);
+        updatedTasks.forEach((t) => {
+          batch.set(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', t.id), { status: t.status, order: t.order }, { merge: true });
+        });
+        await batch.commit();
+      } catch(e) { console.error("Error persistiendo orden:", e); }
     }
   };
 
@@ -1178,6 +1215,22 @@ export default function App() {
     if (meetLink) {
       setDrawerTask(p => ({...p, meetLink: meetLink}));
     }
+  };
+
+  const handleDownloadBackup = () => {
+    const backupData = {
+      pages,
+      tasks: globalTasks,
+      users,
+      trash,
+      timestamp: new Date().toISOString()
+    };
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+    const dlAnchorElem = document.createElement('a');
+    dlAnchorElem.setAttribute("href", dataStr);
+    dlAnchorElem.setAttribute("download", `backup_webfix_${new Date().getTime()}.json`);
+    dlAnchorElem.click();
+    showToast('Copia de seguridad descargada', 'success');
   };
 
   const exportToCSV = () => {
@@ -1616,37 +1669,29 @@ export default function App() {
                   {allTasksGlobal.length > 0 ? (
                     <div className="space-y-4">
                       <div className={`h-4 w-full rounded-full overflow-hidden flex backdrop-blur-md border shadow-inner ${isDarkMode ? 'border-white/10 bg-black/20' : 'border-gray-200 bg-gray-100'}`}>
-                        {['todo', 'in-progress', 'review', 'done'].map(statusId => {
+                        {Array.from(new Set(projectsList.flatMap(p => (p.columns || DEFAULT_COLUMNS).map(c => c.id)))).map((statusId, i) => {
                           const count = allTasksGlobal.filter(t => t.status === statusId).length;
-                          const percent = Math.round((count / allTasksGlobal.length) * 100);
-                          const colDef = DEFAULT_COLUMNS.find(c => c.id === statusId);
-                          let bgClass = "bg-gray-400";
-                          if (statusId === 'todo') bgClass = 'bg-blue-500 hover:bg-blue-400';
-                          if (statusId === 'in-progress') bgClass = 'bg-yellow-500 hover:bg-yellow-400';
-                          if (statusId === 'review') bgClass = 'bg-purple-500 hover:bg-purple-400';
-                          if (statusId === 'done') bgClass = 'bg-green-500 hover:bg-green-400';
+                          const percent = Math.round((count / (allTasksGlobal.length || 1)) * 100);
+                          const colDef = projectsList.flatMap(p => (p.columns || DEFAULT_COLUMNS)).find(c => c.id === statusId) || { title: statusId, color: 'gray' };
+                          const bgClass = getColorClass(colDef.color || 'gray').split(' ')[0] || 'bg-gray-400';
                           
                           return count > 0 ? (
-                            <div key={statusId} title={`${colDef?.title}: ${count} (${percent}%)`} className={`h-full ${bgClass} transition-all duration-1000 cursor-pointer`} style={{ width: `${percent}%` }} />
+                            <div key={statusId} title={`${colDef.title}: ${count} (${percent}%)`} className={`h-full ${bgClass} transition-all duration-1000 cursor-pointer`} style={{ width: `${percent}%` }} />
                           ) : null;
                         })}
                       </div>
                       <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-medium">
-                        {['todo', 'in-progress', 'review', 'done'].map(statusId => {
+                        {Array.from(new Set(projectsList.flatMap(p => (p.columns || DEFAULT_COLUMNS).map(c => c.id)))).map((statusId) => {
                           const count = allTasksGlobal.filter(t => t.status === statusId).length;
-                          const colDef = DEFAULT_COLUMNS.find(c => c.id === statusId);
-                          let dotClass = "bg-gray-400";
-                          if (statusId === 'todo') dotClass = 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]';
-                          if (statusId === 'in-progress') dotClass = 'bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.8)]';
-                          if (statusId === 'review') dotClass = 'bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.8)]';
-                          if (statusId === 'done') dotClass = 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]';
+                          const colDef = projectsList.flatMap(p => (p.columns || DEFAULT_COLUMNS)).find(c => c.id === statusId) || { title: statusId, color: 'gray' };
+                          const dotClass = COLUMN_COLORS.find(c => c.id === (colDef.color || 'gray'))?.dot || 'bg-gray-400';
                           
-                          return (
+                          return count > 0 ? (
                             <div key={statusId} className={`flex items-center gap-1.5 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                               <span className={`w-2.5 h-2.5 rounded-full ${dotClass}`}></span>
-                              {colDef?.title}: <span className="font-bold">{count}</span>
+                              {colDef.title}: <span className="font-bold">{count}</span>
                             </div>
-                          );
+                          ) : null;
                         })}
                       </div>
                     </div>
@@ -1852,7 +1897,7 @@ export default function App() {
                   <button onClick={() => handleAiAction('summarize')} disabled={isGeneratingAI || !activePage.content.trim()} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${isDarkMode ? 'bg-purple-500/20 text-purple-300 hover:bg-purple-500/40 border border-purple-500/20' : 'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>{isGeneratingAI ? <RefreshCw size={12} className="animate-spin" /> : <Sparkles size={12} />} Resumir</button>
                   <button onClick={() => handleAiAction('continue')} disabled={isGeneratingAI || !activePage.content.trim()} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${isDarkMode ? 'bg-purple-500/20 text-purple-300 hover:bg-purple-500/40 border border-purple-500/20' : 'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>{isGeneratingAI ? <RefreshCw size={12} className="animate-spin" /> : <Sparkles size={12} />} Continuar</button>
                 </div>
-                <textarea ref={contentRef} value={activePage.content} onChange={(e) => updateActivePage({ content: e.target.value })} placeholder="Presiona '/' para comandos o empieza a escribir..." className={`w-full text-base leading-relaxed border-none outline-none bg-transparent resize-none focus:ring-0 min-h-[300px] font-medium ${isDarkMode ? 'text-gray-300 placeholder-gray-600' : 'text-gray-700 placeholder-gray-400'}`} />
+                <textarea ref={contentRef} value={activePage.content} onChange={(e) => updateActivePage({ content: e.target.value })} placeholder="Presiona '/' para comandos o empieza a escribir..." className={`w-full text-[13px] leading-tight border-none outline-none bg-transparent resize-none focus:ring-0 min-h-[300px] font-medium ${isDarkMode ? 'text-gray-100 placeholder-gray-500' : 'text-gray-900 placeholder-gray-500'}`} />
               </>
             )}
 
@@ -2465,6 +2510,23 @@ export default function App() {
                     <li>Añade el enlace de tu cPanel o dominio en "Orígenes de JavaScript autorizados".</li>
                   </ol>
                 </div>
+              </div>
+
+              {/* Sección Backup */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-4 pb-2 border-b border-white/10">
+                  <Download size={16} className={isDarkMode ? 'text-green-400' : 'text-green-600'} />
+                  <h3 className="font-semibold text-sm">Copia de Seguridad</h3>
+                </div>
+                <p className={`text-xs leading-relaxed ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Descarga un respaldo en formato JSON con toda tu base de datos (Proyectos, Tareas, Usuarios y Configuración).
+                </p>
+                <button 
+                  onClick={handleDownloadBackup}
+                  className={`w-full flex justify-center items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-semibold transition-transform shadow-sm hover:-translate-y-0.5 ${isDarkMode ? 'bg-green-600/20 text-green-400 hover:bg-green-600/30 border border-green-500/30' : 'bg-green-100 text-green-700 hover:bg-green-200'}`}
+                >
+                  <Download size={14} /> Exportar Backup (JSON)
+                </button>
               </div>
 
             </div>
