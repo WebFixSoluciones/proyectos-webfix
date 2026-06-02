@@ -3,6 +3,28 @@ import { Search, ShoppingCart, Plus, Minus, Trash2, User, Sparkles, CheckCircle2
 import { doc, getDoc, setDoc, collection, query, where, getDocs, onSnapshot } from 'firebase/firestore';
 import { consultarRucSri } from '../../services/sriService';
 
+function sanitizeData(obj) {
+  if (obj === null || obj === undefined) return null;
+  if (Array.isArray(obj)) {
+    return obj.map(sanitizeData);
+  }
+  if (typeof obj === 'object') {
+    const clean = {};
+    for (const key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        const val = obj[key];
+        if (val === undefined) {
+          clean[key] = '';
+        } else {
+          clean[key] = sanitizeData(val);
+        }
+      }
+    }
+    return clean;
+  }
+  return obj;
+}
+
 export default function PosView({ products, thirdParties, isDarkMode, showToast, db, appId, onCheckout }) {
   // Configuración de visualización del POS (persistente en localStorage)
   const [posConfig, setPosConfig] = useState(() => {
@@ -267,7 +289,7 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
     e.preventDefault();
     try {
       const sessionId = `session_${new Date().getTime()}`;
-      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_cash_sessions', sessionId), {
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_cash_sessions', sessionId), sanitizeData({
         id: sessionId,
         responsible: openingForm.responsible,
         initialAmount: Number(openingForm.initialAmount) || 0,
@@ -276,7 +298,7 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
         notes: openingForm.notes,
         status: 'abierta',
         openedAt: new Date().toISOString()
-      });
+      }));
       showToast("Caja registradora abierta con éxito", "success");
     } catch (err) {
       console.error(err);
@@ -325,13 +347,13 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
 
       const initialAmt = Number(activeSession.initialAmount || 0);
       const expectedCash = initialAmt + cashTotal;
-      const diffCash = Number(closingForm.efectivoReal) - expectedCash;
-      const diffCard = Number(closingForm.tarjetaReal) - cardTotal;
-      const diffTrans = Number(closingForm.transferenciaReal) - transTotal;
-      const diffCruce = Number(closingForm.cruceReal) - cruceTotal;
+      const diffCash = (Number(closingForm.efectivoReal) || 0) - expectedCash;
+      const diffCard = (Number(closingForm.tarjetaReal) || 0) - cardTotal;
+      const diffTrans = (Number(closingForm.transferenciaReal) || 0) - transTotal;
+      const diffCruce = (Number(closingForm.cruceReal) || 0) - cruceTotal;
       const totalDifference = diffCash + diffCard + diffTrans + diffCruce;
 
-      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_cash_sessions', activeSession.id), {
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_cash_sessions', activeSession.id), sanitizeData({
         status: 'cerrada',
         closedAt: new Date().toISOString(),
         expectedTotals: {
@@ -341,10 +363,10 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
           cruce_cuentas: cruceTotal
         },
         reconciliation: {
-          efectivo: Number(closingForm.efectivoReal),
-          tarjeta: Number(closingForm.tarjetaReal),
-          transferencia: Number(closingForm.transferenciaReal),
-          cruce_cuentas: Number(closingForm.cruceReal)
+          efectivo: Number(closingForm.efectivoReal) || 0,
+          tarjeta: Number(closingForm.tarjetaReal) || 0,
+          transferencia: Number(closingForm.transferenciaReal) || 0,
+          cruce_cuentas: Number(closingForm.cruceReal) || 0
         },
         differences: {
           efectivo: diffCash,
@@ -354,7 +376,7 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
           total: totalDifference
         },
         closingNotes: closingForm.notes
-      }, { merge: true });
+      }), { merge: true });
 
       showToast("Caja registradora cerrada y cuadre completado", "success");
       setIsClosingOpen(false);
@@ -391,9 +413,9 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
       setCart([...cart, {
         productId: product.id,
         name: product.name,
-        price: product.price,
+        price: Number(product.price) || 0,
         quantity: 1,
-        ivaCategory: product.ivaCategory
+        ivaCategory: product.ivaCategory !== undefined ? Number(product.ivaCategory) : 15
       }]);
     }
   };
@@ -426,13 +448,13 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
   };
 
   // Cómputo de Totales y Descuentos
-  const getSubtotal = () => cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  const getSubtotal = () => cart.reduce((acc, item) => acc + ((Number(item.price) || 0) * (Number(item.quantity) || 0)), 0);
   const getDiscountAmount = () => {
     const sub = getSubtotal();
     if (discountType === 'percent') {
-      return sub * (Number(discountValue) / 100);
+      return sub * (Number(discountValue || 0) / 100);
     }
-    return Math.min(sub, Number(discountValue));
+    return Math.min(sub, Number(discountValue || 0));
   };
   const getSubtotalWithDiscount = () => Math.max(0, getSubtotal() - getDiscountAmount());
   
@@ -440,7 +462,7 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
     const sub = getSubtotal();
     if (sub === 0) return 0;
     const ratio = getSubtotalWithDiscount() / sub;
-    return cart.reduce((acc, item) => acc + (item.price * item.quantity * ratio * (item.ivaCategory / 100)), 0);
+    return cart.reduce((acc, item) => acc + ((Number(item.price) || 0) * (Number(item.quantity) || 0) * ratio * ((Number(item.ivaCategory !== undefined ? item.ivaCategory : 15)) / 100)), 0);
   };
   const getTotal = () => getSubtotalWithDiscount() + getIva();
 
@@ -517,11 +539,11 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
           clientDocId = cf.id;
         } else {
           clientDocId = `tp_${new Date().getTime()}`;
-          await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_third_parties', clientDocId), {
+          await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_third_parties', clientDocId), sanitizeData({
             id: clientDocId,
             ...client,
             updatedAt: new Date().toISOString()
-          });
+          }));
         }
       }
 
@@ -530,8 +552,8 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
         const prod = products.find(p => p.id === item.productId);
         if (prod && prod.type === 'producto') {
           const productRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_products', item.productId);
-          const nextStock = Math.max(0, (prod.stock || 0) - item.quantity);
-          await setDoc(productRef, { stock: nextStock }, { merge: true });
+          const nextStock = Math.max(0, (Number(prod.stock) || 0) - Number(item.quantity || 0));
+          await setDoc(productRef, sanitizeData({ stock: nextStock }), { merge: true });
         }
       }
 
@@ -574,7 +596,7 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
         }
       };
 
-      onCheckout(invoiceData);
+      onCheckout(sanitizeData(invoiceData));
       setCart([]);
       setSelectedClientId('');
       setPayments({
@@ -631,7 +653,7 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
     }
     try {
       const docId = `tp_${new Date().getTime()}`;
-      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_third_parties', docId), {
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_third_parties', docId), sanitizeData({
         id: docId,
         name: quickAddFormData.name,
         ruc: quickAddFormData.ruc,
@@ -642,7 +664,7 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
         telefono: quickAddFormData.telefono || '',
         tipoContribuyente: quickAddFormData.tipoContribuyente || 'general',
         updatedAt: new Date().toISOString()
-      });
+      }));
       setSelectedClientId(docId);
       setIsQuickAddOpen(false);
       showToast("Cliente agregado y seleccionado", "success");

@@ -27,8 +27,48 @@ const SRI_IVA_CODES = [
   { code: '8', label: '8 - Retención de IVA 20% (Entre Agentes - Servicios)', rate: 20 }
 ];
 
+function sanitizeFirestoreData(obj) {
+  if (obj === null || obj === undefined) return null;
+  if (Array.isArray(obj)) {
+    return obj.map(sanitizeFirestoreData);
+  }
+  if (typeof obj === 'object') {
+    const clean = {};
+    for (const key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        const val = obj[key];
+        if (val === undefined) {
+          clean[key] = '';
+        } else {
+          clean[key] = sanitizeFirestoreData(val);
+        }
+      }
+    }
+    return clean;
+  }
+  return obj;
+}
+
 export default function TransactionForm({ tx, onClose, thirdParties, products = [], isDarkMode, showToast, db, storage, appId }) {
-  const [sriConfig, setSriConfig] = useState(null);
+  const [sriConfig, setSriConfig] = useState({
+    ruc: '1790000000001',
+    razonSocial: 'WEBFIX SOLUCIONES TECNOLOGICAS S.A.',
+    nombreComercial: 'WEBFIX SOLUCIONES',
+    direccionMatriz: 'Av. de los Shyris N34-102 y Holanda, Edificio Alfa, Oficina 5A, Quito',
+    ambiente: '1', // 1: Pruebas, 2: Producción
+    establecimiento: '001',
+    puntoEmision: '001',
+    secuencialFactura: 1,
+    secuencialRetencion: 1,
+    secuencialNotaCredito: 1,
+    secuencialLiquidacion: 1,
+    certificadoCargado: true,
+    certificadoNombre: 'certificado_demo.p12',
+    obligadoContabilidad: true,
+    regimenRimpe: 'rimpe_emprendedor',
+    agenteRetencion: false,
+    resolucionAgente: ''
+  });
   const [currentStep, setCurrentStep] = useState(1);
   
   const [formData, setFormData] = useState({
@@ -126,7 +166,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     try {
       const docId = `tp_${new Date().getTime()}`;
       const relationType = formData.type === 'ingreso' ? 'cliente' : 'proveedor';
-      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_third_parties', docId), {
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_third_parties', docId), sanitizeFirestoreData({
         name: quickAddFormData.name,
         ruc: quickAddFormData.ruc,
         email: quickAddFormData.email || '',
@@ -136,7 +176,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         telefono: quickAddFormData.telefono || '',
         tipoContribuyente: quickAddFormData.tipoContribuyente || 'general',
         updatedAt: new Date().toISOString()
-      });
+      }));
       showToast('Contacto guardado y seleccionado', 'success');
       setFormData(prev => ({ ...prev, thirdPartyId: docId }));
       setIsQuickAddOpen(false);
@@ -522,7 +562,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
     try {
       const docId = formData.id || `tx_${new Date().getTime()}`;
-      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId), {
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId), sanitizeFirestoreData({
         ...formData,
         id: docId,
         paymentsBreakdown: {
@@ -537,7 +577,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         paymentMethod: getPrimaryPaymentMethod(),
         updatedAt: new Date().toISOString(),
         updatedBy: 'Usuario ERP'
-      }, { merge: true });
+      }), { merge: true });
 
       showToast('Transacción guardada', 'success');
       onClose();
@@ -630,12 +670,12 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         updatedBy: 'Servicio Fiscal SRI'
       };
 
-      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId), finalTx);
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId), sanitizeFirestoreData(finalTx));
       
       const nextSec = Number(sec) + 1;
-      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config'), {
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config'), sanitizeFirestoreData({
         secuencialFactura: nextSec
-      }, { merge: true });
+      }), { merge: true });
 
       setFormData(finalTx);
       showToast('Comprobante autorizado tributariamente por el SRI', 'success');
@@ -653,10 +693,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     if (window.confirm("¿Estás seguro de que deseas ANULAR este comprobante ante el SRI?")) {
       try {
         const docId = formData.id;
-        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId), {
+        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId), sanitizeFirestoreData({
           sriStatus: 'anulado',
           updatedAt: new Date().toISOString()
-        }, { merge: true });
+        }), { merge: true });
         
         setFormData(prev => ({ ...prev, sriStatus: 'anulado' }));
         showToast("Comprobante anulado tributariamente", "success");
