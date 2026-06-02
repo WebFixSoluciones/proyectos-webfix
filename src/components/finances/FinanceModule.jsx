@@ -312,7 +312,16 @@ export default function FinanceModule({ mode = 'contabilidad', initialSubTab, is
                 <SalesDashboard transactions={transactions} thirdParties={thirdParties} products={products} isDarkMode={isDarkMode} db={db} appId={appId} />
               )}
               {activeTab === 'ventas' && subTabVentas === 'pos' && (
-                <PosView products={products} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} appId={appId} onCheckout={handlePOSCheckout} />
+                <PosView 
+                  products={products} 
+                  thirdParties={thirdParties} 
+                  isDarkMode={isDarkMode} 
+                  showToast={showToast} 
+                  db={db} 
+                  appId={appId} 
+                  onCheckout={handlePOSCheckout} 
+                  onClose={() => setSubTabVentas('dashboard_ventas')}
+                />
               )}
               {activeTab === 'ventas' && subTabVentas === 'quotes' && (
                 <QuotesView products={products} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} appId={appId} onPromoteToInvoice={handlePromoteToInvoice} />

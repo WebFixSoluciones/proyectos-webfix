@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   X, UploadCloud, Calculator, FileText, CheckCircle2, AlertTriangle, Sparkles, 
   Terminal, ShieldAlert, Download, Plus, Trash2, RefreshCw, ArrowLeft, ArrowRight, 
@@ -811,7 +812,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   const crVal = Number(payments.cruce_cuentas) || 0;
   const totalPaid = efVal + tjVal + trVal + crVal;
 
-  return (
+  return createPortal(
     <div className={`fixed inset-0 z-[100] w-screen h-screen overflow-y-auto flex flex-col font-sans ${isDarkMode ? 'bg-[#0c0c0e] text-white' : 'bg-gray-50 text-gray-900'}`}>
       
       {/* TOP HEADER */}
@@ -2076,6 +2077,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         </div>
       )}
 
-    </div>
+    </div>,
+    document.body
   );
 }

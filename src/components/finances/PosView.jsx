@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Search, ShoppingCart, Plus, Minus, Trash2, User, Sparkles, CheckCircle2, DollarSign, X, ShieldAlert, Award, Layers, Tag, Bookmark, RefreshCw, LogOut, ArrowRight, ArrowLeft, ChevronRight, Settings, Barcode, Zap, Eye } from 'lucide-react';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, onSnapshot } from 'firebase/firestore';
 import { consultarRucSri } from '../../services/sriService';
@@ -25,7 +26,7 @@ function sanitizeData(obj) {
   return obj;
 }
 
-export default function PosView({ products, thirdParties, isDarkMode, showToast, db, appId, onCheckout }) {
+export default function PosView({ products, thirdParties, isDarkMode, showToast, db, appId, onCheckout, onClose }) {
   // Configuración de visualización del POS (persistente en localStorage)
   const [posConfig, setPosConfig] = useState(() => {
     const saved = localStorage.getItem(`pos_config_${appId}`);
@@ -700,7 +701,7 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
 
   // PANTALLA 1: APERTURA DE CAJA
   if (!activeSession) {
-    return (
+    return createPortal(
       <div className={`fixed inset-0 z-[100] ${isDarkMode ? 'bg-[#08080a] text-white' : 'bg-[#f3f8ff] text-[#000000]'} flex items-center justify-center p-4 backdrop-blur-xl transition-colors duration-300`}>
         {/* Decorative background blobs */}
         <div className={`absolute top-[-10%] left-[-5%] w-[30rem] h-[30rem] rounded-full mix-blend-screen filter blur-[100px] opacity-20 pointer-events-none ${isDarkMode ? 'bg-emerald-900' : 'bg-emerald-300'}`}></div>
@@ -746,17 +747,18 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
               <textarea value={openingForm.notes} onChange={e => setOpeningForm({...openingForm, notes: e.target.value})} className={`w-full text-xs px-3.5 py-3 rounded-2xl outline-none transition-all border min-h-[70px] resize-none ${isDarkMode ? 'glass-input-dark' : 'glass-input-light'}`} placeholder="Sin novedades..." />
             </div>
 
-            <button type="submit" className="w-full py-3.5 mt-4 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 hover-lift bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md hover:from-emerald-500 hover:to-teal-500 border border-emerald-500/30">
+            <button type="submit" className="w-full py-3.5 mt-4 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 hover-lift bg-gradient-to-r from-emerald-650 to-teal-650 text-white shadow-md hover:from-emerald-500 hover:to-teal-500 border border-emerald-500/30">
               Abrir Caja y Activar POS
             </button>
           </form>
         </div>
-      </div>
+      </div>,
+      document.body
     );
   }
 
   // PANTALLA 2: POS PRINCIPAL EN PANTALLA COMPLETA
-  return (
+  return createPortal(
     <div className={`fixed inset-0 z-[100] ${isDarkMode ? 'bg-[#0c0c0e] text-white' : 'bg-[#f3f8ff] text-[#000000]'} flex flex-col overflow-hidden animate-in fade-in duration-300`}>
       
       {/* TOP HEADER POS */}
@@ -780,7 +782,17 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
           <button onClick={handleOpenCloseModal} className={`px-3.5 py-1.5 rounded-xl border font-bold text-[10px] uppercase ${isDarkMode ? 'border-red-500/25 bg-red-600/10 text-red-400 hover:bg-red-600/20' : 'border-red-200 bg-red-50 text-red-700 hover:bg-red-100'}`}>
             Arqueo / Cerrar Caja
           </button>
-          <button onClick={() => window.location.reload()} className={`p-2.5 rounded-xl transition-all ${isDarkMode ? 'bg-white/5 text-gray-400 hover:text-white' : 'bg-blue-50/80 text-blue-600 hover:bg-blue-100'}`} title="Volver al ERP / Recargar">
+          <button 
+            onClick={() => {
+              if (onClose) {
+                onClose();
+              } else {
+                window.location.reload();
+              }
+            }} 
+            className={`p-2.5 rounded-xl transition-all ${isDarkMode ? 'bg-white/5 text-gray-400 hover:text-white' : 'bg-blue-50/80 text-blue-600 hover:bg-blue-100'}`} 
+            title="Volver al ERP / Cerrar POS"
+          >
             <LogOut size={16} />
           </button>
         </div>
@@ -1356,37 +1368,40 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
 
       {/* CHECKOUT WIZARD MODAL (FULLSCREEN PASOS) */}
       {isCheckoutOpen && (
-        <div className="fixed inset-0 z-[110] bg-black/75 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className={`w-full ${posConfig.expressCheckout ? 'max-w-4xl' : 'max-w-2xl'} border rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] transition-all duration-300 ${
-            isDarkMode ? 'bg-[#141416] border-white/10 text-white shadow-black/80' : 'bg-white border-blue-100 text-black shadow-blue-900/10'
-          }`}>
+        <div className={`fixed inset-0 z-[110] flex flex-col overflow-hidden animate-in fade-in duration-200 ${
+          isDarkMode ? 'bg-[#0c0c0e] text-white' : 'bg-[#f3f8ff] text-[#000000]'
+        }`}>
+          <div className="flex-1 flex flex-col overflow-hidden max-h-screen transition-all duration-300">
             
             {/* WIZARD PROGRESS HEADER */}
             <div className={`px-6 py-4 border-b flex items-center justify-between shrink-0 ${
               isDarkMode ? 'border-white/5 bg-black/20 text-white' : 'border-blue-100 bg-blue-50/30 text-black'
             }`}>
-              <div className="flex items-center gap-2">
-                <ShoppingCart size={15} className="text-blue-500" />
-                <h3 className="text-xs font-black uppercase tracking-wider">Checkout Comercial POS</h3>
+              <div className="max-w-4xl mx-auto w-full flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ShoppingCart size={15} className="text-blue-500" />
+                  <h3 className="text-xs font-black uppercase tracking-wider">Checkout Comercial POS</h3>
+                </div>
+                {posConfig.expressCheckout ? (
+                  <div className="flex items-center gap-1.5 text-[9px] font-extrabold text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-lg">
+                    ⚡ MODO EXPRÉS (PASO ÚNICO)
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1 text-[10px] font-bold">
+                    <span className={checkoutStep === 1 ? 'text-blue-500' : (isDarkMode ? 'text-gray-400' : 'text-gray-500')}>1. Cliente</span>
+                    <ChevronRight size={10} className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
+                    <span className={checkoutStep === 2 ? 'text-blue-500' : (isDarkMode ? 'text-gray-400' : 'text-gray-500')}>2. Métodos de Pago</span>
+                    <ChevronRight size={10} className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
+                    <span className={checkoutStep === 3 ? 'text-blue-500' : (isDarkMode ? 'text-gray-400' : 'text-gray-500')}>3. Emisión</span>
+                  </div>
+                )}
+                <button onClick={() => setIsCheckoutOpen(false)} className={isDarkMode ? 'text-gray-500 hover:text-white' : 'text-gray-500 hover:text-black'}><X size={15}/></button>
               </div>
-              {posConfig.expressCheckout ? (
-                <div className="flex items-center gap-1.5 text-[9px] font-extrabold text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-lg">
-                  ⚡ MODO EXPRÉS (PASO ÚNICO)
-                </div>
-              ) : (
-                <div className="flex items-center gap-1 text-[10px] font-bold">
-                  <span className={checkoutStep === 1 ? 'text-blue-500' : (isDarkMode ? 'text-gray-400' : 'text-gray-500')}>1. Cliente</span>
-                  <ChevronRight size={10} className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
-                  <span className={checkoutStep === 2 ? 'text-blue-500' : (isDarkMode ? 'text-gray-400' : 'text-gray-500')}>2. Métodos de Pago</span>
-                  <ChevronRight size={10} className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
-                  <span className={checkoutStep === 3 ? 'text-blue-500' : (isDarkMode ? 'text-gray-400' : 'text-gray-500')}>3. Emisión</span>
-                </div>
-              )}
-              <button onClick={() => setIsCheckoutOpen(false)} className={isDarkMode ? 'text-gray-500 hover:text-white' : 'text-gray-500 hover:text-black'}><X size={15}/></button>
             </div>
 
             {/* WIZARD CONTENT */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="max-w-4xl mx-auto w-full space-y-6">
               
               {posConfig.expressCheckout ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
@@ -1742,12 +1757,14 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
                 </>
               )}
 
+              </div>
             </div>
 
             {/* WIZARD ACTIONS BAR */}
-            <div className={`px-6 py-4 border-t flex justify-between shrink-0 ${
+            <div className={`px-6 py-4 border-t shrink-0 ${
               isDarkMode ? 'border-white/5 bg-black/20' : 'border-blue-100 bg-blue-50/30'
             }`}>
+              <div className="max-w-4xl mx-auto w-full flex justify-between">
               {posConfig.expressCheckout ? (
                 <>
                   <button 
@@ -1807,6 +1824,7 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
                   )}
                 </>
               )}
+              </div>
             </div>
           </div>
         </div>
@@ -1935,6 +1953,7 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
         </div>
       )}
 
-    </div>
+    </div>,
+    document.body
   );
 }
