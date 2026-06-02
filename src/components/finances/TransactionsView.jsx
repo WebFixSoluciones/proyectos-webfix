@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Plus, Search, Trash2, Edit2, FileText, CheckCircle2, AlertCircle, UploadCloud, Sparkles, AlertTriangle } from 'lucide-react';
+import { Plus, Search, Trash2, Edit2, FileText, CheckCircle2, AlertCircle, UploadCloud, Sparkles, AlertTriangle, Eye } from 'lucide-react';
 import { doc, deleteDoc, setDoc } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { analizarComprobanteConGemini, parsearXMLComprobante } from '../../services/geminiService';
+import RidePreviewModal from './RidePreviewModal';
 
 export default function TransactionsView({ transactions, thirdParties, isDarkMode, showToast, db, storage, appId, onOpenForm, forcedDocType }) {
   const [searchTerm, setSearchTerm] = useState('');
@@ -20,6 +21,7 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
   // Estados de IA y Carga
   const [isDragging, setIsDragging] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [selectedRideTx, setSelectedRideTx] = useState(null);
   
   const fileInputRef = useRef(null);
 
@@ -350,7 +352,7 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
       <div className={`rounded-2xl border overflow-hidden backdrop-blur-xl ${isDarkMode ? 'border-white/10 bg-white/[0.02]' : 'border-gray-355 bg-white shadow-sm'}`}>
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left text-xs whitespace-nowrap">
-            <thead className={`text-[10px] uppercase font-bold tracking-wider ${isDarkMode ? 'bg-black/40 text-gray-400' : 'bg-gray-100 text-gray-800 border-b border-gray-300'}`}>
+            <thead className={`text-[10px] uppercase font-bold tracking-wider ${isDarkMode ? 'bg-black/40 text-gray-400' : 'bg-blue-50/50 text-[#000000] border-b border-blue-100'}`}>
               <tr>
                 <th className="px-6 py-4">Fecha</th>
                 <th className="px-6 py-4">Tipo</th>
@@ -365,22 +367,31 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
             <tbody className={`divide-y ${isDarkMode ? 'divide-white/5' : 'divide-gray-300/60'}`}>
               {filtered.map(tx => (
                 <tr key={tx.id} className={`transition-colors ${isDarkMode ? 'hover:bg-white/5' : 'hover:bg-gray-100/40'}`}>
-                  <td className={`px-6 py-4 ${isDarkMode ? '' : 'text-gray-900 font-medium'}`}>{tx.date}</td>
+                  <td className={`px-6 py-4 ${isDarkMode ? '' : 'text-black font-semibold'}`}>{tx.date}</td>
                   <td className="px-6 py-4">
                     <span className={`px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider ${tx.type === 'ingreso' ? (isDarkMode ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-100 text-emerald-800 border border-emerald-300') : (isDarkMode ? 'bg-red-500/20 text-red-400' : 'bg-red-100 text-red-800 border border-red-300')}`}>
                       {tx.type}
                     </span>
                   </td>
-                  <td className={`px-6 py-4 font-mono text-[10px] ${isDarkMode ? '' : 'text-gray-900 font-semibold'}`}>{tx.documentNumber || '-'}</td>
-                  <td className={`px-6 py-4 font-medium truncate max-w-[200px] ${isDarkMode ? '' : 'text-gray-950 font-bold'}`} title={thirdParties.find(tp => tp.id === tx.thirdPartyId)?.name}>
+                  <td className={`px-6 py-4 font-mono text-[10px] ${isDarkMode ? '' : 'text-black font-semibold'}`}>{tx.documentNumber || '-'}</td>
+                  <td className={`px-6 py-4 font-bold truncate max-w-[200px] ${isDarkMode ? '' : 'text-black'}`} title={thirdParties.find(tp => tp.id === tx.thirdPartyId)?.name}>
                     {thirdParties.find(tp => tp.id === tx.thirdPartyId)?.name || 'Desconocido'}
                   </td>
-                  <td className={`px-6 py-4 font-bold ${isDarkMode ? '' : 'text-gray-950 font-black'}`}>${Number(tx.total || 0).toFixed(2)}</td>
+                  <td className={`px-6 py-4 font-extrabold ${isDarkMode ? '' : 'text-black font-black'}`}>${Number(tx.total || 0).toFixed(2)}</td>
                   <td className="px-6 py-4">{getStatusBadge(tx.sriStatus)}</td>
                   <td className="px-6 py-4">
                     <div className="flex gap-1.5">
                       {tx.xmlUrl ? <a href={tx.xmlUrl} target="_blank" rel="noreferrer" className="p-1.5 rounded bg-blue-500/20 text-blue-500 hover:bg-blue-500/40" title="Ver XML"><FileText size={12}/></a> : <span className="p-1.5 rounded bg-gray-500/10 text-gray-400 border border-gray-200 opacity-60"><FileText size={12}/></span>}
                       {tx.pdfUrl ? <a href={tx.pdfUrl} target="_blank" rel="noreferrer" className="p-1.5 rounded bg-red-500/20 text-red-500 hover:bg-red-500/40" title="Ver PDF"><FileText size={12}/></a> : <span className="p-1.5 rounded bg-gray-500/10 text-gray-400 border border-gray-200 opacity-60"><FileText size={12}/></span>}
+                      {tx.documentType === 'factura' && (
+                        <button 
+                          onClick={() => setSelectedRideTx(tx)}
+                          className="p-1.5 rounded bg-orange-500/20 text-orange-500 hover:bg-orange-500/40 border border-orange-500/10 transition-all"
+                          title="Ver RIDE Interactivo / Imprimir Recibo"
+                        >
+                          <Eye size={12}/>
+                        </button>
+                      )}
                     </div>
                   </td>
                   <td className="px-6 py-4 text-right">
@@ -401,6 +412,16 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
         </div>
       </div>
 
+      {selectedRideTx && (
+        <RidePreviewModal 
+          tx={selectedRideTx} 
+          onClose={() => setSelectedRideTx(null)} 
+          thirdParties={thirdParties} 
+          isDarkMode={isDarkMode} 
+          db={db} 
+          appId={appId} 
+        />
+      )}
     </div>
   );
 }

@@ -1,9 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { Search, ShoppingCart, Plus, Minus, Trash2, User, Sparkles, CheckCircle2, DollarSign, X, ShieldAlert, Award, Layers, Tag, Bookmark, RefreshCw, LogOut, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Search, ShoppingCart, Plus, Minus, Trash2, User, Sparkles, CheckCircle2, DollarSign, X, ShieldAlert, Award, Layers, Tag, Bookmark, RefreshCw, LogOut, ArrowRight, ArrowLeft, ChevronRight, Settings } from 'lucide-react';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, onSnapshot } from 'firebase/firestore';
 import { consultarRucSri } from '../../services/sriService';
 
 export default function PosView({ products, thirdParties, isDarkMode, showToast, db, appId, onCheckout }) {
+  // Configuración de visualización del POS (persistente en localStorage)
+  const [posConfig, setPosConfig] = useState(() => {
+    const saved = localStorage.getItem(`pos_config_${appId}`);
+    return saved ? JSON.parse(saved) : {
+      viewType: 'grid', // 'grid' | 'list'
+      showCarousel: false, // true = carrusel horizontal de categorías, false = filtros dropdowns
+      cartPosition: 'right', // 'right' | 'left'
+    };
+  });
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  useEffect(() => {
+    if (appId) {
+      localStorage.setItem(`pos_config_${appId}`, JSON.stringify(posConfig));
+    }
+  }, [posConfig, appId]);
+
   // Estados de Caja
   const [activeSession, setActiveSession] = useState(null);
   const [sessionLoading, setSessionLoading] = useState(true);
@@ -218,6 +235,10 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
         ivaCategory: product.ivaCategory
       }]);
     }
+  };
+
+  const removeFromCart = (productId) => {
+    setCart(cart.filter(item => item.productId !== productId));
   };
 
   const updateQuantity = (productId, change) => {
@@ -495,48 +516,52 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
   // PANTALLA 1: APERTURA DE CAJA
   if (!activeSession) {
     return (
-      <div className="fixed inset-0 z-[100] bg-[#0c0c0e] text-white flex items-center justify-center p-4 backdrop-blur-md">
-        <div className="w-full max-w-md p-8 rounded-3xl bg-[#141416] border border-white/10 shadow-2xl space-y-6">
+      <div className={`fixed inset-0 z-[100] ${isDarkMode ? 'bg-[#08080a] text-white' : 'bg-[#f4f6f8] text-black'} flex items-center justify-center p-4 backdrop-blur-xl transition-colors duration-300`}>
+        {/* Decorative background blobs */}
+        <div className={`absolute top-[-10%] left-[-5%] w-[30rem] h-[30rem] rounded-full mix-blend-screen filter blur-[100px] opacity-20 pointer-events-none ${isDarkMode ? 'bg-emerald-900' : 'bg-emerald-300'}`}></div>
+        <div className={`absolute bottom-[-10%] right-[-5%] w-[30rem] h-[30rem] rounded-full mix-blend-screen filter blur-[100px] opacity-20 pointer-events-none ${isDarkMode ? 'bg-orange-900' : 'bg-orange-300'}`}></div>
+
+        <div className={`w-full max-w-md p-8 rounded-[2.5rem] border shadow-[0_20px_50px_rgba(0,0,0,0.3)] space-y-6 transition-all duration-300 ${isDarkMode ? 'glass-panel-dark text-white' : 'glass-panel-light text-black border-blue-100 bg-white'}`}>
           <div className="text-center space-y-2">
-            <div className="mx-auto w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center border border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.1)]">
-              <DollarSign size={24} />
+            <div className={`mx-auto w-14 h-14 rounded-2xl flex items-center justify-center border animate-pulse-glow ${isDarkMode ? 'bg-gradient-to-br from-emerald-500/20 to-teal-500/20 text-emerald-400 border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.2)]' : 'bg-emerald-50 text-emerald-600 border-emerald-250 shadow-sm'}`}>
+              <DollarSign size={26} />
             </div>
-            <h2 className="text-lg font-black tracking-tight">Apertura de Caja POS</h2>
-            <p className="text-xs text-gray-500">Es necesario ingresar el fondo inicial para habilitar la caja registradora.</p>
+            <h2 className={`text-xl font-bold font-display tracking-tight ${isDarkMode ? 'text-white' : 'text-black'}`}>Apertura de Caja POS</h2>
+            <p className={`text-xs font-medium ${isDarkMode ? 'text-gray-400' : 'text-black font-semibold'}`}>Es necesario ingresar el fondo inicial para habilitar la caja registradora.</p>
           </div>
 
           <form onSubmit={handleOpenSession} className="space-y-4">
             <div>
-              <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-400">Responsable / Cajero</label>
-              <input type="text" required value={openingForm.responsible} onChange={e => setOpeningForm({...openingForm, responsible: e.target.value})} className={inputClass} />
+              <label className={`block text-[9px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Responsable / Cajero</label>
+              <input type="text" required value={openingForm.responsible} onChange={e => setOpeningForm({...openingForm, responsible: e.target.value})} className={`w-full text-xs px-3.5 py-3 rounded-xl outline-none transition-all border ${isDarkMode ? 'glass-input-dark' : 'glass-input-light'}`} />
             </div>
             
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-400">Sucursal</label>
-                <input type="text" required value={openingForm.branch} onChange={e => setOpeningForm({...openingForm, branch: e.target.value})} className={inputClass} />
+                <label className={`block text-[9px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Sucursal</label>
+                <input type="text" required value={openingForm.branch} onChange={e => setOpeningForm({...openingForm, branch: e.target.value})} className={`w-full text-xs px-3.5 py-3 rounded-xl outline-none transition-all border ${isDarkMode ? 'glass-input-dark' : 'glass-input-light'}`} />
               </div>
               <div>
-                <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-400">Turno</label>
-                <select value={openingForm.shift} onChange={e => setOpeningForm({...openingForm, shift: e.target.value})} className={inputClass}>
-                  <option value="Mañana" className="text-black">Mañana</option>
-                  <option value="Tarde" className="text-black">Tarde</option>
-                  <option value="Noche" className="text-black">Noche</option>
+                <label className={`block text-[9px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Turno</label>
+                <select value={openingForm.shift} onChange={e => setOpeningForm({...openingForm, shift: e.target.value})} className={`w-full text-xs px-3.5 py-3 rounded-xl outline-none transition-all border cursor-pointer ${isDarkMode ? 'glass-input-dark' : 'glass-input-light'}`}>
+                  <option value="Mañana" className="text-black bg-white">Mañana</option>
+                  <option value="Tarde" className="text-black bg-white">Tarde</option>
+                  <option value="Noche" className="text-black bg-white">Noche</option>
                 </select>
               </div>
             </div>
 
             <div>
-              <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-400">Fondo Inicial ($ USD)</label>
-              <input type="number" required step="0.01" value={openingForm.initialAmount} onChange={e => setOpeningForm({...openingForm, initialAmount: e.target.value})} className={inputClass} />
+              <label className={`block text-[9px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Fondo Inicial ($ USD)</label>
+              <input type="number" required step="0.01" value={openingForm.initialAmount} onChange={e => setOpeningForm({...openingForm, initialAmount: e.target.value})} className={`w-full text-xs px-3.5 py-3 rounded-xl outline-none transition-all border ${isDarkMode ? 'glass-input-dark' : 'glass-input-light'}`} />
             </div>
 
             <div>
-              <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-400">Observaciones de Entrada</label>
-              <textarea value={openingForm.notes} onChange={e => setOpeningForm({...openingForm, notes: e.target.value})} className={`${inputClass} min-h-[60px]`} placeholder="Sin novedades..." />
+              <label className={`block text-[9px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Observaciones de Entrada</label>
+              <textarea value={openingForm.notes} onChange={e => setOpeningForm({...openingForm, notes: e.target.value})} className={`w-full text-xs px-3.5 py-3 rounded-2xl outline-none transition-all border min-h-[70px] resize-none ${isDarkMode ? 'glass-input-dark' : 'glass-input-light'}`} placeholder="Sin novedades..." />
             </div>
 
-            <button type="submit" className="w-full py-3 rounded-xl text-xs font-black bg-emerald-600 hover:bg-emerald-500 text-white shadow-md transition-transform hover:-translate-y-0.5 mt-2">
+            <button type="submit" className="w-full py-3.5 mt-4 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 hover-lift bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md hover:from-emerald-500 hover:to-teal-500 border border-emerald-500/30">
               Abrir Caja y Activar POS
             </button>
           </form>
@@ -547,148 +572,276 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
 
   // PANTALLA 2: POS PRINCIPAL EN PANTALLA COMPLETA
   return (
-    <div className="fixed inset-0 z-[100] bg-[#0c0c0e] text-white flex flex-col overflow-hidden animate-in fade-in duration-300">
+    <div className={`fixed inset-0 z-[100] ${isDarkMode ? 'bg-[#0c0c0e] text-white' : 'bg-[#f4f6f8] text-black'} flex flex-col overflow-hidden animate-in fade-in duration-300`}>
       
       {/* TOP HEADER POS */}
-      <div className="h-16 px-6 border-b border-white/5 flex items-center justify-between shrink-0 bg-[#121214]/80 backdrop-blur-md">
+      <div className={`h-16 px-6 border-b flex items-center justify-between shrink-0 ${isDarkMode ? 'bg-[#121214]/80 border-white/5 text-white' : 'bg-white border-blue-100 text-black shadow-sm'} backdrop-blur-md`}>
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-xl bg-orange-500/10 text-orange-500 border border-orange-500/10">
             <ShoppingCart size={18} />
           </div>
           <div>
-            <h1 className="text-sm font-black uppercase tracking-wider">Caja POS: {activeSession.branch}</h1>
-            <p className="text-[9px] text-gray-500 font-mono mt-0.5">Sesión: {activeSession.responsible} ({activeSession.shift}) | Fondo: ${activeSession.initialAmount.toFixed(2)}</p>
+            <h1 className={`text-sm font-black uppercase tracking-wider ${isDarkMode ? 'text-white' : 'text-black'}`}>Caja POS: {activeSession.branch}</h1>
+            <p className={`text-[9px] font-mono mt-0.5 ${isDarkMode ? 'text-gray-500' : 'text-black font-semibold'}`}>Sesión: {activeSession.responsible} ({activeSession.shift}) | Fondo: ${activeSession.initialAmount.toFixed(2)}</p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
           {hasSuspendedSale && (
-            <button onClick={resumeSale} className="px-3.5 py-1.5 rounded-xl border border-yellow-500/20 bg-yellow-500/10 text-yellow-500 font-bold text-[10px] uppercase hover:bg-yellow-500/20">
+            <button onClick={resumeSale} className={`px-3.5 py-1.5 rounded-xl border font-bold text-[10px] uppercase ${isDarkMode ? 'border-yellow-500/20 bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20' : 'border-yellow-200 bg-yellow-50 text-yellow-700 hover:bg-yellow-100'}`}>
               Recuperar Venta
             </button>
           )}
-          <button onClick={handleOpenCloseModal} className="px-3.5 py-1.5 rounded-xl border border-red-500/25 bg-red-600/10 text-red-400 font-bold text-[10px] uppercase hover:bg-red-600/20">
+          <button onClick={handleOpenCloseModal} className={`px-3.5 py-1.5 rounded-xl border font-bold text-[10px] uppercase ${isDarkMode ? 'border-red-500/25 bg-red-600/10 text-red-400 hover:bg-red-600/20' : 'border-red-200 bg-red-50 text-red-700 hover:bg-red-100'}`}>
             Arqueo / Cerrar Caja
           </button>
-          <button onClick={() => window.location.reload()} className="p-2.5 rounded-xl bg-white/5 text-gray-400 hover:text-white" title="Volver al ERP / Recargar">
+          <button onClick={() => setIsSettingsOpen(true)} className={`p-2.5 rounded-xl transition-all ${isDarkMode ? 'bg-white/5 text-gray-400 hover:text-white' : 'bg-blue-50/80 text-blue-600 hover:bg-blue-100'}`} title="Personalizar POS">
+            <Settings size={16} />
+          </button>
+          <button onClick={() => window.location.reload()} className={`p-2.5 rounded-xl transition-all ${isDarkMode ? 'bg-white/5 text-gray-400 hover:text-white' : 'bg-blue-50/80 text-blue-600 hover:bg-blue-100'}`} title="Volver al ERP / Recargar">
             <LogOut size={16} />
           </button>
         </div>
       </div>
 
       {/* POS WORKSPACE */}
-      <div className="flex-1 flex overflow-hidden min-h-0">
+      <div className={`flex-1 flex overflow-hidden min-h-0 ${posConfig.cartPosition === 'left' ? 'flex-row-reverse' : ''}`}>
         
         {/* LADO IZQUIERDO: SELECCIÓN Y FILTRO DE PRODUCTOS */}
-        <div className="flex-1 flex flex-col p-6 min-w-0 border-r border-white/5 bg-[#0f0f11]/60">
+        <div className={`flex-1 flex flex-col p-6 min-w-0 border-r ${isDarkMode ? 'border-white/5 bg-[#0f0f11]/60' : 'border-blue-100 bg-white'}`}>
           
           {/* BARRA DE BÚSQUEDA Y FILTROS */}
           <div className="space-y-3.5 mb-6">
-            <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/5 bg-black/45">
-              <Search size={14} className="text-gray-500" />
-              <input 
-                type="text" 
-                placeholder="Buscar por Nombre, SKU o Código de Barras..." 
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                className="bg-transparent border-none outline-none text-xs w-full text-white placeholder-gray-500"
-              />
-              {searchTerm && <button onClick={() => setSearchTerm('')}><X size={12} className="text-gray-500" /></button>}
-            </div>
+            {posConfig.showCarousel ? (
+              <div className="space-y-3">
+                {/* Search Box */}
+                <div className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-all ${isDarkMode ? 'border-white/5 bg-black/45' : 'border-blue-150 bg-blue-50/30'}`}>
+                  <Search size={14} className={isDarkMode ? 'text-gray-500' : 'text-blue-600'} />
+                  <input 
+                    type="text" 
+                    placeholder="Buscar por Nombre, SKU o Código..." 
+                    value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value)}
+                    className={`bg-transparent border-none outline-none text-xs w-full focus:ring-0 ${isDarkMode ? 'text-white placeholder-gray-500' : 'text-black placeholder-gray-400 font-bold'}`}
+                  />
+                  {searchTerm && <button onClick={() => setSearchTerm('')}><X size={12} className={isDarkMode ? 'text-gray-500' : 'text-blue-600'} /></button>}
+                </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              <div>
-                <label className="block text-[8px] font-bold uppercase tracking-wider text-gray-500 mb-1">Categoría</label>
-                <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} className="w-full text-[10px] font-bold px-2 py-2 rounded-xl bg-black/40 border border-white/5 outline-none text-white">
-                  <option value="all">Categorías (Todos)</option>
-                  {categories.filter(c => c !== 'all').map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
+                {/* Horizontal Category Carousel */}
+                <div className="flex items-center gap-2 overflow-x-auto py-2.5 custom-scrollbar scrollbar-none">
+                  <button
+                    onClick={() => setFilterCategory('all')}
+                    className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase transition-all whitespace-nowrap shrink-0 border shadow-sm ${
+                      filterCategory === 'all'
+                        ? 'bg-blue-600 border-blue-600 text-white'
+                        : (isDarkMode ? 'bg-black/40 border-white/5 text-gray-450 hover:text-white' : 'bg-blue-50/50 border-blue-100 text-black hover:bg-blue-100/50')
+                    }`}
+                  >
+                    Todos
+                  </button>
+                  {categories.filter(c => c !== 'all').map(cat => (
+                    <button
+                      key={cat}
+                      onClick={() => setFilterCategory(cat)}
+                      className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase transition-all whitespace-nowrap shrink-0 border shadow-sm ${
+                        filterCategory === cat
+                          ? 'bg-blue-600 border-blue-600 text-white'
+                          : (isDarkMode ? 'bg-black/40 border-white/5 text-gray-455 hover:text-white' : 'bg-blue-50/50 border-blue-100 text-black hover:bg-blue-100/50')
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
               </div>
+            ) : (
+              <div className="space-y-3.5">
+                {/* Search Box */}
+                <div className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-all ${isDarkMode ? 'border-white/5 bg-black/45' : 'border-blue-150 bg-blue-50/30'}`}>
+                  <Search size={14} className={isDarkMode ? 'text-gray-500' : 'text-blue-600'} />
+                  <input 
+                    type="text" 
+                    placeholder="Buscar por Nombre, SKU o Código de Barras..." 
+                    value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value)}
+                    className={`bg-transparent border-none outline-none text-xs w-full focus:ring-0 ${isDarkMode ? 'text-white placeholder-gray-500' : 'text-black placeholder-gray-400 font-bold'}`}
+                  />
+                  {searchTerm && <button onClick={() => setSearchTerm('')}><X size={12} className={isDarkMode ? 'text-gray-500' : 'text-blue-600'} /></button>}
+                </div>
 
-              <div>
-                <label className="block text-[8px] font-bold uppercase tracking-wider text-gray-500 mb-1">Marca</label>
-                <select value={filterBrand} onChange={e => setFilterBrand(e.target.value)} className="w-full text-[10px] font-bold px-2 py-2 rounded-xl bg-black/40 border border-white/5 outline-none text-white">
-                  <option value="all">Marcas (Todos)</option>
-                  {brands.filter(b => b !== 'all').map(b => <option key={b} value={b}>{b}</option>)}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-[8px] font-bold uppercase tracking-wider text-gray-500 mb-1">Bodega / Almacén</label>
-                <select value={filterWarehouse} onChange={e => setFilterWarehouse(e.target.value)} className="w-full text-[10px] font-bold px-2 py-2 rounded-xl bg-black/40 border border-white/5 outline-none text-white">
-                  <option value="all">Bodegas (Todos)</option>
-                  {warehouses.filter(w => w !== 'all').map(w => <option key={w} value={w}>{w}</option>)}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-[8px] font-bold uppercase tracking-wider text-gray-500 mb-1">Filtro Stock</label>
-                <select value={filterStock} onChange={e => setFilterStock(e.target.value)} className="w-full text-[10px] font-bold px-2 py-2 rounded-xl bg-black/40 border border-white/5 outline-none text-white">
-                  <option value="all">Inventario completo</option>
-                  <option value="instock">Solo disponibles (Con Stock)</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* GRID DE PRODUCTOS */}
-          <div className="flex-1 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 p-1 custom-scrollbar">
-            {filteredProducts.map(p => {
-              const isOutOfStock = p.type === 'producto' && p.stock <= 0;
-              return (
-                <div 
-                  key={p.id}
-                  onClick={() => !isOutOfStock && addToCart(p)}
-                  className={`p-3.5 border rounded-2xl flex flex-col justify-between transition-all cursor-pointer select-none group relative overflow-hidden bg-white/[0.01] ${
-                    isOutOfStock 
-                      ? 'opacity-40 cursor-not-allowed bg-white/[0.005] border-white/5' 
-                      : 'border-white/5 hover:border-blue-500/30 hover:bg-white/[0.02] hover:-translate-y-0.5'
-                  }`}
-                >
-                  <div className="space-y-1">
-                    <div className="flex justify-between items-center gap-1">
-                      <span className="font-mono text-[9px] text-gray-500 truncate">{p.sku}</span>
-                      <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${p.type === 'producto' ? 'bg-blue-500/10 text-blue-400' : 'bg-purple-500/10 text-purple-400'}`}>{p.type}</span>
-                    </div>
-                    <h4 className="text-xs font-bold leading-snug text-white line-clamp-2">{p.name}</h4>
-                    <p className="text-[9px] text-gray-500 truncate">{p.marca || 'Sin Marca'} | {p.categoria || 'General'}</p>
+                {/* Dropdowns */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                  <div>
+                    <label className={`block text-[8px] font-extrabold uppercase tracking-wider mb-1 ${isDarkMode ? 'text-gray-500' : 'text-black'}`}>Categoría</label>
+                    <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} className={`w-full text-[10px] font-bold px-2 py-2 rounded-xl border outline-none ${isDarkMode ? 'bg-black/40 border-white/5 text-white' : 'bg-white border-blue-100 text-black'}`}>
+                      <option value="all" className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>Categorías (Todos)</option>
+                      {categories.filter(c => c !== 'all').map(c => <option key={c} value={c} className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>{c}</option>)}
+                    </select>
                   </div>
 
-                  <div className="flex justify-between items-center mt-3 pt-3 border-t border-white/5">
-                    <span className="text-xs font-black text-white">${Number(p.price).toFixed(2)}</span>
-                    {p.type === 'producto' && (
-                      <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded border ${p.stock <= p.minStock ? 'bg-orange-500/10 border-orange-500/20 text-orange-400' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'}`}>
-                        {p.bodega || 'Bodega Central'}: {p.stock}
-                      </span>
-                    )}
+                  <div>
+                    <label className={`block text-[8px] font-extrabold uppercase tracking-wider mb-1 ${isDarkMode ? 'text-gray-500' : 'text-black'}`}>Marca</label>
+                    <select value={filterBrand} onChange={e => setFilterBrand(e.target.value)} className={`w-full text-[10px] font-bold px-2 py-2 rounded-xl border outline-none ${isDarkMode ? 'bg-black/40 border-white/5 text-white' : 'bg-white border-blue-100 text-black'}`}>
+                      <option value="all" className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>Marcas (Todos)</option>
+                      {brands.filter(b => b !== 'all').map(b => <option key={b} value={b} className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>{b}</option>)}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className={`block text-[8px] font-extrabold uppercase tracking-wider mb-1 ${isDarkMode ? 'text-gray-500' : 'text-black'}`}>Bodega / Almacén</label>
+                    <select value={filterWarehouse} onChange={e => setFilterWarehouse(e.target.value)} className={`w-full text-[10px] font-bold px-2 py-2 rounded-xl border outline-none ${isDarkMode ? 'bg-black/40 border-white/5 text-white' : 'bg-white border-blue-100 text-black'}`}>
+                      <option value="all" className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>Bodegas (Todos)</option>
+                      {warehouses.filter(w => w !== 'all').map(w => <option key={w} value={w} className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>{w}</option>)}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className={`block text-[8px] font-extrabold uppercase tracking-wider mb-1 ${isDarkMode ? 'text-gray-500' : 'text-black'}`}>Filtro Stock</label>
+                    <select value={filterStock} onChange={e => setFilterStock(e.target.value)} className={`w-full text-[10px] font-bold px-2 py-2 rounded-xl border outline-none ${isDarkMode ? 'bg-black/40 border-white/5 text-white' : 'bg-white border-blue-100 text-black'}`}>
+                      <option value="all" className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>Inventario completo</option>
+                      <option value="instock" className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>Solo disponibles (Con Stock)</option>
+                    </select>
                   </div>
                 </div>
-              );
-            })}
-            {filteredProducts.length === 0 && (
-              <div className="col-span-full flex flex-col items-center justify-center py-24 text-gray-500">
-                <ShoppingCart size={40} className="opacity-30 mb-2" />
-                <p className="text-xs italic">No hay productos que coincidan con los filtros.</p>
               </div>
             )}
           </div>
+
+          {/* GRID O LISTA DE PRODUCTOS */}
+          {posConfig.viewType === 'list' ? (
+            /* LIST LAYOUT */
+            <div className="flex-1 overflow-y-auto flex flex-col gap-2.5 p-1 custom-scrollbar">
+              {filteredProducts.map(p => {
+                const isOutOfStock = p.type === 'producto' && p.stock <= 0;
+                return (
+                  <div 
+                    key={p.id}
+                    onClick={() => !isOutOfStock && addToCart(p)}
+                    className={`p-3 border rounded-2xl flex items-center justify-between gap-4 transition-all cursor-pointer select-none group relative overflow-hidden ${
+                      isOutOfStock 
+                        ? 'opacity-40 cursor-not-allowed bg-white/[0.005]' 
+                        : (isDarkMode ? 'border-white/5 hover:border-blue-500/30 hover:bg-white/[0.02] bg-white/[0.01]' : 'border-blue-100 hover:border-blue-300 hover:bg-blue-50/20 bg-blue-50/5')
+                    }`}
+                  >
+                    <div className="flex-1 min-w-0 flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
+                        p.type === 'producto' 
+                          ? (isDarkMode ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' : 'bg-blue-50 border-blue-200 text-blue-650') 
+                          : (isDarkMode ? 'bg-purple-500/10 border-purple-500/20 text-purple-400' : 'bg-purple-50 border-purple-200 text-purple-650')
+                      }`}>
+                        <ShoppingCart size={16} />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-[9px] text-gray-500 shrink-0">{p.sku}</span>
+                          <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase shrink-0 ${p.type === 'producto' ? 'bg-blue-500/10 text-blue-400' : 'bg-purple-500/10 text-purple-400'}`}>{p.type}</span>
+                        </div>
+                        <h4 className={`text-xs font-bold leading-snug truncate ${isDarkMode ? 'text-white' : 'text-black'}`}>{p.name}</h4>
+                        <p className="text-[9px] text-gray-500 truncate">{p.marca || 'Sin Marca'} | {p.categoria || 'General'}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-6 shrink-0">
+                      {p.type === 'producto' && (
+                        <span className={`text-[8.5px] font-bold px-1.5 py-0.5 rounded border shrink-0 ${
+                          p.stock <= p.minStock 
+                            ? 'bg-orange-500/10 border-orange-500/20 text-orange-400' 
+                            : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                        }`}>
+                          {p.bodega || 'Central'}: {p.stock}
+                        </span>
+                      )}
+                      <div className="text-right shrink-0">
+                        <span className={`text-xs font-black block ${isDarkMode ? 'text-white' : 'text-black'}`}>${Number(p.price).toFixed(2)}</span>
+                      </div>
+                      <button
+                        type="button"
+                        disabled={isOutOfStock}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          addToCart(p);
+                        }}
+                        className={`p-1.5 rounded-lg border transition-all ${
+                          isOutOfStock 
+                            ? 'bg-transparent text-gray-400 border-gray-400/20' 
+                            : 'bg-blue-600 hover:bg-blue-500 text-white border-blue-500 hover:scale-105'
+                        }`}
+                      >
+                        <Plus size={14} />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+              {filteredProducts.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-24 text-gray-505">
+                  <ShoppingCart size={40} className="opacity-30 mb-2" />
+                  <p className="text-xs italic">No hay productos que coincidan con los filtros.</p>
+                </div>
+              )}
+            </div>
+          ) : (
+            /* GRID LAYOUT */
+            <div className="flex-1 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 p-1 custom-scrollbar">
+              {filteredProducts.map(p => {
+                const isOutOfStock = p.type === 'producto' && p.stock <= 0;
+                return (
+                  <div 
+                    key={p.id}
+                    onClick={() => !isOutOfStock && addToCart(p)}
+                    className={`p-3.5 border rounded-2xl flex flex-col justify-between transition-all cursor-pointer select-none group relative overflow-hidden ${
+                      isOutOfStock 
+                        ? 'opacity-40 cursor-not-allowed bg-white/[0.005] border-white/5' 
+                        : (isDarkMode 
+                            ? 'border-white/5 hover:border-blue-500/30 hover:bg-white/[0.02] bg-white/[0.01] hover:-translate-y-0.5' 
+                            : 'border-blue-100 hover:border-blue-300 hover:bg-blue-50/20 bg-blue-50/5 hover:-translate-y-0.5')
+                    }`}
+                  >
+                    <div className="space-y-1">
+                      <div className="flex justify-between items-center gap-1">
+                        <span className="font-mono text-[9px] text-gray-500 truncate">{p.sku}</span>
+                        <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${p.type === 'producto' ? 'bg-blue-500/10 text-blue-400' : 'bg-purple-500/10 text-purple-400'}`}>{p.type}</span>
+                      </div>
+                      <h4 className={`text-xs font-bold leading-snug line-clamp-2 ${isDarkMode ? 'text-white' : 'text-black'}`}>{p.name}</h4>
+                      <p className="text-[9px] text-gray-500 truncate">{p.marca || 'Sin Marca'} | {p.categoria || 'General'}</p>
+                    </div>
+
+                    <div className={`flex justify-between items-center mt-3 pt-3 border-t ${isDarkMode ? 'border-white/5' : 'border-blue-100/50'}`}>
+                      <span className={`text-xs font-black ${isDarkMode ? 'text-white' : 'text-black'}`}>${Number(p.price).toFixed(2)}</span>
+                      {p.type === 'producto' && (
+                        <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded border ${p.stock <= p.minStock ? 'bg-orange-500/10 border-orange-500/20 text-orange-400' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'}`}>
+                          {p.bodega || 'Central'}: {p.stock}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+              {filteredProducts.length === 0 && (
+                <div className="col-span-full flex flex-col items-center justify-center py-24 text-gray-505">
+                  <ShoppingCart size={40} className="opacity-30 mb-2" />
+                  <p className="text-xs italic">No hay productos que coincidan con los filtros.</p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* LADO DERECHO: DETALLE DEL PEDIDO (CHECKOUT FIJO) */}
-        <div className="w-96 flex flex-col shrink-0 border-l border-white/5 bg-[#121214]/65">
+        <div className={`w-80 sm:w-96 flex flex-col shrink-0 border-l ${isDarkMode ? 'border-white/5 bg-[#121214]/65' : 'border-blue-100 bg-[#f8faff]'}`}>
           
           {/* CLIENTE SELECTOR */}
-          <div className="p-4 border-b border-white/5 bg-black/10 flex items-center justify-between gap-2.5 shrink-0">
+          <div className={`p-4 border-b flex items-center justify-between gap-2.5 shrink-0 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-blue-100 bg-blue-50/30'}`}>
             <div className="flex-1">
-              <label className="block text-[8px] font-bold uppercase tracking-wider text-gray-500 mb-1">Cliente Receptor</label>
+              <label className={`block text-[8px] font-extrabold uppercase tracking-wider mb-1 ${isDarkMode ? 'text-gray-500' : 'text-black'}`}>Cliente Receptor</label>
               <select 
                 value={selectedClientId} 
                 onChange={e => setSelectedClientId(e.target.value)} 
-                className="w-full text-xs font-semibold px-2 py-2 outline-none rounded-xl border border-white/5 bg-black/40 text-white"
+                className={`w-full text-xs font-semibold px-2 py-2 outline-none rounded-xl border ${isDarkMode ? 'border-white/5 bg-black/40 text-white' : 'border-blue-100 bg-white text-black'}`}
               >
-                <option value="">Consumidor Final (9999999999999)</option>
+                <option value="" className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>Consumidor Final (9999999999999)</option>
                 {thirdParties.filter(tp => tp.type === 'cliente').map(tp => (
-                  <option key={tp.id} value={tp.id} className="text-black">{tp.name} - RUC: {tp.ruc}</option>
+                  <option key={tp.id} value={tp.id} className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>{tp.name} - RUC: {tp.ruc}</option>
                 ))}
               </select>
             </div>
@@ -700,7 +853,7 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
                 });
                 setIsQuickAddOpen(true);
               }}
-              className="mt-4 p-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white transition-all shrink-0"
+              className="mt-4 p-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white transition-all shrink-0 hover:scale-105 active:scale-95 shadow-sm"
               title="Registrar Cliente Nuevo"
             >
               <Plus size={14} />
@@ -710,79 +863,79 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
           {/* LISTA CARRITO POS */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
             {cart.map((item, idx) => (
-              <div key={idx} className="p-3 rounded-2xl bg-black/20 border border-white/5 space-y-2">
+              <div key={idx} className={`p-3 rounded-2xl border space-y-2 ${isDarkMode ? 'bg-black/20 border-white/5' : 'bg-white border-blue-100/70 shadow-sm'}`}>
                 <div className="flex justify-between items-start gap-1">
-                  <span className="text-xs font-bold text-white line-clamp-1">{item.name}</span>
-                  <button type="button" onClick={() => removeFromCart(item.productId)} className="text-red-400 hover:text-red-500 opacity-60 hover:opacity-100"><Trash2 size={12}/></button>
+                  <span className={`text-xs font-bold line-clamp-1 ${isDarkMode ? 'text-white' : 'text-black'}`}>{item.name}</span>
+                  <button type="button" onClick={() => removeFromCart(item.productId)} className="text-red-400 hover:text-red-500 opacity-80 hover:opacity-100"><Trash2 size={12}/></button>
                 </div>
                 <div className="flex justify-between items-center text-[10px] text-gray-500">
-                  <span>${Number(item.price).toFixed(2)} c/u</span>
+                  <span className={isDarkMode ? 'text-gray-500' : 'text-black font-semibold'}>${Number(item.price).toFixed(2)} c/u</span>
                   <div className="flex items-center gap-2">
-                    <button type="button" onClick={() => updateQuantity(item.productId, -1)} className="p-0.5 rounded bg-white/10 hover:bg-white/20"><Minus size={10}/></button>
-                    <span className="font-bold text-white w-4 text-center">{item.quantity}</span>
-                    <button type="button" onClick={() => updateQuantity(item.productId, 1)} className="p-0.5 rounded bg-white/10 hover:bg-white/20"><Plus size={10}/></button>
-                    <span className="font-black text-white w-14 text-right">${(item.price * item.quantity).toFixed(2)}</span>
+                    <button type="button" onClick={() => updateQuantity(item.productId, -1)} className={`p-0.5 rounded ${isDarkMode ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-blue-50 hover:bg-blue-100 text-blue-700'}`}><Minus size={10}/></button>
+                    <span className={`font-bold w-4 text-center ${isDarkMode ? 'text-white' : 'text-black'}`}>{item.quantity}</span>
+                    <button type="button" onClick={() => updateQuantity(item.productId, 1)} className={`p-0.5 rounded ${isDarkMode ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-blue-50 hover:bg-blue-100 text-blue-700'}`}><Plus size={10}/></button>
+                    <span className={`font-black w-14 text-right ${isDarkMode ? 'text-white' : 'text-blue-700'}`}>${(item.price * item.quantity).toFixed(2)}</span>
                   </div>
                 </div>
               </div>
             ))}
             {cart.length === 0 && (
               <div className="flex flex-col items-center justify-center h-full text-center text-gray-500 py-16">
-                <ShoppingCart size={36} className="opacity-20 mb-2 animate-pulse" />
+                <ShoppingCart size={36} className="opacity-20 mb-2 animate-pulse text-blue-500" />
                 <p className="text-xs italic">Carrito de Venta Vacío</p>
               </div>
             )}
           </div>
 
           {/* ACCIONES Y TOTALES */}
-          <div className="p-4 border-t border-white/5 bg-black/10 space-y-4 shrink-0">
+          <div className={`p-4 border-t space-y-4 shrink-0 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-blue-100 bg-blue-50/20'}`}>
             {/* DESCUENTO CARD */}
             {isDiscountOpen ? (
-              <div className="p-3 rounded-xl border border-white/5 bg-black/20 space-y-2">
+              <div className={`p-3 rounded-xl border space-y-2 ${isDarkMode ? 'border-white/5 bg-black/20' : 'border-blue-100 bg-white shadow-sm'}`}>
                 <div className="flex justify-between items-center">
-                  <span className="text-[10px] font-bold text-gray-400">DESCUENTO GENERAL</span>
-                  <button onClick={() => { setIsDiscountOpen(false); setDiscountValue(0); }} className="text-gray-500"><X size={10} /></button>
+                  <span className={`text-[10px] font-bold ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>DESCUENTO GENERAL</span>
+                  <button onClick={() => { setIsDiscountOpen(false); setDiscountValue(0); }} className="text-gray-500 hover:text-black"><X size={10} /></button>
                 </div>
                 <div className="flex gap-1">
-                  <select value={discountType} onChange={e => setDiscountType(e.target.value)} className="text-[10px] px-2 py-1.5 rounded-lg bg-black border border-white/10 text-white">
+                  <select value={discountType} onChange={e => setDiscountType(e.target.value)} className={`text-[10px] px-2 py-1.5 rounded-lg border outline-none ${isDarkMode ? 'bg-black border-white/10 text-white' : 'bg-white border-blue-150 text-black'}`}>
                     <option value="percent">% Porcentaje</option>
                     <option value="fixed">$ Fijo (USD)</option>
                   </select>
-                  <input type="number" value={discountValue} onChange={e => setDiscountValue(e.target.value)} className="w-full text-xs px-2 py-1.5 rounded-lg bg-black border border-white/10 text-white" placeholder="0" />
+                  <input type="number" value={discountValue} onChange={e => setDiscountValue(e.target.value)} className={`w-full text-xs px-2 py-1.5 rounded-lg border outline-none ${isDarkMode ? 'bg-black border-white/10 text-white' : 'bg-white border-blue-150 text-black'}`} placeholder="0" />
                 </div>
               </div>
             ) : (
               <div className="flex gap-2">
-                <button onClick={() => setIsDiscountOpen(true)} className="flex-1 py-1.5 rounded-xl border border-white/5 hover:bg-white/5 text-gray-400 font-bold text-[9px] uppercase">
-                  <Tag size={10} className="inline mr-1" /> Descuento
+                <button onClick={() => setIsDiscountOpen(true)} className={`flex-1 py-1.5 rounded-xl border font-bold text-[9px] uppercase transition-all ${isDarkMode ? 'border-white/5 hover:bg-white/5 text-gray-400' : 'border-blue-100 hover:bg-blue-100/50 bg-white text-black shadow-sm'}`}>
+                  <Tag size={10} className="inline mr-1 text-blue-500" /> Descuento
                 </button>
-                <button onClick={suspendSale} className="flex-1 py-1.5 rounded-xl border border-white/5 hover:bg-white/5 text-gray-400 font-bold text-[9px] uppercase">
-                  <Bookmark size={10} className="inline mr-1" /> Suspender
+                <button onClick={suspendSale} className={`flex-1 py-1.5 rounded-xl border font-bold text-[9px] uppercase transition-all ${isDarkMode ? 'border-white/5 hover:bg-white/5 text-gray-400' : 'border-blue-100 hover:bg-blue-100/50 bg-white text-black shadow-sm'}`}>
+                  <Bookmark size={10} className="inline mr-1 text-blue-500" /> Suspender
                 </button>
-                <button onClick={() => setCart([])} className="flex-1 py-1.5 rounded-xl border border-white/5 hover:bg-white/5 text-red-400 font-bold text-[9px] uppercase">
-                  <Trash2 size={10} className="inline mr-1" /> Vaciar
+                <button onClick={() => setCart([])} className={`flex-1 py-1.5 rounded-xl border font-bold text-[9px] uppercase transition-all ${isDarkMode ? 'border-white/5 hover:bg-white/5 text-red-400' : 'border-red-100 hover:bg-red-50 bg-white text-red-650 shadow-sm'}`}>
+                  <Trash2 size={10} className="inline mr-1 text-red-500" /> Vaciar
                 </button>
               </div>
             )}
 
             <div className="space-y-1.5 text-xs">
-              <div className="flex justify-between text-gray-500">
+              <div className={`flex justify-between ${isDarkMode ? 'text-gray-450' : 'text-black font-medium'}`}>
                 <span>Subtotal Neto</span>
                 <span>${getSubtotal().toFixed(2)}</span>
               </div>
               {getDiscountAmount() > 0 && (
-                <div className="flex justify-between text-red-400 font-bold">
+                <div className="flex justify-between text-red-500 font-bold">
                   <span>Descuento Aplicado</span>
                   <span>-${getDiscountAmount().toFixed(2)}</span>
                 </div>
               )}
-              <div className="flex justify-between text-gray-500">
+              <div className={`flex justify-between ${isDarkMode ? 'text-gray-450' : 'text-black font-medium'}`}>
                 <span>IVA (15%)</span>
                 <span>${getIva().toFixed(2)}</span>
               </div>
-              <div className="flex justify-between font-black text-sm pt-2 border-t border-white/5 text-white">
+              <div className={`flex justify-between font-black text-sm pt-2 border-t ${isDarkMode ? 'border-white/5 text-white' : 'border-blue-100 text-black'}`}>
                 <span>TOTAL NETO</span>
-                <span>${getTotal().toFixed(2)}</span>
+                <span className={isDarkMode ? 'text-white' : 'text-blue-700'}>${getTotal().toFixed(2)}</span>
               </div>
             </div>
 
@@ -812,60 +965,74 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
 
       {/* APERTURA Y CIERRE DE CAJA DIALOG */}
       {isClosingOpen && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in">
-          <div className="w-full max-w-md p-6 rounded-3xl bg-[#141416] border border-white/10 shadow-2xl">
-            <h3 className="text-sm font-black mb-4 flex items-center gap-2 text-red-400">
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
+          <div className={`w-full max-w-md p-6 rounded-3xl border shadow-2xl transition-all duration-300 ${
+            isDarkMode ? 'bg-[#141416] border-white/10 text-white shadow-black/50' : 'bg-white border-blue-100 text-black shadow-blue-900/10'
+          }`}>
+            <h3 className="text-sm font-black mb-4 flex items-center gap-2 text-red-500">
               <ShieldAlert size={16} /> Arqueo y Cierre de Caja
             </h3>
-            <p className="text-[10px] text-gray-500 mb-4 leading-normal">Verifica los montos acumulados por ventas en esta sesión y digita los valores reales contados.</p>
+            <p className={`text-[10px] mb-4 leading-normal ${isDarkMode ? 'text-gray-500' : 'text-gray-900 font-bold'}`}>
+              Verifica los montos acumulados por ventas en esta sesión y digita los valores reales contados.
+            </p>
 
             <form onSubmit={handleCloseSession} className="space-y-4">
               <div className="space-y-2 text-xs">
-                <div className="grid grid-cols-2 gap-2 font-bold text-gray-500 border-b border-white/5 pb-2 text-[9px] uppercase">
+                <div className={`grid grid-cols-2 gap-2 font-bold border-b pb-2 text-[9px] uppercase ${
+                  isDarkMode ? 'text-gray-500 border-white/5' : 'text-black border-blue-100/50'
+                }`}>
                   <span>Método de Pago</span>
                   <span className="text-right">Físico / Real</span>
                 </div>
                 
                 <div className="flex justify-between items-center">
                   <div>
-                    <p className="font-bold text-white">Efectivo en Caja</p>
-                    <p className="text-[9px] text-gray-500">Esperado: ${(activeSession.initialAmount + sessionTxs.filter(t => t.paymentMethod === 'efectivo').reduce((acc, t) => acc + Number(t.total || 0), 0)).toFixed(2)} (inc. Fondo)</p>
+                    <p className={`font-bold ${isDarkMode ? 'text-white' : 'text-black'}`}>Efectivo en Caja</p>
+                    <p className={`text-[9px] ${isDarkMode ? 'text-gray-500' : 'text-gray-900 font-bold'}`}>
+                      Esperado: ${(activeSession.initialAmount + sessionTxs.filter(t => t.paymentMethod === 'efectivo').reduce((acc, t) => acc + Number(t.total || 0), 0)).toFixed(2)} (inc. Fondo)
+                    </p>
                   </div>
-                  <input type="number" step="0.01" value={closingForm.efectivoReal} onChange={e => setClosingForm({...closingForm, efectivoReal: e.target.value})} className={`${inputClass} w-24 text-right`} />
+                  <input type="number" step="0.01" value={closingForm.efectivoReal} onChange={e => setClosingForm({...closingForm, efectivoReal: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} w-24 text-right px-2 py-1.5 rounded-lg border`} />
                 </div>
 
                 <div className="flex justify-between items-center">
                   <div>
-                    <p className="font-bold text-white">Tarjeta Débito/Crédito</p>
-                    <p className="text-[9px] text-gray-500">Esperado: ${sessionTxs.filter(t => t.paymentMethod === 'tarjeta').reduce((acc, t) => acc + Number(t.total || 0), 0).toFixed(2)}</p>
+                    <p className={`font-bold ${isDarkMode ? 'text-white' : 'text-black'}`}>Tarjeta Débito/Crédito</p>
+                    <p className={`text-[9px] ${isDarkMode ? 'text-gray-500' : 'text-gray-900 font-bold'}`}>
+                      Esperado: ${sessionTxs.filter(t => t.paymentMethod === 'tarjeta').reduce((acc, t) => acc + Number(t.total || 0), 0).toFixed(2)}
+                    </p>
                   </div>
-                  <input type="number" step="0.01" value={closingForm.tarjetaReal} onChange={e => setClosingForm({...closingForm, tarjetaReal: e.target.value})} className={`${inputClass} w-24 text-right`} />
+                  <input type="number" step="0.01" value={closingForm.tarjetaReal} onChange={e => setClosingForm({...closingForm, tarjetaReal: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} w-24 text-right px-2 py-1.5 rounded-lg border`} />
                 </div>
 
                 <div className="flex justify-between items-center">
                   <div>
-                    <p className="font-bold text-white">Transferencias</p>
-                    <p className="text-[9px] text-gray-500">Esperado: ${sessionTxs.filter(t => t.paymentMethod === 'transferencia').reduce((acc, t) => acc + Number(t.total || 0), 0).toFixed(2)}</p>
+                    <p className={`font-bold ${isDarkMode ? 'text-white' : 'text-black'}`}>Transferencias</p>
+                    <p className={`text-[9px] ${isDarkMode ? 'text-gray-500' : 'text-gray-900 font-bold'}`}>
+                      Esperado: ${sessionTxs.filter(t => t.paymentMethod === 'transferencia').reduce((acc, t) => acc + Number(t.total || 0), 0).toFixed(2)}
+                    </p>
                   </div>
-                  <input type="number" step="0.01" value={closingForm.transferenciaReal} onChange={e => setClosingForm({...closingForm, transferenciaReal: e.target.value})} className={`${inputClass} w-24 text-right`} />
+                  <input type="number" step="0.01" value={closingForm.transferenciaReal} onChange={e => setClosingForm({...closingForm, transferenciaReal: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} w-24 text-right px-2 py-1.5 rounded-lg border`} />
                 </div>
 
                 <div className="flex justify-between items-center">
                   <div>
-                    <p className="font-bold text-white">Cruce de Cuentas</p>
-                    <p className="text-[9px] text-gray-500">Esperado: ${sessionTxs.filter(t => t.paymentMethod === 'cruce_cuentas').reduce((acc, t) => acc + Number(t.total || 0), 0).toFixed(2)}</p>
+                    <p className={`font-bold ${isDarkMode ? 'text-white' : 'text-black'}`}>Cruce de Cuentas</p>
+                    <p className={`text-[9px] ${isDarkMode ? 'text-gray-500' : 'text-gray-900 font-bold'}`}>
+                      Esperado: ${sessionTxs.filter(t => t.paymentMethod === 'cruce_cuentas').reduce((acc, t) => acc + Number(t.total || 0), 0).toFixed(2)}
+                    </p>
                   </div>
-                  <input type="number" step="0.01" value={closingForm.cruceReal} onChange={e => setClosingForm({...closingForm, cruceReal: e.target.value})} className={`${inputClass} w-24 text-right`} />
+                  <input type="number" step="0.01" value={closingForm.cruceReal} onChange={e => setClosingForm({...closingForm, cruceReal: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} w-24 text-right px-2 py-1.5 rounded-lg border`} />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-400">Observaciones Arqueo</label>
-                <textarea value={closingForm.notes} onChange={e => setClosingForm({...closingForm, notes: e.target.value})} className={`${inputClass} min-h-[50px]`} placeholder="Escribe discrepancias si las hay..." />
+                <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Observaciones Arqueo</label>
+                <textarea value={closingForm.notes} onChange={e => setClosingForm({...closingForm, notes: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} min-h-[50px] w-full px-2.5 py-2 rounded-xl border`} placeholder="Escribe discrepancias si las hay..." />
               </div>
 
-              <div className="flex justify-end gap-2.5 mt-6 pt-3 border-t border-white/5">
-                <button type="button" onClick={() => setIsClosingOpen(false)} className="px-3.5 py-2 rounded-xl text-xs font-semibold hover:bg-white/5">Cancelar</button>
+              <div className={`flex justify-end gap-2.5 mt-6 pt-3 border-t ${isDarkMode ? 'border-white/5' : 'border-blue-100/55'}`}>
+                <button type="button" onClick={() => setIsClosingOpen(false)} className={`px-3.5 py-2 rounded-xl text-xs font-semibold ${isDarkMode ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-blue-50/50 text-black'}`}>Cancelar</button>
                 <button type="submit" className="px-4 py-2 rounded-xl text-xs font-black bg-red-600 hover:bg-red-500 text-white">Confirmar y Cerrar Caja</button>
               </div>
             </form>
@@ -875,23 +1042,27 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
 
       {/* CHECKOUT WIZARD MODAL (FULLSCREEN PASOS) */}
       {isCheckoutOpen && (
-        <div className="fixed inset-0 z-[110] bg-[#0c0c0e]/95 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in">
-          <div className="w-full max-w-2xl bg-[#141416] border border-white/10 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 z-[110] bg-black/75 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className={`w-full max-w-2xl border rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] transition-all duration-300 ${
+            isDarkMode ? 'bg-[#141416] border-white/10 text-white shadow-black/80' : 'bg-white border-blue-100 text-black shadow-blue-900/10'
+          }`}>
             
             {/* WIZARD PROGRESS HEADER */}
-            <div className="px-6 py-4 border-b border-white/5 bg-black/20 flex items-center justify-between shrink-0">
+            <div className={`px-6 py-4 border-b flex items-center justify-between shrink-0 ${
+              isDarkMode ? 'border-white/5 bg-black/20 text-white' : 'border-blue-100 bg-blue-50/30 text-black'
+            }`}>
               <div className="flex items-center gap-2">
                 <ShoppingCart size={15} className="text-blue-500" />
                 <h3 className="text-xs font-black uppercase tracking-wider">Checkout Comercial POS</h3>
               </div>
-              <div className="flex items-center gap-1 text-[10px] font-bold text-gray-400">
-                <span className={checkoutStep === 1 ? 'text-blue-400' : ''}>1. Cliente</span>
-                <ChevronRight size={10} />
-                <span className={checkoutStep === 2 ? 'text-blue-400' : ''}>2. Métodos de Pago</span>
-                <ChevronRight size={10} />
-                <span className={checkoutStep === 3 ? 'text-blue-400' : ''}>3. Emisión</span>
+              <div className="flex items-center gap-1 text-[10px] font-bold">
+                <span className={checkoutStep === 1 ? 'text-blue-500' : (isDarkMode ? 'text-gray-400' : 'text-gray-500')}>1. Cliente</span>
+                <ChevronRight size={10} className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
+                <span className={checkoutStep === 2 ? 'text-blue-500' : (isDarkMode ? 'text-gray-400' : 'text-gray-500')}>2. Métodos de Pago</span>
+                <ChevronRight size={10} className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
+                <span className={checkoutStep === 3 ? 'text-blue-500' : (isDarkMode ? 'text-gray-400' : 'text-gray-500')}>3. Emisión</span>
               </div>
-              <button onClick={() => setIsCheckoutOpen(false)} className="text-gray-500 hover:text-white"><X size={15}/></button>
+              <button onClick={() => setIsCheckoutOpen(false)} className={isDarkMode ? 'text-gray-500 hover:text-white' : 'text-gray-500 hover:text-black'}><X size={15}/></button>
             </div>
 
             {/* WIZARD CONTENT */}
@@ -900,18 +1071,20 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
               {/* PASO 1: CLIENTE */}
               {checkoutStep === 1 && (
                 <div className="space-y-4 animate-in slide-in-from-right-4 duration-300">
-                  <div className="p-4 rounded-2xl bg-black/20 border border-white/5 space-y-3">
-                    <h4 className="text-xs font-bold text-white uppercase tracking-wider">Cliente de la Venta</h4>
+                  <div className={`p-4 rounded-2xl border space-y-3 ${isDarkMode ? 'bg-black/20 border-white/5' : 'bg-blue-50/20 border-blue-100'}`}>
+                    <h4 className={`text-xs font-bold uppercase tracking-wider ${isDarkMode ? 'text-white' : 'text-black'}`}>Cliente de la Venta</h4>
                     <div className="flex items-center gap-2">
                       <div className="flex-1">
                         <select 
                           value={selectedClientId} 
                           onChange={e => setSelectedClientId(e.target.value)} 
-                          className="w-full text-xs font-semibold px-3 py-2.5 outline-none rounded-xl border border-white/10 bg-black text-white"
+                          className={`w-full text-xs font-semibold px-3 py-2.5 outline-none rounded-xl border ${
+                            isDarkMode ? 'border-white/10 bg-black text-white' : 'border-blue-150 bg-white text-black'
+                          }`}
                         >
-                          <option value="">Consumidor Final (9999999999999)</option>
+                          <option value="" className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>Consumidor Final (9999999999999)</option>
                           {thirdParties.filter(tp => tp.type === 'cliente').map(tp => (
-                            <option key={tp.id} value={tp.id} className="text-black">{tp.name} - RUC: {tp.ruc}</option>
+                            <option key={tp.id} value={tp.id} className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>{tp.name} - RUC: {tp.ruc}</option>
                           ))}
                         </select>
                       </div>
@@ -930,14 +1103,16 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
                     </div>
                   </div>
 
-                  <div className="p-4 rounded-2xl border border-white/5 bg-black/10 space-y-2 text-xs">
-                    <p className="font-bold text-gray-400">Datos Facturación del Receptor:</p>
+                  <div className={`p-4 rounded-2xl border space-y-2 text-xs ${
+                    isDarkMode ? 'border-white/5 bg-black/10 text-gray-300' : 'border-blue-100 bg-blue-50/5 text-black'
+                  }`}>
+                    <p className={`font-bold ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Datos Facturación del Receptor:</p>
                     <div className="grid grid-cols-2 gap-3 text-[11px] pt-1">
-                      <p><span className="text-gray-500 font-bold uppercase">Razón Social:</span> {getSelectedClient().name}</p>
-                      <p><span className="text-gray-500 font-bold uppercase">Identificación:</span> {getSelectedClient().ruc}</p>
-                      <p><span className="text-gray-500 font-bold uppercase">Teléfono:</span> {getSelectedClient().telefono || '-'}</p>
-                      <p><span className="text-gray-500 font-bold uppercase">Email:</span> {getSelectedClient().email || '-'}</p>
-                      <p className="col-span-2"><span className="text-gray-500 font-bold uppercase">Dirección:</span> {getSelectedClient().direccion || '-'}</p>
+                      <p><span className={`font-bold uppercase ${isDarkMode ? 'text-gray-500' : 'text-blue-800'}`}>Razón Social:</span> {getSelectedClient().name}</p>
+                      <p><span className={`font-bold uppercase ${isDarkMode ? 'text-gray-500' : 'text-blue-800'}`}>Identificación:</span> {getSelectedClient().ruc}</p>
+                      <p><span className={`font-bold uppercase ${isDarkMode ? 'text-gray-500' : 'text-blue-800'}`}>Teléfono:</span> {getSelectedClient().telefono || '-'}</p>
+                      <p><span className={`font-bold uppercase ${isDarkMode ? 'text-gray-500' : 'text-blue-800'}`}>Email:</span> {getSelectedClient().email || '-'}</p>
+                      <p className="col-span-2"><span className={`font-bold uppercase ${isDarkMode ? 'text-gray-500' : 'text-blue-800'}`}>Dirección:</span> {getSelectedClient().direccion || '-'}</p>
                     </div>
                   </div>
                 </div>
@@ -946,56 +1121,87 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
               {/* PASO 2: METODOS DE PAGO */}
               {checkoutStep === 2 && (
                 <div className="space-y-4 animate-in slide-in-from-right-4 duration-300">
-                  <div className="p-4 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex justify-between items-center text-blue-400">
+                  <div className={`p-4 rounded-2xl border flex justify-between items-center ${
+                    isDarkMode ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' : 'bg-blue-50 border-blue-200 text-blue-700 shadow-sm'
+                  }`}>
                     <span className="text-xs font-bold">TOTAL A PAGAR:</span>
                     <span className="text-lg font-black">${totalToPay.toFixed(2)}</span>
                   </div>
 
                   <div className="space-y-3">
-                    <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Medios de Pago (Ecuador) - Admite combinados</h4>
+                    <h4 className={`text-xs font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Medios de Pago (Admite combinados)</h4>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Efectivo */}
-                      <div className="p-3.5 rounded-xl border border-white/5 bg-black/10 space-y-1.5">
-                        <label className="text-xs font-bold text-white block">Efectivo ($)</label>
-                        <input type="number" step="0.01" value={payments.efectivo || ''} onChange={e => setPayments({...payments, efectivo: e.target.value})} className={inputClass} placeholder="0.00" />
+                      <div className={`p-3.5 rounded-xl border space-y-1.5 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-blue-100 bg-blue-50/10'}`}>
+                        <label className={`text-xs font-bold block ${isDarkMode ? 'text-white' : 'text-black'}`}>Efectivo ($)</label>
+                        <input type="number" step="0.01" value={payments.efectivo || ''} onChange={e => setPayments({...payments, efectivo: e.target.value})} className={isDarkMode ? 'glass-input-dark px-3 py-2 w-full text-xs rounded-xl outline-none border' : 'glass-input-light px-3 py-2 w-full text-xs rounded-xl outline-none border'} placeholder="0.00" />
+                        <div className="flex flex-wrap gap-1 mt-1.5">
+                          {[5, 10, 20, 50, 100].map(val => (
+                            <button
+                              key={val}
+                              type="button"
+                              onClick={() => {
+                                const current = Number(payments.efectivo) || 0;
+                                setPayments({ ...payments, efectivo: (current + val).toFixed(2) });
+                              }}
+                              className={`px-2 py-1 text-[9px] font-bold rounded-lg border transition-colors ${
+                                isDarkMode ? 'border-white/10 bg-white/5 hover:bg-white/10 text-white' : 'border-blue-100 bg-white hover:bg-blue-50 text-blue-750'
+                              }`}
+                            >
+                              +{val}
+                            </button>
+                          ))}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const pending = Math.max(0, totalToPay - (Number(payments.tarjeta) || 0) - (Number(payments.transferencia) || 0) - (Number(payments.cruce_cuentas) || 0));
+                              setPayments({ ...payments, efectivo: pending.toFixed(2) });
+                            }}
+                            className={`px-2 py-1 text-[9px] font-bold rounded-lg border transition-colors ${
+                              isDarkMode ? 'border-blue-500/20 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400' : 'border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700'
+                            }`}
+                          >
+                            Exacto
+                          </button>
+                        </div>
                       </div>
                       
                       {/* Tarjeta */}
-                      <div className="p-3.5 rounded-xl border border-white/5 bg-black/10 space-y-1.5">
-                        <label className="text-xs font-bold text-white block">Tarjeta (Crédito/Débito) ($)</label>
-                        <input type="number" step="0.01" value={payments.tarjeta || ''} onChange={e => setPayments({...payments, tarjeta: e.target.value})} className={inputClass} placeholder="0.00" />
-                        <input type="text" value={payments.tarjetaRef} onChange={e => setPayments({...payments, tarjetaRef: e.target.value})} className={`${inputClass} py-1 text-[10px] mt-1`} placeholder="Ref / Autorización" />
+                      <div className={`p-3.5 rounded-xl border space-y-1.5 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-blue-100 bg-blue-50/10'}`}>
+                        <label className={`text-xs font-bold block ${isDarkMode ? 'text-white' : 'text-black'}`}>Tarjeta (Crédito/Débito) ($)</label>
+                        <input type="number" step="0.01" value={payments.tarjeta || ''} onChange={e => setPayments({...payments, tarjeta: e.target.value})} className={isDarkMode ? 'glass-input-dark px-3 py-2 w-full text-xs rounded-xl outline-none border' : 'glass-input-light px-3 py-2 w-full text-xs rounded-xl outline-none border'} placeholder="0.00" />
+                        <input type="text" value={payments.tarjetaRef} onChange={e => setPayments({...payments, tarjetaRef: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} px-3 py-1 w-full text-[10px] mt-1 rounded-xl border`} placeholder="Ref / Autorización" />
                       </div>
 
                       {/* Transferencia */}
-                      <div className="p-3.5 rounded-xl border border-white/5 bg-black/10 space-y-1.5">
-                        <label className="text-xs font-bold text-white block">Transferencia Bancaria ($)</label>
-                        <input type="number" step="0.01" value={payments.transferencia || ''} onChange={e => setPayments({...payments, transferencia: e.target.value})} className={inputClass} placeholder="0.00" />
-                        <input type="text" value={payments.transferenciaRef} onChange={e => setPayments({...payments, transferenciaRef: e.target.value})} className={`${inputClass} py-1 text-[10px] mt-1`} placeholder="Nro Referencia / Comprobante" />
+                      <div className={`p-3.5 rounded-xl border space-y-1.5 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-blue-100 bg-blue-50/10'}`}>
+                        <label className={`text-xs font-bold block ${isDarkMode ? 'text-white' : 'text-black'}`}>Transferencia Bancaria ($)</label>
+                        <input type="number" step="0.01" value={payments.transferencia || ''} onChange={e => setPayments({...payments, transferencia: e.target.value})} className={isDarkMode ? 'glass-input-dark px-3 py-2 w-full text-xs rounded-xl outline-none border' : 'glass-input-light px-3 py-2 w-full text-xs rounded-xl outline-none border'} placeholder="0.00" />
+                        <input type="text" value={payments.transferenciaRef} onChange={e => setPayments({...payments, transferenciaRef: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} px-3 py-1 w-full text-[10px] mt-1 rounded-xl border`} placeholder="Nro Referencia / Comprobante" />
                       </div>
 
                       {/* Cruce de Cuentas */}
-                      <div className="p-3.5 rounded-xl border border-white/5 bg-black/10 space-y-1.5">
-                        <label className="text-xs font-bold text-white block">Cruce de Cuentas ($)</label>
-                        <input type="number" step="0.01" value={payments.cruce_cuentas || ''} onChange={e => setPayments({...payments, cruce_cuentas: e.target.value})} className={inputClass} placeholder="0.00" />
-                        <input type="text" value={payments.cruceRef} onChange={e => setPayments({...payments, cruceRef: e.target.value})} className={`${inputClass} py-1 text-[10px] mt-1`} placeholder="Nro de Documento Relacionado" />
+                      <div className={`p-3.5 rounded-xl border space-y-1.5 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-blue-100 bg-blue-50/10'}`}>
+                        <label className={`text-xs font-bold block ${isDarkMode ? 'text-white' : 'text-black'}`}>Cruce de Cuentas ($)</label>
+                        <input type="number" step="0.01" value={payments.cruce_cuentas || ''} onChange={e => setPayments({...payments, cruce_cuentas: e.target.value})} className={isDarkMode ? 'glass-input-dark px-3 py-2 w-full text-xs rounded-xl outline-none border' : 'glass-input-light px-3 py-2 w-full text-xs rounded-xl outline-none border'} placeholder="0.00" />
+                        <input type="text" value={payments.cruceRef} onChange={e => setPayments({...payments, cruceRef: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} px-3 py-1 w-full text-[10px] mt-1 rounded-xl border`} placeholder="Nro de Documento Relacionado" />
                       </div>
                     </div>
                   </div>
 
-                  <div className="p-4 rounded-xl bg-black/20 space-y-2 text-xs font-mono">
+                  <div className={`p-4 rounded-xl space-y-2 text-xs font-mono border ${isDarkMode ? 'bg-black/20 border-white/5 text-gray-300' : 'bg-blue-50/20 border-blue-100 text-black'}`}>
                     <div className="flex justify-between">
                       <span>Total Pagado:</span>
-                      <span className="font-bold text-white">${paidTotal.toFixed(2)}</span>
+                      <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-black'}`}>${paidTotal.toFixed(2)}</span>
                     </div>
                     {remainingDue > 0 ? (
-                      <div className="flex justify-between text-yellow-400 font-bold">
+                      <div className="flex justify-between text-yellow-500 font-bold">
                         <span>Falta Pagar:</span>
                         <span>${remainingDue.toFixed(2)}</span>
                       </div>
                     ) : (
-                      <div className="flex justify-between text-emerald-400 font-bold border-t border-white/5 pt-1">
+                      <div className={`flex justify-between font-bold border-t pt-1 ${isDarkMode ? 'text-emerald-400 border-white/5' : 'text-emerald-650 border-blue-100'}`}>
                         <span>Cambio / Vuelto en Efectivo:</span>
                         <span>${changeDue.toFixed(2)}</span>
                       </div>
@@ -1007,43 +1213,43 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
               {/* PASO 3: CONFIRMACIÓN Y EMISION */}
               {checkoutStep === 3 && (
                 <div className="space-y-4 animate-in slide-in-from-right-4 duration-300 text-xs">
-                  <div className="p-5 rounded-2xl bg-black border border-white/5 space-y-3">
-                    <h4 className="text-sm font-black text-white text-center uppercase tracking-widest border-b border-white/5 pb-2">PREVISUALIZACIÓN DE FACTURA (RIDE)</h4>
+                  <div className={`p-5 rounded-2xl border space-y-3 ${isDarkMode ? 'bg-black border-white/5 text-gray-400' : 'bg-white border-blue-150 text-black shadow-inner'}`}>
+                    <h4 className={`text-sm font-black text-center uppercase tracking-widest border-b pb-2 ${isDarkMode ? 'text-white border-white/5' : 'text-black border-blue-100'}`}>PREVISUALIZACIÓN DE FACTURA (RIDE)</h4>
                     
-                    <div className="grid grid-cols-2 gap-4 text-[10px] text-gray-400 leading-normal">
+                    <div className="grid grid-cols-2 gap-4 text-[10px] leading-normal">
                       <div>
-                        <p className="font-bold text-white">RECEPTOR</p>
-                        <p>Razon Social: {getSelectedClient().name}</p>
-                        <p>RUC/CI: {getSelectedClient().ruc}</p>
-                        <p>Correo: {getSelectedClient().email}</p>
-                        <p>Dirección: {getSelectedClient().direccion}</p>
+                        <p className={`font-bold uppercase ${isDarkMode ? 'text-white' : 'text-blue-800'}`}>RECEPTOR</p>
+                        <p className={isDarkMode ? 'text-gray-400' : 'text-black font-medium'}><span className="font-bold">Razon Social:</span> {getSelectedClient().name}</p>
+                        <p className={isDarkMode ? 'text-gray-400' : 'text-black font-medium'}><span className="font-bold">RUC/CI:</span> {getSelectedClient().ruc}</p>
+                        <p className={isDarkMode ? 'text-gray-400' : 'text-black font-medium'}><span className="font-bold">Correo:</span> {getSelectedClient().email}</p>
+                        <p className={isDarkMode ? 'text-gray-400' : 'text-black font-medium'}><span className="font-bold">Dirección:</span> {getSelectedClient().direccion}</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-bold text-white text-[10px]">COMPROBANTE</p>
-                        <p>Establecimiento: {activeSession.branch}</p>
-                        <p>Fecha: {new Date().toLocaleDateString()}</p>
-                        <p>Ambiente SRI: PRUEBAS (Offline)</p>
+                        <p className={`font-bold uppercase ${isDarkMode ? 'text-white' : 'text-blue-800'}`}>COMPROBANTE</p>
+                        <p className={isDarkMode ? 'text-gray-400' : 'text-black font-medium'}>Establecimiento: {activeSession.branch}</p>
+                        <p className={isDarkMode ? 'text-gray-400' : 'text-black font-medium'}>Fecha: {new Date().toLocaleDateString()}</p>
+                        <p className={isDarkMode ? 'text-gray-400' : 'text-black font-medium'}>Ambiente SRI: PRUEBAS (Offline)</p>
                       </div>
                     </div>
 
-                    <div className="border-t border-white/5 pt-3">
-                      <p className="font-bold text-white text-[10px] uppercase mb-1.5">Ítems Detallados</p>
+                    <div className={`border-t pt-3 ${isDarkMode ? 'border-white/5' : 'border-blue-100'}`}>
+                      <p className={`font-bold text-[10px] uppercase mb-1.5 ${isDarkMode ? 'text-white' : 'text-blue-800'}`}>Ítems Detallados</p>
                       <div className="space-y-1 text-[10px]">
                         {cart.map((item, idx) => (
-                          <div key={idx} className="flex justify-between text-gray-400">
-                            <span>{item.quantity}x {item.name}</span>
-                            <span className="font-bold text-white">${(item.price * item.quantity).toFixed(2)}</span>
+                          <div key={idx} className="flex justify-between">
+                            <span className={isDarkMode ? 'text-gray-400' : 'text-black font-semibold'}>{item.quantity}x {item.name}</span>
+                            <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-black'}`}>${(item.price * item.quantity).toFixed(2)}</span>
                           </div>
                         ))}
                       </div>
                     </div>
 
-                    <div className="border-t border-white/5 pt-3 flex justify-between font-bold text-sm text-white">
+                    <div className={`border-t pt-3 flex justify-between font-bold text-sm ${isDarkMode ? 'border-white/5 text-white' : 'border-blue-100 text-black'}`}>
                       <span>Total Neto Cobrado:</span>
-                      <span>${totalToPay.toFixed(2)}</span>
+                      <span className={isDarkMode ? 'text-white' : 'text-blue-700'}>${totalToPay.toFixed(2)}</span>
                     </div>
 
-                    <div className="text-[9px] text-gray-500 border-t border-white/5 pt-2">
+                    <div className={`text-[9px] border-t pt-2 ${isDarkMode ? 'text-gray-500 border-white/5' : 'text-black border-blue-100 font-semibold'}`}>
                       <p>Métodos Registrados: Efectivo: ${Number(payments.efectivo).toFixed(2)} | Tarjeta: ${Number(payments.tarjeta).toFixed(2)} | Transf: ${Number(payments.transferencia).toFixed(2)} | Cruce: ${Number(payments.cruce_cuentas).toFixed(2)}</p>
                       <p className="mt-0.5">Vuelto entregado: ${changeDue.toFixed(2)}</p>
                     </div>
@@ -1054,12 +1260,16 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
             </div>
 
             {/* WIZARD ACTIONS BAR */}
-            <div className="px-6 py-4 border-t border-white/5 bg-black/20 flex justify-between shrink-0">
+            <div className={`px-6 py-4 border-t flex justify-between shrink-0 ${
+              isDarkMode ? 'border-white/5 bg-black/20' : 'border-blue-100 bg-blue-50/30'
+            }`}>
               <button 
                 type="button" 
                 disabled={checkoutStep === 1 || isProcessing}
                 onClick={() => setCheckoutStep(prev => prev - 1)}
-                className="px-4 py-2 rounded-xl border border-white/5 hover:bg-white/5 text-xs font-semibold disabled:opacity-30"
+                className={`px-4 py-2 rounded-xl border text-xs font-semibold disabled:opacity-30 transition-colors ${
+                  isDarkMode ? 'border-white/5 hover:bg-white/5 text-gray-300' : 'border-blue-150 hover:bg-blue-50/80 bg-white text-black'
+                }`}
               >
                 Anterior
               </button>
@@ -1074,7 +1284,7 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
                     }
                     setCheckoutStep(prev => prev + 1);
                   }}
-                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs"
+                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-sm hover:scale-105 active:scale-95 transition-all"
                 >
                   Siguiente
                 </button>
@@ -1083,7 +1293,7 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
                   type="button" 
                   onClick={handleFinalCheckout} 
                   disabled={isProcessing}
-                  className="px-6 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs flex items-center gap-1.5"
+                  className="px-6 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs flex items-center gap-1.5 shadow-sm hover:scale-105 active:scale-95 transition-all"
                 >
                   {isProcessing ? <RefreshCw size={13} className="animate-spin" /> : <Sparkles size={13} />} Finalizar Venta y Emitir SRI
                 </button>
@@ -1096,40 +1306,46 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
 
       {/* QUICK CLIENT ADD MODAL IN POS */}
       {isQuickAddOpen && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in">
-          <div className="w-full max-w-md p-6 rounded-3xl bg-[#151517] border border-white/10 shadow-2xl">
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
+          <div className={`w-full max-w-md p-6 rounded-3xl border shadow-2xl transition-all duration-300 ${
+            isDarkMode ? 'bg-[#151517] border-white/10 text-white shadow-black/80' : 'bg-white border-blue-100 text-black shadow-blue-900/10'
+          }`}>
             <h3 className="text-sm font-black mb-4">Registro Rápido de Cliente (SRI)</h3>
             
             <form onSubmit={handleQuickClientSave} className="space-y-3.5">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[9px] font-bold uppercase mb-1 text-gray-400">Identificación</label>
+                  <label className={`block text-[9px] font-bold uppercase mb-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Identificación</label>
                   <select 
                     value={quickAddFormData.tipoIdentificacion} 
                     onChange={e => setQuickAddFormData({...quickAddFormData, tipoIdentificacion: e.target.value})} 
-                    className="w-full text-xs px-2.5 py-2.5 rounded-xl outline-none bg-black border border-white/10 text-white"
+                    className={`w-full text-xs px-2.5 py-2.5 rounded-xl outline-none border ${
+                      isDarkMode ? 'bg-black border-white/10 text-white' : 'bg-white border-blue-100 text-black'
+                    }`}
                   >
-                    <option value="ruc">RUC</option>
-                    <option value="cedula">Cédula</option>
-                    <option value="pasaporte">Pasaporte</option>
+                    <option value="ruc" className="text-black bg-white">RUC</option>
+                    <option value="cedula" className="text-black bg-white">Cédula</option>
+                    <option value="pasaporte" className="text-black bg-white">Pasaporte</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[9px] font-bold uppercase mb-1 text-gray-400">Número</label>
+                  <label className={`block text-[9px] font-bold uppercase mb-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Número</label>
                   <div className="flex gap-1.5">
                     <input 
                       type="text" 
                       required 
                       value={quickAddFormData.ruc} 
                       onChange={e => setQuickAddFormData({...quickAddFormData, ruc: e.target.value})} 
-                      className="w-full text-xs px-2.5 py-2.5 rounded-xl outline-none bg-black border border-white/10 text-white"
+                      className={`w-full text-xs px-2.5 py-2.5 rounded-xl outline-none border ${
+                        isDarkMode ? 'bg-black border-white/10 text-white focus:border-blue-500/50' : 'bg-white border-blue-100 text-black focus:border-blue-600'
+                      }`}
                       placeholder="1790000000001" 
                     />
                     <button
                       type="button"
                       disabled={isQueryingSri}
                       onClick={queryQuickClientSRI}
-                      className="px-3 rounded-xl border border-purple-500/30 bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 shrink-0 flex items-center justify-center"
+                      className="px-3 rounded-xl border border-purple-500/30 bg-purple-500/20 text-purple-400 hover:bg-purple-500/35 shrink-0 flex items-center justify-center transition-all active:scale-95"
                     >
                       {isQueryingSri ? <RefreshCw size={13} className="animate-spin" /> : <Sparkles size={13} />}
                     </button>
@@ -1138,65 +1354,197 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
               </div>
 
               <div>
-                <label className="block text-[9px] font-bold uppercase mb-1 text-gray-400">Razón Social / Nombre Completo</label>
+                <label className={`block text-[9px] font-bold uppercase mb-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Razón Social / Nombre Completo</label>
                 <input 
                   type="text" 
                   required 
                   value={quickAddFormData.name} 
                   onChange={e => setQuickAddFormData({...quickAddFormData, name: e.target.value})} 
-                  className="w-full text-xs px-2.5 py-2.5 rounded-xl outline-none bg-black border border-white/10 text-white" 
+                  className={`w-full text-xs px-2.5 py-2.5 rounded-xl outline-none border ${
+                    isDarkMode ? 'bg-black border-white/10 text-white focus:border-blue-500/50' : 'bg-white border-blue-100 text-black focus:border-blue-600'
+                  }`} 
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[9px] font-bold uppercase mb-1 text-gray-400">Teléfono</label>
+                  <label className={`block text-[9px] font-bold uppercase mb-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Teléfono</label>
                   <input 
                     type="text" 
                     value={quickAddFormData.telefono || ''} 
                     onChange={e => setQuickAddFormData({...quickAddFormData, telefono: e.target.value})} 
-                    className="w-full text-xs px-2.5 py-2.5 rounded-xl outline-none bg-black border border-white/10 text-white" 
+                    className={`w-full text-xs px-2.5 py-2.5 rounded-xl outline-none border ${
+                      isDarkMode ? 'bg-black border-white/10 text-white focus:border-blue-500/50' : 'bg-white border-blue-100 text-black focus:border-blue-600'
+                    }`} 
                   />
                 </div>
                 <div>
-                  <label className="block text-[9px] font-bold uppercase mb-1 text-gray-400">Contribuyente</label>
+                  <label className={`block text-[9px] font-bold uppercase mb-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Contribuyente</label>
                   <select 
                     value={quickAddFormData.tipoContribuyente} 
                     onChange={e => setQuickAddFormData({...quickAddFormData, tipoContribuyente: e.target.value})} 
-                    className="w-full text-xs px-2.5 py-2.5 rounded-xl outline-none bg-black border border-white/10 text-white"
+                    className={`w-full text-xs px-2.5 py-2.5 rounded-xl outline-none border ${
+                      isDarkMode ? 'bg-black border-white/10 text-white' : 'bg-white border-blue-100 text-black'
+                    }`}
                   >
-                    <option value="general">Régimen General</option>
-                    <option value="rimpe_popular">RIMPE Popular</option>
-                    <option value="rimpe_emprendedor">RIMPE Emprendedor</option>
+                    <option value="general" className="text-black bg-white">Régimen General</option>
+                    <option value="rimpe_popular" className="text-black bg-white">RIMPE Popular</option>
+                    <option value="rimpe_emprendedor" className="text-black bg-white">RIMPE Emprendedor</option>
                   </select>
                 </div>
               </div>
 
               <div>
-                <label className="block text-[9px] font-bold uppercase mb-1 text-gray-400">Dirección Domicilio</label>
+                <label className={`block text-[9px] font-bold uppercase mb-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Dirección Domicilio</label>
                 <input 
                   type="text" 
                   value={quickAddFormData.direccion || ''} 
                   onChange={e => setQuickAddFormData({...quickAddFormData, direccion: e.target.value})} 
-                  className="w-full text-xs px-2.5 py-2.5 rounded-xl outline-none bg-black border border-white/10 text-white" 
+                  className={`w-full text-xs px-2.5 py-2.5 rounded-xl outline-none border ${
+                    isDarkMode ? 'bg-black border-white/10 text-white focus:border-blue-500/50' : 'bg-white border-blue-100 text-black focus:border-blue-600'
+                  }`} 
                 />
               </div>
 
               <div>
-                <label className="block text-[9px] font-bold uppercase mb-1 text-gray-400">Correo Notificación</label>
+                <label className={`block text-[9px] font-bold uppercase mb-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Correo Notificación</label>
                 <input 
                   type="email" 
                   value={quickAddFormData.email || ''} 
                   onChange={e => setQuickAddFormData({...quickAddFormData, email: e.target.value})} 
-                  className="w-full text-xs px-2.5 py-2.5 rounded-xl outline-none bg-black border border-white/10 text-white" 
+                  className={`w-full text-xs px-2.5 py-2.5 rounded-xl outline-none border ${
+                    isDarkMode ? 'bg-black border-white/10 text-white focus:border-blue-500/50' : 'bg-white border-blue-100 text-black focus:border-blue-600'
+                  }`} 
                 />
               </div>
 
-              <div className="flex justify-end gap-2.5 mt-6 pt-4 border-t border-white/5">
-                <button type="button" onClick={() => setIsQuickAddOpen(false)} className="px-3.5 py-2 rounded-xl text-xs font-semibold hover:bg-white/5">Cancelar</button>
-                <button type="submit" className="px-4 py-2 rounded-xl text-xs font-black bg-emerald-600 hover:bg-emerald-500 text-white">Guardar y Seleccionar</button>
+              <div className={`flex justify-end gap-2.5 mt-6 pt-4 border-t ${isDarkMode ? 'border-white/5' : 'border-blue-100/55'}`}>
+                <button type="button" onClick={() => setIsQuickAddOpen(false)} className={`px-3.5 py-2 rounded-xl text-xs font-semibold ${isDarkMode ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-blue-50/50 text-black'}`}>Cancelar</button>
+                <button type="submit" className="px-4 py-2 rounded-xl text-xs font-black bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm hover:scale-105 active:scale-95 transition-all">Guardar y Seleccionar</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* SIDEBAR DE CONFIGURACIÓN DEL POS */}
+      {isSettingsOpen && (
+        <div className="fixed inset-0 z-[120] flex justify-end animate-in fade-in duration-200">
+          {/* Backdrop */}
+          <div onClick={() => setIsSettingsOpen(false)} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+
+          {/* Drawer Content */}
+          <div className={`relative w-80 h-full flex flex-col shadow-2xl border-l animate-in slide-in-from-right duration-300 ${
+            isDarkMode ? 'bg-[#0f0f11] border-white/10 text-white' : 'bg-white border-blue-100 text-black'
+          }`}>
+            {/* Header */}
+            <div className={`p-4 border-b flex items-center justify-between shrink-0 ${
+              isDarkMode ? 'border-white/5 bg-black/10' : 'border-blue-50 bg-blue-50/50'
+            }`}>
+              <div className="flex items-center gap-2">
+                <Settings size={16} className="text-blue-500" />
+                <h3 className="text-xs font-black uppercase tracking-wider">Configurar Punto de Venta</h3>
+              </div>
+              <button onClick={() => setIsSettingsOpen(false)} className="text-gray-500 hover:text-black">
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Config Options */}
+            <div className="flex-1 overflow-y-auto p-5 space-y-6">
+              {/* Vista productos: Grid vs List */}
+              <div className="space-y-2">
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500">Diseño de Productos</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => setPosConfig(prev => ({ ...prev, viewType: 'grid' }))}
+                    className={`py-2 rounded-xl text-xs font-bold border transition-all ${
+                      posConfig.viewType === 'grid'
+                        ? 'bg-blue-600 border-blue-600 text-white'
+                        : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-450 hover:text-white' : 'bg-blue-50/30 border-blue-100 text-black hover:bg-blue-50')
+                    }`}
+                  >
+                    Cuadrícula (Grid)
+                  </button>
+                  <button
+                    onClick={() => setPosConfig(prev => ({ ...prev, viewType: 'list' }))}
+                    className={`py-2 rounded-xl text-xs font-bold border transition-all ${
+                      posConfig.viewType === 'list'
+                        ? 'bg-blue-600 border-blue-600 text-white'
+                        : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-450 hover:text-white' : 'bg-blue-50/30 border-blue-100 text-black hover:bg-blue-50')
+                    }`}
+                  >
+                    Lista (List)
+                  </button>
+                </div>
+              </div>
+
+              {/* Filtros: Dropdown vs Carousel */}
+              <div className="space-y-2">
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500">Sistema de Filtros</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => setPosConfig(prev => ({ ...prev, showCarousel: false }))}
+                    className={`py-2 rounded-xl text-xs font-bold border transition-all ${
+                      !posConfig.showCarousel
+                        ? 'bg-blue-600 border-blue-600 text-white'
+                        : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-455 hover:text-white' : 'bg-blue-50/30 border-blue-100 text-black hover:bg-blue-50')
+                    }`}
+                  >
+                    Filtros Grid
+                  </button>
+                  <button
+                    onClick={() => setPosConfig(prev => ({ ...prev, showCarousel: true }))}
+                    className={`py-2 rounded-xl text-xs font-bold border transition-all ${
+                      posConfig.showCarousel
+                        ? 'bg-blue-600 border-blue-600 text-white'
+                        : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-455 hover:text-white' : 'bg-blue-50/30 border-blue-100 text-black hover:bg-blue-50')
+                    }`}
+                  >
+                    Carrusel Categorías
+                  </button>
+                </div>
+              </div>
+
+              {/* Posición del detalle: Izquierda vs Derecha */}
+              <div className="space-y-2">
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500">Alineación del Carrito</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => setPosConfig(prev => ({ ...prev, cartPosition: 'left' }))}
+                    className={`py-2 rounded-xl text-xs font-bold border transition-all ${
+                      posConfig.cartPosition === 'left'
+                        ? 'bg-blue-600 border-blue-600 text-white'
+                        : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-455 hover:text-white' : 'bg-blue-50/30 border-blue-100 text-black hover:bg-blue-50')
+                    }`}
+                  >
+                    Izquierda
+                  </button>
+                  <button
+                    onClick={() => setPosConfig(prev => ({ ...prev, cartPosition: 'right' }))}
+                    className={`py-2 rounded-xl text-xs font-bold border transition-all ${
+                      posConfig.cartPosition === 'right'
+                        ? 'bg-blue-600 border-blue-600 text-white'
+                        : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-455 hover:text-white' : 'bg-blue-50/30 border-blue-100 text-black hover:bg-blue-50')
+                    }`}
+                  >
+                    Derecha
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className={`p-4 border-t text-center ${
+              isDarkMode ? 'border-white/5 bg-black/10' : 'border-blue-50 bg-blue-50/20'
+            }`}>
+              <button
+                onClick={() => setIsSettingsOpen(false)}
+                className="w-full py-2.5 rounded-xl bg-blue-600 text-white font-bold text-xs hover:bg-blue-500 shadow-md hover:scale-[1.02] transition-all"
+              >
+                Cerrar y Aplicar
+              </button>
+            </div>
           </div>
         </div>
       )}

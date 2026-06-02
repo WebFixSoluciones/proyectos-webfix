@@ -16,6 +16,7 @@ import QuotesView from './QuotesView';
 import PosView from './PosView';
 import TransactionForm from './TransactionForm';
 import AccountsReceivablePayable from './AccountsReceivablePayable';
+import SalesDashboard from './SalesDashboard';
 
 export default function FinanceModule({ mode = 'contabilidad', initialSubTab, isDarkMode, showToast }) {
   const getInitialTab = (m) => {
@@ -46,7 +47,7 @@ export default function FinanceModule({ mode = 'contabilidad', initialSubTab, is
   const [isChatOpen, setIsChatOpen] = useState(false);
 
   // Estados de sub-navegación ERP
-  const [subTabVentas, setSubTabVentas] = useState(() => initialSubTab || 'facturas');
+  const [subTabVentas, setSubTabVentas] = useState(() => initialSubTab || 'dashboard_ventas');
   const [subTabSri, setSubTabSri] = useState('nota_credito');
   const [subTabPersonas, setSubTabPersonas] = useState('cliente');
 
@@ -236,9 +237,11 @@ export default function FinanceModule({ mode = 'contabilidad', initialSubTab, is
           <span className={`text-[9px] font-black uppercase tracking-wider ${isDarkMode ? 'text-gray-500' : 'text-gray-600'}`}>Módulo:</span>
           <div className="flex gap-1.5 overflow-x-auto whitespace-nowrap scrollbar-none">
             {activeTab === 'ventas' && [
-              { id: 'facturas', label: 'Facturas de Venta' },
+              { id: 'dashboard_ventas', label: 'Resumen' },
               { id: 'pos', label: 'Punto de Venta (POS)' },
-              { id: 'quotes', label: 'Cotizaciones (Proformas)' }
+              { id: 'quotes', label: 'Cotizaciones (Proformas)' },
+              { id: 'facturas', label: 'Facturas de Venta' },
+              { id: 'cxc', label: 'Cobros Clientes' }
             ].map(sub => (
               <button
                 key={sub.id}
@@ -305,6 +308,9 @@ export default function FinanceModule({ mode = 'contabilidad', initialSubTab, is
               {activeTab === 'dashboard' && <FinanceDashboard transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} db={db} appId={appId} />}
               
               {/* SECCIÓN VENTAS */}
+              {activeTab === 'ventas' && subTabVentas === 'dashboard_ventas' && (
+                <SalesDashboard transactions={transactions} thirdParties={thirdParties} products={products} isDarkMode={isDarkMode} db={db} appId={appId} />
+              )}
               {activeTab === 'ventas' && subTabVentas === 'pos' && (
                 <PosView products={products} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} appId={appId} onCheckout={handlePOSCheckout} />
               )}
@@ -313,6 +319,9 @@ export default function FinanceModule({ mode = 'contabilidad', initialSubTab, is
               )}
               {activeTab === 'ventas' && subTabVentas === 'facturas' && (
                 <TransactionsView transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} forcedDocType="factura" />
+              )}
+              {activeTab === 'ventas' && subTabVentas === 'cxc' && (
+                <AccountsReceivablePayable type="cxc" transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} appId={appId} />
               )}
 
               {/* SECCIÓN DOCUMENTOS SRI */}

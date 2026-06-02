@@ -108,38 +108,42 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
     }
   };
 
-  const inputClass = `w-full text-xs px-3 py-2.5 rounded-xl outline-none transition-all border ${
+  const inputClass = `w-full text-xs px-3.5 py-3 rounded-xl outline-none transition-all border ${
     isDarkMode 
-      ? 'bg-black/25 border-white/10 text-white focus:border-emerald-500/50' 
-      : 'bg-white border-gray-250 text-gray-900 focus:border-emerald-500/50'
+      ? 'glass-input-dark' 
+      : 'glass-input-light'
   }`;
 
   return (
     <div className="animate-in slide-in-from-bottom-4 duration-500">
       
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
-        <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border w-full sm:w-96 ${isDarkMode ? 'bg-black/20 border-white/10' : 'bg-white border-gray-200'}`}>
+        <div className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl border w-full sm:w-96 transition-all ${isDarkMode ? 'bg-black/20 border-white/10 focus-within:border-violet-500/50 focus-within:ring-1 focus-within:ring-violet-500/30' : 'bg-white border-gray-300 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500/30'}`}>
           <Search size={16} className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
           <input 
             type="text" 
             placeholder={`Buscar por nombre, RUC o dirección...`} 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="bg-transparent border-none outline-none text-sm w-full"
+            className="bg-transparent border-none outline-none text-xs w-full text-current placeholder-gray-500 focus:ring-0"
           />
         </div>
         <button 
           onClick={() => { resetForm(); setIsModalOpen(true); }}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black transition-transform shadow-sm hover:-translate-y-0.5 ${isDarkMode ? 'bg-emerald-600 text-white hover:bg-emerald-500' : 'bg-emerald-600 text-white hover:bg-emerald-700'}`}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all hover-lift shadow-md ${
+            isDarkMode 
+              ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-emerald-950/20 hover:from-emerald-500 hover:to-teal-500 border border-emerald-500/30' 
+              : 'bg-emerald-600 text-white hover:bg-emerald-700'
+          }`}
         >
           <Plus size={15} /> Nuevo {forcedType === 'cliente' ? 'Cliente' : forcedType === 'proveedor' ? 'Proveedor' : 'Contacto'}
         </button>
       </div>
 
-      <div className={`rounded-2xl border overflow-hidden backdrop-blur-xl ${isDarkMode ? 'border-white/10 bg-white/[0.02]' : 'border-gray-200 bg-white'}`}>
+      <div className={`rounded-2xl border overflow-hidden backdrop-blur-xl ${isDarkMode ? 'border-white/5 bg-white/[0.01] shadow-lg' : 'border-gray-200 bg-white shadow-sm'}`}>
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left text-xs whitespace-nowrap">
-            <thead className={`text-[10px] uppercase font-bold tracking-wider ${isDarkMode ? 'bg-black/40 text-gray-400 border-b border-white/5' : 'bg-gray-100 text-gray-800 border-b border-gray-300'}`}>
+            <thead className={`text-[10px] uppercase font-bold tracking-wider ${isDarkMode ? 'bg-black/30 text-gray-400 border-b border-white/5' : 'bg-blue-50/50 text-[#000000] border-b border-blue-100'}`}>
               <tr>
                 <th className="px-6 py-4">Razón Social / Nombres</th>
                 <th className="px-6 py-4">Identificación</th>
@@ -149,41 +153,64 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
                 <th className="px-6 py-4 text-right">Acciones</th>
               </tr>
             </thead>
-            <tbody className={`divide-y ${isDarkMode ? 'divide-white/5' : 'divide-gray-150'}`}>
-              {filtered.map(tp => (
-                <tr key={tp.id} className={`transition-colors ${isDarkMode ? 'hover:bg-white/5' : 'hover:bg-gray-50'}`}>
-                  <td className="px-6 py-4 font-semibold">
-                    <div>
-                      <p className="font-bold text-xs">{tp.name}</p>
-                      {tp.tipoContribuyente && (
-                        <span className={`px-1.5 py-0.5 rounded text-[8px] font-black uppercase inline-block mt-1 ${
-                          tp.tipoContribuyente === 'general' ? (isDarkMode ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-blue-50 text-blue-700 border border-blue-200') :
-                          tp.tipoContribuyente === 'rimpe_emprendedor' ? (isDarkMode ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-emerald-50 text-emerald-700 border border-emerald-200') :
-                          (isDarkMode ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20' : 'bg-yellow-50 text-yellow-700 border border-yellow-250')
-                        }`}>
-                          Régimen: {tp.tipoContribuyente.replace('_', ' ')}
-                        </span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 font-mono text-xs">
-                    <span className="text-[9px] text-gray-500 font-bold block uppercase opacity-80">{tp.tipoIdentificacion || 'ruc'}</span>
-                    {tp.ruc}
-                  </td>
-                  <td className="px-6 py-4 text-xs font-semibold">{tp.telefono || '-'}</td>
-                  <td className="px-6 py-4 text-xs max-w-[220px] truncate" title={tp.direccion}>{tp.direccion || '-'}</td>
-                  <td className="px-6 py-4 text-xs font-medium text-blue-500 hover:underline"><a href={`mailto:${tp.email}`}>{tp.email || '-'}</a></td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button onClick={() => { setFormData(tp); setIsModalOpen(true); }} className="p-1.5 rounded-lg hover:bg-blue-500/20 text-blue-500 transition-colors"><Edit2 size={13}/></button>
-                      <button onClick={() => handleDelete(tp.id)} className="p-1.5 rounded-lg hover:bg-red-500/20 text-red-500 transition-colors"><Trash2 size={13}/></button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+            <tbody className={`divide-y ${isDarkMode ? 'divide-white/5' : 'divide-gray-200/80'}`}>
+              {filtered.map(tp => {
+                const initials = tp.name ? tp.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'C';
+                const colors = [
+                  'from-blue-400 to-indigo-500',
+                  'from-purple-400 to-violet-600',
+                  'from-emerald-400 to-teal-500',
+                  'from-orange-400 to-amber-500',
+                  'from-sky-400 to-blue-500'
+                ];
+                // simple hash to choose color consistently
+                const charCodeSum = tp.name ? tp.name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) : 0;
+                const colorClass = colors[charCodeSum % colors.length];
+
+                return (
+                  <tr key={tp.id} className={`transition-colors ${isDarkMode ? 'hover:bg-white/[0.02]' : 'hover:bg-gray-50/50'}`}>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${colorClass} flex items-center justify-center text-[10px] font-bold text-white shadow-sm`}>
+                          {initials}
+                        </div>
+                        <div>
+                          <p className={`font-bold text-xs ${isDarkMode ? 'text-white' : 'text-black'}`}>{tp.name}</p>
+                          {tp.tipoContribuyente && (
+                            <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase inline-flex items-center gap-1 mt-1 border ${
+                              tp.tipoContribuyente === 'general' ? (isDarkMode ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-blue-50 text-blue-700 border-blue-200') :
+                              tp.tipoContribuyente === 'rimpe_emprendedor' ? (isDarkMode ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-emerald-50 text-emerald-700 border-emerald-200') :
+                              (isDarkMode ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-amber-50 text-amber-800 border-amber-250')
+                            }`}>
+                              <span className={`w-1 h-1 rounded-full ${
+                                tp.tipoContribuyente === 'general' ? 'bg-blue-400' :
+                                tp.tipoContribuyente === 'rimpe_emprendedor' ? 'bg-emerald-400' : 'bg-amber-400 animate-pulse'
+                              }`}></span>
+                              Régimen: {tp.tipoContribuyente.replace('_', ' ')}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 font-mono text-xs">
+                      <span className="text-[9px] text-gray-500 font-bold block uppercase opacity-85">{tp.tipoIdentificacion || 'ruc'}</span>
+                      <span className={isDarkMode ? 'text-gray-300' : 'text-black font-semibold'}>{tp.ruc}</span>
+                    </td>
+                    <td className={`px-6 py-4 text-xs font-bold ${isDarkMode ? 'text-gray-300' : 'text-black'}`}>{tp.telefono || '-'}</td>
+                    <td className={`px-6 py-4 text-xs max-w-[220px] truncate ${isDarkMode ? 'text-gray-400' : 'text-black font-semibold'}`} title={tp.direccion}>{tp.direccion || '-'}</td>
+                    <td className="px-6 py-4 text-xs font-bold text-violet-500 hover:underline"><a href={`mailto:${tp.email}`}>{tp.email || '-'}</a></td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button onClick={() => { setFormData(tp); setIsModalOpen(true); }} className={`p-2 rounded-xl transition-colors ${isDarkMode ? 'hover:bg-blue-500/15 text-blue-400 border border-transparent' : 'hover:bg-blue-50 text-blue-650 border border-gray-200'}`} title="Editar"><Edit2 size={13}/></button>
+                        <button onClick={() => handleDelete(tp.id)} className={`p-2 rounded-xl transition-colors ${isDarkMode ? 'hover:bg-red-500/15 text-red-400 border border-transparent' : 'hover:bg-red-50 text-red-650 border border-gray-200'}`} title="Eliminar"><Trash2 size={13}/></button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan="6" className="px-6 py-8 text-center text-gray-500 italic">No se encontraron registros de personas.</td>
+                  <td colSpan="6" className="px-6 py-12 text-center text-gray-500 italic">No se encontraron registros de personas.</td>
                 </tr>
               )}
             </tbody>
@@ -193,17 +220,22 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
 
       {/* MODAL CREAR/EDITAR */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
-          <div className={`w-full max-w-lg p-6 rounded-3xl shadow-2xl ${isDarkMode ? 'bg-[#151517] border border-white/10' : 'bg-white border border-gray-200'}`}>
-            <h2 className="text-lg font-black mb-5">
-              {formData.id ? 'Editar' : 'Nuevo'} {forcedType === 'cliente' ? 'Cliente' : forcedType === 'proveedor' ? 'Proveedor' : 'Contacto'}
-            </h2>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-md animate-in fade-in duration-200">
+          <div className={`w-full max-w-lg p-6 sm:p-8 rounded-[2rem] shadow-2xl transition-all duration-300 border ${isDarkMode ? 'glass-panel-dark text-white' : 'glass-panel-light text-gray-900'}`}>
+            <div className="flex justify-between items-center mb-6 pb-2 border-b border-white/5">
+              <h2 className="text-base font-bold font-display uppercase tracking-wider">
+                {formData.id ? 'Editar' : 'Nuevo'} {forcedType === 'cliente' ? 'Cliente' : forcedType === 'proveedor' ? 'Proveedor' : 'Contacto'}
+              </h2>
+              <button onClick={() => setIsModalOpen(false)} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-white/5 text-gray-400 hover:text-white' : 'hover:bg-black/5 text-gray-550 hover:text-gray-900'}`}>
+                <Plus size={16} className="rotate-45" />
+              </button>
+            </div>
             
             <form onSubmit={handleSave} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-500">Tipo Identificación</label>
-                  <select value={formData.tipoIdentificacion || 'ruc'} onChange={e => setFormData({...formData, tipoIdentificacion: e.target.value})} className={inputClass}>
+                  <label className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Tipo Identificación</label>
+                  <select value={formData.tipoIdentificacion || 'ruc'} onChange={e => setFormData({...formData, tipoIdentificacion: e.target.value})} className={`${inputClass} cursor-pointer`}>
                     <option value="ruc" className="text-black">RUC (13 dígitos)</option>
                     <option value="cedula" className="text-black">Cédula de Identidad (10 dígitos)</option>
                     <option value="pasaporte" className="text-black">Pasaporte</option>
@@ -211,8 +243,8 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-500">RUC / Cédula / Identificación</label>
-                  <div className="flex gap-1.5">
+                  <label className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Identificación</label>
+                  <div className="flex gap-2">
                     <input 
                       type="text" 
                       required 
@@ -225,9 +257,9 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
                       type="button"
                       disabled={isQueryingSri}
                       onClick={querySRI}
-                      className={`px-3.5 rounded-xl border flex items-center justify-center transition-all shrink-0 ${
+                      className={`px-4 rounded-xl border flex items-center justify-center transition-all shrink-0 hover-lift ${
                         isDarkMode 
-                          ? 'bg-purple-600/20 text-purple-400 border-purple-500/30 hover:bg-purple-500/30' 
+                          ? 'bg-purple-600/20 text-purple-400 border-purple-500/30 hover:bg-purple-500/30 shadow-[0_0_15px_rgba(139,92,246,0.1)]' 
                           : 'bg-purple-50 border-purple-200 text-purple-800 hover:bg-purple-100 shadow-sm'
                       }`}
                       title="Consultar base del SRI"
@@ -239,18 +271,18 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-500">Razón Social / Nombres Completos</label>
+                <label className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Razón Social / Nombres Completos</label>
                 <input type="text" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className={inputClass} placeholder="Ej. Juan Pérez o WEBFIX S.A." />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-500">Teléfono Contacto</label>
+                  <label className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Teléfono Contacto</label>
                   <input type="text" value={formData.telefono || ''} onChange={e => setFormData({...formData, telefono: e.target.value})} className={inputClass} placeholder="Ej. 0998765432 o 022987654" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-500">Régimen Contribuyente</label>
-                  <select value={formData.tipoContribuyente || 'general'} onChange={e => setFormData({...formData, tipoContribuyente: e.target.value})} className={inputClass}>
+                  <label className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Régimen Contribuyente</label>
+                  <select value={formData.tipoContribuyente || 'general'} onChange={e => setFormData({...formData, tipoContribuyente: e.target.value})} className={`${inputClass} cursor-pointer`}>
                     <option value="general" className="text-black">Régimen General</option>
                     <option value="rimpe_popular" className="text-black">RIMPE Popular</option>
                     <option value="rimpe_emprendedor" className="text-black">RIMPE Emprendedor</option>
@@ -260,19 +292,19 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-500">Dirección Matriz / Domicilio</label>
+                <label className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Dirección Matriz / Domicilio</label>
                 <input type="text" value={formData.direccion || ''} onChange={e => setFormData({...formData, direccion: e.target.value})} className={inputClass} placeholder="Av. de los Shyris y Holanda, Quito" />
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-500">Correo Electrónico (Notificación SRI)</label>
+                <label className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Correo Electrónico (Notificación SRI)</label>
                 <input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className={inputClass} placeholder="correo@ejemplo.com" />
               </div>
 
               {!forcedType && (
                 <div>
-                  <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-500">Tipo de Relación</label>
-                  <select value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})} className={inputClass}>
+                  <label className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Tipo de Relación</label>
+                  <select value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})} className={`${inputClass} cursor-pointer`}>
                     <option value="cliente" className="text-black">Cliente</option>
                     <option value="proveedor" className="text-black">Proveedor</option>
                   </select>
@@ -280,8 +312,12 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
               )}
 
               <div className="flex justify-end gap-3 mt-8 pt-4 border-t border-white/5">
-                <button type="button" onClick={() => setIsModalOpen(false)} className={`px-4 py-2 rounded-xl text-xs font-semibold ${isDarkMode ? 'hover:bg-white/10 text-gray-300' : 'hover:bg-gray-100 text-gray-700'}`}>Cancelar</button>
-                <button type="submit" className="px-4 py-2 rounded-xl text-xs font-black bg-emerald-600 text-white hover:bg-emerald-500 shadow-sm transition-transform hover:-translate-y-0.5">Guardar Persona</button>
+                <button type="button" onClick={() => setIsModalOpen(false)} className={`px-5 py-2.5 rounded-xl text-xs font-semibold transition-all ${isDarkMode ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-gray-100 text-gray-700'}`}>Cancelar</button>
+                <button type="submit" className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all hover-lift shadow-md ${
+                  isDarkMode 
+                    ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:from-emerald-500 hover:to-teal-500' 
+                    : 'bg-emerald-600 text-white hover:bg-emerald-700'
+                }`}>Guardar Persona</button>
               </div>
             </form>
           </div>

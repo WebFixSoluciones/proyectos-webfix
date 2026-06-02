@@ -123,13 +123,22 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
     v.setFullYear(v.getFullYear() + 2);
     const venceStr = v.toISOString().split('T')[0];
 
-    setSriConfig(prev => ({
-      ...prev,
-      certificadoCargado: true,
-      certificadoNombre: file.name,
-      certificadoVence: venceStr
-    }));
-    showToast(`Certificado '${file.name}' cargado exitosamente`, "success");
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64Data = event.target.result.split(',')[1];
+      setSriConfig(prev => ({
+        ...prev,
+        certificadoCargado: true,
+        certificadoNombre: file.name,
+        certificadoVence: venceStr,
+        certificadoBase64: base64Data
+      }));
+      showToast(`Certificado '${file.name}' cargado exitosamente`, "success");
+    };
+    reader.onerror = () => {
+      showToast("Error al leer el archivo de certificado", "error");
+    };
+    reader.readAsDataURL(file);
   };
 
   const removeCertificate = () => {
@@ -138,7 +147,8 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
       certificadoCargado: false,
       certificadoNombre: '',
       certificadoClave: '',
-      certificadoVence: ''
+      certificadoVence: '',
+      certificadoBase64: ''
     }));
     showToast("Certificado eliminado", "info");
   };

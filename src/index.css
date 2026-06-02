@@ -1,1 +1,137 @@
 @import "tailwindcss";
+
+/* --------------------------------------------------------------------------
+   Configuración Tipográfica Global
+   -------------------------------------------------------------------------- */
+body, .font-sans, input, textarea, select, button {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+}
+
+h1, h2, h3, h4, h5, h6, .font-display {
+  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif !important;
+  letter-spacing: -0.025em;
+}
+
+/* --------------------------------------------------------------------------
+   Clases de Glassmorphism Premium
+   -------------------------------------------------------------------------- */
+.glass-panel-dark {
+  backdrop-filter: blur(24px) saturate(120%);
+  -webkit-backdrop-filter: blur(24px) saturate(120%);
+  background: rgba(21, 21, 23, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+}
+
+.glass-panel-light {
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.03);
+}
+
+.glass-input-dark {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  backdrop-filter: blur(12px);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.glass-input-dark:focus {
+  border-color: rgba(139, 92, 246, 0.4); /* violet-500 */
+  box-shadow: 0 0 16px rgba(139, 92, 246, 0.25);
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.glass-input-light {
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  color: #111827;
+  backdrop-filter: blur(12px);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.glass-input-light:focus {
+  border-color: rgba(59, 130, 246, 0.4); /* blue-500 */
+  box-shadow: 0 0 16px rgba(59, 130, 246, 0.15);
+  background: rgba(255, 255, 255, 0.8);
+}
+
+/* --------------------------------------------------------------------------
+   Scrollbars Personalizados
+   -------------------------------------------------------------------------- */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* Scrollbars en modo claro */
+.light-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.08);
+}
+.light-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.18);
+}
+
+/* Ocultar scrollbars */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* --------------------------------------------------------------------------
+   Efectos de Animación Avanzados
+   -------------------------------------------------------------------------- */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+.shimmer-loading {
+  background: linear-gradient(90deg, rgba(255,255,255,0.01) 25%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.01) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.8s infinite ease-in-out;
+}
+.shimmer-loading-light {
+  background: linear-gradient(90deg, rgba(0,0,0,0.01) 25%, rgba(0,0,0,0.04) 50%, rgba(0,0,0,0.01) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.8s infinite ease-in-out;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.7;
+    box-shadow: 0 0 6px rgba(16, 185, 129, 0.3);
+  }
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 16px rgba(16, 185, 129, 0.6);
+  }
+}
+.animate-pulse-glow {
+  animation: pulse-glow 2s infinite ease-in-out;
+}
+
+/* Efecto Hover 3D suave */
+.hover-lift {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-2px);
+}

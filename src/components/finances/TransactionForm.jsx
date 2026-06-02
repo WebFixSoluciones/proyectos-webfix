@@ -6,7 +6,26 @@ import {
 } from 'lucide-react';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { validarIdentificacion, generarFacturaXML, simularTransmisionSRI, consultarRucSri } from '../../services/sriService';
+import { validarIdentificacion, generarFacturaXML, simularTransmisionSRI, consultarRucSri, generarRetencionXML, generarNotaCreditoXML, generarLiquidacionXML } from '../../services/sriService';
+import { firmarComprobanteXML } from '../../services/xadesSigner';
+
+const SRI_RENTA_CODES = [
+  { code: '312', label: '312 - Transferencia de tecnología / asistencia técnica (10%)', rate: 10 },
+  { code: '343', label: '343 - Servicios profesionales (10%)', rate: 10 },
+  { code: '344', label: '344 - Servicios predominio mano de obra (2.75%)', rate: 2.75 },
+  { code: '312A', label: '312A - Adquisición de bienes muebles (1.75%)', rate: 1.75 },
+  { code: '332', label: '332 - Arrendamiento de inmuebles (8%)', rate: 8 },
+  { code: '303', label: '303 - Honorarios y comisiones (10%)', rate: 10 },
+  { code: '3440', label: '3440 - Rimpe Emprendedor (1%)', rate: 1 }
+];
+
+const SRI_IVA_CODES = [
+  { code: '1', label: '1 - Retención de IVA 30% (Bienes)', rate: 30 },
+  { code: '2', label: '2 - Retención de IVA 70% (Servicios)', rate: 70 },
+  { code: '3', label: '3 - Retención de IVA 100% (Honorarios/Arrendamiento)', rate: 100 },
+  { code: '7', label: '7 - Retención de IVA 10% (Entre Agentes - Bienes)', rate: 10 },
+  { code: '8', label: '8 - Retención de IVA 20% (Entre Agentes - Servicios)', rate: 20 }
+];
 
 export default function TransactionForm({ tx, onClose, thirdParties, products = [], isDarkMode, showToast, db, storage, appId }) {
   const [sriConfig, setSriConfig] = useState(null);
@@ -36,7 +55,12 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     pdfPath: '',
     secuencial: '1',
     claveAcceso: '',
-    items: [] // Filas de productos desglosadas
+    items: [], // Filas de productos desglosadas
+    retenciones: [],
+    codDocModificado: '01',
+    numDocModificado: '',
+    fechaEmisionDocSustento: new Date().toISOString().split('T')[0],
+    motivo: 'Devolución de mercadería'
   });
 
   const [payments, setPayments] = useState({
@@ -180,8 +204,21 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     }
   }, [tx]);
 
-  // Cálculo automático del total y desglose de items
+  // Cálculo automático del total y desglose de items/retenciones
   useEffect(() => {
+    if (formData.documentType === 'retencion') {
+      const rets = formData.retenciones || [];
+      const sumRet = rets.reduce((sum, r) => sum + (parseFloat(r.valorRetenido) || 0), 0);
+      const sumBase = rets.reduce((sum, r) => sum + (parseFloat(r.baseImponible) || 0), 0);
+      setFormData(prev => ({
+        ...prev,
+        baseImponible: sumBase.toFixed(2),
+        ivaValor: '0.00',
+        total: sumRet.toFixed(2)
+      }));
+      return;
+    }
+
     const hasItems = formData.items && formData.items.length > 0;
     
     if (hasItems) {
@@ -227,8 +264,78 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     formData.ivaPorcentaje, 
     formData.retencionFuente, 
     formData.retencionIva, 
-    formData.items
+    formData.items,
+    formData.retenciones,
+    formData.documentType
   ]);
+
+  // Métodos para el desglose de retenciones
+  const handleAddRetencion = () => {
+    setFormData(prev => ({
+      ...prev,
+      retenciones: [
+        ...(prev.retenciones || []),
+        { 
+          codigo: '1', 
+          codigoRetencion: '312', 
+          baseImponible: 0, 
+          porcentajeRetener: 10, 
+          valorRetenido: 0, 
+          codDocSustento: '01', 
+          numDocSustento: '', 
+          fechaEmisionDocSustento: new Date().toISOString().split('T')[0] 
+        }
+      ]
+    }));
+  };
+
+  const handleRemoveRetencion = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      retenciones: (prev.retenciones || []).filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleRetencionChange = (index, field, value) => {
+    const updatedRets = [...(formData.retenciones || [])];
+    
+    if (field === 'codigo') {
+      const defaultCode = value === '1' ? '312' : '1';
+      const list = value === '1' ? SRI_RENTA_CODES : SRI_IVA_CODES;
+      const matched = list.find(c => c.code === defaultCode);
+      updatedRets[index] = {
+        ...updatedRets[index],
+        codigo: value,
+        codigoRetencion: defaultCode,
+        porcentajeRetener: matched ? matched.rate : 0,
+        valorRetenido: ((parseFloat(updatedRets[index].baseImponible) || 0) * (matched ? matched.rate : 0) / 100).toFixed(2)
+      };
+    } else if (field === 'codigoRetencion') {
+      const list = updatedRets[index].codigo === '1' ? SRI_RENTA_CODES : SRI_IVA_CODES;
+      const matched = list.find(c => c.code === value);
+      updatedRets[index] = {
+        ...updatedRets[index],
+        codigoRetencion: value,
+        porcentajeRetener: matched ? matched.rate : 0,
+        valorRetenido: ((parseFloat(updatedRets[index].baseImponible) || 0) * (matched ? matched.rate : 0) / 100).toFixed(2)
+      };
+    } else if (field === 'baseImponible' || field === 'porcentajeRetener') {
+      const base = field === 'baseImponible' ? parseFloat(value) || 0 : parseFloat(updatedRets[index].baseImponible) || 0;
+      const rate = field === 'porcentajeRetener' ? parseFloat(value) || 0 : parseFloat(updatedRets[index].porcentajeRetener) || 0;
+      updatedRets[index] = {
+        ...updatedRets[index],
+        [field]: value,
+        valorRetenido: (base * rate / 100).toFixed(2)
+      };
+    } else {
+      updatedRets[index] = {
+        ...updatedRets[index],
+        [field]: value
+      };
+    }
+
+    setFormData(prev => ({ ...prev, retenciones: updatedRets }));
+  };
 
   // Métodos para el desglose de productos
   const handleAddItem = () => {
@@ -456,14 +563,40 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       const sec = formData.secuencial || '1';
       const docNum = `${sriConfig.establecimiento}-${sriConfig.puntoEmision}-${String(sec).padStart(9, '0')}`;
       
-      const { xml, claveAcceso } = generarFacturaXML(sriConfig, { ...formData, secuencial: sec }, matchedTercero);
-      
+      let xmlObj;
+      if (formData.documentType === 'factura') {
+        xmlObj = generarFacturaXML(sriConfig, { ...formData, secuencial: sec }, matchedTercero);
+      } else if (formData.documentType === 'retencion') {
+        xmlObj = generarRetencionXML(sriConfig, { ...formData, secuencial: sec }, matchedTercero);
+      } else if (formData.documentType === 'nota_credito') {
+        xmlObj = generarNotaCreditoXML(sriConfig, { ...formData, secuencial: sec }, matchedTercero, formData.items);
+      } else if (formData.documentType === 'liquidacion') {
+        xmlObj = generarLiquidacionXML(sriConfig, { ...formData, secuencial: sec }, matchedTercero, formData.items);
+      } else {
+        xmlObj = generarFacturaXML(sriConfig, { ...formData, secuencial: sec }, matchedTercero);
+      }
+
+      let { xml, claveAcceso } = xmlObj;
+      let signedXml = xml;
+
+      // Firma XAdES-BES real si el certificado y la contraseña están cargados
+      if (sriConfig.certificadoCargado && sriConfig.certificadoBase64 && sriConfig.certificadoClave) {
+        setSriLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), message: "Firmando XML con firma digital XAdES-BES real...", status: 'info' }]);
+        try {
+          signedXml = firmarComprobanteXML(xml, sriConfig.certificadoBase64, sriConfig.certificadoClave);
+          setSriLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), message: "XML firmado criptográficamente de manera exitosa (Real).", status: 'success' }]);
+        } catch (signErr) {
+          console.error(signErr);
+          setSriLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), message: `Firma Fallida: ${signErr.message}. Usando simulación.`, status: 'error' }]);
+        }
+      }
+
       const result = await simularTransmisionSRI(
         {
           rucReceptor: matchedTercero.ruc,
           total: formData.total,
           claveAcceso,
-          xml
+          xml: signedXml
         },
         sriConfig,
         (logs) => setSriLogs(logs)
@@ -532,8 +665,30 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     if (!formData.claveAcceso) return;
     const element = document.createElement("a");
     const matchedTercero = thirdParties.find(tp => tp.id === formData.thirdPartyId);
-    const { xml } = generarFacturaXML(sriConfig, formData, matchedTercero);
-    const file = new Blob([xml], {type: 'text/plain'});
+    
+    let xmlObj;
+    if (formData.documentType === 'factura') {
+      xmlObj = generarFacturaXML(sriConfig, formData, matchedTercero);
+    } else if (formData.documentType === 'retencion') {
+      xmlObj = generarRetencionXML(sriConfig, formData, matchedTercero);
+    } else if (formData.documentType === 'nota_credito') {
+      xmlObj = generarNotaCreditoXML(sriConfig, formData, matchedTercero, formData.items);
+    } else if (formData.documentType === 'liquidacion') {
+      xmlObj = generarLiquidacionXML(sriConfig, formData, matchedTercero, formData.items);
+    } else {
+      xmlObj = generarFacturaXML(sriConfig, formData, matchedTercero);
+    }
+
+    let finalXml = xmlObj.xml;
+    if (sriConfig.certificadoCargado && sriConfig.certificadoBase64 && sriConfig.certificadoClave) {
+      try {
+        finalXml = firmarComprobanteXML(finalXml, sriConfig.certificadoBase64, sriConfig.certificadoClave);
+      } catch (e) {
+        console.error("Error signing XML during download", e);
+      }
+    }
+
+    const file = new Blob([finalXml], {type: 'text/xml'});
     element.href = URL.createObjectURL(file);
     element.download = `${formData.claveAcceso}.xml`;
     document.body.appendChild(element);
@@ -823,6 +978,30 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     <option value="EUR">Euros (EUR)</option>
                   </select>
                 </div>
+
+                {formData.documentType === 'nota_credito' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:col-span-2 border-t border-dashed border-gray-200 dark:border-white/5 pt-4 mt-2">
+                    <div>
+                      <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Doc Modificado</label>
+                      <select disabled={!isEditable} value={formData.codDocModificado || '01'} onChange={e => setFormData({...formData, codDocModificado: e.target.value})} className={inputClass}>
+                        <option value="01">Factura</option>
+                        <option value="03">Liquidación de Compra</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Nro. Doc Modificado</label>
+                      <input disabled={!isEditable} type="text" required value={formData.numDocModificado || ''} onChange={e => setFormData({...formData, numDocModificado: e.target.value})} className={inputClass} placeholder="001-001-000000123" />
+                    </div>
+                    <div>
+                      <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Fecha Emisión Doc Modificado</label>
+                      <input disabled={!isEditable} type="date" required value={formData.fechaEmisionDocSustento || ''} onChange={e => setFormData({...formData, fechaEmisionDocSustento: e.target.value})} className={inputClass} />
+                    </div>
+                    <div>
+                      <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Motivo de Modificación</label>
+                      <input disabled={!isEditable} type="text" required value={formData.motivo || ''} onChange={e => setFormData({...formData, motivo: e.target.value})} className={inputClass} placeholder="Ej. Devolución de mercadería" />
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -907,8 +1086,184 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
           </div>
         )}
 
+        {/* STEP 2: DETALLES DE RETENCIONES Y SUSTENTOS */}
+        {currentStep === 2 && formData.documentType === 'retencion' && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom duration-250">
+            
+            {/* SECCION RETENCIONES DETALLE */}
+            <div className="lg:col-span-2 space-y-4">
+              <div className={`p-6 rounded-3xl border shadow-sm ${isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'}`}>
+                <div className="flex justify-between items-center border-b pb-3 mb-4 border-gray-200 dark:border-white/5">
+                  <div className="flex items-center gap-2">
+                    <Layers className="text-blue-500" size={16} />
+                    <h3 className="text-xs font-bold uppercase tracking-wider">Desglose de Retenciones</h3>
+                  </div>
+                  {isEditable && (
+                    <button 
+                      type="button" 
+                      onClick={handleAddRetencion} 
+                      className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase flex items-center gap-1.5 shadow-sm transition-transform hover:-translate-y-0.5"
+                    >
+                      <Plus size={12} /> Añadir Fila
+                    </button>
+                  )}
+                </div>
+
+                <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-1 custom-scrollbar">
+                  {(formData.retenciones || []).map((ret, index) => (
+                    <div key={index} className={`p-4 rounded-2xl border space-y-3 relative ${
+                      isDarkMode ? 'bg-black/20 border-white/5' : 'bg-gray-50 border-gray-200 shadow-sm'
+                    }`}>
+                      {isEditable && (
+                        <button 
+                          type="button" 
+                          onClick={() => handleRemoveRetencion(index)} 
+                          className="absolute top-4 right-4 p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-500"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      )}
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                          <label className="block text-[9px] font-bold uppercase mb-1 text-gray-500">Impuesto</label>
+                          <select 
+                            disabled={!isEditable}
+                            value={ret.codigo} 
+                            onChange={(e) => handleRetencionChange(index, 'codigo', e.target.value)} 
+                            className={inputClass}
+                          >
+                            <option value="1">Renta</option>
+                            <option value="2">IVA</option>
+                          </select>
+                        </div>
+
+                        <div className="sm:col-span-2">
+                          <label className="block text-[9px] font-bold uppercase mb-1 text-gray-500">Concepto / Código SRI</label>
+                          <select 
+                            disabled={!isEditable}
+                            value={ret.codigoRetencion} 
+                            onChange={(e) => handleRetencionChange(index, 'codigoRetencion', e.target.value)} 
+                            className={inputClass}
+                          >
+                            {ret.codigo === '1' ? 
+                              SRI_RENTA_CODES.map(c => <option key={c.code} value={c.code} className="text-black">{c.label}</option>) :
+                              SRI_IVA_CODES.map(c => <option key={c.code} value={c.code} className="text-black">{c.label}</option>)
+                            }
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-3">
+                        <div>
+                          <label className="block text-[9px] font-bold uppercase mb-1 text-gray-500">Base Imponible ($)</label>
+                          <input 
+                            disabled={!isEditable}
+                            type="number" 
+                            step="0.01"
+                            value={ret.baseImponible || ''} 
+                            onChange={(e) => handleRetencionChange(index, 'baseImponible', e.target.value)} 
+                            className={inputClass} 
+                            placeholder="0.00"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[9px] font-bold uppercase mb-1 text-gray-500">Porcentaje (%)</label>
+                          <input 
+                            disabled={!isEditable}
+                            type="number" 
+                            step="0.1"
+                            value={ret.porcentajeRetener || ''} 
+                            onChange={(e) => handleRetencionChange(index, 'porcentajeRetener', e.target.value)} 
+                            className={inputClass} 
+                            placeholder="0.0"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[9px] font-bold uppercase mb-1 text-gray-500">Valor Retenido</label>
+                          <div className="px-3 py-2.5 rounded-xl border border-white/5 font-bold text-center bg-black/10">
+                            ${Number(ret.valorRetenido || 0).toFixed(2)}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 border-t border-white/5 pt-3">
+                        <div>
+                          <label className="block text-[9px] font-bold uppercase mb-1 text-gray-500">Doc. Sustento</label>
+                          <select 
+                            disabled={!isEditable}
+                            value={ret.codDocSustento || '01'} 
+                            onChange={(e) => handleRetencionChange(index, 'codDocSustento', e.target.value)} 
+                            className={inputClass}
+                          >
+                            <option value="01">Factura</option>
+                            <option value="03">Liquidación de Compra</option>
+                            <option value="05">Nota de Débito</option>
+                          </select>
+                        </div>
+                        <div className="sm:col-span-2">
+                          <label className="block text-[9px] font-bold uppercase mb-1 text-gray-500">Número de Factura Sustento</label>
+                          <input 
+                            disabled={!isEditable}
+                            type="text" 
+                            value={ret.numDocSustento || ''} 
+                            onChange={(e) => handleRetencionChange(index, 'numDocSustento', e.target.value)} 
+                            className={inputClass} 
+                            placeholder="001-001-000000045"
+                          />
+                        </div>
+                      </div>
+
+                    </div>
+                  ))}
+
+                  {(!formData.retenciones || formData.retenciones.length === 0) && (
+                    <div className="py-12 text-center text-gray-500 text-xs italic">
+                      No hay filas de retención agregadas. Haz clic en "Añadir Fila" para comenzar.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* SECCION RESUMEN RETENCION */}
+            <div>
+              <div className={`p-6 rounded-3xl border shadow-sm h-full flex flex-col justify-between ${
+                isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'
+              }`}>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 border-b pb-3 border-gray-200 dark:border-white/5">
+                    <Calculator className="text-purple-500" size={16} />
+                    <h3 className="text-xs font-bold uppercase tracking-wider">Consolidado Retenido</h3>
+                  </div>
+
+                  <div className={`p-4 rounded-2xl border text-xs space-y-3.5 ${
+                    isDarkMode ? 'bg-black/10 border-white/5' : 'bg-gray-50 border-gray-250'
+                  }`}>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Total Bases:</span>
+                      <span className="font-bold">${Number(formData.baseImponible).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-yellow-500">
+                      <span>Total Retenido:</span>
+                      <span className="font-black text-sm">${Number(formData.total).toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 p-4 rounded-xl border border-dashed border-gray-550/20 text-[10px] text-gray-500 leading-normal">
+                  Este comprobante de retención será emitido de acuerdo a las bases imponibles y porcentajes desglosados en el SRI.
+                </div>
+              </div>
+            </div>
+
+          </div>
+        )}
+
         {/* STEP 2: DETALLES DE PRODUCTOS Y IMPUESTOS (LIQUIDACION COMBINADA) */}
-        {currentStep === 2 && (
+        {currentStep === 2 && formData.documentType !== 'retencion' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom duration-250">
             
             {/* SECCION PRODUCTOS */}
@@ -1315,12 +1670,28 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     </div>
                   </div>
 
-                  {formData.items && formData.items.length > 0 && (
+                  {formData.documentType === 'retencion' && formData.retenciones && formData.retenciones.length > 0 && (
+                    <div className="mt-6 border-t border-white/5 pt-4">
+                      <p className="text-[9px] uppercase text-gray-500 mb-2 font-bold">Líneas de Retención</p>
+                      <div className="space-y-1">
+                        {formData.retenciones.map((ret, i) => (
+                          <div key={i} className="flex justify-between text-[11px] py-1 border-b border-dashed border-gray-200 dark:border-white/5">
+                            <span className="text-gray-400">
+                              {ret.codigo === '1' ? 'Renta' : 'IVA'} (Cód: {ret.codigoRetencion}) — Base: ${Number(ret.baseImponible).toFixed(2)} ({ret.porcentajeRetener}%)
+                            </span>
+                            <span className="font-semibold text-yellow-500">${Number(ret.valorRetenido).toFixed(2)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {formData.documentType !== 'retencion' && formData.items && formData.items.length > 0 && (
                     <div className="mt-6 border-t border-white/5 pt-4">
                       <p className="text-[9px] uppercase text-gray-500 mb-2 font-bold">Líneas de Productos</p>
                       <div className="space-y-1">
                         {formData.items.map((it, i) => (
-                          <div key={i} className="flex justify-between text-[11px] py-1 border-b border-dashed border-white/5">
+                          <div key={i} className="flex justify-between text-[11px] py-1 border-b border-dashed border-gray-200 dark:border-white/5">
                             <span className="text-gray-400">{it.quantity}x {it.name}</span>
                             <span className="font-semibold">${(it.price * it.quantity).toFixed(2)}</span>
                           </div>

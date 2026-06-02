@@ -289,7 +289,7 @@ export default function QuotesView({ products, thirdParties, isDarkMode, showToa
         ) : (
           <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-left text-xs whitespace-nowrap">
-              <thead className={`text-[10px] uppercase font-bold tracking-wider ${isDarkMode ? 'bg-black/40 text-gray-400' : 'bg-gray-100 text-gray-800 border-b border-gray-300'}`}>
+              <thead className={`text-[10px] uppercase font-bold tracking-wider ${isDarkMode ? 'bg-black/40 text-gray-400' : 'bg-blue-50/50 text-[#000000] border-b border-blue-100'}`}>
                 <tr>
                   <th className="px-6 py-4">Cotización</th>
                   <th className="px-6 py-4">Fecha</th>
@@ -306,14 +306,14 @@ export default function QuotesView({ products, thirdParties, isDarkMode, showToa
                   const client = thirdParties.find(tp => tp.id === q.thirdPartyId);
                   return (
                     <tr key={q.id} className={`transition-colors ${isDarkMode ? 'hover:bg-white/5' : 'hover:bg-gray-100/40'}`}>
-                      <td className={`px-6 py-4 font-mono text-[10px] ${isDarkMode ? '' : 'text-gray-900 font-bold'}`}>{q.quoteNumber}</td>
+                      <td className={`px-6 py-4 font-mono text-[10px] ${isDarkMode ? '' : 'text-black font-extrabold'}`}>{q.quoteNumber}</td>
                       <td className="px-6 py-4">{q.date}</td>
                       <td className="px-6 py-4">{q.validUntil || '-'}</td>
-                      <td className={`px-6 py-4 font-semibold truncate max-w-[200px] ${isDarkMode ? '' : 'text-gray-950 font-bold'}`} title={client?.name}>
+                      <td className={`px-6 py-4 font-bold truncate max-w-[200px] ${isDarkMode ? '' : 'text-black'}`} title={client?.name}>
                         {client?.name || 'Desconocido'}
                       </td>
                       <td className="px-6 py-4 text-right font-medium">{q.items?.length || 0}</td>
-                      <td className={`px-6 py-4 text-right font-black ${isDarkMode ? '' : 'text-gray-950'}`}>${Number(q.total || 0).toFixed(2)}</td>
+                      <td className={`px-6 py-4 text-right font-black ${isDarkMode ? '' : 'text-black'}`}>${Number(q.total || 0).toFixed(2)}</td>
                       <td className="px-6 py-4">{getStatusBadge(q.status)}</td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">

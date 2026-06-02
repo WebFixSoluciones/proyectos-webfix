@@ -170,6 +170,235 @@ export function generarFacturaXML(emisorConfig, facturaData, terceroData, items 
   return { xml, claveAcceso };
 }
 
+// Generar estructura XML para Retención (07)
+export function generarRetencionXML(emisorConfig, retencionData, terceroData) {
+  const claveAcceso = generarClaveAcceso({
+    fechaEmision: retencionData.date,
+    tipoComprobante: '07',
+    ruc: emisorConfig.ruc,
+    ambiente: emisorConfig.ambiente,
+    establecimiento: emisorConfig.establecimiento,
+    puntoEmision: emisorConfig.puntoEmision,
+    secuencial: retencionData.secuencial || '000000001'
+  });
+
+  const period = retencionData.date.split('-');
+  const periodoFiscal = `${period[1]}/${period[0]}`;
+
+  const retenciones = retencionData.retenciones || [];
+  let impuestosXml = '';
+  retenciones.forEach(ret => {
+    impuestosXml += `
+    <impuesto>
+      <codigo>${ret.codigo}</codigo>
+      <codigoRetencion>${ret.codigoRetencion}</codigoRetencion>
+      <baseImponible>${Number(ret.baseImponible).toFixed(2)}</baseImponible>
+      <porcentajeRetener>${Number(ret.porcentajeRetener).toFixed(2)}</porcentajeRetener>
+      <valorRetenido>${Number(ret.valorRetenido).toFixed(2)}</valorRetenido>
+      <codDocSustento>${ret.codDocSustento || '01'}</codDocSustento>
+      <numDocSustento>${ret.numDocSustento || '000-000-000000000'}</numDocSustento>
+      <fechaEmisionDocSustento>${ret.fechaEmisionDocSustento || retencionData.date.split('-').reverse().join('/')}</fechaEmisionDocSustento>
+    </impuesto>`;
+  });
+
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<comprobanteRetencion id="comprobante" version="1.0.0">
+  <infoTributaria>
+    <ambiente>${emisorConfig.ambiente}</ambiente>
+    <tipoEmision>1</tipoEmision>
+    <razonSocial>${emisorConfig.razonSocial}</razonSocial>
+    <nombreComercial>${emisorConfig.nombreComercial || emisorConfig.razonSocial}</nombreComercial>
+    <ruc>${emisorConfig.ruc}</ruc>
+    <claveAcceso>${claveAcceso}</claveAcceso>
+    <codDoc>07</codDoc>
+    <estab>${emisorConfig.establecimiento}</estab>
+    <ptoEmi>${emisorConfig.puntoEmision}</ptoEmi>
+    <secuencial>${String(retencionData.secuencial || '1').padStart(9, '0')}</secuencial>
+    <dirMatriz>${emisorConfig.direccionMatriz || 'Ecuador'}</dirMatriz>
+  </infoTributaria>
+  <infoCompRetencion>
+    <fechaEmision>${retencionData.date.split('-').reverse().join('/')}</fechaEmision>
+    <dirEstablecimiento>${emisorConfig.direccionMatriz || 'Ecuador'}</dirEstablecimiento>
+    <obligadoContabilidad>${emisorConfig.obligadoContabilidad ? 'SI' : 'NO'}</obligadoContabilidad>
+    <tipoIdentificacionSujetoRetenido>${terceroData.ruc.length === 10 ? '05' : '04'}</tipoIdentificacionSujetoRetenido>
+    <razonSocialSujetoRetenido>${terceroData.name}</razonSocialSujetoRetenido>
+    <identificacionSujetoRetenido>${terceroData.ruc}</identificacionSujetoRetenido>
+    <periodoFiscal>${periodoFiscal}</periodoFiscal>
+  </infoCompRetencion>
+  <impuestos>${impuestosXml}
+  </impuestos>
+</comprobanteRetencion>`;
+
+  return { xml, claveAcceso };
+}
+
+// Generar estructura XML para Nota de Crédito (04)
+export function generarNotaCreditoXML(emisorConfig, ncData, terceroData, items = []) {
+  const claveAcceso = generarClaveAcceso({
+    fechaEmision: ncData.date,
+    tipoComprobante: '04',
+    ruc: emisorConfig.ruc,
+    ambiente: emisorConfig.ambiente,
+    establecimiento: emisorConfig.establecimiento,
+    puntoEmision: emisorConfig.puntoEmision,
+    secuencial: ncData.secuencial || '000000001'
+  });
+
+  const activeItems = items.length > 0 ? items : (ncData.items || []);
+  let detallesXml = '';
+  activeItems.forEach((item, idx) => {
+    const lineSub = (parseFloat(item.price) || 0) * (parseInt(item.quantity) || 1);
+    const lineIva = lineSub * ((parseInt(item.ivaCategory) || 15) / 100);
+    detallesXml += `
+    <detalle>
+      <codigoInterno>P${idx + 1}</codigoInterno>
+      <descripcion>${item.name || 'Detalle'}</descripcion>
+      <cantidad>${Number(item.quantity).toFixed(2)}</cantidad>
+      <precioUnitario>${Number(item.price).toFixed(2)}</precioUnitario>
+      <descuento>0.00</descuento>
+      <precioTotalSinImpuesto>${lineSub.toFixed(2)}</precioTotalSinImpuesto>
+      <impuestos>
+        <impuesto>
+          <codigo>2</codigo>
+          <codigoPorcentaje>${item.ivaCategory === 15 ? '4' : '2'}</codigoPorcentaje>
+          <tarifa>${item.ivaCategory}</tarifa>
+          <baseImponible>${lineSub.toFixed(2)}</baseImponible>
+          <valor>${lineIva.toFixed(2)}</valor>
+        </impuesto>
+      </impuestos>
+    </detalle>`;
+  });
+
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<notaCredito id="comprobante" version="1.1.0">
+  <infoTributaria>
+    <ambiente>${emisorConfig.ambiente}</ambiente>
+    <tipoEmision>1</tipoEmision>
+    <razonSocial>${emisorConfig.razonSocial}</razonSocial>
+    <nombreComercial>${emisorConfig.nombreComercial || emisorConfig.razonSocial}</nombreComercial>
+    <ruc>${emisorConfig.ruc}</ruc>
+    <claveAcceso>${claveAcceso}</claveAcceso>
+    <codDoc>04</codDoc>
+    <estab>${emisorConfig.establecimiento}</estab>
+    <ptoEmi>${emisorConfig.puntoEmision}</ptoEmi>
+    <secuencial>${String(ncData.secuencial || '1').padStart(9, '0')}</secuencial>
+    <dirMatriz>${emisorConfig.direccionMatriz || 'Ecuador'}</dirMatriz>
+  </infoTributaria>
+  <infoNotaCredito>
+    <fechaEmision>${ncData.date.split('-').reverse().join('/')}</fechaEmision>
+    <dirEstablecimiento>${emisorConfig.direccionMatriz || 'Ecuador'}</dirEstablecimiento>
+    <tipoIdentificacionComprador>${terceroData.ruc.length === 10 ? '05' : '04'}</tipoIdentificacionComprador>
+    <razonSocialComprador>${terceroData.name}</razonSocialComprador>
+    <identificacionComprador>${terceroData.ruc}</identificacionComprador>
+    <obligadoContabilidad>${emisorConfig.obligadoContabilidad ? 'SI' : 'NO'}</obligadoContabilidad>
+    <codDocModificado>${ncData.codDocModificado || '01'}</codDocModificado>
+    <numDocModificado>${ncData.numDocModificado || '001-001-000000000'}</numDocModificado>
+    <fechaEmisionDocSustento>${ncData.fechaEmisionDocSustento || ncData.date.split('-').reverse().join('/')}</fechaEmisionDocSustento>
+    <totalSinImpuestos>${Number(ncData.baseImponible).toFixed(2)}</totalSinImpuestos>
+    <valorModificacion>${Number(ncData.total).toFixed(2)}</valorModificacion>
+    <motivo>${ncData.motivo || 'Devolución de mercadería'}</motivo>
+    <totalConImpuestos>
+      <totalImpuesto>
+        <codigo>2</codigo>
+        <codigoPorcentaje>${ncData.ivaPorcentaje === 15 ? '4' : '2'}</codigoPorcentaje>
+        <baseImponible>${Number(ncData.baseImponible).toFixed(2)}</baseImponible>
+        <valor>${Number(ncData.ivaValor).toFixed(2)}</valor>
+      </totalImpuesto>
+    </totalConImpuestos>
+  </infoNotaCredito>
+  <detalles>${detallesXml}
+  </detalles>
+</notaCredito>`;
+
+  return { xml, claveAcceso };
+}
+
+// Generar estructura XML para Liquidación de Compra (03)
+export function generarLiquidacionXML(emisorConfig, liqData, terceroData, items = []) {
+  const claveAcceso = generarClaveAcceso({
+    fechaEmision: liqData.date,
+    tipoComprobante: '03',
+    ruc: emisorConfig.ruc,
+    ambiente: emisorConfig.ambiente,
+    establecimiento: emisorConfig.establecimiento,
+    puntoEmision: emisorConfig.puntoEmision,
+    secuencial: liqData.secuencial || '000000001'
+  });
+
+  const activeItems = items.length > 0 ? items : (liqData.items || []);
+  let detallesXml = '';
+  activeItems.forEach((item, idx) => {
+    const lineSub = (parseFloat(item.price) || 0) * (parseInt(item.quantity) || 1);
+    const lineIva = lineSub * ((parseInt(item.ivaCategory) || 15) / 100);
+    detallesXml += `
+    <detalle>
+      <codigoInterno>P${idx + 1}</codigoInterno>
+      <descripcion>${item.name || 'Detalle'}</descripcion>
+      <cantidad>${Number(item.quantity).toFixed(2)}</cantidad>
+      <precioUnitario>${Number(item.price).toFixed(2)}</precioUnitario>
+      <descuento>0.00</descuento>
+      <precioTotalSinImpuesto>${lineSub.toFixed(2)}</precioTotalSinImpuesto>
+      <impuestos>
+        <impuesto>
+          <codigo>2</codigo>
+          <codigoPorcentaje>${item.ivaCategory === 15 ? '4' : '2'}</codigoPorcentaje>
+          <tarifa>${item.ivaCategory}</tarifa>
+          <baseImponible>${lineSub.toFixed(2)}</baseImponible>
+          <valor>${lineIva.toFixed(2)}</valor>
+        </impuesto>
+      </impuestos>
+    </detalle>`;
+  });
+
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<liquidacionCompra id="comprobante" version="1.1.0">
+  <infoTributaria>
+    <ambiente>${emisorConfig.ambiente}</ambiente>
+    <tipoEmision>1</tipoEmision>
+    <razonSocial>${emisorConfig.razonSocial}</razonSocial>
+    <nombreComercial>${emisorConfig.nombreComercial || emisorConfig.razonSocial}</nombreComercial>
+    <ruc>${emisorConfig.ruc}</ruc>
+    <claveAcceso>${claveAcceso}</claveAcceso>
+    <codDoc>03</codDoc>
+    <estab>${emisorConfig.establecimiento}</estab>
+    <ptoEmi>${emisorConfig.puntoEmision}</ptoEmi>
+    <secuencial>${String(liqData.secuencial || '1').padStart(9, '0')}</secuencial>
+    <dirMatriz>${emisorConfig.direccionMatriz || 'Ecuador'}</dirMatriz>
+  </infoTributaria>
+  <infoLiquidacionCompra>
+    <fechaEmision>${liqData.date.split('-').reverse().join('/')}</fechaEmision>
+    <dirEstablecimiento>${emisorConfig.direccionMatriz || 'Ecuador'}</dirEstablecimiento>
+    <obligadoContabilidad>${emisorConfig.obligadoContabilidad ? 'SI' : 'NO'}</obligadoContabilidad>
+    <tipoIdentificacionProveedor>${terceroData.ruc.length === 10 ? '05' : '04'}</tipoIdentificacionProveedor>
+    <razonSocialProveedor>${terceroData.name}</razonSocialProveedor>
+    <identificacionProveedor>${terceroData.ruc}</identificacionProveedor>
+    <totalSinImpuestos>${Number(liqData.baseImponible).toFixed(2)}</totalSinImpuestos>
+    <totalDescuento>0.00</totalDescuento>
+    <totalConImpuestos>
+      <totalImpuesto>
+        <codigo>2</codigo>
+        <codigoPorcentaje>${liqData.ivaPorcentaje === 15 ? '4' : '2'}</codigoPorcentaje>
+        <baseImponible>${Number(liqData.baseImponible).toFixed(2)}</baseImponible>
+        <valor>${Number(liqData.ivaValor).toFixed(2)}</valor>
+      </totalImpuesto>
+    </totalConImpuestos>
+    <importeTotal>${Number(liqData.total).toFixed(2)}</importeTotal>
+    <moneda>DOLAR</moneda>
+    <pagos>
+      <pago>
+        <formaPago>${liqData.paymentMethod === 'transferencia' ? '20' : '01'}</formaPago>
+        <total>${Number(liqData.total).toFixed(2)}</total>
+      </pago>
+    </pagos>
+  </infoLiquidacionCompra>
+  <detalles>${detallesXml}
+  </detalles>
+</liquidacionCompra>`;
+
+  return { xml, claveAcceso };
+}
+
+
 // Simulador de Transmisión SRI (Proceso asíncrono con bitácora)
 export function simularTransmisionSRI(documentoData, configSRI, onLogUpdate) {
   return new Promise((resolve, reject) => {

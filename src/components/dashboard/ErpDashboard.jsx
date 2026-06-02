@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   TrendingUp, TrendingDown, DollarSign, AlertCircle, Clock, ShieldAlert, Award, FileText, CheckCircle2,
   FolderOpen, CircleDashed, Sparkles, Package, ListTodo, BarChart3, Users, RefreshCw, Play, LayoutDashboard,
-  Monitor, Palette, Rocket, Briefcase, CalendarDays, Trash2, CheckCircle, ArrowRight
+  Monitor, Palette, Rocket, Briefcase, CalendarDays, Trash2, CheckCircle, ArrowRight, Settings, ShoppingCart
 } from 'lucide-react';
 import { collection, onSnapshot, doc, getDoc } from 'firebase/firestore';
 import { analizarERPContextoConGemini } from '../../services/geminiService';
@@ -36,7 +36,7 @@ const IconRenderer = ({ name, size = 18, className = "" }) => {
   }
 };
 
-export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode, setActivePageId, db, appId }) {
+export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode, setActivePageId, setVentasInitialSubTab, db, appId }) {
   const [transactions, setTransactions] = useState([]);
   const [thirdParties, setThirdParties] = useState([]);
   const [products, setProducts] = useState([]);
@@ -250,6 +250,84 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
               {certStatus === 'none' ? 'Sin firma digital' : 'Firma por vencer'}
             </div>
           )}
+        </div>
+      </div>
+
+      {/* SECCIÓN ACCESOS RÁPIDOS */}
+      <div className="space-y-3">
+        <h3 className={`text-xs font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-gray-650'}`}>Accesos Rápidos</h3>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+          {/* Item 1: POS */}
+          <button 
+            onClick={() => { setVentasInitialSubTab && setVentasInitialSubTab('pos'); setActivePageId('ventas'); }}
+            className={`flex flex-col items-center justify-center p-4 rounded-2xl border text-center transition-all duration-300 hover-lift ${isDarkMode ? 'bg-[#151517] border-white/5 hover:border-orange-500/30' : 'bg-white border-gray-300/80 hover:border-orange-500/50 shadow-sm'}`}
+          >
+            <div className={`p-3 rounded-xl mb-2.5 ${isDarkMode ? 'bg-orange-500/10 text-orange-400 border border-orange-500/15' : 'bg-orange-100 text-orange-700'}`}>
+              <ShoppingCart size={20} />
+            </div>
+            <span className="text-[11px] font-bold">Punto de Venta</span>
+            <span className={`text-[9px] mt-0.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>POS Cajero</span>
+          </button>
+          
+          {/* Item 2: Facturas SRI */}
+          <button 
+            onClick={() => { setVentasInitialSubTab && setVentasInitialSubTab('facturas'); setActivePageId('ventas'); }}
+            className={`flex flex-col items-center justify-center p-4 rounded-2xl border text-center transition-all duration-300 hover-lift ${isDarkMode ? 'bg-[#151517] border-white/5 hover:border-emerald-500/30' : 'bg-white border-gray-300/80 hover:border-emerald-500/50 shadow-sm'}`}
+          >
+            <div className={`p-3 rounded-xl mb-2.5 ${isDarkMode ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/15' : 'bg-emerald-100 text-emerald-700'}`}>
+              <FileText size={20} />
+            </div>
+            <span className="text-[11px] font-bold">Consola SRI</span>
+            <span className={`text-[9px] mt-0.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>XML Electrónicos</span>
+          </button>
+
+          {/* Item 3: Inventario */}
+          <button 
+            onClick={() => setActivePageId('inventario')}
+            className={`flex flex-col items-center justify-center p-4 rounded-2xl border text-center transition-all duration-300 hover-lift ${isDarkMode ? 'bg-[#151517] border-white/5 hover:border-sky-500/30' : 'bg-white border-gray-300/80 hover:border-sky-500/50 shadow-sm'}`}
+          >
+            <div className={`p-3 rounded-xl mb-2.5 ${isDarkMode ? 'bg-sky-500/10 text-sky-400 border border-sky-500/15' : 'bg-sky-100 text-sky-700'}`}>
+              <Package size={20} />
+            </div>
+            <span className="text-[11px] font-bold">Inventario</span>
+            <span className={`text-[9px] mt-0.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>Stock Productos</span>
+          </button>
+
+          {/* Item 4: Personas */}
+          <button 
+            onClick={() => setActivePageId('personas')}
+            className={`flex flex-col items-center justify-center p-4 rounded-2xl border text-center transition-all duration-300 hover-lift ${isDarkMode ? 'bg-[#151517] border-white/5 hover:border-indigo-500/30' : 'bg-white border-gray-300/80 hover:border-indigo-500/50 shadow-sm'}`}
+          >
+            <div className={`p-3 rounded-xl mb-2.5 ${isDarkMode ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/15' : 'bg-indigo-100 text-indigo-700'}`}>
+              <Users size={20} />
+            </div>
+            <span className="text-[11px] font-bold">Clientes / Prov</span>
+            <span className={`text-[9px] mt-0.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>Terceros SRI</span>
+          </button>
+
+          {/* Item 5: Calendario */}
+          <button 
+            onClick={() => setActivePageId('calendar')}
+            className={`flex flex-col items-center justify-center p-4 rounded-2xl border text-center transition-all duration-300 hover-lift ${isDarkMode ? 'bg-[#151517] border-white/5 hover:border-purple-500/30' : 'bg-white border-gray-300/80 hover:border-purple-500/50 shadow-sm'}`}
+          >
+            <div className={`p-3 rounded-xl mb-2.5 ${isDarkMode ? 'bg-purple-500/10 text-purple-400 border border-purple-500/15' : 'bg-purple-100 text-purple-700'}`}>
+              <CalendarDays size={20} />
+            </div>
+            <span className="text-[11px] font-bold">Calendario</span>
+            <span className={`text-[9px] mt-0.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>Google Meet</span>
+          </button>
+
+          {/* Item 6: Ajustes ERP */}
+          <button 
+            onClick={() => setActivePageId('general_settings')}
+            className={`flex flex-col items-center justify-center p-4 rounded-2xl border text-center transition-all duration-300 hover-lift ${isDarkMode ? 'bg-[#151517] border-white/5 hover:border-slate-500/30' : 'bg-white border-gray-300/80 hover:border-slate-500/50 shadow-sm'}`}
+          >
+            <div className={`p-3 rounded-xl mb-2.5 ${isDarkMode ? 'bg-slate-500/10 text-slate-400 border border-slate-500/15' : 'bg-slate-100 text-slate-700'}`}>
+              <Settings size={20} />
+            </div>
+            <span className="text-[11px] font-bold">Ajustes ERP</span>
+            <span className={`text-[9px] mt-0.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>Módulos & Llaves</span>
+          </button>
         </div>
       </div>
 
@@ -568,7 +646,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
 
         {/* CONTENIDO DEL REPORTE */}
         {isGeneratingReport ? (
-          <div className={`flex flex-col items-center justify-center py-12 rounded-2xl border border-dashed ${isDarkMode ? 'bg-black/20 border-white/5' : 'bg-gray-50/50 border-gray-250'}`}>
+          <div className={`flex flex-col items-center justify-center py-12 rounded-2xl border border-dashed ${isDarkMode ? 'bg-black/20 border-white/5 shimmer-loading' : 'bg-gray-50/50 border-gray-250 shimmer-loading-light'}`}>
             <RefreshCw size={24} className="animate-spin text-purple-500 mb-3" />
             <p className={`text-xs font-bold ${isDarkMode ? 'text-purple-300' : 'text-purple-900'}`}>Analizando métricas corporativas...</p>
             <p className="text-[10px] text-gray-500 mt-1">Gemini está procesando stock de inventario, liquidez SRI y tareas pendientes.</p>

@@ -86,10 +86,10 @@ const apiKey = ""; // API Key para Gemini (configura tu clave aquí si usas IA)
 const GOOGLE_CALENDAR_SCOPES = "https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly";
 
 // Helper Strings para clases Glassmorphism
-const glassPanelDark = "backdrop-blur-xl bg-white/[0.03] border border-white/[0.08] shadow-[0_8px_32px_0_rgba(0,0,0,0.3)]";
-const glassPanelLight = "backdrop-blur-xl bg-white/40 border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)]";
-const glassInputDark = "bg-black/20 border-white/10 focus:border-white/30 focus:ring-1 focus:ring-blue-500/50 text-white placeholder-gray-500 backdrop-blur-md";
-const glassInputLight = "bg-white/50 border-white/50 focus:border-blue-300 focus:ring-1 focus:ring-blue-500/30 text-gray-800 placeholder-gray-400 backdrop-blur-md";
+const glassPanelDark = "glass-panel-dark";
+const glassPanelLight = "glass-panel-light";
+const glassInputDark = "glass-input-dark";
+const glassInputLight = "glass-input-light";
 
 const COLUMN_COLORS = [
   { id: 'gray', badge: 'bg-gray-200/60 text-gray-700 dark:bg-white/[0.08] dark:text-gray-300', bgDark: 'bg-[#1a1a1a]/40 border-white/[0.08]', bgLight: 'bg-gray-50/50 border-gray-200/80', dot: 'bg-gray-400' },
@@ -460,7 +460,7 @@ export default function App() {
     }, 3000); // Se oculta después de 3 segundos
   };
 
-  // --- CARGAR LIBRERÍA DE GOOGLE (GIS) Y FUENTE INTER ---
+  // --- CARGAR LIBRERÍA DE GOOGLE (GIS) ---
   useEffect(() => {
     // 1. Cargar API de Google
     const script = document.createElement('script');
@@ -468,21 +468,6 @@ export default function App() {
     script.async = true;
     script.defer = true;
     document.body.appendChild(script);
-
-    // 2. Cargar tipografía Inter
-    const fontLink = document.createElement('link');
-    fontLink.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap';
-    fontLink.rel = 'stylesheet';
-    document.head.appendChild(fontLink);
-
-    // 3. Aplicar Inter globalmente
-    const style = document.createElement('style');
-    style.innerHTML = `
-      body, .font-sans, input, textarea, select, button {
-        font-family: 'Inter', sans-serif !important;
-      }
-    `;
-    document.head.appendChild(style);
   }, []);
 
   // 1. Escuchador de Autenticación de Firebase
@@ -1465,77 +1450,81 @@ export default function App() {
           </button>
         </div>
 
-        <div className={`w-full max-w-sm p-6 sm:p-8 rounded-[2rem] flex flex-col backdrop-blur-2xl transition-all border shadow-[0_0_50px_rgba(0,0,0,0.3)] ${isDarkMode ? 'bg-[#1a1a1a]/40 border-white/10' : 'bg-white/60 border-white/40'}`}>
-          <div className="flex justify-center mb-5">
-            <div className={`p-3 rounded-2xl ${isDarkMode ? 'bg-blue-500/20 text-blue-400 border border-blue-500/20 shadow-[0_0_30px_rgba(59,130,246,0.2)]' : 'bg-blue-100 text-blue-600 border border-white/50'}`}>
-              <Lock size={24} />
+        <div className={`w-full max-w-sm p-8 rounded-[2.5rem] flex flex-col transition-all duration-500 border shadow-[0_20px_50px_rgba(0,0,0,0.4)] ${isDarkMode ? 'glass-panel-dark' : 'glass-panel-light'}`}>
+          <div className="flex justify-center mb-6">
+            <div className={`p-4 rounded-2xl ${isDarkMode ? 'bg-gradient-to-br from-violet-500/20 to-indigo-500/20 text-violet-400 border border-violet-500/30 shadow-[0_0_30px_rgba(139,92,246,0.2)] animate-pulse-glow' : 'bg-blue-100 text-blue-600 border border-white/50'}`}>
+              <Lock size={26} />
             </div>
           </div>
           
-          <h2 className={`text-2xl font-light text-center tracking-wide mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Acceso al Sistema</h2>
-          <p className={`text-center text-xs font-light tracking-wide mb-6 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Ingresa tus credenciales para continuar al panel de control.</p>
-
-          <form onSubmit={handleLogin} className="space-y-4">
+          <h2 className={`text-2xl font-extrabold font-display text-center tracking-tight mb-1.5 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Acceso al Sistema</h2>
+          <p className={`text-center text-xs font-medium tracking-wide mb-8 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Ingresa tus credenciales para continuar al panel de control.</p>
+ 
+          <form onSubmit={handleLogin} className="space-y-5">
             <div>
-              <label className={`block text-[9px] font-light uppercase tracking-[0.2em] mb-1.5 ml-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Correo Electrónico</label>
+              <label className={`block text-[9px] font-bold uppercase tracking-[0.15em] mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-700'}`}>Correo Electrónico</label>
               <div className="relative">
-                <div className={`absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                <div className={`absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
                   <Mail size={16} />
                 </div>
                 <input 
                   type="email" 
                   value={loginForm.email}
                   onChange={(e) => setLoginForm({...loginForm, email: e.target.value})}
-                  className={`w-full text-sm font-light tracking-wide pl-10 pr-3 py-2.5 rounded-xl outline-none transition-all shadow-inner ${currentGlassInput}`} 
+                  className={`w-full text-xs font-medium tracking-wide pl-11 pr-3.5 py-3 rounded-xl outline-none transition-all shadow-inner ${isDarkMode ? 'glass-input-dark' : 'glass-input-light'}`} 
                   placeholder="admin@agencia.com" 
                   required
                 />
               </div>
             </div>
-
+ 
             <div>
-              <label className={`block text-[9px] font-light uppercase tracking-[0.2em] mb-1.5 ml-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Contraseña</label>
+              <label className={`block text-[9px] font-bold uppercase tracking-[0.15em] mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-700'}`}>Contraseña</label>
               <div className="relative">
-                <div className={`absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                <div className={`absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
                   <Key size={16} />
                 </div>
                 <input 
                   type="password" 
                   value={loginForm.password}
                   onChange={(e) => setLoginForm({...loginForm, password: e.target.value})}
-                  className={`w-full text-sm font-light tracking-wide pl-10 pr-3 py-2.5 rounded-xl outline-none transition-all shadow-inner ${currentGlassInput}`} 
+                  className={`w-full text-xs font-medium tracking-wide pl-11 pr-3.5 py-3 rounded-xl outline-none transition-all shadow-inner ${isDarkMode ? 'glass-input-dark' : 'glass-input-light'}`} 
                   placeholder="••••••••" 
                   required
                 />
               </div>
             </div>
-
+ 
             {loginError && (
-              <div className={`p-2 rounded-lg text-xs font-light tracking-wide flex items-center justify-center text-center animate-in fade-in zoom-in duration-300 ${isDarkMode ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-red-50 text-red-600 border border-red-100'}`}>
+              <div className={`p-2.5 rounded-xl text-xs font-semibold tracking-wide flex items-center justify-center text-center animate-in fade-in zoom-in duration-300 ${isDarkMode ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-red-50 text-red-600 border border-red-100'}`}>
                 {loginError}
               </div>
             )}
-
+ 
             <button 
               type="submit" 
               disabled={isAuthenticating}
-              className={`w-full flex items-center justify-center gap-2 mt-2 py-3 rounded-xl text-sm font-light tracking-wide transition-all shadow-md hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:translate-y-0 ${isDarkMode ? 'bg-blue-600/90 text-white border border-blue-500/50 hover:bg-blue-500' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+              className={`w-full flex items-center justify-center gap-2 mt-4 py-3.5 rounded-xl text-xs font-bold tracking-wider uppercase transition-all duration-300 hover-lift shadow-md disabled:opacity-70 disabled:hover:translate-y-0 ${
+                isDarkMode 
+                  ? 'bg-gradient-to-r from-violet-600 to-indigo-650 text-white shadow-violet-900/20 hover:from-violet-500 hover:to-indigo-550 border border-violet-500/30' 
+                  : 'bg-blue-600 text-white hover:bg-blue-700'
+              }`}
             >
               {isAuthenticating ? (
                 <>
-                  <RefreshCw size={16} className="animate-spin" /> Verificando...
+                  <RefreshCw size={14} className="animate-spin" /> Verificando...
                 </>
               ) : (
                 <>
-                  Iniciar Sesión <ArrowRight size={16} />
+                  Iniciar Sesión <ArrowRight size={14} />
                 </>
               )}
             </button>
           </form>
-
-          <div className="mt-6 pt-5 border-t border-white/10 text-center">
-            <p className={`text-[10px] font-light tracking-widest uppercase ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-              Sistema Centralizado
+ 
+          <div className="mt-8 pt-5 border-t border-white/5 text-center">
+            <p className={`text-[9px] font-bold tracking-[0.2em] uppercase ${isDarkMode ? 'text-gray-600' : 'text-gray-400'}`}>
+              Agencia WebFix &copy; 2026
             </p>
           </div>
         </div>
@@ -1736,8 +1725,8 @@ export default function App() {
         </div>
 
         {/* Editor Area */}
-        <div className={`flex-1 overflow-y-auto pb-12 pt-4 scroll-smooth custom-scrollbar ${activePage.type === 'project' ? 'px-4 md:px-8 lg:px-10' : ['finances', 'ventas', 'inventario', 'personas'].includes(activePage.type) ? 'px-0 pt-0' : 'px-6 md:px-12 lg:px-24'}`}>
-          <div className={`mx-auto ${activePage.type === 'project' || ['finances', 'ventas', 'inventario', 'personas'].includes(activePage.type) ? 'max-w-[1800px] h-full' : 'max-w-4xl'}`}>
+        <div className={`flex-1 overflow-y-auto pb-12 pt-4 scroll-smooth custom-scrollbar ${activePage.type === 'project' ? 'px-4 md:px-8 lg:px-10' : ['finances', 'ventas', 'inventario', 'personas'].includes(activePage.type) ? 'px-0 pt-0' : activePage.type !== 'doc' ? 'px-6 md:px-8 lg:px-10' : 'px-6 md:px-12 lg:px-24'}`}>
+          <div className={`mx-auto ${activePage.type === 'project' || ['finances', 'ventas', 'inventario', 'personas'].includes(activePage.type) || activePage.type !== 'doc' ? 'max-w-[1800px] h-full px-4 md:px-6' : 'max-w-4xl'}`}>
             
             {/* VISTAS FINANCIERAS MODULARES */}
             {activePageId === 'finances' && (
@@ -1777,6 +1766,7 @@ export default function App() {
                 allTasksGlobal={allTasksGlobal} 
                 isDarkMode={isDarkMode} 
                 setActivePageId={setActivePageId} 
+                setVentasInitialSubTab={setVentasInitialSubTab}
                 db={db} 
                 appId={appId} 
               />

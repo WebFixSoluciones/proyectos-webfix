@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   DollarSign, Search, Plus, Calendar, FileText, CheckCircle2, 
-  AlertTriangle, RefreshCw, Eye, ArrowDownCircle, ArrowUpCircle, X, Download
+  AlertTriangle, RefreshCw, Eye, ArrowDownCircle, ArrowUpCircle, X, Download, Users
 } from 'lucide-react';
 import { doc, setDoc } from 'firebase/firestore';
 
@@ -162,7 +162,7 @@ export default function AccountsReceivablePayable({ type = 'cxc', transactions =
               {isCxC ? 'Clientes Deudores' : 'Proveedores Acreedores'}
             </span>
             <div className="p-1.5 rounded-lg bg-purple-500/10 text-purple-500">
-              <UsersIcon size={16} />
+              <Users size={16} />
             </div>
           </div>
           <p className="text-2xl font-black">{distinctContactsCount}</p>
@@ -417,14 +417,4 @@ export default function AccountsReceivablePayable({ type = 'cxc', transactions =
   );
 }
 
-// Helper custom component for Users icon because it's mock-users
-function UsersIcon({ size }) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-users">
-      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-      <circle cx="9" cy="7" r="4" />
-      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-    </svg>
-  );
-}
+// Icono Users de lucide-react cargado directamente.
