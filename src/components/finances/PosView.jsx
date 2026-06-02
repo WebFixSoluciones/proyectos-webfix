@@ -18,7 +18,6 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
     };
     return saved ? { ...def, ...JSON.parse(saved) } : def;
   });
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   useEffect(() => {
     if (appId) {
@@ -676,12 +675,12 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
   // PANTALLA 1: APERTURA DE CAJA
   if (!activeSession) {
     return (
-      <div className={`fixed inset-0 z-[100] ${isDarkMode ? 'bg-[#08080a] text-white' : 'bg-[#f4f6f8] text-black'} flex items-center justify-center p-4 backdrop-blur-xl transition-colors duration-300`}>
+      <div className={`fixed inset-0 z-[100] ${isDarkMode ? 'bg-[#08080a] text-white' : 'bg-[#f3f8ff] text-[#000000]'} flex items-center justify-center p-4 backdrop-blur-xl transition-colors duration-300`}>
         {/* Decorative background blobs */}
         <div className={`absolute top-[-10%] left-[-5%] w-[30rem] h-[30rem] rounded-full mix-blend-screen filter blur-[100px] opacity-20 pointer-events-none ${isDarkMode ? 'bg-emerald-900' : 'bg-emerald-300'}`}></div>
         <div className={`absolute bottom-[-10%] right-[-5%] w-[30rem] h-[30rem] rounded-full mix-blend-screen filter blur-[100px] opacity-20 pointer-events-none ${isDarkMode ? 'bg-orange-900' : 'bg-orange-300'}`}></div>
 
-        <div className={`w-full max-w-md p-8 rounded-[2.5rem] border shadow-[0_20px_50px_rgba(0,0,0,0.3)] space-y-6 transition-all duration-300 ${isDarkMode ? 'glass-panel-dark text-white' : 'glass-panel-light text-black border-blue-100 bg-white'}`}>
+        <div className={`w-full max-w-md p-8 rounded-[2.5rem] border shadow-[0_20px_50px_rgba(0,0,0,0.3)] space-y-6 transition-all duration-300 ${isDarkMode ? 'glass-panel-dark text-white' : 'bg-white text-[#000000] border-blue-100'}`}>
           <div className="text-center space-y-2">
             <div className={`mx-auto w-14 h-14 rounded-2xl flex items-center justify-center border animate-pulse-glow ${isDarkMode ? 'bg-gradient-to-br from-emerald-500/20 to-teal-500/20 text-emerald-400 border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.2)]' : 'bg-emerald-50 text-emerald-600 border-emerald-250 shadow-sm'}`}>
               <DollarSign size={26} />
@@ -732,10 +731,10 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
 
   // PANTALLA 2: POS PRINCIPAL EN PANTALLA COMPLETA
   return (
-    <div className={`fixed inset-0 z-[100] ${isDarkMode ? 'bg-[#0c0c0e] text-white' : 'bg-[#f4f6f8] text-black'} flex flex-col overflow-hidden animate-in fade-in duration-300`}>
+    <div className={`fixed inset-0 z-[100] ${isDarkMode ? 'bg-[#0c0c0e] text-white' : 'bg-[#f3f8ff] text-[#000000]'} flex flex-col overflow-hidden animate-in fade-in duration-300`}>
       
       {/* TOP HEADER POS */}
-      <div className={`h-16 px-6 border-b flex items-center justify-between shrink-0 ${isDarkMode ? 'bg-[#121214]/80 border-white/5 text-white' : 'bg-white border-blue-100 text-black shadow-sm'} backdrop-blur-md`}>
+      <div className={`h-16 px-6 border-b flex items-center justify-between shrink-0 ${isDarkMode ? 'bg-[#121214]/80 border-white/5 text-white' : 'bg-white border-blue-100 text-[#000000] shadow-sm'} backdrop-blur-md`}>
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-xl bg-orange-500/10 text-orange-500 border border-orange-500/10">
             <ShoppingCart size={18} />
@@ -755,17 +754,17 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
           <button onClick={handleOpenCloseModal} className={`px-3.5 py-1.5 rounded-xl border font-bold text-[10px] uppercase ${isDarkMode ? 'border-red-500/25 bg-red-600/10 text-red-400 hover:bg-red-600/20' : 'border-red-200 bg-red-50 text-red-700 hover:bg-red-100'}`}>
             Arqueo / Cerrar Caja
           </button>
-          <button onClick={() => setIsSettingsOpen(true)} className={`p-2.5 rounded-xl transition-all ${isDarkMode ? 'bg-white/5 text-gray-400 hover:text-white' : 'bg-blue-50/80 text-blue-600 hover:bg-blue-100'}`} title="Personalizar POS">
-            <Settings size={16} />
-          </button>
           <button onClick={() => window.location.reload()} className={`p-2.5 rounded-xl transition-all ${isDarkMode ? 'bg-white/5 text-gray-400 hover:text-white' : 'bg-blue-50/80 text-blue-600 hover:bg-blue-100'}`} title="Volver al ERP / Recargar">
             <LogOut size={16} />
           </button>
         </div>
       </div>
 
-      {/* POS WORKSPACE */}
-      <div className={`flex-1 flex overflow-hidden min-h-0 ${posConfig.cartPosition === 'left' ? 'flex-row-reverse' : ''}`}>
+      {/* POS WORKSPACE CONTAINER */}
+      <div className="flex-1 flex overflow-hidden min-h-0">
+        
+        {/* POS MAIN AREA (PRODUCTS + CART) */}
+        <div className={`flex-1 flex overflow-hidden min-h-0 ${posConfig.cartPosition === 'left' ? 'flex-row-reverse' : ''}`}>
         
         {/* LADO IZQUIERDO: SELECCIÓN Y FILTRO DE PRODUCTOS */}
         <div className={`flex-1 flex flex-col p-6 min-w-0 border-r ${isDarkMode ? 'border-white/5 bg-[#0f0f11]/60' : 'border-blue-100 bg-white'}`}>
@@ -992,7 +991,7 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
         </div>
 
         {/* LADO DERECHO: DETALLE DEL PEDIDO (CHECKOUT FIJO) */}
-        <div className={`w-80 sm:w-96 flex flex-col shrink-0 border-l ${isDarkMode ? 'border-white/5 bg-[#121214]/65' : 'border-blue-100 bg-[#f8faff]'}`}>
+        <div className={`w-72 sm:w-80 flex flex-col shrink-0 border-l ${isDarkMode ? 'border-white/5 bg-[#121214]/65' : 'border-blue-100 bg-[#f8faff]'}`}>
           
           {/* CLIENTE SELECTOR */}
           <div className={`p-4 border-b flex items-center justify-between gap-2.5 shrink-0 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-blue-100 bg-blue-50/30'}`}>
@@ -1123,6 +1122,131 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
             </button>
           </div>
 
+          </div>
+
+        </div>
+
+        {/* SIDEBAR DE CONFIGURACIÓN DEL POS (ALWAYS RIGHT) */}
+        <div className={`w-64 flex flex-col shrink-0 border-l ${isDarkMode ? 'bg-[#0f0f11] border-white/10 text-white' : 'bg-[#f3f8ff] border-blue-100 text-[#000000]'}`}>
+          <div className={`p-4 border-b flex items-center justify-between shrink-0 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-blue-100 bg-blue-50'}`}>
+            <div className="flex items-center gap-2">
+              <Settings size={16} className={isDarkMode ? 'text-blue-500' : 'text-[#000000]'} />
+              <h3 className="text-[10px] font-black uppercase tracking-wider">Gestión del POS</h3>
+            </div>
+          </div>
+          <div className="flex-1 overflow-y-auto p-4 space-y-5">
+            <div className="space-y-2">
+              <label className="block text-[9px] font-bold uppercase tracking-wider text-gray-500">Diseño de Productos</label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPosConfig(prev => ({ ...prev, viewType: 'grid' }))}
+                  className={`py-2 rounded-xl text-[10px] font-bold border transition-all ${posConfig.viewType === 'grid' ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-400 hover:text-white' : 'bg-white border-blue-100 text-[#000000] hover:bg-blue-50')}`}
+                >
+                  Grid
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPosConfig(prev => ({ ...prev, viewType: 'list' }))}
+                  className={`py-2 rounded-xl text-[10px] font-bold border transition-all ${posConfig.viewType === 'list' ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-400 hover:text-white' : 'bg-white border-blue-100 text-[#000000] hover:bg-blue-50')}`}
+                >
+                  Lista
+                </button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="block text-[9px] font-bold uppercase tracking-wider text-gray-500">Filtros</label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPosConfig(prev => ({ ...prev, showCarousel: false }))}
+                  className={`py-2 rounded-xl text-[10px] font-bold border transition-all ${!posConfig.showCarousel ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-400 hover:text-white' : 'bg-white border-blue-100 text-[#000000] hover:bg-blue-50')}`}
+                >
+                  Normales
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPosConfig(prev => ({ ...prev, showCarousel: true }))}
+                  className={`py-2 rounded-xl text-[10px] font-bold border transition-all ${posConfig.showCarousel ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-400 hover:text-white' : 'bg-white border-blue-100 text-[#000000] hover:bg-blue-50')}`}
+                >
+                  Carrusel
+                </button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="block text-[9px] font-bold uppercase tracking-wider text-gray-500">Posición Detalle</label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPosConfig(prev => ({ ...prev, cartPosition: 'left' }))}
+                  className={`py-2 rounded-xl text-[10px] font-bold border transition-all ${posConfig.cartPosition === 'left' ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-400 hover:text-white' : 'bg-white border-blue-100 text-[#000000] hover:bg-blue-50')}`}
+                >
+                  Izquierda
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPosConfig(prev => ({ ...prev, cartPosition: 'right' }))}
+                  className={`py-2 rounded-xl text-[10px] font-bold border transition-all ${posConfig.cartPosition === 'right' ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-400 hover:text-white' : 'bg-white border-blue-100 text-[#000000] hover:bg-blue-50')}`}
+                >
+                  Derecha
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-2 pt-2 border-t border-white/5">
+              <label className="block text-[9px] font-bold uppercase tracking-wider text-gray-500">Buscador y Lector</label>
+              <button
+                type="button"
+                onClick={() => setPosConfig(prev => ({ ...prev, barcodeMode: !prev.barcodeMode }))}
+                className={`w-full py-2.5 px-4 rounded-xl text-[10px] font-bold border transition-all flex items-center justify-between ${
+                  posConfig.barcodeMode
+                    ? 'bg-blue-600 border-blue-600 text-white shadow-sm'
+                    : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-450 hover:text-white' : 'bg-blue-50/30 border-blue-100 text-[#000000] hover:bg-blue-50')
+                }`}
+              >
+                <span className="flex items-center gap-1.5">
+                  <Barcode size={13} /> Modo Lector
+                </span>
+                <span className="text-[9px] font-extrabold">{posConfig.barcodeMode ? 'ACTIVO' : 'INACTIVO'}</span>
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-[9px] font-bold uppercase tracking-wider text-gray-500">Checkout Exprés</label>
+              <button
+                type="button"
+                onClick={() => setPosConfig(prev => ({ ...prev, expressCheckout: !prev.expressCheckout }))}
+                className={`w-full py-2.5 px-4 rounded-xl text-[10px] font-bold border transition-all flex items-center justify-between ${
+                  posConfig.expressCheckout
+                    ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm'
+                    : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-455 hover:text-white' : 'bg-blue-50/30 border-blue-100 text-[#000000] hover:bg-blue-50')
+                }`}
+              >
+                <span className="flex items-center gap-1.5">
+                  <Zap size={13} /> Checkout 1-Paso
+                </span>
+                <span className="text-[9px] font-extrabold">{posConfig.expressCheckout ? 'ACTIVO' : 'INACTIVO'}</span>
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-[9px] font-bold uppercase tracking-wider text-gray-500">Privacidad Stock</label>
+              <button
+                type="button"
+                onClick={() => setPosConfig(prev => ({ ...prev, showStock: !prev.showStock }))}
+                className={`w-full py-2.5 px-4 rounded-xl text-[10px] font-bold border transition-all flex items-center justify-between ${
+                  posConfig.showStock
+                    ? 'bg-blue-600 border-blue-600 text-white shadow-sm'
+                    : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-455 hover:text-white' : 'bg-blue-50/30 border-blue-100 text-[#000000] hover:bg-blue-50')
+                }`}
+              >
+                <span className="flex items-center gap-1.5">
+                  <Eye size={13} /> Mostrar Stock
+                </span>
+                <span className="text-[9px] font-extrabold">{posConfig.showStock ? 'ACTIVO' : 'INACTIVO'}</span>
+              </button>
+            </div>
+          </div>
         </div>
 
       </div>
@@ -1777,211 +1901,10 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
               </div>
 
               <div className={`flex justify-end gap-2.5 mt-6 pt-4 border-t ${isDarkMode ? 'border-white/5' : 'border-blue-100/55'}`}>
-                <button type="button" onClick={() => setIsQuickAddOpen(false)} className={`px-3.5 py-2 rounded-xl text-xs font-semibold ${isDarkMode ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-blue-50/50 text-black'}`}>Cancelar</button>
+                <button type="button" onClick={() => setIsQuickAddOpen(false)} className={`px-3.5 py-2 rounded-xl text-xs font-semibold ${isDarkMode ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-blue-100/50 text-black'}`}>Cancelar</button>
                 <button type="submit" className="px-4 py-2 rounded-xl text-xs font-black bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm hover:scale-105 active:scale-95 transition-all">Guardar y Seleccionar</button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
-
-      {/* SIDEBAR DE CONFIGURACIÓN DEL POS */}
-      {isSettingsOpen && (
-        <div className="fixed inset-0 z-[120] flex justify-end animate-in fade-in duration-200">
-          {/* Backdrop */}
-          <div onClick={() => setIsSettingsOpen(false)} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-
-          {/* Drawer Content */}
-          <div className={`relative w-80 h-full flex flex-col shadow-2xl border-l animate-in slide-in-from-right duration-300 ${
-            isDarkMode ? 'bg-[#0f0f11] border-white/10 text-white' : 'bg-white border-blue-100 text-black'
-          }`}>
-            {/* Header */}
-            <div className={`p-4 border-b flex items-center justify-between shrink-0 ${
-              isDarkMode ? 'border-white/5 bg-black/10' : 'border-blue-50 bg-blue-50/50'
-            }`}>
-              <div className="flex items-center gap-2">
-                <Settings size={16} className="text-blue-500" />
-                <h3 className="text-xs font-black uppercase tracking-wider">Configurar Punto de Venta</h3>
-              </div>
-              <button onClick={() => setIsSettingsOpen(false)} className="text-gray-500 hover:text-black">
-                <X size={16} />
-              </button>
-            </div>
-
-            {/* Config Options */}
-            <div className="flex-1 overflow-y-auto p-5 space-y-6">
-              {/* Vista productos: Grid vs List */}
-              <div className="space-y-2">
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500">Diseño de Productos</label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => setPosConfig(prev => ({ ...prev, viewType: 'grid' }))}
-                    className={`py-2 rounded-xl text-xs font-bold border transition-all ${
-                      posConfig.viewType === 'grid'
-                        ? 'bg-blue-600 border-blue-600 text-white'
-                        : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-450 hover:text-white' : 'bg-blue-50/30 border-blue-100 text-black hover:bg-blue-50')
-                    }`}
-                  >
-                    Cuadrícula (Grid)
-                  </button>
-                  <button
-                    onClick={() => setPosConfig(prev => ({ ...prev, viewType: 'list' }))}
-                    className={`py-2 rounded-xl text-xs font-bold border transition-all ${
-                      posConfig.viewType === 'list'
-                        ? 'bg-blue-600 border-blue-600 text-white'
-                        : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-450 hover:text-white' : 'bg-blue-50/30 border-blue-100 text-black hover:bg-blue-50')
-                    }`}
-                  >
-                    Lista (List)
-                  </button>
-                </div>
-              </div>
-
-              {/* Columnas del Grid (solo si está en modo grid) */}
-              {posConfig.viewType === 'grid' && (
-                <div className="space-y-2">
-                  <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500">Columnas del Catálogo</label>
-                  <div className="grid grid-cols-4 gap-1.5">
-                    {[2, 3, 4, 5].map(cols => (
-                      <button
-                        key={cols}
-                        onClick={() => setPosConfig(prev => ({ ...prev, gridColumns: cols }))}
-                        className={`py-1.5 rounded-lg text-xs font-bold border transition-all ${
-                          posConfig.gridColumns === cols
-                            ? 'bg-blue-600 border-blue-600 text-white'
-                            : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-450 hover:text-white' : 'bg-blue-50/30 border-blue-100 text-black hover:bg-blue-50')
-                        }`}
-                      >
-                        {cols}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Filtros: Dropdown vs Carousel */}
-              <div className="space-y-2">
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500">Sistema de Filtros</label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => setPosConfig(prev => ({ ...prev, showCarousel: false }))}
-                    className={`py-2 rounded-xl text-xs font-bold border transition-all ${
-                      !posConfig.showCarousel
-                        ? 'bg-blue-600 border-blue-600 text-white'
-                        : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-455 hover:text-white' : 'bg-blue-50/30 border-blue-100 text-black hover:bg-blue-50')
-                    }`}
-                  >
-                    Filtros Grid
-                  </button>
-                  <button
-                    onClick={() => setPosConfig(prev => ({ ...prev, showCarousel: true }))}
-                    className={`py-2 rounded-xl text-xs font-bold border transition-all ${
-                      posConfig.showCarousel
-                        ? 'bg-blue-600 border-blue-600 text-white'
-                        : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-455 hover:text-white' : 'bg-blue-50/30 border-blue-100 text-black hover:bg-blue-50')
-                    }`}
-                  >
-                    Carrusel Categorías
-                  </button>
-                </div>
-              </div>
-
-              {/* Posición del detalle: Izquierda vs Derecha */}
-              <div className="space-y-2">
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500">Alineación del Carrito</label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => setPosConfig(prev => ({ ...prev, cartPosition: 'left' }))}
-                    className={`py-2 rounded-xl text-xs font-bold border transition-all ${
-                      posConfig.cartPosition === 'left'
-                        ? 'bg-blue-600 border-blue-600 text-white'
-                        : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-455 hover:text-white' : 'bg-blue-50/30 border-blue-100 text-black hover:bg-blue-50')
-                    }`}
-                  >
-                    Izquierda
-                  </button>
-                  <button
-                    onClick={() => setPosConfig(prev => ({ ...prev, cartPosition: 'right' }))}
-                    className={`py-2 rounded-xl text-xs font-bold border transition-all ${
-                      posConfig.cartPosition === 'right'
-                        ? 'bg-blue-600 border-blue-600 text-white'
-                        : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-455 hover:text-white' : 'bg-blue-50/30 border-blue-100 text-black hover:bg-blue-50')
-                    }`}
-                  >
-                    Derecha
-                  </button>
-                </div>
-              </div>
-
-              {/* Lector de código de barras Toggle */}
-              <div className="space-y-2">
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500">Buscador y Lector</label>
-                <button
-                  onClick={() => setPosConfig(prev => ({ ...prev, barcodeMode: !prev.barcodeMode }))}
-                  className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold border transition-all flex items-center justify-between ${
-                    posConfig.barcodeMode
-                      ? 'bg-blue-600 border-blue-600 text-white'
-                      : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-455 hover:text-white' : 'bg-blue-50/30 border-blue-100 text-black hover:bg-blue-50')
-                  }`}
-                >
-                  <span className="flex items-center gap-1.5">
-                    <Barcode size={14} /> Modo Lector de Código
-                  </span>
-                  <span className="text-[10px] font-extrabold">{posConfig.barcodeMode ? 'ACTIVO' : 'INACTIVO'}</span>
-                </button>
-                <p className="text-[9px] text-gray-500 leading-normal">Enfoca automáticamente el buscador y realiza cargas rápidas por SKU/Código al presionar Enter.</p>
-              </div>
-
-              {/* Checkout Exprés Toggle */}
-              <div className="space-y-2">
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500">Checkout del POS</label>
-                <button
-                  onClick={() => setPosConfig(prev => ({ ...prev, expressCheckout: !prev.expressCheckout }))}
-                  className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold border transition-all flex items-center justify-between ${
-                    posConfig.expressCheckout
-                      ? 'bg-emerald-600 border-emerald-600 text-white'
-                      : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-455 hover:text-white' : 'bg-blue-50/30 border-blue-100 text-black hover:bg-blue-50')
-                  }`}
-                >
-                  <span className="flex items-center gap-1.5">
-                    <Zap size={14} /> Checkout Exprés (1 Paso)
-                  </span>
-                  <span className="text-[10px] font-extrabold">{posConfig.expressCheckout ? 'ACTIVO' : 'INACTIVO'}</span>
-                </button>
-                <p className="text-[9px] text-gray-500 leading-normal">Agiliza la venta consolidando cliente, pago y emisión en un solo panel de control unificado.</p>
-              </div>
-
-              {/* Mostrar Stock Toggle */}
-              <div className="space-y-2">
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500">Privacidad de Inventario</label>
-                <button
-                  onClick={() => setPosConfig(prev => ({ ...prev, showStock: !prev.showStock }))}
-                  className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold border transition-all flex items-center justify-between ${
-                    posConfig.showStock
-                      ? 'bg-blue-600 border-blue-600 text-white'
-                      : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-455 hover:text-white' : 'bg-blue-50/30 border-blue-100 text-black hover:bg-blue-50')
-                  }`}
-                >
-                  <span className="flex items-center gap-1.5">
-                    <Eye size={14} /> Mostrar Stock en Catálogo
-                  </span>
-                  <span className="text-[10px] font-extrabold">{posConfig.showStock ? 'ACTIVO' : 'INACTIVO'}</span>
-                </button>
-                <p className="text-[9px] text-gray-500 leading-normal">Muestra u oculta la cantidad disponible de cada producto en las tarjetas de venta.</p>
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className={`p-4 border-t text-center ${
-              isDarkMode ? 'border-white/5 bg-black/10' : 'border-blue-50 bg-blue-50/20'
-            }`}>
-              <button
-                onClick={() => setIsSettingsOpen(false)}
-                className="w-full py-2.5 rounded-xl bg-blue-600 text-white font-bold text-xs hover:bg-blue-500 shadow-md hover:scale-[1.02] transition-all"
-              >
-                Cerrar y Aplicar
-              </button>
-            </div>
           </div>
         </div>
       )}

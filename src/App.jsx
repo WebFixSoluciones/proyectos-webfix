@@ -1777,7 +1777,7 @@ export default function App() {
               <div className="animate-in fade-in duration-500">
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8 pb-4 border-b border-white/10">
               <div className="flex items-center gap-3">
-                <div className={`p-2.5 rounded-xl ${isDarkMode ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.1)]' : 'bg-emerald-100 text-emerald-600 border border-white/50'}`}>
+                <div className={`p-2.5 rounded-xl ${isDarkMode ? 'bg-blue-500/20 text-blue-400 border border-blue-500/20 shadow-[0_0_20px_rgba(59,130,246,0.1)]' : 'bg-blue-100 text-blue-600 border border-white/50'}`}>
                   <Users size={24} />
                 </div>
                 <div>
@@ -1785,7 +1785,7 @@ export default function App() {
                   <p className={`text-sm mt-0.5 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Gestiona roles y cargos para asignarlos a proyectos.</p>
                 </div>
               </div>
-              <button onClick={openNewUserDrawer} className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-transform shadow-sm hover:-translate-y-0.5 ${isDarkMode ? 'bg-emerald-600 text-white shadow-emerald-900/50' : 'bg-emerald-600 text-white hover:bg-emerald-700'}`}>
+              <button onClick={openNewUserDrawer} className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-transform shadow-sm hover:-translate-y-0.5 ${isDarkMode ? 'bg-blue-600 text-white shadow-blue-900/50' : 'bg-blue-600 text-white hover:bg-blue-700'}`}>
                 <UserPlus size={16} /> Invitar Miembro
               </button>
             </div>
@@ -2344,7 +2344,7 @@ export default function App() {
           <>
             <div className={`flex items-center justify-between px-6 py-4 border-b shrink-0 ${isDarkMode ? 'border-white/10' : 'border-black/5'}`}>
               <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-xl shadow-inner ${isDarkMode ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/20' : 'bg-emerald-100 text-emerald-600 border border-emerald-200'}`}><UserPlus size={18} /></div>
+                <div className={`p-2 rounded-xl shadow-inner ${isDarkMode ? 'bg-blue-500/20 text-blue-400 border border-blue-500/20' : 'bg-blue-100 text-blue-600 border border-blue-200'}`}><UserPlus size={18} /></div>
                 <h2 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{drawerUser.isNew ? 'Invitar Miembro' : 'Editar Usuario'}</h2>
               </div>
               <button onClick={() => setDrawerUser(null)} className={`p-2 rounded-lg transition-all shadow-sm ${isDarkMode ? 'bg-white/5 hover:bg-white/20 text-gray-300 border border-white/5' : 'bg-white hover:bg-gray-100 text-gray-600 border border-gray-200'}`}><X size={16} /></button>
@@ -2395,7 +2395,8 @@ export default function App() {
             </div>
             
             <div className={`px-6 py-4 border-t flex justify-end shrink-0 ${isDarkMode ? 'border-white/10 bg-black/20 backdrop-blur-md' : 'border-black/5 bg-white/40 backdrop-blur-md'}`}>
-              <button onClick={saveDrawerUser} disabled={!drawerUser.name.trim()} className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-transform shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 hover:scale-105 ${isDarkMode ? 'bg-emerald-600 text-white shadow-emerald-900/50' : 'bg-emerald-600 text-white hover:bg-emerald-700'}`}><Save size={16} /> Guardar Usuario</button>
+              <button onClick={() => setDrawerUser(null)} className={`px-4 py-2.5 rounded-lg font-semibold text-sm transition-colors ${isDarkMode ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-gray-100 text-gray-600'}`}>Cancelar</button>
+              <button onClick={saveDrawerUser} disabled={!drawerUser.name.trim()} className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-transform shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 hover:scale-105 ${isDarkMode ? 'bg-blue-600 text-white shadow-blue-900/50' : 'bg-blue-600 text-white hover:bg-blue-700'}`}><Save size={16} /> Guardar Usuario</button>
             </div>
           </>
         )}

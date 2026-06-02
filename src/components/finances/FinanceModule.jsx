@@ -285,7 +285,7 @@ export default function FinanceModule({ mode = 'contabilidad', initialSubTab, is
                 onClick={() => setSubTabPersonas(sub.id)}
                 className={`px-3 py-1 rounded-lg text-xs font-bold transition-all border ${
                   subTabPersonas === sub.id
-                    ? (isDarkMode ? 'bg-purple-500/20 text-purple-450 border-purple-500/30' : 'bg-purple-600 text-white border-purple-600 shadow-sm')
+                    ? (isDarkMode ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' : 'bg-blue-600 text-white border-blue-600 shadow-sm')
                     : (isDarkMode ? 'border-transparent text-gray-400 hover:text-gray-200' : 'border-transparent text-black hover:text-black hover:bg-white/80')
                 }`}
               >

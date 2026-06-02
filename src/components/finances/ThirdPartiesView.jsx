@@ -132,8 +132,8 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
           onClick={() => { resetForm(); setIsModalOpen(true); }}
           className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all hover-lift shadow-md ${
             isDarkMode 
-              ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-emerald-950/20 hover:from-emerald-500 hover:to-teal-500 border border-emerald-500/30' 
-              : 'bg-emerald-600 text-white hover:bg-emerald-700'
+              ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-blue-950/20 hover:from-blue-500 hover:to-indigo-500 border border-blue-500/30' 
+              : 'bg-blue-600 text-white hover:bg-blue-700'
           }`}
         >
           <Plus size={15} /> Nuevo {forcedType === 'cliente' ? 'Cliente' : forcedType === 'proveedor' ? 'Proveedor' : 'Contacto'}
@@ -315,8 +315,8 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
                 <button type="button" onClick={() => setIsModalOpen(false)} className={`px-5 py-2.5 rounded-xl text-xs font-semibold transition-all ${isDarkMode ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-gray-100 text-gray-700'}`}>Cancelar</button>
                 <button type="submit" className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all hover-lift shadow-md ${
                   isDarkMode 
-                    ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:from-emerald-500 hover:to-teal-500' 
-                    : 'bg-emerald-600 text-white hover:bg-emerald-700'
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-500 hover:to-indigo-500' 
+                    : 'bg-blue-600 text-white hover:bg-blue-700'
                 }`}>Guardar Persona</button>
               </div>
             </form>

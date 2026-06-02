@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Shield, Award, Sparkles, Key, Eye, EyeOff, Save, CheckCircle2, UploadCloud, Trash2 } from 'lucide-react';
+import { Settings, Shield, Award, Sparkles, Key, Eye, EyeOff, Save, CheckCircle2, UploadCloud, Trash2, ExternalLink, AlertCircle, CheckCircle } from 'lucide-react';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import forge from 'node-forge';
 
 export default function FinanceSettings({ isDarkMode, showToast, db, storage, appId }) {
   const [loading, setLoading] = useState(true);
@@ -28,6 +29,146 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
   
   const [geminiKey, setGeminiKey] = useState('');
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+
+  const [certValidation, setCertValidation] = useState({
+    verificado: false,
+    mensaje: 'Cargue su firma electrónica (.p12 / .pfx) e ingrese la contraseña para verificarla.',
+    tipo: 'info',
+    sujeto: '',
+    emisor: '',
+    vence: '',
+    ruc: ''
+  });
+
+  const verifySignatureDetails = (base64, password, emisorRuc) => {
+    if (!base64) {
+      setCertValidation({
+        verificado: false,
+        mensaje: 'Por favor, suba primero su archivo de firma (.p12 o .pfx).',
+        tipo: 'info',
+        sujeto: '',
+        emisor: '',
+        vence: '',
+        ruc: ''
+      });
+      return;
+    }
+    if (!password) {
+      setCertValidation({
+        verificado: false,
+        mensaje: 'Por favor, ingrese la contraseña de la firma para verificarla.',
+        tipo: 'info',
+        sujeto: '',
+        emisor: '',
+        vence: '',
+        ruc: ''
+      });
+      return;
+    }
+
+    try {
+      const p12Der = forge.util.decode64(base64);
+      const p12Asn1 = forge.asn1.fromDer(p12Der);
+      const p12 = forge.pkcs12.pkcs12FromAsn1(p12Asn1, false, password);
+      
+      const certBag = p12.getBags({ bagType: forge.pki.oids.certBag });
+      let certificate;
+      for (let certId in certBag) {
+        if (certBag[certId] && certBag[certId][0]) {
+          certificate = certBag[certId][0].cert;
+          break;
+        }
+      }
+
+      if (!certificate) {
+        setCertValidation({
+          verificado: false,
+          mensaje: 'Error: No se encontró ningún certificado en el archivo cargado.',
+          tipo: 'error',
+          sujeto: '',
+          emisor: '',
+          vence: '',
+          ruc: ''
+        });
+        return;
+      }
+
+      const cn = certificate.subject.getField('CN')?.value || 'Desconocido';
+      const o = certificate.subject.getField('O')?.value || '';
+      const issuerCN = certificate.issuer.getField('CN')?.value || 'Autoridad Certificadora';
+      const issuerO = certificate.issuer.getField('O')?.value || '';
+      
+      const expirationDate = certificate.validity.notAfter;
+      const now = new Date();
+      const isExpired = expirationDate < now;
+      const venceStr = expirationDate.toISOString().split('T')[0];
+
+      // Extract RUC from subject attributes
+      let certRuc = '';
+      for (let attr of certificate.subject.attributes) {
+        if (attr.name === 'serialNumber' || attr.shortName === 'SN') {
+          const val = attr.value;
+          if (typeof val === 'string') {
+            const match = val.match(/\d{13}/);
+            if (match) certRuc = match[0];
+          }
+        }
+      }
+
+      if (!certRuc) {
+        for (let attr of certificate.subject.attributes) {
+          if (typeof attr.value === 'string') {
+            const match = attr.value.match(/\d{13}/);
+            if (match) {
+              certRuc = match[0];
+              break;
+            }
+          }
+        }
+      }
+
+      let tipo = 'success';
+      let mensaje = 'Firma digital descifrada correctamente. ¡Lista para facturar!';
+
+      if (isExpired) {
+        tipo = 'error';
+        mensaje = `La firma electrónica EXPIRÓ el ${venceStr}. Por favor, renuévela para poder firmar comprobantes.`;
+      } else if (emisorRuc && certRuc && certRuc !== emisorRuc) {
+        tipo = 'warning';
+        mensaje = `Advertencia: El RUC de la firma (${certRuc}) no coincide con el RUC de emisor (${emisorRuc}). El SRI rechazará los comprobantes.`;
+      } else if (emisorRuc && !certRuc) {
+        tipo = 'warning';
+        mensaje = 'Firma descifrada. No pudimos extraer un RUC de 13 dígitos de la firma automáticamente. Asegúrese de que pertenezca a este emisor.';
+      }
+
+      setCertValidation({
+        verificado: !isExpired,
+        mensaje,
+        tipo,
+        sujeto: cn + (o ? ` (${o})` : ''),
+        emisor: issuerCN || issuerO,
+        vence: venceStr,
+        ruc: certRuc
+      });
+
+      setSriConfig(prev => ({
+        ...prev,
+        certificadoVence: venceStr
+      }));
+
+    } catch (err) {
+      console.error("Error decrypting p12:", err);
+      setCertValidation({
+        verificado: false,
+        mensaje: 'Error de descifrado: La contraseña ingresada es incorrecta o el archivo está dañado.',
+        tipo: 'error',
+        sujeto: '',
+        emisor: '',
+        vence: '',
+        ruc: ''
+      });
+    }
+  };
 
   const handleLogoUpload = async (e) => {
     const file = e.target.files[0];
@@ -64,15 +205,36 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
     async function loadSettings() {
       if (!appId) return;
       try {
+        let loadedConfig = {};
         const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config');
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-          setSriConfig(prev => ({ ...prev, ...docSnap.data() }));
+          loadedConfig = docSnap.data();
+          setSriConfig(prev => ({ ...prev, ...loadedConfig }));
         }
         
-        // Cargar Gemini Key de localStorage
-        const savedKey = localStorage.getItem('finances_gemini_api_key') || '';
+        // Cargar Gemini Key de localStorage con fallback a Firestore de meta/info
+        let savedKey = localStorage.getItem('finances_gemini_api_key') || '';
+        
+        const infoRef = doc(db, 'artifacts', appId, 'public', 'data', 'meta', 'info');
+        const infoSnap = await getDoc(infoRef);
+        if (infoSnap.exists()) {
+          const infoData = infoSnap.data();
+          if (infoData.geminiApiKey && !savedKey) {
+            savedKey = infoData.geminiApiKey;
+            localStorage.setItem('finances_gemini_api_key', savedKey);
+          }
+        }
+        
         setGeminiKey(savedKey);
+
+        // Auto-verificar firma si existen credenciales guardadas
+        if (loadedConfig.certificadoCargado && loadedConfig.certificadoBase64 && loadedConfig.certificadoClave) {
+          // Utilizar un timeout corto para dar tiempo al render del componente
+          setTimeout(() => {
+            verifySignatureDetails(loadedConfig.certificadoBase64, loadedConfig.certificadoClave, loadedConfig.ruc || '');
+          }, 100);
+        }
       } catch (err) {
         console.error("Error al cargar configuraciones", err);
         showToast("Error al cargar configuraciones", "error");
@@ -100,7 +262,14 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
       await setDoc(docRef, sriConfig, { merge: true });
 
       // Guardar Gemini Key en localStorage
-      localStorage.setItem('finances_gemini_api_key', geminiKey.trim());
+      const trimmedKey = geminiKey.trim();
+      localStorage.setItem('finances_gemini_api_key', trimmedKey);
+      
+      // Guardar Gemini Key en Firestore meta/info para sincronización cloud
+      if (trimmedKey) {
+        const infoRef = doc(db, 'artifacts', appId, 'public', 'data', 'meta', 'info');
+        await setDoc(infoRef, { geminiApiKey: trimmedKey }, { merge: true });
+      }
       
       showToast("Configuraciones fiscales guardadas", "success");
     } catch (err) {
@@ -118,11 +287,6 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
       return;
     }
 
-    // Configurar vencimiento simulado: 2 años a partir de hoy
-    const v = new Date();
-    v.setFullYear(v.getFullYear() + 2);
-    const venceStr = v.toISOString().split('T')[0];
-
     const reader = new FileReader();
     reader.onload = (event) => {
       const base64Data = event.target.result.split(',')[1];
@@ -130,10 +294,20 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
         ...prev,
         certificadoCargado: true,
         certificadoNombre: file.name,
-        certificadoVence: venceStr,
-        certificadoBase64: base64Data
+        certificadoBase64: base64Data,
+        certificadoClave: '',
+        certificadoVence: ''
       }));
-      showToast(`Certificado '${file.name}' cargado exitosamente`, "success");
+      setCertValidation({
+        verificado: false,
+        mensaje: 'Certificado cargado. Ingrese la contraseña y haga clic en Verificar.',
+        tipo: 'info',
+        sujeto: '',
+        emisor: '',
+        vence: '',
+        ruc: ''
+      });
+      showToast(`Certificado '${file.name}' cargado. Ingrese la contraseña.`, "info");
     };
     reader.onerror = () => {
       showToast("Error al leer el archivo de certificado", "error");
@@ -150,6 +324,15 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
       certificadoVence: '',
       certificadoBase64: ''
     }));
+    setCertValidation({
+      verificado: false,
+      mensaje: 'Cargue su firma electrónica (.p12 / .pfx) para comenzar.',
+      tipo: 'info',
+      sujeto: '',
+      emisor: '',
+      vence: '',
+      ruc: ''
+    });
     showToast("Certificado eliminado", "info");
   };
 
@@ -238,16 +421,59 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
             
             {sriConfig.certificadoCargado ? (
               <div className="space-y-3">
-                <div className={`p-3 rounded-xl border flex items-center justify-between ${isDarkMode ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-emerald-50 border-emerald-200 text-emerald-700'}`}>
-                  <div className="truncate pr-2">
-                    <p className="text-xs font-bold truncate">{sriConfig.certificadoNombre}</p>
-                    <p className="text-[10px] opacity-85">Expira: {sriConfig.certificadoVence}</p>
+                <div className={`p-4 rounded-xl border space-y-2.5 transition-all duration-305 ${
+                  certValidation.tipo === 'success' 
+                    ? (isDarkMode ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-450' : 'bg-emerald-50 border-emerald-200 text-emerald-850')
+                    : certValidation.tipo === 'warning'
+                      ? (isDarkMode ? 'bg-amber-500/10 border-amber-500/20 text-amber-450' : 'bg-amber-50 border-amber-200 text-amber-850')
+                      : certValidation.tipo === 'error'
+                        ? (isDarkMode ? 'bg-red-500/10 border-red-500/20 text-red-450' : 'bg-red-50 border-red-200 text-red-850')
+                        : (isDarkMode ? 'bg-blue-500/10 border-blue-500/20 text-blue-450' : 'bg-blue-50 border-blue-200 text-blue-900')
+                }`}>
+                  <div className="flex justify-between items-start">
+                    <div className="truncate pr-2">
+                      <p className="text-xs font-black truncate">{sriConfig.certificadoNombre}</p>
+                      {certValidation.sujeto && <p className="text-[10px] font-bold mt-1.5 text-gray-400">Sujeto: <span className="font-extrabold text-gray-800 dark:text-gray-200">{certValidation.sujeto}</span></p>}
+                      {certValidation.emisor && <p className="text-[9px] opacity-80 mt-0.5">Emisor: {certValidation.emisor}</p>}
+                      {certValidation.vence && <p className="text-[9px] opacity-80 mt-0.5 font-mono">Expira: {certValidation.vence}</p>}
+                      {certValidation.ruc && <p className="text-[9px] opacity-85 mt-0.5 font-bold">RUC Firma: {certValidation.ruc}</p>}
+                    </div>
+                    <button type="button" onClick={removeCertificate} className="text-xs font-bold text-red-500 hover:text-red-650 hover:underline shrink-0">Remover</button>
                   </div>
-                  <button type="button" onClick={removeCertificate} className="text-xs font-bold text-red-500 hover:underline">Remover</button>
+                  
+                  <div className="flex items-start gap-1.5 border-t border-current/10 pt-2.5">
+                    {certValidation.tipo === 'success' && <CheckCircle size={14} className="shrink-0 mt-0.5 text-emerald-500" />}
+                    {certValidation.tipo === 'warning' && <AlertCircle size={14} className="shrink-0 mt-0.5 text-amber-500" />}
+                    {certValidation.tipo === 'error' && <AlertCircle size={14} className="shrink-0 mt-0.5 text-red-500" />}
+                    {certValidation.tipo === 'info' && <Shield size={14} className="shrink-0 mt-0.5 text-blue-500" />}
+                    <p className="text-[10px] leading-relaxed font-semibold">
+                      {certValidation.mensaje}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-[10px] font-bold uppercase mb-1 text-gray-500">Contraseña Firma</label>
-                  <input type="password" value={sriConfig.certificadoClave} onChange={e => setSriConfig({...sriConfig, certificadoClave: e.target.value})} className={inputClass} placeholder="Contraseña de firma (.p12)" />
+
+                <div className="space-y-1.5">
+                  <label className="block text-[10px] font-bold uppercase text-gray-500">Contraseña Firma</label>
+                  <div className="flex gap-2">
+                    <input 
+                      type="password" 
+                      value={sriConfig.certificadoClave} 
+                      onChange={e => setSriConfig({...sriConfig, certificadoClave: e.target.value})} 
+                      className={inputClass} 
+                      placeholder="Contraseña de firma (.p12)" 
+                    />
+                    <button 
+                      type="button" 
+                      onClick={() => verifySignatureDetails(sriConfig.certificadoBase64, sriConfig.certificadoClave, sriConfig.ruc)}
+                      className={`px-3.5 rounded-xl text-xs font-bold transition-all border ${
+                        isDarkMode 
+                          ? 'bg-blue-500/10 hover:bg-blue-500/20 border-blue-500/30 text-blue-400' 
+                          : 'bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-800'
+                      }`}
+                    >
+                      Verificar
+                    </button>
+                  </div>
                 </div>
               </div>
             ) : (
@@ -260,6 +486,43 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
                 <p className="text-[10px] text-gray-500 mt-2 leading-relaxed">El certificado digital se mantiene en el ámbito de tu navegador para firmar los comprobantes en tiempo real.</p>
               </div>
             )}
+          </div>
+
+          {/* VINCULACIÓN SRI ECUADOR */}
+          <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-white border-gray-200'}`}>
+            <div className="flex items-center gap-2 mb-4 pb-2 border-b border-white/10">
+              <ExternalLink size={18} className="text-blue-550" />
+              <h3 className="text-base font-bold">Vinculación SRI (Ecuador)</h3>
+            </div>
+            
+            <div className="space-y-3 text-xs leading-normal">
+              <p className="text-gray-400 text-[10px]">
+                Siga estos pasos para enlazar su ERP con el Servicio de Rentas Internas:
+              </p>
+              <ol className="list-decimal pl-4 text-gray-400 space-y-1.5 text-[10px]">
+                <li>
+                  Ingrese a <a href="https://srienlinea.sri.gob.ec" target="_blank" rel="noreferrer" className="text-blue-500 hover:underline font-bold inline-flex items-center gap-0.5">SRI en Línea <ExternalLink size={8} /></a> con su RUC y clave.
+                </li>
+                <li>
+                  Vaya a <strong>Facturación Electrónica</strong> &gt; <strong>Pruebas</strong> o <strong>Producción</strong> &gt; <strong>Autorización</strong> para habilitar su emisión.
+                </li>
+                <li>
+                  Asegúrese de cargar su firma electrónica vigente <code>.p12</code> y escribir la contraseña arriba.
+                </li>
+              </ol>
+
+              <div className={`p-3 rounded-xl border text-[9px] ${
+                sriConfig.ambiente === '2'
+                  ? (isDarkMode ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-450' : 'bg-emerald-50 border-emerald-250 text-emerald-800')
+                  : (isDarkMode ? 'bg-amber-500/10 border-amber-500/20 text-amber-450' : 'bg-amber-50 border-amber-250 text-amber-800')
+              }`}>
+                <p className="font-bold uppercase tracking-wider mb-1">Endpoints SRI Configurados:</p>
+                <div className="font-mono space-y-0.5">
+                  <p className="truncate">Recepción: {sriConfig.ambiente === '2' ? 'https://cel.sri.gob.ec/.../RecepcionComprobantesOffline' : 'https://celcer.sri.gob.ec/.../RecepcionComprobantesOffline'}</p>
+                  <p className="truncate">Autorización: {sriConfig.ambiente === '2' ? 'https://cel.sri.gob.ec/.../AutorizacionComprobantesOffline' : 'https://celcer.sri.gob.ec/.../AutorizacionComprobantesOffline'}</p>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* GEMINI AI KEY */}

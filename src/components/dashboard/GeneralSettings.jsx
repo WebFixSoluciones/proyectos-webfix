@@ -29,6 +29,8 @@ export default function GeneralSettings({
   // State for Gemini Key
   const [geminiKey, setGeminiKey] = useState('');
   const [showKey, setShowKey] = useState(false);
+  const [testingKey, setTestingKey] = useState(false);
+  const [testResult, setTestResult] = useState(null);
 
   // States for User Management
   const [localUsers, setLocalUsers] = useState(users);
@@ -41,6 +43,7 @@ export default function GeneralSettings({
       try {
         const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'meta', 'info');
         const snap = await getDoc(docRef);
+        let cloudGeminiKey = '';
         if (snap.exists()) {
           const data = snap.data();
           if (data.companyProfile) {
@@ -49,11 +52,18 @@ export default function GeneralSettings({
           if (data.users) {
             setLocalUsers(data.users);
           }
+          if (data.geminiApiKey) {
+            cloudGeminiKey = data.geminiApiKey;
+          }
         }
         
-        // Load Gemini key from localStorage (for compatibility)
+        // Load Gemini key from localStorage, fallback to cloud
         const savedGemini = localStorage.getItem('finances_gemini_api_key') || '';
-        setGeminiKey(savedGemini);
+        const finalKey = cloudGeminiKey || savedGemini;
+        setGeminiKey(finalKey);
+        if (finalKey) {
+          localStorage.setItem('finances_gemini_api_key', finalKey);
+        }
       } catch (err) {
         console.error("Error al cargar configuración general", err);
       }
@@ -86,10 +96,11 @@ export default function GeneralSettings({
   // Save Gemini Key
   const handleSaveGemini = (e) => {
     e.preventDefault();
-    localStorage.setItem('finances_gemini_api_key', geminiKey);
+    const trimmedKey = geminiKey.trim();
+    localStorage.setItem('finances_gemini_api_key', trimmedKey);
     // Also save to meta info for cloud backup
     const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'meta', 'info');
-    setDoc(docRef, { geminiApiKey: geminiKey }, { merge: true })
+    setDoc(docRef, { geminiApiKey: trimmedKey }, { merge: true })
       .then(() => {
         showToast("Clave de Gemini guardada correctamente", "success");
       })
@@ -97,6 +108,44 @@ export default function GeneralSettings({
         console.error(err);
         showToast("Clave guardada en local (Error al respaldar en la nube)", "warning");
       });
+  };
+
+  const handleTestGeminiKey = async () => {
+    if (!geminiKey) {
+      showToast("Por favor ingresa una clave de API primero", "error");
+      return;
+    }
+    setTestingKey(true);
+    setTestResult(null);
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey.trim()}`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{ text: 'Hola' }]
+          }]
+        })
+      });
+
+      if (response.ok) {
+        setTestResult({ success: true, message: '¡Conexión exitosa! La clave de Gemini es válida y se comunica con el servidor de IA.' });
+        showToast("Conexión con Gemini exitosa", "success");
+      } else {
+        const data = await response.json();
+        const errMsg = data.error?.message || 'Error de API desconocido';
+        setTestResult({ success: false, message: `Error de API: ${errMsg}` });
+        showToast("Error al validar clave de Gemini", "error");
+      }
+    } catch (err) {
+      setTestResult({ success: false, message: `Error de red: ${err.message}` });
+      showToast("Error de conexión con la API", "error");
+    } finally {
+      setTestingKey(false);
+    }
   };
 
   // Save Google client ID
@@ -530,24 +579,55 @@ export default function GeneralSettings({
               <p className="text-[10px] text-gray-500 mt-1">Vincula tu clave de API de Gemini 1.5 Flash para habilitar el diagnóstico estratégico de la empresa. La IA analizará tus tareas, stock crítico de inventario y balances para sugerirte mejoras operativas.</p>
             </div>
 
-            <div>
-              <label className="block text-[9px] font-bold uppercase mb-2 text-gray-500">Clave de API de Gemini (Google AI Studio)</label>
-              <div className="relative">
-                <input 
-                  type={showKey ? "text" : "password"} 
-                  value={geminiKey} 
-                  onChange={(e) => setFormKey(e.target.value)} 
-                  className={`${inputClass} pr-10`} 
-                  placeholder="AIzaSy..." 
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowKey(!showKey)}
-                  className="absolute right-3.5 top-3 text-gray-400 hover:text-white"
-                >
-                  {showKey ? <EyeOff size={15} /> : <Eye size={15} />}
-                </button>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-[9px] font-bold uppercase mb-2 text-gray-500">Clave de API de Gemini (Google AI Studio)</label>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <input 
+                      type={showKey ? "text" : "password"} 
+                      value={geminiKey} 
+                      onChange={(e) => setFormKey(e.target.value)} 
+                      className={`${inputClass} pr-10`} 
+                      placeholder="AIzaSy..." 
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowKey(!showKey)}
+                      className="absolute right-3.5 top-3 text-gray-400 hover:text-gray-650 dark:hover:text-white"
+                    >
+                      {showKey ? <EyeOff size={15} /> : <Eye size={15} />}
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleTestGeminiKey}
+                    disabled={testingKey}
+                    className={`px-4 rounded-xl text-xs font-bold transition-all border shrink-0 ${
+                      testingKey 
+                        ? 'bg-gray-500/10 text-gray-400 border-gray-500/20 cursor-not-allowed'
+                        : isDarkMode 
+                          ? 'bg-purple-500/10 hover:bg-purple-500/20 border-purple-500/30 text-purple-400' 
+                          : 'bg-purple-50 hover:bg-purple-100 border-purple-200 text-purple-800'
+                    }`}
+                  >
+                    {testingKey ? 'Probando...' : 'Probar Clave'}
+                  </button>
+                </div>
               </div>
+
+              {testResult && (
+                <div className={`p-3 rounded-xl border text-[10px] leading-relaxed font-semibold transition-all duration-300 ${
+                  testResult.success 
+                    ? (isDarkMode ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-450' : 'bg-emerald-50 border-emerald-250 text-emerald-850')
+                    : (isDarkMode ? 'bg-red-500/10 border-red-500/20 text-red-450' : 'bg-red-50 border-red-200 text-red-850')
+                }`}>
+                  <p className="flex items-center gap-1.5 font-bold">
+                    {testResult.success ? <CheckCircle2 size={13} className="text-emerald-505 shrink-0" /> : <AlertTriangle size={13} className="text-red-550 shrink-0" />}
+                    <span>{testResult.message}</span>
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className={`p-4 rounded-2xl border text-xs leading-normal space-y-1.5 ${
