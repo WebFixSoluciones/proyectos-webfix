@@ -6,16 +6,19 @@
 // Validador de RUC / CI Ecuatoriano
 export function validarIdentificacion(identificacion) {
   if (!identificacion) return false;
-  const len = identificacion.length;
+  const clean = String(identificacion).trim();
+  if (clean === '9999999999999') return true; // Consumidor Final es válido de inmediato
+
+  const len = clean.length;
   if (len !== 10 && len !== 13) return false;
 
   // Si es RUC de 13 dígitos, los 3 últimos deben ser 001
-  if (len === 13 && !identificacion.endsWith('001')) {
+  if (len === 13 && !clean.endsWith('001')) {
     return false;
   }
 
   // Tomar los primeros 10 dígitos (que corresponden a la cédula o base del RUC)
-  const cedula = identificacion.substring(0, 10);
+  const cedula = clean.substring(0, 10);
   const provincia = parseInt(cedula.substring(0, 2), 10);
   if (provincia < 1 || provincia > 24) return false;
 
@@ -80,6 +83,30 @@ export function calcularModulo11(clave) {
   return verificador;
 }
 
+// Mapeador de tipo de identificación tributaria para el SRI
+export function obtenerTipoIdentificacionSRI(terceroData) {
+  if (!terceroData) return '07'; // Por defecto Consumidor Final si no hay datos
+  const ruc = String(terceroData.ruc || '').trim();
+  if (ruc === '9999999999999') {
+    return '07'; // Consumidor Final
+  }
+
+  const tipo = String(terceroData.tipoIdentificacion || '').toLowerCase();
+  if (tipo === 'consumidor_final' || tipo === '07') {
+    return '07';
+  }
+  if (tipo === 'pasaporte' || tipo === '06') {
+    return '06';
+  }
+  if (tipo === 'exterior' || tipo === '08') {
+    return '08';
+  }
+  if (tipo === 'cedula' || tipo === '05' || ruc.length === 10) {
+    return '05';
+  }
+  return '04'; // RUC
+}
+
 // Generar clave de acceso de 49 dígitos
 export function generarClaveAcceso({
   fechaEmision, // Formato YYYY-MM-DD
@@ -113,6 +140,10 @@ export function generarClaveAcceso({
 
 // Generar estructura XML para Factura
 export function generarFacturaXML(emisorConfig, facturaData, terceroData, items = []) {
+  const codigoNumerico = facturaData.codigoNumerico || 
+    (facturaData.claveAcceso && facturaData.claveAcceso.length === 49 ? facturaData.claveAcceso.substring(39, 47) : null) || 
+    '12345678';
+
   const claveAcceso = generarClaveAcceso({
     fechaEmision: facturaData.date,
     tipoComprobante: '01',
@@ -120,7 +151,8 @@ export function generarFacturaXML(emisorConfig, facturaData, terceroData, items 
     ambiente: emisorConfig.ambiente,
     establecimiento: emisorConfig.establecimiento,
     puntoEmision: emisorConfig.puntoEmision,
-    secuencial: facturaData.secuencial || '000000001'
+    secuencial: facturaData.secuencial || '000000001',
+    codigoNumerico
   });
 
   const activeItems = items.length > 0 ? items : (facturaData.items || []);
@@ -167,7 +199,7 @@ export function generarFacturaXML(emisorConfig, facturaData, terceroData, items 
     <fechaEmision>${facturaData.date.split('-').reverse().join('/')}</fechaEmision>
     <dirEstablecimiento>${emisorConfig.direccionMatriz || 'Ecuador'}</dirEstablecimiento>
     <obligadoContabilidad>${emisorConfig.obligadoContabilidad ? 'SI' : 'NO'}</obligadoContabilidad>
-    <tipoIdentificacionComprador>${terceroData.ruc.length === 10 ? '05' : '04'}</tipoIdentificacionComprador>
+    <tipoIdentificacionComprador>${obtenerTipoIdentificacionSRI(terceroData)}</tipoIdentificacionComprador>
     <razonSocialComprador>${terceroData.name}</razonSocialComprador>
     <identificacionComprador>${terceroData.ruc}</identificacionComprador>
     <totalSinImpuestos>${Number(facturaData.baseImponible).toFixed(2)}</totalSinImpuestos>
@@ -199,6 +231,10 @@ export function generarFacturaXML(emisorConfig, facturaData, terceroData, items 
 
 // Generar estructura XML para Retención (07)
 export function generarRetencionXML(emisorConfig, retencionData, terceroData) {
+  const codigoNumerico = retencionData.codigoNumerico || 
+    (retencionData.claveAcceso && retencionData.claveAcceso.length === 49 ? retencionData.claveAcceso.substring(39, 47) : null) || 
+    '12345678';
+
   const claveAcceso = generarClaveAcceso({
     fechaEmision: retencionData.date,
     tipoComprobante: '07',
@@ -206,7 +242,8 @@ export function generarRetencionXML(emisorConfig, retencionData, terceroData) {
     ambiente: emisorConfig.ambiente,
     establecimiento: emisorConfig.establecimiento,
     puntoEmision: emisorConfig.puntoEmision,
-    secuencial: retencionData.secuencial || '000000001'
+    secuencial: retencionData.secuencial || '000000001',
+    codigoNumerico
   });
 
   const period = retencionData.date.split('-');
@@ -247,7 +284,7 @@ export function generarRetencionXML(emisorConfig, retencionData, terceroData) {
     <fechaEmision>${retencionData.date.split('-').reverse().join('/')}</fechaEmision>
     <dirEstablecimiento>${emisorConfig.direccionMatriz || 'Ecuador'}</dirEstablecimiento>
     <obligadoContabilidad>${emisorConfig.obligadoContabilidad ? 'SI' : 'NO'}</obligadoContabilidad>
-    <tipoIdentificacionSujetoRetenido>${terceroData.ruc.length === 10 ? '05' : '04'}</tipoIdentificacionSujetoRetenido>
+    <tipoIdentificacionSujetoRetenido>${obtenerTipoIdentificacionSRI(terceroData)}</tipoIdentificacionSujetoRetenido>
     <razonSocialSujetoRetenido>${terceroData.name}</razonSocialSujetoRetenido>
     <identificacionSujetoRetenido>${terceroData.ruc}</identificacionSujetoRetenido>
     <periodoFiscal>${periodoFiscal}</periodoFiscal>
@@ -261,6 +298,10 @@ export function generarRetencionXML(emisorConfig, retencionData, terceroData) {
 
 // Generar estructura XML para Nota de Crédito (04)
 export function generarNotaCreditoXML(emisorConfig, ncData, terceroData, items = []) {
+  const codigoNumerico = ncData.codigoNumerico || 
+    (ncData.claveAcceso && ncData.claveAcceso.length === 49 ? ncData.claveAcceso.substring(39, 47) : null) || 
+    '12345678';
+
   const claveAcceso = generarClaveAcceso({
     fechaEmision: ncData.date,
     tipoComprobante: '04',
@@ -268,7 +309,8 @@ export function generarNotaCreditoXML(emisorConfig, ncData, terceroData, items =
     ambiente: emisorConfig.ambiente,
     establecimiento: emisorConfig.establecimiento,
     puntoEmision: emisorConfig.puntoEmision,
-    secuencial: ncData.secuencial || '000000001'
+    secuencial: ncData.secuencial || '000000001',
+    codigoNumerico
   });
 
   const activeItems = items.length > 0 ? items : (ncData.items || []);
@@ -314,7 +356,7 @@ export function generarNotaCreditoXML(emisorConfig, ncData, terceroData, items =
   <infoNotaCredito>
     <fechaEmision>${ncData.date.split('-').reverse().join('/')}</fechaEmision>
     <dirEstablecimiento>${emisorConfig.direccionMatriz || 'Ecuador'}</dirEstablecimiento>
-    <tipoIdentificacionComprador>${terceroData.ruc.length === 10 ? '05' : '04'}</tipoIdentificacionComprador>
+    <tipoIdentificacionComprador>${obtenerTipoIdentificacionSRI(terceroData)}</tipoIdentificacionComprador>
     <razonSocialComprador>${terceroData.name}</razonSocialComprador>
     <identificacionComprador>${terceroData.ruc}</identificacionComprador>
     <obligadoContabilidad>${emisorConfig.obligadoContabilidad ? 'SI' : 'NO'}</obligadoContabilidad>
@@ -342,6 +384,10 @@ export function generarNotaCreditoXML(emisorConfig, ncData, terceroData, items =
 
 // Generar estructura XML para Liquidación de Compra (03)
 export function generarLiquidacionXML(emisorConfig, liqData, terceroData, items = []) {
+  const codigoNumerico = liqData.codigoNumerico || 
+    (liqData.claveAcceso && liqData.claveAcceso.length === 49 ? liqData.claveAcceso.substring(39, 47) : null) || 
+    '12345678';
+
   const claveAcceso = generarClaveAcceso({
     fechaEmision: liqData.date,
     tipoComprobante: '03',
@@ -349,7 +395,8 @@ export function generarLiquidacionXML(emisorConfig, liqData, terceroData, items 
     ambiente: emisorConfig.ambiente,
     establecimiento: emisorConfig.establecimiento,
     puntoEmision: emisorConfig.puntoEmision,
-    secuencial: liqData.secuencial || '000000001'
+    secuencial: liqData.secuencial || '000000001',
+    codigoNumerico
   });
 
   const activeItems = items.length > 0 ? items : (liqData.items || []);
@@ -396,7 +443,7 @@ export function generarLiquidacionXML(emisorConfig, liqData, terceroData, items 
     <fechaEmision>${liqData.date.split('-').reverse().join('/')}</fechaEmision>
     <dirEstablecimiento>${emisorConfig.direccionMatriz || 'Ecuador'}</dirEstablecimiento>
     <obligadoContabilidad>${emisorConfig.obligadoContabilidad ? 'SI' : 'NO'}</obligadoContabilidad>
-    <tipoIdentificacionProveedor>${terceroData.ruc.length === 10 ? '05' : '04'}</tipoIdentificacionProveedor>
+    <tipoIdentificacionProveedor>${obtenerTipoIdentificacionSRI(terceroData)}</tipoIdentificacionProveedor>
     <razonSocialProveedor>${terceroData.name}</razonSocialProveedor>
     <identificacionProveedor>${terceroData.ruc}</identificacionProveedor>
     <totalSinImpuestos>${Number(liqData.baseImponible).toFixed(2)}</totalSinImpuestos>

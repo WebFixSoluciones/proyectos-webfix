@@ -563,17 +563,21 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       const sec = formData.secuencial || '1';
       const docNum = `${sriConfig.establecimiento}-${sriConfig.puntoEmision}-${String(sec).padStart(9, '0')}`;
       
+      // Generar y asociar un código numérico aleatorio único de 8 dígitos si no existe
+      const codigoNumerico = formData.codigoNumerico || Math.floor(10000000 + Math.random() * 90000000).toString();
+      const docData = { ...formData, secuencial: sec, codigoNumerico };
+
       let xmlObj;
       if (formData.documentType === 'factura') {
-        xmlObj = generarFacturaXML(sriConfig, { ...formData, secuencial: sec }, matchedTercero, formData.items);
+        xmlObj = generarFacturaXML(sriConfig, docData, matchedTercero, formData.items);
       } else if (formData.documentType === 'retencion') {
-        xmlObj = generarRetencionXML(sriConfig, { ...formData, secuencial: sec }, matchedTercero);
+        xmlObj = generarRetencionXML(sriConfig, docData, matchedTercero);
       } else if (formData.documentType === 'nota_credito') {
-        xmlObj = generarNotaCreditoXML(sriConfig, { ...formData, secuencial: sec }, matchedTercero, formData.items);
+        xmlObj = generarNotaCreditoXML(sriConfig, docData, matchedTercero, formData.items);
       } else if (formData.documentType === 'liquidacion') {
-        xmlObj = generarLiquidacionXML(sriConfig, { ...formData, secuencial: sec }, matchedTercero, formData.items);
+        xmlObj = generarLiquidacionXML(sriConfig, docData, matchedTercero, formData.items);
       } else {
-        xmlObj = generarFacturaXML(sriConfig, { ...formData, secuencial: sec }, matchedTercero, formData.items);
+        xmlObj = generarFacturaXML(sriConfig, docData, matchedTercero, formData.items);
       }
 
       let { xml, claveAcceso } = xmlObj;
@@ -609,6 +613,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         documentNumber: docNum,
         sriStatus: 'autorizado',
         claveAcceso: result.claveAcceso,
+        codigoNumerico, // Guardar el código numérico generado
         xmlUrl: result.xmlUrl,
         pdfUrl: result.pdfUrl,
         paymentsBreakdown: {

@@ -108,7 +108,7 @@ export function firmarComprobanteXML(xmlString, p12Base64, password) {
     // 5. Construir nodos auxiliares para calcular sus Hashes
     
     // Objeto SignedProperties (XAdES)
-    const signedPropertiesXml = `<xades:SignedProperties Id="${signedPropertiesId}">` +
+    const signedPropertiesXml = `<xades:SignedProperties Id="${signedPropertiesId}" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xades="http://uri.etsi.org/01903/v1.3.2#">` +
       `<xades:SignedSignatureProperties>` +
         `<xades:SigningTime>${signingTime}</xades:SigningTime>` +
         `<xades:SigningCertificate>` +
@@ -136,7 +136,7 @@ export function firmarComprobanteXML(xmlString, p12Base64, password) {
     const exponentDec = certificate.publicKey.e.toString(10);
     const exponentBase64 = forge.util.encode64(forge.util.hexToBytes(exponentDec === '65537' ? '010001' : exponent.padStart(6, '0')));
 
-    const keyInfoXml = `<ds:KeyInfo Id="${keyInfoId}">` +
+    const keyInfoXml = `<ds:KeyInfo Id="${keyInfoId}" xmlns:ds="http://www.w3.org/2000/09/xmldsig#">` +
       `<ds:X509Data>` +
         `<ds:X509Certificate>${certBase64}</ds:X509Certificate>` +
       `</ds:X509Data>` +
@@ -154,7 +154,7 @@ export function firmarComprobanteXML(xmlString, p12Base64, password) {
     const signedPropertiesDigest = sha1Base64(signedPropertiesXml);
 
     // 6. Construir ds:SignedInfo
-    const signedInfoXml = `<ds:SignedInfo Id="SignedInfo-${sigId}">` +
+    const signedInfoXml = `<ds:SignedInfo Id="SignedInfo-${sigId}" xmlns:ds="http://www.w3.org/2000/09/xmldsig#">` +
       `<ds:CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>` +
       `<ds:SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/>` +
       `<ds:Reference Id="${signedInfoRefId}" URI="#comprobante">` +
