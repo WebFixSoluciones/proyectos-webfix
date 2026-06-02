@@ -78,6 +78,7 @@ import { doc, setDoc, onSnapshot, collection, updateDoc, deleteDoc, writeBatch, 
 import { auth, db, appId } from './firebase';
 import FinanceModule from './components/finances/FinanceModule';
 import ErpDashboard from './components/dashboard/ErpDashboard';
+import GeneralSettings from './components/dashboard/GeneralSettings';
 
 const apiKey = ""; // API Key para Gemini (configura tu clave aquí si usas IA)
 
@@ -391,6 +392,16 @@ export default function App() {
   const [users, setUsers] = useState(MOCK_USERS);
   const [activePageId, setActivePageId] = useState('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [activeModules, setActiveModules] = useState({
+    dashboard: true,
+    ventas: true,
+    finances: true,
+    inventario: true,
+    personas: true,
+    calendar: true,
+    team: true
+  });
+  const [ventasInitialSubTab, setVentasInitialSubTab] = useState('facturas');
   
   // --- ESTADOS DE GOOGLE CALENDAR REAL ---
   const [isGoogleConnected, setIsGoogleConnected] = useState(false);
@@ -421,8 +432,6 @@ export default function App() {
   const [isReportDrawerOpen, setIsReportDrawerOpen] = useState(false);
   const [reportFilters, setReportFilters] = useState({ projectId: 'all', status: 'all', assigneeId: 'all' });
 
-  // --- CONFIGURACIONES E INTEGRACIONES ---
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [googleClientId, setGoogleClientId] = useState('');
 
   // --- SISTEMA DE LOGIN ---
@@ -587,6 +596,9 @@ export default function App() {
           if (data.users) setUsers(data.users);
           if (data.trash) setTrash(data.trash);
           if (data.googleClientId !== undefined) setGoogleClientId(data.googleClientId);
+          if (data.activeModules !== undefined) {
+            setActiveModules(prev => ({ ...prev, ...data.activeModules }));
+          }
         }
       });
 
@@ -615,6 +627,8 @@ export default function App() {
     activePage = { id: 'calendar', title: 'Calendario y Reuniones', icon: 'calendar', type: 'calendar' };
   } else if (activePageId === 'team') {
     activePage = { id: 'team', title: 'Equipo y Roles', icon: 'team', type: 'team' };
+  } else if (activePageId === 'general_settings') {
+    activePage = { id: 'general_settings', title: 'Configuración ERP', icon: 'settings', type: 'general_settings' };
   } else if (activePageId === 'trash') {
     activePage = { id: 'trash', title: 'Papelera', icon: 'trash', type: 'trash' };
   } else {
@@ -1149,7 +1163,7 @@ export default function App() {
 
   const handleConnectGoogle = () => {
     if (!googleClientId || googleClientId.trim() === '') {
-      setIsSettingsOpen(true);
+      setActivePageId('general_settings');
       return;
     }
 
@@ -1553,52 +1567,72 @@ export default function App() {
             {isSidebarOpen && <span>Mi Espacio</span>}
           </button>
 
-          <button 
-            onClick={() => { setActivePageId('ventas'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
-            className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all tracking-wide font-semibold ${activePageId === 'ventas' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm border border-white/5' : 'bg-black/5 text-gray-900 border border-black/5') : (isDarkMode ? 'text-gray-450 hover:bg-white/5 hover:text-white' : 'text-gray-650 hover:bg-black/5 hover:text-gray-900')}`}
-          >
-            <ShoppingCart size={18} className={activePageId === 'ventas' ? (isDarkMode ? 'text-orange-400' : 'text-orange-600') : ''} />
-            {isSidebarOpen && <span>Ventas</span>}
-          </button>
+          {activeModules.ventas && (
+            <button 
+              onClick={() => { setVentasInitialSubTab('facturas'); setActivePageId('ventas'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
+              className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all tracking-wide font-semibold ${activePageId === 'ventas' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm border border-white/5' : 'bg-black/5 text-gray-900 border border-black/5') : (isDarkMode ? 'text-gray-455 hover:bg-white/5 hover:text-white' : 'text-gray-655 hover:bg-black/5 hover:text-gray-900')}`}
+            >
+              <ShoppingCart size={18} className={activePageId === 'ventas' ? (isDarkMode ? 'text-orange-400' : 'text-orange-600') : ''} />
+              {isSidebarOpen && <span>Ventas</span>}
+            </button>
+          )}
 
-          <button 
-            onClick={() => { setActivePageId('finances'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
-            className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all tracking-wide font-semibold ${activePageId === 'finances' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm border border-white/5' : 'bg-black/5 text-gray-900 border border-black/5') : (isDarkMode ? 'text-gray-450 hover:bg-white/5 hover:text-white' : 'text-gray-650 hover:bg-black/5 hover:text-gray-900')}`}
-          >
-            <DollarSign size={18} className={activePageId === 'finances' ? (isDarkMode ? 'text-emerald-400' : 'text-emerald-600') : ''} />
-            {isSidebarOpen && <span>Contabilidad</span>}
-          </button>
+          {activeModules.finances && (
+            <button 
+              onClick={() => { setActivePageId('finances'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
+              className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all tracking-wide font-semibold ${activePageId === 'finances' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm border border-white/5' : 'bg-black/5 text-gray-900 border border-black/5') : (isDarkMode ? 'text-gray-455 hover:bg-white/5 hover:text-white' : 'text-gray-655 hover:bg-black/5 hover:text-gray-900')}`}
+            >
+              <DollarSign size={18} className={activePageId === 'finances' ? (isDarkMode ? 'text-emerald-400' : 'text-emerald-600') : ''} />
+              {isSidebarOpen && <span>Contabilidad</span>}
+            </button>
+          )}
 
-          <button 
-            onClick={() => { setActivePageId('inventario'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
-            className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all tracking-wide font-semibold ${activePageId === 'inventario' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm border border-white/5' : 'bg-black/5 text-gray-900 border border-black/5') : (isDarkMode ? 'text-gray-450 hover:bg-white/5 hover:text-white' : 'text-gray-650 hover:bg-black/5 hover:text-gray-900')}`}
-          >
-            <Package size={18} className={activePageId === 'inventario' ? (isDarkMode ? 'text-sky-400' : 'text-sky-600') : ''} />
-            {isSidebarOpen && <span>Inventario</span>}
-          </button>
+          {activeModules.inventario && (
+            <button 
+              onClick={() => { setActivePageId('inventario'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
+              className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all tracking-wide font-semibold ${activePageId === 'inventario' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm border border-white/5' : 'bg-black/5 text-gray-900 border border-black/5') : (isDarkMode ? 'text-gray-455 hover:bg-white/5 hover:text-white' : 'text-gray-655 hover:bg-black/5 hover:text-gray-900')}`}
+            >
+              <Package size={18} className={activePageId === 'inventario' ? (isDarkMode ? 'text-sky-400' : 'text-sky-600') : ''} />
+              {isSidebarOpen && <span>Inventario</span>}
+            </button>
+          )}
 
-          <button 
-            onClick={() => { setActivePageId('personas'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
-            className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all tracking-wide font-semibold ${activePageId === 'personas' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm border border-white/5' : 'bg-black/5 text-gray-900 border border-black/5') : (isDarkMode ? 'text-gray-450 hover:bg-white/5 hover:text-white' : 'text-gray-650 hover:bg-black/5 hover:text-gray-900')}`}
-          >
-            <Users size={18} className={activePageId === 'personas' ? (isDarkMode ? 'text-teal-400' : 'text-teal-600') : ''} />
-            {isSidebarOpen && <span>Personas</span>}
-          </button>
+          {activeModules.personas && (
+            <button 
+              onClick={() => { setActivePageId('personas'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
+              className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all tracking-wide font-semibold ${activePageId === 'personas' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm border border-white/5' : 'bg-black/5 text-gray-900 border border-black/5') : (isDarkMode ? 'text-gray-455 hover:bg-white/5 hover:text-white' : 'text-gray-655 hover:bg-black/5 hover:text-gray-900')}`}
+            >
+              <Users size={18} className={activePageId === 'personas' ? (isDarkMode ? 'text-teal-400' : 'text-teal-600') : ''} />
+              {isSidebarOpen && <span>Personas</span>}
+            </button>
+          )}
           
-          <button 
-            onClick={() => { setActivePageId('calendar'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
-            className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all tracking-wide font-semibold ${activePageId === 'calendar' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm border border-white/5' : 'bg-black/5 text-gray-900 border border-black/5') : (isDarkMode ? 'text-gray-450 hover:bg-white/5 hover:text-white' : 'text-gray-650 hover:bg-black/5 hover:text-gray-900')}`}
-          >
-            <CalendarDays size={18} className={activePageId === 'calendar' ? (isDarkMode ? 'text-purple-400' : 'text-purple-600') : ''} />
-            {isSidebarOpen && <span>Calendario</span>}
-          </button>
+          {activeModules.calendar && (
+            <button 
+              onClick={() => { setActivePageId('calendar'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
+              className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all tracking-wide font-semibold ${activePageId === 'calendar' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm border border-white/5' : 'bg-black/5 text-gray-900 border border-black/5') : (isDarkMode ? 'text-gray-455 hover:bg-white/5 hover:text-white' : 'text-gray-655 hover:bg-black/5 hover:text-gray-900')}`}
+            >
+              <CalendarDays size={18} className={activePageId === 'calendar' ? (isDarkMode ? 'text-purple-400' : 'text-purple-600') : ''} />
+              {isSidebarOpen && <span>Calendario</span>}
+            </button>
+          )}
+
+          {activeModules.team && (
+            <button 
+              onClick={() => { setActivePageId('team'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
+              className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all tracking-wide font-semibold ${activePageId === 'team' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm border border-white/5' : 'bg-black/5 text-gray-900 border border-black/5') : (isDarkMode ? 'text-gray-455 hover:bg-white/5 hover:text-white' : 'text-gray-655 hover:bg-black/5 hover:text-gray-900')}`}
+            >
+              <Users size={18} className={activePageId === 'team' ? (isDarkMode ? 'text-yellow-400' : 'text-yellow-600') : ''} />
+              {isSidebarOpen && <span>Equipo</span>}
+            </button>
+          )}
 
           <button 
-            onClick={() => { setActivePageId('team'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
-            className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all tracking-wide font-semibold ${activePageId === 'team' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm border border-white/5' : 'bg-black/5 text-gray-900 border border-black/5') : (isDarkMode ? 'text-gray-450 hover:bg-white/5 hover:text-white' : 'text-gray-650 hover:bg-black/5 hover:text-gray-900')}`}
+            onClick={() => { setActivePageId('general_settings'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
+            className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all tracking-wide font-semibold ${activePageId === 'general_settings' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm border border-white/5' : 'bg-black/5 text-gray-900 border border-black/5') : (isDarkMode ? 'text-gray-455 hover:bg-white/5 hover:text-white' : 'text-gray-655 hover:bg-black/5 hover:text-gray-900')}`}
           >
-            <Users size={18} className={activePageId === 'team' ? (isDarkMode ? 'text-yellow-400' : 'text-yellow-600') : ''} />
-            {isSidebarOpen && <span>Equipo</span>}
+            <Settings size={18} className={activePageId === 'general_settings' ? (isDarkMode ? 'text-blue-400' : 'text-blue-600') : ''} />
+            {isSidebarOpen && <span>Ajustes ERP</span>}
           </button>
         </div>
 
@@ -1661,6 +1695,25 @@ export default function App() {
           </div>
           <div className="flex items-center gap-1.5 md:gap-2">
             
+            {/* BOTÓN RÁPIDO POS */}
+            {activeModules.ventas && (
+              <button 
+                onClick={() => {
+                  setVentasInitialSubTab('pos');
+                  setActivePageId('ventas');
+                }} 
+                className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase transition-all shadow-sm shrink-0 ${
+                  isDarkMode 
+                    ? 'bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 border border-orange-500/10 animate-pulse' 
+                    : 'bg-orange-600 hover:bg-orange-550 text-white shadow-sm'
+                }`}
+                title="Abrir Punto de Venta (POS)"
+              >
+                <ShoppingCart size={11} />
+                <span className="hidden sm:inline">POS</span>
+              </button>
+            )}
+
             {/* ESTADO DE SINCRONIZACIÓN NUBE */}
             <div className={`hidden md:flex text-[9px] px-2.5 py-1 rounded-md font-bold tracking-[0.1em] uppercase items-center gap-1.5 transition-all ${isDarkMode ? 'bg-white/5 text-gray-400 border border-white/5' : 'bg-black/5 text-gray-500 border border-black/5'}`}>
               {isSaving ? (
@@ -1670,7 +1723,7 @@ export default function App() {
               )}
             </div>
 
-            <button onClick={() => setIsSettingsOpen(true)} className={`p-2 rounded-xl transition-colors ${isDarkMode ? 'hover:bg-white/10 text-gray-400' : 'hover:bg-black/5 text-gray-600'}`} title="Ajustes e Integraciones"><Settings size={16} /></button>
+            <button onClick={() => setActivePageId('general_settings')} className={`p-2 rounded-xl transition-colors ${isDarkMode ? 'hover:bg-white/10 text-gray-400' : 'hover:bg-black/5 text-gray-600'}`} title="Ajustes ERP"><Settings size={16} /></button>
             <button onClick={() => setIsDarkMode(!isDarkMode)} className={`p-2 rounded-xl transition-colors ${isDarkMode ? 'hover:bg-white/10 text-gray-300' : 'hover:bg-black/5 text-gray-600'}`} title={isDarkMode ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}>{isDarkMode ? <Sun size={16} /> : <Moon size={16} />}</button>
             
             {/* Eliminar Proyecto desde el Header */}
@@ -1687,21 +1740,38 @@ export default function App() {
           <div className={`mx-auto ${activePage.type === 'project' || ['finances', 'ventas', 'inventario', 'personas'].includes(activePage.type) ? 'max-w-[1800px] h-full' : 'max-w-4xl'}`}>
             
             {/* VISTAS FINANCIERAS MODULARES */}
-            {activePage.type === 'finances' && (
+            {activePageId === 'finances' && (
               <FinanceModule mode="contabilidad" isDarkMode={isDarkMode} showToast={showToast} />
             )}
-            {activePage.type === 'ventas' && (
-              <FinanceModule mode="ventas" isDarkMode={isDarkMode} showToast={showToast} />
+            {activePageId === 'ventas' && (
+              <FinanceModule mode="ventas" initialSubTab={ventasInitialSubTab} isDarkMode={isDarkMode} showToast={showToast} />
             )}
-            {activePage.type === 'inventario' && (
+            {activePageId === 'inventario' && (
               <FinanceModule mode="inventario" isDarkMode={isDarkMode} showToast={showToast} />
             )}
-            {activePage.type === 'personas' && (
+            {activePageId === 'personas' && (
               <FinanceModule mode="personas" isDarkMode={isDarkMode} showToast={showToast} />
             )}
 
+            {/* VISTA: CONFIGURACIÓN GENERAL */}
+            {activePageId === 'general_settings' && (
+              <GeneralSettings 
+                isDarkMode={isDarkMode} 
+                showToast={showToast} 
+                db={db} 
+                appId={appId} 
+                users={users} 
+                trash={trash} 
+                handleDownloadBackup={handleDownloadBackup} 
+                googleClientId={googleClientId} 
+                setGoogleClientId={setGoogleClientId} 
+                activeModules={activeModules} 
+                setActiveModules={setActiveModules} 
+              />
+            )}
+
             {/* VISTA: DASHBOARD */}
-            {activePage.type === 'dashboard' && (
+            {activePageId === 'dashboard' && (
               <ErpDashboard 
                 projectsList={projectsList} 
                 allTasksGlobal={allTasksGlobal} 
@@ -1759,7 +1829,7 @@ export default function App() {
         )}
 
             {/* Cabecera común para Doc y Project (Minimalista e Inline) */}
-            {!['trash', 'empty', 'dashboard', 'calendar', 'team', 'finances', 'ventas', 'inventario', 'personas'].includes(activePage.type) && (
+            {!['trash', 'empty', 'dashboard', 'calendar', 'team', 'finances', 'ventas', 'inventario', 'personas', 'general_settings'].includes(activePage.type) && (
               <div className="mb-8">
                 <div className="group relative flex items-center gap-3">
                    <div className={`p-2.5 rounded-xl transition-colors backdrop-blur-md border ${isDarkMode ? 'bg-white/5 border-white/10 text-gray-200 shadow-sm' : 'bg-white/60 border-gray-200 text-gray-700 shadow-sm'}`}>
@@ -2014,7 +2084,7 @@ export default function App() {
                     </div>
                     
                     {!googleClientId ? (
-                      <button onClick={() => setIsSettingsOpen(true)} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-transform shadow-sm hover:-translate-y-0.5 ${isDarkMode ? 'bg-white/10 text-white shadow-white/5 hover:bg-white/20 border border-white/10' : 'bg-gray-900 text-white hover:bg-gray-800'}`}>
+                      <button onClick={() => setActivePageId('general_settings')} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-transform shadow-sm hover:-translate-y-0.5 ${isDarkMode ? 'bg-white/10 text-white shadow-white/5 hover:bg-white/20 border border-white/10' : 'bg-gray-900 text-white hover:bg-gray-800'}`}>
                         <Settings size={16} /> Configurar Integración
                       </button>
                     ) : !isGoogleConnected ? (
@@ -2085,10 +2155,10 @@ export default function App() {
       </div>
 
       {/* Drawer Overlay (Task) */}
-      {drawerTask && <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 transition-opacity" onClick={() => setDrawerTask(null)} />}
+      {drawerTask && <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[70] transition-opacity" onClick={() => setDrawerTask(null)} />}
 
       {/* Drawer (Task) */}
-      <div className={`fixed inset-y-0 right-0 z-50 w-full sm:w-[400px] shadow-[0_0_40px_rgba(0,0,0,0.5)] transform transition-transform duration-300 flex flex-col backdrop-blur-2xl ${drawerTask ? 'translate-x-0' : 'translate-x-full'} ${isDarkMode ? 'bg-[#0f0f11]/90 border-l border-white/10' : 'bg-white/90 border-l border-white/50'}`}>
+      <div className={`fixed inset-y-0 right-0 z-[80] w-full sm:w-[400px] shadow-[0_0_40px_rgba(0,0,0,0.5)] transform transition-transform duration-300 flex flex-col backdrop-blur-2xl ${drawerTask ? 'translate-x-0' : 'translate-x-full'} ${isDarkMode ? 'bg-[#0f0f11]/90 border-l border-white/10' : 'bg-white/90 border-l border-white/50'}`}>
         {drawerTask && (
           <>
             <div className={`flex items-center justify-between px-6 py-4 border-b shrink-0 ${isDarkMode ? 'border-white/10' : 'border-black/5'}`}>
@@ -2276,10 +2346,10 @@ export default function App() {
       </div>
 
       {/* Drawer Overlay (User) */}
-      {drawerUser && <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 transition-opacity" onClick={() => setDrawerUser(null)} />}
+      {drawerUser && <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[70] transition-opacity" onClick={() => setDrawerUser(null)} />}
 
       {/* Drawer (User) */}
-      <div className={`fixed inset-y-0 right-0 z-50 w-full sm:w-[400px] shadow-[0_0_40px_rgba(0,0,0,0.5)] transform transition-transform duration-300 flex flex-col backdrop-blur-2xl ${drawerUser ? 'translate-x-0' : 'translate-x-full'} ${isDarkMode ? 'bg-[#0f0f11]/90 border-l border-white/10' : 'bg-white/90 border-l border-white/50'}`}>
+      <div className={`fixed inset-y-0 right-0 z-[80] w-full sm:w-[400px] shadow-[0_0_40px_rgba(0,0,0,0.5)] transform transition-transform duration-300 flex flex-col backdrop-blur-2xl ${drawerUser ? 'translate-x-0' : 'translate-x-full'} ${isDarkMode ? 'bg-[#0f0f11]/90 border-l border-white/10' : 'bg-white/90 border-l border-white/50'}`}>
         {drawerUser && (
           <>
             <div className={`flex items-center justify-between px-6 py-4 border-b shrink-0 ${isDarkMode ? 'border-white/10' : 'border-black/5'}`}>
@@ -2342,10 +2412,10 @@ export default function App() {
       </div>
 
       {/* Drawer Overlay (Report) */}
-      {isReportDrawerOpen && <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 transition-opacity" onClick={() => setIsReportDrawerOpen(false)} />}
+      {isReportDrawerOpen && <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[70] transition-opacity" onClick={() => setIsReportDrawerOpen(false)} />}
 
       {/* Drawer (Report) */}
-      <div className={`fixed inset-y-0 right-0 z-50 w-full sm:w-[400px] shadow-[0_0_40px_rgba(0,0,0,0.5)] transform transition-transform duration-300 flex flex-col backdrop-blur-2xl ${isReportDrawerOpen ? 'translate-x-0' : 'translate-x-full'} ${isDarkMode ? 'bg-[#0f0f11]/90 border-l border-white/10' : 'bg-white/90 border-l border-white/50'}`}>
+      <div className={`fixed inset-y-0 right-0 z-[80] w-full sm:w-[400px] shadow-[0_0_40px_rgba(0,0,0,0.5)] transform transition-transform duration-300 flex flex-col backdrop-blur-2xl ${isReportDrawerOpen ? 'translate-x-0' : 'translate-x-full'} ${isDarkMode ? 'bg-[#0f0f11]/90 border-l border-white/10' : 'bg-white/90 border-l border-white/50'}`}>
         {isReportDrawerOpen && (
           <>
             <div className={`flex items-center justify-between px-6 py-4 border-b shrink-0 ${isDarkMode ? 'border-white/10' : 'border-black/5'}`}>
@@ -2389,100 +2459,6 @@ export default function App() {
             
             <div className={`px-6 py-4 border-t flex justify-end shrink-0 ${isDarkMode ? 'border-white/10 bg-black/20 backdrop-blur-md' : 'border-black/5 bg-white/40 backdrop-blur-md'}`}>
               <button onClick={exportToCSV} className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-transform shadow-sm hover:scale-105 ${isDarkMode ? 'bg-blue-600 text-white shadow-blue-900/50' : 'bg-blue-600 text-white hover:bg-blue-700'}`}><Download size={16} /> Descargar CSV</button>
-            </div>
-          </>
-        )}
-      </div>
-
-      {/* Drawer Overlay (Settings) */}
-      {isSettingsOpen && <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 transition-opacity" onClick={() => setIsSettingsOpen(false)} />}
-
-      {/* Drawer (Settings) */}
-      <div className={`fixed inset-y-0 right-0 z-50 w-full sm:w-[400px] shadow-[0_0_40px_rgba(0,0,0,0.5)] transform transition-transform duration-300 flex flex-col backdrop-blur-2xl ${isSettingsOpen ? 'translate-x-0' : 'translate-x-full'} ${isDarkMode ? 'bg-[#0f0f11]/90 border-l border-white/10' : 'bg-white/90 border-l border-white/50'}`}>
-        {isSettingsOpen && (
-          <>
-            <div className={`flex items-center justify-between px-6 py-4 border-b shrink-0 ${isDarkMode ? 'border-white/10' : 'border-black/5'}`}>
-              <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-xl shadow-inner ${isDarkMode ? 'bg-gray-500/20 text-gray-400 border border-gray-500/20' : 'bg-gray-200 text-gray-700 border border-gray-300'}`}><Settings size={18} /></div>
-                <h2 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Ajustes del Sistema</h2>
-              </div>
-              <button onClick={() => setIsSettingsOpen(false)} className={`p-2 rounded-lg transition-all shadow-sm ${isDarkMode ? 'bg-white/5 hover:bg-white/20 text-gray-300 border border-white/5' : 'bg-white hover:bg-gray-100 text-gray-600 border border-gray-200'}`}><X size={16} /></button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6 custom-scrollbar">
-              
-              {/* Sección Integraciones */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-4 pb-2 border-b border-white/10">
-                  <LinkIcon size={16} className={isDarkMode ? 'text-blue-400' : 'text-blue-600'} />
-                  <h3 className="font-semibold text-sm">Integraciones (Google)</h3>
-                </div>
-
-                <p className={`text-xs leading-relaxed ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  Para poder leer tu calendario y crear reuniones de Google Meet oficiales, pega aquí el <strong>ID de Cliente OAuth</strong> que generaste en la consola de Google Cloud.
-                </p>
-                
-                <div>
-                  <label className={`block text-[10px] font-bold uppercase tracking-wider mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Google Client ID</label>
-                  <input 
-                    type="text" 
-                    value={googleClientId} 
-                    onChange={(e) => setGoogleClientId(e.target.value)} 
-                    className={`w-full text-xs font-mono px-3 py-2.5 rounded-xl outline-none transition-all shadow-inner ${currentGlassInput}`} 
-                    placeholder="ej. 123456789-abcdefg.apps.googleusercontent.com" 
-                  />
-                </div>
-                
-                <div className={`p-3 rounded-xl border border-dashed text-[11px] font-medium mt-2 ${isDarkMode ? 'bg-blue-500/10 border-blue-500/20 text-blue-300' : 'bg-blue-50 border-blue-200 text-blue-700'}`}>
-                  <p><strong>¿Cómo obtenerlo?</strong></p>
-                  <ol className="list-decimal pl-4 mt-1 space-y-1">
-                    <li>Ve a <a href="https://console.cloud.google.com" target="_blank" className="underline font-bold">Google Cloud Console</a>.</li>
-                    <li>Crea un proyecto y activa la "Google Calendar API".</li>
-                    <li>En "Credenciales", crea un "ID de cliente OAuth" para "Aplicación Web".</li>
-                    <li>Añade el enlace de tu cPanel o dominio en "Orígenes de JavaScript autorizados".</li>
-                  </ol>
-                </div>
-              </div>
-
-              {/* Firma Electrónica SRI */}
-              <div className="space-y-4 mb-8">
-                <div className="flex items-center gap-2 mb-4 pb-2 border-b border-white/10">
-                  <Download size={16} className={isDarkMode ? 'text-purple-400' : 'text-purple-600'} />
-                  <h3 className="font-semibold text-sm">Firma Electrónica SRI (.p12)</h3>
-                </div>
-                <p className={`text-xs leading-relaxed ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  Sube tu firma y contraseña para emitir facturas al SRI automáticamente.
-                </p>
-                <div className="flex flex-col gap-2">
-                  <input type="password" placeholder="Contraseña de la firma" className={`w-full text-xs px-3 py-2.5 rounded-lg outline-none border ${isDarkMode ? 'bg-black/20 border-white/10 text-white' : 'bg-white border-purple-200 text-black'}`} />
-                  <label className={`w-full flex justify-center items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${isDarkMode ? 'bg-purple-600/20 text-purple-400 hover:bg-purple-600/30 border border-purple-500/30' : 'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>
-                    <input type="file" accept=".p12,.pfx" className="hidden" />
-                    Subir archivo de Firma (.p12)
-                  </label>
-                </div>
-              </div>
-
-              {/* Sección Backup */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-4 pb-2 border-b border-white/10">
-                  <Download size={16} className={isDarkMode ? 'text-green-400' : 'text-green-600'} />
-                  <h3 className="font-semibold text-sm">Copia de Seguridad</h3>
-                </div>
-                <p className={`text-xs leading-relaxed ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  Descarga un respaldo en formato JSON con toda tu base de datos (Proyectos, Tareas, Usuarios y Configuración).
-                </p>
-                <button 
-                  onClick={handleDownloadBackup}
-                  className={`w-full flex justify-center items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-semibold transition-transform shadow-sm hover:-translate-y-0.5 ${isDarkMode ? 'bg-green-600/20 text-green-400 hover:bg-green-600/30 border border-green-500/30' : 'bg-green-100 text-green-700 hover:bg-green-200'}`}
-                >
-                  <Download size={14} /> Exportar Backup (JSON)
-                </button>
-              </div>
-
-            </div>
-            
-            <div className={`px-6 py-4 border-t flex justify-end shrink-0 ${isDarkMode ? 'border-white/10 bg-black/20 backdrop-blur-md' : 'border-black/5 bg-white/40 backdrop-blur-md'}`}>
-              <button onClick={async () => { setIsSettingsOpen(false); try { await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'meta', 'info'), { googleClientId }, { merge: true }); showToast('Configuración guardada', 'success'); } catch(e) { console.error('Error settings:', e); showToast('Error', 'error'); } }} className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-transform shadow-sm hover:scale-105 ${isDarkMode ? 'bg-blue-600 text-white shadow-blue-900/50' : 'bg-blue-600 text-white hover:bg-blue-700'}`}><Save size={16} /> Listo</button>
             </div>
           </>
         )}

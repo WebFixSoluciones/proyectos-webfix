@@ -17,7 +17,7 @@ import PosView from './PosView';
 import TransactionForm from './TransactionForm';
 import AccountsReceivablePayable from './AccountsReceivablePayable';
 
-export default function FinanceModule({ mode = 'contabilidad', isDarkMode, showToast }) {
+export default function FinanceModule({ mode = 'contabilidad', initialSubTab, isDarkMode, showToast }) {
   const getInitialTab = (m) => {
     if (m === 'ventas') return 'ventas';
     if (m === 'inventario') return 'products';
@@ -31,6 +31,14 @@ export default function FinanceModule({ mode = 'contabilidad', isDarkMode, showT
   useEffect(() => {
     setActiveTab(getInitialTab(mode));
   }, [mode]);
+
+  // Sincronizar subTab de ventas desde prop de navegación rápida (POS)
+  useEffect(() => {
+    if (initialSubTab && mode === 'ventas') {
+      setSubTabVentas(initialSubTab);
+    }
+  }, [initialSubTab, mode]);
+
   const [transactions, setTransactions] = useState([]);
   const [thirdParties, setThirdParties] = useState([]);
   const [products, setProducts] = useState([]);
@@ -38,7 +46,7 @@ export default function FinanceModule({ mode = 'contabilidad', isDarkMode, showT
   const [isChatOpen, setIsChatOpen] = useState(false);
 
   // Estados de sub-navegación ERP
-  const [subTabVentas, setSubTabVentas] = useState('facturas');
+  const [subTabVentas, setSubTabVentas] = useState(() => initialSubTab || 'facturas');
   const [subTabSri, setSubTabSri] = useState('nota_credito');
   const [subTabPersonas, setSubTabPersonas] = useState('cliente');
 
