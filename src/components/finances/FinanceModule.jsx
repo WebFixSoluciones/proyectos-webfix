@@ -180,14 +180,14 @@ export default function FinanceModule({ mode = 'contabilidad', initialSubTab, is
   return (
     <div className={`flex flex-col h-full w-full animate-in fade-in duration-500 overflow-hidden`}>
       {/* HEADER FINANZAS */}
-      <div className={`flex items-center justify-between px-8 py-4 border-b shrink-0 ${isDarkMode ? 'border-white/10 bg-[#0f0f11]' : 'border-gray-350 bg-white'}`}>
+      <div className={`flex items-center justify-between px-8 py-4 border-b shrink-0 ${isDarkMode ? 'border-white/10 bg-[#0f0f11]' : 'border-blue-100 bg-white'}`}>
         <div className="flex items-center gap-4">
           <div className={`p-2.5 rounded-xl shadow-inner border ${isDarkMode ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/20' : 'bg-emerald-100/80 text-emerald-800 border-emerald-300'}`}>
             <ModuleIcon size={20} />
           </div>
           <div>
             <h1 className="text-xl font-bold tracking-tight">{moduleHeader.title}</h1>
-            <p className={`text-[10px] mt-0.5 ${isDarkMode ? 'text-gray-400' : 'text-gray-705 font-medium'}`}>
+            <p className={`text-[10px] mt-0.5 ${isDarkMode ? 'text-gray-400' : 'text-black font-semibold'}`}>
               {moduleHeader.desc}
             </p>
           </div>
@@ -200,14 +200,14 @@ export default function FinanceModule({ mode = 'contabilidad', initialSubTab, is
             className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all border ${
               isChatOpen 
                 ? 'bg-purple-600 border-purple-600 text-white shadow-md' 
-                : (isDarkMode ? 'bg-purple-500/10 border-purple-500/20 text-purple-400 hover:bg-purple-500/20' : 'bg-purple-50 border-purple-300 text-purple-900 hover:bg-purple-100')
+                : (isDarkMode ? 'bg-purple-500/10 border-purple-500/20 text-purple-400 hover:bg-purple-500/20' : 'bg-purple-50 border-purple-200 text-purple-950 hover:bg-purple-100')
             }`}
           >
             <Sparkles size={13} /> Asistente AI
           </button>
 
           {displayedTabs.length > 0 && (
-            <div className={`flex p-1 rounded-xl border shadow-inner ${isDarkMode ? 'bg-black/40 border-white/10' : 'bg-gray-200/60 border-gray-300/80'}`}>
+            <div className={`flex p-1 rounded-xl border shadow-inner ${isDarkMode ? 'bg-black/40 border-white/10' : 'bg-[#f3f8ff] border-blue-200/60'}`}>
               {displayedTabs.map(tab => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
@@ -217,8 +217,8 @@ export default function FinanceModule({ mode = 'contabilidad', initialSubTab, is
                     onClick={() => setActiveTab(tab.id)}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                       isActive 
-                        ? isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-white text-gray-950 font-bold border border-gray-205/60 shadow-sm'
-                        : isDarkMode ? 'text-gray-400 hover:text-gray-200 hover:bg-white/5' : 'text-gray-650 hover:text-gray-900 hover:bg-black/5'
+                        ? isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-white text-black font-extrabold border border-blue-200/80 shadow-sm'
+                        : isDarkMode ? 'text-gray-400 hover:text-gray-200 hover:bg-white/5' : 'text-black hover:text-black hover:bg-white/70'
                     }`}
                   >
                     <Icon size={13} />
@@ -233,8 +233,8 @@ export default function FinanceModule({ mode = 'contabilidad', initialSubTab, is
 
       {/* SUB-NAVEGACIÓN SI ACTIVE TAB TIENE SUB-TABS */}
       {['ventas', 'sri_docs', 'personas'].includes(activeTab) && (
-        <div className={`flex items-center gap-2 px-8 py-2 border-b shrink-0 ${isDarkMode ? 'border-white/5 bg-[#121214]' : 'border-gray-250 bg-gray-50'}`}>
-          <span className={`text-[9px] font-black uppercase tracking-wider ${isDarkMode ? 'text-gray-500' : 'text-gray-600'}`}>Módulo:</span>
+        <div className={`flex items-center gap-2 px-8 py-2 border-b shrink-0 ${isDarkMode ? 'border-white/5 bg-[#121214]' : 'border-blue-100 bg-[#f3f8ff]'}`}>
+          <span className={`text-[9px] font-black uppercase tracking-wider ${isDarkMode ? 'text-gray-500' : 'text-black'}`}>Módulo:</span>
           <div className="flex gap-1.5 overflow-x-auto whitespace-nowrap scrollbar-none">
             {activeTab === 'ventas' && [
               { id: 'dashboard_ventas', label: 'Resumen' },
@@ -249,7 +249,7 @@ export default function FinanceModule({ mode = 'contabilidad', initialSubTab, is
                 className={`px-3 py-1 rounded-lg text-xs font-bold transition-all border ${
                   subTabVentas === sub.id
                     ? (isDarkMode ? 'bg-blue-500/20 text-blue-450 border-blue-500/30' : 'bg-blue-600 text-white border-blue-600 shadow-sm')
-                    : (isDarkMode ? 'border-transparent text-gray-400 hover:text-gray-200' : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-black/5')
+                    : (isDarkMode ? 'border-transparent text-gray-400 hover:text-gray-200' : 'border-transparent text-black hover:text-black hover:bg-white/80')
                 }`}
               >
                 {sub.label}
@@ -269,7 +269,7 @@ export default function FinanceModule({ mode = 'contabilidad', initialSubTab, is
                 className={`px-3 py-1 rounded-lg text-xs font-bold transition-all border ${
                   subTabSri === sub.id
                     ? (isDarkMode ? 'bg-emerald-500/20 text-emerald-450 border-emerald-500/30' : 'bg-emerald-600 text-white border-emerald-600 shadow-sm')
-                    : (isDarkMode ? 'border-transparent text-gray-400 hover:text-gray-200' : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-black/5')
+                    : (isDarkMode ? 'border-transparent text-gray-400 hover:text-gray-200' : 'border-transparent text-black hover:text-black hover:bg-white/80')
                 }`}
               >
                 {sub.label}
@@ -286,7 +286,7 @@ export default function FinanceModule({ mode = 'contabilidad', initialSubTab, is
                 className={`px-3 py-1 rounded-lg text-xs font-bold transition-all border ${
                   subTabPersonas === sub.id
                     ? (isDarkMode ? 'bg-purple-500/20 text-purple-450 border-purple-500/30' : 'bg-purple-600 text-white border-purple-600 shadow-sm')
-                    : (isDarkMode ? 'border-transparent text-gray-400 hover:text-gray-200' : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-black/5')
+                    : (isDarkMode ? 'border-transparent text-gray-400 hover:text-gray-200' : 'border-transparent text-black hover:text-black hover:bg-white/80')
                 }`}
               >
                 {sub.label}
@@ -298,7 +298,7 @@ export default function FinanceModule({ mode = 'contabilidad', initialSubTab, is
 
       {/* CUERPO PRINCIPAL CON DIVISION DE CHAT */}
       <div className="flex flex-1 overflow-hidden min-h-0 bg-transparent">
-        <div className={`flex-1 overflow-y-auto px-8 py-6 custom-scrollbar ${isDarkMode ? 'bg-[#0f0f11]' : 'bg-[#f8f9fa]'}`}>
+        <div className={`flex-1 overflow-y-auto px-8 py-6 custom-scrollbar ${isDarkMode ? 'bg-[#0f0f11]' : 'bg-white'}`}>
           {isLoading ? (
             <div className="flex justify-center items-center h-64">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
@@ -357,7 +357,7 @@ export default function FinanceModule({ mode = 'contabilidad', initialSubTab, is
         </div>
         
         {isChatOpen && (
-          <div className={`w-80 border-l shrink-0 flex flex-col p-4 animate-in slide-in-from-right duration-300 ${isDarkMode ? 'border-white/10 bg-[#0f0f11]' : 'border-black/5 bg-gray-50'}`}>
+          <div className={`w-80 border-l shrink-0 flex flex-col p-4 animate-in slide-in-from-right duration-300 ${isDarkMode ? 'border-white/10 bg-[#0f0f11]' : 'border-blue-100 bg-[#f3f8ff]'}`}>
             <FinanceChat transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} onClose={() => setIsChatOpen(false)} />
           </div>
         )}
