@@ -123,6 +123,31 @@ export function generarFacturaXML(emisorConfig, facturaData, terceroData, items 
     secuencial: facturaData.secuencial || '000000001'
   });
 
+  const activeItems = items.length > 0 ? items : (facturaData.items || []);
+  let detallesXml = '';
+  activeItems.forEach((item, idx) => {
+    const lineSub = (parseFloat(item.price) || 0) * (parseInt(item.quantity) || 1);
+    const lineIva = lineSub * ((parseInt(item.ivaCategory) || 15) / 100);
+    detallesXml += `
+    <detalle>
+      <codigoPrincipal>P${idx + 1}</codigoPrincipal>
+      <descripcion>${item.name || 'Detalle'}</descripcion>
+      <cantidad>${Number(item.quantity).toFixed(2)}</cantidad>
+      <precioUnitario>${Number(item.price).toFixed(2)}</precioUnitario>
+      <descuento>0.00</descuento>
+      <precioTotalSinImpuesto>${lineSub.toFixed(2)}</precioTotalSinImpuesto>
+      <impuestos>
+        <impuesto>
+          <codigo>2</codigo>
+          <codigoPorcentaje>${item.ivaCategory === 15 ? '4' : '2'}</codigoPorcentaje>
+          <tarifa>${item.ivaCategory}</tarifa>
+          <baseImponible>${lineSub.toFixed(2)}</baseImponible>
+          <valor>${lineIva.toFixed(2)}</valor>
+        </impuesto>
+      </impuestos>
+    </detalle>`;
+  });
+
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <factura id="comprobante" version="1.1.0">
   <infoTributaria>
@@ -165,6 +190,8 @@ export function generarFacturaXML(emisorConfig, facturaData, terceroData, items 
       </pago>
     </pagos>
   </infoFactura>
+  <detalles>${detallesXml}
+  </detalles>
 </factura>`;
 
   return { xml, claveAcceso };

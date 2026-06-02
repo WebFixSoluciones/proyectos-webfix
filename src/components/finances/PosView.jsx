@@ -294,13 +294,14 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
       const txs = snap.docs.map(d => d.data());
       setSessionTxs(txs);
       
-      const cashTotal = txs.filter(t => t.paymentMethod === 'efectivo').reduce((acc, t) => acc + Number(t.total || 0), 0);
-      const cardTotal = txs.filter(t => t.paymentMethod === 'tarjeta').reduce((acc, t) => acc + Number(t.total || 0), 0);
-      const transTotal = txs.filter(t => t.paymentMethod === 'transferencia').reduce((acc, t) => acc + Number(t.total || 0), 0);
-      const cruceTotal = txs.filter(t => t.paymentMethod === 'cruce_cuentas').reduce((acc, t) => acc + Number(t.total || 0), 0);
+      const cashTotal = txs.filter(t => t.paymentMethod === 'efectivo' && t.sriStatus !== 'anulado').reduce((acc, t) => acc + Number(t.total || 0), 0);
+      const cardTotal = txs.filter(t => t.paymentMethod === 'tarjeta' && t.sriStatus !== 'anulado').reduce((acc, t) => acc + Number(t.total || 0), 0);
+      const transTotal = txs.filter(t => t.paymentMethod === 'transferencia' && t.sriStatus !== 'anulado').reduce((acc, t) => acc + Number(t.total || 0), 0);
+      const cruceTotal = txs.filter(t => t.paymentMethod === 'cruce_cuentas' && t.sriStatus !== 'anulado').reduce((acc, t) => acc + Number(t.total || 0), 0);
       
+      const initialAmt = Number(activeSession.initialAmount || 0);
       setClosingForm({
-        efectivoReal: (activeSession.initialAmount + cashTotal).toFixed(2),
+        efectivoReal: (initialAmt + cashTotal).toFixed(2),
         tarjetaReal: cardTotal.toFixed(2),
         transferenciaReal: transTotal.toFixed(2),
         cruceReal: cruceTotal.toFixed(2),
@@ -317,12 +318,13 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
   const handleCloseSession = async (e) => {
     e.preventDefault();
     try {
-      const cashTotal = sessionTxs.filter(t => t.paymentMethod === 'efectivo').reduce((acc, t) => acc + Number(t.total || 0), 0);
-      const cardTotal = sessionTxs.filter(t => t.paymentMethod === 'tarjeta').reduce((acc, t) => acc + Number(t.total || 0), 0);
-      const transTotal = sessionTxs.filter(t => t.paymentMethod === 'transferencia').reduce((acc, t) => acc + Number(t.total || 0), 0);
-      const cruceTotal = sessionTxs.filter(t => t.paymentMethod === 'cruce_cuentas').reduce((acc, t) => acc + Number(t.total || 0), 0);
+      const cashTotal = sessionTxs.filter(t => t.paymentMethod === 'efectivo' && t.sriStatus !== 'anulado').reduce((acc, t) => acc + Number(t.total || 0), 0);
+      const cardTotal = sessionTxs.filter(t => t.paymentMethod === 'tarjeta' && t.sriStatus !== 'anulado').reduce((acc, t) => acc + Number(t.total || 0), 0);
+      const transTotal = sessionTxs.filter(t => t.paymentMethod === 'transferencia' && t.sriStatus !== 'anulado').reduce((acc, t) => acc + Number(t.total || 0), 0);
+      const cruceTotal = sessionTxs.filter(t => t.paymentMethod === 'cruce_cuentas' && t.sriStatus !== 'anulado').reduce((acc, t) => acc + Number(t.total || 0), 0);
 
-      const expectedCash = activeSession.initialAmount + cashTotal;
+      const initialAmt = Number(activeSession.initialAmount || 0);
+      const expectedCash = initialAmt + cashTotal;
       const diffCash = Number(closingForm.efectivoReal) - expectedCash;
       const diffCard = Number(closingForm.tarjetaReal) - cardTotal;
       const diffTrans = Number(closingForm.transferenciaReal) - transTotal;
@@ -451,7 +453,8 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
   // Cliente SRI selector
   const getSelectedClient = () => {
     if (selectedClientId) {
-      return thirdParties.find(tp => tp.id === selectedClientId);
+      const found = thirdParties.find(tp => tp.id === selectedClientId);
+      if (found) return found;
     }
     return {
       name: 'Consumidor Final',
@@ -543,6 +546,7 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
         date: new Date().toISOString().split('T')[0],
         documentType: 'factura',
         thirdPartyId: clientDocId,
+        thirdParty: client,
         category: 'ventas',
         currency: 'USD',
         baseImponible: Number(getSubtotalWithDiscount().toFixed(2)),
@@ -649,8 +653,8 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
 
   // Filtrado de Productos (Izquierda)
   const filteredProducts = products.filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          p.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = (p.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          (p.sku || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                           (p.codigoBarras || '').includes(searchTerm);
     const matchesBrand = filterBrand === 'all' || p.marca === filterBrand;
     const matchesCategory = filterCategory === 'all' || p.categoria === filterCategory;
@@ -741,7 +745,7 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
           </div>
           <div>
             <h1 className={`text-sm font-black uppercase tracking-wider ${isDarkMode ? 'text-white' : 'text-black'}`}>Caja POS: {activeSession.branch}</h1>
-            <p className={`text-[9px] font-mono mt-0.5 ${isDarkMode ? 'text-gray-500' : 'text-black font-semibold'}`}>Sesión: {activeSession.responsible} ({activeSession.shift}) | Fondo: ${activeSession.initialAmount.toFixed(2)}</p>
+            <p className={`text-[9px] font-mono mt-0.5 ${isDarkMode ? 'text-gray-500' : 'text-black font-semibold'}`}>Sesión: {activeSession.responsible} ({activeSession.shift}) | Fondo: ${Number(activeSession.initialAmount || 0).toFixed(2)}</p>
           </div>
         </div>
 
@@ -1277,7 +1281,7 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
                   <div>
                     <p className={`font-bold ${isDarkMode ? 'text-white' : 'text-black'}`}>Efectivo en Caja</p>
                     <p className={`text-[9px] ${isDarkMode ? 'text-gray-500' : 'text-gray-900 font-bold'}`}>
-                      Esperado: ${(activeSession.initialAmount + sessionTxs.filter(t => t.paymentMethod === 'efectivo').reduce((acc, t) => acc + Number(t.total || 0), 0)).toFixed(2)} (inc. Fondo)
+                      Esperado: ${(Number(activeSession.initialAmount || 0) + sessionTxs.filter(t => t.paymentMethod === 'efectivo' && t.sriStatus !== 'anulado').reduce((acc, t) => acc + Number(t.total || 0), 0)).toFixed(2)} (inc. Fondo)
                     </p>
                   </div>
                   <input type="number" step="0.01" value={closingForm.efectivoReal} onChange={e => setClosingForm({...closingForm, efectivoReal: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} w-24 text-right px-2 py-1.5 rounded-lg border`} />

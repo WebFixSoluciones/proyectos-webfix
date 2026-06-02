@@ -127,10 +127,12 @@ export function firmarComprobanteXML(xmlString, p12Base64, password) {
     `</xades:SignedProperties>`;
 
     // Objeto ds:KeyInfo
-    const modulus = certificate.publicKey.n.toString(16);
+    const modulusHex = certificate.publicKey.n.toString(16);
+    const modulusBytes = forge.util.hexToBytes(modulusHex.length % 2 === 0 ? modulusHex : '0' + modulusHex);
+    const modulusBase64 = forge.util.encode64(modulusBytes).replace(/\r?\n|\r/g, "");
+
     const exponent = certificate.publicKey.e.toString(16);
-    // Convertir exponent a base64 o hex normal. En SRI se suele representar como decimal o base64. 
-    // node-forge exponent e es de tipo BigInteger. En decimal suele ser 65537.
+    // Convertir exponent a base64 o hex normal. En SRI se representa como base64.
     const exponentDec = certificate.publicKey.e.toString(10);
     const exponentBase64 = forge.util.encode64(forge.util.hexToBytes(exponentDec === '65537' ? '010001' : exponent.padStart(6, '0')));
 
@@ -140,7 +142,7 @@ export function firmarComprobanteXML(xmlString, p12Base64, password) {
       `</ds:X509Data>` +
       `<ds:KeyValue>` +
         `<ds:RSAKeyValue>` +
-          `<ds:Modulus>${modulus}</ds:Modulus>` +
+          `<ds:Modulus>${modulusBase64}</ds:Modulus>` +
           `<ds:Exponent>${exponentBase64}</ds:Exponent>` +
         `</ds:RSAKeyValue>` +
       `</ds:KeyValue>` +

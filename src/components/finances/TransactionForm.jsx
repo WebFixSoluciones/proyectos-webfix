@@ -155,8 +155,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         const snap = await getDoc(docRef);
         if (snap.exists()) {
           setSriConfig(snap.data());
-          // Cargar el secuencial factura del emisor si es nuevo
-          if (!tx) {
+          // Cargar el secuencial factura del emisor si es nuevo o no lo tiene asignado
+          if (!tx || !tx.secuencial) {
             setFormData(prev => ({
               ...prev,
               secuencial: String(snap.data().secuencialFactura || 1)
@@ -185,9 +185,9 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
           transferencia: tx.paymentsBreakdown.transferencia || 0,
           tarjeta: tx.paymentsBreakdown.tarjeta || 0,
           cruce_cuentas: tx.paymentsBreakdown.cruce_cuentas || 0,
-          transferenciaRef: tx.transferenciaRef || '',
-          tarjetaRef: tx.tarjetaRef || '',
-          cruceRef: tx.cruceRef || ''
+          transferenciaRef: tx.transferenciaRef || tx.paymentReferences?.transferenciaRef || '',
+          tarjetaRef: tx.tarjetaRef || tx.paymentReferences?.tarjetaRef || '',
+          cruceRef: tx.cruceRef || tx.paymentReferences?.cruceRef || ''
         });
       } else {
         const method = tx.paymentMethod || 'transferencia';
@@ -196,9 +196,9 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
           transferencia: method === 'transferencia' ? tx.total || 0 : 0,
           tarjeta: method === 'tarjeta' ? tx.total || 0 : 0,
           cruce_cuentas: method === 'cruce_cuentas' ? tx.total || 0 : 0,
-          transferenciaRef: tx.transferenciaRef || '',
-          tarjetaRef: tx.tarjetaRef || '',
-          cruceRef: tx.cruceRef || ''
+          transferenciaRef: tx.transferenciaRef || tx.paymentReferences?.transferenciaRef || '',
+          tarjetaRef: tx.tarjetaRef || tx.paymentReferences?.tarjetaRef || '',
+          cruceRef: tx.cruceRef || tx.paymentReferences?.cruceRef || ''
         });
       }
     }
@@ -485,7 +485,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       return false;
     }
 
-    const matchedTercero = thirdParties.find(tp => tp.id === formData.thirdPartyId);
+    const matchedTercero = thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
     if (!matchedTercero) {
       showToast('Contacto inválido', 'error');
       return false;
@@ -554,7 +554,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     }
     if (!validateForm()) return;
 
-    const matchedTercero = thirdParties.find(tp => tp.id === formData.thirdPartyId);
+    const matchedTercero = thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
 
     setIsEmitting(true);
     setSriLogs([]);
@@ -565,7 +565,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       
       let xmlObj;
       if (formData.documentType === 'factura') {
-        xmlObj = generarFacturaXML(sriConfig, { ...formData, secuencial: sec }, matchedTercero);
+        xmlObj = generarFacturaXML(sriConfig, { ...formData, secuencial: sec }, matchedTercero, formData.items);
       } else if (formData.documentType === 'retencion') {
         xmlObj = generarRetencionXML(sriConfig, { ...formData, secuencial: sec }, matchedTercero);
       } else if (formData.documentType === 'nota_credito') {
@@ -573,7 +573,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       } else if (formData.documentType === 'liquidacion') {
         xmlObj = generarLiquidacionXML(sriConfig, { ...formData, secuencial: sec }, matchedTercero, formData.items);
       } else {
-        xmlObj = generarFacturaXML(sriConfig, { ...formData, secuencial: sec }, matchedTercero);
+        xmlObj = generarFacturaXML(sriConfig, { ...formData, secuencial: sec }, matchedTercero, formData.items);
       }
 
       let { xml, claveAcceso } = xmlObj;
@@ -664,11 +664,11 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   const downloadXMLFile = () => {
     if (!formData.claveAcceso) return;
     const element = document.createElement("a");
-    const matchedTercero = thirdParties.find(tp => tp.id === formData.thirdPartyId);
+    const matchedTercero = thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
     
     let xmlObj;
     if (formData.documentType === 'factura') {
-      xmlObj = generarFacturaXML(sriConfig, formData, matchedTercero);
+      xmlObj = generarFacturaXML(sriConfig, formData, matchedTercero, formData.items);
     } else if (formData.documentType === 'retencion') {
       xmlObj = generarRetencionXML(sriConfig, formData, matchedTercero);
     } else if (formData.documentType === 'nota_credito') {
@@ -676,7 +676,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     } else if (formData.documentType === 'liquidacion') {
       xmlObj = generarLiquidacionXML(sriConfig, formData, matchedTercero, formData.items);
     } else {
-      xmlObj = generarFacturaXML(sriConfig, formData, matchedTercero);
+      xmlObj = generarFacturaXML(sriConfig, formData, matchedTercero, formData.items);
     }
 
     let finalXml = xmlObj.xml;
@@ -707,7 +707,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         showToast('Por favor, selecciona un cliente o proveedor para continuar', 'error');
         return;
       }
-      const matchedTercero = thirdParties.find(tp => tp.id === formData.thirdPartyId);
+      const matchedTercero = thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
       if (!matchedTercero) {
         showToast('El contacto seleccionado no es válido', 'error');
         return;
@@ -758,7 +758,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     { id: 4, name: 'Emisión SRI' }
   ];
 
-  const matchedTercero = thirdParties.find(tp => tp.id === formData.thirdPartyId);
+  const matchedTercero = thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
   const paymentStatus = calculatePaymentStatus();
   const efVal = Number(payments.efectivo) || 0;
   const tjVal = Number(payments.tarjeta) || 0;
