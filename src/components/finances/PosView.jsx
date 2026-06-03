@@ -991,8 +991,17 @@ export default function PosView({ products, thirdParties, transactions = [], isD
           >
             <Settings size={16} />
           </button>
-          <button onClick={handleOpenCloseModal} className={`px-3.5 py-1.5 rounded-xl border font-bold text-xs uppercase ${isDarkMode ? 'border-red-500/25 bg-red-600/10 text-red-400 hover:bg-red-600/20' : 'border-red-200 bg-red-50 text-red-700 hover:bg-red-100'}`}>
-            Arqueo / Cerrar Caja
+          <button 
+            onClick={handleOpenCloseModal} 
+            className={`px-3 h-9 rounded-xl flex items-center justify-center gap-1.5 font-bold text-[10px] uppercase transition-all ${
+              isDarkMode 
+                ? 'bg-white/5 text-blue-400 hover:text-blue-305 hover:bg-white/10' 
+                : 'bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700'
+            }`}
+            title="Arqueo / Cerrar Caja"
+          >
+            <DollarSign size={13} />
+            <span>Arqueo</span>
           </button>
           <button 
             onClick={() => {
@@ -1049,14 +1058,14 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   <button 
                     type="button"
                     onClick={handleCreateQuote}
-                    className={`px-4 h-11 rounded-xl text-sm font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 border shadow-sm ${
+                    className={`px-3.5 h-11 rounded-xl text-xs font-black uppercase transition-all flex items-center justify-center gap-1.5 border shadow-sm ${
                       isDarkMode 
                         ? 'bg-blue-650/15 border-blue-500/20 text-blue-400 hover:bg-blue-650/30' 
                         : 'bg-blue-50 border-blue-150 text-blue-700 hover:bg-blue-100'
                     }`}
                     title="Guardar como Cotización (Proforma)"
                   >
-                    <FileText size={13} /> Cotizar
+                    <FileText size={12} /> Cotizar
                   </button>
                 </div>
 
@@ -1115,14 +1124,14 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   <button 
                     type="button"
                     onClick={handleCreateQuote}
-                    className={`px-4 h-11 rounded-xl text-sm font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 border shadow-sm ${
+                    className={`px-3.5 h-11 rounded-xl text-xs font-black uppercase transition-all flex items-center justify-center gap-1.5 border shadow-sm ${
                       isDarkMode 
                         ? 'bg-blue-650/15 border-blue-500/20 text-blue-400 hover:bg-blue-650/30' 
                         : 'bg-blue-50 border-blue-150 text-blue-700 hover:bg-blue-100'
                     }`}
                     title="Guardar como Cotización (Proforma)"
                   >
-                    <FileText size={13} /> Cotizar
+                    <FileText size={12} /> Cotizar
                   </button>
                 </div>
 
@@ -1568,7 +1577,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                 </div>
               )}
               <div className={`flex justify-between ${isDarkMode ? 'text-gray-450' : 'text-black font-semibold'}`}>
-                <span>IVA (15%)</span>
+                <span>Impuestos</span>
                 <span>${getIva().toFixed(2)}</span>
               </div>
               <div className={`flex justify-between font-black text-base md:text-lg pt-2.5 border-t ${isDarkMode ? 'border-white/5 text-white' : 'border-blue-100 text-black'}`}>
