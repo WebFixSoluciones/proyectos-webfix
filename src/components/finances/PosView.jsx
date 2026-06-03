@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Search, ShoppingCart, Plus, Minus, Trash2, User, Sparkles, CheckCircle2, DollarSign, X, ShieldAlert, Award, Layers, Tag, Bookmark, RefreshCw, LogOut, ArrowRight, ArrowLeft, ChevronRight, Settings, Barcode, Zap, Eye } from 'lucide-react';
+import { Search, ShoppingCart, Plus, Minus, Trash2, User, Sparkles, CheckCircle2, DollarSign, X, ShieldAlert, Award, Layers, Tag, Bookmark, RefreshCw, LogOut, ArrowRight, ArrowLeft, ChevronRight, Settings, Barcode, Zap, Eye, Mic, Keyboard, History, Download, FileText } from 'lucide-react';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, onSnapshot } from 'firebase/firestore';
 import { consultarRucSri } from '../../services/sriService';
 
@@ -26,7 +26,7 @@ function sanitizeData(obj) {
   return obj;
 }
 
-export default function PosView({ products, thirdParties, isDarkMode, showToast, db, appId, onCheckout, onClose }) {
+export default function PosView({ products, thirdParties, transactions = [], isDarkMode, showToast, db, appId, onCheckout, onClose }) {
   // Configuración de visualización del POS (persistente en localStorage)
   const [posConfig, setPosConfig] = useState(() => {
     const saved = localStorage.getItem(`pos_config_${appId}`);
@@ -94,6 +94,56 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
     }
   };
 
+  const startVoiceSearch = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      showToast("La búsqueda por voz no es compatible con este navegador.", "error");
+      return;
+    }
+    
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'es-EC';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    
+    recognition.onstart = () => {
+      setIsListening(true);
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        oscillator.type = 'sine';
+        oscillator.frequency.value = 600;
+        gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 0.1);
+      } catch (err) {
+        // ignore
+      }
+    };
+    
+    recognition.onresult = (event) => {
+      const speechToText = event.results[0][0].transcript;
+      setSearchTerm(speechToText);
+      showToast(`Buscando: "${speechToText}"`, "success");
+    };
+    
+    recognition.onerror = (err) => {
+      console.error(err);
+      showToast("No se pudo reconocer la voz. Intente de nuevo.", "error");
+      setIsListening(false);
+    };
+    
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+    
+    recognition.start();
+  };
+
   // Auto focus en Modo Lector de Código de Barras
   useEffect(() => {
     if (posConfig.barcodeMode) {
@@ -118,13 +168,22 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
       const activeTag = document.activeElement ? document.activeElement.tagName : '';
       const isInputActive = ['INPUT', 'TEXTAREA', 'SELECT'].includes(activeTag);
 
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setIsShortcutsOpen(false);
+        setIsHistoryOpen(false);
+        setIsCheckoutOpen(false);
+        setIsQuickAddOpen(false);
+        setIsClosingOpen(false);
+      }
+
       if (e.key === 'F2') {
         e.preventDefault();
         const searchInput = document.getElementById('pos-search-input');
         if (searchInput) searchInput.focus();
       }
 
-      if (isInputActive && e.key !== 'F2' && e.key !== 'F12') {
+      if (isInputActive && e.key !== 'F2' && e.key !== 'F12' && e.key !== 'Escape') {
         if (e.key === 'F12') {
           e.preventDefault();
           if (cart.length > 0) {
@@ -239,6 +298,9 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
   const [discountType, setDiscountType] = useState('percent'); // 'percent' o 'fixed'
   const [discountValue, setDiscountValue] = useState(0);
   const [isDiscountOpen, setIsDiscountOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
+  const [isListening, setIsListening] = useState(false);
 
   // checkout wizard
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -678,6 +740,38 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
     }
   };
 
+  const handleVoidTransaction = async (tx) => {
+    if (!window.confirm(`¿Estás seguro de que deseas ANULAR este comprobante (${tx.id})? Esto restaurará el stock de los productos.`)) {
+      return;
+    }
+    try {
+      if (tx.items && Array.isArray(tx.items)) {
+        for (const item of tx.items) {
+          const prod = products.find(p => p.id === item.productId);
+          if (prod && prod.type === 'producto') {
+            const productRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_products', item.productId);
+            const currentStock = Number(prod.stock) || 0;
+            const itemQty = Number(item.quantity) || 0;
+            await setDoc(productRef, sanitizeData({ 
+              stock: currentStock + itemQty 
+            }), { merge: true });
+          }
+        }
+      }
+      
+      const txRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', tx.id);
+      await setDoc(txRef, sanitizeData({
+        sriStatus: 'anulado',
+        updatedAt: new Date().toISOString()
+      }), { merge: true });
+      
+      showToast("Comprobante anulado y stock restaurado con éxito", "success");
+    } catch (err) {
+      console.error(err);
+      showToast("Error al anular el comprobante", "error");
+    }
+  };
+
   // Filtrado de Productos (Izquierda)
   const filteredProducts = products.filter(p => {
     const matchesSearch = (p.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -783,6 +877,20 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
               Recuperar Venta
             </button>
           )}
+          <button 
+            onClick={() => setIsShortcutsOpen(true)} 
+            className={`p-2.5 rounded-xl transition-all ${isDarkMode ? 'bg-white/5 text-gray-405 hover:text-white hover:bg-white/10' : 'bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700'}`}
+            title="Ver Atajos de Teclado (Guía Visual)"
+          >
+            <Keyboard size={16} />
+          </button>
+          <button 
+            onClick={() => setIsHistoryOpen(true)} 
+            className={`p-2.5 rounded-xl transition-all ${isDarkMode ? 'bg-white/5 text-gray-405 hover:text-white hover:bg-white/10' : 'bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700'}`}
+            title="Ver Ventas Emitidas en esta Sesión"
+          >
+            <History size={16} />
+          </button>
           <button onClick={handleOpenCloseModal} className={`px-3.5 py-1.5 rounded-xl border font-bold text-[10px] uppercase ${isDarkMode ? 'border-red-500/25 bg-red-600/10 text-red-400 hover:bg-red-600/20' : 'border-red-200 bg-red-50 text-red-700 hover:bg-red-100'}`}>
             Arqueo / Cerrar Caja
           </button>
@@ -827,6 +935,14 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
                     onKeyDown={handleSearchKeyDown}
                     className={`bg-transparent border-none outline-none text-xs w-full focus:ring-0 ${isDarkMode ? 'text-white placeholder-gray-500' : 'text-black placeholder-gray-400 font-bold'}`}
                   />
+                  <button 
+                    type="button" 
+                    onClick={startVoiceSearch} 
+                    className={`p-1 rounded-lg transition-all ${isListening ? 'text-red-500 animate-pulse bg-red-500/10' : (isDarkMode ? 'text-gray-400 hover:text-white' : 'text-blue-600 hover:bg-blue-50')}`}
+                    title="Buscar por dictado de voz"
+                  >
+                    <Mic size={14} />
+                  </button>
                   {searchTerm && <button onClick={() => setSearchTerm('')}><X size={12} className={isDarkMode ? 'text-gray-500' : 'text-blue-600'} /></button>}
                 </div>
 
@@ -871,6 +987,14 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
                     onKeyDown={handleSearchKeyDown}
                     className={`bg-transparent border-none outline-none text-xs w-full focus:ring-0 ${isDarkMode ? 'text-white placeholder-gray-500' : 'text-black placeholder-gray-400 font-bold'}`}
                   />
+                  <button 
+                    type="button" 
+                    onClick={startVoiceSearch} 
+                    className={`p-1 rounded-lg transition-all ${isListening ? 'text-red-500 animate-pulse bg-red-500/10' : (isDarkMode ? 'text-gray-400 hover:text-white' : 'text-blue-600 hover:bg-blue-50')}`}
+                    title="Buscar por dictado de voz"
+                  >
+                    <Mic size={14} />
+                  </button>
                   {searchTerm && <button onClick={() => setSearchTerm('')}><X size={12} className={isDarkMode ? 'text-gray-500' : 'text-blue-600'} /></button>}
                 </div>
 
@@ -947,15 +1071,19 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
                     </div>
 
                     <div className="flex items-center gap-6 shrink-0">
-                      {posConfig.showStock && p.type === 'producto' && (
-                        <span className={`text-[8.5px] font-bold px-1.5 py-0.5 rounded border shrink-0 ${
-                          p.stock <= p.minStock 
-                            ? 'bg-orange-500/10 border-orange-500/20 text-orange-400' 
-                            : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
-                        }`}>
-                          {p.bodega || 'Central'}: {p.stock}
-                        </span>
-                      )}
+                      {posConfig.showStock && p.type === 'producto' && (() => {
+                        const minStk = p.minStock !== undefined ? Number(p.minStock) : 2;
+                        const isCritical = p.stock <= minStk;
+                        return (
+                          <span className={`text-[8.5px] font-bold px-1.5 py-0.5 rounded border shrink-0 ${
+                            isCritical 
+                              ? 'bg-red-500/10 border-red-500 text-red-500 animate-pulse font-black shadow-sm' 
+                              : (isDarkMode ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-emerald-50 border-emerald-250 text-emerald-700')
+                          }`}>
+                            {p.bodega || 'Central'}: {p.stock}
+                          </span>
+                        );
+                      })()}
                       <div className="text-right shrink-0">
                         <span className={`text-xs font-black block ${isDarkMode ? 'text-white' : 'text-black'}`}>${Number(p.price).toFixed(2)}</span>
                       </div>
@@ -1013,11 +1141,19 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
 
                     <div className={`flex justify-between items-center mt-3 pt-3 border-t ${isDarkMode ? 'border-white/5' : 'border-blue-100/50'}`}>
                       <span className={`text-xs font-black ${isDarkMode ? 'text-white' : 'text-black'}`}>${Number(p.price).toFixed(2)}</span>
-                      {posConfig.showStock && p.type === 'producto' && (
-                        <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded border ${p.stock <= p.minStock ? 'bg-orange-500/10 border-orange-500/20 text-orange-400' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'}`}>
-                          {p.bodega || 'Central'}: {p.stock}
-                        </span>
-                      )}
+                      {posConfig.showStock && p.type === 'producto' && (() => {
+                        const minStk = p.minStock !== undefined ? Number(p.minStock) : 2;
+                        const isCritical = p.stock <= minStk;
+                        return (
+                          <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded border ${
+                            isCritical 
+                              ? 'bg-red-500/10 border-red-500 text-red-500 animate-pulse font-black shadow-sm' 
+                              : (isDarkMode ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-emerald-50 border-emerald-250 text-emerald-700')
+                          }`}>
+                            {p.bodega || 'Central'}: {p.stock}
+                          </span>
+                        );
+                      })()}
                     </div>
                   </div>
                 );
@@ -1953,6 +2089,218 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
                 <button type="submit" className="px-4 py-2 rounded-xl text-xs font-black bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm hover:scale-105 active:scale-95 transition-all">Guardar y Seleccionar</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE ATAJOS DE TECLADO (GUIDE) */}
+      {isShortcutsOpen && (
+        <div className="fixed inset-0 z-[160] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-250">
+          <div className={`w-full max-w-md p-6 rounded-3xl border shadow-2xl transition-all duration-300 ${
+            isDarkMode ? 'bg-[#151517] border-white/10 text-white shadow-black/80' : 'bg-white border-blue-100 text-black shadow-blue-900/10'
+          }`}>
+            <div className="flex justify-between items-center mb-4 pb-2 border-b border-white/5">
+              <h3 className="text-sm font-black uppercase tracking-wider flex items-center gap-2">
+                <Keyboard size={16} className="text-blue-500" /> Guía de Atajos de Teclado
+              </h3>
+              <button onClick={() => setIsShortcutsOpen(false)} className="text-gray-550 hover:text-gray-300 transition-colors p-1"><X size={16} /></button>
+            </div>
+            
+            <div className="space-y-3.5 text-xs">
+              <p className="text-[10px] text-gray-400">Usa estos atajos rápidos para agilizar el proceso de facturación en caja:</p>
+              
+              <div className="space-y-2">
+                {[
+                  { key: 'F2', desc: 'Enfocar la barra de búsqueda de productos' },
+                  { key: 'F8', desc: 'Suspender venta actual (Borrar localmente)' },
+                  { key: 'F9', desc: 'Recuperar última venta suspendida' },
+                  { key: 'F12', desc: 'Proceder al cobro / Abrir pasarela de pago' },
+                  { key: 'Ctrl + Enter', desc: 'Cobrar directamente desde el detalle de la venta' },
+                  { key: 'Escape', desc: 'Cerrar cualquier ventana flotante o modal abierto' }
+                ].map((item, idx) => (
+                  <div key={idx} className={`flex items-center justify-between p-2.5 rounded-xl border ${isDarkMode ? 'bg-black/20 border-white/5 text-gray-300' : 'bg-blue-50/20 border-blue-100 text-black font-semibold'}`}>
+                    <span className="text-[11px] font-medium">{item.desc}</span>
+                    <kbd className={`px-2 py-1 rounded text-[10px] font-mono font-bold shadow ${isDarkMode ? 'bg-white/10 text-white border border-white/10' : 'bg-white text-black border border-blue-200'}`}>
+                      {item.key}
+                    </kbd>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex justify-end mt-6 pt-4 border-t border-white/5">
+              <button 
+                type="button" 
+                onClick={() => setIsShortcutsOpen(false)} 
+                className="px-5 py-2.5 rounded-xl text-xs font-black transition-all bg-blue-600 hover:bg-blue-500 text-white shadow-sm hover:scale-105 active:scale-95"
+              >
+                Entendido
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DRAWER DESLIZABLE: HISTORIAL DE VENTAS DE LA SESIÓN */}
+      {isHistoryOpen && (
+        <div className="fixed inset-0 z-[140] flex justify-end bg-black/75 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="absolute inset-0" onClick={() => setIsHistoryOpen(false)}></div>
+          
+          <div className={`relative w-full max-w-md h-full flex flex-col shadow-2xl animate-in slide-in-from-right duration-350 ${
+            isDarkMode ? 'bg-[#0f0f11] border-l border-white/5 text-white' : 'bg-[#fcfcff] border-l border-blue-100 text-black'
+          }`}>
+            {/* Header */}
+            <div className={`p-4 border-b flex items-center justify-between shrink-0 ${isDarkMode ? 'border-white/5 bg-black/20' : 'border-blue-100 bg-blue-50/40'}`}>
+              <div className="flex items-center gap-2">
+                <History size={16} className="text-blue-500" />
+                <div>
+                  <h3 className="text-xs font-black uppercase tracking-wider">Historial de Ventas</h3>
+                  <p className="text-[9px] text-gray-500">Sesión de caja activa</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsHistoryOpen(false)} 
+                className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-white/5 text-gray-450 hover:text-white' : 'hover:bg-blue-100 text-gray-650 hover:text-black'}`}
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* List */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-3.5 custom-scrollbar">
+              {(() => {
+                const sessionTransactions = transactions.filter(t => t.cashSessionId === activeSession.id);
+                if (sessionTransactions.length === 0) {
+                  return (
+                    <div className="flex flex-col items-center justify-center py-24 text-gray-500 text-center">
+                      <History size={40} className="opacity-20 mb-2.5 text-blue-500" />
+                      <p className="text-xs italic font-medium">No se han emitido ventas en esta sesión.</p>
+                    </div>
+                  );
+                }
+                return sessionTransactions.map((tx) => {
+                  const matchedClient = thirdParties.find(tp => tp.id === tx.thirdPartyId) || tx.thirdParty || { name: 'Consumidor Final', ruc: '9999999999999' };
+                  const isAnulado = tx.sriStatus === 'anulado';
+                  return (
+                    <div 
+                      key={tx.id} 
+                      className={`p-3.5 rounded-2xl border flex flex-col justify-between gap-3 transition-all ${
+                        isAnulado
+                          ? 'opacity-65 border-red-500/20 bg-red-500/5'
+                          : (isDarkMode ? 'bg-black/25 border-white/5 hover:bg-black/35' : 'bg-white border-blue-100/70 shadow-sm hover:shadow')
+                      }`}
+                    >
+                      <div className="flex justify-between items-start">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-mono text-[9px] text-gray-500 truncate">{tx.id}</p>
+                          <h4 className={`text-xs font-black truncate ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                            {matchedClient.name}
+                          </h4>
+                          <p className="text-[9px] text-gray-500">RUC/CI: {matchedClient.ruc} | Fecha: {tx.date}</p>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <span className={`text-xs font-black block ${isAnulado ? 'text-red-500 line-through' : (isDarkMode ? 'text-white' : 'text-blue-700')}`}>
+                            ${Number(tx.total || 0).toFixed(2)}
+                          </span>
+                          <span className={`inline-block px-1.5 py-0.5 rounded text-[8px] font-bold uppercase mt-1 ${
+                            isAnulado 
+                              ? 'bg-red-500/20 text-red-405' 
+                              : (tx.sriStatus === 'autorizado' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-yellow-500/20 text-yellow-400')
+                          }`}>
+                            {tx.sriStatus || 'pendiente'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className={`p-2 rounded-xl text-[9px] leading-relaxed font-mono ${isDarkMode ? 'bg-black/40 text-gray-400' : 'bg-blue-50/30 text-gray-700'}`}>
+                        <div className="flex justify-between">
+                          <span>Pago: <span className="font-bold uppercase">{tx.paymentMethod}</span></span>
+                          <span>Base: ${Number(tx.baseImponible || 0).toFixed(2)}</span>
+                        </div>
+                        {tx.items && tx.items.length > 0 && (
+                          <div className="border-t border-white/5 mt-1 pt-1 max-h-16 overflow-y-auto custom-scrollbar">
+                            {tx.items.map((it, idx) => (
+                              <div key={idx} className="flex justify-between text-[8px] text-gray-500">
+                                <span className="truncate max-w-[150px]">{it.quantity}x {it.name}</span>
+                                <span>${(it.price * it.quantity).toFixed(2)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex justify-between items-center border-t border-white/5 pt-2">
+                        <div className="flex gap-1.5">
+                          {tx.pdfUrl ? (
+                            <a 
+                              href={tx.pdfUrl} 
+                              target="_blank" 
+                              rel="noreferrer" 
+                              className={`p-1.5 rounded-lg border flex items-center justify-center transition-colors ${
+                                isDarkMode ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/25' : 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                              }`} 
+                              title="Descargar PDF RIDE"
+                            >
+                              <FileText size={12} />
+                            </a>
+                          ) : (
+                            <span 
+                              className={`p-1.5 rounded-lg border opacity-40 cursor-not-allowed flex items-center justify-center ${
+                                isDarkMode ? 'border-white/5 bg-white/5 text-gray-500' : 'border-gray-250 bg-gray-100 text-gray-400'
+                              }`} 
+                              title="PDF no disponible"
+                            >
+                              <FileText size={12} />
+                            </span>
+                          )}
+
+                          {tx.xmlUrl && (
+                            <a 
+                              href={tx.xmlUrl} 
+                              target="_blank" 
+                              rel="noreferrer" 
+                              className={`p-1.5 rounded-lg border flex items-center justify-center transition-colors ${
+                                isDarkMode ? 'border-blue-500/20 bg-blue-500/10 text-blue-400 hover:bg-blue-500/25' : 'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100'
+                              }`} 
+                              title="Descargar XML SRI"
+                            >
+                              <Download size={12} />
+                            </a>
+                          )}
+                        </div>
+
+                        {!isAnulado && (
+                          <button
+                            type="button"
+                            onClick={() => handleVoidTransaction(tx)}
+                            className={`px-2.5 py-1.5 rounded-xl border text-[9px] font-black uppercase flex items-center gap-1 transition-all ${
+                              isDarkMode 
+                                ? 'border-red-500/35 bg-red-600/15 text-red-400 hover:bg-red-600/25' 
+                                : 'border-red-200 bg-red-50 text-red-700 hover:bg-red-100'
+                            }`}
+                          >
+                            <ShieldAlert size={10} /> Anular Venta
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                });
+              })()}
+            </div>
+            
+            {/* Footer */}
+            <div className={`p-4 border-t flex justify-end shrink-0 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-blue-100 bg-blue-50/20'}`}>
+              <button 
+                type="button" 
+                onClick={() => setIsHistoryOpen(false)}
+                className={`w-full py-2.5 rounded-xl text-xs font-black transition-all ${
+                  isDarkMode ? 'bg-white/5 text-gray-300 hover:bg-white/10' : 'bg-white border border-blue-150 hover:bg-blue-50/80 text-black shadow-sm'
+                }`}
+              >
+                Cerrar Panel
+              </button>
+            </div>
           </div>
         </div>
       )}

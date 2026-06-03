@@ -38,6 +38,7 @@ export default function FinanceModule({ mode = 'contabilidad', initialSubTab, is
     if (initialSubTab && mode === 'ventas') {
       const targetSub = String(initialSubTab).startsWith('pos') ? 'pos' : initialSubTab;
       setSubTabVentas(targetSub);
+      setActiveTab('ventas');
     }
   }, [initialSubTab, mode]);
 
@@ -326,6 +327,7 @@ export default function FinanceModule({ mode = 'contabilidad', initialSubTab, is
                 <PosView 
                   products={products} 
                   thirdParties={thirdParties} 
+                  transactions={transactions}
                   isDarkMode={isDarkMode} 
                   showToast={showToast} 
                   db={db} 
