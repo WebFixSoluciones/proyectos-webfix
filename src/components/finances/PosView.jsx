@@ -42,6 +42,98 @@ export default function PosView({ products, thirdParties, transactions = [], isD
     return saved ? { ...def, ...JSON.parse(saved) } : def;
   });
 
+  // Estados de Caja
+  const [activeSession, setActiveSession] = useState(null);
+  const [sessionLoading, setSessionLoading] = useState(true);
+  const [openingForm, setOpeningForm] = useState({
+    responsible: 'Cajero Principal',
+    initialAmount: 100,
+    branch: 'Matriz Quito',
+    shift: 'Mañana',
+    notes: ''
+  });
+
+  const [isClosingOpen, setIsClosingOpen] = useState(false);
+  const [sessionTxs, setSessionTxs] = useState([]);
+  const [closingForm, setClosingForm] = useState({
+    efectivoReal: 0,
+    tarjetaReal: 0,
+    transferenciaReal: 0,
+    cruceReal: 0,
+    notes: ''
+  });
+
+  // Estados de Venta POS
+  const [cart, setCart] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedClientId, setSelectedClientId] = useState('');
+  
+  // Estados de Filtros
+  const [filterBrand, setFilterBrand] = useState('all');
+  const [filterCategory, setFilterCategory] = useState('all');
+  const [filterWarehouse, setFilterWarehouse] = useState('all');
+  const [filterStock, setFilterStock] = useState('all'); // 'all', 'instock'
+
+  // Descuentos
+  const [discountType, setDiscountType] = useState('percent'); // 'percent' o 'fixed'
+  const [discountValue, setDiscountValue] = useState(0);
+  const [isDiscountOpen, setIsDiscountOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+
+  // checkout wizard
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [checkoutStep, setCheckoutStep] = useState(1); // 1: Cliente, 2: Pago Combinado, 3: Resumen y Emision
+  const [payments, setPayments] = useState({
+    efectivo: 0,
+    transferencia: 0,
+    tarjeta: 0,
+    cruce_cuentas: 0,
+    transferenciaRef: '',
+    tarjetaRef: '',
+    cruceRef: ''
+  });
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  // Quick Client Creation Modal (inside POS Checkout)
+  const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
+  const [isQueryingSri, setIsQueryingSri] = useState(false);
+  const [quickAddFormData, setQuickAddFormData] = useState({
+    name: '',
+    ruc: '',
+    email: '',
+    tipoIdentificacion: 'ruc',
+    direccion: '',
+    telefono: '',
+    tipoContribuyente: 'general'
+  });
+
+  // Cómputo de Totales y Descuentos
+  const getSubtotal = () => cart.reduce((acc, item) => acc + ((Number(item.price) || 0) * (Number(item.quantity) || 0)), 0);
+  const getDiscountAmount = () => {
+    const sub = getSubtotal();
+    if (discountType === 'percent') {
+      return sub * (Number(discountValue || 0) / 100);
+    }
+    return Math.min(sub, Number(discountValue || 0));
+  };
+  const getSubtotalWithDiscount = () => Math.max(0, getSubtotal() - getDiscountAmount());
+  
+  const getIva = () => {
+    const sub = getSubtotal();
+    if (sub === 0) return 0;
+    const ratio = getSubtotalWithDiscount() / sub;
+    return cart.reduce((acc, item) => acc + ((Number(item.price) || 0) * (Number(item.quantity) || 0) * ratio * ((Number(item.ivaCategory !== undefined ? item.ivaCategory : 15)) / 100)), 0);
+  };
+  const getTotal = () => getSubtotalWithDiscount() + getIva();
+
+  // checkout wizard calculations
+  const totalToPay = getTotal();
+  const paidTotal = Number(payments.efectivo) + Number(payments.transferencia) + Number(payments.tarjeta) + Number(payments.cruce_cuentas);
+  const changeDue = Math.max(0, paidTotal - totalToPay);
+  const remainingDue = Math.max(0, totalToPay - paidTotal);
+
   useEffect(() => {
     if (appId) {
       localStorage.setItem(`pos_config_${appId}`, JSON.stringify(posConfig));
@@ -262,72 +354,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
     }
   }, [quickAddFormData.ruc, quickAddFormData.tipoIdentificacion, isQuickAddOpen]);
 
-  // Estados de Caja
-  const [activeSession, setActiveSession] = useState(null);
-  const [sessionLoading, setSessionLoading] = useState(true);
-  const [openingForm, setOpeningForm] = useState({
-    responsible: 'Cajero Principal',
-    initialAmount: 100,
-    branch: 'Matriz Quito',
-    shift: 'Mañana',
-    notes: ''
-  });
 
-  const [isClosingOpen, setIsClosingOpen] = useState(false);
-  const [sessionTxs, setSessionTxs] = useState([]);
-  const [closingForm, setClosingForm] = useState({
-    efectivoReal: 0,
-    tarjetaReal: 0,
-    transferenciaReal: 0,
-    cruceReal: 0,
-    notes: ''
-  });
-
-  // Estados de Venta POS
-  const [cart, setCart] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedClientId, setSelectedClientId] = useState('');
-  
-  // Estados de Filtros
-  const [filterBrand, setFilterBrand] = useState('all');
-  const [filterCategory, setFilterCategory] = useState('all');
-  const [filterWarehouse, setFilterWarehouse] = useState('all');
-  const [filterStock, setFilterStock] = useState('all'); // 'all', 'instock'
-
-  // Descuentos
-  const [discountType, setDiscountType] = useState('percent'); // 'percent' o 'fixed'
-  const [discountValue, setDiscountValue] = useState(0);
-  const [isDiscountOpen, setIsDiscountOpen] = useState(false);
-  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-  const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
-  const [isListening, setIsListening] = useState(false);
-
-  // checkout wizard
-  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
-  const [checkoutStep, setCheckoutStep] = useState(1); // 1: Cliente, 2: Pago Combinado, 3: Resumen y Emision
-  const [payments, setPayments] = useState({
-    efectivo: 0,
-    transferencia: 0,
-    tarjeta: 0,
-    cruce_cuentas: 0,
-    transferenciaRef: '',
-    tarjetaRef: '',
-    cruceRef: ''
-  });
-  const [isProcessing, setIsProcessing] = useState(false);
-
-  // Quick Client Creation Modal (inside POS Checkout)
-  const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
-  const [isQueryingSri, setIsQueryingSri] = useState(false);
-  const [quickAddFormData, setQuickAddFormData] = useState({
-    name: '',
-    ruc: '',
-    email: '',
-    tipoIdentificacion: 'ruc',
-    direccion: '',
-    telefono: '',
-    tipoContribuyente: 'general'
-  });
 
   // Suscribirse a sesiones de caja activa
   useEffect(() => {
@@ -514,30 +541,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
     ));
   };
 
-  // Cómputo de Totales y Descuentos
-  const getSubtotal = () => cart.reduce((acc, item) => acc + ((Number(item.price) || 0) * (Number(item.quantity) || 0)), 0);
-  const getDiscountAmount = () => {
-    const sub = getSubtotal();
-    if (discountType === 'percent') {
-      return sub * (Number(discountValue || 0) / 100);
-    }
-    return Math.min(sub, Number(discountValue || 0));
-  };
-  const getSubtotalWithDiscount = () => Math.max(0, getSubtotal() - getDiscountAmount());
-  
-  const getIva = () => {
-    const sub = getSubtotal();
-    if (sub === 0) return 0;
-    const ratio = getSubtotalWithDiscount() / sub;
-    return cart.reduce((acc, item) => acc + ((Number(item.price) || 0) * (Number(item.quantity) || 0) * ratio * ((Number(item.ivaCategory !== undefined ? item.ivaCategory : 15)) / 100)), 0);
-  };
-  const getTotal = () => getSubtotalWithDiscount() + getIva();
 
-  // checkout wizard calculations
-  const totalToPay = getTotal();
-  const paidTotal = Number(payments.efectivo) + Number(payments.transferencia) + Number(payments.tarjeta) + Number(payments.cruce_cuentas);
-  const changeDue = Math.max(0, paidTotal - totalToPay);
-  const remainingDue = Math.max(0, totalToPay - paidTotal);
 
   // Cliente SRI selector
   const getSelectedClient = () => {
