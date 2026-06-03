@@ -1017,7 +1017,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
         <div className={`flex-1 flex overflow-hidden min-h-0 ${posConfig.cartPosition === 'left' ? 'flex-row-reverse' : ''}`}>
         
         {/* LADO IZQUIERDO: SELECCIÓN Y FILTRO DE PRODUCTOS */}
-        <div className={`flex-1 flex flex-col p-6 min-w-0 border-r ${isDarkMode ? 'border-white/5 bg-[#0f0f11]/60' : 'border-blue-100 bg-white'}`}>
+        <div className={`flex-1 flex flex-col pt-[3px] px-6 pb-6 min-w-0 border-r ${isDarkMode ? 'border-white/5 bg-[#0f0f11]/60' : 'border-blue-100 bg-white'}`}>
           
           {/* BARRA DE BÚSQUEDA Y FILTROS */}
           <div className="space-y-3.5 mb-6">
@@ -1322,10 +1322,10 @@ export default function PosView({ products, thirdParties, transactions = [], isD
 
           
           {/* CLIENTE BÚSQUEDA Y FICHA */}
-          <div className={`p-3 border-b flex flex-col gap-2 shrink-0 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-blue-100 bg-blue-50/10'}`}>
+          <div className={`pt-[3px] px-3 pb-3 border-b flex flex-col gap-2 shrink-0 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-blue-100 bg-blue-50/10'}`}>
             <div className="flex items-center gap-2">
               {/* Buscador de Cliente */}
-              <div className={`flex-1 flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all ${
+              <div className={`flex-1 flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-all ${
                 isDarkMode ? 'border-white/5 bg-black/45' : 'border-blue-150 bg-blue-50/20'
               }`}>
                 <Search size={13} className={isDarkMode ? 'text-gray-500' : 'text-blue-600'} />
@@ -1363,7 +1363,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   });
                   setIsQuickAddOpen(true);
                 }} 
-                className="p-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white shadow-md flex items-center justify-center transition-all shrink-0 active:scale-95"
+                className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white shadow-md flex items-center justify-center transition-all shrink-0 active:scale-95"
                 title="Crear Nuevo Cliente"
               >
                 <UserPlus size={14} />
@@ -1422,30 +1422,30 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                 return (
                   <div className={`p-3 rounded-xl border transition-all text-xs ${
                     isDarkMode 
-                      ? 'bg-blue-650/10 border-blue-500/20 text-gray-300' 
-                      : 'bg-blue-50 border-blue-150 text-black shadow-sm'
+                      ? 'bg-blue-650/10 border-blue-500/20 text-gray-255' 
+                      : 'bg-blue-50 border-blue-150 text-blue-950 shadow-sm shadow-blue-500/5'
                   }`}>
                     <div className="flex justify-between items-start gap-3">
                       <div className="flex-1 min-w-0 space-y-1">
                         {/* Nombre y RUC */}
                         <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                          <span className="font-black text-sm text-gray-900 dark:text-white">{client.name}</span>
-                          <span className="text-xs text-gray-500 font-mono">({client.ruc})</span>
+                          <span className="font-black text-base text-blue-950 dark:text-blue-100">{client.name}</span>
+                          <span className="text-xs text-blue-900 dark:text-blue-300 font-black font-mono">({client.ruc})</span>
                         </div>
-                        {/* Teléfono y Correo en la misma línea */}
+                        {/* Teléfono y Correo en la misma línea con alto contraste */}
                         {(client.telefono || client.email) && (
-                          <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-gray-500 pt-0.5">
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs pt-0.5">
                             {client.telefono && (
                               <span className="flex items-center gap-1 shrink-0">
-                                <Phone size={12} className="text-blue-500" />
-                                <span className="font-bold text-gray-700 dark:text-gray-300">{client.telefono}</span>
+                                <Phone size={12} className="text-blue-600 dark:text-blue-400" />
+                                <span className="font-bold text-blue-950 dark:text-blue-100">{client.telefono}</span>
                               </span>
                             )}
-                            {client.telefono && client.email && <span className="opacity-30">|</span>}
+                            {client.telefono && client.email && <span className="text-blue-350 dark:text-blue-500/40 opacity-40">|</span>}
                             {client.email && (
                               <span className="flex items-center gap-1 shrink-0">
-                                <Mail size={12} className="text-blue-500" />
-                                <span className="font-bold text-gray-700 dark:text-gray-300">{client.email}</span>
+                                <Mail size={12} className="text-blue-600 dark:text-blue-400" />
+                                <span className="font-bold text-blue-950 dark:text-blue-100">{client.email}</span>
                               </span>
                             )}
                           </div>
