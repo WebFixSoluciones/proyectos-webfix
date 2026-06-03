@@ -1017,7 +1017,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
         <div className={`flex-1 flex overflow-hidden min-h-0 ${posConfig.cartPosition === 'left' ? 'flex-row-reverse' : ''}`}>
         
         {/* LADO IZQUIERDO: SELECCIÓN Y FILTRO DE PRODUCTOS */}
-        <div className={`flex-1 flex flex-col pt-[3px] px-6 pb-6 min-w-0 border-r ${isDarkMode ? 'border-white/5 bg-[#0f0f11]/60' : 'border-blue-100 bg-white'}`}>
+        <div className={`flex-1 flex flex-col pt-[7px] px-6 pb-6 min-w-0 border-r ${isDarkMode ? 'border-white/5 bg-[#0f0f11]/60' : 'border-blue-100 bg-white'}`}>
           
           {/* BARRA DE BÚSQUEDA Y FILTROS */}
           <div className="space-y-3.5 mb-6">
@@ -1025,7 +1025,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
               <div className="space-y-3">
                 {/* Search Box */}
                 <div className="flex gap-2.5 items-center">
-                  <div className={`flex-1 flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-all ${isDarkMode ? 'border-white/5 bg-black/45' : 'border-blue-150 bg-blue-50/30'}`}>
+                  <div className={`flex-1 flex items-center gap-2 px-4 h-11 rounded-xl border transition-all ${isDarkMode ? 'border-white/5 bg-black/45' : 'border-blue-150 bg-blue-50/30'}`}>
                     <Search size={14} className={isDarkMode ? 'text-gray-500' : 'text-blue-600'} />
                     <input 
                       type="text" 
@@ -1034,7 +1034,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                       value={searchTerm}
                       onChange={e => setSearchTerm(e.target.value)}
                       onKeyDown={handleSearchKeyDown}
-                      className={`bg-transparent border-none outline-none text-base w-full focus:ring-0 ${isDarkMode ? 'text-white placeholder-gray-500' : 'text-black placeholder-gray-400 font-bold'}`}
+                      className={`bg-transparent border-none outline-none text-sm w-full focus:ring-0 ${isDarkMode ? 'text-white placeholder-gray-500' : 'text-black placeholder-gray-400 font-bold'}`}
                     />
                     <button 
                       type="button" 
@@ -1049,7 +1049,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   <button 
                     type="button"
                     onClick={handleCreateQuote}
-                    className={`px-4 py-2.5 rounded-xl text-sm font-black uppercase tracking-wider transition-all flex items-center gap-1.5 border shadow-sm ${
+                    className={`px-4 h-11 rounded-xl text-sm font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 border shadow-sm ${
                       isDarkMode 
                         ? 'bg-blue-650/15 border-blue-500/20 text-blue-400 hover:bg-blue-650/30' 
                         : 'bg-blue-50 border-blue-150 text-blue-700 hover:bg-blue-100'
@@ -1091,7 +1091,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
               <div className="space-y-3">
                 {/* Search Box */}
                 <div className="flex gap-2.5 items-center">
-                  <div className={`flex-1 flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-all ${isDarkMode ? 'border-white/5 bg-black/45' : 'border-blue-150 bg-blue-50/30'}`}>
+                  <div className={`flex-1 flex items-center gap-2 px-4 h-11 rounded-xl border transition-all ${isDarkMode ? 'border-white/5 bg-black/45' : 'border-blue-150 bg-blue-50/30'}`}>
                     <Search size={14} className={isDarkMode ? 'text-gray-500' : 'text-blue-600'} />
                     <input 
                       type="text" 
@@ -1100,7 +1100,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                       value={searchTerm}
                       onChange={e => setSearchTerm(e.target.value)}
                       onKeyDown={handleSearchKeyDown}
-                      className={`bg-transparent border-none outline-none text-xs w-full focus:ring-0 ${isDarkMode ? 'text-white placeholder-gray-500' : 'text-black placeholder-gray-400 font-bold'}`}
+                      className={`bg-transparent border-none outline-none text-sm w-full focus:ring-0 ${isDarkMode ? 'text-white placeholder-gray-500' : 'text-black placeholder-gray-400 font-bold'}`}
                     />
                     <button 
                       type="button" 
@@ -1115,7 +1115,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   <button 
                     type="button"
                     onClick={handleCreateQuote}
-                    className={`px-4 py-2.5 rounded-xl text-sm font-black uppercase tracking-wider transition-all flex items-center gap-1.5 border shadow-sm ${
+                    className={`px-4 h-11 rounded-xl text-sm font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 border shadow-sm ${
                       isDarkMode 
                         ? 'bg-blue-650/15 border-blue-500/20 text-blue-400 hover:bg-blue-650/30' 
                         : 'bg-blue-50 border-blue-150 text-blue-700 hover:bg-blue-100'
@@ -1322,10 +1322,10 @@ export default function PosView({ products, thirdParties, transactions = [], isD
 
           
           {/* CLIENTE BÚSQUEDA Y FICHA */}
-          <div className={`pt-[3px] px-3 pb-3 border-b flex flex-col gap-2 shrink-0 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-blue-100 bg-blue-50/10'}`}>
+          <div className={`pt-[7px] px-3 pb-3 border-b flex flex-col gap-2 shrink-0 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-blue-100 bg-blue-50/10'}`}>
             <div className="flex items-center gap-2">
               {/* Buscador de Cliente */}
-              <div className={`flex-1 flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-all ${
+              <div className={`flex-1 flex items-center gap-2 px-4 h-11 rounded-xl border transition-all ${
                 isDarkMode ? 'border-white/5 bg-black/45' : 'border-blue-150 bg-blue-50/20'
               }`}>
                 <Search size={13} className={isDarkMode ? 'text-gray-500' : 'text-blue-600'} />
@@ -1338,7 +1338,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                     setIsClientDropdownOpen(true);
                   }}
                   onFocus={() => setIsClientDropdownOpen(true)}
-                  className={`bg-transparent border-none outline-none text-xs w-full focus:ring-0 ${
+                  className={`bg-transparent border-none outline-none text-sm w-full focus:ring-0 ${
                     isDarkMode ? 'text-white placeholder-gray-500' : 'text-black placeholder-gray-400 font-bold'
                   }`}
                 />
@@ -1363,7 +1363,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   });
                   setIsQuickAddOpen(true);
                 }} 
-                className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white shadow-md flex items-center justify-center transition-all shrink-0 active:scale-95"
+                className="px-4 h-11 rounded-xl bg-blue-600 hover:bg-blue-500 text-white shadow-md flex items-center justify-center transition-all shrink-0 active:scale-95"
                 title="Crear Nuevo Cliente"
               >
                 <UserPlus size={14} />
@@ -1420,32 +1420,30 @@ export default function PosView({ products, thirdParties, transactions = [], isD
               (() => {
                 const client = getSelectedClient();
                 return (
-                  <div className={`p-3 rounded-xl border transition-all text-xs ${
-                    isDarkMode 
-                      ? 'bg-blue-650/10 border-blue-500/20 text-gray-255' 
-                      : 'bg-blue-50 border-blue-150 text-blue-950 shadow-sm shadow-blue-500/5'
+                  <div className={`py-1.5 transition-all text-[14px] font-light ${
+                    isDarkMode ? 'text-gray-300' : 'text-black'
                   }`}>
                     <div className="flex justify-between items-start gap-3">
                       <div className="flex-1 min-w-0 space-y-1">
                         {/* Nombre y RUC */}
                         <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                          <span className="font-black text-base text-blue-950 dark:text-blue-100">{client.name}</span>
-                          <span className="text-xs text-blue-900 dark:text-blue-300 font-black font-mono">({client.ruc})</span>
+                          <span className="font-light text-[14px] uppercase text-black dark:text-white">{client.name}</span>
+                          <span className="text-[14px] font-light font-mono text-black dark:text-white">({client.ruc})</span>
                         </div>
                         {/* Teléfono y Correo en la misma línea con alto contraste */}
                         {(client.telefono || client.email) && (
-                          <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs pt-0.5">
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[14px] font-light pt-0.5">
                             {client.telefono && (
                               <span className="flex items-center gap-1 shrink-0">
-                                <Phone size={12} className="text-blue-600 dark:text-blue-400" />
-                                <span className="font-bold text-blue-950 dark:text-blue-100">{client.telefono}</span>
+                                <Phone size={12} className="text-black dark:text-white shrink-0" />
+                                <span className="text-black dark:text-white">{client.telefono}</span>
                               </span>
                             )}
-                            {client.telefono && client.email && <span className="text-blue-350 dark:text-blue-500/40 opacity-40">|</span>}
+                            {client.telefono && client.email && <span className="opacity-40 text-black dark:text-white">|</span>}
                             {client.email && (
                               <span className="flex items-center gap-1 shrink-0">
-                                <Mail size={12} className="text-blue-600 dark:text-blue-400" />
-                                <span className="font-bold text-blue-950 dark:text-blue-100">{client.email}</span>
+                                <Mail size={12} className="text-black dark:text-white shrink-0" />
+                                <span className="text-black dark:text-white">{client.email}</span>
                               </span>
                             )}
                           </div>
@@ -1453,7 +1451,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                       </div>
                       
                       {/* Acciones */}
-                      <div className="flex gap-1.5 shrink-0 mt-0.5">
+                      <div className="flex gap-1 shrink-0 mt-0.5">
                         <button 
                           type="button"
                           onClick={() => {
@@ -1471,18 +1469,18 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                               setIsQuickAddOpen(true);
                             }
                           }} 
-                          className="p-1 rounded bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 transition-all"
+                          className="p-1.5 rounded-lg text-gray-500 hover:text-blue-500 hover:bg-blue-500/10 dark:text-gray-400 dark:hover:text-blue-400 dark:hover:bg-blue-400/10 transition-all"
                           title="Editar Cliente"
                         >
-                          <Edit3 size={11} />
+                          <Edit3 size={12} />
                         </button>
                         <button 
                           type="button"
                           onClick={() => setSelectedClientId('')} 
-                          className="p-1 rounded bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all"
+                          className="p-1.5 rounded-lg text-gray-500 hover:text-red-500 hover:bg-red-500/10 dark:text-gray-400 dark:hover:text-red-400 dark:hover:bg-red-400/10 transition-all"
                           title="Quitar Cliente"
                         >
-                          <X size={11} />
+                          <X size={12} />
                         </button>
                       </div>
                     </div>
@@ -1491,13 +1489,12 @@ export default function PosView({ products, thirdParties, transactions = [], isD
               })()
             ) : (
               /* Consumidor Final Compacto */
-              <div className={`px-2.5 py-1.5 rounded-xl border flex items-center justify-between text-[11px] ${
-                isDarkMode ? 'bg-black/10 border-white/5 text-gray-400' : 'bg-blue-50/20 border-blue-100 text-gray-650'
+              <div className={`py-1.5 flex items-center gap-1.5 text-[14px] font-light ${
+                isDarkMode ? 'text-gray-300' : 'text-black'
               }`}>
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <User size={11} className="text-gray-400 shrink-0" />
-                  <span className="font-semibold truncate">Consumidor Final (9999999999999)</span>
-                </div>
+                <User size={12} className="text-black dark:text-white shrink-0" />
+                <span className="uppercase text-black dark:text-white">Consumidor Final</span>
+                <span className="font-mono text-black dark:text-white">({client.ruc})</span>
               </div>
             )}
           </div>
