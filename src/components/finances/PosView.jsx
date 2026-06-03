@@ -1494,7 +1494,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
               }`}>
                 <User size={12} className="text-black dark:text-white shrink-0" />
                 <span className="uppercase text-black dark:text-white">Consumidor Final</span>
-                <span className="font-mono text-black dark:text-white">({client.ruc})</span>
+                <span className="font-mono text-black dark:text-white">(9999999999999)</span>
               </div>
             )}
           </div>
