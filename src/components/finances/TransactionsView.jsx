@@ -5,9 +5,9 @@ import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { analizarComprobanteConGemini, parsearXMLComprobante } from '../../services/geminiService';
 import RidePreviewModal from './RidePreviewModal';
 
-export default function TransactionsView({ transactions, thirdParties, isDarkMode, showToast, db, storage, appId, onOpenForm, forcedDocType }) {
+export default function TransactionsView({ transactions, thirdParties, isDarkMode, showToast, db, storage, appId, onOpenForm, forcedDocType, forcedType }) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState('all');
+  const [filterType, setFilterType] = useState(forcedType || 'all');
   const [filterDocType, setFilterDocType] = useState(forcedDocType || 'all'); // Filtro por Tipo de Comprobante SRI
   const [filterMonth, setFilterMonth] = useState('all');
   const [filterYear, setFilterYear] = useState('all');
@@ -17,6 +17,12 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
       setFilterDocType(forcedDocType);
     }
   }, [forcedDocType]);
+
+  useEffect(() => {
+    if (forcedType) {
+      setFilterType(forcedType);
+    }
+  }, [forcedType]);
   
   // Estados de IA y Carga
   const [isDragging, setIsDragging] = useState(false);
@@ -29,7 +35,15 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
     const matchesSearch = (tx.documentNumber || '').includes(searchTerm) || 
                           (thirdParties.find(tp => tp.id === tx.thirdPartyId)?.name || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = filterType === 'all' || tx.type === filterType;
-    const matchesDocType = filterDocType === 'all' || tx.documentType === filterDocType;
+    
+    let matchesDocType = false;
+    if (filterDocType === 'all') {
+      matchesDocType = true;
+    } else if (filterDocType === 'ventas_resumen') {
+      matchesDocType = tx.type === 'ingreso' && (tx.documentType === 'factura' || tx.documentType === 'nota_venta');
+    } else {
+      matchesDocType = tx.documentType === filterDocType;
+    }
     
     let matchesMonth = true;
     let matchesYear = true;
@@ -303,11 +317,13 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
               className="bg-transparent border-none outline-none text-xs w-full text-gray-900"
             />
           </div>
-          <select value={filterType} onChange={e => setFilterType(e.target.value)} className={`px-2.5 py-2 rounded-xl border text-xs outline-none ${isDarkMode ? 'bg-black/20 border-white/10 text-gray-300' : 'bg-white border-gray-355 text-gray-800 font-medium'}`}>
-            <option value="all" className="text-black">Todos los tipos</option>
-            <option value="ingreso" className="text-black">Ingresos (Ventas)</option>
-            <option value="egreso" className="text-black">Egresos (Compras)</option>
-          </select>
+          {!forcedType && (
+            <select value={filterType} onChange={e => setFilterType(e.target.value)} className={`px-2.5 py-2 rounded-xl border text-xs outline-none ${isDarkMode ? 'bg-black/20 border-white/10 text-gray-300' : 'bg-white border-gray-355 text-gray-800 font-medium'}`}>
+              <option value="all" className="text-black">Todos los tipos</option>
+              <option value="ingreso" className="text-black">Ingresos (Ventas)</option>
+              <option value="egreso" className="text-black">Egresos (Compras)</option>
+            </select>
+          )}
           <select value={filterMonth} onChange={e => setFilterMonth(e.target.value)} className={`px-2.5 py-2 rounded-xl border text-xs outline-none ${isDarkMode ? 'bg-black/20 border-white/10 text-gray-300' : 'bg-white border-gray-355 text-gray-800 font-medium'}`}>
             <option value="all" className="text-black">Mes</option>
             {['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'].map((m, i) => <option key={i} value={i} className="text-black">{m}</option>)}
@@ -321,10 +337,12 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
         <button 
           onClick={() => {
             if (forcedDocType) {
+              const defaultDocType = forcedDocType === 'ventas_resumen' ? 'factura' : forcedDocType;
+              const defaultType = forcedType || (forcedDocType === 'liquidacion' || forcedDocType === 'retencion' ? 'egreso' : 'ingreso');
               onOpenForm({
                 id: '',
-                type: forcedDocType === 'liquidacion' || forcedDocType === 'retencion' ? 'egreso' : 'ingreso',
-                documentType: forcedDocType,
+                type: defaultType,
+                documentType: defaultDocType,
                 date: new Date().toISOString().split('T')[0],
                 currency: 'USD',
                 baseImponible: 0,
@@ -344,7 +362,13 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
           }}
           className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold transition-transform shadow-sm hover:-translate-y-0.5 ${isDarkMode ? 'bg-blue-600 text-white hover:bg-blue-500' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
         >
-          <Plus size={14} /> Registrar {forcedDocType ? docTypeTabs.find(t => t.id === forcedDocType)?.label : 'Comprobante'}
+          <Plus size={14} /> Registrar {
+            forcedDocType 
+              ? (forcedDocType === 'ventas_resumen' 
+                  ? 'Venta' 
+                  : (docTypeTabs.find(t => t.id === forcedDocType)?.label || forcedDocType)) 
+              : 'Comprobante'
+          }
         </button>
       </div>
 

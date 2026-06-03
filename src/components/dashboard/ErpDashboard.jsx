@@ -225,33 +225,29 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-8">
       
-      {/* HEADER BANNER */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-4 border-b border-white/10">
-        <div className="flex items-center gap-3">
-          <div className={`p-2.5 rounded-xl ${isDarkMode ? 'bg-blue-500/20 text-blue-400 border border-blue-500/20 shadow-[0_0_20px_rgba(59,130,246,0.1)]' : 'bg-blue-100 text-blue-600 border border-blue-200 shadow-sm'}`}>
-            <LayoutDashboard size={24} />
+      {/* ALERTA DE FIRMA ELECTRÓNICA DIGITAL EN LA PARTE SUPERIOR */}
+      {certStatus !== 'ok' && (
+        <div className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-sm animate-in fade-in duration-300 ${
+          certStatus === 'expired' 
+            ? 'bg-red-500/10 border-red-500/20 text-red-400' 
+            : 'bg-yellow-500/10 border-yellow-500/20 text-yellow-450'
+        }`}>
+          <div className="flex items-center gap-2 font-bold">
+            <ShieldAlert size={16} />
+            <span>
+              {certStatus === 'none' 
+                ? 'Alerta: Aún no has configurado tu firma electrónica digital (.p12)' 
+                : 'Atención: Tu firma electrónica digital está por vencer o vencida'}
+            </span>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Dashboard General ERP</h1>
-            <p className={`text-sm mt-0.5 ${isDarkMode ? 'text-gray-400' : 'text-gray-600 font-medium'}`}>
-              Control holístico de proyectos, inventario, ventas y cumplimiento tributario SRI
-            </p>
-          </div>
+          <button 
+            onClick={() => setActivePageId('general_settings')} 
+            className="px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 transition-all font-bold uppercase text-[9px] tracking-wider self-start sm:self-auto"
+          >
+            Configurar
+          </button>
         </div>
-        
-        <div className="flex items-center gap-2">
-          {certStatus !== 'ok' && (
-            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border uppercase ${
-              certStatus === 'expired' 
-                ? 'bg-red-500/10 border-red-500/30 text-red-400' 
-                : 'bg-yellow-500/10 border-yellow-500/30 text-yellow-400'
-            }`}>
-              <ShieldAlert size={14} />
-              {certStatus === 'none' ? 'Sin firma digital' : 'Firma por vencer'}
-            </div>
-          )}
-        </div>
-      </div>
+      )}
 
       {/* SECCIÓN ACCESOS RÁPIDOS */}
       <div className="space-y-3">
@@ -271,7 +267,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
           
           {/* Item 2: Facturas SRI */}
           <button 
-            onClick={() => { setVentasInitialSubTab && setVentasInitialSubTab('facturas'); setActivePageId('ventas'); }}
+            onClick={() => { setVentasInitialSubTab && setVentasInitialSubTab('resumen_ventas'); setActivePageId('ventas'); }}
             className={`flex flex-col items-center justify-center p-4 rounded-2xl border text-center transition-all duration-300 hover-lift ${isDarkMode ? 'bg-[#151517] border-white/5 hover:border-emerald-500/30' : 'bg-white border-gray-300/80 hover:border-emerald-500/50 shadow-sm'}`}
           >
             <div className={`p-3 rounded-xl mb-2.5 ${isDarkMode ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/15' : 'bg-emerald-100 text-emerald-700'}`}>

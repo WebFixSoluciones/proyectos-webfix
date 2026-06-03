@@ -79,6 +79,7 @@ import { auth, db, appId } from './firebase';
 import FinanceModule from './components/finances/FinanceModule';
 import ErpDashboard from './components/dashboard/ErpDashboard';
 import GeneralSettings from './components/dashboard/GeneralSettings';
+import FinanceChat from './components/finances/FinanceChat';
 
 const apiKey = ""; // API Key para Gemini (configura tu clave aquí si usas IA)
 
@@ -401,7 +402,7 @@ export default function App() {
     calendar: true,
     team: true
   });
-  const [ventasInitialSubTab, setVentasInitialSubTab] = useState('facturas');
+  const [ventasInitialSubTab, setVentasInitialSubTab] = useState('resumen_ventas');
   
   // --- ESTADOS DE GOOGLE CALENDAR REAL ---
   const [isGoogleConnected, setIsGoogleConnected] = useState(false);
@@ -449,6 +450,13 @@ export default function App() {
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
   const [dashboardReport, setDashboardReport] = useState('');
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+
+  // --- ESTADOS GLOBALIZADOS DE FINANZAS ---
+  const [globalTransactions, setGlobalTransactions] = useState([]);
+  const [globalThirdParties, setGlobalThirdParties] = useState([]);
+  const [globalProducts, setGlobalProducts] = useState([]);
+  const [isLoadingFinances, setIsLoadingFinances] = useState(true);
+  const [isGlobalChatOpen, setIsGlobalChatOpen] = useState(false);
 
   const [isCloudSynced, setIsCloudSynced] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -597,9 +605,46 @@ export default function App() {
         }
       });
 
+      // 4. Escuchar Transacciones de Finanzas
+      const txCol = collection(db, 'artifacts', appId, 'public', 'data', 'finances_transactions');
+      const unsubTx = onSnapshot(txCol, (snap) => {
+        const txData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        txData.sort((a, b) => new Date(b.date) - new Date(a.date));
+        setGlobalTransactions(txData);
+        setIsLoadingFinances(false);
+      }, (err) => {
+        console.error("Error subscribing to global transactions:", err);
+        setIsLoadingFinances(false);
+      });
+
+      // 5. Escuchar Terceros
+      const tpCol = collection(db, 'artifacts', appId, 'public', 'data', 'finances_third_parties');
+      const unsubTp = onSnapshot(tpCol, (snap) => {
+        const tpData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        setGlobalThirdParties(tpData);
+      }, (err) => {
+        console.error("Error subscribing to global third parties:", err);
+      });
+
+      // 6. Escuchar Productos
+      const prodCol = collection(db, 'artifacts', appId, 'public', 'data', 'finances_products');
+      const unsubProd = onSnapshot(prodCol, (snap) => {
+        const prodData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        setGlobalProducts(prodData);
+      }, (err) => {
+        console.error("Error subscribing to global products:", err);
+      });
+
       setIsCloudSynced(true);
 
-      window.__unsubFirestore = () => { unsubPages(); unsubTasks(); unsubMeta(); };
+      window.__unsubFirestore = () => { 
+        unsubPages(); 
+        unsubTasks(); 
+        unsubMeta(); 
+        unsubTx(); 
+        unsubTp(); 
+        unsubProd(); 
+      };
     });
 
     return () => { if (window.__unsubFirestore) window.__unsubFirestore(); };
@@ -632,6 +677,74 @@ export default function App() {
       activePage = { ...activePage, tasks: globalTasks.filter(t => t.projectId === activePage.id) };
     }
   }
+  
+  const getModuleHeaderDetails = () => {
+    switch (activePageId) {
+      case 'dashboard':
+        return {
+          title: 'Dashboard General ERP',
+          desc: 'Control holístico de proyectos, inventario, ventas y cumplimiento tributario SRI',
+          icon: 'dashboard'
+        };
+      case 'finances':
+        return {
+          title: 'ERP Contabilidad y Tributación',
+          desc: 'Control de ingresos/egresos, reportes contables y documentos electrónicos autorizados',
+          icon: 'finances'
+        };
+      case 'ventas':
+        return {
+          title: 'Módulo de Ventas y Proformas',
+          desc: 'Punto de Venta (POS), cotizaciones comerciales y facturas de venta autorizadas',
+          icon: 'ventas'
+        };
+      case 'inventario':
+        return {
+          title: 'Módulo de Inventario',
+          desc: 'Catálogo de productos y servicios con parametrización de IVA del SRI',
+          icon: 'inventario'
+        };
+      case 'personas':
+        return {
+          title: 'Gestión de Personas',
+          desc: 'Base de datos unificada de clientes y proveedores con validación de datos SRI',
+          icon: 'personas'
+        };
+      case 'calendar':
+        return {
+          title: 'Calendario de Equipo',
+          desc: 'Tus reuniones sincronizadas y generación de agendas en la nube',
+          icon: 'calendar'
+        };
+      case 'team':
+        return {
+          title: 'Directorio del Equipo',
+          desc: 'Gestiona roles y cargos para asignarlos a proyectos del espacio',
+          icon: 'team'
+        };
+      case 'general_settings':
+        return {
+          title: 'Configuración ERP',
+          desc: 'Ajustes de empresa, colores del sistema, módulos e integraciones con Gemini y Google',
+          icon: 'settings'
+        };
+      case 'trash':
+        return {
+          title: 'Papelera de Reciclaje',
+          desc: 'Recupera o elimina permanentemente páginas y tareas del espacio',
+          icon: 'trash'
+        };
+      default:
+        return {
+          title: activePage.title || 'Sin título',
+          desc: activePage.type === 'project' ? 'Tablero y lista de tareas colaborativas' : 'Documento de texto y notas rápidas',
+          icon: activePage.icon || 'file-text'
+        };
+    }
+  };
+
+  const headerDetails = getModuleHeaderDetails();
+  
     
   const contentRef = useRef(null);
 
@@ -1568,7 +1681,7 @@ export default function App() {
 
           {activeModules.ventas && (
             <button 
-              onClick={() => { setVentasInitialSubTab('facturas'); setActivePageId('ventas'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
+              onClick={() => { setVentasInitialSubTab('resumen_ventas'); setActivePageId('ventas'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
               className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all tracking-wide font-semibold ${activePageId === 'ventas' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm border border-white/5' : 'bg-[#f3f8ff] text-black border border-blue-200/60 shadow-sm') : (isDarkMode ? 'text-gray-455 hover:bg-white/5 hover:text-white' : 'text-black hover:bg-[#f3f8ff] hover:text-black')}`}
             >
               <ShoppingCart size={18} className={activePageId === 'ventas' ? (isDarkMode ? 'text-orange-400' : 'text-orange-600') : ''} />
@@ -1684,15 +1797,18 @@ export default function App() {
       <div className="flex-1 flex flex-col h-full overflow-hidden relative z-10 md:z-[60]">
         
         {/* Floating Topbar */}
-        <div className={`h-12 m-4 rounded-xl flex items-center px-4 justify-between shrink-0 border ${isDarkMode ? 'bg-[#1a1a1a]/40 backdrop-blur-md border-white/5 shadow-sm' : 'bg-white/40 backdrop-blur-md border-white/40 shadow-sm'}`}>
+        <div className={`m-4 rounded-xl flex flex-col md:flex-row md:items-center px-6 py-4 justify-between gap-4 shrink-0 border ${isDarkMode ? 'bg-[#1a1a1a]/40 backdrop-blur-md border-white/5 shadow-sm' : 'bg-white/40 backdrop-blur-md border-white/40 shadow-sm'}`}>
           <div className="flex items-center gap-3">
             <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-white/10 text-gray-400' : 'hover:bg-white/60 text-gray-600'}`}><Menu size={18} /></button>
-            <div className={`text-sm flex items-center gap-2 font-medium ${isDarkMode ? 'text-gray-300' : 'text-black font-bold'}`}>
-              <IconRenderer name={activePage.icon} size={14} />
-              <span className="truncate max-w-[200px]">{activePage.title || 'Sin título'}</span>
+            <div className={`p-2 rounded-xl border ${isDarkMode ? 'bg-primary/25 text-primary border-primary/20 shadow-sm' : 'bg-primary/10 text-primary border border-primary/15 shadow-sm'}`}>
+              <IconRenderer name={headerDetails.icon} size={16} />
+            </div>
+            <div className="flex flex-col">
+              <h1 className={`text-sm md:text-base font-extrabold tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{headerDetails.title}</h1>
+              <p className={`text-[9px] md:text-[10px] font-medium hidden sm:inline-block ${isDarkMode ? 'text-gray-400' : 'text-gray-550'}`}>{headerDetails.desc}</p>
             </div>
           </div>
-          <div className="flex items-center gap-1.5 md:gap-2">
+          <div className="flex items-center gap-1.5 md:gap-2 flex-wrap">
             
             {/* BOTÓN RÁPIDO POS */}
             {activeModules.ventas && (
@@ -1712,6 +1828,20 @@ export default function App() {
                 <span className="hidden sm:inline">POS</span>
               </button>
             )}
+
+            {/* BOTÓN ASISTENTE AI GLOBAL */}
+            <button 
+              onClick={() => setIsGlobalChatOpen(!isGlobalChatOpen)} 
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] md:text-xs font-black uppercase transition-all border shrink-0 ${
+                isGlobalChatOpen 
+                  ? 'bg-purple-600 border-purple-600 text-white shadow-md' 
+                  : (isDarkMode ? 'bg-purple-500/10 border-purple-500/20 text-purple-400 hover:bg-purple-500/20' : 'bg-purple-50 border-purple-200 text-purple-950 hover:bg-purple-100')
+              }`}
+              title="Abrir Asistente AI"
+            >
+              <Sparkles size={11} className={isGlobalChatOpen ? 'text-white' : 'text-purple-450'} />
+              <span className="hidden sm:inline">Asistente AI</span>
+            </button>
 
             {/* ESTADO DE SINCRONIZACIÓN NUBE */}
             <div className={`hidden md:flex text-[9px] px-2.5 py-1 rounded-md tracking-[0.1em] uppercase items-center gap-1.5 transition-all ${isDarkMode ? 'bg-white/5 font-bold text-gray-400 border border-white/5' : 'bg-blue-50/70 text-black border border-blue-200/50 font-bold'}`}>
@@ -1734,23 +1864,26 @@ export default function App() {
           </div>
         </div>
 
-        {/* Editor Area */}
-        <div className={`flex-1 overflow-y-auto pb-12 pt-4 scroll-smooth custom-scrollbar ${activePage.type === 'project' ? 'px-4 md:px-8 lg:px-10' : ['finances', 'ventas', 'inventario', 'personas'].includes(activePage.type) ? 'px-0 pt-0' : activePage.type !== 'doc' ? 'px-6 md:px-8 lg:px-10' : 'px-6 md:px-12 lg:px-24'}`}>
-          <div className={`mx-auto ${activePage.type === 'project' || ['finances', 'ventas', 'inventario', 'personas'].includes(activePage.type) || activePage.type !== 'doc' ? 'max-w-[1800px] h-full px-4 md:px-6' : 'max-w-4xl'}`}>
-            
-            {/* VISTAS FINANCIERAS MODULARES */}
-            {activePageId === 'finances' && (
-              <FinanceModule mode="contabilidad" isDarkMode={isDarkMode} showToast={showToast} />
-            )}
-            {activePageId === 'ventas' && (
-              <FinanceModule mode="ventas" initialSubTab={ventasInitialSubTab} isDarkMode={isDarkMode} showToast={showToast} />
-            )}
-            {activePageId === 'inventario' && (
-              <FinanceModule mode="inventario" isDarkMode={isDarkMode} showToast={showToast} />
-            )}
-            {activePageId === 'personas' && (
-              <FinanceModule mode="personas" isDarkMode={isDarkMode} showToast={showToast} />
-            )}
+        {/* Content Wrapper with AI Chat sidebar */}
+        <div className="flex-1 flex overflow-hidden min-h-0 relative">
+
+          {/* Editor Area */}
+          <div className={`flex-1 overflow-y-auto pb-12 pt-4 scroll-smooth custom-scrollbar ${activePage.type === 'project' ? 'px-4 md:px-8 lg:px-10' : ['finances', 'ventas', 'inventario', 'personas'].includes(activePage.type) ? 'px-0 pt-0' : activePage.type !== 'doc' ? 'px-6 md:px-8 lg:px-10' : 'px-6 md:px-12 lg:px-24'}`}>
+            <div className={`mx-auto ${activePage.type === 'project' || ['finances', 'ventas', 'inventario', 'personas'].includes(activePage.type) || activePage.type !== 'doc' ? 'max-w-[1800px] h-full px-4 md:px-6' : 'max-w-4xl'}`}>
+              
+              {/* VISTAS FINANCIERAS MODULARES */}
+              {activePageId === 'finances' && (
+                <FinanceModule mode="contabilidad" isDarkMode={isDarkMode} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} isLoading={isLoadingFinances} />
+              )}
+              {activePageId === 'ventas' && (
+                <FinanceModule mode="ventas" initialSubTab={ventasInitialSubTab} isDarkMode={isDarkMode} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} isLoading={isLoadingFinances} />
+              )}
+              {activePageId === 'inventario' && (
+                <FinanceModule mode="inventario" isDarkMode={isDarkMode} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} isLoading={isLoadingFinances} />
+              )}
+              {activePageId === 'personas' && (
+                <FinanceModule mode="personas" isDarkMode={isDarkMode} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} isLoading={isLoadingFinances} />
+              )}
 
             {/* VISTA: CONFIGURACIÓN GENERAL */}
             {activePageId === 'general_settings' && (
@@ -1787,22 +1920,13 @@ export default function App() {
             {/* VISTA: EQUIPO Y ROLES */}
             {activePage.type === 'team' && (
               <div className="animate-in fade-in duration-500">
-                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8 pb-4 border-b border-white/10">
-              <div className="flex items-center gap-3">
-                <div className={`p-2.5 rounded-xl ${isDarkMode ? 'bg-blue-500/20 text-blue-400 border border-blue-500/20 shadow-[0_0_20px_rgba(59,130,246,0.1)]' : 'bg-blue-100 text-blue-600 border border-white/50'}`}>
-                  <Users size={24} />
+                <div className="flex justify-end mb-6">
+                  <button onClick={openNewUserDrawer} className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-transform shadow-sm hover:-translate-y-0.5 ${isDarkMode ? 'bg-blue-600 text-white shadow-blue-900/50' : 'bg-blue-600 text-white hover:bg-blue-700'}`}>
+                    <UserPlus size={16} /> Invitar Miembro
+                  </button>
                 </div>
-                <div>
-                  <h1 className="text-2xl font-bold tracking-tight">Directorio del Equipo</h1>
-                  <p className={`text-sm mt-0.5 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Gestiona roles y cargos para asignarlos a proyectos.</p>
-                </div>
-              </div>
-              <button onClick={openNewUserDrawer} className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-transform shadow-sm hover:-translate-y-0.5 ${isDarkMode ? 'bg-blue-600 text-white shadow-blue-900/50' : 'bg-blue-600 text-white hover:bg-blue-700'}`}>
-                <UserPlus size={16} /> Invitar Miembro
-              </button>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {users.map(user => (
                 <div key={user.id} className={`p-5 rounded-2xl flex flex-col justify-between ${currentGlassPanel} hover:-translate-y-1 transition-transform duration-300`}>
                   <div className="flex items-start gap-4 mb-4">
@@ -1861,12 +1985,6 @@ export default function App() {
             {/* Vista de Papelera */}
             {activePage.type === 'trash' && (
               <div className="animate-in fade-in duration-300">
-                <div className={`flex items-center gap-3 mb-8 pb-4 border-b ${isDarkMode ? 'border-white/10' : 'border-black/10'}`}>
-                  <div className={`p-2.5 rounded-xl ${isDarkMode ? 'bg-red-500/20 text-red-400 border border-red-500/20 shadow-[0_0_20px_rgba(239,68,68,0.1)]' : 'bg-red-100 text-red-600 border border-white/50'}`}>
-                    <Trash2 size={24} />
-                  </div>
-                  <h1 className="text-2xl font-bold tracking-tight">Papelera</h1>
-                </div>
                 {trash.length === 0 ? (
                   <div className={`text-center py-16 rounded-2xl ${currentGlassPanel}`}><Trash2 size={40} className={`mx-auto mb-4 opacity-50 ${isDarkMode ? 'text-gray-600' : 'text-gray-400'}`} /><p className="text-sm font-medium opacity-70">La papelera está vacía.</p></div>
                 ) : (
@@ -2067,16 +2185,7 @@ export default function App() {
 
             {/* Vista Calendario */}
             {activePage.type === 'calendar' && (
-              <div className="mt-8 space-y-8 animate-in fade-in duration-500">
-                <div className="flex items-center gap-3 mb-8 pb-4 border-b border-white/10">
-                  <div className={`p-2.5 rounded-xl ${isDarkMode ? 'bg-purple-500/20 text-purple-400 border border-purple-500/20 shadow-[0_0_20px_rgba(168,85,247,0.1)]' : 'bg-purple-100 text-purple-600 border border-white/50'}`}>
-                    <CalendarDays size={24} />
-                  </div>
-                  <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Calendario de Equipo</h1>
-                    <p className={`text-sm mt-0.5 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Tus reuniones sincronizadas y generación de agendas.</p>
-                  </div>
-                </div>
+              <div className="space-y-8 animate-in fade-in duration-500">
 
                 <div className={`p-6 rounded-2xl ${currentGlassPanel}`}>
                   <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -2154,7 +2263,21 @@ export default function App() {
             
           </div>
         </div>
-      </div>
+
+        {/* Chat Lateral de IA Global */}
+        {isGlobalChatOpen && (
+          <div className={`w-80 border-l shrink-0 flex flex-col p-4 animate-in slide-in-from-right duration-300 ${isDarkMode ? 'border-white/10 bg-[#0f0f11]' : 'border-primary/10 bg-primary-light'}`}>
+            <FinanceChat 
+              transactions={globalTransactions} 
+              thirdParties={globalThirdParties} 
+              isDarkMode={isDarkMode} 
+              onClose={() => setIsGlobalChatOpen(false)} 
+            />
+          </div>
+        )}
+
+        </div> {/* Closes Content Wrapper */}
+      </div> {/* Closes Main Content Area */}
 
       {/* Drawer Overlay (Task) */}
       {drawerTask && <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[70] transition-opacity" onClick={() => setDrawerTask(null)} />}

@@ -18,7 +18,16 @@ import TransactionForm from './TransactionForm';
 import AccountsReceivablePayable from './AccountsReceivablePayable';
 import SalesDashboard from './SalesDashboard';
 
-export default function FinanceModule({ mode = 'contabilidad', initialSubTab, isDarkMode, showToast }) {
+export default function FinanceModule({ 
+  mode = 'contabilidad', 
+  initialSubTab, 
+  isDarkMode, 
+  showToast,
+  transactions = [],
+  thirdParties = [],
+  products = [],
+  isLoading = false
+}) {
   const getInitialTab = (m) => {
     if (m === 'ventas') return 'ventas';
     if (m === 'inventario') return 'products';
@@ -42,62 +51,14 @@ export default function FinanceModule({ mode = 'contabilidad', initialSubTab, is
     }
   }, [initialSubTab, mode]);
 
-  const [transactions, setTransactions] = useState([]);
-  const [thirdParties, setThirdParties] = useState([]);
-  const [products, setProducts] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isChatOpen, setIsChatOpen] = useState(false);
-
   // Estados de sub-navegación ERP
-  const [subTabVentas, setSubTabVentas] = useState(() => initialSubTab || 'dashboard_ventas');
+  const [subTabVentas, setSubTabVentas] = useState(() => initialSubTab || 'resumen_ventas');
   const [subTabSri, setSubTabSri] = useState('nota_credito');
   const [subTabPersonas, setSubTabPersonas] = useState('cliente');
 
   // Estados centralizados para el modal de Facturación / SRI
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTx, setEditingTx] = useState(null);
-
-  // Cargar datos de Firebase
-  useEffect(() => {
-    if (!appId || !db) return;
-
-    const txCol = collection(db, 'artifacts', appId, 'public', 'data', 'finances_transactions');
-    const tpCol = collection(db, 'artifacts', appId, 'public', 'data', 'finances_third_parties');
-    const prodCol = collection(db, 'artifacts', appId, 'public', 'data', 'finances_products');
-
-    const unsubTx = onSnapshot(txCol, (snap) => {
-      const txData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      txData.sort((a, b) => new Date(b.date) - new Date(a.date));
-      setTransactions(txData);
-      setIsLoading(false);
-    }, (err) => {
-      console.error("Error subscribing to transactions:", err);
-      setTransactions([]);
-      setIsLoading(false);
-    });
-
-    const unsubTp = onSnapshot(tpCol, (snap) => {
-      const tpData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      setThirdParties(tpData);
-    }, (err) => {
-      console.error("Error subscribing to third parties:", err);
-      setThirdParties([]);
-    });
-
-    const unsubProd = onSnapshot(prodCol, (snap) => {
-      const prodData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      setProducts(prodData);
-    }, (err) => {
-      console.error("Error subscribing to products:", err);
-      setProducts([]);
-    });
-
-    return () => {
-      unsubTx();
-      unsubTp();
-      unsubProd();
-    };
-  }, [appId, db]);
 
   // Abrir modal de factura prellenada (desde POS o Cotizaciones)
   const handleOpenFormModal = (prefilledData = null) => {
@@ -130,14 +91,14 @@ export default function FinanceModule({ mode = 'contabilidad', initialSubTab, is
     };
     handleOpenFormModal(prefilled);
     setActiveTab('ventas');
-    setSubTabVentas('facturas');
+    setSubTabVentas('resumen_ventas');
   };
 
   // Checkout desde Punto de Venta (POS)
   const handlePOSCheckout = (invoiceData) => {
     handleOpenFormModal(invoiceData);
     setActiveTab('ventas');
-    setSubTabVentas('facturas');
+    setSubTabVentas('resumen_ventas');
   };
 
   const getModuleHeader = () => {
@@ -191,84 +152,79 @@ export default function FinanceModule({ mode = 'contabilidad', initialSubTab, is
 
   return (
     <div className={`flex flex-col h-full w-full animate-in fade-in duration-500 overflow-hidden`}>
-      {/* HEADER FINANZAS */}
-      <div className={`flex items-center justify-between px-8 py-4 border-b shrink-0 ${isDarkMode ? 'border-white/10 bg-[#0f0f11]' : 'border-primary/10 bg-white'}`}>
-        <div className="flex items-center gap-4">
-          <div className={`p-2.5 rounded-xl shadow-inner border ${isDarkMode ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/20' : 'bg-emerald-100/80 text-emerald-800 border-emerald-300'}`}>
-            <ModuleIcon size={20} />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold tracking-tight">{moduleHeader.title}</h1>
-            <p className={`text-[10px] mt-0.5 ${isDarkMode ? 'text-gray-400' : 'text-black font-semibold'}`}>
-              {moduleHeader.desc}
-            </p>
-          </div>
-        </div>
+      
+      {/* BARRA DE NAVEGACIÓN ESTÁNDAR DE SUBMÓDULOS */}
+      <div className={`flex items-center gap-3 px-8 py-3.5 border-b shrink-0 ${isDarkMode ? 'border-white/5 bg-[#121214]' : 'border-primary/10 bg-primary-light'}`}>
+        <span className={`text-[10px] font-black uppercase tracking-wider ${isDarkMode ? 'text-gray-500' : 'text-primary'}`}>Submódulos:</span>
+        <div className="flex gap-2 overflow-x-auto whitespace-nowrap scrollbar-none flex-1">
+          
+          {/* Si el modo es Contabilidad: Renderizar displayedTabs */}
+          {mode === 'contabilidad' && displayedTabs.map(tab => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 ${
+                  isActive
+                    ? (isDarkMode ? 'bg-primary/20 text-primary border-primary/30 shadow-sm' : 'bg-primary text-white border-primary shadow-sm')
+                    : (isDarkMode ? 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-white/5' : 'border-transparent text-gray-700 hover:text-gray-900 hover:bg-black/5')
+                }`}
+              >
+                <Icon size={13} />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
 
-        {/* NAVEGACIÓN Y CHAT */}
-        <div className="flex items-center gap-3">
-          <button 
-            onClick={() => setIsChatOpen(!isChatOpen)}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all border ${
-              isChatOpen 
-                ? 'bg-purple-600 border-purple-600 text-white shadow-md' 
-                : (isDarkMode ? 'bg-purple-500/10 border-purple-500/20 text-purple-400 hover:bg-purple-500/20' : 'bg-purple-50 border-purple-200 text-purple-950 hover:bg-purple-100')
-            }`}
-          >
-            <Sparkles size={13} /> Asistente AI
-          </button>
+          {/* Si el modo es Ventas: Renderizar ventas subtabs */}
+          {mode === 'ventas' && [
+            { id: 'resumen_ventas', label: 'Resumen' },
+            { id: 'pos', label: 'Preventa (POS)' },
+            { id: 'quotes', label: 'Proformas' },
+            { id: 'nota_credito', label: 'Notas de Crédito' },
+            { id: 'retencion', label: 'Retenciones' }
+          ].map(sub => (
+            <button
+              key={sub.id}
+              onClick={() => setSubTabVentas(sub.id)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+                subTabVentas === sub.id
+                  ? (isDarkMode ? 'bg-primary/20 text-primary border-primary/30 shadow-sm' : 'bg-primary text-white border-primary shadow-sm')
+                  : (isDarkMode ? 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-white/5' : 'border-transparent text-gray-700 hover:text-gray-900 hover:bg-black/5')
+              }`}
+            >
+              <span>{sub.label}</span>
+            </button>
+          ))}
 
-          {displayedTabs.length > 0 && (
-            <div className={`flex p-1 rounded-xl border shadow-inner ${isDarkMode ? 'bg-black/40 border-white/10' : 'bg-primary-light border-primary/15'}`}>
-              {displayedTabs.map(tab => {
-                const Icon = tab.icon;
-                const isActive = activeTab === tab.id;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                      isActive 
-                        ? isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-white text-black font-extrabold border border-primary/15 shadow-sm'
-                        : isDarkMode ? 'text-gray-400 hover:text-gray-200 hover:bg-white/5' : 'text-black hover:text-black hover:bg-white/70'
-                    }`}
-                  >
-                    <Icon size={13} />
-                    {tab.label}
-                  </button>
-                );
-              })}
-            </div>
-          )}
+          {/* Si el modo es Personas: Renderizar personas subtabs */}
+          {mode === 'personas' && [
+            { id: 'cliente', label: 'Clientes' },
+            { id: 'proveedor', label: 'Proveedores' }
+          ].map(sub => (
+            <button
+              key={sub.id}
+              onClick={() => setSubTabPersonas(sub.id)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+                subTabPersonas === sub.id
+                  ? (isDarkMode ? 'bg-primary/20 text-primary border-primary/30 shadow-sm' : 'bg-primary text-white border-primary shadow-sm')
+                  : (isDarkMode ? 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-white/5' : 'border-transparent text-gray-700 hover:text-gray-900 hover:bg-black/5')
+              }`}
+            >
+              <span>{sub.label}</span>
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* SUB-NAVEGACIÓN SI ACTIVE TAB TIENE SUB-TABS */}
-      {['ventas', 'sri_docs', 'personas'].includes(activeTab) && (
-        <div className={`flex items-center gap-2 px-8 py-2 border-b shrink-0 ${isDarkMode ? 'border-white/5 bg-[#121214]' : 'border-primary/10 bg-primary-light'}`}>
-          <span className={`text-[9px] font-black uppercase tracking-wider ${isDarkMode ? 'text-gray-500' : 'text-black'}`}>Módulo:</span>
+      {/* SUB-SUB-NAVEGACIÓN SI ACTIVE TAB TIENE SUB-TABS (ej: sri_docs en contabilidad) */}
+      {activeTab === 'sri_docs' && mode === 'contabilidad' && (
+        <div className={`flex items-center gap-2 px-8 py-2 border-b shrink-0 ${isDarkMode ? 'border-white/5 bg-[#121214]/50' : 'border-primary/10 bg-primary-light/50'}`}>
+          <span className={`text-[9px] font-black uppercase tracking-wider ${isDarkMode ? 'text-gray-500' : 'text-primary'}`}>Tipo Doc:</span>
           <div className="flex gap-1.5 overflow-x-auto whitespace-nowrap scrollbar-none">
-            {activeTab === 'ventas' && [
-              { id: 'dashboard_ventas', label: 'Resumen' },
-              { id: 'pos', label: 'Punto de Venta (POS)' },
-              { id: 'quotes', label: 'Cotizaciones (Proformas)' },
-              { id: 'facturas', label: 'Facturas de Venta' },
-              { id: 'cxc', label: 'Cobros Clientes' }
-            ].map(sub => (
-              <button
-                key={sub.id}
-                onClick={() => setSubTabVentas(sub.id)}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all border ${
-                  subTabVentas === sub.id
-                    ? (isDarkMode ? 'bg-primary/20 text-primary border-primary/30' : 'bg-primary text-white border-primary shadow-sm')
-                    : (isDarkMode ? 'border-transparent text-gray-400 hover:text-gray-200' : 'border-transparent text-black hover:text-black hover:bg-white/80')
-                }`}
-              >
-                {sub.label}
-              </button>
-            ))}
-
-            {activeTab === 'sri_docs' && [
+            {[
               { id: 'nota_credito', label: 'Notas de Crédito' },
               { id: 'nota_debito', label: 'Notas de Débito' },
               { id: 'retencion', label: 'Retenciones' },
@@ -281,24 +237,7 @@ export default function FinanceModule({ mode = 'contabilidad', initialSubTab, is
                 className={`px-3 py-1 rounded-lg text-xs font-bold transition-all border ${
                   subTabSri === sub.id
                     ? (isDarkMode ? 'bg-emerald-500/20 text-emerald-450 border-emerald-500/30' : 'bg-emerald-600 text-white border-emerald-600 shadow-sm')
-                    : (isDarkMode ? 'border-transparent text-gray-400 hover:text-gray-200' : 'border-transparent text-black hover:text-black hover:bg-white/80')
-                }`}
-              >
-                {sub.label}
-              </button>
-            ))}
-
-            {activeTab === 'personas' && [
-              { id: 'cliente', label: 'Clientes' },
-              { id: 'proveedor', label: 'Proveedores' }
-            ].map(sub => (
-              <button
-                key={sub.id}
-                onClick={() => setSubTabPersonas(sub.id)}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all border ${
-                  subTabPersonas === sub.id
-                    ? (isDarkMode ? 'bg-primary/20 text-primary border-primary/30' : 'bg-primary text-white border-primary shadow-sm')
-                    : (isDarkMode ? 'border-transparent text-gray-400 hover:text-gray-200' : 'border-transparent text-black hover:text-black hover:bg-white/80')
+                    : (isDarkMode ? 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-white/5' : 'border-transparent text-gray-700 hover:text-gray-900 hover:bg-black/5')
                 }`}
               >
                 {sub.label}
@@ -308,7 +247,7 @@ export default function FinanceModule({ mode = 'contabilidad', initialSubTab, is
         </div>
       )}
 
-      {/* CUERPO PRINCIPAL CON DIVISION DE CHAT */}
+      {/* CUERPO PRINCIPAL */}
       <div className="flex flex-1 overflow-hidden min-h-0 bg-transparent">
         <div className={`flex-1 overflow-y-auto px-8 py-6 custom-scrollbar ${isDarkMode ? 'bg-[#0f0f11]' : 'bg-white'}`}>
           {isLoading ? (
@@ -320,8 +259,8 @@ export default function FinanceModule({ mode = 'contabilidad', initialSubTab, is
               {activeTab === 'dashboard' && <FinanceDashboard transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} db={db} appId={appId} />}
               
               {/* SECCIÓN VENTAS */}
-              {activeTab === 'ventas' && subTabVentas === 'dashboard_ventas' && (
-                <SalesDashboard transactions={transactions} thirdParties={thirdParties} products={products} isDarkMode={isDarkMode} db={db} appId={appId} />
+              {activeTab === 'ventas' && subTabVentas === 'resumen_ventas' && (
+                <TransactionsView transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} forcedDocType="ventas_resumen" forcedType="ingreso" />
               )}
               {activeTab === 'ventas' && subTabVentas === 'pos' && (
                 <PosView 
@@ -333,17 +272,17 @@ export default function FinanceModule({ mode = 'contabilidad', initialSubTab, is
                   db={db} 
                   appId={appId} 
                   onCheckout={handlePOSCheckout} 
-                  onClose={() => setSubTabVentas('dashboard_ventas')}
+                  onClose={() => setSubTabVentas('resumen_ventas')}
                 />
               )}
               {activeTab === 'ventas' && subTabVentas === 'quotes' && (
                 <QuotesView products={products} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} appId={appId} onPromoteToInvoice={handlePromoteToInvoice} />
               )}
-              {activeTab === 'ventas' && subTabVentas === 'facturas' && (
-                <TransactionsView transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} forcedDocType="factura" />
+              {activeTab === 'ventas' && subTabVentas === 'nota_credito' && (
+                <TransactionsView transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} forcedDocType="nota_credito" forcedType="ingreso" />
               )}
-              {activeTab === 'ventas' && subTabVentas === 'cxc' && (
-                <AccountsReceivablePayable type="cxc" transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} appId={appId} />
+              {activeTab === 'ventas' && subTabVentas === 'retencion' && (
+                <TransactionsView transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} forcedDocType="retencion" forcedType="ingreso" />
               )}
 
               {/* SECCIÓN DOCUMENTOS SRI */}
@@ -377,12 +316,6 @@ export default function FinanceModule({ mode = 'contabilidad', initialSubTab, is
             </>
           )}
         </div>
-        
-        {isChatOpen && (
-          <div className={`w-80 border-l shrink-0 flex flex-col p-4 animate-in slide-in-from-right duration-300 ${isDarkMode ? 'border-white/10 bg-[#0f0f11]' : 'border-primary/10 bg-primary-light'}`}>
-            <FinanceChat transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} onClose={() => setIsChatOpen(false)} />
-          </div>
-        )}
       </div>
 
       {/* MODAL GLOBAL DE FACTURACIÓN (COMPARTIDO) */}
