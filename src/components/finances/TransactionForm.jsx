@@ -973,13 +973,35 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
                 <div>
                   <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Tipo de Documento</label>
-                  <select disabled={!isEditable} value={formData.documentType} onChange={e => setFormData({...formData, documentType: e.target.value})} className={inputClass}>
-                    <option value="factura">Factura Electrónica</option>
-                    <option value="nota_venta">Nota de Venta</option>
-                    <option value="liquidacion">Liquidación de Compra</option>
-                    <option value="retencion">Comprobante de Retención</option>
-                    <option value="nota_credito">Nota de Crédito</option>
-                    <option value="nota_debito">Nota de Débito</option>
+                  <select 
+                    disabled={!isEditable} 
+                    value={formData.documentType} 
+                    onChange={e => setFormData({...formData, documentType: e.target.value})} 
+                    className={inputClass}
+                  >
+                    {formData.type === 'ingreso' ? (
+                      formData.documentType === 'nota_credito' ? (
+                        <option value="nota_credito">Nota de Crédito</option>
+                      ) : formData.documentType === 'retencion' ? (
+                        <option value="retencion">Comprobante de Retención</option>
+                      ) : formData.documentType === 'nota_debito' ? (
+                        <option value="nota_debito">Nota de Débito</option>
+                      ) : (
+                        <>
+                          <option value="factura">Factura Electrónica</option>
+                          <option value="nota_venta">Nota de Venta</option>
+                        </>
+                      )
+                    ) : (
+                      <>
+                        <option value="factura">Factura Electrónica</option>
+                        <option value="nota_venta">Nota de Venta</option>
+                        <option value="liquidacion">Liquidación de Compra</option>
+                        <option value="retencion">Comprobante de Retención</option>
+                        <option value="nota_credito">Nota de Crédito</option>
+                        <option value="nota_debito">Nota de Débito</option>
+                      </>
+                    )}
                   </select>
                 </div>
                 
@@ -1756,20 +1778,38 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="flex gap-2">
-                      <label className={`flex-1 flex items-center justify-center gap-1.5 p-3 rounded-xl border border-dashed cursor-pointer transition-colors ${formData.xmlUrl ? 'border-emerald-500/30 bg-emerald-500/5 text-emerald-500' : 'border-gray-400 hover:bg-gray-200 text-gray-800 font-semibold bg-white'}`}>
-                        <input type="file" accept=".xml" className="hidden" onChange={(e) => handleFileUpload(e, 'xml')} disabled={isUploading || !isEditable}/>
-                        {formData.xmlUrl ? <CheckCircle2 size={14}/> : <UploadCloud size={14}/>}
-                        <span className="text-xs font-bold">{formData.xmlUrl ? 'XML Guardado' : 'Subir XML'}</span>
-                      </label>
+                      {formData.type !== 'ingreso' ? (
+                        <label className={`flex-1 flex items-center justify-center gap-1.5 p-3 rounded-xl border border-dashed cursor-pointer transition-colors ${formData.xmlUrl ? 'border-emerald-500/30 bg-emerald-500/5 text-emerald-500' : 'border-gray-400 hover:bg-gray-200 text-gray-800 font-semibold bg-white'}`}>
+                          <input type="file" accept=".xml" className="hidden" onChange={(e) => handleFileUpload(e, 'xml')} disabled={isUploading || !isEditable}/>
+                          {formData.xmlUrl ? <CheckCircle2 size={14}/> : <UploadCloud size={14}/>}
+                          <span className="text-xs font-bold">{formData.xmlUrl ? 'XML Guardado' : 'Subir XML'}</span>
+                        </label>
+                      ) : (
+                        formData.xmlUrl && (
+                          <div className="flex-1 flex items-center justify-center gap-1.5 p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/5 text-emerald-500">
+                            <CheckCircle2 size={14}/>
+                            <span className="text-xs font-bold">XML Generado</span>
+                          </div>
+                        )
+                      )}
                       {formData.xmlUrl && <a href={formData.xmlUrl} target="_blank" rel="noreferrer" className="p-3 rounded-xl bg-blue-600 text-white shrink-0 hover:bg-blue-500"><FileText size={14}/></a>}
                     </div>
 
                     <div className="flex gap-2">
-                      <label className={`flex-1 flex items-center justify-center gap-1.5 p-3 rounded-xl border border-dashed cursor-pointer transition-colors ${formData.pdfUrl ? 'border-emerald-500/30 bg-emerald-500/5 text-emerald-500' : 'border-gray-400 hover:bg-gray-200 text-gray-800 font-semibold bg-white'}`}>
-                        <input type="file" accept=".pdf" className="hidden" onChange={(e) => handleFileUpload(e, 'pdf')} disabled={isUploading || !isEditable}/>
-                        {formData.pdfUrl ? <CheckCircle2 size={14}/> : <UploadCloud size={14}/>}
-                        <span className="text-xs font-bold">{formData.pdfUrl ? 'PDF RIDE' : 'Subir PDF'}</span>
-                      </label>
+                      {formData.type !== 'ingreso' ? (
+                        <label className={`flex-1 flex items-center justify-center gap-1.5 p-3 rounded-xl border border-dashed cursor-pointer transition-colors ${formData.pdfUrl ? 'border-emerald-500/30 bg-emerald-500/5 text-emerald-500' : 'border-gray-400 hover:bg-gray-200 text-gray-800 font-semibold bg-white'}`}>
+                          <input type="file" accept=".pdf" className="hidden" onChange={(e) => handleFileUpload(e, 'pdf')} disabled={isUploading || !isEditable}/>
+                          {formData.pdfUrl ? <CheckCircle2 size={14}/> : <UploadCloud size={14}/>}
+                          <span className="text-xs font-bold">{formData.pdfUrl ? 'PDF RIDE' : 'Subir PDF'}</span>
+                        </label>
+                      ) : (
+                        formData.pdfUrl && (
+                          <div className="flex-1 flex items-center justify-center gap-1.5 p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/5 text-emerald-500">
+                            <CheckCircle2 size={14}/>
+                            <span className="text-xs font-bold">PDF RIDE</span>
+                          </div>
+                        )
+                      )}
                       {formData.pdfUrl && <a href={formData.pdfUrl} target="_blank" rel="noreferrer" className="p-3 rounded-xl bg-blue-600 text-white shrink-0 hover:bg-blue-500"><FileText size={14}/></a>}
                     </div>
                   </div>

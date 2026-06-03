@@ -243,44 +243,46 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
     <div className="animate-in slide-in-from-bottom-4 duration-500 space-y-6">
       
       {/* DRAG AND DROP ZONE */}
-      <div 
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        onClick={() => fileInputRef.current?.click()}
-        className={`relative border-2 border-dashed rounded-3xl p-6 flex flex-col items-center justify-center transition-all cursor-pointer overflow-hidden ${
-          isDragging 
-            ? 'border-purple-500 bg-purple-500/5 shadow-2xl scale-[1.01]' 
-            : (isDarkMode ? 'border-white/10 hover:border-white/20 bg-white/[0.01]' : 'border-gray-355 hover:border-gray-400 bg-white')
-        }`}
-      >
-        <input 
-          type="file" 
-          ref={fileInputRef} 
-          onChange={(e) => handleFileCapture(e.target.files[0])} 
-          accept=".pdf,.png,.jpg,.jpeg,.xml" 
-          className="hidden" 
-        />
-        
-        {isAnalyzing ? (
-          <div className="flex flex-col items-center justify-center py-4 space-y-3">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
-            <p className="text-xs font-semibold text-purple-400 animate-pulse">Gemini IA está extrayendo información del comprobante...</p>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center text-center space-y-2">
-            <div className={`p-3 rounded-2xl ${isDarkMode ? 'bg-purple-500/10 text-purple-400' : 'bg-purple-100 text-purple-800'}`}>
-              <Sparkles size={24} />
+      {(!forcedType || forcedType !== 'ingreso') && (
+        <div 
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          onClick={() => fileInputRef.current?.click()}
+          className={`relative border-2 border-dashed rounded-3xl p-6 flex flex-col items-center justify-center transition-all cursor-pointer overflow-hidden ${
+            isDragging 
+              ? 'border-purple-500 bg-purple-500/5 shadow-2xl scale-[1.01]' 
+              : (isDarkMode ? 'border-white/10 hover:border-white/20 bg-white/[0.01]' : 'border-gray-355 hover:border-gray-400 bg-white')
+          }`}
+        >
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={(e) => handleFileCapture(e.target.files[0])} 
+            accept=".pdf,.png,.jpg,.jpeg,.xml" 
+            className="hidden" 
+          />
+          
+          {isAnalyzing ? (
+            <div className="flex flex-col items-center justify-center py-4 space-y-3">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
+              <p className="text-xs font-semibold text-purple-400 animate-pulse">Gemini IA está extrayendo información del comprobante...</p>
             </div>
-            <div>
-              <p className="text-xs font-bold text-gray-900">Captura Inteligente IA / Carga XML</p>
-              <p className={`text-[10px] mt-1 max-w-md leading-normal ${isDarkMode ? 'text-gray-500' : 'text-gray-700 font-medium'}`}>
-                Arrastra tu factura (PDF, XML, Imagen) aquí. Gemini la clasificará y auto-completará los campos del formulario de forma instantánea.
-              </p>
+          ) : (
+            <div className="flex flex-col items-center justify-center text-center space-y-2">
+              <div className={`p-3 rounded-2xl ${isDarkMode ? 'bg-purple-500/10 text-purple-400' : 'bg-purple-100 text-purple-800'}`}>
+                <Sparkles size={24} />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-gray-900">Captura Inteligente IA / Carga XML</p>
+                <p className={`text-[10px] mt-1 max-w-md leading-normal ${isDarkMode ? 'text-gray-500' : 'text-gray-700 font-medium'}`}>
+                  Arrastra tu factura (PDF, XML, Imagen) aquí. Gemini la clasificará y auto-completará los campos del formulario de forma instantánea.
+                </p>
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
 
       {/* TABS DE TIPO DE DOCUMENTO SRI */}
       {!forcedDocType && (

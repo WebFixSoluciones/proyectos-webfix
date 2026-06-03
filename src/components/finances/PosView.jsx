@@ -26,7 +26,7 @@ function sanitizeData(obj) {
   return obj;
 }
 
-export default function PosView({ products, thirdParties, transactions = [], isDarkMode, showToast, db, appId, onCheckout, onClose }) {
+export default function PosView({ products, thirdParties, transactions = [], isDarkMode, showToast, db, appId, onCheckout, onClose, isPreventaOnly }) {
   // Configuración de visualización del POS (persistente en localStorage)
   const [posConfig, setPosConfig] = useState(() => {
     const saved = localStorage.getItem(`pos_config_${appId}`);
@@ -67,6 +67,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
   const [cart, setCart] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClientId, setSelectedClientId] = useState('');
+  const [posDocType, setPosDocType] = useState('factura'); // 'factura' o 'nota_venta'
   
   // Estados de Filtros
   const [filterBrand, setFilterBrand] = useState('all');
@@ -682,7 +683,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
       const invoiceData = {
         type: 'ingreso',
         date: new Date().toISOString().split('T')[0],
-        documentType: 'factura',
+        documentType: posDocType,
         thirdPartyId: clientDocId,
         thirdParty: client,
         category: 'ventas',
@@ -694,11 +695,12 @@ export default function PosView({ products, thirdParties, transactions = [], isD
         retencionIva: 0,
         total: Number(totalToPay.toFixed(2)),
         paymentMethod: pMethod,
-        paymentStatus: 'pagado',
+        paymentStatus: isPreventaOnly ? 'pendiente' : 'pagado',
         sriStatus: 'pendiente',
         items: cart,
-        isPOS: true,
-        cashSessionId: activeSession.id,
+        isPOS: !isPreventaOnly,
+        isPreventa: !!isPreventaOnly,
+        cashSessionId: isPreventaOnly ? '' : (activeSession?.id || ''),
         paymentsBreakdown: {
           efectivo: Number(payments.efectivo),
           transferencia: Number(payments.transferencia),
@@ -715,6 +717,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
       onCheckout(sanitizeData(invoiceData));
       setCart([]);
       setSelectedClientId('');
+      setPosDocType('factura');
       setPayments({
         efectivo: 0,
         transferencia: 0,
@@ -726,7 +729,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
       });
       setIsCheckoutOpen(false);
       setCheckoutStep(1);
-      showToast("Venta POS completada y enviada a facturación SRI", "success");
+      showToast(isPreventaOnly ? "Preventa registrada con éxito" : "Venta POS completada y enviada a facturación SRI", "success");
     } catch (err) {
       console.error(err);
       showToast("Error al procesar la venta", "error");
@@ -877,70 +880,72 @@ export default function PosView({ products, thirdParties, transactions = [], isD
     isDarkMode ? 'bg-black/40 border-white/10 text-white focus:border-blue-500/50' : 'bg-white border-gray-300 text-gray-900 focus:border-blue-600 focus:ring-1 focus:ring-blue-650/40'
   }`;
 
-  if (sessionLoading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
-      </div>
-    );
-  }
-
-  // PANTALLA 1: APERTURA DE CAJA
-  if (!activeSession) {
-    return createPortal(
-      <div className={`fixed inset-0 z-[100] ${isDarkMode ? 'bg-[#08080a] text-white' : 'bg-[#f3f8ff] text-[#000000]'} flex items-center justify-center p-4 backdrop-blur-xl transition-colors duration-300`}>
-        {/* Decorative background blobs */}
-        <div className={`absolute top-[-10%] left-[-5%] w-[30rem] h-[30rem] rounded-full mix-blend-screen filter blur-[100px] opacity-20 pointer-events-none ${isDarkMode ? 'bg-emerald-900' : 'bg-emerald-300'}`}></div>
-        <div className={`absolute bottom-[-10%] right-[-5%] w-[30rem] h-[30rem] rounded-full mix-blend-screen filter blur-[100px] opacity-20 pointer-events-none ${isDarkMode ? 'bg-orange-900' : 'bg-orange-300'}`}></div>
-
-        <div className={`w-full max-w-md p-8 rounded-[2.5rem] border shadow-[0_20px_50px_rgba(0,0,0,0.3)] space-y-6 transition-all duration-300 ${isDarkMode ? 'glass-panel-dark text-white' : 'bg-white text-[#000000] border-blue-100'}`}>
-          <div className="text-center space-y-2">
-            <div className={`mx-auto w-14 h-14 rounded-2xl flex items-center justify-center border animate-pulse-glow ${isDarkMode ? 'bg-gradient-to-br from-emerald-500/20 to-teal-500/20 text-emerald-400 border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.2)]' : 'bg-emerald-50 text-emerald-600 border-emerald-250 shadow-sm'}`}>
-              <DollarSign size={26} />
-            </div>
-            <h2 className={`text-xl font-bold font-display tracking-tight ${isDarkMode ? 'text-white' : 'text-black'}`}>Apertura de Caja POS</h2>
-            <p className={`text-xs font-medium ${isDarkMode ? 'text-gray-400' : 'text-black font-semibold'}`}>Es necesario ingresar el fondo inicial para habilitar la caja registradora.</p>
-          </div>
-
-          <form onSubmit={handleOpenSession} className="space-y-4">
-            <div>
-              <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Responsable / Cajero</label>
-              <input type="text" required value={openingForm.responsible} onChange={e => setOpeningForm({...openingForm, responsible: e.target.value})} className={`w-full text-sm px-3.5 py-3 rounded-xl outline-none transition-all border ${isDarkMode ? 'glass-input-dark' : 'glass-input-light'}`} />
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Sucursal</label>
-                <input type="text" required value={openingForm.branch} onChange={e => setOpeningForm({...openingForm, branch: e.target.value})} className={`w-full text-sm px-3.5 py-3 rounded-xl outline-none transition-all border ${isDarkMode ? 'glass-input-dark' : 'glass-input-light'}`} />
-              </div>
-              <div>
-                <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Turno</label>
-                <select value={openingForm.shift} onChange={e => setOpeningForm({...openingForm, shift: e.target.value})} className={`w-full text-sm px-3.5 py-3 rounded-xl outline-none transition-all border cursor-pointer ${isDarkMode ? 'glass-input-dark' : 'glass-input-light'}`}>
-                  <option value="Mañana" className="text-black bg-white">Mañana</option>
-                  <option value="Tarde" className="text-black bg-white">Tarde</option>
-                  <option value="Noche" className="text-black bg-white">Noche</option>
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Fondo Inicial ($ USD)</label>
-              <input type="number" required step="0.01" value={openingForm.initialAmount} onChange={e => setOpeningForm({...openingForm, initialAmount: e.target.value})} className={`w-full text-sm px-3.5 py-3 rounded-xl outline-none transition-all border ${isDarkMode ? 'glass-input-dark' : 'glass-input-light'}`} />
-            </div>
-
-            <div>
-              <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Observaciones de Entrada</label>
-              <textarea value={openingForm.notes} onChange={e => setOpeningForm({...openingForm, notes: e.target.value})} className={`w-full text-sm px-3.5 py-3 rounded-2xl outline-none transition-all border min-h-[70px] resize-none ${isDarkMode ? 'glass-input-dark' : 'glass-input-light'}`} placeholder="Sin novedades..." />
-            </div>
-
-            <button type="submit" className="w-full py-3.5 mt-4 rounded-xl text-sm font-bold uppercase tracking-wider transition-all duration-300 hover-lift bg-gradient-to-r from-emerald-650 to-teal-650 text-white shadow-md hover:from-emerald-500 hover:to-teal-500 border border-emerald-500/30">
-              Abrir Caja y Activar POS
-            </button>
-          </form>
+  if (!isPreventaOnly) {
+    if (sessionLoading) {
+      return (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
         </div>
-      </div>,
-      document.body
-    );
+      );
+    }
+
+    // PANTALLA 1: APERTURA DE CAJA
+    if (!activeSession) {
+      return createPortal(
+        <div className={`fixed inset-0 z-[100] ${isDarkMode ? 'bg-[#08080a] text-white' : 'bg-[#f3f8ff] text-[#000000]'} flex items-center justify-center p-4 backdrop-blur-xl transition-colors duration-300`}>
+          {/* Decorative background blobs */}
+          <div className={`absolute top-[-10%] left-[-5%] w-[30rem] h-[30rem] rounded-full mix-blend-screen filter blur-[100px] opacity-20 pointer-events-none ${isDarkMode ? 'bg-emerald-900' : 'bg-emerald-300'}`}></div>
+          <div className={`absolute bottom-[-10%] right-[-5%] w-[30rem] h-[30rem] rounded-full mix-blend-screen filter blur-[100px] opacity-20 pointer-events-none ${isDarkMode ? 'bg-orange-900' : 'bg-orange-300'}`}></div>
+
+          <div className={`w-full max-w-md p-8 rounded-[2.5rem] border shadow-[0_20px_50px_rgba(0,0,0,0.3)] space-y-6 transition-all duration-300 ${isDarkMode ? 'glass-panel-dark text-white' : 'bg-white text-[#000000] border-blue-100'}`}>
+            <div className="text-center space-y-2">
+              <div className={`mx-auto w-14 h-14 rounded-2xl flex items-center justify-center border animate-pulse-glow ${isDarkMode ? 'bg-gradient-to-br from-emerald-500/20 to-teal-500/20 text-emerald-400 border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.2)]' : 'bg-emerald-50 text-emerald-600 border-emerald-250 shadow-sm'}`}>
+                <DollarSign size={26} />
+              </div>
+              <h2 className={`text-xl font-bold font-display tracking-tight ${isDarkMode ? 'text-white' : 'text-black'}`}>Apertura de Caja POS</h2>
+              <p className={`text-xs font-medium ${isDarkMode ? 'text-gray-400' : 'text-black font-semibold'}`}>Es necesario ingresar el fondo inicial para habilitar la caja registradora.</p>
+            </div>
+
+            <form onSubmit={handleOpenSession} className="space-y-4">
+              <div>
+                <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Responsable / Cajero</label>
+                <input type="text" required value={openingForm.responsible} onChange={e => setOpeningForm({...openingForm, responsible: e.target.value})} className={`w-full text-sm px-3.5 py-3 rounded-xl outline-none transition-all border ${isDarkMode ? 'glass-input-dark' : 'glass-input-light'}`} />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Sucursal</label>
+                  <input type="text" required value={openingForm.branch} onChange={e => setOpeningForm({...openingForm, branch: e.target.value})} className={`w-full text-sm px-3.5 py-3 rounded-xl outline-none transition-all border ${isDarkMode ? 'glass-input-dark' : 'glass-input-light'}`} />
+                </div>
+                <div>
+                  <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Turno</label>
+                  <select value={openingForm.shift} onChange={e => setOpeningForm({...openingForm, shift: e.target.value})} className={`w-full text-sm px-3.5 py-3 rounded-xl outline-none transition-all border cursor-pointer ${isDarkMode ? 'glass-input-dark' : 'glass-input-light'}`}>
+                    <option value="Mañana" className="text-black bg-white">Mañana</option>
+                    <option value="Tarde" className="text-black bg-white">Tarde</option>
+                    <option value="Noche" className="text-black bg-white">Noche</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Fondo Inicial ($ USD)</label>
+                <input type="number" required step="0.01" value={openingForm.initialAmount} onChange={e => setOpeningForm({...openingForm, initialAmount: e.target.value})} className={`w-full text-sm px-3.5 py-3 rounded-xl outline-none transition-all border ${isDarkMode ? 'glass-input-dark' : 'glass-input-light'}`} />
+              </div>
+
+              <div>
+                <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Observaciones de Entrada</label>
+                <textarea value={openingForm.notes} onChange={e => setOpeningForm({...openingForm, notes: e.target.value})} className={`w-full text-sm px-3.5 py-3 rounded-2xl outline-none transition-all border min-h-[70px] resize-none ${isDarkMode ? 'glass-input-dark' : 'glass-input-light'}`} placeholder="Sin novedades..." />
+              </div>
+
+              <button type="submit" className="w-full py-3.5 mt-4 rounded-xl text-sm font-bold uppercase tracking-wider transition-all duration-300 hover-lift bg-gradient-to-r from-emerald-650 to-teal-650 text-white shadow-md hover:from-emerald-500 hover:to-teal-500 border border-emerald-500/30">
+                Abrir Caja y Activar POS
+              </button>
+            </form>
+          </div>
+        </div>,
+        document.body
+      );
+    }
   }
 
   // PANTALLA 2: POS PRINCIPAL EN PANTALLA COMPLETA
@@ -959,8 +964,16 @@ export default function PosView({ products, thirdParties, transactions = [], isD
             )}
           </div>
           <div>
-            <h1 className={`text-sm font-black uppercase tracking-wider ${isDarkMode ? 'text-white' : 'text-black'}`}>Caja POS: {activeSession.branch}</h1>
-            <p className={`text-xs mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600 font-medium'}`}>Sesión: <span className="font-bold text-gray-850 dark:text-gray-200">{activeSession.responsible}</span> ({activeSession.shift}) | Fondo: <span className="font-bold text-gray-850 dark:text-gray-200">${Number(activeSession.initialAmount || 0).toFixed(2)}</span></p>
+            <h1 className={`text-sm font-black uppercase tracking-wider ${isDarkMode ? 'text-white' : 'text-black'}`}>
+              {isPreventaOnly ? 'Generación de Preventa' : `Caja POS: ${activeSession?.branch}`}
+            </h1>
+            {isPreventaOnly ? (
+              <p className={`text-xs mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-650 font-semibold'}`}>
+                Módulo para registro de preventas y pedidos rápidos
+              </p>
+            ) : (
+              <p className={`text-xs mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-605 font-medium'}`}>Sesión: <span className="font-bold text-gray-850 dark:text-gray-200">{activeSession?.responsible}</span> ({activeSession?.shift}) | Fondo: <span className="font-bold text-gray-850 dark:text-gray-200">${Number(activeSession?.initialAmount || 0).toFixed(2)}</span></p>
+            )}
           </div>
         </div>
 
@@ -977,13 +990,15 @@ export default function PosView({ products, thirdParties, transactions = [], isD
           >
             <Keyboard size={16} />
           </button>
-          <button 
-            onClick={() => setIsHistoryOpen(true)} 
-            className={`p-2.5 rounded-xl transition-all ${isDarkMode ? 'bg-white/5 text-gray-405 hover:text-white hover:bg-white/10' : 'bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700'}`}
-            title="Ver Ventas Emitidas en esta Sesión"
-          >
-            <History size={16} />
-          </button>
+          {!isPreventaOnly && (
+            <button 
+              onClick={() => setIsHistoryOpen(true)} 
+              className={`p-2.5 rounded-xl transition-all ${isDarkMode ? 'bg-white/5 text-gray-405 hover:text-white hover:bg-white/10' : 'bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700'}`}
+              title="Ver Ventas Emitidas en esta Sesión"
+            >
+              <History size={16} />
+            </button>
+          )}
           <button 
             onClick={() => setIsConfigOpen(true)} 
             className={`p-2.5 rounded-xl transition-all ${isDarkMode ? 'bg-white/5 text-gray-405 hover:text-white hover:bg-white/10' : 'bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700'}`}
@@ -991,18 +1006,20 @@ export default function PosView({ products, thirdParties, transactions = [], isD
           >
             <Settings size={16} />
           </button>
-          <button 
-            onClick={handleOpenCloseModal} 
-            className={`px-3 h-9 rounded-xl flex items-center justify-center gap-1.5 font-bold text-[10px] uppercase transition-all ${
-              isDarkMode 
-                ? 'bg-white/5 text-blue-400 hover:text-blue-305 hover:bg-white/10' 
-                : 'bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700'
-            }`}
-            title="Arqueo / Cerrar Caja"
-          >
-            <DollarSign size={13} />
-            <span>Arqueo</span>
-          </button>
+          {!isPreventaOnly && (
+            <button 
+              onClick={handleOpenCloseModal} 
+              className={`px-3 h-9 rounded-xl flex items-center justify-center gap-1.5 font-bold text-[10px] uppercase transition-all ${
+                isDarkMode 
+                  ? 'bg-white/5 text-blue-400 hover:text-blue-305 hover:bg-white/10' 
+                  : 'bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700'
+              }`}
+              title="Arqueo / Cerrar Caja"
+            >
+              <DollarSign size={13} />
+              <span>Arqueo</span>
+            </button>
+          )}
           <button 
             onClick={() => {
               if (onClose) {
@@ -2156,6 +2173,20 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                             Crear Nuevo Cliente
                           </button>
                         </div>
+                      </div>
+
+                      <div className={`p-4 rounded-2xl border space-y-3 ${isDarkMode ? 'bg-black/20 border-white/5' : 'bg-blue-50/20 border-blue-100'}`}>
+                        <h4 className={`text-xs md:text-sm font-bold uppercase tracking-wider ${isDarkMode ? 'text-white' : 'text-black'}`}>Tipo de Documento a Emitir</h4>
+                        <select 
+                          value={posDocType} 
+                          onChange={e => setPosDocType(e.target.value)} 
+                          className={`w-full text-xs md:text-sm font-semibold px-3 py-2.5 outline-none rounded-xl border ${
+                            isDarkMode ? 'border-white/10 bg-black text-white' : 'border-blue-150 bg-white text-black'
+                          }`}
+                        >
+                          <option value="factura" className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>Factura Electrónica</option>
+                          <option value="nota_venta" className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>Recibo (Nota de Venta)</option>
+                        </select>
                       </div>
 
                       <div className={`p-4 rounded-2xl border space-y-2 text-xs md:text-sm ${

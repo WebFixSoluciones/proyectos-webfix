@@ -181,8 +181,9 @@ export default function FinanceModule({
           {/* Si el modo es Ventas: Renderizar ventas subtabs */}
           {mode === 'ventas' && [
             { id: 'resumen_ventas', label: 'Resumen' },
-            { id: 'pos', label: 'Preventa (POS)' },
-            { id: 'quotes', label: 'Proformas' },
+            { id: 'ventas_preventa', label: 'Ventas' },
+            { id: 'pos', label: 'POS' },
+            { id: 'quotes', label: 'Cotizaciones' },
             { id: 'nota_credito', label: 'Notas de Crédito' },
             { id: 'retencion', label: 'Retenciones' }
           ].map(sub => (
@@ -262,6 +263,20 @@ export default function FinanceModule({
               {activeTab === 'ventas' && subTabVentas === 'resumen_ventas' && (
                 <TransactionsView transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} forcedDocType="ventas_resumen" forcedType="ingreso" />
               )}
+              {activeTab === 'ventas' && subTabVentas === 'ventas_preventa' && (
+                <PosView 
+                  products={products} 
+                  thirdParties={thirdParties} 
+                  transactions={transactions}
+                  isDarkMode={isDarkMode} 
+                  showToast={showToast} 
+                  db={db} 
+                  appId={appId} 
+                  onCheckout={handlePOSCheckout} 
+                  onClose={() => setSubTabVentas('resumen_ventas')}
+                  isPreventaOnly={true}
+                />
+              )}
               {activeTab === 'ventas' && subTabVentas === 'pos' && (
                 <PosView 
                   products={products} 
@@ -273,6 +288,7 @@ export default function FinanceModule({
                   appId={appId} 
                   onCheckout={handlePOSCheckout} 
                   onClose={() => setSubTabVentas('resumen_ventas')}
+                  isPreventaOnly={false}
                 />
               )}
               {activeTab === 'ventas' && subTabVentas === 'quotes' && (
