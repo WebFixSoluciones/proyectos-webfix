@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Search, ShoppingCart, Plus, Minus, Trash2, User, Sparkles, CheckCircle2, DollarSign, X, ShieldAlert, Award, Layers, Tag, Bookmark, RefreshCw, LogOut, ArrowRight, ArrowLeft, ChevronRight, Settings, Barcode, Zap, Eye, Mic, Keyboard, History, Download, FileText, Unlock, UserPlus, Edit3, Phone, Mail } from 'lucide-react';
+import { Search, ShoppingCart, Plus, Minus, Trash2, User, Sparkles, CheckCircle2, DollarSign, X, ShieldAlert, Award, Layers, Tag, Bookmark, RefreshCw, LogOut, ArrowRight, ArrowLeft, ChevronRight, Settings, Barcode, Zap, Eye, Mic, Keyboard, History, Download, FileText, Unlock, UserPlus, Edit3, Phone, Mail, MoreHorizontal } from 'lucide-react';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, onSnapshot } from 'firebase/firestore';
 import { consultarRucSri } from '../../services/sriService';
 
@@ -1326,7 +1326,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
         </div>
 
         {/* LADO DERECHO: DETALLE DEL PEDIDO (CHECKOUT FIJO) */}
-        <div className={`w-[28rem] lg:w-[32rem] flex flex-col shrink-0 border-l ${isDarkMode ? 'border-white/5 bg-[#121214]/65' : 'bg-white border-blue-100'}`}>
+        <div className={`w-[32rem] lg:w-[38rem] flex flex-col shrink-0 border-l ${isDarkMode ? 'border-white/5 bg-[#121214]/65' : 'bg-white border-blue-100'}`}>
 
 
           
@@ -1507,25 +1507,99 @@ export default function PosView({ products, thirdParties, transactions = [], isD
               </div>
             )}
           </div>
-{/* LISTA CARRITO POS */}
+          {/* CABECERA DETALLE DEL PEDIDO */}
+          <div className={`px-4 py-2.5 border-b flex justify-between items-center shrink-0 ${
+            isDarkMode ? 'border-white/5 text-gray-400 bg-black/10' : 'border-blue-100 text-gray-550 bg-blue-50/10'
+          }`}>
+            <span className="text-[11px] font-extrabold uppercase tracking-wider">Detalle del Pedido</span>
+            <span className="text-xs font-bold">
+              Items (<span className="text-blue-600 dark:text-blue-400 font-extrabold">{cart.reduce((acc, it) => acc + it.quantity, 0)}</span>)
+            </span>
+          </div>
+
+          {/* LISTA CARRITO POS */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
-            {cart.map((item, idx) => (
-              <div key={idx} className={`p-2.5 rounded-xl border flex flex-col gap-1.5 ${isDarkMode ? 'bg-black/20 border-white/5' : 'bg-white border-blue-100/70 shadow-sm'}`}>
-                <div className="flex justify-between items-start gap-2">
-                  <span className={`text-xs font-bold line-clamp-1 ${isDarkMode ? 'text-white' : 'text-black'}`}>{item.name}</span>
-                  <button type="button" onClick={() => removeFromCart(item.productId)} className="text-red-400 hover:text-red-500 shrink-0"><Trash2 size={12}/></button>
-                </div>
-                <div className="flex justify-between items-center text-xs text-gray-500">
-                  <span>${Number(item.price).toFixed(2)} c/u</span>
-                  <div className="flex items-center gap-2">
-                    <button type="button" onClick={() => updateQuantity(item.productId, -1)} className={`p-1 rounded ${isDarkMode ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-blue-50 hover:bg-blue-100 text-blue-700'}`}><Minus size={10}/></button>
-                    <span className={`font-bold w-6 text-center text-xs ${isDarkMode ? 'text-white' : 'text-black'}`}>{item.quantity}</span>
-                    <button type="button" onClick={() => updateQuantity(item.productId, 1)} className={`p-1 rounded ${isDarkMode ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-blue-50 hover:bg-blue-100 text-blue-700'}`}><Plus size={10}/></button>
-                    <span className={`font-extrabold w-16 text-right text-xs ${isDarkMode ? 'text-white' : 'text-blue-700'}`}>${(item.price * item.quantity).toFixed(2)}</span>
+            {cart.map((item, idx) => {
+              const prod = products.find(p => p.id === item.productId);
+              const imageUrl = prod?.imageUrl || prod?.image || null;
+              return (
+                <div key={idx} className={`p-2.5 rounded-xl border flex items-center justify-between gap-3 ${isDarkMode ? 'bg-black/20 border-white/5' : 'bg-white border-blue-100/70 shadow-sm'}`}>
+                  {/* Imagen del Producto */}
+                  {imageUrl ? (
+                    <img src={imageUrl} className="w-10 h-10 rounded-lg object-cover shrink-0 border border-gray-100 dark:border-white/10" alt={item.name} />
+                  ) : (
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-xs uppercase shrink-0 border ${
+                      isDarkMode ? 'bg-blue-950/30 border-blue-900/50 text-blue-400' : 'bg-blue-50 border-blue-100 text-blue-600'
+                    }`}>
+                      {item.name.slice(0, 2).toUpperCase()}
+                    </div>
+                  )}
+
+                  {/* Nombre y Precio */}
+                  <div className="flex-1 min-w-0">
+                    <h4 className={`text-xs font-bold truncate ${isDarkMode ? 'text-white' : 'text-black'}`}>{item.name}</h4>
+                    <p className={`text-xs font-extrabold mt-0.5 ${isDarkMode ? 'text-gray-400' : 'text-blue-700'}`}>${Number(item.price).toFixed(2)}</p>
                   </div>
+
+                  {/* Botón de Eliminar */}
+                  <button 
+                    type="button" 
+                    onClick={() => removeFromCart(item.productId)} 
+                    className={`p-2 rounded-xl transition-all shrink-0 ${
+                      isDarkMode ? 'bg-red-500/10 hover:bg-red-500/20 text-red-400' : 'bg-red-50 hover:bg-red-100 text-red-600'
+                    }`}
+                    title="Eliminar ítem"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+
+                  {/* Control de Cantidad (Input) */}
+                  <input 
+                    type="number" 
+                    min="1"
+                    value={item.quantity} 
+                    onChange={e => {
+                      const val = parseInt(e.target.value) || 1;
+                      const prod = products.find(p => p.id === item.productId);
+                      if (prod && prod.type === 'producto' && val > prod.stock) {
+                        showToast("Excede stock disponible", "error");
+                        return;
+                      }
+                      setCart(cart.map(i => i.productId === item.productId ? { ...i, quantity: val } : i));
+                    }}
+                    className={`w-14 h-8 text-center text-xs font-bold rounded-lg border outline-none ${
+                      isDarkMode ? 'bg-black/40 border-white/10 text-white focus:border-blue-500' : 'bg-white border-gray-300 text-black focus:border-blue-600'
+                    }`}
+                  />
+
+                  {/* Botón Más (+) */}
+                  <button 
+                    type="button" 
+                    onClick={() => updateQuantity(item.productId, 1)} 
+                    className={`p-2 rounded-xl transition-all shrink-0 ${
+                      isDarkMode ? 'bg-blue-650/20 hover:bg-blue-650/35 text-blue-400' : 'bg-blue-50 hover:bg-blue-100 text-blue-700'
+                    }`}
+                  >
+                    <Plus size={13} />
+                  </button>
+
+                  {/* Precio Total */}
+                  <span className={`font-bold text-xs text-right min-w-[55px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                    ${(item.price * item.quantity).toFixed(2)}
+                  </span>
+
+                  {/* Botón de opciones (tres puntos) */}
+                  <button 
+                    type="button" 
+                    className={`p-2 rounded-full transition-all shrink-0 ${
+                      isDarkMode ? 'bg-white/5 text-gray-400 hover:bg-white/10' : 'bg-gray-100 hover:bg-gray-200 text-gray-650'
+                    }`}
+                  >
+                    <MoreHorizontal size={13} />
+                  </button>
                 </div>
-              </div>
-            ))}
+              );
+            })}
             {cart.length === 0 && (
               <div className="flex flex-col items-center justify-center h-full text-center text-gray-500 py-16">
                 <ShoppingCart size={36} className="opacity-20 mb-2 animate-pulse text-blue-500" />
