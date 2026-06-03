@@ -1688,7 +1688,7 @@ export default function App() {
             {activeModules.ventas && (
               <button 
                 onClick={() => {
-                  setVentasInitialSubTab('pos');
+                  setVentasInitialSubTab(`pos_${Date.now()}`);
                   setActivePageId('ventas');
                 }} 
                 className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase transition-all shadow-sm shrink-0 ${

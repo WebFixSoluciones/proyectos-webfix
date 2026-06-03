@@ -36,7 +36,8 @@ export default function FinanceModule({ mode = 'contabilidad', initialSubTab, is
   // Sincronizar subTab de ventas desde prop de navegación rápida (POS)
   useEffect(() => {
     if (initialSubTab && mode === 'ventas') {
-      setSubTabVentas(initialSubTab);
+      const targetSub = String(initialSubTab).startsWith('pos') ? 'pos' : initialSubTab;
+      setSubTabVentas(targetSub);
     }
   }, [initialSubTab, mode]);
 
@@ -68,16 +69,26 @@ export default function FinanceModule({ mode = 'contabilidad', initialSubTab, is
       txData.sort((a, b) => new Date(b.date) - new Date(a.date));
       setTransactions(txData);
       setIsLoading(false);
+    }, (err) => {
+      console.error("Error subscribing to transactions:", err);
+      setTransactions([]);
+      setIsLoading(false);
     });
 
     const unsubTp = onSnapshot(tpCol, (snap) => {
       const tpData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       setThirdParties(tpData);
+    }, (err) => {
+      console.error("Error subscribing to third parties:", err);
+      setThirdParties([]);
     });
 
     const unsubProd = onSnapshot(prodCol, (snap) => {
       const prodData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       setProducts(prodData);
+    }, (err) => {
+      console.error("Error subscribing to products:", err);
+      setProducts([]);
     });
 
     return () => {

@@ -281,6 +281,10 @@ export default function PosView({ products, thirdParties, isDarkMode, showToast,
         setActiveSession(null);
       }
       setSessionLoading(false);
+    }, (err) => {
+      console.error("Error subscribing to cash sessions:", err);
+      setActiveSession(null);
+      setSessionLoading(false);
     });
     return unsub;
   }, [appId, db]);
