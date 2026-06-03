@@ -1420,30 +1420,30 @@ export default function PosView({ products, thirdParties, transactions = [], isD
               (() => {
                 const client = getSelectedClient();
                 return (
-                  <div className={`py-1.5 transition-all text-[14px] font-light ${
+                  <div className={`py-1.5 transition-all text-[13px] font-light ${
                     isDarkMode ? 'text-gray-300' : 'text-black'
                   }`}>
                     <div className="flex justify-between items-start gap-3">
                       <div className="flex-1 min-w-0 space-y-1">
                         {/* Nombre y RUC */}
                         <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                          <span className="font-light text-[14px] uppercase text-black dark:text-white">{client.name}</span>
-                          <span className="text-[14px] font-light font-mono text-black dark:text-white">({client.ruc})</span>
+                          <span className={`font-light text-[13px] uppercase ${isDarkMode ? 'text-white' : 'text-black'}`}>{client.name}</span>
+                          <span className={`text-[13px] font-light font-mono ${isDarkMode ? 'text-white' : 'text-black'}`}>({client.ruc})</span>
                         </div>
                         {/* Teléfono y Correo en la misma línea con alto contraste */}
                         {(client.telefono || client.email) && (
-                          <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[14px] font-light pt-0.5">
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[13px] font-light pt-0.5">
                             {client.telefono && (
                               <span className="flex items-center gap-1 shrink-0">
-                                <Phone size={12} className="text-black dark:text-white shrink-0" />
-                                <span className="text-black dark:text-white">{client.telefono}</span>
+                                <Phone size={11} className={`${isDarkMode ? 'text-white' : 'text-black'} shrink-0`} />
+                                <span className={isDarkMode ? 'text-white' : 'text-black'}>{client.telefono}</span>
                               </span>
                             )}
-                            {client.telefono && client.email && <span className="opacity-40 text-black dark:text-white">|</span>}
+                            {client.telefono && client.email && <span className={`opacity-40 ${isDarkMode ? 'text-white' : 'text-black'}`}>|</span>}
                             {client.email && (
                               <span className="flex items-center gap-1 shrink-0">
-                                <Mail size={12} className="text-black dark:text-white shrink-0" />
-                                <span className="text-black dark:text-white">{client.email}</span>
+                                <Mail size={11} className={`${isDarkMode ? 'text-white' : 'text-black'} shrink-0`} />
+                                <span className={isDarkMode ? 'text-white' : 'text-black'}>{client.email}</span>
                               </span>
                             )}
                           </div>
@@ -1489,12 +1489,12 @@ export default function PosView({ products, thirdParties, transactions = [], isD
               })()
             ) : (
               /* Consumidor Final Compacto */
-              <div className={`py-1.5 flex items-center gap-1.5 text-[14px] font-light ${
+              <div className={`py-1.5 flex items-center gap-1.5 text-[13px] font-light ${
                 isDarkMode ? 'text-gray-300' : 'text-black'
               }`}>
-                <User size={12} className="text-black dark:text-white shrink-0" />
-                <span className="uppercase text-black dark:text-white">Consumidor Final</span>
-                <span className="font-mono text-black dark:text-white">(9999999999999)</span>
+                <User size={11} className={`${isDarkMode ? 'text-white' : 'text-black'} shrink-0`} />
+                <span className={`uppercase ${isDarkMode ? 'text-white' : 'text-black'}`}>Consumidor Final</span>
+                <span className={`font-mono ${isDarkMode ? 'text-white' : 'text-black'}`}>(9999999999999)</span>
               </div>
             )}
           </div>
