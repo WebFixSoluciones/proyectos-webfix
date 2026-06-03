@@ -3,7 +3,8 @@ import {
   Settings, Link as LinkIcon, Sparkles, User, Users, Folder, Shield, 
   Save, Download, CheckCircle2, AlertTriangle, Key, Mail, Globe, 
   MapPin, Phone, Building, ShoppingCart, DollarSign, Package, Calendar, 
-  Plus, Trash2, Eye, EyeOff, LayoutDashboard, ToggleLeft, ToggleRight
+  Plus, Trash2, Eye, EyeOff, LayoutDashboard, ToggleLeft, ToggleRight,
+  Palette
 } from 'lucide-react';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 
@@ -11,7 +12,8 @@ export default function GeneralSettings({
   isDarkMode, showToast, db, appId, 
   users = [], trash = [], handleDownloadBackup, 
   googleClientId, setGoogleClientId, 
-  activeModules = {}, setActiveModules
+  activeModules = {}, setActiveModules,
+  primaryColor, setPrimaryColor
 }) {
   const [activeSubTab, setActiveSubTab] = useState('profile');
   
@@ -90,6 +92,23 @@ export default function GeneralSettings({
     } catch (err) {
       console.error(err);
       showToast("Error al guardar perfil", "error");
+    }
+  };
+
+  // Save Appearance Configuration
+  const handleSaveAppearance = async (e) => {
+    e.preventDefault();
+    if (!primaryColor || !/^#[0-9A-Fa-f]{6}$/.test(primaryColor)) {
+      showToast("Por favor ingresa un color hexadecimal válido (ej. #2563eb)", "error");
+      return;
+    }
+    try {
+      const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'meta', 'info');
+      await setDoc(docRef, { primaryColor }, { merge: true });
+      showToast("Color primario guardado y aplicado correctamente", "success");
+    } catch (err) {
+      console.error(err);
+      showToast("Error al guardar la configuración de apariencia", "error");
     }
   };
 
@@ -247,12 +266,13 @@ export default function GeneralSettings({
 
   const inputClass = `w-full text-xs px-3 py-2.5 rounded-xl outline-none transition-all border ${
     isDarkMode 
-      ? 'bg-black/25 border-white/10 text-white focus:border-blue-500/50' 
-      : 'bg-white border-gray-300 text-gray-900 focus:border-blue-600 focus:ring-1 focus:ring-blue-600/35 font-medium'
+      ? 'bg-black/25 border-white/10 text-white focus:border-primary/50' 
+      : 'bg-white border-gray-300 text-gray-900 focus:border-primary focus:ring-1 focus:ring-primary/35 font-medium'
   }`;
 
   const tabs = [
     { id: 'profile', label: 'Perfil de Empresa', icon: Building },
+    { id: 'appearance', label: 'Apariencia y Tema', icon: Palette },
     { id: 'modules', label: 'Módulos ERP', icon: ToggleRight },
     { id: 'workspace', label: 'Google Workspace', icon: LinkIcon },
     { id: 'gemini', label: 'Google Gemini', icon: Sparkles },
@@ -275,8 +295,8 @@ export default function GeneralSettings({
               className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-semibold transition-all text-left ${
                 isActive 
                   ? isDarkMode 
-                    ? 'bg-blue-600/20 text-blue-400 border border-blue-500/20 shadow-sm' 
-                    : 'bg-blue-600 text-white shadow-md'
+                    ? 'bg-primary/25 text-primary border border-primary/20 shadow-sm' 
+                    : 'bg-primary text-white shadow-md'
                   : isDarkMode 
                     ? 'text-gray-400 hover:text-gray-250 hover:bg-white/5' 
                     : 'text-gray-650 hover:text-gray-900 hover:bg-black/5'
@@ -298,7 +318,7 @@ export default function GeneralSettings({
         {activeSubTab === 'profile' && (
           <form onSubmit={handleSaveProfile} className="space-y-6 animate-in fade-in duration-200">
             <div className="border-b border-white/5 pb-3">
-              <h3 className="text-sm font-black uppercase tracking-wider text-blue-500">Pertenencia y Perfil de Empresa</h3>
+              <h3 className="text-sm font-black uppercase tracking-wider text-primary">Pertenencia y Perfil de Empresa</h3>
               <p className="text-[10px] text-gray-500 mt-1">Ingresa los datos generales de tu organización. Recuerda que la firma electrónica (.p12) se configura de forma segura únicamente dentro del módulo de Contabilidad.</p>
             </div>
 
@@ -376,8 +396,85 @@ export default function GeneralSettings({
             </div>
 
             <div className="flex justify-end pt-4 border-t border-white/5">
-              <button type="submit" className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-black bg-blue-600 hover:bg-blue-500 text-white shadow-md transition-transform hover:-translate-y-0.5">
+              <button type="submit" className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-black bg-primary hover:bg-primary-hover text-white shadow-md transition-transform hover:-translate-y-0.5">
                 <Save size={14} /> Guardar Perfil
+              </button>
+            </div>
+          </form>
+        )}
+
+        {/* PESTAÑA: APARIENCIA Y TEMA */}
+        {activeSubTab === 'appearance' && (
+          <form onSubmit={handleSaveAppearance} className="space-y-6 animate-in fade-in duration-200">
+            <div className="border-b border-white/5 pb-3">
+              <h3 className="text-sm font-black uppercase tracking-wider text-primary">Apariencia y Personalización de Marca</h3>
+              <p className="text-[10px] text-gray-500 mt-1">Configura el color de acento de tu ERP para alinearlo con la identidad visual de tu empresa. El color elegido se aplicará a botones, enlaces activos e indicadores del sistema.</p>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-[9px] font-bold uppercase mb-2 text-gray-500">Color Primario del Sistema (Hexadecimal)</label>
+                <div className="flex items-center gap-3">
+                  <div className="relative w-12 h-12 rounded-xl overflow-hidden border border-gray-300 dark:border-white/10 shrink-0">
+                    <input 
+                      type="color" 
+                      value={primaryColor || '#2563eb'} 
+                      onChange={e => setPrimaryColor(e.target.value)} 
+                      className="absolute inset-0 w-full h-full p-0 border-0 cursor-pointer"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <input 
+                      type="text" 
+                      value={primaryColor || '#2563eb'} 
+                      onChange={e => {
+                        let val = e.target.value;
+                        if (val && !val.startsWith('#')) val = '#' + val;
+                        setPrimaryColor(val);
+                      }} 
+                      maxLength={7}
+                      className={inputClass} 
+                      placeholder="#2563eb" 
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Sugerencias Rápidas */}
+              <div>
+                <label className="block text-[8px] font-bold uppercase mb-2 text-gray-500">Colores Recomendados</label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { name: 'Azul WebFix', hex: '#2563eb' },
+                    { name: 'Esmeralda', hex: '#10b981' },
+                    { name: 'Índigo', hex: '#6366f1' },
+                    { name: 'Violeta', hex: '#8b5cf6' },
+                    { name: 'Naranja', hex: '#f97316' },
+                    { name: 'Rojo', hex: '#ef4444' },
+                    { name: 'Gris Oscuro', hex: '#374151' }
+                  ].map(preset => (
+                    <button
+                      key={preset.hex}
+                      type="button"
+                      onClick={() => setPrimaryColor(preset.hex)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-[10px] font-bold transition-all hover:scale-105"
+                      style={{
+                        borderColor: primaryColor === preset.hex ? primaryColor : 'rgba(0,0,0,0.08)',
+                        backgroundColor: primaryColor === preset.hex ? 'color-mix(in srgb, ' + preset.hex + ' 10%, transparent)' : 'transparent',
+                        color: primaryColor === preset.hex ? '#000000' : 'inherit'
+                      }}
+                    >
+                      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: preset.hex }}></span>
+                      <span>{preset.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-4 border-t border-white/5">
+              <button type="submit" className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-black bg-primary hover:bg-primary-hover text-white shadow-md transition-transform hover:-translate-y-0.5">
+                <Save size={14} /> Guardar Apariencia
               </button>
             </div>
           </form>
@@ -387,7 +484,7 @@ export default function GeneralSettings({
         {activeSubTab === 'modules' && (
           <div className="space-y-6 animate-in fade-in duration-200">
             <div className="border-b border-white/5 pb-3">
-              <h3 className="text-sm font-black uppercase tracking-wider text-blue-500">Activación y Desactivación de Módulos</h3>
+              <h3 className="text-sm font-black uppercase tracking-wider text-primary">Activación y Desactivación de Módulos</h3>
               <p className="text-[10px] text-gray-500 mt-1">Personaliza tu espacio de trabajo desactivando los módulos que no utilices. Los cambios se reflejarán inmediatamente en el menú de navegación izquierdo.</p>
             </div>
 
@@ -535,7 +632,7 @@ export default function GeneralSettings({
         {activeSubTab === 'workspace' && (
           <form onSubmit={handleSaveWorkspace} className="space-y-6 animate-in fade-in duration-200">
             <div className="border-b border-white/5 pb-3">
-              <h3 className="text-sm font-black uppercase tracking-wider text-blue-500">Integración con Google Workspace</h3>
+              <h3 className="text-sm font-black uppercase tracking-wider text-primary">Integración con Google Workspace</h3>
               <p className="text-[10px] text-gray-500 mt-1">Conecta tu calendario de Google Calendar oficial para agendar citas directamente desde las tareas del ERP y autogenerar enlaces de Google Meet.</p>
             </div>
 
@@ -551,7 +648,7 @@ export default function GeneralSettings({
             </div>
             
             <div className={`p-4 rounded-2xl border text-xs leading-normal space-y-2 ${
-              isDarkMode ? 'bg-blue-600/10 border-blue-500/20 text-blue-400' : 'bg-blue-50 border-blue-200 text-blue-900'
+              isDarkMode ? 'bg-primary/10 border-primary/20 text-primary' : 'bg-primary-light border-primary/20 text-primary'
             }`}>
               <p className="font-bold uppercase tracking-wider text-[9px]">Instrucciones de Vinculación:</p>
               <ol className="list-decimal pl-4 space-y-1.5">
@@ -564,7 +661,7 @@ export default function GeneralSettings({
             </div>
 
             <div className="flex justify-end pt-4 border-t border-white/5">
-              <button type="submit" className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-black bg-blue-600 hover:bg-blue-500 text-white shadow-md transition-transform hover:-translate-y-0.5">
+              <button type="submit" className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-black bg-primary hover:bg-primary-hover text-white shadow-md transition-transform hover:-translate-y-0.5">
                 <Save size={14} /> Guardar Conexión Google
               </button>
             </div>
@@ -575,7 +672,7 @@ export default function GeneralSettings({
         {activeSubTab === 'gemini' && (
           <form onSubmit={handleSaveGemini} className="space-y-6 animate-in fade-in duration-200">
             <div className="border-b border-white/5 pb-3">
-              <h3 className="text-sm font-black uppercase tracking-wider text-blue-500">Google Gemini AI Advisor</h3>
+              <h3 className="text-sm font-black uppercase tracking-wider text-primary">Google Gemini AI Advisor</h3>
               <p className="text-[10px] text-gray-500 mt-1">Vincula tu clave de API de Gemini 1.5 Flash para habilitar el diagnóstico estratégico de la empresa. La IA analizará tus tareas, stock crítico de inventario y balances para sugerirte mejoras operativas.</p>
             </div>
 
@@ -638,7 +735,7 @@ export default function GeneralSettings({
             </div>
 
             <div className="flex justify-end pt-4 border-t border-white/5">
-              <button type="submit" className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-black bg-blue-600 hover:bg-blue-500 text-white shadow-md transition-transform hover:-translate-y-0.5">
+              <button type="submit" className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-black bg-primary hover:bg-primary-hover text-white shadow-md transition-transform hover:-translate-y-0.5">
                 <Save size={14} /> Guardar Clave Gemini
               </button>
             </div>
@@ -649,7 +746,7 @@ export default function GeneralSettings({
         {activeSubTab === 'users' && (
           <div className="space-y-6 animate-in fade-in duration-200">
             <div className="border-b border-white/5 pb-3">
-              <h3 className="text-sm font-black uppercase tracking-wider text-blue-500">Gestión de Usuarios de este Espacio</h3>
+              <h3 className="text-sm font-black uppercase tracking-wider text-primary">Gestión de Usuarios de este Espacio</h3>
               <p className="text-[10px] text-gray-500 mt-1">Colaboradores registrados con acceso a este ERP. Puedes crear, asignar roles o revocar permisos.</p>
             </div>
 
@@ -743,7 +840,7 @@ export default function GeneralSettings({
         {activeSubTab === 'backup' && (
           <div className="space-y-6 animate-in fade-in duration-200">
             <div className="border-b border-white/5 pb-3">
-              <h3 className="text-sm font-black uppercase tracking-wider text-blue-500">Copia de Seguridad y Respaldos</h3>
+              <h3 className="text-sm font-black uppercase tracking-wider text-primary">Copia de Seguridad y Respaldos</h3>
               <p className="text-[10px] text-gray-500 mt-1">Respalda localmente toda la base de datos de tu espacio de trabajo para mayor seguridad. Descarga un archivo estructurado en JSON listo para ser restaurado.</p>
             </div>
 

@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+@theme {
+  --color-primary: var(--primary-color, #2563eb);
+  --color-primary-hover: color-mix(in srgb, var(--primary-color, #2563eb) 85%, #000000);
+  --color-primary-light: color-mix(in srgb, var(--primary-color, #2563eb) 8%, transparent);
+}
+
+:root {
+  --primary-color: #2563eb;
+}
+
 /* --------------------------------------------------------------------------
    Configuración Tipográfica Global
    -------------------------------------------------------------------------- */
@@ -24,11 +34,9 @@ h1, h2, h3, h4, h5, h6, .font-display {
 }
 
 .glass-panel-light {
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  background: rgba(255, 255, 255, 0.55);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.03);
+  background: #ffffff;
+  border: 1px solid #f3f4f6; /* border-gray-100 */
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.02), 0 1px 2px 0 rgba(0, 0, 0, 0.04);
 }
 
 .glass-input-dark {
@@ -45,16 +53,15 @@ h1, h2, h3, h4, h5, h6, .font-display {
 }
 
 .glass-input-light {
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  color: #111827;
-  backdrop-filter: blur(12px);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  background: #ffffff;
+  border: 1px solid #e5e7eb; /* border-gray-200 */
+  color: #000000;
+  transition: all 0.2s ease-in-out;
 }
 .glass-input-light:focus {
-  border-color: rgba(59, 130, 246, 0.4); /* blue-500 */
-  box-shadow: 0 0 16px rgba(59, 130, 246, 0.15);
-  background: rgba(255, 255, 255, 0.8);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color) 15%, transparent);
+  outline: none;
 }
 
 /* --------------------------------------------------------------------------

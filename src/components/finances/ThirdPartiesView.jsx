@@ -118,7 +118,7 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
     <div className="animate-in slide-in-from-bottom-4 duration-500">
       
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
-        <div className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl border w-full sm:w-96 transition-all ${isDarkMode ? 'bg-black/20 border-white/10 focus-within:border-violet-500/50 focus-within:ring-1 focus-within:ring-violet-500/30' : 'bg-white border-gray-300 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500/30'}`}>
+        <div className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl border w-full sm:w-96 transition-all ${isDarkMode ? 'bg-black/20 border-white/10 focus-within:border-violet-500/50 focus-within:ring-1 focus-within:ring-violet-500/30' : 'bg-white border-gray-300 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/30'}`}>
           <Search size={16} className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
           <input 
             type="text" 
@@ -133,7 +133,7 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
           className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all hover-lift shadow-md ${
             isDarkMode 
               ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-blue-950/20 hover:from-blue-500 hover:to-indigo-500 border border-blue-500/30' 
-              : 'bg-blue-600 text-white hover:bg-blue-700'
+              : 'bg-primary text-white hover:bg-primary-hover'
           }`}
         >
           <Plus size={15} /> Nuevo {forcedType === 'cliente' ? 'Cliente' : forcedType === 'proveedor' ? 'Proveedor' : 'Contacto'}
@@ -143,7 +143,7 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
       <div className={`rounded-2xl border overflow-hidden backdrop-blur-xl ${isDarkMode ? 'border-white/5 bg-white/[0.01] shadow-lg' : 'border-gray-200 bg-white shadow-sm'}`}>
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left text-xs whitespace-nowrap">
-            <thead className={`text-[10px] uppercase font-bold tracking-wider ${isDarkMode ? 'bg-black/30 text-gray-400 border-b border-white/5' : 'bg-blue-50/50 text-[#000000] border-b border-blue-100'}`}>
+            <thead className={`text-[10px] uppercase font-bold tracking-wider ${isDarkMode ? 'bg-black/30 text-gray-400 border-b border-white/5' : 'bg-primary-light text-[#000000] border-b border-primary/15'}`}>
               <tr>
                 <th className="px-6 py-4">Razón Social / Nombres</th>
                 <th className="px-6 py-4">Identificación</th>
@@ -178,12 +178,12 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
                           <p className={`font-bold text-xs ${isDarkMode ? 'text-white' : 'text-black'}`}>{tp.name}</p>
                           {tp.tipoContribuyente && (
                             <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase inline-flex items-center gap-1 mt-1 border ${
-                              tp.tipoContribuyente === 'general' ? (isDarkMode ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-blue-50 text-blue-700 border-blue-200') :
+                              tp.tipoContribuyente === 'general' ? (isDarkMode ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-primary-light text-primary border-primary/20') :
                               tp.tipoContribuyente === 'rimpe_emprendedor' ? (isDarkMode ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-emerald-50 text-emerald-700 border-emerald-200') :
                               (isDarkMode ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-amber-50 text-amber-800 border-amber-250')
                             }`}>
                               <span className={`w-1 h-1 rounded-full ${
-                                tp.tipoContribuyente === 'general' ? 'bg-blue-400' :
+                                tp.tipoContribuyente === 'general' ? 'bg-primary' :
                                 tp.tipoContribuyente === 'rimpe_emprendedor' ? 'bg-emerald-400' : 'bg-amber-400 animate-pulse'
                               }`}></span>
                               Régimen: {tp.tipoContribuyente.replace('_', ' ')}
@@ -198,10 +198,10 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
                     </td>
                     <td className={`px-6 py-4 text-xs font-bold ${isDarkMode ? 'text-gray-300' : 'text-black'}`}>{tp.telefono || '-'}</td>
                     <td className={`px-6 py-4 text-xs max-w-[220px] truncate ${isDarkMode ? 'text-gray-400' : 'text-black font-semibold'}`} title={tp.direccion}>{tp.direccion || '-'}</td>
-                    <td className="px-6 py-4 text-xs font-bold text-violet-500 hover:underline"><a href={`mailto:${tp.email}`}>{tp.email || '-'}</a></td>
+                    <td className="px-6 py-4 text-xs font-bold text-primary hover:underline"><a href={`mailto:${tp.email}`}>{tp.email || '-'}</a></td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
-                        <button onClick={() => { setFormData(tp); setIsModalOpen(true); }} className={`p-2 rounded-xl transition-colors ${isDarkMode ? 'hover:bg-blue-500/15 text-blue-400 border border-transparent' : 'hover:bg-blue-50 text-blue-650 border border-gray-200'}`} title="Editar"><Edit2 size={13}/></button>
+                        <button onClick={() => { setFormData(tp); setIsModalOpen(true); }} className={`p-2 rounded-xl transition-colors ${isDarkMode ? 'hover:bg-blue-500/15 text-blue-400 border border-transparent' : 'hover:bg-primary-light text-primary border border-gray-100'}`} title="Editar"><Edit2 size={13}/></button>
                         <button onClick={() => handleDelete(tp.id)} className={`p-2 rounded-xl transition-colors ${isDarkMode ? 'hover:bg-red-500/15 text-red-400 border border-transparent' : 'hover:bg-red-50 text-red-650 border border-gray-200'}`} title="Eliminar"><Trash2 size={13}/></button>
                       </div>
                     </td>
@@ -316,7 +316,7 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
                 <button type="submit" className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all hover-lift shadow-md ${
                   isDarkMode 
                     ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-500 hover:to-indigo-500' 
-                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                    : 'bg-primary text-white hover:bg-primary-hover'
                 }`}>Guardar Persona</button>
               </div>
             </form>

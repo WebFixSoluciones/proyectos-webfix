@@ -409,7 +409,13 @@ export default function App() {
   const [events, setEvents] = useState([]);
   const [googleAccessToken, setGoogleAccessToken] = useState(null);
   
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [primaryColor, setPrimaryColor] = useState('#2563eb');
+
+  useEffect(() => {
+    document.documentElement.style.setProperty('--primary-color', primaryColor);
+  }, [primaryColor]);
+
   const [newColumnName, setNewColumnName] = useState('');
   const [currentProjectView, setCurrentProjectView] = useState('board'); // 'board' o 'list'
   
@@ -583,6 +589,10 @@ export default function App() {
           if (data.googleClientId !== undefined) setGoogleClientId(data.googleClientId);
           if (data.activeModules !== undefined) {
             setActiveModules(prev => ({ ...prev, ...data.activeModules }));
+          }
+          if (data.primaryColor !== undefined) {
+            setPrimaryColor(data.primaryColor);
+            document.documentElement.style.setProperty('--primary-color', data.primaryColor);
           }
         }
       });
@@ -1756,6 +1766,8 @@ export default function App() {
                 setGoogleClientId={setGoogleClientId} 
                 activeModules={activeModules} 
                 setActiveModules={setActiveModules} 
+                primaryColor={primaryColor}
+                setPrimaryColor={setPrimaryColor}
               />
             )}
 

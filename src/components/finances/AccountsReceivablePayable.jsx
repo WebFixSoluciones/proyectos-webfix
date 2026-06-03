@@ -123,8 +123,8 @@ export default function AccountsReceivablePayable({ type = 'cxc', transactions =
 
   const inputClass = `w-full text-xs px-3 py-2 rounded-xl outline-none transition-all border ${
     isDarkMode 
-      ? 'bg-black/25 border-white/10 text-white focus:border-blue-500/50' 
-      : 'bg-white border-gray-300 text-gray-900 focus:border-blue-600 focus:ring-1 focus:ring-blue-600/35'
+      ? 'bg-black/25 border-white/10 text-white focus:border-primary/50' 
+      : 'bg-white border-gray-300 text-gray-900 focus:border-primary focus:ring-1 focus:ring-primary/35'
   }`;
 
   return (
@@ -148,7 +148,7 @@ export default function AccountsReceivablePayable({ type = 'cxc', transactions =
         <div className={`p-5 rounded-3xl border shadow-sm ${isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'}`}>
           <div className="flex items-center justify-between mb-2">
             <span className="text-[10px] font-black uppercase text-gray-500 tracking-wider">Monto Total Facturado</span>
-            <div className="p-1.5 rounded-lg bg-blue-500/10 text-blue-500">
+            <div className="p-1.5 rounded-lg bg-primary/10 text-primary">
               <FileText size={16} />
             </div>
           </div>
@@ -185,8 +185,8 @@ export default function AccountsReceivablePayable({ type = 'cxc', transactions =
             onChange={e => setSearchTerm(e.target.value)}
             className={`w-full text-xs pl-9 pr-3 py-2 rounded-xl outline-none border transition-all ${
               isDarkMode 
-                ? 'bg-black/25 border-white/10 text-white focus:border-blue-500/50' 
-                : 'bg-gray-100 border-gray-200 text-gray-900 focus:bg-white focus:border-blue-600'
+                ? 'bg-black/25 border-white/10 text-white focus:border-primary/50' 
+                : 'bg-gray-100 border-gray-200 text-gray-900 focus:bg-white focus:border-primary'
             }`}
           />
         </div>
@@ -210,7 +210,7 @@ export default function AccountsReceivablePayable({ type = 'cxc', transactions =
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className={`border-b text-[9px] font-black uppercase tracking-wider ${
-                isDarkMode ? 'bg-black/10 border-white/5 text-gray-500' : 'bg-gray-50 border-gray-200 text-gray-650'
+                isDarkMode ? 'bg-black/10 border-white/5 text-gray-400' : 'bg-primary-light border-primary/15 text-[#000000]'
               }`}>
                 <th className="py-3.5 px-4">Fecha</th>
                 <th className="py-3.5 px-4">Comprobante</th>
@@ -230,19 +230,19 @@ export default function AccountsReceivablePayable({ type = 'cxc', transactions =
                 
                 return (
                   <tr key={tx.id} className={`hover:bg-black/5 dark:hover:bg-white/5 transition-colors`}>
-                    <td className="py-3.5 px-4 font-medium text-gray-500">{tx.date}</td>
+                    <td className={`py-3.5 px-4 font-medium ${isDarkMode ? 'text-gray-400' : 'text-black font-semibold'}`}>{tx.date}</td>
                     <td className="py-3.5 px-4 font-mono font-bold">
                       {tx.documentNumber || `Sec: ${tx.secuencial || 'N/A'}`}
                     </td>
                     <td className="py-3.5 px-4">
                       <div>
-                        <p className="font-bold">{contact?.name || 'Desconocido'}</p>
-                        <p className="text-[9px] text-gray-400 font-mono">{contact?.ruc}</p>
+                        <p className="font-bold text-black dark:text-white">{contact?.name || 'Desconocido'}</p>
+                        <p className="text-[9px] text-gray-600 dark:text-gray-400 font-mono">{contact?.ruc}</p>
                       </div>
                     </td>
-                    <td className="py-3.5 px-4 text-right font-semibold">${total.toFixed(2)}</td>
-                    <td className="py-3.5 px-4 text-right text-emerald-500 font-bold">${paid.toFixed(2)}</td>
-                    <td className="py-3.5 px-4 text-right text-red-500 font-black">${pending.toFixed(2)}</td>
+                    <td className="py-3.5 px-4 text-right font-semibold text-black dark:text-white">${total.toFixed(2)}</td>
+                    <td className="py-3.5 px-4 text-right text-emerald-700 dark:text-emerald-400 font-bold">${paid.toFixed(2)}</td>
+                    <td className="py-3.5 px-4 text-right text-red-700 dark:text-red-400 font-black">${pending.toFixed(2)}</td>
                     <td className="py-3.5 px-4 text-center">
                       <div className="flex justify-center gap-2">
                         <button
