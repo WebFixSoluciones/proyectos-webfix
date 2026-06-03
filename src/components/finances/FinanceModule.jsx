@@ -192,7 +192,7 @@ export default function FinanceModule({ mode = 'contabilidad', initialSubTab, is
   return (
     <div className={`flex flex-col h-full w-full animate-in fade-in duration-500 overflow-hidden`}>
       {/* HEADER FINANZAS */}
-      <div className={`flex items-center justify-between px-8 py-4 border-b shrink-0 ${isDarkMode ? 'border-white/10 bg-[#0f0f11]' : 'border-blue-100 bg-white'}`}>
+      <div className={`flex items-center justify-between px-8 py-4 border-b shrink-0 ${isDarkMode ? 'border-white/10 bg-[#0f0f11]' : 'border-primary/10 bg-white'}`}>
         <div className="flex items-center gap-4">
           <div className={`p-2.5 rounded-xl shadow-inner border ${isDarkMode ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/20' : 'bg-emerald-100/80 text-emerald-800 border-emerald-300'}`}>
             <ModuleIcon size={20} />
@@ -219,7 +219,7 @@ export default function FinanceModule({ mode = 'contabilidad', initialSubTab, is
           </button>
 
           {displayedTabs.length > 0 && (
-            <div className={`flex p-1 rounded-xl border shadow-inner ${isDarkMode ? 'bg-black/40 border-white/10' : 'bg-[#f3f8ff] border-blue-200/60'}`}>
+            <div className={`flex p-1 rounded-xl border shadow-inner ${isDarkMode ? 'bg-black/40 border-white/10' : 'bg-primary-light border-primary/15'}`}>
               {displayedTabs.map(tab => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
@@ -229,7 +229,7 @@ export default function FinanceModule({ mode = 'contabilidad', initialSubTab, is
                     onClick={() => setActiveTab(tab.id)}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                       isActive 
-                        ? isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-white text-black font-extrabold border border-blue-200/80 shadow-sm'
+                        ? isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-white text-black font-extrabold border border-primary/15 shadow-sm'
                         : isDarkMode ? 'text-gray-400 hover:text-gray-200 hover:bg-white/5' : 'text-black hover:text-black hover:bg-white/70'
                     }`}
                   >
@@ -245,7 +245,7 @@ export default function FinanceModule({ mode = 'contabilidad', initialSubTab, is
 
       {/* SUB-NAVEGACIÓN SI ACTIVE TAB TIENE SUB-TABS */}
       {['ventas', 'sri_docs', 'personas'].includes(activeTab) && (
-        <div className={`flex items-center gap-2 px-8 py-2 border-b shrink-0 ${isDarkMode ? 'border-white/5 bg-[#121214]' : 'border-blue-100 bg-[#f3f8ff]'}`}>
+        <div className={`flex items-center gap-2 px-8 py-2 border-b shrink-0 ${isDarkMode ? 'border-white/5 bg-[#121214]' : 'border-primary/10 bg-primary-light'}`}>
           <span className={`text-[9px] font-black uppercase tracking-wider ${isDarkMode ? 'text-gray-500' : 'text-black'}`}>Módulo:</span>
           <div className="flex gap-1.5 overflow-x-auto whitespace-nowrap scrollbar-none">
             {activeTab === 'ventas' && [
@@ -260,7 +260,7 @@ export default function FinanceModule({ mode = 'contabilidad', initialSubTab, is
                 onClick={() => setSubTabVentas(sub.id)}
                 className={`px-3 py-1 rounded-lg text-xs font-bold transition-all border ${
                   subTabVentas === sub.id
-                    ? (isDarkMode ? 'bg-blue-500/20 text-blue-450 border-blue-500/30' : 'bg-blue-600 text-white border-blue-600 shadow-sm')
+                    ? (isDarkMode ? 'bg-primary/20 text-primary border-primary/30' : 'bg-primary text-white border-primary shadow-sm')
                     : (isDarkMode ? 'border-transparent text-gray-400 hover:text-gray-200' : 'border-transparent text-black hover:text-black hover:bg-white/80')
                 }`}
               >
@@ -297,7 +297,7 @@ export default function FinanceModule({ mode = 'contabilidad', initialSubTab, is
                 onClick={() => setSubTabPersonas(sub.id)}
                 className={`px-3 py-1 rounded-lg text-xs font-bold transition-all border ${
                   subTabPersonas === sub.id
-                    ? (isDarkMode ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' : 'bg-blue-600 text-white border-blue-600 shadow-sm')
+                    ? (isDarkMode ? 'bg-primary/20 text-primary border-primary/30' : 'bg-primary text-white border-primary shadow-sm')
                     : (isDarkMode ? 'border-transparent text-gray-400 hover:text-gray-200' : 'border-transparent text-black hover:text-black hover:bg-white/80')
                 }`}
               >
@@ -379,7 +379,7 @@ export default function FinanceModule({ mode = 'contabilidad', initialSubTab, is
         </div>
         
         {isChatOpen && (
-          <div className={`w-80 border-l shrink-0 flex flex-col p-4 animate-in slide-in-from-right duration-300 ${isDarkMode ? 'border-white/10 bg-[#0f0f11]' : 'border-blue-100 bg-[#f3f8ff]'}`}>
+          <div className={`w-80 border-l shrink-0 flex flex-col p-4 animate-in slide-in-from-right duration-300 ${isDarkMode ? 'border-white/10 bg-[#0f0f11]' : 'border-primary/10 bg-primary-light'}`}>
             <FinanceChat transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} onClose={() => setIsChatOpen(false)} />
           </div>
         )}
