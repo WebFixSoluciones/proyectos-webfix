@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Search, ShoppingCart, Plus, Minus, Trash2, User, Sparkles, CheckCircle2, DollarSign, X, ShieldAlert, Award, Layers, Tag, Bookmark, RefreshCw, LogOut, ArrowRight, ArrowLeft, ChevronRight, Settings, Barcode, Zap, Eye, Mic, Keyboard, History, Download, FileText } from 'lucide-react';
+import { Search, ShoppingCart, Plus, Minus, Trash2, User, Sparkles, CheckCircle2, DollarSign, X, ShieldAlert, Award, Layers, Tag, Bookmark, RefreshCw, LogOut, ArrowRight, ArrowLeft, ChevronRight, Settings, Barcode, Zap, Eye, Mic, Keyboard, History, Download, FileText, Unlock } from 'lucide-react';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, onSnapshot } from 'firebase/firestore';
 import { consultarRucSri } from '../../services/sriService';
 
@@ -81,6 +81,9 @@ export default function PosView({ products, thirdParties, transactions = [], isD
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [isConfigOpen, setIsConfigOpen] = useState(false);
+  const [clientSearchTerm, setClientSearchTerm] = useState('');
+  const [isClientDropdownOpen, setIsClientDropdownOpen] = useState(false);
 
   // checkout wizard
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -133,6 +136,47 @@ export default function PosView({ products, thirdParties, transactions = [], isD
   const paidTotal = Number(payments.efectivo) + Number(payments.transferencia) + Number(payments.tarjeta) + Number(payments.cruce_cuentas);
   const changeDue = Math.max(0, paidTotal - totalToPay);
   const remainingDue = Math.max(0, totalToPay - paidTotal);
+
+  const playCashRegisterSound = () => {
+    try {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      
+      // Ring sound: first note (high pitch)
+      const osc1 = audioCtx.createOscillator();
+      const gain1 = audioCtx.createGain();
+      osc1.connect(gain1);
+      gain1.connect(audioCtx.destination);
+      
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
+      gain1.gain.setValueAtTime(0.15, audioCtx.currentTime);
+      gain1.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+      
+      osc1.start(audioCtx.currentTime);
+      osc1.stop(audioCtx.currentTime + 0.35);
+
+      // Clank sound: metallic clank (lower pitch white noise + triangle wave)
+      setTimeout(() => {
+        const osc2 = audioCtx.createOscillator();
+        const gain2 = audioCtx.createGain();
+        osc2.connect(gain2);
+        gain2.connect(audioCtx.destination);
+        
+        osc2.type = 'triangle';
+        osc2.frequency.setValueAtTime(330, audioCtx.currentTime); // E4
+        gain2.gain.setValueAtTime(0.12, audioCtx.currentTime);
+        gain2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+        
+        osc2.start(audioCtx.currentTime);
+        osc2.stop(audioCtx.currentTime + 0.25);
+      }, 80);
+      
+      showToast("🔑 Gaveta de efectivo abierta (Simulación)", "success");
+    } catch (e) {
+      console.error("AudioContext error: ", e);
+      showToast("🔑 Gaveta de efectivo abierta", "success");
+    }
+  };
 
   useEffect(() => {
     if (appId) {
@@ -267,6 +311,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
         setIsCheckoutOpen(false);
         setIsQuickAddOpen(false);
         setIsClosingOpen(false);
+        setIsConfigOpen(false);
       }
 
       if (e.key === 'F2') {
@@ -776,6 +821,45 @@ export default function PosView({ products, thirdParties, transactions = [], isD
     }
   };
 
+  const handleCreateQuote = async () => {
+    if (cart.length === 0) {
+      showToast("Agrega productos al carrito para realizar una cotización", "error");
+      return;
+    }
+    
+    setIsProcessing(true);
+    try {
+      const docId = `quote_${new Date().getTime()}`;
+      const validDate = new Date();
+      validDate.setDate(validDate.getDate() + 15);
+      
+      const finalQuote = {
+        id: docId,
+        quoteNumber: `COT-${new Date().getFullYear()}-${String(new Date().getTime()).slice(-4)}`,
+        date: new Date().toISOString().split('T')[0],
+        validUntil: validDate.toISOString().split('T')[0],
+        thirdPartyId: selectedClientId || '',
+        items: cart,
+        subtotal: Number(getSubtotalWithDiscount().toFixed(2)),
+        ivaValor: Number(getIva().toFixed(2)),
+        total: Number(getTotal().toFixed(2)),
+        status: 'borrador',
+        isPOS: true,
+        updatedAt: new Date().toISOString()
+      };
+      
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_quotes', docId), sanitizeData(finalQuote));
+      showToast("Cotización POS registrada con éxito", "success");
+      setCart([]);
+      setSelectedClientId('');
+    } catch (err) {
+      console.error(err);
+      showToast("Error al crear la cotización", "error");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   // Filtrado de Productos (Izquierda)
   const filteredProducts = products.filter(p => {
     const matchesSearch = (p.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -820,18 +904,18 @@ export default function PosView({ products, thirdParties, transactions = [], isD
 
           <form onSubmit={handleOpenSession} className="space-y-4">
             <div>
-              <label className={`block text-[9px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Responsable / Cajero</label>
-              <input type="text" required value={openingForm.responsible} onChange={e => setOpeningForm({...openingForm, responsible: e.target.value})} className={`w-full text-xs px-3.5 py-3 rounded-xl outline-none transition-all border ${isDarkMode ? 'glass-input-dark' : 'glass-input-light'}`} />
+              <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Responsable / Cajero</label>
+              <input type="text" required value={openingForm.responsible} onChange={e => setOpeningForm({...openingForm, responsible: e.target.value})} className={`w-full text-sm px-3.5 py-3 rounded-xl outline-none transition-all border ${isDarkMode ? 'glass-input-dark' : 'glass-input-light'}`} />
             </div>
             
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className={`block text-[9px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Sucursal</label>
-                <input type="text" required value={openingForm.branch} onChange={e => setOpeningForm({...openingForm, branch: e.target.value})} className={`w-full text-xs px-3.5 py-3 rounded-xl outline-none transition-all border ${isDarkMode ? 'glass-input-dark' : 'glass-input-light'}`} />
+                <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Sucursal</label>
+                <input type="text" required value={openingForm.branch} onChange={e => setOpeningForm({...openingForm, branch: e.target.value})} className={`w-full text-sm px-3.5 py-3 rounded-xl outline-none transition-all border ${isDarkMode ? 'glass-input-dark' : 'glass-input-light'}`} />
               </div>
               <div>
-                <label className={`block text-[9px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Turno</label>
-                <select value={openingForm.shift} onChange={e => setOpeningForm({...openingForm, shift: e.target.value})} className={`w-full text-xs px-3.5 py-3 rounded-xl outline-none transition-all border cursor-pointer ${isDarkMode ? 'glass-input-dark' : 'glass-input-light'}`}>
+                <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Turno</label>
+                <select value={openingForm.shift} onChange={e => setOpeningForm({...openingForm, shift: e.target.value})} className={`w-full text-sm px-3.5 py-3 rounded-xl outline-none transition-all border cursor-pointer ${isDarkMode ? 'glass-input-dark' : 'glass-input-light'}`}>
                   <option value="Mañana" className="text-black bg-white">Mañana</option>
                   <option value="Tarde" className="text-black bg-white">Tarde</option>
                   <option value="Noche" className="text-black bg-white">Noche</option>
@@ -840,16 +924,16 @@ export default function PosView({ products, thirdParties, transactions = [], isD
             </div>
 
             <div>
-              <label className={`block text-[9px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Fondo Inicial ($ USD)</label>
-              <input type="number" required step="0.01" value={openingForm.initialAmount} onChange={e => setOpeningForm({...openingForm, initialAmount: e.target.value})} className={`w-full text-xs px-3.5 py-3 rounded-xl outline-none transition-all border ${isDarkMode ? 'glass-input-dark' : 'glass-input-light'}`} />
+              <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Fondo Inicial ($ USD)</label>
+              <input type="number" required step="0.01" value={openingForm.initialAmount} onChange={e => setOpeningForm({...openingForm, initialAmount: e.target.value})} className={`w-full text-sm px-3.5 py-3 rounded-xl outline-none transition-all border ${isDarkMode ? 'glass-input-dark' : 'glass-input-light'}`} />
             </div>
 
             <div>
-              <label className={`block text-[9px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Observaciones de Entrada</label>
-              <textarea value={openingForm.notes} onChange={e => setOpeningForm({...openingForm, notes: e.target.value})} className={`w-full text-xs px-3.5 py-3 rounded-2xl outline-none transition-all border min-h-[70px] resize-none ${isDarkMode ? 'glass-input-dark' : 'glass-input-light'}`} placeholder="Sin novedades..." />
+              <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Observaciones de Entrada</label>
+              <textarea value={openingForm.notes} onChange={e => setOpeningForm({...openingForm, notes: e.target.value})} className={`w-full text-sm px-3.5 py-3 rounded-2xl outline-none transition-all border min-h-[70px] resize-none ${isDarkMode ? 'glass-input-dark' : 'glass-input-light'}`} placeholder="Sin novedades..." />
             </div>
 
-            <button type="submit" className="w-full py-3.5 mt-4 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 hover-lift bg-gradient-to-r from-emerald-650 to-teal-650 text-white shadow-md hover:from-emerald-500 hover:to-teal-500 border border-emerald-500/30">
+            <button type="submit" className="w-full py-3.5 mt-4 rounded-xl text-sm font-bold uppercase tracking-wider transition-all duration-300 hover-lift bg-gradient-to-r from-emerald-650 to-teal-650 text-white shadow-md hover:from-emerald-500 hover:to-teal-500 border border-emerald-500/30">
               Abrir Caja y Activar POS
             </button>
           </form>
@@ -871,13 +955,13 @@ export default function PosView({ products, thirdParties, transactions = [], isD
           </div>
           <div>
             <h1 className={`text-sm font-black uppercase tracking-wider ${isDarkMode ? 'text-white' : 'text-black'}`}>Caja POS: {activeSession.branch}</h1>
-            <p className={`text-[9px] font-mono mt-0.5 ${isDarkMode ? 'text-gray-500' : 'text-black font-semibold'}`}>Sesión: {activeSession.responsible} ({activeSession.shift}) | Fondo: ${Number(activeSession.initialAmount || 0).toFixed(2)}</p>
+            <p className={`text-xs font-mono mt-0.5 ${isDarkMode ? 'text-gray-500' : 'text-black font-semibold'}`}>Sesión: {activeSession.responsible} ({activeSession.shift}) | Fondo: ${Number(activeSession.initialAmount || 0).toFixed(2)}</p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
           {hasSuspendedSale && (
-            <button onClick={resumeSale} className={`px-3.5 py-1.5 rounded-xl border font-bold text-[10px] uppercase ${isDarkMode ? 'border-yellow-500/20 bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20' : 'border-yellow-200 bg-yellow-50 text-yellow-700 hover:bg-yellow-100'}`}>
+            <button onClick={resumeSale} className={`px-3.5 py-1.5 rounded-xl border font-bold text-xs uppercase ${isDarkMode ? 'border-yellow-500/20 bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20' : 'border-yellow-200 bg-yellow-50 text-yellow-700 hover:bg-yellow-100'}`}>
               Recuperar Venta
             </button>
           )}
@@ -895,7 +979,14 @@ export default function PosView({ products, thirdParties, transactions = [], isD
           >
             <History size={16} />
           </button>
-          <button onClick={handleOpenCloseModal} className={`px-3.5 py-1.5 rounded-xl border font-bold text-[10px] uppercase ${isDarkMode ? 'border-red-500/25 bg-red-600/10 text-red-400 hover:bg-red-600/20' : 'border-red-200 bg-red-50 text-red-700 hover:bg-red-100'}`}>
+          <button 
+            onClick={() => setIsConfigOpen(true)} 
+            className={`p-2.5 rounded-xl transition-all ${isDarkMode ? 'bg-white/5 text-gray-405 hover:text-white hover:bg-white/10' : 'bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700'}`}
+            title="Configuración Visual del POS"
+          >
+            <Settings size={16} />
+          </button>
+          <button onClick={handleOpenCloseModal} className={`px-3.5 py-1.5 rounded-xl border font-bold text-xs uppercase ${isDarkMode ? 'border-red-500/25 bg-red-600/10 text-red-400 hover:bg-red-600/20' : 'border-red-200 bg-red-50 text-red-700 hover:bg-red-100'}`}>
             Arqueo / Cerrar Caja
           </button>
           <button 
@@ -928,33 +1019,47 @@ export default function PosView({ products, thirdParties, transactions = [], isD
             {posConfig.showCarousel ? (
               <div className="space-y-3">
                 {/* Search Box */}
-                <div className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-all ${isDarkMode ? 'border-white/5 bg-black/45' : 'border-blue-150 bg-blue-50/30'}`}>
-                  <Search size={14} className={isDarkMode ? 'text-gray-500' : 'text-blue-600'} />
-                  <input 
-                    type="text" 
-                    id="pos-search-input"
-                    placeholder="Buscar por Nombre, SKU o Código..." 
-                    value={searchTerm}
-                    onChange={e => setSearchTerm(e.target.value)}
-                    onKeyDown={handleSearchKeyDown}
-                    className={`bg-transparent border-none outline-none text-xs w-full focus:ring-0 ${isDarkMode ? 'text-white placeholder-gray-500' : 'text-black placeholder-gray-400 font-bold'}`}
-                  />
+                <div className="flex gap-2.5 items-center">
+                  <div className={`flex-1 flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-all ${isDarkMode ? 'border-white/5 bg-black/45' : 'border-blue-150 bg-blue-50/30'}`}>
+                    <Search size={14} className={isDarkMode ? 'text-gray-500' : 'text-blue-600'} />
+                    <input 
+                      type="text" 
+                      id="pos-search-input"
+                      placeholder="Buscar por Nombre, SKU o Código..." 
+                      value={searchTerm}
+                      onChange={e => setSearchTerm(e.target.value)}
+                      onKeyDown={handleSearchKeyDown}
+                      className={`bg-transparent border-none outline-none text-base w-full focus:ring-0 ${isDarkMode ? 'text-white placeholder-gray-500' : 'text-black placeholder-gray-400 font-bold'}`}
+                    />
+                    <button 
+                      type="button" 
+                      onClick={startVoiceSearch} 
+                      className={`p-1 rounded-lg transition-all ${isListening ? 'text-red-500 animate-pulse bg-red-500/10' : (isDarkMode ? 'text-gray-400 hover:text-white' : 'text-blue-600 hover:bg-blue-50')}`}
+                      title="Buscar por dictado de voz"
+                    >
+                      <Mic size={14} />
+                    </button>
+                    {searchTerm && <button onClick={() => setSearchTerm('')}><X size={12} className={isDarkMode ? 'text-gray-500' : 'text-blue-600'} /></button>}
+                  </div>
                   <button 
-                    type="button" 
-                    onClick={startVoiceSearch} 
-                    className={`p-1 rounded-lg transition-all ${isListening ? 'text-red-500 animate-pulse bg-red-500/10' : (isDarkMode ? 'text-gray-400 hover:text-white' : 'text-blue-600 hover:bg-blue-50')}`}
-                    title="Buscar por dictado de voz"
+                    type="button"
+                    onClick={handleCreateQuote}
+                    className={`px-4 py-2.5 rounded-xl text-sm font-black uppercase tracking-wider transition-all flex items-center gap-1.5 border shadow-sm ${
+                      isDarkMode 
+                        ? 'bg-blue-650/15 border-blue-500/20 text-blue-400 hover:bg-blue-650/30' 
+                        : 'bg-blue-50 border-blue-150 text-blue-700 hover:bg-blue-100'
+                    }`}
+                    title="Guardar como Cotización (Proforma)"
                   >
-                    <Mic size={14} />
+                    <FileText size={13} /> Cotizar
                   </button>
-                  {searchTerm && <button onClick={() => setSearchTerm('')}><X size={12} className={isDarkMode ? 'text-gray-500' : 'text-blue-600'} /></button>}
                 </div>
 
                 {/* Horizontal Category Carousel */}
                 <div className="flex items-center gap-2 overflow-x-auto py-2.5 custom-scrollbar scrollbar-none">
                   <button
                     onClick={() => setFilterCategory('all')}
-                    className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase transition-all whitespace-nowrap shrink-0 border shadow-sm ${
+                    className={`px-4 py-2 rounded-xl text-xs font-bold uppercase transition-all whitespace-nowrap shrink-0 border shadow-sm ${
                       filterCategory === 'all'
                         ? 'bg-blue-600 border-blue-600 text-white'
                         : (isDarkMode ? 'bg-black/40 border-white/5 text-gray-455 hover:text-white' : 'bg-blue-50/50 border-blue-100 text-black hover:bg-blue-100/50')
@@ -978,59 +1083,73 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                 </div>
               </div>
             ) : (
-              <div className="space-y-3.5">
+              <div className="space-y-3">
                 {/* Search Box */}
-                <div className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-all ${isDarkMode ? 'border-white/5 bg-black/45' : 'border-blue-150 bg-blue-50/30'}`}>
-                  <Search size={14} className={isDarkMode ? 'text-gray-500' : 'text-blue-600'} />
-                  <input 
-                    type="text" 
-                    id="pos-search-input"
-                    placeholder="Buscar por Nombre, SKU o Código de Barras..." 
-                    value={searchTerm}
-                    onChange={e => setSearchTerm(e.target.value)}
-                    onKeyDown={handleSearchKeyDown}
-                    className={`bg-transparent border-none outline-none text-xs w-full focus:ring-0 ${isDarkMode ? 'text-white placeholder-gray-500' : 'text-black placeholder-gray-400 font-bold'}`}
-                  />
+                <div className="flex gap-2.5 items-center">
+                  <div className={`flex-1 flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-all ${isDarkMode ? 'border-white/5 bg-black/45' : 'border-blue-150 bg-blue-50/30'}`}>
+                    <Search size={14} className={isDarkMode ? 'text-gray-500' : 'text-blue-600'} />
+                    <input 
+                      type="text" 
+                      id="pos-search-input"
+                      placeholder="Buscar por Nombre, SKU o Código de Barras..." 
+                      value={searchTerm}
+                      onChange={e => setSearchTerm(e.target.value)}
+                      onKeyDown={handleSearchKeyDown}
+                      className={`bg-transparent border-none outline-none text-xs w-full focus:ring-0 ${isDarkMode ? 'text-white placeholder-gray-500' : 'text-black placeholder-gray-400 font-bold'}`}
+                    />
+                    <button 
+                      type="button" 
+                      onClick={startVoiceSearch} 
+                      className={`p-1 rounded-lg transition-all ${isListening ? 'text-red-500 animate-pulse bg-red-500/10' : (isDarkMode ? 'text-gray-400 hover:text-white' : 'text-blue-600 hover:bg-blue-50')}`}
+                      title="Buscar por dictado de voz"
+                    >
+                      <Mic size={14} />
+                    </button>
+                    {searchTerm && <button onClick={() => setSearchTerm('')}><X size={12} className={isDarkMode ? 'text-gray-500' : 'text-blue-600'} /></button>}
+                  </div>
                   <button 
-                    type="button" 
-                    onClick={startVoiceSearch} 
-                    className={`p-1 rounded-lg transition-all ${isListening ? 'text-red-500 animate-pulse bg-red-500/10' : (isDarkMode ? 'text-gray-400 hover:text-white' : 'text-blue-600 hover:bg-blue-50')}`}
-                    title="Buscar por dictado de voz"
+                    type="button"
+                    onClick={handleCreateQuote}
+                    className={`px-4 py-2.5 rounded-xl text-sm font-black uppercase tracking-wider transition-all flex items-center gap-1.5 border shadow-sm ${
+                      isDarkMode 
+                        ? 'bg-blue-650/15 border-blue-500/20 text-blue-400 hover:bg-blue-650/30' 
+                        : 'bg-blue-50 border-blue-150 text-blue-700 hover:bg-blue-100'
+                    }`}
+                    title="Guardar como Cotización (Proforma)"
                   >
-                    <Mic size={14} />
+                    <FileText size={13} /> Cotizar
                   </button>
-                  {searchTerm && <button onClick={() => setSearchTerm('')}><X size={12} className={isDarkMode ? 'text-gray-500' : 'text-blue-600'} /></button>}
                 </div>
 
                 {/* Dropdowns */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                   <div>
-                    <label className={`block text-[8px] font-extrabold uppercase tracking-wider mb-1 ${isDarkMode ? 'text-gray-500' : 'text-black'}`}>Categoría</label>
-                    <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} className={`w-full text-[10px] font-bold px-2 py-2 rounded-xl border outline-none ${isDarkMode ? 'bg-black/40 border-white/5 text-white' : 'bg-white border-blue-100 text-black'}`}>
+                    <label className={`block text-xs font-extrabold uppercase tracking-wider mb-1 ${isDarkMode ? 'text-gray-500' : 'text-black'}`}>Categoría</label>
+                    <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} className={`w-full text-xs font-bold px-2.5 py-2 rounded-xl border outline-none ${isDarkMode ? 'bg-black/40 border-white/5 text-white' : 'bg-white border-blue-100 text-black'}`}>
                       <option value="all" className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>Categorías (Todos)</option>
                       {categories.filter(c => c !== 'all').map(c => <option key={c} value={c} className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>{c}</option>)}
                     </select>
                   </div>
 
                   <div>
-                    <label className={`block text-[8px] font-extrabold uppercase tracking-wider mb-1 ${isDarkMode ? 'text-gray-500' : 'text-black'}`}>Marca</label>
-                    <select value={filterBrand} onChange={e => setFilterBrand(e.target.value)} className={`w-full text-[10px] font-bold px-2 py-2 rounded-xl border outline-none ${isDarkMode ? 'bg-black/40 border-white/5 text-white' : 'bg-white border-blue-100 text-black'}`}>
+                    <label className={`block text-xs font-extrabold uppercase tracking-wider mb-1 ${isDarkMode ? 'text-gray-500' : 'text-black'}`}>Marca</label>
+                    <select value={filterBrand} onChange={e => setFilterBrand(e.target.value)} className={`w-full text-xs font-bold px-2.5 py-2 rounded-xl border outline-none ${isDarkMode ? 'bg-black/40 border-white/5 text-white' : 'bg-white border-blue-100 text-black'}`}>
                       <option value="all" className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>Marcas (Todos)</option>
                       {brands.filter(b => b !== 'all').map(b => <option key={b} value={b} className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>{b}</option>)}
                     </select>
                   </div>
 
                   <div>
-                    <label className={`block text-[8px] font-extrabold uppercase tracking-wider mb-1 ${isDarkMode ? 'text-gray-500' : 'text-black'}`}>Bodega / Almacén</label>
-                    <select value={filterWarehouse} onChange={e => setFilterWarehouse(e.target.value)} className={`w-full text-[10px] font-bold px-2 py-2 rounded-xl border outline-none ${isDarkMode ? 'bg-black/40 border-white/5 text-white' : 'bg-white border-blue-100 text-black'}`}>
+                    <label className={`block text-xs font-extrabold uppercase tracking-wider mb-1 ${isDarkMode ? 'text-gray-500' : 'text-black'}`}>Bodega / Almacén</label>
+                    <select value={filterWarehouse} onChange={e => setFilterWarehouse(e.target.value)} className={`w-full text-xs font-bold px-2.5 py-2 rounded-xl border outline-none ${isDarkMode ? 'bg-black/40 border-white/5 text-white' : 'bg-white border-blue-100 text-black'}`}>
                       <option value="all" className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>Bodegas (Todos)</option>
                       {warehouses.filter(w => w !== 'all').map(w => <option key={w} value={w} className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>{w}</option>)}
                     </select>
                   </div>
 
                   <div>
-                    <label className={`block text-[8px] font-extrabold uppercase tracking-wider mb-1 ${isDarkMode ? 'text-gray-500' : 'text-black'}`}>Filtro Stock</label>
-                    <select value={filterStock} onChange={e => setFilterStock(e.target.value)} className={`w-full text-[10px] font-bold px-2 py-2 rounded-xl border outline-none ${isDarkMode ? 'bg-black/40 border-white/5 text-white' : 'bg-white border-blue-100 text-black'}`}>
+                    <label className={`block text-xs font-extrabold uppercase tracking-wider mb-1 ${isDarkMode ? 'text-gray-500' : 'text-black'}`}>Filtro Stock</label>
+                    <select value={filterStock} onChange={e => setFilterStock(e.target.value)} className={`w-full text-xs font-bold px-2.5 py-2 rounded-xl border outline-none ${isDarkMode ? 'bg-black/40 border-white/5 text-white' : 'bg-white border-blue-100 text-black'}`}>
                       <option value="all" className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>Inventario completo</option>
                       <option value="instock" className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>Solo disponibles (Con Stock)</option>
                     </select>
@@ -1066,11 +1185,11 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-mono text-[9px] text-gray-500 shrink-0">{p.sku}</span>
-                          <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase shrink-0 ${p.type === 'producto' ? 'bg-blue-500/10 text-blue-400' : 'bg-purple-500/10 text-purple-400'}`}>{p.type}</span>
+                          <span className="font-mono text-[10px] text-gray-500 shrink-0">{p.sku}</span>
+                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase shrink-0 ${p.type === 'producto' ? 'bg-blue-500/10 text-blue-400' : 'bg-purple-500/10 text-purple-400'}`}>{p.type}</span>
                         </div>
-                        <h4 className={`text-xs font-bold leading-snug truncate ${isDarkMode ? 'text-white' : 'text-black'}`}>{p.name}</h4>
-                        <p className="text-[9px] text-gray-500 truncate">{p.marca || 'Sin Marca'} | {p.categoria || 'General'}</p>
+                        <h4 className={`text-sm sm:text-base font-bold leading-snug truncate ${isDarkMode ? 'text-white' : 'text-black'}`}>{p.name}</h4>
+                        <p className="text-xs text-gray-500 truncate">{p.marca || 'Sin Marca'} | {p.categoria || 'General'}</p>
                       </div>
                     </div>
 
@@ -1079,7 +1198,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                         const minStk = p.minStock !== undefined ? Number(p.minStock) : 2;
                         const isCritical = p.stock <= minStk;
                         return (
-                          <span className={`text-[8.5px] font-bold px-1.5 py-0.5 rounded border shrink-0 ${
+                          <span className={`text-xs font-bold px-2 py-0.5 rounded border shrink-0 ${
                             isCritical 
                               ? 'bg-red-500/10 border-red-500 text-red-500 animate-pulse font-black shadow-sm' 
                               : (isDarkMode ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-emerald-50 border-emerald-250 text-emerald-700')
@@ -1089,7 +1208,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                         );
                       })()}
                       <div className="text-right shrink-0">
-                        <span className={`text-xs font-black block ${isDarkMode ? 'text-white' : 'text-black'}`}>${Number(p.price).toFixed(2)}</span>
+                        <span className={`text-base font-black block ${isDarkMode ? 'text-white' : 'text-black'}`}>${Number(p.price).toFixed(2)}</span>
                       </div>
                       <button
                         type="button"
@@ -1136,20 +1255,20 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   >
                     <div className="space-y-1">
                       <div className="flex justify-between items-center gap-1">
-                        <span className="font-mono text-[9px] text-gray-500 truncate">{p.sku}</span>
-                        <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${p.type === 'producto' ? 'bg-blue-500/10 text-blue-400' : 'bg-purple-500/10 text-purple-400'}`}>{p.type}</span>
+                        <span className="font-mono text-[10px] text-gray-500 truncate">{p.sku}</span>
+                        <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${p.type === 'producto' ? 'bg-blue-500/10 text-blue-400' : 'bg-purple-500/10 text-purple-400'}`}>{p.type}</span>
                       </div>
-                      <h4 className={`text-xs font-bold leading-snug line-clamp-2 ${isDarkMode ? 'text-white' : 'text-black'}`}>{p.name}</h4>
-                      <p className="text-[9px] text-gray-500 truncate">{p.marca || 'Sin Marca'} | {p.categoria || 'General'}</p>
+                      <h4 className={`text-xs sm:text-[13px] font-bold leading-snug line-clamp-2 ${isDarkMode ? 'text-white' : 'text-black'}`}>{p.name}</h4>
+                      <p className="text-[10px] text-gray-500 truncate">{p.marca || 'Sin Marca'} | {p.categoria || 'General'}</p>
                     </div>
 
-                    <div className={`flex justify-between items-center mt-3 pt-3 border-t ${isDarkMode ? 'border-white/5' : 'border-blue-100/50'}`}>
-                      <span className={`text-xs font-black ${isDarkMode ? 'text-white' : 'text-black'}`}>${Number(p.price).toFixed(2)}</span>
+                    <div className={`flex justify-between items-center mt-3 pt-3 border-t ${isDarkMode ? 'border-white/5' : 'border-blue-100/55'}`}>
+                      <span className={`text-sm font-black ${isDarkMode ? 'text-white' : 'text-black'}`}>${Number(p.price).toFixed(2)}</span>
                       {posConfig.showStock && p.type === 'producto' && (() => {
                         const minStk = p.minStock !== undefined ? Number(p.minStock) : 2;
                         const isCritical = p.stock <= minStk;
                         return (
-                          <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded border ${
+                          <span className={`text-xs font-bold px-2 py-0.5 rounded border ${
                             isCritical 
                               ? 'bg-red-500/10 border-red-500 text-red-500 animate-pulse font-black shadow-sm' 
                               : (isDarkMode ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-emerald-50 border-emerald-250 text-emerald-700')
@@ -1170,56 +1289,223 @@ export default function PosView({ products, thirdParties, transactions = [], isD
               )}
             </div>
           )}
+
+          {/* LEYENDA DE STOCK AL PIE DEL CATÁLOGO */}
+          {posConfig.showStock && (
+            <div className={`mt-4 pt-3 border-t flex items-center gap-4 text-xs uppercase font-extrabold tracking-wider shrink-0 ${
+              isDarkMode ? 'border-white/5 text-gray-500' : 'border-blue-100 text-blue-800'
+            }`}>
+              <span className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.5)]"></span>
+                En Stock
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_6px_rgba(239,68,68,0.6)]"></span>
+                Bajo Stock
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.5)]"></span>
+                Sin Stock / Servicio
+              </span>
+            </div>
+          )}
         </div>
 
         {/* LADO DERECHO: DETALLE DEL PEDIDO (CHECKOUT FIJO) */}
-        <div className={`w-72 sm:w-80 flex flex-col shrink-0 border-l ${isDarkMode ? 'border-white/5 bg-[#121214]/65' : 'border-blue-100 bg-[#f8faff]'}`}>
-          
-          {/* CLIENTE SELECTOR */}
-          <div className={`p-4 border-b flex items-center justify-between gap-2.5 shrink-0 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-blue-100 bg-blue-50/30'}`}>
-            <div className="flex-1">
-              <label className={`block text-[8px] font-extrabold uppercase tracking-wider mb-1 ${isDarkMode ? 'text-gray-500' : 'text-black'}`}>Cliente Receptor</label>
-              <select 
-                value={selectedClientId} 
-                onChange={e => setSelectedClientId(e.target.value)} 
-                className={`w-full text-xs font-semibold px-2 py-2 outline-none rounded-xl border ${isDarkMode ? 'border-white/5 bg-black/40 text-white' : 'border-blue-100 bg-white text-black'}`}
-              >
-                <option value="" className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>Consumidor Final (9999999999999)</option>
-                {thirdParties.filter(tp => tp.type === 'cliente').map(tp => (
-                  <option key={tp.id} value={tp.id} className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>{tp.name} - RUC: {tp.ruc}</option>
-                ))}
-              </select>
+        <div className={`w-[32rem] sm:w-[38rem] flex flex-col shrink-0 border-l ${isDarkMode ? 'border-white/5 bg-[#121214]/65' : 'bg-white border-blue-100'}`}>
+          <div className={`p-4 border-b flex items-center justify-between gap-2 shrink-0 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-blue-100 bg-blue-50/20'}`}>
+            <div className="flex items-center gap-1.5">
+              <span className="font-black text-base uppercase tracking-wide">Pedido</span>
+              <span className={`text-xs font-black font-mono px-2 py-0.5 rounded-lg border ${
+                isDarkMode ? 'bg-white/5 border-white/5 text-gray-400' : 'bg-blue-100/60 border-blue-200 text-blue-800'
+              }`}>
+                Items ({cart.reduce((acc, it) => acc + it.quantity, 0)})
+              </span>
             </div>
-            <button 
-              type="button" 
-              onClick={() => {
-                setQuickAddFormData({
-                  name: '', ruc: '', email: '', tipoIdentificacion: 'ruc', direccion: '', telefono: '', tipoContribuyente: 'general'
-                });
-                setIsQuickAddOpen(true);
-              }}
-              className="mt-4 p-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white transition-all shrink-0 hover:scale-105 active:scale-95 shadow-sm"
-              title="Registrar Cliente Nuevo"
-            >
-              <Plus size={14} />
-            </button>
+            
+            <div className="flex gap-1.5">
+              <button 
+                onClick={() => setIsDiscountOpen(true)} 
+                className={`px-3.5 py-2 rounded-xl border font-bold text-sm uppercase transition-all flex items-center gap-1.5 ${
+                  isDarkMode ? 'border-white/5 bg-white/5 hover:bg-white/10 text-gray-300' : 'border-blue-100 bg-white hover:bg-blue-50 text-blue-755'
+                }`}
+                title="Aplicar Descuento General"
+              >
+                <Tag size={12} className="text-blue-500" /> % Desc
+              </button>
+              <button 
+                onClick={() => {
+                  if (cart.length > 0 && window.confirm("¿Deseas vaciar y limpiar toda esta venta actual?")) {
+                    setCart([]);
+                    setSelectedClientId('');
+                    showToast("Venta limpiada", "info");
+                  }
+                }} 
+                className={`px-3.5 py-2 rounded-xl border font-bold text-xs uppercase transition-all flex items-center gap-1.5 ${
+                  isDarkMode ? 'border-white/5 bg-white/5 hover:bg-white/10 text-red-400' : 'border-red-100 bg-white hover:bg-red-50 text-red-650'
+                }`}
+                title="Limpiar Venta (Vaciar Carrito)"
+              >
+                <Trash2 size={12} className="text-red-500" /> Limpiar
+              </button>
+            </div>
+          </div>
+
+          {/* CLIENTE BÚSQUEDA Y FICHA */}
+          <div className={`p-4 border-b flex flex-col gap-2 shrink-0 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-blue-100 bg-blue-50/10'}`}>
+            <div className="relative">
+              <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition-all ${
+                isDarkMode ? 'border-white/5 bg-black/45' : 'border-blue-150 bg-blue-50/20'
+              }`}>
+                <Search size={13} className={isDarkMode ? 'text-gray-500' : 'text-blue-600'} />
+                <input 
+                  type="text"
+                  placeholder="Buscar Cliente (CI / RUC o Nombre)..."
+                  value={clientSearchTerm}
+                  onChange={e => {
+                    setClientSearchTerm(e.target.value);
+                    setIsClientDropdownOpen(true);
+                  }}
+                  onFocus={() => setIsClientDropdownOpen(true)}
+                  className={`bg-transparent border-none outline-none text-sm w-full focus:ring-0 ${
+                    isDarkMode ? 'text-white placeholder-gray-500' : 'text-black placeholder-gray-400 font-bold'
+                  }`}
+                />
+                {clientSearchTerm && (
+                  <button 
+                    onClick={() => {
+                      setClientSearchTerm('');
+                      setIsClientDropdownOpen(false);
+                    }}
+                  >
+                    <X size={12} className={isDarkMode ? 'text-gray-500' : 'text-blue-600'} />
+                  </button>
+                )}
+              </div>
+              
+              {/* Autocomplete list */}
+              {isClientDropdownOpen && clientSearchTerm && (
+                <div className={`absolute left-0 right-0 mt-1 max-h-48 overflow-y-auto z-50 rounded-xl border shadow-xl ${
+                  isDarkMode ? 'bg-[#151518] border-white/10 text-white' : 'bg-white border-blue-150 text-black shadow-lg'
+                } custom-scrollbar`}>
+                  <div 
+                    onClick={() => {
+                      setSelectedClientId('');
+                      setClientSearchTerm('');
+                      setIsClientDropdownOpen(false);
+                    }}
+                    className={`px-3.5 py-2.5 text-sm font-bold cursor-pointer transition-colors border-b ${
+                      isDarkMode ? 'hover:bg-white/5 border-white/5' : 'hover:bg-blue-50 border-blue-100/50'
+                    }`}
+                  >
+                    Consumidor Final (9999999999999)
+                  </div>
+                  {thirdParties
+                    .filter(tp => tp.type === 'cliente' && 
+                      (tp.name.toLowerCase().includes(clientSearchTerm.toLowerCase()) || 
+                       tp.ruc.includes(clientSearchTerm))
+                    )
+                    .map(tp => (
+                      <div 
+                        key={tp.id}
+                        onClick={() => {
+                          setSelectedClientId(tp.id);
+                          setClientSearchTerm('');
+                          setIsClientDropdownOpen(false);
+                        }}
+                        className={`px-3.5 py-2.5 text-sm font-semibold cursor-pointer transition-colors ${
+                          isDarkMode ? 'hover:bg-white/5' : 'hover:bg-blue-50'
+                        }`}
+                      >
+                        <div className="font-bold">{tp.name}</div>
+                        <div className="text-xs text-gray-500 font-mono">CI/RUC: {tp.ruc}</div>
+                      </div>
+                    ))
+                  }
+                </div>
+              )}
+            </div>
+            
+            {/* Client Card details */}
+            {(() => {
+              const client = getSelectedClient();
+              return (
+                <div className={`p-3.5 rounded-2xl border space-y-2 transition-all text-xs ${
+                  isDarkMode ? 'bg-black/20 border-white/5 text-gray-300' : 'bg-white border-blue-100/60 shadow-sm text-black'
+                }`}>
+                  <div className="flex justify-between items-center gap-1.5 border-b pb-1.5 border-white/5">
+                    <span className={`font-mono text-xs uppercase font-black tracking-wider ${isDarkMode ? 'text-gray-500' : 'text-blue-650'}`}>
+                      Ficha Cliente Receptor
+                    </span>
+                    <div className="flex gap-2">
+                      {selectedClientId && (
+                        <button 
+                          onClick={() => setSelectedClientId('')} 
+                          className="text-red-400 hover:text-red-500 p-0.5"
+                          title="Quitar Cliente (Volver a Consumidor Final)"
+                        >
+                          <X size={12} />
+                        </button>
+                      )}
+                      <button 
+                        onClick={() => {
+                          if (selectedClientId) {
+                            const found = thirdParties.find(tp => tp.id === selectedClientId);
+                            if (found) {
+                              setQuickAddFormData({
+                                name: found.name,
+                                ruc: found.ruc,
+                                email: found.email || '',
+                                tipoIdentificacion: found.tipoIdentificacion || 'ruc',
+                                direccion: found.direccion || '',
+                                telefono: found.telefono || '',
+                                tipoContribuyente: found.tipoContribuyente || 'general'
+                              });
+                              setIsQuickAddOpen(true);
+                            }
+                          } else {
+                            setQuickAddFormData({
+                              name: '', ruc: '', email: '', tipoIdentificacion: 'ruc', direccion: '', telefono: '', tipoContribuyente: 'general'
+                            });
+                            setIsQuickAddOpen(true);
+                          }
+                        }} 
+                        className={`p-0.5 ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-blue-600 hover:text-blue-700'}`}
+                        title="Registrar / Editar Cliente"
+                      >
+                        <Plus size={12} />
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-1 text-xs">
+                    <h4 className={`font-black text-base truncate ${isDarkMode ? 'text-white' : 'text-black'}`}>{client.name}</h4>
+                    <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-sm text-gray-500 pt-0.5 leading-normal">
+                      <p><span className="font-bold">Identificación:</span> {client.ruc}</p>
+                      <p><span className="font-bold">Teléfono:</span> {client.telefono || 'Sin Teléfono'}</p>
+                      <p className="col-span-2 truncate"><span className="font-bold">Correo:</span> {client.email || 'Sin Correo'}</p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
 
           {/* LISTA CARRITO POS */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
             {cart.map((item, idx) => (
-              <div key={idx} className={`p-3 rounded-2xl border space-y-2 ${isDarkMode ? 'bg-black/20 border-white/5' : 'bg-white border-blue-100/70 shadow-sm'}`}>
+              <div key={idx} className={`p-3.5 rounded-2xl border space-y-2.5 ${isDarkMode ? 'bg-black/20 border-white/5' : 'bg-white border-blue-100/70 shadow-sm'}`}>
                 <div className="flex justify-between items-start gap-1">
-                  <span className={`text-xs font-bold line-clamp-1 ${isDarkMode ? 'text-white' : 'text-black'}`}>{item.name}</span>
-                  <button type="button" onClick={() => removeFromCart(item.productId)} className="text-red-400 hover:text-red-500 opacity-80 hover:opacity-100"><Trash2 size={12}/></button>
+                  <span className={`text-sm font-bold line-clamp-1 ${isDarkMode ? 'text-white' : 'text-black'}`}>{item.name}</span>
+                  <button type="button" onClick={() => removeFromCart(item.productId)} className="text-red-400 hover:text-red-500 opacity-80 hover:opacity-100"><Trash2 size={13}/></button>
                 </div>
-                <div className="flex justify-between items-center text-[10px] text-gray-500">
-                  <span className={isDarkMode ? 'text-gray-500' : 'text-black font-semibold'}>${Number(item.price).toFixed(2)} c/u</span>
-                  <div className="flex items-center gap-2">
-                    <button type="button" onClick={() => updateQuantity(item.productId, -1)} className={`p-0.5 rounded ${isDarkMode ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-blue-50 hover:bg-blue-100 text-blue-700'}`}><Minus size={10}/></button>
-                    <span className={`font-bold w-4 text-center ${isDarkMode ? 'text-white' : 'text-black'}`}>{item.quantity}</span>
-                    <button type="button" onClick={() => updateQuantity(item.productId, 1)} className={`p-0.5 rounded ${isDarkMode ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-blue-50 hover:bg-blue-100 text-blue-700'}`}><Plus size={10}/></button>
-                    <span className={`font-black w-14 text-right ${isDarkMode ? 'text-white' : 'text-blue-700'}`}>${(item.price * item.quantity).toFixed(2)}</span>
+                <div className="flex justify-between items-center text-sm text-gray-500 font-semibold">
+                  <span className={isDarkMode ? 'text-gray-450' : 'text-black'}>${Number(item.price).toFixed(2)} c/u</span>
+                  <div className="flex items-center gap-2.5">
+                    <button type="button" onClick={() => updateQuantity(item.productId, -1)} className={`p-1 rounded ${isDarkMode ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-blue-50 hover:bg-blue-100 text-blue-700'}`}><Minus size={11}/></button>
+                    <span className={`font-bold w-6 text-center text-sm ${isDarkMode ? 'text-white' : 'text-black'}`}>{item.quantity}</span>
+                    <button type="button" onClick={() => updateQuantity(item.productId, 1)} className={`p-1 rounded ${isDarkMode ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-blue-50 hover:bg-blue-100 text-blue-700'}`}><Plus size={11}/></button>
+                    <span className={`font-black w-16 text-right text-sm ${isDarkMode ? 'text-white' : 'text-blue-750'}`}>${(item.price * item.quantity).toFixed(2)}</span>
                   </div>
                 </div>
               </div>
@@ -1238,11 +1524,11 @@ export default function PosView({ products, thirdParties, transactions = [], isD
             {isDiscountOpen ? (
               <div className={`p-3 rounded-xl border space-y-2 ${isDarkMode ? 'border-white/5 bg-black/20' : 'border-blue-100 bg-white shadow-sm'}`}>
                 <div className="flex justify-between items-center">
-                  <span className={`text-[10px] font-bold ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>DESCUENTO GENERAL</span>
+                  <span className={`text-xs font-bold ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>DESCUENTO GENERAL</span>
                   <button onClick={() => { setIsDiscountOpen(false); setDiscountValue(0); }} className="text-gray-500 hover:text-black"><X size={10} /></button>
                 </div>
                 <div className="flex gap-1">
-                  <select value={discountType} onChange={e => setDiscountType(e.target.value)} className={`text-[10px] px-2 py-1.5 rounded-lg border outline-none ${isDarkMode ? 'bg-black border-white/10 text-white' : 'bg-white border-blue-150 text-black'}`}>
+                  <select value={discountType} onChange={e => setDiscountType(e.target.value)} className={`text-sm px-2 py-1.5 rounded-lg border outline-none ${isDarkMode ? 'bg-black border-white/10 text-white' : 'bg-white border-blue-150 text-black'}`}>
                     <option value="percent">% Porcentaje</option>
                     <option value="fixed">$ Fijo (USD)</option>
                   </select>
@@ -1251,20 +1537,20 @@ export default function PosView({ products, thirdParties, transactions = [], isD
               </div>
             ) : (
               <div className="flex gap-2">
-                <button onClick={() => setIsDiscountOpen(true)} className={`flex-1 py-1.5 rounded-xl border font-bold text-[9px] uppercase transition-all ${isDarkMode ? 'border-white/5 hover:bg-white/5 text-gray-400' : 'border-blue-100 hover:bg-blue-100/50 bg-white text-black shadow-sm'}`}>
-                  <Tag size={10} className="inline mr-1 text-blue-500" /> Descuento
+                <button onClick={() => setIsDiscountOpen(true)} className={`flex-1 py-2 rounded-xl border font-bold text-xs uppercase transition-all ${isDarkMode ? 'border-white/5 hover:bg-white/5 text-gray-400' : 'border-blue-100 hover:bg-blue-100/50 bg-white text-black shadow-sm'}`}>
+                  <Tag size={12} className="inline mr-1 text-blue-500" /> Descuento
                 </button>
-                <button onClick={suspendSale} className={`flex-1 py-1.5 rounded-xl border font-bold text-[9px] uppercase transition-all ${isDarkMode ? 'border-white/5 hover:bg-white/5 text-gray-400' : 'border-blue-100 hover:bg-blue-100/50 bg-white text-black shadow-sm'}`}>
-                  <Bookmark size={10} className="inline mr-1 text-blue-500" /> Suspender
+                <button onClick={suspendSale} className={`flex-1 py-2 rounded-xl border font-bold text-[11px] uppercase transition-all ${isDarkMode ? 'border-white/5 hover:bg-white/5 text-gray-400' : 'border-blue-100 hover:bg-blue-100/50 bg-white text-black shadow-sm'}`}>
+                  <Bookmark size={12} className="inline mr-1 text-blue-500" /> Suspender
                 </button>
-                <button onClick={() => setCart([])} className={`flex-1 py-1.5 rounded-xl border font-bold text-[9px] uppercase transition-all ${isDarkMode ? 'border-white/5 hover:bg-white/5 text-red-400' : 'border-red-100 hover:bg-red-50 bg-white text-red-650 shadow-sm'}`}>
-                  <Trash2 size={10} className="inline mr-1 text-red-500" /> Vaciar
+                <button onClick={() => setCart([])} className={`flex-1 py-2 rounded-xl border font-bold text-[11px] uppercase transition-all ${isDarkMode ? 'border-white/5 hover:bg-white/5 text-red-400' : 'border-red-100 hover:bg-red-50 bg-white text-red-650 shadow-sm'}`}>
+                  <Trash2 size={12} className="inline mr-1 text-red-500" /> Vaciar
                 </button>
               </div>
             )}
 
-            <div className="space-y-1.5 text-xs">
-              <div className={`flex justify-between ${isDarkMode ? 'text-gray-450' : 'text-black font-medium'}`}>
+            <div className="space-y-2 text-sm md:text-base">
+              <div className={`flex justify-between ${isDarkMode ? 'text-gray-450' : 'text-black font-semibold'}`}>
                 <span>Subtotal Neto</span>
                 <span>${getSubtotal().toFixed(2)}</span>
               </div>
@@ -1274,164 +1560,201 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   <span>-${getDiscountAmount().toFixed(2)}</span>
                 </div>
               )}
-              <div className={`flex justify-between ${isDarkMode ? 'text-gray-450' : 'text-black font-medium'}`}>
+              <div className={`flex justify-between ${isDarkMode ? 'text-gray-450' : 'text-black font-semibold'}`}>
                 <span>IVA (15%)</span>
                 <span>${getIva().toFixed(2)}</span>
               </div>
-              <div className={`flex justify-between font-black text-sm pt-2 border-t ${isDarkMode ? 'border-white/5 text-white' : 'border-blue-100 text-black'}`}>
+              <div className={`flex justify-between font-black text-base md:text-lg pt-2.5 border-t ${isDarkMode ? 'border-white/5 text-white' : 'border-blue-100 text-black'}`}>
                 <span>TOTAL NETO</span>
-                <span className={isDarkMode ? 'text-white' : 'text-blue-700'}>${getTotal().toFixed(2)}</span>
+                <span className={isDarkMode ? 'text-white' : 'text-blue-750'}>${getTotal().toFixed(2)}</span>
               </div>
             </div>
 
-            <button 
-              type="button" 
-              onClick={() => {
-                if (cart.length === 0) {
-                  showToast("Agrega productos al carrito", "error");
-                  return;
-                }
-                setPayments({
-                  efectivo: 0, transferencia: 0, tarjeta: 0, cruce_cuentas: 0,
-                  transferenciaRef: '', tarjetaRef: '', cruceRef: ''
-                });
-                setCheckoutStep(1);
-                setIsCheckoutOpen(true);
-              }}
-              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-xs font-black bg-blue-600 text-white hover:bg-blue-500 shadow-md transition-all active:scale-[0.98]"
-            >
-              <Sparkles size={14} /> Proceder al Cobro (Pasos)
-            </button>
-          </div>
-
-          </div>
-
-        </div>
-
-        {/* SIDEBAR DE CONFIGURACIÓN DEL POS (ALWAYS RIGHT) */}
-        <div className={`w-64 flex flex-col shrink-0 border-l ${isDarkMode ? 'bg-[#0f0f11] border-white/10 text-white' : 'bg-[#f3f8ff] border-blue-100 text-[#000000]'}`}>
-          <div className={`p-4 border-b flex items-center justify-between shrink-0 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-blue-100 bg-blue-50'}`}>
-            <div className="flex items-center gap-2">
-              <Settings size={16} className={isDarkMode ? 'text-blue-500' : 'text-[#000000]'} />
-              <h3 className="text-[10px] font-black uppercase tracking-wider">Gestión del POS</h3>
-            </div>
-          </div>
-          <div className="flex-1 overflow-y-auto p-4 space-y-5">
-            <div className="space-y-2">
-              <label className="block text-[9px] font-bold uppercase tracking-wider text-gray-500">Diseño de Productos</label>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setPosConfig(prev => ({ ...prev, viewType: 'grid' }))}
-                  className={`py-2 rounded-xl text-[10px] font-bold border transition-all ${posConfig.viewType === 'grid' ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-400 hover:text-white' : 'bg-white border-blue-100 text-[#000000] hover:bg-blue-50')}`}
-                >
-                  Grid
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPosConfig(prev => ({ ...prev, viewType: 'list' }))}
-                  className={`py-2 rounded-xl text-[10px] font-bold border transition-all ${posConfig.viewType === 'list' ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-400 hover:text-white' : 'bg-white border-blue-100 text-[#000000] hover:bg-blue-50')}`}
-                >
-                  Lista
-                </button>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <label className="block text-[9px] font-bold uppercase tracking-wider text-gray-500">Filtros</label>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setPosConfig(prev => ({ ...prev, showCarousel: false }))}
-                  className={`py-2 rounded-xl text-[10px] font-bold border transition-all ${!posConfig.showCarousel ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-400 hover:text-white' : 'bg-white border-blue-100 text-[#000000] hover:bg-blue-50')}`}
-                >
-                  Normales
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPosConfig(prev => ({ ...prev, showCarousel: true }))}
-                  className={`py-2 rounded-xl text-[10px] font-bold border transition-all ${posConfig.showCarousel ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-400 hover:text-white' : 'bg-white border-blue-100 text-[#000000] hover:bg-blue-50')}`}
-                >
-                  Carrusel
-                </button>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <label className="block text-[9px] font-bold uppercase tracking-wider text-gray-500">Posición Detalle</label>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setPosConfig(prev => ({ ...prev, cartPosition: 'left' }))}
-                  className={`py-2 rounded-xl text-[10px] font-bold border transition-all ${posConfig.cartPosition === 'left' ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-400 hover:text-white' : 'bg-white border-blue-100 text-[#000000] hover:bg-blue-50')}`}
-                >
-                  Izquierda
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPosConfig(prev => ({ ...prev, cartPosition: 'right' }))}
-                  className={`py-2 rounded-xl text-[10px] font-bold border transition-all ${posConfig.cartPosition === 'right' ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-400 hover:text-white' : 'bg-white border-blue-100 text-[#000000] hover:bg-blue-50')}`}
-                >
-                  Derecha
-                </button>
-              </div>
-            </div>
-
-            <div className="space-y-2 pt-2 border-t border-white/5">
-              <label className="block text-[9px] font-bold uppercase tracking-wider text-gray-500">Buscador y Lector</label>
-              <button
-                type="button"
-                onClick={() => setPosConfig(prev => ({ ...prev, barcodeMode: !prev.barcodeMode }))}
-                className={`w-full py-2.5 px-4 rounded-xl text-[10px] font-bold border transition-all flex items-center justify-between ${
-                  posConfig.barcodeMode
-                    ? 'bg-blue-600 border-blue-600 text-white shadow-sm'
-                    : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-450 hover:text-white' : 'bg-blue-50/30 border-blue-100 text-[#000000] hover:bg-blue-50')
+            <div className="flex gap-2.5">
+              <button 
+                type="button" 
+                onClick={playCashRegisterSound}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-3.5 rounded-xl text-xs font-black border transition-all active:scale-[0.98] ${
+                  isDarkMode 
+                    ? 'border-white/5 hover:bg-white/10 text-gray-300 bg-white/5' 
+                    : 'border-blue-150 hover:bg-blue-50 bg-white text-blue-700 shadow-sm'
                 }`}
+                title="Simular Apertura de Gaveta de Dinero"
               >
-                <span className="flex items-center gap-1.5">
-                  <Barcode size={13} /> Modo Lector
-                </span>
-                <span className="text-[9px] font-extrabold">{posConfig.barcodeMode ? 'ACTIVO' : 'INACTIVO'}</span>
+                <Unlock size={13} className="text-blue-500" /> Abrir Gaveta
               </button>
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-[9px] font-bold uppercase tracking-wider text-gray-500">Checkout Exprés</label>
-              <button
-                type="button"
-                onClick={() => setPosConfig(prev => ({ ...prev, expressCheckout: !prev.expressCheckout }))}
-                className={`w-full py-2.5 px-4 rounded-xl text-[10px] font-bold border transition-all flex items-center justify-between ${
-                  posConfig.expressCheckout
-                    ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm'
-                    : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-455 hover:text-white' : 'bg-blue-50/30 border-blue-100 text-[#000000] hover:bg-blue-50')
-                }`}
+              <button 
+                type="button" 
+                onClick={() => {
+                  if (cart.length === 0) {
+                    showToast("Agrega productos al carrito", "error");
+                    return;
+                  }
+                  setPayments({
+                    efectivo: 0, transferencia: 0, tarjeta: 0, cruce_cuentas: 0,
+                    transferenciaRef: '', tarjetaRef: '', cruceRef: ''
+                  });
+                  setCheckoutStep(1);
+                  setIsCheckoutOpen(true);
+                }}
+                className="flex-[2] flex items-center justify-center gap-2 py-3.5 rounded-xl text-xs font-black bg-blue-600 text-white hover:bg-blue-500 shadow-md transition-all active:scale-[0.98]"
               >
-                <span className="flex items-center gap-1.5">
-                  <Zap size={13} /> Checkout 1-Paso
-                </span>
-                <span className="text-[9px] font-extrabold">{posConfig.expressCheckout ? 'ACTIVO' : 'INACTIVO'}</span>
-              </button>
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-[9px] font-bold uppercase tracking-wider text-gray-500">Privacidad Stock</label>
-              <button
-                type="button"
-                onClick={() => setPosConfig(prev => ({ ...prev, showStock: !prev.showStock }))}
-                className={`w-full py-2.5 px-4 rounded-xl text-[10px] font-bold border transition-all flex items-center justify-between ${
-                  posConfig.showStock
-                    ? 'bg-blue-600 border-blue-600 text-white shadow-sm'
-                    : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-455 hover:text-white' : 'bg-blue-50/30 border-blue-100 text-[#000000] hover:bg-blue-50')
-                }`}
-              >
-                <span className="flex items-center gap-1.5">
-                  <Eye size={13} /> Mostrar Stock
-                </span>
-                <span className="text-[9px] font-extrabold">{posConfig.showStock ? 'ACTIVO' : 'INACTIVO'}</span>
+                <Sparkles size={13} /> Cobrar (F12)
               </button>
             </div>
           </div>
+
+          </div>
+
         </div>
 
       </div>
+
+      {/* DRAWER DE CONFIGURACIÓN DEL POS */}
+      {isConfigOpen && (
+        <>
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 z-[120] bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+            onClick={() => setIsConfigOpen(false)}
+          />
+          {/* Drawer Panel */}
+          <div className={`fixed top-0 right-0 h-full w-80 z-[130] flex flex-col shadow-2xl border-l animate-in slide-in-from-right duration-300 ${
+            isDarkMode ? 'bg-[#0f0f11] border-white/10 text-white shadow-black/80' : 'bg-[#f3f8ff] border-blue-100 text-[#000000] shadow-blue-900/20'
+          }`}>
+            <div className={`p-4 border-b flex items-center justify-between shrink-0 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-blue-100 bg-blue-50'}`}>
+              <div className="flex items-center gap-2">
+                <Settings size={16} className={isDarkMode ? 'text-blue-500' : 'text-[#000000]'} />
+                <h3 className="text-xs font-black uppercase tracking-wider">Gestión del POS</h3>
+              </div>
+              <button 
+                onClick={() => setIsConfigOpen(false)} 
+                className={`p-1.5 rounded-lg transition-colors ${
+                  isDarkMode ? 'hover:bg-white/5 text-gray-400 hover:text-white' : 'hover:bg-blue-100 text-[#000000]'
+                }`}
+              >
+                <X size={16} />
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-5 space-y-6 custom-scrollbar">
+              <div className="space-y-2">
+                <label className="block text-xs font-black uppercase tracking-wider text-gray-500">Diseño de Productos</label>
+                <div className="grid grid-cols-2 gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setPosConfig(prev => ({ ...prev, viewType: 'grid' }))}
+                    className={`py-2.5 rounded-xl text-xs font-bold border transition-all ${posConfig.viewType === 'grid' ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-400 hover:text-white' : 'bg-white border-blue-100 text-[#000000] hover:bg-blue-50')}`}
+                  >
+                    Grid
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPosConfig(prev => ({ ...prev, viewType: 'list' }))}
+                    className={`py-2.5 rounded-xl text-[11px] font-bold border transition-all ${posConfig.viewType === 'list' ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-400 hover:text-white' : 'bg-white border-blue-100 text-[#000000] hover:bg-blue-50')}`}
+                  >
+                    Lista
+                  </button>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="block text-[10px] font-black uppercase tracking-wider text-gray-500">Filtros de Búsqueda</label>
+                <div className="grid grid-cols-2 gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setPosConfig(prev => ({ ...prev, showCarousel: false }))}
+                    className={`py-2.5 rounded-xl text-[11px] font-bold border transition-all ${!posConfig.showCarousel ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-400 hover:text-white' : 'bg-white border-blue-100 text-[#000000] hover:bg-blue-50')}`}
+                  >
+                    Normales
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPosConfig(prev => ({ ...prev, showCarousel: true }))}
+                    className={`py-2.5 rounded-xl text-[11px] font-bold border transition-all ${posConfig.showCarousel ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-400 hover:text-white' : 'bg-white border-blue-100 text-[#000000] hover:bg-blue-50')}`}
+                  >
+                    Carrusel
+                  </button>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="block text-[10px] font-black uppercase tracking-wider text-gray-500">Posición Detalle</label>
+                <div className="grid grid-cols-2 gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setPosConfig(prev => ({ ...prev, cartPosition: 'left' }))}
+                    className={`py-2.5 rounded-xl text-[11px] font-bold border transition-all ${posConfig.cartPosition === 'left' ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-400 hover:text-white' : 'bg-white border-blue-100 text-[#000000] hover:bg-blue-50')}`}
+                  >
+                    Izquierda
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPosConfig(prev => ({ ...prev, cartPosition: 'right' }))}
+                    className={`py-2.5 rounded-xl text-[11px] font-bold border transition-all ${posConfig.cartPosition === 'right' ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-400 hover:text-white' : 'bg-white border-blue-100 text-[#000000] hover:bg-blue-50')}`}
+                  >
+                    Derecha
+                  </button>
+                </div>
+              </div>
+              
+              <div className="space-y-2 pt-2 border-t border-white/5">
+                <label className="block text-[10px] font-black uppercase tracking-wider text-gray-500">Buscador y Lector</label>
+                <button
+                  type="button"
+                  onClick={() => setPosConfig(prev => ({ ...prev, barcodeMode: !prev.barcodeMode }))}
+                  className={`w-full py-3 px-4 rounded-xl text-xs font-bold border transition-all flex items-center justify-between ${
+                    posConfig.barcodeMode
+                      ? 'bg-blue-600 border-blue-600 text-white shadow-sm'
+                      : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-455 hover:text-white' : 'bg-blue-50/30 border-blue-100 text-[#000000] hover:bg-blue-50')
+                  }`}
+                >
+                  <span className="flex items-center gap-1.5">
+                    <Barcode size={14} /> Modo Lector
+                  </span>
+                  <span className="text-[10px] font-extrabold">{posConfig.barcodeMode ? 'ACTIVO' : 'INACTIVO'}</span>
+                </button>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="block text-[10px] font-black uppercase tracking-wider text-gray-500">Checkout Exprés</label>
+                <button
+                  type="button"
+                  onClick={() => setPosConfig(prev => ({ ...prev, expressCheckout: !prev.expressCheckout }))}
+                  className={`w-full py-3 px-4 rounded-xl text-[11px] font-bold border transition-all flex items-center justify-between ${
+                    posConfig.expressCheckout
+                      ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm'
+                      : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-455 hover:text-white' : 'bg-blue-50/30 border-blue-100 text-[#000000] hover:bg-blue-50')
+                  }`}
+                >
+                  <span className="flex items-center gap-1.5">
+                    <Zap size={14} /> Checkout 1-Paso
+                  </span>
+                  <span className="text-[10px] font-extrabold">{posConfig.expressCheckout ? 'ACTIVO' : 'INACTIVO'}</span>
+                </button>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="block text-[10px] font-black uppercase tracking-wider text-gray-500">Privacidad Stock</label>
+                <button
+                  type="button"
+                  onClick={() => setPosConfig(prev => ({ ...prev, showStock: !prev.showStock }))}
+                  className={`w-full py-3 px-4 rounded-xl text-[11px] font-bold border transition-all flex items-center justify-between ${
+                    posConfig.showStock
+                      ? 'bg-blue-600 border-blue-600 text-white shadow-sm'
+                      : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-455 hover:text-white' : 'bg-blue-50/30 border-blue-100 text-[#000000] hover:bg-blue-50')
+                  }`}
+                >
+                  <span className="flex items-center gap-1.5">
+                    <Eye size={14} /> Mostrar Stock
+                  </span>
+                  <span className="text-[10px] font-extrabold">{posConfig.showStock ? 'ACTIVO' : 'INACTIVO'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* APERTURA Y CIERRE DE CAJA DIALOG */}
       {isClosingOpen && (
@@ -1497,7 +1820,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
               </div>
 
               <div>
-                <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Observaciones Arqueo</label>
+                <label className={`block text-xs font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Observaciones Arqueo</label>
                 <textarea value={closingForm.notes} onChange={e => setClosingForm({...closingForm, notes: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} min-h-[50px] w-full px-2.5 py-2 rounded-xl border`} placeholder="Escribe discrepancias si las hay..." />
               </div>
 
@@ -1518,28 +1841,28 @@ export default function PosView({ products, thirdParties, transactions = [], isD
           <div className="flex-1 flex flex-col overflow-hidden max-h-screen transition-all duration-300">
             
             {/* WIZARD PROGRESS HEADER */}
-            <div className={`px-6 py-4 border-b flex items-center justify-between shrink-0 ${
+            <div className={`px-6 py-4.5 border-b flex items-center justify-between shrink-0 ${
               isDarkMode ? 'border-white/5 bg-black/20 text-white' : 'border-blue-100 bg-blue-50/30 text-black'
             }`}>
               <div className="max-w-4xl mx-auto w-full flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <ShoppingCart size={15} className="text-blue-500" />
-                  <h3 className="text-xs font-black uppercase tracking-wider">Checkout Comercial POS</h3>
+                  <ShoppingCart size={16} className="text-blue-500" />
+                  <h3 className="text-base font-black uppercase tracking-wider">Checkout Comercial POS</h3>
                 </div>
                 {posConfig.expressCheckout ? (
-                  <div className="flex items-center gap-1.5 text-[9px] font-extrabold text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-lg">
+                  <div className="flex items-center gap-1.5 text-[10px] font-extrabold text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-lg">
                     ⚡ MODO EXPRÉS (PASO ÚNICO)
                   </div>
                 ) : (
-                  <div className="flex items-center gap-1 text-[10px] font-bold">
+                  <div className="flex items-center gap-1.5 text-xs font-black">
                     <span className={checkoutStep === 1 ? 'text-blue-500' : (isDarkMode ? 'text-gray-400' : 'text-gray-500')}>1. Cliente</span>
-                    <ChevronRight size={10} className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
+                    <ChevronRight size={11} className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
                     <span className={checkoutStep === 2 ? 'text-blue-500' : (isDarkMode ? 'text-gray-400' : 'text-gray-500')}>2. Métodos de Pago</span>
-                    <ChevronRight size={10} className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
+                    <ChevronRight size={11} className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
                     <span className={checkoutStep === 3 ? 'text-blue-500' : (isDarkMode ? 'text-gray-400' : 'text-gray-500')}>3. Emisión</span>
                   </div>
                 )}
-                <button onClick={() => setIsCheckoutOpen(false)} className={isDarkMode ? 'text-gray-500 hover:text-white' : 'text-gray-500 hover:text-black'}><X size={15}/></button>
+                <button onClick={() => setIsCheckoutOpen(false)} className={isDarkMode ? 'text-gray-455 hover:text-white' : 'text-gray-555 hover:text-black'}><X size={17}/></button>
               </div>
             </div>
 
@@ -1548,18 +1871,18 @@ export default function PosView({ products, thirdParties, transactions = [], isD
               <div className="max-w-4xl mx-auto w-full space-y-6">
               
               {posConfig.expressCheckout ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs md:text-sm">
                   {/* COLUMNA IZQUIERDA: CLIENTE Y DETALLE */}
                   <div className="space-y-4">
                     {/* CLIENTE */}
                     <div className={`p-4 rounded-2xl border space-y-3 ${isDarkMode ? 'bg-black/20 border-white/5' : 'bg-blue-50/20 border-blue-100'}`}>
-                      <h4 className={`text-xs font-bold uppercase tracking-wider ${isDarkMode ? 'text-white' : 'text-black'}`}>Cliente de la Venta</h4>
+                      <h4 className={`text-sm md:text-base font-bold uppercase tracking-wider ${isDarkMode ? 'text-white' : 'text-black'}`}>Cliente de la Venta</h4>
                       <div className="flex items-center gap-2">
                         <div className="flex-1">
                           <select 
                             value={selectedClientId} 
                             onChange={e => setSelectedClientId(e.target.value)} 
-                            className={`w-full text-xs font-semibold px-3 py-2 outline-none rounded-xl border ${
+                            className={`w-full text-sm md:text-base font-semibold px-3 py-2.5 outline-none rounded-xl border ${
                               isDarkMode ? 'border-white/10 bg-black text-white' : 'border-blue-150 bg-white text-black'
                             }`}
                           >
@@ -1577,7 +1900,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                             });
                             setIsQuickAddOpen(true);
                           }}
-                          className="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white transition-all shrink-0 text-xs font-bold shadow-sm"
+                          className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white transition-all shrink-0 text-sm md:text-base font-bold shadow-sm"
                         >
                           Crear
                         </button>
@@ -1585,11 +1908,11 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                     </div>
 
                     {/* DATOS CLIENTE */}
-                    <div className={`p-4 rounded-2xl border space-y-2 ${
+                    <div className={`p-4 rounded-2xl border space-y-2 text-xs md:text-sm ${
                       isDarkMode ? 'border-white/5 bg-black/10 text-gray-300' : 'border-blue-100 bg-blue-50/5 text-black'
                     }`}>
                       <p className={`font-bold ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Datos Facturación del Receptor:</p>
-                      <div className="grid grid-cols-2 gap-2 text-[11px] pt-1">
+                      <div className="grid grid-cols-2 gap-2 text-sm md:text-base pt-1">
                         <p><span className={`font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-blue-800'}`}>Razón Social:</span> {getSelectedClient().name}</p>
                         <p><span className={`font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-blue-800'}`}>Identificación:</span> {getSelectedClient().ruc}</p>
                         <p><span className={`font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-blue-800'}`}>Teléfono:</span> {getSelectedClient().telefono || '-'}</p>
@@ -1599,11 +1922,11 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                     </div>
 
                     {/* PREVISUALIZACION DETALLE */}
-                    <div className={`p-4 rounded-2xl border space-y-3 ${
+                    <div className={`p-4 rounded-2xl border space-y-3 text-xs md:text-sm ${
                       isDarkMode ? 'border-white/5 bg-black/10 text-gray-300' : 'border-blue-100 bg-blue-50/5 text-black'
                     }`}>
-                      <h4 className={`text-xs font-bold uppercase tracking-wider ${isDarkMode ? 'text-white' : 'text-black'}`}>Ítems a Facturar</h4>
-                      <div className="max-h-[140px] overflow-y-auto space-y-1.5 pr-1 custom-scrollbar text-[11px]">
+                      <h4 className={`text-sm md:text-base font-bold uppercase tracking-wider ${isDarkMode ? 'text-white' : 'text-black'}`}>Ítems a Facturar</h4>
+                      <div className="max-h-[140px] overflow-y-auto space-y-1.5 pr-1 custom-scrollbar text-xs md:text-sm">
                         {cart.map((item, idx) => (
                           <div key={idx} className="flex justify-between">
                             <span className="opacity-80">{item.quantity}x {item.name}</span>
@@ -1611,7 +1934,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                           </div>
                         ))}
                       </div>
-                      <div className={`border-t pt-2 mt-2 flex justify-between font-black text-xs ${isDarkMode ? 'border-white/5 text-white' : 'border-blue-100 text-black'}`}>
+                      <div className={`border-t pt-2.5 mt-2 flex justify-between font-black text-xs md:text-sm ${isDarkMode ? 'border-white/5 text-white' : 'border-blue-100 text-black'}`}>
                         <span>Subtotal: ${(getSubtotal() + getIva()).toFixed(2)}</span>
                         {getDiscountAmount() > 0 && <span className="text-red-500 font-bold">Desc: -${getDiscountAmount().toFixed(2)}</span>}
                         <span className={isDarkMode ? 'text-emerald-400' : 'text-blue-700'}>TOTAL: ${totalToPay.toFixed(2)}</span>
@@ -1624,17 +1947,17 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                     <div className={`p-4 rounded-2xl border flex justify-between items-center ${
                       isDarkMode ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' : 'bg-blue-50 border-blue-200 text-blue-700 shadow-sm'
                     }`}>
-                      <span className="text-xs font-bold">TOTAL A COBRAR:</span>
-                      <span className="text-lg font-black">${totalToPay.toFixed(2)}</span>
+                      <span className="text-sm font-bold">TOTAL A COBRAR:</span>
+                      <span className="text-2xl font-black">${totalToPay.toFixed(2)}</span>
                     </div>
 
                     <div className="space-y-3">
-                      <h4 className={`text-[10px] font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Medios de Pago (Admite Combinados)</h4>
+                      <h4 className={`text-xs font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Medios de Pago (Admite Combinados)</h4>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {/* Efectivo */}
                         <div className={`p-3 rounded-xl border space-y-1.5 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-blue-100 bg-blue-50/10'}`}>
-                          <label className="text-[11px] font-bold block">Efectivo ($)</label>
-                          <input type="number" step="0.01" value={payments.efectivo || ''} onChange={e => setPayments({...payments, efectivo: e.target.value})} className={isDarkMode ? 'glass-input-dark px-2 py-1.5 w-full text-xs rounded-lg border' : 'glass-input-light px-2 py-1.5 w-full text-xs rounded-lg border'} placeholder="0.00" />
+                          <label className="text-xs font-bold block">Efectivo ($)</label>
+                          <input type="number" step="0.01" value={payments.efectivo || ''} onChange={e => setPayments({...payments, efectivo: e.target.value})} className={isDarkMode ? 'glass-input-dark px-3 py-2 w-full text-sm font-semibold rounded-lg border' : 'glass-input-light px-3 py-2 w-full text-sm font-semibold rounded-lg border'} placeholder="0.00" />
                           <div className="flex gap-1.5 mt-1.5 flex-wrap">
                             {[10, 20, 50].map(val => (
                               <button
@@ -1644,7 +1967,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                                   const current = Number(payments.efectivo) || 0;
                                   setPayments({ ...payments, efectivo: (current + val).toFixed(2) });
                                 }}
-                                className={`px-1.5 py-0.5 text-[8.5px] font-bold rounded border transition-colors ${
+                                className={`px-1.5 py-0.5 text-xs font-bold rounded border transition-colors ${
                                   isDarkMode ? 'border-white/10 bg-white/5 text-white hover:bg-white/10' : 'border-blue-100 bg-white text-blue-755 hover:bg-blue-50'
                                 }`}
                               >
@@ -1670,7 +1993,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                         <div className={`p-3 rounded-xl border space-y-1.5 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-blue-100 bg-blue-50/10'}`}>
                           <label className="text-[11px] font-bold block">Tarjeta ($)</label>
                           <input type="number" step="0.01" value={payments.tarjeta || ''} onChange={e => setPayments({...payments, tarjeta: e.target.value})} className={isDarkMode ? 'glass-input-dark px-2 py-1.5 w-full text-xs rounded-lg border' : 'glass-input-light px-2 py-1.5 w-full text-xs rounded-lg border'} placeholder="0.00" />
-                          <input type="text" value={payments.tarjetaRef} onChange={e => setPayments({...payments, tarjetaRef: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} px-2 py-1 w-full text-[9px] rounded-lg border`} placeholder="Ref/Aut" />
+                          <input type="text" value={payments.tarjetaRef} onChange={e => setPayments({...payments, tarjetaRef: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} px-2 py-1 w-full text-xs rounded-lg border`} placeholder="Ref/Aut" />
                         </div>
 
                         {/* Transferencia */}
@@ -1689,7 +2012,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                       </div>
                     </div>
 
-                    <div className={`p-4 rounded-xl space-y-1 text-xs font-mono border ${isDarkMode ? 'bg-black/20 border-white/5 text-gray-300' : 'bg-blue-50/20 border-blue-100 text-black'}`}>
+                    <div className={`p-4 rounded-xl space-y-1 text-sm font-mono border ${isDarkMode ? 'bg-black/20 border-white/5 text-gray-300' : 'bg-blue-50/20 border-blue-100 text-black'}`}>
                       <div className="flex justify-between">
                         <span>Total Pagado:</span>
                         <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-black'}`}>${paidTotal.toFixed(2)}</span>
@@ -1712,15 +2035,15 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                 <>
                   {/* PASO 1: CLIENTE */}
                   {checkoutStep === 1 && (
-                    <div className="space-y-4 animate-in slide-in-from-right-4 duration-300">
+                    <div className="space-y-4 animate-in slide-in-from-right-4 duration-300 text-xs md:text-sm">
                       <div className={`p-4 rounded-2xl border space-y-3 ${isDarkMode ? 'bg-black/20 border-white/5' : 'bg-blue-50/20 border-blue-100'}`}>
-                        <h4 className={`text-xs font-bold uppercase tracking-wider ${isDarkMode ? 'text-white' : 'text-black'}`}>Cliente de la Venta</h4>
+                        <h4 className={`text-xs md:text-sm font-bold uppercase tracking-wider ${isDarkMode ? 'text-white' : 'text-black'}`}>Cliente de la Venta</h4>
                         <div className="flex items-center gap-2">
                           <div className="flex-1">
                             <select 
                               value={selectedClientId} 
                               onChange={e => setSelectedClientId(e.target.value)} 
-                              className={`w-full text-xs font-semibold px-3 py-2.5 outline-none rounded-xl border ${
+                              className={`w-full text-xs md:text-sm font-semibold px-3 py-2.5 outline-none rounded-xl border ${
                                 isDarkMode ? 'border-white/10 bg-black text-white' : 'border-blue-150 bg-white text-black'
                               }`}
                             >
@@ -1738,18 +2061,18 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                               });
                               setIsQuickAddOpen(true);
                             }}
-                            className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white transition-all shrink-0 text-xs font-bold"
+                            className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white transition-all shrink-0 text-xs md:text-sm font-bold shadow-sm"
                           >
                             Crear Nuevo Cliente
                           </button>
                         </div>
                       </div>
 
-                      <div className={`p-4 rounded-2xl border space-y-2 text-xs ${
+                      <div className={`p-4 rounded-2xl border space-y-2 text-xs md:text-sm ${
                         isDarkMode ? 'border-white/5 bg-black/10 text-gray-300' : 'border-blue-100 bg-blue-50/5 text-black'
                       }`}>
                         <p className={`font-bold ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Datos Facturación del Receptor:</p>
-                        <div className="grid grid-cols-2 gap-3 text-[11px] pt-1">
+                        <div className="grid grid-cols-2 gap-3 text-xs md:text-sm pt-1">
                           <p><span className={`font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-blue-800'}`}>Razón Social:</span> {getSelectedClient().name}</p>
                           <p><span className={`font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-blue-800'}`}>Identificación:</span> {getSelectedClient().ruc}</p>
                           <p><span className={`font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-blue-800'}`}>Teléfono:</span> {getSelectedClient().telefono || '-'}</p>
@@ -1762,23 +2085,23 @@ export default function PosView({ products, thirdParties, transactions = [], isD
 
                   {/* PASO 2: METODOS DE PAGO */}
                   {checkoutStep === 2 && (
-                    <div className="space-y-4 animate-in slide-in-from-right-4 duration-300">
-                      <div className={`p-4 rounded-2xl border flex justify-between items-center ${
+                    <div className="space-y-4 animate-in slide-in-from-right-4 duration-300 text-xs md:text-sm">
+                      <div className={`p-4.5 rounded-2xl border flex justify-between items-center ${
                         isDarkMode ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' : 'bg-blue-50 border-blue-200 text-blue-700 shadow-sm'
                       }`}>
-                        <span className="text-xs font-bold">TOTAL A PAGAR:</span>
-                        <span className="text-lg font-black">${totalToPay.toFixed(2)}</span>
+                        <span className="text-sm md:text-base font-black">TOTAL A PAGAR:</span>
+                        <span className="text-xl font-black">${totalToPay.toFixed(2)}</span>
                       </div>
 
                       <div className="space-y-3">
-                        <h4 className={`text-xs font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Medios de Pago (Admite combinados)</h4>
+                        <h4 className={`text-xs md:text-sm font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Medios de Pago (Admite combinados)</h4>
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           {/* Efectivo */}
-                          <div className={`p-3.5 rounded-xl border space-y-1.5 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-blue-100 bg-blue-50/10'}`}>
-                            <label className={`text-xs font-bold block ${isDarkMode ? 'text-white' : 'text-black'}`}>Efectivo ($)</label>
-                            <input type="number" step="0.01" value={payments.efectivo || ''} onChange={e => setPayments({...payments, efectivo: e.target.value})} className={isDarkMode ? 'glass-input-dark px-3 py-2 w-full text-xs rounded-xl outline-none border' : 'glass-input-light px-3 py-2 w-full text-xs rounded-xl outline-none border'} placeholder="0.00" />
-                            <div className="flex flex-wrap gap-1 mt-1.5">
+                          <div className={`p-4 rounded-xl border space-y-2 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-blue-100 bg-blue-50/10'}`}>
+                            <label className={`text-xs md:text-sm font-bold block ${isDarkMode ? 'text-white' : 'text-black'}`}>Efectivo ($)</label>
+                            <input type="number" step="0.01" value={payments.efectivo || ''} onChange={e => setPayments({...payments, efectivo: e.target.value})} className={isDarkMode ? 'glass-input-dark px-3.5 py-3 w-full text-base font-bold rounded-xl outline-none border' : 'glass-input-light px-3.5 py-3 w-full text-base font-bold rounded-xl outline-none border'} placeholder="0.00" />
+                            <div className="flex flex-wrap gap-1.5 mt-2">
                               {[5, 10, 20, 50, 100].map(val => (
                                 <button
                                   key={val}
@@ -1787,7 +2110,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                                     const current = Number(payments.efectivo) || 0;
                                     setPayments({ ...payments, efectivo: (current + val).toFixed(2) });
                                   }}
-                                  className={`px-2 py-1 text-[9px] font-bold rounded-lg border transition-colors ${
+                                  className={`px-2.5 py-1 text-xs md:text-sm font-bold rounded-lg border transition-colors ${
                                     isDarkMode ? 'border-white/10 bg-white/5 hover:bg-white/10 text-white' : 'border-blue-100 bg-white hover:bg-blue-50 text-blue-755 hover:bg-blue-100/50'
                                   }`}
                                 >
@@ -1800,7 +2123,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                                   const pending = Math.max(0, totalToPay - (Number(payments.tarjeta) || 0) - (Number(payments.transferencia) || 0) - (Number(payments.cruce_cuentas) || 0));
                                   setPayments({ ...payments, efectivo: pending.toFixed(2) });
                                 }}
-                                className={`px-2 py-1 text-[9px] font-bold rounded-lg border transition-colors ${
+                                className={`px-2.5 py-1 text-[10px] md:text-[11px] font-bold rounded-lg border transition-colors ${
                                   isDarkMode ? 'border-blue-500/20 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400' : 'border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700'
                                 }`}
                               >
@@ -1810,29 +2133,29 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                           </div>
                           
                           {/* Tarjeta */}
-                          <div className={`p-3.5 rounded-xl border space-y-1.5 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-blue-100 bg-blue-50/10'}`}>
-                            <label className={`text-xs font-bold block ${isDarkMode ? 'text-white' : 'text-black'}`}>Tarjeta (Crédito/Débito) ($)</label>
-                            <input type="number" step="0.01" value={payments.tarjeta || ''} onChange={e => setPayments({...payments, tarjeta: e.target.value})} className={isDarkMode ? 'glass-input-dark px-3 py-2 w-full text-xs rounded-xl outline-none border' : 'glass-input-light px-3 py-2 w-full text-xs rounded-xl outline-none border'} placeholder="0.00" />
-                            <input type="text" value={payments.tarjetaRef} onChange={e => setPayments({...payments, tarjetaRef: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} px-3 py-1 w-full text-[10px] mt-1 rounded-xl border`} placeholder="Ref / Autorización" />
+                          <div className={`p-4 rounded-xl border space-y-2 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-blue-100 bg-blue-50/10'}`}>
+                            <label className={`text-xs md:text-sm font-bold block ${isDarkMode ? 'text-white' : 'text-black'}`}>Tarjeta (Crédito/Débito) ($)</label>
+                            <input type="number" step="0.01" value={payments.tarjeta || ''} onChange={e => setPayments({...payments, tarjeta: e.target.value})} className={isDarkMode ? 'glass-input-dark px-3 py-2.5 w-full text-sm font-bold rounded-xl outline-none border' : 'glass-input-light px-3 py-2.5 w-full text-sm font-bold rounded-xl outline-none border'} placeholder="0.00" />
+                            <input type="text" value={payments.tarjetaRef} onChange={e => setPayments({...payments, tarjetaRef: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} px-3 py-2 w-full text-sm mt-1.5 rounded-xl border`} placeholder="Ref / Autorización" />
                           </div>
 
                           {/* Transferencia */}
-                          <div className={`p-3.5 rounded-xl border space-y-1.5 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-blue-100 bg-blue-50/10'}`}>
-                            <label className={`text-xs font-bold block ${isDarkMode ? 'text-white' : 'text-black'}`}>Transferencia Bancaria ($)</label>
-                            <input type="number" step="0.01" value={payments.transferencia || ''} onChange={e => setPayments({...payments, transferencia: e.target.value})} className={isDarkMode ? 'glass-input-dark px-3 py-2 w-full text-xs rounded-xl outline-none border' : 'glass-input-light px-3 py-2 w-full text-xs rounded-xl outline-none border'} placeholder="0.00" />
-                            <input type="text" value={payments.transferenciaRef} onChange={e => setPayments({...payments, transferenciaRef: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} px-3 py-1 w-full text-[10px] mt-1 rounded-xl border`} placeholder="Nro Referencia / Comprobante" />
+                          <div className={`p-4 rounded-xl border space-y-2 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-blue-100 bg-blue-50/10'}`}>
+                            <label className={`text-xs md:text-sm font-bold block ${isDarkMode ? 'text-white' : 'text-black'}`}>Transferencia Bancaria ($)</label>
+                            <input type="number" step="0.01" value={payments.transferencia || ''} onChange={e => setPayments({...payments, transferencia: e.target.value})} className={isDarkMode ? 'glass-input-dark px-3 py-2.5 w-full text-sm font-bold rounded-xl outline-none border' : 'glass-input-light px-3 py-2.5 w-full text-sm font-bold rounded-xl outline-none border'} placeholder="0.00" />
+                            <input type="text" value={payments.transferenciaRef} onChange={e => setPayments({...payments, transferenciaRef: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} px-3 py-2 w-full text-xs mt-1.5 rounded-xl border`} placeholder="Nro Referencia / Comprobante" />
                           </div>
 
                           {/* Cruce de Cuentas */}
-                          <div className={`p-3.5 rounded-xl border space-y-1.5 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-blue-100 bg-blue-50/10'}`}>
-                            <label className={`text-xs font-bold block ${isDarkMode ? 'text-white' : 'text-black'}`}>Cruce de Cuentas ($)</label>
-                            <input type="number" step="0.01" value={payments.cruce_cuentas || ''} onChange={e => setPayments({...payments, cruce_cuentas: e.target.value})} className={isDarkMode ? 'glass-input-dark px-3 py-2 w-full text-xs rounded-xl outline-none border' : 'glass-input-light px-3 py-2 w-full text-xs rounded-xl outline-none border'} placeholder="0.00" />
-                            <input type="text" value={payments.cruceRef} onChange={e => setPayments({...payments, cruceRef: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} px-3 py-1 w-full text-[10px] mt-1 rounded-xl border`} placeholder="Nro de Documento Relacionado" />
+                          <div className={`p-4 rounded-xl border space-y-2 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-blue-100 bg-blue-50/10'}`}>
+                            <label className={`text-xs md:text-sm font-bold block ${isDarkMode ? 'text-white' : 'text-black'}`}>Cruce de Cuentas ($)</label>
+                            <input type="number" step="0.01" value={payments.cruce_cuentas || ''} onChange={e => setPayments({...payments, cruce_cuentas: e.target.value})} className={isDarkMode ? 'glass-input-dark px-3 py-2.5 w-full text-sm font-bold rounded-xl outline-none border' : 'glass-input-light px-3 py-2.5 w-full text-sm font-bold rounded-xl outline-none border'} placeholder="0.00" />
+                            <input type="text" value={payments.cruceRef} onChange={e => setPayments({...payments, cruceRef: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} px-3 py-2 w-full text-xs mt-1.5 rounded-xl border`} placeholder="Nro de Documento Relacionado" />
                           </div>
                         </div>
                       </div>
 
-                      <div className={`p-4 rounded-xl space-y-2 text-xs font-mono border ${isDarkMode ? 'bg-black/20 border-white/5 text-gray-300' : 'bg-blue-50/20 border-blue-100 text-black'}`}>
+                      <div className={`p-4 rounded-xl space-y-2.5 text-xs md:text-sm font-mono border ${isDarkMode ? 'bg-black/20 border-white/5 text-gray-300' : 'bg-blue-50/20 border-blue-100 text-black'}`}>
                         <div className="flex justify-between">
                           <span>Total Pagado:</span>
                           <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-black'}`}>${paidTotal.toFixed(2)}</span>
@@ -1858,7 +2181,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                       <div className={`p-5 rounded-2xl border space-y-3 ${isDarkMode ? 'bg-black border-white/5 text-gray-400' : 'bg-white border-blue-150 text-black shadow-inner'}`}>
                         <h4 className={`text-sm font-black text-center uppercase tracking-widest border-b pb-2 ${isDarkMode ? 'text-white border-white/5' : 'text-black border-blue-100'}`}>PREVISUALIZACIÓN DE FACTURA (RIDE)</h4>
                         
-                        <div className="grid grid-cols-2 gap-4 text-[10px] leading-normal">
+                        <div className="grid grid-cols-2 gap-4 text-xs leading-normal">
                           <div>
                             <p className={`font-bold uppercase ${isDarkMode ? 'text-white' : 'text-blue-800'}`}>RECEPTOR</p>
                             <p className={isDarkMode ? 'text-gray-400' : 'text-black font-medium'}><span className="font-bold">Razon Social:</span> {getSelectedClient().name}</p>
@@ -1891,7 +2214,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                           <span className={isDarkMode ? 'text-white' : 'text-blue-750'}>${totalToPay.toFixed(2)}</span>
                         </div>
 
-                        <div className={`text-[9px] border-t pt-2 ${isDarkMode ? 'text-gray-500 border-white/5' : 'text-black border-blue-100 font-semibold'}`}>
+                        <div className={`text-xs border-t pt-2 ${isDarkMode ? 'text-gray-500 border-white/5' : 'text-black border-blue-100 font-semibold'}`}>
                           <p>Métodos Registrados: Efectivo: ${Number(payments.efectivo).toFixed(2)} | Tarjeta: ${Number(payments.tarjeta).toFixed(2)} | Transf: ${Number(payments.transferencia).toFixed(2)} | Cruce: ${Number(payments.cruce_cuentas).toFixed(2)}</p>
                           <p className="mt-0.5">Vuelto entregado: ${changeDue.toFixed(2)}</p>
                         </div>
@@ -1980,7 +2303,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
           <div className={`w-full max-w-md p-6 rounded-3xl border shadow-2xl transition-all duration-300 ${
             isDarkMode ? 'bg-[#151517] border-white/10 text-white shadow-black/80' : 'bg-white border-blue-100 text-black shadow-blue-900/10'
           }`}>
-            <h3 className="text-sm font-black mb-4">Registro Rápido de Cliente (SRI)</h3>
+            <h3 className="text-base font-black mb-4">Registro Rápido de Cliente (SRI)</h3>
             
             <form onSubmit={handleQuickClientSave} className="space-y-3.5">
               <div className="grid grid-cols-2 gap-3">
@@ -1989,7 +2312,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   <select 
                     value={quickAddFormData.tipoIdentificacion} 
                     onChange={e => setQuickAddFormData({...quickAddFormData, tipoIdentificacion: e.target.value})} 
-                    className={`w-full text-xs px-2.5 py-2.5 rounded-xl outline-none border ${
+                    className={`w-full text-sm px-3 py-2.5 rounded-xl outline-none border ${
                       isDarkMode ? 'bg-black border-white/10 text-white' : 'bg-white border-blue-100 text-black'
                     }`}
                   >
@@ -2006,7 +2329,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                       required 
                       value={quickAddFormData.ruc} 
                       onChange={e => setQuickAddFormData({...quickAddFormData, ruc: e.target.value})} 
-                      className={`w-full text-xs px-2.5 py-2.5 rounded-xl outline-none border ${
+                      className={`w-full text-sm px-3 py-2.5 rounded-xl outline-none border ${
                         isDarkMode ? 'bg-black border-white/10 text-white focus:border-blue-500/50' : 'bg-white border-blue-100 text-black focus:border-blue-600'
                       }`}
                       placeholder="1790000000001" 
@@ -2090,7 +2413,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
 
               <div className={`flex justify-end gap-2.5 mt-6 pt-4 border-t ${isDarkMode ? 'border-white/5' : 'border-blue-100/55'}`}>
                 <button type="button" onClick={() => setIsQuickAddOpen(false)} className={`px-3.5 py-2 rounded-xl text-xs font-semibold ${isDarkMode ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-blue-100/50 text-black'}`}>Cancelar</button>
-                <button type="submit" className="px-4 py-2 rounded-xl text-xs font-black bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm hover:scale-105 active:scale-95 transition-all">Guardar y Seleccionar</button>
+                <button type="submit" className="px-4 py-2 rounded-xl text-sm font-black bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm hover:scale-105 active:scale-95 transition-all">Guardar y Seleccionar</button>
               </div>
             </form>
           </div>
@@ -2197,16 +2520,16 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                       <div className="flex justify-between items-start">
                         <div className="min-w-0 flex-1">
                           <p className="font-mono text-[9px] text-gray-500 truncate">{tx.id}</p>
-                          <h4 className={`text-xs font-black truncate ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                          <h4 className={`text-sm font-black truncate ${isDarkMode ? 'text-white' : 'text-black'}`}>
                             {matchedClient.name}
                           </h4>
                           <p className="text-[9px] text-gray-500">RUC/CI: {matchedClient.ruc} | Fecha: {tx.date}</p>
                         </div>
                         <div className="text-right shrink-0">
-                          <span className={`text-xs font-black block ${isAnulado ? 'text-red-500 line-through' : (isDarkMode ? 'text-white' : 'text-blue-700')}`}>
+                          <span className={`text-sm font-black block ${isAnulado ? 'text-red-500 line-through' : (isDarkMode ? 'text-white' : 'text-blue-700')}`}>
                             ${Number(tx.total || 0).toFixed(2)}
                           </span>
-                          <span className={`inline-block px-1.5 py-0.5 rounded text-[8px] font-bold uppercase mt-1 ${
+                          <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-bold uppercase mt-1 ${
                             isAnulado 
                               ? 'bg-red-500/20 text-red-405' 
                               : (tx.sriStatus === 'autorizado' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-yellow-500/20 text-yellow-400')
@@ -2216,7 +2539,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                         </div>
                       </div>
 
-                      <div className={`p-2 rounded-xl text-[9px] leading-relaxed font-mono ${isDarkMode ? 'bg-black/40 text-gray-400' : 'bg-blue-50/30 text-gray-700'}`}>
+                      <div className={`p-2 rounded-xl text-xs leading-relaxed font-mono ${isDarkMode ? 'bg-black/40 text-gray-400' : 'bg-blue-50/30 text-gray-700'}`}>
                         <div className="flex justify-between">
                           <span>Pago: <span className="font-bold uppercase">{tx.paymentMethod}</span></span>
                           <span>Base: ${Number(tx.baseImponible || 0).toFixed(2)}</span>
@@ -2277,7 +2600,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                           <button
                             type="button"
                             onClick={() => handleVoidTransaction(tx)}
-                            className={`px-2.5 py-1.5 rounded-xl border text-[9px] font-black uppercase flex items-center gap-1 transition-all ${
+                            className={`px-2.5 py-1.5 rounded-xl border text-xs font-black uppercase flex items-center gap-1 transition-all ${
                               isDarkMode 
                                 ? 'border-red-500/35 bg-red-600/15 text-red-400 hover:bg-red-600/25' 
                                 : 'border-red-200 bg-red-50 text-red-700 hover:bg-red-100'
