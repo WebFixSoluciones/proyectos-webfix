@@ -1212,7 +1212,7 @@ export default function GeneralSettings({
                         : 'bg-purple-50 border-purple-200 text-purple-800 hover:bg-purple-100'
                     }`}
                   >
-                    <Award size={14} /> {companyProfile.certificadoCargado ? 'Configurar Firma Electrónica' : 'Ingresar Firma Electrónica'}
+                    <Award size={14} /> {companyProfile.certificadoCargado ? 'Configurar Firma' : 'Ingresar Firma'}
                   </button>
                 )}
               </div>
