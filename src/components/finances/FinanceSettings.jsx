@@ -271,6 +271,67 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
             </div>
           </div>
 
+          {/* SECUENCIALES DE COMPROBANTES */}
+          <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-white border-gray-200'}`}>
+            <div className="flex items-center gap-2 mb-4 pb-2 border-b border-white/10">
+              <Settings size={18} className="text-purple-500" />
+              <h3 className="text-base font-bold">Secuenciales de Facturación (SRI)</h3>
+            </div>
+            <p className="text-[10px] text-gray-500 mb-4 leading-relaxed">
+              Configure el número secuencial para cada tipo de comprobante. El sistema lo incrementará automáticamente tras cada emisión autorizada por el SRI.
+            </p>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-505">Próximo Secuencial de Factura</label>
+                <input 
+                  type="number" 
+                  min="1"
+                  value={sriConfig.secuencialFactura || 1} 
+                  onChange={e => setSriConfig({...sriConfig, secuencialFactura: parseInt(e.target.value, 10) || 1})} 
+                  className={inputClass} 
+                  placeholder="1" 
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-505">Próximo Secuencial de Retención</label>
+                <input 
+                  type="number" 
+                  min="1"
+                  value={sriConfig.secuencialRetencion || 1} 
+                  onChange={e => setSriConfig({...sriConfig, secuencialRetencion: parseInt(e.target.value, 10) || 1})} 
+                  className={inputClass} 
+                  placeholder="1" 
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-505">Próximo Secuencial de Nota de Crédito</label>
+                <input 
+                  type="number" 
+                  min="1"
+                  value={sriConfig.secuencialNotaCredito || 1} 
+                  onChange={e => setSriConfig({...sriConfig, secuencialNotaCredito: parseInt(e.target.value, 10) || 1})} 
+                  className={inputClass} 
+                  placeholder="1" 
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-505">Próximo Secuencial de Liquidación de Compra</label>
+                <input 
+                  type="number" 
+                  min="1"
+                  value={sriConfig.secuencialLiquidacion || 1} 
+                  onChange={e => setSriConfig({...sriConfig, secuencialLiquidacion: parseInt(e.target.value, 10) || 1})} 
+                  className={inputClass} 
+                  placeholder="1" 
+                />
+              </div>
+            </div>
+          </div>
+
         </div>
 
       </div>

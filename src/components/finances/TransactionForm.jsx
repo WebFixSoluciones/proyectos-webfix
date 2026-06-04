@@ -198,18 +198,30 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
           const configData = snap.data();
           setSriConfig(configData);
           
-          // Si el RUC está inactivo y es un ingreso tipo factura, cambiar a nota_venta
-          if (configData.rucActivo === false && (!tx || !tx.id)) {
-            setFormData(prev => ({
-              ...prev,
-              documentType: prev.type === 'ingreso' ? 'nota_venta' : prev.documentType,
-              secuencial: String(configData.secuencialFactura || 1)
-            }));
-          } else if (!tx || !tx.secuencial) {
-            setFormData(prev => ({
-              ...prev,
-              secuencial: String(configData.secuencialFactura || 1)
-            }));
+          if (!tx || !tx.secuencial) {
+            setFormData(prev => {
+              // Si el RUC está inactivo y es un ingreso tipo factura, cambiar a nota_venta
+              const activeDocType = (configData.rucActivo === false && !tx && prev.type === 'ingreso' && prev.documentType === 'factura')
+                ? 'nota_venta'
+                : prev.documentType;
+
+              let nextSec = '1';
+              if (activeDocType === 'factura') {
+                nextSec = String(configData.secuencialFactura || 1);
+              } else if (activeDocType === 'retencion') {
+                nextSec = String(configData.secuencialRetencion || 1);
+              } else if (activeDocType === 'nota_credito') {
+                nextSec = String(configData.secuencialNotaCredito || 1);
+              } else if (activeDocType === 'liquidacion') {
+                nextSec = String(configData.secuencialLiquidacion || 1);
+              }
+
+              return {
+                ...prev,
+                documentType: activeDocType,
+                secuencial: nextSec
+              };
+            });
           }
         }
       } catch (err) {
@@ -682,9 +694,18 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId), sanitizeFirestoreData(finalTx));
       
       const nextSec = Number(sec) + 1;
-      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config'), sanitizeFirestoreData({
-        secuencialFactura: nextSec
-      }), { merge: true });
+      const secUpdate = {};
+      if (formData.documentType === 'factura') {
+        secUpdate.secuencialFactura = nextSec;
+      } else if (formData.documentType === 'retencion') {
+        secUpdate.secuencialRetencion = nextSec;
+      } else if (formData.documentType === 'nota_credito') {
+        secUpdate.secuencialNotaCredito = nextSec;
+      } else if (formData.documentType === 'liquidacion') {
+        secUpdate.secuencialLiquidacion = nextSec;
+      }
+
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config'), sanitizeFirestoreData(secUpdate), { merge: true });
 
       setFormData(finalTx);
       showToast('Comprobante autorizado tributariamente por el SRI', 'success');
@@ -990,11 +1011,28 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     disabled={!isEditable} 
                     value={formData.documentType} 
                     onChange={e => {
-                      if (sriConfig?.rucActivo === false && e.target.value === 'factura') {
+                      const newDocType = e.target.value;
+                      if (sriConfig?.rucActivo === false && newDocType === 'factura') {
                         showToast("El RUC de la empresa está inactivo. Solo puede emitir Notas de Venta.", "error");
                         return;
                       }
-                      setFormData({...formData, documentType: e.target.value});
+                      
+                      let nextSec = '1';
+                      if (newDocType === 'factura') {
+                        nextSec = String(sriConfig?.secuencialFactura || 1);
+                      } else if (newDocType === 'retencion') {
+                        nextSec = String(sriConfig?.secuencialRetencion || 1);
+                      } else if (newDocType === 'nota_credito') {
+                        nextSec = String(sriConfig?.secuencialNotaCredito || 1);
+                      } else if (newDocType === 'liquidacion') {
+                        nextSec = String(sriConfig?.secuencialLiquidacion || 1);
+                      }
+                      
+                      setFormData(prev => ({
+                        ...prev,
+                        documentType: newDocType,
+                        secuencial: nextSec
+                      }));
                     }} 
                     className={inputClass}
                   >
