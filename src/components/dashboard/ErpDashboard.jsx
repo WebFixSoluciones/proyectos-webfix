@@ -229,11 +229,11 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
       {certStatus !== 'ok' && (
         <div className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-sm animate-in fade-in duration-300 ${
           certStatus === 'expired' 
-            ? 'bg-red-500/10 border-red-500/20 text-red-400' 
-            : 'bg-yellow-500/10 border-yellow-500/20 text-yellow-450'
+            ? 'bg-red-500/10 border-red-500/20 text-red-500 dark:text-red-400 shadow-[0_4px_20px_rgba(239,68,68,0.08)]' 
+            : 'bg-orange-500/10 border-orange-500/25 text-orange-700 dark:text-orange-400 shadow-[0_4px_20px_rgba(249,115,22,0.08)]'
         }`}>
-          <div className="flex items-center gap-2 font-bold">
-            <ShieldAlert size={16} />
+          <div className="flex items-center gap-2 font-black">
+            <ShieldAlert size={16} className={certStatus === 'expired' ? 'text-red-500' : 'text-orange-500'} />
             <span>
               {certStatus === 'none' 
                 ? 'Alerta: Aún no has configurado tu firma electrónica digital (.p12)' 
@@ -242,7 +242,11 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
           </div>
           <button 
             onClick={() => setActivePageId('general_settings')} 
-            className="px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 transition-all font-bold uppercase text-[9px] tracking-wider self-start sm:self-auto"
+            className={`px-3.5 py-1.5 rounded-xl transition-all font-black uppercase text-[9px] tracking-wider self-start sm:self-auto ${
+              certStatus === 'expired'
+                ? 'bg-red-650 hover:bg-red-500 text-white shadow-md shadow-red-550/20'
+                : 'bg-orange-650 hover:bg-orange-500 text-white shadow-md shadow-orange-550/20 dark:bg-orange-600 dark:hover:bg-orange-500'
+            }`}
           >
             Configurar
           </button>
@@ -261,8 +265,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
             <div className={`p-3 rounded-xl mb-2.5 ${isDarkMode ? 'bg-orange-500/10 text-orange-400 border border-orange-500/15' : 'bg-orange-100 text-orange-700'}`}>
               <ShoppingCart size={20} />
             </div>
-            <span className="text-[11px] font-bold">Punto de Venta</span>
-            <span className={`text-[9px] mt-0.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>POS Cajero</span>
+            <span className="text-[11px] font-black">Punto de Venta</span>
           </button>
           
           {/* Item 2: Facturas SRI */}
@@ -273,8 +276,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
             <div className={`p-3 rounded-xl mb-2.5 ${isDarkMode ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/15' : 'bg-emerald-100 text-emerald-700'}`}>
               <FileText size={20} />
             </div>
-            <span className="text-[11px] font-bold">Consola SRI</span>
-            <span className={`text-[9px] mt-0.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>XML Electrónicos</span>
+            <span className="text-[11px] font-black">Consola SRI</span>
           </button>
 
           {/* Item 3: Inventario */}
@@ -285,8 +287,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
             <div className={`p-3 rounded-xl mb-2.5 ${isDarkMode ? 'bg-sky-500/10 text-sky-400 border border-sky-500/15' : 'bg-sky-100 text-sky-700'}`}>
               <Package size={20} />
             </div>
-            <span className="text-[11px] font-bold">Inventario</span>
-            <span className={`text-[9px] mt-0.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>Stock Productos</span>
+            <span className="text-[11px] font-black">Inventario</span>
           </button>
 
           {/* Item 4: Personas */}
@@ -297,8 +298,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
             <div className={`p-3 rounded-xl mb-2.5 ${isDarkMode ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/15' : 'bg-indigo-100 text-indigo-700'}`}>
               <Users size={20} />
             </div>
-            <span className="text-[11px] font-bold">Clientes / Prov</span>
-            <span className={`text-[9px] mt-0.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>Terceros SRI</span>
+            <span className="text-[11px] font-black">Clientes / Prov</span>
           </button>
 
           {/* Item 5: Calendario */}
@@ -309,8 +309,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
             <div className={`p-3 rounded-xl mb-2.5 ${isDarkMode ? 'bg-purple-500/10 text-purple-400 border border-purple-500/15' : 'bg-purple-100 text-purple-700'}`}>
               <CalendarDays size={20} />
             </div>
-            <span className="text-[11px] font-bold">Calendario</span>
-            <span className={`text-[9px] mt-0.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>Google Meet</span>
+            <span className="text-[11px] font-black">Calendario</span>
           </button>
 
           {/* Item 6: Ajustes ERP */}
@@ -321,88 +320,93 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
             <div className={`p-3 rounded-xl mb-2.5 ${isDarkMode ? 'bg-slate-500/10 text-slate-400 border border-slate-500/15' : 'bg-slate-100 text-slate-700'}`}>
               <Settings size={20} />
             </div>
-            <span className="text-[11px] font-bold">Ajustes ERP</span>
-            <span className={`text-[9px] mt-0.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>Módulos & Llaves</span>
+            <span className="text-[11px] font-black">Ajustes ERP</span>
           </button>
         </div>
       </div>
 
-      {/* METRICAS ERP GENERALES (4 Tarjetas) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        
-        {/* VENTAS / INGRESOS */}
-        <div className={cardClass}>
-          <div className="flex items-center justify-between mb-3">
-            <span className={`text-[10px] font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-500' : 'text-gray-750 font-bold'}`}>Ventas (Mes)</span>
-            <div className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-emerald-500/15 text-emerald-400' : 'bg-emerald-100 text-emerald-700'}`}>
-              <TrendingUp size={15} />
+      {/* METRICAS ERP GENERALES - ESTRUCTURA DE CINTA HORIZONTAL ULTRA-LIGERA */}
+      <div className={`p-5 rounded-2xl border ${
+        isDarkMode 
+          ? 'bg-[#151517]/40 border-white/5' 
+          : 'bg-gray-50/50 border-gray-200/80 shadow-sm'
+      }`}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 divide-y sm:divide-y-0 sm:divide-x divide-gray-250 dark:divide-white/5">
+          
+          {/* VENTAS / INGRESOS */}
+          <div className="flex items-center gap-4 sm:px-2">
+            <div className={`p-3 rounded-2xl shrink-0 ${isDarkMode ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-700'}`}>
+              <TrendingUp size={22} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <span className={`text-[10px] font-bold uppercase tracking-wider block ${isDarkMode ? 'text-gray-500' : 'text-gray-600'}`}>Ventas (Mes)</span>
+              <p className={`text-xl font-black tracking-tight mt-0.5 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                ${totalSales.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+              <div className="flex items-center gap-1.5 mt-0.5 text-[9px] text-gray-500">
+                <span>Por cobrar:</span>
+                <span className={`font-bold ${isDarkMode ? 'text-emerald-350' : 'text-emerald-700'}`}>
+                  ${outstandingCollections.toFixed(2)}
+                </span>
+              </div>
             </div>
           </div>
-          <p className={`text-2xl font-black ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
-            ${totalSales.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </p>
-          <div className="flex justify-between items-center mt-1.5 text-[9px]">
-            <span className={isDarkMode ? 'text-gray-500' : 'text-gray-600 font-semibold'}>Cuentas por cobrar:</span>
-            <span className={`font-bold ${isDarkMode ? 'text-emerald-300' : 'text-emerald-850'}`}>
-              ${outstandingCollections.toFixed(2)}
-            </span>
-          </div>
-        </div>
 
-        {/* GASTOS / EGRESOS */}
-        <div className={cardClass}>
-          <div className="flex items-center justify-between mb-3">
-            <span className={`text-[10px] font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-500' : 'text-gray-750 font-bold'}`}>Gastos (Mes)</span>
-            <div className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-red-500/15 text-red-400' : 'bg-red-100 text-red-700'}`}>
-              <TrendingDown size={15} />
+          {/* GASTOS / EGRESOS */}
+          <div className="flex items-center gap-4 pt-4 sm:pt-0 sm:pl-6 sm:px-2">
+            <div className={`p-3 rounded-2xl shrink-0 ${isDarkMode ? 'bg-red-500/10 text-red-400' : 'bg-red-50 text-red-700'}`}>
+              <TrendingDown size={22} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <span className={`text-[10px] font-bold uppercase tracking-wider block ${isDarkMode ? 'text-gray-500' : 'text-gray-600'}`}>Gastos (Mes)</span>
+              <p className={`text-xl font-black tracking-tight mt-0.5 ${isDarkMode ? 'text-red-400' : 'text-red-650'}`}>
+                ${totalExpenses.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+              <div className="flex items-center gap-1.5 mt-0.5 text-[9px] text-gray-500">
+                <span>Balance neto:</span>
+                <span className={`font-bold ${(totalSales - totalExpenses) >= 0 ? (isDarkMode ? 'text-white' : 'text-gray-800') : 'text-red-500'}`}>
+                  ${(totalSales - totalExpenses).toFixed(2)}
+                </span>
+              </div>
             </div>
           </div>
-          <p className={`text-2xl font-black ${isDarkMode ? 'text-red-400' : 'text-red-600'}`}>
-            ${totalExpenses.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </p>
-          <div className="flex justify-between items-center mt-1.5 text-[9px] text-gray-500">
-            <span className={isDarkMode ? 'text-gray-500' : 'text-gray-600 font-semibold'}>Balance neto:</span>
-            <span className={`font-bold ${(totalSales - totalExpenses) >= 0 ? (isDarkMode ? 'text-white' : 'text-gray-900') : 'text-red-500'}`}>
-              ${(totalSales - totalExpenses).toFixed(2)}
-            </span>
-          </div>
-        </div>
 
-        {/* INVENTARIO / STOCKS */}
-        <div className={cardClass}>
-          <div className="flex items-center justify-between mb-3">
-            <span className={`text-[10px] font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-500' : 'text-gray-750 font-bold'}`}>Inventario y Productos</span>
-            <div className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-blue-500/15 text-blue-400' : 'bg-blue-100 text-blue-700'}`}>
-              <Package size={15} />
+          {/* INVENTARIO / STOCKS */}
+          <div className="flex items-center gap-4 pt-4 sm:pt-0 lg:pl-6 sm:px-2">
+            <div className={`p-3 rounded-2xl shrink-0 ${isDarkMode ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-700'}`}>
+              <Package size={22} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <span className={`text-[10px] font-bold uppercase tracking-wider block ${isDarkMode ? 'text-gray-500' : 'text-gray-600'}`}>Inventario</span>
+              <p className="text-xl font-black tracking-tight mt-0.5">{products.length} Items</p>
+              <div className="flex items-center gap-1 mt-0.5 text-[9px]">
+                <span className="text-gray-500">Crítico:</span>
+                <span className={`font-bold flex items-center gap-1 ${lowStockCount > 0 ? 'text-red-500 animate-pulse' : (isDarkMode ? 'text-gray-400' : 'text-gray-700')}`}>
+                  {lowStockCount > 0 && <AlertCircle size={9} />}
+                  {lowStockCount} {lowStockCount === 1 ? 'alerta' : 'alertas'}
+                </span>
+              </div>
             </div>
           </div>
-          <p className="text-2xl font-black">{products.length}</p>
-          <div className="flex justify-between items-center mt-1.5 text-[9px]">
-            <span className={isDarkMode ? 'text-gray-500' : 'text-gray-600 font-semibold'}>Stock Crítico / Alertas:</span>
-            <span className={`font-bold flex items-center gap-1 ${lowStockCount > 0 ? 'text-red-500 font-black animate-pulse' : (isDarkMode ? 'text-gray-400' : 'text-gray-700')}`}>
-              {lowStockCount > 0 && <AlertCircle size={10} />}
-              {lowStockCount} {lowStockCount === 1 ? 'item' : 'items'}
-            </span>
-          </div>
-        </div>
 
-        {/* GESTIÓN DE PROYECTOS */}
-        <div className={cardClass}>
-          <div className="flex items-center justify-between mb-3">
-            <span className={`text-[10px] font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-500' : 'text-gray-750 font-bold'}`}>Proyectos y Tareas</span>
-            <div className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-purple-500/15 text-purple-400' : 'bg-purple-100 text-purple-700'}`}>
-              <FolderOpen size={15} />
+          {/* GESTIÓN DE PROYECTOS */}
+          <div className="flex items-center gap-4 pt-4 sm:pt-0 lg:pl-6 sm:px-2">
+            <div className={`p-3 rounded-2xl shrink-0 ${isDarkMode ? 'bg-purple-500/10 text-purple-400' : 'bg-purple-50 text-purple-700'}`}>
+              <FolderOpen size={22} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <span className={`text-[10px] font-bold uppercase tracking-wider block ${isDarkMode ? 'text-gray-500' : 'text-gray-600'}`}>Proyectos</span>
+              <p className="text-xl font-black tracking-tight mt-0.5">{projectsList.length} Activos</p>
+              <div className="flex items-center gap-1.5 mt-0.5 text-[9px] text-gray-500">
+                <span>Tareas:</span>
+                <span className="font-bold text-purple-500">
+                  {allTasksGlobal.filter(t => t.status !== 'done').length} activas
+                </span>
+              </div>
             </div>
           </div>
-          <p className="text-2xl font-black">{projectsList.length}</p>
-          <div className="flex justify-between items-center mt-1.5 text-[9px]">
-            <span className={isDarkMode ? 'text-gray-500' : 'text-gray-600 font-semibold'}>Tareas pendientes:</span>
-            <span className="font-bold text-yellow-550">
-              {allTasksGlobal.filter(t => t.status !== 'done').length} activas
-            </span>
-          </div>
-        </div>
 
+        </div>
       </div>
 
       {/* DOBLE PANEL: PROYECTOS / SRI */}

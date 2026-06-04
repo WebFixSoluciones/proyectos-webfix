@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   DollarSign, PieChart, Users, FileText, Download, Settings, Sparkles, ShoppingCart, Package, Bookmark,
-  ArrowDownCircle, ArrowUpCircle
+  ArrowDownCircle, ArrowUpCircle, TrendingUp, Calculator, Building, Percent
 } from 'lucide-react';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db, storage, appId } from '../../firebase';
@@ -155,7 +155,6 @@ export default function FinanceModule({
       
       {/* BARRA DE NAVEGACIÓN ESTÁNDAR DE SUBMÓDULOS */}
       <div className={`flex items-center gap-3 px-8 py-3.5 border-b shrink-0 ${isDarkMode ? 'border-white/5 bg-[#121214]' : 'border-primary/10 bg-primary-light'}`}>
-        <span className={`text-[10px] font-black uppercase tracking-wider ${isDarkMode ? 'text-gray-500' : 'text-primary'}`}>Submódulos:</span>
         <div className="flex gap-2 overflow-x-auto whitespace-nowrap scrollbar-none flex-1">
           
           {/* Si el modo es Contabilidad: Renderizar displayedTabs */}
@@ -180,43 +179,53 @@ export default function FinanceModule({
 
           {/* Si el modo es Ventas: Renderizar ventas subtabs */}
           {mode === 'ventas' && [
-            { id: 'resumen_ventas', label: 'Resumen' },
-            { id: 'ventas_preventa', label: 'Ventas' },
-            { id: 'pos', label: 'POS' },
-            { id: 'quotes', label: 'Cotizaciones' },
-            { id: 'nota_credito', label: 'Notas de Crédito' },
-            { id: 'retencion', label: 'Retenciones' }
-          ].map(sub => (
-            <button
-              key={sub.id}
-              onClick={() => setSubTabVentas(sub.id)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
-                subTabVentas === sub.id
-                  ? (isDarkMode ? 'bg-primary/20 text-primary border-primary/30 shadow-sm' : 'bg-primary text-white border-primary shadow-sm')
-                  : (isDarkMode ? 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-white/5' : 'border-transparent text-gray-700 hover:text-gray-900 hover:bg-black/5')
-              }`}
-            >
-              <span>{sub.label}</span>
-            </button>
-          ))}
+            { id: 'resumen_ventas', label: 'Resumen', icon: TrendingUp },
+            { id: 'ventas_preventa', label: 'Ventas', icon: ShoppingCart },
+            { id: 'pos', label: 'POS', icon: Calculator },
+            { id: 'quotes', label: 'Cotizaciones', icon: FileText },
+            { id: 'nota_credito', label: 'Notas de Crédito', icon: ArrowDownCircle },
+            { id: 'retencion', label: 'Retenciones', icon: Percent }
+          ].map(sub => {
+            const Icon = sub.icon;
+            const isActive = subTabVentas === sub.id;
+            return (
+              <button
+                key={sub.id}
+                onClick={() => setSubTabVentas(sub.id)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 ${
+                  isActive
+                    ? (isDarkMode ? 'bg-primary/20 text-primary border-primary/30 shadow-sm' : 'bg-primary text-white border-primary shadow-sm')
+                    : (isDarkMode ? 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-white/5' : 'border-transparent text-gray-700 hover:text-gray-900 hover:bg-black/5')
+                }`}
+              >
+                <Icon size={13} />
+                <span>{sub.label}</span>
+              </button>
+            );
+          })}
 
           {/* Si el modo es Personas: Renderizar personas subtabs */}
           {mode === 'personas' && [
-            { id: 'cliente', label: 'Clientes' },
-            { id: 'proveedor', label: 'Proveedores' }
-          ].map(sub => (
-            <button
-              key={sub.id}
-              onClick={() => setSubTabPersonas(sub.id)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
-                subTabPersonas === sub.id
-                  ? (isDarkMode ? 'bg-primary/20 text-primary border-primary/30 shadow-sm' : 'bg-primary text-white border-primary shadow-sm')
-                  : (isDarkMode ? 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-white/5' : 'border-transparent text-gray-700 hover:text-gray-900 hover:bg-black/5')
-              }`}
-            >
-              <span>{sub.label}</span>
-            </button>
-          ))}
+            { id: 'cliente', label: 'Clientes', icon: Users },
+            { id: 'proveedor', label: 'Proveedores', icon: Building }
+          ].map(sub => {
+            const Icon = sub.icon;
+            const isActive = subTabPersonas === sub.id;
+            return (
+              <button
+                key={sub.id}
+                onClick={() => setSubTabPersonas(sub.id)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 ${
+                  isActive
+                    ? (isDarkMode ? 'bg-primary/20 text-primary border-primary/30 shadow-sm' : 'bg-primary text-white border-primary shadow-sm')
+                    : (isDarkMode ? 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-white/5' : 'border-transparent text-gray-700 hover:text-gray-900 hover:bg-black/5')
+                }`}
+              >
+                <Icon size={13} />
+                <span>{sub.label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
