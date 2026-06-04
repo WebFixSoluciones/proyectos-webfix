@@ -415,26 +415,53 @@ export default function GeneralSettings({
     const reader = new FileReader();
     reader.onload = async (event) => {
       const rawBase64 = event.target.result;
-      const base64Data = await compressImage(rawBase64);
+      
+      let finalBase64 = rawBase64;
+      if (file.type !== 'image/svg+xml' && file.size > 300 * 1024) {
+        try {
+          finalBase64 = await compressImage(rawBase64);
+        } catch (compressErr) {
+          console.warn("Error compressing image:", compressErr);
+        }
+      }
       
       try {
         const extension = file.name.split('.').pop();
         const path = `artifacts/${appId}/finances/logo_${new Date().getTime()}.${extension}`;
-        const storageRef = ref(storage, path);
-        const uploadTask = await uploadBytesResumable(storageRef, file);
-        const downloadURL = await getDownloadURL(uploadTask.ref);
         
-        setCompanyProfile(prev => ({
-          ...prev,
-          logoUrl: downloadURL
-        }));
-        showToast("Logotipo cargado exitosamente", "success");
+        let logoUrl = finalBase64;
+        if (storage) {
+          const storageRef = ref(storage, path);
+          const uploadTask = await uploadBytesResumable(storageRef, file);
+          logoUrl = await getDownloadURL(uploadTask.ref);
+        }
+        
+        setCompanyProfile(prev => {
+          const updated = { ...prev, logoUrl };
+          
+          // Auto-save RUC logo to config
+          const configRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config');
+          setDoc(configRef, { logoUrl }, { merge: true }).catch(console.error);
+          
+          const infoRef = doc(db, 'artifacts', appId, 'public', 'data', 'meta', 'info');
+          setDoc(infoRef, { companyProfile: { ...prev, logoUrl } }, { merge: true }).catch(console.error);
+          
+          return updated;
+        });
+        showToast("Logotipo cargado y guardado exitosamente", "success");
       } catch (err) {
-        console.warn("Storage upload failed, using compressed base64 fallback:", err);
-        setCompanyProfile(prev => ({
-          ...prev,
-          logoUrl: base64Data
-        }));
+        console.warn("Storage upload failed, using fallback:", err);
+        setCompanyProfile(prev => {
+          const updated = { ...prev, logoUrl: finalBase64 };
+          
+          const configRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config');
+          setDoc(configRef, { logoUrl: finalBase64 }, { merge: true }).catch(console.error);
+          
+          const infoRef = doc(db, 'artifacts', appId, 'public', 'data', 'meta', 'info');
+          setDoc(infoRef, { companyProfile: { ...prev, logoUrl: finalBase64 } }, { merge: true }).catch(console.error);
+          
+          return updated;
+        });
         showToast("Logotipo cargado y guardado localmente (Base64)", "success");
       } finally {
         setIsUploadingLogo(false);
@@ -1048,7 +1075,7 @@ export default function GeneralSettings({
               </div>
             )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
               
               {/* COLUMNA 1 (IZQUIERDA): FORMULARIO TRIBUTARIO Y PARÁMETROS */}
               <div className="space-y-4">
@@ -1078,7 +1105,7 @@ export default function GeneralSettings({
                         : 'bg-blue-600 hover:bg-blue-500 text-white shadow-sm'
                     }`}
                   >
-                    {isExtractingSRI && <Plus size={12} className="animate-spin" />}
+                    {isExtractingSRI && <RefreshCw size={12} className="animate-spin" />}
                     {isExtractingSRI ? 'Consultando...' : 'Configurar Empresa'}
                   </button>
                 </div>
@@ -1368,7 +1395,7 @@ export default function GeneralSettings({
                             : 'bg-gray-500/10 border border-white/5 text-gray-500 cursor-not-allowed'
                         }`}
                       >
-                        <Award size={13} /> Configurar Firma Electrónica
+                        <Award size={13} /> Ingresar Firma
                       </button>
                       {!companyProfile.ruc && (
                         <p className="text-[9px] text-gray-500 italic">Debe ingresar y configurar su RUC primero.</p>
@@ -1484,12 +1511,19 @@ export default function GeneralSettings({
 
             {/* BOTONES DE ACCIÓN PRINCIPALES */}
             <div className="flex justify-end items-center pt-6 border-t border-white/5 mt-8">
-              <button 
-                type="submit" 
-                className="flex items-center gap-1.5 px-6 py-2.5 rounded-xl text-xs font-black bg-primary hover:bg-primary-hover text-white shadow-md transition-transform hover:-translate-y-0.5 active:scale-95 animate-in fade-in duration-200"
-              >
-                <Save size={14} /> Guardar Empresa
-              </button>
+              {(!companyProfile.certificadoCargado || isFirmaMatch()) ? (
+                <button 
+                  type="submit" 
+                  className="flex items-center gap-1.5 px-6 py-2.5 rounded-xl text-xs font-black bg-primary hover:bg-primary-hover text-white shadow-md transition-transform hover:-translate-y-0.5 active:scale-95 animate-in fade-in duration-200"
+                >
+                  <Save size={14} /> Guardar Empresa
+                </button>
+              ) : (
+                <div className="text-xs text-red-500 font-bold bg-red-500/10 border border-red-500/25 px-4 py-2.5 rounded-xl flex items-center gap-2">
+                  <AlertTriangle size={14} className="shrink-0" />
+                  <span>Firma no coincide con RUC/Razón Social. Corrija para habilitar Guardar Empresa.</span>
+                </div>
+              )}
             </div>
           </form>
         )}
