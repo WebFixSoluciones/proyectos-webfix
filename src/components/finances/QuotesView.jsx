@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Trash2, Edit2, FileText, CheckCircle2, ChevronRight, AlertCircle, ShoppingBag } from 'lucide-react';
+import { Plus, Search, Trash2, Edit2, FileText, CheckCircle2, ChevronRight, AlertCircle, ShoppingBag, Eye } from 'lucide-react';
 import { collection, onSnapshot, doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
+import RidePreviewModal from './RidePreviewModal';
 
 export default function QuotesView({ products, thirdParties, isDarkMode, showToast, db, appId, onPromoteToInvoice }) {
   const [quotes, setQuotes] = useState([]);
@@ -9,6 +10,7 @@ export default function QuotesView({ products, thirdParties, isDarkMode, showToa
   const [loading, setLoading] = useState(true);
   const [isBlocked, setIsBlocked] = useState(false);
   const [companyConfig, setCompanyConfig] = useState(null);
+  const [selectedQuoteTx, setSelectedQuoteTx] = useState(null);
 
   useEffect(() => {
     if (!appId || !db) return;
@@ -326,6 +328,13 @@ export default function QuotesView({ products, thirdParties, isDarkMode, showToa
                               <ShoppingBag size={10} /> Facturar
                             </button>
                           )}
+                          <button 
+                            onClick={() => setSelectedQuoteTx({ ...q, documentType: 'cotizacion', documentNumber: q.quoteNumber, baseImponible: q.subtotal, ivaValor: q.ivaValor, total: q.total })} 
+                            className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-orange-500/20 text-orange-400' : 'hover:bg-orange-150 text-orange-700 border border-orange-200'}`}
+                            title="Ver RIDE Proforma / Imprimir"
+                          >
+                            <Eye size={13}/>
+                          </button>
                           <button onClick={() => { setFormData(q); setIsModalOpen(true); }} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-blue-500/20 text-blue-500' : 'hover:bg-blue-100 text-blue-700 border border-blue-200'}`}><Edit2 size={13}/></button>
                           <button onClick={() => handleDelete(q.id)} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-red-500/20 text-red-500' : 'hover:bg-red-100 text-red-600 border border-red-200'}`}><Trash2 size={13}/></button>
                         </div>
@@ -458,6 +467,17 @@ export default function QuotesView({ products, thirdParties, isDarkMode, showToa
             </form>
           </div>
         </div>
+      )}
+
+      {selectedQuoteTx && (
+        <RidePreviewModal 
+          tx={selectedQuoteTx} 
+          onClose={() => setSelectedQuoteTx(null)} 
+          thirdParties={thirdParties} 
+          isDarkMode={isDarkMode} 
+          db={db} 
+          appId={appId} 
+        />
       )}
 
     </div>

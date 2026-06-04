@@ -22,6 +22,30 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
     loadCompanyConfig();
   }, [appId, db]);
 
+  const getDocTypeLabel = () => {
+    if (tx.isPreventa) return 'PREVENTA / PEDIDO';
+    switch (tx.documentType) {
+      case 'factura':
+        return 'FACTURA ELECTRÓNICA';
+      case 'nota_credito':
+        return 'NOTA DE CRÉDITO';
+      case 'nota_debito':
+        return 'NOTA DE DÉBITO';
+      case 'nota_venta':
+        return 'NOTA DE VENTA / RECIBO';
+      case 'retencion':
+        return 'COMPROBANTE DE RETENCIÓN';
+      case 'liquidacion':
+        return 'LIQUIDACIÓN DE COMPRA';
+      case 'guia_remision':
+        return 'GUÍA DE REMISIÓN';
+      case 'cotizacion':
+        return 'COTIZACIÓN / PROFORMA';
+      default:
+        return 'COMPROBANTE';
+    }
+  };
+
   // Obtener datos del cliente (Receptor)
   const client = thirdParties.find(tp => tp.id === tx.thirdPartyId) || {
     name: 'Consumidor Final',
@@ -121,9 +145,9 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
           isDarkMode ? 'bg-[#18181b] border-white/5' : 'bg-gray-100 border-gray-250'
         }`}>
           <div className="flex items-center gap-2">
-            <FileText size={16} className="text-blue-500" />
+            <FileText size={16} className="text-blue-550" />
             <h3 className={`text-xs font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-              Comprobante de Venta RIDE
+              Vista Previa: {getDocTypeLabel()}
             </h3>
           </div>
           
@@ -134,7 +158,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
                 onClick={() => setViewFormat('ride')}
                 className={`px-3 py-1 rounded text-[10px] font-bold transition-all ${
                   viewFormat === 'ride' 
-                    ? 'bg-blue-600 text-white shadow-sm' 
+                    ? 'bg-blue-605 text-white shadow-sm' 
                     : (isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900')
                 }`}
               >
@@ -144,7 +168,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
                 onClick={() => setViewFormat('ticket')}
                 className={`px-3 py-1 rounded text-[10px] font-bold transition-all ${
                   viewFormat === 'ticket' 
-                    ? 'bg-blue-600 text-white shadow-sm' 
+                    ? 'bg-blue-605 text-white shadow-sm' 
                     : (isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900')
                 }`}
               >
@@ -200,7 +224,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
                   {/* Columna Derecha: Autorización y Factura */}
                   <div className="p-4 rounded-xl border border-gray-300 space-y-1.5">
                     <h2 className="font-black text-[13px] tracking-wide text-gray-800">R.U.C.: {emisor.ruc}</h2>
-                    <p className="text-[12px] font-black tracking-wider uppercase text-blue-800">FACTURA</p>
+                    <p className="text-[12px] font-black tracking-wider uppercase text-blue-800">{getDocTypeLabel()}</p>
                     <p><span className="font-bold">No.</span> {docNumFormatted}</p>
                     <p><span className="font-bold">NÚMERO DE AUTORIZACIÓN:</span></p>
                     <p className="font-mono text-[9px] break-all tracking-wide">{claveAcceso}</p>
@@ -364,7 +388,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
                 <div className="border-t border-black border-dashed my-2"></div>
 
                 <div className="space-y-0.5">
-                  <p className="font-bold">FACTURA COMPROBANTE</p>
+                  <p className="font-bold">{getDocTypeLabel()}</p>
                   <p>No: {docNumFormatted}</p>
                   <p>Clave: {claveAcceso.slice(0,25)}...</p>
                   <p>Fecha: {tx.date} 12:00 (Offline)</p>
