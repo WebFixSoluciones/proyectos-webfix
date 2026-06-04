@@ -46,7 +46,7 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
       }));
       showToast('Datos fiscales cargados exitosamente desde el SRI', 'success');
     } catch (e) {
-      console.error(e);
+      console.error("Error al consultar RUC en ThirdParties:", e);
       showToast(e.message || 'Error al consultar datos en el SRI', 'error');
     } finally {
       setIsQueryingSri(false);

@@ -564,140 +564,224 @@ function empaquetarResolucionSRI(ambiente) {
   return `${ambiente === '2' ? 'PROD' : 'TEST'}-AUT-${num}`;
 }
 
-// Consulta simulada de RUC / CI desde la base de datos del SRI
+// Consulta REAL de RUC / CI desde APIs del SRI de Ecuador
+// Usa la API de CipherByte como fuente principal con fallback a SRI directo.
+// NUNCA genera datos falsos — si la consulta falla, lanza un error transparente.
 export async function consultarRucSri(rucOrCi) {
-  // Simular retraso de red
-  await new Promise(resolve => setTimeout(resolve, 800));
-
   const clean = String(rucOrCi).trim();
   if (clean.length !== 10 && clean.length !== 13) {
     throw new Error("La identificación debe tener 10 (Cédula) o 13 (RUC) dígitos.");
   }
 
-  const esEmpresa = clean.startsWith('179') || clean.startsWith('099') || clean.substring(2, 3) === '9';
-  
-  // Base de datos de prueba predefinida
-  const testDatabase = {
-    '1700000000001': {
-      name: 'CONSORCIO INACTIVO S.A. (EN LIQUIDACION)',
-      ruc: '1700000000001',
-      tipoIdentificacion: 'ruc',
-      direccion: 'Av. Maldonado y Quitumbe, Quito',
-      telefono: '022666666',
-      email: 'contacto@consorcioinactivo.com',
-      tipoContribuyente: 'general',
-      razonSocial: 'CONSORCIO INACTIVO S.A. (EN LIQUIDACION)',
-      rucActivo: false,
-      rucEstado: 'SUSPENDIDO / INACTIVO'
-    },
-    '1790000000001': {
-      name: 'WEBFIX SOLUCIONES TECNOLOGICAS S.A.',
-      ruc: '1790000000001',
-      tipoIdentificacion: 'ruc',
-      direccion: 'Av. de los Shyris N34-102 y Holanda, Edificio Alfa, Oficina 5A, Quito',
-      telefono: '022987654',
-      email: 'facturacion@webfix.com.ec',
-      tipoContribuyente: 'general',
-      razonSocial: 'WEBFIX SOLUCIONES TECNOLOGICAS S.A.'
-    },
-    '1754376901001': {
-      name: 'ROSA KARINA SEVILLA MARROQUIN',
-      ruc: '1754376901001',
-      tipoIdentificacion: 'ruc',
-      direccion: 'PICHINCHA / QUITO / PERUCHO / CAMINO LAGUNAS SN Y MOJANDA GRANDE',
-      telefono: '0959262579',
-      email: 'webfixsoluciones@gmail.com',
-      tipoContribuyente: 'general',
-      razonSocial: 'ROSA KARINA SEVILLA MARROQUIN',
-      nombreComercial: 'WEB FIX UN MUNDO DIGITAL'
-    },
-    '1792345678001': {
-      name: 'CORPORACION FAVORITA C.A.',
-      ruc: '1792345678001',
-      tipoIdentificacion: 'ruc',
-      direccion: 'Av. General Enríquez s/n y Vía Cotogchoa, Sangolquí',
-      telefono: '022999000',
-      email: 'proveedores@favorita.com',
-      tipoContribuyente: 'general',
-      razonSocial: 'CORPORACION FAVORITA C.A.'
-    },
-    '0992345678001': {
-      name: 'DISENOS Y DESARROLLOS WEB ECUADOR CIA. LTDA.',
-      ruc: '0992345678001',
-      tipoIdentificacion: 'ruc',
-      direccion: 'Av. Francisco de Orellana, Edificio World Trade Center, Guayaquil',
-      telefono: '042630120',
-      email: 'info@webdev.com.ec',
-      tipoContribuyente: 'rimpe_emprendedor',
-      razonSocial: 'DISENOS Y DESARROLLOS WEB ECUADOR CIA. LTDA.'
-    },
-    '1712345678': {
-      name: 'JUAN CARLOS PEREZ GOMEZ',
-      ruc: '1712345678',
-      tipoIdentificacion: 'cedula',
-      direccion: 'Calle Larga 12-45 y Benigno Malo, Cuenca',
-      telefono: '0998765432',
-      email: 'juan.perez@gmail.com',
-      tipoContribuyente: 'rimpe_popular',
-      razonSocial: 'JUAN CARLOS PEREZ GOMEZ'
-    },
-    '1723456789': {
-      name: 'MARIA BELEN TORRES RUIZ',
-      ruc: '1723456789',
-      tipoIdentificacion: 'cedula',
-      direccion: 'Av. República del Salvador N36-140 y Suecia, Quito',
-      telefono: '0987654321',
-      email: 'maria.torres@outlook.com',
-      tipoContribuyente: 'rimpe_emprendedor',
-      razonSocial: 'MARIA BELEN TORRES RUIZ'
+  // Si es cédula de 10 dígitos, convertir a RUC de 13 para la consulta
+  const rucParaConsulta = clean.length === 10 ? clean + '001' : clean;
+
+  // Validar estructura del RUC antes de consultar
+  if (!validarIdentificacion(clean)) {
+    throw new Error(`La identificación ${clean} no es un RUC/CI válido según el algoritmo de verificación ecuatoriano.`);
+  }
+
+  const errores = [];
+
+  // ═══════════════════════════════════════════════════════════
+  // FUENTE 1: API de CipherByte (principal)
+  // ═══════════════════════════════════════════════════════════
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 12000); // timeout 12s
+
+    const res = await fetch(`https://aggregator.cipherbyte.ec/company/${rucParaConsulta}`, {
+      signal: controller.signal,
+      headers: { 'Accept': 'application/json' }
+    });
+    clearTimeout(timeoutId);
+
+    if (res.ok) {
+      const apiData = await res.json();
+      
+      // Verificar que la API devolvió datos reales (no vacíos)
+      if (apiData && (apiData.razonSocial || apiData.numeroRuc)) {
+        return mapearRespuestaCipherByte(apiData, clean, rucParaConsulta);
+      } else {
+        errores.push('CipherByte: La API respondió pero sin datos para este RUC.');
+      }
+    } else if (res.status === 404) {
+      errores.push(`CipherByte: RUC ${rucParaConsulta} no encontrado en la base de datos.`);
+    } else {
+      errores.push(`CipherByte: Error HTTP ${res.status} - ${res.statusText}`);
     }
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      errores.push('CipherByte: Tiempo de espera agotado (>12s). El servidor no respondió.');
+    } else {
+      errores.push(`CipherByte: ${err.message || 'Error de conexión.'}`);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // FUENTE 2: Consulta directa al SRI (catálogo de contribuyentes)
+  // ═══════════════════════════════════════════════════════════
+  try {
+    const controller2 = new AbortController();
+    const timeoutId2 = setTimeout(() => controller2.abort(), 10000);
+
+    const sriUrl = `https://srienlinea.sri.gob.ec/sri-catastro-sujeto-servicio-internet/rest/ConsolidadoContribuyente/existePorNumeroRuc?numeroRuc=${rucParaConsulta}`;
+    const sriRes = await fetch(sriUrl, {
+      signal: controller2.signal,
+      headers: { 'Accept': 'application/json' }
+    });
+    clearTimeout(timeoutId2);
+
+    if (sriRes.ok) {
+      const sriData = await sriRes.json();
+      if (sriData && (sriData.razonSocial || sriData.nombreComercial)) {
+        return mapearRespuestaSRI(sriData, clean, rucParaConsulta);
+      }
+    }
+  } catch (err2) {
+    errores.push(`SRI Directo: ${err2.name === 'AbortError' ? 'Tiempo de espera agotado.' : (err2.message || 'Error de conexión.')}`);
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // FUENTE 3: Consulta al SRI método alternativo (SOAP/REST público)
+  // ═══════════════════════════════════════════════════════════
+  try {
+    const controller3 = new AbortController();
+    const timeoutId3 = setTimeout(() => controller3.abort(), 10000);
+
+    const sriUrl2 = `https://srienlinea.sri.gob.ec/sri-catastro-sujeto-servicio-internet/rest/ConsolidadoContribuyente/obtenerPorNumerosRuc?&numeroRuc=${rucParaConsulta}`;
+    const sriRes2 = await fetch(sriUrl2, {
+      signal: controller3.signal,
+      headers: { 'Accept': 'application/json' }
+    });
+    clearTimeout(timeoutId3);
+
+    if (sriRes2.ok) {
+      const sriData2 = await sriRes2.json();
+      // Este endpoint puede devolver un array o un objeto
+      const record = Array.isArray(sriData2) ? sriData2[0] : sriData2;
+      if (record && (record.razonSocial || record.nombreComercial)) {
+        return mapearRespuestaSRI(record, clean, rucParaConsulta);
+      }
+    }
+  } catch (err3) {
+    errores.push(`SRI Alternativo: ${err3.name === 'AbortError' ? 'Tiempo de espera agotado.' : (err3.message || 'Error de conexión.')}`);
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // TODAS LAS FUENTES FALLARON — Error transparente al usuario
+  // ═══════════════════════════════════════════════════════════
+  console.error("Todas las fuentes de consulta de RUC fallaron:", errores);
+  throw new Error(
+    `No se pudieron obtener los datos reales del RUC ${rucParaConsulta} desde el SRI. ` +
+    `Verifique su conexión a internet e intente nuevamente. ` +
+    `Detalles técnicos: ${errores.join(' | ')}`
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// MAPEADORES de respuesta de APIs a formato interno
+// ═══════════════════════════════════════════════════════════
+
+function mapearRespuestaCipherByte(apiData, originalInput, rucConsultado) {
+  const razonSocial = apiData.razonSocial || '';
+  const mainEst = apiData.establecimientos?.find(e => e.matriz === 'SI') || 
+                  apiData.establecimientos?.[0] || 
+                  null;
+  
+  const nombreComercial = mainEst?.nombreFantasiaComercial || razonSocial;
+  const direccionMatriz = mainEst?.direccionCompleta || 'Ecuador';
+  
+  // Determinar tipo de contribuyente desde el régimen
+  let typeContribuyente = 'general';
+  const reg = String(apiData.regimen || '').toUpperCase();
+  if (reg.includes('POPULAR')) typeContribuyente = 'rimpe_popular';
+  else if (reg.includes('EMPRENDEDOR')) typeContribuyente = 'rimpe_emprendedor';
+  else if (reg.includes('MICROEMPRESA')) typeContribuyente = 'microempresas';
+
+  // Mapear establecimientos/sucursales
+  const sucursalesMapped = (apiData.establecimientos || []).map(est => ({
+    codigo: est.numeroEstablecimiento || '001',
+    nombre: est.nombreFantasiaComercial || nombreComercial,
+    direccion: est.direccionCompleta || direccionMatriz,
+    activa: est.estado === 'ABIERTO',
+    bodegas: ['Bodega Central']
+  }));
+
+  // Determinar estado de obligaciones
+  const obligadoRaw = String(apiData.obligadoLlevarContabilidad || '').toUpperCase();
+  const agenteRaw = String(apiData.agenteRetencion || '').toUpperCase();
+  const especialRaw = String(apiData.contribuyenteEspecial || '').toUpperCase();
+
+  return {
+    ruc: apiData.numeroRuc || rucConsultado,
+    name: razonSocial,
+    razonSocial: razonSocial,
+    nombreComercial: nombreComercial,
+    direccion: direccionMatriz,
+    tipoIdentificacion: originalInput.length === 13 ? 'ruc' : 'cedula',
+    telefono: '',
+    email: '',
+    tipoContribuyente: typeContribuyente,
+    rucActivo: apiData.estadoContribuyenteRuc === 'ACTIVO',
+    rucEstado: apiData.estadoContribuyenteRuc || 'DESCONOCIDO',
+    obligadoContabilidad: obligadoRaw === 'SI' || obligadoRaw === 'SÍ',
+    agenteRetencion: agenteRaw !== 'NO' && agenteRaw !== '' && agenteRaw !== 'undefined',
+    agenteResolucion: (agenteRaw !== 'NO' && agenteRaw !== '' && agenteRaw !== 'undefined') ? apiData.agenteRetencion : '',
+    contribuyenteEspecial: especialRaw !== 'NO' && especialRaw !== '' && especialRaw !== 'undefined',
+    especialResolucion: (especialRaw !== 'NO' && especialRaw !== '' && especialRaw !== 'undefined') ? apiData.contribuyenteEspecial : '',
+    actividadEconomica: apiData.actividadEconomicaPrincipal || '',
+    establecimientos: sucursalesMapped.length > 0 ? sucursalesMapped : [
+      {
+        codigo: '001',
+        nombre: nombreComercial,
+        direccion: direccionMatriz,
+        activa: true,
+        bodegas: ['Bodega Central']
+      }
+    ]
   };
+}
 
-  if (testDatabase[clean]) {
-    return testDatabase[clean];
-  }
+function mapearRespuestaSRI(sriData, originalInput, rucConsultado) {
+  const razonSocial = sriData.razonSocial || sriData.nombreComercial || '';
+  const nombreComercial = sriData.nombreComercial || razonSocial;
+  const direccion = sriData.direccionMatriz || sriData.direccion || 'Ecuador';
 
-  // Generador dinámico de datos realistas
-  const nombresRandom = ["TECNOLOGIAS DE VANGUARDIA", "SERVICIOS INTEGRALES", "CONSTRUCTORA ANDINA", "ALIMENTOS FRESCOS", "IMPORTADORA DEL VALLE"];
-  const sufijosRandom = ["S.A.", "CIA. LTDA.", "C.A.", "S.A.S."];
-  const personasRandom = ["CARLOS ALBERTO SILVA MORA", "ANA GABRIELA ESPINOSA DIAZ", "LORENA ELIZABETH MEJIA REYES", "ROBERTO ESTEBAN VEGA PAZ"];
-  const direccionesRandom = [
-    "Av. Amazonas N21-220 y Robles, Quito",
-    "Calle 10 de Agosto y Tarqui, Ambato",
-    "Av. Carlos Julio Arosemena Km 2.5, Guayaquil",
-    "Calle Bolívar 5-80 y Tarqui, Loja",
-    "Av. Remigio Crespo Toral 4-90, Cuenca"
-  ];
+  let typeContribuyente = 'general';
+  const clase = String(sriData.clase || sriData.tipoContribuyente || '').toUpperCase();
+  if (clase.includes('POPULAR')) typeContribuyente = 'rimpe_popular';
+  else if (clase.includes('EMPRENDEDOR')) typeContribuyente = 'rimpe_emprendedor';
+  else if (clase.includes('MICROEMPRESA')) typeContribuyente = 'microempresas';
 
-  if (esEmpresa) {
-    const idxName = Math.floor(Math.random() * nombresRandom.length);
-    const idxSuf = Math.floor(Math.random() * sufijosRandom.length);
-    const idxDir = Math.floor(Math.random() * direccionesRandom.length);
-    const companyName = `${nombresRandom[idxName]} ${sufijosRandom[idxSuf]}`;
-    return {
-      name: companyName,
-      ruc: clean,
-      tipoIdentificacion: 'ruc',
-      direccion: direccionesRandom[idxDir],
-      telefono: '0' + (2 + Math.floor(Math.random() * 7)) + Math.floor(1000000 + Math.random() * 9000000),
-      email: `facturacion@${companyName.toLowerCase().replace(/[^a-z]/g, '')}.com.ec`,
-      tipoContribuyente: Math.random() > 0.5 ? 'general' : 'rimpe_emprendedor',
-      razonSocial: companyName
-    };
-  } else {
-    const idxPers = Math.floor(Math.random() * personasRandom.length);
-    const idxDir = Math.floor(Math.random() * direccionesRandom.length);
-    const personName = personasRandom[idxPers];
-    const isRucPerson = clean.length === 13;
-    return {
-      name: personName,
-      ruc: clean,
-      tipoIdentificacion: isRucPerson ? 'ruc' : 'cedula',
-      direccion: direccionesRandom[idxDir],
-      telefono: '09' + Math.floor(10000000 + Math.random() * 90000000),
-      email: `${personName.toLowerCase().split(' ')[0]}.${personName.toLowerCase().split(' ')[2] || 'user'}@gmail.com`,
-      tipoContribuyente: Math.random() > 0.5 ? 'rimpe_popular' : 'rimpe_emprendedor',
-      razonSocial: personName
-    };
-  }
+  const obligadoRaw = String(sriData.obligadoLlevarContabilidad || '').toUpperCase();
+
+  return {
+    ruc: sriData.numeroRuc || rucConsultado,
+    name: razonSocial,
+    razonSocial: razonSocial,
+    nombreComercial: nombreComercial,
+    direccion: direccion,
+    tipoIdentificacion: originalInput.length === 13 ? 'ruc' : 'cedula',
+    telefono: '',
+    email: '',
+    tipoContribuyente: typeContribuyente,
+    rucActivo: sriData.estadoContribuyenteRuc === 'ACTIVO' || sriData.estado === 'ACTIVO',
+    rucEstado: sriData.estadoContribuyenteRuc || sriData.estado || 'DESCONOCIDO',
+    obligadoContabilidad: obligadoRaw === 'SI' || obligadoRaw === 'SÍ',
+    agenteRetencion: false,
+    agenteResolucion: '',
+    contribuyenteEspecial: false,
+    especialResolucion: '',
+    actividadEconomica: sriData.actividadEconomicaPrincipal || '',
+    establecimientos: [
+      {
+        codigo: '001',
+        nombre: nombreComercial,
+        direccion: direccion,
+        activa: true,
+        bodegas: ['Bodega Central']
+      }
+    ]
+  };
 }

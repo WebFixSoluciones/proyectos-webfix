@@ -48,6 +48,7 @@ export default function GeneralSettings({
     certificadoVence: '',
     certificadoBase64: '',
     certificadoRuc: '',
+    certificadoSujeto: '',
     logoUrl: ''
   });
 
@@ -135,6 +136,7 @@ export default function GeneralSettings({
             certificadoVence: finData.certificadoVence || '',
             certificadoBase64: finData.certificadoBase64 || '',
             certificadoRuc: finData.certificadoRuc || '',
+            certificadoSujeto: finData.certificadoSujeto || '',
             logoUrl: finData.logoUrl || ''
           }));
         } else if (snap.exists() && snap.data().companyProfile) {
@@ -155,6 +157,7 @@ export default function GeneralSettings({
             certificadoVence: cp.certificadoVence || '',
             certificadoBase64: cp.certificadoBase64 || '',
             certificadoRuc: cp.certificadoRuc || '',
+            certificadoSujeto: cp.certificadoSujeto || '',
             logoUrl: cp.logoUrl || ''
           }));
         }
@@ -241,7 +244,6 @@ export default function GeneralSettings({
         }));
         showToast("RUC INACTIVO / SUSPENDIDO en el SRI. Facturación electrónica bloqueada.", "warning");
       } else {
-        const isSevilla = data.ruc === '1754376901001';
         const razonSocial = data.razonSocial || data.name;
         const nombreComercial = data.nombreComercial || data.name;
         const direccionMatriz = data.direccion;
@@ -249,53 +251,44 @@ export default function GeneralSettings({
         let regimen = 'Régimen General';
         if (data.tipoContribuyente === 'rimpe_emprendedor') regimen = 'RIMPE Emprendedor';
         else if (data.tipoContribuyente === 'rimpe_popular') regimen = 'RIMPE Popular';
+        else if (data.tipoContribuyente === 'microempresas') regimen = 'Microempresas';
         else if (data.tipoContribuyente === 'general') regimen = 'Régimen General';
 
-        let obligado = data.obligadoContabilidad || false;
-        let agenteRet = data.agenteRetencion || false;
-        let agenteRes = data.agenteResolucion || '';
-        let contEsp = data.contribuyenteEspecial || false;
-        let espRes = data.especialResolucion || '';
+        const obligado = data.obligadoContabilidad || false;
+        const agenteRet = data.agenteRetencion || false;
+        const agenteRes = data.agenteResolucion || '';
+        const contEsp = data.contribuyenteEspecial || false;
+        const espRes = data.especialResolucion || '';
 
-        if (isSevilla) {
-          regimen = 'Régimen General';
-          obligado = false;
-          agenteRet = false;
-          agenteRes = '';
-          contEsp = false;
-          espRes = '';
-        }
-
-        const sucursales = isSevilla 
-          ? [
-              { codigo: '001', nombre: 'WEB FIX UN MUNDO DIGITAL', direccion: 'PICHINCHA / QUITO / PERUCHO / CAMINO LAGUNAS SN Y MOJANDA GRANDE', activa: true, bodegas: ['Bodega Central'] }
-            ]
-          : [
-              { codigo: '001', nombre: nombreComercial, direccion: direccionMatriz, activa: true, bodegas: ['Bodega Central'] }
-            ];
+        // Usar los establecimientos que devuelve la API directamente
+        const sucursales = (data.establecimientos && data.establecimientos.length > 0) 
+          ? data.establecimientos
+          : [{ codigo: '001', nombre: nombreComercial, direccion: direccionMatriz, activa: true, bodegas: ['Bodega Central'] }];
 
         setCompanyProfile(prev => ({
           ...prev,
           razonSocial,
           nombreComercial,
           direccionMatriz,
-          rucActivo: true,
-          rucEstado: 'ACTIVO',
+          rucActivo: data.rucActivo !== false,
+          rucEstado: data.rucEstado || 'ACTIVO',
           rucRegimen: regimen,
           obligadoContabilidad: obligado,
           contribuyenteTipo: data.tipoContribuyente || 'general',
           sucursales,
-          bodegas: ['Bodega Central'],
+          bodegas: prev.bodegas && prev.bodegas.length > 0 ? prev.bodegas : ['Bodega Central'],
           agenteRetencion: agenteRet,
           agenteResolucion: agenteRes,
           contribuyenteEspecial: contEsp,
           especialResolucion: espRes
         }));
-        showToast("RUC ACTIVO en el SRI. Datos fiscales y sucursales cargados.", "success");
+        showToast(`RUC ${data.rucEstado || 'ACTIVO'} en el SRI. Datos de "${razonSocial}" cargados correctamente.`, "success");
       }
     } catch (err) {
       setIsExtractingSRI(false);
-      showToast(err.message || "Error al consultar RUC en el SRI", "error");
+      console.error("Error al consultar SRI:", err);
+      const errorMsg = err.message || "Error al consultar RUC en el SRI";
+      showToast(errorMsg, "error");
     }
   };
 
@@ -305,18 +298,71 @@ export default function GeneralSettings({
     return thirdDigit < 6 ? 'Persona Natural' : 'Persona Jurídica';
   };
 
+  const cleanStringForComparison = (str) => {
+    if (!str) return '';
+    return str
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "") // Quitar acentos
+      .replace(/[^a-z0-9\s]/g, "") // Quitar caracteres especiales
+      .trim();
+  };
+
+  const checkNameMatch = (name1, name2) => {
+    const clean1 = cleanStringForComparison(name1);
+    const clean2 = cleanStringForComparison(name2);
+    if (!clean1 || !clean2) return false;
+    
+    if (clean1 === clean2 || clean1.includes(clean2) || clean2.includes(clean1)) {
+      return true;
+    }
+    
+    const ignoreWords = new Set(['sa', 'cia', 'ltda', 'sas', 'de', 'la', 'los', 'y', 'e', 'el', 'un', 'una', 'en', 'con', 'del']);
+    const words1 = clean1.split(/\s+/).filter(w => w.length > 2 && !ignoreWords.has(w));
+    const words2 = clean2.split(/\s+/).filter(w => w.length > 2 && !ignoreWords.has(w));
+    
+    if (words1.length === 0 || words2.length === 0) return false;
+    
+    const intersection = words1.filter(w => words2.includes(w));
+    
+    // Si coinciden al menos 2 palabras significativas, es válido
+    if (intersection.length >= 2) {
+      return true;
+    }
+    
+    // Si solo hay una palabra en alguna de las listas y coincide
+    if (intersection.length === 1 && (words1.length === 1 || words2.length === 1)) {
+      return true;
+    }
+    
+    return false;
+  };
+
   const isFirmaMatch = () => {
     if (!companyProfile.certificadoCargado) return true;
-    if (!companyProfile.ruc || !companyProfile.certificadoRuc) return false;
+    if (!companyProfile.ruc) return false;
     
     const compRuc = String(companyProfile.ruc).trim();
-    const certRuc = String(companyProfile.certificadoRuc).trim();
+    const certRuc = String(companyProfile.certificadoRuc || '').trim();
     
-    if (compRuc !== certRuc) return false;
+    // 1. Coincidencia por RUC/CI (primeros 10 dígitos)
+    if (compRuc.length >= 10 && certRuc.length >= 10) {
+      if (compRuc.substring(0, 10) === certRuc.substring(0, 10)) {
+        return true;
+      }
+    }
     
-    const compThird = parseInt(compRuc.charAt(2), 10);
-    const certThird = parseInt(certRuc.charAt(2), 10);
-    return (compThird < 6) === (certThird < 6);
+    // 2. Coincidencia lógica por Razón Social / Nombre Comercial vs Nombre del Certificado
+    const certSujeto = String(companyProfile.certificadoSujeto || '').trim();
+    const compRazon = String(companyProfile.razonSocial || '').trim();
+    const compComercial = String(companyProfile.nombreComercial || '').trim();
+    
+    if (certSujeto) {
+      if (checkNameMatch(compRazon, certSujeto)) return true;
+      if (checkNameMatch(compComercial, certSujeto)) return true;
+    }
+    
+    return false;
   };
 
   const compressImage = (base64Str, maxWidth = 500, maxHeight = 500) => {
@@ -487,25 +533,40 @@ export default function GeneralSettings({
         }
       }
 
+      const certSujeto = cn + (o ? ` (${o})` : '');
+      let hasMatch = false;
+      if (emisorRuc && certRuc) {
+        if (emisorRuc.substring(0, 10) === certRuc.substring(0, 10)) {
+          hasMatch = true;
+        }
+      }
+      if (!hasMatch && emisorRuc && certSujeto) {
+        const compRazon = String(companyProfile.razonSocial || '').trim();
+        const compComercial = String(companyProfile.nombreComercial || '').trim();
+        if (checkNameMatch(compRazon, certSujeto) || checkNameMatch(compComercial, certSujeto)) {
+          hasMatch = true;
+        }
+      }
+
       let tipo = 'success';
       let mensaje = 'Firma digital descifrada correctamente. ¡Lista para facturar!';
 
       if (isExpired) {
         tipo = 'error';
         mensaje = `La firma electrónica EXPIRÓ el ${venceStr}. Por favor, renuévela para poder firmar comprobantes.`;
-      } else if (emisorRuc && certRuc && certRuc !== emisorRuc) {
+      } else if (emisorRuc && !hasMatch) {
         tipo = 'warning';
-        mensaje = `Advertencia: El RUC de la firma (${certRuc}) no coincide con el RUC de la empresa (${emisorRuc}). El SRI rechazará los comprobantes.`;
+        mensaje = `Advertencia: Los datos de la firma (${certRuc || 'RUC no detectado'}, ${certSujeto}) no coinciden con la empresa por identificación (RUC/CI) ni Razón Social.`;
       } else if (emisorRuc && !certRuc) {
         tipo = 'warning';
-        mensaje = 'Firma descifrada. No pudimos extraer un RUC de 13 dígitos de la firma automáticamente. Asegúrese de que pertenezca a este emisor.';
+        mensaje = 'Firma descifrada. No pudimos extraer un RUC de la firma. Se asume compatibilidad por razón social.';
       }
 
       setCertValidation({
         verificado: !isExpired,
         mensaje,
         tipo,
-        sujeto: cn + (o ? ` (${o})` : ''),
+        sujeto: certSujeto,
         emisor: issuerCN || issuerO,
         vence: venceStr,
         ruc: certRuc
@@ -596,15 +657,24 @@ export default function GeneralSettings({
     if (tempFirma.certificadoCargado) {
       const compRuc = String(companyProfile.ruc).trim();
       const certRuc = String(certValidation.ruc).trim();
-      if (compRuc !== certRuc) {
-        showToast(`La firma (${certRuc}) no coincide con el RUC de la empresa (${compRuc})`, "error");
-        return;
+      const certSujeto = String(certValidation.sujeto || '').trim();
+      const compRazon = String(companyProfile.razonSocial || '').trim();
+      const compComercial = String(companyProfile.nombreComercial || '').trim();
+
+      let matched = false;
+      if (compRuc.length >= 10 && certRuc.length >= 10) {
+        if (compRuc.substring(0, 10) === certRuc.substring(0, 10)) {
+          matched = true;
+        }
       }
-      
-      const compThird = parseInt(compRuc.charAt(2), 10);
-      const certThird = parseInt(certRuc.charAt(2), 10);
-      if ((compThird < 6) !== (certThird < 6)) {
-        showToast("El tipo de persona de la firma no coincide con el RUC de la empresa", "error");
+      if (!matched && certSujeto) {
+        if (checkNameMatch(compRazon, certSujeto) || checkNameMatch(compComercial, certSujeto)) {
+          matched = true;
+        }
+      }
+
+      if (!matched) {
+        showToast("La firma electrónica no coincide con el RUC ni la razón social de la empresa", "error");
         return;
       }
     }
@@ -617,7 +687,8 @@ export default function GeneralSettings({
         certificadoClave: tempFirma.certificadoClave,
         certificadoBase64: tempFirma.certificadoBase64,
         certificadoVence: tempFirma.certificadoVence,
-        certificadoRuc: certValidation.ruc || ''
+        certificadoRuc: certValidation.ruc || '',
+        certificadoSujeto: certValidation.sujeto || ''
       };
       await setDoc(configRef, updatedConfig, { merge: true });
 
@@ -650,6 +721,10 @@ export default function GeneralSettings({
       showToast("El RUC debe tener exactamente 13 dígitos para Ecuador", "error");
       return;
     }
+    if (companyProfile.certificadoCargado && !isFirmaMatch()) {
+      showToast("No se puede guardar: La firma electrónica activa no coincide con los datos ni Razón Social de la empresa", "error");
+      return;
+    }
     try {
       const configRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config');
       const profileToSave = {
@@ -677,6 +752,7 @@ export default function GeneralSettings({
         certificadoVence: companyProfile.certificadoVence || '',
         certificadoBase64: companyProfile.certificadoBase64 || '',
         certificadoRuc: companyProfile.certificadoRuc || '',
+        certificadoSujeto: companyProfile.certificadoSujeto || '',
         logoUrl: companyProfile.logoUrl || ''
       };
       await setDoc(configRef, profileToSave, { merge: true });
@@ -1181,7 +1257,7 @@ export default function GeneralSettings({
                 
                 {/* LOGOTIPO */}
                 <div className={`p-5 rounded-3xl border ${isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-gray-50 border-gray-250'}`}>
-                  <label className="block text-[9px] font-bold uppercase mb-2.5 text-gray-500 text-center">Logotipo Oficial de la Empresa</label>
+                  <label className="block text-[10px] font-bold uppercase mb-2.5 text-gray-500 text-center">Logotipo Oficial de la Empresa</label>
                   
                   {companyProfile.logoUrl ? (
                     <div className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border border-dashed border-emerald-500/30 bg-emerald-500/5">
@@ -1219,30 +1295,87 @@ export default function GeneralSettings({
                   )}
                 </div>
 
-                {/* FIRMA ELECTRÓNICA ACTIVA BOX */}
-                {companyProfile.certificadoCargado && (
-                  <div className={`p-4 rounded-2xl border text-xs flex gap-2.5 items-start ${
-                    !isFirmaMatch() 
-                      ? 'bg-red-500/5 border-red-500/10 text-red-400'
-                      : isDarkMode ? 'bg-emerald-500/5 border-emerald-500/10 text-emerald-400' : 'bg-emerald-50 border-emerald-200 text-emerald-805'
-                  }`}>
-                    {!isFirmaMatch() ? (
-                      <AlertCircle size={16} className="shrink-0 mt-0.5 text-red-500" />
-                    ) : (
-                      <CheckCircle2 size={16} className="shrink-0 mt-0.5 text-emerald-505" />
-                    )}
-                    <div>
-                      <p className="font-bold text-[9px] uppercase tracking-wider">
-                        {!isFirmaMatch() ? 'Firma Electrónica Incompatible' : 'Firma Electrónica Activa'}
+                {/* FIRMA ELECTRÓNICA CARD */}
+                <div className={`p-5 rounded-3xl border space-y-4 ${
+                  companyProfile.certificadoCargado
+                    ? !isFirmaMatch()
+                      ? 'bg-red-500/5 border-red-500/20 text-red-900 dark:text-red-300'
+                      : isDarkMode ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-300' : 'bg-emerald-50/50 border-emerald-200 text-emerald-900'
+                    : isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-gray-50 border-gray-250'
+                }`}>
+                  <div className="flex justify-between items-center">
+                    <h4 className="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
+                      <Award size={14} className="text-purple-500" /> Firma Electrónica (.p12 / .pfx)
+                    </h4>
+                  </div>
+
+                  {companyProfile.certificadoCargado ? (
+                    <div className="space-y-3">
+                      <div className="flex gap-3 items-start text-xs">
+                        {!isFirmaMatch() ? (
+                          <AlertCircle size={18} className="shrink-0 mt-0.5 text-red-500 animate-pulse" />
+                        ) : (
+                          <CheckCircle2 size={18} className="shrink-0 mt-0.5 text-emerald-500" />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-[10px] uppercase tracking-wider">
+                            {!isFirmaMatch() ? 'Firma Incompatible con RUC' : 'Firma Electrónica Activa'}
+                          </p>
+                          <p className="text-[10px] opacity-80 mt-1 truncate font-mono">Archivo: {companyProfile.certificadoNombre}</p>
+                          <p className="text-[10px] opacity-80 mt-0.5 font-semibold">Vence: {companyProfile.certificadoVence}</p>
+                          {companyProfile.certificadoRuc && (
+                            <p className="text-[10px] opacity-80 mt-0.5">RUC/CI Firma: {companyProfile.certificadoRuc}</p>
+                          )}
+                          {companyProfile.certificadoSujeto && (
+                            <p className="text-[10px] opacity-80 mt-0.5 truncate font-medium">Sujeto: {companyProfile.certificadoSujeto}</p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Advertencia / Info detallada */}
+                      <p className={`text-[10px] p-2.5 rounded-xl border leading-relaxed ${
+                        !isFirmaMatch()
+                          ? 'bg-red-500/10 border-red-500/20 text-red-500 dark:text-red-400'
+                          : isDarkMode ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-emerald-100/50 border-emerald-200 text-emerald-800'
+                      }`}>
+                        {!isFirmaMatch() 
+                          ? `El RUC/CI de la firma (${companyProfile.certificadoRuc}) no coincide con el RUC de la empresa (${companyProfile.ruc}) por identificación (cédula/RUC) ni Razón Social.` 
+                          : 'Firma electrónica verificada y lista para facturar en el SRI.'}
                       </p>
-                      <p className="text-[9px] opacity-90 mt-0.5 truncate font-mono">Nombre: {companyProfile.certificadoNombre}</p>
-                      <p className="text-[9px] opacity-90 mt-0.5">Vence: {companyProfile.certificadoVence}</p>
-                      {companyProfile.certificadoRuc && (
-                        <p className="text-[9px] opacity-90 mt-0.5">RUC Firma: {companyProfile.certificadoRuc}</p>
+
+                      <div className="flex justify-end pt-1">
+                        <button 
+                          type="button" 
+                          onClick={() => setIsFirmaOpen(true)}
+                          className="px-3.5 py-1.5 rounded-xl text-[10px] font-bold border border-purple-500/30 hover:bg-purple-500/10 text-purple-400 transition-colors"
+                        >
+                          Actualizar Firma
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-3 text-center py-2">
+                      <p className="text-[10px] text-gray-500 leading-normal">
+                        Configure su firma digital (.p12 / .pfx) para firmar comprobantes autorizados del SRI.
+                      </p>
+                      <button 
+                        type="button" 
+                        onClick={() => setIsFirmaOpen(true)}
+                        disabled={!companyProfile.ruc}
+                        className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-black transition-all ${
+                          companyProfile.ruc
+                            ? 'bg-purple-600 hover:bg-purple-500 text-white shadow-sm'
+                            : 'bg-gray-500/10 border border-white/5 text-gray-500 cursor-not-allowed'
+                        }`}
+                      >
+                        <Award size={13} /> Configurar Firma Electrónica
+                      </button>
+                      {!companyProfile.ruc && (
+                        <p className="text-[9px] text-gray-500 italic">Debe ingresar y configurar su RUC primero.</p>
                       )}
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
 
                 {/* PANEL SUCURSALES (Bloqueado) */}
                 <div className="space-y-4 pt-2">
@@ -1350,35 +1483,13 @@ export default function GeneralSettings({
             </div>
 
             {/* BOTONES DE ACCIÓN PRINCIPALES */}
-            <div className="flex justify-between items-center pt-6 border-t border-white/5 mt-8">
-              <div>
-                {companyProfile.ruc && companyProfile.ruc.length === 13 && (
-                  <button 
-                    type="button" 
-                    onClick={() => setIsFirmaOpen(true)}
-                    className={`flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-black shadow transition-all hover:-translate-y-0.5 border ${
-                      isDarkMode 
-                        ? 'bg-purple-600/10 border-purple-500/20 text-purple-400 hover:bg-purple-600/20' 
-                        : 'bg-purple-50 border-purple-200 text-purple-800 hover:bg-purple-100'
-                    }`}
-                  >
-                    <Award size={14} /> {companyProfile.certificadoCargado ? 'Configurar Firma' : 'Ingresar Firma'}
-                  </button>
-                )}
-              </div>
-              {isFirmaMatch() ? (
-                <button 
-                  type="submit" 
-                  className="flex items-center gap-1.5 px-6 py-2.5 rounded-xl text-xs font-black bg-primary hover:bg-primary-hover text-white shadow-md transition-transform hover:-translate-y-0.5 active:scale-95"
-                >
-                  <Save size={14} /> Guardar Empresa
-                </button>
-              ) : (
-                <div className="text-xs text-red-500 font-bold flex items-center gap-1.5 p-2 rounded-lg border border-red-500/20 bg-red-500/5">
-                  <AlertCircle size={14} className="shrink-0 text-red-500" />
-                  <span>Firma no coincide con RUC</span>
-                </div>
-              )}
+            <div className="flex justify-end items-center pt-6 border-t border-white/5 mt-8">
+              <button 
+                type="submit" 
+                className="flex items-center gap-1.5 px-6 py-2.5 rounded-xl text-xs font-black bg-primary hover:bg-primary-hover text-white shadow-md transition-transform hover:-translate-y-0.5 active:scale-95 animate-in fade-in duration-200"
+              >
+                <Save size={14} /> Guardar Empresa
+              </button>
             </div>
           </form>
         )}

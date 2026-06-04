@@ -392,7 +392,8 @@ export default function PosView({ products, thirdParties, transactions = [], isD
           }));
           showToast("Datos cargados del SRI automáticamente", "success");
         } catch (e) {
-          // ignore
+          console.warn("Auto-consulta SRI falló (silencioso):", e.message);
+          // No mostramos toast en auto-query para no molestar al usuario
         } finally {
           setIsQueryingSri(false);
         }
@@ -777,7 +778,8 @@ export default function PosView({ products, thirdParties, transactions = [], isD
       }));
       showToast("Datos cargados exitosamente desde el SRI", "success");
     } catch (e) {
-      showToast("Error al consultar RUC", "error");
+      console.error("Error al consultar RUC en POS:", e);
+      showToast(e.message || "Error al consultar RUC en el SRI", "error");
     } finally {
       setIsQueryingSri(false);
     }

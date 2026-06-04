@@ -151,7 +151,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       }));
       showToast('Datos fiscales cargados exitosamente desde el SRI', 'success');
     } catch (e) {
-      console.error(e);
+      console.error("Error al consultar RUC en TransactionForm:", e);
       showToast(e.message || 'Error al consultar datos en el SRI', 'error');
     } finally {
       setIsQueryingSri(false);
