@@ -3,9 +3,9 @@ import { createPortal } from 'react-dom';
 import { 
   X, UploadCloud, Calculator, FileText, CheckCircle2, AlertTriangle, Sparkles, 
   Terminal, ShieldAlert, Download, Plus, Trash2, RefreshCw, ArrowLeft, ArrowRight, 
-  User, DollarSign, CreditCard, Layers 
+  User, DollarSign, CreditCard, Layers, Search
 } from 'lucide-react';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { validarIdentificacion, generarFacturaXML, simularTransmisionSRI, consultarRucSri, generarRetencionXML, generarNotaCreditoXML, generarLiquidacionXML } from '../../services/sriService';
 import { firmarComprobanteXML } from '../../services/xadesSigner';
@@ -63,6 +63,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     secuencialRetencion: 1,
     secuencialNotaCredito: 1,
     secuencialLiquidacion: 1,
+    secuencialNotaVenta: 1,
     certificadoCargado: true,
     certificadoNombre: 'certificado_demo.p12',
     obligadoContabilidad: true,
@@ -87,7 +88,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     retencionFuente: 0,
     retencionIva: 0,
     total: 0,
-    paymentMethod: 'transferencia',
+    paymentMethod: 'efectivo', // Default POS standard
     paymentStatus: 'pendiente',
     sriStatus: 'pendiente',
     xmlUrl: '',
@@ -101,7 +102,9 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     codDocModificado: '01',
     numDocModificado: '',
     fechaEmisionDocSustento: new Date().toISOString().split('T')[0],
-    motivo: 'Devolución de mercadería'
+    motivo: 'Devolución de mercadería',
+    referencia: '',
+    description: ''
   });
 
   const [payments, setPayments] = useState({
@@ -117,6 +120,19 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   const [isUploading, setIsUploading] = useState(false);
   const [isEmitting, setIsEmitting] = useState(false);
   const [sriLogs, setSriLogs] = useState([]);
+  
+  // Local states for Mini POS and Client Credit Limits
+  const [productSearchTerm, setProductSearchTerm] = useState('');
+  const [clientDebt, setClientDebt] = useState(0);
+  const [loadingDebt, setLoadingDebt] = useState(false);
+  const [creditDueDate, setCreditDueDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 30);
+    return d.toISOString().split('T')[0];
+  });
+  const [creditObservations, setCreditObservations] = useState('');
+  const [isCreditModalOpen, setIsCreditModalOpen] = useState(false);
+
   const fileInputRef = useRef(null);
 
   // States for Quick Contact Creation Modal (SRI)
@@ -214,6 +230,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 nextSec = String(configData.secuencialNotaCredito || 1);
               } else if (activeDocType === 'liquidacion') {
                 nextSec = String(configData.secuencialLiquidacion || 1);
+              } else if (activeDocType === 'nota_venta') {
+                nextSec = String(configData.secuencialNotaVenta || 1);
               }
 
               return {
@@ -264,6 +282,37 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       }
     }
   }, [tx]);
+
+  // Cargar deuda del cliente de manera dinámica desde Firestore
+  useEffect(() => {
+    if (!formData.thirdPartyId || !db || !appId) {
+      setClientDebt(0);
+      return;
+    }
+    async function loadClientDebt() {
+      setLoadingDebt(true);
+      try {
+        const txColRef = collection(db, 'artifacts', appId, 'public', 'data', 'finances_transactions');
+        const q = query(txColRef, where('thirdPartyId', '==', formData.thirdPartyId));
+        const snap = await getDocs(q);
+        let debtSum = 0;
+        snap.forEach(docSnap => {
+          const t = docSnap.data();
+          if (t.type === 'ingreso' && t.paymentStatus !== 'pagado') {
+            const total = Number(t.total) || 0;
+            const paid = Number(t.paidAmount) || 0;
+            debtSum += (total - paid);
+          }
+        });
+        setClientDebt(debtSum);
+      } catch (err) {
+        console.error("Error cargando deuda del cliente:", err);
+      } finally {
+        setLoadingDebt(false);
+      }
+    }
+    loadClientDebt();
+  }, [formData.thirdPartyId, db, appId]);
 
   // Cálculo automático del total y desglose de items/retenciones
   useEffect(() => {
@@ -440,6 +489,40 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     setFormData(prev => ({ ...prev, items: updatedItems }));
   };
 
+  const handleAddProductToCart = (product) => {
+    const existingIndex = (formData.items || []).findIndex(item => item.productId === product.id);
+    if (existingIndex > -1) {
+      const updatedItems = [...formData.items];
+      updatedItems[existingIndex].quantity = (parseInt(updatedItems[existingIndex].quantity) || 0) + 1;
+      setFormData(prev => ({ ...prev, items: updatedItems }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        items: [
+          ...(prev.items || []),
+          { 
+            productId: product.id, 
+            name: product.name, 
+            sku: product.sku || '',
+            codigoBarras: product.codigoBarras || '',
+            price: Number(product.price) || 0, 
+            quantity: 1, 
+            ivaCategory: product.ivaCategory || 15 
+          }
+        ]
+      }));
+    }
+    setProductSearchTerm('');
+    showToast(`Añadido: ${product.name}`, 'success');
+  };
+
+  const handlePaymentMethodSelect = (method) => {
+    setFormData(prev => ({ ...prev, paymentMethod: method }));
+    if (method === 'credito') {
+      setIsCreditModalOpen(true);
+    }
+  };
+
   const handleFileUpload = async (e, fileType) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -476,67 +559,52 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
   const calculatePaymentStatus = () => {
     const total = Number(formData.total) || 0;
-    const ef = Number(payments.efectivo) || 0;
-    const tj = Number(payments.tarjeta) || 0;
-    const tr = Number(payments.transferencia) || 0;
-    const cr = Number(payments.cruce_cuentas) || 0;
     
-    const nonCashTotal = tj + tr + cr;
-    const totalPaid = ef + nonCashTotal;
-    
-    if (nonCashTotal > total + 0.001) {
+    if (formData.paymentMethod === 'efectivo') {
+      const ef = Number(payments.efectivo) || 0;
+      if (ef < total - 0.01) {
+        return {
+          isValid: false,
+          vuelto: 0,
+          error: `Falta cubrir $${(total - ef).toFixed(2)} del total`
+        };
+      }
       return {
-        isValid: false,
-        vuelto: 0,
-        error: "Los pagos electrónicos o cruces superan el total de la factura"
+        isValid: true,
+        vuelto: ef > total ? ef - total : 0,
+        error: null
       };
     }
     
-    if (totalPaid < total - 0.01) {
-      return {
-        isValid: false,
-        vuelto: 0,
-        error: `Falta cubrir $${(total - totalPaid).toFixed(2)} del total`
-      };
+    if (formData.paymentMethod === 'credito') {
+      const matchedTercero = thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
+      const limit = Number(matchedTercero?.limiteCredito) || 1000;
+      const available = limit - clientDebt - total;
+      if (available < 0) {
+        return {
+          isValid: false,
+          vuelto: 0,
+          error: `El cupo de crédito disponible es insuficiente por $${Math.abs(available).toFixed(2)}`
+        };
+      }
     }
-    
-    const remainingForCash = total - nonCashTotal;
-    const vuelto = ef > remainingForCash ? ef - remainingForCash : 0;
     
     return {
       isValid: true,
-      vuelto: vuelto,
+      vuelto: 0,
       error: null
     };
   };
 
   const getPrimaryPaymentMethod = () => {
-    const ef = Number(payments.efectivo) || 0;
-    const tj = Number(payments.tarjeta) || 0;
-    const tr = Number(payments.transferencia) || 0;
-    const cr = Number(payments.cruce_cuentas) || 0;
-    
-    let max = ef;
-    let method = 'efectivo';
-    if (tj > max) { max = tj; method = 'tarjeta'; }
-    if (tr > max) { max = tr; method = 'transferencia'; }
-    if (cr > max) { max = cr; method = 'cruce_cuentas'; }
-    return method;
+    return formData.paymentMethod || 'efectivo';
   };
 
   const fillRemaining = (field) => {
     const total = Number(formData.total) || 0;
-    const ef = field === 'efectivo' ? 0 : Number(payments.efectivo) || 0;
-    const tj = field === 'tarjeta' ? 0 : Number(payments.tarjeta) || 0;
-    const tr = field === 'transferencia' ? 0 : Number(payments.transferencia) || 0;
-    const cr = field === 'cruce_cuentas' ? 0 : Number(payments.cruce_cuentas) || 0;
-    
-    const paidOthers = ef + tj + tr + cr;
-    const remaining = Math.max(0, total - paidOthers);
-    
     setPayments(prev => ({
       ...prev,
-      [field]: remaining.toFixed(2)
+      [field]: total.toFixed(2)
     }));
   };
 
@@ -567,7 +635,6 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       return false;
     }
 
-    // Validar montos combinados de pago
     const pStatus = calculatePaymentStatus();
     if (!pStatus.isValid) {
       showToast(pStatus.error, 'error');
@@ -577,26 +644,81 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     return true;
   };
 
-  const handleSave = async (e) => {
-    if (e) e.preventDefault();
+  const handleSave = async (options = {}) => {
+    // If called via form submit event, prevent default
+    if (options && typeof options.preventDefault === 'function') {
+      options.preventDefault();
+      options = {};
+    }
+    const { isFinalizingNotaVenta = false } = options;
     if (!validateForm()) return;
 
     try {
       const docId = formData.id || `tx_${new Date().getTime()}`;
+      let updatedFormData = { ...formData };
+
+      // Lock system date & time automatically (non-modifiable)
+      const now = new Date();
+      const serverDate = now.toISOString().split('T')[0];
+      const serverTime = now.toTimeString().split(' ')[0];
+      updatedFormData.date = serverDate;
+      updatedFormData.time = serverTime;
+
+      // Concurrency-safe sequential assignment for internal receipts (Nota de Venta) upon finalization
+      if (formData.documentType === 'nota_venta' && isFinalizingNotaVenta && !formData.documentNumber) {
+        const configRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config');
+        const configSnap = await getDoc(configRef);
+        if (configSnap.exists()) {
+          const configData = configSnap.data();
+          const secVal = configData.secuencialNotaVenta || 1;
+          const sec = String(secVal);
+          const docNum = `${configData.establecimiento || '001'}-${configData.puntoEmision || '001'}-${String(sec).padStart(9, '0')}`;
+          
+          updatedFormData.secuencial = sec;
+          updatedFormData.documentNumber = docNum;
+          updatedFormData.sriStatus = 'autorizado'; // Finalize and lock the document
+          
+          // Increment and save the sequential counter
+          await setDoc(configRef, { secuencialNotaVenta: secVal + 1 }, { merge: true });
+        }
+      }
+
+      // Compute paidAmount and status based on selected paymentMethod
+      let paidAmount = 0;
+      let paymentStatus = 'pendiente';
+      const totalNum = Number(updatedFormData.total) || 0;
+      const payBreakdown = { efectivo: 0, transferencia: 0, tarjeta: 0, credito: 0 };
+
+      if (updatedFormData.paymentMethod === 'efectivo') {
+        paidAmount = totalNum;
+        paymentStatus = 'pagado';
+        payBreakdown.efectivo = totalNum;
+      } else if (updatedFormData.paymentMethod === 'transferencia') {
+        paidAmount = 0;
+        paymentStatus = 'pendiente';
+        payBreakdown.transferencia = totalNum;
+      } else if (updatedFormData.paymentMethod === 'tarjeta') {
+        paidAmount = 0;
+        paymentStatus = 'pendiente';
+        payBreakdown.tarjeta = totalNum;
+      } else if (updatedFormData.paymentMethod === 'credito') {
+        paidAmount = 0;
+        paymentStatus = 'pendiente';
+        payBreakdown.credito = totalNum;
+      }
+
       await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId), sanitizeFirestoreData({
-        ...formData,
+        ...updatedFormData,
         id: docId,
-        paymentsBreakdown: {
-          efectivo: Number(payments.efectivo) || 0,
-          transferencia: Number(payments.transferencia) || 0,
-          tarjeta: Number(payments.tarjeta) || 0,
-          cruce_cuentas: Number(payments.cruce_cuentas) || 0
-        },
+        paidAmount,
+        paymentStatus,
+        paymentsBreakdown: payBreakdown,
         transferenciaRef: payments.transferenciaRef || '',
         tarjetaRef: payments.tarjetaRef || '',
         cruceRef: payments.cruceRef || '',
-        paymentMethod: getPrimaryPaymentMethod(),
-        updatedAt: new Date().toISOString(),
+        creditDueDate: updatedFormData.paymentMethod === 'credito' ? creditDueDate : '',
+        creditObservations: updatedFormData.paymentMethod === 'credito' ? creditObservations : '',
+        updatedAt: now.toISOString(),
         updatedBy: 'Usuario ERP'
       }), { merge: true });
 
@@ -604,15 +726,11 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       onClose();
     } catch (err) {
       console.error(err);
-      showToast('Error al guardar', 'error');
+      showToast('Error al guardar: ' + (err.message || ''), 'error');
     }
   };
 
   const handleEmitirSRI = async () => {
-    if (!sriConfig) {
-      showToast("Configura los datos del emisor SRI primero", "error");
-      return;
-    }
     if (!validateForm()) return;
 
     const matchedTercero = thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
@@ -621,34 +739,61 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     setSriLogs([]);
 
     try {
-      const sec = formData.secuencial || '1';
-      const docNum = `${sriConfig.establecimiento}-${sriConfig.puntoEmision}-${String(sec).padStart(9, '0')}`;
+      // 1. Fetch fresh config document from Firestore for concurrency-safe sequential assignment
+      const configRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config');
+      const configSnap = await getDoc(configRef);
+      if (!configSnap.exists()) {
+        throw new Error("No se pudo obtener la configuración del emisor SRI");
+      }
+      const configData = configSnap.data();
+      setSriConfig(configData); // Sync local state
+
+      // Determine correct sequential configuration key
+      let secKey = 'secuencialFactura';
+      if (formData.documentType === 'factura') {
+        secKey = 'secuencialFactura';
+      } else if (formData.documentType === 'retencion') {
+        secKey = 'secuencialRetencion';
+      } else if (formData.documentType === 'nota_credito') {
+        secKey = 'secuencialNotaCredito';
+      } else if (formData.documentType === 'liquidacion') {
+        secKey = 'secuencialLiquidacion';
+      }
+
+      const secVal = configData[secKey] || 1;
+      const sec = String(secVal);
+      const docNum = `${configData.establecimiento || '001'}-${configData.puntoEmision || '001'}-${String(sec).padStart(9, '0')}`;
       
       // Generar y asociar un código numérico aleatorio único de 8 dígitos si no existe
       const codigoNumerico = formData.codigoNumerico || Math.floor(10000000 + Math.random() * 90000000).toString();
-      const docData = { ...formData, secuencial: sec, codigoNumerico };
+      
+      const now = new Date();
+      const serverDate = now.toISOString().split('T')[0];
+      const serverTime = now.toTimeString().split(' ')[0];
+
+      const docData = { ...formData, date: serverDate, time: serverTime, secuencial: sec, codigoNumerico };
 
       let xmlObj;
       if (formData.documentType === 'factura') {
-        xmlObj = generarFacturaXML(sriConfig, docData, matchedTercero, formData.items);
+        xmlObj = generarFacturaXML(configData, docData, matchedTercero, formData.items);
       } else if (formData.documentType === 'retencion') {
-        xmlObj = generarRetencionXML(sriConfig, docData, matchedTercero);
+        xmlObj = generarRetencionXML(configData, docData, matchedTercero);
       } else if (formData.documentType === 'nota_credito') {
-        xmlObj = generarNotaCreditoXML(sriConfig, docData, matchedTercero, formData.items);
+        xmlObj = generarNotaCreditoXML(configData, docData, matchedTercero, formData.items);
       } else if (formData.documentType === 'liquidacion') {
-        xmlObj = generarLiquidacionXML(sriConfig, docData, matchedTercero, formData.items);
+        xmlObj = generarLiquidacionXML(configData, docData, matchedTercero, formData.items);
       } else {
-        xmlObj = generarFacturaXML(sriConfig, docData, matchedTercero, formData.items);
+        xmlObj = generarFacturaXML(configData, docData, matchedTercero, formData.items);
       }
 
       let { xml, claveAcceso } = xmlObj;
       let signedXml = xml;
 
       // Firma XAdES-BES real si el certificado y la contraseña están cargados
-      if (sriConfig.certificadoCargado && sriConfig.certificadoBase64 && sriConfig.certificadoClave) {
+      if (configData.certificadoCargado && configData.certificadoBase64 && configData.certificadoClave) {
         setSriLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), message: "Firmando XML con firma digital XAdES-BES real...", status: 'info' }]);
         try {
-          signedXml = firmarComprobanteXML(xml, sriConfig.certificadoBase64, sriConfig.certificadoClave);
+          signedXml = firmarComprobanteXML(xml, configData.certificadoBase64, configData.certificadoClave);
           setSriLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), message: "XML firmado criptográficamente de manera exitosa (Real).", status: 'success' }]);
         } catch (signErr) {
           console.error(signErr);
@@ -663,49 +808,69 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
           claveAcceso,
           xml: signedXml
         },
-        sriConfig,
+        configData,
         (logs) => setSriLogs(logs)
       );
 
       const docId = formData.id || `tx_${new Date().getTime()}`;
+
+      // Compute paidAmount and status based on selected paymentMethod
+      let paidAmount = 0;
+      let paymentStatus = 'pendiente';
+      const totalNum = Number(formData.total) || 0;
+      const payBreakdown = { efectivo: 0, transferencia: 0, tarjeta: 0, credito: 0 };
+
+      if (formData.paymentMethod === 'efectivo') {
+        paidAmount = totalNum;
+        paymentStatus = 'pagado';
+        payBreakdown.efectivo = totalNum;
+      } else if (formData.paymentMethod === 'transferencia') {
+        paidAmount = 0;
+        paymentStatus = 'pendiente';
+        payBreakdown.transferencia = totalNum;
+      } else if (formData.paymentMethod === 'tarjeta') {
+        paidAmount = 0;
+        paymentStatus = 'pendiente';
+        payBreakdown.tarjeta = totalNum;
+      } else if (formData.paymentMethod === 'credito') {
+        paidAmount = 0;
+        paymentStatus = 'pendiente';
+        payBreakdown.credito = totalNum;
+      }
+
       const finalTx = {
         ...formData,
         id: docId,
+        date: serverDate,
+        time: serverTime,
+        secuencial: sec, // Save the dynamically assigned sequential number
         documentNumber: docNum,
         sriStatus: 'autorizado',
         claveAcceso: result.claveAcceso,
         codigoNumerico, // Guardar el código numérico generado
         xmlUrl: result.xmlUrl,
         pdfUrl: result.pdfUrl,
-        paymentsBreakdown: {
-          efectivo: Number(payments.efectivo) || 0,
-          transferencia: Number(payments.transferencia) || 0,
-          tarjeta: Number(payments.tarjeta) || 0,
-          cruce_cuentas: Number(payments.cruce_cuentas) || 0
-        },
+        paidAmount,
+        paymentStatus,
+        paymentsBreakdown: payBreakdown,
         transferenciaRef: payments.transferenciaRef || '',
         tarjetaRef: payments.tarjetaRef || '',
         cruceRef: payments.cruceRef || '',
         paymentMethod: getPrimaryPaymentMethod(),
-        updatedAt: new Date().toISOString(),
+        creditDueDate: formData.paymentMethod === 'credito' ? creditDueDate : '',
+        creditObservations: formData.paymentMethod === 'credito' ? creditObservations : '',
+        updatedAt: now.toISOString(),
         updatedBy: 'Servicio Fiscal SRI'
       };
 
       await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId), sanitizeFirestoreData(finalTx));
       
+      // Save and increment the sequential value in Firestore config document
       const nextSec = Number(sec) + 1;
-      const secUpdate = {};
-      if (formData.documentType === 'factura') {
-        secUpdate.secuencialFactura = nextSec;
-      } else if (formData.documentType === 'retencion') {
-        secUpdate.secuencialRetencion = nextSec;
-      } else if (formData.documentType === 'nota_credito') {
-        secUpdate.secuencialNotaCredito = nextSec;
-      } else if (formData.documentType === 'liquidacion') {
-        secUpdate.secuencialLiquidacion = nextSec;
-      }
-
-      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config'), sanitizeFirestoreData(secUpdate), { merge: true });
+      const secUpdate = {
+        [secKey]: nextSec
+      };
+      await setDoc(configRef, sanitizeFirestoreData(secUpdate), { merge: true });
 
       setFormData(finalTx);
       showToast('Comprobante autorizado tributariamente por el SRI', 'success');
@@ -713,7 +878,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     } catch (err) {
       console.error(err);
       if (err.logs) setSriLogs(err.logs);
-      showToast(err.error || 'Fallo en la autorización del SRI', 'error');
+      showToast(err.error || err.message || 'Fallo en la autorización del SRI', 'error');
     } finally {
       setIsEmitting(false);
     }
@@ -779,7 +944,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   const handleNextStep = () => {
     if (currentStep === 1) {
       if (!formData.thirdPartyId) {
-        showToast('Por favor, selecciona un cliente o proveedor para continuar', 'error');
+        showToast('Por favor, selecciona un cliente para continuar', 'error');
         return;
       }
       const matchedTercero = thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
@@ -793,19 +958,19 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       }
     }
     if (currentStep === 2) {
-      if (formData.items && formData.items.length > 0) {
-        const invalid = formData.items.some(item => !item.productId || Number(item.quantity) <= 0 || Number(item.price) < 0);
-        if (invalid) {
-          showToast('Asegúrate de que todos los ítems detallados tengan un producto, cantidad y precio válido', 'error');
-          return;
-        }
+      if (!formData.items || formData.items.length === 0) {
+        showToast('Debes seleccionar al menos un producto para la venta', 'error');
+        return;
+      }
+      const invalid = formData.items.some(item => !item.productId || Number(item.quantity) <= 0 || Number(item.price) < 0);
+      if (invalid) {
+        showToast('Asegúrate de que todos los ítems del Mini POS tengan cantidad y precio válido', 'error');
+        return;
       }
       if (Number(formData.total) < 0) {
         showToast('El valor total del comprobante no puede ser menor a cero', 'error');
         return;
       }
-    }
-    if (currentStep === 3) {
       const paymentStatus = calculatePaymentStatus();
       if (!paymentStatus.isValid) {
         showToast(paymentStatus.error, 'error');
@@ -813,7 +978,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       }
     }
     
-    setCurrentStep(prev => Math.min(prev + 1, 4));
+    setCurrentStep(prev => Math.min(prev + 1, 3));
   };
 
   const handlePrevStep = () => {
@@ -828,9 +993,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
   const steps = [
     { id: 1, name: 'Cabecera' },
-    { id: 2, name: 'Detalles e Impuestos' },
-    { id: 3, name: 'Forma Pago' },
-    { id: 4, name: 'Emisión SRI' }
+    { id: 2, name: 'Productos y Pago (Mini POS)' },
+    { id: 3, name: 'Emisión y Registro' }
   ];
 
   const matchedTercero = thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
@@ -891,17 +1055,19 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   }
                   
                   if (step.id > 1 && !formData.thirdPartyId) {
-                    showToast('Selecciona primero un cliente o proveedor en el Paso 1', 'error');
+                    showToast('Selecciona primero un cliente en el Paso 1', 'error');
                     return;
                   }
-                  if (step.id > 2 && formData.items && formData.items.length > 0) {
-                    const invalid = formData.items.some(item => !item.productId || Number(item.quantity) <= 0 || Number(item.price) < 0);
-                    if (invalid) {
-                      showToast('Corrige los productos detallados en el Paso 2', 'error');
+                  if (step.id > 2) {
+                    if (!formData.items || formData.items.length === 0) {
+                      showToast('Debes seleccionar productos en el Paso 2', 'error');
                       return;
                     }
-                  }
-                  if (step.id > 3) {
+                    const invalid = formData.items.some(item => !item.productId || Number(item.quantity) <= 0 || Number(item.price) < 0);
+                    if (invalid) {
+                      showToast('Corrige los productos en el Paso 2', 'error');
+                      return;
+                    }
                     const pStatus = calculatePaymentStatus();
                     if (!pStatus.isValid) {
                       showToast(pStatus.error, 'error');
@@ -978,31 +1144,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 <h3 className="text-xs font-bold uppercase tracking-wider">Datos de Cabecera Tributaria</h3>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Tipo de Transacción</label>
-                  <select 
-                    disabled={!isEditable} 
-                    value={formData.type} 
-                    onChange={e => {
-                      const newType = e.target.value;
-                      setFormData({
-                        ...formData, 
-                        type: newType,
-                        category: newType === 'ingreso' ? 'ventas' : 'costos',
-                        thirdPartyId: ''
-                      });
-                    }} 
-                    className={inputClass}
-                  >
-                    <option value="ingreso">Ingreso (Ventas / Facturas Emitidas)</option>
-                    <option value="egreso">Egreso (Gastos / Compras / Facturas Recibidas)</option>
-                  </select>
-                </div>
-
-                <div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className={!isEditable ? "" : "md:col-span-2"}>
                   <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Tipo de Documento</label>
-                  {sriConfig?.rucActivo === false && formData.type === 'ingreso' && (
+                  {sriConfig?.rucActivo === false && (
                     <p className="text-[10px] text-amber-500 font-semibold mb-1">
                       ⚠️ RUC inactivo en configuración. Factura electrónica bloqueada.
                     </p>
@@ -1026,6 +1171,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         nextSec = String(sriConfig?.secuencialNotaCredito || 1);
                       } else if (newDocType === 'liquidacion') {
                         nextSec = String(sriConfig?.secuencialLiquidacion || 1);
+                      } else if (newDocType === 'nota_venta') {
+                        nextSec = String(sriConfig?.secuencialNotaVenta || 1);
                       }
                       
                       setFormData(prev => ({
@@ -1036,68 +1183,35 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     }} 
                     className={inputClass}
                   >
-                    {formData.type === 'ingreso' ? (
-                      formData.documentType === 'nota_credito' ? (
-                        <option value="nota_credito">Nota de Crédito</option>
-                      ) : formData.documentType === 'retencion' ? (
-                        <option value="retencion">Comprobante de Retención</option>
-                      ) : formData.documentType === 'nota_debito' ? (
-                        <option value="nota_debito">Nota de Débito</option>
-                      ) : (
-                        <>
-                          <option value="factura" disabled={sriConfig?.rucActivo === false}>
-                            Factura Electrónica {sriConfig?.rucActivo === false ? '(Bloqueado - RUC Inactivo)' : ''}
-                          </option>
-                          <option value="nota_venta">Nota de Venta</option>
-                        </>
-                      )
+                    {formData.documentType === 'nota_credito' ? (
+                      <option value="nota_credito">Nota de Crédito</option>
+                    ) : formData.documentType === 'retencion' ? (
+                      <option value="retencion">Comprobante de Retención</option>
+                    ) : formData.documentType === 'nota_debito' ? (
+                      <option value="nota_debito">Nota de Débito</option>
                     ) : (
                       <>
-                        <option value="factura">Factura Electrónica</option>
-                        <option value="nota_venta">Nota de Venta</option>
-                        <option value="liquidacion">Liquidación de Compra</option>
-                        <option value="retencion">Comprobante de Retención</option>
-                        <option value="nota_credito">Nota de Crédito</option>
-                        <option value="nota_debito">Nota de Débito</option>
+                        <option value="factura" disabled={sriConfig?.rucActivo === false}>
+                          Factura Electrónica {sriConfig?.rucActivo === false ? '(Bloqueado - RUC Inactivo)' : ''}
+                        </option>
+                        <option value="nota_venta">Nota de Venta (Recibo)</option>
                       </>
                     )}
                   </select>
                 </div>
-                
-                {formData.type === 'ingreso' && isEditable ? (
-                  <div>
-                    <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Secuencial Factura (SRI)</label>
-                    <div className="flex gap-2">
-                      <span className={`px-3 py-2 text-xs rounded-xl border flex items-center font-mono ${isDarkMode ? 'bg-white/5 border-white/10 text-gray-400' : 'bg-gray-100 border-gray-300 text-gray-700 font-bold'}`}>
-                        {sriConfig?.establecimiento || '001'}-{sriConfig?.puntoEmision || '001'}
-                      </span>
-                      <input type="number" required value={formData.secuencial} onChange={e => setFormData({...formData, secuencial: e.target.value})} className={inputClass} placeholder="1" />
-                    </div>
-                  </div>
-                ) : (
+
+                {!isEditable && (
                   <div>
                     <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Número de Comprobante</label>
-                    <input disabled={!isEditable} type="text" value={formData.documentNumber} onChange={e => setFormData({...formData, documentNumber: e.target.value})} className={inputClass} placeholder="001-001-000000001" />
+                    <input disabled type="text" value={formData.documentNumber} className={inputClass} />
                   </div>
                 )}
 
                 <div>
-                  <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Categoría Contable</label>
-                  <select disabled={!isEditable} value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className={inputClass}>
-                    <option value="ventas">Ventas / Honorarios</option>
-                    <option value="costos">Costos Operativos</option>
-                    <option value="gastos_administrativos">Gastos Administrativos</option>
-                    <option value="gastos_marketing">Gastos Marketing (Hosting/Publicidad)</option>
-                    <option value="activos">Compra de Activos</option>
-                    <option value="otros">Otros</option>
-                  </select>
-                </div>
-                
-                <div>
                   <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Fecha de Emisión</label>
-                  <input disabled={!isEditable} type="date" required value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} className={inputClass} />
+                  <input disabled={true} type="date" value={formData.date} className={`${inputClass} opacity-80 cursor-not-allowed`} />
                 </div>
-                
+
                 <div>
                   <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Moneda</label>
                   <select disabled={!isEditable} value={formData.currency} onChange={e => setFormData({...formData, currency: e.target.value})} className={inputClass}>
@@ -1106,8 +1220,32 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   </select>
                 </div>
 
+                <div>
+                  <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Referencia de Venta</label>
+                  <input 
+                    disabled={!isEditable} 
+                    type="text" 
+                    value={formData.referencia || ''} 
+                    onChange={e => setFormData({...formData, referencia: e.target.value})} 
+                    className={inputClass} 
+                    placeholder="Ej. Pedido #1024, Orden de Compra" 
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Descripción / Detalle de la Factura</label>
+                  <input 
+                    disabled={!isEditable} 
+                    type="text" 
+                    value={formData.description || ''} 
+                    onChange={e => setFormData({...formData, description: e.target.value})} 
+                    className={inputClass} 
+                    placeholder="Ej. Servicios de consultoría de desarrollo de software correspondientes a..." 
+                  />
+                </div>
+
                 {formData.documentType === 'nota_credito' && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:col-span-2 border-t border-dashed border-gray-200 dark:border-white/5 pt-4 mt-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:col-span-3 border-t border-dashed border-gray-200 dark:border-white/5 pt-4 mt-2">
                     <div>
                       <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Doc Modificado</label>
                       <select disabled={!isEditable} value={formData.codDocModificado || '01'} onChange={e => setFormData({...formData, codDocModificado: e.target.value})} className={inputClass}>
@@ -1393,7 +1531,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         {currentStep === 2 && formData.documentType !== 'retencion' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom duration-250">
             
-            {/* SECCION PRODUCTOS */}
+            {/* SECCION PRODUCTOS (LEFT PANEL) */}
             <div className="lg:col-span-2 space-y-4">
               <div className={`p-6 rounded-3xl border shadow-sm ${isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'}`}>
                 <div className="flex justify-between items-center border-b pb-3 mb-4 border-gray-200 dark:border-white/5">
@@ -1407,11 +1545,79 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       onClick={handleAddItem} 
                       className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase flex items-center gap-1.5 shadow-sm transition-transform hover:-translate-y-0.5"
                     >
-                      <Plus size={12} /> Añadir Fila
+                      <Plus size={12} /> Añadir Fila Manual
                     </button>
                   )}
                 </div>
 
+                {/* POS Search Bar */}
+                {isEditable && (
+                  <div className="relative mb-4">
+                    <div className="relative">
+                      <input 
+                        type="text" 
+                        value={productSearchTerm}
+                        onChange={e => setProductSearchTerm(e.target.value)}
+                        className={`${inputClass} pl-10`}
+                        placeholder="Buscar productos por nombre, SKU o código de barras..."
+                      />
+                      <Search className="absolute left-3.5 top-3 text-gray-400" size={16} />
+                      {productSearchTerm && (
+                        <button 
+                          type="button"
+                          onClick={() => setProductSearchTerm('')}
+                          className="absolute right-3.5 top-3 text-gray-400 hover:text-white"
+                        >
+                          <X size={14} />
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Results Dropdown */}
+                    {productSearchTerm.trim() !== '' && (
+                      <div className={`absolute z-30 w-full rounded-2xl border shadow-xl max-h-60 overflow-y-auto mt-1 ${
+                        isDarkMode ? 'bg-[#1e1e22] border-white/10 text-white' : 'bg-white border-gray-250 text-gray-900'
+                      }`}>
+                        {(() => {
+                          const matches = products.filter(p => 
+                            p.name?.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
+                            p.sku?.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
+                            p.codigoBarras?.toLowerCase().includes(productSearchTerm.toLowerCase())
+                          ).slice(0, 10);
+
+                          if (matches.length > 0) {
+                            return matches.map(p => (
+                              <button
+                                key={p.id}
+                                type="button"
+                                onClick={() => handleAddProductToCart(p)}
+                                className={`w-full text-left px-4 py-3 text-xs flex justify-between items-center border-b last:border-0 transition-colors ${
+                                  isDarkMode ? 'border-white/5 hover:bg-white/10' : 'border-gray-100 hover:bg-gray-50'
+                                }`}
+                              >
+                                <div>
+                                  <p className="font-bold">{p.name}</p>
+                                  <p className="text-[10px] text-gray-450 font-mono">
+                                    {p.sku ? `SKU: ${p.sku}` : ''} {p.codigoBarras ? ` | EAN: ${p.codigoBarras}` : ''}
+                                  </p>
+                                </div>
+                                <span className="font-black text-blue-500">${Number(p.price).toFixed(2)}</span>
+                              </button>
+                            ));
+                          } else {
+                            return (
+                              <div className="p-4 text-center text-xs text-gray-500 italic">
+                                No se encontraron productos coincidentes
+                              </div>
+                            );
+                          }
+                        })()}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Cart Items List */}
                 <div className="space-y-3 max-h-[50vh] overflow-y-auto pr-1 custom-scrollbar">
                   {(formData.items || []).map((item, index) => (
                     <div key={index} className={`flex flex-col sm:flex-row items-center gap-2.5 p-3 rounded-2xl border transition-all ${
@@ -1419,35 +1625,73 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     }`}>
                       
                       <div className="flex-1 w-full text-xs">
-                        <select 
-                          disabled={!isEditable}
-                          value={item.productId} 
-                          onChange={(e) => handleItemChange(index, 'productId', e.target.value)} 
-                          className={inputClass}
-                        >
-                          <option value="" disabled>Seleccionar Producto...</option>
-                          {products.map(p => (
-                            <option key={p.id} value={p.id} className="text-black">
-                              {p.codigoBarras ? `[${p.codigoBarras}]` : p.sku ? `[${p.sku}]` : ''} {p.name} — ${Number(p.price).toFixed(2)}
-                            </option>
-                          ))}
-                        </select>
+                        {item.productId ? (
+                          <>
+                            <p className="font-bold text-sm">{item.name}</p>
+                            <p className="text-[10px] text-gray-400 font-mono">
+                              {item.sku ? `SKU: ${item.sku}` : ''} {item.codigoBarras ? ` | EAN: ${item.codigoBarras}` : ''}
+                            </p>
+                          </>
+                        ) : (
+                          <select 
+                            disabled={!isEditable}
+                            value={item.productId} 
+                            onChange={(e) => handleItemChange(index, 'productId', e.target.value)} 
+                            className={inputClass}
+                          >
+                            <option value="" disabled>Seleccionar Producto...</option>
+                            {products.map(p => (
+                              <option key={p.id} value={p.id} className="text-black">
+                                {p.codigoBarras ? `[${p.codigoBarras}]` : p.sku ? `[${p.sku}]` : ''} {p.name} — ${Number(p.price).toFixed(2)}
+                              </option>
+                            ))}
+                          </select>
+                        )}
                       </div>
 
-                      <div className="w-full sm:w-24">
+                      {/* Quantity Controls */}
+                      <div className="flex items-center gap-1 w-full sm:w-32 justify-center">
+                        <button
+                          type="button"
+                          disabled={!isEditable}
+                          onClick={() => {
+                            const newQty = Math.max(1, (parseInt(item.quantity) || 1) - 1);
+                            handleItemChange(index, 'quantity', newQty);
+                          }}
+                          className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-base transition-colors ${
+                            isDarkMode ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
+                          }`}
+                        >
+                          -
+                        </button>
                         <input 
                           disabled={!isEditable}
                           type="number" 
                           required 
                           min={1} 
                           value={item.quantity} 
-                          onChange={(e) => handleItemChange(index, 'quantity', e.target.value)} 
-                          className={`${inputClass} text-center font-bold`} 
+                          onChange={(e) => handleItemChange(index, 'quantity', Math.max(1, parseInt(e.target.value) || 1))} 
+                          className={`w-12 text-center font-bold bg-transparent outline-none text-xs ${isDarkMode ? 'text-white' : 'text-gray-900'}`} 
                           placeholder="Cant"
                         />
+                        <button
+                          type="button"
+                          disabled={!isEditable}
+                          onClick={() => {
+                            const newQty = (parseInt(item.quantity) || 1) + 1;
+                            handleItemChange(index, 'quantity', newQty);
+                          }}
+                          className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-base transition-colors ${
+                            isDarkMode ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-gray-250 hover:bg-gray-300 text-gray-800'
+                          }`}
+                        >
+                          +
+                        </button>
                       </div>
 
-                      <div className="w-full sm:w-28">
+                      {/* Price input */}
+                      <div className="w-full sm:w-28 relative">
+                        <span className="absolute left-2.5 top-2.5 text-[10px] text-gray-500 font-bold">$</span>
                         <input 
                           disabled={!isEditable}
                           type="number" 
@@ -1455,12 +1699,13 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                           required 
                           value={item.price} 
                           onChange={(e) => handleItemChange(index, 'price', e.target.value)} 
-                          className={`${inputClass} font-semibold`} 
+                          className={`${inputClass} pl-6 font-semibold`} 
                           placeholder="Precio"
                         />
                       </div>
 
-                      <div className="text-xs font-black w-full sm:w-20 text-center shrink-0">
+                      {/* Line subtotal */}
+                      <div className="text-xs font-black w-full sm:w-20 text-right shrink-0">
                         ${((parseFloat(item.price) || 0) * (parseInt(item.quantity) || 1)).toFixed(2)}
                       </div>
 
@@ -1477,15 +1722,16 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   ))}
 
                   {(!formData.items || formData.items.length === 0) && (
-                    <div className="py-10 text-center text-gray-500 text-xs italic">
-                      No se han registrado productos. Puedes agregar filas arriba o configurar el valor general a la derecha de forma manual.
+                    <div className="py-12 text-center text-gray-500 text-xs italic flex flex-col items-center gap-2">
+                      <Layers size={24} className="text-gray-400" />
+                      <span>El carrito está vacío. Busque productos arriba para agregarlos.</span>
                     </div>
                   )}
                 </div>
               </div>
             </div>
 
-            {/* SECCION LIQUIDACION DE IMPUESTOS */}
+            {/* SECCION LIQUIDACION DE IMPUESTOS Y PAGO (RIGHT PANEL) */}
             <div className="space-y-4">
               <div className={`p-6 rounded-3xl border shadow-sm flex flex-col justify-between h-full ${
                 isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'
@@ -1496,61 +1742,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     <h3 className="text-xs font-bold uppercase tracking-wider">Totales e Impuestos</h3>
                   </div>
 
-                  <div>
-                    <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Base Imponible ($)</label>
-                    <input 
-                      disabled={!isEditable || hasItems} 
-                      type="number" 
-                      step="0.01" 
-                      value={formData.baseImponible} 
-                      onChange={e => setFormData({...formData, baseImponible: e.target.value})} 
-                      className={inputClass} 
-                    />
-                    {hasItems && <p className="text-[8px] text-gray-500 mt-1">Calculado automáticamente desde el listado de productos.</p>}
-                  </div>
-
-                  <div>
-                    <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Tarifa IVA (%)</label>
-                    <select 
-                      disabled={!isEditable || hasItems} 
-                      value={formData.ivaPorcentaje} 
-                      onChange={e => setFormData({...formData, ivaPorcentaje: e.target.value})} 
-                      className={inputClass}
-                    >
-                      <option value="15">15% (Actual)</option>
-                      <option value="12">12%</option>
-                      <option value="0">0%</option>
-                    </select>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Ret. Renta ($)</label>
-                      <input 
-                        disabled={!isEditable} 
-                        type="number" 
-                        step="0.01" 
-                        value={formData.retencionFuente} 
-                        onChange={e => setFormData({...formData, retencionFuente: e.target.value})} 
-                        className={inputClass} 
-                        placeholder="0.00"
-                      />
-                    </div>
-                    <div>
-                      <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Ret. IVA ($)</label>
-                      <input 
-                        disabled={!isEditable} 
-                        type="number" 
-                        step="0.01" 
-                        value={formData.retencionIva} 
-                        onChange={e => setFormData({...formData, retencionIva: e.target.value})} 
-                        className={inputClass} 
-                        placeholder="0.00"
-                      />
-                    </div>
-                  </div>
-
-                  <div className={`p-4 rounded-2xl border text-xs space-y-2 mt-4 ${
+                  <div className={`p-4 rounded-2xl border text-xs space-y-2.5 mt-4 ${
                     isDarkMode ? 'bg-black/10 border-white/5' : 'bg-gray-50 border-gray-250'
                   }`}>
                     <div className="flex justify-between">
@@ -1561,271 +1753,383 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       <span className="text-gray-400">IVA ({formData.ivaPorcentaje}%):</span>
                       <span className="font-bold">${Number(formData.ivaValor).toFixed(2)}</span>
                     </div>
-                    {(Number(formData.retencionFuente) > 0 || Number(formData.retencionIva) > 0) && (
-                      <div className="flex justify-between text-red-500">
-                        <span>Retenciones:</span>
-                        <span className="font-bold">-${(Number(formData.retencionFuente) + Number(formData.retencionIva)).toFixed(2)}</span>
+                    <div className="flex justify-between border-t border-dashed dark:border-white/5 pt-2 text-base font-black">
+                      <span>Total Neto:</span>
+                      <span>${formData.total}</span>
+                    </div>
+                  </div>
+
+                  {/* SELECTOR FORMA DE PAGO */}
+                  <div className="border-t border-dashed dark:border-white/5 pt-4">
+                    <label className={`block text-[9px] font-bold uppercase mb-2 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Forma de Pago Principal</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {[
+                        { id: 'efectivo', label: 'Efectivo', icon: DollarSign },
+                        { id: 'transferencia', label: 'Transferencia', icon: RefreshCw },
+                        { id: 'tarjeta', label: 'Tarjeta', icon: CreditCard },
+                        { id: 'credito', label: 'Crédito / CxC', icon: User }
+                      ].map(m => {
+                        const isActive = formData.paymentMethod === m.id;
+                        return (
+                          <button
+                            key={m.id}
+                            type="button"
+                            onClick={() => handlePaymentMethodSelect(m.id)}
+                            className={`flex flex-col items-center justify-center p-3 rounded-2xl border transition-all text-center gap-1 ${
+                              isActive 
+                                ? `${isDarkMode ? 'bg-blue-600/25 border-blue-500/40 text-blue-400 font-extrabold' : 'bg-blue-50 border-blue-500 text-blue-800 font-extrabold'}`
+                                : `${isDarkMode ? 'border-white/5 text-gray-400 hover:bg-white/5 hover:text-white' : 'border-gray-200 text-gray-600 hover:bg-gray-100'}`
+                            }`}
+                          >
+                            <m.icon size={16} />
+                            <span className="text-[10px] tracking-wide font-bold">{m.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* CAMPOS CONDICIONALES DE PAGO */}
+                  <div className="border-t border-dashed dark:border-white/5 pt-4">
+                    {formData.paymentMethod === 'efectivo' && (
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">Efectivo Recibido ($)</label>
+                          <input 
+                            disabled={!isEditable}
+                            type="number" 
+                            step="0.01" 
+                            value={payments.efectivo || ''} 
+                            onChange={e => setPayments({...payments, efectivo: e.target.value})} 
+                            className={inputClass} 
+                            placeholder="0.00" 
+                          />
+                        </div>
+                        {Number(payments.efectivo) > 0 && (
+                          <div className={`p-3 rounded-xl text-center font-bold text-xs ${
+                            (Number(payments.efectivo) || 0) >= Number(formData.total)
+                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/15'
+                              : 'bg-red-500/10 text-red-400 border border-red-500/15'
+                          }`}>
+                            {(Number(payments.efectivo) || 0) >= Number(formData.total) ? (
+                              <>
+                                <p className="text-[8px] uppercase tracking-wider text-emerald-500 font-black">Cambio / Vuelto</p>
+                                <p className="text-lg">${Math.max(0, (Number(payments.efectivo) || 0) - Number(formData.total)).toFixed(2)}</p>
+                              </>
+                            ) : (
+                              <p className="text-[10px]">Falta cubrir ${(Number(formData.total) - (Number(payments.efectivo) || 0)).toFixed(2)}</p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {formData.paymentMethod === 'transferencia' && (
+                      <div className="space-y-3 text-xs">
+                        <div>
+                          <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">Referencia / Banco</label>
+                          <input 
+                            disabled={!isEditable}
+                            type="text" 
+                            value={payments.transferenciaRef || ''} 
+                            onChange={e => setPayments({...payments, transferenciaRef: e.target.value})} 
+                            className={inputClass} 
+                            placeholder="Ej. Depósito Pichincha / Transferencia Banco Guayaquil" 
+                          />
+                        </div>
+                        <div className="p-3.5 rounded-xl border border-blue-500/10 bg-blue-500/5 text-[10px] text-blue-400 leading-normal flex items-start gap-2">
+                          <CheckCircle2 size={14} className="shrink-0 mt-0.5" />
+                          <span>Se generará una cuenta por cobrar. Podrá registrar y conciliar el depósito real en el módulo de Cuentas por Cobrar en Contabilidad.</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {formData.paymentMethod === 'tarjeta' && (
+                      <div className="space-y-3 text-xs">
+                        <div>
+                          <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">Nro Lote / Autorización / Banco</label>
+                          <input 
+                            disabled={!isEditable}
+                            type="text" 
+                            value={payments.tarjetaRef || ''} 
+                            onChange={e => setPayments({...payments, tarjetaRef: e.target.value})} 
+                            className={inputClass} 
+                            placeholder="Ej. Lote 0234 - Produbanco" 
+                          />
+                        </div>
+                        <div className="p-3.5 rounded-xl border border-purple-500/10 bg-purple-500/5 text-[10px] text-purple-400 leading-normal flex items-start gap-2">
+                          <CheckCircle2 size={14} className="shrink-0 mt-0.5" />
+                          <span>Se registrará en cuentas por cobrar. El administrador cerrará la cuenta con el voucher correspondiente una vez liquidada la tarjeta.</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {formData.paymentMethod === 'credito' && (
+                      <div className="space-y-3 text-xs">
+                        <div className={`p-3.5 rounded-xl border ${
+                          (() => {
+                            const limit = Number(matchedTercero?.limiteCredito) || 1000;
+                            const available = limit - clientDebt - Number(formData.total);
+                            return available < 0 ? 'bg-red-500/10 border-red-500/15 text-red-400 animate-pulse' : 'bg-amber-500/10 border-amber-500/15 text-amber-400';
+                          })()
+                        }`}>
+                          <div className="flex justify-between items-center font-bold mb-2">
+                            <span>Límite de Crédito:</span>
+                            <span>${(Number(matchedTercero?.limiteCredito) || 1000).toFixed(2)}</span>
+                          </div>
+                          <div className="flex justify-between items-center font-semibold text-[11px] mb-2 opacity-90">
+                            <span>Deuda Actual:</span>
+                            <span>${clientDebt.toFixed(2)}</span>
+                          </div>
+                          {(() => {
+                            const limit = Number(matchedTercero?.limiteCredito) || 1000;
+                            const available = limit - clientDebt - Number(formData.total);
+                            return (
+                              <div className="flex justify-between items-center font-black text-xs border-t border-dashed dark:border-white/5 pt-2">
+                                <span>Cupo Disponible:</span>
+                                <span>${available.toFixed(2)}</span>
+                              </div>
+                            );
+                          })()}
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => setIsCreditModalOpen(true)}
+                          className={`w-full py-2.5 rounded-xl border text-[11px] font-bold uppercase transition-all text-center ${
+                            isDarkMode 
+                              ? 'bg-amber-600/25 border-amber-500/20 text-amber-400 hover:bg-amber-600/35' 
+                              : 'bg-amber-50 border-amber-200 text-amber-800 hover:bg-amber-100'
+                          }`}
+                        >
+                          Ver y Editar Detalles del Crédito
+                        </button>
                       </div>
                     )}
                   </div>
-                </div>
 
-                <div className={`mt-6 p-4 rounded-xl border flex justify-between items-center ${
-                  isDarkMode ? 'bg-blue-600/10 border-blue-500/20 text-blue-400' : 'bg-blue-50 border-blue-200 text-blue-900 font-semibold'
-                }`}>
-                  <span className="text-[9px] font-black uppercase tracking-wider">Total Líquido:</span>
-                  <span className={`text-xl font-black ${isDarkMode ? 'text-white' : 'text-gray-950'}`}>
-                    ${formData.total}
-                  </span>
                 </div>
               </div>
             </div>
 
-          </div>
-        )}
-
-        {/* STEP 3: MÉTODOS DE PAGO */}
-        {currentStep === 3 && (
-          <div className="space-y-6 animate-in fade-in slide-in-from-bottom duration-250">
-            <div className={`p-6 rounded-3xl border shadow-sm grid grid-cols-1 md:grid-cols-3 gap-6 ${
-              isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'
-            }`}>
-              
-              <div className="md:col-span-2 space-y-4">
-                <div className="flex items-center gap-2 mb-2 border-b pb-3 border-gray-200 dark:border-white/5">
-                  <DollarSign className="text-emerald-500" size={16} />
-                  <h3 className="text-xs font-bold uppercase tracking-wider">Formas de Pago Combinadas (Ecuador)</h3>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* EFECTIVO */}
-                  <div className={`p-4 rounded-2xl border ${isDarkMode ? 'bg-black/10 border-white/5' : 'bg-gray-50 border-gray-200'}`}>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-xs font-bold uppercase flex items-center gap-1.5"><DollarSign size={14} className="text-emerald-500" /> Efectivo</span>
-                      {isEditable && (
-                        <button type="button" onClick={() => fillRemaining('efectivo')} className="text-[9px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-bold uppercase border border-emerald-500/10 hover:bg-emerald-500/20">
-                          Saldo
-                        </button>
-                      )}
-                    </div>
-                    <input 
-                      disabled={!isEditable}
-                      type="number" 
-                      step="0.01" 
-                      value={payments.efectivo || ''} 
-                      onChange={e => setPayments({...payments, efectivo: e.target.value})} 
-                      className={inputClass} 
-                      placeholder="0.00" 
-                    />
-                  </div>
-
-                  {/* TRANSFERENCIA */}
-                  <div className={`p-4 rounded-2xl border ${isDarkMode ? 'bg-black/10 border-white/5' : 'bg-gray-50 border-gray-200'}`}>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-xs font-bold uppercase flex items-center gap-1.5"><RefreshCw size={14} className="text-blue-500" /> Transferencia</span>
-                      {isEditable && (
-                        <button type="button" onClick={() => fillRemaining('transferencia')} className="text-[9px] px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 font-bold uppercase border border-blue-500/10 hover:bg-blue-500/20">
-                          Saldo
-                        </button>
-                      )}
-                    </div>
-                    <input 
-                      disabled={!isEditable}
-                      type="number" 
-                      step="0.01" 
-                      value={payments.transferencia || ''} 
-                      onChange={e => setPayments({...payments, transferencia: e.target.value})} 
-                      className={inputClass} 
-                      placeholder="0.00" 
-                    />
-                    <input 
-                      disabled={!isEditable}
-                      type="text" 
-                      value={payments.transferenciaRef} 
-                      onChange={e => setPayments({...payments, transferenciaRef: e.target.value})} 
-                      className={`${inputClass} py-1.5 text-[10px] mt-2`} 
-                      placeholder="Referencia / Banco" 
-                    />
-                  </div>
-
-                  {/* TARJETA */}
-                  <div className={`p-4 rounded-2xl border ${isDarkMode ? 'bg-black/10 border-white/5' : 'bg-gray-50 border-gray-200'}`}>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-xs font-bold uppercase flex items-center gap-1.5"><CreditCard size={14} className="text-purple-500" /> Tarjeta Crédito/Débito</span>
-                      {isEditable && (
-                        <button type="button" onClick={() => fillRemaining('tarjeta')} className="text-[9px] px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 font-bold uppercase border border-purple-500/10 hover:bg-purple-500/20">
-                          Saldo
-                        </button>
-                      )}
-                    </div>
-                    <input 
-                      disabled={!isEditable}
-                      type="number" 
-                      step="0.01" 
-                      value={payments.tarjeta || ''} 
-                      onChange={e => setPayments({...payments, tarjeta: e.target.value})} 
-                      className={inputClass} 
-                      placeholder="0.00" 
-                    />
-                    <input 
-                      disabled={!isEditable}
-                      type="text" 
-                      value={payments.tarjetaRef} 
-                      onChange={e => setPayments({...payments, tarjetaRef: e.target.value})} 
-                      className={`${inputClass} py-1.5 text-[10px] mt-2`} 
-                      placeholder="Nro Lote / Autorización" 
-                    />
-                  </div>
-
-                  {/* CRUCE DE CUENTAS */}
-                  <div className={`p-4 rounded-2xl border ${isDarkMode ? 'bg-black/10 border-white/5' : 'bg-gray-50 border-gray-200'}`}>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-xs font-bold uppercase flex items-center gap-1.5"><Layers size={14} className="text-yellow-500" /> Cruce de Cuentas</span>
-                      {isEditable && (
-                        <button type="button" onClick={() => fillRemaining('cruce_cuentas')} className="text-[9px] px-2 py-0.5 rounded bg-yellow-500/10 text-yellow-400 font-bold uppercase border border-yellow-500/10 hover:bg-yellow-500/20">
-                          Saldo
-                        </button>
-                      )}
-                    </div>
-                    <input 
-                      disabled={!isEditable}
-                      type="number" 
-                      step="0.01" 
-                      value={payments.cruce_cuentas || ''} 
-                      onChange={e => setPayments({...payments, cruce_cuentas: e.target.value})} 
-                      className={inputClass} 
-                      placeholder="0.00" 
-                    />
-                    <input 
-                      disabled={!isEditable}
-                      type="text" 
-                      value={payments.cruceRef} 
-                      onChange={e => setPayments({...payments, cruceRef: e.target.value})} 
-                      className={`${inputClass} py-1.5 text-[10px] mt-2`} 
-                      placeholder="Nro Documento Compensado" 
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className={`p-5 rounded-2xl border flex flex-col justify-between ${
-                isDarkMode ? 'bg-black/20 border-white/5' : 'bg-gray-50 border-gray-200'
-              }`}>
-                <div>
-                  <h4 className="text-[10px] font-black uppercase text-gray-500 mb-4 tracking-wider">Estado Contable del Cobro</h4>
-                  <div className="space-y-3.5 text-xs">
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Total a pagar:</span>
-                      <span className="font-bold">${Number(formData.total).toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Total abonado:</span>
-                      <span className="font-bold text-blue-500">${totalPaid.toFixed(2)}</span>
-                    </div>
-
-                    <div className="border-t border-dashed my-3 pt-3">
-                      {paymentStatus.isValid ? (
-                        <div>
-                          {paymentStatus.vuelto > 0 ? (
-                            <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/15 text-emerald-400 text-center font-bold">
-                              <p className="text-[8px] uppercase font-black">Vuelto/Cambio en Efectivo</p>
-                              <p className="text-lg">${paymentStatus.vuelto.toFixed(2)}</p>
-                            </div>
-                          ) : (
-                            <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/15 text-emerald-400 text-center text-[10px] font-bold">
-                              El balance del pago cubre exactamente el total.
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/15 text-red-400 text-[10px] font-semibold text-center flex items-center gap-1.5 justify-center">
-                          <AlertTriangle size={13} className="shrink-0" />
-                          <span>{paymentStatus.error}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-            </div>
           </div>
         )}
 
         {/* STEP 4: EMISIÓN Y AUTORIZACIÓN SRI */}
-        {currentStep === 4 && (
+        {currentStep === 3 && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom duration-250">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               
               <div className="md:col-span-2 space-y-6">
                 
-                {/* TARJETA RESUMEN GENERAL */}
-                <div className={`p-6 rounded-3xl border shadow-sm ${isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'}`}>
+                {/* TARJETA RESUMEN GENERAL (RIDE STYLE PREVIEW) */}
+                <div className={`p-6 rounded-3xl border shadow-lg ${isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'}`}>
                   <div className="flex items-center gap-2 mb-4 border-b pb-3 border-gray-200 dark:border-white/5">
                     <FileText className="text-blue-500" size={16} />
-                    <h3 className="text-xs font-bold uppercase tracking-wider">Resumen del Comprobante</h3>
+                    <h3 className="text-xs font-bold uppercase tracking-wider">Vista Previa del RIDE (SRI Ecuador)</h3>
                   </div>
 
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-xs">
-                    <div>
-                      <p className="text-[9px] uppercase text-gray-500">Tercero</p>
-                      <p className="font-bold">{matchedTercero?.name || 'No asignado'}</p>
-                    </div>
-                    <div>
-                      <p className="text-[9px] uppercase text-gray-500">RUC/CI Tercero</p>
-                      <p className="font-mono">{matchedTercero?.ruc || 'No asignado'}</p>
-                    </div>
-                    <div>
-                      <p className="text-[9px] uppercase text-gray-500">Fecha Emisión</p>
-                      <p className="font-semibold">{formData.date}</p>
-                    </div>
-                    <div>
-                      <p className="text-[9px] uppercase text-gray-500">Documento</p>
-                      <p className="font-bold capitalize">{formData.documentType.replace('_', ' ')}</p>
-                    </div>
-                    {formData.type === 'ingreso' && (
-                      <div>
-                        <p className="text-[9px] uppercase text-gray-500">Secuencial Factura</p>
-                        <p className="font-mono font-bold">
-                          {sriConfig?.establecimiento || '001'}-{sriConfig?.puntoEmision || '001'}-{String(formData.secuencial).padStart(9, '0')}
+                  {/* RIDE SHEET */}
+                  <div className={`p-5 rounded-2xl border text-[11px] leading-relaxed select-none ${
+                    isDarkMode ? 'bg-black/20 border-white/5 text-gray-300' : 'bg-gray-50 border-gray-200 text-gray-800'
+                  }`}>
+                    
+                    {/* Header: Emisor vs Document details */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-b pb-4 mb-4 dark:border-white/5">
+                      {/* Left: Emisor Info */}
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <Building className="text-blue-500 shrink-0" size={20} />
+                          <span className="font-extrabold text-xs uppercase tracking-wide text-blue-600 dark:text-blue-400">
+                            {sriConfig.nombreComercial || 'WEBFIX SOLUCIONES'}
+                          </span>
+                        </div>
+                        <p className="font-bold text-[10px] text-gray-900 dark:text-white uppercase">{sriConfig.razonSocial || 'WEBFIX SOLUCIONES TECNOLOGICAS S.A.'}</p>
+                        <p className="text-[10px]"><span className="font-bold text-gray-500">RUC:</span> <span className="font-mono">{sriConfig.ruc || '1790000000001'}</span></p>
+                        <p className="text-[10px]"><span className="font-bold text-gray-500">Dirección Matriz:</span> {sriConfig.direccionMatriz}</p>
+                        <p className="text-[9px] text-gray-500 uppercase mt-2">
+                          {sriConfig.obligadoContabilidad ? 'Obligado a llevar contabilidad: SÍ' : 'Obligado a llevar contabilidad: NO'}
                         </p>
+                        {sriConfig.regimenRimpe && (
+                          <p className="text-[9px] text-emerald-500 font-bold uppercase">
+                            Contribuyente Régimen: {sriConfig.regimenRimpe.replace('_', ' ')}
+                          </p>
+                        )}
                       </div>
-                    )}
-                    <div>
-                      <p className="text-[9px] uppercase text-gray-500">Categoría Contable</p>
-                      <p className="font-bold capitalize">{formData.category.replace('_', ' ')}</p>
-                    </div>
-                  </div>
 
-                  {formData.documentType === 'retencion' && formData.retenciones && formData.retenciones.length > 0 && (
-                    <div className="mt-6 border-t border-white/5 pt-4">
-                      <p className="text-[9px] uppercase text-gray-500 mb-2 font-bold">Líneas de Retención</p>
-                      <div className="space-y-1">
-                        {formData.retenciones.map((ret, i) => (
-                          <div key={i} className="flex justify-between text-[11px] py-1 border-b border-dashed border-gray-200 dark:border-white/5">
-                            <span className="text-gray-400">
-                              {ret.codigo === '1' ? 'Renta' : 'IVA'} (Cód: {ret.codigoRetencion}) — Base: ${Number(ret.baseImponible).toFixed(2)} ({ret.porcentajeRetener}%)
+                      {/* Right: Auth & Clave Acceso info */}
+                      <div className={`p-4 rounded-xl border flex flex-col justify-between ${
+                        isDarkMode ? 'bg-black/25 border-white/5' : 'bg-white border-gray-200 shadow-sm'
+                      }`}>
+                        <div>
+                          <p className="font-black text-sm uppercase tracking-wider text-gray-900 dark:text-white">
+                            {formData.documentType === 'factura' ? 'Factura Electrónica' : 'Nota de Venta (Recibo)'}
+                          </p>
+                          <p className="font-mono text-[11px] font-bold text-blue-500 mt-0.5">
+                            Nº:{' '}
+                            {isEditable && !formData.documentNumber
+                              ? `${sriConfig.establecimiento || '001'}-${sriConfig.puntoEmision || '001'}-${String(formData.secuencial || sriConfig.secuencialFactura || 1).padStart(9, '0')}`
+                              : formData.documentNumber
+                            }
+                          </p>
+                        </div>
+                        <div className="mt-3.5 space-y-1 text-[10px]">
+                          <p><span className="font-bold text-gray-500">Ambiente:</span> {sriConfig.ambiente === '1' ? 'PRUEBAS' : 'PRODUCCIÓN'}</p>
+                          <p><span className="font-bold text-gray-500">Emisión:</span> NORMAL</p>
+                          <p className="font-bold text-gray-500 mt-2">Clave de Acceso / Autorización SRI:</p>
+                          <p className="font-mono text-[9px] break-all leading-normal text-gray-400">
+                            {formData.claveAcceso || '0604202601179000000000120010010000001231234567812'}
+                          </p>
+                          
+                          {/* DYNAMIC BARCODE RENDER */}
+                          <div className="flex items-center justify-center gap-px h-6 bg-white py-1 px-2 rounded border border-gray-200 mt-2 select-none overflow-hidden max-w-[200px]">
+                            {[2, 1, 3, 1, 2, 4, 1, 2, 1, 3, 2, 1, 4, 1, 2, 1, 3, 1, 2, 4, 1, 2, 1, 3, 2, 1, 4, 1, 2, 1, 2, 1, 3, 1].map((w, idx) => (
+                              <div key={idx} className="bg-black h-full" style={{ width: `${w}px` }} />
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Client Info Grid */}
+                    <div className={`p-3.5 rounded-xl border mb-4 grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1.5 ${
+                      isDarkMode ? 'bg-black/10 border-white/5' : 'bg-white border-gray-200'
+                    }`}>
+                      <div>
+                        <span className="font-bold text-gray-500">Razón Social / Cliente:</span>{' '}
+                        <span className="font-extrabold text-gray-900 dark:text-white">{matchedTercero?.name || 'Cliente no seleccionado'}</span>
+                      </div>
+                      <div>
+                        <span className="font-bold text-gray-500">CI / RUC:</span>{' '}
+                        <span className="font-mono font-bold">{matchedTercero?.ruc || 'N/A'}</span>
+                      </div>
+                      <div>
+                        <span className="font-bold text-gray-500">Dirección:</span>{' '}
+                        <span>{matchedTercero?.direccion || 'N/A'}</span>
+                      </div>
+                      <div>
+                        <span className="font-bold text-gray-500">Fecha Emisión:</span>{' '}
+                        <span>{formData.date}</span>
+                      </div>
+                      <div>
+                        <span className="font-bold text-gray-500">Email:</span>{' '}
+                        <span>{matchedTercero?.email || 'N/A'}</span>
+                      </div>
+                      <div>
+                        <span className="font-bold text-gray-500">Forma de Pago:</span>{' '}
+                        <span className="font-bold capitalize">{formData.paymentMethod === 'credito' ? 'Crédito' : formData.paymentMethod}</span>
+                      </div>
+                    </div>
+
+                    {/* Items table */}
+                    <div className="overflow-x-auto mb-4 border rounded-xl dark:border-white/5">
+                      <table className="w-full text-left border-collapse text-[10px]">
+                        <thead>
+                          <tr className={`border-b dark:border-white/5 bg-gray-550/5 ${isDarkMode ? 'bg-white/5' : 'bg-gray-100'}`}>
+                            <th className="py-2 px-3 font-bold">Cod. Principal</th>
+                            <th className="py-2 px-3 font-bold">Descripción</th>
+                            <th className="py-2 px-3 font-bold text-center">Cantidad</th>
+                            <th className="py-2 px-3 font-bold text-right">Precio Unitario</th>
+                            <th className="py-2 px-3 font-bold text-right">Descuento</th>
+                            <th className="py-2 px-3 font-bold text-right">Total</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200 dark:divide-white/5">
+                          {(formData.items || []).map((it, i) => (
+                            <tr key={i} className="hover:bg-white/5">
+                              <td className="py-2 px-3 font-mono text-gray-400">{it.sku || it.productId?.slice(3, 10) || '0001'}</td>
+                              <td className="py-2 px-3 font-bold">{it.name}</td>
+                              <td className="py-2 px-3 text-center">{Number(it.quantity).toFixed(2)}</td>
+                              <td className="py-2 px-3 text-right">${Number(it.price).toFixed(2)}</td>
+                              <td className="py-2 px-3 text-right">$0.00</td>
+                              <td className="py-2 px-3 text-right font-bold">${(it.price * it.quantity).toFixed(2)}</td>
+                            </tr>
+                          ))}
+                          {(!formData.items || formData.items.length === 0) && (
+                            <tr>
+                              <td colSpan="6" className="py-4 text-center text-gray-500 italic">No hay ítems registrados.</td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Bottom: Observations and Totals */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Left: Additional Info */}
+                      <div className="space-y-3">
+                        <div className={`p-3 rounded-xl border h-full ${
+                          isDarkMode ? 'bg-black/10 border-white/5' : 'bg-white border-gray-200'
+                        }`}>
+                          <p className="font-bold text-gray-500 border-b pb-1 dark:border-white/5 mb-1.5 uppercase text-[9px] tracking-wider">Información Adicional</p>
+                          <div className="space-y-1.5 text-[9px]">
+                            {formData.referencia && <p><span className="font-bold text-gray-400">Referencia:</span> {formData.referencia}</p>}
+                            {formData.description && <p><span className="font-bold text-gray-400">Observaciones:</span> {formData.description}</p>}
+                            <p><span className="font-bold text-gray-400">Moneda:</span> Dólares (USD)</p>
+                            
+                            {/* Payment details block */}
+                            <div className="mt-2.5 pt-2.5 border-t dark:border-white/5">
+                              <p className="font-bold text-gray-400 mb-1 uppercase text-[8px] tracking-widest">Detalle Formas de Pago</p>
+                              <div className="flex justify-between font-mono bg-gray-550/5 p-1.5 rounded border dark:border-white/5 text-[9px]">
+                                <span>
+                                  {formData.paymentMethod === 'efectivo' && '01 - SIN UTILIZACION DEL SISTEMA FINANCIERO (EFECTIVO)'}
+                                  {formData.paymentMethod === 'transferencia' && '20 - OTROS CON UTILIZACION DEL SISTEMA FINANCIERO (TRANSFERENCIA)'}
+                                  {formData.paymentMethod === 'tarjeta' && '19 - TARJETA DE CREDITO / DEBITO'}
+                                  {formData.paymentMethod === 'credito' && '19 - OTROS (CUENTA POR COBRAR INTERNA - CREDITO)'}
+                                </span>
+                                <span className="font-extrabold text-blue-500">${formData.total}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right: Totals Breakdown */}
+                      <div className="space-y-1 text-xs">
+                        <div className={`p-3 rounded-xl border space-y-1.5 ${
+                          isDarkMode ? 'bg-black/10 border-white/5' : 'bg-white border-gray-200'
+                        }`}>
+                          <div className="flex justify-between text-gray-500">
+                            <span>Subtotal 15%:</span>
+                            <span className="font-bold font-mono">
+                              ${(
+                                (formData.items || [])
+                                  .filter(item => (parseInt(item.ivaCategory) || 15) === 15)
+                                  .reduce((sum, item) => sum + (parseFloat(item.price) || 0) * (parseInt(item.quantity) || 1), 0)
+                              ).toFixed(2)}
                             </span>
-                            <span className="font-semibold text-yellow-500">${Number(ret.valorRetenido).toFixed(2)}</span>
                           </div>
-                        ))}
+                          <div className="flex justify-between text-gray-500">
+                            <span>Subtotal 0%:</span>
+                            <span className="font-bold font-mono">
+                              ${(
+                                (formData.items || [])
+                                  .filter(item => (parseInt(item.ivaCategory) || 15) === 0)
+                                  .reduce((sum, item) => sum + (parseFloat(item.price) || 0) * (parseInt(item.quantity) || 1), 0)
+                              ).toFixed(2)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-gray-500 border-t dark:border-white/5 pt-1.5">
+                            <span>Subtotal Sin Impuestos:</span>
+                            <span className="font-bold font-mono">${Number(formData.baseImponible).toFixed(2)}</span>
+                          </div>
+                          <div className="flex justify-between text-gray-500">
+                            <span>Total Descuento:</span>
+                            <span className="font-bold font-mono">$0.00</span>
+                          </div>
+                          <div className="flex justify-between text-gray-500">
+                            <span>IVA 15%:</span>
+                            <span className="font-bold font-mono">${Number(formData.ivaValor).toFixed(2)}</span>
+                          </div>
+                          <div className="flex justify-between text-base font-black text-gray-900 dark:text-white border-t border-dashed dark:border-white/5 pt-1.5">
+                            <span>VALOR TOTAL:</span>
+                            <span className="font-mono">${formData.total}</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  )}
 
-                  {formData.documentType !== 'retencion' && formData.items && formData.items.length > 0 && (
-                    <div className="mt-6 border-t border-white/5 pt-4">
-                      <p className="text-[9px] uppercase text-gray-500 mb-2 font-bold">Líneas de Productos</p>
-                      <div className="space-y-1">
-                        {formData.items.map((it, i) => (
-                          <div key={i} className="flex justify-between text-[11px] py-1 border-b border-dashed border-gray-200 dark:border-white/5">
-                            <span className="text-gray-400">{it.quantity}x {it.name}</span>
-                            <span className="font-semibold">${(it.price * it.quantity).toFixed(2)}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                  </div>
                 </div>
 
                 {/* ARCHIVOS SRI ADJUNTOS */}
@@ -1955,7 +2259,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         Guardar como Borrador
                       </button>
 
-                      {formData.type === 'ingreso' && (
+                      {formData.type === 'ingreso' && formData.documentType !== 'nota_venta' && (
                         <button 
                           type="button" 
                           onClick={handleEmitirSRI} 
@@ -1964,6 +2268,18 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         >
                           <Sparkles size={14} />
                           <span>Firma y Autorización SRI</span>
+                        </button>
+                      )}
+
+                      {formData.type === 'ingreso' && formData.documentType === 'nota_venta' && (
+                        <button 
+                          type="button" 
+                          onClick={() => handleSave({ isFinalizingNotaVenta: true })} 
+                          disabled={isUploading || isEmitting} 
+                          className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl text-xs font-black bg-emerald-600 text-white hover:bg-emerald-500 shadow-md transition-all uppercase tracking-wide"
+                        >
+                          <CheckCircle2 size={14} />
+                          <span>Registrar Venta (Nota de Venta)</span>
                         </button>
                       )}
                     </>
@@ -2020,10 +2336,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         </button>
 
         <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-          Paso {currentStep} de 4
+          Paso {currentStep} de 3
         </span>
 
-        {currentStep < 4 ? (
+        {currentStep < 3 ? (
           <button
             type="button"
             onClick={handleNextStep}
@@ -2046,6 +2362,128 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
           </div>
         )}
       </div>
+
+      {/* MODAL SEGUIMIENTO DE CRÉDITO / CXC */}
+      {isCreditModalOpen && (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-in fade-in">
+          <div className={`w-full max-w-md p-6 rounded-3xl shadow-2xl border ${
+            isDarkMode ? 'bg-[#151517] border border-white/10 text-white' : 'bg-white border border-gray-200 text-gray-900'
+          }`}>
+            <div className="flex justify-between items-center mb-4 border-b pb-2 dark:border-white/5">
+              <h3 className="text-sm font-black flex items-center gap-2">
+                <User className="text-amber-500" size={16} />
+                Seguimiento de Cuenta por Cobrar
+              </h3>
+              <button 
+                type="button" 
+                onClick={() => setIsCreditModalOpen(false)}
+                className="p-1.5 rounded-lg hover:bg-white/10"
+              >
+                <X size={14} />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className={`p-4 rounded-2xl border text-xs space-y-2 ${
+                isDarkMode ? 'bg-black/10 border-white/5' : 'bg-gray-50 border-gray-200'
+              }`}>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Cliente:</span>
+                  <span className="font-bold">{matchedTercero?.name || 'Cliente no seleccionado'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Cupo de Crédito:</span>
+                  <span className="font-bold">${(Number(matchedTercero?.limiteCredito) || 1000).toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-red-400">
+                  <span>Deuda Pendiente Actual:</span>
+                  <span className="font-bold">${clientDebt.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-blue-400 border-t border-dashed dark:border-white/5 pt-2">
+                  <span>Monto Venta Actual:</span>
+                  <span className="font-bold">${Number(formData.total).toFixed(2)}</span>
+                </div>
+                
+                {(() => {
+                  const limit = Number(matchedTercero?.limiteCredito) || 1000;
+                  const totalVenta = Number(formData.total) || 0;
+                  const available = limit - clientDebt - totalVenta;
+                  return (
+                    <div className={`flex justify-between border-t border-dashed dark:border-white/5 pt-2 ${
+                      available < 0 ? 'text-red-500 font-extrabold animate-pulse' : 'text-emerald-400 font-bold'
+                    }`}>
+                      <span>Cupo Disponible Resultante:</span>
+                      <span>${available.toFixed(2)}</span>
+                    </div>
+                  );
+                })()}
+              </div>
+
+              {(() => {
+                const limit = Number(matchedTercero?.limiteCredito) || 1000;
+                const totalVenta = Number(formData.total) || 0;
+                const available = limit - clientDebt - totalVenta;
+                if (available < 0) {
+                  return (
+                    <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] leading-normal flex items-start gap-2">
+                      <AlertTriangle size={16} className="shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-bold">⚠️ Límite de Crédito Superado</p>
+                        <p className="opacity-90">La deuda actual más esta venta superan el cupo disponible del cliente en ${(Math.abs(available)).toFixed(2)}.</p>
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-[9px] font-bold uppercase mb-1 text-gray-500">Fecha de Vencimiento de la Deuda</label>
+                  <input 
+                    type="date" 
+                    value={creditDueDate} 
+                    onChange={e => setCreditDueDate(e.target.value)} 
+                    className={inputClass} 
+                  />
+                </div>
+                <div>
+                  <label className="block text-[9px] font-bold uppercase mb-1 text-gray-500">Observaciones / Comentario de Crédito</label>
+                  <textarea 
+                    rows={3}
+                    value={creditObservations} 
+                    onChange={e => setCreditObservations(e.target.value)} 
+                    className={`${inputClass} resize-none`} 
+                    placeholder="Ej. Crédito autorizado por gerencia..."
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2.5 mt-4 pt-3 border-t dark:border-white/5">
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    setIsCreditModalOpen(false);
+                    setFormData(prev => ({ ...prev, paymentMethod: 'efectivo' }));
+                  }} 
+                  className={`px-4 py-2 rounded-xl text-xs font-semibold ${
+                    isDarkMode ? 'hover:bg-white/10 text-gray-300' : 'hover:bg-gray-100 text-gray-700'
+                  }`}
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="button" 
+                  onClick={() => setIsCreditModalOpen(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-500 text-white shadow-md"
+                >
+                  Confirmar Crédito
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* MODAL CREAR CONTACTO RAPIDO */}
       {isQuickAddOpen && (

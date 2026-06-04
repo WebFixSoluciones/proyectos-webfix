@@ -35,7 +35,12 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
     agenteRetencion: false,
     agenteResolucion: '',
     contribuyenteEspecial: false,
-    especialResolucion: ''
+    especialResolucion: '',
+    secuencialFactura: 1,
+    secuencialRetencion: 1,
+    secuencialNotaCredito: 1,
+    secuencialLiquidacion: 1,
+    secuencialNotaVenta: 1
   });
   
   const [geminiKey, setGeminiKey] = useState('');
@@ -319,12 +324,24 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-505">Próximo Secuencial de Liquidación de Compra</label>
+                <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-500">Próximo Secuencial de Liquidación de Compra</label>
                 <input 
                   type="number" 
                   min="1"
                   value={sriConfig.secuencialLiquidacion || 1} 
                   onChange={e => setSriConfig({...sriConfig, secuencialLiquidacion: parseInt(e.target.value, 10) || 1})} 
+                  className={inputClass} 
+                  placeholder="1" 
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-500">Próximo Secuencial de Nota de Venta / Recibo</label>
+                <input 
+                  type="number" 
+                  min="1"
+                  value={sriConfig.secuencialNotaVenta || 1} 
+                  onChange={e => setSriConfig({...sriConfig, secuencialNotaVenta: parseInt(e.target.value, 10) || 1})} 
                   className={inputClass} 
                   placeholder="1" 
                 />
