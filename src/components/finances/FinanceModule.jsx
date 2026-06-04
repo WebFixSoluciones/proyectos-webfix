@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   DollarSign, PieChart, Users, FileText, Download, Settings, Sparkles, ShoppingCart, Package, Bookmark,
-  ArrowDownCircle, ArrowUpCircle, TrendingUp, Calculator, Building, Percent
+  ArrowDownCircle, ArrowUpCircle, TrendingUp, Calculator, Building, Percent, CreditCard
 } from 'lucide-react';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db, storage, appId } from '../../firebase';
@@ -19,6 +19,7 @@ import AccountsReceivablePayable from './AccountsReceivablePayable';
 import SalesDashboard from './SalesDashboard';
 import ComprasSriView from './ComprasSriView';
 import ComprasGastosView from './ComprasGastosView';
+import GastosCreditosModule from './GastosCreditosModule';
 
 export default function FinanceModule({ 
   mode = 'contabilidad', 
@@ -144,6 +145,7 @@ export default function FinanceModule({
         { id: 'sri_docs', label: 'Documentos SRI', icon: FileText },
         { id: 'cxc', label: 'Cuentas por Cobrar', icon: ArrowDownCircle },
         { id: 'cxp', label: 'Cuentas por Pagar', icon: ArrowUpCircle },
+        { id: 'gastos_creditos_sub', label: 'Gastos y Créditos', icon: CreditCard },
         { id: 'reports', label: 'Reportes', icon: Download },
         { id: 'settings', label: 'Configuración', icon: Settings },
       ];
@@ -350,6 +352,9 @@ export default function FinanceModule({
               {/* REPORTES Y CONFIGURACIÓN */}
               {activeTab === 'reports' && <ReportsView transactions={transactions} isDarkMode={isDarkMode} showToast={showToast} />}
               {activeTab === 'settings' && <FinanceSettings isDarkMode={isDarkMode} showToast={showToast} db={db} storage={storage} appId={appId} />}
+              {activeTab === 'gastos_creditos_sub' && (
+                <GastosCreditosModule isDarkMode={isDarkMode} showToast={showToast} transactions={transactions} thirdParties={thirdParties} db={db} appId={appId} />
+              )}
 
               {/* SECCIÓN COMPRAS */}
               {activeTab === 'compras_resumen' && (
