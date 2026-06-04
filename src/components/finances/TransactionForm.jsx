@@ -117,6 +117,13 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     cruceRef: ''
   });
 
+  const [activePayments, setActivePayments] = useState({
+    efectivo: true,
+    transferencia: false,
+    tarjeta: false,
+    cruce_cuentas: false
+  });
+
   const [isUploading, setIsUploading] = useState(false);
   const [isEmitting, setIsEmitting] = useState(false);
   const [sriLogs, setSriLogs] = useState([]);
@@ -258,28 +265,50 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       }));
 
       // Inicializar desglose de pagos
+      let breakdownEf = 0;
+      let breakdownTr = 0;
+      let breakdownTj = 0;
+      let breakdownCr = 0;
+
       if (tx.paymentsBreakdown) {
+        breakdownEf = tx.paymentsBreakdown.efectivo || 0;
+        breakdownTr = tx.paymentsBreakdown.transferencia || 0;
+        breakdownTj = tx.paymentsBreakdown.tarjeta || 0;
+        breakdownCr = tx.paymentsBreakdown.cruce_cuentas || tx.paymentsBreakdown.credito || 0;
+
         setPayments({
-          efectivo: tx.paymentsBreakdown.efectivo || 0,
-          transferencia: tx.paymentsBreakdown.transferencia || 0,
-          tarjeta: tx.paymentsBreakdown.tarjeta || 0,
-          cruce_cuentas: tx.paymentsBreakdown.cruce_cuentas || 0,
+          efectivo: breakdownEf,
+          transferencia: breakdownTr,
+          tarjeta: breakdownTj,
+          cruce_cuentas: breakdownCr,
           transferenciaRef: tx.transferenciaRef || tx.paymentReferences?.transferenciaRef || '',
           tarjetaRef: tx.tarjetaRef || tx.paymentReferences?.tarjetaRef || '',
           cruceRef: tx.cruceRef || tx.paymentReferences?.cruceRef || ''
         });
       } else {
         const method = tx.paymentMethod || 'transferencia';
+        breakdownEf = method === 'efectivo' ? tx.total || 0 : 0;
+        breakdownTr = method === 'transferencia' ? tx.total || 0 : 0;
+        breakdownTj = method === 'tarjeta' ? tx.total || 0 : 0;
+        breakdownCr = method === 'cruce_cuentas' || method === 'credito' ? tx.total || 0 : 0;
+
         setPayments({
-          efectivo: method === 'efectivo' ? tx.total || 0 : 0,
-          transferencia: method === 'transferencia' ? tx.total || 0 : 0,
-          tarjeta: method === 'tarjeta' ? tx.total || 0 : 0,
-          cruce_cuentas: method === 'cruce_cuentas' ? tx.total || 0 : 0,
+          efectivo: breakdownEf,
+          transferencia: breakdownTr,
+          tarjeta: breakdownTj,
+          cruce_cuentas: breakdownCr,
           transferenciaRef: tx.transferenciaRef || tx.paymentReferences?.transferenciaRef || '',
           tarjetaRef: tx.tarjetaRef || tx.paymentReferences?.tarjetaRef || '',
           cruceRef: tx.cruceRef || tx.paymentReferences?.cruceRef || ''
         });
       }
+
+      setActivePayments({
+        efectivo: Number(breakdownEf) > 0 || tx.paymentMethod === 'efectivo',
+        transferencia: Number(breakdownTr) > 0 || tx.paymentMethod === 'transferencia',
+        tarjeta: Number(breakdownTj) > 0 || tx.paymentMethod === 'tarjeta',
+        cruce_cuentas: Number(breakdownCr) > 0 || tx.paymentMethod === 'cruce_cuentas' || tx.paymentMethod === 'credito'
+      });
     }
   }, [tx]);
 
@@ -1636,110 +1665,109 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 )}
 
                 {/* Cart Items List */}
-                <div className="space-y-3 max-h-[50vh] overflow-y-auto pr-1 custom-scrollbar">
-                  {(formData.items || []).map((item, index) => (
-                    <div key={index} className={`flex flex-col sm:flex-row items-center gap-2.5 p-3 rounded-2xl border transition-all ${
-                      isDarkMode ? 'bg-black/20 border-white/5' : 'bg-gray-50 border-gray-200 shadow-sm'
+                <div className="max-h-[55vh] overflow-y-auto pr-1 custom-scrollbar">
+                  {(formData.items || []).length > 0 ? (
+                    <div className={`border rounded-2xl overflow-hidden divide-y ${
+                      isDarkMode ? 'border-white/5 bg-black/10 divide-white/5' : 'border-gray-250 bg-white divide-gray-100 shadow-sm'
                     }`}>
-                      
-                      <div className="flex-1 w-full text-xs">
-                        {item.productId ? (
-                          <>
-                            <p className="font-bold text-sm">{item.name}</p>
-                            <p className="text-[10px] text-gray-400 font-mono">
-                              {item.sku ? `SKU: ${item.sku}` : ''} {item.codigoBarras ? ` | EAN: ${item.codigoBarras}` : ''}
-                            </p>
-                          </>
-                        ) : (
-                          <select 
-                            disabled={!isEditable}
-                            value={item.productId} 
-                            onChange={(e) => handleItemChange(index, 'productId', e.target.value)} 
-                            className={inputClass}
-                          >
-                            <option value="" disabled>Seleccionar Producto...</option>
-                            {products.map(p => (
-                              <option key={p.id} value={p.id} className="text-black">
-                                {p.codigoBarras ? `[${p.codigoBarras}]` : p.sku ? `[${p.sku}]` : ''} {p.name} — ${Number(p.price).toFixed(2)}
-                              </option>
-                            ))}
-                          </select>
-                        )}
-                      </div>
+                      {(formData.items || []).map((item, index) => (
+                        <div key={index} className={`flex items-center gap-3 py-1.5 px-3 transition-colors ${
+                          isDarkMode ? 'hover:bg-white/5' : 'hover:bg-gray-50'
+                        }`}>
+                          {/* Product Name & Details */}
+                          <div className="flex-1 min-w-0">
+                            {item.productId ? (
+                              <>
+                                <p className="font-extrabold text-xs text-gray-900 dark:text-white truncate" title={item.name}>{item.name}</p>
+                                <span className="text-[9px] text-gray-400 font-mono">
+                                  {item.sku ? `SKU: ${item.sku}` : ''} {item.codigoBarras ? ` | EAN: ${item.codigoBarras}` : ''}
+                                </span>
+                              </>
+                            ) : (
+                              <select 
+                                disabled={!isEditable}
+                                value={item.productId} 
+                                onChange={(e) => handleItemChange(index, 'productId', e.target.value)} 
+                                className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-gray-300 dark:border-white/10 bg-white dark:bg-black/25 text-black dark:text-white font-semibold outline-none"
+                              >
+                                <option value="" disabled>Seleccionar Producto...</option>
+                                {products.map(p => (
+                                  <option key={p.id} value={p.id} className="text-black">
+                                    {p.codigoBarras ? `[${p.codigoBarras}]` : p.sku ? `[${p.sku}]` : ''} {p.name} — ${Number(p.price).toFixed(2)}
+                                  </option>
+                                ))}
+                              </select>
+                            )}
+                          </div>
 
-                      {/* Quantity Controls */}
-                      <div className="flex items-center gap-1 w-full sm:w-32 justify-center">
-                        <button
-                          type="button"
-                          disabled={!isEditable}
-                          onClick={() => {
-                            const newQty = Math.max(1, (parseInt(item.quantity) || 1) - 1);
-                            handleItemChange(index, 'quantity', newQty);
-                          }}
-                          className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-base transition-colors ${
-                            isDarkMode ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
-                          }`}
-                        >
-                          -
-                        </button>
-                        <input 
-                          disabled={!isEditable}
-                          type="number" 
-                          required 
-                          min={1} 
-                          value={item.quantity} 
-                          onChange={(e) => handleItemChange(index, 'quantity', Math.max(1, parseInt(e.target.value) || 1))} 
-                          className={`w-12 text-center font-bold bg-transparent outline-none text-xs ${isDarkMode ? 'text-white' : 'text-gray-900'}`} 
-                          placeholder="Cant"
-                        />
-                        <button
-                          type="button"
-                          disabled={!isEditable}
-                          onClick={() => {
-                            const newQty = (parseInt(item.quantity) || 1) + 1;
-                            handleItemChange(index, 'quantity', newQty);
-                          }}
-                          className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-base transition-colors ${
-                            isDarkMode ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-gray-250 hover:bg-gray-300 text-gray-800'
-                          }`}
-                        >
-                          +
-                        </button>
-                      </div>
+                          {/* Quantity Controls (Super Compact) */}
+                          <div className="flex items-center gap-0.5 shrink-0">
+                            <button
+                              type="button"
+                              disabled={!isEditable}
+                              onClick={() => {
+                                const newQty = Math.max(1, (parseInt(item.quantity) || 1) - 1);
+                                handleItemChange(index, 'quantity', newQty);
+                              }}
+                              className="w-5 h-5 rounded bg-gray-200 hover:bg-gray-300 dark:bg-white/5 dark:hover:bg-white/10 text-gray-800 dark:text-white flex items-center justify-center font-bold text-xs transition-colors"
+                            >
+                              -
+                            </button>
+                            <input 
+                              disabled={!isEditable}
+                              type="number" 
+                              required 
+                              min={1} 
+                              value={item.quantity} 
+                              onChange={(e) => handleItemChange(index, 'quantity', Math.max(1, parseInt(e.target.value) || 1))} 
+                              className="w-8 text-center font-bold bg-transparent border-0 outline-none text-xs text-gray-900 dark:text-white" 
+                            />
+                            <button
+                              type="button"
+                              disabled={!isEditable}
+                              onClick={() => {
+                                const newQty = (parseInt(item.quantity) || 1) + 1;
+                                handleItemChange(index, 'quantity', newQty);
+                              }}
+                              className="w-5 h-5 rounded bg-gray-200 hover:bg-gray-300 dark:bg-white/5 dark:hover:bg-white/10 text-gray-800 dark:text-white flex items-center justify-center font-bold text-xs transition-colors"
+                            >
+                              +
+                            </button>
+                          </div>
 
-                      {/* Price input */}
-                      <div className="w-full sm:w-28 relative">
-                        <span className="absolute left-2.5 top-2.5 text-[10px] text-gray-500 font-bold">$</span>
-                        <input 
-                          disabled={!isEditable}
-                          type="number" 
-                          step="0.01" 
-                          required 
-                          value={item.price} 
-                          onChange={(e) => handleItemChange(index, 'price', e.target.value)} 
-                          className={`${inputClass} pl-6 font-semibold`} 
-                          placeholder="Precio"
-                        />
-                      </div>
+                          {/* Price input (Super Compact) */}
+                          <div className="w-20 shrink-0 relative">
+                            <span className="absolute left-2 top-1.5 text-[9px] text-gray-400 font-bold">$</span>
+                            <input 
+                              disabled={!isEditable}
+                              type="number" 
+                              step="0.01" 
+                              required 
+                              value={item.price} 
+                              onChange={(e) => handleItemChange(index, 'price', e.target.value)} 
+                              className="w-full text-xs pl-4 pr-1 py-1 rounded bg-white dark:bg-black/20 border border-gray-350 dark:border-white/10 outline-none focus:border-blue-500 text-gray-900 dark:text-white font-semibold text-right" 
+                              placeholder="0.00"
+                            />
+                          </div>
 
-                      {/* Line subtotal */}
-                      <div className="text-xs font-black w-full sm:w-20 text-right shrink-0">
-                        ${((parseFloat(item.price) || 0) * (parseInt(item.quantity) || 1)).toFixed(2)}
-                      </div>
+                          {/* Line subtotal */}
+                          <div className="w-16 shrink-0 text-right text-xs font-black text-gray-900 dark:text-white font-mono">
+                            ${((parseFloat(item.price) || 0) * (parseInt(item.quantity) || 1)).toFixed(2)}
+                          </div>
 
-                      {isEditable && (
-                        <button 
-                          type="button" 
-                          onClick={() => handleRemoveItem(index)} 
-                          className="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-500"
-                        >
-                          <Trash2 size={13} />
-                        </button>
-                      )}
+                          {isEditable && (
+                            <button 
+                              type="button" 
+                              onClick={() => handleRemoveItem(index)} 
+                              className="p-1 rounded bg-red-500/10 hover:bg-red-500/20 text-red-500 transition-colors shrink-0"
+                            >
+                              <Trash2 size={11} />
+                            </button>
+                          )}
+                        </div>
+                      ))}
                     </div>
-                  ))}
-
-                  {(!formData.items || formData.items.length === 0) && (
+                  ) : (
                     <div className="py-12 text-center text-gray-500 text-xs italic flex flex-col items-center gap-2">
                       <Layers size={24} className="text-gray-400" />
                       <span>El carrito está vacío. Busque productos arriba para agregarlos.</span>
@@ -1777,303 +1805,261 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     </div>
                   </div>
 
-                  {/* MULTI-PAYMENT METHODS INLINE CARDS */}
+                  {/* SELECTOR DE MEDIOS DE PAGO (BOTONES DE CONMUTACIÓN DE ALTO CONTRASTE) */}
                   <div className="border-t border-dashed border-gray-250 dark:border-white/5 pt-4">
                     <label className="block text-[10px] font-black uppercase mb-3 text-black dark:text-gray-400">
-                      Desglose de Pago Combinado / Múltiple
+                      Medios de Pago Activos (Selecciona para expandir)
                     </label>
 
+                    <div className="grid grid-cols-4 gap-2 mb-4">
+                      {[
+                        { id: 'efectivo', label: 'Efectivo', icon: DollarSign, key: 'efectivo' },
+                        { id: 'transferencia', label: 'Transf.', icon: RefreshCw, key: 'transferencia' },
+                        { id: 'tarjeta', label: 'Tarjeta', icon: CreditCard, key: 'tarjeta' },
+                        { id: 'cruce_cuentas', label: 'Crédito CxC', icon: User, key: 'cruce_cuentas' }
+                      ].map(m => {
+                        const isSelected = activePayments[m.key];
+                        return (
+                          <button
+                            key={m.id}
+                            type="button"
+                            onClick={() => {
+                              setActivePayments(prev => {
+                                const updated = { ...prev, [m.key]: !prev[m.key] };
+                                // If toggled off, reset amount to 0
+                                if (!updated[m.key]) {
+                                  setPayments(p => ({ ...p, [m.key]: 0 }));
+                                } else {
+                                  // Auto fill remaining total if toggled on
+                                  const total = Number(formData.total) || 0;
+                                  const ef = m.key === 'efectivo' ? 0 : Number(payments.efectivo) || 0;
+                                  const tr = m.key === 'transferencia' ? 0 : Number(payments.transferencia) || 0;
+                                  const tj = m.key === 'tarjeta' ? 0 : Number(payments.tarjeta) || 0;
+                                  const cr = m.key === 'cruce_cuentas' ? 0 : Number(payments.cruce_cuentas) || 0;
+                                  const otherSum = ef + tr + tj + cr;
+                                  const remaining = Math.max(0, total - otherSum);
+                                  setPayments(p => ({ ...p, [m.key]: remaining > 0 ? remaining.toFixed(2) : '' }));
+                                  if (m.key === 'cruce_cuentas') {
+                                    setIsCreditModalOpen(true);
+                                  }
+                                }
+                                return updated;
+                              });
+                            }}
+                            className={`flex flex-col items-center justify-center p-2 rounded-xl border transition-all text-center gap-1 ${
+                              isSelected 
+                                ? 'bg-blue-600 border-blue-500 text-white font-extrabold shadow-sm'
+                                : isDarkMode 
+                                  ? 'border-white/10 bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                  : 'border-gray-250 bg-gray-50 text-gray-700 hover:bg-gray-100 hover:text-black'
+                            }`}
+                          >
+                            <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${
+                              isSelected ? 'bg-white text-blue-600' : 'bg-blue-600 text-white'
+                            }`}>
+                              <m.icon size={13} />
+                            </div>
+                            <span className={`text-[9px] tracking-wide font-black uppercase leading-tight ${
+                              isSelected ? 'text-white' : 'text-gray-900 dark:text-gray-200'
+                            }`}>{m.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* EXPANDED DETAILED FIELDS FOR ACTIVE METHODS */}
                     <div className="space-y-3.5">
                       {/* CARD EFECTIVO */}
-                      <div className={`p-4 rounded-2xl border transition-all ${
-                        isDarkMode ? 'bg-black/20 border-white/5' : 'bg-gray-50 border-gray-250 shadow-sm'
-                      }`}>
-                        <div className="flex items-center justify-between gap-3 mb-2">
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm">
-                              <DollarSign size={16} />
+                      {activePayments.efectivo && (
+                        <div className={`p-4 rounded-2xl border transition-all ${
+                          isDarkMode ? 'bg-black/20 border-white/5' : 'bg-gray-50 border-gray-250 shadow-sm'
+                        }`}>
+                          <div className="flex items-center justify-between gap-3 mb-2">
+                            <div className="flex items-center gap-2">
+                              <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0">
+                                <DollarSign size={13} />
+                              </div>
+                              <span className="text-[10px] font-black text-black dark:text-white uppercase tracking-wider">Efectivo</span>
                             </div>
-                            <span className="text-xs font-black text-black dark:text-white uppercase tracking-wider">
-                              Efectivo
-                            </span>
+                            <span className="text-[9px] font-bold text-gray-500 uppercase">Monto Recibido</span>
                           </div>
-                          <div className="flex items-center gap-1.5">
-                            <button
-                              type="button"
-                              onClick={() => {
+                          <div className="relative">
+                            <span className="absolute left-3.5 top-3 text-sm text-black dark:text-gray-400 font-extrabold">$</span>
+                            <input
+                              disabled={!isEditable}
+                              type="number"
+                              step="0.01"
+                              value={payments.efectivo || ''}
+                              onChange={e => setPayments(prev => ({ ...prev, efectivo: e.target.value }))}
+                              className={`${inputClass} pl-8 font-black text-black dark:text-white`}
+                              placeholder="0.00"
+                            />
+                          </div>
+
+                          {Number(payments.efectivo) > 0 && (
+                            <div className="mt-2.5">
+                              {(() => {
                                 const total = Number(formData.total) || 0;
-                                const otherPayments = (Number(payments.transferencia) || 0) + (Number(payments.tarjeta) || 0) + (Number(payments.cruce_cuentas) || 0);
-                                const remaining = Math.max(0, total - otherPayments);
-                                setPayments(prev => ({ ...prev, efectivo: remaining.toFixed(2) }));
-                              }}
-                              className="px-2 py-1 rounded bg-blue-600 text-white text-[9px] font-black uppercase hover:bg-blue-500 transition-colors shadow-sm"
-                            >
-                              Todo
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setPayments(prev => ({ ...prev, efectivo: 0 }))}
-                              className="px-2 py-1 rounded bg-red-500/10 text-red-600 dark:text-red-400 text-[9px] font-black uppercase hover:bg-red-500/20 transition-colors"
-                            >
-                              Limpiar
-                            </button>
-                          </div>
-                        </div>
-                        <div className="relative">
-                          <span className="absolute left-3.5 top-3 text-sm text-black dark:text-gray-400 font-extrabold">$</span>
-                          <input
-                            disabled={!isEditable}
-                            type="number"
-                            step="0.01"
-                            value={payments.efectivo || ''}
-                            onChange={e => setPayments(prev => ({ ...prev, efectivo: e.target.value }))}
-                            className={`${inputClass} pl-8 font-black text-black dark:text-white`}
-                            placeholder="0.00"
-                          />
-                        </div>
+                                const ef = Number(payments.efectivo) || 0;
+                                const tr = Number(payments.transferencia) || 0;
+                                const tj = Number(payments.tarjeta) || 0;
+                                const cr = Number(payments.cruce_cuentas) || 0;
+                                const totalPaid = ef + tr + tj + cr;
 
-                        {Number(payments.efectivo) > 0 && (
-                          <div className="mt-2.5">
-                            {(() => {
-                              const total = Number(formData.total) || 0;
-                              const ef = Number(payments.efectivo) || 0;
-                              const tr = Number(payments.transferencia) || 0;
-                              const tj = Number(payments.tarjeta) || 0;
-                              const cr = Number(payments.cruce_cuentas) || 0;
-                              const totalPaid = ef + tr + tj + cr;
-
-                              return totalPaid >= total ? (
-                                <div className="p-2.5 rounded-xl text-center font-bold text-[10px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                                  <span className="uppercase text-[8px] tracking-wider font-black block">Cambio / Vuelto Estimado</span>
-                                  <span className="text-sm font-black">${Math.max(0, totalPaid - total).toFixed(2)}</span>
-                                </div>
-                              ) : (
-                                <div className="p-2.5 rounded-xl text-center font-bold text-[10px] bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20">
-                                  <span>Falta cubrir: ${(total - totalPaid).toFixed(2)}</span>
-                                </div>
-                              );
-                            })()}
-                          </div>
-                        )}
-                      </div>
+                                return totalPaid >= total ? (
+                                  <div className="p-2.5 rounded-xl text-center font-bold text-[10px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                    <span className="uppercase text-[8px] tracking-wider font-black block">Cambio / Vuelto</span>
+                                    <span className="text-sm font-black">${Math.max(0, totalPaid - total).toFixed(2)}</span>
+                                  </div>
+                                ) : (
+                                  <div className="p-2.5 rounded-xl text-center font-bold text-[10px] bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20">
+                                    <span>Falta cubrir: ${(total - totalPaid).toFixed(2)}</span>
+                                  </div>
+                                );
+                              })()}
+                            </div>
+                          )}
+                        </div>
+                      )}
 
                       {/* CARD TRANSFERENCIA */}
-                      <div className={`p-4 rounded-2xl border transition-all ${
-                        isDarkMode ? 'bg-black/20 border-white/5' : 'bg-gray-50 border-gray-250 shadow-sm'
-                      }`}>
-                        <div className="flex items-center justify-between gap-3 mb-2">
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm">
-                              <RefreshCw size={14} />
+                      {activePayments.transferencia && (
+                        <div className={`p-4 rounded-2xl border transition-all ${
+                          isDarkMode ? 'bg-black/20 border-white/5' : 'bg-gray-50 border-gray-250 shadow-sm'
+                        }`}>
+                          <div className="flex items-center justify-between gap-3 mb-2">
+                            <div className="flex items-center gap-2">
+                              <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0">
+                                <RefreshCw size={12} />
+                              </div>
+                              <span className="text-[10px] font-black text-black dark:text-white uppercase tracking-wider">Transferencia</span>
                             </div>
-                            <span className="text-xs font-black text-black dark:text-white uppercase tracking-wider">
-                              Transferencia
-                            </span>
+                            <span className="text-[9px] font-bold text-gray-500 uppercase">Monto Transferido</span>
                           </div>
-                          <div className="flex items-center gap-1.5">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const total = Number(formData.total) || 0;
-                                const otherPayments = (Number(payments.efectivo) || 0) + (Number(payments.tarjeta) || 0) + (Number(payments.cruce_cuentas) || 0);
-                                const remaining = Math.max(0, total - otherPayments);
-                                setPayments(prev => ({ ...prev, transferencia: remaining.toFixed(2) }));
-                              }}
-                              className="px-2 py-1 rounded bg-blue-600 text-white text-[9px] font-black uppercase hover:bg-blue-500 transition-colors shadow-sm"
-                            >
-                              Todo
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setPayments(prev => ({ ...prev, transferencia: 0 }))}
-                              className="px-2 py-1 rounded bg-red-500/10 text-red-600 dark:text-red-400 text-[9px] font-black uppercase hover:bg-red-500/20 transition-colors"
-                            >
-                              Limpiar
-                            </button>
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <div className="relative">
-                            <span className="absolute left-3.5 top-3 text-sm text-black dark:text-gray-400 font-extrabold">$</span>
-                            <input
-                              disabled={!isEditable}
-                              type="number"
-                              step="0.01"
-                              value={payments.transferencia || ''}
-                              onChange={e => setPayments(prev => ({ ...prev, transferencia: e.target.value }))}
-                              className={`${inputClass} pl-8 font-black text-black dark:text-white`}
-                              placeholder="0.00"
-                            />
-                          </div>
-                          {Number(payments.transferencia) > 0 && (
-                            <div className="space-y-1.5">
+                          <div className="space-y-2">
+                            <div className="relative">
+                              <span className="absolute left-3.5 top-3 text-sm text-black dark:text-gray-400 font-extrabold">$</span>
                               <input
                                 disabled={!isEditable}
-                                type="text"
-                                value={payments.transferenciaRef || ''}
-                                onChange={e => setPayments(prev => ({ ...prev, transferenciaRef: e.target.value }))}
-                                className={`${inputClass} text-[10px] py-2 font-semibold text-black dark:text-white`}
-                                placeholder="Banco / Nro Referencia del Depósito"
+                                type="number"
+                                step="0.01"
+                                value={payments.transferencia || ''}
+                                onChange={e => setPayments(prev => ({ ...prev, transferencia: e.target.value }))}
+                                className={`${inputClass} pl-8 font-black text-black dark:text-white`}
+                                placeholder="0.00"
                               />
-                              <p className="text-[9px] text-gray-500 leading-normal italic">
-                                Se registrará en Cuentas por Cobrar para conciliación bancaria.
-                              </p>
                             </div>
-                          )}
+                            <input
+                              disabled={!isEditable}
+                              type="text"
+                              value={payments.transferenciaRef || ''}
+                              onChange={e => setPayments(prev => ({ ...prev, transferenciaRef: e.target.value }))}
+                              className={`${inputClass} text-[10px] py-2 font-semibold text-black dark:text-white`}
+                              placeholder="Banco / Nro Referencia del Depósito"
+                            />
+                          </div>
                         </div>
-                      </div>
+                      )}
 
                       {/* CARD TARJETA */}
-                      <div className={`p-4 rounded-2xl border transition-all ${
-                        isDarkMode ? 'bg-black/20 border-white/5' : 'bg-gray-50 border-gray-250 shadow-sm'
-                      }`}>
-                        <div className="flex items-center justify-between gap-3 mb-2">
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm">
-                              <CreditCard size={14} />
+                      {activePayments.tarjeta && (
+                        <div className={`p-4 rounded-2xl border transition-all ${
+                          isDarkMode ? 'bg-black/20 border-white/5' : 'bg-gray-50 border-gray-250 shadow-sm'
+                        }`}>
+                          <div className="flex items-center justify-between gap-3 mb-2">
+                            <div className="flex items-center gap-2">
+                              <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0">
+                                <CreditCard size={12} />
+                              </div>
+                              <span className="text-[10px] font-black text-black dark:text-white uppercase tracking-wider">Tarjeta</span>
                             </div>
-                            <span className="text-xs font-black text-black dark:text-white uppercase tracking-wider">
-                              Tarjeta
-                            </span>
+                            <span className="text-[9px] font-bold text-gray-500 uppercase">Monto Tarjeta</span>
                           </div>
-                          <div className="flex items-center gap-1.5">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const total = Number(formData.total) || 0;
-                                const otherPayments = (Number(payments.efectivo) || 0) + (Number(payments.transferencia) || 0) + (Number(payments.cruce_cuentas) || 0);
-                                const remaining = Math.max(0, total - otherPayments);
-                                setPayments(prev => ({ ...prev, tarjeta: remaining.toFixed(2) }));
-                              }}
-                              className="px-2 py-1 rounded bg-blue-600 text-white text-[9px] font-black uppercase hover:bg-blue-500 transition-colors shadow-sm"
-                            >
-                              Todo
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setPayments(prev => ({ ...prev, tarjeta: 0 }))}
-                              className="px-2 py-1 rounded bg-red-500/10 text-red-600 dark:text-red-400 text-[9px] font-black uppercase hover:bg-red-500/20 transition-colors"
-                            >
-                              Limpiar
-                            </button>
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <div className="relative">
-                            <span className="absolute left-3.5 top-3 text-sm text-black dark:text-gray-400 font-extrabold">$</span>
-                            <input
-                              disabled={!isEditable}
-                              type="number"
-                              step="0.01"
-                              value={payments.tarjeta || ''}
-                              onChange={e => setPayments(prev => ({ ...prev, tarjeta: e.target.value }))}
-                              className={`${inputClass} pl-8 font-black text-black dark:text-white`}
-                              placeholder="0.00"
-                            />
-                          </div>
-                          {Number(payments.tarjeta) > 0 && (
-                            <div className="space-y-1.5">
+                          <div className="space-y-2">
+                            <div className="relative">
+                              <span className="absolute left-3.5 top-3 text-sm text-black dark:text-gray-400 font-extrabold">$</span>
                               <input
                                 disabled={!isEditable}
-                                type="text"
-                                value={payments.tarjetaRef || ''}
-                                onChange={e => setPayments(prev => ({ ...prev, tarjetaRef: e.target.value }))}
-                                className={`${inputClass} text-[10px] py-2 font-semibold text-black dark:text-white`}
-                                placeholder="Nro Lote / Código Autorización"
+                                type="number"
+                                step="0.01"
+                                value={payments.tarjeta || ''}
+                                onChange={e => setPayments(prev => ({ ...prev, tarjeta: e.target.value }))}
+                                className={`${inputClass} pl-8 font-black text-black dark:text-white`}
+                                placeholder="0.00"
                               />
-                              <p className="text-[9px] text-gray-500 leading-normal italic">
-                                Se liquidará en CxC una vez verificado el voucher de tarjeta.
-                              </p>
                             </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* CARD CRÉDITO / CXC */}
-                      <div className={`p-4 rounded-2xl border transition-all ${
-                        isDarkMode ? 'bg-black/20 border-white/5' : 'bg-gray-50 border-gray-250 shadow-sm'
-                      }`}>
-                        <div className="flex items-center justify-between gap-3 mb-2">
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm">
-                              <User size={15} />
-                            </div>
-                            <span className="text-xs font-black text-black dark:text-white uppercase tracking-wider">
-                              Crédito / CxC
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1.5">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const total = Number(formData.total) || 0;
-                                const otherPayments = (Number(payments.efectivo) || 0) + (Number(payments.transferencia) || 0) + (Number(payments.tarjeta) || 0);
-                                const remaining = Math.max(0, total - otherPayments);
-                                setPayments(prev => ({ ...prev, cruce_cuentas: remaining.toFixed(2) }));
-                                setIsCreditModalOpen(true);
-                              }}
-                              className="px-2 py-1 rounded bg-blue-600 text-white text-[9px] font-black uppercase hover:bg-blue-500 transition-colors shadow-sm"
-                            >
-                              Todo
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setPayments(prev => ({ ...prev, cruce_cuentas: 0 }))}
-                              className="px-2 py-1 rounded bg-red-500/10 text-red-600 dark:text-red-400 text-[9px] font-black uppercase hover:bg-red-500/20 transition-colors"
-                            >
-                              Limpiar
-                            </button>
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <div className="relative">
-                            <span className="absolute left-3.5 top-3 text-sm text-black dark:text-gray-400 font-extrabold">$</span>
                             <input
                               disabled={!isEditable}
-                              type="number"
-                              step="0.01"
-                              value={payments.cruce_cuentas || ''}
-                              onChange={e => setPayments(prev => ({ ...prev, cruce_cuentas: e.target.value }))}
-                              className={`${inputClass} pl-8 font-black text-black dark:text-white`}
-                              placeholder="0.00"
+                              type="text"
+                              value={payments.tarjetaRef || ''}
+                              onChange={e => setPayments(prev => ({ ...prev, tarjetaRef: e.target.value }))}
+                              className={`${inputClass} text-[10px] py-2 font-semibold text-black dark:text-white`}
+                              placeholder="Nro Lote / Código Autorización"
                             />
                           </div>
-
-                          {Number(payments.cruce_cuentas) > 0 && (
-                            <div className="space-y-2">
-                              <div className={`p-2.5 rounded-xl border text-[10px] ${
-                                (() => {
-                                  const limit = Number(matchedTercero?.limiteCredito) || 1000;
-                                  const available = limit - clientDebt;
-                                  const remainingCr = Number(payments.cruce_cuentas) || 0;
-                                  return remainingCr > available ? 'bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400 font-bold' : 'bg-amber-500/10 border-amber-500/25 text-amber-800 dark:text-amber-400';
-                                })()
-                              }`}>
-                                <div className="flex justify-between items-center">
-                                  <span>Deuda Previa:</span>
-                                  <span className="font-extrabold">${clientDebt.toFixed(2)}</span>
-                                </div>
-                                <div className="flex justify-between items-center border-t border-dashed border-gray-300 dark:border-white/5 mt-1 pt-1">
-                                  <span>Cupo Disponible:</span>
-                                  <span className="font-extrabold">${(Number(matchedTercero?.limiteCredito || 1000) - clientDebt).toFixed(2)}</span>
-                                </div>
-                                <div className="flex justify-between items-center font-black mt-1">
-                                  <span>Fecha Vencimiento:</span>
-                                  <span>{creditDueDate}</span>
-                                </div>
-                              </div>
-
-                              <button
-                                type="button"
-                                onClick={() => setIsCreditModalOpen(true)}
-                                className="w-full py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 text-[10px] font-black uppercase transition-colors"
-                              >
-                                Configurar Plazo y Comentario
-                              </button>
-                            </div>
-                          )}
                         </div>
-                      </div>
+                      )}
+
+                      {/* CARD CRÉDITO */}
+                      {activePayments.cruce_cuentas && (
+                        <div className={`p-4 rounded-2xl border transition-all ${
+                          isDarkMode ? 'bg-black/20 border-white/5' : 'bg-gray-50 border-gray-250 shadow-sm'
+                        }`}>
+                          <div className="flex items-center justify-between gap-3 mb-2">
+                            <div className="flex items-center gap-2">
+                              <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0">
+                                <User size={12} />
+                              </div>
+                              <span className="text-[10px] font-black text-black dark:text-white uppercase tracking-wider">Crédito / CxC</span>
+                            </div>
+                            <span className="text-[9px] font-bold text-gray-500 uppercase">Monto Crédito</span>
+                          </div>
+                          <div className="space-y-2">
+                            <div className="relative">
+                              <span className="absolute left-3.5 top-3 text-sm text-black dark:text-gray-400 font-extrabold">$</span>
+                              <input
+                                disabled={!isEditable}
+                                type="number"
+                                step="0.01"
+                                value={payments.cruce_cuentas || ''}
+                                onChange={e => setPayments(prev => ({ ...prev, cruce_cuentas: e.target.value }))}
+                                className={`${inputClass} pl-8 font-black text-black dark:text-white`}
+                                placeholder="0.00"
+                              />
+                            </div>
+
+                            <div className={`p-2.5 rounded-xl border text-[10px] ${
+                              (() => {
+                                const limit = Number(matchedTercero?.limiteCredito) || 1000;
+                                const available = limit - clientDebt;
+                                const remainingCr = Number(payments.cruce_cuentas) || 0;
+                                return remainingCr > available ? 'bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400 font-bold' : 'bg-amber-500/10 border-amber-500/25 text-amber-800 dark:text-amber-400';
+                              })()
+                            }`}>
+                              <div className="flex justify-between items-center">
+                                <span>Deuda Previa:</span>
+                                <span className="font-extrabold">${clientDebt.toFixed(2)}</span>
+                              </div>
+                              <div className="flex justify-between items-center border-t border-dashed border-gray-300 dark:border-white/5 mt-1 pt-1">
+                                <span>Cupo Disponible:</span>
+                                <span className="font-extrabold">${(Number(matchedTercero?.limiteCredito || 1000) - clientDebt).toFixed(2)}</span>
+                              </div>
+                              <div className="flex justify-between items-center font-black mt-1">
+                                <span>Fecha Vencimiento:</span>
+                                <span>{creditDueDate}</span>
+                              </div>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => setIsCreditModalOpen(true)}
+                              className="w-full py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 text-[10px] font-black uppercase transition-colors"
+                            >
+                              Configurar Plazo y Comentario
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
