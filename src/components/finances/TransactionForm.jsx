@@ -1403,20 +1403,16 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 )}
               </div>
             </div>
-          </div>
-        )}
-
-        {/* STEP 2: DETALLES DE RETENCIONES Y SUSTENTOS */}
-        {currentStep === 2 && formData.documentType === 'retencion' && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom duration-250">
-            
+        {/* STEP 1: BOTTOM PANELS (PRODUCTS/SERVICES OR RETENCIONES DETAILS) */}
+        {formData.documentType === 'retencion' ? (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-6 animate-in fade-in slide-in-from-bottom duration-250">
             {/* SECCION RETENCIONES DETALLE */}
             <div className="lg:col-span-2 space-y-4">
               <div className={`p-6 rounded-3xl border shadow-sm ${isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'}`}>
                 <div className="flex justify-between items-center border-b pb-3 mb-4 border-gray-200 dark:border-white/5">
                   <div className="flex items-center gap-2">
                     <Layers className="text-blue-500" size={16} />
-                    <h3 className="text-xs font-bold uppercase tracking-wider">Desglose de Retenciones</h3>
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-black dark:text-white">Desglose de Retenciones</h3>
                   </div>
                   {isEditable && (
                     <button 
@@ -1556,15 +1552,15 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 <div className="space-y-4">
                   <div className="flex items-center gap-2 border-b pb-3 border-gray-200 dark:border-white/5">
                     <Calculator className="text-purple-500" size={16} />
-                    <h3 className="text-xs font-bold uppercase tracking-wider">Consolidado Retenido</h3>
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-black dark:text-white">Consolidado Retenido</h3>
                   </div>
 
-                  <div className={`p-4 rounded-2xl border text-xs space-y-3.5 ${
+                  <div className={`p-4 rounded-2xl border text-xs space-y-3.5 mt-4 ${
                     isDarkMode ? 'bg-black/10 border-white/5' : 'bg-gray-50 border-gray-250'
                   }`}>
                     <div className="flex justify-between">
                       <span className="text-gray-400">Total Bases:</span>
-                      <span className="font-bold">${Number(formData.baseImponible).toFixed(2)}</span>
+                      <span className="font-bold text-black dark:text-white">${Number(formData.baseImponible).toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between text-yellow-500">
                       <span>Total Retenido:</span>
@@ -1578,21 +1574,16 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 </div>
               </div>
             </div>
-
           </div>
-        )}
-
-        {/* STEP 2: DETALLES DE PRODUCTOS Y IMPUESTOS (LIQUIDACION COMBINADA) */}
-        {currentStep === 2 && formData.documentType !== 'retencion' && (
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 animate-in fade-in slide-in-from-bottom duration-250">
-            
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 pt-6 animate-in fade-in slide-in-from-bottom duration-250">
             {/* SECCION PRODUCTOS (LEFT PANEL) */}
             <div className="lg:col-span-3 space-y-4">
               <div className={`p-6 rounded-3xl border shadow-sm ${isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'}`}>
                 <div className="flex justify-between items-center border-b pb-3 mb-4 border-gray-200 dark:border-white/5">
                   <div className="flex items-center gap-2">
                     <Layers className="text-blue-500" size={16} />
-                    <h3 className="text-xs font-bold uppercase tracking-wider">Productos / Servicios</h3>
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-black dark:text-white">Productos / Servicios</h3>
                   </div>
                   {isEditable && (
                     <button 
@@ -1785,7 +1776,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               </div>
             </div>
 
-            {/* SECCION LIQUIDACION DE IMPUESTOS Y PAGO (RIGHT PANEL) */}
+            {/* SECCION LIQUIDACION DE IMPUESTOS (RIGHT PANEL) */}
             <div className="lg:col-span-2 space-y-4">
               <div className={`p-6 rounded-3xl border shadow-sm flex flex-col justify-between h-full ${
                 isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'
@@ -1793,773 +1784,559 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 <div className="space-y-4">
                   <div className="flex items-center gap-2 border-b pb-3 border-gray-200 dark:border-white/5">
                     <Calculator className="text-purple-500" size={16} />
-                    <h3 className="text-xs font-bold uppercase tracking-wider">Totales e Impuestos</h3>
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-black dark:text-white">Totales e Impuestos</h3>
                   </div>
 
                   <div className={`p-4 rounded-2xl border text-xs space-y-2.5 mt-4 ${
-                    isDarkMode ? 'bg-black/10 border-white/5' : 'bg-gray-50 border-gray-250'
+                    isDarkMode ? 'bg-black/10 border-white/5' : 'bg-gray-50 border-gray-250 shadow-sm'
                   }`}>
                     <div className="flex justify-between">
                       <span className="text-gray-400">Subtotal:</span>
-                      <span className="font-bold">${Number(formData.baseImponible).toFixed(2)}</span>
+                      <span className="font-bold text-black dark:text-white">${Number(formData.baseImponible).toFixed(2)}</span>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex justify-between border-b pb-2 dark:border-white/5">
                       <span className="text-gray-400">IVA ({formData.ivaPorcentaje}%):</span>
-                      <span className="font-bold">${Number(formData.ivaValor).toFixed(2)}</span>
+                      <span className="font-bold text-black dark:text-white">${Number(formData.ivaValor).toFixed(2)}</span>
                     </div>
-                    <div className="flex justify-between border-t border-dashed dark:border-white/5 pt-2 text-base font-black">
+                    <div className="flex justify-between text-base font-black pt-1.5 text-black dark:text-white">
                       <span>Total Neto:</span>
                       <span>${formData.total}</span>
                     </div>
                   </div>
-
-                  {/* SELECTOR DE MEDIOS DE PAGO (BOTONES DE CONMUTACIÓN DE ALTO CONTRASTE) */}
-                  <div className="border-t border-dashed border-gray-250 dark:border-white/5 pt-4">
-                    <label className="block text-[10px] font-black uppercase mb-3 text-black dark:text-gray-400">
-                      Medios de Pago Activos (Selecciona para expandir)
-                    </label>
-
-                    <div className="grid grid-cols-4 gap-2 mb-4">
-                      {[
-                        { id: 'efectivo', label: 'Efectivo', icon: DollarSign, key: 'efectivo' },
-                        { id: 'transferencia', label: 'Transf.', icon: RefreshCw, key: 'transferencia' },
-                        { id: 'tarjeta', label: 'Tarjeta', icon: CreditCard, key: 'tarjeta' },
-                        { id: 'cruce_cuentas', label: 'Crédito CxC', icon: User, key: 'cruce_cuentas' }
-                      ].map(m => {
-                        const isSelected = activePayments[m.key];
-                        return (
-                          <button
-                            key={m.id}
-                            type="button"
-                            onClick={() => {
-                              setActivePayments(prev => {
-                                const updated = { ...prev, [m.key]: !prev[m.key] };
-                                // If toggled off, reset amount to 0
-                                if (!updated[m.key]) {
-                                  setPayments(p => ({ ...p, [m.key]: 0 }));
-                                } else {
-                                  // Auto fill remaining total if toggled on
-                                  const total = Number(formData.total) || 0;
-                                  const ef = m.key === 'efectivo' ? 0 : Number(payments.efectivo) || 0;
-                                  const tr = m.key === 'transferencia' ? 0 : Number(payments.transferencia) || 0;
-                                  const tj = m.key === 'tarjeta' ? 0 : Number(payments.tarjeta) || 0;
-                                  const cr = m.key === 'cruce_cuentas' ? 0 : Number(payments.cruce_cuentas) || 0;
-                                  const otherSum = ef + tr + tj + cr;
-                                  const remaining = Math.max(0, total - otherSum);
-                                  setPayments(p => ({ ...p, [m.key]: remaining > 0 ? remaining.toFixed(2) : '' }));
-                                  if (m.key === 'cruce_cuentas') {
-                                    setIsCreditModalOpen(true);
-                                  }
-                                }
-                                return updated;
-                              });
-                            }}
-                            className={`flex flex-col items-center justify-center p-2 rounded-xl border transition-all text-center gap-1 ${
-                              isSelected 
-                                ? 'bg-blue-600 border-blue-500 text-white font-extrabold shadow-sm'
-                                : isDarkMode 
-                                  ? 'border-white/10 bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
-                                  : 'border-gray-250 bg-gray-50 text-gray-700 hover:bg-gray-100 hover:text-black'
-                            }`}
-                          >
-                            <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${
-                              isSelected ? 'bg-white text-blue-600' : 'bg-blue-600 text-white'
-                            }`}>
-                              <m.icon size={13} />
-                            </div>
-                            <span className={`text-[9px] tracking-wide font-black uppercase leading-tight ${
-                              isSelected ? 'text-white' : 'text-gray-900 dark:text-gray-200'
-                            }`}>{m.label}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    {/* REAL-TIME PAYMENT VALIDATION WARNINGS/ALERTS */}
-                    {(() => {
-                      const totalNum = Number(formData.total) || 0;
-                      const efVal = Number(payments.efectivo) || 0;
-                      const trVal = Number(payments.transferencia) || 0;
-                      const tjVal = Number(payments.tarjeta) || 0;
-                      const crVal = Number(payments.cruce_cuentas) || 0;
-                      const sum = efVal + trVal + tjVal + crVal;
-
-                      if (sum === 0 && totalNum > 0) {
-                        return (
-                          <div className="mb-4 p-3 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-650 dark:text-red-400 font-extrabold text-[10px] flex items-center gap-2 animate-pulse">
-                            <AlertTriangle size={14} className="shrink-0 text-red-500" />
-                            <span>⚠️ FALTA LA FORMA DE PAGO: Selecciona un método de pago e ingresa el valor para cubrir ${totalNum.toFixed(2)}.</span>
-                          </div>
-                        );
-                      } else if (sum < totalNum - 0.01) {
-                        return (
-                          <div className="mb-4 p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-400 font-extrabold text-[10px] flex items-center gap-2 animate-pulse">
-                            <AlertTriangle size={14} className="shrink-0 text-amber-500" />
-                            <span>⚠️ PAGO INCOMPLETO: Cubierto ${sum.toFixed(2)} de ${totalNum.toFixed(2)}. Falta cubrir ${(totalNum - sum).toFixed(2)}.</span>
-                          </div>
-                        );
-                      } else if (sum > totalNum + 0.01 && efVal < sum - totalNum) {
-                        return (
-                          <div className="mb-4 p-3 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-650 dark:text-red-400 font-extrabold text-[10px] flex items-center gap-2">
-                            <AlertTriangle size={14} className="shrink-0 text-red-500" />
-                            <span>⚠️ ERROR EN VUELTO: El vuelto (${(sum - totalNum).toFixed(2)}) no puede superar al efectivo recibido (${efVal.toFixed(2)}).</span>
-                          </div>
-                        );
-                      }
-                      
-                      const limit = Number(matchedTercero?.limiteCredito) || 1000;
-                      const available = limit - clientDebt;
-                      if (crVal > available) {
-                        return (
-                          <div className="mb-4 p-3 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-650 dark:text-red-400 font-extrabold text-[10px] flex items-center gap-2">
-                            <AlertTriangle size={14} className="shrink-0 text-red-500" />
-                            <span>⚠️ LÍMITE DE CRÉDITO SUPERADO: El crédito (${crVal.toFixed(2)}) supera el cupo disponible del cliente (${available.toFixed(2)}).</span>
-                          </div>
-                        );
-                      }
-
-                      return null;
-                    })()}
-
-                    {/* EXPANDED DETAILED FIELDS FOR ACTIVE METHODS */}
-                    <div className="space-y-3.5">
-                      {/* CARD EFECTIVO */}
-                      {activePayments.efectivo && (
-                        <div className={`p-4 rounded-2xl border transition-all ${
-                          isDarkMode ? 'bg-black/20 border-white/5' : 'bg-gray-50 border-gray-250 shadow-sm'
-                        }`}>
-                          <div className="flex items-center justify-between gap-3 mb-2">
-                            <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0">
-                                <DollarSign size={13} />
-                              </div>
-                              <span className="text-[10px] font-black text-black dark:text-white uppercase tracking-wider">Efectivo</span>
-                            </div>
-                            <span className="text-[9px] font-bold text-gray-500 uppercase">Monto Recibido</span>
-                          </div>
-                          <div className="relative">
-                            <span className="absolute left-3.5 top-3 text-sm text-black dark:text-gray-400 font-extrabold">$</span>
-                            <input
-                              disabled={!isEditable}
-                              type="number"
-                              step="0.01"
-                              value={payments.efectivo || ''}
-                              onChange={e => setPayments(prev => ({ ...prev, efectivo: e.target.value }))}
-                              className={`${inputClass} pl-8 font-black text-black dark:text-white`}
-                              placeholder="0.00"
-                            />
-                          </div>
-
-                          {Number(payments.efectivo) > 0 && (
-                            <div className="mt-2.5">
-                              {(() => {
-                                const total = Number(formData.total) || 0;
-                                const ef = Number(payments.efectivo) || 0;
-                                const tr = Number(payments.transferencia) || 0;
-                                const tj = Number(payments.tarjeta) || 0;
-                                const cr = Number(payments.cruce_cuentas) || 0;
-                                const totalPaid = ef + tr + tj + cr;
-
-                                return totalPaid >= total ? (
-                                  <div className="p-2.5 rounded-xl text-center font-bold text-[10px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                                    <span className="uppercase text-[8px] tracking-wider font-black block">Cambio / Vuelto</span>
-                                    <span className="text-sm font-black">${Math.max(0, totalPaid - total).toFixed(2)}</span>
-                                  </div>
-                                ) : (
-                                  <div className="p-2.5 rounded-xl text-center font-bold text-[10px] bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20">
-                                    <span>Falta cubrir: ${(total - totalPaid).toFixed(2)}</span>
-                                  </div>
-                                );
-                              })()}
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {/* CARD TRANSFERENCIA */}
-                      {activePayments.transferencia && (
-                        <div className={`p-4 rounded-2xl border transition-all ${
-                          isDarkMode ? 'bg-black/20 border-white/5' : 'bg-gray-50 border-gray-250 shadow-sm'
-                        }`}>
-                          <div className="flex items-center justify-between gap-3 mb-2">
-                            <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0">
-                                <RefreshCw size={12} />
-                              </div>
-                              <span className="text-[10px] font-black text-black dark:text-white uppercase tracking-wider">Transferencia</span>
-                            </div>
-                            <span className="text-[9px] font-bold text-gray-500 uppercase">Monto Transferido</span>
-                          </div>
-                          <div className="space-y-2">
-                            <div className="relative">
-                              <span className="absolute left-3.5 top-3 text-sm text-black dark:text-gray-400 font-extrabold">$</span>
-                              <input
-                                disabled={!isEditable}
-                                type="number"
-                                step="0.01"
-                                value={payments.transferencia || ''}
-                                onChange={e => setPayments(prev => ({ ...prev, transferencia: e.target.value }))}
-                                className={`${inputClass} pl-8 font-black text-black dark:text-white`}
-                                placeholder="0.00"
-                              />
-                            </div>
-                            <input
-                              disabled={!isEditable}
-                              type="text"
-                              value={payments.transferenciaRef || ''}
-                              onChange={e => setPayments(prev => ({ ...prev, transferenciaRef: e.target.value }))}
-                              className={`${inputClass} text-[10px] py-2 font-semibold text-black dark:text-white`}
-                              placeholder="Banco / Nro Referencia del Depósito"
-                            />
-                          </div>
-                        </div>
-                      )}
-
-                      {/* CARD TARJETA */}
-                      {activePayments.tarjeta && (
-                        <div className={`p-4 rounded-2xl border transition-all ${
-                          isDarkMode ? 'bg-black/20 border-white/5' : 'bg-gray-50 border-gray-250 shadow-sm'
-                        }`}>
-                          <div className="flex items-center justify-between gap-3 mb-2">
-                            <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0">
-                                <CreditCard size={12} />
-                              </div>
-                              <span className="text-[10px] font-black text-black dark:text-white uppercase tracking-wider">Tarjeta</span>
-                            </div>
-                            <span className="text-[9px] font-bold text-gray-500 uppercase">Monto Tarjeta</span>
-                          </div>
-                          <div className="space-y-2">
-                            <div className="relative">
-                              <span className="absolute left-3.5 top-3 text-sm text-black dark:text-gray-400 font-extrabold">$</span>
-                              <input
-                                disabled={!isEditable}
-                                type="number"
-                                step="0.01"
-                                value={payments.tarjeta || ''}
-                                onChange={e => setPayments(prev => ({ ...prev, tarjeta: e.target.value }))}
-                                className={`${inputClass} pl-8 font-black text-black dark:text-white`}
-                                placeholder="0.00"
-                              />
-                            </div>
-                            <input
-                              disabled={!isEditable}
-                              type="text"
-                              value={payments.tarjetaRef || ''}
-                              onChange={e => setPayments(prev => ({ ...prev, tarjetaRef: e.target.value }))}
-                              className={`${inputClass} text-[10px] py-2 font-semibold text-black dark:text-white`}
-                              placeholder="Nro Lote / Código Autorización"
-                            />
-                          </div>
-                        </div>
-                      )}
-
-                      {/* CARD CRÉDITO */}
-                      {activePayments.cruce_cuentas && (
-                        <div className={`p-4 rounded-2xl border transition-all ${
-                          isDarkMode ? 'bg-black/20 border-white/5' : 'bg-gray-50 border-gray-250 shadow-sm'
-                        }`}>
-                          <div className="flex items-center justify-between gap-3 mb-2">
-                            <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0">
-                                <User size={12} />
-                              </div>
-                              <span className="text-[10px] font-black text-black dark:text-white uppercase tracking-wider">Crédito / CxC</span>
-                            </div>
-                            <span className="text-[9px] font-bold text-gray-500 uppercase">Monto Crédito</span>
-                          </div>
-                          <div className="space-y-2">
-                            <div className="relative">
-                              <span className="absolute left-3.5 top-3 text-sm text-black dark:text-gray-400 font-extrabold">$</span>
-                              <input
-                                disabled={!isEditable}
-                                type="number"
-                                step="0.01"
-                                value={payments.cruce_cuentas || ''}
-                                onChange={e => setPayments(prev => ({ ...prev, cruce_cuentas: e.target.value }))}
-                                className={`${inputClass} pl-8 font-black text-black dark:text-white`}
-                                placeholder="0.00"
-                              />
-                            </div>
-
-                            <div className={`p-2.5 rounded-xl border text-[10px] ${
-                              (() => {
-                                const limit = Number(matchedTercero?.limiteCredito) || 1000;
-                                const available = limit - clientDebt;
-                                const remainingCr = Number(payments.cruce_cuentas) || 0;
-                                return remainingCr > available ? 'bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400 font-bold' : 'bg-amber-500/10 border-amber-500/25 text-amber-800 dark:text-amber-400';
-                              })()
-                            }`}>
-                              <div className="flex justify-between items-center">
-                                <span>Deuda Previa:</span>
-                                <span className="font-extrabold">${clientDebt.toFixed(2)}</span>
-                              </div>
-                              <div className="flex justify-between items-center border-t border-dashed border-gray-300 dark:border-white/5 mt-1 pt-1">
-                                <span>Cupo Disponible:</span>
-                                <span className="font-extrabold">${(Number(matchedTercero?.limiteCredito || 1000) - clientDebt).toFixed(2)}</span>
-                              </div>
-                              <div className="flex justify-between items-center font-black mt-1">
-                                <span>Fecha Vencimiento:</span>
-                                <span>{creditDueDate}</span>
-                              </div>
-                            </div>
-
-                            <button
-                              type="button"
-                              onClick={() => setIsCreditModalOpen(true)}
-                              className="w-full py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 text-[10px] font-black uppercase transition-colors"
-                            >
-                              Configurar Plazo y Comentario
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
                 </div>
               </div>
             </div>
-
           </div>
         )}
+      </div>
+    )}
 
-        {/* STEP 4: EMISIÓN Y AUTORIZACIÓN SRI */}
-        {currentStep === 3 && (
-          <div className="space-y-6 animate-in fade-in slide-in-from-bottom duration-250">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              
-              <div className="md:col-span-2 space-y-6">
-                
-                {/* TARJETA RESUMEN GENERAL (RIDE STYLE PREVIEW) */}
-                <div className={`p-6 rounded-3xl border shadow-lg ${isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'}`}>
-                  <div className="flex items-center gap-2 mb-4 border-b pb-3 border-gray-200 dark:border-white/5">
-                    <FileText className="text-blue-500" size={16} />
-                    <h3 className="text-xs font-bold uppercase tracking-wider">
-                      {formData.documentType === 'factura' ? 'Vista Previa del RIDE (SRI Ecuador)' : 'Vista Previa del Recibo (Control Interno)'}
-                    </h3>
+    {/* STEP 2: PAGO Y EMISIÓN */}
+    {currentStep === 2 && (
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 animate-in fade-in slide-in-from-bottom duration-250">
+        
+        {/* Left Column (lg:col-span-3): Medios de Pago & Bitácora */}
+        <div className="lg:col-span-3 space-y-4">
+          
+          {/* Card de Medios de Pago */}
+          <div className={`p-6 rounded-3xl border shadow-sm ${
+            isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200 shadow-sm'
+          }`}>
+            <div className="flex items-center gap-2 border-b pb-3 mb-4 border-gray-200 dark:border-white/5">
+              <CreditCard className="text-blue-500" size={16} />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-black dark:text-white">Medios de Pago y Registro de Cobro</h3>
+            </div>
+
+            {/* SELECTOR DE MEDIOS DE PAGO */}
+            <div className="grid grid-cols-4 gap-2 mb-4">
+              {[
+                { id: 'efectivo', label: 'Efectivo', icon: DollarSign, key: 'efectivo' },
+                { id: 'transferencia', label: 'Transf.', icon: RefreshCw, key: 'transferencia' },
+                { id: 'tarjeta', label: 'Tarjeta', icon: CreditCard, key: 'tarjeta' },
+                { id: 'cruce_cuentas', label: 'Crédito CxC', icon: User, key: 'cruce_cuentas' }
+              ].map(m => {
+                const isSelected = activePayments[m.key];
+                return (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => {
+                      setActivePayments(prev => {
+                        const updated = { ...prev, [m.key]: !prev[m.key] };
+                        if (!updated[m.key]) {
+                          setPayments(p => ({ ...p, [m.key]: 0 }));
+                        } else {
+                          const total = Number(formData.total) || 0;
+                          const ef = m.key === 'efectivo' ? 0 : Number(payments.efectivo) || 0;
+                          const tr = m.key === 'transferencia' ? 0 : Number(payments.transferencia) || 0;
+                          const tj = m.key === 'tarjeta' ? 0 : Number(payments.tarjeta) || 0;
+                          const cr = m.key === 'cruce_cuentas' ? 0 : Number(payments.cruce_cuentas) || 0;
+                          const otherSum = ef + tr + tj + cr;
+                          const remaining = Math.max(0, total - otherSum);
+                          setPayments(p => ({ ...p, [m.key]: remaining > 0 ? remaining.toFixed(2) : '' }));
+                          if (m.key === 'cruce_cuentas') {
+                            setIsCreditModalOpen(true);
+                          }
+                        }
+                        return updated;
+                      });
+                    }}
+                    className={`flex flex-col items-center justify-center p-2.5 rounded-xl border transition-all text-center gap-1.5 ${
+                      isSelected 
+                        ? 'bg-blue-600 border-blue-500 text-white font-extrabold shadow-sm'
+                        : isDarkMode 
+                          ? 'border-white/10 bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                          : 'border-gray-250 bg-gray-50 text-gray-700 hover:bg-gray-100 hover:text-black shadow-sm'
+                    }`}
+                  >
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                      isSelected ? 'bg-white text-blue-600' : 'bg-blue-600 text-white'
+                    }`}>
+                      <m.icon size={14} />
+                    </div>
+                    <span className={`text-[10px] tracking-wide font-black uppercase leading-tight ${
+                      isSelected ? 'text-white' : 'text-gray-900 dark:text-gray-200'
+                    }`}>{m.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* WARNINGS / ALERTS */}
+            {(() => {
+              const totalNum = Number(formData.total) || 0;
+              const efVal = Number(payments.efectivo) || 0;
+              const trVal = Number(payments.transferencia) || 0;
+              const tjVal = Number(payments.tarjeta) || 0;
+              const crVal = Number(payments.cruce_cuentas) || 0;
+              const sum = efVal + trVal + tjVal + crVal;
+
+              if (sum === 0 && totalNum > 0) {
+                return (
+                  <div className="mb-4 p-3 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-655 dark:text-red-400 font-extrabold text-[10px] flex items-center gap-2">
+                    <AlertTriangle size={14} className="shrink-0 text-red-500" />
+                    <span>⚠️ FALTA LA FORMA DE PAGO: Selecciona un método de pago e ingresa el valor para cubrir ${totalNum.toFixed(2)}.</span>
                   </div>
+                );
+              } else if (sum < totalNum - 0.01) {
+                return (
+                  <div className="mb-4 p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-400 font-extrabold text-[10px] flex items-center gap-2">
+                    <AlertTriangle size={14} className="shrink-0 text-amber-500" />
+                    <span>⚠️ PAGO INCOMPLETO: Cubierto ${sum.toFixed(2)} de ${totalNum.toFixed(2)}. Falta cubrir ${(totalNum - sum).toFixed(2)}.</span>
+                  </div>
+                );
+              } else if (sum > totalNum + 0.01 && efVal < sum - totalNum) {
+                return (
+                  <div className="mb-4 p-3 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-655 dark:text-red-400 font-extrabold text-[10px] flex items-center gap-2">
+                    <AlertTriangle size={14} className="shrink-0 text-red-500" />
+                    <span>⚠️ ERROR EN VUELTO: El vuelto (${(sum - totalNum).toFixed(2)}) no puede superar al efectivo recibido (${efVal.toFixed(2)}).</span>
+                  </div>
+                );
+              }
+              
+              const limit = Number(matchedTercero?.limiteCredito) || 1000;
+              const available = limit - clientDebt;
+              if (crVal > available) {
+                return (
+                  <div className="mb-4 p-3 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-655 dark:text-red-400 font-extrabold text-[10px] flex items-center gap-2">
+                    <AlertTriangle size={14} className="shrink-0 text-red-500" />
+                    <span>⚠️ LÍMITE DE CRÉDITO SUPERADO: El crédito (${crVal.toFixed(2)}) supera el cupo disponible del cliente (${available.toFixed(2)}).</span>
+                  </div>
+                );
+              }
 
-                  {/* RIDE SHEET */}
-                  <div className={`p-5 rounded-2xl border text-[11px] leading-relaxed select-none ${
-                    isDarkMode ? 'bg-black/20 border-white/5 text-gray-300' : 'bg-gray-50 border-gray-200 text-gray-800'
-                  }`}>
-                    
-                    {/* Header: Emisor vs Document details */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-b pb-4 mb-4 dark:border-white/5">
-                      {/* Left: Emisor Info */}
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2 mb-1.5">
-                          <Building className="text-blue-500 shrink-0" size={20} />
-                          <span className="font-extrabold text-xs uppercase tracking-wide text-blue-600 dark:text-blue-400">
-                            {sriConfig.nombreComercial || 'WEBFIX SOLUCIONES'}
-                          </span>
-                        </div>
-                        <p className="font-bold text-[10px] text-gray-900 dark:text-white uppercase">{sriConfig.razonSocial || 'WEBFIX SOLUCIONES TECNOLOGICAS S.A.'}</p>
-                        <p className="text-[10px]"><span className="font-bold text-gray-500">RUC:</span> <span className="font-mono">{sriConfig.ruc || '1790000000001'}</span></p>
-                        <p className="text-[10px]"><span className="font-bold text-gray-500">Dirección Matriz:</span> {sriConfig.direccionMatriz}</p>
-                        <p className="text-[9px] text-gray-500 uppercase mt-2">
-                          {sriConfig.obligadoContabilidad ? 'Obligado a llevar contabilidad: SÍ' : 'Obligado a llevar contabilidad: NO'}
-                        </p>
-                        {sriConfig.regimenRimpe && (
-                          <p className="text-[9px] text-emerald-500 font-bold uppercase">
-                            Contribuyente Régimen: {sriConfig.regimenRimpe.replace('_', ' ')}
-                          </p>
-                        )}
+              return null;
+            })()}
+
+            {/* EXPANDED FIELDS FOR ACTIVE METHODS */}
+            <div className="space-y-3.5">
+              {/* CARD EFECTIVO */}
+              {activePayments.efectivo && (
+                <div className={`p-4 rounded-2xl border transition-all ${
+                  isDarkMode ? 'bg-black/20 border-white/5' : 'bg-gray-50 border-gray-250 shadow-sm'
+                }`}>
+                  <div className="flex items-center justify-between gap-3 mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0">
+                        <DollarSign size={13} />
                       </div>
+                      <span className="text-[10px] font-black text-black dark:text-white uppercase tracking-wider">Efectivo</span>
+                    </div>
+                    <span className="text-[9px] font-bold text-gray-500 uppercase">Monto Recibido</span>
+                  </div>
+                  <div className="relative">
+                    <span className="absolute left-3.5 top-3 text-sm text-black dark:text-gray-400 font-extrabold">$</span>
+                    <input
+                      disabled={!isEditable}
+                      type="number"
+                      step="0.01"
+                      value={payments.efectivo || ''}
+                      onChange={e => setPayments(prev => ({ ...prev, efectivo: e.target.value }))}
+                      className={`${inputClass} pl-8 font-black text-black dark:text-white`}
+                      placeholder="0.00"
+                    />
+                  </div>
+                  {Number(payments.efectivo) > 0 && (
+                    <div className="mt-2.5">
+                      {(() => {
+                        const total = Number(formData.total) || 0;
+                        const ef = Number(payments.efectivo) || 0;
+                        const tr = Number(payments.transferencia) || 0;
+                        const tj = Number(payments.tarjeta) || 0;
+                        const cr = Number(payments.cruce_cuentas) || 0;
+                        const totalPaid = ef + tr + tj + cr;
 
-                      {/* Right: Auth & Clave Acceso info */}
-                      <div className={`p-4 rounded-xl border flex flex-col justify-between ${
-                        isDarkMode ? 'bg-black/25 border-white/5' : 'bg-white border-gray-200 shadow-sm'
-                      }`}>
-                        <div>
-                          <p className="font-black text-sm uppercase tracking-wider text-gray-900 dark:text-white">
-                            {formData.documentType === 'factura' ? 'Factura Electrónica' : 'RECIBO'}
-                          </p>
-                          <p className="font-mono text-[11px] font-bold text-blue-500 mt-0.5">
-                            Nº:{' '}
-                            {isEditable && !formData.documentNumber
-                              ? `${sriConfig.establecimiento || '001'}-${sriConfig.puntoEmision || '001'}-${String(formData.secuencial || (formData.documentType === 'nota_venta' ? sriConfig.secuencialNotaVenta : sriConfig.secuencialFactura) || 1).padStart(9, '0')}`
-                              : formData.documentNumber
-                            }
-                          </p>
-                        </div>
-                        {formData.documentType === 'factura' ? (
-                          <div className="mt-3.5 space-y-1 text-[10px]">
-                            <p><span className="font-bold text-gray-500">Ambiente:</span> {sriConfig.ambiente === '1' ? 'PRUEBAS' : 'PRODUCCIÓN'}</p>
-                            <p><span className="font-bold text-gray-500">Emisión:</span> NORMAL</p>
-                            <p className="font-bold text-gray-500 mt-2">Clave de Acceso / Autorización SRI:</p>
-                            <p className="font-mono text-[9px] break-all leading-normal text-gray-400">
-                              {formData.claveAcceso || '0604202601179000000000120010010000001231234567812'}
-                            </p>
-                            
-                            {/* DYNAMIC BARCODE RENDER */}
-                            <div className="flex items-center justify-center gap-px h-6 bg-white py-1 px-2 rounded border border-gray-200 mt-2 select-none overflow-hidden max-w-[200px]">
-                              {[2, 1, 3, 1, 2, 4, 1, 2, 1, 3, 2, 1, 4, 1, 2, 1, 3, 1, 2, 4, 1, 2, 1, 3, 2, 1, 4, 1, 2, 1, 2, 1, 3, 1].map((w, idx) => (
-                                <div key={idx} className="bg-black h-full" style={{ width: `${w}px` }} />
-                              ))}
-                            </div>
+                        return totalPaid >= total ? (
+                          <div className="p-2.5 rounded-xl text-center font-bold text-[10px] bg-emerald-500/10 text-emerald-650 dark:text-emerald-400 border border-emerald-500/20">
+                            <span className="uppercase text-[8px] tracking-wider font-black block">Cambio / Vuelto</span>
+                            <span className="text-sm font-black">${Math.max(0, totalPaid - total).toFixed(2)}</span>
                           </div>
                         ) : (
-                          <div className="mt-3.5 space-y-1.5 text-[10px]">
-                            <p><span className="font-bold text-gray-500">Tipo de Documento:</span> RECIBO INTERNO</p>
-                            <p><span className="font-bold text-gray-500">Estado:</span> {formData.sriStatus === 'autorizado' ? 'REGISTRADO' : 'BORRADOR'}</p>
-                            <p><span className="font-bold text-gray-500">Validez:</span> CONTROL DE VENTA INTERNA</p>
-                            <p><span className="font-bold text-gray-500">Fecha/Hora:</span> {formData.date || new Date().toISOString().split('T')[0]} {formData.time || ''}</p>
+                          <div className="p-2.5 rounded-xl text-center font-bold text-[10px] bg-red-500/10 text-red-655 dark:text-red-400 border border-red-500/20">
+                            <span>Falta cubrir: ${(total - totalPaid).toFixed(2)}</span>
                           </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Client Info Grid */}
-                    <div className={`p-3.5 rounded-xl border mb-4 grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1.5 ${
-                      isDarkMode ? 'bg-black/10 border-white/5' : 'bg-white border-gray-200'
-                    }`}>
-                      <div>
-                        <span className="font-bold text-gray-500">Razón Social / Cliente:</span>{' '}
-                        <span className="font-extrabold text-gray-900 dark:text-white">{matchedTercero?.name || 'Cliente no seleccionado'}</span>
-                      </div>
-                      <div>
-                        <span className="font-bold text-gray-500">CI / RUC:</span>{' '}
-                        <span className="font-mono font-bold">{matchedTercero?.ruc || 'N/A'}</span>
-                      </div>
-                      <div>
-                        <span className="font-bold text-gray-500">Dirección:</span>{' '}
-                        <span>{matchedTercero?.direccion || 'N/A'}</span>
-                      </div>
-                      <div>
-                        <span className="font-bold text-gray-500">Fecha Emisión:</span>{' '}
-                        <span>{formData.date}</span>
-                      </div>
-                      <div>
-                        <span className="font-bold text-gray-500">Email:</span>{' '}
-                        <span>{matchedTercero?.email || 'N/A'}</span>
-                      </div>
-                      <div>
-                        <span className="font-bold text-gray-500">Forma de Pago:</span>{' '}
-                        <span className="font-extrabold text-black dark:text-white capitalize">
-                          {(() => {
-                            const methods = [];
-                            if (efVal > 0) methods.push('Efectivo');
-                            if (trVal > 0) methods.push('Transferencia');
-                            if (tjVal > 0) methods.push('Tarjeta');
-                            if (crVal > 0) methods.push('Crédito');
-                            return methods.join(' + ') || 'N/A';
-                          })()}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Items table */}
-                    <div className="overflow-x-auto mb-4 border rounded-xl dark:border-white/5">
-                      <table className="w-full text-left border-collapse text-[10px]">
-                        <thead>
-                          <tr className={`border-b dark:border-white/5 bg-gray-550/5 ${isDarkMode ? 'bg-white/5' : 'bg-gray-100'}`}>
-                            <th className="py-2 px-3 font-bold">Cod. Principal</th>
-                            <th className="py-2 px-3 font-bold">Descripción</th>
-                            <th className="py-2 px-3 font-bold text-center">Cantidad</th>
-                            <th className="py-2 px-3 font-bold text-right">Precio Unitario</th>
-                            <th className="py-2 px-3 font-bold text-right">Descuento</th>
-                            <th className="py-2 px-3 font-bold text-right">Total</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-200 dark:divide-white/5">
-                          {(formData.items || []).map((it, i) => (
-                            <tr key={i} className="hover:bg-white/5">
-                              <td className="py-2 px-3 font-mono text-gray-400">{it.sku || it.productId?.slice(3, 10) || '0001'}</td>
-                              <td className="py-2 px-3 font-bold">{it.name}</td>
-                              <td className="py-2 px-3 text-center">{Number(it.quantity).toFixed(2)}</td>
-                              <td className="py-2 px-3 text-right">${Number(it.price).toFixed(2)}</td>
-                              <td className="py-2 px-3 text-right">$0.00</td>
-                              <td className="py-2 px-3 text-right font-bold">${(it.price * it.quantity).toFixed(2)}</td>
-                            </tr>
-                          ))}
-                          {(!formData.items || formData.items.length === 0) && (
-                            <tr>
-                              <td colSpan="6" className="py-4 text-center text-gray-500 italic">No hay ítems registrados.</td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-
-                    {/* Bottom: Observations and Totals */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* Left: Additional Info */}
-                      <div className="space-y-3">
-                        <div className={`p-3 rounded-xl border h-full ${
-                          isDarkMode ? 'bg-black/10 border-white/5' : 'bg-white border-gray-200'
-                        }`}>
-                          <p className="font-bold text-gray-500 border-b pb-1 dark:border-white/5 mb-1.5 uppercase text-[9px] tracking-wider">Información Adicional</p>
-                          <div className="space-y-1.5 text-[9px]">
-                            {formData.referencia && <p><span className="font-bold text-gray-400">Referencia:</span> {formData.referencia}</p>}
-                            {formData.description && <p><span className="font-bold text-gray-400">Observaciones:</span> {formData.description}</p>}
-                            <p><span className="font-bold text-gray-400">Moneda:</span> Dólares (USD)</p>
-                            
-                            {/* Payment details block */}
-                            <div className="mt-2.5 pt-2.5 border-t dark:border-white/5">
-                              <p className="font-bold text-gray-400 mb-1 uppercase text-[8px] tracking-widest">Detalle Formas de Pago</p>
-                              <div className="space-y-1">
-                                {efVal > 0 && (
-                                  <div className="flex justify-between font-mono bg-gray-550/5 p-1.5 rounded border dark:border-white/5 text-[9px]">
-                                    <span className="text-black dark:text-white">01 - SIN UTILIZACION DEL SISTEMA FINANCIERO (EFECTIVO)</span>
-                                    <span className="font-extrabold text-blue-500">${efVal.toFixed(2)}</span>
-                                  </div>
-                                )}
-                                {trVal > 0 && (
-                                  <div className="flex justify-between font-mono bg-gray-550/5 p-1.5 rounded border dark:border-white/5 text-[9px]">
-                                    <span className="text-black dark:text-white">20 - OTROS CON UTILIZACION DEL SISTEMA FINANCIERO (TRANSFERENCIA)</span>
-                                    <span className="font-extrabold text-blue-500">${trVal.toFixed(2)}</span>
-                                  </div>
-                                )}
-                                {tjVal > 0 && (
-                                  <div className="flex justify-between font-mono bg-gray-550/5 p-1.5 rounded border dark:border-white/5 text-[9px]">
-                                    <span className="text-black dark:text-white">19 - TARJETA DE CRÉDITO / DÉBITO</span>
-                                    <span className="font-extrabold text-blue-500">${tjVal.toFixed(2)}</span>
-                                  </div>
-                                )}
-                                {crVal > 0 && (
-                                  <div className="flex justify-between font-mono bg-gray-550/5 p-1.5 rounded border dark:border-white/5 text-[9px]">
-                                    <span className="text-black dark:text-white">19 - OTROS (CRÉDITO CXC / INTERNO)</span>
-                                    <span className="font-extrabold text-blue-500">${crVal.toFixed(2)}</span>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Right: Totals Breakdown */}
-                      <div className="space-y-1 text-xs">
-                        <div className={`p-3 rounded-xl border space-y-1.5 ${
-                          isDarkMode ? 'bg-black/10 border-white/5' : 'bg-white border-gray-200'
-                        }`}>
-                          <div className="flex justify-between text-gray-500">
-                            <span>Subtotal 15%:</span>
-                            <span className="font-bold font-mono">
-                              ${(
-                                (formData.items || [])
-                                  .filter(item => (parseInt(item.ivaCategory) || 15) === 15)
-                                  .reduce((sum, item) => sum + (parseFloat(item.price) || 0) * (parseInt(item.quantity) || 1), 0)
-                              ).toFixed(2)}
-                            </span>
-                          </div>
-                          <div className="flex justify-between text-gray-500">
-                            <span>Subtotal 0%:</span>
-                            <span className="font-bold font-mono">
-                              ${(
-                                (formData.items || [])
-                                  .filter(item => (parseInt(item.ivaCategory) || 15) === 0)
-                                  .reduce((sum, item) => sum + (parseFloat(item.price) || 0) * (parseInt(item.quantity) || 1), 0)
-                              ).toFixed(2)}
-                            </span>
-                          </div>
-                          <div className="flex justify-between text-gray-500 border-t dark:border-white/5 pt-1.5">
-                            <span>Subtotal Sin Impuestos:</span>
-                            <span className="font-bold font-mono">${Number(formData.baseImponible).toFixed(2)}</span>
-                          </div>
-                          <div className="flex justify-between text-gray-500">
-                            <span>Total Descuento:</span>
-                            <span className="font-bold font-mono">$0.00</span>
-                          </div>
-                          <div className="flex justify-between text-gray-500">
-                            <span>IVA 15%:</span>
-                            <span className="font-bold font-mono">${Number(formData.ivaValor).toFixed(2)}</span>
-                          </div>
-                          <div className="flex justify-between text-base font-black text-gray-900 dark:text-white border-t border-dashed dark:border-white/5 pt-1.5">
-                            <span>VALOR TOTAL:</span>
-                            <span className="font-mono">${formData.total}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                  </div>
-                </div>
-
-                 {/* ARCHIVOS SRI ADJUNTOS */}
-                 {formData.documentType !== 'nota_venta' && (
-                   <div className={`p-6 rounded-3xl border shadow-sm ${isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'}`}>
-                     <h3 className="text-xs font-bold uppercase tracking-wider mb-3 flex justify-between items-center">
-                       Documentos Digitales Asociados
-                       {isUploading && <span className="text-[9px] text-blue-500 animate-pulse">Subiendo...</span>}
-                     </h3>
-                     
-                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                       <div className="flex gap-2">
-                         {formData.type !== 'ingreso' ? (
-                           <label className={`flex-1 flex items-center justify-center gap-1.5 p-3 rounded-xl border border-dashed cursor-pointer transition-colors ${formData.xmlUrl ? 'border-emerald-500/30 bg-emerald-500/5 text-emerald-500' : 'border-gray-400 hover:bg-gray-200 text-gray-800 font-semibold bg-white'}`}>
-                             <input type="file" accept=".xml" className="hidden" onChange={(e) => handleFileUpload(e, 'xml')} disabled={isUploading || !isEditable}/>
-                             {formData.xmlUrl ? <CheckCircle2 size={14}/> : <UploadCloud size={14}/>}
-                             <span className="text-xs font-bold">{formData.xmlUrl ? 'XML Guardado' : 'Subir XML'}</span>
-                           </label>
-                         ) : (
-                           formData.xmlUrl && (
-                             <div className="flex-1 flex items-center justify-center gap-1.5 p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/5 text-emerald-500">
-                               <CheckCircle2 size={14}/>
-                               <span className="text-xs font-bold">XML Generado</span>
-                             </div>
-                           )
-                         )}
-                         {formData.xmlUrl && <a href={formData.xmlUrl} target="_blank" rel="noreferrer" className="p-3 rounded-xl bg-blue-600 text-white shrink-0 hover:bg-blue-500"><FileText size={14}/></a>}
-                       </div>
-
-                       <div className="flex gap-2">
-                         {formData.type !== 'ingreso' ? (
-                           <label className={`flex-1 flex items-center justify-center gap-1.5 p-3 rounded-xl border border-dashed cursor-pointer transition-colors ${formData.pdfUrl ? 'border-emerald-500/30 bg-emerald-500/5 text-emerald-500' : 'border-gray-400 hover:bg-gray-200 text-gray-800 font-semibold bg-white'}`}>
-                             <input type="file" accept=".pdf" className="hidden" onChange={(e) => handleFileUpload(e, 'pdf')} disabled={isUploading || !isEditable}/>
-                             {formData.pdfUrl ? <CheckCircle2 size={14}/> : <UploadCloud size={14}/>}
-                             <span className="text-xs font-bold">{formData.pdfUrl ? 'PDF RIDE' : 'Subir PDF'}</span>
-                           </label>
-                         ) : (
-                           formData.pdfUrl && (
-                             <div className="flex-1 flex items-center justify-center gap-1.5 p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/5 text-emerald-500">
-                               <CheckCircle2 size={14}/>
-                               <span className="text-xs font-bold">PDF RIDE</span>
-                             </div>
-                           )
-                         )}
-                         {formData.pdfUrl && <a href={formData.pdfUrl} target="_blank" rel="noreferrer" className="p-3 rounded-xl bg-blue-600 text-white shrink-0 hover:bg-blue-500"><FileText size={14}/></a>}
-                       </div>
-                     </div>
-                   </div>
-                 )}
-
-                {/* CONSOLA BITACORA DE TRANSMISION SRI */}
-                {(isEmitting || sriLogs.length > 0) && (
-                  <div className="p-4 rounded-3xl bg-black border border-white/10 text-white font-mono text-[10px] space-y-2.5 max-h-[220px] overflow-y-auto custom-scrollbar">
-                    <div className="flex items-center gap-1.5 border-b border-white/10 pb-1.5 text-gray-400">
-                      <Terminal size={12} />
-                      <span>Consola SRI (Ecuador)</span>
-                    </div>
-                    <div className="space-y-1.5">
-                      {sriLogs.map((log, i) => (
-                        <div key={i} className="flex gap-2 items-start leading-normal">
-                          <span className="text-gray-500 shrink-0">{log.time}</span>
-                          <span className={log.status === 'error' ? 'text-red-400 font-bold' : log.status === 'success' ? 'text-emerald-400' : 'text-gray-200'}>{log.message}</span>
-                        </div>
-                      ))}
-                    </div>
-                    {isEmitting && (
-                      <div className="flex gap-1.5 items-center text-purple-400 animate-pulse pt-1">
-                        <span className="h-1.5 w-1.5 rounded-full bg-purple-400 animate-ping"></span>
-                        <span>Autorizando SRI en tiempo real...</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-              </div>
-
-              {/* PANEL LATERAL DE FINANCIACIÓN */}
-              <div className="space-y-6">
-                <div className={`p-5 rounded-3xl border shadow-sm ${isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'}`}>
-                  <h4 className="text-[10px] font-black uppercase text-gray-500 mb-4 tracking-wider">Liquidación y Cobro</h4>
-                  
-                  <div className="space-y-3 text-xs">
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Base Imponible:</span>
-                      <span className="font-semibold">${Number(formData.baseImponible).toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">IVA ({formData.ivaPorcentaje}%):</span>
-                      <span className="font-semibold">${Number(formData.ivaValor).toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Retenciones:</span>
-                      <span className="font-semibold text-red-500">
-                        -${(Number(formData.retencionFuente) + Number(formData.retencionIva)).toFixed(2)}
-                      </span>
-                    </div>
-                    <div className="border-t border-dashed my-2 pt-2 flex justify-between text-base font-black">
-                      <span>Total Neto:</span>
-                      <span>${formData.total}</span>
-                    </div>
-                  </div>
-
-                  <div className="border-t border-dashed my-4 pt-4 space-y-2">
-                    <p className="text-[9px] uppercase text-gray-500 font-bold">Desglose de Cobros</p>
-                    <div className="space-y-1.5 text-xs">
-                      {efVal > 0 && <div className="flex justify-between"><span>Efectivo:</span><span className="font-bold">${efVal.toFixed(2)}</span></div>}
-                      {trVal > 0 && <div className="flex justify-between"><span>Transferencia:</span><span className="font-bold">${trVal.toFixed(2)}</span></div>}
-                      {tjVal > 0 && <div className="flex justify-between"><span>Tarjeta:</span><span className="font-bold">${tjVal.toFixed(2)}</span></div>}
-                      {crVal > 0 && <div className="flex justify-between"><span>Crédito / CxC:</span><span className="font-bold">${crVal.toFixed(2)}</span></div>}
-                    </div>
-                    {paymentStatus.vuelto > 0 && (
-                      <div className="mt-2 p-2 rounded-xl bg-emerald-500/10 text-emerald-400 text-center text-xs font-bold">
-                        Cambio/Vuelto: ${paymentStatus.vuelto.toFixed(2)}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* ACCIONES DE EMISION */}
-                <div className="space-y-3">
-                  {isEditable ? (
-                    <>
-                      <button 
-                        type="button" 
-                        onClick={handleSave} 
-                        disabled={isUploading || isEmitting} 
-                        className="w-full py-3 rounded-2xl text-xs font-black bg-blue-600/25 border border-blue-500/20 text-blue-400 hover:bg-blue-600/35 transition-all text-center"
-                      >
-                        Guardar como Borrador
-                      </button>
-
-                      {formData.type === 'ingreso' && formData.documentType !== 'nota_venta' && (
-                        <button 
-                          type="button" 
-                          onClick={handleEmitirSRI} 
-                          disabled={isUploading || isEmitting} 
-                          className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl text-xs font-black bg-blue-600 text-white hover:bg-blue-500 shadow-md transition-all uppercase tracking-wide animate-pulse"
-                        >
-                          <Sparkles size={14} />
-                          <span>Firma y Autorización SRI</span>
-                        </button>
-                      )}
-
-                      {formData.type === 'ingreso' && formData.documentType === 'nota_venta' && (
-                        <button 
-                          type="button" 
-                          onClick={() => handleSave({ isFinalizingNotaVenta: true })} 
-                          disabled={isUploading || isEmitting} 
-                          className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl text-xs font-black bg-emerald-600 text-white hover:bg-emerald-500 shadow-md transition-all uppercase tracking-wide"
-                        >
-                          <CheckCircle2 size={14} />
-                          <span>Registrar Venta (Nota de Venta)</span>
-                        </button>
-                      )}
-                    </>
-                  ) : (
-                    <div className="space-y-2">
-                      {isAuthorized && (
-                        <>
-                          <button 
-                            type="button" 
-                            onClick={downloadXMLFile} 
-                            className="w-full flex items-center justify-center gap-1.5 py-3 rounded-2xl text-xs font-semibold bg-gray-600/20 text-gray-300 hover:bg-gray-600/30 transition-all border border-white/5"
-                          >
-                            <Download size={14} /> Descargar XML Autorizado
-                          </button>
-                          <button 
-                            type="button" 
-                            onClick={handleAnular} 
-                            className="w-full flex items-center justify-center gap-1.5 py-3 rounded-2xl text-xs font-semibold bg-red-600/20 text-red-400 hover:bg-red-600/30 transition-all border border-red-500/10"
-                          >
-                            <ShieldAlert size={14} /> Anular en SRI
-                          </button>
-                        </>
-                      )}
+                        );
+                      })()}
                     </div>
                   )}
                 </div>
+              )}
 
-              </div>
+              {/* CARD TRANSFERENCIA */}
+              {activePayments.transferencia && (
+                <div className={`p-4 rounded-2xl border transition-all ${
+                  isDarkMode ? 'bg-black/20 border-white/5' : 'bg-gray-50 border-gray-250 shadow-sm'
+                }`}>
+                  <div className="flex items-center justify-between gap-3 mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0">
+                        <RefreshCw size={12} />
+                      </div>
+                      <span className="text-[10px] font-black text-black dark:text-white uppercase tracking-wider">Transferencia</span>
+                    </div>
+                    <span className="text-[9px] font-bold text-gray-500 uppercase">Monto Transferido</span>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="relative">
+                      <span className="absolute left-3.5 top-3 text-sm text-black dark:text-gray-400 font-extrabold">$</span>
+                      <input
+                        disabled={!isEditable}
+                        type="number"
+                        step="0.01"
+                        value={payments.transferencia || ''}
+                        onChange={e => setPayments(prev => ({ ...prev, transferencia: e.target.value }))}
+                        className={`${inputClass} pl-8 font-black text-black dark:text-white`}
+                        placeholder="0.00"
+                      />
+                    </div>
+                    <input
+                      disabled={!isEditable}
+                      type="text"
+                      value={payments.transferenciaRef || ''}
+                      onChange={e => setPayments(prev => ({ ...prev, transferenciaRef: e.target.value }))}
+                      className={`${inputClass} text-[10px] py-2 font-semibold text-black dark:text-white`}
+                      placeholder="Banco / Nro Referencia del Depósito"
+                    />
+                  </div>
+                </div>
+              )}
 
+              {/* CARD TARJETA */}
+              {activePayments.tarjeta && (
+                <div className={`p-4 rounded-2xl border transition-all ${
+                  isDarkMode ? 'bg-black/20 border-white/5' : 'bg-gray-50 border-gray-250 shadow-sm'
+                }`}>
+                  <div className="flex items-center justify-between gap-3 mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0">
+                        <CreditCard size={12} />
+                      </div>
+                      <span className="text-[10px] font-black text-black dark:text-white uppercase tracking-wider">Tarjeta</span>
+                    </div>
+                    <span className="text-[9px] font-bold text-gray-500 uppercase">Monto Tarjeta</span>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="relative">
+                      <span className="absolute left-3.5 top-3 text-sm text-black dark:text-gray-400 font-extrabold">$</span>
+                      <input
+                        disabled={!isEditable}
+                        type="number"
+                        step="0.01"
+                        value={payments.tarjeta || ''}
+                        onChange={e => setPayments(prev => ({ ...prev, tarjeta: e.target.value }))}
+                        className={`${inputClass} pl-8 font-black text-black dark:text-white`}
+                        placeholder="0.00"
+                      />
+                    </div>
+                    <input
+                      disabled={!isEditable}
+                      type="text"
+                      value={payments.tarjetaRef || ''}
+                      onChange={e => setPayments(prev => ({ ...prev, tarjetaRef: e.target.value }))}
+                      className={`${inputClass} text-[10px] py-2 font-semibold text-black dark:text-white`}
+                      placeholder="Nro Lote / Código Autorización"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* CARD CRÉDITO */}
+              {activePayments.cruce_cuentas && (
+                <div className={`p-4 rounded-2xl border transition-all ${
+                  isDarkMode ? 'bg-black/20 border-white/5' : 'bg-gray-50 border-gray-250 shadow-sm'
+                }`}>
+                  <div className="flex items-center justify-between gap-3 mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0">
+                        <User size={12} />
+                      </div>
+                      <span className="text-[10px] font-black text-black dark:text-white uppercase tracking-wider">Crédito / CxC</span>
+                    </div>
+                    <span className="text-[9px] font-bold text-gray-500 uppercase">Monto Crédito</span>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="relative">
+                      <span className="absolute left-3.5 top-3 text-sm text-black dark:text-gray-400 font-extrabold">$</span>
+                      <input
+                        disabled={!isEditable}
+                        type="number"
+                        step="0.01"
+                        value={payments.cruce_cuentas || ''}
+                        onChange={e => setPayments(prev => ({ ...prev, cruce_cuentas: e.target.value }))}
+                        className={`${inputClass} pl-8 font-black text-black dark:text-white`}
+                        placeholder="0.00"
+                      />
+                    </div>
+
+                    <div className={`p-2.5 rounded-xl border text-[10px] ${
+                      (() => {
+                        const limit = Number(matchedTercero?.limiteCredito) || 1000;
+                        const available = limit - clientDebt;
+                        const remainingCr = Number(payments.cruce_cuentas) || 0;
+                        return remainingCr > available 
+                          ? 'bg-red-500/10 border-red-500/20 text-red-650 dark:text-red-400 font-bold' 
+                          : 'bg-amber-500/10 border-amber-500/25 text-amber-800 dark:text-amber-400';
+                      })()
+                    }`}>
+                      <div className="flex justify-between items-center text-black dark:text-white">
+                        <span>Deuda Previa:</span>
+                        <span className="font-extrabold">${clientDebt.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between items-center border-t border-dashed border-gray-300 dark:border-white/5 mt-1 pt-1 text-black dark:text-white">
+                        <span>Cupo Disponible:</span>
+                        <span className="font-extrabold">${(Number(matchedTercero?.limiteCredito || 1000) - clientDebt).toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between items-center font-black mt-1 text-black dark:text-white">
+                        <span>Fecha Vencimiento:</span>
+                        <span>{creditDueDate}</span>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setIsCreditModalOpen(true)}
+                      className="w-full py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 text-[10px] font-black uppercase transition-colors"
+                    >
+                      Configurar Plazo y Comentario
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-        )}
+
+          {/* CONSOLA BITACORA DE TRANSMISION SRI */}
+          {(isEmitting || sriLogs.length > 0) && (
+            <div className="p-4 rounded-3xl bg-black border border-white/10 text-white font-mono text-[10px] space-y-2.5 max-h-[220px] overflow-y-auto custom-scrollbar">
+              <div className="flex items-center gap-1.5 border-b border-white/10 pb-1.5 text-gray-400">
+                <Terminal size={12} />
+                <span>Consola SRI (Ecuador)</span>
+              </div>
+              <div className="space-y-1.5">
+                {sriLogs.map((log, i) => (
+                  <div key={i} className="flex gap-2 items-start leading-normal">
+                    <span className="text-gray-500 shrink-0">{log.time}</span>
+                    <span className={log.status === 'error' ? 'text-red-400 font-bold' : log.status === 'success' ? 'text-emerald-400' : 'text-gray-200'}>{log.message}</span>
+                  </div>
+                ))}
+              </div>
+              {isEmitting && (
+                <div className="flex gap-1.5 items-center text-purple-400 animate-pulse pt-1">
+                  <span className="h-1.5 w-1.5 rounded-full bg-purple-400 animate-ping"></span>
+                  <span>Autorizando SRI en tiempo real...</span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Right Column (lg:col-span-2): Summary & Actions & RIDE/Recibo preview */}
+        <div className="lg:col-span-2 space-y-4">
+          
+          {/* LIQUIDACION Y COBRO PANEL */}
+          <div className={`p-5 rounded-3xl border shadow-sm ${
+            isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'
+          }`}>
+            <h4 className="text-[10px] font-black uppercase text-gray-500 mb-3 tracking-wider border-b pb-2 dark:border-white/5">
+              Liquidación y Cobro
+            </h4>
+            
+            <div className="space-y-2.5 text-xs text-black dark:text-white">
+              <div className="flex justify-between">
+                <span className="text-gray-400">Base Imponible:</span>
+                <span className="font-semibold">${Number(formData.baseImponible).toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">IVA ({formData.ivaPorcentaje}%):</span>
+                <span className="font-semibold">${Number(formData.ivaValor).toFixed(2)}</span>
+              </div>
+              {formData.documentType === 'retencion' && (
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Retenciones:</span>
+                  <span className="font-semibold text-red-500">
+                    -${(Number(formData.retencionFuente) + Number(formData.retencionIva)).toFixed(2)}
+                  </span>
+                </div>
+              )}
+              <div className="border-t border-dashed dark:border-white/5 pt-2 flex justify-between text-base font-black">
+                <span>Total Neto:</span>
+                <span>${formData.total}</span>
+              </div>
+            </div>
+
+            <div className="border-t border-dashed dark:border-white/5 mt-3 pt-3 space-y-1.5">
+              <p className="text-[9px] uppercase text-gray-500 font-bold">Desglose de Cobros</p>
+              <div className="space-y-1 text-xs text-black dark:text-white">
+                {efVal > 0 && <div className="flex justify-between"><span>Efectivo:</span><span className="font-bold">${efVal.toFixed(2)}</span></div>}
+                {trVal > 0 && <div className="flex justify-between"><span>Transferencia:</span><span className="font-bold">${trVal.toFixed(2)}</span></div>}
+                {tjVal > 0 && <div className="flex justify-between"><span>Tarjeta:</span><span className="font-bold">${tjVal.toFixed(2)}</span></div>}
+                {crVal > 0 && <div className="flex justify-between"><span>Crédito / CxC:</span><span className="font-bold">${crVal.toFixed(2)}</span></div>}
+              </div>
+              {paymentStatus.vuelto > 0 && (
+                <div className="mt-2 p-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-center text-xs font-black">
+                  Cambio/Vuelto: ${paymentStatus.vuelto.toFixed(2)}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* RIDE/RECIBO PREVIEW */}
+          <div className={`p-6 rounded-3xl border shadow-lg ${
+            isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'
+          }`}>
+            <div className="flex items-center gap-2 mb-4 border-b pb-3 border-gray-200 dark:border-white/5">
+              <FileText className="text-blue-500" size={16} />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-black dark:text-white">
+                {formData.documentType === 'factura' ? 'Vista Previa del RIDE' : 'Vista Previa del Recibo'}
+              </h3>
+            </div>
+
+            <div className={`p-4 rounded-2xl border text-[11px] leading-relaxed select-none ${
+              isDarkMode ? 'bg-black/20 border-white/5 text-gray-300' : 'bg-gray-50 border-gray-250 text-gray-800'
+            }`}>
+              <div className="space-y-2 text-black dark:text-white">
+                <p className="font-bold text-[10px] uppercase truncate">
+                  {sriConfig.nombreComercial || 'WEBFIX SOLUCIONES'}
+                </p>
+                <p className="font-mono text-[10px] font-bold text-blue-500">
+                  Nº:{' '}
+                  {isEditable && !formData.documentNumber
+                    ? `${sriConfig.establecimiento || '001'}-${sriConfig.puntoEmision || '001'}-${String(formData.secuencial || (formData.documentType === 'nota_venta' ? sriConfig.secuencialNotaVenta : sriConfig.secuencialFactura) || 1).padStart(9, '0')}`
+                    : formData.documentNumber
+                  }
+                </p>
+                <p className="border-t border-dashed dark:border-white/5 pt-1.5"><span className="font-bold text-gray-400">Cliente:</span> {matchedTercero?.name || 'No seleccionado'}</p>
+                <p><span className="font-bold text-gray-400">RUC/CI:</span> <span className="font-mono">{matchedTercero?.ruc || ''}</span></p>
+                <p><span className="font-bold text-gray-400">Fecha:</span> {formData.date || new Date().toISOString().split('T')[0]}</p>
+                <p className="font-bold border-t border-dashed dark:border-white/5 pt-1.5 flex justify-between">
+                  <span>Total Comprobante:</span>
+                  <span>${formData.total}</span>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* ARCHIVOS SRI ADJUNTOS */}
+          {formData.documentType !== 'nota_venta' && formData.id && (
+            <div className={`p-5 rounded-3xl border shadow-sm ${
+              isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'
+            }`}>
+              <h3 className="text-[10px] font-bold uppercase tracking-wider mb-2.5 flex justify-between items-center text-gray-500">
+                Archivos Digitales
+                {isUploading && <span className="text-[9px] text-blue-500 animate-pulse">Subiendo...</span>}
+              </h3>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="flex gap-1.5">
+                  <label className={`flex-1 flex items-center justify-center gap-1.5 p-2 rounded-xl border border-dashed cursor-pointer transition-colors ${
+                    formData.xmlUrl ? 'border-emerald-500/30 bg-emerald-500/5 text-emerald-500' : 'border-gray-400 hover:bg-gray-100 text-gray-800 font-semibold bg-white'
+                  }`}>
+                    <input type="file" accept=".xml" className="hidden" onChange={(e) => handleFileUpload(e, 'xml')} disabled={isUploading || !isEditable}/>
+                    {formData.xmlUrl ? <CheckCircle2 size={13}/> : <UploadCloud size={13}/>}
+                    <span className="text-[10px] font-bold">{formData.xmlUrl ? 'XML' : 'Subir XML'}</span>
+                  </label>
+                  {formData.xmlUrl && <a href={formData.xmlUrl} target="_blank" rel="noreferrer" className="p-2 rounded-xl bg-blue-600 text-white shrink-0 hover:bg-blue-500"><FileText size={13}/></a>}
+                </div>
+
+                <div className="flex gap-1.5">
+                  <label className={`flex-1 flex items-center justify-center gap-1.5 p-2 rounded-xl border border-dashed cursor-pointer transition-colors ${
+                    formData.pdfUrl ? 'border-emerald-500/30 bg-emerald-500/5 text-emerald-500' : 'border-gray-400 hover:bg-gray-100 text-gray-800 font-semibold bg-white'
+                  }`}>
+                    <input type="file" accept=".pdf" className="hidden" onChange={(e) => handleFileUpload(e, 'pdf')} disabled={isUploading || !isEditable}/>
+                    {formData.pdfUrl ? <CheckCircle2 size={13}/> : <UploadCloud size={13}/>}
+                    <span className="text-[10px] font-bold">{formData.pdfUrl ? 'PDF RIDE' : 'Subir PDF'}</span>
+                  </label>
+                  {formData.pdfUrl && <a href={formData.pdfUrl} target="_blank" rel="noreferrer" className="p-2 rounded-xl bg-blue-600 text-white shrink-0 hover:bg-blue-500"><FileText size={13}/></a>}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* EMISSION ACTIONS */}
+          <div className="space-y-3.5">
+            {isEditable ? (
+              <>
+                <button 
+                  type="button" 
+                  onClick={handleSave} 
+                  disabled={isUploading || isEmitting} 
+                  className="w-full py-3 rounded-2xl text-xs font-black bg-blue-600/25 border border-blue-500/20 text-blue-500 dark:text-blue-400 hover:bg-blue-600/35 transition-all text-center"
+                >
+                  Guardar como Borrador
+                </button>
+
+                {formData.type === 'ingreso' && formData.documentType !== 'nota_venta' && (
+                  <button 
+                    type="button" 
+                    onClick={handleEmitirSRI} 
+                    disabled={isUploading || isEmitting} 
+                    className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl text-xs font-black bg-blue-600 text-white hover:bg-blue-500 shadow-md transition-all uppercase tracking-wide animate-pulse"
+                  >
+                    <Sparkles size={14} />
+                    <span>Firma y Autorización SRI</span>
+                  </button>
+                )}
+
+                {formData.type === 'ingreso' && formData.documentType === 'nota_venta' && (
+                  <button 
+                    type="button" 
+                    onClick={() => handleSave({ isFinalizingNotaVenta: true })} 
+                    disabled={isUploading || isEmitting} 
+                    className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl text-xs font-black bg-emerald-600 text-white hover:bg-emerald-500 shadow-md transition-all uppercase tracking-wide"
+                  >
+                    <CheckCircle2 size={14} />
+                    <span>Registrar Venta (Nota de Venta)</span>
+                  </button>
+                )}
+              </>
+            ) : (
+              <div className="space-y-2">
+                {isAuthorized && (
+                  <>
+                    <button 
+                      type="button" 
+                      onClick={downloadXMLFile} 
+                      className="w-full flex items-center justify-center gap-1.5 py-3 rounded-2xl text-xs font-semibold bg-gray-600/20 text-gray-300 hover:bg-gray-600/30 transition-all border border-white/5"
+                    >
+                      <Download size={14} /> Descargar XML Autorizado
+                    </button>
+                    <button 
+                      type="button" 
+                      onClick={handleAnular} 
+                      className="w-full flex items-center justify-center gap-1.5 py-3 rounded-2xl text-xs font-semibold bg-red-600/20 text-red-500 hover:bg-red-600/30 transition-all border border-red-500/10"
+                    >
+                      <ShieldAlert size={14} /> Anular en SRI
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+
+        </div>
+      </div>
+    )}
+
 
       </div>
 
@@ -2584,10 +2361,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         </button>
 
         <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-          Paso {currentStep} de 3
+          Paso {currentStep} de 2
         </span>
 
-        {currentStep < 3 ? (
+        {currentStep < 2 ? (
           <button
             type="button"
             onClick={handleNextStep}
