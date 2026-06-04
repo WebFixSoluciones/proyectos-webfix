@@ -195,12 +195,20 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config');
         const snap = await getDoc(docRef);
         if (snap.exists()) {
-          setSriConfig(snap.data());
-          // Cargar el secuencial factura del emisor si es nuevo o no lo tiene asignado
-          if (!tx || !tx.secuencial) {
+          const configData = snap.data();
+          setSriConfig(configData);
+          
+          // Si el RUC está inactivo y es un ingreso tipo factura, cambiar a nota_venta
+          if (configData.rucActivo === false && (!tx || !tx.id)) {
             setFormData(prev => ({
               ...prev,
-              secuencial: String(snap.data().secuencialFactura || 1)
+              documentType: prev.type === 'ingreso' ? 'nota_venta' : prev.documentType,
+              secuencial: String(configData.secuencialFactura || 1)
+            }));
+          } else if (!tx || !tx.secuencial) {
+            setFormData(prev => ({
+              ...prev,
+              secuencial: String(configData.secuencialFactura || 1)
             }));
           }
         }
@@ -973,10 +981,21 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
                 <div>
                   <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Tipo de Documento</label>
+                  {sriConfig?.rucActivo === false && formData.type === 'ingreso' && (
+                    <p className="text-[10px] text-amber-500 font-semibold mb-1">
+                      ⚠️ RUC inactivo en configuración. Factura electrónica bloqueada.
+                    </p>
+                  )}
                   <select 
                     disabled={!isEditable} 
                     value={formData.documentType} 
-                    onChange={e => setFormData({...formData, documentType: e.target.value})} 
+                    onChange={e => {
+                      if (sriConfig?.rucActivo === false && e.target.value === 'factura') {
+                        showToast("El RUC de la empresa está inactivo. Solo puede emitir Notas de Venta.", "error");
+                        return;
+                      }
+                      setFormData({...formData, documentType: e.target.value});
+                    }} 
                     className={inputClass}
                   >
                     {formData.type === 'ingreso' ? (
@@ -988,7 +1007,9 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         <option value="nota_debito">Nota de Débito</option>
                       ) : (
                         <>
-                          <option value="factura">Factura Electrónica</option>
+                          <option value="factura" disabled={sriConfig?.rucActivo === false}>
+                            Factura Electrónica {sriConfig?.rucActivo === false ? '(Bloqueado - RUC Inactivo)' : ''}
+                          </option>
                           <option value="nota_venta">Nota de Venta</option>
                         </>
                       )

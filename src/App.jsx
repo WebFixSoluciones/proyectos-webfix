@@ -50,7 +50,8 @@ import {
   ArrowRight,
   Cloud,
   Settings,
-  GripVertical
+  GripVertical,
+  CreditCard
 } from 'lucide-react';
 
 import {
@@ -80,6 +81,7 @@ import FinanceModule from './components/finances/FinanceModule';
 import ErpDashboard from './components/dashboard/ErpDashboard';
 import GeneralSettings from './components/dashboard/GeneralSettings';
 import FinanceChat from './components/finances/FinanceChat';
+import GastosCreditosModule from './components/finances/GastosCreditosModule';
 
 const apiKey = ""; // API Key para Gemini (configura tu clave aquí si usas IA)
 
@@ -397,6 +399,8 @@ export default function App() {
     dashboard: true,
     ventas: true,
     finances: true,
+    compras: true,
+    gastos_creditos: true,
     inventario: true,
     personas: true,
     calendar: true,
@@ -657,6 +661,10 @@ export default function App() {
     activePage = { id: 'dashboard', title: 'Dashboard', icon: 'dashboard', type: 'dashboard' };
   } else if (activePageId === 'finances') {
     activePage = { id: 'finances', title: 'Contabilidad', icon: 'finances', type: 'finances' };
+  } else if (activePageId === 'compras') {
+    activePage = { id: 'compras', title: 'Compras y Facturas Recibidas', icon: 'compras', type: 'compras' };
+  } else if (activePageId === 'gastos_creditos') {
+    activePage = { id: 'gastos_creditos', title: 'Control de Gastos y Créditos', icon: 'gastos_creditos', type: 'gastos_creditos' };
   } else if (activePageId === 'ventas') {
     activePage = { id: 'ventas', title: 'Ventas y Facturación', icon: 'ventas', type: 'ventas' };
   } else if (activePageId === 'inventario') {
@@ -1699,6 +1707,26 @@ export default function App() {
             </button>
           )}
 
+          {activeModules.compras && (
+            <button 
+              onClick={() => { setActivePageId('compras'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
+              className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all tracking-wide font-semibold ${activePageId === 'compras' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm border border-white/5' : 'bg-[#f3f8ff] text-black border border-blue-200/60 shadow-sm') : (isDarkMode ? 'text-gray-455 hover:bg-white/5 hover:text-white' : 'text-black hover:bg-[#f3f8ff] hover:text-black')}`}
+            >
+              <ShoppingCart size={18} className={activePageId === 'compras' ? (isDarkMode ? 'text-orange-400' : 'text-orange-600') : ''} />
+              {isSidebarOpen && <span>Compras</span>}
+            </button>
+          )}
+
+          {activeModules.gastos_creditos && (
+            <button 
+              onClick={() => { setActivePageId('gastos_creditos'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
+              className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all tracking-wide font-semibold ${activePageId === 'gastos_creditos' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm border border-white/5' : 'bg-[#f3f8ff] text-black border border-blue-200/60 shadow-sm') : (isDarkMode ? 'text-gray-455 hover:bg-white/5 hover:text-white' : 'text-black hover:bg-[#f3f8ff] hover:text-black')}`}
+            >
+              <CreditCard size={18} className={activePageId === 'gastos_creditos' ? (isDarkMode ? 'text-pink-400' : 'text-pink-600') : ''} />
+              {isSidebarOpen && <span>Gastos y Créditos</span>}
+            </button>
+          )}
+
           {activeModules.inventario && (
             <button 
               onClick={() => { setActivePageId('inventario'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
@@ -1868,8 +1896,8 @@ export default function App() {
         <div className="flex-1 flex overflow-hidden min-h-0 relative">
 
           {/* Editor Area */}
-          <div className={`flex-1 overflow-y-auto pb-12 pt-4 scroll-smooth custom-scrollbar ${activePage.type === 'project' ? 'px-4 md:px-8 lg:px-10' : ['finances', 'ventas', 'inventario', 'personas'].includes(activePage.type) ? 'px-0 pt-0' : activePage.type !== 'doc' ? 'px-6 md:px-8 lg:px-10' : 'px-6 md:px-12 lg:px-24'}`}>
-            <div className={`mx-auto ${activePage.type === 'project' || ['finances', 'ventas', 'inventario', 'personas'].includes(activePage.type) || activePage.type !== 'doc' ? 'max-w-[1800px] h-full px-4 md:px-6' : 'max-w-4xl'}`}>
+          <div className={`flex-1 overflow-y-auto pb-12 pt-4 scroll-smooth custom-scrollbar ${activePage.type === 'project' ? 'px-4 md:px-8 lg:px-10' : ['finances', 'ventas', 'inventario', 'personas', 'compras', 'gastos_creditos'].includes(activePage.type) ? 'px-0 pt-0' : activePage.type !== 'doc' ? 'px-6 md:px-8 lg:px-10' : 'px-6 md:px-12 lg:px-24'}`}>
+            <div className={`mx-auto ${activePage.type === 'project' || ['finances', 'ventas', 'inventario', 'personas', 'compras', 'gastos_creditos'].includes(activePage.type) || activePage.type !== 'doc' ? 'max-w-[1800px] h-full px-4 md:px-6' : 'max-w-4xl'}`}>
               
               {/* VISTAS FINANCIERAS MODULARES */}
               {activePageId === 'finances' && (
@@ -1883,6 +1911,12 @@ export default function App() {
               )}
               {activePageId === 'personas' && (
                 <FinanceModule mode="personas" isDarkMode={isDarkMode} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} isLoading={isLoadingFinances} />
+              )}
+              {activePageId === 'compras' && (
+                <FinanceModule mode="compras" isDarkMode={isDarkMode} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} isLoading={isLoadingFinances} />
+              )}
+              {activePageId === 'gastos_creditos' && (
+                <GastosCreditosModule isDarkMode={isDarkMode} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} db={db} appId={appId} />
               )}
 
             {/* VISTA: CONFIGURACIÓN GENERAL */}
@@ -1955,7 +1989,7 @@ export default function App() {
         )}
 
             {/* Cabecera común para Doc y Project (Minimalista e Inline) */}
-            {!['trash', 'empty', 'dashboard', 'calendar', 'team', 'finances', 'ventas', 'inventario', 'personas', 'general_settings'].includes(activePage.type) && (
+            {!['trash', 'empty', 'dashboard', 'calendar', 'team', 'finances', 'ventas', 'inventario', 'personas', 'general_settings', 'compras', 'gastos_creditos'].includes(activePage.type) && (
               <div className="mb-8">
                 <div className="group relative flex items-center gap-3">
                    <div className={`p-2.5 rounded-xl transition-colors backdrop-blur-md border ${isDarkMode ? 'bg-white/5 border-white/10 text-gray-200 shadow-sm' : 'bg-white/60 border-gray-200 text-gray-700 shadow-sm'}`}>

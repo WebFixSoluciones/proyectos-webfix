@@ -14,6 +14,7 @@ import {
   doc,
   setDoc,
   deleteDoc,
+  getDoc,
 } from "firebase/firestore";
 
 export default function ProductsView({ isDarkMode, showToast, db, appId }) {
@@ -22,6 +23,7 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
   const [filterType, setFilterType] = useState("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [settings, setSettings] = useState(null);
   const [formData, setFormData] = useState({
     id: "",
     name: "",
@@ -38,6 +40,24 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
     bodega: "Bodega Central",
     codigoBarras: "",
   });
+
+  // Cargar configuraciones del emisor para obtener las bodegas
+  useEffect(() => {
+    if (!appId || !db) return;
+    async function loadSettings() {
+      try {
+        const snap = await getDoc(
+          doc(db, "artifacts", appId, "public", "data", "finances_settings", "config")
+        );
+        if (snap.exists()) {
+          setSettings(snap.data());
+        }
+      } catch (e) {
+        console.error("Error al cargar configuraciones en ProductsView", e);
+      }
+    }
+    loadSettings();
+  }, [appId, db]);
 
   useEffect(() => {
     if (!appId || !db) return;
@@ -576,15 +596,29 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
                   >
                     Bodega / Ubicación
                   </label>
-                  <input
-                    type="text"
-                    value={formData.bodega || ""}
-                    onChange={(e) =>
-                      setFormData({ ...formData, bodega: e.target.value })
-                    }
-                    className={inputClass}
-                    placeholder="Ej. Bodega Central"
-                  />
+                  {settings && settings.bodegas && settings.bodegas.length > 0 ? (
+                    <select
+                      value={formData.bodega || "Bodega Central"}
+                      onChange={(e) =>
+                        setFormData({ ...formData, bodega: e.target.value })
+                      }
+                      className={inputClass}
+                    >
+                      {settings.bodegas.map(wh => (
+                        <option key={wh} value={wh} className="text-black">{wh}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      type="text"
+                      value={formData.bodega || ""}
+                      onChange={(e) =>
+                        setFormData({ ...formData, bodega: e.target.value })
+                      }
+                      className={inputClass}
+                      placeholder="Ej. Bodega Central"
+                    />
+                  )}
                 </div>
                 <div className="col-span-2">
                   <label

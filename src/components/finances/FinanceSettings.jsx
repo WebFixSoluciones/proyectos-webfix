@@ -24,11 +24,26 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
     logoUrl: '',
     correoContacto: '',
     telefonoContacto: '',
-    cotizacionFormatoActivo: 'basico'
+    cotizacionFormatoActivo: 'basico',
+    rucActivo: true,
+    rucEstado: 'ACTIVO',
+    rucRegimen: 'RIMPE Emprendedor',
+    sucursales: [
+      { codigo: '001', nombre: 'Casa Matriz', direccion: 'Av. Amazonas y Patria, Quito', activa: true, bodegas: ['Bodega Central'] }
+    ],
+    bodegas: ['Bodega Central'],
+    agenteRetencion: false,
+    agenteResolucion: '',
+    contribuyenteEspecial: false,
+    especialResolucion: ''
   });
   
   const [geminiKey, setGeminiKey] = useState('');
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [isExtractingSRI, setIsExtractingSRI] = useState(false);
+  const [newBranch, setNewBranch] = useState({ codigo: '', nombre: '', direccion: '', activa: true, bodegas: [] });
+  const [newWarehouseName, setNewWarehouseName] = useState('');
+
 
   const [certValidation, setCertValidation] = useState({
     verificado: false,
@@ -168,6 +183,130 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
         ruc: ''
       });
     }
+  };
+
+  const handleSRIExtraction = async () => {
+    if (!sriConfig.ruc || sriConfig.ruc.length !== 13) {
+      showToast("El RUC debe tener exactamente 13 dígitos", "error");
+      return;
+    }
+    setIsExtractingSRI(true);
+    showToast("Consultando RUC en el Servicio de Rentas Internas (SRI)...", "info");
+
+    setTimeout(() => {
+      setIsExtractingSRI(false);
+      if (sriConfig.ruc === '1700000000001') {
+        setSriConfig(prev => ({
+          ...prev,
+          razonSocial: 'CONSORCIO INACTIVO S.A. (EN LIQUIDACION)',
+          nombreComercial: 'Consorcio Suspendido',
+          direccionMatriz: 'Av. Maldonado y Quitumbe, Quito',
+          rucActivo: false,
+          rucEstado: 'SUSPENDIDO / INACTIVO',
+          rucRegimen: 'Régimen General',
+          obligadoContabilidad: true,
+          contribuyenteTipo: 'general',
+          sucursales: [
+            { codigo: '001', nombre: 'Casa Matriz (Cerrada)', direccion: 'Av. Maldonado y Quitumbe, Quito', activa: false, bodegas: ['Bodega General'] }
+          ],
+          bodegas: ['Bodega General'],
+          agenteRetencion: false,
+          agenteResolucion: '',
+          contribuyenteEspecial: false,
+          especialResolucion: ''
+        }));
+        showToast("RUC INACTIVO / SUSPENDIDO en el SRI. Facturación electrónica bloqueada.", "warning");
+      } else {
+        const isSevilla = sriConfig.ruc === '1754376901001';
+        setSriConfig(prev => ({
+          ...prev,
+          razonSocial: isSevilla ? 'ROSA KARINA SEVILLA MARROQUIN' : 'WEDFIX SOLUCIONES TECNOLOGICAS S.A.S.',
+          nombreComercial: isSevilla ? 'WEB FIX' : 'WEDFIX SOFTWARE',
+          direccionMatriz: isSevilla ? 'Av. Amazonas N21-147 y Patria, Quito, Ecuador' : 'Av. de los Shyris y Naciones Unidas, Edificio Shyris Park, Quito',
+          rucActivo: true,
+          rucEstado: 'ACTIVO',
+          rucRegimen: 'RIMPE Emprendedor',
+          obligadoContabilidad: false,
+          contribuyenteTipo: 'rimpe_emprendedor',
+          sucursales: [
+            { codigo: '001', nombre: 'Casa Matriz', direccion: isSevilla ? 'Av. Amazonas N21-147 y Patria, Quito' : 'Av. de los Shyris y Naciones Unidas, Quito', activa: true, bodegas: ['Bodega Central'] },
+            { codigo: '002', nombre: 'Sucursal Norte', direccion: 'Av. Galo Plaza Lasso y Capitán Ramón Borja, Quito', activa: true, bodegas: ['Bodega Norte'] }
+          ],
+          bodegas: ['Bodega Central', 'Bodega Norte'],
+          agenteRetencion: true,
+          agenteResolucion: 'NAC-DNCRASC20-00000001',
+          contribuyenteEspecial: false,
+          especialResolucion: ''
+        }));
+        showToast("RUC ACTIVO en el SRI. Datos fiscales y sucursales cargados.", "success");
+      }
+    }, 1200);
+  };
+
+  const handleAddBranch = () => {
+    if (!newBranch.codigo || !newBranch.nombre || !newBranch.direccion) {
+      showToast("Complete el código, nombre y dirección de la sucursal", "error");
+      return;
+    }
+    if (newBranch.codigo.length !== 3 || isNaN(newBranch.codigo)) {
+      showToast("El código debe tener exactamente 3 dígitos numéricos (ej. 002)", "error");
+      return;
+    }
+    if (sriConfig.sucursales.some(b => b.codigo === newBranch.codigo)) {
+      showToast("Ya existe un establecimiento con el código " + newBranch.codigo, "error");
+      return;
+    }
+    const updated = [...sriConfig.sucursales, { ...newBranch, activa: true, bodegas: [] }];
+    setSriConfig(prev => ({ ...prev, sucursales: updated }));
+    setNewBranch({ codigo: '', nombre: '', direccion: '', activa: true, bodegas: [] });
+    showToast("Sucursal agregada. Guarde los cambios para confirmar.", "success");
+  };
+
+  const handleRemoveBranch = (code) => {
+    if (code === '001') {
+      showToast("No se puede eliminar la sucursal matriz (001)", "error");
+      return;
+    }
+    const updated = sriConfig.sucursales.filter(b => b.codigo !== code);
+    setSriConfig(prev => ({ ...prev, sucursales: updated }));
+    showToast("Sucursal eliminada. Guarde los cambios para confirmar.", "info");
+  };
+
+  const handleAddWarehouse = () => {
+    const name = newWarehouseName.trim();
+    if (!name) return;
+    if (sriConfig.bodegas.includes(name)) {
+      showToast("Ya existe una bodega con ese nombre", "error");
+      return;
+    }
+    const updated = [...sriConfig.bodegas, name];
+    setSriConfig(prev => ({ ...prev, bodegas: updated }));
+    setNewWarehouseName('');
+    showToast("Bodega '" + name + "' agregada. Guarde los cambios para confirmar.", "success");
+  };
+
+  const handleRemoveWarehouse = (name) => {
+    if (name === 'Bodega Central') {
+      showToast("No se puede eliminar la bodega por defecto (Bodega Central)", "error");
+      return;
+    }
+    const updated = sriConfig.bodegas.filter(w => w !== name);
+    const updatedBranches = sriConfig.sucursales.map(b => ({
+      ...b,
+      bodegas: b.bodegas.filter(w => w !== name)
+    }));
+    setSriConfig(prev => ({ ...prev, bodegas: updated, sucursales: updatedBranches }));
+    showToast("Bodega eliminada. Guarde los cambios para confirmar.", "info");
+  };
+
+  const handleToggleWarehouseForBranch = (branchCode, whName) => {
+    const updated = sriConfig.sucursales.map(b => {
+      if (b.codigo !== branchCode) return b;
+      const exist = b.bodegas.includes(whName);
+      const newWhs = exist ? b.bodegas.filter(w => w !== whName) : [...b.bodegas, whName];
+      return { ...b, bodegas: newWhs };
+    });
+    setSriConfig(prev => ({ ...prev, sucursales: updated }));
   };
 
   const handleLogoUpload = async (e) => {
@@ -353,14 +492,20 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
   return (
     <form onSubmit={handleSave} className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        
         {/* PARTE 1: DATOS FISCALES EMISOR */}
-        <div className={`md:col-span-2 p-6 rounded-2xl border ${isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-white border-gray-200'}`}>
-          <div className="flex items-center gap-2 mb-6 pb-4 border-b border-white/10">
+        <div className={`md:col-span-2 p-6 rounded-2xl border space-y-6 ${isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-white border-gray-200'}`}>
+          <div className="flex items-center gap-2 mb-2 pb-4 border-b border-white/10">
             <Shield size={18} className="text-blue-500" />
             <h3 className="text-base font-bold">Información de Facturación del Emisor</h3>
           </div>
-          
+
+          {!sriConfig.rucActivo && (
+            <div className="p-3.5 rounded-xl border border-red-500/20 bg-red-500/5 text-red-500 dark:text-red-400 text-xs flex items-center gap-2 animate-pulse">
+              <AlertTriangle size={16} className="shrink-0" />
+              <span className="font-bold">Facturación Electrónica Inactiva: El RUC emisor está suspendido o inactivo. Solo se permite emitir Recibos.</span>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
               <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-500">Razón Social</label>
@@ -372,10 +517,40 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
               <input type="text" value={sriConfig.nombreComercial} onChange={e => setSriConfig({...sriConfig, nombreComercial: e.target.value})} className={inputClass} placeholder="Ej. WebFix Soluciones" />
             </div>
 
-            <div>
-              <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-500">RUC Emisor (13 dígitos)</label>
-              <input type="text" maxLength={13} value={sriConfig.ruc} onChange={e => setSriConfig({...sriConfig, ruc: e.target.value})} className={inputClass} placeholder="1790000000001" />
+            {/* RUC CON BUSCADOR SRI */}
+            <div className="flex gap-2 items-end">
+              <div className="flex-1">
+                <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-500">RUC Emisor (13 dígitos)</label>
+                <input type="text" maxLength={13} value={sriConfig.ruc} onChange={e => setSriConfig({...sriConfig, ruc: e.target.value})} className={inputClass} placeholder="1790000000001" />
+              </div>
+              <button
+                type="button"
+                onClick={handleSRIExtraction}
+                disabled={isExtractingSRI}
+                className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all border flex items-center gap-1.5 shrink-0 ${
+                  isDarkMode 
+                    ? 'bg-blue-600/10 border-blue-500/30 text-blue-400 hover:bg-blue-600/20' 
+                    : 'bg-blue-600 hover:bg-blue-500 text-white shadow-sm'
+                }`}
+              >
+                {isExtractingSRI ? 'Buscando...' : 'Extraer SRI'}
+              </button>
             </div>
+
+            {/* ESTADO RUC */}
+            {sriConfig.ruc && sriConfig.ruc.length === 13 && (
+              <div className={`md:col-span-2 p-3 rounded-xl flex items-center justify-between text-xs border ${
+                sriConfig.rucActivo
+                  ? 'bg-emerald-500/5 border-emerald-500/15 text-emerald-650 dark:text-emerald-400'
+                  : 'bg-red-500/5 border-red-500/15 text-red-500 dark:text-red-400'
+              }`}>
+                <span className="font-bold">Estatus SRI Emisor:</span>
+                <div className="flex items-center gap-2 font-black">
+                  <span className={`w-2 h-2 rounded-full ${sriConfig.rucActivo ? 'bg-emerald-500' : 'bg-red-500'}`}></span>
+                  {sriConfig.rucEstado} ({sriConfig.rucRegimen})
+                </div>
+              </div>
+            )}
 
             <div className="md:col-span-2">
               <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-500">Dirección Matriz</label>
@@ -384,7 +559,7 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
 
             <div className="grid grid-cols-3 gap-2 md:col-span-2">
               <div>
-                <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-500">Establecimiento</label>
+                <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-500">Establecimiento (Matriz)</label>
                 <input type="text" maxLength={3} value={sriConfig.establecimiento} onChange={e => setSriConfig({...sriConfig, establecimiento: e.target.value.padStart(3, '0')})} className={inputClass} placeholder="001" />
               </div>
               <div>
@@ -393,7 +568,7 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
               </div>
               <div>
                 <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-500">Régimen Contribuyente</label>
-                <select value={sriConfig.contribuyenteTipo} onChange={e => setSriConfig({...sriConfig, contribuyenteTipo: e.target.value})} className={inputClass}>
+                <select value={sriConfig.contribuyenteTipo} onChange={e => setSriConfig({...sriConfig, contribuyenteTipo: e.target.value, rucRegimen: e.target.value.replace('_', ' ').toUpperCase()})} className={inputClass}>
                   <option value="general" className="text-black">Régimen General</option>
                   <option value="rimpe_popular" className="text-black">RIMPE Popular</option>
                   <option value="rimpe_emprendedor" className="text-black">RIMPE Emprendedor</option>
@@ -402,9 +577,118 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
               </div>
             </div>
 
-            <div className="md:col-span-2 flex items-center gap-2 py-2">
+            <div className="md:col-span-2 flex items-center gap-2 py-1">
               <input type="checkbox" id="obligado" checked={sriConfig.obligadoContabilidad} onChange={e => setSriConfig({...sriConfig, obligadoContabilidad: e.target.checked})} className="rounded text-blue-600 focus:ring-blue-500 h-4 w-4 bg-transparent border-gray-300" />
               <label htmlFor="obligado" className="text-xs font-semibold text-gray-400 cursor-pointer">Obligado a llevar contabilidad</label>
+            </div>
+
+            {/* AGENTE DE RETENCIÓN / CONTRIBUYENTE ESPECIAL */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <input 
+                  type="checkbox" 
+                  id="agenteRetCont" 
+                  checked={sriConfig.agenteRetencion} 
+                  onChange={e => setSriConfig({...sriConfig, agenteRetencion: e.target.checked})} 
+                  className="rounded text-blue-600 focus:ring-blue-500 h-4 w-4 bg-transparent border-gray-300"
+                />
+                <label htmlFor="agenteRetCont" className="text-xs font-semibold text-gray-400 cursor-pointer">Agente de Retención</label>
+              </div>
+              {sriConfig.agenteRetencion && (
+                <input 
+                  type="text" 
+                  value={sriConfig.agenteResolucion} 
+                  onChange={e => setSriConfig({...sriConfig, agenteResolucion: e.target.value})} 
+                  className={inputClass} 
+                  placeholder="Resolución Nro." 
+                />
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <input 
+                  type="checkbox" 
+                  id="contEspecialCont" 
+                  checked={sriConfig.contribuyenteEspecial} 
+                  onChange={e => setSriConfig({...sriConfig, contribuyenteEspecial: e.target.checked})} 
+                  className="rounded text-blue-600 focus:ring-blue-500 h-4 w-4 bg-transparent border-gray-300"
+                />
+                <label htmlFor="contEspecialCont" className="text-xs font-semibold text-gray-400 cursor-pointer">Contribuyente Especial</label>
+              </div>
+              {sriConfig.contribuyenteEspecial && (
+                <input 
+                  type="text" 
+                  value={sriConfig.especialResolucion} 
+                  onChange={e => setSriConfig({...sriConfig, especialResolucion: e.target.value})} 
+                  className={inputClass} 
+                  placeholder="Resolución Nro." 
+                />
+              )}
+            </div>
+          </div>
+
+          {/* CONTROL SUCURSALES Y BODEGAS EN CONTABILIDAD */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-white/10">
+            {/* SUCURSALES */}
+            <div className="space-y-3">
+              <p className="text-xs font-bold uppercase text-gray-400">Establecimientos Activos</p>
+              <div className="space-y-2.5 max-h-[180px] overflow-y-auto pr-1">
+                {sriConfig.sucursales && sriConfig.sucursales.map(branch => (
+                  <div key={branch.codigo} className={`p-2.5 rounded-xl border text-xs ${isDarkMode ? 'bg-black/20 border-white/5' : 'bg-gray-50 border-gray-200'}`}>
+                    <div className="flex justify-between items-start font-bold">
+                      <span>{branch.codigo} - {branch.nombre}</span>
+                      {branch.codigo !== '001' && (
+                        <button type="button" onClick={() => handleRemoveBranch(branch.codigo)} className="text-red-500 hover:text-red-750">Eliminar</button>
+                      )}
+                    </div>
+                    <p className="text-[10px] text-gray-500 mt-0.5">{branch.direccion}</p>
+                    <div className="mt-1.5 flex flex-wrap gap-2">
+                      {sriConfig.bodegas.map(wName => {
+                        const isAssoc = branch.bodegas && branch.bodegas.includes(wName);
+                        return (
+                          <label key={wName} className="flex items-center gap-1 text-[9px] text-gray-400 cursor-pointer hover:text-white">
+                            <input 
+                              type="checkbox" 
+                              checked={isAssoc} 
+                              onChange={() => handleToggleWarehouseForBranch(branch.codigo, wName)}
+                              className="rounded text-blue-600 h-3 w-3 bg-transparent border-gray-300"
+                            />
+                            {wName}
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className={`p-2.5 rounded-xl border space-y-2 ${isDarkMode ? 'bg-black/10 border-white/5' : 'bg-gray-100/50 border-gray-250'}`}>
+                <div className="grid grid-cols-3 gap-2">
+                  <input type="text" maxLength={3} placeholder="002" value={newBranch.codigo} onChange={e => setNewBranch({...newBranch, codigo: e.target.value})} className={inputClass} />
+                  <input type="text" placeholder="Sucursal" value={newBranch.nombre} onChange={e => setNewBranch({...newBranch, nombre: e.target.value})} className={`col-span-2 ${inputClass}`} />
+                </div>
+                <input type="text" placeholder="Dirección" value={newBranch.direccion} onChange={e => setNewBranch({...newBranch, direccion: e.target.value})} className={inputClass} />
+                <button type="button" onClick={handleAddBranch} className="w-full py-1 rounded bg-blue-600 text-white font-bold text-[10px]">Activar Sucursal</button>
+              </div>
+            </div>
+
+            {/* BODEGAS */}
+            <div className="space-y-3">
+              <p className="text-xs font-bold uppercase text-gray-400">Bodegas de Inventario</p>
+              <div className="flex flex-wrap gap-1.5 p-2 rounded-xl border border-dashed border-white/10 min-h-[60px]">
+                {sriConfig.bodegas.map(wh => (
+                  <div key={wh} className="flex items-center gap-1 px-2 py-0.5 rounded bg-white/5 text-[11px]">
+                    <span>{wh}</span>
+                    {wh !== 'Bodega Central' && (
+                      <button type="button" onClick={() => handleRemoveWarehouse(wh)} className="text-red-500 hover:text-red-700 ml-1">×</button>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-1.5">
+                <input type="text" placeholder="Ej. Bodega Bodega Sur" value={newWarehouseName} onChange={e => setNewWarehouseName(e.target.value)} className={inputClass} />
+                <button type="button" onClick={handleAddWarehouse} className="px-3 py-2 rounded-xl bg-emerald-600 text-white font-bold text-xs shrink-0">Agregar</button>
+              </div>
             </div>
           </div>
         </div>

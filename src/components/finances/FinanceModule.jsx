@@ -17,6 +17,8 @@ import PosView from './PosView';
 import TransactionForm from './TransactionForm';
 import AccountsReceivablePayable from './AccountsReceivablePayable';
 import SalesDashboard from './SalesDashboard';
+import ComprasSriView from './ComprasSriView';
+import ComprasGastosView from './ComprasGastosView';
 
 export default function FinanceModule({ 
   mode = 'contabilidad', 
@@ -32,6 +34,7 @@ export default function FinanceModule({
     if (m === 'ventas') return 'ventas';
     if (m === 'inventario') return 'products';
     if (m === 'personas') return 'personas';
+    if (m === 'compras') return 'compras_resumen';
     return 'dashboard'; // 'contabilidad'
   };
 
@@ -145,6 +148,15 @@ export default function FinanceModule({
         { id: 'settings', label: 'Configuración', icon: Settings },
       ];
     }
+    if (mode === 'compras') {
+      return [
+        { id: 'compras_resumen', label: 'Resumen', icon: PieChart },
+        { id: 'compras_sri', label: 'Facturas Recibidas (SRI)', icon: Download },
+        { id: 'compras_gastos', label: 'Gastos con IA', icon: Sparkles },
+        { id: 'compras_nc', label: 'Notas de Crédito', icon: FileText },
+        { id: 'compras_retencion', label: 'Retenciones Emitidas', icon: Percent }
+      ];
+    }
     return [];
   };
 
@@ -157,8 +169,8 @@ export default function FinanceModule({
       <div className={`flex items-center gap-3 px-8 py-3.5 border-b shrink-0 ${isDarkMode ? 'border-white/5 bg-[#121214]' : 'border-primary/10 bg-primary-light'}`}>
         <div className="flex gap-2 overflow-x-auto whitespace-nowrap scrollbar-none flex-1">
           
-          {/* Si el modo es Contabilidad: Renderizar displayedTabs */}
-          {mode === 'contabilidad' && displayedTabs.map(tab => {
+          {/* Si el modo es Contabilidad o Compras: Renderizar displayedTabs */}
+          {['contabilidad', 'compras'].includes(mode) && displayedTabs.map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
             return (
@@ -338,6 +350,121 @@ export default function FinanceModule({
               {/* REPORTES Y CONFIGURACIÓN */}
               {activeTab === 'reports' && <ReportsView transactions={transactions} isDarkMode={isDarkMode} showToast={showToast} />}
               {activeTab === 'settings' && <FinanceSettings isDarkMode={isDarkMode} showToast={showToast} db={db} storage={storage} appId={appId} />}
+
+              {/* SECCIÓN COMPRAS */}
+              {activeTab === 'compras_resumen' && (
+                <div className="space-y-6 animate-in fade-in duration-300">
+                  {/* Tarjetas de Métricas de Compras */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    <div className={`p-5 rounded-3xl border shadow-sm ${isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'}`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] font-black uppercase text-gray-500 tracking-wider">Compras del Mes</span>
+                        <div className="p-1.5 rounded-lg bg-orange-500/10 text-orange-500">
+                          <ShoppingCart size={16} />
+                        </div>
+                      </div>
+                      <p className="text-2xl font-black">
+                        ${transactions
+                          .filter(t => t.type === 'egreso' && t.date?.startsWith(new Date().toISOString().slice(0, 7)))
+                          .reduce((sum, t) => sum + (Number(t.total) || 0), 0)
+                          .toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </p>
+                      <p className="text-[9px] text-gray-400 mt-1">Egresos totales registrados en este mes</p>
+                    </div>
+
+                    <div className={`p-5 rounded-3xl border shadow-sm ${isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'}`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] font-black uppercase text-gray-500 tracking-wider">Cuentas por Pagar</span>
+                        <div className="p-1.5 rounded-lg bg-red-500/10 text-red-500">
+                          <ArrowUpCircle size={16} />
+                        </div>
+                      </div>
+                      <p className="text-2xl font-black text-red-500">
+                        ${transactions
+                          .filter(t => t.type === 'egreso' && t.paymentStatus !== 'pagado')
+                          .reduce((sum, t) => sum + ((Number(t.total) || 0) - (Number(t.paidAmount) || 0)), 0)
+                          .toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </p>
+                      <p className="text-[9px] text-gray-400 mt-1">Saldos pendientes con proveedores</p>
+                    </div>
+
+                    <div className={`p-5 rounded-3xl border shadow-sm ${isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'}`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] font-black uppercase text-gray-500 tracking-wider">Retenciones Emitidas</span>
+                        <div className="p-1.5 rounded-lg bg-purple-500/10 text-purple-500">
+                          <Percent size={16} />
+                        </div>
+                      </div>
+                      <p className="text-2xl font-black">
+                        {transactions.filter(t => t.type === 'egreso' && t.documentType === 'retencion').length}
+                      </p>
+                      <p className="text-[9px] text-gray-400 mt-1">Documentos de retención de compras emitidos</p>
+                    </div>
+                  </div>
+
+                  {/* Tabla de últimas compras */}
+                  <div className={`p-6 rounded-3xl border ${isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'}`}>
+                    <h3 className="text-xs font-bold uppercase tracking-wider mb-4">Últimas Compras Registradas</h3>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse text-xs">
+                        <thead>
+                          <tr className="border-b text-[9px] font-black uppercase text-gray-500 tracking-wider">
+                            <th className="py-2.5 px-3">Fecha</th>
+                            <th className="py-2.5 px-3">Comprobante</th>
+                            <th className="py-2.5 px-3">Contacto</th>
+                            <th className="py-2.5 px-3 text-right">Total</th>
+                            <th className="py-2.5 px-3 text-center">Estado Pago</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5">
+                          {transactions
+                            .filter(t => t.type === 'egreso' && t.documentType !== 'retencion')
+                            .slice(0, 5)
+                            .map(tx => {
+                              const contact = thirdParties.find(tp => tp.id === tx.thirdPartyId);
+                              return (
+                                <tr key={tx.id} className="hover:bg-white/5 transition-colors">
+                                  <td className="py-2.5 px-3 text-gray-400">{tx.date}</td>
+                                  <td className="py-2.5 px-3 font-mono font-bold">{tx.documentNumber || `Sec: ${tx.secuencial || 'N/A'}`}</td>
+                                  <td className="py-2.5 px-3">{contact?.name || 'Proveedor Externo'}</td>
+                                  <td className="py-2.5 px-3 text-right font-bold text-red-500">${Number(tx.total).toFixed(2)}</td>
+                                  <td className="py-2.5 px-3 text-center">
+                                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${
+                                      tx.paymentStatus === 'pagado' ? 'bg-emerald-500/10 text-emerald-450' : 'bg-amber-500/10 text-amber-450'
+                                    }`}>
+                                      {tx.paymentStatus === 'pagado' ? 'Pagado' : 'Pendiente'}
+                                    </span>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          {transactions.filter(t => t.type === 'egreso' && t.documentType !== 'retencion').length === 0 && (
+                            <tr>
+                              <td colSpan="5" className="py-6 text-center text-gray-500 italic">No hay compras registradas en este período.</td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'compras_sri' && (
+                <ComprasSriView transactions={transactions} isDarkMode={isDarkMode} showToast={showToast} db={db} appId={appId} />
+              )}
+
+              {activeTab === 'compras_gastos' && (
+                <ComprasGastosView transactions={transactions} isDarkMode={isDarkMode} showToast={showToast} db={db} appId={appId} />
+              )}
+
+              {activeTab === 'compras_nc' && (
+                <TransactionsView transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} forcedDocType="nota_credito" forcedType="egreso" />
+              )}
+
+              {activeTab === 'compras_retencion' && (
+                <TransactionsView transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} forcedDocType="retencion" forcedType="egreso" />
+              )}
             </>
           )}
         </div>

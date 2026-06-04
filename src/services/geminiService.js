@@ -328,3 +328,66 @@ Mantén el informe conciso y accionable.`;
   const result = await response.json();
   return result.candidates?.[0]?.content?.parts?.[0]?.text || "No obtuve respuesta de la IA.";
 }
+
+// Analizar texto copiado de una factura digital con Gemini 1.5 Flash
+export async function analizarTextoFacturaConGemini(texto) {
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    throw new Error("No se ha configurado la clave API de Gemini. Por favor configúrala en Ajustes.");
+  }
+
+  const prompt = `Actúa como un extractor de datos de facturas del SRI de Ecuador a partir del siguiente texto copiado de una factura digital o física:
+"${texto}"
+
+Analiza el texto y extrae los siguientes datos en formato JSON estricto:
+{
+  "ruc": "Número de RUC o CI del emisor (10 o 13 dígitos)",
+  "razonSocial": "Razón Social o Nombre del Emisor",
+  "documentNumber": "Número de documento en formato 000-000-000000000",
+  "date": "Fecha de emisión en formato YYYY-MM-DD",
+  "baseImponible": Subtotal sin impuestos (número flotante),
+  "ivaValor": Valor del IVA cobrado (número flotante),
+  "total": Total facturado (número flotante),
+  "paymentMethod": "Forma de pago ('transferencia', 'efectivo', o 'tarjeta')",
+  "category": "Categoría de gasto sugerida entre: 'costos' (operaciones), 'gastos_administrativos' (servicios básicos, arriendos, suministros, comida), 'gastos_marketing' (publicidad, hosting, dominios), 'activos' (laptops, oficinas, muebles), o 'otros'",
+  "email": "Correo electrónico del emisor si existe",
+  "phone": "Teléfono del emisor si existe"
+}
+
+Devuelve únicamente el código JSON, sin decoradores markdown ni bloques de código (no uses triple backticks ni la palabra json).`;
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      contents: [{
+        parts: [{ text: prompt }]
+      }],
+      generationConfig: {
+        responseMimeType: "application/json"
+      }
+    })
+  });
+
+  if (!response.ok) {
+    const errData = await response.json();
+    throw new Error(errData.error?.message || "Error al conectar con la API de Gemini");
+  }
+
+  const result = await response.json();
+  const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+  
+  try {
+    const cleanedText = text.trim();
+    const data = JSON.parse(cleanedText);
+    return data;
+  } catch (err) {
+    console.error("Error al decodificar respuesta JSON de Gemini", text, err);
+    throw new Error("La respuesta de la IA no tiene el formato JSON esperado. Intente reescribir o pegar con más claridad.");
+  }
+}
+

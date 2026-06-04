@@ -68,6 +68,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClientId, setSelectedClientId] = useState('');
   const [posDocType, setPosDocType] = useState('factura'); // 'factura' o 'nota_venta'
+  const [sriConfig, setSriConfig] = useState(null);
   
   // Estados de Filtros
   const [filterBrand, setFilterBrand] = useState('all');
@@ -400,7 +401,25 @@ export default function PosView({ products, thirdParties, transactions = [], isD
     }
   }, [quickAddFormData.ruc, quickAddFormData.tipoIdentificacion, isQuickAddOpen]);
 
-
+  // Cargar configuración de SRI/Empresa
+  useEffect(() => {
+    if (!appId || !db) return;
+    const fetchSriConfig = async () => {
+      try {
+        const snap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config'));
+        if (snap.exists()) {
+          const config = snap.data();
+          setSriConfig(config);
+          if (config.rucActivo === false) {
+            setPosDocType('nota_venta');
+          }
+        }
+      } catch (e) {
+        console.error("Error cargando config SRI en POS:", e);
+      }
+    };
+    fetchSriConfig();
+  }, [appId, db]);
 
   // Suscribirse a sesiones de caja activa
   useEffect(() => {
@@ -2177,14 +2196,28 @@ export default function PosView({ products, thirdParties, transactions = [], isD
 
                       <div className={`p-4 rounded-2xl border space-y-3 ${isDarkMode ? 'bg-black/20 border-white/5' : 'bg-blue-50/20 border-blue-100'}`}>
                         <h4 className={`text-xs md:text-sm font-bold uppercase tracking-wider ${isDarkMode ? 'text-white' : 'text-black'}`}>Tipo de Documento a Emitir</h4>
+                        {sriConfig?.rucActivo === false && (
+                          <div className="p-3 bg-amber-500/10 border border-amber-500/25 text-amber-500 rounded-xl flex items-center gap-2 text-xs font-semibold">
+                            <ShieldAlert size={16} className="shrink-0" />
+                            <span>Facturación electrónica deshabilitada (RUC inactivo). Solo se permiten Recibos.</span>
+                          </div>
+                        )}
                         <select 
                           value={posDocType} 
-                          onChange={e => setPosDocType(e.target.value)} 
+                          onChange={e => {
+                            if (sriConfig?.rucActivo === false && e.target.value === 'factura') {
+                              showToast("El RUC de la empresa está inactivo. Solo puede emitir Recibos.", "error");
+                              return;
+                            }
+                            setPosDocType(e.target.value);
+                          }} 
                           className={`w-full text-xs md:text-sm font-semibold px-3 py-2.5 outline-none rounded-xl border ${
                             isDarkMode ? 'border-white/10 bg-black text-white' : 'border-blue-150 bg-white text-black'
                           }`}
                         >
-                          <option value="factura" className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>Factura Electrónica</option>
+                          <option value="factura" disabled={sriConfig?.rucActivo === false} className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>
+                            Factura Electrónica {sriConfig?.rucActivo === false ? '(Bloqueado - RUC Inactivo)' : ''}
+                          </option>
                           <option value="nota_venta" className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>Recibo (Nota de Venta)</option>
                         </select>
                       </div>
