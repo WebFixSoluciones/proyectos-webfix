@@ -1,65 +1,129 @@
-import React, { useState } from 'react';
-import { Download, CheckCircle2, AlertTriangle, FileText, RefreshCw, ShoppingBag, Eye } from 'lucide-react';
-import { doc, setDoc } from 'firebase/firestore';
+import React, { useState, useEffect } from 'react';
+import { Download, CheckCircle2, AlertTriangle, FileText, RefreshCw, ShoppingBag, Eye, ShieldAlert } from 'lucide-react';
+import { doc, setDoc, getDoc, getDocs, collection } from 'firebase/firestore';
 
 export default function ComprasSriView({ transactions = [], isDarkMode, showToast, db, appId }) {
   const [sriBills, setSriBills] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [companyRuc, setCompanyRuc] = useState('');
+  const [companyName, setCompanyName] = useState('');
 
-  // Simular descarga de facturas electrónicas desde el SRI
-  const handleFetchSriBills = () => {
-    setLoading(true);
-    setTimeout(() => {
-      const mockBills = [
-        {
-          id: 'sri_bill_1',
-          ruc: '1760001040001',
-          razonSocial: 'CORPORACION NACIONAL DE TELECOMUNICACIONES CNT EP',
-          documentNumber: '001-777-089912233',
-          date: new Date().toISOString().split('T')[0],
-          baseImponible: 25.00,
-          ivaValor: 3.75,
-          total: 28.75,
-          claveAcceso: '0306202601176000104000120017770899122331234567814',
-          category: 'gastos_administrativos',
-          description: 'Servicio de Internet y Telefonía CNT Mayo'
-        },
-        {
-          id: 'sri_bill_2',
-          ruc: '1790016919001',
-          razonSocial: 'CORPORACION FAVORITA C.A. (SUPERMAXI)',
-          documentNumber: '005-102-000456789',
-          date: new Date().toISOString().split('T')[0],
-          baseImponible: 120.50,
-          ivaValor: 18.08,
-          total: 138.58,
-          claveAcceso: '0306202601179001691900120051020004567891234567812',
-          category: 'gastos_administrativos',
-          description: 'Suministros de Oficina y Cafetería'
-        },
-        {
-          id: 'sri_bill_3',
-          ruc: '1792286433001',
-          razonSocial: 'EDRAN S.A. (NETLIFE)',
-          documentNumber: '002-010-098765432',
-          date: new Date().toISOString().split('T')[0],
-          baseImponible: 44.00,
-          ivaValor: 6.60,
-          total: 50.60,
-          claveAcceso: '0306202601179228643300120020100987654321234567819',
-          category: 'gastos_administrativos',
-          description: 'Servicio de Internet Fibra Óptica Netlife'
+  // Cargar configuración de la empresa y facturas del SRI guardadas al montar
+  useEffect(() => {
+    if (!db || !appId) return;
+    async function init() {
+      try {
+        // 1. Cargar RUC y Nombre de la Empresa
+        const configRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config');
+        const snap = await getDoc(configRef);
+        let currentRuc = '';
+        if (snap.exists()) {
+          const configData = snap.data();
+          currentRuc = configData.ruc || '';
+          setCompanyRuc(currentRuc);
+          setCompanyName(configData.razonSocial || configData.nombreComercial || '');
         }
-      ];
-      setSriBills(mockBills);
-      setLoading(false);
-      showToast("Facturas recibidas sincronizadas desde el SRI con éxito", "success");
+
+        // 2. Cargar facturas de compra del SRI previamente sincronizadas
+        const sriColRef = collection(db, 'artifacts', appId, 'public', 'data', 'finances_sri_compras');
+        const sriSnap = await getDocs(sriColRef);
+        const list = [];
+        sriSnap.forEach(docSnap => {
+          const data = docSnap.data();
+          // Solo mostrar facturas dirigidas a este RUC de empresa
+          if (currentRuc && data.receiverRuc === currentRuc) {
+            list.push(data);
+          }
+        });
+        
+        // Ordenar por fecha de forma descendente
+        list.sort((a, b) => b.date.localeCompare(a.date));
+        setSriBills(list);
+      } catch (err) {
+        console.error("Error al inicializar buzón SRI de compras:", err);
+      }
+    }
+    init();
+  }, [db, appId]);
+
+  // Simular descarga y sincronización de facturas desde el SRI
+  const handleFetchSriBills = () => {
+    if (!companyRuc) {
+      showToast("No se ha configurado el RUC de la empresa en Ajustes", "error");
+      return;
+    }
+
+    setLoading(true);
+    showToast("Conectando con el Servicio de Rentas Internas (SRI)...", "info");
+
+    setTimeout(async () => {
+      try {
+        // Generar facturas de compra mock dirigidas al RUC actual de la empresa
+        const mockBills = [
+          {
+            id: `sri_bill_${companyRuc}_1`,
+            ruc: '1760001040001',
+            razonSocial: 'CORPORACION NACIONAL DE TELECOMUNICACIONES CNT EP',
+            documentNumber: '001-777-089912233',
+            date: new Date().toISOString().split('T')[0],
+            baseImponible: 25.00,
+            ivaValor: 3.75,
+            total: 28.75,
+            claveAcceso: `0306202601176000104000120017770899122331234567814`,
+            category: 'gastos_administrativos',
+            description: 'Servicio de Internet y Telefonía CNT Mayo',
+            receiverRuc: companyRuc
+          },
+          {
+            id: `sri_bill_${companyRuc}_2`,
+            ruc: '1790016919001',
+            razonSocial: 'CORPORACION FAVORITA C.A. (SUPERMAXI)',
+            documentNumber: '005-102-000456789',
+            date: new Date().toISOString().split('T')[0],
+            baseImponible: 120.50,
+            ivaValor: 18.08,
+            total: 138.58,
+            claveAcceso: `0306202601179001691900120051020004567891234567812`,
+            category: 'gastos_administrativos',
+            description: 'Suministros de Oficina y Cafetería',
+            receiverRuc: companyRuc
+          },
+          {
+            id: `sri_bill_${companyRuc}_3`,
+            ruc: '1792286433001',
+            razonSocial: 'EDRAN S.A. (NETLIFE)',
+            documentNumber: '002-010-098765432',
+            date: new Date().toISOString().split('T')[0],
+            baseImponible: 44.00,
+            ivaValor: 6.60,
+            total: 50.60,
+            claveAcceso: `0306202601179228643300120020100987654321234567819`,
+            category: 'gastos_administrativos',
+            description: 'Servicio de Internet Fibra Óptica Netlife',
+            receiverRuc: companyRuc
+          }
+        ];
+
+        // Guardar cada factura en la colección de Firestore para mantener la sincronización persistente
+        for (const bill of mockBills) {
+          const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_sri_compras', bill.id);
+          await setDoc(docRef, bill);
+        }
+
+        setSriBills(mockBills);
+        showToast(`Sincronizadas con éxito 3 facturas emitidas a su RUC (${companyRuc})`, "success");
+      } catch (err) {
+        console.error(err);
+        showToast("Error al guardar comprobantes en la base de datos", "error");
+      } finally {
+        setLoading(false);
+      }
     }, 1200);
   };
 
-  // Importar factura en la contabilidad
+  // Importar factura electrónica recibida en la contabilidad general
   const handleImportBill = async (bill) => {
-    // Verificar si ya está importada
+    // Verificar si ya está importada por número de documento
     const exists = transactions.some(t => t.documentNumber === bill.documentNumber);
     if (exists) {
       showToast("Esta factura ya ha sido importada a la contabilidad", "warning");
@@ -106,21 +170,45 @@ export default function ComprasSriView({ transactions = [], isDarkMode, showToas
   return (
     <div className="space-y-6">
       
+      {/* ALERTA DE CONFIGURACIÓN REQUERIDA */}
+      {!companyRuc && (
+        <div className="p-4.5 rounded-2xl border border-amber-500/20 bg-amber-500/5 text-amber-500 dark:text-amber-400 text-xs flex items-center gap-3 animate-pulse">
+          <AlertTriangle size={18} className="shrink-0" />
+          <div>
+            <p className="font-extrabold uppercase tracking-wide">Falta Configuración de Empresa</p>
+            <p className="mt-0.5 opacity-90">Por favor ingrese y guarde el RUC de su empresa en Ajustes (Perfil de Empresa) para poder descargar y sincronizar sus comprobantes de compras electrónicas desde el SRI.</p>
+          </div>
+        </div>
+      )}
+
       {/* HEADER ACCIONES */}
-      <div className={`p-6 rounded-3xl border flex flex-col sm:flex-row justify-between items-center gap-4 ${
-        isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'
+      <div className={`p-6 rounded-3xl border flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 shadow-sm ${
+        isDarkMode ? 'bg-[#151517] border-white/5 text-gray-300' : 'bg-white border-gray-250 text-gray-700'
       }`}>
         <div className="space-y-1">
-          <h3 className="text-xs font-bold uppercase tracking-wider">Buzón de Comprobantes Electrónicos Recibidos (SRI)</h3>
-          <p className="text-[10px] text-gray-500">Consulta las facturas autorizadas a favor de su RUC directamente desde los servidores del SRI para su validación e integración al ATS.</p>
+          <h3 className="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
+            <ShoppingBag size={14} /> Buzón de Comprobantes Electrónicos Recibidos (SRI)
+          </h3>
+          <p className="text-[10px] text-gray-500 leading-normal max-w-xl">
+            Descargue y concilie las facturas electrónicas emitidas por sus proveedores directamente desde el SRI.
+            {companyRuc && (
+              <span className="font-bold block text-primary mt-1">
+                Empresa configurada: {companyName || 'Persona Natural'} — RUC: {companyRuc}
+              </span>
+            )}
+          </p>
         </div>
         <button
           onClick={handleFetchSriBills}
-          disabled={loading}
-          className="px-4 py-2.5 rounded-xl bg-primary hover:bg-primary/95 text-white font-bold text-xs flex items-center gap-2 shadow-sm transition-all"
+          disabled={loading || !companyRuc}
+          className={`px-5 py-2.5 rounded-xl font-black text-xs flex items-center gap-2 shadow-sm transition-transform active:scale-95 shrink-0 ${
+            !companyRuc
+              ? 'bg-gray-500/10 text-gray-500 border border-white/5 cursor-not-allowed'
+              : 'bg-primary hover:bg-primary-hover text-white'
+          }`}
         >
           <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
-          <span>{loading ? 'Consultando...' : 'Consultar Facturas SRI'}</span>
+          <span>{loading ? 'Sincronizando...' : 'Consultar Facturas SRI'}</span>
         </button>
       </div>
 
@@ -189,7 +277,9 @@ export default function ComprasSriView({ transactions = [], isDarkMode, showToas
               {sriBills.length === 0 && (
                 <tr>
                   <td colSpan="8" className="py-12 text-center text-gray-500 italic">
-                    Haga clic en "Consultar Facturas SRI" para recuperar los últimos comprobantes electrónicos recibidos.
+                    {companyRuc 
+                      ? 'Haga clic en "Consultar Facturas SRI" para recuperar los comprobantes asociados a su RUC.' 
+                      : 'Configure el RUC de su empresa para poder realizar consultas.'}
                   </td>
                 </tr>
               )}

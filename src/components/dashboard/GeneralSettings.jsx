@@ -9,6 +9,7 @@ import {
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import forge from 'node-forge';
+import { consultarRucSri } from '../../services/sriService';
 
 export default function GeneralSettings({ 
   isDarkMode, showToast, db, appId, storage,
@@ -46,6 +47,7 @@ export default function GeneralSettings({
     certificadoClave: '',
     certificadoVence: '',
     certificadoBase64: '',
+    certificadoRuc: '',
     logoUrl: ''
   });
 
@@ -132,6 +134,7 @@ export default function GeneralSettings({
             certificadoClave: finData.certificadoClave || '',
             certificadoVence: finData.certificadoVence || '',
             certificadoBase64: finData.certificadoBase64 || '',
+            certificadoRuc: finData.certificadoRuc || '',
             logoUrl: finData.logoUrl || ''
           }));
         } else if (snap.exists() && snap.data().companyProfile) {
@@ -151,6 +154,7 @@ export default function GeneralSettings({
             certificadoClave: cp.certificadoClave || '',
             certificadoVence: cp.certificadoVence || '',
             certificadoBase64: cp.certificadoBase64 || '',
+            certificadoRuc: cp.certificadoRuc || '',
             logoUrl: cp.logoUrl || ''
           }));
         }
@@ -202,7 +206,7 @@ export default function GeneralSettings({
     }
   }, [isFirmaOpen, companyProfile]);
 
-  // Extract from SRI Simulator
+  // Extract from SRI Service
   const handleSRIExtraction = async () => {
     if (!companyProfile.ruc || companyProfile.ruc.length !== 13) {
       showToast("El RUC debe tener exactamente 13 dígitos", "error");
@@ -211,21 +215,23 @@ export default function GeneralSettings({
     setIsExtractingSRI(true);
     showToast("Consultando RUC en el Servicio de Rentas Internas (SRI)...", "info");
 
-    setTimeout(() => {
+    try {
+      const data = await consultarRucSri(companyProfile.ruc);
       setIsExtractingSRI(false);
-      if (companyProfile.ruc === '1700000000001') {
+
+      if (data.rucActivo === false || data.rucEstado === 'SUSPENDIDO / INACTIVO') {
         setCompanyProfile(prev => ({
           ...prev,
-          razonSocial: 'CONSORCIO INACTIVO S.A. (EN LIQUIDACION)',
-          nombreComercial: 'Consorcio Suspendido',
-          direccionMatriz: 'Av. Maldonado y Quitumbe, Quito',
+          razonSocial: data.razonSocial || data.name,
+          nombreComercial: data.nombreComercial || data.name,
+          direccionMatriz: data.direccion,
           rucActivo: false,
           rucEstado: 'SUSPENDIDO / INACTIVO',
           rucRegimen: 'Régimen General',
           obligadoContabilidad: true,
           contribuyenteTipo: 'general',
           sucursales: [
-            { codigo: '001', nombre: 'Casa Matriz (Cerrada)', direccion: 'Av. Maldonado y Quitumbe, Quito', activa: false, bodegas: ['Bodega Central'] }
+            { codigo: '001', nombre: data.nombreComercial || data.name, direccion: data.direccion, activa: false, bodegas: ['Bodega Central'] }
           ],
           bodegas: ['Bodega Central'],
           agenteRetencion: false,
@@ -235,33 +241,120 @@ export default function GeneralSettings({
         }));
         showToast("RUC INACTIVO / SUSPENDIDO en el SRI. Facturación electrónica bloqueada.", "warning");
       } else {
-        const isSevilla = companyProfile.ruc === '1754376901001';
+        const isSevilla = data.ruc === '1754376901001';
+        const razonSocial = data.razonSocial || data.name;
+        const nombreComercial = data.nombreComercial || data.name;
+        const direccionMatriz = data.direccion;
+        
+        let regimen = 'Régimen General';
+        if (data.tipoContribuyente === 'rimpe_emprendedor') regimen = 'RIMPE Emprendedor';
+        else if (data.tipoContribuyente === 'rimpe_popular') regimen = 'RIMPE Popular';
+        else if (data.tipoContribuyente === 'general') regimen = 'Régimen General';
+
+        let obligado = data.obligadoContabilidad || false;
+        let agenteRet = data.agenteRetencion || false;
+        let agenteRes = data.agenteResolucion || '';
+        let contEsp = data.contribuyenteEspecial || false;
+        let espRes = data.especialResolucion || '';
+
+        if (isSevilla) {
+          regimen = 'Régimen General';
+          obligado = false;
+          agenteRet = false;
+          agenteRes = '';
+          contEsp = false;
+          espRes = '';
+        }
+
+        const sucursales = isSevilla 
+          ? [
+              { codigo: '001', nombre: 'WEB FIX UN MUNDO DIGITAL', direccion: 'PICHINCHA / QUITO / PERUCHO / CAMINO LAGUNAS SN Y MOJANDA GRANDE', activa: true, bodegas: ['Bodega Central'] }
+            ]
+          : [
+              { codigo: '001', nombre: nombreComercial, direccion: direccionMatriz, activa: true, bodegas: ['Bodega Central'] }
+            ];
+
         setCompanyProfile(prev => ({
           ...prev,
-          razonSocial: isSevilla ? 'ROSA KARINA SEVILLA MARROQUIN' : 'WEDFIX SOLUCIONES TECNOLOGICAS S.A.S.',
-          nombreComercial: isSevilla ? 'WEB FIX' : 'WEDFIX SOFTWARE',
-          direccionMatriz: isSevilla ? 'Av. Amazonas N21-147 y Patria, Quito, Ecuador' : 'Av. de los Shyris y Naciones Unidas, Edificio Shyris Park, Quito',
+          razonSocial,
+          nombreComercial,
+          direccionMatriz,
           rucActivo: true,
           rucEstado: 'ACTIVO',
-          rucRegimen: 'RIMPE Emprendedor',
-          obligadoContabilidad: false,
-          contribuyenteTipo: 'rimpe_emprendedor',
-          sucursales: [
-            { codigo: '001', nombre: 'Casa Matriz', direccion: isSevilla ? 'Av. Amazonas N21-147 y Patria, Quito' : 'Av. de los Shyris y Naciones Unidas, Quito', activa: true, bodegas: ['Bodega Central'] },
-            { codigo: '002', nombre: 'Sucursal Norte', direccion: 'Av. Galo Plaza Lasso y Capitán Ramón Borja, Quito', activa: true, bodegas: ['Bodega Norte'] }
-          ],
-          bodegas: ['Bodega Central', 'Bodega Norte'],
-          agenteRetencion: true,
-          agenteResolucion: 'NAC-DNCRASC20-00000001',
-          contribuyenteEspecial: false,
-          especialResolucion: ''
+          rucRegimen: regimen,
+          obligadoContabilidad: obligado,
+          contribuyenteTipo: data.tipoContribuyente || 'general',
+          sucursales,
+          bodegas: ['Bodega Central'],
+          agenteRetencion: agenteRet,
+          agenteResolucion: agenteRes,
+          contribuyenteEspecial: contEsp,
+          especialResolucion: espRes
         }));
         showToast("RUC ACTIVO en el SRI. Datos fiscales y sucursales cargados.", "success");
       }
-    }, 1200);
+    } catch (err) {
+      setIsExtractingSRI(false);
+      showToast(err.message || "Error al consultar RUC en el SRI", "error");
+    }
   };
 
-  // Logo Upload Handlers
+  const getPersonaTipoStr = (rucVal) => {
+    if (!rucVal || rucVal.length < 3) return '';
+    const thirdDigit = parseInt(rucVal.charAt(2), 10);
+    return thirdDigit < 6 ? 'Persona Natural' : 'Persona Jurídica';
+  };
+
+  const isFirmaMatch = () => {
+    if (!companyProfile.certificadoCargado) return true;
+    if (!companyProfile.ruc || !companyProfile.certificadoRuc) return false;
+    
+    const compRuc = String(companyProfile.ruc).trim();
+    const certRuc = String(companyProfile.certificadoRuc).trim();
+    
+    if (compRuc !== certRuc) return false;
+    
+    const compThird = parseInt(compRuc.charAt(2), 10);
+    const certThird = parseInt(certRuc.charAt(2), 10);
+    return (compThird < 6) === (certThird < 6);
+  };
+
+  const compressImage = (base64Str, maxWidth = 500, maxHeight = 500) => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.src = base64Str;
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+        
+        if (width > maxWidth || height > maxHeight) {
+          if (width > height) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          } else {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+          resolve(compressedDataUrl);
+        } else {
+          resolve(base64Str);
+        }
+      };
+      img.onerror = () => {
+        resolve(base64Str);
+      };
+    });
+  };
+
   const handleLogoUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -272,24 +365,40 @@ export default function GeneralSettings({
     }
 
     setIsUploadingLogo(true);
-    try {
-      const extension = file.name.split('.').pop();
-      const path = `artifacts/${appId}/finances/logo_${new Date().getTime()}.${extension}`;
-      const storageRef = ref(storage, path);
-      const uploadTask = await uploadBytesResumable(storageRef, file);
-      const downloadURL = await getDownloadURL(uploadTask.ref);
+    
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const rawBase64 = event.target.result;
+      const base64Data = await compressImage(rawBase64);
       
-      setCompanyProfile(prev => ({
-        ...prev,
-        logoUrl: downloadURL
-      }));
-      showToast("Logo de empresa subido exitosamente", "success");
-    } catch (err) {
-      console.error(err);
-      showToast("Error al subir el logo", "error");
-    } finally {
+      try {
+        const extension = file.name.split('.').pop();
+        const path = `artifacts/${appId}/finances/logo_${new Date().getTime()}.${extension}`;
+        const storageRef = ref(storage, path);
+        const uploadTask = await uploadBytesResumable(storageRef, file);
+        const downloadURL = await getDownloadURL(uploadTask.ref);
+        
+        setCompanyProfile(prev => ({
+          ...prev,
+          logoUrl: downloadURL
+        }));
+        showToast("Logotipo cargado exitosamente", "success");
+      } catch (err) {
+        console.warn("Storage upload failed, using compressed base64 fallback:", err);
+        setCompanyProfile(prev => ({
+          ...prev,
+          logoUrl: base64Data
+        }));
+        showToast("Logotipo cargado y guardado localmente (Base64)", "success");
+      } finally {
+        setIsUploadingLogo(false);
+      }
+    };
+    reader.onerror = () => {
+      showToast("Error al leer el archivo de imagen", "error");
       setIsUploadingLogo(false);
-    }
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleRemoveLogo = () => {
@@ -348,8 +457,15 @@ export default function GeneralSettings({
         if (attr.name === 'serialNumber' || attr.shortName === 'SN') {
           const val = attr.value;
           if (typeof val === 'string') {
-            const match = val.match(/\d{13}/);
-            if (match) certRuc = match[0];
+            const match13 = val.match(/\d{13}/);
+            if (match13) {
+              certRuc = match13[0];
+              break;
+            }
+            const match10 = val.match(/\d{10}/);
+            if (match10) {
+              certRuc = match10[0] + '001';
+            }
           }
         }
       }
@@ -357,9 +473,14 @@ export default function GeneralSettings({
       if (!certRuc) {
         for (let attr of certificate.subject.attributes) {
           if (typeof attr.value === 'string') {
-            const match = attr.value.match(/\d{13}/);
-            if (match) {
-              certRuc = match[0];
+            const match13 = attr.value.match(/\d{13}/);
+            if (match13) {
+              certRuc = match13[0];
+              break;
+            }
+            const match10 = attr.value.match(/\d{10}/);
+            if (match10) {
+              certRuc = match10[0] + '001';
               break;
             }
           }
@@ -472,6 +593,22 @@ export default function GeneralSettings({
       return;
     }
 
+    if (tempFirma.certificadoCargado) {
+      const compRuc = String(companyProfile.ruc).trim();
+      const certRuc = String(certValidation.ruc).trim();
+      if (compRuc !== certRuc) {
+        showToast(`La firma (${certRuc}) no coincide con el RUC de la empresa (${compRuc})`, "error");
+        return;
+      }
+      
+      const compThird = parseInt(compRuc.charAt(2), 10);
+      const certThird = parseInt(certRuc.charAt(2), 10);
+      if ((compThird < 6) !== (certThird < 6)) {
+        showToast("El tipo de persona de la firma no coincide con el RUC de la empresa", "error");
+        return;
+      }
+    }
+
     try {
       const configRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config');
       const updatedConfig = {
@@ -479,7 +616,8 @@ export default function GeneralSettings({
         certificadoNombre: tempFirma.certificadoNombre,
         certificadoClave: tempFirma.certificadoClave,
         certificadoBase64: tempFirma.certificadoBase64,
-        certificadoVence: tempFirma.certificadoVence
+        certificadoVence: tempFirma.certificadoVence,
+        certificadoRuc: certValidation.ruc || ''
       };
       await setDoc(configRef, updatedConfig, { merge: true });
 
@@ -538,6 +676,7 @@ export default function GeneralSettings({
         certificadoClave: companyProfile.certificadoClave || '',
         certificadoVence: companyProfile.certificadoVence || '',
         certificadoBase64: companyProfile.certificadoBase64 || '',
+        certificadoRuc: companyProfile.certificadoRuc || '',
         logoUrl: companyProfile.logoUrl || ''
       };
       await setDoc(configRef, profileToSave, { merge: true });
@@ -825,10 +964,18 @@ export default function GeneralSettings({
               </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* ALERTA FIRMA INCOMPATIBLE */}
+            {companyProfile.certificadoCargado && !isFirmaMatch() && (
+              <div className="p-3.5 rounded-xl border border-red-500/20 bg-red-500/5 text-red-500 dark:text-red-400 text-xs flex items-center gap-2">
+                <AlertTriangle size={16} className="shrink-0" />
+                <span className="font-bold">Error de Validación: La firma electrónica activa pertenece al RUC {companyProfile.certificadoRuc} ({getPersonaTipoStr(companyProfile.certificadoRuc)}), el cual no coincide con el RUC de la empresa ({companyProfile.ruc}). Por favor, ingrese una firma que coincida o elimine la firma actual.</span>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               
-              {/* COLUMNA IZQUIERDA Y CENTRAL: FORMULARIO TRIBUTARIO */}
-              <div className="md:col-span-2 space-y-4">
+              {/* COLUMNA 1 (IZQUIERDA): FORMULARIO TRIBUTARIO Y PARÁMETROS */}
+              <div className="space-y-4">
                 
                 {/* RUC CON BUSCADOR SRI */}
                 <div className="flex gap-2 items-end">
@@ -1029,8 +1176,10 @@ export default function GeneralSettings({
 
               </div>
 
-              {/* COLUMNA DERECHA: LOGOTIPO CORPORATIVO */}
-              <div className="space-y-4">
+              {/* COLUMNA 2 (DERECHA): LOGOTIPO, FIRMA, ESTABLECIMIENTOS Y BODEGAS */}
+              <div className="space-y-5">
+                
+                {/* LOGOTIPO */}
                 <div className={`p-5 rounded-3xl border ${isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-gray-50 border-gray-250'}`}>
                   <label className="block text-[9px] font-bold uppercase mb-2.5 text-gray-500 text-center">Logotipo Oficial de la Empresa</label>
                   
@@ -1070,137 +1219,138 @@ export default function GeneralSettings({
                   )}
                 </div>
 
-                {/* INFO ADICIONAL DE FIRMA */}
+                {/* FIRMA ELECTRÓNICA ACTIVA BOX */}
                 {companyProfile.certificadoCargado && (
                   <div className={`p-4 rounded-2xl border text-xs flex gap-2.5 items-start ${
-                    isDarkMode ? 'bg-emerald-500/5 border-emerald-500/10 text-emerald-400' : 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                    !isFirmaMatch() 
+                      ? 'bg-red-500/5 border-red-500/10 text-red-400'
+                      : isDarkMode ? 'bg-emerald-500/5 border-emerald-500/10 text-emerald-400' : 'bg-emerald-50 border-emerald-200 text-emerald-805'
                   }`}>
-                    <CheckCircle2 size={16} className="shrink-0 mt-0.5 text-emerald-500" />
+                    {!isFirmaMatch() ? (
+                      <AlertCircle size={16} className="shrink-0 mt-0.5 text-red-500" />
+                    ) : (
+                      <CheckCircle2 size={16} className="shrink-0 mt-0.5 text-emerald-505" />
+                    )}
                     <div>
-                      <p className="font-bold text-[9px] uppercase tracking-wider">Firma Electrónica Activa</p>
+                      <p className="font-bold text-[9px] uppercase tracking-wider">
+                        {!isFirmaMatch() ? 'Firma Electrónica Incompatible' : 'Firma Electrónica Activa'}
+                      </p>
                       <p className="text-[9px] opacity-90 mt-0.5 truncate font-mono">Nombre: {companyProfile.certificadoNombre}</p>
                       <p className="text-[9px] opacity-90 mt-0.5">Vence: {companyProfile.certificadoVence}</p>
+                      {companyProfile.certificadoRuc && (
+                        <p className="text-[9px] opacity-90 mt-0.5">RUC Firma: {companyProfile.certificadoRuc}</p>
+                      )}
                     </div>
                   </div>
                 )}
-              </div>
 
-            </div>
+                {/* PANEL SUCURSALES (Bloqueado) */}
+                <div className="space-y-4 pt-2">
+                  <div className="flex justify-between items-center pb-2 border-b border-white/5">
+                    <h4 className="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
+                      <Lock size={12} className="text-gray-400" /> Establecimientos del SRI (Bloqueado)
+                    </h4>
+                  </div>
 
-            {/* SECCIÓN SUCURSALES Y BODEGAS */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-6 border-t border-white/5">
-              
-              {/* PANEL SUCURSALES (Bloqueado) */}
-              <div className="space-y-4">
-                <div className="flex justify-between items-center pb-2 border-b border-white/5">
-                  <h4 className="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
-                    <Lock size={12} className="text-gray-400" /> Establecimientos del SRI (Bloqueado)
-                  </h4>
-                </div>
-
-                <div className="space-y-3 max-h-[260px] overflow-y-auto pr-1">
-                  {companyProfile.sucursales && companyProfile.sucursales.map(branch => (
-                    <div key={branch.codigo} className={`p-3 rounded-xl border space-y-2 ${isDarkMode ? 'bg-black/20 border-white/5' : 'bg-gray-50 border-gray-200'} opacity-85`}>
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="text-xs font-black flex items-center gap-1 text-gray-200">
-                            <Building size={11} className="text-gray-500" /> {branch.codigo} - {branch.nombre}
-                          </p>
-                          <p className="text-[10px] text-gray-500 mt-0.5">{branch.direccion}</p>
+                  <div className="space-y-3 max-h-[180px] overflow-y-auto pr-1">
+                    {companyProfile.sucursales && companyProfile.sucursales.map(branch => (
+                      <div key={branch.codigo} className={`p-3 rounded-xl border space-y-2 ${isDarkMode ? 'bg-black/20 border-white/5' : 'bg-gray-50 border-gray-200'} opacity-85`}>
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="text-xs font-black flex items-center gap-1 text-gray-200">
+                              <Building size={11} className="text-gray-500" /> {branch.codigo} - {branch.nombre}
+                            </p>
+                            <p className="text-[10px] text-gray-500 mt-0.5">{branch.direccion}</p>
+                          </div>
+                          <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded ${
+                            branch.activa 
+                              ? 'bg-emerald-500/10 text-emerald-450 border border-emerald-500/20' 
+                              : 'bg-red-500/10 text-red-450 border border-red-500/20'
+                          }`}>
+                            {branch.activa ? 'Activo' : 'Inactivo'}
+                          </span>
                         </div>
-                        <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded ${
-                          branch.activa 
-                            ? 'bg-emerald-500/10 text-emerald-450 border border-emerald-500/20' 
-                            : 'bg-red-500/10 text-red-450 border border-red-500/20'
-                        }`}>
-                          {branch.activa ? 'Activo' : 'Inactivo'}
-                        </span>
-                      </div>
 
-                      {/* Checkboxes de bodegas asociadas a esta sucursal */}
-                      <div className="pt-2 border-t border-white/5 space-y-1">
-                        <p className="text-[9px] font-bold uppercase tracking-wider text-gray-500">Bodegas Asignadas:</p>
-                        <div className="flex flex-wrap gap-x-3 gap-y-1">
-                          {companyProfile.bodegas.map(whName => {
-                            const isAssoc = branch.bodegas && branch.bodegas.includes(whName);
-                            return (
-                              <label key={whName} className="flex items-center gap-1 text-[10px] text-gray-400 cursor-pointer hover:text-white">
-                                <input 
-                                  type="checkbox" 
-                                  checked={isAssoc}
-                                  onChange={() => handleToggleWarehouseForBranch(branch.codigo, whName)}
-                                  className="rounded text-blue-605 h-3.5 w-3.5 bg-transparent border-gray-300"
-                                />
-                                {whName}
-                              </label>
-                            );
-                          })}
+                        {/* Checkboxes de bodegas asociadas a esta sucursal */}
+                        <div className="pt-2 border-t border-white/5 space-y-1">
+                          <p className="text-[9px] font-bold uppercase tracking-wider text-gray-500">Bodegas Asignadas:</p>
+                          <div className="flex flex-wrap gap-x-3 gap-y-1">
+                            {companyProfile.bodegas.map(whName => {
+                              const isAssoc = branch.bodegas && branch.bodegas.includes(whName);
+                              return (
+                                <label key={whName} className="flex items-center gap-1 text-[10px] text-gray-400 cursor-pointer hover:text-white">
+                                  <input 
+                                    type="checkbox" 
+                                    checked={isAssoc}
+                                    onChange={() => handleToggleWarehouseForBranch(branch.codigo, whName)}
+                                    className="rounded text-blue-605 h-3.5 w-3.5 bg-transparent border-gray-300"
+                                  />
+                                  {whName}
+                                </label>
+                              );
+                            })}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                  {(!companyProfile.sucursales || companyProfile.sucursales.length === 0) && (
-                    <p className="text-[10px] text-gray-500 italic">No hay establecimientos cargados. Ingrese su RUC arriba y pulse configurar.</p>
-                  )}
-                </div>
-              </div>
-
-              {/* PANEL BODEGAS (Manual) */}
-              <div className="space-y-4">
-                <div className="flex justify-between items-center pb-2 border-b border-white/5">
-                  <h4 className="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
-                    <Package size={14} className="text-emerald-500" /> Bodegas de Inventario (Manual)
-                  </h4>
+                    ))}
+                    {(!companyProfile.sucursales || companyProfile.sucursales.length === 0) && (
+                      <p className="text-[10px] text-gray-500 italic">No hay establecimientos cargados. Ingrese su RUC arriba y pulse configurar.</p>
+                    )}
+                  </div>
                 </div>
 
-                <div className="flex flex-wrap gap-2 min-h-[90px] p-3.5 rounded-2xl border border-dashed border-white/10 align-middle">
-                  {companyProfile.bodegas.map(wh => (
-                    <div key={wh} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold ${
-                      isDarkMode ? 'bg-white/5 text-gray-200 border border-white/5' : 'bg-gray-100 text-gray-800'
-                    }`}>
-                      <span>{wh}</span>
-                      {wh !== 'Bodega Central' && (
-                        <button 
-                          type="button" 
-                          onClick={() => handleRemoveWarehouse(wh)}
-                          className="text-red-500 hover:text-red-700 font-black ml-1 text-sm leading-none"
-                        >
-                          ×
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                  {companyProfile.bodegas.length === 0 && (
-                    <p className="text-[10px] text-gray-500 italic m-auto">No hay bodegas registradas. Agrega bodegas físicas para almacenar inventarios.</p>
-                  )}
+                {/* PANEL BODEGAS (Manual) */}
+                <div className="space-y-4 pt-2">
+                  <div className="flex justify-between items-center pb-2 border-b border-white/5">
+                    <h4 className="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
+                      <Package size={14} className="text-emerald-500" /> Bodegas de Inventario (Manual)
+                    </h4>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 min-h-[60px] p-3 rounded-2xl border border-dashed border-white/10 align-middle">
+                    {companyProfile.bodegas.map(wh => (
+                      <div key={wh} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold ${
+                        isDarkMode ? 'bg-white/5 text-gray-200 border border-white/5' : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        <span>{wh}</span>
+                        {wh !== 'Bodega Central' && (
+                          <button 
+                            type="button" 
+                            onClick={() => handleRemoveWarehouse(wh)}
+                            className="text-red-500 hover:text-red-700 font-black ml-1 text-sm leading-none"
+                          >
+                            ×
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Agregar Bodega */}
+                  <div className="flex gap-2">
+                    <input 
+                      type="text" 
+                      placeholder="Nombre de Bodega (ej. Almacén Central)" 
+                      value={newWarehouseName} 
+                      onChange={e => setNewWarehouseName(e.target.value)} 
+                      className={inputClass} 
+                    />
+                    <button 
+                      type="button" 
+                      onClick={handleAddWarehouse}
+                      className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs shrink-0 transition-transform active:scale-95"
+                    >
+                      Agregar Bodega
+                    </button>
+                  </div>
                 </div>
 
-                {/* Agregar Bodega */}
-                <div className="flex gap-2">
-                  <input 
-                    type="text" 
-                    placeholder="Nombre de Bodega (ej. Almacén Norte)" 
-                    value={newWarehouseName} 
-                    onChange={e => setNewWarehouseName(e.target.value)} 
-                    className={inputClass} 
-                  />
-                  <button 
-                    type="button" 
-                    onClick={handleAddWarehouse}
-                    className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs shrink-0 transition-transform active:scale-95"
-                  >
-                    Agregar Bodega
-                  </button>
-                </div>
-                <p className="text-[9px] text-gray-500 leading-normal">
-                  Puede crear bodegas físicas independientes para distribuir su stock. Posteriormente asócielas a sus sucursales fiscales del SRI.
-                </p>
               </div>
 
             </div>
 
             {/* BOTONES DE ACCIÓN PRINCIPALES */}
-            <div className="flex justify-between items-center pt-6 border-t border-white/5">
+            <div className="flex justify-between items-center pt-6 border-t border-white/5 mt-8">
               <div>
                 {companyProfile.ruc && companyProfile.ruc.length === 13 && (
                   <button 
@@ -1216,12 +1366,19 @@ export default function GeneralSettings({
                   </button>
                 )}
               </div>
-              <button 
-                type="submit" 
-                className="flex items-center gap-1.5 px-6 py-2.5 rounded-xl text-xs font-black bg-primary hover:bg-primary-hover text-white shadow-md transition-transform hover:-translate-y-0.5 active:scale-95"
-              >
-                <Save size={14} /> Guardar Empresa
-              </button>
+              {isFirmaMatch() ? (
+                <button 
+                  type="submit" 
+                  className="flex items-center gap-1.5 px-6 py-2.5 rounded-xl text-xs font-black bg-primary hover:bg-primary-hover text-white shadow-md transition-transform hover:-translate-y-0.5 active:scale-95"
+                >
+                  <Save size={14} /> Guardar Empresa
+                </button>
+              ) : (
+                <div className="text-xs text-red-500 font-bold flex items-center gap-1.5 p-2 rounded-lg border border-red-500/20 bg-red-500/5">
+                  <AlertCircle size={14} className="shrink-0 text-red-500" />
+                  <span>Firma no coincide con RUC</span>
+                </div>
+              )}
             </div>
           </form>
         )}

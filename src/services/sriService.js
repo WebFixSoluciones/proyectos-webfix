@@ -578,6 +578,18 @@ export async function consultarRucSri(rucOrCi) {
   
   // Base de datos de prueba predefinida
   const testDatabase = {
+    '1700000000001': {
+      name: 'CONSORCIO INACTIVO S.A. (EN LIQUIDACION)',
+      ruc: '1700000000001',
+      tipoIdentificacion: 'ruc',
+      direccion: 'Av. Maldonado y Quitumbe, Quito',
+      telefono: '022666666',
+      email: 'contacto@consorcioinactivo.com',
+      tipoContribuyente: 'general',
+      razonSocial: 'CONSORCIO INACTIVO S.A. (EN LIQUIDACION)',
+      rucActivo: false,
+      rucEstado: 'SUSPENDIDO / INACTIVO'
+    },
     '1790000000001': {
       name: 'WEBFIX SOLUCIONES TECNOLOGICAS S.A.',
       ruc: '1790000000001',
@@ -587,6 +599,17 @@ export async function consultarRucSri(rucOrCi) {
       email: 'facturacion@webfix.com.ec',
       tipoContribuyente: 'general',
       razonSocial: 'WEBFIX SOLUCIONES TECNOLOGICAS S.A.'
+    },
+    '1754376901001': {
+      name: 'ROSA KARINA SEVILLA MARROQUIN',
+      ruc: '1754376901001',
+      tipoIdentificacion: 'ruc',
+      direccion: 'PICHINCHA / QUITO / PERUCHO / CAMINO LAGUNAS SN Y MOJANDA GRANDE',
+      telefono: '0959262579',
+      email: 'webfixsoluciones@gmail.com',
+      tipoContribuyente: 'general',
+      razonSocial: 'ROSA KARINA SEVILLA MARROQUIN',
+      nombreComercial: 'WEB FIX UN MUNDO DIGITAL'
     },
     '1792345678001': {
       name: 'CORPORACION FAVORITA C.A.',
