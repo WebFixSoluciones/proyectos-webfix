@@ -1101,7 +1101,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       </div>
 
       {/* STEP INDICATOR BAR */}
-      {formData.type !== 'ingreso' && (
+      {(formData.type !== 'ingreso' || formData.documentType === 'retencion') && (
         <div className={`px-6 py-4 border-b shrink-0 ${isDarkMode ? 'border-white/5 bg-[#121214]' : 'border-gray-200 bg-white'}`}>
           <div className="flex items-center justify-between max-w-3xl mx-auto">
             {steps.map((step, idx) => (
@@ -1196,7 +1196,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       {/* STEP CONTAINER BODY */}
       <div className="flex-1 p-6 max-w-[95%] w-full mx-auto">
 
-        {formData.type === 'ingreso' && (
+        {formData.type === 'ingreso' && formData.documentType !== 'retencion' && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom duration-250">
             {/* 1. CABECERA: CONTENEDOR DE 2 COLUMNAS */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -1777,7 +1777,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         )}
 
         {/* STEP 1: CABECERA Y CLIENTE (UNIFICADO) */}
-        {formData.type !== 'ingreso' && currentStep === 1 && (
+        {(formData.type !== 'ingreso' || formData.documentType === 'retencion') && currentStep === 1 && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom duration-250">
             <div className={`p-6 rounded-3xl border shadow-sm ${isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'}`}>
               
@@ -2394,7 +2394,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     )}
 
     {/* STEP 2: PAGO Y EMISIÓN */}
-    {formData.type !== 'ingreso' && currentStep === 2 && (
+    {(formData.type !== 'ingreso' || formData.documentType === 'retencion') && currentStep === 2 && (
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 animate-in fade-in slide-in-from-bottom duration-250">
         
         {/* Left Column (lg:col-span-3): Medios de Pago & Bitácora */}
@@ -2926,7 +2926,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       <div className={`sticky bottom-0 z-20 px-6 py-4 border-t backdrop-blur-md flex justify-between items-center ${
         isDarkMode ? 'border-white/5 bg-[#151517]/95' : 'border-gray-200 bg-white/95'
       }`}>
-        {formData.type === 'ingreso' ? (
+        {(formData.type === 'ingreso' && formData.documentType !== 'retencion') ? (
           /* Diseño simplificado para Ventas (1 paso) */
           <>
             <button
