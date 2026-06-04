@@ -76,7 +76,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { onAuthStateChanged, signInAnonymously, signInWithCustomToken, signOut, signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc, onSnapshot, collection, updateDoc, deleteDoc, writeBatch, getDocs, getDoc } from 'firebase/firestore';
 
-import { auth, db, appId } from './firebase';
+import { auth, db, storage, appId } from './firebase';
 import FinanceModule from './components/finances/FinanceModule';
 import ErpDashboard from './components/dashboard/ErpDashboard';
 import GeneralSettings from './components/dashboard/GeneralSettings';
@@ -1926,6 +1926,7 @@ export default function App() {
                 showToast={showToast} 
                 db={db} 
                 appId={appId} 
+                storage={storage}
                 users={users} 
                 trash={trash} 
                 handleDownloadBackup={handleDownloadBackup} 

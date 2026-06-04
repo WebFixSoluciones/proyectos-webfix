@@ -4,12 +4,14 @@ import {
   Save, Download, CheckCircle2, AlertTriangle, Key, Mail, Globe, 
   MapPin, Phone, Building, ShoppingCart, DollarSign, Package, Calendar, 
   Plus, Trash2, Eye, EyeOff, LayoutDashboard, ToggleLeft, ToggleRight,
-  Palette, CreditCard
+  Palette, CreditCard, Award, UploadCloud, ExternalLink, X, Lock, AlertCircle, CheckCircle
 } from 'lucide-react';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import forge from 'node-forge';
 
 export default function GeneralSettings({ 
-  isDarkMode, showToast, db, appId, 
+  isDarkMode, showToast, db, appId, storage,
   users = [], trash = [], handleDownloadBackup, 
   googleClientId, setGoogleClientId, 
   activeModules = {}, setActiveModules,
@@ -38,12 +40,38 @@ export default function GeneralSettings({
     agenteRetencion: false,
     agenteResolucion: '',
     contribuyenteEspecial: false,
-    especialResolucion: ''
+    especialResolucion: '',
+    certificadoCargado: false,
+    certificadoNombre: '',
+    certificadoClave: '',
+    certificadoVence: '',
+    certificadoBase64: '',
+    logoUrl: ''
   });
 
   const [isExtractingSRI, setIsExtractingSRI] = useState(false);
-  const [newBranch, setNewBranch] = useState({ codigo: '', nombre: '', direccion: '', activa: true, bodegas: [] });
   const [newWarehouseName, setNewWarehouseName] = useState('');
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+
+  // States for signature configuration
+  const [isFirmaOpen, setIsFirmaOpen] = useState(false);
+  const [certValidation, setCertValidation] = useState({
+    verificado: false,
+    mensaje: 'Cargue su firma electrónica (.p12 / .pfx) e ingrese la contraseña para verificarla.',
+    tipo: 'info',
+    sujeto: '',
+    emisor: '',
+    vence: '',
+    ruc: ''
+  });
+
+  const [tempFirma, setTempFirma] = useState({
+    certificadoCargado: false,
+    certificadoNombre: '',
+    certificadoClave: '',
+    certificadoVence: '',
+    certificadoBase64: ''
+  });
 
   // State for Gemini Key
   const [geminiKey, setGeminiKey] = useState('');
@@ -98,7 +126,13 @@ export default function GeneralSettings({
             agenteRetencion: finData.agenteRetencion || false,
             agenteResolucion: finData.agenteResolucion || '',
             contribuyenteEspecial: finData.contribuyenteEspecial || false,
-            especialResolucion: finData.especialResolucion || ''
+            especialResolucion: finData.especialResolucion || '',
+            certificadoCargado: finData.certificadoCargado || false,
+            certificadoNombre: finData.certificadoNombre || '',
+            certificadoClave: finData.certificadoClave || '',
+            certificadoVence: finData.certificadoVence || '',
+            certificadoBase64: finData.certificadoBase64 || '',
+            logoUrl: finData.logoUrl || ''
           }));
         } else if (snap.exists() && snap.data().companyProfile) {
           const cp = snap.data().companyProfile;
@@ -111,7 +145,13 @@ export default function GeneralSettings({
             sucursales: cp.sucursales || [
               { codigo: '001', nombre: 'Casa Matriz', direccion: cp.direccionMatriz || 'Av. de los Shyris y Naciones Unidas, Quito', activa: true, bodegas: ['Bodega Central'] }
             ],
-            bodegas: cp.bodegas || ['Bodega Central']
+            bodegas: cp.bodegas || ['Bodega Central'],
+            certificadoCargado: cp.certificadoCargado || false,
+            certificadoNombre: cp.certificadoNombre || '',
+            certificadoClave: cp.certificadoClave || '',
+            certificadoVence: cp.certificadoVence || '',
+            certificadoBase64: cp.certificadoBase64 || '',
+            logoUrl: cp.logoUrl || ''
           }));
         }
         
@@ -133,6 +173,34 @@ export default function GeneralSettings({
   useEffect(() => {
     setLocalUsers(users);
   }, [users]);
+
+  // Sync tempFirma when modal opens
+  useEffect(() => {
+    if (isFirmaOpen) {
+      setTempFirma({
+        certificadoCargado: companyProfile.certificadoCargado || false,
+        certificadoNombre: companyProfile.certificadoNombre || '',
+        certificadoClave: companyProfile.certificadoClave || '',
+        certificadoVence: companyProfile.certificadoVence || '',
+        certificadoBase64: companyProfile.certificadoBase64 || ''
+      });
+      if (companyProfile.certificadoCargado && companyProfile.certificadoBase64 && companyProfile.certificadoClave) {
+        setTimeout(() => {
+          verifySignatureDetails(companyProfile.certificadoBase64, companyProfile.certificadoClave, companyProfile.ruc || '');
+        }, 100);
+      } else {
+        setCertValidation({
+          verificado: false,
+          mensaje: 'Cargue su firma electrónica (.p12 / .pfx) e ingrese la contraseña para verificarla.',
+          tipo: 'info',
+          sujeto: '',
+          emisor: '',
+          vence: '',
+          ruc: ''
+        });
+      }
+    }
+  }, [isFirmaOpen, companyProfile]);
 
   // Extract from SRI Simulator
   const handleSRIExtraction = async () => {
@@ -157,9 +225,9 @@ export default function GeneralSettings({
           obligadoContabilidad: true,
           contribuyenteTipo: 'general',
           sucursales: [
-            { codigo: '001', nombre: 'Casa Matriz (Cerrada)', direccion: 'Av. Maldonado y Quitumbe, Quito', activa: false, bodegas: ['Bodega General'] }
+            { codigo: '001', nombre: 'Casa Matriz (Cerrada)', direccion: 'Av. Maldonado y Quitumbe, Quito', activa: false, bodegas: ['Bodega Central'] }
           ],
-          bodegas: ['Bodega General'],
+          bodegas: ['Bodega Central'],
           agenteRetencion: false,
           agenteResolucion: '',
           contribuyenteEspecial: false,
@@ -193,9 +261,253 @@ export default function GeneralSettings({
     }, 1200);
   };
 
+  // Logo Upload Handlers
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      showToast("El archivo debe ser una imagen", "error");
+      return;
+    }
+
+    setIsUploadingLogo(true);
+    try {
+      const extension = file.name.split('.').pop();
+      const path = `artifacts/${appId}/finances/logo_${new Date().getTime()}.${extension}`;
+      const storageRef = ref(storage, path);
+      const uploadTask = await uploadBytesResumable(storageRef, file);
+      const downloadURL = await getDownloadURL(uploadTask.ref);
+      
+      setCompanyProfile(prev => ({
+        ...prev,
+        logoUrl: downloadURL
+      }));
+      showToast("Logo de empresa subido exitosamente", "success");
+    } catch (err) {
+      console.error(err);
+      showToast("Error al subir el logo", "error");
+    } finally {
+      setIsUploadingLogo(false);
+    }
+  };
+
+  const handleRemoveLogo = () => {
+    setCompanyProfile(prev => ({
+      ...prev,
+      logoUrl: ''
+    }));
+    showToast("Logo removido. Guarde los cambios para confirmar.", "info");
+  };
+
+  // Signature verification logic (node-forge)
+  const verifySignatureDetails = (base64, password, emisorRuc) => {
+    if (!base64) return;
+    if (!password) return;
+
+    try {
+      const p12Der = forge.util.decode64(base64);
+      const p12Asn1 = forge.asn1.fromDer(p12Der);
+      const p12 = forge.pkcs12.pkcs12FromAsn1(p12Asn1, false, password);
+      
+      const certBag = p12.getBags({ bagType: forge.pki.oids.certBag });
+      let certificate;
+      for (let certId in certBag) {
+        if (certBag[certId] && certBag[certId][0]) {
+          certificate = certBag[certId][0].cert;
+          break;
+        }
+      }
+
+      if (!certificate) {
+        setCertValidation({
+          verificado: false,
+          mensaje: 'Error: No se encontró ningún certificado en el archivo cargado.',
+          tipo: 'error',
+          sujeto: '',
+          emisor: '',
+          vence: '',
+          ruc: ''
+        });
+        return;
+      }
+
+      const cn = certificate.subject.getField('CN')?.value || 'Desconocido';
+      const o = certificate.subject.getField('O')?.value || '';
+      const issuerCN = certificate.issuer.getField('CN')?.value || 'Autoridad Certificadora';
+      const issuerO = certificate.issuer.getField('O')?.value || '';
+      
+      const expirationDate = certificate.validity.notAfter;
+      const now = new Date();
+      const isExpired = expirationDate < now;
+      const venceStr = expirationDate.toISOString().split('T')[0];
+
+      // Extract RUC from subject attributes
+      let certRuc = '';
+      for (let attr of certificate.subject.attributes) {
+        if (attr.name === 'serialNumber' || attr.shortName === 'SN') {
+          const val = attr.value;
+          if (typeof val === 'string') {
+            const match = val.match(/\d{13}/);
+            if (match) certRuc = match[0];
+          }
+        }
+      }
+
+      if (!certRuc) {
+        for (let attr of certificate.subject.attributes) {
+          if (typeof attr.value === 'string') {
+            const match = attr.value.match(/\d{13}/);
+            if (match) {
+              certRuc = match[0];
+              break;
+            }
+          }
+        }
+      }
+
+      let tipo = 'success';
+      let mensaje = 'Firma digital descifrada correctamente. ¡Lista para facturar!';
+
+      if (isExpired) {
+        tipo = 'error';
+        mensaje = `La firma electrónica EXPIRÓ el ${venceStr}. Por favor, renuévela para poder firmar comprobantes.`;
+      } else if (emisorRuc && certRuc && certRuc !== emisorRuc) {
+        tipo = 'warning';
+        mensaje = `Advertencia: El RUC de la firma (${certRuc}) no coincide con el RUC de la empresa (${emisorRuc}). El SRI rechazará los comprobantes.`;
+      } else if (emisorRuc && !certRuc) {
+        tipo = 'warning';
+        mensaje = 'Firma descifrada. No pudimos extraer un RUC de 13 dígitos de la firma automáticamente. Asegúrese de que pertenezca a este emisor.';
+      }
+
+      setCertValidation({
+        verificado: !isExpired,
+        mensaje,
+        tipo,
+        sujeto: cn + (o ? ` (${o})` : ''),
+        emisor: issuerCN || issuerO,
+        vence: venceStr,
+        ruc: certRuc
+      });
+
+      setTempFirma(prev => ({
+        ...prev,
+        certificadoVence: venceStr
+      }));
+
+    } catch (err) {
+      console.error("Error decrypting p12:", err);
+      setCertValidation({
+        verificado: false,
+        mensaje: 'Error de descifrado: La contraseña ingresada es incorrecta o el archivo está dañado.',
+        tipo: 'error',
+        sujeto: '',
+        emisor: '',
+        vence: '',
+        ruc: ''
+      });
+    }
+  };
+
+  const handleCertificateUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.name.endsWith('.p12') && !file.name.endsWith('.pfx')) {
+      showToast("El certificado debe ser un archivo .p12 o .pfx", "error");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64Data = event.target.result.split(',')[1];
+      setTempFirma(prev => ({
+        ...prev,
+        certificadoCargado: true,
+        certificadoNombre: file.name,
+        certificadoBase64: base64Data,
+        certificadoClave: '',
+        certificadoVence: ''
+      }));
+      setCertValidation({
+        verificado: false,
+        mensaje: 'Certificado cargado. Ingrese la contraseña y haga clic en Verificar.',
+        tipo: 'info',
+        sujeto: '',
+        emisor: '',
+        vence: '',
+        ruc: ''
+      });
+      showToast(`Certificado '${file.name}' cargado. Ingrese la contraseña.`, "info");
+    };
+    reader.onerror = () => {
+      showToast("Error al leer el archivo de certificado", "error");
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const removeCertificate = () => {
+    setTempFirma({
+      certificadoCargado: false,
+      certificadoNombre: '',
+      certificadoClave: '',
+      certificadoVence: '',
+      certificadoBase64: ''
+    });
+    setCertValidation({
+      verificado: false,
+      mensaje: 'Cargue su firma electrónica (.p12 / .pfx) para comenzar.',
+      tipo: 'info',
+      sujeto: '',
+      emisor: '',
+      vence: '',
+      ruc: ''
+    });
+    showToast("Certificado quitado temporalmente. Guarde para aplicar.", "info");
+  };
+
+  const handleSaveFirma = async () => {
+    if (tempFirma.certificadoCargado && !certValidation.verificado) {
+      showToast("Por favor verifique la contraseña de la firma antes de guardar", "error");
+      return;
+    }
+
+    try {
+      const configRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config');
+      const updatedConfig = {
+        certificadoCargado: tempFirma.certificadoCargado,
+        certificadoNombre: tempFirma.certificadoNombre,
+        certificadoClave: tempFirma.certificadoClave,
+        certificadoBase64: tempFirma.certificadoBase64,
+        certificadoVence: tempFirma.certificadoVence
+      };
+      await setDoc(configRef, updatedConfig, { merge: true });
+
+      setCompanyProfile(prev => ({
+        ...prev,
+        ...updatedConfig
+      }));
+
+      // Synchronize meta/info
+      const infoRef = doc(db, 'artifacts', appId, 'public', 'data', 'meta', 'info');
+      await setDoc(infoRef, { 
+        companyProfile: {
+          ...companyProfile,
+          ...updatedConfig
+        } 
+      }, { merge: true });
+
+      showToast("Firma electrónica guardada exitosamente", "success");
+      setIsFirmaOpen(false);
+    } catch (err) {
+      console.error(err);
+      showToast("Error al guardar firma electrónica", "error");
+    }
+  };
+
   // Save Company Profile
   const handleSaveProfile = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     if (companyProfile.ruc && companyProfile.ruc.length !== 13) {
       showToast("El RUC debe tener exactamente 13 dígitos para Ecuador", "error");
       return;
@@ -220,48 +532,25 @@ export default function GeneralSettings({
         agenteRetencion: companyProfile.agenteRetencion,
         agenteResolucion: companyProfile.agenteResolucion,
         contribuyenteEspecial: companyProfile.contribuyenteEspecial,
-        especialResolucion: companyProfile.especialResolucion
+        especialResolucion: companyProfile.especialResolucion,
+        certificadoCargado: companyProfile.certificadoCargado || false,
+        certificadoNombre: companyProfile.certificadoNombre || '',
+        certificadoClave: companyProfile.certificadoClave || '',
+        certificadoVence: companyProfile.certificadoVence || '',
+        certificadoBase64: companyProfile.certificadoBase64 || '',
+        logoUrl: companyProfile.logoUrl || ''
       };
       await setDoc(configRef, profileToSave, { merge: true });
 
       // Synchronize meta/info
       const infoRef = doc(db, 'artifacts', appId, 'public', 'data', 'meta', 'info');
-      await setDoc(infoRef, { companyProfile }, { merge: true });
+      await setDoc(infoRef, { companyProfile: profileToSave }, { merge: true });
 
       showToast("Perfil de la empresa guardado exitosamente", "success");
     } catch (err) {
       console.error(err);
       showToast("Error al guardar perfil", "error");
     }
-  };
-
-  const handleAddBranch = () => {
-    if (!newBranch.codigo || !newBranch.nombre || !newBranch.direccion) {
-      showToast("Complete el código, nombre y dirección de la sucursal", "error");
-      return;
-    }
-    if (newBranch.codigo.length !== 3 || isNaN(newBranch.codigo)) {
-      showToast("El código debe tener exactamente 3 dígitos numéricos (ej. 002)", "error");
-      return;
-    }
-    if (companyProfile.sucursales.some(b => b.codigo === newBranch.codigo)) {
-      showToast("Ya existe un establecimiento con el código " + newBranch.codigo, "error");
-      return;
-    }
-    const updated = [...companyProfile.sucursales, { ...newBranch, activa: true, bodegas: [] }];
-    setCompanyProfile(prev => ({ ...prev, sucursales: updated }));
-    setNewBranch({ codigo: '', nombre: '', direccion: '', activa: true, bodegas: [] });
-    showToast("Sucursal agregada. Guarde los cambios para confirmar.", "success");
-  };
-
-  const handleRemoveBranch = (code) => {
-    if (code === '001') {
-      showToast("No se puede eliminar la sucursal matriz (001)", "error");
-      return;
-    }
-    const updated = companyProfile.sucursales.filter(b => b.codigo !== code);
-    setCompanyProfile(prev => ({ ...prev, sucursales: updated }));
-    showToast("Sucursal eliminada. Guarde los cambios para confirmar.", "info");
   };
 
   const handleAddWarehouse = () => {
@@ -524,8 +813,8 @@ export default function GeneralSettings({
         {activeSubTab === 'profile' && (
           <form onSubmit={handleSaveProfile} className="space-y-6 animate-in fade-in duration-200">
             <div className="border-b border-white/5 pb-3">
-              <h3 className="text-sm font-black uppercase tracking-wider text-primary">Pertenencia y Perfil de Empresa</h3>
-              <p className="text-[10px] text-gray-500 mt-1">Ingresa los datos generales de tu organización. Extrae los datos desde el SRI con tu RUC emisor y administra tus establecimientos tributarios y bodegas físicas.</p>
+              <h3 className="text-sm font-black uppercase tracking-wider text-primary">Perfil de Empresa y Configuración Fiscal</h3>
+              <p className="text-[10px] text-gray-500 mt-1">Configure los datos tributarios oficiales de su negocio para la emisión de comprobantes electrónicos en Ecuador. Ingrese su RUC para importar automáticamente los datos del SRI.</p>
             </div>
 
             {/* ALERTA RUC INACTIVO */}
@@ -536,223 +825,301 @@ export default function GeneralSettings({
               </div>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">Razón Social (Oficial SRI)</label>
-                <input 
-                  type="text" 
-                  value={companyProfile.razonSocial} 
-                  onChange={e => setCompanyProfile({...companyProfile, razonSocial: e.target.value})} 
-                  className={inputClass} 
-                  placeholder="Empresa Soluciones S.A." 
-                />
-              </div>
-              <div>
-                <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">Nombre Comercial</label>
-                <input 
-                  type="text" 
-                  value={companyProfile.nombreComercial} 
-                  onChange={e => setCompanyProfile({...companyProfile, nombreComercial: e.target.value})} 
-                  className={inputClass} 
-                  placeholder="WebFix Soluciones" 
-                />
-              </div>
-
-              {/* RUC CON BUSCADOR SRI */}
-              <div className="flex gap-2 items-end">
-                <div className="flex-1">
-                  <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">RUC Emisor (13 dígitos)</label>
-                  <input 
-                    type="text" 
-                    maxLength={13}
-                    value={companyProfile.ruc} 
-                    onChange={e => setCompanyProfile({...companyProfile, ruc: e.target.value})} 
-                    className={inputClass} 
-                    placeholder="1790000000001" 
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={handleSRIExtraction}
-                  disabled={isExtractingSRI}
-                  className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all border flex items-center gap-1.5 shrink-0 ${
-                    isDarkMode 
-                      ? 'bg-blue-600/10 border-blue-500/30 text-blue-400 hover:bg-blue-600/20' 
-                      : 'bg-blue-600 hover:bg-blue-500 text-white shadow-sm'
-                  }`}
-                >
-                  {isExtractingSRI && <Plus size={12} className="animate-spin" />}
-                  {isExtractingSRI ? 'Consultando...' : 'Extraer del SRI'}
-                </button>
-              </div>
-
-              <div>
-                <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">Teléfono Corporativo</label>
-                <input 
-                  type="text" 
-                  value={companyProfile.telefono} 
-                  onChange={e => setCompanyProfile({...companyProfile, telefono: e.target.value})} 
-                  className={inputClass} 
-                  placeholder="0999999999" 
-                />
-              </div>
-
-              <div className="sm:col-span-2">
-                <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">Dirección Matriz (SRI)</label>
-                <input 
-                  type="text" 
-                  value={companyProfile.direccionMatriz} 
-                  onChange={e => setCompanyProfile({...companyProfile, direccionMatriz: e.target.value})} 
-                  className={inputClass} 
-                  placeholder="Av. de los Shyris y Naciones Unidas, Quito" 
-                />
-              </div>
-
-              <div>
-                <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">Correo Electrónico</label>
-                <input 
-                  type="email" 
-                  value={companyProfile.email} 
-                  onChange={e => setCompanyProfile({...companyProfile, email: e.target.value})} 
-                  className={inputClass} 
-                  placeholder="contacto@empresa.com" 
-                />
-              </div>
-              <div>
-                <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">Sitio Web</label>
-                <input 
-                  type="text" 
-                  value={companyProfile.web} 
-                  onChange={e => setCompanyProfile({...companyProfile, web: e.target.value})} 
-                  className={inputClass} 
-                  placeholder="www.empresa.com" 
-                />
-              </div>
-            </div>
-
-            {/* ESTADO DEL RUC */}
-            {companyProfile.ruc && companyProfile.ruc.length === 13 && (
-              <div className={`p-3 rounded-xl flex items-center justify-between text-xs border ${
-                companyProfile.rucActivo
-                  ? 'bg-emerald-500/5 border-emerald-500/15 text-emerald-600 dark:text-emerald-400'
-                  : 'bg-red-500/5 border-red-500/15 text-red-500 dark:text-red-400'
-              }`}>
-                <span className="font-bold">Estatus Tributario SRI:</span>
-                <div className="flex items-center gap-2 font-black">
-                  <span className={`w-2 h-2 rounded-full ${companyProfile.rucActivo ? 'bg-emerald-500' : 'bg-red-500'}`}></span>
-                  {companyProfile.rucEstado} ({companyProfile.rucRegimen})
-                </div>
-              </div>
-            )}
-
-            {/* SECCIÓN PARÁMETROS TRIBUTARIOS */}
-            <div className={`p-5 rounded-2xl border space-y-4 ${isDarkMode ? 'bg-black/10 border-white/5' : 'bg-gray-50/50 border-gray-200'}`}>
-              <h4 className="text-xs font-black uppercase tracking-wider text-primary">Obligaciones y Resoluciones Tributarias</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-center gap-2 py-1">
-                  <input 
-                    type="checkbox" 
-                    id="obligadoCont" 
-                    checked={companyProfile.obligadoContabilidad} 
-                    onChange={e => setCompanyProfile({...companyProfile, obligadoContabilidad: e.target.checked})} 
-                    className="rounded text-blue-600 focus:ring-blue-500 h-4 w-4 bg-transparent border-gray-300"
-                  />
-                  <label htmlFor="obligadoCont" className="text-xs font-semibold text-gray-400 cursor-pointer">Obligado a llevar contabilidad</label>
-                </div>
-
-                <div>
-                  <label className="block text-[8px] font-bold uppercase mb-1 text-gray-500">Régimen Fiscal</label>
-                  <select 
-                    value={companyProfile.contribuyenteTipo} 
-                    onChange={e => setCompanyProfile({...companyProfile, contribuyenteTipo: e.target.value, rucRegimen: e.target.value.replace('_', ' ').toUpperCase()})} 
-                    className={inputClass}
-                  >
-                    <option value="general" className="text-black">Régimen General</option>
-                    <option value="rimpe_popular" className="text-black">RIMPE Popular</option>
-                    <option value="rimpe_emprendedor" className="text-black">RIMPE Emprendedor</option>
-                    <option value="microempresas" className="text-black">Microempresas</option>
-                  </select>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <input 
-                      type="checkbox" 
-                      id="agenteRet" 
-                      checked={companyProfile.agenteRetencion} 
-                      onChange={e => setCompanyProfile({...companyProfile, agenteRetencion: e.target.checked})} 
-                      className="rounded text-blue-600 focus:ring-blue-500 h-4 w-4 bg-transparent border-gray-300"
-                    />
-                    <label htmlFor="agenteRet" className="text-xs font-semibold text-gray-400 cursor-pointer">Agente de Retención</label>
-                  </div>
-                  {companyProfile.agenteRetencion && (
-                    <input 
-                      type="text" 
-                      value={companyProfile.agenteResolucion} 
-                      onChange={e => setCompanyProfile({...companyProfile, agenteResolucion: e.target.value})} 
-                      className={inputClass} 
-                      placeholder="Resolución Nro. NAC-..." 
-                    />
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <input 
-                      type="checkbox" 
-                      id="contEspecial" 
-                      checked={companyProfile.contribuyenteEspecial} 
-                      onChange={e => setCompanyProfile({...companyProfile, contribuyenteEspecial: e.target.checked})} 
-                      className="rounded text-blue-600 focus:ring-blue-500 h-4 w-4 bg-transparent border-gray-300"
-                    />
-                    <label htmlFor="contEspecial" className="text-xs font-semibold text-gray-400 cursor-pointer">Contribuyente Especial</label>
-                  </div>
-                  {companyProfile.contribuyenteEspecial && (
-                    <input 
-                      type="text" 
-                      value={companyProfile.especialResolucion} 
-                      onChange={e => setCompanyProfile({...companyProfile, especialResolucion: e.target.value})} 
-                      className={inputClass} 
-                      placeholder="Resolución Nro. ..." 
-                    />
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* SECCIÓN SUCURSALES Y BODEGAS (REDiseño para multi-bodega y sucursales) */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4 border-t border-white/5">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               
-              {/* PANEL SUCURSALES */}
+              {/* COLUMNA IZQUIERDA Y CENTRAL: FORMULARIO TRIBUTARIO */}
+              <div className="md:col-span-2 space-y-4">
+                
+                {/* RUC CON BUSCADOR SRI */}
+                <div className="flex gap-2 items-end">
+                  <div className="flex-1">
+                    <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500 flex items-center gap-1">
+                      <Lock size={10} className="text-gray-400" /> RUC Emisor (13 dígitos)
+                    </label>
+                    <input 
+                      type="text" 
+                      maxLength={13}
+                      value={companyProfile.ruc} 
+                      onChange={e => setCompanyProfile({...companyProfile, ruc: e.target.value})} 
+                      className={inputClass} 
+                      placeholder="1790000000001" 
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleSRIExtraction}
+                    disabled={isExtractingSRI}
+                    className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all border flex items-center gap-1.5 shrink-0 ${
+                      isDarkMode 
+                        ? 'bg-blue-600/10 border-blue-500/30 text-blue-400 hover:bg-blue-600/20' 
+                        : 'bg-blue-600 hover:bg-blue-500 text-white shadow-sm'
+                    }`}
+                  >
+                    {isExtractingSRI && <Plus size={12} className="animate-spin" />}
+                    {isExtractingSRI ? 'Consultando...' : 'Configurar Empresa'}
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500 flex items-center gap-1">
+                      <Lock size={10} className="text-gray-400" /> Razón Social (Bloqueado)
+                    </label>
+                    <input 
+                      type="text" 
+                      readOnly
+                      disabled
+                      value={companyProfile.razonSocial} 
+                      className={`${inputClass} opacity-60 bg-gray-500/5 cursor-not-allowed`} 
+                      placeholder="Razón Social cargada desde el SRI" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500 flex items-center gap-1">
+                      <Lock size={10} className="text-gray-400" /> Nombre Comercial (Bloqueado)
+                    </label>
+                    <input 
+                      type="text" 
+                      readOnly
+                      disabled
+                      value={companyProfile.nombreComercial} 
+                      className={`${inputClass} opacity-60 bg-gray-500/5 cursor-not-allowed`} 
+                      placeholder="Nombre Comercial cargado desde el SRI" 
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500 flex items-center gap-1">
+                      <Lock size={10} className="text-gray-400" /> Dirección Matriz (Bloqueado)
+                    </label>
+                    <input 
+                      type="text" 
+                      readOnly
+                      disabled
+                      value={companyProfile.direccionMatriz} 
+                      className={`${inputClass} opacity-60 bg-gray-500/5 cursor-not-allowed`} 
+                      placeholder="Dirección Matriz cargada desde el SRI" 
+                    />
+                  </div>
+
+                  {/* ESTADO DEL RUC */}
+                  {companyProfile.ruc && companyProfile.ruc.length === 13 && (
+                    <div className={`sm:col-span-2 p-3 rounded-xl flex items-center justify-between text-xs border ${
+                      companyProfile.rucActivo
+                        ? 'bg-emerald-500/5 border-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                        : 'bg-red-500/5 border-red-500/15 text-red-500 dark:text-red-400'
+                    }`}>
+                      <span className="font-bold flex items-center gap-1">
+                        <Lock size={11} /> Estado del Contribuyente:
+                      </span>
+                      <div className="flex items-center gap-2 font-black">
+                        <span className={`w-2 h-2 rounded-full ${companyProfile.rucActivo ? 'bg-emerald-500' : 'bg-red-500'}`}></span>
+                        {companyProfile.rucEstado} ({companyProfile.rucRegimen})
+                      </div>
+                    </div>
+                  )}
+
+                  {/* CONTACTO EDITABLE */}
+                  <div>
+                    <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">Teléfono Corporativo</label>
+                    <input 
+                      type="text" 
+                      value={companyProfile.telefono} 
+                      onChange={e => setCompanyProfile({...companyProfile, telefono: e.target.value})} 
+                      className={inputClass} 
+                      placeholder="0999999999" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">Correo Electrónico de Contacto</label>
+                    <input 
+                      type="email" 
+                      value={companyProfile.email} 
+                      onChange={e => setCompanyProfile({...companyProfile, email: e.target.value})} 
+                      className={inputClass} 
+                      placeholder="contacto@empresa.com" 
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">Sitio Web Corporativo</label>
+                    <input 
+                      type="text" 
+                      value={companyProfile.web} 
+                      onChange={e => setCompanyProfile({...companyProfile, web: e.target.value})} 
+                      className={inputClass} 
+                      placeholder="www.empresa.com" 
+                    />
+                  </div>
+                </div>
+
+                {/* SECCIÓN PARÁMETROS TRIBUTARIOS */}
+                <div className={`p-5 rounded-2xl border space-y-4 ${isDarkMode ? 'bg-black/10 border-white/5' : 'bg-gray-50/50 border-gray-200'}`}>
+                  <h4 className="text-xs font-black uppercase tracking-wider text-primary">Parámetros Tributarios Contables</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="flex items-center gap-2 py-1">
+                      <input 
+                        type="checkbox" 
+                        id="obligadoCont" 
+                        checked={companyProfile.obligadoContabilidad} 
+                        onChange={e => setCompanyProfile({...companyProfile, obligadoContabilidad: e.target.checked})} 
+                        className="rounded text-blue-605 focus:ring-blue-500 h-4 w-4 bg-transparent border-gray-300 cursor-pointer"
+                      />
+                      <label htmlFor="obligadoCont" className="text-xs font-semibold text-gray-400 cursor-pointer">Obligado a llevar contabilidad</label>
+                    </div>
+
+                    <div>
+                      <label className="block text-[8px] font-bold uppercase mb-1 text-gray-500">Tipo de Contribuyente</label>
+                      <select 
+                        value={companyProfile.contribuyenteTipo} 
+                        onChange={e => setCompanyProfile({...companyProfile, contribuyenteTipo: e.target.value, rucRegimen: e.target.value.replace('_', ' ').toUpperCase()})} 
+                        className={inputClass}
+                      >
+                        <option value="general" className="text-black">Régimen General</option>
+                        <option value="rimpe_popular" className="text-black">RIMPE Popular</option>
+                        <option value="rimpe_emprendedor" className="text-black">RIMPE Emprendedor</option>
+                        <option value="microempresas" className="text-black">Microempresas</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <input 
+                          type="checkbox" 
+                          id="agenteRet" 
+                          checked={companyProfile.agenteRetencion} 
+                          onChange={e => setCompanyProfile({...companyProfile, agenteRetencion: e.target.checked})} 
+                          className="rounded text-blue-605 focus:ring-blue-500 h-4 w-4 bg-transparent border-gray-300 cursor-pointer"
+                        />
+                        <label htmlFor="agenteRet" className="text-xs font-semibold text-gray-400 cursor-pointer">Agente de Retención</label>
+                      </div>
+                      {companyProfile.agenteRetencion && (
+                        <input 
+                          type="text" 
+                          value={companyProfile.agenteResolucion} 
+                          onChange={e => setCompanyProfile({...companyProfile, agenteResolucion: e.target.value})} 
+                          className={inputClass} 
+                          placeholder="Resolución Nro. NAC-..." 
+                        />
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <input 
+                          type="checkbox" 
+                          id="contEspecial" 
+                          checked={companyProfile.contribuyenteEspecial} 
+                          onChange={e => setCompanyProfile({...companyProfile, contribuyenteEspecial: e.target.checked})} 
+                          className="rounded text-blue-605 focus:ring-blue-500 h-4 w-4 bg-transparent border-gray-300 cursor-pointer"
+                        />
+                        <label htmlFor="contEspecial" className="text-xs font-semibold text-gray-400 cursor-pointer">Contribuyente Especial</label>
+                      </div>
+                      {companyProfile.contribuyenteEspecial && (
+                        <input 
+                          type="text" 
+                          value={companyProfile.especialResolucion} 
+                          onChange={e => setCompanyProfile({...companyProfile, especialResolucion: e.target.value})} 
+                          className={inputClass} 
+                          placeholder="Resolución Nro. ..." 
+                        />
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* COLUMNA DERECHA: LOGOTIPO CORPORATIVO */}
+              <div className="space-y-4">
+                <div className={`p-5 rounded-3xl border ${isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-gray-50 border-gray-250'}`}>
+                  <label className="block text-[9px] font-bold uppercase mb-2.5 text-gray-500 text-center">Logotipo Oficial de la Empresa</label>
+                  
+                  {companyProfile.logoUrl ? (
+                    <div className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border border-dashed border-emerald-500/30 bg-emerald-500/5">
+                      <div className="w-32 h-32 flex items-center justify-center bg-white rounded-2xl p-2 shadow-inner border border-gray-100">
+                        <img src={companyProfile.logoUrl} alt="Logo" className="max-h-full max-w-full object-contain" />
+                      </div>
+                      <div className="text-center">
+                        <p className="text-[10px] font-bold text-emerald-450">Logotipo Guardado</p>
+                        <button 
+                          type="button" 
+                          onClick={handleRemoveLogo} 
+                          className="text-[9px] text-red-500 hover:text-red-700 hover:underline font-bold mt-1.5 flex items-center justify-center gap-1 m-auto"
+                        >
+                          <Trash2 size={10} /> Eliminar Logotipo
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <label className={`w-full flex flex-col items-center justify-center gap-3 p-8 rounded-2xl border border-dashed cursor-pointer transition-all ${
+                        isDarkMode 
+                          ? 'border-white/20 hover:border-blue-500/40 hover:bg-white/5 text-gray-400' 
+                          : 'border-gray-300 hover:border-blue-500/40 hover:bg-gray-100/50 text-gray-600'
+                      }`}>
+                        <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} disabled={isUploadingLogo} />
+                        <UploadCloud size={28} className={isUploadingLogo ? 'animate-bounce text-blue-500' : 'text-gray-450'} />
+                        <span className="text-[10px] font-semibold text-center leading-normal">
+                          {isUploadingLogo ? 'Subiendo imagen...' : 'Subir Logotipo\n(PNG, JPG, SVG)'}
+                        </span>
+                      </label>
+                      <p className="text-[9px] text-gray-500 mt-2.5 text-center leading-relaxed">
+                        Este logotipo se insertará en el encabezado de todas las Facturas, Notas de Crédito, Guías de Remisión y Cotizaciones.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* INFO ADICIONAL DE FIRMA */}
+                {companyProfile.certificadoCargado && (
+                  <div className={`p-4 rounded-2xl border text-xs flex gap-2.5 items-start ${
+                    isDarkMode ? 'bg-emerald-500/5 border-emerald-500/10 text-emerald-400' : 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                  }`}>
+                    <CheckCircle2 size={16} className="shrink-0 mt-0.5 text-emerald-500" />
+                    <div>
+                      <p className="font-bold text-[9px] uppercase tracking-wider">Firma Electrónica Activa</p>
+                      <p className="text-[9px] opacity-90 mt-0.5 truncate font-mono">Nombre: {companyProfile.certificadoNombre}</p>
+                      <p className="text-[9px] opacity-90 mt-0.5">Vence: {companyProfile.certificadoVence}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+            </div>
+
+            {/* SECCIÓN SUCURSALES Y BODEGAS */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-6 border-t border-white/5">
+              
+              {/* PANEL SUCURSALES (Bloqueado) */}
               <div className="space-y-4">
                 <div className="flex justify-between items-center pb-2 border-b border-white/5">
                   <h4 className="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
-                    <Building size={14} /> Establecimientos / Sucursales
+                    <Lock size={12} className="text-gray-400" /> Establecimientos del SRI (Bloqueado)
                   </h4>
                 </div>
 
-                <div className="space-y-3 max-h-[250px] overflow-y-auto pr-1">
+                <div className="space-y-3 max-h-[260px] overflow-y-auto pr-1">
                   {companyProfile.sucursales && companyProfile.sucursales.map(branch => (
-                    <div key={branch.codigo} className={`p-3 rounded-xl border space-y-2 ${isDarkMode ? 'bg-black/20 border-white/5' : 'bg-gray-50 border-gray-200'}`}>
+                    <div key={branch.codigo} className={`p-3 rounded-xl border space-y-2 ${isDarkMode ? 'bg-black/20 border-white/5' : 'bg-gray-50 border-gray-200'} opacity-85`}>
                       <div className="flex justify-between items-start">
                         <div>
-                          <p className="text-xs font-black">{branch.codigo} - {branch.nombre}</p>
+                          <p className="text-xs font-black flex items-center gap-1 text-gray-200">
+                            <Building size={11} className="text-gray-500" /> {branch.codigo} - {branch.nombre}
+                          </p>
                           <p className="text-[10px] text-gray-500 mt-0.5">{branch.direccion}</p>
                         </div>
-                        {branch.codigo !== '001' && (
-                          <button 
-                            type="button" 
-                            onClick={() => handleRemoveBranch(branch.codigo)}
-                            className="text-[10px] font-bold text-red-500 hover:text-red-700 hover:underline"
-                          >
-                            Remover
-                          </button>
-                        )}
+                        <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded ${
+                          branch.activa 
+                            ? 'bg-emerald-500/10 text-emerald-450 border border-emerald-500/20' 
+                            : 'bg-red-500/10 text-red-450 border border-red-500/20'
+                        }`}>
+                          {branch.activa ? 'Activo' : 'Inactivo'}
+                        </span>
                       </div>
 
                       {/* Checkboxes de bodegas asociadas a esta sucursal */}
                       <div className="pt-2 border-t border-white/5 space-y-1">
-                        <p className="text-[9px] font-bold uppercase tracking-wider text-gray-500">Bodegas de esta Sucursal:</p>
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-gray-500">Bodegas Asignadas:</p>
                         <div className="flex flex-wrap gap-x-3 gap-y-1">
                           {companyProfile.bodegas.map(whName => {
                             const isAssoc = branch.bodegas && branch.bodegas.includes(whName);
@@ -772,62 +1139,31 @@ export default function GeneralSettings({
                       </div>
                     </div>
                   ))}
-                </div>
-
-                {/* Formulario rápido sucursal */}
-                <div className={`p-3 rounded-xl border space-y-2.5 ${isDarkMode ? 'bg-black/10 border-white/5' : 'bg-gray-100/50 border-gray-250'}`}>
-                  <p className="text-[10px] font-black uppercase text-gray-400">Activar Nueva Sucursal</p>
-                  <div className="grid grid-cols-3 gap-2">
-                    <input 
-                      type="text" 
-                      maxLength={3} 
-                      placeholder="Cod. (002)" 
-                      value={newBranch.codigo} 
-                      onChange={e => setNewBranch({...newBranch, codigo: e.target.value})} 
-                      className={inputClass} 
-                    />
-                    <input 
-                      type="text" 
-                      placeholder="Nombre Sucursal" 
-                      value={newBranch.nombre} 
-                      onChange={e => setNewBranch({...newBranch, nombre: e.target.value})} 
-                      className={`col-span-2 ${inputClass}`} 
-                    />
-                  </div>
-                  <input 
-                    type="text" 
-                    placeholder="Dirección Física de la Sucursal" 
-                    value={newBranch.direccion} 
-                    onChange={e => setNewBranch({...newBranch, direccion: e.target.value})} 
-                    className={inputClass} 
-                  />
-                  <button 
-                    type="button" 
-                    onClick={handleAddBranch}
-                    className="w-full py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs"
-                  >
-                    Activar Sucursal
-                  </button>
+                  {(!companyProfile.sucursales || companyProfile.sucursales.length === 0) && (
+                    <p className="text-[10px] text-gray-500 italic">No hay establecimientos cargados. Ingrese su RUC arriba y pulse configurar.</p>
+                  )}
                 </div>
               </div>
 
-              {/* PANEL BODEGAS */}
+              {/* PANEL BODEGAS (Manual) */}
               <div className="space-y-4">
                 <div className="flex justify-between items-center pb-2 border-b border-white/5">
                   <h4 className="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
-                    <Package size={14} /> Bodegas / Almacenes de Inventario
+                    <Package size={14} className="text-emerald-500" /> Bodegas de Inventario (Manual)
                   </h4>
                 </div>
 
-                <div className="flex flex-wrap gap-2 min-h-[80px] p-3 rounded-xl border border-dashed border-white/10">
+                <div className="flex flex-wrap gap-2 min-h-[90px] p-3.5 rounded-2xl border border-dashed border-white/10 align-middle">
                   {companyProfile.bodegas.map(wh => (
-                    <div key={wh} className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold ${isDarkMode ? 'bg-white/5 text-gray-200' : 'bg-gray-100 text-gray-800'}`}>
+                    <div key={wh} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold ${
+                      isDarkMode ? 'bg-white/5 text-gray-200 border border-white/5' : 'bg-gray-100 text-gray-800'
+                    }`}>
                       <span>{wh}</span>
                       {wh !== 'Bodega Central' && (
                         <button 
                           type="button" 
                           onClick={() => handleRemoveWarehouse(wh)}
-                          className="text-red-500 hover:text-red-750 font-bold ml-1"
+                          className="text-red-500 hover:text-red-700 font-black ml-1 text-sm leading-none"
                         >
                           ×
                         </button>
@@ -835,7 +1171,7 @@ export default function GeneralSettings({
                     </div>
                   ))}
                   {companyProfile.bodegas.length === 0 && (
-                    <p className="text-[10px] text-gray-500 italic m-auto">No hay bodegas registradas. Agrega una.</p>
+                    <p className="text-[10px] text-gray-500 italic m-auto">No hay bodegas registradas. Agrega bodegas físicas para almacenar inventarios.</p>
                   )}
                 </div>
 
@@ -843,7 +1179,7 @@ export default function GeneralSettings({
                 <div className="flex gap-2">
                   <input 
                     type="text" 
-                    placeholder="Nombre de Bodega (ej. Bodega Norte)" 
+                    placeholder="Nombre de Bodega (ej. Almacén Norte)" 
                     value={newWarehouseName} 
                     onChange={e => setNewWarehouseName(e.target.value)} 
                     className={inputClass} 
@@ -851,19 +1187,40 @@ export default function GeneralSettings({
                   <button 
                     type="button" 
                     onClick={handleAddWarehouse}
-                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shrink-0"
+                    className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs shrink-0 transition-transform active:scale-95"
                   >
-                    Agregar
+                    Agregar Bodega
                   </button>
                 </div>
-                <p className="text-[9px] text-gray-500 leading-normal">Las bodegas declaradas aquí estarán disponibles para el control de inventario de tus productos y para la facturación.</p>
+                <p className="text-[9px] text-gray-500 leading-normal">
+                  Puede crear bodegas físicas independientes para distribuir su stock. Posteriormente asócielas a sus sucursales fiscales del SRI.
+                </p>
               </div>
 
             </div>
 
-            <div className="flex justify-end pt-4 border-t border-white/5">
-              <button type="submit" className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-black bg-primary hover:bg-primary-hover text-white shadow-md transition-transform hover:-translate-y-0.5">
-                <Save size={14} /> Guardar Perfil
+            {/* BOTONES DE ACCIÓN PRINCIPALES */}
+            <div className="flex justify-between items-center pt-6 border-t border-white/5">
+              <div>
+                {companyProfile.ruc && companyProfile.ruc.length === 13 && (
+                  <button 
+                    type="button" 
+                    onClick={() => setIsFirmaOpen(true)}
+                    className={`flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-black shadow transition-all hover:-translate-y-0.5 border ${
+                      isDarkMode 
+                        ? 'bg-purple-600/10 border-purple-500/20 text-purple-400 hover:bg-purple-600/20' 
+                        : 'bg-purple-50 border-purple-200 text-purple-800 hover:bg-purple-100'
+                    }`}
+                  >
+                    <Award size={14} /> {companyProfile.certificadoCargado ? 'Configurar Firma Electrónica' : 'Ingresar Firma Electrónica'}
+                  </button>
+                )}
+              </div>
+              <button 
+                type="submit" 
+                className="flex items-center gap-1.5 px-6 py-2.5 rounded-xl text-xs font-black bg-primary hover:bg-primary-hover text-white shadow-md transition-transform hover:-translate-y-0.5 active:scale-95"
+              >
+                <Save size={14} /> Guardar Empresa
               </button>
             </div>
           </form>
@@ -1381,6 +1738,125 @@ export default function GeneralSettings({
         )}
 
       </div>
+
+      {/* MODAL CONFIGURACIÓN FIRMA ELECTRÓNICA */}
+      {isFirmaOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md overflow-y-auto animate-in fade-in duration-300">
+          <div className="relative w-full max-w-md rounded-3xl shadow-2xl border border-white/10 bg-[#151517] p-6 text-gray-300 animate-in zoom-in-95 duration-200">
+            
+            {/* Cabecera */}
+            <div className="flex justify-between items-start pb-4 border-b border-white/5 mb-4">
+              <div className="flex items-center gap-2">
+                <Award size={18} className="text-purple-400" />
+                <div>
+                  <h3 className="text-sm font-black uppercase tracking-wider text-purple-400">Firma Electrónica</h3>
+                  <p className="text-[9px] text-gray-500">Cargar archivo de firma digital (.p12 / .pfx)</p>
+                </div>
+              </div>
+              <button 
+                type="button" 
+                onClick={() => setIsFirmaOpen(false)}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Contenido */}
+            <div className="space-y-4">
+              
+              {tempFirma.certificadoCargado ? (
+                <div className="space-y-3.5">
+                  <div className={`p-4 rounded-xl border space-y-2.5 transition-all duration-300 ${
+                    certValidation.tipo === 'success' 
+                      ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
+                      : certValidation.tipo === 'warning'
+                        ? 'bg-amber-500/10 border-amber-500/20 text-amber-450' 
+                        : 'bg-red-500/10 border-red-500/20 text-red-400'
+                  }`}>
+                    <div className="flex justify-between items-start">
+                      <div className="truncate pr-2">
+                        <p className="text-xs font-black truncate">{tempFirma.certificadoNombre}</p>
+                        {certValidation.sujeto && <p className="text-[10px] font-bold mt-1.5 text-gray-400">Sujeto: <span className="font-extrabold text-gray-200">{certValidation.sujeto}</span></p>}
+                        {certValidation.emisor && <p className="text-[9px] opacity-80 mt-0.5">Emisor: {certValidation.emisor}</p>}
+                        {certValidation.vence && <p className="text-[9px] opacity-80 mt-0.5 font-mono">Expira: {certValidation.vence}</p>}
+                        {certValidation.ruc && <p className="text-[9px] opacity-85 mt-0.5 font-bold">RUC Firma: {certValidation.ruc}</p>}
+                      </div>
+                      <button 
+                        type="button" 
+                        onClick={removeCertificate} 
+                        className="text-[10px] font-bold text-red-500 hover:text-red-400 hover:underline shrink-0"
+                      >
+                        Quitar
+                      </button>
+                    </div>
+
+                    <div className="flex items-start gap-1.5 border-t border-current/10 pt-2.5">
+                      {certValidation.tipo === 'success' && <CheckCircle size={14} className="shrink-0 mt-0.5 text-emerald-500" />}
+                      {certValidation.tipo === 'warning' && <AlertCircle size={14} className="shrink-0 mt-0.5 text-amber-500" />}
+                      {certValidation.tipo === 'error' && <AlertCircle size={14} className="shrink-0 mt-0.5 text-red-500" />}
+                      <p className="text-[10px] leading-relaxed font-semibold">
+                        {certValidation.mensaje}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="block text-[10px] font-bold uppercase text-gray-500">Contraseña de la Firma</label>
+                    <div className="flex gap-2">
+                      <input 
+                        type="password" 
+                        value={tempFirma.certificadoClave} 
+                        onChange={e => setTempFirma({...tempFirma, certificadoClave: e.target.value})} 
+                        className={inputClass} 
+                        placeholder="Ingrese la contraseña" 
+                      />
+                      <button 
+                        type="button" 
+                        onClick={() => verifySignatureDetails(tempFirma.certificadoBase64, tempFirma.certificadoClave, companyProfile.ruc || '')}
+                        className="px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all border bg-blue-500/10 hover:bg-blue-600/20 border-blue-500/30 text-blue-400 active:scale-95"
+                      >
+                        Verificar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <label className="w-full flex flex-col items-center justify-center gap-2 p-6 rounded-2xl border border-dashed border-white/20 hover:bg-white/5 hover:border-purple-500/40 text-gray-400 cursor-pointer transition-all">
+                    <input type="file" accept=".p12,.pfx" className="hidden" onChange={handleCertificateUpload} />
+                    <Award size={24} className="text-gray-500" />
+                    <span className="text-xs font-semibold">Seleccionar Firma (.p12 / .pfx)</span>
+                  </label>
+                  <p className="text-[9.5px] text-gray-500 leading-relaxed text-center">
+                    Su archivo de firma electrónica se almacena de forma segura en la base de datos para realizar la firma en el servidor al emitir comprobantes autorizados por el SRI.
+                  </p>
+                </div>
+              )}
+
+            </div>
+
+            {/* Footer */}
+            <div className="flex justify-end gap-2.5 pt-4 border-t border-white/5 mt-5">
+              <button 
+                type="button" 
+                onClick={() => setIsFirmaOpen(false)}
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-white/5 hover:bg-white/10 text-gray-300 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button 
+                type="button" 
+                onClick={handleSaveFirma}
+                className="px-4.5 py-2 rounded-xl text-xs font-black bg-purple-600 hover:bg-purple-500 text-white shadow transition-transform active:scale-95"
+              >
+                Guardar Firma
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
 
     </div>
   );
