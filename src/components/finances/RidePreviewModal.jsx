@@ -32,7 +32,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
       case 'nota_debito':
         return 'NOTA DE DÉBITO';
       case 'nota_venta':
-        return 'NOTA DE VENTA / RECIBO';
+        return 'RECIBO';
       case 'retencion':
         return 'COMPROBANTE DE RETENCIÓN';
       case 'liquidacion':
@@ -226,14 +226,25 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
                     <h2 className="font-black text-[13px] tracking-wide text-gray-800">R.U.C.: {emisor.ruc}</h2>
                     <p className="text-[12px] font-black tracking-wider uppercase text-blue-800">{getDocTypeLabel()}</p>
                     <p><span className="font-bold">No.</span> {docNumFormatted}</p>
-                    <p><span className="font-bold">NÚMERO DE AUTORIZACIÓN:</span></p>
-                    <p className="font-mono text-[9px] break-all tracking-wide">{claveAcceso}</p>
-                    <p><span className="font-bold">FECHA Y HORA DE AUTORIZACIÓN:</span> {tx.date} 12:00:00 (Offline)</p>
-                    <p><span className="font-bold">AMBIENTE:</span> {emisor.ambiente === '2' ? 'PRODUCCIÓN' : 'PRUEBAS'}</p>
-                    <p><span className="font-bold">EMISIÓN:</span> NORMAL</p>
-                    
-                    {/* Código de barras */}
-                    <MockBarcode />
+                    {tx.documentType === 'nota_venta' ? (
+                      <>
+                        <p><span className="font-bold">TIPO DE DOCUMENTO:</span> RECIBO INTERNO</p>
+                        <p><span className="font-bold">ESTADO:</span> REGISTRADO</p>
+                        <p><span className="font-bold">VALIDEZ:</span> CONTROL INTERNO / NO TRIBUTARIO</p>
+                        <p><span className="font-bold">FECHA DE REGISTRO:</span> {tx.date.split('-').reverse().join('/')} {tx.time || ''}</p>
+                      </>
+                    ) : (
+                      <>
+                        <p><span className="font-bold">NÚMERO DE AUTORIZACIÓN:</span></p>
+                        <p className="font-mono text-[9px] break-all tracking-wide">{claveAcceso}</p>
+                        <p><span className="font-bold">FECHA Y HORA DE AUTORIZACIÓN:</span> {tx.date} 12:00:00 (Offline)</p>
+                        <p><span className="font-bold">AMBIENTE:</span> {emisor.ambiente === '2' ? 'PRODUCCIÓN' : 'PRUEBAS'}</p>
+                        <p><span className="font-bold">EMISIÓN:</span> NORMAL</p>
+                        
+                        {/* Código de barras */}
+                        <MockBarcode />
+                      </>
+                    )}
                   </div>
                 </div>
 
@@ -388,13 +399,13 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
                 <div className="border-t border-black border-dashed my-2"></div>
 
                 <div className="space-y-0.5">
-                  <p className="font-bold">{getDocTypeLabel()}</p>
-                  <p>No: {docNumFormatted}</p>
-                  <p>Clave: {claveAcceso.slice(0,25)}...</p>
-                  <p>Fecha: {tx.date} 12:00 (Offline)</p>
-                  <p>Cliente: {client.name.slice(0, 30)}</p>
-                  <p>RUC/CI: {client.ruc}</p>
-                  <p>Dir: {client.direccion || 'Quito, Ecuador'}</p>
+                   <p className="font-bold">{getDocTypeLabel()}</p>
+                   <p>No: {docNumFormatted}</p>
+                   {tx.documentType !== 'nota_venta' && <p>Clave: {claveAcceso.slice(0,25)}...</p>}
+                   <p>Fecha: {tx.date} {tx.time || '12:00'} {tx.documentType === 'nota_venta' ? '' : '(Offline)'}</p>
+                   <p>Cliente: {client.name.slice(0, 30)}</p>
+                   <p>RUC/CI: {client.ruc}</p>
+                   <p>Dir: {client.direccion || 'Quito, Ecuador'}</p>
                 </div>
 
                 <div className="border-t border-black border-dashed my-2"></div>
@@ -469,16 +480,25 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
 
                 <div className="text-center space-y-1 text-[7.5px] leading-tight">
                   <p>¡Gracias por su compra!</p>
-                  <p>Autorización SRI offline.</p>
-                  <p>Consulte su RIDE en su correo.</p>
-                  
-                  {/* Codigo de barras en el ticket */}
-                  <div className="flex h-5 w-full bg-white items-stretch justify-center gap-[0.5px] px-2 py-0.5">
-                    {[1,1,2,1,2,1,1,2,1,1,2,1,2,1,1,2,1,1,2,1,2,1,1,2,1,1,2,1].map((w, idx) => (
-                      <div key={idx} className="bg-black" style={{ width: `${w}px` }}></div>
-                    ))}
-                  </div>
-                  <p className="font-mono text-[7px] break-all">{claveAcceso.slice(0, 30)}...</p>
+                  {tx.documentType === 'nota_venta' ? (
+                    <>
+                      <p>Este documento es un comprobante de entrega.</p>
+                      <p>Control Interno / No Tributario.</p>
+                    </>
+                  ) : (
+                    <>
+                      <p>Autorización SRI offline.</p>
+                      <p>Consulte su RIDE en su correo.</p>
+                      
+                      {/* Codigo de barras en el ticket */}
+                      <div className="flex h-5 w-full bg-white items-stretch justify-center gap-[0.5px] px-2 py-0.5">
+                        {[1,1,2,1,2,1,1,2,1,1,2,1,2,1,1,2,1,1,2,1,2,1,1,2,1,1,2,1].map((w, idx) => (
+                          <div key={idx} className="bg-black" style={{ width: `${w}px` }}></div>
+                        ))}
+                      </div>
+                      <p className="font-mono text-[7px] break-all">{claveAcceso.slice(0, 30)}...</p>
+                    </>
+                  )}
                 </div>
               </div>
             )}

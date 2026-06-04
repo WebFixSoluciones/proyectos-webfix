@@ -594,6 +594,14 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     const cr = Number(payments.cruce_cuentas) || 0;
     const sum = ef + tr + tj + cr;
 
+    if (sum === 0 && total > 0) {
+      return {
+        isValid: false,
+        vuelto: 0,
+        error: 'Falta la forma de pago. Selecciona al menos un método de pago e ingresa el valor para cubrir el total.'
+      };
+    }
+
     if (sum < total - 0.01) {
       return {
         isValid: false,
@@ -1867,6 +1875,52 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       })}
                     </div>
 
+                    {/* REAL-TIME PAYMENT VALIDATION WARNINGS/ALERTS */}
+                    {(() => {
+                      const totalNum = Number(formData.total) || 0;
+                      const efVal = Number(payments.efectivo) || 0;
+                      const trVal = Number(payments.transferencia) || 0;
+                      const tjVal = Number(payments.tarjeta) || 0;
+                      const crVal = Number(payments.cruce_cuentas) || 0;
+                      const sum = efVal + trVal + tjVal + crVal;
+
+                      if (sum === 0 && totalNum > 0) {
+                        return (
+                          <div className="mb-4 p-3 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-650 dark:text-red-400 font-extrabold text-[10px] flex items-center gap-2 animate-pulse">
+                            <AlertTriangle size={14} className="shrink-0 text-red-500" />
+                            <span>⚠️ FALTA LA FORMA DE PAGO: Selecciona un método de pago e ingresa el valor para cubrir ${totalNum.toFixed(2)}.</span>
+                          </div>
+                        );
+                      } else if (sum < totalNum - 0.01) {
+                        return (
+                          <div className="mb-4 p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-400 font-extrabold text-[10px] flex items-center gap-2 animate-pulse">
+                            <AlertTriangle size={14} className="shrink-0 text-amber-500" />
+                            <span>⚠️ PAGO INCOMPLETO: Cubierto ${sum.toFixed(2)} de ${totalNum.toFixed(2)}. Falta cubrir ${(totalNum - sum).toFixed(2)}.</span>
+                          </div>
+                        );
+                      } else if (sum > totalNum + 0.01 && efVal < sum - totalNum) {
+                        return (
+                          <div className="mb-4 p-3 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-650 dark:text-red-400 font-extrabold text-[10px] flex items-center gap-2">
+                            <AlertTriangle size={14} className="shrink-0 text-red-500" />
+                            <span>⚠️ ERROR EN VUELTO: El vuelto (${(sum - totalNum).toFixed(2)}) no puede superar al efectivo recibido (${efVal.toFixed(2)}).</span>
+                          </div>
+                        );
+                      }
+                      
+                      const limit = Number(matchedTercero?.limiteCredito) || 1000;
+                      const available = limit - clientDebt;
+                      if (crVal > available) {
+                        return (
+                          <div className="mb-4 p-3 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-650 dark:text-red-400 font-extrabold text-[10px] flex items-center gap-2">
+                            <AlertTriangle size={14} className="shrink-0 text-red-500" />
+                            <span>⚠️ LÍMITE DE CRÉDITO SUPERADO: El crédito (${crVal.toFixed(2)}) supera el cupo disponible del cliente (${available.toFixed(2)}).</span>
+                          </div>
+                        );
+                      }
+
+                      return null;
+                    })()}
+
                     {/* EXPANDED DETAILED FIELDS FOR ACTIVE METHODS */}
                     <div className="space-y-3.5">
                       {/* CARD EFECTIVO */}
@@ -2081,7 +2135,9 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 <div className={`p-6 rounded-3xl border shadow-lg ${isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'}`}>
                   <div className="flex items-center gap-2 mb-4 border-b pb-3 border-gray-200 dark:border-white/5">
                     <FileText className="text-blue-500" size={16} />
-                    <h3 className="text-xs font-bold uppercase tracking-wider">Vista Previa del RIDE (SRI Ecuador)</h3>
+                    <h3 className="text-xs font-bold uppercase tracking-wider">
+                      {formData.documentType === 'factura' ? 'Vista Previa del RIDE (SRI Ecuador)' : 'Vista Previa del Recibo (Control Interno)'}
+                    </h3>
                   </div>
 
                   {/* RIDE SHEET */}
@@ -2118,31 +2174,40 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       }`}>
                         <div>
                           <p className="font-black text-sm uppercase tracking-wider text-gray-900 dark:text-white">
-                            {formData.documentType === 'factura' ? 'Factura Electrónica' : 'Nota de Venta (Recibo)'}
+                            {formData.documentType === 'factura' ? 'Factura Electrónica' : 'RECIBO'}
                           </p>
                           <p className="font-mono text-[11px] font-bold text-blue-500 mt-0.5">
                             Nº:{' '}
                             {isEditable && !formData.documentNumber
-                              ? `${sriConfig.establecimiento || '001'}-${sriConfig.puntoEmision || '001'}-${String(formData.secuencial || sriConfig.secuencialFactura || 1).padStart(9, '0')}`
+                              ? `${sriConfig.establecimiento || '001'}-${sriConfig.puntoEmision || '001'}-${String(formData.secuencial || (formData.documentType === 'nota_venta' ? sriConfig.secuencialNotaVenta : sriConfig.secuencialFactura) || 1).padStart(9, '0')}`
                               : formData.documentNumber
                             }
                           </p>
                         </div>
-                        <div className="mt-3.5 space-y-1 text-[10px]">
-                          <p><span className="font-bold text-gray-500">Ambiente:</span> {sriConfig.ambiente === '1' ? 'PRUEBAS' : 'PRODUCCIÓN'}</p>
-                          <p><span className="font-bold text-gray-500">Emisión:</span> NORMAL</p>
-                          <p className="font-bold text-gray-500 mt-2">Clave de Acceso / Autorización SRI:</p>
-                          <p className="font-mono text-[9px] break-all leading-normal text-gray-400">
-                            {formData.claveAcceso || '0604202601179000000000120010010000001231234567812'}
-                          </p>
-                          
-                          {/* DYNAMIC BARCODE RENDER */}
-                          <div className="flex items-center justify-center gap-px h-6 bg-white py-1 px-2 rounded border border-gray-200 mt-2 select-none overflow-hidden max-w-[200px]">
-                            {[2, 1, 3, 1, 2, 4, 1, 2, 1, 3, 2, 1, 4, 1, 2, 1, 3, 1, 2, 4, 1, 2, 1, 3, 2, 1, 4, 1, 2, 1, 2, 1, 3, 1].map((w, idx) => (
-                              <div key={idx} className="bg-black h-full" style={{ width: `${w}px` }} />
-                            ))}
+                        {formData.documentType === 'factura' ? (
+                          <div className="mt-3.5 space-y-1 text-[10px]">
+                            <p><span className="font-bold text-gray-500">Ambiente:</span> {sriConfig.ambiente === '1' ? 'PRUEBAS' : 'PRODUCCIÓN'}</p>
+                            <p><span className="font-bold text-gray-500">Emisión:</span> NORMAL</p>
+                            <p className="font-bold text-gray-500 mt-2">Clave de Acceso / Autorización SRI:</p>
+                            <p className="font-mono text-[9px] break-all leading-normal text-gray-400">
+                              {formData.claveAcceso || '0604202601179000000000120010010000001231234567812'}
+                            </p>
+                            
+                            {/* DYNAMIC BARCODE RENDER */}
+                            <div className="flex items-center justify-center gap-px h-6 bg-white py-1 px-2 rounded border border-gray-200 mt-2 select-none overflow-hidden max-w-[200px]">
+                              {[2, 1, 3, 1, 2, 4, 1, 2, 1, 3, 2, 1, 4, 1, 2, 1, 3, 1, 2, 4, 1, 2, 1, 3, 2, 1, 4, 1, 2, 1, 2, 1, 3, 1].map((w, idx) => (
+                                <div key={idx} className="bg-black h-full" style={{ width: `${w}px` }} />
+                              ))}
+                            </div>
                           </div>
-                        </div>
+                        ) : (
+                          <div className="mt-3.5 space-y-1.5 text-[10px]">
+                            <p><span className="font-bold text-gray-500">Tipo de Documento:</span> RECIBO INTERNO</p>
+                            <p><span className="font-bold text-gray-500">Estado:</span> {formData.sriStatus === 'autorizado' ? 'REGISTRADO' : 'BORRADOR'}</p>
+                            <p><span className="font-bold text-gray-500">Validez:</span> CONTROL DE VENTA INTERNA</p>
+                            <p><span className="font-bold text-gray-500">Fecha/Hora:</span> {formData.date || new Date().toISOString().split('T')[0]} {formData.time || ''}</p>
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -2313,51 +2378,53 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   </div>
                 </div>
 
-                {/* ARCHIVOS SRI ADJUNTOS */}
-                <div className={`p-6 rounded-3xl border shadow-sm ${isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'}`}>
-                  <h3 className="text-xs font-bold uppercase tracking-wider mb-3 flex justify-between items-center">
-                    Documentos Digitales Asociados
-                    {isUploading && <span className="text-[9px] text-blue-500 animate-pulse">Subiendo...</span>}
-                  </h3>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="flex gap-2">
-                      {formData.type !== 'ingreso' ? (
-                        <label className={`flex-1 flex items-center justify-center gap-1.5 p-3 rounded-xl border border-dashed cursor-pointer transition-colors ${formData.xmlUrl ? 'border-emerald-500/30 bg-emerald-500/5 text-emerald-500' : 'border-gray-400 hover:bg-gray-200 text-gray-800 font-semibold bg-white'}`}>
-                          <input type="file" accept=".xml" className="hidden" onChange={(e) => handleFileUpload(e, 'xml')} disabled={isUploading || !isEditable}/>
-                          {formData.xmlUrl ? <CheckCircle2 size={14}/> : <UploadCloud size={14}/>}
-                          <span className="text-xs font-bold">{formData.xmlUrl ? 'XML Guardado' : 'Subir XML'}</span>
-                        </label>
-                      ) : (
-                        formData.xmlUrl && (
-                          <div className="flex-1 flex items-center justify-center gap-1.5 p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/5 text-emerald-500">
-                            <CheckCircle2 size={14}/>
-                            <span className="text-xs font-bold">XML Generado</span>
-                          </div>
-                        )
-                      )}
-                      {formData.xmlUrl && <a href={formData.xmlUrl} target="_blank" rel="noreferrer" className="p-3 rounded-xl bg-blue-600 text-white shrink-0 hover:bg-blue-500"><FileText size={14}/></a>}
-                    </div>
+                 {/* ARCHIVOS SRI ADJUNTOS */}
+                 {formData.documentType !== 'nota_venta' && (
+                   <div className={`p-6 rounded-3xl border shadow-sm ${isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'}`}>
+                     <h3 className="text-xs font-bold uppercase tracking-wider mb-3 flex justify-between items-center">
+                       Documentos Digitales Asociados
+                       {isUploading && <span className="text-[9px] text-blue-500 animate-pulse">Subiendo...</span>}
+                     </h3>
+                     
+                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                       <div className="flex gap-2">
+                         {formData.type !== 'ingreso' ? (
+                           <label className={`flex-1 flex items-center justify-center gap-1.5 p-3 rounded-xl border border-dashed cursor-pointer transition-colors ${formData.xmlUrl ? 'border-emerald-500/30 bg-emerald-500/5 text-emerald-500' : 'border-gray-400 hover:bg-gray-200 text-gray-800 font-semibold bg-white'}`}>
+                             <input type="file" accept=".xml" className="hidden" onChange={(e) => handleFileUpload(e, 'xml')} disabled={isUploading || !isEditable}/>
+                             {formData.xmlUrl ? <CheckCircle2 size={14}/> : <UploadCloud size={14}/>}
+                             <span className="text-xs font-bold">{formData.xmlUrl ? 'XML Guardado' : 'Subir XML'}</span>
+                           </label>
+                         ) : (
+                           formData.xmlUrl && (
+                             <div className="flex-1 flex items-center justify-center gap-1.5 p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/5 text-emerald-500">
+                               <CheckCircle2 size={14}/>
+                               <span className="text-xs font-bold">XML Generado</span>
+                             </div>
+                           )
+                         )}
+                         {formData.xmlUrl && <a href={formData.xmlUrl} target="_blank" rel="noreferrer" className="p-3 rounded-xl bg-blue-600 text-white shrink-0 hover:bg-blue-500"><FileText size={14}/></a>}
+                       </div>
 
-                    <div className="flex gap-2">
-                      {formData.type !== 'ingreso' ? (
-                        <label className={`flex-1 flex items-center justify-center gap-1.5 p-3 rounded-xl border border-dashed cursor-pointer transition-colors ${formData.pdfUrl ? 'border-emerald-500/30 bg-emerald-500/5 text-emerald-500' : 'border-gray-400 hover:bg-gray-200 text-gray-800 font-semibold bg-white'}`}>
-                          <input type="file" accept=".pdf" className="hidden" onChange={(e) => handleFileUpload(e, 'pdf')} disabled={isUploading || !isEditable}/>
-                          {formData.pdfUrl ? <CheckCircle2 size={14}/> : <UploadCloud size={14}/>}
-                          <span className="text-xs font-bold">{formData.pdfUrl ? 'PDF RIDE' : 'Subir PDF'}</span>
-                        </label>
-                      ) : (
-                        formData.pdfUrl && (
-                          <div className="flex-1 flex items-center justify-center gap-1.5 p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/5 text-emerald-500">
-                            <CheckCircle2 size={14}/>
-                            <span className="text-xs font-bold">PDF RIDE</span>
-                          </div>
-                        )
-                      )}
-                      {formData.pdfUrl && <a href={formData.pdfUrl} target="_blank" rel="noreferrer" className="p-3 rounded-xl bg-blue-600 text-white shrink-0 hover:bg-blue-500"><FileText size={14}/></a>}
-                    </div>
-                  </div>
-                </div>
+                       <div className="flex gap-2">
+                         {formData.type !== 'ingreso' ? (
+                           <label className={`flex-1 flex items-center justify-center gap-1.5 p-3 rounded-xl border border-dashed cursor-pointer transition-colors ${formData.pdfUrl ? 'border-emerald-500/30 bg-emerald-500/5 text-emerald-500' : 'border-gray-400 hover:bg-gray-200 text-gray-800 font-semibold bg-white'}`}>
+                             <input type="file" accept=".pdf" className="hidden" onChange={(e) => handleFileUpload(e, 'pdf')} disabled={isUploading || !isEditable}/>
+                             {formData.pdfUrl ? <CheckCircle2 size={14}/> : <UploadCloud size={14}/>}
+                             <span className="text-xs font-bold">{formData.pdfUrl ? 'PDF RIDE' : 'Subir PDF'}</span>
+                           </label>
+                         ) : (
+                           formData.pdfUrl && (
+                             <div className="flex-1 flex items-center justify-center gap-1.5 p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/5 text-emerald-500">
+                               <CheckCircle2 size={14}/>
+                               <span className="text-xs font-bold">PDF RIDE</span>
+                             </div>
+                           )
+                         )}
+                         {formData.pdfUrl && <a href={formData.pdfUrl} target="_blank" rel="noreferrer" className="p-3 rounded-xl bg-blue-600 text-white shrink-0 hover:bg-blue-500"><FileText size={14}/></a>}
+                       </div>
+                     </div>
+                   </div>
+                 )}
 
                 {/* CONSOLA BITACORA DE TRANSMISION SRI */}
                 {(isEmitting || sriLogs.length > 0) && (
