@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/cipherbyte/:path*",
+      "destination": "https://aggregator.cipherbyte.ec/:path*"
+    },
+    {
+      "source": "/api/sri/:path*",
+      "destination": "https://srienlinea.sri.gob.ec/:path*"
+    }
+  ]
+}

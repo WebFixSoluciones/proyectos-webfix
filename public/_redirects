@@ -1,0 +1,2 @@
+/api/cipherbyte/*  https://aggregator.cipherbyte.ec/:splat  200
+/api/sri/*         https://srienlinea.sri.gob.ec/:splat    200

@@ -1077,133 +1077,144 @@ export default function GeneralSettings({
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
               
-              {/* COLUMNA 1 (IZQUIERDA): FORMULARIO TRIBUTARIO Y PARÁMETROS */}
-              <div className="space-y-4">
+              {/* COLUMNA 1 (IZQUIERDA) */}
+              <div className="space-y-6">
                 
-                {/* RUC CON BUSCADOR SRI */}
-                <div className="flex gap-2 items-end">
-                  <div className="flex-1">
-                    <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500 flex items-center gap-1">
-                      <Lock size={10} className="text-gray-400" /> RUC Emisor (13 dígitos)
-                    </label>
-                    <input 
-                      type="text" 
-                      maxLength={13}
-                      value={companyProfile.ruc} 
-                      onChange={e => setCompanyProfile({...companyProfile, ruc: e.target.value})} 
-                      className={inputClass} 
-                      placeholder="1790000000001" 
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleSRIExtraction}
-                    disabled={isExtractingSRI}
-                    className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all border flex items-center gap-1.5 shrink-0 ${
-                      isDarkMode 
-                        ? 'bg-blue-600/10 border-blue-500/30 text-blue-400 hover:bg-blue-600/20' 
-                        : 'bg-blue-600 hover:bg-blue-500 text-white shadow-sm'
-                    }`}
-                  >
-                    {isExtractingSRI && <RefreshCw size={12} className="animate-spin" />}
-                    {isExtractingSRI ? 'Consultando...' : 'Configurar Empresa'}
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500 flex items-center gap-1">
-                      <Lock size={10} className="text-gray-400" /> Razón Social (Bloqueado)
-                    </label>
-                    <input 
-                      type="text" 
-                      readOnly
-                      disabled
-                      value={companyProfile.razonSocial} 
-                      className={`${inputClass} opacity-60 bg-gray-500/5 cursor-not-allowed`} 
-                      placeholder="Razón Social cargada desde el SRI" 
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500 flex items-center gap-1">
-                      <Lock size={10} className="text-gray-400" /> Nombre Comercial (Bloqueado)
-                    </label>
-                    <input 
-                      type="text" 
-                      readOnly
-                      disabled
-                      value={companyProfile.nombreComercial} 
-                      className={`${inputClass} opacity-60 bg-gray-500/5 cursor-not-allowed`} 
-                      placeholder="Nombre Comercial cargado desde el SRI" 
-                    />
-                  </div>
-
-                  <div className="sm:col-span-2">
-                    <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500 flex items-center gap-1">
-                      <Lock size={10} className="text-gray-400" /> Dirección Matriz (Bloqueado)
-                    </label>
-                    <input 
-                      type="text" 
-                      readOnly
-                      disabled
-                      value={companyProfile.direccionMatriz} 
-                      className={`${inputClass} opacity-60 bg-gray-500/5 cursor-not-allowed`} 
-                      placeholder="Dirección Matriz cargada desde el SRI" 
-                    />
-                  </div>
-
-                  {/* ESTADO DEL RUC */}
-                  {companyProfile.ruc && companyProfile.ruc.length === 13 && (
-                    <div className={`sm:col-span-2 p-3 rounded-xl flex items-center justify-between text-xs border ${
-                      companyProfile.rucActivo
-                        ? 'bg-emerald-500/5 border-emerald-500/15 text-emerald-600 dark:text-emerald-400'
-                        : 'bg-red-500/5 border-red-500/15 text-red-500 dark:text-red-400'
-                    }`}>
-                      <span className="font-bold flex items-center gap-1">
-                        <Lock size={11} /> Estado del Contribuyente:
-                      </span>
-                      <div className="flex items-center gap-2 font-black">
-                        <span className={`w-2 h-2 rounded-full ${companyProfile.rucActivo ? 'bg-emerald-500' : 'bg-red-500'}`}></span>
-                        {companyProfile.rucEstado} ({companyProfile.rucRegimen})
-                      </div>
+                {/* CARD 1: DATOS FISCALES DE LA EMPRESA */}
+                <div className={`p-5 rounded-3xl border space-y-4 ${isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-gray-50/50 border-gray-200 shadow-sm'}`}>
+                  <h4 className="text-xs font-black uppercase tracking-wider text-primary">Datos Fiscales de la Empresa</h4>
+                  
+                  {/* RUC CON BUSCADOR SRI */}
+                  <div className="flex gap-2 items-end">
+                    <div className="flex-1">
+                      <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500 flex items-center gap-1">
+                        <Lock size={10} className="text-gray-400" /> RUC Emisor (13 dígitos)
+                      </label>
+                      <input 
+                        type="text" 
+                        maxLength={13}
+                        value={companyProfile.ruc} 
+                        onChange={e => setCompanyProfile({...companyProfile, ruc: e.target.value})} 
+                        className={inputClass} 
+                        placeholder="1790000000001" 
+                      />
                     </div>
-                  )}
+                    <button
+                      type="button"
+                      onClick={handleSRIExtraction}
+                      disabled={isExtractingSRI}
+                      className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all border flex items-center gap-1.5 shrink-0 ${
+                        isDarkMode 
+                          ? 'bg-blue-600/10 border-blue-500/30 text-blue-400 hover:bg-blue-600/20' 
+                          : 'bg-blue-600 hover:bg-blue-500 text-white shadow-sm'
+                      }`}
+                    >
+                      {isExtractingSRI && <RefreshCw size={12} className="animate-spin" />}
+                      {isExtractingSRI ? 'Consultando...' : 'Configurar Empresa'}
+                    </button>
+                  </div>
 
-                  {/* CONTACTO EDITABLE */}
-                  <div>
-                    <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">Teléfono Corporativo</label>
-                    <input 
-                      type="text" 
-                      value={companyProfile.telefono} 
-                      onChange={e => setCompanyProfile({...companyProfile, telefono: e.target.value})} 
-                      className={inputClass} 
-                      placeholder="0999999999" 
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">Correo Electrónico de Contacto</label>
-                    <input 
-                      type="email" 
-                      value={companyProfile.email} 
-                      onChange={e => setCompanyProfile({...companyProfile, email: e.target.value})} 
-                      className={inputClass} 
-                      placeholder="contacto@empresa.com" 
-                    />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">Sitio Web Corporativo</label>
-                    <input 
-                      type="text" 
-                      value={companyProfile.web} 
-                      onChange={e => setCompanyProfile({...companyProfile, web: e.target.value})} 
-                      className={inputClass} 
-                      placeholder="www.empresa.com" 
-                    />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500 flex items-center gap-1">
+                        <Lock size={10} className="text-gray-400" /> Razón Social (Bloqueado)
+                      </label>
+                      <input 
+                        type="text" 
+                        readOnly
+                        disabled
+                        value={companyProfile.razonSocial} 
+                        className={`${inputClass} opacity-60 bg-gray-500/5 cursor-not-allowed`} 
+                        placeholder="Razón Social cargada desde el SRI" 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500 flex items-center gap-1">
+                        <Lock size={10} className="text-gray-400" /> Nombre Comercial (Bloqueado)
+                      </label>
+                      <input 
+                        type="text" 
+                        readOnly
+                        disabled
+                        value={companyProfile.nombreComercial} 
+                        className={`${inputClass} opacity-60 bg-gray-500/5 cursor-not-allowed`} 
+                        placeholder="Nombre Comercial cargado desde el SRI" 
+                      />
+                    </div>
+
+                    <div className="sm:col-span-2">
+                      <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500 flex items-center gap-1">
+                        <Lock size={10} className="text-gray-400" /> Dirección Matriz (Bloqueado)
+                      </label>
+                      <input 
+                        type="text" 
+                        readOnly
+                        disabled
+                        value={companyProfile.direccionMatriz} 
+                        className={`${inputClass} opacity-60 bg-gray-500/5 cursor-not-allowed`} 
+                        placeholder="Dirección Matriz cargada desde el SRI" 
+                      />
+                    </div>
+
+                    {/* ESTADO DEL RUC */}
+                    {companyProfile.ruc && companyProfile.ruc.length === 13 && (
+                      <div className={`sm:col-span-2 p-3 rounded-xl flex items-center justify-between text-xs border ${
+                        companyProfile.rucActivo
+                          ? 'bg-emerald-500/5 border-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                          : 'bg-red-500/5 border-red-500/15 text-red-500 dark:text-red-400'
+                      }`}>
+                        <span className="font-bold flex items-center gap-1">
+                          <Lock size={11} /> Estado del Contribuyente:
+                        </span>
+                        <div className="flex items-center gap-2 font-black">
+                          <span className={`w-2 h-2 rounded-full ${companyProfile.rucActivo ? 'bg-emerald-500' : 'bg-red-500'}`}></span>
+                          {companyProfile.rucEstado} ({companyProfile.rucRegimen})
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                {/* SECCIÓN PARÁMETROS TRIBUTARIOS */}
-                <div className={`p-5 rounded-2xl border space-y-4 ${isDarkMode ? 'bg-black/10 border-white/5' : 'bg-gray-50/50 border-gray-200'}`}>
+                {/* CARD 2: INFORMACIÓN DE CONTACTO */}
+                <div className={`p-5 rounded-3xl border space-y-4 ${isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-gray-50/50 border-gray-200 shadow-sm'}`}>
+                  <h4 className="text-xs font-black uppercase tracking-wider text-primary">Información de Contacto</h4>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">Teléfono Corporativo</label>
+                      <input 
+                        type="text" 
+                        value={companyProfile.telefono} 
+                        onChange={e => setCompanyProfile({...companyProfile, telefono: e.target.value})} 
+                        className={inputClass} 
+                        placeholder="0999999999" 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">Correo Electrónico de Contacto</label>
+                      <input 
+                        type="email" 
+                        value={companyProfile.email} 
+                        onChange={e => setCompanyProfile({...companyProfile, email: e.target.value})} 
+                        className={inputClass} 
+                        placeholder="contacto@empresa.com" 
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">Sitio Web Corporativo</label>
+                      <input 
+                        type="text" 
+                        value={companyProfile.web} 
+                        onChange={e => setCompanyProfile({...companyProfile, web: e.target.value})} 
+                        className={inputClass} 
+                        placeholder="www.empresa.com" 
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* CARD 3: PARÁMETROS TRIBUTARIOS CONTABLES */}
+                <div className={`p-5 rounded-3xl border space-y-4 ${isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-gray-50/50 border-gray-200 shadow-sm'}`}>
                   <h4 className="text-xs font-black uppercase tracking-wider text-primary">Parámetros Tributarios Contables</h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="flex items-center gap-2 py-1">
@@ -1279,12 +1290,12 @@ export default function GeneralSettings({
 
               </div>
 
-              {/* COLUMNA 2 (DERECHA): LOGOTIPO, FIRMA, ESTABLECIMIENTOS Y BODEGAS */}
-              <div className="space-y-5">
+              {/* COLUMNA 2 (DERECHA) */}
+              <div className="space-y-6">
                 
-                {/* LOGOTIPO */}
-                <div className={`p-5 rounded-3xl border ${isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-gray-50 border-gray-250'}`}>
-                  <label className="block text-[10px] font-bold uppercase mb-2.5 text-gray-500 text-center">Logotipo Oficial de la Empresa</label>
+                {/* LOGOTIPO OFICIAL */}
+                <div className={`p-5 rounded-3xl border space-y-4 ${isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-gray-50/50 border-gray-200 shadow-sm'}`}>
+                  <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-500 text-center">Logotipo Oficial de la Empresa</label>
                   
                   {companyProfile.logoUrl ? (
                     <div className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border border-dashed border-emerald-500/30 bg-emerald-500/5">
@@ -1307,7 +1318,7 @@ export default function GeneralSettings({
                       <label className={`w-full flex flex-col items-center justify-center gap-3 p-8 rounded-2xl border border-dashed cursor-pointer transition-all ${
                         isDarkMode 
                           ? 'border-white/20 hover:border-blue-500/40 hover:bg-white/5 text-gray-400' 
-                          : 'border-gray-300 hover:border-blue-500/40 hover:bg-gray-100/50 text-gray-600'
+                          : 'border-gray-300 hover:border-blue-500/40 hover:bg-gray-100/50 text-gray-650'
                       }`}>
                         <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} disabled={isUploadingLogo} />
                         <UploadCloud size={28} className={isUploadingLogo ? 'animate-bounce text-blue-500' : 'text-gray-450'} />
@@ -1327,8 +1338,8 @@ export default function GeneralSettings({
                   companyProfile.certificadoCargado
                     ? !isFirmaMatch()
                       ? 'bg-red-500/5 border-red-500/20 text-red-900 dark:text-red-300'
-                      : isDarkMode ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-300' : 'bg-emerald-50/50 border-emerald-200 text-emerald-900'
-                    : isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-gray-50 border-gray-250'
+                      : isDarkMode ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-300' : 'bg-emerald-50/50 border-emerald-200 text-emerald-900 shadow-sm'
+                    : isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-gray-50/50 border-gray-200 shadow-sm'
                 }`}>
                   <div className="flex justify-between items-center">
                     <h4 className="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
@@ -1404,20 +1415,18 @@ export default function GeneralSettings({
                   )}
                 </div>
 
-                {/* PANEL SUCURSALES (Bloqueado) */}
-                <div className="space-y-4 pt-2">
-                  <div className="flex justify-between items-center pb-2 border-b border-white/5">
-                    <h4 className="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
-                      <Lock size={12} className="text-gray-400" /> Establecimientos del SRI (Bloqueado)
-                    </h4>
-                  </div>
+                {/* CARD 3: ESTABLECIMIENTOS DEL SRI (Bloqueado) */}
+                <div className={`p-5 rounded-3xl border space-y-4 ${isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-gray-50/50 border-gray-200 shadow-sm'}`}>
+                  <h4 className="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
+                    <Lock size={12} className="text-gray-400" /> Establecimientos del SRI (Bloqueado)
+                  </h4>
 
                   <div className="space-y-3 max-h-[180px] overflow-y-auto pr-1">
                     {companyProfile.sucursales && companyProfile.sucursales.map(branch => (
-                      <div key={branch.codigo} className={`p-3 rounded-xl border space-y-2 ${isDarkMode ? 'bg-black/20 border-white/5' : 'bg-gray-50 border-gray-200'} opacity-85`}>
+                      <div key={branch.codigo} className={`p-3 rounded-xl border space-y-2 ${isDarkMode ? 'bg-black/20 border-white/5' : 'bg-white border-gray-200'} opacity-85`}>
                         <div className="flex justify-between items-start">
                           <div>
-                            <p className="text-xs font-black flex items-center gap-1 text-gray-200">
+                            <p className="text-xs font-black flex items-center gap-1 text-gray-700 dark:text-gray-200">
                               <Building size={11} className="text-gray-500" /> {branch.codigo} - {branch.nombre}
                             </p>
                             <p className="text-[10px] text-gray-500 mt-0.5">{branch.direccion}</p>
@@ -1432,23 +1441,23 @@ export default function GeneralSettings({
                         </div>
 
                         {/* Checkboxes de bodegas asociadas a esta sucursal */}
-                        <div className="pt-2 border-t border-white/5 space-y-1">
+                        <div className="pt-2 border-t border-gray-200 dark:border-white/5 space-y-1">
                           <p className="text-[9px] font-bold uppercase tracking-wider text-gray-500">Bodegas Asignadas:</p>
                           <div className="flex flex-wrap gap-x-3 gap-y-1">
-                            {companyProfile.bodegas.map(whName => {
+                            {companyProfile.customBodegas || companyProfile.bodegas ? (companyProfile.bodegas.map(whName => {
                               const isAssoc = branch.bodegas && branch.bodegas.includes(whName);
                               return (
-                                <label key={whName} className="flex items-center gap-1 text-[10px] text-gray-400 cursor-pointer hover:text-white">
+                                <label key={whName} className="flex items-center gap-1 text-[10px] text-gray-500 dark:text-gray-400 cursor-pointer hover:text-white dark:hover:text-white">
                                   <input 
                                     type="checkbox" 
                                     checked={isAssoc}
                                     onChange={() => handleToggleWarehouseForBranch(branch.codigo, whName)}
-                                    className="rounded text-blue-605 h-3.5 w-3.5 bg-transparent border-gray-300"
+                                    className="rounded text-blue-605 h-3.5 w-3.5 bg-transparent border-gray-300 cursor-pointer"
                                   />
                                   {whName}
                                 </label>
                               );
-                            })}
+                            })) : null}
                           </div>
                         </div>
                       </div>
@@ -1459,18 +1468,16 @@ export default function GeneralSettings({
                   </div>
                 </div>
 
-                {/* PANEL BODEGAS (Manual) */}
-                <div className="space-y-4 pt-2">
-                  <div className="flex justify-between items-center pb-2 border-b border-white/5">
-                    <h4 className="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
-                      <Package size={14} className="text-emerald-500" /> Bodegas de Inventario (Manual)
-                    </h4>
-                  </div>
+                {/* CARD 4: BODEGAS DE INVENTARIO (Manual) */}
+                <div className={`p-5 rounded-3xl border space-y-4 ${isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-gray-50/50 border-gray-200 shadow-sm'}`}>
+                  <h4 className="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
+                    <Package size={14} className="text-emerald-500" /> Bodegas de Inventario (Manual)
+                  </h4>
 
-                  <div className="flex flex-wrap gap-2 min-h-[60px] p-3 rounded-2xl border border-dashed border-white/10 align-middle">
+                  <div className={`flex flex-wrap gap-2 min-h-[60px] p-3 rounded-2xl border border-dashed ${isDarkMode ? 'border-white/10 bg-black/15' : 'border-gray-300 bg-white'} align-middle`}>
                     {companyProfile.bodegas.map(wh => (
                       <div key={wh} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold ${
-                        isDarkMode ? 'bg-white/5 text-gray-200 border border-white/5' : 'bg-gray-100 text-gray-800'
+                        isDarkMode ? 'bg-white/5 text-gray-200 border border-white/5' : 'bg-white text-gray-800 border border-gray-200 shadow-sm'
                       }`}>
                         <span>{wh}</span>
                         {wh !== 'Bodega Central' && (
@@ -1498,7 +1505,7 @@ export default function GeneralSettings({
                     <button 
                       type="button" 
                       onClick={handleAddWarehouse}
-                      className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs shrink-0 transition-transform active:scale-95"
+                      className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs shrink-0 transition-transform active:scale-95 shadow-sm"
                     >
                       Agregar Bodega
                     </button>

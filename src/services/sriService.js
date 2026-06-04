@@ -568,24 +568,16 @@ function empaquetarResolucionSRI(ambiente) {
 // UTILIDADES PARA FETCH ROBUSTO CON BYPASS DE CORS
 // ═══════════════════════════════════════════════════════════
 
-// Detectar si estamos en desarrollo local (Vite dev server con proxy)
-const IS_DEV = typeof window !== 'undefined' && (
-  window.location.hostname === 'localhost' || 
-  window.location.hostname === '127.0.0.1'
-);
-
 // URLs base que se adaptan según el entorno
-function getCipherByteUrl(ruc) {
-  if (IS_DEV) {
-    // En desarrollo, Vite proxifica /api/cipherbyte → https://aggregator.cipherbyte.ec
+function getCipherByteUrl(ruc, useRelative = false) {
+  if (useRelative) {
     return `/api/cipherbyte/company/${ruc}`;
   }
   return `https://aggregator.cipherbyte.ec/company/${ruc}`;
 }
 
-function getSriUrl(ruc) {
-  if (IS_DEV) {
-    // En desarrollo, Vite proxifica /api/sri → https://srienlinea.sri.gob.ec
+function getSriUrl(ruc, useRelative = false) {
+  if (useRelative) {
     return `/api/sri/sri-catastro-sujeto-servicio-internet/rest/ConsolidadoContribuyente/existePorNumeroRuc?numeroRuc=${ruc}`;
   }
   return `https://srienlinea.sri.gob.ec/sri-catastro-sujeto-servicio-internet/rest/ConsolidadoContribuyente/existePorNumeroRuc?numeroRuc=${ruc}`;
@@ -593,52 +585,24 @@ function getSriUrl(ruc) {
 
 // Lista de proxies CORS públicos (solo se usan en producción como fallback)
 const CORS_PROXIES = [
-  (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
   (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
   (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+  (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
 ];
 
 /**
  * Realiza un fetch con reintentos automáticos a través de proxies CORS.
- * En desarrollo (localhost): usa el proxy de Vite directamente (sin proxies CORS).
- * En producción: intenta directo, luego con cada proxy CORS hasta que uno funcione.
- * @param {string} url - URL objetivo (puede ser relativa en dev o absoluta en prod)
+ * @param {string} url - URL objetivo absoluta
  * @param {number} timeoutMs - Timeout en milisegundos
  * @returns {Promise<{response: Response, via: string}>} - Response exitosa
  * @throws {Error} - Si todos los intentos fallan
  */
 async function fetchConProxy(url, timeoutMs = 12000) {
-  // En desarrollo, la URL ya pasa por el proxy de Vite — solo un intento directo
-  if (IS_DEV || url.startsWith('/')) {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-    try {
-      const res = await fetch(url, {
-        signal: controller.signal,
-        headers: { 'Accept': 'application/json' }
-      });
-      clearTimeout(timeoutId);
-      if (res.ok) {
-        return { response: res, via: 'Vite Dev Proxy' };
-      }
-      if (res.status === 404) {
-        throw new Error(`RUC no encontrado (HTTP 404)`);
-      }
-      throw new Error(`HTTP ${res.status} - ${res.statusText}`);
-    } catch (err) {
-      clearTimeout(timeoutId);
-      if (err.name === 'AbortError') {
-        throw new Error('Tiempo de espera agotado. El servidor no respondió.');
-      }
-      throw err;
-    }
-  }
-
   // En producción: intentar directo + múltiples proxies CORS
   const intentos = [
     { label: 'Directo', url: url },
     ...CORS_PROXIES.map((proxyFn, i) => ({
-      label: `Proxy ${i + 1}`,
+      label: `Proxy ${i === 0 ? 'AllOrigins' : i === 1 ? 'CodeTabs' : 'CorsProxy'}`,
       url: proxyFn(url)
     }))
   ];
@@ -650,9 +614,9 @@ async function fetchConProxy(url, timeoutMs = 12000) {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
+      // Eliminamos custom headers como Accept para maximizar compatibilidad con proxies
       const res = await fetch(intento.url, {
-        signal: controller.signal,
-        headers: { 'Accept': 'application/json' }
+        signal: controller.signal
       });
       clearTimeout(timeoutId);
 
@@ -707,11 +671,39 @@ export async function consultarRucSri(rucOrCi) {
   const errores = [];
 
   // ═══════════════════════════════════════════════════════════
-  // FUENTE 1: API de CipherByte (principal) — con proxy CORS automático
+  // INTENTO 1: Usar proxy local o del servidor (Vite proxy / Vercel rewrites)
+  // Nativamente libre de CORS y ad-blockers, excelente rendimiento
   // ═══════════════════════════════════════════════════════════
   try {
-    const apiUrl = getCipherByteUrl(rucParaConsulta);
-    const { response, via } = await fetchConProxy(apiUrl, 15000);
+    const relativeUrl = getCipherByteUrl(rucParaConsulta, true);
+    console.info(`Intentando consulta de RUC vía proxy de servidor/Vite: ${relativeUrl}`);
+    const res = await fetch(relativeUrl);
+    if (res.ok) {
+      const text = await res.text();
+      let apiData = JSON.parse(text);
+      if (apiData && (apiData.razonSocial || apiData.numeroRuc)) {
+        console.info(`✅ RUC ${rucParaConsulta} consultado con éxito vía Proxy Servidor`);
+        return mapearRespuestaCipherByte(apiData, clean, rucParaConsulta);
+      }
+    } else if (res.status === 404) {
+      throw new Error(`RUC no encontrado (HTTP 404)`);
+    } else {
+      console.warn(`Proxy de servidor respondió con estado no exitoso: ${res.status}`);
+      errores.push(`Proxy Servidor: Estado ${res.status}`);
+    }
+  } catch (err) {
+    if (err.message?.includes('RUC no encontrado')) {
+      throw err; // Propagar 404 directamente
+    }
+    console.warn("Proxy de servidor no disponible o falló, recurriendo a proxies CORS externos...", err.message);
+    errores.push(`Proxy Servidor: ${err.message}`);
+  }
+
+  // Si el proxy de servidor falló, recurrimos a los proxies CORS externos con la URL absoluta de CipherByte.
+  try {
+    const targetUrl = getCipherByteUrl(rucParaConsulta, false);
+    console.info(`Intentando consulta de RUC vía proxies CORS externos: ${targetUrl}`);
+    const { response, via } = await fetchConProxy(targetUrl, 15000);
     
     const text = await response.text();
     let apiData;
@@ -726,19 +718,37 @@ export async function consultarRucSri(rucOrCi) {
       console.info(`✅ RUC ${rucParaConsulta} consultado exitosamente via ${via}`);
       return mapearRespuestaCipherByte(apiData, clean, rucParaConsulta);
     } else {
-      errores.push(`CipherByte (${via}): Respondió pero sin datos válidos para este RUC.`);
+      errores.push(`CipherByte (${via}): Sin datos válidos en la respuesta.`);
     }
   } catch (err) {
-    const msg = err.message || 'Error de conexión';
-    errores.push(`CipherByte: ${msg}`);
-    console.warn('CipherByte falló:', msg);
+    if (err.message?.includes('RUC no encontrado')) {
+      throw err;
+    }
+    errores.push(`CipherByte CORS: ${err.message || 'Error'}`);
   }
 
   // ═══════════════════════════════════════════════════════════
-  // FUENTE 2: SRI directo — con proxy CORS automático
+  // FUENTE 2: SRI directo (Bajo demanda si falla CipherByte)
+  // Primero intentamos vía Proxy Servidor
   // ═══════════════════════════════════════════════════════════
   try {
-    const sriUrl = getSriUrl(rucParaConsulta);
+    const relativeSriUrl = getSriUrl(rucParaConsulta, true);
+    const resSri = await fetch(relativeSriUrl);
+    if (resSri.ok) {
+      const text = await resSri.text();
+      let sriData = JSON.parse(text);
+      if (sriData && (sriData.razonSocial || sriData.nombreComercial)) {
+        console.info(`✅ RUC ${rucParaConsulta} consultado con éxito en SRI vía Proxy Servidor`);
+        return mapearRespuestaSRI(sriData, clean, rucParaConsulta);
+      }
+    }
+  } catch (sriErr) {
+    console.warn("Consulta SRI vía Proxy Servidor falló, intentando vía CORS proxies...", sriErr.message);
+  }
+
+  // Si falla, intentamos SRI vía CORS proxies
+  try {
+    const sriUrl = getSriUrl(rucParaConsulta, false);
     const { response: sriRes, via: sriVia } = await fetchConProxy(sriUrl, 12000);
 
     const sriText = await sriRes.text();
@@ -754,7 +764,7 @@ export async function consultarRucSri(rucOrCi) {
       return mapearRespuestaSRI(sriData, clean, rucParaConsulta);
     }
   } catch (err2) {
-    errores.push(`SRI: ${err2.message || 'Error de conexión'}`);
+    errores.push(`SRI CORS: ${err2.message || 'Error'}`);
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -762,9 +772,8 @@ export async function consultarRucSri(rucOrCi) {
   // ═══════════════════════════════════════════════════════════
   console.error("Todas las fuentes de consulta de RUC fallaron:", errores);
   throw new Error(
-    `No se pudieron obtener los datos del RUC ${rucParaConsulta}. ` +
-    `Verifique que el RUC existe, que tiene conexión a internet e intente nuevamente. ` +
-    `(${errores.join(' | ')})`
+    `No se pudieron obtener los datos reales del SRI para el RUC/CI ${rucParaConsulta}. ` +
+    `Verifique el número e intente de nuevo. (Detalles: ${errores.join(' | ')})`
   );
 }
 
