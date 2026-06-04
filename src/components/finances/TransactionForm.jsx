@@ -1157,18 +1157,99 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       {/* STEP CONTAINER BODY */}
       <div className="flex-1 p-6 max-w-[95%] w-full mx-auto">
         
-        {/* STEP 1: CABECERA Y CLIENTE */}
+        {/* STEP 1: CABECERA Y CLIENTE (UNIFICADO) */}
         {currentStep === 1 && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom duration-250">
             <div className={`p-6 rounded-3xl border shadow-sm ${isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'}`}>
-              <div className="flex items-center gap-2 mb-4 border-b pb-3 border-gray-200 dark:border-white/5">
-                <Layers className="text-blue-500" size={16} />
-                <h3 className="text-xs font-bold uppercase tracking-wider">Datos de Cabecera Tributaria</h3>
-              </div>
               
+              <div className="flex items-center gap-2 mb-6 border-b pb-3 border-gray-200 dark:border-white/5">
+                <Layers className="text-blue-500" size={16} />
+                <h3 className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
+                  Datos de la Venta y Cliente
+                </h3>
+              </div>
+
+              {/* 1. SECCION BÚSQUEDA DE CLIENTE (SIEMPRE PRIMERA Y ARRIBA) */}
+              <div className="mb-6 pb-6 border-b border-dashed border-gray-200 dark:border-white/5 space-y-4">
+                <div>
+                  <label className="block text-[10px] font-black uppercase mb-1.5 text-black dark:text-gray-400">
+                    Buscar y Seleccionar Contacto (Cliente)
+                  </label>
+                  <div className="flex gap-2">
+                    <select 
+                      disabled={!isEditable} 
+                      required 
+                      value={formData.thirdPartyId} 
+                      onChange={e => setFormData({...formData, thirdPartyId: e.target.value})} 
+                      className={`${inputClass} font-bold text-black dark:text-white`}
+                    >
+                      <option value="" disabled>Selecciona un contacto...</option>
+                      {thirdParties
+                        .filter(tp => formData.type === 'ingreso' ? tp.type === 'cliente' : tp.type === 'proveedor')
+                        .map(tp => (
+                          <option key={tp.id} value={tp.id} className="text-black">
+                            {tp.name} — RUC/CI: {tp.ruc}
+                          </option>
+                        ))
+                      }
+                    </select>
+                    {isEditable && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setQuickAddFormData({
+                            name: '',
+                            ruc: '',
+                            email: '',
+                            tipoIdentificacion: 'ruc',
+                            direccion: '',
+                            telefono: '',
+                            tipoContribuyente: 'general'
+                          });
+                          setIsQuickAddOpen(true);
+                        }}
+                        className={`px-4 rounded-xl border flex items-center justify-center transition-all shrink-0 font-bold text-xs gap-1.5 ${
+                          isDarkMode 
+                            ? 'bg-blue-600/20 text-blue-400 border-blue-500/30 hover:bg-blue-500/30' 
+                            : 'bg-blue-50 border-blue-200 text-blue-800 hover:bg-blue-100 shadow-sm'
+                        }`}
+                        title="Crear Contacto Rápido"
+                      >
+                        <Plus size={14} />
+                        <span>Nuevo</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {matchedTercero && (
+                  <div className={`p-4 rounded-2xl border text-xs grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 ${
+                    isDarkMode ? 'bg-black/10 border-white/5 text-gray-300' : 'bg-gray-50 border-gray-250 text-gray-700'
+                  }`}>
+                    <div>
+                      <p className="text-[9px] font-bold text-gray-500 uppercase">Razón Social</p>
+                      <p className="font-extrabold text-black dark:text-white">{matchedTercero.name}</p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-bold text-gray-500 uppercase">Identificación</p>
+                      <p className="font-mono font-bold text-black dark:text-white">{matchedTercero.ruc}</p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-bold text-gray-500 uppercase">Correo</p>
+                      <p className="truncate font-semibold text-black dark:text-white">{matchedTercero.email || '(No asignado)'}</p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-bold text-gray-500 uppercase">Dirección</p>
+                      <p className="truncate font-semibold text-black dark:text-white">{matchedTercero.direccion || '(No asignado)'}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* 2. SECCION DETALLES DEL COMPROBANTE TRIBUTARIO */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className={!isEditable ? "" : "md:col-span-2"}>
-                  <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Tipo de Documento</label>
+                  <label className="block text-[10px] font-black uppercase mb-1.5 text-black dark:text-gray-400">Tipo de Documento</label>
                   {sriConfig?.rucActivo === false && (
                     <p className="text-[10px] text-amber-500 font-semibold mb-1">
                       ⚠️ RUC inactivo en configuración. Factura electrónica bloqueada.
@@ -1203,7 +1284,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         secuencial: nextSec
                       }));
                     }} 
-                    className={inputClass}
+                    className={`${inputClass} font-bold text-black dark:text-white`}
                   >
                     {formData.documentType === 'nota_credito' ? (
                       <option value="nota_credito">Nota de Crédito</option>
@@ -1224,147 +1305,62 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
                 {!isEditable && (
                   <div>
-                    <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Número de Comprobante</label>
-                    <input disabled type="text" value={formData.documentNumber} className={inputClass} />
+                    <label className="block text-[10px] font-black uppercase mb-1.5 text-black dark:text-gray-400">Número de Comprobante</label>
+                    <input disabled type="text" value={formData.documentNumber} className={`${inputClass} font-bold text-black dark:text-white`} />
                   </div>
                 )}
 
                 <div>
-                  <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Fecha de Emisión</label>
-                  <input disabled={true} type="date" value={formData.date} className={`${inputClass} opacity-80 cursor-not-allowed`} />
+                  <label className="block text-[10px] font-black uppercase mb-1.5 text-black dark:text-gray-400">Fecha de Emisión</label>
+                  <input disabled={true} type="date" value={formData.date} className={`${inputClass} opacity-80 cursor-not-allowed font-bold text-black dark:text-white`} />
                 </div>
 
-                <div>
-                  <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Moneda</label>
-                  <select disabled={!isEditable} value={formData.currency} onChange={e => setFormData({...formData, currency: e.target.value})} className={inputClass}>
-                    <option value="USD">Dólares (USD)</option>
-                    <option value="EUR">Euros (EUR)</option>
-                  </select>
-                </div>
+                {/* NOTA: El selector de moneda ha sido removido porque la moneda por default es dólares USD */}
 
                 <div>
-                  <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Referencia de Venta</label>
+                  <label className="block text-[10px] font-black uppercase mb-1.5 text-black dark:text-gray-400">Referencia de Venta</label>
                   <input 
                     disabled={!isEditable} 
                     type="text" 
                     value={formData.referencia || ''} 
                     onChange={e => setFormData({...formData, referencia: e.target.value})} 
-                    className={inputClass} 
+                    className={`${inputClass} font-bold text-black dark:text-white`} 
                     placeholder="Ej. Pedido #1024, Orden de Compra" 
                   />
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Descripción / Detalle de la Factura</label>
+                  <label className="block text-[10px] font-black uppercase mb-1.5 text-black dark:text-gray-400">Descripción / Detalle de la Factura</label>
                   <input 
                     disabled={!isEditable} 
                     type="text" 
                     value={formData.description || ''} 
                     onChange={e => setFormData({...formData, description: e.target.value})} 
-                    className={inputClass} 
-                    placeholder="Ej. Servicios de consultoría de desarrollo de software correspondientes a..." 
+                    className={`${inputClass} font-bold text-black dark:text-white`} 
+                    placeholder="Ej. Servicios de consultoría..." 
                   />
                 </div>
 
                 {formData.documentType === 'nota_credito' && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:col-span-3 border-t border-dashed border-gray-200 dark:border-white/5 pt-4 mt-2">
                     <div>
-                      <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Doc Modificado</label>
-                      <select disabled={!isEditable} value={formData.codDocModificado || '01'} onChange={e => setFormData({...formData, codDocModificado: e.target.value})} className={inputClass}>
+                      <label className="block text-[10px] font-black uppercase mb-1.5 text-black dark:text-gray-400">Doc Modificado</label>
+                      <select disabled={!isEditable} value={formData.codDocModificado || '01'} onChange={e => setFormData({...formData, codDocModificado: e.target.value})} className={`${inputClass} font-bold text-black dark:text-white`}>
                         <option value="01">Factura</option>
                         <option value="03">Liquidación de Compra</option>
                       </select>
                     </div>
                     <div>
-                      <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Nro. Doc Modificado</label>
-                      <input disabled={!isEditable} type="text" required value={formData.numDocModificado || ''} onChange={e => setFormData({...formData, numDocModificado: e.target.value})} className={inputClass} placeholder="001-001-000000123" />
+                      <label className="block text-[10px] font-black uppercase mb-1.5 text-black dark:text-gray-400">Nro. Doc Modificado</label>
+                      <input disabled={!isEditable} type="text" required value={formData.numDocModificado || ''} onChange={e => setFormData({...formData, numDocModificado: e.target.value})} className={`${inputClass} font-bold text-black dark:text-white`} placeholder="001-001-000000123" />
                     </div>
                     <div>
-                      <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Fecha Emisión Doc Modificado</label>
-                      <input disabled={!isEditable} type="date" required value={formData.fechaEmisionDocSustento || ''} onChange={e => setFormData({...formData, fechaEmisionDocSustento: e.target.value})} className={inputClass} />
+                      <label className="block text-[10px] font-black uppercase mb-1.5 text-black dark:text-gray-400">Fecha Emisión Doc Modificado</label>
+                      <input disabled={!isEditable} type="date" required value={formData.fechaEmisionDocSustento || ''} onChange={e => setFormData({...formData, fechaEmisionDocSustento: e.target.value})} className={`${inputClass} font-bold text-black dark:text-white`} />
                     </div>
                     <div>
-                      <label className={`block text-[9px] font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Motivo de Modificación</label>
-                      <input disabled={!isEditable} type="text" required value={formData.motivo || ''} onChange={e => setFormData({...formData, motivo: e.target.value})} className={inputClass} placeholder="Ej. Devolución de mercadería" />
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className={`p-6 rounded-3xl border shadow-sm ${isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'}`}>
-              <div className="flex items-center gap-2 mb-4 border-b pb-3 border-gray-200 dark:border-white/5">
-                <User className="text-purple-500" size={16} />
-                <h3 className="text-xs font-bold uppercase tracking-wider">Tercero Relacionado (Cliente o Proveedor)</h3>
-              </div>
-
-              <div className="space-y-4">
-                <label className={`block text-[9px] font-bold uppercase ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Buscar y Seleccionar Contacto</label>
-                <div className="flex gap-2">
-                  <select 
-                    disabled={!isEditable} 
-                    required 
-                    value={formData.thirdPartyId} 
-                    onChange={e => setFormData({...formData, thirdPartyId: e.target.value})} 
-                    className={inputClass}
-                  >
-                    <option value="" disabled>Selecciona un contacto...</option>
-                    {thirdParties
-                      .filter(tp => formData.type === 'ingreso' ? tp.type === 'cliente' : tp.type === 'proveedor')
-                      .map(tp => (
-                        <option key={tp.id} value={tp.id} className="text-black">
-                          {tp.name} — RUC/CI: {tp.ruc}
-                        </option>
-                      ))
-                    }
-                  </select>
-                  {isEditable && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setQuickAddFormData({
-                          name: '',
-                          ruc: '',
-                          email: '',
-                          tipoIdentificacion: 'ruc',
-                          direccion: '',
-                          telefono: '',
-                          tipoContribuyente: 'general'
-                        });
-                        setIsQuickAddOpen(true);
-                      }}
-                      className={`px-4 rounded-xl border flex items-center justify-center transition-all shrink-0 font-bold text-xs gap-1.5 ${
-                        isDarkMode 
-                          ? 'bg-blue-600/20 text-blue-400 border-blue-500/30 hover:bg-blue-500/30' 
-                          : 'bg-blue-50 border-blue-200 text-blue-800 hover:bg-blue-100 shadow-sm'
-                      }`}
-                      title="Crear Contacto Rápido"
-                    >
-                      <Plus size={14} />
-                      <span>Nuevo</span>
-                    </button>
-                  )}
-                </div>
-
-                {matchedTercero && (
-                  <div className={`p-4 rounded-2xl border text-xs grid grid-cols-2 md:grid-cols-4 gap-4 ${
-                    isDarkMode ? 'bg-black/10 border-white/5 text-gray-300' : 'bg-gray-50 border-gray-200 text-gray-700'
-                  }`}>
-                    <div>
-                      <p className="text-[9px] font-bold text-gray-500 uppercase">Razón Social</p>
-                      <p className="font-bold">{matchedTercero.name}</p>
-                    </div>
-                    <div>
-                      <p className="text-[9px] font-bold text-gray-500 uppercase">Identificación</p>
-                      <p className="font-mono">{matchedTercero.ruc}</p>
-                    </div>
-                    <div>
-                      <p className="text-[9px] font-bold text-gray-500 uppercase">Correo</p>
-                      <p className="truncate">{matchedTercero.email || '(No asignado)'}</p>
-                    </div>
-                    <div>
-                      <p className="text-[9px] font-bold text-gray-500 uppercase">Dirección</p>
-                      <p className="truncate">{matchedTercero.direccion || '(No asignado)'}</p>
+                      <label className="block text-[10px] font-black uppercase mb-1.5 text-black dark:text-gray-400">Motivo de Modificación</label>
+                      <input disabled={!isEditable} type="text" required value={formData.motivo || ''} onChange={e => setFormData({...formData, motivo: e.target.value})} className={`${inputClass} font-bold text-black dark:text-white`} placeholder="Ej. Devolución de mercadería" />
                     </div>
                   </div>
                 )}
