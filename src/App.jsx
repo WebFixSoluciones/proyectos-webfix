@@ -1767,16 +1767,16 @@ export default function App() {
             onClick={() => { setActivePageId('dashboard'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
             className={`group flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
               activePageId === 'dashboard'
-                ? (isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-[#eef2f6] text-gray-900')
-                : (isDarkMode ? 'text-gray-400 hover:bg-white/10 hover:text-white' : 'text-gray-700 hover:bg-[#eef2f6] hover:text-gray-900')
+                ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-900')
+                : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-gray-700 hover:bg-primary-light hover:text-gray-900')
             }`}
           >
             <LayoutDashboard 
               size={18} 
               className={`transition-colors ${
                 activePageId === 'dashboard' 
-                  ? (isDarkMode ? 'text-blue-400' : 'text-[#0066cc]') 
-                  : (isDarkMode ? 'text-gray-500 group-hover:text-blue-400' : 'text-gray-500 group-hover:text-[#0066cc]')
+                  ? 'text-primary' 
+                  : 'text-gray-500 group-hover:text-primary'
               }`} 
             />
             {isSidebarOpen && <span>Mi espacio</span>}
@@ -1788,16 +1788,16 @@ export default function App() {
               onClick={() => { setVentasInitialSubTab('resumen_ventas'); setActivePageId('ventas'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
               className={`group flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
                 activePageId === 'ventas'
-                  ? (isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-[#eef2f6] text-gray-900')
-                  : (isDarkMode ? 'text-gray-400 hover:bg-white/10 hover:text-white' : 'text-gray-700 hover:bg-[#eef2f6] hover:text-gray-900')
+                  ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-900')
+                  : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-gray-700 hover:bg-primary-light hover:text-gray-900')
               }`}
             >
               <ShoppingCart 
                 size={18} 
                 className={`transition-colors ${
                   activePageId === 'ventas' 
-                    ? (isDarkMode ? 'text-blue-400' : 'text-[#0066cc]') 
-                    : (isDarkMode ? 'text-gray-500 group-hover:text-blue-400' : 'text-gray-500 group-hover:text-[#0066cc]')
+                    ? 'text-primary' 
+                    : (isDarkMode ? 'text-gray-500 group-hover:text-primary' : 'text-gray-500 group-hover:text-primary')
                 }`} 
               />
               {isSidebarOpen && <span>Ventas</span>}
@@ -1810,16 +1810,16 @@ export default function App() {
               onClick={() => { setActivePageId('compras'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
               className={`group flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
                 activePageId === 'compras'
-                  ? (isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-[#eef2f6] text-gray-900')
-                  : (isDarkMode ? 'text-gray-400 hover:bg-white/10 hover:text-white' : 'text-gray-700 hover:bg-[#eef2f6] hover:text-gray-900')
+                  ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-900')
+                  : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-gray-700 hover:bg-primary-light hover:text-gray-900')
               }`}
             >
               <ShoppingBag 
                 size={18} 
                 className={`transition-colors ${
                   activePageId === 'compras' 
-                    ? (isDarkMode ? 'text-blue-400' : 'text-[#0066cc]') 
-                    : (isDarkMode ? 'text-gray-500 group-hover:text-blue-400' : 'text-gray-500 group-hover:text-[#0066cc]')
+                    ? 'text-primary' 
+                    : (isDarkMode ? 'text-gray-500 group-hover:text-primary' : 'text-gray-500 group-hover:text-primary')
                 }`} 
               />
               {isSidebarOpen && <span>Compras</span>}
@@ -1832,16 +1832,16 @@ export default function App() {
               onClick={() => { setActivePageId('gastos_creditos'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
               className={`group flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
                 activePageId === 'gastos_creditos'
-                  ? (isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-[#eef2f6] text-gray-900')
-                  : (isDarkMode ? 'text-gray-400 hover:bg-white/10 hover:text-white' : 'text-gray-700 hover:bg-[#eef2f6] hover:text-gray-900')
+                  ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-900')
+                  : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-gray-700 hover:bg-primary-light hover:text-gray-900')
               }`}
             >
               <CreditCard 
                 size={18} 
                 className={`transition-colors ${
                   activePageId === 'gastos_creditos' 
-                    ? (isDarkMode ? 'text-blue-400' : 'text-[#0066cc]') 
-                    : (isDarkMode ? 'text-gray-500 group-hover:text-blue-400' : 'text-gray-500 group-hover:text-[#0066cc]')
+                    ? 'text-primary' 
+                    : (isDarkMode ? 'text-gray-500 group-hover:text-primary' : 'text-gray-500 group-hover:text-primary')
                 }`} 
               />
               {isSidebarOpen && <span>Finanzas</span>}
@@ -1854,16 +1854,16 @@ export default function App() {
               onClick={() => { setActivePageId('inventario'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
               className={`group flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
                 activePageId === 'inventario'
-                  ? (isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-[#eef2f6] text-gray-900')
-                  : (isDarkMode ? 'text-gray-400 hover:bg-white/10 hover:text-white' : 'text-gray-700 hover:bg-[#eef2f6] hover:text-gray-900')
+                  ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-900')
+                  : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-gray-700 hover:bg-primary-light hover:text-gray-900')
               }`}
             >
               <Package 
                 size={18} 
                 className={`transition-colors ${
                   activePageId === 'inventario' 
-                    ? (isDarkMode ? 'text-blue-400' : 'text-[#0066cc]') 
-                    : (isDarkMode ? 'text-gray-500 group-hover:text-blue-400' : 'text-gray-500 group-hover:text-[#0066cc]')
+                    ? 'text-primary' 
+                    : (isDarkMode ? 'text-gray-500 group-hover:text-primary' : 'text-gray-500 group-hover:text-primary')
                 }`} 
               />
               {isSidebarOpen && <span>Inventarios</span>}
@@ -1876,16 +1876,16 @@ export default function App() {
               onClick={() => { setActivePageId('finances'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
               className={`group flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
                 activePageId === 'finances'
-                  ? (isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-[#eef2f6] text-gray-900')
-                  : (isDarkMode ? 'text-gray-400 hover:bg-white/10 hover:text-white' : 'text-gray-700 hover:bg-[#eef2f6] hover:text-gray-900')
+                  ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-900')
+                  : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-gray-700 hover:bg-primary-light hover:text-gray-900')
               }`}
             >
               <DollarSign 
                 size={18} 
                 className={`transition-colors ${
                   activePageId === 'finances' 
-                    ? (isDarkMode ? 'text-blue-400' : 'text-[#0066cc]') 
-                    : (isDarkMode ? 'text-gray-500 group-hover:text-blue-400' : 'text-gray-500 group-hover:text-[#0066cc]')
+                    ? 'text-primary' 
+                    : (isDarkMode ? 'text-gray-500 group-hover:text-primary' : 'text-gray-500 group-hover:text-primary')
                 }`} 
               />
               {isSidebarOpen && <span>Contabilidad</span>}
@@ -1898,16 +1898,16 @@ export default function App() {
               onClick={() => { setActivePageId('personas'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
               className={`group flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
                 activePageId === 'personas' || activePageId === 'team'
-                  ? (isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-[#eef2f6] text-gray-900')
-                  : (isDarkMode ? 'text-gray-400 hover:bg-white/10 hover:text-white' : 'text-gray-700 hover:bg-[#eef2f6] hover:text-gray-900')
+                  ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-900')
+                  : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-gray-700 hover:bg-primary-light hover:text-gray-900')
               }`}
             >
               <Users 
                 size={18} 
                 className={`transition-colors ${
                   activePageId === 'personas' || activePageId === 'team'
-                    ? (isDarkMode ? 'text-blue-400' : 'text-[#0066cc]') 
-                    : (isDarkMode ? 'text-gray-500 group-hover:text-blue-400' : 'text-gray-500 group-hover:text-[#0066cc]')
+                    ? 'text-primary' 
+                    : (isDarkMode ? 'text-gray-500 group-hover:text-primary' : 'text-gray-500 group-hover:text-primary')
                 }`} 
               />
               {isSidebarOpen && <span>Personas</span>}
@@ -1919,16 +1919,16 @@ export default function App() {
             onClick={() => { setActivePageId('proyectos_general'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
             className={`group flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
               isProyectosActive
-                ? (isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-[#eef2f6] text-gray-900')
-                : (isDarkMode ? 'text-gray-400 hover:bg-white/10 hover:text-white' : 'text-gray-700 hover:bg-[#eef2f6] hover:text-gray-900')
+                ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-900')
+                : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-gray-700 hover:bg-primary-light hover:text-gray-900')
             }`}
           >
             <Briefcase 
               size={18} 
               className={`transition-colors ${
                 isProyectosActive 
-                  ? (isDarkMode ? 'text-blue-400' : 'text-[#0066cc]') 
-                  : (isDarkMode ? 'text-gray-500 group-hover:text-blue-400' : 'text-gray-500 group-hover:text-[#0066cc]')
+                  ? 'text-primary' 
+                  : (isDarkMode ? 'text-gray-500 group-hover:text-primary' : 'text-gray-500 group-hover:text-primary')
               }`} 
             />
             {isSidebarOpen && <span>Proyectos</span>}
@@ -1939,16 +1939,16 @@ export default function App() {
             onClick={() => { setActivePageId('general_settings'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
             className={`group flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
               activePageId === 'general_settings'
-                ? (isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-[#eef2f6] text-gray-900')
-                : (isDarkMode ? 'text-gray-400 hover:bg-white/10 hover:text-white' : 'text-gray-700 hover:bg-[#eef2f6] hover:text-gray-900')
+                ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-900')
+                : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-gray-700 hover:bg-primary-light hover:text-gray-900')
             }`}
           >
             <Settings 
               size={18} 
               className={`transition-colors ${
                 activePageId === 'general_settings' 
-                  ? (isDarkMode ? 'text-blue-400' : 'text-[#0066cc]') 
-                  : (isDarkMode ? 'text-gray-500 group-hover:text-blue-400' : 'text-gray-500 group-hover:text-[#0066cc]')
+                  ? 'text-primary' 
+                  : (isDarkMode ? 'text-gray-500 group-hover:text-primary' : 'text-gray-500 group-hover:text-primary')
               }`} 
             />
             {isSidebarOpen && <span>Ajustes</span>}
@@ -1958,8 +1958,8 @@ export default function App() {
         {/* Bottom Area */}
         <div className={`p-3 border-t ${isDarkMode ? 'border-white/5' : 'border-black/5'} space-y-1`}>
           {/* Nueva tarea */}
-          <button onClick={() => { openNewTaskDrawer('todo'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} className={`flex items-center gap-3 w-full px-3 py-2 text-xs rounded-xl transition-all font-medium ${isDarkMode ? 'text-blue-450 hover:bg-blue-500/10' : 'text-blue-600 hover:bg-blue-50'}`}>
-            <CheckSquare size={14} className={isDarkMode ? 'text-blue-400' : 'text-blue-600'} />{isSidebarOpen && <span>Nueva tarea</span>}
+          <button onClick={() => { openNewTaskDrawer('todo'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} className={`flex items-center gap-3 w-full px-3 py-2 text-xs rounded-xl transition-all font-medium ${isDarkMode ? 'text-primary hover:bg-primary/10' : 'text-primary hover:bg-primary-light'}`}>
+            <CheckSquare size={14} className="text-primary" />{isSidebarOpen && <span>Nueva tarea</span>}
           </button>
 
           {/* Papelera */}
