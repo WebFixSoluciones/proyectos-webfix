@@ -140,6 +140,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   const [creditObservations, setCreditObservations] = useState('');
   const [isCreditModalOpen, setIsCreditModalOpen] = useState(false);
 
+  const [confirmDialog, setConfirmDialog] = useState(null);
   const fileInputRef = useRef(null);
 
   // States for Quick Contact Creation Modal (SRI)
@@ -690,7 +691,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     return true;
   };
 
-  const handleSave = async (options = {}) => {
+  const handleSave = (options = {}) => {
     // If called via form submit event, prevent default
     if (options && typeof options.preventDefault === 'function') {
       options.preventDefault();
@@ -698,15 +699,37 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     }
     const { isFinalizingNotaVenta = false } = options;
 
-    // Show appropriate confirmation dialogs
+    let title = "";
+    let message = "";
+    let type = "info";
+
     if (isFinalizingNotaVenta) {
-      if (!window.confirm("¿Confirmar registro? Se guardará el RECIBO de venta local para control interno. Esta acción no tiene validez tributaria ante el SRI.")) return;
+      title = "Confirmar Registro de Venta";
+      message = "Se guardará el RECIBO de venta local para control interno. Esta acción no tiene validez tributaria ante el SRI.";
+      type = "warning";
     } else if (formData.type !== 'ingreso') {
-      if (!window.confirm("¿Confirmar registro? Se guardará este comprobante de GASTO/COMPRA en el sistema.")) return;
+      title = "Confirmar Registro de Gasto/Compra";
+      message = "Se guardará este comprobante de GASTO/COMPRA en el sistema.";
+      type = "info";
     } else {
-      if (!window.confirm("¿Deseas guardar este comprobante como BORRADOR? Podrás editarlo más tarde antes de emitirlo.")) return;
+      title = "Guardar Borrador";
+      message = "¿Deseas guardar este comprobante como BORRADOR? Podrás editarlo más tarde antes de emitirlo.";
+      type = "info";
     }
 
+    setConfirmDialog({
+      title,
+      message,
+      type,
+      onConfirm: () => {
+        setConfirmDialog(null);
+        executeSave(options);
+      },
+      onCancel: () => setConfirmDialog(null)
+    });
+  };
+
+  const executeSave = async (options = {}) => {
     if (!validateForm()) return;
 
     try {
@@ -721,6 +744,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       updatedFormData.time = serverTime;
 
       // Concurrency-safe sequential assignment for internal receipts (Nota de Venta) upon finalization
+      const { isFinalizingNotaVenta = false } = options;
       if (formData.documentType === 'nota_venta' && isFinalizingNotaVenta && !formData.documentNumber) {
         const configRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config');
         const configSnap = await getDoc(configRef);
@@ -796,8 +820,20 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     }
   };
 
-  const handleEmitirSRI = async () => {
-    if (!window.confirm("¿Confirmar emisión? Se firmará digitalmente y se enviará la FACTURA ELECTRÓNICA al SRI de forma oficial. Esta acción no se puede deshacer y tiene validez tributaria.")) return;
+  const handleEmitirSRI = () => {
+    setConfirmDialog({
+      title: "Confirmar Emisión SRI",
+      message: "Se firmará digitalmente y se enviará la FACTURA ELECTRÓNICA al SRI de forma oficial. Esta acción no se puede deshacer y tiene validez tributaria.",
+      type: "warning",
+      onConfirm: () => {
+        setConfirmDialog(null);
+        executeEmitirSRI();
+      },
+      onCancel: () => setConfirmDialog(null)
+    });
+  };
+
+  const executeEmitirSRI = async () => {
     if (!validateForm()) return;
 
     const matchedTercero = thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
@@ -957,20 +993,31 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     }
   };
 
-  const handleAnular = async () => {
-    if (window.confirm("¿Estás seguro de que deseas ANULAR este comprobante ante el SRI?")) {
-      try {
-        const docId = formData.id;
-        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId), sanitizeFirestoreData({
-          sriStatus: 'anulado',
-          updatedAt: new Date().toISOString()
-        }), { merge: true });
-        
-        setFormData(prev => ({ ...prev, sriStatus: 'anulado' }));
-        showToast("Comprobante anulado tributariamente", "success");
-      } catch (e) {
-        showToast("Error al anular", "error");
-      }
+  const handleAnular = () => {
+    setConfirmDialog({
+      title: "Confirmar Anulación",
+      message: "¿Estás seguro de que deseas ANULAR este comprobante ante el SRI de forma definitiva?",
+      type: "danger",
+      onConfirm: () => {
+        setConfirmDialog(null);
+        executeAnular();
+      },
+      onCancel: () => setConfirmDialog(null)
+    });
+  };
+
+  const executeAnular = async () => {
+    try {
+      const docId = formData.id;
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId), sanitizeFirestoreData({
+        sriStatus: 'anulado',
+        updatedAt: new Date().toISOString()
+      }), { merge: true });
+      
+      setFormData(prev => ({ ...prev, sriStatus: 'anulado' }));
+      showToast("Comprobante anulado tributariamente", "success");
+    } catch (e) {
+      showToast("Error al anular", "error");
     }
   };
 
@@ -2617,6 +2664,76 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* CUSTOM CONFIRMATION DIALOG MODAL */}
+      {confirmDialog && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className={`w-full max-w-md p-6 rounded-3xl shadow-2xl border transition-all ${
+            isDarkMode 
+              ? 'bg-[#151517] border-white/10 text-white' 
+              : 'bg-white border-gray-200 text-gray-900 shadow-xl'
+          }`}>
+            <div className="flex items-center gap-3.5 mb-4">
+              <div className={`p-3 rounded-2xl shrink-0 ${
+                confirmDialog.type === 'danger'
+                  ? 'bg-red-500/10 text-red-500'
+                  : confirmDialog.type === 'warning'
+                    ? 'bg-amber-500/10 text-amber-500'
+                    : 'bg-blue-500/10 text-blue-500'
+              }`}>
+                {confirmDialog.type === 'danger' ? (
+                  <ShieldAlert size={22} />
+                ) : confirmDialog.type === 'warning' ? (
+                  <AlertTriangle size={22} />
+                ) : (
+                  <FileText size={22} />
+                )}
+              </div>
+              <div>
+                <h3 className="text-sm font-black uppercase tracking-wide">
+                  {confirmDialog.title}
+                </h3>
+                <p className={`text-[10px] mt-0.5 font-semibold ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                  Acción de Seguridad Requerida
+                </p>
+              </div>
+            </div>
+
+            <div className={`p-4 rounded-2xl border text-xs leading-relaxed mb-5 ${
+              isDarkMode ? 'bg-black/10 border-white/5 text-gray-300' : 'bg-gray-50 border-gray-200 text-gray-700'
+            }`}>
+              {confirmDialog.message}
+            </div>
+
+            <div className="flex justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={confirmDialog.onCancel}
+                className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all border ${
+                  isDarkMode 
+                    ? 'border-white/10 hover:bg-white/5 text-gray-300' 
+                    : 'border-gray-300 hover:bg-gray-100 text-gray-700'
+                }`}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={confirmDialog.onConfirm}
+                className={`px-5 py-2.5 rounded-xl text-xs font-black text-white shadow-md transition-all ${
+                  confirmDialog.type === 'danger'
+                    ? 'bg-red-600 hover:bg-red-500'
+                    : confirmDialog.type === 'warning'
+                      ? 'bg-amber-600 hover:bg-amber-500'
+                      : 'bg-blue-600 hover:bg-blue-500'
+                }`}
+              >
+                Aceptar / Confirmar
+              </button>
+            </div>
           </div>
         </div>
       )}
