@@ -476,7 +476,7 @@ export function generarLiquidacionXML(emisorConfig, liqData, terceroData, items 
 // Proxies CORS para reintentar peticiones SOAP en caso de fallo del proxy de servidor
 const SOAP_CORS_PROXIES = [
   (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
-  (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
+  (url) => `https://thingproxy.freeboard.io/fetch/${url}`
 ];
 
 /**
@@ -495,7 +495,7 @@ async function enviarPeticionSoap(wsPath, soapBody, ambiente) {
   const intentos = [
     { label: 'Proxy Servidor', url: localProxyUrl },
     ...SOAP_CORS_PROXIES.map((proxyFn, i) => ({
-      label: `CORS Proxy ${i === 0 ? 'CorsProxy' : 'CodeTabs'}`,
+      label: `CORS Proxy ${i === 0 ? 'CorsProxy' : 'ThingProxy'}`,
       url: proxyFn(absoluteUrl)
     }))
   ];
@@ -505,14 +505,21 @@ async function enviarPeticionSoap(wsPath, soapBody, ambiente) {
   for (const intento of intentos) {
     try {
       console.info(`Enviando SOAP a ${wsPath} vía: ${intento.label}`);
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 7500); // 7.5s timeout per attempt
+
       const response = await fetch(intento.url, {
         method: 'POST',
         headers: {
           'Content-Type': 'text/xml;charset=utf-8',
           'SOAPAction': ''
         },
-        body: soapBody
+        body: soapBody,
+        signal: controller.signal
       });
+
+      clearTimeout(timeoutId);
 
       if (response.ok) {
         const text = await response.text();
@@ -520,7 +527,11 @@ async function enviarPeticionSoap(wsPath, soapBody, ambiente) {
       }
       ultimoError = new Error(`HTTP ${response.status} via ${intento.label}`);
     } catch (err) {
-      ultimoError = err;
+      if (err.name === 'AbortError') {
+        ultimoError = new Error(`Timeout (7.5s) via ${intento.label}`);
+      } else {
+        ultimoError = err;
+      }
     }
   }
 
@@ -535,13 +546,17 @@ export async function simularTransmisionSRI(documentoData, configSRI, onLogUpdat
     onLogUpdate([...logs]);
   };
 
-  // Si no hay firma cargada, usar el motor de simulación para pruebas de desarrollo
+  const isProd = configSRI.ambiente === '2';
+
+  // Si no hay firma cargada, verificar el ambiente
   if (!configSRI.certificadoCargado || !configSRI.certificadoBase64) {
-    addLog("Firma electrónica (.p12) no cargada. Iniciando modo SIMULACIÓN local...", "warning");
+    if (isProd) {
+      throw new Error("No se puede transmitir al SRI en ambiente de PRODUCCIÓN sin una firma electrónica (.p12) cargada. Por favor, configure su firma digital en el Perfil de Empresa.");
+    }
+    addLog("Firma electrónica (.p12) no cargada. Iniciando modo SIMULACIÓN local para pruebas de desarrollo...", "warning");
     return ejecutarSimulacionSRI(documentoData, configSRI, onLogUpdate);
   }
 
-  const isProd = configSRI.ambiente === '2';
   const envLabel = isProd ? 'PRODUCCIÓN' : 'PRUEBAS';
 
   try {

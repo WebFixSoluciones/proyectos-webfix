@@ -900,7 +900,12 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
           setSriLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), message: "XML firmado criptográficamente de manera exitosa (Real).", status: 'success' }]);
         } catch (signErr) {
           console.error(signErr);
-          setSriLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), message: `Firma Fallida: ${signErr.message}. Usando simulación.`, status: 'error' }]);
+          setSriLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), message: `Firma Fallida: ${signErr.message}`, status: 'error' }]);
+          throw new Error(`Error en la firma digital: ${signErr.message}. Verifique la contraseña de su firma electrónica.`);
+        }
+      } else {
+        if (configData.ambiente === '2') {
+          throw new Error("No se puede emitir facturas en ambiente de PRODUCCIÓN sin una firma electrónica (.p12) cargada. Por favor, configure su firma digital en Ajustes > Perfil de Empresa.");
         }
       }
 

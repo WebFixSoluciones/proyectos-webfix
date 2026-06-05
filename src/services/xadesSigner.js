@@ -25,9 +25,9 @@ function getIssuerString(cert) {
 /**
  * Calcula el digest SHA1 en Base64 de un texto o buffer
  */
-function sha1Base64(data) {
+function sha1Base64(data, encoding = 'raw') {
   const md = forge.md.sha1.create();
-  md.update(data, 'utf8');
+  md.update(data, encoding);
   return forge.util.encode64(md.digest().getBytes());
 }
 
@@ -80,7 +80,7 @@ export function firmarComprobanteXML(xmlString, p12Base64, password) {
     const certBase64 = forge.util.encode64(certDer).replace(/\r?\n|\r/g, "");
     
     // Calcular digest del certificado
-    const certDigest = sha1Base64(certDer);
+    const certDigest = sha1Base64(certDer, 'raw');
     
     const issuerName = getIssuerString(certificate);
     const serialNumber = hexToDec(certificate.serialNumber);
@@ -149,9 +149,9 @@ export function firmarComprobanteXML(xmlString, p12Base64, password) {
     `</ds:KeyInfo>`;
 
     // Calcular digests
-    const documentDigest = sha1Base64(cleanXml);
-    const keyInfoDigest = sha1Base64(keyInfoXml);
-    const signedPropertiesDigest = sha1Base64(signedPropertiesXml);
+    const documentDigest = sha1Base64(cleanXml, 'utf8');
+    const keyInfoDigest = sha1Base64(keyInfoXml, 'utf8');
+    const signedPropertiesDigest = sha1Base64(signedPropertiesXml, 'utf8');
 
     // 6. Construir ds:SignedInfo
     const signedInfoXml = `<ds:SignedInfo Id="SignedInfo-${sigId}" xmlns:ds="http://www.w3.org/2000/09/xmldsig#">` +
