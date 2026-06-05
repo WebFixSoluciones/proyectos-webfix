@@ -160,7 +160,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
 
   const currentGlassPanel = isDarkMode 
     ? 'backdrop-blur-xl bg-white/[0.03] border border-white/[0.08]' 
-    : 'backdrop-blur-xl bg-white/40 border border-gray-300/60 shadow-sm';
+    : 'bg-white border border-gray-250 shadow-sm';
 
   const getColorClass = (colorId) => {
     const color = COLUMN_COLORS.find(c => c.id === colorId) || COLUMN_COLORS[0];
