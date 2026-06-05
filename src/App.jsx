@@ -688,7 +688,7 @@ export default function App() {
   } else if (activePageId === 'compras') {
     activePage = { id: 'compras', title: 'Compras y Facturas Recibidas', icon: 'compras', type: 'compras' };
   } else if (activePageId === 'gastos_creditos') {
-    activePage = { id: 'gastos_creditos', title: 'Control de Gastos y Créditos', icon: 'gastos_creditos', type: 'gastos_creditos' };
+    activePage = { id: 'gastos_creditos', title: 'Finanzas', icon: 'gastos_creditos', type: 'gastos_creditos' };
   } else if (activePageId === 'ventas') {
     activePage = { id: 'ventas', title: 'Ventas y Facturación', icon: 'ventas', type: 'ventas' };
   } else if (activePageId === 'inventario') {
@@ -700,7 +700,7 @@ export default function App() {
   } else if (activePageId === 'team') {
     activePage = { id: 'team', title: 'Equipo y Roles', icon: 'team', type: 'team' };
   } else if (activePageId === 'general_settings') {
-    activePage = { id: 'general_settings', title: 'Configuración ERP', icon: 'settings', type: 'general_settings' };
+    activePage = { id: 'general_settings', title: 'Ajustes', icon: 'settings', type: 'general_settings' };
   } else if (activePageId === 'trash') {
     activePage = { id: 'trash', title: 'Papelera', icon: 'trash', type: 'trash' };
   } else {
@@ -754,9 +754,21 @@ export default function App() {
           desc: 'Gestiona roles y cargos para asignarlos a proyectos del espacio',
           icon: 'team'
         };
+      case 'compras':
+        return {
+          title: 'Compras y Facturas Recibidas',
+          desc: 'Registro de facturas de proveedores y control de compras electrónicas',
+          icon: 'compras'
+        };
+      case 'gastos_creditos':
+        return {
+          title: 'Módulo de Finanzas',
+          desc: 'Control y registro de gastos de la empresa y cuentas de crédito por pagar/cobrar',
+          icon: 'gastos_creditos'
+        };
       case 'general_settings':
         return {
-          title: 'Configuración ERP',
+          title: 'Ajustes',
           desc: 'Ajustes de empresa, colores del sistema, módulos e integraciones con Gemini y Google',
           icon: 'settings'
         };
