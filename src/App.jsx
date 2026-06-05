@@ -678,8 +678,7 @@ export default function App() {
     return () => { if (window.__unsubFirestore) window.__unsubFirestore(); };
   }, [isAuthenticated]);
 
-
-  // (El useEffect de auto-guardado con debounce ha sido eliminado para la Opción A - Sincronización explícita)  // Determinar página activa
+  // Determinar página activa
   let activePage;
   if (activePageId === 'dashboard') {
     activePage = { id: 'dashboard', title: 'Dashboard', icon: 'dashboard', type: 'dashboard' };
@@ -703,13 +702,17 @@ export default function App() {
     activePage = { id: 'general_settings', title: 'Ajustes', icon: 'settings', type: 'general_settings' };
   } else if (activePageId === 'trash') {
     activePage = { id: 'trash', title: 'Papelera', icon: 'trash', type: 'trash' };
+  } else if (activePageId === 'proyectos_general') {
+    activePage = { id: 'proyectos_general', title: 'Gestión de Proyectos', icon: 'project', type: 'proyectos_general' };
+  } else if (activePageId === 'paginas_general') {
+    activePage = { id: 'paginas_general', title: 'Páginas del Espacio', icon: 'file-text', type: 'paginas_general' };
   } else {
     activePage = pages.find(p => p.id === activePageId) || { id: 'empty', title: 'Sin páginas', type: 'empty' };
     if (activePage.type === 'project') {
       activePage = { ...activePage, tasks: globalTasks.filter(t => t.projectId === activePage.id) };
     }
   }
-  
+
   const getModuleHeaderDetails = () => {
     switch (activePageId) {
       case 'dashboard':
@@ -777,6 +780,18 @@ export default function App() {
           title: 'Papelera de Reciclaje',
           desc: 'Recupera o elimina permanentemente páginas y tareas del espacio',
           icon: 'trash'
+        };
+      case 'proyectos_general':
+        return {
+          title: 'Gestión de Proyectos',
+          desc: 'Tableros Kanban, planificación de metas y tareas de tu equipo',
+          icon: 'project'
+        };
+      case 'paginas_general':
+        return {
+          title: 'Páginas y Documentos',
+          desc: 'Crea, organiza y mejora textos y notas rápidas con inteligencia artificial',
+          icon: 'file-text'
         };
       default:
         return {
@@ -1230,7 +1245,13 @@ export default function App() {
     setPages(pages.filter(p => p.id !== id));
     
     if (activePageId === id) {
-      setActivePageId(pages.filter(p => p.id !== id).length > 0 ? pages.filter(p => p.id !== id)[0].id : 'trash');
+      if (pageToDelete.type === 'project') {
+        setActivePageId('proyectos_general');
+      } else if (pageToDelete.type === 'doc') {
+        setActivePageId('paginas_general');
+      } else {
+        setActivePageId(pages.filter(p => p.id !== id).length > 0 ? pages.filter(p => p.id !== id)[0].id : 'trash');
+      }
     }
     
     try {
@@ -1698,10 +1719,12 @@ export default function App() {
       </div>
     );
   }
-  const isProyectosActive = activePageId === 'calendar' || activePage?.type === 'project' || activePage?.type === 'doc';
+
+  const isPersonasActive = activePageId === 'personas' || activePageId === 'team';
+  const isProyectosActive = activePageId === 'proyectos_general' || activePageId === 'paginas_general' || activePageId === 'calendar' || activePage?.type === 'project' || activePage?.type === 'doc';
 
   return (
-    <div className={`flex h-screen w-full font-sans overflow-hidden transition-colors duration-500 relative z-0 ${isDarkMode ? 'bg-[#08080a] text-gray-100' : 'bg-[#f4f4f9] text-gray-800'}`}>
+    <div className={`flex min-h-screen w-full font-sans overflow-hidden relative ${isDarkMode ? 'bg-[#08080a] text-gray-100' : 'bg-[#f4f4f9] text-gray-800'}`}>
       
       {/* GLOBAL BACKGROUND BLOBS (Glassmorphism Core) */}
       <div className={`absolute top-[-10%] left-[-5%] w-[40rem] h-[40rem] rounded-full mix-blend-screen filter blur-[120px] opacity-40 pointer-events-none -z-10 ${isDarkMode ? 'bg-purple-900' : 'bg-purple-300'}`}></div>
@@ -1829,171 +1852,31 @@ export default function App() {
 
           {/* 7. Personas */}
           {activeModules.personas && (
-            <div className="space-y-0.5">
-              <button 
-                onClick={() => { 
-                  setActivePageId('personas'); 
-                  setIsPersonasExpanded(!isPersonasExpanded);
-                  if(window.innerWidth < 768 && !isPersonasExpanded) setIsSidebarOpen(false); 
-                }} 
-                className={`flex items-center justify-between w-full px-3 py-2 rounded-xl transition-all font-medium ${
-                  activePageId === 'personas' || activePageId === 'team'
-                    ? (isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-[#eef2f6] text-[#0066cc]')
-                    : (isDarkMode ? 'text-gray-400 hover:bg-white/5 hover:text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-black')
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <Users size={18} className={activePageId === 'personas' ? (isDarkMode ? 'text-teal-400' : 'text-teal-600') : 'text-gray-500'} />
-                  {isSidebarOpen && <span>Personas</span>}
-                </div>
-                {isSidebarOpen && activeModules.team && (
-                  <ChevronRight 
-                    size={14} 
-                    className={`transform transition-transform duration-200 ${isPersonasExpanded ? 'rotate-90 text-gray-500' : 'text-gray-400'}`} 
-                  />
-                )}
-              </button>
-              {isSidebarOpen && isPersonasExpanded && activeModules.team && (
-                <div className="ml-4 pl-3 border-l border-white/10 dark:border-white/5 space-y-0.5 mt-0.5">
-                  <button 
-                    onClick={() => { setActivePageId('team'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
-                    className={`flex items-center gap-2.5 w-full px-3 py-1.5 rounded-lg transition-all text-xs font-normal ${
-                      activePageId === 'team'
-                        ? (isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-[#eef2f6]/70 text-[#0066cc]')
-                        : (isDarkMode ? 'text-gray-400 hover:bg-white/5 hover:text-white' : 'text-gray-655 hover:bg-gray-100 hover:text-black')
-                    }`}
-                  >
-                    <Shield size={14} className={activePageId === 'team' ? (isDarkMode ? 'text-yellow-400' : 'text-yellow-600') : 'text-gray-500'} />
-                    <span>Equipo</span>
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* 8. Proyectos (Proyectos, Paginas, Calendario) */}
-          <div className="space-y-0.5">
             <button 
-              onClick={() => { 
-                setIsProyectosExpanded(!isProyectosExpanded); 
-              }} 
-              className={`flex items-center justify-between w-full px-3 py-2 rounded-xl transition-all font-medium ${
-                isProyectosActive
+              onClick={() => { setActivePageId('personas'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
+              className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
+                activePageId === 'personas' || activePageId === 'team'
                   ? (isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-[#eef2f6] text-[#0066cc]')
                   : (isDarkMode ? 'text-gray-400 hover:bg-white/5 hover:text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-black')
               }`}
             >
-              <div className="flex items-center gap-3">
-                <Briefcase size={18} className={isProyectosActive ? (isDarkMode ? 'text-blue-400' : 'text-blue-600') : 'text-gray-500'} />
-                {isSidebarOpen && <span>Proyectos</span>}
-              </div>
-              {isSidebarOpen && (
-                <ChevronRight 
-                  size={14} 
-                  className={`transform transition-transform duration-200 ${isProyectosExpanded ? 'rotate-90 text-gray-500' : 'text-gray-400'}`} 
-                />
-              )}
+              <Users size={18} className={activePageId === 'personas' || activePageId === 'team' ? (isDarkMode ? 'text-teal-400' : 'text-teal-600') : 'text-gray-500'} />
+              {isSidebarOpen && <span>Personas</span>}
             </button>
-            {isSidebarOpen && isProyectosExpanded && (
-              <div className="ml-4 pl-3 border-l border-white/10 dark:border-white/5 space-y-1 mt-0.5 max-h-[300px] overflow-y-auto custom-scrollbar">
-                {/* Subheader: Proyectos */}
-                <div className="flex items-center justify-between px-3 py-1 text-[9px] font-bold text-gray-500 uppercase tracking-wider">
-                  <span>Proyectos</span>
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); addProject(); }} 
-                    className={`p-0.5 rounded transition-colors ${isDarkMode ? 'hover:bg-white/10 text-gray-400 hover:text-white' : 'hover:bg-black/10 text-gray-600 hover:text-black'}`}
-                    title="Nuevo Proyecto"
-                  >
-                    <Plus size={12} />
-                  </button>
-                </div>
-                {/* Projects List */}
-                {pages.filter(p => p.type === 'project').map(page => (
-                  <div 
-                    key={page.id} 
-                    onClick={() => { setActivePageId(page.id); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
-                    className={`group flex items-center justify-between px-3 py-1.5 rounded-lg cursor-pointer text-xs transition-all font-normal ${
-                      activePageId === page.id 
-                        ? (isDarkMode ? 'bg-white/10 text-white font-medium shadow-sm' : 'bg-[#eef2f6] text-[#0066cc] font-medium') 
-                        : (isDarkMode ? 'text-gray-400 hover:bg-white/5 hover:text-white' : 'text-gray-650 hover:bg-gray-100 hover:text-black')
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 overflow-hidden">
-                      <Briefcase size={12} className={activePageId === page.id ? (isDarkMode ? 'text-blue-400' : 'text-blue-600') : 'text-gray-500'} />
-                      <span className="truncate">{page.title || 'Sin título'}</span>
-                    </div>
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); deletePage(page.id, e); }} 
-                      className={`opacity-0 group-hover:opacity-100 p-0.5 rounded transition-all ${isDarkMode ? 'text-gray-450 hover:bg-white/15 hover:text-red-400' : 'text-gray-500 hover:bg-black/10 hover:text-red-500'}`}
-                      title="Eliminar"
-                    >
-                      <Trash2 size={12} />
-                    </button>
-                  </div>
-                ))}
-                {pages.filter(p => p.type === 'project').length === 0 && (
-                  <div className="px-3 py-1 text-[10px] text-gray-500 italic">Sin proyectos</div>
-                )}
+          )}
 
-                {/* Subheader: Páginas */}
-                <div className="flex items-center justify-between px-3 py-1 mt-2 text-[9px] font-bold text-gray-500 uppercase tracking-wider">
-                  <span>Páginas</span>
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); addPage(); }} 
-                    className={`p-0.5 rounded transition-colors ${isDarkMode ? 'hover:bg-white/10 text-gray-400 hover:text-white' : 'hover:bg-black/10 text-gray-600 hover:text-black'}`}
-                    title="Nueva Página"
-                  >
-                    <Plus size={12} />
-                  </button>
-                </div>
-                {/* Pages/Docs List */}
-                {pages.filter(p => p.type === 'doc').map(page => (
-                  <div 
-                    key={page.id} 
-                    onClick={() => { setActivePageId(page.id); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
-                    className={`group flex items-center justify-between px-3 py-1.5 rounded-lg cursor-pointer text-xs transition-all font-normal ${
-                      activePageId === page.id 
-                        ? (isDarkMode ? 'bg-white/10 text-white font-medium shadow-sm' : 'bg-[#eef2f6] text-[#0066cc] font-medium') 
-                        : (isDarkMode ? 'text-gray-400 hover:bg-white/5 hover:text-white' : 'text-gray-655 hover:bg-gray-100 hover:text-black')
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 overflow-hidden">
-                      <FileText size={12} className={activePageId === page.id ? (isDarkMode ? 'text-emerald-400' : 'text-emerald-600') : 'text-gray-500'} />
-                      <span className="truncate">{page.title || 'Sin título'}</span>
-                    </div>
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); deletePage(page.id, e); }} 
-                      className={`opacity-0 group-hover:opacity-100 p-0.5 rounded transition-all ${isDarkMode ? 'text-gray-455 hover:bg-white/15 hover:text-red-400' : 'text-gray-500 hover:bg-black/10 hover:text-red-500'}`}
-                      title="Eliminar"
-                    >
-                      <Trash2 size={12} />
-                    </button>
-                  </div>
-                ))}
-                {pages.filter(p => p.type === 'doc').length === 0 && (
-                  <div className="px-3 py-1 text-[10px] text-gray-500 italic">Sin páginas</div>
-                )}
-
-                {/* Submodule: Calendario */}
-                {activeModules.calendar && (
-                  <>
-                    <div className="border-t border-white/5 my-1.5 pt-1"></div>
-                    <button
-                      onClick={() => { setActivePageId('calendar'); if(window.innerWidth < 768) setIsSidebarOpen(false); }}
-                      className={`flex items-center gap-2.5 w-full px-3 py-1.5 rounded-lg transition-all text-xs font-normal ${
-                        activePageId === 'calendar'
-                          ? (isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-[#eef2f6]/70 text-[#0066cc]')
-                          : (isDarkMode ? 'text-gray-400 hover:bg-white/5 hover:text-white' : 'text-gray-655 hover:bg-gray-100 hover:text-black')
-                      }`}
-                    >
-                      <CalendarDays size={14} className={activePageId === 'calendar' ? (isDarkMode ? 'text-purple-400' : 'text-purple-600') : 'text-gray-500'} />
-                      <span>Calendario</span>
-                    </button>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
+          {/* 8. Proyectos */}
+          <button 
+            onClick={() => { setActivePageId('proyectos_general'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
+            className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
+              isProyectosActive
+                ? (isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-[#eef2f6] text-[#0066cc]')
+                : (isDarkMode ? 'text-gray-400 hover:bg-white/5 hover:text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-black')
+            }`}
+          >
+            <Briefcase size={18} className={isProyectosActive ? (isDarkMode ? 'text-blue-400' : 'text-blue-600') : 'text-gray-500'} />
+            {isSidebarOpen && <span>Proyectos</span>}
+          </button>
 
           {/* 9. Ajustes */}
           <button 
@@ -2107,8 +1990,8 @@ export default function App() {
         <div className="flex-1 flex overflow-hidden min-h-0 relative">
 
           {/* Editor Area */}
-          <div className={`flex-1 overflow-y-auto pb-12 pt-4 scroll-smooth custom-scrollbar ${activePage.type === 'project' ? 'px-4 md:px-8 lg:px-10' : ['finances', 'ventas', 'inventario', 'personas', 'compras', 'gastos_creditos'].includes(activePage.type) ? 'px-0 pt-0' : activePage.type !== 'doc' ? 'px-6 md:px-8 lg:px-10' : 'px-6 md:px-12 lg:px-24'}`}>
-            <div className={`mx-auto ${activePage.type === 'project' || ['finances', 'ventas', 'inventario', 'personas', 'compras', 'gastos_creditos'].includes(activePage.type) || activePage.type !== 'doc' ? 'max-w-[1800px] h-full px-4 md:px-6' : 'max-w-4xl'}`}>
+          <div className={`flex-1 overflow-y-auto pb-12 pt-4 scroll-smooth custom-scrollbar`}>
+            <div className="mx-auto">
               
               {/* VISTAS FINANCIERAS MODULARES */}
               {activePageId === 'finances' && (
@@ -2120,9 +2003,6 @@ export default function App() {
               {activePageId === 'inventario' && (
                 <FinanceModule mode="inventario" isDarkMode={isDarkMode} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} isLoading={isLoadingFinances} />
               )}
-              {activePageId === 'personas' && (
-                <FinanceModule mode="personas" isDarkMode={isDarkMode} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} isLoading={isLoadingFinances} />
-              )}
               {activePageId === 'compras' && (
                 <FinanceModule mode="compras" isDarkMode={isDarkMode} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} isLoading={isLoadingFinances} />
               )}
@@ -2130,385 +2010,542 @@ export default function App() {
                 <GastosCreditosModule isDarkMode={isDarkMode} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} db={db} appId={appId} />
               )}
 
-            {/* VISTA: CONFIGURACIÓN GENERAL */}
-            {activePageId === 'general_settings' && (
-              <GeneralSettings 
-                isDarkMode={isDarkMode} 
-                showToast={showToast} 
-                db={db} 
-                appId={appId} 
-                storage={storage}
-                users={users} 
-                trash={trash} 
-                handleDownloadBackup={handleDownloadBackup} 
-                googleClientId={googleClientId} 
-                setGoogleClientId={setGoogleClientId} 
-                activeModules={activeModules} 
-                setActiveModules={setActiveModules} 
-                primaryColor={primaryColor}
-                setPrimaryColor={setPrimaryColor}
-              />
-            )}
+              {/* VISTA: CONFIGURACIÓN GENERAL */}
+              {activePageId === 'general_settings' && (
+                <GeneralSettings 
+                  isDarkMode={isDarkMode} 
+                  showToast={showToast} 
+                  db={db} 
+                  appId={appId} 
+                  storage={storage}
+                  users={users} 
+                  trash={trash} 
+                  handleDownloadBackup={handleDownloadBackup} 
+                  googleClientId={googleClientId} 
+                  setGoogleClientId={setGoogleClientId} 
+                  activeModules={activeModules} 
+                  setActiveModules={setActiveModules} 
+                  primaryColor={primaryColor}
+                  setPrimaryColor={setPrimaryColor}
+                />
+              )}
 
-            {/* VISTA: DASHBOARD */}
-            {activePageId === 'dashboard' && (
-              <ErpDashboard 
-                projectsList={projectsList} 
-                allTasksGlobal={allTasksGlobal} 
-                isDarkMode={isDarkMode} 
-                setActivePageId={setActivePageId} 
-                setVentasInitialSubTab={setVentasInitialSubTab}
-                db={db} 
-                appId={appId} 
-              />
-            )}
+              {/* VISTA: DASHBOARD */}
+              {activePageId === 'dashboard' && (
+                <ErpDashboard 
+                  projectsList={projectsList} 
+                  allTasksGlobal={allTasksGlobal} 
+                  isDarkMode={isDarkMode} 
+                  setActivePageId={setActivePageId} 
+                  setVentasInitialSubTab={setVentasInitialSubTab}
+                  db={db} 
+                  appId={appId} 
+                />
+              )}
 
-            {/* VISTA: EQUIPO Y ROLES */}
-            {activePage.type === 'team' && (
-              <div className="animate-in fade-in duration-500">
-                <div className="flex justify-end mb-6">
-                  <button onClick={openNewUserDrawer} className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-transform shadow-sm hover:-translate-y-0.5 ${isDarkMode ? 'bg-blue-600 text-white shadow-blue-900/50' : 'bg-blue-600 text-white hover:bg-blue-700'}`}>
-                    <UserPlus size={16} /> Invitar Miembro
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {users.map(user => (
-                <div key={user.id} className={`p-5 rounded-2xl flex flex-col justify-between ${currentGlassPanel} hover:-translate-y-1 transition-transform duration-300`}>
-                  <div className="flex items-start gap-4 mb-4">
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold text-white shadow-inner bg-gradient-to-br ${user.color}`}>
-                      {user.initials}
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-base">{user.name}</h3>
-                      <p className={`text-xs font-medium mt-0.5 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{user.job}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between mt-auto border-t pt-3 border-white/10">
-                    <div className="flex items-center gap-1.5">
-                      <Shield size={14} className={user.role === 'Admin' ? 'text-red-400' : (user.role === 'Miembro' ? 'text-blue-400' : 'text-gray-400')} />
-                      <span className={`text-xs font-semibold ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{user.role}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <button onClick={() => setDrawerUser(user)} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-white/10 text-gray-400 hover:text-blue-400' : 'hover:bg-black/5 text-gray-500 hover:text-blue-600'}`} title="Editar Usuario"><Pencil size={14} /></button>
-                      <button onClick={(e) => deleteUser(user.id, e)} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-red-500/20 text-gray-400 hover:text-red-400' : 'hover:bg-red-100 text-gray-500 hover:text-red-600'}`} title="Eliminar Usuario"><Trash2 size={14} /></button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-            {/* Cabecera común para Doc y Project (Minimalista e Inline) */}
-            {!['trash', 'empty', 'dashboard', 'calendar', 'team', 'finances', 'ventas', 'inventario', 'personas', 'general_settings', 'compras', 'gastos_creditos'].includes(activePage.type) && (
-              <div className="mb-8">
-                <div className="group relative flex items-center gap-3">
-                   <div className={`p-2.5 rounded-xl transition-colors backdrop-blur-md border ${isDarkMode ? 'bg-white/5 border-white/10 text-gray-200 shadow-sm' : 'bg-white/60 border-gray-200 text-gray-700 shadow-sm'}`}>
-                     <IconRenderer name={activePage.icon} size={24} />
-                   </div>
-                   <input type="text" value={activePage.title} onChange={(e) => updateActivePage({ title: e.target.value })} placeholder="Título de la página" className={`w-full text-3xl font-bold border-none outline-none bg-transparent resize-none focus:ring-0 tracking-tight ${isDarkMode ? 'text-white placeholder-gray-700' : 'text-gray-900 placeholder-gray-400'}`} />
-                </div>
-                
-                {/* Control de Project Lead si es proyecto */}
-                {activePage.type === 'project' && (
-                  <div className="flex items-center gap-2 mt-4 ml-14">
-                    <UserCircle size={14} className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
-                    <span className={`text-xs font-semibold uppercase tracking-wider ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>Líder:</span>
-                    <select 
-                      value={activePage.leadId || ''} 
-                      onChange={(e) => updateActivePage({ leadId: e.target.value })} 
-                      className={`px-2 py-1 text-xs font-semibold rounded-lg outline-none cursor-pointer transition-all border ${isDarkMode ? 'bg-white/5 border-white/10 text-gray-200 hover:bg-white/10' : 'bg-white/60 border-gray-200 text-gray-700 hover:bg-white'}`}
-                    >
-                      <option value="">Sin Asignar</option>
-                      {users.map(u => <option key={u.id} value={u.id} className="text-black">{u.name}</option>)}
-                    </select>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Vista de Papelera */}
-            {activePage.type === 'trash' && (
-              <div className="animate-in fade-in duration-300">
-                {trash.length === 0 ? (
-                  <div className={`text-center py-16 rounded-2xl ${currentGlassPanel}`}><Trash2 size={40} className={`mx-auto mb-4 opacity-50 ${isDarkMode ? 'text-gray-600' : 'text-gray-400'}`} /><p className="text-sm font-medium opacity-70">La papelera está vacía.</p></div>
-                ) : (
-                  <div className="space-y-3">
-                    {trash.map(page => (
-                      <div key={page.id} className={`flex items-center justify-between p-4 rounded-xl transition-all hover:-translate-y-0.5 ${currentGlassPanel}`}>
-                        <div className="flex items-center gap-3">
-                          <span className={`p-2 rounded-lg ${isDarkMode ? 'bg-white/5 text-gray-300' : 'bg-black/5 text-gray-600'}`}><IconRenderer name={page.icon} size={16} /></span>
-                          <span className="font-semibold text-sm">{page.title || 'Sin título'}</span>
-                        </div>
-                        <div className="flex gap-2">
-                          <button onClick={() => restorePage(page.id)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${isDarkMode ? 'bg-white/10 text-gray-200 hover:bg-white/20' : 'bg-white/80 text-gray-800 hover:bg-white'}`}><RotateCcw size={14} /> Restaurar</button>
-                          <button onClick={() => permanentlyDeletePage(page.id)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${isDarkMode ? 'bg-red-500/20 text-red-400 hover:bg-red-500/40 border border-red-500/20' : 'bg-red-100 text-red-700 hover:bg-red-200 border border-red-200'}`}><Trash2 size={14} /> Eliminar</button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {activePage.type === 'empty' && (
-               <div className={`text-center py-24 rounded-2xl ${currentGlassPanel}`}><p className="mb-4 text-base opacity-70 font-medium">No tienes páginas activas.</p><button onClick={addPage} className={`px-5 py-2.5 text-sm font-semibold rounded-xl shadow-sm transition-transform hover:-translate-y-0.5 ${isDarkMode ? 'bg-blue-600 text-white hover:bg-blue-500' : 'bg-blue-600 text-white hover:bg-blue-700'}`}>Crear tu primera página</button></div>
-            )}
-
-            {/* VISTA DE DOCUMENTO */}
-            {activePage.type === 'doc' && (
-              <>
-                <div className={`flex flex-wrap gap-2 mb-6 p-2 rounded-xl animate-in fade-in duration-300 ${isDarkMode ? 'bg-white/5 border border-white/5 backdrop-blur-md' : 'bg-white/40 border border-white/40 backdrop-blur-md shadow-sm'}`}>
-                  <span className={`flex items-center px-2 text-[10px] font-bold uppercase tracking-wider ${isDarkMode ? 'text-purple-400' : 'text-purple-600'}`}>Herramientas IA</span>
-                  <button onClick={() => handleAiAction('improve')} disabled={isGeneratingAI || !activePage.content.trim()} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${isDarkMode ? 'bg-purple-500/20 text-purple-300 hover:bg-purple-500/40 border border-purple-500/20' : 'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>{isGeneratingAI ? <RefreshCw size={12} className="animate-spin" /> : <Wand2 size={12} />} Mejorar</button>
-                  <button onClick={() => handleAiAction('summarize')} disabled={isGeneratingAI || !activePage.content.trim()} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${isDarkMode ? 'bg-purple-500/20 text-purple-300 hover:bg-purple-500/40 border border-purple-500/20' : 'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>{isGeneratingAI ? <RefreshCw size={12} className="animate-spin" /> : <Sparkles size={12} />} Resumir</button>
-                  <button onClick={() => handleAiAction('continue')} disabled={isGeneratingAI || !activePage.content.trim()} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${isDarkMode ? 'bg-purple-500/20 text-purple-300 hover:bg-purple-500/40 border border-purple-500/20' : 'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>{isGeneratingAI ? <RefreshCw size={12} className="animate-spin" /> : <Sparkles size={12} />} Continuar</button>
-                </div>
-                <textarea ref={contentRef} value={activePage.content} onChange={(e) => updateActivePage({ content: e.target.value })} placeholder="Presiona '/' para comandos o empieza a escribir..." className={`w-full text-[13px] leading-tight border-none outline-none bg-transparent resize-none focus:ring-0 min-h-[300px] font-medium ${isDarkMode ? 'text-gray-100 placeholder-gray-500' : 'text-gray-900 placeholder-gray-500'}`} />
-              </>
-            )}
-
-            {/* KANBAN BOARD & LIST (Proyectos) */}
-            {activePage.type === 'project' && (
-              <div className="mt-6 animate-in fade-in duration-500 relative z-0">
-                <div className={`flex items-center justify-between mb-6 border-b pb-3 ${isDarkMode ? 'border-white/10' : 'border-gray-200'}`}>
-                  <div className={`flex items-center gap-2 text-xs font-semibold uppercase tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                    {currentProjectView === 'board' ? <ListTodo size={16} /> : <AlignLeft size={16} />}
-                    <span>{currentProjectView === 'board' ? 'Tablero de Tareas' : 'Lista de Tareas'}</span>
-                  </div>
-                  <div className={`flex p-1 rounded-lg ${isDarkMode ? 'bg-white/5' : 'bg-black/5'}`}>
-                    <button onClick={() => setCurrentProjectView('board')} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${currentProjectView === 'board' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-white text-gray-900 shadow-sm') : (isDarkMode ? 'text-gray-500 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700')}`}>Tablero</button>
-                    <button onClick={() => setCurrentProjectView('list')} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${currentProjectView === 'list' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-white text-gray-900 shadow-sm') : (isDarkMode ? 'text-gray-500 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700')}`}>Lista</button>
-                  </div>
-                </div>
-
-                {currentProjectView === 'board' ? (
-                /* REDUJE EL GAP-5 A GAP-4 PARA MAS ESPACIO */
-                <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={onDragStart} onDragOver={onDragOver} onDragEnd={onDragEnd}>
-                  <div className="flex flex-row gap-4 overflow-x-auto pb-6 items-start min-h-[50vh] snap-x custom-scrollbar w-full">
-                    <SortableContext items={(activePage.columns || DEFAULT_COLUMNS).map(c => c.id)} strategy={horizontalListSortingStrategy}>
-                      {(activePage.columns || DEFAULT_COLUMNS).map(col => {
-                        const colTasks = (activePage.tasks || []).filter(t => t.status === col.id).sort((a, b) => (a.order || 0) - (b.order || 0));
+              {/* MÓDULO UNIFICADO: PERSONAS */}
+              {isPersonasActive && (
+                <div className="flex flex-col h-full w-full overflow-hidden animate-in fade-in duration-500">
+                  {/* Tabs horizontales para Personas */}
+                  <div className={`flex items-center gap-3 px-8 py-3.5 border-b shrink-0 ${isDarkMode ? 'border-white/5 bg-[#121214]' : 'border-primary/10 bg-primary-light'}`}>
+                    <div className="flex gap-2 overflow-x-auto whitespace-nowrap scrollbar-none flex-1">
+                      {[
+                        { id: 'personas', label: 'Directorio', icon: Users },
+                        { id: 'team', label: 'Equipo', icon: Shield }
+                      ].map(tab => {
+                        const Icon = tab.icon;
+                        const isActive = activePageId === tab.id;
                         return (
-                          <SortableColumn 
-                            key={col.id} 
-                            col={col} 
-                            isDarkMode={isDarkMode}
-                            cycleColumnColor={cycleColumnColor}
-                            editingColumnId={editingColumnId}
-                            editingColumnTitle={editingColumnTitle}
-                            setEditingColumnTitle={setEditingColumnTitle}
-                            saveColumnTitle={saveColumnTitle}
-                            startEditingColumn={startEditingColumn}
-                            activePageTasks={activePage.tasks || []}
-                            openNewTaskDrawer={openNewTaskDrawer}
-                            handleDeleteColumn={handleDeleteColumn}
-                            getColumnBgClass={getColumnBgClass}
-                            getColorClass={getColorClass}
+                          <button
+                            key={tab.id}
+                            onClick={() => setActivePageId(tab.id)}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 ${
+                              isActive
+                                ? (isDarkMode ? 'bg-primary/20 text-primary border-primary/30 shadow-sm' : 'bg-primary text-white border-primary shadow-sm')
+                                : (isDarkMode ? 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-white/5' : 'border-transparent text-gray-700 hover:text-gray-900 hover:bg-black/5')
+                            }`}
                           >
-                            <SortableContext items={colTasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
-                              <div className="space-y-2 flex-1 min-h-[40px]">
-                                {colTasks.map(task => (
-                                  <SortableTaskItem 
-                                    key={task.id} 
-                                    task={task} 
-                                    isDarkMode={isDarkMode} 
-                                    users={users}
-                                    editingTaskId={editingTaskId}
-                                    editingTaskContent={editingTaskContent}
-                                    setEditingTaskContent={(val) => {
-                                      setEditingTaskContent(val);
-                                      setGlobalTasks(globalTasks.map(t => t.id === task.id ? { ...t, content: val } : t));
-                                      setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', task.id), { content: val }, { merge: true }).catch((err) => console.error('inline save err:', err));
-                                    }}
-                                    handleInlineSave={() => setEditingTaskId(null)}
-                                    setEditingTaskId={setEditingTaskId}
-                                    startEditingTask={startEditingTask}
-                                    setDrawerTask={setDrawerTask}
-                                    activePageId={activePage.id}
-                                  />
-                                ))}
-                              </div>
-                            </SortableContext>
-                            
-                            {/* Botón "+ Nuevo" al final estilo Glass */}
-                            <button 
-                              onClick={() => openNewTaskDrawer(col.id)}
-                              className={`mt-4 flex items-center gap-2 w-full px-3 py-2 rounded-xl text-xs font-semibold transition-all border ${isDarkMode ? 'bg-white/5 border-transparent text-gray-400 hover:bg-white/10 hover:text-white' : 'bg-white/40 border-transparent text-gray-600 hover:bg-white/60 hover:text-gray-900'}`}
-                            >
-                              <Plus size={14} /> Añadir tarea
-                            </button>
-                          </SortableColumn>
+                            <Icon size={13} />
+                            <span>{tab.label}</span>
+                          </button>
                         );
                       })}
-                    </SortableContext>
-
-                    {/* Nueva Columna */}
-                    <div className={`shrink-0 w-[210px] rounded-2xl p-3 border border-dashed flex items-start backdrop-blur-2xl transition-all ${isDarkMode ? 'bg-white/[0.02] border-white/20 hover:bg-white/[0.05]' : 'bg-white/30 border-gray-400 hover:bg-white/50'}`}>
-                      <div className="w-full flex flex-col gap-3">
-                        <input type="text" value={newColumnName} onChange={(e) => setNewColumnName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleAddColumn()} placeholder="Nombre nueva columna..." className={`w-full text-sm font-medium rounded-xl px-3 py-2 outline-none transition-shadow shadow-inner ${isDarkMode ? glassInputDark : glassInputLight}`} />
-                        <button onClick={handleAddColumn} className={`flex items-center justify-center gap-2 w-full p-2 rounded-xl transition-all text-xs font-semibold shadow-sm ${isDarkMode ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-black/5 text-gray-800 hover:bg-black/10'}`}><Plus size={14} /> Crear Columna</button>
-                      </div>
                     </div>
-
-                    <DragOverlay>
-                      {activeDragCol ? (
-                        <div className={`shrink-0 w-[210px] rounded-2xl p-3 flex flex-col backdrop-blur-2xl transition-all border shadow-2xl opacity-80 rotate-2 scale-105 ${getColumnBgClass(activeDragCol.color, isDarkMode)}`}>
-                           <div className="flex items-center gap-2 mb-4 px-1">
-                             <GripVertical size={14} className="text-white" />
-                             <span className="font-light text-xs px-2 py-0.5 rounded-md text-white shadow-sm">{activeDragCol.title}</span>
-                           </div>
-                        </div>
-                      ) : activeDragTask ? (
-                        <div className={`p-2.5 rounded-xl border shadow-2xl opacity-80 rotate-2 scale-105 backdrop-blur-xl ${isDarkMode ? 'bg-white/[0.08] border-white/20' : 'bg-white border-blue-200'}`}>
-                          <div className="flex gap-2">
-                             <GripVertical size={14} className={isDarkMode ? 'text-gray-300' : 'text-gray-600'} />
-                             <p className={`text-xs font-light leading-tight ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>{activeDragTask.content}</p>
-                          </div>
-                        </div>
-                      ) : null}
-                    </DragOverlay>
-
                   </div>
-                </DndContext>
-                ) : (
-                  /* VISTA DE LISTA (LIST VIEW) */
-                  <div className="space-y-6 pb-12">
-                    {(activePage.columns || DEFAULT_COLUMNS).map(col => {
-                      const colTasks = (activePage.tasks || []).filter(t => t.status === col.id);
-                      return (
-                        <div key={col.id} className={`rounded-xl border backdrop-blur-sm shadow-sm ${isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-white/50 border-gray-200'}`}>
-                          {/* Encabezado del Grupo */}
-                          <div className={`flex items-center gap-2 px-4 py-3 border-b ${isDarkMode ? 'border-white/10 bg-white/[0.03]' : 'border-gray-200 bg-gray-50'} rounded-t-xl`}>
-                            <div className={`w-2.5 h-2.5 rounded-full shadow-inner ${COLUMN_COLORS.find(c => c.id === (col.color || 'gray'))?.dot || 'bg-gray-400'}`} />
-                            <span className={`text-sm font-semibold tracking-wide ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>{col.title}</span>
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isDarkMode ? 'bg-white/10 text-gray-400' : 'bg-black/5 text-gray-600'}`}>{colTasks.length}</span>
+
+                  {/* Contenido de Personas */}
+                  <div className="flex flex-1 overflow-hidden min-h-0 bg-transparent">
+                    <div className={`flex-1 overflow-y-auto px-0 py-0 custom-scrollbar ${isDarkMode ? 'bg-[#0f0f11]' : 'bg-white'}`}>
+                      {activePageId === 'personas' && (
+                        <FinanceModule mode="personas" isDarkMode={isDarkMode} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} isLoading={isLoadingFinances} />
+                      )}
+                      {activePageId === 'team' && (
+                        <div className="animate-in fade-in duration-500 px-8 py-6">
+                          <div className="flex justify-end mb-6">
+                            <button onClick={openNewUserDrawer} className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-transform shadow-sm hover:-translate-y-0.5 ${isDarkMode ? 'bg-blue-600 text-white shadow-blue-900/50' : 'bg-blue-600 text-white hover:bg-blue-700'}`}>
+                              <UserPlus size={16} /> Invitar Miembro
+                            </button>
                           </div>
-                          {/* Lista de Tareas */}
-                          <div className={`divide-y ${isDarkMode ? 'divide-white/5' : 'divide-gray-100'}`}>
-                            {colTasks.length === 0 ? (
-                              <div className={`px-4 py-3 text-xs italic font-light ${isDarkMode ? 'text-gray-600' : 'text-gray-400'}`}>Sin tareas en esta sección.</div>
-                            ) : (
-                              colTasks.map(task => {
-                                const assignedUser = task.assigneeId ? users.find(u => u.id === task.assigneeId) : null;
-                                return (
-                                  <div key={task.id} className={`group flex flex-col md:flex-row md:items-center justify-between px-4 py-3 transition-colors cursor-pointer gap-3 ${isDarkMode ? 'hover:bg-white/[0.03]' : 'hover:bg-black/[0.03]'}`} onClick={() => setDrawerTask({ ...task, projectId: activePage.id })}>
-                                    <div className="flex items-center gap-3 md:w-1/2">
-                                      <div className={`p-0.5 rounded-md border flex shrink-0 items-center justify-center transition-colors ${isDarkMode ? 'border-gray-600 text-transparent group-hover:border-gray-400' : 'border-gray-400 text-transparent group-hover:border-gray-600'}`}>
-                                        <CheckSquare size={14} className="opacity-0 group-hover:opacity-100" />
-                                      </div>
-                                      <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-300 group-hover:text-white' : 'text-gray-700 group-hover:text-black'}`}>{task.content}</span>
-                                    </div>
-                                    <div className="flex items-center gap-4 md:w-1/2 md:justify-end ml-7 md:ml-0">
-                                      {task.meetLink && <span className={`flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-md opacity-70 group-hover:opacity-100 transition-opacity ${isDarkMode ? 'bg-blue-500/20 text-blue-300 border border-blue-500/20' : 'bg-blue-100 text-blue-700 border border-blue-200'}`}><Video size={10} /> Videollamada</span>}
-                                      {assignedUser ? (
-                                        <div className={`flex items-center gap-2 opacity-70 group-hover:opacity-100 transition-opacity min-w-[120px] justify-end`}>
-                                          <span className={`text-xs font-semibold truncate ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{assignedUser.name}</span>
-                                          <div className={`w-6 h-6 rounded-full flex shrink-0 items-center justify-center text-[10px] font-bold text-white shadow-inner bg-gradient-to-br ${assignedUser.color}`}>{assignedUser.initials}</div>
-                                        </div>
-                                      ) : (
-                                        <div className={`min-w-[120px]`}></div>
-                                      )}
-                                    </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                            {users.map(user => (
+                              <div key={user.id} className={`p-5 rounded-2xl flex flex-col justify-between ${currentGlassPanel} hover:-translate-y-1 transition-transform duration-300`}>
+                                <div className="flex items-start gap-4 mb-4">
+                                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold text-white shadow-inner bg-gradient-to-br ${user.color}`}>
+                                    {user.initials}
                                   </div>
-                                );
-                              })
-                            )}
-                            {/* Añadir nueva tarea a esta lista */}
-                            <div className={`px-4 py-3 transition-colors cursor-pointer rounded-b-xl flex items-center gap-2 ${isDarkMode ? 'hover:bg-white/[0.03] text-gray-500 hover:text-gray-300' : 'hover:bg-black/[0.03] text-gray-500 hover:text-gray-700'}`} onClick={() => openNewTaskDrawer(col.id)}>
-                              <Plus size={14} />
-                              <span className="text-xs font-semibold tracking-wide">Añadir nueva tarea</span>
-                            </div>
+                                  <div>
+                                    <h3 className="font-bold text-base">{user.name}</h3>
+                                    <p className={`text-xs font-medium mt-0.5 ${isDarkMode ? 'text-gray-400' : 'text-gray-550'}`}>{user.job}</p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center justify-between mt-auto border-t pt-3 border-white/10">
+                                  <div className="flex items-center gap-1.5">
+                                    <Shield size={14} className={user.role === 'Admin' ? 'text-red-400' : (user.role === 'Miembro' ? 'text-blue-400' : 'text-gray-500')} />
+                                    <span className={`text-xs font-semibold ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{user.role}</span>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <button onClick={() => setDrawerUser(user)} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-white/10 text-gray-400 hover:text-blue-400' : 'hover:bg-black/5 text-gray-500 hover:text-blue-600'}`} title="Editar Usuario"><Pencil size={14} /></button>
+                                    <button onClick={(e) => deleteUser(user.id, e)} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-red-500/20 text-gray-400 hover:text-red-400' : 'hover:bg-red-100 text-gray-500 hover:text-red-650'}`} title="Eliminar Usuario"><Trash2 size={14} /></button>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
                           </div>
                         </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Vista Calendario */}
-            {activePage.type === 'calendar' && (
-              <div className="space-y-8 animate-in fade-in duration-500">
-
-                <div className={`p-6 rounded-2xl ${currentGlassPanel}`}>
-                  <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                    <div>
-                      <h2 className="text-lg font-semibold flex items-center gap-2"><Calendar size={20} className={isDarkMode ? 'text-blue-400' : 'text-blue-600'} /> Google Workspace (API Real)</h2>
-                      <p className={`text-sm mt-1 font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Lee tus eventos reales y genera enlaces oficiales de Google Meet.</p>
-                    </div>
-                    
-                    {!googleClientId ? (
-                      <button onClick={() => setActivePageId('general_settings')} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-transform shadow-sm hover:-translate-y-0.5 ${isDarkMode ? 'bg-white/10 text-white shadow-white/5 hover:bg-white/20 border border-white/10' : 'bg-gray-900 text-white hover:bg-gray-800'}`}>
-                        <Settings size={16} /> Configurar Integración
-                      </button>
-                    ) : !isGoogleConnected ? (
-                      <button onClick={handleConnectGoogle} disabled={isConnecting} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-transform shadow-sm hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:translate-y-0 ${isDarkMode ? 'bg-blue-600 text-white shadow-blue-900/50' : 'bg-blue-600 text-white'}`}>
-                        {isConnecting ? <RefreshCw className="animate-spin" size={16} /> : <LogIn size={16} />} {isConnecting ? 'Conectando...' : 'Conectar Google'}
-                      </button>
-                    ) : (
-                      <div className="flex items-center gap-3">
-                        <span className={`text-xs px-3 py-1.5 rounded-lg border flex items-center gap-1.5 font-semibold shadow-inner ${isDarkMode ? 'bg-green-500/20 text-green-300 border-green-500/30' : 'bg-green-100/60 text-green-700 border-green-200'}`}><span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Sincronizado</span>
-                        <button onClick={handleDisconnectGoogle} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${isDarkMode ? 'bg-white/5 text-gray-400 hover:text-red-400 hover:bg-red-500/20' : 'bg-black/5 text-gray-600 hover:text-red-600 hover:bg-red-100'}`}><LogOut size={14} /> Desconectar</button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {isGoogleConnected && (
-                  <div className="space-y-5">
-                    <div className={`flex items-center justify-between border-b pb-3 ${isDarkMode ? 'border-white/10' : 'border-gray-200'}`}>
-                      <h3 className="text-lg font-semibold">Próximos Eventos Reales (7 días)</h3>
-                      <button onClick={handleCreateInstantMeetUI} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all text-xs font-semibold shadow-sm ${isDarkMode ? 'bg-blue-500/20 text-blue-300 hover:bg-blue-500/40 border border-blue-500/20' : 'bg-blue-100 text-blue-700 hover:bg-blue-200 border border-blue-200'}`}><Video size={14} /> Crear Meet Real</button>
-                    </div>
-                    <div className="grid grid-cols-1 gap-3">
-                      {events.length > 0 ? events.map(event => (
-                        <div key={event.id} className={`group flex flex-col md:flex-row items-start md:items-center justify-between p-5 rounded-2xl transition-all hover:-translate-y-0.5 ${currentGlassPanel}`}>
-                          <div className="flex items-start gap-4">
-                            <div className={`px-2.5 py-1 rounded-lg text-xs font-bold border backdrop-blur-md shadow-inner ${event.color} border-current/20`}>{event.date}</div>
-                            <div>
-                              <h4 className="text-base font-semibold mb-0.5 max-w-[250px] truncate">{event.title}</h4>
-                              <div className={`flex items-center gap-1.5 text-xs font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}><Clock size={14} />{event.time}</div>
-                            </div>
-                          </div>
-                          <div className="mt-4 md:mt-0 w-full md:w-auto flex flex-wrap gap-2 justify-start md:justify-end">
-                            <button onClick={() => convertEventToTask(event)} className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all shadow-sm ${isDarkMode ? 'bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/40 border border-emerald-500/20' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}`}>
-                                <CheckSquare size={14} /> Convertir en Tarea
-                            </button>
-                            <button onClick={() => generateMeetingAgenda(event)} disabled={isGeneratingAI} className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all disabled:opacity-50 shadow-sm ${isDarkMode ? 'bg-purple-500/20 text-purple-300 hover:bg-purple-500/40 border border-purple-500/20' : 'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>
-                                {isGeneratingAI ? <RefreshCw size={14} className="animate-spin" /> : <Sparkles size={14} />} ✨ Agenda IA
-                            </button>
-                            {event.meetLink && (
-                              <a href={event.meetLink} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all shadow-sm ${isDarkMode ? 'bg-blue-600/80 text-white hover:bg-blue-500 border border-blue-500/50' : 'bg-blue-600 text-white hover:bg-blue-700'}`}>
-                                <Video size={14} /> Unirse al Meet
-                              </a>
-                            )}
-                          </div>
-                        </div>
-                      )) : (
-                        <div className={`text-center py-10 text-sm font-medium italic rounded-2xl ${currentGlassPanel}`}>No tienes eventos agendados para los próximos días.</div>
                       )}
                     </div>
                   </div>
-                )}
-                {!isGoogleConnected && (
-                  <div className={`rounded-2xl p-12 text-center border border-dashed ${isDarkMode ? 'border-white/10 bg-white/[0.02] backdrop-blur-xl' : 'border-gray-300 bg-white/40 backdrop-blur-xl'}`}>
-                    <CalendarDays className={`mx-auto mb-4 opacity-40 ${isDarkMode ? 'text-gray-400' : 'text-gray-400'}`} size={40} />
-                    <h3 className={`text-lg font-semibold mb-1 ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>Sincronización de API de Google</h3>
-                    <p className={`text-sm font-medium max-w-lg mx-auto ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>
-                      {googleClientId 
-                        ? "Haz clic en 'Conectar Google' arriba para autorizar el acceso y ver tus reuniones." 
-                        : "Primero debes configurar tu ID de Cliente en los ajustes para poder conectar tu cuenta real de Google de forma segura."}
-                    </p>
+                </div>
+              )}
+
+              {/* MÓDULO UNIFICADO: PROYECTOS */}
+              {isProyectosActive && (
+                <div className="flex flex-col h-full w-full overflow-hidden animate-in fade-in duration-500">
+                  {/* Tabs horizontales para Proyectos */}
+                  <div className={`flex items-center gap-3 px-8 py-3.5 border-b shrink-0 ${isDarkMode ? 'border-white/5 bg-[#121214]' : 'border-primary/10 bg-primary-light'}`}>
+                    <div className="flex gap-2 overflow-x-auto whitespace-nowrap scrollbar-none flex-1">
+                      {[
+                        { id: 'proyectos_general', label: 'Mis Proyectos', icon: Briefcase, match: (id) => id === 'proyectos_general' || activePage?.type === 'project' },
+                        { id: 'paginas_general', label: 'Paginas', icon: FileText, match: (id) => id === 'paginas_general' || activePage?.type === 'doc' },
+                        { id: 'calendar', label: 'Calendario', icon: CalendarDays, match: (id) => id === 'calendar' }
+                      ].map(tab => {
+                        const Icon = tab.icon;
+                        const isActive = tab.match(activePageId);
+                        return (
+                          <button
+                            key={tab.id}
+                            onClick={() => {
+                              setActivePageId(tab.id);
+                            }}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 ${
+                              isActive
+                                ? (isDarkMode ? 'bg-primary/20 text-primary border-primary/30 shadow-sm' : 'bg-primary text-white border-primary shadow-sm')
+                                : (isDarkMode ? 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-white/5' : 'border-transparent text-gray-700 hover:text-gray-900 hover:bg-black/5')
+                            }`}
+                          >
+                            <Icon size={13} />
+                            <span>{tab.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                )}
-              </div>
-            )}
-            
-          </div>
-        </div>
+
+                  {/* Cuerpo de Proyectos */}
+                  <div className="flex flex-1 overflow-hidden min-h-0 bg-transparent">
+                    <div className={`flex-1 overflow-y-auto custom-scrollbar ${isDarkMode ? 'bg-[#0f0f11]' : 'bg-white'} ${
+                      (activePage.type === 'project' || activePage.type === 'doc') ? 'px-0 py-0' : 'px-8 py-6'
+                    }`}>
+                      
+                      {/* TAB: MIS PROYECTOS */}
+                      {(activePageId === 'proyectos_general' || activePage?.type === 'project') && (
+                        <>
+                          {activePageId === 'proyectos_general' ? (
+                            <div className="animate-in fade-in duration-500 space-y-6">
+                              <div className="flex items-center justify-between">
+                                <h3 className="text-lg font-bold">Listado de Proyectos</h3>
+                                <button 
+                                  onClick={addProject} 
+                                  className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-transform shadow-sm hover:-translate-y-0.5 ${isDarkMode ? 'bg-blue-600 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+                                >
+                                  <Plus size={14} /> Nuevo Proyecto
+                                </button>
+                              </div>
+
+                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                                {pages.filter(p => p.type === 'project').map(proj => {
+                                  const projTasks = globalTasks.filter(t => t.projectId === proj.id);
+                                  const completedTasksCount = projTasks.filter(t => t.status === 'done').length;
+                                  const totalTasksCount = projTasks.length;
+                                  const progressPercent = totalTasksCount > 0 ? Math.round((completedTasksCount / totalTasksCount) * 100) : 0;
+
+                                  return (
+                                    <div 
+                                      key={proj.id} 
+                                      onClick={() => setActivePageId(proj.id)}
+                                      className={`p-5 rounded-2xl flex flex-col justify-between cursor-pointer border transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
+                                        isDarkMode 
+                                          ? 'bg-[#151517] border-white/5 hover:bg-[#1a1a1c] hover:border-white/10' 
+                                          : 'bg-white border-gray-150 hover:bg-[#fbfcfd] hover:border-gray-300 shadow-sm'
+                                      }`}
+                                    >
+                                      <div>
+                                        <div className="flex items-start justify-between gap-4 mb-3">
+                                          <div className="flex items-center gap-3">
+                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isDarkMode ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
+                                              <Briefcase size={20} />
+                                            </div>
+                                            <div>
+                                              <h4 className="font-bold text-base truncate max-w-[180px]">{proj.title || 'Sin título'}</h4>
+                                              <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-550'}`}>
+                                                {totalTasksCount} tareas • {completedTasksCount} completadas
+                                              </p>
+                                            </div>
+                                          </div>
+                                          <button 
+                                            onClick={(e) => { e.stopPropagation(); deletePage(proj.id, e); }}
+                                            className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-red-500/20 text-gray-400 hover:text-red-400' : 'hover:bg-red-100 text-gray-500 hover:text-red-650'}`}
+                                            title="Eliminar Proyecto"
+                                          >
+                                            <Trash2 size={14} />
+                                          </button>
+                                        </div>
+
+                                        <div className="mt-4">
+                                          <div className="flex justify-between items-center text-xs font-semibold mb-1">
+                                            <span className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Progreso</span>
+                                            <span className={isDarkMode ? 'text-blue-400' : 'text-blue-600'}>{progressPercent}%</span>
+                                          </div>
+                                          <div className={`w-full h-2 rounded-full overflow-hidden ${isDarkMode ? 'bg-white/5' : 'bg-black/5'}`}>
+                                            <div className="h-full bg-blue-600 transition-all duration-500" style={{ width: `${progressPercent}%` }}></div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                                {pages.filter(p => p.type === 'project').length === 0 && (
+                                  <div className={`col-span-full text-center py-12 rounded-2xl border border-dashed ${isDarkMode ? 'border-white/10 text-gray-500' : 'border-gray-200 text-gray-400'}`}>
+                                    No hay proyectos creados aún.
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="animate-in fade-in duration-500">
+                              <div className={`flex items-center gap-3 px-8 py-3.5 border-b shrink-0 ${isDarkMode ? 'border-white/5 bg-[#121214]/40' : 'border-primary/10 bg-primary-light/40'}`}>
+                                <button 
+                                  onClick={() => setActivePageId('proyectos_general')}
+                                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
+                                    isDarkMode 
+                                      ? 'border-white/10 hover:bg-white/5 text-gray-300 hover:text-white' 
+                                      : 'border-gray-200 hover:bg-black/5 text-gray-700 hover:text-black'
+                                  }`}
+                                >
+                                  <ArrowLeft size={12} /> Volver a Proyectos
+                                </button>
+                                <span className={`text-xs font-bold ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                  Proyecto activo: <span className="text-primary font-extrabold">{activePage.title}</span>
+                                </span>
+                              </div>
+                              <div className="px-8 py-6">
+                                <div className="mb-8">
+                                  <div className="group relative flex items-center gap-3">
+                                     <div className={`p-2.5 rounded-xl transition-colors backdrop-blur-md border ${isDarkMode ? 'bg-white/5 border-white/10 text-gray-200 shadow-sm' : 'bg-white/60 border-gray-200 text-gray-700 shadow-sm'}`}>
+                                       <IconRenderer name={activePage.icon} size={24} />
+                                     </div>
+                                     <input type="text" value={activePage.title} onChange={(e) => updateActivePage({ title: e.target.value })} placeholder="Título del proyecto" className={`w-full text-3xl font-bold border-none outline-none bg-transparent resize-none focus:ring-0 tracking-tight ${isDarkMode ? 'text-white placeholder-gray-700' : 'text-gray-900 placeholder-gray-400'}`} />
+                                  </div>
+                                  
+                                  <div className="flex items-center gap-2 mt-4 ml-14">
+                                    <UserCircle size={14} className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
+                                    <span className={`text-xs font-semibold uppercase tracking-wider ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>Líder:</span>
+                                    <select 
+                                      value={activePage.leadId || ''} 
+                                      onChange={(e) => updateActivePage({ leadId: e.target.value })} 
+                                      className={`px-2 py-1 text-xs font-semibold rounded-lg outline-none cursor-pointer transition-all border ${isDarkMode ? 'bg-white/5 border-white/10 text-gray-200 hover:bg-white/10' : 'bg-white/60 border-gray-200 text-gray-700 hover:bg-white'}`}
+                                    >
+                                      <option value="">Sin Asignar</option>
+                                      {users.map(u => <option key={u.id} value={u.id} className="text-black">{u.name}</option>)}
+                                    </select>
+                                  </div>
+                                </div>
+
+                                <div className="mt-6 animate-in fade-in duration-500 relative z-0">
+                                  <div className={`flex items-center justify-between mb-6 border-b pb-3 ${isDarkMode ? 'border-white/10' : 'border-gray-200'}`}>
+                                    <div className={`flex items-center gap-2 text-xs font-semibold uppercase tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-gray-550'}`}>
+                                      {currentProjectView === 'board' ? <ListTodo size={16} /> : <AlignLeft size={16} />}
+                                      <span>{currentProjectView === 'board' ? 'Tablero de Tareas' : 'Lista de Tareas'}</span>
+                                    </div>
+                                    <div className={`flex p-1 rounded-lg ${isDarkMode ? 'bg-white/5' : 'bg-black/5'}`}>
+                                      <button onClick={() => setCurrentProjectView('board')} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${currentProjectView === 'board' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-white text-gray-950 shadow-sm') : (isDarkMode ? 'text-gray-500 hover:text-gray-300' : 'text-gray-500 hover:text-gray-750')}`}>Tablero</button>
+                                      <button onClick={() => setCurrentProjectView('list')} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${currentProjectView === 'list' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-white text-gray-900 shadow-sm') : (isDarkMode ? 'text-gray-500 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700')}`}>Lista</button>
+                                    </div>
+                                  </div>
+
+                                  {currentProjectView === 'board' ? (
+                                    <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={onDragStart} onDragOver={onDragOver} onDragEnd={onDragEnd}>
+                                      <div className="flex flex-row gap-4 overflow-x-auto pb-6 items-start min-h-[50vh] snap-x custom-scrollbar w-full">
+                                        <SortableContext items={(activePage.columns || DEFAULT_COLUMNS).map(c => c.id)} strategy={horizontalListSortingStrategy}>
+                                          {(activePage.columns || DEFAULT_COLUMNS).map(col => {
+                                            const colTasks = (activePage.tasks || []).filter(t => t.status === col.id).sort((a, b) => (a.order || 0) - (b.order || 0));
+                                            return (
+                                              <SortableColumn 
+                                                key={col.id} 
+                                                col={col} 
+                                                isDarkMode={isDarkMode}
+                                                cycleColumnColor={cycleColumnColor}
+                                                editingColumnId={editingColumnId}
+                                                editingColumnTitle={editingColumnTitle}
+                                                setEditingColumnId={setEditingColumnId}
+                                                setEditingColumnTitle={setEditingColumnTitle}
+                                                renameColumn={renameColumn}
+                                                deleteColumn={deleteColumn}
+                                                colTasks={colTasks}
+                                                users={users}
+                                                isGeneratingAI={isGeneratingAI}
+                                                generateSubtasks={generateSubtasks}
+                                                setDrawerTask={setDrawerTask}
+                                                openNewTaskDrawer={openNewTaskDrawer}
+                                                currentGlassPanel={currentGlassPanel}
+                                                activePageId={activePageId}
+                                              />
+                                            );
+                                          })}
+                                        </SortableContext>
+                                        
+                                        <div className={`w-[260px] shrink-0 p-4 rounded-2xl flex flex-col gap-3 justify-center items-center border border-dashed transition-all duration-300 hover:border-solid ${isDarkMode ? 'border-white/10 hover:border-white/30 bg-white/[0.01]' : 'border-gray-300 hover:border-gray-400 bg-black/[0.01]'}`}>
+                                          <button onClick={addColumn} className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all shadow-sm ${isDarkMode ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}><Plus size={14} /> Añadir Columna</button>
+                                        </div>
+                                      </div>
+                                    </DndContext>
+                                  ) : (
+                                    <div className="space-y-6">
+                                      {(activePage.columns || DEFAULT_COLUMNS).map(col => {
+                                        const colTasks = (activePage.tasks || []).filter(t => t.status === col.id).sort((a, b) => (a.order || 0) - (b.order || 0));
+                                        return (
+                                          <div key={col.id} className={`p-5 rounded-2xl border shadow-sm ${isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-150'}`}>
+                                            <div className="flex items-center justify-between mb-4">
+                                              <span className={`text-xs font-bold px-2.5 py-1 rounded-lg ${getColumnColorClass(col.color)}`}>{col.title} ({colTasks.length})</span>
+                                            </div>
+                                            <div className="divide-y divide-white/5">
+                                              {colTasks.length === 0 ? (
+                                                <div className="py-4 text-xs italic text-gray-500">Sin tareas en esta lista</div>
+                                              ) : (
+                                                colTasks.map(task => {
+                                                  const assignedUser = users.find(u => u.id === task.assigneeId);
+                                                  return (
+                                                    <div key={task.id} className="group py-3 flex flex-col md:flex-row md:items-center justify-between gap-3 cursor-pointer" onClick={() => setDrawerTask(task)}>
+                                                      <div className="flex items-center gap-3 md:w-1/2">
+                                                        <div className={`p-1.5 rounded-lg shrink-0 ${isDarkMode ? 'bg-white/5 text-gray-400' : 'bg-black/5 text-gray-650'}`}>
+                                                          <CheckSquare size={14} />
+                                                        </div>
+                                                        <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-300 group-hover:text-white' : 'text-gray-700 group-hover:text-black'}`}>{task.content}</span>
+                                                      </div>
+                                                      <div className="flex items-center gap-4 md:w-1/2 md:justify-end ml-7 md:ml-0">
+                                                        {task.meetLink && <span className={`flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-md opacity-70 group-hover:opacity-100 transition-opacity ${isDarkMode ? 'bg-blue-500/20 text-blue-300 border border-blue-500/20' : 'bg-blue-100 text-blue-700 border border-blue-200'}`}><Video size={10} /> Videollamada</span>}
+                                                        {assignedUser ? (
+                                                          <div className={`flex items-center gap-2 opacity-70 group-hover:opacity-100 transition-opacity min-w-[120px] justify-end`}>
+                                                            <span className={`text-xs font-semibold truncate ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{assignedUser.name}</span>
+                                                            <div className={`w-6 h-6 rounded-full flex shrink-0 items-center justify-center text-[10px] font-bold text-white shadow-inner bg-gradient-to-br ${assignedUser.color}`}>{assignedUser.initials}</div>
+                                                          </div>
+                                                        ) : (
+                                                          <div className={`min-w-[120px]`}></div>
+                                                        )}
+                                                      </div>
+                                                    </div>
+                                                  );
+                                                })
+                                              )}
+                                              <div className={`px-4 py-3 transition-colors cursor-pointer rounded-b-xl flex items-center gap-2 ${isDarkMode ? 'hover:bg-white/[0.03] text-gray-500 hover:text-gray-300' : 'hover:bg-black/[0.03] text-gray-500 hover:text-gray-700'}`} onClick={() => openNewTaskDrawer(col.id)}>
+                                                <Plus size={14} />
+                                                <span className="text-xs font-semibold tracking-wide">Añadir nueva tarea</span>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      )}
+
+                      {/* TAB: PAGINAS */}
+                      {(activePageId === 'paginas_general' || activePage?.type === 'doc') && (
+                        <>
+                          {activePageId === 'paginas_general' ? (
+                            <div className="animate-in fade-in duration-500 space-y-6">
+                              <div className="flex items-center justify-between">
+                                <h3 className="text-lg font-bold">Listado de Páginas</h3>
+                                <button 
+                                  onClick={addPage} 
+                                  className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-transform shadow-sm hover:-translate-y-0.5 ${isDarkMode ? 'bg-blue-600 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+                                >
+                                  <Plus size={14} /> Nueva Página
+                                </button>
+                              </div>
+
+                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                                {pages.filter(p => p.type === 'doc').map(docPage => (
+                                  <div 
+                                    key={docPage.id} 
+                                    onClick={() => setActivePageId(docPage.id)}
+                                    className={`p-5 rounded-2xl flex flex-col justify-between cursor-pointer border transition-all duration-350 hover:-translate-y-1 hover:shadow-md ${
+                                      isDarkMode 
+                                        ? 'bg-[#151517] border-white/5 hover:bg-[#1a1a1c] hover:border-white/10' 
+                                        : 'bg-white border-gray-150 hover:bg-[#fbfcfd] hover:border-gray-300 shadow-sm'
+                                    }`}
+                                  >
+                                    <div>
+                                      <div className="flex items-start justify-between gap-4 mb-3">
+                                        <div className="flex items-center gap-3">
+                                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isDarkMode ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}`}>
+                                            <FileText size={20} />
+                                          </div>
+                                          <div>
+                                            <h4 className="font-bold text-base truncate max-w-[180px]">{docPage.title || 'Sin título'}</h4>
+                                            <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-550'}`}>
+                                              {docPage.content ? `${Math.round(docPage.content.split(' ').length)} palabras` : 'Vacía'}
+                                            </p>
+                                          </div>
+                                        </div>
+                                        <button 
+                                          onClick={(e) => { e.stopPropagation(); deletePage(docPage.id, e); }}
+                                          className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-red-500/20 text-gray-400 hover:text-red-400' : 'hover:bg-red-100 text-gray-500 hover:text-red-650'}`}
+                                          title="Eliminar Página"
+                                        >
+                                          <Trash2 size={14} />
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                                {pages.filter(p => p.type === 'doc').length === 0 && (
+                                  <div className={`col-span-full text-center py-12 rounded-2xl border border-dashed ${isDarkMode ? 'border-white/10 text-gray-500' : 'border-gray-200 text-gray-400'}`}>
+                                    No hay páginas creadas aún.
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="animate-in fade-in duration-500">
+                              <div className={`flex items-center gap-3 px-8 py-3.5 border-b shrink-0 ${isDarkMode ? 'border-white/5 bg-[#121214]/40' : 'border-primary/10 bg-primary-light/40'}`}>
+                                <button 
+                                  onClick={() => setActivePageId('paginas_general')}
+                                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
+                                    isDarkMode 
+                                      ? 'border-white/10 hover:bg-white/5 text-gray-300 hover:text-white' 
+                                      : 'border-gray-200 hover:bg-black/5 text-gray-700 hover:text-black'
+                                  }`}
+                                >
+                                  <ArrowLeft size={12} /> Volver a Páginas
+                                </button>
+                                <span className={`text-xs font-bold ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                  Página activa: <span className="text-primary font-extrabold">{activePage.title}</span>
+                                </span>
+                              </div>
+                              <div className="max-w-4xl mx-auto px-6 md:px-12 lg:px-24 py-8">
+                                <div className="mb-8">
+                                  <div className="group relative flex items-center gap-3">
+                                     <div className={`p-2.5 rounded-xl transition-colors backdrop-blur-md border ${isDarkMode ? 'bg-white/5 border-white/10 text-gray-200 shadow-sm' : 'bg-white/60 border-gray-200 text-gray-700 shadow-sm'}`}>
+                                       <IconRenderer name={activePage.icon} size={24} />
+                                     </div>
+                                     <input type="text" value={activePage.title} onChange={(e) => updateActivePage({ title: e.target.value })} placeholder="Título del documento" className={`w-full text-3xl font-bold border-none outline-none bg-transparent resize-none focus:ring-0 tracking-tight ${isDarkMode ? 'text-white placeholder-gray-700' : 'text-gray-900 placeholder-gray-400'}`} />
+                                  </div>
+                                </div>
+
+                                <div className={`flex flex-wrap gap-2 mb-6 p-2 rounded-xl animate-in fade-in duration-300 ${isDarkMode ? 'bg-white/5 border border-white/5 backdrop-blur-md' : 'bg-white/40 border border-white/40 backdrop-blur-md shadow-sm'}`}>
+                                  <span className={`flex items-center px-2 text-[10px] font-bold uppercase tracking-wider ${isDarkMode ? 'text-purple-400' : 'text-purple-600'}`}>Herramientas IA</span>
+                                  <button onClick={() => handleAiAction('improve')} disabled={isGeneratingAI || !activePage.content.trim()} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${isDarkMode ? 'bg-purple-500/20 text-purple-300 hover:bg-purple-500/40 border border-purple-500/20' : 'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>{isGeneratingAI ? <RefreshCw size={12} className="animate-spin" /> : <Wand2 size={12} />} Mejorar</button>
+                                  <button onClick={() => handleAiAction('summarize')} disabled={isGeneratingAI || !activePage.content.trim()} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${isDarkMode ? 'bg-purple-500/20 text-purple-300 hover:bg-purple-500/40 border border-purple-500/20' : 'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>{isGeneratingAI ? <RefreshCw size={12} className="animate-spin" /> : <Sparkles size={12} />} Resumir</button>
+                                  <button onClick={() => handleAiAction('continue')} disabled={isGeneratingAI || !activePage.content.trim()} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${isDarkMode ? 'bg-purple-500/20 text-purple-300 hover:bg-purple-500/40 border border-purple-500/20' : 'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>{isGeneratingAI ? <RefreshCw size={12} className="animate-spin" /> : <Sparkles size={12} />} Continuar</button>
+                                </div>
+                                <textarea ref={contentRef} value={activePage.content} onChange={(e) => updateActivePage({ content: e.target.value })} placeholder="Presiona '/' para comandos o empieza a escribir..." className={`w-full text-[13px] leading-tight border-none outline-none bg-transparent resize-none focus:ring-0 min-h-[300px] font-medium ${isDarkMode ? 'text-gray-100 placeholder-gray-500' : 'text-gray-900 placeholder-gray-500'}`} />
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      )}
+
+                      {/* TAB: CALENDARIO */}
+                      {activePageId === 'calendar' && (
+                        <div className="space-y-8 animate-in fade-in duration-500 px-8 py-6">
+                          <div className={`p-6 rounded-2xl ${currentGlassPanel}`}>
+                            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                              <div>
+                                <h2 className="text-lg font-semibold flex items-center gap-2"><Calendar size={20} className={isDarkMode ? 'text-blue-400' : 'text-blue-600'} /> Google Workspace (API Real)</h2>
+                                <p className={`text-sm mt-1 font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Lee tus eventos reales y genera enlaces oficiales de Google Meet.</p>
+                              </div>
+                              
+                              {!googleClientId ? (
+                                <button onClick={() => setActivePageId('general_settings')} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-transform shadow-sm hover:-translate-y-0.5 ${isDarkMode ? 'bg-white/10 text-white shadow-white/5 hover:bg-white/20 border border-white/10' : 'bg-gray-900 text-white hover:bg-gray-800'}`}>
+                                  <Settings size={16} /> Configurar Integración
+                                </button>
+                              ) : !isGoogleConnected ? (
+                                <button onClick={handleConnectGoogle} disabled={isConnecting} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-transform shadow-sm hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:translate-y-0 ${isDarkMode ? 'bg-blue-600 text-white shadow-blue-900/50' : 'bg-blue-600 text-white'}`}>
+                                  {isConnecting ? <RefreshCw className="animate-spin" size={16} /> : <LogIn size={16} />} {isConnecting ? 'Conectando...' : 'Conectar Google'}
+                                </button>
+                              ) : (
+                                <div className="flex items-center gap-3">
+                                  <span className={`text-xs px-3 py-1.5 rounded-lg border flex items-center gap-1.5 font-semibold shadow-inner ${isDarkMode ? 'bg-green-500/20 text-green-300 border-green-500/30' : 'bg-green-100/60 text-green-700 border-green-200'}`}><span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Sincronizado</span>
+                                  <button onClick={handleDisconnectGoogle} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${isDarkMode ? 'bg-white/5 text-gray-400 hover:text-red-400 hover:bg-red-500/20' : 'bg-black/5 text-gray-600 hover:text-red-650'}`}><LogOut size={14} /> Desconectar</button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {isGoogleConnected && (
+                            <div className="space-y-5">
+                              <div className={`flex items-center justify-between border-b pb-3 ${isDarkMode ? 'border-white/10' : 'border-gray-200'}`}>
+                                <h3 className="text-lg font-semibold">Próximos Eventos Reales (7 días)</h3>
+                                <button onClick={handleCreateInstantMeetUI} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all text-xs font-semibold shadow-sm ${isDarkMode ? 'bg-blue-500/20 text-blue-300 hover:bg-blue-500/40 border border-blue-500/20' : 'bg-blue-100 text-blue-700 hover:bg-blue-200 border border-blue-200'}`}><Video size={14} /> Crear Meet Real</button>
+                              </div>
+                              <div className="grid grid-cols-1 gap-3">
+                                {events.length > 0 ? events.map(event => (
+                                  <div key={event.id} className={`group flex flex-col md:flex-row items-start md:items-center justify-between p-5 rounded-2xl transition-all hover:-translate-y-0.5 ${currentGlassPanel}`}>
+                                    <div className="flex items-start gap-4">
+                                      <div className={`px-2.5 py-1 rounded-lg text-xs font-bold border backdrop-blur-md shadow-inner ${event.color} border-current/20`}>{event.date}</div>
+                                      <div>
+                                        <h4 className="text-base font-semibold mb-0.5 max-w-[250px] truncate">{event.title}</h4>
+                                        <div className={`flex items-center gap-1.5 text-xs font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-550'}`}><Clock size={14} />{event.time}</div>
+                                      </div>
+                                    </div>
+                                    <div className="mt-4 md:mt-0 w-full md:w-auto flex flex-wrap gap-2 justify-start md:justify-end">
+                                      <button onClick={() => convertEventToTask(event)} className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all shadow-sm ${isDarkMode ? 'bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/40 border border-emerald-500/20' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}`}>
+                                          <CheckSquare size={14} /> Convertir en Tarea
+                                      </button>
+                                      <button onClick={() => generateMeetingAgenda(event)} disabled={isGeneratingAI} className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all disabled:opacity-50 shadow-sm ${isDarkMode ? 'bg-purple-500/20 text-purple-300 hover:bg-purple-500/40 border border-purple-500/20' : 'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>
+                                          {isGeneratingAI ? <RefreshCw className="animate-spin" size={14} /> : <Wand2 size={14} />} Agenda con IA
+                                      </button>
+                                      {event.meetLink && (
+                                        <a href={event.meetLink} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all shadow-sm ${isDarkMode ? 'bg-blue-500/20 text-blue-300 hover:bg-blue-500/40 border border-blue-500/20' : 'bg-blue-100 text-blue-700 hover:bg-blue-200 border border-blue-200'}`}>
+                                          <Video size={14} /> Unirse a Meet
+                                        </a>
+                                      )}
+                                    </div>
+                                  </div>
+                                )) : (
+                                  <div className={`col-span-full text-center py-12 rounded-2xl border border-dashed ${isDarkMode ? 'border-white/10 text-gray-500' : 'border-gray-200 text-gray-400'}`}>
+                                    No hay eventos para los próximos 7 días.
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+            </div> {/* Closes mx-auto */}
+          </div> {/* Closes Editor Area */}
 
         {/* Chat Lateral de IA Global */}
         {isGlobalChatOpen && (

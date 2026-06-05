@@ -19,6 +19,20 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/sri/, ''),
         secure: false,
+      },
+      // Proxy para WebServices de Recepción/Autorización del SRI de Producción
+      '/api/sri-ws-prod': {
+        target: 'https://cel.sri.gob.ec',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/sri-ws-prod/, ''),
+        secure: false,
+      },
+      // Proxy para WebServices de Recepción/Autorización del SRI de Pruebas
+      '/api/sri-ws-pruebas': {
+        target: 'https://celcer.sri.gob.ec',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/sri-ws-pruebas/, ''),
+        secure: false,
       }
     }
   }

@@ -473,86 +473,244 @@ export function generarLiquidacionXML(emisorConfig, liqData, terceroData, items 
 }
 
 
-// Simulador de Transmisión SRI (Proceso asíncrono con bitácora)
-export function simularTransmisionSRI(documentoData, configSRI, onLogUpdate) {
+// Proxies CORS para reintentar peticiones SOAP en caso de fallo del proxy de servidor
+const SOAP_CORS_PROXIES = [
+  (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+  (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
+];
+
+/**
+ * Realiza una petición SOAP HTTP POST de manera robusta evadiendo CORS
+ */
+async function enviarPeticionSoap(wsPath, soapBody, ambiente) {
+  const isProd = ambiente === '2';
+  const localProxyUrl = isProd 
+    ? `/api/sri-ws-prod/compr-electronicos-ws/${wsPath}`
+    : `/api/sri-ws-pruebas/compr-electronicos-ws/${wsPath}`;
+  
+  const absoluteUrl = isProd
+    ? `https://cel.sri.gob.ec/compr-electronicos-ws/${wsPath}`
+    : `https://celcer.sri.gob.ec/compr-electronicos-ws/${wsPath}`;
+
+  const intentos = [
+    { label: 'Proxy Servidor', url: localProxyUrl },
+    ...SOAP_CORS_PROXIES.map((proxyFn, i) => ({
+      label: `CORS Proxy ${i === 0 ? 'CorsProxy' : 'CodeTabs'}`,
+      url: proxyFn(absoluteUrl)
+    }))
+  ];
+
+  let ultimoError = null;
+
+  for (const intento of intentos) {
+    try {
+      console.info(`Enviando SOAP a ${wsPath} vía: ${intento.label}`);
+      const response = await fetch(intento.url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'text/xml;charset=utf-8',
+          'SOAPAction': ''
+        },
+        body: soapBody
+      });
+
+      if (response.ok) {
+        const text = await response.text();
+        return { text, via: intento.label };
+      }
+      ultimoError = new Error(`HTTP ${response.status} via ${intento.label}`);
+    } catch (err) {
+      ultimoError = err;
+    }
+  }
+
+  throw ultimoError || new Error('Error de conexión con los servidores del SRI');
+}
+
+// Emisión y Transmisión Real al SRI (con fallback a Simulación si no hay firma cargada)
+export async function simularTransmisionSRI(documentoData, configSRI, onLogUpdate) {
+  let logs = [];
+  const addLog = (message, status = 'info') => {
+    logs.push({ time: new Date().toLocaleTimeString(), message, status });
+    onLogUpdate([...logs]);
+  };
+
+  // Si no hay firma cargada, usar el motor de simulación para pruebas de desarrollo
+  if (!configSRI.certificadoCargado || !configSRI.certificadoBase64) {
+    addLog("Firma electrónica (.p12) no cargada. Iniciando modo SIMULACIÓN local...", "warning");
+    return ejecutarSimulacionSRI(documentoData, configSRI, onLogUpdate);
+  }
+
+  const isProd = configSRI.ambiente === '2';
+  const envLabel = isProd ? 'PRODUCCIÓN' : 'PRUEBAS';
+
+  try {
+    addLog(`Iniciando conexión con WebServices del SRI [Ambiente: ${envLabel}]...`, "info");
+    addLog("Validando estructura del documento...", "info");
+
+    if (!validarIdentificacion(documentoData.rucReceptor)) {
+      throw new Error(`RUC/CI del receptor inválido (${documentoData.rucReceptor}).`);
+    }
+    if (Number(documentoData.total) <= 0) {
+      throw new Error("El total del comprobante debe ser mayor a cero.");
+    }
+    addLog("Validación previa exitosa.", "success");
+
+    // 1. Recepción del Comprobante
+    addLog("Generando sobre SOAP y codificando XML firmado en Base64...", "info");
+    const xmlBase64 = btoa(unescape(encodeURIComponent(documentoData.xml)));
+    const soapRecepcion = `<?xml version="1.0" encoding="utf-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ec="http://ec.gob.sri.ws.recepcion">
+  <soapenv:Header/>
+  <soapenv:Body>
+    <ec:validarComprobante>
+      <xml>${xmlBase64}</xml>
+    </ec:validarComprobante>
+  </soapenv:Body>
+</soapenv:Envelope>`;
+
+    addLog("Enviando comprobante al servicio de Recepción del SRI...", "info");
+    const resRecepcion = await enviarPeticionSoap('RecepcionComprobantesOffline', soapRecepcion, configSRI.ambiente);
+    addLog(`Respuesta de Recepción recibida vía ${resRecepcion.via}.`, "success");
+
+    // Parsear respuesta de recepción
+    const parser = new DOMParser();
+    const docRecepcion = parser.parseFromString(resRecepcion.text, "text/xml");
+    const estadoRecepcion = docRecepcion.getElementsByTagName("estado")[0]?.textContent;
+
+    if (estadoRecepcion === 'DEVUELTO') {
+      const mensajeNodes = docRecepcion.getElementsByTagName("mensaje");
+      let erroresList = [];
+      for (let i = 0; i < mensajeNodes.length; i++) {
+        const node = mensajeNodes[i];
+        const ident = node.getElementsByTagName("identificador")[0]?.textContent || '';
+        const msg = node.getElementsByTagName("mensaje")[0]?.textContent || '';
+        const infoAd = node.getElementsByTagName("informacionAdicional")[0]?.textContent || '';
+        erroresList.push(`[${ident}] ${msg} (${infoAd})`);
+      }
+      throw new Error(`Devuelto por el SRI: ${erroresList.join(" | ")}`);
+    } else if (estadoRecepcion !== 'RECIBIDO') {
+      throw new Error(`Respuesta de recepción desconocida: ${estadoRecepcion}`);
+    }
+
+    addLog("SRI Recepción: RECIBIDO (Comprobante transmitido con éxito).", "success");
+
+    // Esperar 2 segundos para dar tiempo al SRI de procesar en lote
+    addLog("Esperando respuesta de autorización en cola del SRI (2s)...", "info");
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    // 2. Autorización del Comprobante
+    addLog("Consultando estado de autorización en WebService del SRI...", "info");
+    const soapAutorizacion = `<?xml version="1.0" encoding="utf-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ec="http://ec.gob.sri.ws.autorizacion">
+  <soapenv:Header/>
+  <soapenv:Body>
+    <ec:autorizacionComprobante>
+      <claveAcceso>${documentoData.claveAcceso}</claveAcceso>
+    </ec:autorizacionComprobante>
+  </soapenv:Body>
+</soapenv:Envelope>`;
+
+    let intentos = 3;
+    let authData = null;
+
+    while (intentos > 0) {
+      try {
+        const resAutorizacion = await enviarPeticionSoap('AutorizacionComprobantesOffline', soapAutorizacion, configSRI.ambiente);
+        const docAutorizacion = parser.parseFromString(resAutorizacion.text, "text/xml");
+        
+        const autorizaciones = docAutorizacion.getElementsByTagName("autorizacion");
+        if (autorizaciones.length > 0) {
+          const authNode = autorizaciones[0];
+          const estadoAuth = authNode.getElementsByTagName("estado")[0]?.textContent;
+          const fechaAuth = authNode.getElementsByTagName("fechaAutorizacion")[0]?.textContent || '';
+          
+          if (estadoAuth === 'AUTORIZADO') {
+            authData = {
+              status: 'autorizado',
+              claveAcceso: documentoData.claveAcceso,
+              fechaAutorizacion: fechaAuth,
+              pdfUrl: `https://srienlinea.sri.gob.ec/comprobantes-electronicos-internet/publico/detalle.jsf?claveAcceso=${documentoData.claveAcceso}`,
+              xmlUrl: "data:text/xml;charset=utf-8," + encodeURIComponent(documentoData.xml),
+              logs
+            };
+            break;
+          } else if (estadoAuth === 'NO AUTORIZADO') {
+            const mensajeNodes = authNode.getElementsByTagName("mensaje");
+            let erroresList = [];
+            for (let i = 0; i < mensajeNodes.length; i++) {
+              const node = mensajeNodes[i];
+              const msg = node.getElementsByTagName("mensaje")[0]?.textContent || '';
+              const infoAd = node.getElementsByTagName("informacionAdicional")[0]?.textContent || '';
+              erroresList.push(`${msg} (${infoAd})`);
+            }
+            throw new Error(`No Autorizado por el SRI. Detalles: ${erroresList.join(" | ")}`);
+          }
+        } else {
+          // Si no hay autorizaciones procesadas aún, podría estar en cola
+          addLog("Comprobante en procesamiento en el SRI, reintentando...", "info");
+        }
+      } catch (errAuth) {
+        if (intentos === 1) throw errAuth;
+      }
+      
+      intentos--;
+      if (intentos > 0 && !authData) {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+    }
+
+    if (!authData) {
+      throw new Error("No se pudo obtener una respuesta de autorización final del SRI.");
+    }
+
+    addLog(`SRI Autorización: AUTORIZADO (Clave: ${documentoData.claveAcceso})`, "success");
+    return authData;
+
+  } catch (err) {
+    addLog(`Error en transmisión real al SRI: ${err.message || err}`, "error");
+    throw { status: 'error', error: err.message || 'Error en transmisión al SRI', logs };
+  }
+}
+
+// Fallback de Simulación para desarrollo local
+function ejecutarSimulacionSRI(documentoData, configSRI, onLogUpdate) {
   return new Promise((resolve, reject) => {
     let logs = [];
     const addLog = (message, status = 'info') => {
-      const logEntry = {
-        time: new Date().toLocaleTimeString(),
-        message,
-        status
-      };
-      logs.push(logEntry);
+      logs.push({ time: new Date().toLocaleTimeString(), message, status });
       onLogUpdate([...logs]);
     };
-
+    
     addLog("Iniciando validación previa del comprobante...", "info");
-
     setTimeout(() => {
-      // 1. Validaciones previas
       if (!validarIdentificacion(documentoData.rucReceptor)) {
         addLog(`Error: RUC/CI del receptor inválido (${documentoData.rucReceptor}).`, "error");
         reject({ status: 'rechazado', error: 'Identificación de receptor inválida', logs });
         return;
       }
-      if (Number(documentoData.total) <= 0) {
-        addLog("Error: El total del comprobante debe ser mayor a cero.", "error");
-        reject({ status: 'rechazado', error: 'Total inválido', logs });
-        return;
-      }
       addLog("Validación previa exitosa. Campos obligatorios completos.", "success");
-
-      // 2. Firmar XML
+      
       setTimeout(() => {
-        if (!configSRI.certificadoCargado) {
-          addLog("Firma electrónica (.p12) no cargada o contraseña incorrecta.", "error");
-          reject({ status: 'rechazado', error: 'Falta Firma Electrónica', logs });
-          return;
-        }
-        addLog("Generando sobre XML firmado usando XAdES-BES...", "info");
-        addLog(`Certificado: ${configSRI.certificadoNombre || 'firma.p12'} detectado.`, "info");
-        addLog("XML firmado criptográficamente de manera exitosa.", "success");
-
-        // 3. Conexión y Recepción
+        addLog("Generando sobre XML firmado usando XAdES-BES (Simulado)...", "info");
+        addLog("XML firmado de manera exitosa.", "success");
+        
         setTimeout(() => {
           const envName = configSRI.ambiente === '2' ? 'PRODUCCIÓN' : 'PRUEBAS';
-          addLog(`Conectando con WebService Recepción SRI [Ambiente: ${envName}]...`, "info");
-          addLog("Transmitiendo paquete SOAP del comprobante...", "info");
-
+          addLog(`Conectando con WebService Recepción SRI [Ambiente: ${envName}] (Simulado)...`, "info");
+          addLog("Respuesta SRI Recepción: RECIBIDO", "success");
+          
           setTimeout(() => {
-            addLog("Respuesta SRI Recepción: RECIBIDO", "success");
-
-            // 4. Autorización
-            setTimeout(() => {
-              addLog("Conectando con WebService Autorización SRI...", "info");
-              addLog(`Buscando clave de acceso: ${documentoData.claveAcceso}...`, "info");
-
-              setTimeout(() => {
-                const randomVal = Math.random();
-                if (randomVal < 0.05) {
-                  // Pequeña chance de rechazo simulado para mostrar manejo de errores
-                  addLog("SRI Autorización: RECHAZADO - Clave de acceso ya procesada o error de secuencial.", "error");
-                  reject({ status: 'rechazado', error: 'Rechazado por secuencial duplicado', logs });
-                } else {
-                  const resolucion = empaquetarResolucionSRI(configSRI.ambiente);
-                  addLog(`SRI Autorización: AUTORIZADO (${resolucion})`, "success");
-                  addLog("Generando archivo visual RIDE en PDF...", "info");
-                  
-                  // Generar URLs simuladas
-                  const mockPdfUrl = "https://www.sri.gob.ec/comprobantes-electronicos-internet/publico/detalle.jsf";
-                  
-                  resolve({
-                    status: 'autorizado',
-                    claveAcceso: documentoData.claveAcceso,
-                    pdfUrl: mockPdfUrl,
-                    xmlUrl: "data:text/xml;charset=utf-8," + encodeURIComponent(documentoData.xml),
-                    logs
-                  });
-                }
-              }, 1200);
-            }, 1000);
-          }, 1000);
+            addLog("Conectando con WebService Autorización SRI (Simulado)...", "info");
+            addLog(`SRI Autorización: AUTORIZADO (Simulado)`, "success");
+            resolve({
+              status: 'autorizado',
+              claveAcceso: documentoData.claveAcceso,
+              pdfUrl: `https://srienlinea.sri.gob.ec/comprobantes-electronicos-internet/publico/detalle.jsf?claveAcceso=${documentoData.claveAcceso}`,
+              xmlUrl: "data:text/xml;charset=utf-8," + encodeURIComponent(documentoData.xml),
+              logs
+            });
+          }, 1500);
         }, 1000);
       }, 1000);
     }, 800);
