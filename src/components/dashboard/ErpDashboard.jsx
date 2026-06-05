@@ -312,7 +312,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
             <span className="text-[11px] font-black">Calendario</span>
           </button>
 
-          {/* Item 6: Ajustes ERP */}
+          {/* Item 6: Ajustes */}
           <button 
             onClick={() => setActivePageId('general_settings')}
             className={`flex flex-col items-center justify-center p-4 rounded-2xl border text-center transition-all duration-300 hover-lift ${isDarkMode ? 'bg-[#151517] border-white/5 hover:border-slate-500/30' : 'bg-white border-gray-300/80 hover:border-slate-500/50 shadow-sm'}`}
@@ -320,7 +320,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
             <div className={`p-3 rounded-xl mb-2.5 ${isDarkMode ? 'bg-slate-500/10 text-slate-400 border border-slate-500/15' : 'bg-slate-100 text-slate-700'}`}>
               <Settings size={20} />
             </div>
-            <span className="text-[11px] font-black">Ajustes ERP</span>
+            <span className="text-[11px] font-black">Ajustes</span>
           </button>
         </div>
       </div>

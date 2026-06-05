@@ -51,7 +51,9 @@ import {
   Cloud,
   Settings,
   GripVertical,
-  CreditCard
+  CreditCard,
+  ChevronDown,
+  ShoppingBag
 } from 'lucide-react';
 
 import {
@@ -162,6 +164,8 @@ const IconRenderer = ({ name, size = 18, className = "" }) => {
     case 'team': return <Users size={size} className={className} />;
     case 'trash': return <Trash2 size={size} className={className} />;
     case 'ventas': return <ShoppingCart size={size} className={className} />;
+    case 'compras': return <ShoppingBag size={size} className={className} />;
+    case 'gastos_creditos': return <CreditCard size={size} className={className} />;
     case 'finances': return <DollarSign size={size} className={className} />;
     case 'inventario': return <Package size={size} className={className} />;
     case 'personas': return <Users size={size} className={className} />;
@@ -513,6 +517,23 @@ export default function App() {
 
   // 2. Cargar datos de Firestore (Opción B: Colecciones separadas)
   const [globalTasks, setGlobalTasks] = useState([]);
+  const [companyProfile, setCompanyProfile] = useState(null);
+  const [isPersonasExpanded, setIsPersonasExpanded] = useState(true);
+  const [isProyectosExpanded, setIsProyectosExpanded] = useState(true);
+
+  // Auto-expand submenus when active page changes
+  useEffect(() => {
+    if (activePageId === 'personas' || activePageId === 'team') {
+      setIsPersonasExpanded(true);
+    }
+  }, [activePageId]);
+
+  useEffect(() => {
+    const page = pages.find(p => p.id === activePageId);
+    if (activePageId === 'calendar' || (page && (page.type === 'project' || page.type === 'doc'))) {
+      setIsProyectosExpanded(true);
+    }
+  }, [activePageId, pages]);
 
   useEffect(() => {
     if (!isAuthenticated || !auth.currentUser) return;
@@ -601,6 +622,9 @@ export default function App() {
           if (data.googleClientId !== undefined) setGoogleClientId(data.googleClientId);
           if (data.activeModules !== undefined) {
             setActiveModules(prev => ({ ...prev, ...data.activeModules }));
+          }
+          if (data.companyProfile !== undefined) {
+            setCompanyProfile(data.companyProfile);
           }
           if (data.primaryColor !== undefined) {
             setPrimaryColor(data.primaryColor);
@@ -1662,6 +1686,7 @@ export default function App() {
       </div>
     );
   }
+  const isProyectosActive = activePageId === 'calendar' || activePage?.type === 'project' || activePage?.type === 'doc';
 
   return (
     <div className={`flex h-screen w-full font-sans overflow-hidden transition-colors duration-500 relative z-0 ${isDarkMode ? 'bg-[#08080a] text-gray-100' : 'bg-[#f4f4f9] text-gray-800'}`}>
@@ -1677,145 +1702,319 @@ export default function App() {
       {/* Sidebar */}
       <div className={`flex flex-col border-r transition-all duration-300 z-50 backdrop-blur-3xl absolute md:relative h-full ${isSidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0 w-0 hidden md:flex md:w-16'} ${isDarkMode ? 'bg-[#0f0f11]/95 border-white/5' : 'bg-white/95 border-blue-100/50'}`}>
         
+        {/* Logo Header */}
+        <div className={`h-16 flex items-center ${isSidebarOpen ? 'justify-between px-5' : 'justify-center'} border-b ${isDarkMode ? 'border-white/5' : 'border-black/5'} mb-2 shrink-0 overflow-hidden`}>
+          {isSidebarOpen ? (
+            <div className="flex items-center gap-3">
+              {companyProfile?.logoUrl ? (
+                <img src={companyProfile.logoUrl} alt="Logo" className="max-h-9 object-contain" />
+              ) : (
+                <span className="text-sm font-black uppercase tracking-wider bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-500 bg-clip-text text-transparent">
+                  {companyProfile?.nombreComercial || companyProfile?.razonSocial || 'WebFix ERP'}
+                </span>
+              )}
+            </div>
+          ) : (
+            companyProfile?.logoUrl ? (
+              <img src={companyProfile.logoUrl} alt="Logo" className="w-8 h-8 rounded-lg object-contain" />
+            ) : (
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-black text-xs ${isDarkMode ? 'bg-white/10 text-white' : 'bg-blue-600 text-white shadow-sm'}`}>
+                {String(companyProfile?.nombreComercial || companyProfile?.razonSocial || 'W').charAt(0).toUpperCase()}
+              </div>
+            )
+          )}
+        </div>
+
         {/* Main Navigation Area */}
-        <div className="pt-5 pb-4 px-3 border-b border-white/5 space-y-1 text-xs md:text-sm">
+        <div className="flex-1 overflow-y-auto px-3 space-y-1.5 py-2 custom-scrollbar text-xs md:text-sm">
+          {/* 1. Mi espacio */}
           <button 
             onClick={() => { setActivePageId('dashboard'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
-            className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all tracking-wide font-semibold ${activePageId === 'dashboard' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm border border-white/5' : 'bg-[#f3f8ff] text-black border border-blue-200/60 shadow-sm') : (isDarkMode ? 'text-gray-450 hover:bg-white/5 hover:text-white' : 'text-black hover:bg-[#f3f8ff] hover:text-black')}`}
+            className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
+              activePageId === 'dashboard'
+                ? (isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-[#eef2f6] text-[#0066cc]')
+                : (isDarkMode ? 'text-gray-400 hover:bg-white/5 hover:text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-black')
+            }`}
           >
-            <LayoutDashboard size={18} className={activePageId === 'dashboard' ? (isDarkMode ? 'text-blue-400' : 'text-blue-600') : ''} />
-            {isSidebarOpen && <span>Mi Espacio</span>}
+            <LayoutDashboard size={18} className={activePageId === 'dashboard' ? (isDarkMode ? 'text-blue-400' : 'text-blue-600') : 'text-gray-500'} />
+            {isSidebarOpen && <span>Mi espacio</span>}
           </button>
 
+          {/* 2. Ventas */}
           {activeModules.ventas && (
             <button 
               onClick={() => { setVentasInitialSubTab('resumen_ventas'); setActivePageId('ventas'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
-              className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all tracking-wide font-semibold ${activePageId === 'ventas' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm border border-white/5' : 'bg-[#f3f8ff] text-black border border-blue-200/60 shadow-sm') : (isDarkMode ? 'text-gray-455 hover:bg-white/5 hover:text-white' : 'text-black hover:bg-[#f3f8ff] hover:text-black')}`}
+              className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
+                activePageId === 'ventas'
+                  ? (isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-[#eef2f6] text-[#0066cc]')
+                  : (isDarkMode ? 'text-gray-400 hover:bg-white/5 hover:text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-black')
+              }`}
             >
-              <ShoppingCart size={18} className={activePageId === 'ventas' ? (isDarkMode ? 'text-orange-400' : 'text-orange-600') : ''} />
+              <ShoppingCart size={18} className={activePageId === 'ventas' ? (isDarkMode ? 'text-orange-400' : 'text-orange-600') : 'text-gray-500'} />
               {isSidebarOpen && <span>Ventas</span>}
             </button>
           )}
 
-          {activeModules.finances && (
-            <button 
-              onClick={() => { setActivePageId('finances'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
-              className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all tracking-wide font-semibold ${activePageId === 'finances' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm border border-white/5' : 'bg-[#f3f8ff] text-black border border-blue-200/60 shadow-sm') : (isDarkMode ? 'text-gray-455 hover:bg-white/5 hover:text-white' : 'text-black hover:bg-[#f3f8ff] hover:text-black')}`}
-            >
-              <DollarSign size={18} className={activePageId === 'finances' ? (isDarkMode ? 'text-emerald-400' : 'text-emerald-600') : ''} />
-              {isSidebarOpen && <span>Contabilidad</span>}
-            </button>
-          )}
-
+          {/* 3. Compras */}
           {activeModules.compras && (
             <button 
               onClick={() => { setActivePageId('compras'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
-              className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all tracking-wide font-semibold ${activePageId === 'compras' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm border border-white/5' : 'bg-[#f3f8ff] text-black border border-blue-200/60 shadow-sm') : (isDarkMode ? 'text-gray-455 hover:bg-white/5 hover:text-white' : 'text-black hover:bg-[#f3f8ff] hover:text-black')}`}
+              className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
+                activePageId === 'compras'
+                  ? (isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-[#eef2f6] text-[#0066cc]')
+                  : (isDarkMode ? 'text-gray-400 hover:bg-white/5 hover:text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-black')
+              }`}
             >
-              <ShoppingCart size={18} className={activePageId === 'compras' ? (isDarkMode ? 'text-orange-400' : 'text-orange-600') : ''} />
+              <ShoppingBag size={18} className={activePageId === 'compras' ? (isDarkMode ? 'text-orange-400' : 'text-orange-600') : 'text-gray-500'} />
               {isSidebarOpen && <span>Compras</span>}
             </button>
           )}
 
+          {/* 4. Finanzas */}
           {activeModules.gastos_creditos && (
             <button 
               onClick={() => { setActivePageId('gastos_creditos'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
-              className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all tracking-wide font-semibold ${activePageId === 'gastos_creditos' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm border border-white/5' : 'bg-[#f3f8ff] text-black border border-blue-200/60 shadow-sm') : (isDarkMode ? 'text-gray-455 hover:bg-white/5 hover:text-white' : 'text-black hover:bg-[#f3f8ff] hover:text-black')}`}
+              className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
+                activePageId === 'gastos_creditos'
+                  ? (isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-[#eef2f6] text-[#0066cc]')
+                  : (isDarkMode ? 'text-gray-400 hover:bg-white/5 hover:text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-black')
+              }`}
             >
-              <CreditCard size={18} className={activePageId === 'gastos_creditos' ? (isDarkMode ? 'text-pink-400' : 'text-pink-600') : ''} />
-              {isSidebarOpen && <span>Gastos y Créditos</span>}
+              <CreditCard size={18} className={activePageId === 'gastos_creditos' ? (isDarkMode ? 'text-pink-400' : 'text-pink-600') : 'text-gray-500'} />
+              {isSidebarOpen && <span>Finanzas</span>}
             </button>
           )}
 
+          {/* 5. Inventarios */}
           {activeModules.inventario && (
             <button 
               onClick={() => { setActivePageId('inventario'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
-              className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all tracking-wide font-semibold ${activePageId === 'inventario' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm border border-white/5' : 'bg-[#f3f8ff] text-black border border-blue-200/60 shadow-sm') : (isDarkMode ? 'text-gray-455 hover:bg-white/5 hover:text-white' : 'text-black hover:bg-[#f3f8ff] hover:text-black')}`}
+              className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
+                activePageId === 'inventario'
+                  ? (isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-[#eef2f6] text-[#0066cc]')
+                  : (isDarkMode ? 'text-gray-400 hover:bg-white/5 hover:text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-black')
+              }`}
             >
-              <Package size={18} className={activePageId === 'inventario' ? (isDarkMode ? 'text-sky-400' : 'text-sky-600') : ''} />
-              {isSidebarOpen && <span>Inventario</span>}
+              <Package size={18} className={activePageId === 'inventario' ? (isDarkMode ? 'text-sky-400' : 'text-sky-600') : 'text-gray-500'} />
+              {isSidebarOpen && <span>Inventarios</span>}
             </button>
           )}
 
+          {/* 6. Contabilidad */}
+          {activeModules.finances && (
+            <button 
+              onClick={() => { setActivePageId('finances'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
+              className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
+                activePageId === 'finances'
+                  ? (isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-[#eef2f6] text-[#0066cc]')
+                  : (isDarkMode ? 'text-gray-400 hover:bg-white/5 hover:text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-black')
+              }`}
+            >
+              <DollarSign size={18} className={activePageId === 'finances' ? (isDarkMode ? 'text-emerald-400' : 'text-emerald-600') : 'text-gray-500'} />
+              {isSidebarOpen && <span>Contabilidad</span>}
+            </button>
+          )}
+
+          {/* 7. Personas */}
           {activeModules.personas && (
-            <button 
-              onClick={() => { setActivePageId('personas'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
-              className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all tracking-wide font-semibold ${activePageId === 'personas' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm border border-white/5' : 'bg-[#f3f8ff] text-black border border-blue-200/60 shadow-sm') : (isDarkMode ? 'text-gray-455 hover:bg-white/5 hover:text-white' : 'text-black hover:bg-[#f3f8ff] hover:text-black')}`}
-            >
-              <Users size={18} className={activePageId === 'personas' ? (isDarkMode ? 'text-teal-400' : 'text-teal-600') : ''} />
-              {isSidebarOpen && <span>Personas</span>}
-            </button>
-          )}
-          
-          {activeModules.calendar && (
-            <button 
-              onClick={() => { setActivePageId('calendar'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
-              className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all tracking-wide font-semibold ${activePageId === 'calendar' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm border border-white/5' : 'bg-[#f3f8ff] text-black border border-blue-200/60 shadow-sm') : (isDarkMode ? 'text-gray-455 hover:bg-white/5 hover:text-white' : 'text-black hover:bg-[#f3f8ff] hover:text-black')}`}
-            >
-              <CalendarDays size={18} className={activePageId === 'calendar' ? (isDarkMode ? 'text-purple-400' : 'text-purple-600') : ''} />
-              {isSidebarOpen && <span>Calendario</span>}
-            </button>
+            <div className="space-y-0.5">
+              <button 
+                onClick={() => { 
+                  setActivePageId('personas'); 
+                  setIsPersonasExpanded(!isPersonasExpanded);
+                  if(window.innerWidth < 768 && !isPersonasExpanded) setIsSidebarOpen(false); 
+                }} 
+                className={`flex items-center justify-between w-full px-3 py-2 rounded-xl transition-all font-medium ${
+                  activePageId === 'personas' || activePageId === 'team'
+                    ? (isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-[#eef2f6] text-[#0066cc]')
+                    : (isDarkMode ? 'text-gray-400 hover:bg-white/5 hover:text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-black')
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <Users size={18} className={activePageId === 'personas' ? (isDarkMode ? 'text-teal-400' : 'text-teal-600') : 'text-gray-500'} />
+                  {isSidebarOpen && <span>Personas</span>}
+                </div>
+                {isSidebarOpen && activeModules.team && (
+                  <ChevronRight 
+                    size={14} 
+                    className={`transform transition-transform duration-200 ${isPersonasExpanded ? 'rotate-90 text-gray-500' : 'text-gray-400'}`} 
+                  />
+                )}
+              </button>
+              {isSidebarOpen && isPersonasExpanded && activeModules.team && (
+                <div className="ml-4 pl-3 border-l border-white/10 dark:border-white/5 space-y-0.5 mt-0.5">
+                  <button 
+                    onClick={() => { setActivePageId('team'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
+                    className={`flex items-center gap-2.5 w-full px-3 py-1.5 rounded-lg transition-all text-xs font-normal ${
+                      activePageId === 'team'
+                        ? (isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-[#eef2f6]/70 text-[#0066cc]')
+                        : (isDarkMode ? 'text-gray-400 hover:bg-white/5 hover:text-white' : 'text-gray-655 hover:bg-gray-100 hover:text-black')
+                    }`}
+                  >
+                    <Shield size={14} className={activePageId === 'team' ? (isDarkMode ? 'text-yellow-400' : 'text-yellow-600') : 'text-gray-500'} />
+                    <span>Equipo</span>
+                  </button>
+                </div>
+              )}
+            </div>
           )}
 
-          {activeModules.team && (
+          {/* 8. Proyectos (Proyectos, Paginas, Calendario) */}
+          <div className="space-y-0.5">
             <button 
-              onClick={() => { setActivePageId('team'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
-              className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all tracking-wide font-semibold ${activePageId === 'team' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm border border-white/5' : 'bg-[#f3f8ff] text-black border border-blue-200/60 shadow-sm') : (isDarkMode ? 'text-gray-455 hover:bg-white/5 hover:text-white' : 'text-black hover:bg-[#f3f8ff] hover:text-black')}`}
+              onClick={() => { 
+                setIsProyectosExpanded(!isProyectosExpanded); 
+              }} 
+              className={`flex items-center justify-between w-full px-3 py-2 rounded-xl transition-all font-medium ${
+                isProyectosActive
+                  ? (isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-[#eef2f6] text-[#0066cc]')
+                  : (isDarkMode ? 'text-gray-400 hover:bg-white/5 hover:text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-black')
+              }`}
             >
-              <Users size={18} className={activePageId === 'team' ? (isDarkMode ? 'text-yellow-400' : 'text-yellow-600') : ''} />
-              {isSidebarOpen && <span>Equipo</span>}
+              <div className="flex items-center gap-3">
+                <Briefcase size={18} className={isProyectosActive ? (isDarkMode ? 'text-blue-400' : 'text-blue-600') : 'text-gray-500'} />
+                {isSidebarOpen && <span>Proyectos</span>}
+              </div>
+              {isSidebarOpen && (
+                <ChevronRight 
+                  size={14} 
+                  className={`transform transition-transform duration-200 ${isProyectosExpanded ? 'rotate-90 text-gray-500' : 'text-gray-400'}`} 
+                />
+              )}
             </button>
-          )}
+            {isSidebarOpen && isProyectosExpanded && (
+              <div className="ml-4 pl-3 border-l border-white/10 dark:border-white/5 space-y-1 mt-0.5 max-h-[300px] overflow-y-auto custom-scrollbar">
+                {/* Subheader: Proyectos */}
+                <div className="flex items-center justify-between px-3 py-1 text-[9px] font-bold text-gray-500 uppercase tracking-wider">
+                  <span>Proyectos</span>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); addProject(); }} 
+                    className={`p-0.5 rounded transition-colors ${isDarkMode ? 'hover:bg-white/10 text-gray-400 hover:text-white' : 'hover:bg-black/10 text-gray-600 hover:text-black'}`}
+                    title="Nuevo Proyecto"
+                  >
+                    <Plus size={12} />
+                  </button>
+                </div>
+                {/* Projects List */}
+                {pages.filter(p => p.type === 'project').map(page => (
+                  <div 
+                    key={page.id} 
+                    onClick={() => { setActivePageId(page.id); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
+                    className={`group flex items-center justify-between px-3 py-1.5 rounded-lg cursor-pointer text-xs transition-all font-normal ${
+                      activePageId === page.id 
+                        ? (isDarkMode ? 'bg-white/10 text-white font-medium shadow-sm' : 'bg-[#eef2f6] text-[#0066cc] font-medium') 
+                        : (isDarkMode ? 'text-gray-400 hover:bg-white/5 hover:text-white' : 'text-gray-650 hover:bg-gray-100 hover:text-black')
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 overflow-hidden">
+                      <Briefcase size={12} className={activePageId === page.id ? (isDarkMode ? 'text-blue-400' : 'text-blue-600') : 'text-gray-500'} />
+                      <span className="truncate">{page.title || 'Sin título'}</span>
+                    </div>
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); deletePage(page.id, e); }} 
+                      className={`opacity-0 group-hover:opacity-100 p-0.5 rounded transition-all ${isDarkMode ? 'text-gray-450 hover:bg-white/15 hover:text-red-400' : 'text-gray-500 hover:bg-black/10 hover:text-red-500'}`}
+                      title="Eliminar"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  </div>
+                ))}
+                {pages.filter(p => p.type === 'project').length === 0 && (
+                  <div className="px-3 py-1 text-[10px] text-gray-500 italic">Sin proyectos</div>
+                )}
 
+                {/* Subheader: Páginas */}
+                <div className="flex items-center justify-between px-3 py-1 mt-2 text-[9px] font-bold text-gray-500 uppercase tracking-wider">
+                  <span>Páginas</span>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); addPage(); }} 
+                    className={`p-0.5 rounded transition-colors ${isDarkMode ? 'hover:bg-white/10 text-gray-400 hover:text-white' : 'hover:bg-black/10 text-gray-600 hover:text-black'}`}
+                    title="Nueva Página"
+                  >
+                    <Plus size={12} />
+                  </button>
+                </div>
+                {/* Pages/Docs List */}
+                {pages.filter(p => p.type === 'doc').map(page => (
+                  <div 
+                    key={page.id} 
+                    onClick={() => { setActivePageId(page.id); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
+                    className={`group flex items-center justify-between px-3 py-1.5 rounded-lg cursor-pointer text-xs transition-all font-normal ${
+                      activePageId === page.id 
+                        ? (isDarkMode ? 'bg-white/10 text-white font-medium shadow-sm' : 'bg-[#eef2f6] text-[#0066cc] font-medium') 
+                        : (isDarkMode ? 'text-gray-400 hover:bg-white/5 hover:text-white' : 'text-gray-655 hover:bg-gray-100 hover:text-black')
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 overflow-hidden">
+                      <FileText size={12} className={activePageId === page.id ? (isDarkMode ? 'text-emerald-400' : 'text-emerald-600') : 'text-gray-500'} />
+                      <span className="truncate">{page.title || 'Sin título'}</span>
+                    </div>
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); deletePage(page.id, e); }} 
+                      className={`opacity-0 group-hover:opacity-100 p-0.5 rounded transition-all ${isDarkMode ? 'text-gray-455 hover:bg-white/15 hover:text-red-400' : 'text-gray-500 hover:bg-black/10 hover:text-red-500'}`}
+                      title="Eliminar"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  </div>
+                ))}
+                {pages.filter(p => p.type === 'doc').length === 0 && (
+                  <div className="px-3 py-1 text-[10px] text-gray-500 italic">Sin páginas</div>
+                )}
+
+                {/* Submodule: Calendario */}
+                {activeModules.calendar && (
+                  <>
+                    <div className="border-t border-white/5 my-1.5 pt-1"></div>
+                    <button
+                      onClick={() => { setActivePageId('calendar'); if(window.innerWidth < 768) setIsSidebarOpen(false); }}
+                      className={`flex items-center gap-2.5 w-full px-3 py-1.5 rounded-lg transition-all text-xs font-normal ${
+                        activePageId === 'calendar'
+                          ? (isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-[#eef2f6]/70 text-[#0066cc]')
+                          : (isDarkMode ? 'text-gray-400 hover:bg-white/5 hover:text-white' : 'text-gray-655 hover:bg-gray-100 hover:text-black')
+                      }`}
+                    >
+                      <CalendarDays size={14} className={activePageId === 'calendar' ? (isDarkMode ? 'text-purple-400' : 'text-purple-600') : 'text-gray-500'} />
+                      <span>Calendario</span>
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* 9. Ajustes */}
           <button 
             onClick={() => { setActivePageId('general_settings'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
-            className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all tracking-wide font-semibold ${activePageId === 'general_settings' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm border border-white/5' : 'bg-[#f3f8ff] text-black border border-blue-200/60 shadow-sm') : (isDarkMode ? 'text-gray-455 hover:bg-white/5 hover:text-white' : 'text-black hover:bg-[#f3f8ff] hover:text-black')}`}
+            className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
+              activePageId === 'general_settings'
+                ? (isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-[#eef2f6] text-[#0066cc]')
+                : (isDarkMode ? 'text-gray-400 hover:bg-white/5 hover:text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-black')
+            }`}
           >
-            <Settings size={18} className={activePageId === 'general_settings' ? (isDarkMode ? 'text-blue-400' : 'text-blue-600') : ''} />
-            {isSidebarOpen && <span>Ajustes ERP</span>}
+            <Settings size={18} className={activePageId === 'general_settings' ? (isDarkMode ? 'text-blue-400' : 'text-blue-600') : 'text-gray-500'} />
+            {isSidebarOpen && <span>Ajustes</span>}
           </button>
         </div>
 
-        {/* Quick Actions */}
-        <div className="px-3 pb-3 mb-1 border-b border-white/5 space-y-1 mt-3">
-          <button onClick={() => { addPage(); if(window.innerWidth < 768) setIsSidebarOpen(false); }} className={`flex items-center gap-3 w-full px-3 py-2 text-xs rounded-xl transition-colors tracking-wide font-light ${isDarkMode ? 'text-gray-400 hover:bg-white/5 hover:text-white' : 'text-black hover:bg-[#f3f8ff] hover:text-black'}`}>
-            <Plus size={16} />{isSidebarOpen && <span>Nueva página</span>}
+        {/* Bottom Area */}
+        <div className={`p-3 border-t ${isDarkMode ? 'border-white/5' : 'border-black/5'} space-y-1`}>
+          {/* Nueva tarea */}
+          <button onClick={() => { openNewTaskDrawer('todo'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} className={`flex items-center gap-3 w-full px-3 py-2 text-xs rounded-xl transition-all font-medium ${isDarkMode ? 'text-blue-450 hover:bg-blue-500/10' : 'text-blue-600 hover:bg-blue-50'}`}>
+            <CheckSquare size={14} className={isDarkMode ? 'text-blue-400' : 'text-blue-600'} />{isSidebarOpen && <span>Nueva tarea</span>}
           </button>
-          <button onClick={() => { addProject(); if(window.innerWidth < 768) setIsSidebarOpen(false); }} className={`flex items-center gap-3 w-full px-3 py-2 text-xs rounded-xl transition-colors tracking-wide font-light ${isDarkMode ? 'text-gray-400 hover:bg-white/5 hover:text-white' : 'text-black hover:bg-[#f3f8ff] hover:text-black'}`}>
-            <Briefcase size={16} />{isSidebarOpen && <span>Nuevo proyecto</span>}
-          </button>
-          <button onClick={() => { openNewTaskDrawer('todo'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} className={`flex items-center gap-3 w-full px-3 py-2 text-xs rounded-xl transition-colors tracking-wide font-medium ${isDarkMode ? 'text-blue-400 hover:bg-blue-500/10' : 'text-black font-semibold hover:bg-[#f3f8ff]'}`}>
-            <CheckSquare size={16} />{isSidebarOpen && <span>Nueva tarea</span>}
-          </button>
-        </div>
 
-        {/* Pages List */}
-        <div className="flex-1 overflow-y-auto px-3 space-y-0.5 custom-scrollbar">
-          {isSidebarOpen && <div className={`text-[9px] font-bold uppercase tracking-[0.2em] px-3 py-3 mt-1 mb-1 ${isDarkMode ? 'text-gray-500' : 'text-black font-black'}`}>Proyectos y Docs</div>}
-          {pages.map(page => (
-            <div key={page.id} onClick={() => { setActivePageId(page.id); if(window.innerWidth < 768) setIsSidebarOpen(false); }} className={`group flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer text-xs tracking-wide transition-all ${activePageId === page.id ? (isDarkMode ? 'bg-white/10 font-medium text-white' : 'bg-[#f3f8ff] border border-blue-200/60 font-semibold text-black shadow-sm') : (isDarkMode ? 'hover:bg-white/5 text-gray-400 hover:text-white font-light' : 'hover:bg-[#f3f8ff] text-black hover:text-black font-light')}`}>
-              <div className="flex items-center gap-3 overflow-hidden">
-                <span className={`shrink-0 ${activePageId === page.id ? (isDarkMode ? 'text-gray-200' : 'text-gray-700') : (isDarkMode ? 'text-gray-500 group-hover:text-gray-300' : 'text-gray-400 group-hover:text-gray-600')}`}>
-                  <IconRenderer name={page.icon} size={14} />
-                </span>
-                {isSidebarOpen && <span className="truncate">{page.title || 'Sin título'}</span>}
-              </div>
-              {isSidebarOpen && <button onClick={(e) => { e.stopPropagation(); deletePage(page.id, e); }} className={`opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1.5 rounded-lg transition-all ${isDarkMode ? 'text-gray-500 hover:bg-white/10 hover:text-red-400' : 'text-gray-400 hover:bg-black/10 hover:text-red-500'}`}><Trash2 size={14} /></button>}
-            </div>
-          ))}
-        </div>
-
-        <div className={`p-3 border-t ${isDarkMode ? 'border-white/5' : 'border-black/5'}`}>
-          <button onClick={() => { setActivePageId('trash'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} className={`flex items-center justify-between w-full px-3 py-2 text-xs rounded-xl tracking-wide transition-all ${activePageId === 'trash' ? (isDarkMode ? 'bg-red-500/10 text-red-400 font-medium' : 'bg-red-50 text-red-700 border border-red-200 font-semibold') : (isDarkMode ? 'text-gray-400 hover:bg-white/5 font-light' : 'text-black hover:bg-[#f3f8ff] font-light')}`}>
+          {/* Papelera */}
+          <button onClick={() => { setActivePageId('trash'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} className={`flex items-center justify-between w-full px-3 py-2 text-xs rounded-xl transition-all ${activePageId === 'trash' ? (isDarkMode ? 'bg-red-500/10 text-red-400 font-medium' : 'bg-red-50 text-red-700 border border-red-200 font-semibold') : (isDarkMode ? 'text-gray-400 hover:bg-white/5 font-light' : 'text-black hover:bg-[#f3f8ff] font-light')}`}>
             <div className="flex items-center gap-3">
-              <Trash2 size={14} className={activePageId === 'trash' ? (isDarkMode ? 'text-red-400' : 'text-red-600') : ''} />
+              <Trash2 size={14} className={activePageId === 'trash' ? (isDarkMode ? 'text-red-400' : 'text-red-600') : 'text-gray-500'} />
               {isSidebarOpen && <span>Papelera</span>}
             </div>
             {isSidebarOpen && trash.length > 0 && <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold ${isDarkMode ? 'bg-white/10 text-gray-300' : 'bg-black/10 text-gray-600'}`}>{trash.length}</span>}
           </button>
           
-          {/* BOTON DE CERRAR SESION */}
-          <button onClick={() => { handleLogout(); if(window.innerWidth < 768) setIsSidebarOpen(false); }} className={`mt-2 flex items-center gap-3 w-full px-3 py-2 text-xs rounded-xl tracking-wide transition-colors font-light ${isDarkMode ? 'text-gray-400 hover:bg-white/5 hover:text-white' : 'text-black hover:bg-[#f3f8ff] hover:text-black'}`}>
+          {/* Cerrar Sesion */}
+          <button onClick={() => { handleLogout(); if(window.innerWidth < 768) setIsSidebarOpen(false); }} className={`mt-2 flex items-center gap-3 w-full px-3 py-2 text-xs rounded-xl transition-colors font-light ${isDarkMode ? 'text-gray-400 hover:bg-white/5 hover:text-white' : 'text-black hover:bg-[#f3f8ff] hover:text-black'}`}>
             <LogOut size={14} />{isSidebarOpen && <span>Cerrar Sesión</span>}
           </button>
         </div>
@@ -1880,7 +2079,7 @@ export default function App() {
               )}
             </div>
 
-            <button onClick={() => setActivePageId('general_settings')} className={`p-2 rounded-xl transition-colors ${isDarkMode ? 'hover:bg-white/10 text-gray-400' : 'hover:bg-[#f3f8ff] text-black'}`} title="Ajustes ERP"><Settings size={16} /></button>
+            <button onClick={() => setActivePageId('general_settings')} className={`p-2 rounded-xl transition-colors ${isDarkMode ? 'hover:bg-white/10 text-gray-400' : 'hover:bg-[#f3f8ff] text-black'}`} title="Ajustes"><Settings size={16} /></button>
             <button onClick={() => setIsDarkMode(!isDarkMode)} className={`p-2 rounded-xl transition-colors ${isDarkMode ? 'hover:bg-white/10 text-gray-300' : 'hover:bg-[#f3f8ff] text-black'}`} title={isDarkMode ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}>{isDarkMode ? <Sun size={16} /> : <Moon size={16} />}</button>
             
             {/* Eliminar Proyecto desde el Header */}
