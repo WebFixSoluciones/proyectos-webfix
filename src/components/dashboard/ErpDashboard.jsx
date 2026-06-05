@@ -410,10 +410,10 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
       </div>
 
       {/* DOBLE PANEL: PROYECTOS / SRI */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
         
         {/* PANEL IZQUIERDO: PROYECTOS Y TAREAS (Col Span 7) */}
-        <div className={`${currentGlassPanel} lg:col-span-7 p-6 rounded-2xl`}>
+        <div className={`${currentGlassPanel} xl:col-span-7 p-6 rounded-2xl`}>
           <div className="flex items-center justify-between mb-5">
             <h3 className={`text-base font-bold flex items-center gap-2 ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
               <Briefcase size={18} className={isDarkMode ? 'text-blue-400' : 'text-blue-600'} />
@@ -532,7 +532,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
         </div>
 
         {/* PANEL DERECHO: FACTURACIÓN Y TRIBUTACIÓN SRI (Col Span 5) */}
-        <div className={`${currentGlassPanel} lg:col-span-5 p-6 rounded-2xl flex flex-col justify-between`}>
+        <div className={`${currentGlassPanel} xl:col-span-5 p-6 rounded-2xl flex flex-col justify-between`}>
           <div>
             <div className="flex items-center justify-between mb-5">
               <h3 className={`text-base font-bold flex items-center gap-2 ${isDarkMode ? 'text-gray-200' : 'text-gray-850'}`}>
