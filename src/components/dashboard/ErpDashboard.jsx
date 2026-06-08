@@ -547,7 +547,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
             {/* ESTADOS SRI PROGRESS */}
             <div className="space-y-4">
               {[
-                { key: 'autorizado', label: 'Comprobantes Autorizados', color: 'bg-emerald-500' },
+                { key: 'autorizado', label: 'Comprobantes Autorizados / Registrados', color: 'bg-emerald-500' },
                 { key: 'pendiente', label: 'Pendientes de Firma / Envío', color: 'bg-yellow-500' },
                 { key: 'rechazado', label: 'Rechazados por SRI', color: 'bg-red-500' },
                 { key: 'anulado', label: 'Anulados / Cancelados', color: 'bg-gray-500' }

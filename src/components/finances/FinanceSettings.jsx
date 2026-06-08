@@ -85,9 +85,20 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
   const handleSave = async (e) => {
     e.preventDefault();
     try {
-      // Guardar en Firestore
       const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config');
-      await setDoc(docRef, sriConfig, { merge: true });
+      // Extraer solo los campos administrados por esta pantalla, evitando sobreescribir la firma digital
+      const {
+        certificadoCargado,
+        certificadoNombre,
+        certificadoClave,
+        certificadoVence,
+        certificadoBase64,
+        certificadoRuc,
+        certificadoSujeto,
+        ...sriConfigRest
+      } = sriConfig;
+
+      await setDoc(docRef, sriConfigRest, { merge: true });
 
       // Guardar Gemini Key en localStorage
       const trimmedKey = geminiKey.trim();

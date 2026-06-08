@@ -171,7 +171,7 @@ export default function FinanceDashboard({ transactions, thirdParties, isDarkMod
           
           <div className="space-y-3.5">
             {[
-              { key: 'autorizado', label: 'Autorizados', color: 'bg-emerald-600' },
+              {key: 'autorizado', label: 'Autorizados / Registrados', color: 'bg-emerald-600' },
               { key: 'pendiente', label: 'Pendientes', color: 'bg-yellow-600' },
               { key: 'rechazado', label: 'Rechazados', color: 'bg-red-600' },
               { key: 'anulado', label: 'Anulados', color: 'bg-gray-600' }

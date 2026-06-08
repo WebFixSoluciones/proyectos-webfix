@@ -999,9 +999,12 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   };
 
   const handleAnular = () => {
+    const isNotaVenta = formData.documentType === 'nota_venta';
     setConfirmDialog({
       title: "Confirmar Anulación",
-      message: "¿Estás seguro de que deseas ANULAR este comprobante ante el SRI de forma definitiva?",
+      message: isNotaVenta
+        ? "¿Estás seguro de que deseas ANULAR esta Nota de Venta? Esta acción no se puede deshacer."
+        : "¿Estás seguro de que deseas ANULAR este comprobante ante el SRI de forma definitiva?",
       type: "danger",
       onConfirm: () => {
         setConfirmDialog(null);
@@ -1014,13 +1017,14 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   const executeAnular = async () => {
     try {
       const docId = formData.id;
+      const isNotaVenta = formData.documentType === 'nota_venta';
       await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId), sanitizeFirestoreData({
         sriStatus: 'anulado',
         updatedAt: new Date().toISOString()
       }), { merge: true });
       
       setFormData(prev => ({ ...prev, sriStatus: 'anulado' }));
-      showToast("Comprobante anulado tributariamente", "success");
+      showToast(isNotaVenta ? "Nota de Venta anulada exitosamente" : "Comprobante anulado tributariamente", "success");
     } catch (e) {
       showToast("Error al anular", "error");
     }
@@ -1278,8 +1282,14 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         <div className="m-6 mb-0 p-4 rounded-2xl border border-dashed bg-emerald-500/10 border-emerald-500/20 text-emerald-400 flex items-center gap-3">
           <CheckCircle2 size={20} className="shrink-0" />
           <div className="text-xs">
-            <p className="font-bold">Comprobante Autorizado por el SRI</p>
-            <p className="opacity-80">Este documento tiene efectos fiscales y no puede ser editado ni eliminado. Para corregirlo, emita una Nota de Crédito.</p>
+            <p className="font-bold">
+              {formData.documentType === 'nota_venta' ? 'Comprobante de Venta Guardado' : 'Comprobante Autorizado por el SRI'}
+            </p>
+            <p className="opacity-80">
+              {formData.documentType === 'nota_venta' 
+                ? 'Este documento ha sido guardado para control interno y no puede ser editado ni eliminado. Para corregirlo, anule este comprobante.' 
+                : 'Este documento tiene efectos fiscales y no puede ser editado ni eliminado. Para corregirlo, emita una Nota de Crédito.'}
+            </p>
           </div>
         </div>
       )}
@@ -1289,7 +1299,11 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
           <ShieldAlert size={20} className="shrink-0" />
           <div className="text-xs">
             <p className="font-bold">Comprobante Anulado</p>
-            <p className="opacity-80">Este documento ya no tiene validez tributaria ante el SRI.</p>
+            <p className="opacity-80">
+              {formData.documentType === 'nota_venta'
+                ? 'Este documento ha sido anulado de forma definitiva.'
+                : 'Este documento ya no tiene validez tributaria ante el SRI.'}
+            </p>
           </div>
         </div>
       )}
@@ -2201,10 +2215,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 </div>
                 <div>
                   <h3 className={`text-base font-black uppercase ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                    {formData.sriStatus === 'autorizado' 
-                      ? '¡Comprobante Autorizado por el SRI!' 
-                      : formData.documentType === 'nota_venta' 
-                        ? '¡Venta Registrada Exitosamente!' 
+                    {formData.documentType === 'nota_venta'
+                      ? (formData.sriStatus === 'anulado' ? '¡Nota de Venta Anulada!' : '¡Venta Registrada Exitosamente!')
+                      : formData.sriStatus === 'autorizado' 
+                        ? '¡Comprobante Autorizado por el SRI!' 
                         : '¡Transacción Guardada con Éxito!'}
                   </h3>
                   <p className={`text-xs mt-1.5 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
@@ -2284,7 +2298,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       }`}
                     >
                       <ShieldAlert size={14} />
-                      <span>Anular Documento ante el SRI</span>
+                      <span>{formData.documentType === 'nota_venta' ? 'Anular Nota de Venta' : 'Anular Documento ante el SRI'}</span>
                     </button>
                   </div>
                 )}
@@ -2310,7 +2324,14 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     </p>
                     <p><b>Número:</b> {formData.documentNumber || `001-001-${String(formData.secuencial || 1).padStart(9, '0')}`}</p>
                     <p><b>Fecha:</b> {formData.date} {formData.time || ''}</p>
-                    <p><b>Estado SRI:</b> <span className="text-emerald-700 font-bold uppercase">{formData.sriStatus}</span></p>
+                    <p>
+                      <b>{formData.documentType === 'nota_venta' ? 'Estado:' : 'Estado SRI:'}</b>{' '}
+                      <span className={`${formData.sriStatus === 'anulado' ? 'text-red-700' : 'text-emerald-700'} font-bold uppercase`}>
+                        {formData.documentType === 'nota_venta' 
+                          ? (formData.sriStatus === 'anulado' ? 'ANULADO' : 'REGISTRADO') 
+                          : formData.sriStatus}
+                      </span>
+                    </p>
                   </div>
 
                   <div className="space-y-1.5 border-b pb-3 border-gray-300 text-[10px]">

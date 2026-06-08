@@ -203,10 +203,15 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
     }
   };
 
-  const getStatusBadge = (status) => {
+  const getStatusBadge = (status, documentType) => {
     const baseClass = "flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-md font-bold uppercase border";
     switch(status) {
       case 'autorizado': 
+        if (documentType === 'nota_venta') {
+          return isDarkMode 
+            ? <span className={`${baseClass} bg-emerald-500/20 text-emerald-400 border-emerald-500/20`}><CheckCircle2 size={10}/> Registrado</span>
+            : <span className={`${baseClass} bg-emerald-100 text-emerald-800 border-emerald-300`}><CheckCircle2 size={10}/> Registrado</span>;
+        }
         return isDarkMode 
           ? <span className={`${baseClass} bg-emerald-500/20 text-emerald-400 border-emerald-500/20`}><CheckCircle2 size={10}/> Autorizado</span>
           : <span className={`${baseClass} bg-emerald-100 text-emerald-800 border-emerald-300`}><CheckCircle2 size={10}/> Autorizado</span>;
@@ -404,7 +409,7 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
                     {thirdParties.find(tp => tp.id === tx.thirdPartyId)?.name || 'Desconocido'}
                   </td>
                   <td className={`px-6 py-4 font-extrabold ${isDarkMode ? '' : 'text-black font-black'}`}>${Number(tx.total || 0).toFixed(2)}</td>
-                  <td className="px-6 py-4">{getStatusBadge(tx.sriStatus)}</td>
+                  <td className="px-6 py-4">{getStatusBadge(tx.sriStatus, tx.documentType)}</td>
                   <td className="px-6 py-4">
                     <div className="flex gap-1.5">
                       {tx.xmlUrl ? <a href={tx.xmlUrl} target="_blank" rel="noreferrer" className="p-1.5 rounded bg-blue-500/20 text-blue-500 hover:bg-blue-500/40" title="Ver XML"><FileText size={12}/></a> : <span className="p-1.5 rounded bg-gray-500/10 text-gray-400 border border-gray-200 opacity-60"><FileText size={12}/></span>}
@@ -413,7 +418,7 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
                         <button 
                           onClick={() => setSelectedRideTx(tx)}
                           className="p-1.5 rounded bg-orange-500/20 text-orange-500 hover:bg-orange-500/40 border border-orange-500/10 transition-all"
-                          title="Ver RIDE Interactivo / Imprimir Recibo"
+                          title={tx.documentType === 'nota_venta' ? "Ver Recibo / Imprimir" : "Ver RIDE Interactivo / Imprimir Factura"}
                         >
                           <Eye size={12}/>
                         </button>

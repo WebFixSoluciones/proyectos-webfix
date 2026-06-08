@@ -2690,7 +2690,9 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                               ? 'bg-red-500/20 text-red-405' 
                               : (tx.sriStatus === 'autorizado' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-yellow-500/20 text-yellow-400')
                           }`}>
-                            {tx.sriStatus || 'pendiente'}
+                            {tx.documentType === 'nota_venta'
+                              ? (isAnulado ? 'anulado' : 'registrado')
+                              : (tx.sriStatus || 'pendiente')}
                           </span>
                         </div>
                       </div>
