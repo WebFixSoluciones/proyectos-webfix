@@ -310,6 +310,11 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         tarjeta: Number(breakdownTj) > 0 || tx.paymentMethod === 'tarjeta',
         cruce_cuentas: Number(breakdownCr) > 0 || tx.paymentMethod === 'cruce_cuentas' || tx.paymentMethod === 'credito'
       });
+
+      // Si el documento ya fue autorizado o anulado, ir directo al paso 3 (vista de sólo lectura)
+      if (tx.sriStatus === 'autorizado' || tx.sriStatus === 'anulado') {
+        setCurrentStep(3);
+      }
     }
   }, [tx]);
 
@@ -1068,6 +1073,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   const isAuthorized = formData.sriStatus === 'autorizado';
   const isAnulado = formData.sriStatus === 'anulado';
   const isEditable = !isAuthorized && !isAnulado;
+  // Documento finalizado en paso 3 — no se puede regresar ni editar desde aquí
+  const isLockedInStep3 = (isAuthorized || isAnulado) && currentStep === 3;
   const hasItems = formData.items && formData.items.length > 0;
 
   const handleNextStep = () => {
@@ -1214,6 +1221,12 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 <button
                   type="button"
                   onClick={() => {
+                    // Si el documento está bloqueado en paso 3, no permitir regresar
+                    if (isLockedInStep3) {
+                      showToast('Este documento ya fue finalizado y no puede ser editado.', 'error');
+                      return;
+                    }
+
                     if (!isEditable) {
                       setCurrentStep(step.id);
                       return;
@@ -1241,7 +1254,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     }
                     setCurrentStep(step.id);
                   }}
-                  className="flex flex-col items-center gap-1.5 focus:outline-none group relative"
+                  className={`flex flex-col items-center gap-1.5 focus:outline-none group relative ${isLockedInStep3 ? 'cursor-not-allowed' : ''}`}
                 >
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
                     currentStep === step.id
@@ -2400,9 +2413,9 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         <button
           type="button"
           onClick={handlePrevStep}
-          disabled={currentStep === 1}
+          disabled={currentStep === 1 || isLockedInStep3}
           className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-semibold border transition-all ${
-            currentStep === 1 
+            currentStep === 1 || isLockedInStep3
               ? 'opacity-0 pointer-events-none' 
               : isDarkMode 
                 ? 'border-white/10 hover:bg-white/5 text-gray-300' 
