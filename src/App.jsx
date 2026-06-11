@@ -204,7 +204,7 @@ const SortableTaskItem = ({
       className={`group p-2 rounded-lg border transition-all duration-300 relative backdrop-blur-xl ${
         isDarkMode 
           ? 'bg-white/[0.05] border-white/10 hover:border-white/20 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.3)] hover:bg-white/[0.08]' 
-          : 'bg-white/80 border-white hover:border-blue-200 shadow-sm hover:bg-white'
+          : 'bg-white/80 border-white hover:border-primary/25 shadow-sm hover:bg-white'
       } ${isDragging ? 'z-50 shadow-2xl scale-105' : ''}`}
     >
       <div className="flex justify-between items-start mb-2">
@@ -235,7 +235,7 @@ const SortableTaskItem = ({
                 onClick={(e) => startEditingTask(e, task)}
                 onPointerDown={(e) => e.stopPropagation()}
                 title="Clic para editar título"
-                className={`text-xs font-light leading-tight cursor-text transition-colors hover:text-blue-400 ${isDarkMode ? 'text-gray-100' : 'text-gray-800'} w-full`}
+                className={`text-xs font-light leading-tight cursor-text transition-colors hover:text-primary ${isDarkMode ? 'text-gray-100' : 'text-gray-800'} w-full`}
               >
                 {task.content}
               </p>
@@ -246,7 +246,7 @@ const SortableTaskItem = ({
         <button 
           onClick={() => setDrawerTask({ ...task, projectId: activePageId })}
           onPointerDown={(e) => e.stopPropagation()}
-          className={`absolute top-2.5 right-2.5 opacity-0 group-hover:opacity-100 p-1.5 rounded-lg transition-all shrink-0 backdrop-blur-xl shadow-sm ${isDarkMode ? 'bg-white/20 text-white hover:bg-blue-500 border border-white/10' : 'bg-white/90 text-gray-800 hover:text-white hover:bg-blue-500 border border-gray-200'}`}
+          className={`absolute top-2.5 right-2.5 opacity-0 group-hover:opacity-100 p-1.5 rounded-lg transition-all shrink-0 backdrop-blur-xl shadow-sm ${isDarkMode ? 'bg-white/20 text-white hover:bg-primary border border-white/10' : 'bg-white/90 text-gray-800 hover:text-white hover:bg-primary border border-gray-200'}`}
           title="Editar detalles completos"
         >
           <Pencil size={12} />
@@ -254,7 +254,7 @@ const SortableTaskItem = ({
       </div>
 
       {task.meetLink && (
-        <a href={task.meetLink} target="_blank" rel="noopener noreferrer" onPointerDown={(e) => e.stopPropagation()} className={`inline-flex items-center gap-1.5 px-2 py-1 mb-2 ml-5 rounded-md text-[10px] font-bold transition-all shadow-sm ${isDarkMode ? 'bg-blue-600/30 text-blue-300 hover:bg-blue-600/50 border border-blue-500/20' : 'bg-blue-100 text-blue-700 hover:bg-blue-200 border border-blue-200'}`}>
+        <a href={task.meetLink} target="_blank" rel="noopener noreferrer" onPointerDown={(e) => e.stopPropagation()} className={`inline-flex items-center gap-1.5 px-2 py-1 mb-2 ml-5 rounded-md text-[10px] font-bold transition-all shadow-sm ${isDarkMode ? 'bg-primary/30 text-primary hover:bg-primary/50 border border-primary/20' : 'bg-primary/10 text-primary hover:bg-primary/15 border border-primary/25'}`}>
           <Video size={10} /> Unirse a Meet
         </a>
       )}
@@ -275,7 +275,7 @@ const SortableTaskItem = ({
                 <div className="space-y-3 max-h-40 overflow-y-auto pr-1 custom-scrollbar">
                   {task.notes.map(note => (
                     <div key={note.id} className="text-xs">
-                      <span className={`block text-[9px] font-medium mb-0.5 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>{note.date}</span>
+                      <span className={`block text-[9px] font-medium mb-0.5 ${isDarkMode ? 'text-primary' : 'text-primary'}`}>{note.date}</span>
                       <p className={`leading-relaxed font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{note.text}</p>
                     </div>
                   ))}
@@ -286,8 +286,8 @@ const SortableTaskItem = ({
           {task.subtasks && task.subtasks.length > 0 && (
             <span className={`flex items-center gap-1 text-[10px] px-2 py-1 rounded-lg font-semibold transition-all shadow-sm ${
               isDarkMode 
-                ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' 
-                : 'bg-indigo-100/80 text-indigo-700 border border-indigo-200'
+                ? 'bg-primary/20 text-primary border border-primary/30' 
+                : 'bg-primary/10/80 text-primary border border-primary/25'
             }`}>
               <ListTodo size={10} /> {task.subtasks.filter(s => s.completed).length}/{task.subtasks.length}
             </span>
@@ -1326,7 +1326,7 @@ export default function App() {
           time: new Date(item.start.dateTime || item.start.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
           date: new Date(item.start.dateTime || item.start.date).toLocaleDateString('es-ES', { weekday: 'short', month: 'short', day: 'numeric' }),
           meetLink: item.hangoutLink || (item.conferenceData?.entryPoints?.[0]?.uri) || '',
-          color: 'bg-blue-500/20 text-blue-300'
+          color: 'bg-primary/20 text-primary'
         }));
         setEvents(formattedEvents);
       }
@@ -1630,7 +1630,7 @@ export default function App() {
       <div className={`flex items-center justify-center min-h-screen w-full font-sans overflow-hidden transition-colors duration-500 relative z-0 ${isDarkMode ? 'bg-[#08080a] text-gray-100' : 'bg-[#f4f4f9] text-gray-800'}`}>
         {/* GLOBAL BACKGROUND BLOBS */}
         <div className={`absolute top-[-10%] left-[-5%] w-[40rem] h-[40rem] rounded-full mix-blend-screen filter blur-[120px] opacity-40 pointer-events-none -z-10 ${isDarkMode ? 'bg-purple-900' : 'bg-purple-300'}`}></div>
-        <div className={`absolute top-[20%] right-[-10%] w-[35rem] h-[35rem] rounded-full mix-blend-screen filter blur-[100px] opacity-30 pointer-events-none -z-10 ${isDarkMode ? 'bg-blue-900' : 'bg-blue-300'}`}></div>
+        <div className={`absolute top-[20%] right-[-10%] w-[35rem] h-[35rem] rounded-full mix-blend-screen filter blur-[100px] opacity-30 pointer-events-none -z-10 ${isDarkMode ? 'bg-primary' : 'bg-primary'}`}></div>
         <div className={`absolute bottom-[-10%] left-[20%] w-[40rem] h-[40rem] rounded-full mix-blend-screen filter blur-[120px] opacity-30 pointer-events-none -z-10 ${isDarkMode ? 'bg-emerald-900' : 'bg-emerald-300'}`}></div>
 
         <div className="absolute top-6 right-6">
@@ -1641,7 +1641,7 @@ export default function App() {
 
         <div className={`w-full max-w-sm p-8 rounded-[2.5rem] flex flex-col transition-all duration-500 border shadow-[0_20px_50px_rgba(0,0,0,0.4)] ${isDarkMode ? 'glass-panel-dark' : 'glass-panel-light'}`}>
           <div className="flex justify-center mb-6">
-            <div className={`p-4 rounded-2xl ${isDarkMode ? 'bg-gradient-to-br from-violet-500/20 to-indigo-500/20 text-violet-400 border border-violet-500/30 shadow-[0_0_30px_rgba(139,92,246,0.2)] animate-pulse-glow' : 'bg-blue-100 text-blue-600 border border-white/50'}`}>
+            <div className={`p-4 rounded-2xl ${isDarkMode ? 'bg-gradient-to-br from-violet-500/20 to-primary-hover/20 text-violet-400 border border-violet-500/30 shadow-[0_0_30px_rgba(139,92,246,0.2)] animate-pulse-glow' : 'bg-primary/10 text-primary border border-white/50'}`}>
               <Lock size={26} />
             </div>
           </div>
@@ -1696,7 +1696,7 @@ export default function App() {
               className={`w-full flex items-center justify-center gap-2 mt-4 py-3.5 rounded-xl text-xs font-bold tracking-wider uppercase transition-all duration-300 hover-lift shadow-md disabled:opacity-70 disabled:hover:translate-y-0 ${
                 isDarkMode 
                   ? 'bg-gradient-to-r from-violet-600 to-indigo-650 text-white shadow-violet-900/20 hover:from-violet-500 hover:to-indigo-550 border border-violet-500/30' 
-                  : 'bg-blue-600 text-white hover:bg-blue-700'
+                  : 'bg-primary text-white hover:bg-primary-hover'
               }`}
             >
               {isAuthenticating ? (
@@ -1729,14 +1729,14 @@ export default function App() {
       
       {/* GLOBAL BACKGROUND BLOBS (Glassmorphism Core) */}
       <div className={`absolute top-[-10%] left-[-5%] w-[40rem] h-[40rem] rounded-full mix-blend-screen filter blur-[120px] opacity-40 pointer-events-none -z-10 ${isDarkMode ? 'bg-purple-900' : 'bg-purple-300'}`}></div>
-      <div className={`absolute top-[20%] right-[-10%] w-[35rem] h-[35rem] rounded-full mix-blend-screen filter blur-[100px] opacity-30 pointer-events-none -z-10 ${isDarkMode ? 'bg-blue-900' : 'bg-blue-300'}`}></div>
+      <div className={`absolute top-[20%] right-[-10%] w-[35rem] h-[35rem] rounded-full mix-blend-screen filter blur-[100px] opacity-30 pointer-events-none -z-10 ${isDarkMode ? 'bg-primary' : 'bg-primary'}`}></div>
       <div className={`absolute bottom-[-10%] left-[20%] w-[40rem] h-[40rem] rounded-full mix-blend-screen filter blur-[120px] opacity-30 pointer-events-none -z-10 ${isDarkMode ? 'bg-emerald-900' : 'bg-emerald-300'}`}></div>
 
       {/* Sidebar Overlay on Mobile */}
       {isSidebarOpen && <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 md:hidden transition-opacity duration-300" onClick={() => setIsSidebarOpen(false)} />}
       
       {/* Sidebar */}
-      <div className={`flex flex-col border-r transition-all duration-300 z-50 backdrop-blur-3xl absolute md:relative h-full ${isSidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0 w-0 hidden md:flex md:w-16'} ${isDarkMode ? 'bg-[#0f0f11]/95 border-white/5' : 'bg-white/95 border-blue-100/50'}`}>
+      <div className={`flex flex-col border-r transition-all duration-300 z-50 backdrop-blur-3xl absolute md:relative h-full ${isSidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0 w-0 hidden md:flex md:w-16'} ${isDarkMode ? 'bg-[#0f0f11]/95 border-white/5' : 'bg-white/95 border-primary/10'}`}>
         
         {/* Logo Header */}
         <div className={`h-16 flex items-center ${isSidebarOpen ? 'justify-between px-5' : 'justify-center'} border-b ${isDarkMode ? 'border-white/5' : 'border-black/5'} mb-2 shrink-0 overflow-hidden`}>
@@ -1754,7 +1754,7 @@ export default function App() {
             companyProfile?.logoUrl ? (
               <img src={companyProfile.logoUrl} alt="Logo" className="w-8 h-8 rounded-lg object-contain" />
             ) : (
-              <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-black text-xs ${isDarkMode ? 'bg-white/10 text-white' : 'bg-blue-600 text-white shadow-sm'}`}>
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-black text-xs ${isDarkMode ? 'bg-white/10 text-white' : 'bg-primary text-white shadow-sm'}`}>
                 {String(companyProfile?.nombreComercial || companyProfile?.razonSocial || 'W').charAt(0).toUpperCase()}
               </div>
             )
@@ -2030,9 +2030,9 @@ export default function App() {
             </button>
 
             {/* ESTADO DE SINCRONIZACIÓN NUBE */}
-            <div className={`hidden md:flex text-[9px] px-2.5 py-1 rounded-md tracking-[0.1em] uppercase items-center gap-1.5 transition-all ${isDarkMode ? 'bg-white/5 font-bold text-gray-400 border border-white/5' : 'bg-blue-50/70 text-black border border-blue-200/50 font-bold'}`}>
+            <div className={`hidden md:flex text-[9px] px-2.5 py-1 rounded-md tracking-[0.1em] uppercase items-center gap-1.5 transition-all ${isDarkMode ? 'bg-white/5 font-bold text-gray-400 border border-white/5' : 'bg-primary-light/70 text-black border border-primary/25/50 font-bold'}`}>
               {isSaving ? (
-                <><RefreshCw size={10} className="animate-spin text-blue-400" /> Guardando</>
+                <><RefreshCw size={10} className="animate-spin text-primary" /> Guardando</>
               ) : (
                 <><Cloud size={10} className={isDarkMode ? "text-emerald-400" : "text-emerald-600"} /> Sincronizado</>
               )}
@@ -2146,7 +2146,7 @@ export default function App() {
                       {activePageId === 'team' && (
                         <div className="animate-in fade-in duration-500 px-8 py-6">
                           <div className="flex justify-end mb-6">
-                            <button onClick={openNewUserDrawer} className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-transform shadow-sm hover:-translate-y-0.5 ${isDarkMode ? 'bg-blue-600 text-white shadow-blue-900/50' : 'bg-blue-600 text-white hover:bg-blue-700'}`}>
+                            <button onClick={openNewUserDrawer} className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-transform shadow-sm hover:-translate-y-0.5 ${isDarkMode ? 'bg-primary text-white shadow-primary/40' : 'bg-primary text-white hover:bg-primary-hover'}`}>
                               <UserPlus size={16} /> Invitar Miembro
                             </button>
                           </div>
@@ -2165,11 +2165,11 @@ export default function App() {
                                 </div>
                                 <div className="flex items-center justify-between mt-auto border-t pt-3 border-white/10">
                                   <div className="flex items-center gap-1.5">
-                                    <Shield size={14} className={user.role === 'Admin' ? 'text-red-400' : (user.role === 'Miembro' ? 'text-blue-400' : 'text-gray-500')} />
+                                    <Shield size={14} className={user.role === 'Admin' ? 'text-red-400' : (user.role === 'Miembro' ? 'text-primary' : 'text-gray-500')} />
                                     <span className={`text-xs font-semibold ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{user.role}</span>
                                   </div>
                                   <div className="flex items-center gap-1">
-                                    <button onClick={() => setDrawerUser(user)} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-white/10 text-gray-400 hover:text-blue-400' : 'hover:bg-black/5 text-gray-500 hover:text-blue-600'}`} title="Editar Usuario"><Pencil size={14} /></button>
+                                    <button onClick={() => setDrawerUser(user)} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-white/10 text-gray-400 hover:text-primary' : 'hover:bg-black/5 text-gray-500 hover:text-primary'}`} title="Editar Usuario"><Pencil size={14} /></button>
                                     <button onClick={(e) => deleteUser(user.id, e)} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-red-500/20 text-gray-400 hover:text-red-400' : 'hover:bg-red-100 text-gray-500 hover:text-red-650'}`} title="Eliminar Usuario"><Trash2 size={14} /></button>
                                   </div>
                                 </div>
@@ -2231,7 +2231,7 @@ export default function App() {
                                 <h3 className="text-lg font-bold">Listado de Proyectos</h3>
                                 <button 
                                   onClick={addProject} 
-                                  className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-transform shadow-sm hover:-translate-y-0.5 ${isDarkMode ? 'bg-blue-600 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+                                  className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-transform shadow-sm hover:-translate-y-0.5 ${isDarkMode ? 'bg-primary text-white' : 'bg-primary text-white hover:bg-primary-hover'}`}
                                 >
                                   <Plus size={14} /> Nuevo Proyecto
                                 </button>
@@ -2257,7 +2257,7 @@ export default function App() {
                                       <div>
                                         <div className="flex items-start justify-between gap-4 mb-3">
                                           <div className="flex items-center gap-3">
-                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isDarkMode ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
+                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isDarkMode ? 'bg-primary/10 text-primary' : 'bg-primary-light text-primary'}`}>
                                               <Briefcase size={20} />
                                             </div>
                                             <div>
@@ -2279,10 +2279,10 @@ export default function App() {
                                         <div className="mt-4">
                                           <div className="flex justify-between items-center text-xs font-semibold mb-1">
                                             <span className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Progreso</span>
-                                            <span className={isDarkMode ? 'text-blue-400' : 'text-blue-600'}>{progressPercent}%</span>
+                                            <span className={isDarkMode ? 'text-primary' : 'text-primary'}>{progressPercent}%</span>
                                           </div>
                                           <div className={`w-full h-2 rounded-full overflow-hidden ${isDarkMode ? 'bg-white/5' : 'bg-black/5'}`}>
-                                            <div className="h-full bg-blue-600 transition-all duration-500" style={{ width: `${progressPercent}%` }}></div>
+                                            <div className="h-full bg-primary transition-all duration-500" style={{ width: `${progressPercent}%` }}></div>
                                           </div>
                                         </div>
                                       </div>
@@ -2408,7 +2408,7 @@ export default function App() {
                                                         <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-300 group-hover:text-white' : 'text-gray-700 group-hover:text-black'}`}>{task.content}</span>
                                                       </div>
                                                       <div className="flex items-center gap-4 md:w-1/2 md:justify-end ml-7 md:ml-0">
-                                                        {task.meetLink && <span className={`flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-md opacity-70 group-hover:opacity-100 transition-opacity ${isDarkMode ? 'bg-blue-500/20 text-blue-300 border border-blue-500/20' : 'bg-blue-100 text-blue-700 border border-blue-200'}`}><Video size={10} /> Videollamada</span>}
+                                                        {task.meetLink && <span className={`flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-md opacity-70 group-hover:opacity-100 transition-opacity ${isDarkMode ? 'bg-primary/20 text-primary border border-primary/20' : 'bg-primary/10 text-primary border border-primary/25'}`}><Video size={10} /> Videollamada</span>}
                                                         {assignedUser ? (
                                                           <div className={`flex items-center gap-2 opacity-70 group-hover:opacity-100 transition-opacity min-w-[120px] justify-end`}>
                                                             <span className={`text-xs font-semibold truncate ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{assignedUser.name}</span>
@@ -2448,7 +2448,7 @@ export default function App() {
                                 <h3 className="text-lg font-bold">Listado de Páginas</h3>
                                 <button 
                                   onClick={addPage} 
-                                  className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-transform shadow-sm hover:-translate-y-0.5 ${isDarkMode ? 'bg-blue-600 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+                                  className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-transform shadow-sm hover:-translate-y-0.5 ${isDarkMode ? 'bg-primary text-white' : 'bg-primary text-white hover:bg-primary-hover'}`}
                                 >
                                   <Plus size={14} /> Nueva Página
                                 </button>
@@ -2542,7 +2542,7 @@ export default function App() {
                           <div className={`p-6 rounded-2xl ${currentGlassPanel}`}>
                             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                               <div>
-                                <h2 className="text-lg font-semibold flex items-center gap-2"><Calendar size={20} className={isDarkMode ? 'text-blue-400' : 'text-blue-600'} /> Google Workspace (API Real)</h2>
+                                <h2 className="text-lg font-semibold flex items-center gap-2"><Calendar size={20} className={isDarkMode ? 'text-primary' : 'text-primary'} /> Google Workspace (API Real)</h2>
                                 <p className={`text-sm mt-1 font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Lee tus eventos reales y genera enlaces oficiales de Google Meet.</p>
                               </div>
                               
@@ -2551,7 +2551,7 @@ export default function App() {
                                   <Settings size={16} /> Configurar Integración
                                 </button>
                               ) : !isGoogleConnected ? (
-                                <button onClick={handleConnectGoogle} disabled={isConnecting} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-transform shadow-sm hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:translate-y-0 ${isDarkMode ? 'bg-blue-600 text-white shadow-blue-900/50' : 'bg-blue-600 text-white'}`}>
+                                <button onClick={handleConnectGoogle} disabled={isConnecting} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-transform shadow-sm hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:translate-y-0 ${isDarkMode ? 'bg-primary text-white shadow-primary/40' : 'bg-primary text-white'}`}>
                                   {isConnecting ? <RefreshCw className="animate-spin" size={16} /> : <LogIn size={16} />} {isConnecting ? 'Conectando...' : 'Conectar Google'}
                                 </button>
                               ) : (
@@ -2567,7 +2567,7 @@ export default function App() {
                             <div className="space-y-5">
                               <div className={`flex items-center justify-between border-b pb-3 ${isDarkMode ? 'border-white/10' : 'border-gray-200'}`}>
                                 <h3 className="text-lg font-semibold">Próximos Eventos Reales (7 días)</h3>
-                                <button onClick={handleCreateInstantMeetUI} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all text-xs font-semibold shadow-sm ${isDarkMode ? 'bg-blue-500/20 text-blue-300 hover:bg-blue-500/40 border border-blue-500/20' : 'bg-blue-100 text-blue-700 hover:bg-blue-200 border border-blue-200'}`}><Video size={14} /> Crear Meet Real</button>
+                                <button onClick={handleCreateInstantMeetUI} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all text-xs font-semibold shadow-sm ${isDarkMode ? 'bg-primary/20 text-primary hover:bg-primary/40 border border-primary/20' : 'bg-primary/10 text-primary hover:bg-primary/15 border border-primary/25'}`}><Video size={14} /> Crear Meet Real</button>
                               </div>
                               <div className="grid grid-cols-1 gap-3">
                                 {events.length > 0 ? events.map(event => (
@@ -2587,7 +2587,7 @@ export default function App() {
                                           {isGeneratingAI ? <RefreshCw className="animate-spin" size={14} /> : <Wand2 size={14} />} Agenda con IA
                                       </button>
                                       {event.meetLink && (
-                                        <a href={event.meetLink} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all shadow-sm ${isDarkMode ? 'bg-blue-500/20 text-blue-300 hover:bg-blue-500/40 border border-blue-500/20' : 'bg-blue-100 text-blue-700 hover:bg-blue-200 border border-blue-200'}`}>
+                                        <a href={event.meetLink} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all shadow-sm ${isDarkMode ? 'bg-primary/20 text-primary hover:bg-primary/40 border border-primary/20' : 'bg-primary/10 text-primary hover:bg-primary/15 border border-primary/25'}`}>
                                           <Video size={14} /> Unirse a Meet
                                         </a>
                                       )}
@@ -2635,7 +2635,7 @@ export default function App() {
           <>
             <div className={`flex items-center justify-between px-6 py-4 border-b shrink-0 ${isDarkMode ? 'border-white/10' : 'border-black/5'}`}>
               <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-xl shadow-inner ${isDarkMode ? 'bg-white/10 text-white border border-white/10' : 'bg-blue-100 text-blue-600 border border-white/50'}`}><Briefcase size={18} /></div>
+                <div className={`p-2 rounded-xl shadow-inner ${isDarkMode ? 'bg-white/10 text-white border border-white/10' : 'bg-primary/10 text-primary border border-white/50'}`}><Briefcase size={18} /></div>
                 <h2 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{drawerTask.id && globalTasks.some(t => t.id === drawerTask.id) ? 'Detalles de Tarea' : 'Crear Tarea'}</h2>
               </div>
               <div className="flex items-center gap-1">
@@ -2649,9 +2649,9 @@ export default function App() {
             </div>
 
             <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6 custom-scrollbar">
-              <div className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 mb-2 shadow-inner">
+              <div className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-primary/10 to-purple-500/10 border border-primary/20 mb-2 shadow-inner">
                 <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-full ${isTimerRunning && activeTimerTaskId === drawerTask.id ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-blue-500/20 text-blue-400'}`}>
+                  <div className={`p-2 rounded-full ${isTimerRunning && activeTimerTaskId === drawerTask.id ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-primary/20 text-primary'}`}>
                     <Clock size={16} />
                   </div>
                   <div>
@@ -2663,7 +2663,7 @@ export default function App() {
                 </div>
                 <button 
                   onClick={toggleTimer}
-                  className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all shadow-sm ${isTimerRunning && activeTimerTaskId === drawerTask.id ? 'bg-red-500 hover:bg-red-600 text-white shadow-red-500/30' : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/30'}`}
+                  className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all shadow-sm ${isTimerRunning && activeTimerTaskId === drawerTask.id ? 'bg-red-500 hover:bg-red-600 text-white shadow-red-500/30' : 'bg-primary hover:bg-primary-hover text-white shadow-primary/30'}`}
                 >
                   {isTimerRunning && activeTimerTaskId === drawerTask.id ? 'Detener' : 'Iniciar'}
                 </button>
@@ -2700,9 +2700,9 @@ export default function App() {
                 </div>
 
                 {/* --- NUEVO: Integración Google Workspace en Drawer --- */}
-                <div className={`p-4 rounded-xl border ${isDarkMode ? 'bg-black/20 border-white/10' : 'bg-blue-50/50 border-blue-100'}`}>
-                  <label className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider mb-3 ${isDarkMode ? 'text-gray-400' : 'text-blue-600'}`}>
-                    <Calendar size={14} className={isDarkMode ? 'text-blue-400' : 'text-blue-500'} /> Google Workspace (API Real)
+                <div className={`p-4 rounded-xl border ${isDarkMode ? 'bg-black/20 border-white/10' : 'bg-primary-light border-primary/15'}`}>
+                  <label className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider mb-3 ${isDarkMode ? 'text-gray-400' : 'text-primary'}`}>
+                    <Calendar size={14} className={isDarkMode ? 'text-primary' : 'text-primary'} /> Google Workspace (API Real)
                   </label>
                   {!isGoogleConnected ? (
                      <div className="flex items-start gap-2 text-xs italic opacity-80">
@@ -2716,11 +2716,11 @@ export default function App() {
                            <div className="flex-1 px-3 py-2 text-xs rounded-lg truncate bg-black/10 border border-white/10 opacity-70">
                              {drawerTask.meetLink}
                            </div>
-                           <a href={drawerTask.meetLink} target="_blank" rel="noopener noreferrer" className={`px-3 py-2 rounded-lg text-xs font-bold transition-all shadow-sm shrink-0 ${isDarkMode ? 'bg-blue-600/80 text-white hover:bg-blue-500' : 'bg-blue-600 text-white hover:bg-blue-700'}`}>Entrar</a>
+                           <a href={drawerTask.meetLink} target="_blank" rel="noopener noreferrer" className={`px-3 py-2 rounded-lg text-xs font-bold transition-all shadow-sm shrink-0 ${isDarkMode ? 'bg-primary/80 text-white hover:bg-primary' : 'bg-primary text-white hover:bg-primary-hover'}`}>Entrar</a>
                            <button onClick={() => setDrawerTask(p => ({...p, meetLink: ''}))} className="p-2 rounded-lg transition-colors bg-red-500/10 text-red-400 hover:bg-red-500/30 border border-red-500/20 shrink-0" title="Quitar enlace"><X size={14}/></button>
                          </div>
                        ) : (
-                         <button onClick={handleGenerateMeetForTask} className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all border shadow-sm ${isDarkMode ? 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10' : 'bg-white border-gray-200 text-blue-600 hover:bg-gray-50'}`}>
+                         <button onClick={handleGenerateMeetForTask} className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all border shadow-sm ${isDarkMode ? 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10' : 'bg-white border-gray-200 text-primary hover:bg-gray-50'}`}>
                             <Video size={14} /> Crear Evento y Generar Meet
                          </button>
                        )}
@@ -2730,7 +2730,7 @@ export default function App() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}><CalendarDays size={14} className={isDarkMode ? 'text-blue-400' : 'text-blue-500'} /> Arranca el</label>
+                    <label className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}><CalendarDays size={14} className={isDarkMode ? 'text-primary' : 'text-primary'} /> Arranca el</label>
                     <input type="date" value={drawerTask.startDate || ''} onChange={(e) => setDrawerTask(prev => ({ ...prev, startDate: e.target.value }))} className={`w-full px-3 py-2 text-xs font-medium rounded-lg outline-none transition-all shadow-inner ${isDarkMode ? '[color-scheme:dark]' : ''} ${currentGlassInput}`} />
                   </div>
                   <div>
@@ -2748,7 +2748,7 @@ export default function App() {
                     <button 
                       onClick={generateTaskPlan}
                       disabled={isGeneratingAI || !drawerTask.content}
-                      className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold transition-all shadow-sm disabled:opacity-50 hover:scale-105 ${isDarkMode ? 'bg-gradient-to-r from-purple-600/50 to-indigo-600/50 text-white border border-purple-500/30' : 'bg-gradient-to-r from-purple-100 to-indigo-100 text-purple-800 border border-purple-200'}`}
+                      className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold transition-all shadow-sm disabled:opacity-50 hover:scale-105 ${isDarkMode ? 'bg-gradient-to-r from-purple-600/50 to-primary-hover/50 text-white border border-purple-500/30' : 'bg-gradient-to-r from-purple-100 to-indigo-100 text-purple-800 border border-purple-200'}`}
                     >
                       {isGeneratingAI ? <RefreshCw size={12} className="animate-spin" /> : <Sparkles size={12} />} ✨ Plan IA
                     </button>
@@ -2762,9 +2762,9 @@ export default function App() {
               {/* CHECKLIST / SUBTAREAS */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}><ListTodo size={14} className={isDarkMode ? 'text-indigo-400' : 'text-indigo-500'} /> Subtareas (Checklist)</label>
+                  <label className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}><ListTodo size={14} className={isDarkMode ? 'text-primary' : 'text-primary'} /> Subtareas (Checklist)</label>
                   {drawerTask.subtasks && drawerTask.subtasks.length > 0 && (
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isDarkMode ? 'bg-indigo-500/20 text-indigo-300' : 'bg-indigo-100 text-indigo-700'}`}>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isDarkMode ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
                       {drawerTask.subtasks.filter(s => s.completed).length} / {drawerTask.subtasks.length}
                     </span>
                   )}
@@ -2773,7 +2773,7 @@ export default function App() {
                 <div className="space-y-2 mb-3">
                   {(drawerTask.subtasks || []).map(st => (
                     <div key={st.id} className={`flex items-center gap-2 p-2 rounded-lg border ${isDarkMode ? 'bg-black/20 border-white/10' : 'bg-white/50 border-gray-200'} group`}>
-                      <button onClick={() => toggleSubtask(st.id)} className={`w-4 h-4 rounded flex shrink-0 items-center justify-center border transition-all ${st.completed ? 'bg-indigo-500 border-indigo-500 text-white' : (isDarkMode ? 'border-gray-500 hover:border-gray-300' : 'border-gray-400 hover:border-gray-600')}`}>
+                      <button onClick={() => toggleSubtask(st.id)} className={`w-4 h-4 rounded flex shrink-0 items-center justify-center border transition-all ${st.completed ? 'bg-primary border-primary text-white' : (isDarkMode ? 'border-gray-500 hover:border-gray-300' : 'border-gray-400 hover:border-gray-600')}`}>
                          {st.completed && <CheckSquare size={10} />}
                       </button>
                       <span className={`flex-1 text-xs font-medium ${st.completed ? 'line-through opacity-50' : ''} ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>{st.text}</span>
@@ -2784,7 +2784,7 @@ export default function App() {
 
                 <div className="flex gap-2">
                   <input type="text" value={newSubtaskText} onChange={(e) => setNewSubtaskText(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addSubtask()} placeholder="Agregar un paso o subtarea..." className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-lg outline-none transition-all shadow-inner ${currentGlassInput}`} />
-                  <button onClick={addSubtask} disabled={!newSubtaskText.trim()} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-50 ${isDarkMode ? 'bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/40 border border-indigo-500/30' : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'}`}><Plus size={14}/></button>
+                  <button onClick={addSubtask} disabled={!newSubtaskText.trim()} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-50 ${isDarkMode ? 'bg-primary/20 text-primary hover:bg-primary/40 border border-primary/30' : 'bg-primary/10 text-primary hover:bg-primary/15'}`}><Plus size={14}/></button>
                 </div>
               </div>
               
@@ -2811,7 +2811,7 @@ export default function App() {
               </div>
             </div>
             <div className={`px-6 py-4 border-t flex justify-end shrink-0 ${isDarkMode ? 'border-white/10 bg-black/20 backdrop-blur-md' : 'border-black/5 bg-white/40 backdrop-blur-md'}`}>
-              <button onClick={saveDrawerTask} className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-transform hover:scale-105 shadow-sm ${isDarkMode ? 'bg-blue-600 text-white shadow-blue-900/50' : 'bg-blue-600 text-white'}`}><Save size={16} /> Guardar Tarea</button>
+              <button onClick={saveDrawerTask} className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-transform hover:scale-105 shadow-sm ${isDarkMode ? 'bg-primary text-white shadow-primary/40' : 'bg-primary text-white'}`}><Save size={16} /> Guardar Tarea</button>
             </div>
           </>
         )}
@@ -2826,7 +2826,7 @@ export default function App() {
           <>
             <div className={`flex items-center justify-between px-6 py-4 border-b shrink-0 ${isDarkMode ? 'border-white/10' : 'border-black/5'}`}>
               <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-xl shadow-inner ${isDarkMode ? 'bg-blue-500/20 text-blue-400 border border-blue-500/20' : 'bg-blue-100 text-blue-600 border border-blue-200'}`}><UserPlus size={18} /></div>
+                <div className={`p-2 rounded-xl shadow-inner ${isDarkMode ? 'bg-primary/20 text-primary border border-primary/20' : 'bg-primary/10 text-primary border border-primary/25'}`}><UserPlus size={18} /></div>
                 <h2 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{drawerUser.isNew ? 'Invitar Miembro' : 'Editar Usuario'}</h2>
               </div>
               <button onClick={() => setDrawerUser(null)} className={`p-2 rounded-lg transition-all shadow-sm ${isDarkMode ? 'bg-white/5 hover:bg-white/20 text-gray-300 border border-white/5' : 'bg-white hover:bg-gray-100 text-gray-600 border border-gray-200'}`}><X size={16} /></button>
@@ -2867,7 +2867,7 @@ export default function App() {
                       <button 
                         key={colorClass}
                         onClick={() => setDrawerUser(prev => ({ ...prev, color: colorClass }))}
-                        className={`w-8 h-8 rounded-full bg-gradient-to-br ${colorClass} transition-transform hover:scale-110 ${drawerUser.color === colorClass ? 'ring-2 ring-offset-2 ring-blue-500 ring-offset-[#0f0f11]' : 'opacity-70'}`}
+                        className={`w-8 h-8 rounded-full bg-gradient-to-br ${colorClass} transition-transform hover:scale-110 ${drawerUser.color === colorClass ? 'ring-2 ring-offset-2 ring-primary ring-offset-[#0f0f11]' : 'opacity-70'}`}
                       />
                     ))}
                   </div>
@@ -2878,7 +2878,7 @@ export default function App() {
             
             <div className={`px-6 py-4 border-t flex justify-end shrink-0 ${isDarkMode ? 'border-white/10 bg-black/20 backdrop-blur-md' : 'border-black/5 bg-white/40 backdrop-blur-md'}`}>
               <button onClick={() => setDrawerUser(null)} className={`px-4 py-2.5 rounded-lg font-semibold text-sm transition-colors ${isDarkMode ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-gray-100 text-gray-600'}`}>Cancelar</button>
-              <button onClick={saveDrawerUser} disabled={!drawerUser.name.trim()} className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-transform shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 hover:scale-105 ${isDarkMode ? 'bg-blue-600 text-white shadow-blue-900/50' : 'bg-blue-600 text-white hover:bg-blue-700'}`}><Save size={16} /> Guardar Usuario</button>
+              <button onClick={saveDrawerUser} disabled={!drawerUser.name.trim()} className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-transform shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 hover:scale-105 ${isDarkMode ? 'bg-primary text-white shadow-primary/40' : 'bg-primary text-white hover:bg-primary-hover'}`}><Save size={16} /> Guardar Usuario</button>
             </div>
           </>
         )}
@@ -2893,7 +2893,7 @@ export default function App() {
           <>
             <div className={`flex items-center justify-between px-6 py-4 border-b shrink-0 ${isDarkMode ? 'border-white/10' : 'border-black/5'}`}>
               <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-xl shadow-inner ${isDarkMode ? 'bg-blue-500/20 text-blue-400 border border-blue-500/20' : 'bg-blue-100 text-blue-600 border border-blue-200'}`}><Download size={18} /></div>
+                <div className={`p-2 rounded-xl shadow-inner ${isDarkMode ? 'bg-primary/20 text-primary border border-primary/20' : 'bg-primary/10 text-primary border border-primary/25'}`}><Download size={18} /></div>
                 <h2 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Exportar Informes</h2>
               </div>
               <button onClick={() => setIsReportDrawerOpen(false)} className={`p-2 rounded-lg transition-all shadow-sm ${isDarkMode ? 'bg-white/5 hover:bg-white/20 text-gray-300 border border-white/5' : 'bg-white hover:bg-gray-100 text-gray-600 border border-gray-200'}`}><X size={16} /></button>
@@ -2931,7 +2931,7 @@ export default function App() {
             </div>
             
             <div className={`px-6 py-4 border-t flex justify-end shrink-0 ${isDarkMode ? 'border-white/10 bg-black/20 backdrop-blur-md' : 'border-black/5 bg-white/40 backdrop-blur-md'}`}>
-              <button onClick={exportToCSV} className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-transform shadow-sm hover:scale-105 ${isDarkMode ? 'bg-blue-600 text-white shadow-blue-900/50' : 'bg-blue-600 text-white hover:bg-blue-700'}`}><Download size={16} /> Descargar CSV</button>
+              <button onClick={exportToCSV} className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-transform shadow-sm hover:scale-105 ${isDarkMode ? 'bg-primary text-white shadow-primary/40' : 'bg-primary text-white hover:bg-primary-hover'}`}><Download size={16} /> Descargar CSV</button>
             </div>
           </>
         )}
@@ -2943,7 +2943,7 @@ export default function App() {
           <div key={toast.id} className={`animate-in slide-in-from-bottom-5 fade-in duration-300 flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-lg pointer-events-auto backdrop-blur-md border ${isDarkMode ? 'bg-[#1a1a1a]/90 border-white/10 text-white' : 'bg-white/90 border-gray-200 text-gray-800'}`}>
             {toast.type === 'success' && <CheckCircle2 size={16} className="text-emerald-500" />}
             {toast.type === 'error' && <X size={16} className="text-red-500" />}
-            {toast.type === 'sync' && <Cloud size={16} className="text-blue-500 animate-pulse" />}
+            {toast.type === 'sync' && <Cloud size={16} className="text-primary animate-pulse" />}
             <span className="text-xs font-semibold tracking-wide">{toast.message}</span>
           </div>
         ))}

@@ -228,7 +228,7 @@ export default function InventoryModule({ isDarkMode }: InventoryModuleProps) {
     <div className="flex flex-col h-full w-full overflow-hidden animate-in fade-in duration-500">
       
       {/* Sub-Tabs de Inventario */}
-      <div className={`flex items-center gap-3 px-8 py-3.5 border-b shrink-0 ${isDarkMode ? 'border-white/5 bg-[#121214]' : 'border-blue-600/10 bg-blue-50/50'}`}>
+      <div className={`flex items-center gap-3 px-8 py-3.5 border-b shrink-0 ${isDarkMode ? 'border-white/5 bg-[#121214]' : 'border-primary/10 bg-primary-light'}`}>
         <div className="flex gap-2 overflow-x-auto whitespace-nowrap scrollbar-none flex-1">
           {TABS.map(tab => {
             const Icon = tab.icon;
@@ -239,7 +239,7 @@ export default function InventoryModule({ isDarkMode }: InventoryModuleProps) {
                 onClick={() => setActiveTab(tab.id)}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 ${
                   isActive
-                    ? (isDarkMode ? 'bg-blue-600/20 text-blue-400 border-blue-500/30 shadow-sm' : 'bg-blue-600 text-white border-blue-600 shadow-sm')
+                    ? (isDarkMode ? 'bg-primary/20 text-primary border-primary/30 shadow-sm' : 'bg-primary text-white border-primary shadow-sm')
                     : (isDarkMode ? 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-white/5' : 'border-transparent text-gray-700 hover:text-gray-900 hover:bg-black/5')
                 }`}
               >
@@ -259,7 +259,7 @@ export default function InventoryModule({ isDarkMode }: InventoryModuleProps) {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
                 <h1 className={`text-2xl font-bold tracking-tight flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                  <Package className={isDarkMode ? 'text-blue-400' : 'text-blue-600'} />
+                  <Package className={isDarkMode ? 'text-primary' : 'text-primary'} />
                   Catálogo de Productos y Servicios
                 </h1>
                 <p className={`text-sm mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -269,13 +269,13 @@ export default function InventoryModule({ isDarkMode }: InventoryModuleProps) {
               <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                 <button 
                   onClick={() => setIsProductOpen(true)}
-                  className="px-3.5 py-2 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-500 text-white shadow-[0_0_15px_rgba(37,99,235,0.3)] flex items-center gap-1.5 transition-all hover:scale-105"
+                  className="px-3.5 py-2 rounded-xl font-bold text-xs bg-primary hover:bg-primary text-white shadow-[0_0_15px_rgba(37,99,235,0.3)] flex items-center gap-1.5 transition-all hover:scale-105"
                 >
                   <Plus size={16} /> Nuevo Producto
                 </button>
                 <button 
                   onClick={() => setIsServiceOpen(true)}
-                  className="px-3.5 py-2 rounded-xl font-bold text-xs bg-indigo-600 hover:bg-indigo-500 text-white shadow-[0_0_15px_rgba(79,70,229,0.3)] flex items-center gap-1.5 transition-all hover:scale-105"
+                  className="px-3.5 py-2 rounded-xl font-bold text-xs bg-primary hover:bg-primary text-white shadow-[0_0_15px_rgba(79,70,229,0.3)] flex items-center gap-1.5 transition-all hover:scale-105"
                 >
                   <Briefcase size={16} /> Nuevo Servicio
                 </button>
@@ -302,7 +302,7 @@ export default function InventoryModule({ isDarkMode }: InventoryModuleProps) {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className={`w-full pl-9 pr-4 py-2 rounded-xl border outline-none text-xs ${
-                    isDarkMode ? 'bg-black/20 border-white/10 text-white focus:border-blue-500' : 'bg-white border-gray-200 text-gray-800 focus:border-blue-500'
+                    isDarkMode ? 'bg-black/20 border-white/10 text-white focus:border-primary' : 'bg-white border-gray-200 text-gray-800 focus:border-primary'
                   }`}
                 />
               </div>
@@ -376,9 +376,9 @@ export default function InventoryModule({ isDarkMode }: InventoryModuleProps) {
                               {p.description && <p className="text-[10px] text-gray-500 mt-0.5">{p.description}</p>}
                             </td>
                             <td className="p-4">
-                              {p.type === 'STANDARD' && <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20">Estándar</span>}
+                              {p.type === 'STANDARD' && <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary border border-primary/20">Estándar</span>}
                               {p.type === 'COMBO' && <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/10 text-purple-400 border border-purple-500/20">Combo</span>}
-                              {p.type === 'SUBPRODUCT' && <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">Subproducto</span>}
+                              {p.type === 'SUBPRODUCT' && <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary border border-primary/20">Subproducto</span>}
                               {p.type === 'SERVICE' && <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-pink-500/10 text-pink-400 border border-pink-500/20">Servicio</span>}
                             </td>
                             <td className="p-4 text-gray-500">{getCategoryName(p.categoryId)}</td>
@@ -419,13 +419,13 @@ export default function InventoryModule({ isDarkMode }: InventoryModuleProps) {
             <div className="flex justify-between items-center">
               <div>
                 <h1 className={`text-2xl font-bold tracking-tight flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                  <Tag className={isDarkMode ? 'text-blue-400' : 'text-blue-600'} /> Categorías y Marcas
+                  <Tag className={isDarkMode ? 'text-primary' : 'text-primary'} /> Categorías y Marcas
                 </h1>
                 <p className={`text-sm mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Organización y marcas asignadas para el catálogo.</p>
               </div>
               <button 
                 onClick={() => setIsCatBrandOpen(true)}
-                className="px-4 py-2 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-500 text-white flex items-center gap-1.5"
+                className="px-4 py-2 rounded-xl font-bold text-xs bg-primary hover:bg-primary text-white flex items-center gap-1.5"
               >
                 <SlidersHorizontal size={14} /> Configurar Categorías/Marcas
               </button>
@@ -434,7 +434,7 @@ export default function InventoryModule({ isDarkMode }: InventoryModuleProps) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* Categorías Column */}
               <div className={`p-6 rounded-3xl border ${isDarkMode ? 'bg-black/10 border-white/10' : 'bg-white border-gray-200'}`}>
-                <h3 className={`text-sm font-bold flex items-center gap-2 mb-4 uppercase tracking-wider ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>
+                <h3 className={`text-sm font-bold flex items-center gap-2 mb-4 uppercase tracking-wider ${isDarkMode ? 'text-primary' : 'text-primary'}`}>
                   <Layers size={16} /> Categorías ({categories.length})
                 </h3>
                 <div className="space-y-3">
@@ -529,8 +529,8 @@ export default function InventoryModule({ isDarkMode }: InventoryModuleProps) {
                   </div>
 
                   {/* Costo Promedio Card */}
-                  <div className={`p-5 rounded-2xl border ${isDarkMode ? 'bg-[#1d263b]/30 border-blue-500/20' : 'bg-blue-50 border-blue-200'}`}>
-                    <span className="block text-xs font-bold uppercase tracking-wider text-blue-500 mb-1">Costo Promedio Ponderado</span>
+                  <div className={`p-5 rounded-2xl border ${isDarkMode ? 'bg-[#1d263b]/30 border-primary/20' : 'bg-primary-light border-primary/25'}`}>
+                    <span className="block text-xs font-bold uppercase tracking-wider text-primary mb-1">Costo Promedio Ponderado</span>
                     <div className="flex items-baseline gap-2">
                       <span className={`text-2xl font-black ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                         ${(kardexHistory[0]?.balanceAverageCost ?? 0).toFixed(2)}
@@ -593,7 +593,7 @@ export default function InventoryModule({ isDarkMode }: InventoryModuleProps) {
                                 <td className="p-3">${tx.unitCost.toFixed(2)}</td>
                                 <td className="p-3">${tx.totalCost.toFixed(2)}</td>
                                 <td className="p-3 font-bold">{tx.balanceQuantity}</td>
-                                <td className="p-3 font-semibold text-blue-500">${tx.balanceAverageCost.toFixed(2)}</td>
+                                <td className="p-3 font-semibold text-primary">${tx.balanceAverageCost.toFixed(2)}</td>
                               </tr>
                             );
                           })
@@ -659,7 +659,7 @@ export default function InventoryModule({ isDarkMode }: InventoryModuleProps) {
                             <td className="p-3 text-gray-500">{new Date(tr.createdAt).toLocaleString('es-ES')}</td>
                             <td className="p-3">
                               {tr.type === 'INTERNAL' ? (
-                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-400">Interna</span>
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary">Interna</span>
                               ) : (
                                 <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-500/10 text-orange-400">Externa</span>
                               )}
@@ -735,7 +735,7 @@ export default function InventoryModule({ isDarkMode }: InventoryModuleProps) {
                                   <ShieldAlert size={10} /> Cero Inventario
                                 </span>
                               ) : (
-                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-400">Manual</span>
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary">Manual</span>
                               )}
                             </td>
                             <td className="p-3 font-semibold">{branchName}</td>

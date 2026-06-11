@@ -118,8 +118,8 @@ export default function CategoryBrandModal({ isDarkMode, onClose, onChanged }: C
 
   const inputClass = `w-full px-3 py-2 rounded-xl outline-none transition-all border text-sm ${
     isDarkMode 
-      ? 'bg-black/30 border-white/10 text-white focus:border-blue-500 shadow-inner' 
-      : 'bg-white border-gray-200 text-gray-800 focus:border-blue-500 shadow-inner'
+      ? 'bg-black/30 border-white/10 text-white focus:border-primary shadow-inner' 
+      : 'bg-white border-gray-200 text-gray-800 focus:border-primary shadow-inner'
   }`;
 
   const labelClass = `block text-xs font-semibold mb-1 uppercase tracking-wider ${
@@ -138,7 +138,7 @@ export default function CategoryBrandModal({ isDarkMode, onClose, onChanged }: C
           isDarkMode ? 'border-white/10 bg-gray-900/80' : 'border-gray-100 bg-white/80'
         }`}>
           <div className="flex items-center gap-2">
-            <Tag className={isDarkMode ? 'text-blue-400' : 'text-blue-600'} />
+            <Tag className={isDarkMode ? 'text-primary' : 'text-primary'} />
             <h2 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
               Gestionar Categorías y Marcas
             </h2>
@@ -155,13 +155,13 @@ export default function CategoryBrandModal({ isDarkMode, onClose, onChanged }: C
 
         {/* Tab switcher */}
         <div className={`flex border-b shrink-0 px-6 py-2 gap-2 ${
-          isDarkMode ? 'border-white/5 bg-[#121214]' : 'border-blue-600/5 bg-blue-50/20'
+          isDarkMode ? 'border-white/5 bg-[#121214]' : 'border-primary/5 bg-primary/5'
         }`}>
           <button
             onClick={() => setActiveTab('categories')}
             className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 ${
               activeTab === 'categories'
-                ? (isDarkMode ? 'bg-blue-600/20 text-blue-400 border-blue-500/30' : 'bg-blue-600 text-white border-blue-600')
+                ? (isDarkMode ? 'bg-primary/20 text-primary border-primary/30' : 'bg-primary text-white border-primary')
                 : (isDarkMode ? 'border-transparent text-gray-400 hover:text-gray-200' : 'border-transparent text-gray-600 hover:text-gray-900')
             }`}
           >
@@ -172,7 +172,7 @@ export default function CategoryBrandModal({ isDarkMode, onClose, onChanged }: C
             onClick={() => setActiveTab('brands')}
             className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 ${
               activeTab === 'brands'
-                ? (isDarkMode ? 'bg-blue-600/20 text-blue-400 border-blue-500/30' : 'bg-blue-600 text-white border-blue-600')
+                ? (isDarkMode ? 'bg-primary/20 text-primary border-primary/30' : 'bg-primary text-white border-primary')
                 : (isDarkMode ? 'border-transparent text-gray-400 hover:text-gray-200' : 'border-transparent text-gray-600 hover:text-gray-900')
             }`}
           >
@@ -194,7 +194,7 @@ export default function CategoryBrandModal({ isDarkMode, onClose, onChanged }: C
             <div className="flex-1 flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x border-white/10">
               {/* Form Side */}
               <form onSubmit={handleCreateCategory} className="w-full md:w-1/3 p-6 space-y-4 shrink-0">
-                <h3 className={`text-xs font-bold flex items-center gap-1.5 uppercase tracking-wider ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>
+                <h3 className={`text-xs font-bold flex items-center gap-1.5 uppercase tracking-wider ${isDarkMode ? 'text-primary' : 'text-primary'}`}>
                   <FolderPlus size={14} /> Nueva Categoría
                 </h3>
                 
@@ -224,7 +224,7 @@ export default function CategoryBrandModal({ isDarkMode, onClose, onChanged }: C
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-2 rounded-xl text-sm font-bold bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center gap-2 transition-all"
+                  className="w-full py-2 rounded-xl text-sm font-bold bg-primary hover:bg-primary text-white flex items-center justify-center gap-2 transition-all"
                 >
                   <Save size={16} />
                   Guardar Categoría
@@ -272,7 +272,7 @@ export default function CategoryBrandModal({ isDarkMode, onClose, onChanged }: C
             <div className="flex-1 flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x border-white/10">
               {/* Form Side */}
               <form onSubmit={handleCreateBrand} className="w-full md:w-1/3 p-6 space-y-4 shrink-0">
-                <h3 className={`text-xs font-bold flex items-center gap-1.5 uppercase tracking-wider ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>
+                <h3 className={`text-xs font-bold flex items-center gap-1.5 uppercase tracking-wider ${isDarkMode ? 'text-primary' : 'text-primary'}`}>
                   <Plus size={14} /> Nueva Marca
                 </h3>
                 
@@ -302,7 +302,7 @@ export default function CategoryBrandModal({ isDarkMode, onClose, onChanged }: C
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-2 rounded-xl text-sm font-bold bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center gap-2 transition-all"
+                  className="w-full py-2 rounded-xl text-sm font-bold bg-primary hover:bg-primary text-white flex items-center justify-center gap-2 transition-all"
                 >
                   <Save size={16} />
                   Guardar Marca

@@ -208,7 +208,7 @@ export default function GastosCreditosModule({ isDarkMode, showToast, transactio
       case 'prestamo': return <Landmark className="text-emerald-500" size={18} />;
       case 'credito_almacen': return <ShoppingBag className="text-amber-500" size={18} />;
       case 'tarjeta_credito': return <CreditCard className="text-pink-500" size={18} />;
-      default: return <DollarSign className="text-blue-500" size={18} />;
+      default: return <DollarSign className="text-primary" size={18} />;
     }
   };
 

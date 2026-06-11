@@ -119,14 +119,14 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
 
   const inputClass = `w-full text-xs px-3 py-2.5 rounded-xl outline-none transition-all border ${
     isDarkMode 
-      ? 'bg-black/20 border-white/10 text-white focus:border-blue-500/50' 
-      : 'bg-white border-gray-200 text-gray-900 focus:border-blue-500/50'
+      ? 'bg-black/20 border-white/10 text-white focus:border-primary/50' 
+      : 'bg-white border-gray-200 text-gray-900 focus:border-primary/50'
   }`;
 
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }  return (
@@ -150,7 +150,7 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
                   <button 
                     type="button" 
                     onClick={() => setSriConfig({...sriConfig, ambiente: '1'})} 
-                    className={`py-2.5 text-xs font-bold rounded-xl border transition-all ${sriConfig.ambiente === '1' ? 'bg-blue-600 text-white border-blue-600' : (isDarkMode ? 'bg-black/25 text-gray-400 border-white/10 hover:text-white' : 'bg-gray-100 text-gray-600 border-gray-200')}`}
+                    className={`py-2.5 text-xs font-bold rounded-xl border transition-all ${sriConfig.ambiente === '1' ? 'bg-primary text-white border-primary' : (isDarkMode ? 'bg-black/25 text-gray-400 border-white/10 hover:text-white' : 'bg-gray-100 text-gray-600 border-gray-200')}`}
                   >
                     PRUEBAS
                   </button>
@@ -189,7 +189,7 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
           {/* VINCULACIÓN SRI ECUADOR */}
           <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-white border-gray-200'}`}>
             <div className="flex items-center gap-2 mb-4 pb-2 border-b border-white/10">
-              <ExternalLink size={18} className="text-blue-550" />
+              <ExternalLink size={18} className="text-primary" />
               <h3 className="text-base font-bold">Guía de Vinculación con el SRI (Ecuador)</h3>
             </div>
             
@@ -199,7 +199,7 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
               </p>
               <ol className="list-decimal pl-4 text-gray-400 space-y-1.5 text-[10px]">
                 <li>
-                  Ingrese a <a href="https://srienlinea.sri.gob.ec" target="_blank" rel="noreferrer" className="text-blue-500 hover:underline font-bold inline-flex items-center gap-0.5">SRI en Línea <ExternalLink size={8} /></a> con su RUC y clave.
+                  Ingrese a <a href="https://srienlinea.sri.gob.ec" target="_blank" rel="noreferrer" className="text-primary hover:underline font-bold inline-flex items-center gap-0.5">SRI en Línea <ExternalLink size={8} /></a> con su RUC y clave.
                 </li>
                 <li>
                   Vaya a <strong>Facturación Electrónica</strong> &gt; <strong>Pruebas</strong> o <strong>Producción</strong> &gt; <strong>Autorización</strong> para habilitar su emisión.
@@ -230,7 +230,7 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
           
           <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-white border-gray-200'}`}>
             <div className="flex items-center gap-2 mb-4 pb-2 border-b border-white/10">
-              <Settings size={18} className="text-blue-500" />
+              <Settings size={18} className="text-primary" />
               <h3 className="text-base font-bold">Datos Comerciales / Proformas</h3>
             </div>
             
@@ -365,7 +365,7 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
       </div>
 
       <div className="flex justify-end gap-3 pt-4 border-t border-white/5">
-        <button type="submit" className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold bg-blue-600 text-white hover:bg-blue-500 transition-all shadow-md hover:-translate-y-0.5 active:scale-95">
+        <button type="submit" className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold bg-primary text-white hover:bg-primary transition-all shadow-md hover:-translate-y-0.5 active:scale-95">
           <Save size={16} /> Guardar Configuración
         </button>
       </div>

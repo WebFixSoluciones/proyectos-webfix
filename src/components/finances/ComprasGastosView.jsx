@@ -137,7 +137,7 @@ Gracias por su compra`;
           <div className="flex gap-2 text-[10px] font-bold">
             <button
               onClick={() => setPastedText(MOCK_CNT_TEXT)}
-              className="px-3 py-1 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 transition-all flex items-center gap-1"
+              className="px-3 py-1 rounded-lg bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 transition-all flex items-center gap-1"
             >
               <Copy size={10} />
               <span>Demo Factura CNT</span>

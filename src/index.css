@@ -53,8 +53,8 @@ h1, h2, h3, h4, h5, h6, .font-display {
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .glass-input-dark:focus {
-  border-color: rgba(139, 92, 246, 0.4); /* violet-500 */
-  box-shadow: 0 0 16px rgba(139, 92, 246, 0.25);
+  border-color: color-mix(in srgb, var(--primary-color) 45%, transparent);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--primary-color) 25%, transparent);
   background: rgba(0, 0, 0, 0.3);
 }
 

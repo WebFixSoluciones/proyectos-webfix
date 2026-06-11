@@ -1149,8 +1149,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
   const inputClass = `w-full text-xs px-3 py-2.5 rounded-xl outline-none transition-all border font-semibold ${
     isDarkMode 
-      ? 'bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-blue-500/50 disabled:opacity-50' 
-      : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 disabled:bg-gray-50 disabled:text-gray-500'
+      ? 'bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-primary/50 disabled:opacity-50' 
+      : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus:border-primary focus:ring-1 focus:ring-primary/30 disabled:bg-gray-50 disabled:text-gray-500'
   }`;
 
   const labelClass = `block text-[10px] font-bold uppercase mb-1 tracking-wide ${
@@ -1261,7 +1261,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 >
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
                     currentStep === step.id
-                      ? 'bg-blue-600 text-white ring-4 ring-blue-500/20 shadow-md'
+                      ? 'bg-primary text-white ring-4 ring-primary/20 shadow-md'
                       : currentStep > step.id
                         ? 'bg-emerald-600 text-white'
                         : isDarkMode 
@@ -1272,7 +1272,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   </div>
                   <span className={`text-[10px] font-bold tracking-wide uppercase transition-colors ${
                     currentStep === step.id
-                      ? 'text-blue-500'
+                      ? 'text-primary'
                       : currentStep > step.id
                         ? 'text-emerald-500'
                         : isDarkMode ? 'text-gray-500' : 'text-gray-400'
@@ -1339,7 +1339,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 {/* Client Search */}
                 <div className={cardClass}>
                   <div className="flex items-center gap-2 mb-3">
-                    <div className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
+                    <div className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-primary/10 text-primary' : 'bg-primary-light text-primary'}`}>
                       <User size={14} />
                     </div>
                     <h4 className={sectionTitleClass}>Selección de Cliente</h4>
@@ -1380,8 +1380,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         }}
                         className={`px-4 py-2.5 rounded-xl border flex items-center gap-1.5 font-bold text-xs transition-all shrink-0 ${
                           isDarkMode 
-                            ? 'bg-blue-500/15 text-blue-400 border-blue-500/30 hover:bg-blue-500/25' 
-                            : 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100'
+                            ? 'bg-primary/15 text-primary border-primary/30 hover:bg-primary/25' 
+                            : 'bg-primary-light border-primary/25 text-primary hover:bg-primary/10'
                         }`}
                         title="Crear Contacto Rápido"
                       >
@@ -1395,7 +1395,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 {/* Document configuration */}
                 <div className={cardClass}>
                   <div className="flex items-center gap-2 mb-4">
-                    <div className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
+                    <div className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-primary/10 text-primary' : 'bg-primary-light text-primary'}`}>
                       <FileText size={14} />
                     </div>
                     <h4 className={sectionTitleClass}>Datos del Documento</h4>
@@ -1483,7 +1483,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 {/* Location and reference details */}
                 <div className={cardClass}>
                   <div className="flex items-center gap-2 mb-4">
-                    <div className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
+                    <div className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-primary/10 text-primary' : 'bg-primary-light text-primary'}`}>
                       <Building size={14} />
                     </div>
                     <h4 className={sectionTitleClass}>Ubicación y Referencia</h4>
@@ -1531,7 +1531,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
                   {matchedTercero ? (
                     <div className={`space-y-4 p-4 rounded-xl border ${
-                      isDarkMode ? 'bg-white/5 border-white/10 text-white' : 'bg-blue-50/30 border-blue-100 text-gray-900'
+                      isDarkMode ? 'bg-white/5 border-white/10 text-white' : 'bg-primary-light border-primary/15 text-gray-900'
                     }`}>
                       <div>
                         <p className="text-[9px] font-bold uppercase text-gray-500">Razón Social / Nombre</p>
@@ -1559,7 +1559,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         <div>
                           <p className="text-[9px] font-bold uppercase text-gray-500">Régimen SRI</p>
                           <p className={`text-xs font-bold uppercase ${
-                            matchedTercero.tipoContribuyente?.includes('rimpe') ? 'text-purple-600 dark:text-purple-400' : 'text-blue-600 dark:text-blue-400'
+                            matchedTercero.tipoContribuyente?.includes('rimpe') ? 'text-purple-600 dark:text-purple-400' : 'text-primary dark:text-primary'
                           }`}>
                             {matchedTercero.tipoContribuyente || 'General'}
                           </p>
@@ -1591,13 +1591,13 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   <div className={cardClass}>
                     <div className="flex justify-between items-center mb-4">
                       <div className="flex items-center gap-2">
-                        <div className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
+                        <div className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-primary/10 text-primary' : 'bg-primary-light text-primary'}`}>
                           <Layers size={14} />
                         </div>
                         <h3 className={sectionTitleClass}>Desglose de Retenciones</h3>
                       </div>
                       {isEditable && (
-                        <button type="button" onClick={handleAddRetencion} className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center gap-1.5">
+                        <button type="button" onClick={handleAddRetencion} className="px-3 py-1.5 rounded-xl bg-primary hover:bg-primary text-white font-bold text-xs flex items-center gap-1.5">
                           <Plus size={12} /> Añadir Fila
                         </button>
                       )}
@@ -1702,13 +1702,13 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   <div className={cardClass}>
                     <div className="flex justify-between items-center mb-4">
                       <div className="flex items-center gap-2">
-                        <div className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
+                        <div className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-primary/10 text-primary' : 'bg-primary-light text-primary'}`}>
                           <Layers size={14} />
                         </div>
                         <h3 className={sectionTitleClass}>Selección de Productos (Carrito)</h3>
                       </div>
                       {isEditable && (
-                        <button type="button" onClick={handleAddItem} className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center gap-1.5 transition-all">
+                        <button type="button" onClick={handleAddItem} className="px-3 py-1.5 rounded-xl bg-primary hover:bg-primary text-white font-bold text-xs flex items-center gap-1.5 transition-all">
                           <Plus size={12} /> Fila Manual
                         </button>
                       )}
@@ -1747,7 +1747,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                                 type="button"
                                 onClick={() => handleAddProductToCart(p)}
                                 className={`w-full text-left px-4 py-3 text-xs flex justify-between items-center border-b last:border-0 transition-colors ${
-                                  isDarkMode ? 'border-white/5 hover:bg-white/10 text-white' : 'border-gray-100 hover:bg-blue-50 text-gray-900'
+                                  isDarkMode ? 'border-white/5 hover:bg-white/10 text-white' : 'border-gray-100 hover:bg-primary-light text-gray-900'
                                 }`}
                               >
                                 <div>
@@ -1756,7 +1756,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                                     {p.sku ? `SKU: ${p.sku}` : ''} {p.codigoBarras ? ` | EAN: ${p.codigoBarras}` : ''}
                                   </p>
                                 </div>
-                                <span className="font-bold text-blue-600">${Number(p.price).toFixed(2)}</span>
+                                <span className="font-bold text-primary">${Number(p.price).toFixed(2)}</span>
                               </button>
                             ))}
                           </div>
@@ -1876,7 +1876,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         </div>
                         <div className={`flex justify-between pt-2 border-t font-bold text-sm ${isDarkMode ? 'border-white/10 text-white' : 'border-gray-300 text-gray-900'}`}>
                           <span>Total Neto:</span>
-                          <span className="text-blue-600 font-extrabold text-sm">${Number(formData.total).toFixed(2)}</span>
+                          <span className="text-primary font-extrabold text-sm">${Number(formData.total).toFixed(2)}</span>
                         </div>
                       </div>
                     </div>
@@ -1902,7 +1902,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
             <div className="lg:col-span-3 space-y-5">
               <div className={cardClass}>
                 <div className="flex items-center gap-2 mb-4">
-                  <div className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
+                  <div className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-primary/10 text-primary' : 'bg-primary-light text-primary'}`}>
                     <CreditCard size={14} />
                   </div>
                   <h3 className={sectionTitleClass}>Medios de Pago</h3>
@@ -1941,14 +1941,14 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         }}
                         className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all gap-1.5 ${
                           isSelected 
-                            ? 'bg-blue-600 border-blue-500 text-white shadow-md'
+                            ? 'bg-primary border-primary text-white shadow-md'
                             : isDarkMode 
                               ? 'border-white/10 bg-white/5 text-gray-400 hover:bg-white/10'
                               : 'border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100'
                         }`}
                       >
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
-                          isSelected ? 'bg-white text-blue-600' : isDarkMode ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-600 text-white'
+                          isSelected ? 'bg-white text-primary' : isDarkMode ? 'bg-primary/20 text-primary' : 'bg-primary text-white'
                         }`}>
                           <m.icon size={14} />
                         </div>
@@ -1964,7 +1964,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     <div className={`p-4 rounded-xl border ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
                       <div className="flex justify-between items-center mb-2">
                         <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center"><DollarSign size={12} /></div>
+                          <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center"><DollarSign size={12} /></div>
                           <span className={`text-[10px] font-bold uppercase ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Efectivo</span>
                         </div>
                         <span className={`text-[9px] font-bold uppercase ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>Monto Recibido</span>
@@ -1980,7 +1980,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     <div className={`p-4 rounded-xl border ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
                       <div className="flex justify-between items-center mb-2">
                         <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center"><RefreshCw size={12} /></div>
+                          <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center"><RefreshCw size={12} /></div>
                           <span className={`text-[10px] font-bold uppercase ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Transferencia Bancaria</span>
                         </div>
                         <span className={`text-[9px] font-bold uppercase ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>Monto Transferido</span>
@@ -1999,7 +1999,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     <div className={`p-4 rounded-xl border ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
                       <div className="flex justify-between items-center mb-2">
                         <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center"><CreditCard size={12} /></div>
+                          <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center"><CreditCard size={12} /></div>
                           <span className={`text-[10px] font-bold uppercase ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Tarjeta de Débito / Crédito</span>
                         </div>
                         <span className={`text-[9px] font-bold uppercase ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>Monto Tarjeta</span>
@@ -2018,7 +2018,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     <div className={`p-4 rounded-xl border ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
                       <div className="flex justify-between items-center mb-2">
                         <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center"><User size={12} /></div>
+                          <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center"><User size={12} /></div>
                           <span className={`text-[10px] font-bold uppercase ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Crédito / CxC</span>
                         </div>
                         <span className={`text-[9px] font-bold uppercase ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>Monto Crédito</span>
@@ -2091,7 +2091,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
             <div className="lg:col-span-2 space-y-5">
               <div className={cardClass}>
                 <div className="flex items-center gap-2 mb-4">
-                  <div className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
+                  <div className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-primary/10 text-primary' : 'bg-primary-light text-primary'}`}>
                     <Calculator size={14} />
                   </div>
                   <h3 className={sectionTitleClass}>Resumen e Impuestos</h3>
@@ -2116,7 +2116,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   </div>
                   <div className={`flex justify-between pt-2 border-t font-black text-sm ${isDarkMode ? 'border-white/10 text-white' : 'border-gray-300 text-gray-900'}`}>
                     <span>TOTAL A PAGAR:</span>
-                    <span className="text-blue-600 font-extrabold">${Number(formData.total).toFixed(2)}</span>
+                    <span className="text-primary font-extrabold">${Number(formData.total).toFixed(2)}</span>
                   </div>
                 </div>
 
@@ -2145,7 +2145,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                           type="button" 
                           onClick={handleEmitirSRI} 
                           disabled={isUploading || isEmitting} 
-                          className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-xs font-black bg-blue-600 text-white hover:bg-blue-500 shadow-md transition-all uppercase tracking-wide hover:-translate-y-0.5"
+                          className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-xs font-black bg-primary text-white hover:bg-primary shadow-md transition-all uppercase tracking-wide hover:-translate-y-0.5"
                         >
                           <Sparkles size={14} />
                           <span>Emitir Factura Electrónica al SRI</span>
@@ -2267,7 +2267,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       setPrintFormat('ticket');
                       setPrintTx(formData);
                     }}
-                    className="flex items-center justify-center gap-2.5 py-3.5 px-4 rounded-xl text-xs font-black bg-blue-600 text-white hover:bg-blue-500 transition-all shadow-md hover:-translate-y-0.5"
+                    className="flex items-center justify-center gap-2.5 py-3.5 px-4 rounded-xl text-xs font-black bg-primary text-white hover:bg-primary transition-all shadow-md hover:-translate-y-0.5"
                   >
                     <Calculator size={14} />
                     <span>Imprimir Ticket (80mm)</span>
@@ -2441,7 +2441,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
             className={`flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md ${
               currentStep === 2 && isEditable && !formData.documentNumber
                 ? 'opacity-50 cursor-not-allowed bg-gray-300 text-gray-500 border border-gray-300 dark:bg-white/5 dark:border-white/10 dark:text-gray-500'
-                : 'bg-blue-600 text-white hover:bg-blue-500 hover:-translate-y-0.5'
+                : 'bg-primary text-white hover:bg-primary hover:-translate-y-0.5'
             }`}
           >
             <span>Siguiente</span>
@@ -2451,7 +2451,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
           <button
             type="button"
             onClick={onClose}
-            className={`flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold bg-blue-600 text-white hover:bg-blue-500 transition-all shadow-md hover:-translate-y-0.5`}
+            className={`flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold bg-primary text-white hover:bg-primary transition-all shadow-md hover:-translate-y-0.5`}
           >
             <span>Terminar / Salir</span>
           </button>
@@ -2495,7 +2495,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   <span>Deuda Pendiente Actual:</span>
                   <span className="font-bold">${clientDebt.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-blue-400 border-t border-dashed dark:border-white/5 pt-2">
+                <div className="flex justify-between text-primary border-t border-dashed dark:border-white/5 pt-2">
                   <span>Monto Venta Actual:</span>
                   <span className="font-bold">${Number(formData.total).toFixed(2)}</span>
                 </div>
@@ -2724,7 +2724,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   ? 'bg-red-500/10 text-red-500'
                   : confirmDialog.type === 'warning'
                     ? 'bg-amber-500/10 text-amber-500'
-                    : 'bg-blue-500/10 text-blue-500'
+                    : 'bg-primary/10 text-primary'
               }`}>
                 {confirmDialog.type === 'danger' ? (
                   <ShieldAlert size={22} />
@@ -2770,7 +2770,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     ? 'bg-red-600 hover:bg-red-500'
                     : confirmDialog.type === 'warning'
                       ? 'bg-amber-600 hover:bg-amber-500'
-                      : 'bg-blue-600 hover:bg-blue-500'
+                      : 'bg-primary hover:bg-primary'
                 }`}
               >
                 Aceptar / Confirmar

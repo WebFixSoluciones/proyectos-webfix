@@ -89,8 +89,8 @@ export default function ProductCreationForm({ isDarkMode, onClose, onSuccess }: 
 
   const inputClass = `w-full px-4 py-2.5 rounded-xl outline-none transition-all border ${
     isDarkMode 
-      ? 'bg-black/30 border-white/10 text-white focus:border-blue-500 focus:bg-black/50 shadow-inner' 
-      : 'bg-white/50 border-gray-200 text-gray-800 focus:border-blue-500 focus:bg-white shadow-inner'
+      ? 'bg-black/30 border-white/10 text-white focus:border-primary focus:bg-black/50 shadow-inner' 
+      : 'bg-white/50 border-gray-200 text-gray-800 focus:border-primary focus:bg-white shadow-inner'
   }`;
 
   const labelClass = `block text-xs font-semibold mb-1.5 uppercase tracking-wider ${
@@ -115,7 +115,7 @@ export default function ProductCreationForm({ isDarkMode, onClose, onSuccess }: 
           isDarkMode ? 'border-white/10 bg-gray-900/80' : 'border-gray-100 bg-white/80'
         }`}>
           <div className="flex items-center gap-3">
-            <div className={`p-2.5 rounded-xl shadow-inner ${isDarkMode ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600'}`}>
+            <div className={`p-2.5 rounded-xl shadow-inner ${isDarkMode ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
               <Package size={24} />
             </div>
             <div>
@@ -151,7 +151,7 @@ export default function ProductCreationForm({ isDarkMode, onClose, onSuccess }: 
 
           {/* Sección Principal */}
           <div>
-            <h3 className={`text-sm font-bold flex items-center gap-2 mb-4 uppercase tracking-wider ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>
+            <h3 className={`text-sm font-bold flex items-center gap-2 mb-4 uppercase tracking-wider ${isDarkMode ? 'text-primary' : 'text-primary'}`}>
               <Box size={16} /> Información Básica
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -305,8 +305,8 @@ export default function ProductCreationForm({ isDarkMode, onClose, onSuccess }: 
             {/* Resumen de Pricing Card */}
             <div className={`mt-6 p-5 rounded-2xl border flex items-center justify-between shadow-lg ${
               isDarkMode 
-                ? 'bg-gradient-to-br from-emerald-900/30 to-blue-900/30 border-emerald-500/20' 
-                : 'bg-gradient-to-br from-emerald-50 to-blue-50 border-emerald-200'
+                ? 'bg-gradient-to-br from-emerald-900/30 to-primary/30 border-emerald-500/20' 
+                : 'bg-gradient-to-br from-emerald-50 to-primary/10 border-emerald-200'
             }`}>
               <div>
                 <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
@@ -348,7 +348,7 @@ export default function ProductCreationForm({ isDarkMode, onClose, onSuccess }: 
             <button
               type="submit"
               disabled={loading}
-              className="px-8 py-2.5 rounded-xl font-bold transition-all text-sm bg-blue-600 hover:bg-blue-500 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)] flex items-center gap-2 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+              className="px-8 py-2.5 rounded-xl font-bold transition-all text-sm bg-primary hover:bg-primary text-white shadow-[0_0_20px_rgba(37,99,235,0.4)] flex items-center gap-2 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
             >
               {loading ? (
                 <>

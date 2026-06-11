@@ -1105,8 +1105,8 @@ export default function GeneralSettings({
                       disabled={isExtractingSRI}
                       className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all border flex items-center gap-1.5 shrink-0 ${
                         isDarkMode 
-                          ? 'bg-blue-600/10 border-blue-500/30 text-blue-400 hover:bg-blue-600/20' 
-                          : 'bg-blue-600 hover:bg-blue-500 text-white shadow-sm'
+                          ? 'bg-primary/10 border-primary/30 text-primary hover:bg-primary/20' 
+                          : 'bg-primary hover:bg-primary text-white shadow-sm'
                       }`}
                     >
                       {isExtractingSRI && <RefreshCw size={12} className="animate-spin" />}
@@ -1223,7 +1223,7 @@ export default function GeneralSettings({
                         id="obligadoCont" 
                         checked={companyProfile.obligadoContabilidad} 
                         onChange={e => setCompanyProfile({...companyProfile, obligadoContabilidad: e.target.checked})} 
-                        className="rounded text-blue-605 focus:ring-blue-500 h-4 w-4 bg-transparent border-gray-300 cursor-pointer"
+                        className="rounded text-primary focus:ring-primary h-4 w-4 bg-transparent border-gray-300 cursor-pointer"
                       />
                       <label htmlFor="obligadoCont" className="text-xs font-semibold text-gray-400 cursor-pointer">Obligado a llevar contabilidad</label>
                     </div>
@@ -1249,7 +1249,7 @@ export default function GeneralSettings({
                           id="agenteRet" 
                           checked={companyProfile.agenteRetencion} 
                           onChange={e => setCompanyProfile({...companyProfile, agenteRetencion: e.target.checked})} 
-                          className="rounded text-blue-605 focus:ring-blue-500 h-4 w-4 bg-transparent border-gray-300 cursor-pointer"
+                          className="rounded text-primary focus:ring-primary h-4 w-4 bg-transparent border-gray-300 cursor-pointer"
                         />
                         <label htmlFor="agenteRet" className="text-xs font-semibold text-gray-400 cursor-pointer">Agente de Retención</label>
                       </div>
@@ -1271,7 +1271,7 @@ export default function GeneralSettings({
                           id="contEspecial" 
                           checked={companyProfile.contribuyenteEspecial} 
                           onChange={e => setCompanyProfile({...companyProfile, contribuyenteEspecial: e.target.checked})} 
-                          className="rounded text-blue-605 focus:ring-blue-500 h-4 w-4 bg-transparent border-gray-300 cursor-pointer"
+                          className="rounded text-primary focus:ring-primary h-4 w-4 bg-transparent border-gray-300 cursor-pointer"
                         />
                         <label htmlFor="contEspecial" className="text-xs font-semibold text-gray-400 cursor-pointer">Contribuyente Especial</label>
                       </div>
@@ -1317,11 +1317,11 @@ export default function GeneralSettings({
                     <div>
                       <label className={`w-full flex flex-col items-center justify-center gap-3 p-8 rounded-2xl border border-dashed cursor-pointer transition-all ${
                         isDarkMode 
-                          ? 'border-white/20 hover:border-blue-500/40 hover:bg-white/5 text-gray-400' 
-                          : 'border-gray-300 hover:border-blue-500/40 hover:bg-gray-100/50 text-gray-650'
+                          ? 'border-white/20 hover:border-primary/40 hover:bg-white/5 text-gray-400' 
+                          : 'border-gray-300 hover:border-primary/40 hover:bg-gray-100/50 text-gray-650'
                       }`}>
                         <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} disabled={isUploadingLogo} />
-                        <UploadCloud size={28} className={isUploadingLogo ? 'animate-bounce text-blue-500' : 'text-gray-450'} />
+                        <UploadCloud size={28} className={isUploadingLogo ? 'animate-bounce text-primary' : 'text-gray-450'} />
                         <span className="text-[10px] font-semibold text-center leading-normal">
                           {isUploadingLogo ? 'Subiendo imagen...' : 'Subir Logotipo\n(PNG, JPG, SVG)'}
                         </span>
@@ -1452,7 +1452,7 @@ export default function GeneralSettings({
                                     type="checkbox" 
                                     checked={isAssoc}
                                     onChange={() => handleToggleWarehouseForBranch(branch.codigo, whName)}
-                                    className="rounded text-blue-605 h-3.5 w-3.5 bg-transparent border-gray-300 cursor-pointer"
+                                    className="rounded text-primary h-3.5 w-3.5 bg-transparent border-gray-300 cursor-pointer"
                                   />
                                   {whName}
                                 </label>
@@ -1625,8 +1625,8 @@ export default function GeneralSettings({
               <div className={`p-4 rounded-3xl border flex flex-col justify-between ${isDarkMode ? 'bg-black/10 border-white/5' : 'bg-gray-50 border-gray-200'}`}>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="p-2 rounded-xl bg-blue-500/10 text-blue-500"><LayoutDashboard size={18} /></span>
-                    <span className="text-[9px] px-2 py-0.5 rounded bg-blue-500/15 text-blue-400 font-bold uppercase">Núcleo</span>
+                    <span className="p-2 rounded-xl bg-primary/10 text-primary"><LayoutDashboard size={18} /></span>
+                    <span className="text-[9px] px-2 py-0.5 rounded bg-primary/15 text-primary font-bold uppercase">Núcleo</span>
                   </div>
                   <h4 className="text-xs font-bold font-sans">Proyectos y Tableros</h4>
                   <p className="text-[10px] text-gray-500 leading-normal">Mi Espacio, control de tareas Kanban, priorización de sprints y bitácoras.</p>
@@ -2123,7 +2123,7 @@ export default function GeneralSettings({
                       <button 
                         type="button" 
                         onClick={() => verifySignatureDetails(tempFirma.certificadoBase64, tempFirma.certificadoClave, companyProfile.ruc || '')}
-                        className="px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all border bg-blue-500/10 hover:bg-blue-600/20 border-blue-500/30 text-blue-400 active:scale-95"
+                        className="px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all border bg-primary/10 hover:bg-primary/20 border-primary/30 text-primary active:scale-95"
                       >
                         Verificar
                       </button>

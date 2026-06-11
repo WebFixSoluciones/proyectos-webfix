@@ -80,8 +80,8 @@ export default function ServiceCreationForm({ isDarkMode, onClose, onSuccess }: 
 
   const inputClass = `w-full px-4 py-2.5 rounded-xl outline-none transition-all border ${
     isDarkMode 
-      ? 'bg-black/30 border-white/10 text-white focus:border-blue-500 focus:bg-black/50 shadow-inner' 
-      : 'bg-white/50 border-gray-200 text-gray-800 focus:border-blue-500 focus:bg-white shadow-inner'
+      ? 'bg-black/30 border-white/10 text-white focus:border-primary focus:bg-black/50 shadow-inner' 
+      : 'bg-white/50 border-gray-200 text-gray-800 focus:border-primary focus:bg-white shadow-inner'
   }`;
 
   const labelClass = `block text-xs font-semibold mb-1.5 uppercase tracking-wider ${
@@ -106,7 +106,7 @@ export default function ServiceCreationForm({ isDarkMode, onClose, onSuccess }: 
           isDarkMode ? 'border-white/10 bg-gray-900/80' : 'border-gray-100 bg-white/80'
         }`}>
           <div className="flex items-center gap-3">
-            <div className={`p-2.5 rounded-xl shadow-inner ${isDarkMode ? 'bg-indigo-500/20 text-indigo-400' : 'bg-indigo-100 text-indigo-600'}`}>
+            <div className={`p-2.5 rounded-xl shadow-inner ${isDarkMode ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
               <Briefcase size={24} />
             </div>
             <div>
@@ -142,7 +142,7 @@ export default function ServiceCreationForm({ isDarkMode, onClose, onSuccess }: 
 
           {/* Información Básica */}
           <div>
-            <h3 className={`text-sm font-bold flex items-center gap-2 mb-4 uppercase tracking-wider ${isDarkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>
+            <h3 className={`text-sm font-bold flex items-center gap-2 mb-4 uppercase tracking-wider ${isDarkMode ? 'text-primary' : 'text-primary'}`}>
               <Briefcase size={16} /> Información del Servicio
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -278,11 +278,11 @@ export default function ServiceCreationForm({ isDarkMode, onClose, onSuccess }: 
             {/* Resumen de Pricing Card */}
             <div className={`mt-6 p-5 rounded-2xl border flex items-center justify-between shadow-lg ${
               isDarkMode 
-                ? 'bg-gradient-to-br from-indigo-900/30 to-emerald-900/30 border-indigo-500/20' 
-                : 'bg-gradient-to-br from-indigo-50 to-emerald-50 border-indigo-200'
+                ? 'bg-gradient-to-br from-primary/30 to-emerald-900/30 border-primary/20' 
+                : 'bg-gradient-to-br from-primary/10 to-emerald-50 border-primary/25'
             }`}>
               <div>
-                <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${isDarkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>
+                <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${isDarkMode ? 'text-primary' : 'text-primary'}`}>
                   Precio Final del Servicio
                 </p>
                 <div className="flex items-baseline gap-2">
@@ -321,7 +321,7 @@ export default function ServiceCreationForm({ isDarkMode, onClose, onSuccess }: 
             <button
               type="submit"
               disabled={loading}
-              className="px-8 py-2.5 rounded-xl font-bold transition-all text-sm bg-indigo-600 hover:bg-indigo-500 text-white shadow-[0_0_20px_rgba(79,70,229,0.4)] flex items-center gap-2 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+              className="px-8 py-2.5 rounded-xl font-bold transition-all text-sm bg-primary hover:bg-primary text-white shadow-[0_0_20px_rgba(79,70,229,0.4)] flex items-center gap-2 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
             >
               {loading ? (
                 <>

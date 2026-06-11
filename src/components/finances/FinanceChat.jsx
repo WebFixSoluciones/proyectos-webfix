@@ -69,10 +69,10 @@ export default function FinanceChat({ transactions, thirdParties, isDarkMode, on
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 custom-scrollbar text-xs">
         {messages.map((msg, i) => (
           <div key={i} className={`flex gap-2 max-w-[85%] ${msg.role === 'user' ? 'ml-auto flex-row-reverse' : ''}`}>
-            <div className={`p-2 rounded-xl shrink-0 flex items-center justify-center h-7 w-7 ${msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-purple-600/20 text-purple-400'}`}>
+            <div className={`p-2 rounded-xl shrink-0 flex items-center justify-center h-7 w-7 ${msg.role === 'user' ? 'bg-primary text-white' : 'bg-purple-600/20 text-purple-400'}`}>
               {msg.role === 'user' ? <User size={12} /> : <Bot size={12} />}
             </div>
-            <div className={`p-3 rounded-2xl leading-relaxed whitespace-pre-line ${msg.role === 'user' ? 'bg-blue-600 text-white rounded-tr-none' : (isDarkMode ? 'bg-white/5 text-gray-200' : 'bg-gray-100 text-gray-800') + ' rounded-tl-none'}`}>
+            <div className={`p-3 rounded-2xl leading-relaxed whitespace-pre-line ${msg.role === 'user' ? 'bg-primary text-white rounded-tr-none' : (isDarkMode ? 'bg-white/5 text-gray-200' : 'bg-gray-100 text-gray-800') + ' rounded-tl-none'}`}>
               {msg.text}
             </div>
           </div>
@@ -110,7 +110,7 @@ export default function FinanceChat({ transactions, thirdParties, isDarkMode, on
           value={input} 
           onChange={e => setInput(e.target.value)} 
           placeholder="Pregúntame algo sobre tus finanzas..."
-          className={`flex-1 text-xs px-3 py-2 rounded-xl border outline-none transition-all ${isDarkMode ? 'bg-black/40 border-white/10 text-white focus:border-blue-500/50' : 'bg-gray-50 border-gray-200 text-gray-900 focus:border-blue-500/50'}`}
+          className={`flex-1 text-xs px-3 py-2 rounded-xl border outline-none transition-all ${isDarkMode ? 'bg-black/40 border-white/10 text-white focus:border-primary/50' : 'bg-gray-50 border-gray-200 text-gray-900 focus:border-primary/50'}`}
         />
         <button 
           type="submit" 

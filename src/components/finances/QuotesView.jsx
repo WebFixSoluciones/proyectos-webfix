@@ -211,7 +211,7 @@ export default function QuotesView({ products, thirdParties, isDarkMode, showToa
       case 'facturado': 
         return <span className="text-[9px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-500 font-bold uppercase">Facturado</span>;
       case 'enviado': 
-        return <span className="text-[9px] px-2 py-0.5 rounded bg-blue-500/20 text-blue-500 font-bold uppercase">Enviado</span>;
+        return <span className="text-[9px] px-2 py-0.5 rounded bg-primary/20 text-primary font-bold uppercase">Enviado</span>;
       case 'vencido': 
         return <span className="text-[9px] px-2 py-0.5 rounded bg-red-500/20 text-red-500 font-bold uppercase">Vencido</span>;
       default: 
@@ -227,8 +227,8 @@ export default function QuotesView({ products, thirdParties, isDarkMode, showToa
 
   const inputClass = `w-full text-xs px-3 py-2.5 rounded-xl outline-none transition-all border ${
     isDarkMode 
-      ? 'bg-black/25 border-white/10 text-white focus:border-blue-500/50' 
-      : 'bg-white border-gray-300 text-gray-900 focus:border-blue-600 focus:ring-1 focus:ring-blue-600/35'
+      ? 'bg-black/25 border-white/10 text-white focus:border-primary/50' 
+      : 'bg-white border-gray-300 text-gray-900 focus:border-primary focus:ring-1 focus:ring-primary/35'
   }`;
 
   return (
@@ -275,7 +275,7 @@ export default function QuotesView({ products, thirdParties, isDarkMode, showToa
           className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold transition-all shadow-sm ${
             isBlocked 
               ? 'bg-gray-450/20 text-gray-500 border border-white/5 cursor-not-allowed opacity-50' 
-              : (isDarkMode ? 'bg-blue-600 text-white hover:bg-blue-500 hover:-translate-y-0.5' : 'bg-blue-600 text-white hover:bg-blue-700 hover:-translate-y-0.5')
+              : (isDarkMode ? 'bg-primary text-white hover:bg-primary hover:-translate-y-0.5' : 'bg-primary text-white hover:bg-primary-hover hover:-translate-y-0.5')
           }`}
         >
           <Plus size={14} /> Nueva Cotización
@@ -286,12 +286,12 @@ export default function QuotesView({ products, thirdParties, isDarkMode, showToa
       <div className={`rounded-2xl border overflow-hidden backdrop-blur-xl ${isDarkMode ? 'border-white/10 bg-white/[0.02]' : 'border-gray-355 bg-white shadow-sm'}`}>
         {loading ? (
           <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
           </div>
         ) : (
           <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-left text-xs whitespace-nowrap">
-              <thead className={`text-[10px] uppercase font-bold tracking-wider ${isDarkMode ? 'bg-black/40 text-gray-400' : 'bg-blue-50/50 text-[#000000] border-b border-blue-100'}`}>
+              <thead className={`text-[10px] uppercase font-bold tracking-wider ${isDarkMode ? 'bg-black/40 text-gray-400' : 'bg-primary-light text-[#000000] border-b border-primary/15'}`}>
                 <tr>
                   <th className="px-6 py-4">Cotización</th>
                   <th className="px-6 py-4">Fecha</th>
@@ -335,7 +335,7 @@ export default function QuotesView({ products, thirdParties, isDarkMode, showToa
                           >
                             <Eye size={13}/>
                           </button>
-                          <button onClick={() => { setFormData(q); setIsModalOpen(true); }} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-blue-500/20 text-blue-500' : 'hover:bg-blue-100 text-blue-700 border border-blue-200'}`}><Edit2 size={13}/></button>
+                          <button onClick={() => { setFormData(q); setIsModalOpen(true); }} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-primary/20 text-primary' : 'hover:bg-primary/10 text-primary border border-primary/25'}`}><Edit2 size={13}/></button>
                           <button onClick={() => handleDelete(q.id)} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-red-500/20 text-red-500' : 'hover:bg-red-100 text-red-600 border border-red-200'}`}><Trash2 size={13}/></button>
                         </div>
                       </td>
@@ -389,7 +389,7 @@ export default function QuotesView({ products, thirdParties, isDarkMode, showToa
               <div className="space-y-3">
                 <div className="flex justify-between items-center border-b border-white/5 pb-2">
                   <h4 className="text-xs font-bold text-gray-400 uppercase">Detalle de Productos / Servicios</h4>
-                  <button type="button" onClick={handleAddItem} className="px-2.5 py-1 rounded bg-blue-600 hover:bg-blue-500 text-white font-bold text-[10px] uppercase flex items-center gap-1">
+                  <button type="button" onClick={handleAddItem} className="px-2.5 py-1 rounded bg-primary hover:bg-primary text-white font-bold text-[10px] uppercase flex items-center gap-1">
                     <Plus size={10} /> Agregar Ítem
                   </button>
                 </div>
@@ -451,7 +451,7 @@ export default function QuotesView({ products, thirdParties, isDarkMode, showToa
               </div>
 
               {/* TOTALES */}
-              <div className={`p-4 rounded-xl flex justify-between items-center ${isDarkMode ? 'bg-blue-500/10 text-blue-400 border border-blue-500/10' : 'bg-blue-50 text-blue-950 border border-blue-300'}`}>
+              <div className={`p-4 rounded-xl flex justify-between items-center ${isDarkMode ? 'bg-primary/10 text-primary border border-primary/10' : 'bg-primary-light text-primary border border-primary/40'}`}>
                 <div className="text-[10px] leading-relaxed">
                   <p>Subtotal Neto: ${formData.subtotal}</p>
                   <p>IVA Estimado: ${formData.ivaValor}</p>
@@ -461,7 +461,7 @@ export default function QuotesView({ products, thirdParties, isDarkMode, showToa
 
               <div className="flex justify-end gap-3 pt-4 border-t border-white/5">
                 <button type="button" onClick={() => setIsModalOpen(false)} className={`px-4 py-2.5 rounded-xl text-xs font-semibold ${isDarkMode ? 'hover:bg-white/10 text-gray-300' : 'hover:bg-gray-200 text-gray-700'}`}>Cancelar</button>
-                <button type="submit" className="px-5 py-2.5 rounded-xl text-xs font-semibold bg-blue-600 text-white hover:bg-blue-500 shadow-md">Guardar Cotización</button>
+                <button type="submit" className="px-5 py-2.5 rounded-xl text-xs font-semibold bg-primary text-white hover:bg-primary shadow-md">Guardar Cotización</button>
               </div>
 
             </form>

@@ -165,7 +165,7 @@ export default function SalesDashboard({ transactions, thirdParties, products, i
         <div className={cardClass}>
           <div className="flex items-center justify-between mb-3">
             <span className={`text-[10px] font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-500' : 'text-gray-705'}`}>Ventas de Hoy</span>
-            <div className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-100 text-blue-800'}`}>
+            <div className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-primary/10 text-primary' : 'bg-primary/10 text-primary'}`}>
               <ShoppingCart size={14} />
             </div>
           </div>
@@ -227,7 +227,7 @@ export default function SalesDashboard({ transactions, thirdParties, products, i
         {/* MÉTODOS DE PAGO */}
         <div className={`${cardClass} lg:col-span-2 space-y-4`}>
           <div className="flex items-center gap-2 pb-2 border-b border-white/5">
-            <Activity size={15} className="text-blue-500" />
+            <Activity size={15} className="text-primary" />
             <h3 className="text-xs font-black uppercase tracking-wider">Desglose de Métodos de Pago</h3>
           </div>
 

@@ -188,11 +188,11 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
           <div
-            className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl border w-full sm:w-80 transition-all ${isDarkMode ? "bg-black/20 border-white/10 focus-within:border-violet-500/50 focus-within:ring-1 focus-within:ring-violet-500/30" : "bg-[#f3f8ff] border-blue-100 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500/30"}`}
+            className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl border w-full sm:w-80 transition-all ${isDarkMode ? "bg-black/20 border-white/10 focus-within:border-violet-500/50 focus-within:ring-1 focus-within:ring-violet-500/30" : "bg-[#f3f8ff] border-primary/15 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/30"}`}
           >
             <Search
               size={14}
-              className={isDarkMode ? "text-gray-500" : "text-blue-500"}
+              className={isDarkMode ? "text-gray-500" : "text-primary"}
             />
             <input
               type="text"
@@ -205,7 +205,7 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className={`px-3 py-2.5 rounded-xl border text-xs outline-none cursor-pointer transition-all ${isDarkMode ? "bg-black/20 border-white/10 text-gray-300 hover:bg-black/35" : "bg-[#f3f8ff] border-blue-100 text-[#000000] font-bold hover:bg-blue-50"}`}
+            className={`px-3 py-2.5 rounded-xl border text-xs outline-none cursor-pointer transition-all ${isDarkMode ? "bg-black/20 border-white/10 text-gray-300 hover:bg-black/35" : "bg-[#f3f8ff] border-primary/15 text-[#000000] font-bold hover:bg-primary-light"}`}
           >
             <option value="all">Todos los tipos</option>
             <option value="producto">Productos físicos</option>
@@ -220,8 +220,8 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
           }}
           className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all hover-lift shadow-md ${
             isDarkMode
-              ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-blue-950/20 hover:from-blue-500 hover:to-indigo-500 border border-blue-500/30"
-              : "bg-blue-600 text-white hover:bg-blue-700"
+              ? "bg-gradient-to-r from-primary to-primary-hover text-white shadow-primary/20 hover:from-primary hover:to-primary-hover border border-primary/30"
+              : "bg-primary text-white hover:bg-primary-hover"
           }`}
         >
           <Plus size={14} /> Registrar Producto
@@ -230,7 +230,7 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
 
       {/* TABLA CATÁLOGO */}
       <div
-        className={`rounded-2xl border overflow-hidden backdrop-blur-xl ${isDarkMode ? "border-white/5 bg-white/[0.01] shadow-lg" : "border-blue-100 bg-[#f3f8ff] shadow-sm"}`}
+        className={`rounded-2xl border overflow-hidden backdrop-blur-xl ${isDarkMode ? "border-white/5 bg-white/[0.01] shadow-lg" : "border-primary/15 bg-[#f3f8ff] shadow-sm"}`}
       >
         {loading ? (
           <div className="flex justify-center items-center py-16">
@@ -240,7 +240,7 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
           <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-left text-xs whitespace-nowrap">
               <thead
-                className={`text-[10px] uppercase font-bold tracking-wider ${isDarkMode ? "bg-black/30 text-gray-400 border-b border-white/5" : "bg-blue-50/50 text-[#000000] border-b border-blue-100"}`}
+                className={`text-[10px] uppercase font-bold tracking-wider ${isDarkMode ? "bg-black/30 text-gray-400 border-b border-white/5" : "bg-primary-light text-[#000000] border-b border-primary/15"}`}
               >
                 <tr>
                   <th className="px-6 py-4">SKU / Código</th>
@@ -254,7 +254,7 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
                 </tr>
               </thead>
               <tbody
-                className={`divide-y ${isDarkMode ? "divide-white/5" : "divide-blue-100/50"}`}
+                className={`divide-y ${isDarkMode ? "divide-white/5" : "divide-primary/10"}`}
               >
                 {filtered.map((p) => {
                   const isLow = p.type === "producto" && p.stock <= p.minStock;
@@ -263,7 +263,7 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
                   return (
                     <tr
                       key={p.id}
-                      className={`transition-colors ${isDarkMode ? "hover:bg-white/[0.02]" : "hover:bg-blue-50/50"}`}
+                      className={`transition-colors ${isDarkMode ? "hover:bg-white/[0.02]" : "hover:bg-primary-light"}`}
                     >
                       <td
                         className={`px-6 py-4 font-mono text-[10px] font-bold ${isDarkMode ? "text-gray-300" : "text-[#000000]"}`}
@@ -279,21 +279,21 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
                         <div className="flex flex-wrap gap-1 mt-1 text-[8px] font-bold uppercase tracking-wider">
                           {p.marca && (
                             <span
-                              className={`px-1.5 py-0.5 rounded ${isDarkMode ? "bg-white/5 text-gray-400" : "bg-blue-50/40 text-black border border-blue-100/50"}`}
+                              className={`px-1.5 py-0.5 rounded ${isDarkMode ? "bg-white/5 text-gray-400" : "bg-primary-light text-black border border-primary/10"}`}
                             >
                               Marca: {p.marca}
                             </span>
                           )}
                           {p.categoria && (
                             <span
-                              className={`px-1.5 py-0.5 rounded ${isDarkMode ? "bg-white/5 text-gray-400" : "bg-blue-50/40 text-black border border-blue-100/50"}`}
+                              className={`px-1.5 py-0.5 rounded ${isDarkMode ? "bg-white/5 text-gray-400" : "bg-primary-light text-black border border-primary/10"}`}
                             >
                               Cat: {p.categoria}
                             </span>
                           )}
                           {p.bodega && (
                             <span
-                              className={`px-1.5 py-0.5 rounded ${isDarkMode ? "bg-blue-500/10 text-blue-400 border border-blue-500/10" : "bg-blue-100 text-blue-750 border border-blue-200"}`}
+                              className={`px-1.5 py-0.5 rounded ${isDarkMode ? "bg-primary/10 text-primary border border-primary/10" : "bg-primary/10 text-primary border border-primary/25"}`}
                             >
                               Bodega: {p.bodega}
                             </span>
@@ -313,8 +313,8 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
                           className={`px-2 py-0.5 rounded-lg text-[9px] font-bold uppercase border ${
                             p.type === "producto"
                               ? isDarkMode
-                                ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
-                                : "bg-blue-50 text-blue-700 border-blue-200"
+                                ? "bg-primary/10 text-primary border-primary/20"
+                                : "bg-primary-light text-primary border-primary/25"
                               : isDarkMode
                                 ? "bg-purple-500/10 text-purple-400 border-purple-500/20"
                                 : "bg-purple-50 text-purple-700 border-purple-200"
@@ -329,7 +329,7 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
                         ${Number(p.cost || 0).toFixed(2)}
                       </td>
                       <td
-                        className={`px-6 py-4 text-right font-black ${isDarkMode ? "text-white" : "text-blue-700"}`}
+                        className={`px-6 py-4 text-right font-black ${isDarkMode ? "text-white" : "text-primary"}`}
                       >
                         ${Number(p.price || 0).toFixed(2)}
                       </td>
@@ -370,7 +370,7 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
                               setFormData(p);
                               setIsModalOpen(true);
                             }}
-                            className={`p-2 rounded-xl transition-colors ${isDarkMode ? "hover:bg-blue-500/15 text-blue-400 border border-transparent" : "hover:bg-blue-100 text-blue-700 border border-blue-200 bg-white"}`}
+                            className={`p-2 rounded-xl transition-colors ${isDarkMode ? "hover:bg-primary/15 text-primary border border-transparent" : "hover:bg-primary/10 text-primary border border-primary/25 bg-white"}`}
                             title="Editar"
                           >
                             <Edit2 size={13} />
@@ -407,7 +407,7 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-md animate-in fade-in duration-200">
           <div
-            className={`w-full max-w-lg p-6 sm:p-8 rounded-[2rem] shadow-2xl transition-all duration-300 border ${isDarkMode ? "glass-panel-dark text-white" : "bg-[#f3f8ff] border-blue-100 text-[#000000]"}`}
+            className={`w-full max-w-lg p-6 sm:p-8 rounded-[2rem] shadow-2xl transition-all duration-300 border ${isDarkMode ? "glass-panel-dark text-white" : "bg-[#f3f8ff] border-primary/15 text-[#000000]"}`}
           >
             <div className="flex justify-between items-center mb-6 pb-2 border-b border-white/5">
               <h2 className="text-base font-bold font-display uppercase tracking-wider">
@@ -687,8 +687,8 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
                   type="submit"
                   className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all hover-lift shadow-md ${
                     isDarkMode
-                      ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-500 hover:to-indigo-500"
-                      : "bg-blue-600 text-white hover:bg-blue-700"
+                      ? "bg-gradient-to-r from-primary to-primary-hover text-white hover:from-primary hover:to-primary-hover"
+                      : "bg-primary text-white hover:bg-primary-hover"
                   }`}
                 >
                   Guardar Producto

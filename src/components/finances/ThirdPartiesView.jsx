@@ -132,7 +132,7 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
           onClick={() => { resetForm(); setIsModalOpen(true); }}
           className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all hover-lift shadow-md ${
             isDarkMode 
-              ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-blue-950/20 hover:from-blue-500 hover:to-indigo-500 border border-blue-500/30' 
+              ? 'bg-gradient-to-r from-primary to-primary-hover text-white shadow-primary/20 hover:from-primary hover:to-primary-hover border border-primary/30' 
               : 'bg-primary text-white hover:bg-primary-hover'
           }`}
         >
@@ -178,7 +178,7 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
                           <p className={`font-bold text-xs ${isDarkMode ? 'text-white' : 'text-black'}`}>{tp.name}</p>
                           {tp.tipoContribuyente && (
                             <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase inline-flex items-center gap-1 mt-1 border ${
-                              tp.tipoContribuyente === 'general' ? (isDarkMode ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-primary-light text-primary border-primary/20') :
+                              tp.tipoContribuyente === 'general' ? (isDarkMode ? 'bg-primary/10 text-primary border-primary/20' : 'bg-primary-light text-primary border-primary/20') :
                               tp.tipoContribuyente === 'rimpe_emprendedor' ? (isDarkMode ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-emerald-50 text-emerald-700 border-emerald-200') :
                               (isDarkMode ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-amber-50 text-amber-800 border-amber-250')
                             }`}>
@@ -201,7 +201,7 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
                     <td className="px-6 py-4 text-xs font-bold text-primary hover:underline"><a href={`mailto:${tp.email}`}>{tp.email || '-'}</a></td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
-                        <button onClick={() => { setFormData(tp); setIsModalOpen(true); }} className={`p-2 rounded-xl transition-colors ${isDarkMode ? 'hover:bg-blue-500/15 text-blue-400 border border-transparent' : 'hover:bg-primary-light text-primary border border-gray-100'}`} title="Editar"><Edit2 size={13}/></button>
+                        <button onClick={() => { setFormData(tp); setIsModalOpen(true); }} className={`p-2 rounded-xl transition-colors ${isDarkMode ? 'hover:bg-primary/15 text-primary border border-transparent' : 'hover:bg-primary-light text-primary border border-gray-100'}`} title="Editar"><Edit2 size={13}/></button>
                         <button onClick={() => handleDelete(tp.id)} className={`p-2 rounded-xl transition-colors ${isDarkMode ? 'hover:bg-red-500/15 text-red-400 border border-transparent' : 'hover:bg-red-50 text-red-650 border border-gray-200'}`} title="Eliminar"><Trash2 size={13}/></button>
                       </div>
                     </td>
@@ -315,7 +315,7 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
                 <button type="button" onClick={() => setIsModalOpen(false)} className={`px-5 py-2.5 rounded-xl text-xs font-semibold transition-all ${isDarkMode ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-gray-100 text-gray-700'}`}>Cancelar</button>
                 <button type="submit" className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all hover-lift shadow-md ${
                   isDarkMode 
-                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-500 hover:to-indigo-500' 
+                    ? 'bg-gradient-to-r from-primary to-primary-hover text-white hover:from-primary hover:to-primary-hover' 
                     : 'bg-primary text-white hover:bg-primary-hover'
                 }`}>Guardar Persona</button>
               </div>

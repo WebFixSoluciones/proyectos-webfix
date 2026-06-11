@@ -321,7 +321,7 @@ export default function ReportsView({ transactions, isDarkMode, showToast }) {
                   <span className="text-gray-400">Base Imponible Gravable:</span>
                   <span className="font-semibold">${baseVentas.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-blue-500">
+                <div className="flex justify-between text-primary">
                   <span>IVA Cobrado:</span>
                   <span className="font-bold">${ivaVentas.toFixed(2)}</span>
                 </div>
@@ -351,7 +351,7 @@ export default function ReportsView({ transactions, isDarkMode, showToast }) {
                   <span className="text-gray-400">Base Imponible Operativa:</span>
                   <span className="font-semibold">${baseCompras.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-blue-500">
+                <div className="flex justify-between text-primary">
                   <span>IVA Pagado (Crédito):</span>
                   <span className="font-bold">${ivaCompras.toFixed(2)}</span>
                 </div>
@@ -373,7 +373,7 @@ export default function ReportsView({ transactions, isDarkMode, showToast }) {
           </div>
 
           <div className={`p-5 rounded-2xl border flex items-center gap-3.5 ${
-            isDarkMode ? 'bg-blue-600/10 border-blue-500/20 text-blue-400' : 'bg-blue-50 border-blue-200 text-blue-900 font-semibold'
+            isDarkMode ? 'bg-primary/10 border-primary/20 text-primary' : 'bg-primary-light border-primary/25 text-primary font-semibold'
           }`}>
             <AlertCircle size={20} className="shrink-0" />
             <div className="text-xs leading-normal">
@@ -387,7 +387,7 @@ export default function ReportsView({ transactions, isDarkMode, showToast }) {
       {activeTab === 'iva' && (
         <div className={cardClass}>
           <div className="flex items-center gap-2 mb-6 pb-4 border-b border-gray-200 dark:border-white/5">
-            <Percent size={18} className="text-blue-500" />
+            <Percent size={18} className="text-primary" />
             <h3 className="text-sm font-bold uppercase tracking-wider">Conciliación Mensual de IVA (SRI)</h3>
           </div>
 
@@ -425,16 +425,16 @@ export default function ReportsView({ transactions, isDarkMode, showToast }) {
                 <tr className="hover:bg-black/5 dark:hover:bg-white/5">
                   <td className="py-3 px-3 font-semibold">Tarifa 15% (General)</td>
                   <td className="py-3 px-3 text-right font-mono">${ivaVentasBreakdown.iva15Base.toFixed(2)}</td>
-                  <td className="py-3 px-3 text-right font-mono text-blue-500">${ivaVentasBreakdown.iva15Val.toFixed(2)}</td>
+                  <td className="py-3 px-3 text-right font-mono text-primary">${ivaVentasBreakdown.iva15Val.toFixed(2)}</td>
                   <td className="py-3 px-3 text-right font-mono">${ivaComprasBreakdown.iva15Base.toFixed(2)}</td>
-                  <td className="py-3 px-3 text-right font-mono text-blue-500">${ivaComprasBreakdown.iva15Val.toFixed(2)}</td>
+                  <td className="py-3 px-3 text-right font-mono text-primary">${ivaComprasBreakdown.iva15Val.toFixed(2)}</td>
                 </tr>
                 <tr className="hover:bg-black/5 dark:hover:bg-white/5">
                   <td className="py-3 px-3 font-semibold">Tarifa 12% (Otros/Anterior)</td>
                   <td className="py-3 px-3 text-right font-mono">${ivaVentasBreakdown.iva12Base.toFixed(2)}</td>
-                  <td className="py-3 px-3 text-right font-mono text-blue-500">${ivaVentasBreakdown.iva12Val.toFixed(2)}</td>
+                  <td className="py-3 px-3 text-right font-mono text-primary">${ivaVentasBreakdown.iva12Val.toFixed(2)}</td>
                   <td className="py-3 px-3 text-right font-mono">${ivaComprasBreakdown.iva12Base.toFixed(2)}</td>
-                  <td className="py-3 px-3 text-right font-mono text-blue-500">${ivaComprasBreakdown.iva12Val.toFixed(2)}</td>
+                  <td className="py-3 px-3 text-right font-mono text-primary">${ivaComprasBreakdown.iva12Val.toFixed(2)}</td>
                 </tr>
                 <tr className="hover:bg-black/5 dark:hover:bg-white/5">
                   <td className="py-3 px-3 font-semibold">Tarifa 0% (Exentos)</td>

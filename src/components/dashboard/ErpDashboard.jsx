@@ -293,9 +293,9 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
           {/* Item 4: Personas */}
           <button 
             onClick={() => setActivePageId('personas')}
-            className={`flex flex-col items-center justify-center p-4 rounded-2xl border text-center transition-all duration-300 hover-lift ${isDarkMode ? 'bg-[#151517] border-white/5 hover:border-indigo-500/30' : 'bg-white border-gray-300/80 hover:border-indigo-500/50 shadow-sm'}`}
+            className={`flex flex-col items-center justify-center p-4 rounded-2xl border text-center transition-all duration-300 hover-lift ${isDarkMode ? 'bg-[#151517] border-white/5 hover:border-primary/30' : 'bg-white border-gray-300/80 hover:border-primary/50 shadow-sm'}`}
           >
-            <div className={`p-3 rounded-xl mb-2.5 ${isDarkMode ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/15' : 'bg-indigo-100 text-indigo-700'}`}>
+            <div className={`p-3 rounded-xl mb-2.5 ${isDarkMode ? 'bg-primary/10 text-primary border border-primary/15' : 'bg-primary/10 text-primary'}`}>
               <Users size={20} />
             </div>
             <span className="text-[11px] font-black">Clientes / Prov</span>
@@ -373,7 +373,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
 
           {/* INVENTARIO / STOCKS */}
           <div className="flex items-center gap-4 pt-4 sm:pt-0 lg:pl-6 sm:px-2">
-            <div className={`p-3 rounded-2xl shrink-0 ${isDarkMode ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-700'}`}>
+            <div className={`p-3 rounded-2xl shrink-0 ${isDarkMode ? 'bg-primary/10 text-primary' : 'bg-primary-light text-primary'}`}>
               <Package size={22} />
             </div>
             <div className="min-w-0 flex-1">
@@ -416,7 +416,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
         <div className={`${currentGlassPanel} xl:col-span-7 p-6 rounded-2xl`}>
           <div className="flex items-center justify-between mb-5">
             <h3 className={`text-base font-bold flex items-center gap-2 ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-              <Briefcase size={18} className={isDarkMode ? 'text-blue-400' : 'text-blue-600'} />
+              <Briefcase size={18} className={isDarkMode ? 'text-primary' : 'text-primary'} />
               Progreso de Proyectos Activos
             </h3>
             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isDarkMode ? 'bg-white/10 text-gray-300' : 'bg-gray-200 text-gray-850'}`}>
@@ -463,7 +463,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
                         className={`h-full rounded-full transition-all duration-1000 ${
                           progressPercent === 100 
                             ? 'bg-gradient-to-r from-emerald-400 to-green-500' 
-                            : 'bg-gradient-to-r from-blue-400 to-indigo-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]'
+                            : 'bg-gradient-to-r from-primary to-primary-hover shadow-[0_0_8px_rgba(59,130,246,0.5)]'
                         }`} 
                         style={{ width: `${progressPercent}%` }}
                       />
@@ -475,7 +475,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
                         {doneTasksCount} hechas
                       </span>
                       <span className="flex items-center gap-1">
-                        <ListTodo size={11} className="text-blue-500" />
+                        <ListTodo size={11} className="text-primary" />
                         {totalTasksCount} tareas en total
                       </span>
                     </div>
@@ -573,7 +573,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
             {/* DETALLE CERTIFICADO FIRMA */}
             <div className={`mt-6 p-4 rounded-xl border ${
               certStatus === 'none' 
-                ? 'bg-blue-500/5 border-blue-500/10 text-gray-500'
+                ? 'bg-primary/5 border-primary/10 text-gray-500'
                 : certStatus === 'expired' 
                 ? 'bg-red-500/5 border-red-500/10 text-red-400' 
                 : certStatus === 'warning' 
@@ -613,7 +613,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
           : 'bg-gradient-to-br from-[#f6f2fc] via-white to-white border-purple-200 shadow-md'
       }`}>
         <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/10 rounded-full blur-[60px] pointer-events-none -z-10"></div>
-        <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-blue-500/5 rounded-full blur-[40px] pointer-events-none -z-10"></div>
+        <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-primary/5 rounded-full blur-[40px] pointer-events-none -z-10"></div>
 
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-5">
           <div className="flex items-center gap-3">
@@ -635,7 +635,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
             disabled={isGeneratingReport}
             className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md active:scale-95 disabled:opacity-50 ${
               isDarkMode 
-                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-500 hover:to-indigo-500 shadow-purple-900/30 border border-purple-500/40' 
+                ? 'bg-gradient-to-r from-purple-600 to-primary-hover text-white hover:from-purple-500 hover:to-primary-hover shadow-purple-900/30 border border-purple-500/40' 
                 : 'bg-purple-600 text-white hover:bg-purple-700 shadow-purple-200/50'
             }`}
           >

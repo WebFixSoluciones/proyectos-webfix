@@ -150,7 +150,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
           isDarkMode ? 'bg-[#18181b] border-white/5' : 'bg-gray-100 border-gray-250'
         }`}>
           <div className="flex items-center gap-2">
-            <FileText size={16} className="text-blue-550" />
+            <FileText size={16} className="text-primary" />
             <h3 className={`text-xs font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
               Vista Previa: {getDocTypeLabel()}
             </h3>
@@ -163,7 +163,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
                 onClick={() => setViewFormat('ride')}
                 className={`px-3 py-1 rounded text-[10px] font-bold transition-all ${
                   viewFormat === 'ride' 
-                    ? 'bg-blue-605 text-white shadow-sm' 
+                    ? 'bg-primary text-white shadow-sm' 
                     : (isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900')
                 }`}
               >
@@ -173,7 +173,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
                 onClick={() => setViewFormat('ticket')}
                 className={`px-3 py-1 rounded text-[10px] font-bold transition-all ${
                   viewFormat === 'ticket' 
-                    ? 'bg-blue-605 text-white shadow-sm' 
+                    ? 'bg-primary text-white shadow-sm' 
                     : (isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900')
                 }`}
               >
@@ -229,7 +229,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
                   {/* Columna Derecha: Autorización y Factura */}
                   <div className="p-4 rounded-xl border border-gray-300 space-y-1.5">
                     <h2 className="font-black text-[13px] tracking-wide text-gray-800">R.U.C.: {emisor.ruc}</h2>
-                    <p className="text-[12px] font-black tracking-wider uppercase text-blue-800">{getDocTypeLabel()}</p>
+                    <p className="text-[12px] font-black tracking-wider uppercase text-primary">{getDocTypeLabel()}</p>
                     <p><span className="font-bold">No.</span> {docNumFormatted}</p>
                     {tx.documentType === 'nota_venta' ? (
                       <>
@@ -369,12 +369,12 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
                           <td className="px-3 py-2">$0.00</td>
                         </tr>
                         <tr>
-                          <td className="px-3 py-2 bg-gray-50 border-r border-gray-250 text-blue-800">IVA 15%</td>
-                          <td className="px-3 py-2 font-bold text-blue-800">${Number(tx.ivaValor).toFixed(2)}</td>
+                          <td className="px-3 py-2 bg-gray-50 border-r border-gray-250 text-primary">IVA 15%</td>
+                          <td className="px-3 py-2 font-bold text-primary">${Number(tx.ivaValor).toFixed(2)}</td>
                         </tr>
                         <tr className="bg-gray-100 font-extrabold text-[11px]">
                           <td className="px-3 py-2.5 border-r border-gray-300">VALOR TOTAL</td>
-                          <td className="px-3 py-2.5 text-blue-800">${Number(tx.total).toFixed(2)}</td>
+                          <td className="px-3 py-2.5 text-primary">${Number(tx.total).toFixed(2)}</td>
                         </tr>
                       </tbody>
                     </table>

@@ -898,7 +898,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
   });
 
   const inputClass = `w-full text-xs px-3 py-2 rounded-xl outline-none border ${
-    isDarkMode ? 'bg-black/40 border-white/10 text-white focus:border-blue-500/50' : 'bg-white border-gray-300 text-gray-900 focus:border-blue-600 focus:ring-1 focus:ring-blue-650/40'
+    isDarkMode ? 'bg-black/40 border-white/10 text-white focus:border-primary/50' : 'bg-white border-gray-300 text-gray-900 focus:border-primary focus:ring-1 focus:ring-primary/40'
   }`;
 
   if (!isPreventaOnly) {
@@ -918,7 +918,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
           <div className={`absolute top-[-10%] left-[-5%] w-[30rem] h-[30rem] rounded-full mix-blend-screen filter blur-[100px] opacity-20 pointer-events-none ${isDarkMode ? 'bg-emerald-900' : 'bg-emerald-300'}`}></div>
           <div className={`absolute bottom-[-10%] right-[-5%] w-[30rem] h-[30rem] rounded-full mix-blend-screen filter blur-[100px] opacity-20 pointer-events-none ${isDarkMode ? 'bg-orange-900' : 'bg-orange-300'}`}></div>
 
-          <div className={`w-full max-w-md p-8 rounded-[2.5rem] border shadow-[0_20px_50px_rgba(0,0,0,0.3)] space-y-6 transition-all duration-300 ${isDarkMode ? 'glass-panel-dark text-white' : 'bg-white text-[#000000] border-blue-100'}`}>
+          <div className={`w-full max-w-md p-8 rounded-[2.5rem] border shadow-[0_20px_50px_rgba(0,0,0,0.3)] space-y-6 transition-all duration-300 ${isDarkMode ? 'glass-panel-dark text-white' : 'bg-white text-[#000000] border-primary/15'}`}>
             <div className="text-center space-y-2">
               <div className={`mx-auto w-14 h-14 rounded-2xl flex items-center justify-center border animate-pulse-glow ${isDarkMode ? 'bg-gradient-to-br from-emerald-500/20 to-teal-500/20 text-emerald-400 border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.2)]' : 'bg-emerald-50 text-emerald-600 border-emerald-250 shadow-sm'}`}>
                 <DollarSign size={26} />
@@ -974,7 +974,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
     <div className={`fixed inset-0 z-[100] ${isDarkMode ? 'bg-[#0c0c0e] text-white' : 'bg-[#f3f8ff] text-[#000000]'} flex flex-col overflow-hidden animate-in fade-in duration-300`}>
       
       {/* TOP HEADER POS */}
-      <div className={`h-16 px-6 border-b flex items-center justify-between shrink-0 ${isDarkMode ? 'bg-[#121214]/80 border-white/5 text-white' : 'bg-white border-blue-100 text-[#000000] shadow-sm'} backdrop-blur-md`}>
+      <div className={`h-16 px-6 border-b flex items-center justify-between shrink-0 ${isDarkMode ? 'bg-[#121214]/80 border-white/5 text-white' : 'bg-white border-primary/15 text-[#000000] shadow-sm'} backdrop-blur-md`}>
         <div className="flex items-center gap-3">
           <div className="relative p-2 rounded-xl bg-orange-500/10 text-orange-500 border border-orange-500/10">
             <ShoppingCart size={18} />
@@ -1006,7 +1006,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
           )}
           <button 
             onClick={() => setIsShortcutsOpen(true)} 
-            className={`p-2.5 rounded-xl transition-all ${isDarkMode ? 'bg-white/5 text-gray-405 hover:text-white hover:bg-white/10' : 'bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700'}`}
+            className={`p-2.5 rounded-xl transition-all ${isDarkMode ? 'bg-white/5 text-gray-405 hover:text-white hover:bg-white/10' : 'bg-primary-light text-primary hover:bg-primary/10 hover:text-primary'}`}
             title="Ver Atajos de Teclado (Guía Visual)"
           >
             <Keyboard size={16} />
@@ -1014,7 +1014,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
           {!isPreventaOnly && (
             <button 
               onClick={() => setIsHistoryOpen(true)} 
-              className={`p-2.5 rounded-xl transition-all ${isDarkMode ? 'bg-white/5 text-gray-405 hover:text-white hover:bg-white/10' : 'bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700'}`}
+              className={`p-2.5 rounded-xl transition-all ${isDarkMode ? 'bg-white/5 text-gray-405 hover:text-white hover:bg-white/10' : 'bg-primary-light text-primary hover:bg-primary/10 hover:text-primary'}`}
               title="Ver Ventas Emitidas en esta Sesión"
             >
               <History size={16} />
@@ -1022,7 +1022,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
           )}
           <button 
             onClick={() => setIsConfigOpen(true)} 
-            className={`p-2.5 rounded-xl transition-all ${isDarkMode ? 'bg-white/5 text-gray-405 hover:text-white hover:bg-white/10' : 'bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700'}`}
+            className={`p-2.5 rounded-xl transition-all ${isDarkMode ? 'bg-white/5 text-gray-405 hover:text-white hover:bg-white/10' : 'bg-primary-light text-primary hover:bg-primary/10 hover:text-primary'}`}
             title="Configuración Visual del POS"
           >
             <Settings size={16} />
@@ -1032,8 +1032,8 @@ export default function PosView({ products, thirdParties, transactions = [], isD
               onClick={handleOpenCloseModal} 
               className={`px-3 h-9 rounded-xl flex items-center justify-center gap-1.5 font-bold text-[10px] uppercase transition-all ${
                 isDarkMode 
-                  ? 'bg-white/5 text-blue-400 hover:text-blue-305 hover:bg-white/10' 
-                  : 'bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700'
+                  ? 'bg-white/5 text-primary hover:text-primary hover:bg-white/10' 
+                  : 'bg-primary-light text-primary hover:bg-primary/10 hover:text-primary'
               }`}
               title="Arqueo / Cerrar Caja"
             >
@@ -1049,7 +1049,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                 window.location.reload();
               }
             }} 
-            className={`p-2.5 rounded-xl transition-all ${isDarkMode ? 'bg-white/5 text-gray-400 hover:text-white' : 'bg-blue-50/80 text-blue-600 hover:bg-blue-100'}`} 
+            className={`p-2.5 rounded-xl transition-all ${isDarkMode ? 'bg-white/5 text-gray-400 hover:text-white' : 'bg-primary-light text-primary hover:bg-primary/10'}`} 
             title="Volver al ERP / Cerrar POS"
           >
             <LogOut size={16} />
@@ -1064,7 +1064,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
         <div className={`flex-1 flex overflow-hidden min-h-0 ${posConfig.cartPosition === 'left' ? 'flex-row-reverse' : ''}`}>
         
         {/* LADO IZQUIERDO: SELECCIÓN Y FILTRO DE PRODUCTOS */}
-        <div className={`flex-1 flex flex-col pt-[7px] px-6 pb-6 min-w-0 border-r ${isDarkMode ? 'border-white/5 bg-[#0f0f11]/60' : 'border-blue-100 bg-white'}`}>
+        <div className={`flex-1 flex flex-col pt-[7px] px-6 pb-6 min-w-0 border-r ${isDarkMode ? 'border-white/5 bg-[#0f0f11]/60' : 'border-primary/15 bg-white'}`}>
           
           {/* BARRA DE BÚSQUEDA Y FILTROS */}
           <div className="space-y-3.5 mb-6">
@@ -1072,8 +1072,8 @@ export default function PosView({ products, thirdParties, transactions = [], isD
               <div className="space-y-3">
                 {/* Search Box */}
                 <div className="flex gap-2.5 items-center">
-                  <div className={`flex-1 flex items-center gap-2 px-4 h-11 rounded-xl border transition-all ${isDarkMode ? 'border-white/5 bg-black/45' : 'border-blue-150 bg-blue-50/30'}`}>
-                    <Search size={14} className={isDarkMode ? 'text-gray-500' : 'text-blue-600'} />
+                  <div className={`flex-1 flex items-center gap-2 px-4 h-11 rounded-xl border transition-all ${isDarkMode ? 'border-white/5 bg-black/45' : 'border-primary/20 bg-primary-light'}`}>
+                    <Search size={14} className={isDarkMode ? 'text-gray-500' : 'text-primary'} />
                     <input 
                       type="text" 
                       id="pos-search-input"
@@ -1086,20 +1086,20 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                     <button 
                       type="button" 
                       onClick={startVoiceSearch} 
-                      className={`p-1 rounded-lg transition-all ${isListening ? 'text-red-500 animate-pulse bg-red-500/10' : (isDarkMode ? 'text-gray-400 hover:text-white' : 'text-blue-600 hover:bg-blue-50')}`}
+                      className={`p-1 rounded-lg transition-all ${isListening ? 'text-red-500 animate-pulse bg-red-500/10' : (isDarkMode ? 'text-gray-400 hover:text-white' : 'text-primary hover:bg-primary-light')}`}
                       title="Buscar por dictado de voz"
                     >
                       <Mic size={14} />
                     </button>
-                    {searchTerm && <button onClick={() => setSearchTerm('')}><X size={12} className={isDarkMode ? 'text-gray-500' : 'text-blue-600'} /></button>}
+                    {searchTerm && <button onClick={() => setSearchTerm('')}><X size={12} className={isDarkMode ? 'text-gray-500' : 'text-primary'} /></button>}
                   </div>
                   <button 
                     type="button"
                     onClick={handleCreateQuote}
                     className={`px-3.5 h-11 rounded-xl text-xs font-black uppercase transition-all flex items-center justify-center gap-1.5 border shadow-sm ${
                       isDarkMode 
-                        ? 'bg-blue-650/15 border-blue-500/20 text-blue-400 hover:bg-blue-650/30' 
-                        : 'bg-blue-50 border-blue-150 text-blue-700 hover:bg-blue-100'
+                        ? 'bg-primary/15 border-primary/20 text-primary hover:bg-primary/30' 
+                        : 'bg-primary-light border-primary/20 text-primary hover:bg-primary/10'
                     }`}
                     title="Guardar como Cotización (Proforma)"
                   >
@@ -1113,8 +1113,8 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                     onClick={() => setFilterCategory('all')}
                     className={`px-4 py-2 rounded-xl text-xs font-bold uppercase transition-all whitespace-nowrap shrink-0 border shadow-sm ${
                       filterCategory === 'all'
-                        ? 'bg-blue-600 border-blue-600 text-white'
-                        : (isDarkMode ? 'bg-black/40 border-white/5 text-gray-455 hover:text-white' : 'bg-blue-50/50 border-blue-100 text-black hover:bg-blue-100/50')
+                        ? 'bg-primary border-primary text-white'
+                        : (isDarkMode ? 'bg-black/40 border-white/5 text-gray-455 hover:text-white' : 'bg-primary-light border-primary/15 text-black hover:bg-primary/10')
                     }`}
                   >
                     Todos
@@ -1125,8 +1125,8 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                       onClick={() => setFilterCategory(cat)}
                       className={`px-4 py-2 rounded-xl text-xs font-bold uppercase transition-all whitespace-nowrap shrink-0 border shadow-sm ${
                         filterCategory === cat
-                          ? 'bg-blue-600 border-blue-600 text-white'
-                          : (isDarkMode ? 'bg-black/40 border-white/5 text-gray-455 hover:text-white' : 'bg-blue-50/50 border-blue-100 text-black hover:bg-blue-100/50')
+                          ? 'bg-primary border-primary text-white'
+                          : (isDarkMode ? 'bg-black/40 border-white/5 text-gray-455 hover:text-white' : 'bg-primary-light border-primary/15 text-black hover:bg-primary/10')
                       }`}
                     >
                       {cat}
@@ -1138,8 +1138,8 @@ export default function PosView({ products, thirdParties, transactions = [], isD
               <div className="space-y-3">
                 {/* Search Box */}
                 <div className="flex gap-2.5 items-center">
-                  <div className={`flex-1 flex items-center gap-2 px-4 h-11 rounded-xl border transition-all ${isDarkMode ? 'border-white/5 bg-black/45' : 'border-blue-150 bg-blue-50/30'}`}>
-                    <Search size={14} className={isDarkMode ? 'text-gray-500' : 'text-blue-600'} />
+                  <div className={`flex-1 flex items-center gap-2 px-4 h-11 rounded-xl border transition-all ${isDarkMode ? 'border-white/5 bg-black/45' : 'border-primary/20 bg-primary-light'}`}>
+                    <Search size={14} className={isDarkMode ? 'text-gray-500' : 'text-primary'} />
                     <input 
                       type="text" 
                       id="pos-search-input"
@@ -1152,20 +1152,20 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                     <button 
                       type="button" 
                       onClick={startVoiceSearch} 
-                      className={`p-1 rounded-lg transition-all ${isListening ? 'text-red-500 animate-pulse bg-red-500/10' : (isDarkMode ? 'text-gray-400 hover:text-white' : 'text-blue-600 hover:bg-blue-50')}`}
+                      className={`p-1 rounded-lg transition-all ${isListening ? 'text-red-500 animate-pulse bg-red-500/10' : (isDarkMode ? 'text-gray-400 hover:text-white' : 'text-primary hover:bg-primary-light')}`}
                       title="Buscar por dictado de voz"
                     >
                       <Mic size={14} />
                     </button>
-                    {searchTerm && <button onClick={() => setSearchTerm('')}><X size={12} className={isDarkMode ? 'text-gray-500' : 'text-blue-600'} /></button>}
+                    {searchTerm && <button onClick={() => setSearchTerm('')}><X size={12} className={isDarkMode ? 'text-gray-500' : 'text-primary'} /></button>}
                   </div>
                   <button 
                     type="button"
                     onClick={handleCreateQuote}
                     className={`px-3.5 h-11 rounded-xl text-xs font-black uppercase transition-all flex items-center justify-center gap-1.5 border shadow-sm ${
                       isDarkMode 
-                        ? 'bg-blue-650/15 border-blue-500/20 text-blue-400 hover:bg-blue-650/30' 
-                        : 'bg-blue-50 border-blue-150 text-blue-700 hover:bg-blue-100'
+                        ? 'bg-primary/15 border-primary/20 text-primary hover:bg-primary/30' 
+                        : 'bg-primary-light border-primary/20 text-primary hover:bg-primary/10'
                     }`}
                     title="Guardar como Cotización (Proforma)"
                   >
@@ -1177,7 +1177,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                   <div>
                     
-                    <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} className={`w-full text-xs font-bold px-2.5 py-2 rounded-xl border outline-none ${isDarkMode ? 'bg-black/40 border-white/5 text-white' : 'bg-white border-blue-100 text-black'}`}>
+                    <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} className={`w-full text-xs font-bold px-2.5 py-2 rounded-xl border outline-none ${isDarkMode ? 'bg-black/40 border-white/5 text-white' : 'bg-white border-primary/15 text-black'}`}>
                       <option value="all" className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>Categorías (Todos)</option>
                       {categories.filter(c => c !== 'all').map(c => <option key={c} value={c} className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>{c}</option>)}
                     </select>
@@ -1185,7 +1185,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
 
                   <div>
                     
-                    <select value={filterBrand} onChange={e => setFilterBrand(e.target.value)} className={`w-full text-xs font-bold px-2.5 py-2 rounded-xl border outline-none ${isDarkMode ? 'bg-black/40 border-white/5 text-white' : 'bg-white border-blue-100 text-black'}`}>
+                    <select value={filterBrand} onChange={e => setFilterBrand(e.target.value)} className={`w-full text-xs font-bold px-2.5 py-2 rounded-xl border outline-none ${isDarkMode ? 'bg-black/40 border-white/5 text-white' : 'bg-white border-primary/15 text-black'}`}>
                       <option value="all" className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>Marcas (Todos)</option>
                       {brands.filter(b => b !== 'all').map(b => <option key={b} value={b} className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>{b}</option>)}
                     </select>
@@ -1193,7 +1193,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
 
                   <div>
                     
-                    <select value={filterWarehouse} onChange={e => setFilterWarehouse(e.target.value)} className={`w-full text-xs font-bold px-2.5 py-2 rounded-xl border outline-none ${isDarkMode ? 'bg-black/40 border-white/5 text-white' : 'bg-white border-blue-100 text-black'}`}>
+                    <select value={filterWarehouse} onChange={e => setFilterWarehouse(e.target.value)} className={`w-full text-xs font-bold px-2.5 py-2 rounded-xl border outline-none ${isDarkMode ? 'bg-black/40 border-white/5 text-white' : 'bg-white border-primary/15 text-black'}`}>
                       <option value="all" className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>Bodegas (Todos)</option>
                       {warehouses.filter(w => w !== 'all').map(w => <option key={w} value={w} className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>{w}</option>)}
                     </select>
@@ -1201,7 +1201,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
 
                   <div>
                     
-                    <select value={filterStock} onChange={e => setFilterStock(e.target.value)} className={`w-full text-xs font-bold px-2.5 py-2 rounded-xl border outline-none ${isDarkMode ? 'bg-black/40 border-white/5 text-white' : 'bg-white border-blue-100 text-black'}`}>
+                    <select value={filterStock} onChange={e => setFilterStock(e.target.value)} className={`w-full text-xs font-bold px-2.5 py-2 rounded-xl border outline-none ${isDarkMode ? 'bg-black/40 border-white/5 text-white' : 'bg-white border-primary/15 text-black'}`}>
                       <option value="all" className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>Inventario completo</option>
                       <option value="instock" className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>Solo disponibles (Con Stock)</option>
                     </select>
@@ -1224,13 +1224,13 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                     className={`p-3 border rounded-2xl flex items-center justify-between gap-4 transition-all cursor-pointer select-none group relative overflow-hidden ${
                       isOutOfStock 
                         ? 'opacity-40 cursor-not-allowed bg-white/[0.005]' 
-                        : (isDarkMode ? 'border-white/5 hover:border-blue-500/30 hover:bg-white/[0.02] bg-white/[0.01]' : 'border-blue-100 hover:border-blue-300 hover:bg-blue-50/20 bg-blue-50/5')
+                        : (isDarkMode ? 'border-white/5 hover:border-primary/30 hover:bg-white/[0.02] bg-white/[0.01]' : 'border-primary/15 hover:border-primary/40 hover:bg-primary/5 bg-primary/5')
                     }`}
                   >
                     <div className="flex-1 min-w-0 flex items-center gap-3">
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
                         p.type === 'producto' 
-                          ? (isDarkMode ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' : 'bg-blue-50 border-blue-200 text-blue-650') 
+                          ? (isDarkMode ? 'bg-primary/10 border-primary/20 text-primary' : 'bg-primary-light border-primary/25 text-primary') 
                           : (isDarkMode ? 'bg-purple-500/10 border-purple-500/20 text-purple-400' : 'bg-purple-50 border-purple-200 text-purple-650')
                       }`}>
                         <ShoppingCart size={16} />
@@ -1238,7 +1238,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
                           <span className="font-mono text-[10px] text-gray-500 shrink-0">{p.sku}</span>
-                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase shrink-0 ${p.type === 'producto' ? 'bg-blue-500/10 text-blue-400' : 'bg-purple-500/10 text-purple-400'}`}>{p.type}</span>
+                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase shrink-0 ${p.type === 'producto' ? 'bg-primary/10 text-primary' : 'bg-purple-500/10 text-purple-400'}`}>{p.type}</span>
                         </div>
                         <h4 className={`text-sm sm:text-base font-bold leading-snug truncate ${isDarkMode ? 'text-white' : 'text-black'}`}>{p.name}</h4>
                         <p className="text-xs text-gray-500 truncate">{p.marca || 'Sin Marca'} | {p.categoria || 'General'}</p>
@@ -1272,7 +1272,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                         className={`p-1.5 rounded-lg border transition-all ${
                           isOutOfStock 
                             ? 'bg-transparent text-gray-400 border-gray-400/20' 
-                            : 'bg-blue-600 hover:bg-blue-500 text-white border-blue-500 hover:scale-105'
+                            : 'bg-primary hover:bg-primary text-white border-primary hover:scale-105'
                         }`}
                       >
                         <Plus size={14} />
@@ -1301,20 +1301,20 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                       isOutOfStock 
                         ? 'opacity-40 cursor-not-allowed bg-white/[0.005] border-white/5' 
                         : (isDarkMode 
-                            ? 'border-white/5 hover:border-blue-500/30 hover:bg-white/[0.02] bg-white/[0.01] hover:-translate-y-0.5' 
-                            : 'border-blue-100 hover:border-blue-300 hover:bg-blue-50/20 bg-blue-50/5 hover:-translate-y-0.5')
+                            ? 'border-white/5 hover:border-primary/30 hover:bg-white/[0.02] bg-white/[0.01] hover:-translate-y-0.5' 
+                            : 'border-primary/15 hover:border-primary/40 hover:bg-primary/5 bg-primary/5 hover:-translate-y-0.5')
                     }`}
                   >
                     <div className="space-y-1">
                       <div className="flex justify-between items-center gap-1">
                         <span className="font-mono text-[10px] text-gray-500 truncate">{p.sku}</span>
-                        <span className={`px-1.5 py-0.5 rounded text-[11px] font-bold uppercase ${p.type === 'producto' ? 'bg-blue-500/10 text-blue-400' : 'bg-purple-500/10 text-purple-400'}`}>{p.type}</span>
+                        <span className={`px-1.5 py-0.5 rounded text-[11px] font-bold uppercase ${p.type === 'producto' ? 'bg-primary/10 text-primary' : 'bg-purple-500/10 text-purple-400'}`}>{p.type}</span>
                       </div>
                       <h4 className={`text-xs sm:text-[13px] font-bold leading-snug line-clamp-2 ${isDarkMode ? 'text-white' : 'text-black'}`}>{p.name}</h4>
                       <p className="text-xs text-gray-500 truncate">{p.marca || 'Sin Marca'} | {p.categoria || 'General'}</p>
                     </div>
 
-                    <div className={`flex justify-between items-center mt-3 pt-3 border-t ${isDarkMode ? 'border-white/5' : 'border-blue-100/55'}`}>
+                    <div className={`flex justify-between items-center mt-3 pt-3 border-t ${isDarkMode ? 'border-white/5' : 'border-primary/15'}`}>
                       <span className={`text-sm font-black ${isDarkMode ? 'text-white' : 'text-black'}`}>${Number(p.price).toFixed(2)}</span>
                       {posConfig.showStock && p.type === 'producto' && (() => {
                         const minStk = p.minStock !== undefined ? Number(p.minStock) : 2;
@@ -1345,7 +1345,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
           {/* LEYENDA DE STOCK AL PIE DEL CATÁLOGO */}
           {posConfig.showStock && (
             <div className={`mt-4 pt-3 border-t flex items-center gap-4 text-xs uppercase font-extrabold tracking-wider shrink-0 ${
-              isDarkMode ? 'border-white/5 text-gray-500' : 'border-blue-100 text-blue-800'
+              isDarkMode ? 'border-white/5 text-gray-500' : 'border-primary/15 text-primary'
             }`}>
               <span className="flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.5)]"></span>
@@ -1356,7 +1356,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                 Bajo Stock
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.5)]"></span>
+                <span className="w-2.5 h-2.5 rounded-full bg-primary shadow-[0_0_6px_rgba(59,130,246,0.5)]"></span>
                 Sin Stock / Servicio
               </span>
             </div>
@@ -1364,18 +1364,18 @@ export default function PosView({ products, thirdParties, transactions = [], isD
         </div>
 
         {/* LADO DERECHO: DETALLE DEL PEDIDO (CHECKOUT FIJO) */}
-        <div className={`w-[32rem] lg:w-[38rem] flex flex-col shrink-0 border-l ${isDarkMode ? 'border-white/5 bg-[#121214]/65' : 'bg-white border-blue-100'}`}>
+        <div className={`w-[32rem] lg:w-[38rem] flex flex-col shrink-0 border-l ${isDarkMode ? 'border-white/5 bg-[#121214]/65' : 'bg-white border-primary/15'}`}>
 
 
           
           {/* CLIENTE BÚSQUEDA Y FICHA */}
-          <div className={`pt-[7px] px-3 pb-3 border-b flex flex-col gap-2 shrink-0 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-blue-100 bg-blue-50/10'}`}>
+          <div className={`pt-[7px] px-3 pb-3 border-b flex flex-col gap-2 shrink-0 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-primary/15 bg-primary/5'}`}>
             <div className="flex items-center gap-2">
               {/* Buscador de Cliente */}
               <div className={`flex-1 flex items-center gap-2 px-4 h-11 rounded-xl border transition-all ${
-                isDarkMode ? 'border-white/5 bg-black/45' : 'border-blue-150 bg-blue-50/20'
+                isDarkMode ? 'border-white/5 bg-black/45' : 'border-primary/20 bg-primary/5'
               }`}>
-                <Search size={13} className={isDarkMode ? 'text-gray-500' : 'text-blue-600'} />
+                <Search size={13} className={isDarkMode ? 'text-gray-500' : 'text-primary'} />
                 <input 
                   type="text"
                   placeholder="Buscar Cliente..."
@@ -1396,7 +1396,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                       setIsClientDropdownOpen(false);
                     }}
                   >
-                    <X size={12} className={isDarkMode ? 'text-gray-500' : 'text-blue-650'} />
+                    <X size={12} className={isDarkMode ? 'text-gray-500' : 'text-primary'} />
                   </button>
                 )}
               </div>
@@ -1410,7 +1410,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   });
                   setIsQuickAddOpen(true);
                 }} 
-                className="px-4 h-11 rounded-xl bg-blue-600 hover:bg-blue-500 text-white shadow-md flex items-center justify-center transition-all shrink-0 active:scale-95"
+                className="px-4 h-11 rounded-xl bg-primary hover:bg-primary text-white shadow-md flex items-center justify-center transition-all shrink-0 active:scale-95"
                 title="Crear Nuevo Cliente"
               >
                 <UserPlus size={14} />
@@ -1421,7 +1421,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
             <div className="relative">
               {isClientDropdownOpen && clientSearchTerm && (
                 <div className={`absolute left-0 right-0 top-0 max-h-48 overflow-y-auto z-50 rounded-xl border shadow-xl ${
-                  isDarkMode ? 'bg-[#151518] border-white/10 text-white' : 'bg-white border-blue-150 text-black shadow-lg'
+                  isDarkMode ? 'bg-[#151518] border-white/10 text-white' : 'bg-white border-primary/20 text-black shadow-lg'
                 } custom-scrollbar`}>
                   <div 
                     onClick={() => {
@@ -1430,7 +1430,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                       setIsClientDropdownOpen(false);
                     }}
                     className={`px-3 py-2 text-xs font-bold cursor-pointer transition-colors border-b ${
-                      isDarkMode ? 'hover:bg-white/5 border-white/5' : 'hover:bg-blue-50 border-blue-100/50'
+                      isDarkMode ? 'hover:bg-white/5 border-white/5' : 'hover:bg-primary-light border-primary/10'
                     }`}
                   >
                     Consumidor Final (9999999999999)
@@ -1449,7 +1449,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                           setIsClientDropdownOpen(false);
                         }}
                         className={`px-3 py-2 text-xs font-semibold cursor-pointer transition-colors ${
-                          isDarkMode ? 'hover:bg-white/5' : 'hover:bg-blue-50'
+                          isDarkMode ? 'hover:bg-white/5' : 'hover:bg-primary-light'
                         }`}
                       >
                         <div className="font-bold text-xs">{tp.name}</div>
@@ -1516,7 +1516,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                               setIsQuickAddOpen(true);
                             }
                           }} 
-                          className="p-1.5 rounded-lg text-gray-500 hover:text-blue-500 hover:bg-blue-500/10 dark:text-gray-400 dark:hover:text-blue-400 dark:hover:bg-blue-400/10 transition-all"
+                          className="p-1.5 rounded-lg text-gray-500 hover:text-primary hover:bg-primary/10 dark:text-gray-400 dark:hover:text-primary dark:hover:bg-primary/10 transition-all"
                           title="Editar Cliente"
                         >
                           <Edit3 size={12} />
@@ -1547,11 +1547,11 @@ export default function PosView({ products, thirdParties, transactions = [], isD
           </div>
           {/* CABECERA DETALLE DEL PEDIDO */}
           <div className={`px-4 py-2.5 border-b flex justify-between items-center shrink-0 ${
-            isDarkMode ? 'border-white/5 text-gray-400 bg-black/10' : 'border-blue-100 text-gray-550 bg-blue-50/10'
+            isDarkMode ? 'border-white/5 text-gray-400 bg-black/10' : 'border-primary/15 text-gray-550 bg-primary/5'
           }`}>
             <span className="text-[11px] font-extrabold uppercase tracking-wider">Detalle del Pedido</span>
             <span className="text-xs font-bold">
-              Items (<span className="text-blue-600 dark:text-blue-400 font-extrabold">{cart.reduce((acc, it) => acc + it.quantity, 0)}</span>)
+              Items (<span className="text-primary dark:text-primary font-extrabold">{cart.reduce((acc, it) => acc + it.quantity, 0)}</span>)
             </span>
           </div>
 
@@ -1561,13 +1561,13 @@ export default function PosView({ products, thirdParties, transactions = [], isD
               const prod = products.find(p => p.id === item.productId);
               const imageUrl = prod?.imageUrl || prod?.image || null;
               return (
-                <div key={idx} className={`p-2.5 rounded-xl border flex items-center justify-between gap-3 ${isDarkMode ? 'bg-black/20 border-white/5' : 'bg-white border-blue-100/70 shadow-sm'}`}>
+                <div key={idx} className={`p-2.5 rounded-xl border flex items-center justify-between gap-3 ${isDarkMode ? 'bg-black/20 border-white/5' : 'bg-white border-primary/15 shadow-sm'}`}>
                   {/* Imagen del Producto */}
                   {imageUrl ? (
                     <img src={imageUrl} className="w-10 h-10 rounded-lg object-cover shrink-0 border border-gray-100 dark:border-white/10" alt={item.name} />
                   ) : (
                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-xs uppercase shrink-0 border ${
-                      isDarkMode ? 'bg-blue-950/30 border-blue-900/50 text-blue-400' : 'bg-blue-50 border-blue-100 text-blue-600'
+                      isDarkMode ? 'bg-primary/25 border-primary/40 text-primary' : 'bg-primary-light border-primary/15 text-primary'
                     }`}>
                       {item.name.slice(0, 2).toUpperCase()}
                     </div>
@@ -1576,7 +1576,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   {/* Nombre y Precio */}
                   <div className="flex-1 min-w-0">
                     <h4 className={`text-xs font-bold truncate ${isDarkMode ? 'text-white' : 'text-black'}`}>{item.name}</h4>
-                    <p className={`text-xs font-extrabold mt-0.5 ${isDarkMode ? 'text-gray-400' : 'text-blue-700'}`}>${Number(item.price).toFixed(2)}</p>
+                    <p className={`text-xs font-extrabold mt-0.5 ${isDarkMode ? 'text-gray-400' : 'text-primary'}`}>${Number(item.price).toFixed(2)}</p>
                   </div>
 
                   {/* Botón de Eliminar */}
@@ -1606,7 +1606,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                       setCart(cart.map(i => i.productId === item.productId ? { ...i, quantity: val } : i));
                     }}
                     className={`w-14 h-8 text-center text-xs font-bold rounded-lg border outline-none ${
-                      isDarkMode ? 'bg-black/40 border-white/10 text-white focus:border-blue-500' : 'bg-white border-gray-300 text-black focus:border-blue-600'
+                      isDarkMode ? 'bg-black/40 border-white/10 text-white focus:border-primary' : 'bg-white border-gray-300 text-black focus:border-primary'
                     }`}
                   />
 
@@ -1615,7 +1615,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                     type="button" 
                     onClick={() => updateQuantity(item.productId, 1)} 
                     className={`p-2 rounded-xl transition-all shrink-0 ${
-                      isDarkMode ? 'bg-blue-650/20 hover:bg-blue-650/35 text-blue-400' : 'bg-blue-50 hover:bg-blue-100 text-blue-700'
+                      isDarkMode ? 'bg-primary/20 hover:bg-primary/35 text-primary' : 'bg-primary-light hover:bg-primary/10 text-primary'
                     }`}
                   >
                     <Plus size={13} />
@@ -1640,36 +1640,36 @@ export default function PosView({ products, thirdParties, transactions = [], isD
             })}
             {cart.length === 0 && (
               <div className="flex flex-col items-center justify-center h-full text-center text-gray-500 py-16">
-                <ShoppingCart size={36} className="opacity-20 mb-2 animate-pulse text-blue-500" />
+                <ShoppingCart size={36} className="opacity-20 mb-2 animate-pulse text-primary" />
                 <p className="text-xs italic">Carrito de Venta Vacío</p>
               </div>
             )}
           </div>
 
           {/* ACCIONES Y TOTALES */}
-          <div className={`p-4 border-t space-y-4 shrink-0 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-blue-100 bg-blue-50/20'}`}>
+          <div className={`p-4 border-t space-y-4 shrink-0 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-primary/15 bg-primary/5'}`}>
             {/* DESCUENTO CARD */}
             {isDiscountOpen ? (
-              <div className={`p-3 rounded-xl border space-y-2 ${isDarkMode ? 'border-white/5 bg-black/20' : 'border-blue-100 bg-white shadow-sm'}`}>
+              <div className={`p-3 rounded-xl border space-y-2 ${isDarkMode ? 'border-white/5 bg-black/20' : 'border-primary/15 bg-white shadow-sm'}`}>
                 <div className="flex justify-between items-center">
                   <span className={`text-xs font-bold ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>DESCUENTO GENERAL</span>
                   <button onClick={() => { setIsDiscountOpen(false); setDiscountValue(0); }} className="text-gray-500 hover:text-black"><X size={10} /></button>
                 </div>
                 <div className="flex gap-1">
-                  <select value={discountType} onChange={e => setDiscountType(e.target.value)} className={`text-sm px-2 py-1.5 rounded-lg border outline-none ${isDarkMode ? 'bg-black border-white/10 text-white' : 'bg-white border-blue-150 text-black'}`}>
+                  <select value={discountType} onChange={e => setDiscountType(e.target.value)} className={`text-sm px-2 py-1.5 rounded-lg border outline-none ${isDarkMode ? 'bg-black border-white/10 text-white' : 'bg-white border-primary/20 text-black'}`}>
                     <option value="percent">% Porcentaje</option>
                     <option value="fixed">$ Fijo (USD)</option>
                   </select>
-                  <input type="number" value={discountValue} onChange={e => setDiscountValue(e.target.value)} className={`w-full text-xs px-2 py-1.5 rounded-lg border outline-none ${isDarkMode ? 'bg-black border-white/10 text-white' : 'bg-white border-blue-150 text-black'}`} placeholder="0" />
+                  <input type="number" value={discountValue} onChange={e => setDiscountValue(e.target.value)} className={`w-full text-xs px-2 py-1.5 rounded-lg border outline-none ${isDarkMode ? 'bg-black border-white/10 text-white' : 'bg-white border-primary/20 text-black'}`} placeholder="0" />
                 </div>
               </div>
             ) : (
               <div className="flex gap-2">
-                <button onClick={() => setIsDiscountOpen(true)} className={`flex-1 py-2 rounded-xl border font-bold text-xs uppercase transition-all ${isDarkMode ? 'border-white/5 hover:bg-white/5 text-gray-400' : 'border-blue-100 hover:bg-blue-100/50 bg-white text-black shadow-sm'}`}>
-                  <Tag size={12} className="inline mr-1 text-blue-500" /> Descuento
+                <button onClick={() => setIsDiscountOpen(true)} className={`flex-1 py-2 rounded-xl border font-bold text-xs uppercase transition-all ${isDarkMode ? 'border-white/5 hover:bg-white/5 text-gray-400' : 'border-primary/15 hover:bg-primary/10 bg-white text-black shadow-sm'}`}>
+                  <Tag size={12} className="inline mr-1 text-primary" /> Descuento
                 </button>
-                <button onClick={suspendSale} className={`flex-1 py-2 rounded-xl border font-bold text-xs uppercase transition-all ${isDarkMode ? 'border-white/5 hover:bg-white/5 text-gray-400' : 'border-blue-100 hover:bg-blue-100/50 bg-white text-black shadow-sm'}`}>
-                  <Bookmark size={12} className="inline mr-1 text-blue-500" /> Suspender
+                <button onClick={suspendSale} className={`flex-1 py-2 rounded-xl border font-bold text-xs uppercase transition-all ${isDarkMode ? 'border-white/5 hover:bg-white/5 text-gray-400' : 'border-primary/15 hover:bg-primary/10 bg-white text-black shadow-sm'}`}>
+                  <Bookmark size={12} className="inline mr-1 text-primary" /> Suspender
                 </button>
                 <button onClick={() => setCart([])} className={`flex-1 py-2 rounded-xl border font-bold text-xs uppercase transition-all ${isDarkMode ? 'border-white/5 hover:bg-white/5 text-red-400' : 'border-red-100 hover:bg-red-50 bg-white text-red-650 shadow-sm'}`}>
                   <Trash2 size={12} className="inline mr-1 text-red-500" /> Vaciar
@@ -1692,9 +1692,9 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                 <span>Impuestos</span>
                 <span>${getIva().toFixed(2)}</span>
               </div>
-              <div className={`flex justify-between font-black text-base md:text-lg pt-2.5 border-t ${isDarkMode ? 'border-white/5 text-white' : 'border-blue-100 text-black'}`}>
+              <div className={`flex justify-between font-black text-base md:text-lg pt-2.5 border-t ${isDarkMode ? 'border-white/5 text-white' : 'border-primary/15 text-black'}`}>
                 <span>TOTAL NETO</span>
-                <span className={isDarkMode ? 'text-white' : 'text-blue-750'}>${getTotal().toFixed(2)}</span>
+                <span className={isDarkMode ? 'text-white' : 'text-primary'}>${getTotal().toFixed(2)}</span>
               </div>
             </div>
 
@@ -1705,11 +1705,11 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                 className={`flex-1 flex items-center justify-center gap-1.5 py-3.5 rounded-xl text-base font-black border transition-all active:scale-[0.98] ${
                   isDarkMode 
                     ? 'border-white/5 hover:bg-white/10 text-gray-300 bg-white/5' 
-                    : 'border-blue-150 hover:bg-blue-50 bg-white text-blue-700 shadow-sm'
+                    : 'border-primary/20 hover:bg-primary-light bg-white text-primary shadow-sm'
                 }`}
                 title="Simular Apertura de Gaveta de Dinero"
               >
-                <Unlock size={13} className="text-blue-500" /> Abrir Gaveta
+                <Unlock size={13} className="text-primary" /> Abrir Gaveta
               </button>
               <button 
                 type="button" 
@@ -1725,7 +1725,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   setCheckoutStep(1);
                   setIsCheckoutOpen(true);
                 }}
-                className="flex-[2] flex items-center justify-center gap-2 py-3.5 rounded-xl text-base font-black bg-blue-600 text-white hover:bg-blue-500 shadow-md transition-all active:scale-[0.98]"
+                className="flex-[2] flex items-center justify-center gap-2 py-3.5 rounded-xl text-base font-black bg-primary text-white hover:bg-primary shadow-md transition-all active:scale-[0.98]"
               >
                 <Sparkles size={13} /> Cobrar (F12)
               </button>
@@ -1748,17 +1748,17 @@ export default function PosView({ products, thirdParties, transactions = [], isD
           />
           {/* Drawer Panel */}
           <div className={`fixed top-0 right-0 h-full w-80 z-[130] flex flex-col shadow-2xl border-l animate-in slide-in-from-right duration-300 ${
-            isDarkMode ? 'bg-[#0f0f11] border-white/10 text-white shadow-black/80' : 'bg-[#f3f8ff] border-blue-100 text-[#000000] shadow-blue-900/20'
+            isDarkMode ? 'bg-[#0f0f11] border-white/10 text-white shadow-black/80' : 'bg-[#f3f8ff] border-primary/15 text-[#000000] shadow-primary/20'
           }`}>
-            <div className={`p-4 border-b flex items-center justify-between shrink-0 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-blue-100 bg-blue-50'}`}>
+            <div className={`p-4 border-b flex items-center justify-between shrink-0 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-primary/15 bg-primary-light'}`}>
               <div className="flex items-center gap-2">
-                <Settings size={16} className={isDarkMode ? 'text-blue-500' : 'text-[#000000]'} />
+                <Settings size={16} className={isDarkMode ? 'text-primary' : 'text-[#000000]'} />
                 <h3 className="text-xs font-black uppercase tracking-wider">Gestión del POS</h3>
               </div>
               <button 
                 onClick={() => setIsConfigOpen(false)} 
                 className={`p-1.5 rounded-lg transition-colors ${
-                  isDarkMode ? 'hover:bg-white/5 text-gray-400 hover:text-white' : 'hover:bg-blue-100 text-[#000000]'
+                  isDarkMode ? 'hover:bg-white/5 text-gray-400 hover:text-white' : 'hover:bg-primary/10 text-[#000000]'
                 }`}
               >
                 <X size={16} />
@@ -1772,14 +1772,14 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   <button
                     type="button"
                     onClick={() => setPosConfig(prev => ({ ...prev, viewType: 'grid' }))}
-                    className={`py-2.5 rounded-xl text-xs font-bold border transition-all ${posConfig.viewType === 'grid' ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-400 hover:text-white' : 'bg-white border-blue-100 text-[#000000] hover:bg-blue-50')}`}
+                    className={`py-2.5 rounded-xl text-xs font-bold border transition-all ${posConfig.viewType === 'grid' ? 'bg-primary border-primary text-white shadow-sm' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-400 hover:text-white' : 'bg-white border-primary/15 text-[#000000] hover:bg-primary-light')}`}
                   >
                     Grid
                   </button>
                   <button
                     type="button"
                     onClick={() => setPosConfig(prev => ({ ...prev, viewType: 'list' }))}
-                    className={`py-2.5 rounded-xl text-xs font-bold border transition-all ${posConfig.viewType === 'list' ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-400 hover:text-white' : 'bg-white border-blue-100 text-[#000000] hover:bg-blue-50')}`}
+                    className={`py-2.5 rounded-xl text-xs font-bold border transition-all ${posConfig.viewType === 'list' ? 'bg-primary border-primary text-white shadow-sm' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-400 hover:text-white' : 'bg-white border-primary/15 text-[#000000] hover:bg-primary-light')}`}
                   >
                     Lista
                   </button>
@@ -1792,14 +1792,14 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   <button
                     type="button"
                     onClick={() => setPosConfig(prev => ({ ...prev, showCarousel: false }))}
-                    className={`py-2.5 rounded-xl text-xs font-bold border transition-all ${!posConfig.showCarousel ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-400 hover:text-white' : 'bg-white border-blue-100 text-[#000000] hover:bg-blue-50')}`}
+                    className={`py-2.5 rounded-xl text-xs font-bold border transition-all ${!posConfig.showCarousel ? 'bg-primary border-primary text-white shadow-sm' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-400 hover:text-white' : 'bg-white border-primary/15 text-[#000000] hover:bg-primary-light')}`}
                   >
                     Normales
                   </button>
                   <button
                     type="button"
                     onClick={() => setPosConfig(prev => ({ ...prev, showCarousel: true }))}
-                    className={`py-2.5 rounded-xl text-xs font-bold border transition-all ${posConfig.showCarousel ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-400 hover:text-white' : 'bg-white border-blue-100 text-[#000000] hover:bg-blue-50')}`}
+                    className={`py-2.5 rounded-xl text-xs font-bold border transition-all ${posConfig.showCarousel ? 'bg-primary border-primary text-white shadow-sm' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-400 hover:text-white' : 'bg-white border-primary/15 text-[#000000] hover:bg-primary-light')}`}
                   >
                     Carrusel
                   </button>
@@ -1812,14 +1812,14 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   <button
                     type="button"
                     onClick={() => setPosConfig(prev => ({ ...prev, cartPosition: 'left' }))}
-                    className={`py-2.5 rounded-xl text-xs font-bold border transition-all ${posConfig.cartPosition === 'left' ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-400 hover:text-white' : 'bg-white border-blue-100 text-[#000000] hover:bg-blue-50')}`}
+                    className={`py-2.5 rounded-xl text-xs font-bold border transition-all ${posConfig.cartPosition === 'left' ? 'bg-primary border-primary text-white shadow-sm' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-400 hover:text-white' : 'bg-white border-primary/15 text-[#000000] hover:bg-primary-light')}`}
                   >
                     Izquierda
                   </button>
                   <button
                     type="button"
                     onClick={() => setPosConfig(prev => ({ ...prev, cartPosition: 'right' }))}
-                    className={`py-2.5 rounded-xl text-xs font-bold border transition-all ${posConfig.cartPosition === 'right' ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-400 hover:text-white' : 'bg-white border-blue-100 text-[#000000] hover:bg-blue-50')}`}
+                    className={`py-2.5 rounded-xl text-xs font-bold border transition-all ${posConfig.cartPosition === 'right' ? 'bg-primary border-primary text-white shadow-sm' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-400 hover:text-white' : 'bg-white border-primary/15 text-[#000000] hover:bg-primary-light')}`}
                   >
                     Derecha
                   </button>
@@ -1833,8 +1833,8 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   onClick={() => setPosConfig(prev => ({ ...prev, barcodeMode: !prev.barcodeMode }))}
                   className={`w-full py-3 px-4 rounded-xl text-xs font-bold border transition-all flex items-center justify-between ${
                     posConfig.barcodeMode
-                      ? 'bg-blue-600 border-blue-600 text-white shadow-sm'
-                      : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-455 hover:text-white' : 'bg-blue-50/30 border-blue-100 text-[#000000] hover:bg-blue-50')
+                      ? 'bg-primary border-primary text-white shadow-sm'
+                      : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-455 hover:text-white' : 'bg-primary-light border-primary/15 text-[#000000] hover:bg-primary-light')
                   }`}
                 >
                   <span className="flex items-center gap-1.5">
@@ -1852,7 +1852,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   className={`w-full py-3 px-4 rounded-xl text-xs font-bold border transition-all flex items-center justify-between ${
                     posConfig.expressCheckout
                       ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm'
-                      : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-455 hover:text-white' : 'bg-blue-50/30 border-blue-100 text-[#000000] hover:bg-blue-50')
+                      : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-455 hover:text-white' : 'bg-primary-light border-primary/15 text-[#000000] hover:bg-primary-light')
                   }`}
                 >
                   <span className="flex items-center gap-1.5">
@@ -1869,8 +1869,8 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   onClick={() => setPosConfig(prev => ({ ...prev, showStock: !prev.showStock }))}
                   className={`w-full py-3 px-4 rounded-xl text-[11px] font-bold border transition-all flex items-center justify-between ${
                     posConfig.showStock
-                      ? 'bg-blue-600 border-blue-600 text-white shadow-sm'
-                      : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-455 hover:text-white' : 'bg-blue-50/30 border-blue-100 text-[#000000] hover:bg-blue-50')
+                      ? 'bg-primary border-primary text-white shadow-sm'
+                      : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-455 hover:text-white' : 'bg-primary-light border-primary/15 text-[#000000] hover:bg-primary-light')
                   }`}
                 >
                   <span className="flex items-center gap-1.5">
@@ -1888,7 +1888,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
       {isClosingOpen && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
           <div className={`w-full max-w-md p-6 rounded-3xl border shadow-2xl transition-all duration-300 ${
-            isDarkMode ? 'bg-[#141416] border-white/10 text-white shadow-black/50' : 'bg-white border-blue-100 text-black shadow-blue-900/10'
+            isDarkMode ? 'bg-[#141416] border-white/10 text-white shadow-black/50' : 'bg-white border-primary/15 text-black shadow-primary/10'
           }`}>
             <h3 className="text-sm font-black mb-4 flex items-center gap-2 text-red-500">
               <ShieldAlert size={16} /> Arqueo y Cierre de Caja
@@ -1900,7 +1900,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
             <form onSubmit={handleCloseSession} className="space-y-4">
               <div className="space-y-2 text-xs">
                 <div className={`grid grid-cols-2 gap-2 font-bold border-b pb-2 text-xs uppercase ${
-                  isDarkMode ? 'text-gray-500 border-white/5' : 'text-black border-blue-100/50'
+                  isDarkMode ? 'text-gray-500 border-white/5' : 'text-black border-primary/10'
                 }`}>
                   <span>Método de Pago</span>
                   <span className="text-right">Físico / Real</span>
@@ -1952,8 +1952,8 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                 <textarea value={closingForm.notes} onChange={e => setClosingForm({...closingForm, notes: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} min-h-[50px] w-full px-2.5 py-2 rounded-xl border`} placeholder="Escribe discrepancias si las hay..." />
               </div>
 
-              <div className={`flex justify-end gap-2.5 mt-6 pt-3 border-t ${isDarkMode ? 'border-white/5' : 'border-blue-100/55'}`}>
-                <button type="button" onClick={() => setIsClosingOpen(false)} className={`px-3.5 py-2 rounded-xl text-xs font-semibold ${isDarkMode ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-blue-50/50 text-black'}`}>Cancelar</button>
+              <div className={`flex justify-end gap-2.5 mt-6 pt-3 border-t ${isDarkMode ? 'border-white/5' : 'border-primary/15'}`}>
+                <button type="button" onClick={() => setIsClosingOpen(false)} className={`px-3.5 py-2 rounded-xl text-xs font-semibold ${isDarkMode ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-primary-light text-black'}`}>Cancelar</button>
                 <button type="submit" className="px-4 py-2 rounded-xl text-xs font-black bg-red-600 hover:bg-red-500 text-white">Confirmar y Cerrar Caja</button>
               </div>
             </form>
@@ -1970,11 +1970,11 @@ export default function PosView({ products, thirdParties, transactions = [], isD
             
             {/* WIZARD PROGRESS HEADER */}
             <div className={`px-6 py-4.5 border-b flex items-center justify-between shrink-0 ${
-              isDarkMode ? 'border-white/5 bg-black/20 text-white' : 'border-blue-100 bg-blue-50/30 text-black'
+              isDarkMode ? 'border-white/5 bg-black/20 text-white' : 'border-primary/15 bg-primary-light text-black'
             }`}>
               <div className="max-w-4xl mx-auto w-full flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <ShoppingCart size={16} className="text-blue-500" />
+                  <ShoppingCart size={16} className="text-primary" />
                   <h3 className="text-base font-black uppercase tracking-wider">Checkout Comercial POS</h3>
                 </div>
                 {posConfig.expressCheckout ? (
@@ -1983,11 +1983,11 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   </div>
                 ) : (
                   <div className="flex items-center gap-1.5 text-xs font-black">
-                    <span className={checkoutStep === 1 ? 'text-blue-500' : (isDarkMode ? 'text-gray-400' : 'text-gray-500')}>1. Cliente</span>
+                    <span className={checkoutStep === 1 ? 'text-primary' : (isDarkMode ? 'text-gray-400' : 'text-gray-500')}>1. Cliente</span>
                     <ChevronRight size={11} className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
-                    <span className={checkoutStep === 2 ? 'text-blue-500' : (isDarkMode ? 'text-gray-400' : 'text-gray-500')}>2. Métodos de Pago</span>
+                    <span className={checkoutStep === 2 ? 'text-primary' : (isDarkMode ? 'text-gray-400' : 'text-gray-500')}>2. Métodos de Pago</span>
                     <ChevronRight size={11} className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
-                    <span className={checkoutStep === 3 ? 'text-blue-500' : (isDarkMode ? 'text-gray-400' : 'text-gray-500')}>3. Emisión</span>
+                    <span className={checkoutStep === 3 ? 'text-primary' : (isDarkMode ? 'text-gray-400' : 'text-gray-500')}>3. Emisión</span>
                   </div>
                 )}
                 <button onClick={() => setIsCheckoutOpen(false)} className={isDarkMode ? 'text-gray-455 hover:text-white' : 'text-gray-555 hover:text-black'}><X size={17}/></button>
@@ -2003,7 +2003,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   {/* COLUMNA IZQUIERDA: CLIENTE Y DETALLE */}
                   <div className="space-y-4">
                     {/* CLIENTE */}
-                    <div className={`p-4 rounded-2xl border space-y-3 ${isDarkMode ? 'bg-black/20 border-white/5' : 'bg-blue-50/20 border-blue-100'}`}>
+                    <div className={`p-4 rounded-2xl border space-y-3 ${isDarkMode ? 'bg-black/20 border-white/5' : 'bg-primary/5 border-primary/15'}`}>
                       <h4 className={`text-sm md:text-base font-bold uppercase tracking-wider ${isDarkMode ? 'text-white' : 'text-black'}`}>Cliente de la Venta</h4>
                       <div className="flex items-center gap-2">
                         <div className="flex-1">
@@ -2011,7 +2011,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                             value={selectedClientId} 
                             onChange={e => setSelectedClientId(e.target.value)} 
                             className={`w-full text-sm md:text-base font-semibold px-3 py-2.5 outline-none rounded-xl border ${
-                              isDarkMode ? 'border-white/10 bg-black text-white' : 'border-blue-150 bg-white text-black'
+                              isDarkMode ? 'border-white/10 bg-black text-white' : 'border-primary/20 bg-white text-black'
                             }`}
                           >
                             <option value="" className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>Consumidor Final (9999999999999)</option>
@@ -2028,7 +2028,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                             });
                             setIsQuickAddOpen(true);
                           }}
-                          className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white transition-all shrink-0 text-sm md:text-base font-bold shadow-sm"
+                          className="px-4 py-2.5 rounded-xl bg-primary hover:bg-primary text-white transition-all shrink-0 text-sm md:text-base font-bold shadow-sm"
                         >
                           Crear
                         </button>
@@ -2037,21 +2037,21 @@ export default function PosView({ products, thirdParties, transactions = [], isD
 
                     {/* DATOS CLIENTE */}
                     <div className={`p-4 rounded-2xl border space-y-2 text-xs md:text-sm ${
-                      isDarkMode ? 'border-white/5 bg-black/10 text-gray-300' : 'border-blue-100 bg-blue-50/5 text-black'
+                      isDarkMode ? 'border-white/5 bg-black/10 text-gray-300' : 'border-primary/15 bg-primary/5 text-black'
                     }`}>
                       <p className={`font-bold ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Datos Facturación del Receptor:</p>
                       <div className="grid grid-cols-2 gap-2 text-sm md:text-base pt-1">
-                        <p><span className={`font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-blue-800'}`}>Razón Social:</span> {getSelectedClient().name}</p>
-                        <p><span className={`font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-blue-800'}`}>Identificación:</span> {getSelectedClient().ruc}</p>
-                        <p><span className={`font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-blue-800'}`}>Teléfono:</span> {getSelectedClient().telefono || '-'}</p>
-                        <p><span className={`font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-blue-800'}`}>Email:</span> {getSelectedClient().email || '-'}</p>
-                        <p className="col-span-2"><span className={`font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-blue-800'}`}>Dirección:</span> {getSelectedClient().direccion || '-'}</p>
+                        <p><span className={`font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-primary'}`}>Razón Social:</span> {getSelectedClient().name}</p>
+                        <p><span className={`font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-primary'}`}>Identificación:</span> {getSelectedClient().ruc}</p>
+                        <p><span className={`font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-primary'}`}>Teléfono:</span> {getSelectedClient().telefono || '-'}</p>
+                        <p><span className={`font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-primary'}`}>Email:</span> {getSelectedClient().email || '-'}</p>
+                        <p className="col-span-2"><span className={`font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-primary'}`}>Dirección:</span> {getSelectedClient().direccion || '-'}</p>
                       </div>
                     </div>
 
                     {/* PREVISUALIZACION DETALLE */}
                     <div className={`p-4 rounded-2xl border space-y-3 text-xs md:text-sm ${
-                      isDarkMode ? 'border-white/5 bg-black/10 text-gray-300' : 'border-blue-100 bg-blue-50/5 text-black'
+                      isDarkMode ? 'border-white/5 bg-black/10 text-gray-300' : 'border-primary/15 bg-primary/5 text-black'
                     }`}>
                       <h4 className={`text-sm md:text-base font-bold uppercase tracking-wider ${isDarkMode ? 'text-white' : 'text-black'}`}>Ítems a Facturar</h4>
                       <div className="max-h-[140px] overflow-y-auto space-y-1.5 pr-1 custom-scrollbar text-xs md:text-sm">
@@ -2062,10 +2062,10 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                           </div>
                         ))}
                       </div>
-                      <div className={`border-t pt-2.5 mt-2 flex justify-between font-black text-xs md:text-sm ${isDarkMode ? 'border-white/5 text-white' : 'border-blue-100 text-black'}`}>
+                      <div className={`border-t pt-2.5 mt-2 flex justify-between font-black text-xs md:text-sm ${isDarkMode ? 'border-white/5 text-white' : 'border-primary/15 text-black'}`}>
                         <span>Subtotal: ${(getSubtotal() + getIva()).toFixed(2)}</span>
                         {getDiscountAmount() > 0 && <span className="text-red-500 font-bold">Desc: -${getDiscountAmount().toFixed(2)}</span>}
-                        <span className={isDarkMode ? 'text-emerald-400' : 'text-blue-700'}>TOTAL: ${totalToPay.toFixed(2)}</span>
+                        <span className={isDarkMode ? 'text-emerald-400' : 'text-primary'}>TOTAL: ${totalToPay.toFixed(2)}</span>
                       </div>
                     </div>
                   </div>
@@ -2073,7 +2073,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   {/* COLUMNA DERECHA: METODOS DE PAGO Y VUELTO */}
                   <div className="space-y-4">
                     <div className={`p-4 rounded-2xl border flex justify-between items-center ${
-                      isDarkMode ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' : 'bg-blue-50 border-blue-200 text-blue-700 shadow-sm'
+                      isDarkMode ? 'bg-primary/10 border-primary/20 text-primary' : 'bg-primary-light border-primary/25 text-primary shadow-sm'
                     }`}>
                       <span className="text-sm font-bold">TOTAL A COBRAR:</span>
                       <span className="text-2xl font-black">${totalToPay.toFixed(2)}</span>
@@ -2083,7 +2083,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                       <h4 className={`text-xs font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Medios de Pago (Admite Combinados)</h4>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {/* Efectivo */}
-                        <div className={`p-3 rounded-xl border space-y-1.5 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-blue-100 bg-blue-50/10'}`}>
+                        <div className={`p-3 rounded-xl border space-y-1.5 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-primary/15 bg-primary/5'}`}>
                           <label className="text-xs font-bold block">Efectivo ($)</label>
                           <input type="number" step="0.01" value={payments.efectivo || ''} onChange={e => setPayments({...payments, efectivo: e.target.value})} className={isDarkMode ? 'glass-input-dark px-3 py-2 w-full text-sm font-semibold rounded-lg border' : 'glass-input-light px-3 py-2 w-full text-sm font-semibold rounded-lg border'} placeholder="0.00" />
                           <div className="flex gap-1.5 mt-1.5 flex-wrap">
@@ -2096,7 +2096,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                                   setPayments({ ...payments, efectivo: (current + val).toFixed(2) });
                                 }}
                                 className={`px-1.5 py-0.5 text-xs font-bold rounded border transition-colors ${
-                                  isDarkMode ? 'border-white/10 bg-white/5 text-white hover:bg-white/10' : 'border-blue-100 bg-white text-blue-755 hover:bg-blue-50'
+                                  isDarkMode ? 'border-white/10 bg-white/5 text-white hover:bg-white/10' : 'border-primary/15 bg-white text-primary hover:bg-primary-light'
                                 }`}
                               >
                                 +{val}
@@ -2109,7 +2109,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                                 setPayments({ ...payments, efectivo: pending.toFixed(2) });
                               }}
                               className={`px-1.5 py-0.5 text-xs font-bold rounded border transition-colors ${
-                                isDarkMode ? 'border-blue-500/20 bg-blue-600/20 text-blue-400 hover:bg-blue-600/30' : 'border-blue-200 bg-blue-50 text-blue-755 hover:bg-blue-100'
+                                isDarkMode ? 'border-primary/20 bg-primary/20 text-primary hover:bg-primary/30' : 'border-primary/25 bg-primary-light text-primary hover:bg-primary/10'
                               }`}
                             >
                               Exacto
@@ -2118,21 +2118,21 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                         </div>
 
                         {/* Tarjeta */}
-                        <div className={`p-3 rounded-xl border space-y-1.5 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-blue-100 bg-blue-50/10'}`}>
+                        <div className={`p-3 rounded-xl border space-y-1.5 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-primary/15 bg-primary/5'}`}>
                           <label className="text-xs font-bold block">Tarjeta ($)</label>
                           <input type="number" step="0.01" value={payments.tarjeta || ''} onChange={e => setPayments({...payments, tarjeta: e.target.value})} className={isDarkMode ? 'glass-input-dark px-2 py-1.5 w-full text-xs rounded-lg border' : 'glass-input-light px-2 py-1.5 w-full text-xs rounded-lg border'} placeholder="0.00" />
                           <input type="text" value={payments.tarjetaRef} onChange={e => setPayments({...payments, tarjetaRef: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} px-2 py-1 w-full text-xs rounded-lg border`} placeholder="Ref/Aut" />
                         </div>
 
                         {/* Transferencia */}
-                        <div className={`p-3 rounded-xl border space-y-1.5 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-blue-100 bg-blue-50/10'}`}>
+                        <div className={`p-3 rounded-xl border space-y-1.5 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-primary/15 bg-primary/5'}`}>
                           <label className="text-[11px] font-bold block">Transferencia ($)</label>
                           <input type="number" step="0.01" value={payments.transferencia || ''} onChange={e => setPayments({...payments, transferencia: e.target.value})} className={isDarkMode ? 'glass-input-dark px-2 py-1.5 w-full text-xs rounded-lg border' : 'glass-input-light px-2 py-1.5 w-full text-xs rounded-lg border'} placeholder="0.00" />
                           <input type="text" value={payments.transferenciaRef} onChange={e => setPayments({...payments, transferenciaRef: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} px-2 py-1 w-full text-xs rounded-lg border`} placeholder="Nro Ref" />
                         </div>
 
                         {/* Cruce de Cuentas */}
-                        <div className={`p-3 rounded-xl border space-y-1.5 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-blue-100 bg-blue-50/10'}`}>
+                        <div className={`p-3 rounded-xl border space-y-1.5 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-primary/15 bg-primary/5'}`}>
                           <label className="text-[11px] font-bold block">Cruce Cuentas ($)</label>
                           <input type="number" step="0.01" value={payments.cruce_cuentas || ''} onChange={e => setPayments({...payments, cruce_cuentas: e.target.value})} className={isDarkMode ? 'glass-input-dark px-2 py-1.5 w-full text-xs rounded-lg border' : 'glass-input-light px-2 py-1.5 w-full text-xs rounded-lg border'} placeholder="0.00" />
                           <input type="text" value={payments.cruceRef} onChange={e => setPayments({...payments, cruceRef: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} px-2 py-1 w-full text-[9px] rounded-lg border`} placeholder="Nro Doc" />
@@ -2140,7 +2140,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                       </div>
                     </div>
 
-                    <div className={`p-4 rounded-xl space-y-1 text-sm font-mono border ${isDarkMode ? 'bg-black/20 border-white/5 text-gray-300' : 'bg-blue-50/20 border-blue-100 text-black'}`}>
+                    <div className={`p-4 rounded-xl space-y-1 text-sm font-mono border ${isDarkMode ? 'bg-black/20 border-white/5 text-gray-300' : 'bg-primary/5 border-primary/15 text-black'}`}>
                       <div className="flex justify-between">
                         <span>Total Pagado:</span>
                         <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-black'}`}>${paidTotal.toFixed(2)}</span>
@@ -2151,7 +2151,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                           <span>${remainingDue.toFixed(2)}</span>
                         </div>
                       ) : (
-                        <div className={`flex justify-between font-bold border-t pt-1 ${isDarkMode ? 'text-emerald-400 border-white/5' : 'text-emerald-650 border-blue-100'}`}>
+                        <div className={`flex justify-between font-bold border-t pt-1 ${isDarkMode ? 'text-emerald-400 border-white/5' : 'text-emerald-650 border-primary/15'}`}>
                           <span>Cambio / Vuelto:</span>
                           <span>${changeDue.toFixed(2)}</span>
                         </div>
@@ -2164,7 +2164,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   {/* PASO 1: CLIENTE */}
                   {checkoutStep === 1 && (
                     <div className="space-y-4 animate-in slide-in-from-right-4 duration-300 text-xs md:text-sm">
-                      <div className={`p-4 rounded-2xl border space-y-3 ${isDarkMode ? 'bg-black/20 border-white/5' : 'bg-blue-50/20 border-blue-100'}`}>
+                      <div className={`p-4 rounded-2xl border space-y-3 ${isDarkMode ? 'bg-black/20 border-white/5' : 'bg-primary/5 border-primary/15'}`}>
                         <h4 className={`text-xs md:text-sm font-bold uppercase tracking-wider ${isDarkMode ? 'text-white' : 'text-black'}`}>Cliente de la Venta</h4>
                         <div className="flex items-center gap-2">
                           <div className="flex-1">
@@ -2172,7 +2172,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                               value={selectedClientId} 
                               onChange={e => setSelectedClientId(e.target.value)} 
                               className={`w-full text-xs md:text-sm font-semibold px-3 py-2.5 outline-none rounded-xl border ${
-                                isDarkMode ? 'border-white/10 bg-black text-white' : 'border-blue-150 bg-white text-black'
+                                isDarkMode ? 'border-white/10 bg-black text-white' : 'border-primary/20 bg-white text-black'
                               }`}
                             >
                               <option value="" className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>Consumidor Final (9999999999999)</option>
@@ -2189,14 +2189,14 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                               });
                               setIsQuickAddOpen(true);
                             }}
-                            className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white transition-all shrink-0 text-xs md:text-sm font-bold shadow-sm"
+                            className="px-4 py-2.5 rounded-xl bg-primary hover:bg-primary text-white transition-all shrink-0 text-xs md:text-sm font-bold shadow-sm"
                           >
                             Crear Nuevo Cliente
                           </button>
                         </div>
                       </div>
 
-                      <div className={`p-4 rounded-2xl border space-y-3 ${isDarkMode ? 'bg-black/20 border-white/5' : 'bg-blue-50/20 border-blue-100'}`}>
+                      <div className={`p-4 rounded-2xl border space-y-3 ${isDarkMode ? 'bg-black/20 border-white/5' : 'bg-primary/5 border-primary/15'}`}>
                         <h4 className={`text-xs md:text-sm font-bold uppercase tracking-wider ${isDarkMode ? 'text-white' : 'text-black'}`}>Tipo de Documento a Emitir</h4>
                         {sriConfig?.rucActivo === false && (
                           <div className="p-3 bg-amber-500/10 border border-amber-500/25 text-amber-500 rounded-xl flex items-center gap-2 text-xs font-semibold">
@@ -2214,7 +2214,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                             setPosDocType(e.target.value);
                           }} 
                           className={`w-full text-xs md:text-sm font-semibold px-3 py-2.5 outline-none rounded-xl border ${
-                            isDarkMode ? 'border-white/10 bg-black text-white' : 'border-blue-150 bg-white text-black'
+                            isDarkMode ? 'border-white/10 bg-black text-white' : 'border-primary/20 bg-white text-black'
                           }`}
                         >
                           <option value="factura" disabled={sriConfig?.rucActivo === false} className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>
@@ -2225,15 +2225,15 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                       </div>
 
                       <div className={`p-4 rounded-2xl border space-y-2 text-xs md:text-sm ${
-                        isDarkMode ? 'border-white/5 bg-black/10 text-gray-300' : 'border-blue-100 bg-blue-50/5 text-black'
+                        isDarkMode ? 'border-white/5 bg-black/10 text-gray-300' : 'border-primary/15 bg-primary/5 text-black'
                       }`}>
                         <p className={`font-bold ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Datos Facturación del Receptor:</p>
                         <div className="grid grid-cols-2 gap-3 text-xs md:text-sm pt-1">
-                          <p><span className={`font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-blue-800'}`}>Razón Social:</span> {getSelectedClient().name}</p>
-                          <p><span className={`font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-blue-800'}`}>Identificación:</span> {getSelectedClient().ruc}</p>
-                          <p><span className={`font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-blue-800'}`}>Teléfono:</span> {getSelectedClient().telefono || '-'}</p>
-                          <p><span className={`font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-blue-800'}`}>Email:</span> {getSelectedClient().email || '-'}</p>
-                          <p className="col-span-2"><span className={`font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-blue-800'}`}>Dirección:</span> {getSelectedClient().direccion || '-'}</p>
+                          <p><span className={`font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-primary'}`}>Razón Social:</span> {getSelectedClient().name}</p>
+                          <p><span className={`font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-primary'}`}>Identificación:</span> {getSelectedClient().ruc}</p>
+                          <p><span className={`font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-primary'}`}>Teléfono:</span> {getSelectedClient().telefono || '-'}</p>
+                          <p><span className={`font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-primary'}`}>Email:</span> {getSelectedClient().email || '-'}</p>
+                          <p className="col-span-2"><span className={`font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-primary'}`}>Dirección:</span> {getSelectedClient().direccion || '-'}</p>
                         </div>
                       </div>
                     </div>
@@ -2243,7 +2243,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   {checkoutStep === 2 && (
                     <div className="space-y-4 animate-in slide-in-from-right-4 duration-300 text-xs md:text-sm">
                       <div className={`p-4.5 rounded-2xl border flex justify-between items-center ${
-                        isDarkMode ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' : 'bg-blue-50 border-blue-200 text-blue-700 shadow-sm'
+                        isDarkMode ? 'bg-primary/10 border-primary/20 text-primary' : 'bg-primary-light border-primary/25 text-primary shadow-sm'
                       }`}>
                         <span className="text-sm md:text-base font-black">TOTAL A PAGAR:</span>
                         <span className="text-xl font-black">${totalToPay.toFixed(2)}</span>
@@ -2254,7 +2254,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           {/* Efectivo */}
-                          <div className={`p-4 rounded-xl border space-y-2 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-blue-100 bg-blue-50/10'}`}>
+                          <div className={`p-4 rounded-xl border space-y-2 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-primary/15 bg-primary/5'}`}>
                             <label className={`text-xs md:text-sm font-bold block ${isDarkMode ? 'text-white' : 'text-black'}`}>Efectivo ($)</label>
                             <input type="number" step="0.01" value={payments.efectivo || ''} onChange={e => setPayments({...payments, efectivo: e.target.value})} className={isDarkMode ? 'glass-input-dark px-3.5 py-3 w-full text-base font-bold rounded-xl outline-none border' : 'glass-input-light px-3.5 py-3 w-full text-base font-bold rounded-xl outline-none border'} placeholder="0.00" />
                             <div className="flex flex-wrap gap-1.5 mt-2">
@@ -2267,7 +2267,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                                     setPayments({ ...payments, efectivo: (current + val).toFixed(2) });
                                   }}
                                   className={`px-2.5 py-1 text-xs md:text-sm font-bold rounded-lg border transition-colors ${
-                                    isDarkMode ? 'border-white/10 bg-white/5 hover:bg-white/10 text-white' : 'border-blue-100 bg-white hover:bg-blue-50 text-blue-755 hover:bg-blue-100/50'
+                                    isDarkMode ? 'border-white/10 bg-white/5 hover:bg-white/10 text-white' : 'border-primary/15 bg-white hover:bg-primary-light text-primary hover:bg-primary/10'
                                   }`}
                                 >
                                   +{val}
@@ -2280,7 +2280,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                                   setPayments({ ...payments, efectivo: pending.toFixed(2) });
                                 }}
                                 className={`px-2.5 py-1 text-xs md:text-sm font-bold rounded-lg border transition-colors ${
-                                  isDarkMode ? 'border-blue-500/20 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400' : 'border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700'
+                                  isDarkMode ? 'border-primary/20 bg-primary/20 hover:bg-primary/30 text-primary' : 'border-primary/25 bg-primary-light hover:bg-primary/10 text-primary'
                                 }`}
                               >
                                 Exacto
@@ -2289,21 +2289,21 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                           </div>
                           
                           {/* Tarjeta */}
-                          <div className={`p-4 rounded-xl border space-y-2 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-blue-100 bg-blue-50/10'}`}>
+                          <div className={`p-4 rounded-xl border space-y-2 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-primary/15 bg-primary/5'}`}>
                             <label className={`text-xs md:text-sm font-bold block ${isDarkMode ? 'text-white' : 'text-black'}`}>Tarjeta (Crédito/Débito) ($)</label>
                             <input type="number" step="0.01" value={payments.tarjeta || ''} onChange={e => setPayments({...payments, tarjeta: e.target.value})} className={isDarkMode ? 'glass-input-dark px-3 py-2.5 w-full text-sm font-bold rounded-xl outline-none border' : 'glass-input-light px-3 py-2.5 w-full text-sm font-bold rounded-xl outline-none border'} placeholder="0.00" />
                             <input type="text" value={payments.tarjetaRef} onChange={e => setPayments({...payments, tarjetaRef: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} px-3 py-2 w-full text-sm mt-1.5 rounded-xl border`} placeholder="Ref / Autorización" />
                           </div>
 
                           {/* Transferencia */}
-                          <div className={`p-4 rounded-xl border space-y-2 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-blue-100 bg-blue-50/10'}`}>
+                          <div className={`p-4 rounded-xl border space-y-2 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-primary/15 bg-primary/5'}`}>
                             <label className={`text-xs md:text-sm font-bold block ${isDarkMode ? 'text-white' : 'text-black'}`}>Transferencia Bancaria ($)</label>
                             <input type="number" step="0.01" value={payments.transferencia || ''} onChange={e => setPayments({...payments, transferencia: e.target.value})} className={isDarkMode ? 'glass-input-dark px-3 py-2.5 w-full text-sm font-bold rounded-xl outline-none border' : 'glass-input-light px-3 py-2.5 w-full text-sm font-bold rounded-xl outline-none border'} placeholder="0.00" />
                             <input type="text" value={payments.transferenciaRef} onChange={e => setPayments({...payments, transferenciaRef: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} px-3 py-2 w-full text-xs mt-1.5 rounded-xl border`} placeholder="Nro Referencia / Comprobante" />
                           </div>
 
                           {/* Cruce de Cuentas */}
-                          <div className={`p-4 rounded-xl border space-y-2 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-blue-100 bg-blue-50/10'}`}>
+                          <div className={`p-4 rounded-xl border space-y-2 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-primary/15 bg-primary/5'}`}>
                             <label className={`text-xs md:text-sm font-bold block ${isDarkMode ? 'text-white' : 'text-black'}`}>Cruce de Cuentas ($)</label>
                             <input type="number" step="0.01" value={payments.cruce_cuentas || ''} onChange={e => setPayments({...payments, cruce_cuentas: e.target.value})} className={isDarkMode ? 'glass-input-dark px-3 py-2.5 w-full text-sm font-bold rounded-xl outline-none border' : 'glass-input-light px-3 py-2.5 w-full text-sm font-bold rounded-xl outline-none border'} placeholder="0.00" />
                             <input type="text" value={payments.cruceRef} onChange={e => setPayments({...payments, cruceRef: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} px-3 py-2 w-full text-xs mt-1.5 rounded-xl border`} placeholder="Nro de Documento Relacionado" />
@@ -2311,7 +2311,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                         </div>
                       </div>
 
-                      <div className={`p-4 rounded-xl space-y-2.5 text-xs md:text-sm font-mono border ${isDarkMode ? 'bg-black/20 border-white/5 text-gray-300' : 'bg-blue-50/20 border-blue-100 text-black'}`}>
+                      <div className={`p-4 rounded-xl space-y-2.5 text-xs md:text-sm font-mono border ${isDarkMode ? 'bg-black/20 border-white/5 text-gray-300' : 'bg-primary/5 border-primary/15 text-black'}`}>
                         <div className="flex justify-between">
                           <span>Total Pagado:</span>
                           <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-black'}`}>${paidTotal.toFixed(2)}</span>
@@ -2322,7 +2322,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                             <span>${remainingDue.toFixed(2)}</span>
                           </div>
                         ) : (
-                          <div className={`flex justify-between font-bold border-t pt-1 ${isDarkMode ? 'text-emerald-400 border-white/5' : 'text-emerald-650 border-blue-100'}`}>
+                          <div className={`flex justify-between font-bold border-t pt-1 ${isDarkMode ? 'text-emerald-400 border-white/5' : 'text-emerald-650 border-primary/15'}`}>
                             <span>Cambio / Vuelto en Efectivo:</span>
                             <span>${changeDue.toFixed(2)}</span>
                           </div>
@@ -2334,27 +2334,27 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   {/* PASO 3: CONFIRMACIÓN Y EMISION */}
                   {checkoutStep === 3 && (
                     <div className="space-y-4 animate-in slide-in-from-right-4 duration-300 text-xs">
-                      <div className={`p-5 rounded-2xl border space-y-3 ${isDarkMode ? 'bg-black border-white/5 text-gray-400' : 'bg-white border-blue-150 text-black shadow-inner'}`}>
-                        <h4 className={`text-sm font-black text-center uppercase tracking-widest border-b pb-2 ${isDarkMode ? 'text-white border-white/5' : 'text-black border-blue-100'}`}>PREVISUALIZACIÓN DE FACTURA (RIDE)</h4>
+                      <div className={`p-5 rounded-2xl border space-y-3 ${isDarkMode ? 'bg-black border-white/5 text-gray-400' : 'bg-white border-primary/20 text-black shadow-inner'}`}>
+                        <h4 className={`text-sm font-black text-center uppercase tracking-widest border-b pb-2 ${isDarkMode ? 'text-white border-white/5' : 'text-black border-primary/15'}`}>PREVISUALIZACIÓN DE FACTURA (RIDE)</h4>
                         
                         <div className="grid grid-cols-2 gap-4 text-xs leading-normal">
                           <div>
-                            <p className={`font-bold uppercase ${isDarkMode ? 'text-white' : 'text-blue-800'}`}>RECEPTOR</p>
+                            <p className={`font-bold uppercase ${isDarkMode ? 'text-white' : 'text-primary'}`}>RECEPTOR</p>
                             <p className={isDarkMode ? 'text-gray-400' : 'text-black font-medium'}><span className="font-bold">Razon Social:</span> {getSelectedClient().name}</p>
                             <p className={isDarkMode ? 'text-gray-400' : 'text-black font-medium'}><span className="font-bold">RUC/CI:</span> {getSelectedClient().ruc}</p>
                             <p className={isDarkMode ? 'text-gray-400' : 'text-black font-medium'}><span className="font-bold">Correo:</span> {getSelectedClient().email}</p>
                             <p className={isDarkMode ? 'text-gray-400' : 'text-black font-medium'}><span className="font-bold">Dirección:</span> {getSelectedClient().direccion}</p>
                           </div>
                           <div className="text-right">
-                            <p className={`font-bold uppercase ${isDarkMode ? 'text-white' : 'text-blue-800'}`}>COMPROBANTE</p>
+                            <p className={`font-bold uppercase ${isDarkMode ? 'text-white' : 'text-primary'}`}>COMPROBANTE</p>
                             <p className={isDarkMode ? 'text-gray-400' : 'text-black font-medium'}>Establecimiento: {activeSession.branch}</p>
                             <p className={isDarkMode ? 'text-gray-400' : 'text-black font-medium'}>Fecha: {new Date().toLocaleDateString()}</p>
                             <p className={isDarkMode ? 'text-gray-400' : 'text-black font-medium'}>Ambiente SRI: PRUEBAS (Offline)</p>
                           </div>
                         </div>
 
-                        <div className={`border-t pt-3 ${isDarkMode ? 'border-white/5' : 'border-blue-100'}`}>
-                          <p className={`font-bold text-[10px] uppercase mb-1.5 ${isDarkMode ? 'text-white' : 'text-blue-800'}`}>Ítems Detallados</p>
+                        <div className={`border-t pt-3 ${isDarkMode ? 'border-white/5' : 'border-primary/15'}`}>
+                          <p className={`font-bold text-[10px] uppercase mb-1.5 ${isDarkMode ? 'text-white' : 'text-primary'}`}>Ítems Detallados</p>
                           <div className="space-y-1 text-[10px]">
                             {cart.map((item, idx) => (
                               <div key={idx} className="flex justify-between">
@@ -2365,12 +2365,12 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                           </div>
                         </div>
 
-                        <div className={`border-t pt-3 flex justify-between font-bold text-sm ${isDarkMode ? 'border-white/5 text-white' : 'border-blue-100 text-black'}`}>
+                        <div className={`border-t pt-3 flex justify-between font-bold text-sm ${isDarkMode ? 'border-white/5 text-white' : 'border-primary/15 text-black'}`}>
                           <span>Total Neto Cobrado:</span>
-                          <span className={isDarkMode ? 'text-white' : 'text-blue-750'}>${totalToPay.toFixed(2)}</span>
+                          <span className={isDarkMode ? 'text-white' : 'text-primary'}>${totalToPay.toFixed(2)}</span>
                         </div>
 
-                        <div className={`text-xs border-t pt-2 ${isDarkMode ? 'text-gray-500 border-white/5' : 'text-black border-blue-100 font-semibold'}`}>
+                        <div className={`text-xs border-t pt-2 ${isDarkMode ? 'text-gray-500 border-white/5' : 'text-black border-primary/15 font-semibold'}`}>
                           <p>Métodos Registrados: Efectivo: ${Number(payments.efectivo).toFixed(2)} | Tarjeta: ${Number(payments.tarjeta).toFixed(2)} | Transf: ${Number(payments.transferencia).toFixed(2)} | Cruce: ${Number(payments.cruce_cuentas).toFixed(2)}</p>
                           <p className="mt-0.5">Vuelto entregado: ${changeDue.toFixed(2)}</p>
                         </div>
@@ -2385,7 +2385,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
 
             {/* WIZARD ACTIONS BAR */}
             <div className={`px-6 py-4 border-t shrink-0 ${
-              isDarkMode ? 'border-white/5 bg-black/20' : 'border-blue-100 bg-blue-50/30'
+              isDarkMode ? 'border-white/5 bg-black/20' : 'border-primary/15 bg-primary-light'
             }`}>
               <div className="max-w-4xl mx-auto w-full flex justify-between">
               {posConfig.expressCheckout ? (
@@ -2394,7 +2394,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                     type="button" 
                     onClick={() => setIsCheckoutOpen(false)}
                     className={`px-4 py-2 rounded-xl border text-xs font-semibold ${
-                      isDarkMode ? 'border-white/5 hover:bg-white/5 text-gray-300' : 'border-blue-150 hover:bg-blue-50/80 bg-white text-black'
+                      isDarkMode ? 'border-white/5 hover:bg-white/5 text-gray-300' : 'border-primary/20 hover:bg-primary-light bg-white text-black'
                     }`}
                   >
                     Cancelar
@@ -2415,7 +2415,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                     disabled={checkoutStep === 1 || isProcessing}
                     onClick={() => setCheckoutStep(prev => prev - 1)}
                     className={`px-4 py-2 rounded-xl border text-xs font-semibold disabled:opacity-30 transition-colors ${
-                      isDarkMode ? 'border-white/5 hover:bg-white/5 text-gray-300' : 'border-blue-150 hover:bg-blue-50/80 bg-white text-black'
+                      isDarkMode ? 'border-white/5 hover:bg-white/5 text-gray-300' : 'border-primary/20 hover:bg-primary-light bg-white text-black'
                     }`}
                   >
                     Anterior
@@ -2431,7 +2431,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                         }
                         setCheckoutStep(prev => prev + 1);
                       }}
-                      className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-sm hover:scale-105 active:scale-95 transition-all"
+                      className="px-5 py-2 rounded-xl bg-primary hover:bg-primary text-white font-bold text-xs shadow-sm hover:scale-105 active:scale-95 transition-all"
                     >
                       Siguiente
                     </button>
@@ -2457,7 +2457,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
       {isQuickAddOpen && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
           <div className={`w-full max-w-md p-6 rounded-3xl border shadow-2xl transition-all duration-300 ${
-            isDarkMode ? 'bg-[#151517] border-white/10 text-white shadow-black/80' : 'bg-white border-blue-100 text-black shadow-blue-900/10'
+            isDarkMode ? 'bg-[#151517] border-white/10 text-white shadow-black/80' : 'bg-white border-primary/15 text-black shadow-primary/10'
           }`}>
             <h3 className="text-base font-black mb-4">Registro Rápido de Cliente (SRI)</h3>
             
@@ -2469,7 +2469,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                     value={quickAddFormData.tipoIdentificacion} 
                     onChange={e => setQuickAddFormData({...quickAddFormData, tipoIdentificacion: e.target.value})} 
                     className={`w-full text-sm px-3 py-2.5 rounded-xl outline-none border ${
-                      isDarkMode ? 'bg-black border-white/10 text-white' : 'bg-white border-blue-100 text-black'
+                      isDarkMode ? 'bg-black border-white/10 text-white' : 'bg-white border-primary/15 text-black'
                     }`}
                   >
                     <option value="ruc" className="text-black bg-white">RUC</option>
@@ -2486,7 +2486,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                       value={quickAddFormData.ruc} 
                       onChange={e => setQuickAddFormData({...quickAddFormData, ruc: e.target.value})} 
                       className={`w-full text-sm px-3 py-2.5 rounded-xl outline-none border ${
-                        isDarkMode ? 'bg-black border-white/10 text-white focus:border-blue-500/50' : 'bg-white border-blue-100 text-black focus:border-blue-600'
+                        isDarkMode ? 'bg-black border-white/10 text-white focus:border-primary/50' : 'bg-white border-primary/15 text-black focus:border-primary'
                       }`}
                       placeholder="1790000000001" 
                     />
@@ -2510,7 +2510,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   value={quickAddFormData.name} 
                   onChange={e => setQuickAddFormData({...quickAddFormData, name: e.target.value})} 
                   className={`w-full text-xs px-2.5 py-2.5 rounded-xl outline-none border ${
-                    isDarkMode ? 'bg-black border-white/10 text-white focus:border-blue-500/50' : 'bg-white border-blue-100 text-black focus:border-blue-600'
+                    isDarkMode ? 'bg-black border-white/10 text-white focus:border-primary/50' : 'bg-white border-primary/15 text-black focus:border-primary'
                   }`} 
                 />
               </div>
@@ -2523,7 +2523,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                     value={quickAddFormData.telefono || ''} 
                     onChange={e => setQuickAddFormData({...quickAddFormData, telefono: e.target.value})} 
                     className={`w-full text-xs px-2.5 py-2.5 rounded-xl outline-none border ${
-                      isDarkMode ? 'bg-black border-white/10 text-white focus:border-blue-500/50' : 'bg-white border-blue-100 text-black focus:border-blue-600'
+                      isDarkMode ? 'bg-black border-white/10 text-white focus:border-primary/50' : 'bg-white border-primary/15 text-black focus:border-primary'
                     }`} 
                   />
                 </div>
@@ -2533,7 +2533,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                     value={quickAddFormData.tipoContribuyente} 
                     onChange={e => setQuickAddFormData({...quickAddFormData, tipoContribuyente: e.target.value})} 
                     className={`w-full text-xs px-2.5 py-2.5 rounded-xl outline-none border ${
-                      isDarkMode ? 'bg-black border-white/10 text-white' : 'bg-white border-blue-100 text-black'
+                      isDarkMode ? 'bg-black border-white/10 text-white' : 'bg-white border-primary/15 text-black'
                     }`}
                   >
                     <option value="general" className="text-black bg-white">Régimen General</option>
@@ -2550,7 +2550,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   value={quickAddFormData.direccion || ''} 
                   onChange={e => setQuickAddFormData({...quickAddFormData, direccion: e.target.value})} 
                   className={`w-full text-xs px-2.5 py-2.5 rounded-xl outline-none border ${
-                    isDarkMode ? 'bg-black border-white/10 text-white focus:border-blue-500/50' : 'bg-white border-blue-100 text-black focus:border-blue-600'
+                    isDarkMode ? 'bg-black border-white/10 text-white focus:border-primary/50' : 'bg-white border-primary/15 text-black focus:border-primary'
                   }`} 
                 />
               </div>
@@ -2562,13 +2562,13 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   value={quickAddFormData.email || ''} 
                   onChange={e => setQuickAddFormData({...quickAddFormData, email: e.target.value})} 
                   className={`w-full text-xs px-2.5 py-2.5 rounded-xl outline-none border ${
-                    isDarkMode ? 'bg-black border-white/10 text-white focus:border-blue-500/50' : 'bg-white border-blue-100 text-black focus:border-blue-600'
+                    isDarkMode ? 'bg-black border-white/10 text-white focus:border-primary/50' : 'bg-white border-primary/15 text-black focus:border-primary'
                   }`} 
                 />
               </div>
 
-              <div className={`flex justify-end gap-2.5 mt-6 pt-4 border-t ${isDarkMode ? 'border-white/5' : 'border-blue-100/55'}`}>
-                <button type="button" onClick={() => setIsQuickAddOpen(false)} className={`px-3.5 py-2 rounded-xl text-xs font-semibold ${isDarkMode ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-blue-100/50 text-black'}`}>Cancelar</button>
+              <div className={`flex justify-end gap-2.5 mt-6 pt-4 border-t ${isDarkMode ? 'border-white/5' : 'border-primary/15'}`}>
+                <button type="button" onClick={() => setIsQuickAddOpen(false)} className={`px-3.5 py-2 rounded-xl text-xs font-semibold ${isDarkMode ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-primary/10 text-black'}`}>Cancelar</button>
                 <button type="submit" className="px-4 py-2 rounded-xl text-sm font-black bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm hover:scale-105 active:scale-95 transition-all">Guardar y Seleccionar</button>
               </div>
             </form>
@@ -2580,11 +2580,11 @@ export default function PosView({ products, thirdParties, transactions = [], isD
       {isShortcutsOpen && (
         <div className="fixed inset-0 z-[160] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-250">
           <div className={`w-full max-w-md p-6 rounded-3xl border shadow-2xl transition-all duration-300 ${
-            isDarkMode ? 'bg-[#151517] border-white/10 text-white shadow-black/80' : 'bg-white border-blue-100 text-black shadow-blue-900/10'
+            isDarkMode ? 'bg-[#151517] border-white/10 text-white shadow-black/80' : 'bg-white border-primary/15 text-black shadow-primary/10'
           }`}>
             <div className="flex justify-between items-center mb-4 pb-2 border-b border-white/5">
               <h3 className="text-sm font-black uppercase tracking-wider flex items-center gap-2">
-                <Keyboard size={16} className="text-blue-500" /> Guía de Atajos de Teclado
+                <Keyboard size={16} className="text-primary" /> Guía de Atajos de Teclado
               </h3>
               <button onClick={() => setIsShortcutsOpen(false)} className="text-gray-550 hover:text-gray-300 transition-colors p-1"><X size={16} /></button>
             </div>
@@ -2601,9 +2601,9 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   { key: 'Ctrl + Enter', desc: 'Cobrar directamente desde el detalle de la venta' },
                   { key: 'Escape', desc: 'Cerrar cualquier ventana flotante o modal abierto' }
                 ].map((item, idx) => (
-                  <div key={idx} className={`flex items-center justify-between p-2.5 rounded-xl border ${isDarkMode ? 'bg-black/20 border-white/5 text-gray-300' : 'bg-blue-50/20 border-blue-100 text-black font-semibold'}`}>
+                  <div key={idx} className={`flex items-center justify-between p-2.5 rounded-xl border ${isDarkMode ? 'bg-black/20 border-white/5 text-gray-300' : 'bg-primary/5 border-primary/15 text-black font-semibold'}`}>
                     <span className="text-[11px] font-medium">{item.desc}</span>
-                    <kbd className={`px-2 py-1 rounded text-[10px] font-mono font-bold shadow ${isDarkMode ? 'bg-white/10 text-white border border-white/10' : 'bg-white text-black border border-blue-200'}`}>
+                    <kbd className={`px-2 py-1 rounded text-[10px] font-mono font-bold shadow ${isDarkMode ? 'bg-white/10 text-white border border-white/10' : 'bg-white text-black border border-primary/25'}`}>
                       {item.key}
                     </kbd>
                   </div>
@@ -2615,7 +2615,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
               <button 
                 type="button" 
                 onClick={() => setIsShortcutsOpen(false)} 
-                className="px-5 py-2.5 rounded-xl text-xs font-black transition-all bg-blue-600 hover:bg-blue-500 text-white shadow-sm hover:scale-105 active:scale-95"
+                className="px-5 py-2.5 rounded-xl text-xs font-black transition-all bg-primary hover:bg-primary text-white shadow-sm hover:scale-105 active:scale-95"
               >
                 Entendido
               </button>
@@ -2630,12 +2630,12 @@ export default function PosView({ products, thirdParties, transactions = [], isD
           <div className="absolute inset-0" onClick={() => setIsHistoryOpen(false)}></div>
           
           <div className={`relative w-full max-w-md h-full flex flex-col shadow-2xl animate-in slide-in-from-right duration-350 ${
-            isDarkMode ? 'bg-[#0f0f11] border-l border-white/5 text-white' : 'bg-[#fcfcff] border-l border-blue-100 text-black'
+            isDarkMode ? 'bg-[#0f0f11] border-l border-white/5 text-white' : 'bg-[#fcfcff] border-l border-primary/15 text-black'
           }`}>
             {/* Header */}
-            <div className={`p-4 border-b flex items-center justify-between shrink-0 ${isDarkMode ? 'border-white/5 bg-black/20' : 'border-blue-100 bg-blue-50/40'}`}>
+            <div className={`p-4 border-b flex items-center justify-between shrink-0 ${isDarkMode ? 'border-white/5 bg-black/20' : 'border-primary/15 bg-primary-light'}`}>
               <div className="flex items-center gap-2">
-                <History size={16} className="text-blue-500" />
+                <History size={16} className="text-primary" />
                 <div>
                   <h3 className="text-xs font-black uppercase tracking-wider">Historial de Ventas</h3>
                   <p className="text-[9px] text-gray-500">Sesión de caja activa</p>
@@ -2643,7 +2643,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
               </div>
               <button 
                 onClick={() => setIsHistoryOpen(false)} 
-                className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-white/5 text-gray-450 hover:text-white' : 'hover:bg-blue-100 text-gray-650 hover:text-black'}`}
+                className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-white/5 text-gray-450 hover:text-white' : 'hover:bg-primary/10 text-gray-650 hover:text-black'}`}
               >
                 <X size={16} />
               </button>
@@ -2656,7 +2656,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                 if (sessionTransactions.length === 0) {
                   return (
                     <div className="flex flex-col items-center justify-center py-24 text-gray-500 text-center">
-                      <History size={40} className="opacity-20 mb-2.5 text-blue-500" />
+                      <History size={40} className="opacity-20 mb-2.5 text-primary" />
                       <p className="text-xs italic font-medium">No se han emitido ventas en esta sesión.</p>
                     </div>
                   );
@@ -2670,7 +2670,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                       className={`p-3.5 rounded-2xl border flex flex-col justify-between gap-3 transition-all ${
                         isAnulado
                           ? 'opacity-65 border-red-500/20 bg-red-500/5'
-                          : (isDarkMode ? 'bg-black/25 border-white/5 hover:bg-black/35' : 'bg-white border-blue-100/70 shadow-sm hover:shadow')
+                          : (isDarkMode ? 'bg-black/25 border-white/5 hover:bg-black/35' : 'bg-white border-primary/15 shadow-sm hover:shadow')
                       }`}
                     >
                       <div className="flex justify-between items-start">
@@ -2682,7 +2682,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                           <p className="text-[9px] text-gray-500">RUC/CI: {matchedClient.ruc} | Fecha: {tx.date}</p>
                         </div>
                         <div className="text-right shrink-0">
-                          <span className={`text-sm font-black block ${isAnulado ? 'text-red-500 line-through' : (isDarkMode ? 'text-white' : 'text-blue-700')}`}>
+                          <span className={`text-sm font-black block ${isAnulado ? 'text-red-500 line-through' : (isDarkMode ? 'text-white' : 'text-primary')}`}>
                             ${Number(tx.total || 0).toFixed(2)}
                           </span>
                           <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-bold uppercase mt-1 ${
@@ -2697,7 +2697,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                         </div>
                       </div>
 
-                      <div className={`p-2 rounded-xl text-xs leading-relaxed font-mono ${isDarkMode ? 'bg-black/40 text-gray-400' : 'bg-blue-50/30 text-gray-700'}`}>
+                      <div className={`p-2 rounded-xl text-xs leading-relaxed font-mono ${isDarkMode ? 'bg-black/40 text-gray-400' : 'bg-primary-light text-gray-700'}`}>
                         <div className="flex justify-between">
                           <span>Pago: <span className="font-bold uppercase">{tx.paymentMethod}</span></span>
                           <span>Base: ${Number(tx.baseImponible || 0).toFixed(2)}</span>
@@ -2745,7 +2745,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                               target="_blank" 
                               rel="noreferrer" 
                               className={`p-1.5 rounded-lg border flex items-center justify-center transition-colors ${
-                                isDarkMode ? 'border-blue-500/20 bg-blue-500/10 text-blue-400 hover:bg-blue-500/25' : 'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100'
+                                isDarkMode ? 'border-primary/20 bg-primary/10 text-primary hover:bg-primary/25' : 'border-primary/25 bg-primary-light text-primary hover:bg-primary/10'
                               }`} 
                               title="Descargar XML SRI"
                             >
@@ -2775,12 +2775,12 @@ export default function PosView({ products, thirdParties, transactions = [], isD
             </div>
             
             {/* Footer */}
-            <div className={`p-4 border-t flex justify-end shrink-0 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-blue-100 bg-blue-50/20'}`}>
+            <div className={`p-4 border-t flex justify-end shrink-0 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-primary/15 bg-primary/5'}`}>
               <button 
                 type="button" 
                 onClick={() => setIsHistoryOpen(false)}
                 className={`w-full py-2.5 rounded-xl text-xs font-black transition-all ${
-                  isDarkMode ? 'bg-white/5 text-gray-300 hover:bg-white/10' : 'bg-white border border-blue-150 hover:bg-blue-50/80 text-black shadow-sm'
+                  isDarkMode ? 'bg-white/5 text-gray-300 hover:bg-white/10' : 'bg-white border border-primary/20 hover:bg-primary-light text-black shadow-sm'
                 }`}
               >
                 Cerrar Panel

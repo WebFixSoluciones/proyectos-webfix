@@ -367,7 +367,7 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
               onOpenForm(null);
             }
           }}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold transition-transform shadow-sm hover:-translate-y-0.5 ${isDarkMode ? 'bg-blue-600 text-white hover:bg-blue-500' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold transition-transform shadow-sm hover:-translate-y-0.5 ${isDarkMode ? 'bg-primary text-white hover:bg-primary' : 'bg-primary text-white hover:bg-primary-hover'}`}
         >
           <Plus size={14} /> Registrar {
             forcedDocType 
@@ -383,7 +383,7 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
       <div className={`rounded-2xl border overflow-hidden backdrop-blur-xl ${isDarkMode ? 'border-white/10 bg-white/[0.02]' : 'border-gray-355 bg-white shadow-sm'}`}>
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left text-xs whitespace-nowrap">
-            <thead className={`text-[10px] uppercase font-bold tracking-wider ${isDarkMode ? 'bg-black/40 text-gray-400' : 'bg-blue-50/50 text-[#000000] border-b border-blue-100'}`}>
+            <thead className={`text-[10px] uppercase font-bold tracking-wider ${isDarkMode ? 'bg-black/40 text-gray-400' : 'bg-primary-light text-[#000000] border-b border-primary/15'}`}>
               <tr>
                 <th className="px-6 py-4">Fecha</th>
                 <th className="px-6 py-4">Tipo</th>
@@ -412,7 +412,7 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
                   <td className="px-6 py-4">{getStatusBadge(tx.sriStatus, tx.documentType)}</td>
                   <td className="px-6 py-4">
                     <div className="flex gap-1.5">
-                      {tx.xmlUrl ? <a href={tx.xmlUrl} target="_blank" rel="noreferrer" className="p-1.5 rounded bg-blue-500/20 text-blue-500 hover:bg-blue-500/40" title="Ver XML"><FileText size={12}/></a> : <span className="p-1.5 rounded bg-gray-500/10 text-gray-400 border border-gray-200 opacity-60"><FileText size={12}/></span>}
+                      {tx.xmlUrl ? <a href={tx.xmlUrl} target="_blank" rel="noreferrer" className="p-1.5 rounded bg-primary/20 text-primary hover:bg-primary/40" title="Ver XML"><FileText size={12}/></a> : <span className="p-1.5 rounded bg-gray-500/10 text-gray-400 border border-gray-200 opacity-60"><FileText size={12}/></span>}
                       {tx.pdfUrl ? <a href={tx.pdfUrl} target="_blank" rel="noreferrer" className="p-1.5 rounded bg-red-500/20 text-red-500 hover:bg-red-500/40" title="Ver PDF"><FileText size={12}/></a> : <span className="p-1.5 rounded bg-gray-500/10 text-gray-400 border border-gray-200 opacity-60"><FileText size={12}/></span>}
                       {tx.documentType && (
                         <button 
@@ -427,7 +427,7 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-1.5">
-                      <button onClick={() => onOpenForm(tx)} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-blue-500/20 text-blue-500' : 'hover:bg-blue-100 text-blue-700 border border-blue-200'}`}><Edit2 size={13}/></button>
+                      <button onClick={() => onOpenForm(tx)} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-primary/20 text-primary' : 'hover:bg-primary/10 text-primary border border-primary/25'}`}><Edit2 size={13}/></button>
                       <button onClick={() => handleDelete(tx.id)} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-red-500/20 text-red-500' : 'hover:bg-red-100 text-red-600 border border-red-200'}`}><Trash2 size={13}/></button>
                     </div>
                   </td>
