@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const ProductTypeEnum = z.enum(['STANDARD', 'SUBPRODUCT', 'COMBO']);
+export const ProductTypeEnum = z.enum(['STANDARD', 'SUBPRODUCT', 'COMBO', 'SERVICE']);
 
 export const ProductSchema = z.object({
   id: z.string().uuid().optional(), // Puede ser opcional al crear

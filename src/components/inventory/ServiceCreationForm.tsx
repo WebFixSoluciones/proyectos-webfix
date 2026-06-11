@@ -1,52 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
-  Package, DollarSign, Tag, Save, X, Box, 
-  Percent, FileText, CheckCircle2, AlertCircle
+  Briefcase, DollarSign, Tag, Save, X, 
+  Percent, FileText, AlertCircle, FolderOpen
 } from 'lucide-react';
 import { productRepository } from '../../modules/inventory/repositories/ProductRepository';
-import { ProductTypeEnum } from '../../modules/inventory/domain/schemas/product.schema';
 import { categoryBrandRepository } from '../../modules/inventory/repositories/CategoryBrandRepository';
-import { Category, Brand } from '../../modules/inventory/domain/schemas/category-brand.schema';
-import { useEffect } from 'react';
+import { Category } from '../../modules/inventory/domain/schemas/category-brand.schema';
 
-interface ProductCreationFormProps {
+interface ServiceCreationFormProps {
   isDarkMode: boolean;
   onClose: () => void;
   onSuccess: () => void;
 }
 
-export default function ProductCreationForm({ isDarkMode, onClose, onSuccess }: ProductCreationFormProps) {
+export default function ServiceCreationForm({ isDarkMode, onClose, onSuccess }: ServiceCreationFormProps) {
   const [formData, setFormData] = useState({
     sku: '',
     name: '',
     description: '',
-    type: 'STANDARD',
+    type: 'SERVICE',
     categoryId: '',
-    brandId: '',
     baseCost: 0,
-    marginPercentage: 30,
-    taxRate: 15,
+    marginPercentage: 50, // Margen predeterminado mayor para servicios
+    taxRate: 15, // IVA estándar
   });
 
   const [categories, setCategories] = useState<Category[]>([]);
-  const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function loadData() {
+    async function loadCategories() {
       try {
-        const [cats, brs] = await Promise.all([
-          categoryBrandRepository.getCategories(),
-          categoryBrandRepository.getBrands()
-        ]);
+        const cats = await categoryBrandRepository.getCategories();
         setCategories(cats.filter(c => c.status === 'ACTIVE'));
-        setBrands(brs.filter(b => b.status === 'ACTIVE'));
       } catch (err) {
-        console.error("Error loading categories/brands:", err);
+        console.error("Error loading categories:", err);
       }
     }
-    loadData();
+    loadCategories();
   }, []);
 
   // Derived state
@@ -69,18 +61,17 @@ export default function ProductCreationForm({ isDarkMode, onClose, onSuccess }: 
     try {
       await productRepository.create({
         ...formData,
-        type: formData.type as any,
+        type: 'SERVICE',
         salePrice: calculatedSalePrice,
       });
       onSuccess();
       onClose();
     } catch (err: any) {
-      console.error("Error creating product:", err);
-      // Extraemos el mensaje de Zod si es posible
+      console.error("Error creating service:", err);
       if (err.issues) {
         setError(err.issues[0].message);
       } else {
-        setError(err.message || 'Error al guardar el producto');
+        setError(err.message || 'Error al guardar el servicio');
       }
     } finally {
       setLoading(false);
@@ -115,15 +106,15 @@ export default function ProductCreationForm({ isDarkMode, onClose, onSuccess }: 
           isDarkMode ? 'border-white/10 bg-gray-900/80' : 'border-gray-100 bg-white/80'
         }`}>
           <div className="flex items-center gap-3">
-            <div className={`p-2.5 rounded-xl shadow-inner ${isDarkMode ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600'}`}>
-              <Package size={24} />
+            <div className={`p-2.5 rounded-xl shadow-inner ${isDarkMode ? 'bg-indigo-500/20 text-indigo-400' : 'bg-indigo-100 text-indigo-600'}`}>
+              <Briefcase size={24} />
             </div>
             <div>
               <h2 className={`text-xl font-bold tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                Nuevo Producto
+                Nuevo Servicio
               </h2>
               <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                Añade un nuevo ítem estándar al inventario
+                Añade un nuevo servicio intangible al catálogo de ventas
               </p>
             </div>
           </div>
@@ -149,15 +140,15 @@ export default function ProductCreationForm({ isDarkMode, onClose, onSuccess }: 
             </div>
           )}
 
-          {/* Sección Principal */}
+          {/* Información Básica */}
           <div>
-            <h3 className={`text-sm font-bold flex items-center gap-2 mb-4 uppercase tracking-wider ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>
-              <Box size={16} /> Información Básica
+            <h3 className={`text-sm font-bold flex items-center gap-2 mb-4 uppercase tracking-wider ${isDarkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>
+              <Briefcase size={16} /> Información del Servicio
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
               <div className="relative group">
-                <label className={labelClass}>Código / SKU *</label>
+                <label className={labelClass}>Código / SKU de Servicio *</label>
                 <div className="relative">
                   <div className={iconContainerClass}><Tag size={16} /></div>
                   <input
@@ -166,23 +157,23 @@ export default function ProductCreationForm({ isDarkMode, onClose, onSuccess }: 
                     required
                     value={formData.sku}
                     onChange={handleInputChange}
-                    placeholder="Ej. PROD-001"
+                    placeholder="Ej. SERV-001"
                     className={`${inputClass} pl-10`}
                   />
                 </div>
               </div>
 
               <div className="relative group">
-                <label className={labelClass}>Nombre del Producto *</label>
+                <label className={labelClass}>Nombre del Servicio *</label>
                 <div className="relative">
-                  <div className={iconContainerClass}><Package size={16} /></div>
+                  <div className={iconContainerClass}><Briefcase size={16} /></div>
                   <input
                     type="text"
                     name="name"
                     required
                     value={formData.name}
                     onChange={handleInputChange}
-                    placeholder="Ej. Laptop HP Envy x360"
+                    placeholder="Ej. Consultoría TI - Por Hora"
                     className={`${inputClass} pl-10`}
                   />
                 </div>
@@ -191,7 +182,7 @@ export default function ProductCreationForm({ isDarkMode, onClose, onSuccess }: 
               <div className="relative group">
                 <label className={labelClass}>Categoría (Opcional)</label>
                 <div className="relative">
-                  <div className={iconContainerClass}><Tag size={16} /></div>
+                  <div className={iconContainerClass}><FolderOpen size={16} /></div>
                   <select
                     name="categoryId"
                     value={formData.categoryId}
@@ -206,24 +197,6 @@ export default function ProductCreationForm({ isDarkMode, onClose, onSuccess }: 
                 </div>
               </div>
 
-              <div className="relative group">
-                <label className={labelClass}>Marca (Opcional)</label>
-                <div className="relative">
-                  <div className={iconContainerClass}><Tag size={16} /></div>
-                  <select
-                    name="brandId"
-                    value={formData.brandId}
-                    onChange={handleInputChange}
-                    className={`${inputClass} pl-10`}
-                  >
-                    <option value="">Sin Marca</option>
-                    {brands.map(brand => (
-                      <option key={brand.id} value={brand.id}>{brand.name}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
               <div className="relative group md:col-span-2">
                 <label className={labelClass}>Descripción (Opcional)</label>
                 <div className="relative">
@@ -232,7 +205,7 @@ export default function ProductCreationForm({ isDarkMode, onClose, onSuccess }: 
                     name="description"
                     value={formData.description}
                     onChange={handleInputChange}
-                    placeholder="Detalles adicionales del producto..."
+                    placeholder="Detalles adicionales del servicio prestado..."
                     rows={3}
                     className={`${inputClass} pl-10 resize-none`}
                   />
@@ -246,12 +219,12 @@ export default function ProductCreationForm({ isDarkMode, onClose, onSuccess }: 
           {/* Sección Precios */}
           <div>
             <h3 className={`text-sm font-bold flex items-center gap-2 mb-4 uppercase tracking-wider ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
-              <DollarSign size={16} /> Precios y Costos
+              <DollarSign size={16} /> Tarifas y Precios
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               
               <div className="relative group">
-                <label className={labelClass}>Costo Base ($)</label>
+                <label className={labelClass}>Costo de Prestación / Base ($)</label>
                 <div className="relative">
                   <div className={iconContainerClass}><DollarSign size={16} /></div>
                   <input
@@ -305,12 +278,12 @@ export default function ProductCreationForm({ isDarkMode, onClose, onSuccess }: 
             {/* Resumen de Pricing Card */}
             <div className={`mt-6 p-5 rounded-2xl border flex items-center justify-between shadow-lg ${
               isDarkMode 
-                ? 'bg-gradient-to-br from-emerald-900/30 to-blue-900/30 border-emerald-500/20' 
-                : 'bg-gradient-to-br from-emerald-50 to-blue-50 border-emerald-200'
+                ? 'bg-gradient-to-br from-indigo-900/30 to-emerald-900/30 border-indigo-500/20' 
+                : 'bg-gradient-to-br from-indigo-50 to-emerald-50 border-indigo-200'
             }`}>
               <div>
-                <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
-                  Precio Venta al Público
+                <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${isDarkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>
+                  Precio Final del Servicio
                 </p>
                 <div className="flex items-baseline gap-2">
                   <span className={`text-3xl font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
@@ -325,7 +298,7 @@ export default function ProductCreationForm({ isDarkMode, onClose, onSuccess }: 
                 <p>Subtotal: ${calculatedSalePrice.toFixed(2)}</p>
                 <p>IVA ({formData.taxRate}%): ${(finalPriceWithTax - calculatedSalePrice).toFixed(2)}</p>
                 <p className={isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}>
-                  Ganancia neta: ${(calculatedSalePrice - formData.baseCost).toFixed(2)}
+                  Margen Neto: ${(calculatedSalePrice - formData.baseCost).toFixed(2)}
                 </p>
               </div>
             </div>
@@ -348,7 +321,7 @@ export default function ProductCreationForm({ isDarkMode, onClose, onSuccess }: 
             <button
               type="submit"
               disabled={loading}
-              className="px-8 py-2.5 rounded-xl font-bold transition-all text-sm bg-blue-600 hover:bg-blue-500 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)] flex items-center gap-2 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+              className="px-8 py-2.5 rounded-xl font-bold transition-all text-sm bg-indigo-600 hover:bg-indigo-500 text-white shadow-[0_0_20px_rgba(79,70,229,0.4)] flex items-center gap-2 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
             >
               {loading ? (
                 <>
@@ -358,7 +331,7 @@ export default function ProductCreationForm({ isDarkMode, onClose, onSuccess }: 
               ) : (
                 <>
                   <Save size={18} />
-                  Guardar Producto
+                  Guardar Servicio
                 </>
               )}
             </button>
