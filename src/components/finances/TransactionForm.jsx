@@ -9,6 +9,7 @@ import { doc, getDoc, setDoc, collection, query, where, getDocs } from 'firebase
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { validarIdentificacion, generarFacturaXML, simularTransmisionSRI, consultarRucSri, generarRetencionXML, generarNotaCreditoXML, generarLiquidacionXML } from '../../services/sriService';
 import { firmarComprobanteXML } from '../../services/xadesSigner';
+import RidePreviewModal from './RidePreviewModal';
 
 const SRI_RENTA_CODES = [
   { code: '312', label: '312 - Transferencia de tecnología / asistencia técnica (10%)', rate: 10 },
@@ -72,6 +73,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     resolucionAgente: ''
   });
   const [currentStep, setCurrentStep] = useState(1);
+  const [printTx, setPrintTx] = useState(null);
+  const [printFormat, setPrintFormat] = useState('ride');
   
   const [formData, setFormData] = useState({
     id: '',
@@ -2261,8 +2264,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   <button 
                     type="button" 
                     onClick={() => {
-                      window.print();
-                      showToast('Impresión de ticket enviada', 'success');
+                      setPrintFormat('ticket');
+                      setPrintTx(formData);
                     }}
                     className="flex items-center justify-center gap-2.5 py-3.5 px-4 rounded-xl text-xs font-black bg-blue-600 text-white hover:bg-blue-500 transition-all shadow-md hover:-translate-y-0.5"
                   >
@@ -2274,8 +2277,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   <button 
                     type="button" 
                     onClick={() => {
-                      window.print();
-                      showToast('Impresión de RIDE (A4) enviada', 'success');
+                      setPrintFormat('ride');
+                      setPrintTx(formData);
                     }}
                     className="flex items-center justify-center gap-2.5 py-3.5 px-4 rounded-xl text-xs font-black bg-purple-600 text-white hover:bg-purple-500 transition-all shadow-md hover:-translate-y-0.5"
                   >
@@ -2775,6 +2778,18 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
             </div>
           </div>
         </div>
+      )}
+
+      {printTx && (
+        <RidePreviewModal 
+          tx={printTx} 
+          onClose={() => setPrintTx(null)} 
+          thirdParties={thirdParties} 
+          isDarkMode={isDarkMode} 
+          db={db} 
+          appId={appId}
+          initialFormat={printFormat}
+        />
       )}
 
     </div>,

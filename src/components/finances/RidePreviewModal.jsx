@@ -2,9 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { X, Printer, FileText, CheckCircle2, AlertTriangle, HelpCircle } from 'lucide-react';
 import { doc, getDoc } from 'firebase/firestore';
 
-export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode, db, appId }) {
+export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode, db, appId, initialFormat = 'ride' }) {
   const [companyConfig, setCompanyConfig] = useState(null);
-  const [viewFormat, setViewFormat] = useState('ride'); // 'ride' (PDF) o 'ticket' (POS)
+  const [viewFormat, setViewFormat] = useState(initialFormat);
+
+  // Sync format if initialFormat changes
+  useEffect(() => {
+    setViewFormat(initialFormat);
+  }, [initialFormat]);
 
   // Cargar configuración de la empresa (Emisor)
   useEffect(() => {
