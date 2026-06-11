@@ -485,12 +485,12 @@ const SOAP_CORS_PROXIES = [
 async function enviarPeticionSoap(wsPath, soapBody, ambiente) {
   const isProd = ambiente === '2';
   const localProxyUrl = isProd 
-    ? `/api/sri-ws-prod/compr-electronicos-ws/${wsPath}`
-    : `/api/sri-ws-pruebas/compr-electronicos-ws/${wsPath}`;
+    ? `/api/sri-ws-prod/comprobantes-electronicos-ws/${wsPath}`
+    : `/api/sri-ws-pruebas/comprobantes-electronicos-ws/${wsPath}`;
   
   const absoluteUrl = isProd
-    ? `https://cel.sri.gob.ec/compr-electronicos-ws/${wsPath}`
-    : `https://celcer.sri.gob.ec/compr-electronicos-ws/${wsPath}`;
+    ? `https://cel.sri.gob.ec/comprobantes-electronicos-ws/${wsPath}`
+    : `https://celcer.sri.gob.ec/comprobantes-electronicos-ws/${wsPath}`;
 
   const intentos = [
     { label: 'Proxy Servidor', url: localProxyUrl },
