@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Security and Temporary directories
+pk12/
+tmp_verify/

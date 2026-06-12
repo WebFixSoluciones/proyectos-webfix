@@ -5,7 +5,7 @@ import {
   Terminal, ShieldAlert, Download, Plus, Trash2, RefreshCw, ArrowLeft, ArrowRight, 
   User, DollarSign, CreditCard, Layers, Search, Building
 } from 'lucide-react';
-import { doc, getDoc, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, getDoc, setDoc, collection, query, where, getDocs, runTransaction } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { validarIdentificacion, generarFacturaXML, simularTransmisionSRI, consultarRucSri, generarRetencionXML, generarNotaCreditoXML, generarLiquidacionXML } from '../../services/sriService';
 import { firmarComprobanteXML } from '../../services/xadesSigner';
@@ -850,16 +850,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     setSriLogs([]);
 
     try {
-      // 1. Fetch fresh config document from Firestore for concurrency-safe sequential assignment
+      // 1. Determinar la clave de secuencial según el tipo de documento
       const configRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config');
-      const configSnap = await getDoc(configRef);
-      if (!configSnap.exists()) {
-        throw new Error("No se pudo obtener la configuración del emisor SRI");
-      }
-      const configData = configSnap.data();
-      setSriConfig(configData); // Sync local state
-
-      // Determine correct sequential configuration key
       let secKey = 'secuencialFactura';
       if (formData.documentType === 'factura') {
         secKey = 'secuencialFactura';
@@ -871,7 +863,23 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         secKey = 'secuencialLiquidacion';
       }
 
-      const secVal = configData[secKey] || 1;
+      // Reservar el secuencial de forma ATÓMICA antes de transmitir. Esto evita
+      // que dos emisiones simultáneas generen la misma clave de acceso (el SRI
+      // rechaza secuenciales duplicados). El SRI permite saltos en la numeración,
+      // por lo que un fallo de transmisión solo deja un hueco, nunca un duplicado.
+      let configData;
+      let secVal;
+      await runTransaction(db, async (tx) => {
+        const snap = await tx.get(configRef);
+        if (!snap.exists()) {
+          throw new Error("No se pudo obtener la configuración del emisor SRI");
+        }
+        configData = snap.data();
+        secVal = configData[secKey] || 1;
+        tx.update(configRef, { [secKey]: secVal + 1 });
+      });
+      setSriConfig(configData); // Sync local state
+
       const sec = String(secVal);
       const docNum = `${configData.establecimiento || '001'}-${configData.puntoEmision || '001'}-${String(sec).padStart(9, '0')}`;
       
@@ -986,13 +994,9 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       };
 
       await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId), sanitizeFirestoreData(finalTx));
-      
-      // Save and increment the sequential value in Firestore config document
-      const nextSec = Number(sec) + 1;
-      const secUpdate = {
-        [secKey]: nextSec
-      };
-      await setDoc(configRef, sanitizeFirestoreData(secUpdate), { merge: true });
+
+      // El secuencial ya fue reservado e incrementado atómicamente al inicio
+      // (transacción), por lo que aquí no es necesario volver a incrementarlo.
 
       setFormData(finalTx);
       showToast('Comprobante autorizado tributariamente por el SRI', 'success');

@@ -107,14 +107,17 @@ export function firmarComprobanteXML(xmlString, p12Base64, password) {
 
     // 5. Construir nodos auxiliares para calcular sus Hashes
     
-    // Objeto SignedProperties (XAdES)
-    const signedPropertiesXml = `<xades:SignedProperties Id="${signedPropertiesId}" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xades="http://uri.etsi.org/01903/v1.3.2#">` +
+    // Objeto SignedProperties (XAdES).
+    // IMPORTANTE: se construye ya en forma canónica C14N (xmlns antes de Id, y
+    // elementos vacíos expandidos a <x></x>) para que el digest calculado aquí
+    // coincida EXACTAMENTE con el que recalcula el SRI al canonicalizar el subárbol.
+    const signedPropertiesXml = `<xades:SignedProperties xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xades="http://uri.etsi.org/01903/v1.3.2#" Id="${signedPropertiesId}">` +
       `<xades:SignedSignatureProperties>` +
         `<xades:SigningTime>${signingTime}</xades:SigningTime>` +
         `<xades:SigningCertificate>` +
           `<xades:Cert>` +
             `<xades:CertDigest>` +
-              `<ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>` +
+              `<ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"></ds:DigestMethod>` +
               `<ds:DigestValue>${certDigest}</ds:DigestValue>` +
             `</xades:CertDigest>` +
             `<xades:IssuerSerial>` +
@@ -136,7 +139,8 @@ export function firmarComprobanteXML(xmlString, p12Base64, password) {
     const exponentDec = certificate.publicKey.e.toString(10);
     const exponentBase64 = forge.util.encode64(forge.util.hexToBytes(exponentDec === '65537' ? '010001' : exponent.padStart(6, '0')));
 
-    const keyInfoXml = `<ds:KeyInfo Id="${keyInfoId}" xmlns:ds="http://www.w3.org/2000/09/xmldsig#">` +
+    // ds:KeyInfo en forma canónica (xmlns:ds antes de Id)
+    const keyInfoXml = `<ds:KeyInfo xmlns:ds="http://www.w3.org/2000/09/xmldsig#" Id="${keyInfoId}">` +
       `<ds:X509Data>` +
         `<ds:X509Certificate>${certBase64}</ds:X509Certificate>` +
       `</ds:X509Data>` +
@@ -153,23 +157,26 @@ export function firmarComprobanteXML(xmlString, p12Base64, password) {
     const keyInfoDigest = sha1Base64(keyInfoXml, 'utf8');
     const signedPropertiesDigest = sha1Base64(signedPropertiesXml, 'utf8');
 
-    // 6. Construir ds:SignedInfo
-    const signedInfoXml = `<ds:SignedInfo Id="SignedInfo-${sigId}" xmlns:ds="http://www.w3.org/2000/09/xmldsig#">` +
-      `<ds:CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>` +
-      `<ds:SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/>` +
+    // 6. Construir ds:SignedInfo en forma canónica C14N (xmlns:ds antes de Id,
+    //    y todos los elementos vacíos expandidos a <x></x>). El digest/firma se
+    //    calcula sobre esta cadena, que debe ser idéntica a la canonicalización
+    //    que aplica el SRI al verificar.
+    const signedInfoXml = `<ds:SignedInfo xmlns:ds="http://www.w3.org/2000/09/xmldsig#" Id="SignedInfo-${sigId}">` +
+      `<ds:CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"></ds:CanonicalizationMethod>` +
+      `<ds:SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"></ds:SignatureMethod>` +
       `<ds:Reference Id="${signedInfoRefId}" URI="#comprobante">` +
         `<ds:Transforms>` +
-          `<ds:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>` +
+          `<ds:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"></ds:Transform>` +
         `</ds:Transforms>` +
-        `<ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>` +
+        `<ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"></ds:DigestMethod>` +
         `<ds:DigestValue>${documentDigest}</ds:DigestValue>` +
       `</ds:Reference>` +
       `<ds:Reference URI="#${keyInfoId}">` +
-        `<ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>` +
+        `<ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"></ds:DigestMethod>` +
         `<ds:DigestValue>${keyInfoDigest}</ds:DigestValue>` +
       `</ds:Reference>` +
       `<ds:Reference Type="http://uri.etsi.org/01903#SignedProperties" URI="#${signedPropertiesId}">` +
-        `<ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>` +
+        `<ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"></ds:DigestMethod>` +
         `<ds:DigestValue>${signedPropertiesDigest}</ds:DigestValue>` +
       `</ds:Reference>` +
     `</ds:SignedInfo>`;
