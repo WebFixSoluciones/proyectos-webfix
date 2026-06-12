@@ -85,6 +85,11 @@ import GeneralSettings from './components/dashboard/GeneralSettings';
 import FinanceChat from './components/finances/FinanceChat';
 import GastosCreditosModule from './components/finances/GastosCreditosModule';
 import InventoryModule from './components/inventory/InventoryModule';
+import IconRenderer from './components/common/IconRenderer';
+import {
+  COLUMN_COLORS, DEFAULT_COLUMNS, USER_COLORS,
+  MOCK_USERS, MOCK_EVENTS, INITIAL_PAGES
+} from './constants/appData';
 
 const apiKey = ""; // API Key para Gemini (configura tu clave aquí si usas IA)
 
@@ -97,82 +102,9 @@ const glassPanelLight = "glass-panel-light";
 const glassInputDark = "glass-input-dark";
 const glassInputLight = "glass-input-light";
 
-const COLUMN_COLORS = [
-  { id: 'gray', badge: 'bg-gray-200/60 text-gray-700 dark:bg-white/[0.08] dark:text-gray-300', bgDark: 'bg-[#1a1a1a]/40 border-white/[0.08]', bgLight: 'bg-gray-50/50 border-gray-200/80', dot: 'bg-gray-400' },
-  { id: 'blue', badge: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300', bgDark: 'bg-blue-900/10 border-blue-500/20', bgLight: 'bg-blue-50/60 border-blue-200/50', dot: 'bg-blue-500' },
-  { id: 'green', badge: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300', bgDark: 'bg-green-900/10 border-green-500/20', bgLight: 'bg-green-50/60 border-green-200/50', dot: 'bg-green-500' },
-  { id: 'yellow', badge: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300', bgDark: 'bg-yellow-900/10 border-yellow-500/20', bgLight: 'bg-yellow-50/60 border-yellow-200/50', dot: 'bg-yellow-500' },
-  { id: 'red', badge: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300', bgDark: 'bg-red-900/10 border-red-500/20', bgLight: 'bg-red-50/60 border-red-200/50', dot: 'bg-red-500' },
-  { id: 'purple', badge: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300', bgDark: 'bg-purple-900/10 border-purple-500/20', bgLight: 'bg-purple-50/60 border-purple-200/50', dot: 'bg-purple-500' },
-];
+// Constantes (COLUMN_COLORS, DEFAULT_COLUMNS, USER_COLORS, MOCK_USERS, MOCK_EVENTS,
+// INITIAL_PAGES) e IconRenderer fueron extraídos a módulos dedicados (ver imports arriba).
 
-const DEFAULT_COLUMNS = [
-  { id: 'todo', title: 'Por hacer', color: 'gray' },
-  { id: 'in-progress', title: 'En progreso', color: 'blue' },
-  { id: 'done', title: 'Completado', color: 'green' }
-];
-
-const USER_COLORS = [
-  'from-blue-400 to-blue-600',
-  'from-purple-400 to-purple-600',
-  'from-emerald-400 to-emerald-600',
-  'from-red-400 to-red-600',
-  'from-yellow-400 to-yellow-600',
-  'from-gray-400 to-gray-600'
-];
-
-// --- Datos Simulados de Usuarios ---
-const MOCK_USERS = [
-  { id: 'u1', name: 'Carlos Ruiz', role: 'Admin', job: 'Product Manager', initials: 'CR', color: 'from-blue-400 to-blue-600' },
-  { id: 'u2', name: 'Ana Torres', role: 'Miembro', job: 'UI/UX Lead', initials: 'AT', color: 'from-purple-400 to-purple-600' },
-  { id: 'u3', name: 'Luis Gómez', role: 'Miembro', job: 'Fullstack Dev', initials: 'LG', color: 'from-emerald-400 to-emerald-600' },
-  { id: 'u4', name: 'Cliente X', role: 'Observador', job: 'Stakeholder', initials: 'CX', color: 'from-gray-400 to-gray-600' }
-];
-
-const MOCK_EVENTS = [
-  { id: 1, title: 'Sprint Planning: E-commerce Vercel', time: '10:00 AM', date: 'Hoy', meetLink: 'https://meet.google.com/abc-defg-hij', color: 'bg-blue-500/20 text-blue-300' },
-  { id: 2, title: 'Revisión de Wireframes con Cliente', time: '01:30 PM', date: 'Hoy', meetLink: 'https://meet.google.com/xyz-uvwx-yza', color: 'bg-purple-500/20 text-purple-300' },
-  { id: 3, title: 'Daily Standup Dev Team', time: '09:00 AM', date: 'Mañana', meetLink: 'https://meet.google.com/qwe-rtyu-iop', color: 'bg-green-500/20 text-green-300' },
-];
-
-const INITIAL_PAGES = [
-  { id: '1', title: 'E-commerce ClientX', content: '## Requerimientos del Proyecto\n\n- Migrar base de datos a Supabase.\n- Implementar pasarela de pagos con Stripe.\n- Rediseño de la interfaz usando Tailwind CSS.\n\n**Notas del cliente:** Quieren que la carga sea súper rápida.', icon: 'monitor', type: 'doc' },
-  { id: '3', title: 'UI/UX Guidelines', content: 'Colores de la marca:\n- Primario: #4F46E5\n- Secundario: #10B981', icon: 'palette', type: 'doc' },
-  { id: '4', title: 'App Móvil Finanzas', content: '', icon: 'rocket', type: 'project', leadId: 'u1',
-    columns: [
-      { id: 'todo', title: 'Por hacer', color: 'gray' },
-      { id: 'in-progress', title: 'En progreso', color: 'blue' },
-      { id: 'done', title: 'Completado', color: 'green' }
-    ],
-    tasks: [
-      { id: 't1', projectId: '4', content: 'Investigación de usuarios (UX)', status: 'done', assigneeId: 'u2', meetLink: '', notes: [{ id: 'n1', text: 'Reunión inicial aprobada', date: '26/4/2026, 09:00' }] },
-      { id: 't2', projectId: '4', content: 'Diseñar Mockups en Figma', status: 'in-progress', assigneeId: 'u2', meetLink: '', notes: [{ id: 'n2', text: 'Falta confirmar la paleta de colores', date: '26/4/2026, 11:30' }] },
-      { id: 't3', projectId: '4', content: 'Configurar entorno React Native', status: 'todo', assigneeId: 'u3', meetLink: '' },
-      { id: 't4', projectId: '4', content: 'Reunión de aprobación de diseño', status: 'todo', assigneeId: 'u4', meetLink: 'https://meet.google.com/mock-meet' }
-    ] 
-  }
-];
-
-// Helper para renderizar iconos
-const IconRenderer = ({ name, size = 18, className = "" }) => {
-  switch (name) {
-    case 'monitor': return <Monitor size={size} className={className} />;
-    case 'palette': return <Palette size={size} className={className} />;
-    case 'rocket': return <Rocket size={size} className={className} />;
-    case 'project': return <Briefcase size={size} className={className} />;
-    case 'dashboard': return <LayoutDashboard size={size} className={className} />;
-    case 'calendar': return <CalendarDays size={size} className={className} />;
-    case 'team': return <Users size={size} className={className} />;
-    case 'trash': return <Trash2 size={size} className={className} />;
-    case 'ventas': return <ShoppingCart size={size} className={className} />;
-    case 'compras': return <ShoppingBag size={size} className={className} />;
-    case 'gastos_creditos': return <CreditCard size={size} className={className} />;
-    case 'finances': return <DollarSign size={size} className={className} />;
-    case 'inventario': return <Package size={size} className={className} />;
-    case 'personas': return <Users size={size} className={className} />;
-    default: return <FileText size={size} className={className} />;
-  }
-};
 
 // --- COMPONENTES DND-KIT ---
 const SortableTaskItem = ({ 
@@ -471,6 +403,10 @@ export default function App() {
   const [isSaving, setIsSaving] = useState(false);
   const isInitialMount = useRef(true);
   const isRemoteUpdate = useRef(false);
+  // Marca para no re-empujar al historial cuando el cambio de página viene del botón atrás/adelante
+  const isPopNavigation = useRef(false);
+  // Marca para saltar el primer push tras sembrar la entrada base del historial
+  const navInitialized = useRef(false);
 
   // --- SISTEMA DE TOASTS MINIMALISTAS ---
   const [toasts, setToasts] = useState([]);
@@ -506,6 +442,52 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
+  // --- INTEGRACIÓN CON EL HISTORIAL DEL NAVEGADOR (botón Atrás/Adelante) ---
+  // Al iniciar sesión, sembramos una entrada base y escuchamos el botón atrás.
+  // Esto evita que "Atrás" saque al usuario del sistema: navega entre páginas
+  // visitadas y, al llegar al piso, aterriza en el Dashboard.
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    // Sembrar la entrada actual del historial con la página activa
+    window.history.replaceState({ activePageId }, '');
+
+    const onPopState = (e) => {
+      isPopNavigation.current = true;
+      if (e.state && e.state.activePageId) {
+        setActivePageId(e.state.activePageId);
+      } else {
+        // Se intentó retroceder más allá de nuestra entrada base:
+        // re-afirmamos el Dashboard para mantener al usuario dentro del sistema.
+        setActivePageId('dashboard');
+        window.history.pushState({ activePageId: 'dashboard' }, '');
+      }
+    };
+
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+    // Solo al cambiar el estado de autenticación (no en cada navegación)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
+
+  // Empujar una nueva entrada al historial cada vez que cambia la página activa,
+  // salvo que el cambio provenga del propio botón atrás/adelante.
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    if (isPopNavigation.current) {
+      isPopNavigation.current = false;
+      return;
+    }
+    // Saltar el primer disparo tras autenticarse: la entrada base ya fue sembrada
+    // con replaceState en el efecto anterior, evitando una entrada duplicada.
+    if (!navInitialized.current) {
+      navInitialized.current = true;
+      return;
+    }
+    window.history.pushState({ activePageId }, '');
+  }, [activePageId, isAuthenticated]);
+
+  // Temporizador del cronómetro de sesión/tarea
   useEffect(() => {
     let interval;
     if (isTimerRunning) {

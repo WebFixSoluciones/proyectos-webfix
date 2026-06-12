@@ -1,9 +1,22 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Permitir lectura y escritura solo a usuarios autenticados
+
+    // Solo personal con sesión iniciada por correo/contraseña (no anónimos).
+    // Bloquea el acceso anónimo: aunque alguien obtenga un token anónimo,
+    // no podrá leer ni escribir los datos de la empresa.
+    function esPersonalAutorizado() {
+      return request.auth != null
+        && request.auth.token.firebase.sign_in_provider == 'password';
+    }
+
     match /artifacts/{appId}/public/data/{document=**} {
-      allow read, write: if request.auth != null;
+      allow read, write: if esPersonalAutorizado();
+    }
+
+    // Denegar por defecto cualquier otra ruta no contemplada arriba.
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
