@@ -45,19 +45,23 @@ export default function FinanceModule({
     setActiveTab(getInitialTab(mode));
   }, [mode]);
 
-  // Sincronizar subTab de ventas desde prop de navegación rápida (POS)
+  // Sincronizar subTab de ventas y personas desde prop de navegación rápida
   useEffect(() => {
-    if (initialSubTab && mode === 'ventas') {
-      const targetSub = String(initialSubTab).startsWith('pos') ? 'pos' : initialSubTab;
-      setSubTabVentas(targetSub);
-      setActiveTab('ventas');
+    if (initialSubTab) {
+      if (mode === 'ventas') {
+        const targetSub = String(initialSubTab).startsWith('pos') ? 'pos' : initialSubTab;
+        setSubTabVentas(targetSub);
+        setActiveTab('ventas');
+      } else if (mode === 'personas') {
+        setSubTabPersonas(initialSubTab);
+      }
     }
   }, [initialSubTab, mode]);
 
   // Estados de sub-navegación ERP
   const [subTabVentas, setSubTabVentas] = useState(() => initialSubTab || 'resumen_ventas');
   const [subTabSri, setSubTabSri] = useState('nota_credito');
-  const [subTabPersonas, setSubTabPersonas] = useState('cliente');
+  const [subTabPersonas, setSubTabPersonas] = useState(() => (mode === 'personas' && initialSubTab) ? initialSubTab : 'cliente');
 
   // Estados centralizados para el modal de Facturación / SRI
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -166,80 +170,59 @@ export default function FinanceModule({
     <div className={`flex flex-col h-full w-full animate-in fade-in duration-500 overflow-hidden`}>
       
       {/* BARRA DE NAVEGACIÓN ESTÁNDAR DE SUBMÓDULOS */}
-      <div className={`flex items-center gap-3 px-8 py-3.5 border-b shrink-0 ${isDarkMode ? 'border-white/5 bg-[#121214]' : 'border-primary/10 bg-primary-light'}`}>
-        <div className="flex gap-2 overflow-x-auto whitespace-nowrap scrollbar-none flex-1">
-          
-          {/* Si el modo es Contabilidad o Compras: Renderizar displayedTabs */}
-          {['contabilidad', 'compras'].includes(mode) && displayedTabs.map(tab => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 ${
-                  isActive
-                    ? (isDarkMode ? 'bg-primary/20 text-primary border-primary/30 shadow-sm' : 'bg-primary text-white border-primary shadow-sm')
-                    : (isDarkMode ? 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-white/5' : 'border-transparent text-black hover:text-black hover:bg-black/5')
-                }`}
-              >
-                <Icon size={13} />
-                <span>{tab.label}</span>
-              </button>
-            );
-          })}
+      {mode !== 'personas' && (
+        <div className={`flex items-center gap-3 px-8 py-3.5 border-b shrink-0 ${isDarkMode ? 'border-white/5 bg-[#121214]' : 'border-primary/10 bg-primary-light'}`}>
+          <div className="flex gap-2 overflow-x-auto whitespace-nowrap scrollbar-none flex-1">
+            
+            {/* Si el modo es Contabilidad o Compras: Renderizar displayedTabs */}
+            {['contabilidad', 'compras'].includes(mode) && displayedTabs.map(tab => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 ${
+                    isActive
+                      ? (isDarkMode ? 'bg-primary/20 text-primary border-primary/30 shadow-sm' : 'bg-primary text-white border-primary shadow-sm')
+                      : (isDarkMode ? 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-white/5' : 'border-transparent text-black hover:text-black hover:bg-black/5')
+                  }`}
+                >
+                  <Icon size={13} />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
 
-          {/* Si el modo es Ventas: Renderizar ventas subtabs */}
-          {mode === 'ventas' && [
-            { id: 'resumen_ventas', label: 'Resumen', icon: TrendingUp },
-            { id: 'ventas_preventa', label: 'Ventas', icon: ShoppingCart },
-            { id: 'pos', label: 'POS', icon: Calculator },
-            { id: 'quotes', label: 'Cotizaciones', icon: FileText },
-            { id: 'nota_credito', label: 'Notas de Crédito', icon: ArrowDownCircle },
-            { id: 'retencion', label: 'Retenciones', icon: Percent }
-          ].map(sub => {
-            const Icon = sub.icon;
-            const isActive = subTabVentas === sub.id;
-            return (
-              <button
-                key={sub.id}
-                onClick={() => setSubTabVentas(sub.id)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 ${
-                  isActive
-                    ? (isDarkMode ? 'bg-primary/20 text-primary border-primary/30 shadow-sm' : 'bg-primary text-white border-primary shadow-sm')
-                    : (isDarkMode ? 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-white/5' : 'border-transparent text-black hover:text-black hover:bg-black/5')
-                }`}
-              >
-                <Icon size={13} />
-                <span>{sub.label}</span>
-              </button>
-            );
-          })}
-
-          {/* Si el modo es Personas: Renderizar personas subtabs */}
-          {mode === 'personas' && [
-            { id: 'cliente', label: 'Clientes', icon: Users },
-            { id: 'proveedor', label: 'Proveedores', icon: Building }
-          ].map(sub => {
-            const Icon = sub.icon;
-            const isActive = subTabPersonas === sub.id;
-            return (
-              <button
-                key={sub.id}
-                onClick={() => setSubTabPersonas(sub.id)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 ${
-                  isActive
-                    ? (isDarkMode ? 'bg-primary/20 text-primary border-primary/30 shadow-sm' : 'bg-primary text-white border-primary shadow-sm')
-                    : (isDarkMode ? 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-white/5' : 'border-transparent text-black hover:text-black hover:bg-black/5')
-                }`}
-              >
-                <Icon size={13} />
-                <span>{sub.label}</span>
-              </button>
-            );
-          })}
+            {/* Si el modo es Ventas: Renderizar ventas subtabs */}
+            {mode === 'ventas' && [
+              { id: 'resumen_ventas', label: 'Resumen', icon: TrendingUp },
+              { id: 'ventas_preventa', label: 'Ventas', icon: ShoppingCart },
+              { id: 'pos', label: 'POS', icon: Calculator },
+              { id: 'quotes', label: 'Cotizaciones', icon: FileText },
+              { id: 'nota_credito', label: 'Notas de Crédito', icon: ArrowDownCircle },
+              { id: 'retencion', label: 'Retenciones', icon: Percent }
+            ].map(sub => {
+              const Icon = sub.icon;
+              const isActive = subTabVentas === sub.id;
+              return (
+                <button
+                  key={sub.id}
+                  onClick={() => setSubTabVentas(sub.id)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 ${
+                    isActive
+                      ? (isDarkMode ? 'bg-primary/20 text-primary border-primary/30 shadow-sm' : 'bg-primary text-white border-primary shadow-sm')
+                      : (isDarkMode ? 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-white/5' : 'border-transparent text-black hover:text-black hover:bg-black/5')
+                  }`}
+                >
+                  <Icon size={13} />
+                  <span>{sub.label}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* SUB-SUB-NAVEGACIÓN SI ACTIVE TAB TIENE SUB-TABS (ej: sri_docs en contabilidad) */}
       {activeTab === 'sri_docs' && mode === 'contabilidad' && (

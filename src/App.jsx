@@ -54,7 +54,8 @@ import {
   GripVertical,
   CreditCard,
   ChevronDown,
-  ShoppingBag
+  ShoppingBag,
+  Building
 } from 'lucide-react';
 
 import {
@@ -345,6 +346,7 @@ export default function App() {
     team: true
   });
   const [ventasInitialSubTab, setVentasInitialSubTab] = useState('resumen_ventas');
+  const [personasSubTab, setPersonasSubTab] = useState('cliente');
   
   // --- ESTADOS DE GOOGLE CALENDAR REAL ---
   const [isGoogleConnected, setIsGoogleConnected] = useState(false);
@@ -1879,7 +1881,7 @@ export default function App() {
           {/* 7. Personas */}
           {activeModules.personas && (
             <button 
-              onClick={() => { setActivePageId('personas'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
+              onClick={() => { setActivePageId('personas'); setPersonasSubTab('cliente'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
               className={`group flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
                 activePageId === 'personas' || activePageId === 'team'
                   ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-900')
@@ -2097,15 +2099,23 @@ export default function App() {
                   <div className={`flex items-center gap-3 px-8 py-3.5 border-b shrink-0 ${isDarkMode ? 'border-white/5 bg-[#121214]' : 'border-primary/10 bg-primary-light'}`}>
                     <div className="flex gap-2 overflow-x-auto whitespace-nowrap scrollbar-none flex-1">
                       {[
-                        { id: 'personas', label: 'Directorio', icon: Users },
+                        { id: 'cliente', label: 'Clientes', icon: Users },
+                        { id: 'proveedor', label: 'Proveedores', icon: Building },
                         { id: 'team', label: 'Equipo', icon: Shield }
                       ].map(tab => {
                         const Icon = tab.icon;
-                        const isActive = activePageId === tab.id;
+                        const isActive = tab.id === 'team' ? activePageId === 'team' : (activePageId === 'personas' && personasSubTab === tab.id);
                         return (
                           <button
                             key={tab.id}
-                            onClick={() => setActivePageId(tab.id)}
+                            onClick={() => {
+                              if (tab.id === 'team') {
+                                setActivePageId('team');
+                              } else {
+                                setActivePageId('personas');
+                                setPersonasSubTab(tab.id);
+                              }
+                            }}
                             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 ${
                               isActive
                                 ? (isDarkMode ? 'bg-primary/20 text-primary border-primary/30 shadow-sm' : 'bg-primary text-white border-primary shadow-sm')
@@ -2124,7 +2134,16 @@ export default function App() {
                   <div className="flex flex-1 overflow-hidden min-h-0 bg-transparent">
                     <div className={`flex-1 overflow-y-auto px-0 py-0 custom-scrollbar ${isDarkMode ? 'bg-[#0f0f11]' : 'bg-white'}`}>
                       {activePageId === 'personas' && (
-                        <FinanceModule mode="personas" isDarkMode={isDarkMode} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} isLoading={isLoadingFinances} />
+                        <FinanceModule 
+                          mode="personas" 
+                          initialSubTab={personasSubTab} 
+                          isDarkMode={isDarkMode} 
+                          showToast={showToast} 
+                          transactions={globalTransactions} 
+                          thirdParties={globalThirdParties} 
+                          products={globalProducts} 
+                          isLoading={isLoadingFinances} 
+                        />
                       )}
                       {activePageId === 'team' && (
                         <div className="animate-in fade-in duration-500 px-8 py-6">
