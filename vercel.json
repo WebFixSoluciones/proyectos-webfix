@@ -7,14 +7,6 @@
     {
       "source": "/api/sri/:path*",
       "destination": "https://srienlinea.sri.gob.ec/:path*"
-    },
-    {
-      "source": "/api/sri-ws-prod/:path*",
-      "destination": "https://cel.sri.gob.ec/:path*"
-    },
-    {
-      "source": "/api/sri-ws-pruebas/:path*",
-      "destination": "https://celcer.sri.gob.ec/:path*"
     }
   ]
 }

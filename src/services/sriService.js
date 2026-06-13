@@ -615,69 +615,46 @@ export function generarGuiaRemisionXML(emisorConfig, guiaData, destinatarioData,
 }
 
 
-// Proxies CORS para reintentar peticiones SOAP en caso de fallo del proxy de servidor
-const SOAP_CORS_PROXIES = [
-  (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
-  (url) => `https://thingproxy.freeboard.io/fetch/${url}`
-];
-
 /**
- * Realiza una petición SOAP HTTP POST de manera robusta evadiendo CORS
+ * Realiza una petición SOAP HTTP POST al SRI a través del proxy server-side
+ * (función serverless en Vercel / proxy de Vite en desarrollo).
  */
 async function enviarPeticionSoap(wsPath, soapBody, ambiente) {
   const isProd = ambiente === '2';
-  const localProxyUrl = isProd 
+  // Proxy server-side mismo origen: en producción lo resuelve la función serverless
+  // de Vercel (api/sri-ws-*/[...path].js); en desarrollo lo resuelve el proxy de Vite
+  // (vite.config.js). Ambos reenvían el SOAP al SRI sin problemas de CORS.
+  const proxyUrl = isProd
     ? `/api/sri-ws-prod/comprobantes-electronicos-ws/${wsPath}`
     : `/api/sri-ws-pruebas/comprobantes-electronicos-ws/${wsPath}`;
-  
-  const absoluteUrl = isProd
-    ? `https://cel.sri.gob.ec/comprobantes-electronicos-ws/${wsPath}`
-    : `https://celcer.sri.gob.ec/comprobantes-electronicos-ws/${wsPath}`;
 
-  const intentos = [
-    { label: 'Proxy Servidor', url: localProxyUrl },
-    ...SOAP_CORS_PROXIES.map((proxyFn, i) => ({
-      label: `CORS Proxy ${i === 0 ? 'CorsProxy' : 'ThingProxy'}`,
-      url: proxyFn(absoluteUrl)
-    }))
-  ];
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 25000); // el SRI puede tardar
 
-  let ultimoError = null;
+  try {
+    const response = await fetch(proxyUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'text/xml;charset=utf-8',
+        'SOAPAction': ''
+      },
+      body: soapBody,
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
 
-  for (const intento of intentos) {
-    try {
-      console.info(`Enviando SOAP a ${wsPath} vía: ${intento.label}`);
-      
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 7500); // 7.5s timeout per attempt
-
-      const response = await fetch(intento.url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'text/xml;charset=utf-8',
-          'SOAPAction': ''
-        },
-        body: soapBody,
-        signal: controller.signal
-      });
-
-      clearTimeout(timeoutId);
-
-      if (response.ok) {
-        const text = await response.text();
-        return { text, via: intento.label };
-      }
-      ultimoError = new Error(`HTTP ${response.status} via ${intento.label}`);
-    } catch (err) {
-      if (err.name === 'AbortError') {
-        ultimoError = new Error(`Timeout (7.5s) via ${intento.label}`);
-      } else {
-        ultimoError = err;
-      }
+    const text = await response.text();
+    if (!response.ok) {
+      throw new Error(`El servidor del SRI respondió HTTP ${response.status}. Detalle: ${text.slice(0, 200)}`);
     }
+    return { text, via: 'Proxy Servidor' };
+  } catch (err) {
+    clearTimeout(timeoutId);
+    if (err.name === 'AbortError') {
+      throw new Error('Tiempo de espera agotado (25s) conectando con el SRI. Verifique su conexión e intente de nuevo.');
+    }
+    throw err;
   }
-
-  throw ultimoError || new Error('Error de conexión con los servidores del SRI');
 }
 
 // Emisión y Transmisión Real al SRI (con fallback a Simulación si no hay firma cargada)
@@ -730,12 +707,14 @@ export async function simularTransmisionSRI(documentoData, configSRI, onLogUpdat
     const resRecepcion = await enviarPeticionSoap('RecepcionComprobantesOffline', soapRecepcion, configSRI.ambiente);
     addLog(`Respuesta de Recepción recibida vía ${resRecepcion.via}.`, "success");
 
-    // Parsear respuesta de recepción
+    // Parsear respuesta de recepción. El SRI responde en femenino: RECIBIDA / DEVUELTA.
     const parser = new DOMParser();
     const docRecepcion = parser.parseFromString(resRecepcion.text, "text/xml");
     const estadoRecepcion = docRecepcion.getElementsByTagName("estado")[0]?.textContent;
+    const recibido = estadoRecepcion === 'RECIBIDA' || estadoRecepcion === 'RECIBIDO';
+    const devuelto = estadoRecepcion === 'DEVUELTA' || estadoRecepcion === 'DEVUELTO';
 
-    if (estadoRecepcion === 'DEVUELTO') {
+    if (devuelto) {
       const mensajeNodes = docRecepcion.getElementsByTagName("mensaje");
       let erroresList = [];
       for (let i = 0; i < mensajeNodes.length; i++) {
@@ -746,11 +725,13 @@ export async function simularTransmisionSRI(documentoData, configSRI, onLogUpdat
         erroresList.push(`[${ident}] ${msg} (${infoAd})`);
       }
       throw new Error(`Devuelto por el SRI: ${erroresList.join(" | ")}`);
-    } else if (estadoRecepcion !== 'RECIBIDO') {
-      throw new Error(`Respuesta de recepción desconocida: ${estadoRecepcion}`);
+    } else if (!recibido) {
+      // No vino <estado> esperado: exponer la respuesta cruda para diagnóstico
+      const crudo = (resRecepcion.text || '').replace(/\s+/g, ' ').slice(0, 300);
+      throw new Error(`Respuesta de recepción inesperada (estado=${estadoRecepcion ?? 'vacío'}). Respuesta del servidor: ${crudo}`);
     }
 
-    addLog("SRI Recepción: RECIBIDO (Comprobante transmitido con éxito).", "success");
+    addLog("SRI Recepción: RECIBIDA (comprobante transmitido con éxito).", "success");
 
     // Esperar 2 segundos para dar tiempo al SRI de procesar en lote
     addLog("Esperando respuesta de autorización en cola del SRI (2s)...", "info");
