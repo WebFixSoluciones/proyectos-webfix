@@ -440,6 +440,144 @@ export default function App() {
     }, 3000); // Se oculta después de 3 segundos
   };
 
+  // --- EFECTO DE PARTÍCULAS INTERACTIVAS PARA LOGIN ---
+  useEffect(() => {
+    if (isAuthenticated) return;
+    const canvas = document.getElementById('login-particles');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let animationFrameId;
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = window.innerHeight);
+
+    const handleResize = () => {
+      if (!canvas) return;
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    };
+    window.addEventListener('resize', handleResize);
+
+    // Seguimiento del puntero del ratón
+    let mouse = { x: -1000, y: -1000, active: false };
+    const handleMouseMove = (e) => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+      mouse.active = true;
+    };
+    const handleMouseLeave = () => {
+      mouse.x = -1000;
+      mouse.y = -1000;
+      mouse.active = false;
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseleave', handleMouseLeave);
+
+    const colors = ['#1C40F2', '#6366f1', '#a855f7', '#f43f5e', '#38bdf8'];
+    const particles = [];
+    const particleCount = 85; // Alta densidad para look premium
+    for (let i = 0; i < particleCount; i++) {
+      particles.push({
+        x: Math.random() * width,
+        baseY: Math.random() * height,
+        y: 0,
+        vx: Math.random() * 0.4 + 0.25, // Velocidad horizontal base
+        radius: Math.random() * 2.5 + 1.2, // Tamaños variados y finos
+        color: colors[Math.floor(Math.random() * colors.length)],
+        alpha: Math.random() * 0.5 + 0.2,
+        timeOffset: Math.random() * Math.PI * 2,
+        waveAmplitude: Math.random() * 45 + 20, // Altura de oscilación sinusoidal
+        waveFrequency: Math.random() * 0.003 + 0.0015,
+        offsetX: 0,
+        offsetY: 0
+      });
+    }
+
+    let time = 0;
+    const animate = () => {
+      ctx.clearRect(0, 0, width, height);
+      time += 1;
+
+      particles.forEach(p => {
+        // Movimiento horizontal continuo
+        p.x += p.vx;
+        
+        // Movimiento vertical en onda sinusoidal
+        const targetY = p.baseY + Math.sin(p.x * p.waveFrequency + time * 0.01 + p.timeOffset) * p.waveAmplitude;
+        p.y = targetY;
+
+        // Si la partícula sale del borde derecho, reaparece en la izquierda
+        if (p.x > width + 50) {
+          p.x = -50;
+          p.baseY = Math.random() * height;
+        }
+
+        // Interacción elástica ante la cercanía del cursor
+        if (mouse.active) {
+          const dx = (p.x + p.offsetX) - mouse.x;
+          const dy = (p.y + p.offsetY) - mouse.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 150) {
+            const force = (150 - dist) / 150;
+            const angle = Math.atan2(dy, dx);
+            const targetOffsetX = Math.cos(angle) * force * 55;
+            const targetOffsetY = Math.sin(angle) * force * 55;
+            
+            // Suavizado de la fuerza elástica
+            p.offsetX += (targetOffsetX - p.offsetX) * 0.1;
+            p.offsetY += (targetOffsetY - p.offsetY) * 0.1;
+          } else {
+            p.offsetX *= 0.92;
+            p.offsetY *= 0.92;
+          }
+        } else {
+          p.offsetX *= 0.92;
+          p.offsetY *= 0.92;
+        }
+
+        // Dibujar el punto
+        ctx.beginPath();
+        ctx.arc(p.x + p.offsetX, p.y + p.offsetY, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.alpha;
+        ctx.fill();
+      });
+
+      // Dibujar enlaces extra finos y sutiles (look tecnológico futurista)
+      ctx.globalAlpha = 0.035;
+      ctx.strokeStyle = isDarkMode ? '#ffffff' : '#1C40F2';
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const pi = particles[i];
+          const pj = particles[j];
+          const pix = pi.x + pi.offsetX;
+          const piy = pi.y + pi.offsetY;
+          const pjx = pj.x + pj.offsetX;
+          const pjy = pj.y + pj.offsetY;
+          const dx = pix - pjx;
+          const dy = piy - pjy;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 95) {
+            ctx.beginPath();
+            ctx.moveTo(pix, piy);
+            ctx.lineTo(pjx, pjy);
+            ctx.stroke();
+          }
+        }
+      }
+      ctx.globalAlpha = 1.0;
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    animate();
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseleave', handleMouseLeave);
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, [isAuthenticated, isDarkMode]);
+
   // --- CARGAR LIBRERÍA DE GOOGLE (GIS) ---
   useEffect(() => {
     // 1. Cargar API de Google
@@ -1691,10 +1829,9 @@ export default function App() {
       <div className={`flex items-center justify-center min-h-screen w-full font-sans overflow-hidden transition-colors duration-500 relative z-0 ${isDarkMode ? 'bg-[#020204] text-gray-100' : 'bg-slate-50 text-gray-800'}`}>
         
         {/* GLOBAL BACKGROUND BLOBS */}
-        <div className={`absolute top-[-10%] left-[-5%] w-[40rem] h-[40rem] rounded-full mix-blend-screen filter blur-[130px] pointer-events-none -z-10 transition-all duration-500 ${isDarkMode ? 'bg-purple-950/20 opacity-30' : 'bg-purple-200/40 opacity-50'}`}></div>
-        <div className={`absolute top-[20%] right-[-10%] w-[35rem] h-[35rem] rounded-full mix-blend-screen filter blur-[120px] pointer-events-none -z-10 transition-all duration-500 ${isDarkMode ? 'bg-primary/20 opacity-25' : 'bg-blue-100/40 opacity-50'}`}></div>
-        <div className={`absolute bottom-[-10%] left-[20%] w-[40rem] h-[40rem] rounded-full mix-blend-screen filter blur-[130px] pointer-events-none -z-10 transition-all duration-500 ${isDarkMode ? 'bg-emerald-955/20 opacity-25' : 'bg-emerald-100/30 opacity-40'}`}></div>
-
+        <div className={`absolute top-[-10%] left-[-5%] w-[40rem] h-[40rem] rounded-full mix-blend-screen filter blur-[130px] pointer-events-none -z-10 transition-all duration-500 animate-liquid-1 ${isDarkMode ? 'bg-purple-950/20 opacity-30' : 'bg-purple-200/40 opacity-50'}`}></div>
+        <div className={`absolute top-[20%] right-[-10%] w-[35rem] h-[35rem] rounded-full mix-blend-screen filter blur-[120px] pointer-events-none -z-10 transition-all duration-500 animate-liquid-2 ${isDarkMode ? 'bg-primary/20 opacity-25' : 'bg-blue-100/40 opacity-50'}`}></div>
+        
         {/* Theme Toggle flotante en la esquina */}
         <div className="absolute top-6 right-6 z-20">
           <button 
@@ -1710,35 +1847,45 @@ export default function App() {
           </button>
         </div>
 
+        {/* Canvas de partículas de fondo (Estilo Google Antigravity) */}
+        <canvas id="login-particles" className="absolute inset-0 w-full h-full pointer-events-none -z-10" />
+
         {/* Card Centrado (Estilo Profesional Alineado a la Izquierda) */}
         <div className="w-full max-w-[420px] mx-4 relative group select-none">
           {/* Subtle Backglow */}
-          <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-tr from-[#1C40F2]/10 to-[#a855f7]/10 blur-xl opacity-60 pointer-events-none"></div>
+          <div className="absolute inset-0 rounded-[10px] bg-gradient-to-tr from-[#1C40F2]/10 to-[#a855f7]/10 blur-xl opacity-60 pointer-events-none"></div>
           
           {/* La tarjeta principal */}
-          <div className={`w-full p-8 sm:p-10 rounded-[2rem] flex flex-col border transition-all duration-500 relative z-10 ${
+          <div className={`w-full p-8 sm:p-10 rounded-[10px] flex flex-col border transition-all duration-500 relative z-10 ${
             isDarkMode 
               ? 'bg-[#0f111a]/95 border-white/5 shadow-2xl shadow-black/60' 
               : 'bg-white/95 border-slate-200/60 shadow-xl shadow-slate-100/60'
           }`}>
             
-            {/* Header de la Empresa o Web Fix */}
-            <div className="text-left mb-8">
+            {/* Header de la Empresa o Web Fix (Isotipo + Wordmark) */}
+            <div className="text-left mb-8 select-none">
               {companyProfile?.logoUrl ? (
                 <img src={companyProfile.logoUrl} alt="Logo de la Empresa" className="max-h-12 object-contain mb-4" />
               ) : (
-                <h2 className={`text-3xl font-extrabold tracking-tight mb-2 ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                  Web Fix
-                </h2>
+                <div className="flex items-center gap-2.5 mb-5 select-none">
+                  <div className="w-9 h-9 rounded-[10px] bg-gradient-to-br from-[#1C40F2] to-[#6366f1] flex items-center justify-center shadow-md shadow-blue-500/20">
+                    <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                    </svg>
+                  </div>
+                  <span className={`text-2xl font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                    Web Fix
+                  </span>
+                </div>
               )}
-              <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-200' : 'text-black'}`}>
+              <span className={`text-[18px] font-medium leading-none block ${isDarkMode ? 'text-gray-200' : 'text-black'}`}>
                 Iniciar sesión
               </span>
             </div>
             
             <form onSubmit={handleLogin} className="space-y-5 text-left">
               <div>
-                <label className={`block text-xs font-bold mb-1.5 ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                <label className={`block text-[12px] font-normal mb-1.5 ${isDarkMode ? 'text-white' : 'text-black'}`}>
                   Correo Electrónico
                 </label>
                 <div className="relative">
@@ -1761,7 +1908,7 @@ export default function App() {
               </div>
    
               <div>
-                <label className={`block text-xs font-bold mb-1.5 ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                <label className={`block text-[12px] font-normal mb-1.5 ${isDarkMode ? 'text-white' : 'text-black'}`}>
                   Contraseña
                 </label>
                 <div className="relative">
@@ -1794,7 +1941,7 @@ export default function App() {
                   <button
                     type="button"
                     onClick={() => showToast('Comunícate con soporte para recuperar tu contraseña', 'info')}
-                    className="text-xs font-semibold text-[#1C40F2] hover:text-[#1633c1] dark:text-[#818cf8] transition-colors"
+                    className="text-xs font-semibold text-primary hover:text-primary-hover transition-colors"
                   >
                     ¿Olvidaste tu contraseña?
                   </button>
@@ -1812,11 +1959,7 @@ export default function App() {
               <button 
                 type="submit" 
                 disabled={isAuthenticating}
-                className={`w-full flex items-center justify-center gap-2 mt-6 py-4 rounded-[10px] text-xs font-bold tracking-wider uppercase transition-all duration-300 shadow-md active:scale-98 disabled:opacity-70 disabled:hover:scale-100 ${
-                  isDarkMode 
-                    ? 'bg-[#1C40F2] hover:bg-[#1633c1] text-white hover:scale-[1.01] hover:shadow-[0_0_20px_rgba(28,64,242,0.35)] shadow-blue-950/20' 
-                    : 'bg-[#1C40F2] hover:bg-[#1633c1] text-white hover:scale-[1.01] hover:shadow-[0_0_20px_rgba(28,64,242,0.25)]'
-                }`}
+                className={`w-full flex items-center justify-center gap-2 mt-6 py-4 rounded-[10px] text-xs font-bold tracking-wider uppercase transition-all duration-300 shadow-md active:scale-98 disabled:opacity-70 disabled:hover:scale-100 bg-[#1C40F2] hover:bg-[#1633c1] text-white hover:scale-[1.01] hover:shadow-[0_0_20px_rgba(28,64,242,0.25)]`}
               >
                 {isAuthenticating ? (
                   <>
@@ -1824,7 +1967,7 @@ export default function App() {
                   </>
                 ) : (
                   <>
-                    Iniciar Sesión
+                    INICIAR SESIÓN
                   </>
                 )}
               </button>
@@ -1832,11 +1975,11 @@ export default function App() {
  
             {/* Footer con Registro */}
             <div className="mt-6 text-center">
-              <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-slate-500'}`}>
+              <p style={{ fontSize: '12px', color: isDarkMode ? '#e2e8f0' : '#000000' }} className="font-normal select-none">
                 ¿No tienes una cuenta?{' '}
                 <span 
                   onClick={() => showToast('Registro no habilitado para la versión pública', 'info')}
-                  className="font-semibold text-[#1C40F2] hover:underline cursor-pointer"
+                  className="font-bold text-primary hover:underline cursor-pointer"
                 >
                   Regístrate
                 </span>
@@ -1847,7 +1990,7 @@ export default function App() {
  
         {/* Derechos Reservados como Pie de Página */}
         <div className="absolute bottom-6 left-0 right-0 text-center z-10 pointer-events-none">
-          <p style={{ fontSize: '12px', color: '#000000' }} className="font-normal select-none pointer-events-auto">
+          <p style={{ fontSize: '12px', color: isDarkMode ? 'rgba(255, 255, 255, 0.4)' : '#000000' }} className="font-normal select-none pointer-events-auto">
             © WebFix 2026. Todos los derechos reservados
           </p>
         </div>
