@@ -1722,21 +1722,24 @@ export default function App() {
               : 'bg-white/95 border-slate-200/60 shadow-xl shadow-slate-100/60'
           }`}>
             
-            {/* Header Alineado a la Izquierda */}
+            {/* Header de la Empresa o Web Fix */}
             <div className="text-left mb-8">
-              <h2 className={`text-3xl font-bold tracking-tight leading-tight mb-2 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-                Welcome to <br />
-                WebFix ERP
-              </h2>
+              {companyProfile?.logoUrl ? (
+                <img src={companyProfile.logoUrl} alt="Logo de la Empresa" className="max-h-12 object-contain mb-4" />
+              ) : (
+                <h2 className={`text-3xl font-bold tracking-tight mb-2 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                  Web Fix
+                </h2>
+              )}
               <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-slate-500'}`}>
-                Sign in to your account
+                Iniciar sesión
               </span>
             </div>
             
             <form onSubmit={handleLogin} className="space-y-5 text-left">
               <div>
                 <label className={`block text-xs font-semibold mb-1.5 ${isDarkMode ? 'text-gray-300' : 'text-slate-700'}`}>
-                  Email Address
+                  Correo Electrónico
                 </label>
                 <div className="relative">
                   <div className={`absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors ${isDarkMode ? 'text-gray-500' : 'text-slate-400'}`}>
@@ -1751,7 +1754,7 @@ export default function App() {
                         ? 'bg-[#151722] border-white/10 text-white focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/20' 
                         : 'bg-[#f8fafc] border-slate-200 text-slate-900 focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/20 focus:bg-white'
                     }`} 
-                    placeholder="mark.anderson@acme.com" 
+                    placeholder="correo@ejemplo.com" 
                     required
                   />
                 </div>
@@ -1759,7 +1762,7 @@ export default function App() {
    
               <div>
                 <label className={`block text-xs font-semibold mb-1.5 ${isDarkMode ? 'text-gray-300' : 'text-slate-700'}`}>
-                  Password
+                  Contraseña
                 </label>
                 <div className="relative">
                   <div className={`absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors ${isDarkMode ? 'text-gray-500' : 'text-slate-400'}`}>
@@ -1786,14 +1789,14 @@ export default function App() {
                   </button>
                 </div>
                 
-                {/* Forgot Password Right-Aligned */}
+                {/* Olvidaste tu contraseña */}
                 <div className="flex justify-end mt-2">
                   <button
                     type="button"
                     onClick={() => showToast('Comunícate con soporte para recuperar tu contraseña', 'info')}
                     className="text-xs font-semibold text-[#6366f1] hover:text-[#4f46e5] dark:text-[#818cf8] transition-colors"
                   >
-                    Forgot Password?
+                    ¿Olvidaste tu contraseña?
                   </button>
                 </div>
               </div>
@@ -1821,70 +1824,37 @@ export default function App() {
                   </>
                 ) : (
                   <>
-                    Sign In
+                    Iniciar Sesión
                   </>
                 )}
               </button>
             </form>
 
-            {/* Footer con Sign Up */}
+            {/* Footer con Registro */}
             <div className="mt-6 text-center">
               <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-slate-500'}`}>
-                Don't have an account?{' '}
+                ¿No tienes una cuenta?{' '}
                 <span 
                   onClick={() => showToast('Registro no habilitado para la versión pública', 'info')}
                   className="font-semibold text-[#6366f1] hover:underline cursor-pointer"
                 >
-                  Sign Up
+                  Regístrate
                 </span>
               </p>
             </div>
 
-            {/* Continuar con Redes Sociales */}
-            <div className="mt-8 flex flex-col items-center gap-3">
-              <span className="text-[10px] font-bold tracking-widest uppercase text-slate-400 dark:text-gray-500">
-                Continue with...
-              </span>
-              <div className="flex justify-center gap-3 w-full">
-                <button 
-                  type="button"
-                  onClick={() => showToast('Google Login no disponible', 'info')}
-                  className="flex items-center justify-center w-11 h-11 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm"
-                >
-                  <svg className="w-5 h-5" viewBox="0 0 24 24">
-                    <path fill="#EA4335" d="M12 5.04c1.66 0 3.2.57 4.38 1.69l3.27-3.27C17.67 1.58 14.97 1 12 1 7.35 1 3.37 3.67 1.39 7.56l3.89 3.02C6.21 7.63 8.87 5.04 12 5.04z" />
-                    <path fill="#4285F4" d="M23.49 12.27c0-.81-.07-1.59-.2-2.34H12v4.44h6.44c-.28 1.48-1.12 2.73-2.38 3.58v2.98h3.84c2.25-2.07 3.59-5.12 3.59-8.66z" />
-                    <path fill="#FBBC05" d="M5.28 14.54c-.23-.69-.37-1.42-.37-2.18s.14-1.49.37-2.18L1.39 7.16C.5 8.94 0 10.92 0 13s.5 4.06 1.39 5.84l3.89-3.3z" />
-                    <path fill="#34A853" d="M12 23c3.24 0 5.97-1.07 7.96-2.92l-3.84-2.98c-1.07.72-2.43 1.15-4.12 1.15-3.13 0-5.79-2.59-6.72-5.54l-3.89 3.02C3.37 20.33 7.35 23 12 23z" />
-                  </svg>
-                </button>
-                <button 
-                  type="button"
-                  onClick={() => showToast('Microsoft Login no disponible', 'info')}
-                  className="flex items-center justify-center w-11 h-11 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm"
-                >
-                  <svg className="w-5 h-5" viewBox="0 0 23 23">
-                    <path fill="#f25022" d="M0 0h11v11H0z" />
-                    <path fill="#7fba00" d="M12 0h11v11H12z" />
-                    <path fill="#00a4ef" d="M0 12h11v11H0z" />
-                    <path fill="#ffb900" d="M12 12h11v11H12z" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            {/* Marca de la Agencia */}
+            {/* Derechos Reservados */}
             <div className="mt-8 pt-5 border-t border-dashed border-current/10 text-center">
-              <p className={`text-[10px] font-bold tracking-widest uppercase ${isDarkMode ? 'text-gray-650' : 'text-gray-400'}`}>
-                Agencia WebFix &copy; 2026
+              <p style={{ fontSize: '12px', color: '#000000' }} className="font-normal">
+                © WebFix 2026. Todos los derechos reservados
               </p>
+            </div>
           </div>
         </div>
-      </div>
 
-    </div>
-  );
-}
+      </div>
+    );
+  }
 
   const isPersonasActive = activePageId === 'personas' || activePageId === 'team';
   const isProyectosActive = activePageId === 'proyectos_general' || activePageId === 'paginas_general' || activePageId === 'calendar' || activePage?.type === 'project' || activePage?.type === 'doc';
