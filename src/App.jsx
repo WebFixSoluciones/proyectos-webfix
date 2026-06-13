@@ -38,6 +38,9 @@ import {
   CircleDashed,
   FolderOpen,
   Users,
+  User,
+  Eye,
+  EyeOff,
   Shield,
   UserCircle,
   UserPlus,
@@ -404,6 +407,7 @@ export default function App() {
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
   const [loginError, setLoginError] = useState('');
   const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
   const [dashboardReport, setDashboardReport] = useState('');
@@ -1687,9 +1691,9 @@ export default function App() {
       <div className={`flex items-center justify-center min-h-screen w-full font-sans overflow-hidden transition-colors duration-500 relative z-0 ${isDarkMode ? 'bg-[#020204] text-gray-100' : 'bg-slate-50 text-gray-800'}`}>
         
         {/* GLOBAL BACKGROUND BLOBS */}
-        <div className={`absolute top-[-10%] left-[-5%] w-[40rem] h-[40rem] rounded-full mix-blend-screen filter blur-[130px] opacity-30 pointer-events-none -z-10 bg-purple-900`}></div>
-        <div className={`absolute top-[20%] right-[-10%] w-[35rem] h-[35rem] rounded-full mix-blend-screen filter blur-[120px] opacity-25 pointer-events-none -z-10 bg-primary`}></div>
-        <div className={`absolute bottom-[-10%] left-[20%] w-[40rem] h-[40rem] rounded-full mix-blend-screen filter blur-[130px] opacity-25 pointer-events-none -z-10 bg-emerald-900`}></div>
+        <div className={`absolute top-[-10%] left-[-5%] w-[40rem] h-[40rem] rounded-full mix-blend-screen filter blur-[130px] pointer-events-none -z-10 transition-all duration-500 ${isDarkMode ? 'bg-purple-950/20 opacity-30' : 'bg-purple-200/40 opacity-50'}`}></div>
+        <div className={`absolute top-[20%] right-[-10%] w-[35rem] h-[35rem] rounded-full mix-blend-screen filter blur-[120px] pointer-events-none -z-10 transition-all duration-500 ${isDarkMode ? 'bg-primary/20 opacity-25' : 'bg-blue-100/40 opacity-50'}`}></div>
+        <div className={`absolute bottom-[-10%] left-[20%] w-[40rem] h-[40rem] rounded-full mix-blend-screen filter blur-[130px] pointer-events-none -z-10 transition-all duration-500 ${isDarkMode ? 'bg-emerald-955/20 opacity-25' : 'bg-emerald-100/30 opacity-40'}`}></div>
 
         {/* Theme Toggle flotante en la esquina */}
         <div className="absolute top-6 right-6 z-20">
@@ -1706,45 +1710,37 @@ export default function App() {
           </button>
         </div>
 
-        {/* Card Centrado con Borde Animado (Option B) */}
-        <div className="w-full max-w-md p-[1px] rounded-[2.5rem] relative group select-none">
-          {/* Glowing Aura */}
-          <div className="absolute inset-0 rounded-[2.5rem] bg-gradient-to-r from-purple-500 via-indigo-500 to-emerald-500 blur-2xl opacity-20 group-hover:opacity-35 transition-opacity duration-1000"></div>
+        {/* Card Centrado (Estilo Profesional Alineado a la Izquierda) */}
+        <div className="w-full max-w-[420px] mx-4 relative group select-none">
+          {/* Subtle Backglow */}
+          <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-tr from-[#6366f1]/10 to-[#a855f7]/10 blur-xl opacity-60 pointer-events-none"></div>
           
-          {/* La tarjeta real con borde animado de index.css */}
-          <div className={`w-full p-8 md:p-10 rounded-[2.5rem] flex flex-col border shadow-2xl transition-all duration-500 relative z-10 animate-border-glow ${
+          {/* La tarjeta principal */}
+          <div className={`w-full p-8 sm:p-10 rounded-[2rem] flex flex-col border transition-all duration-500 relative z-10 ${
             isDarkMode 
-              ? 'bg-[#0c0c0e]/90 backdrop-blur-3xl' 
-              : 'bg-white/90 backdrop-blur-3xl border-slate-200/40'
+              ? 'bg-[#0f111a]/95 border-white/5 shadow-2xl shadow-black/60' 
+              : 'bg-white/95 border-slate-200/60 shadow-xl shadow-slate-100/60'
           }`}>
             
-            <div className="flex justify-center mb-6">
-              <div className={`p-4.5 rounded-2xl border shadow-inner ${
-                isDarkMode 
-                  ? 'bg-white/5 border-white/10 text-primary shadow-black/40' 
-                  : 'bg-primary/10 border-primary/15 text-primary shadow-slate-200/30'
-              }`}>
-                <Lock size={26} className="animate-pulse" />
-              </div>
-            </div>
-            
-            <div className="text-center mb-8">
-              <h2 className={`text-2xl font-extrabold tracking-tight mb-2 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+            {/* Header Alineado a la Izquierda */}
+            <div className="text-left mb-8">
+              <h2 className={`text-3xl font-bold tracking-tight leading-tight mb-2 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                Welcome to <br />
                 WebFix ERP
               </h2>
-              <p className={`text-xs font-semibold leading-relaxed ${isDarkMode ? 'text-gray-400' : 'text-gray-550'}`}>
-                Ingresa tus credenciales para continuar al panel de control.
-              </p>
+              <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-slate-500'}`}>
+                Sign in to your account
+              </span>
             </div>
             
-            <form onSubmit={handleLogin} className="space-y-5">
+            <form onSubmit={handleLogin} className="space-y-5 text-left">
               <div>
-                <label className={`block text-[10px] font-bold uppercase tracking-wider mb-2 ml-1 ${isDarkMode ? 'text-gray-455' : 'text-gray-500'}`}>
-                  Correo Electrónico
+                <label className={`block text-xs font-semibold mb-1.5 ${isDarkMode ? 'text-gray-300' : 'text-slate-700'}`}>
+                  Email Address
                 </label>
                 <div className="relative">
-                  <div className={`absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-                    <Mail size={16} />
+                  <div className={`absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors ${isDarkMode ? 'text-gray-500' : 'text-slate-400'}`}>
+                    <User size={16} />
                   </div>
                   <input 
                     type="email" 
@@ -1752,35 +1748,53 @@ export default function App() {
                     onChange={(e) => setLoginForm({...loginForm, email: e.target.value})}
                     className={`w-full text-xs font-medium tracking-wide pl-11 pr-3.5 py-3.5 rounded-xl outline-none transition-all border ${
                       isDarkMode 
-                        ? 'bg-black/35 border-white/5 text-white focus:border-primary/50 focus:shadow-[0_0_15px_rgba(37,99,235,0.15)] focus:bg-black/60' 
-                        : 'bg-slate-50 border-slate-200/70 text-slate-900 focus:border-primary/50 focus:shadow-[0_0_15px_rgba(37,99,235,0.08)] focus:bg-white'
+                        ? 'bg-[#151722] border-white/10 text-white focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/20' 
+                        : 'bg-[#f8fafc] border-slate-200 text-slate-900 focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/20 focus:bg-white'
                     }`} 
-                    placeholder="admin@agencia.com" 
+                    placeholder="mark.anderson@acme.com" 
                     required
                   />
                 </div>
               </div>
    
               <div>
-                <label className={`block text-[10px] font-bold uppercase tracking-wider mb-2 ml-1 ${isDarkMode ? 'text-gray-455' : 'text-gray-500'}`}>
-                  Contraseña
+                <label className={`block text-xs font-semibold mb-1.5 ${isDarkMode ? 'text-gray-300' : 'text-slate-700'}`}>
+                  Password
                 </label>
                 <div className="relative">
-                  <div className={`absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-                    <Key size={16} />
+                  <div className={`absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors ${isDarkMode ? 'text-gray-500' : 'text-slate-400'}`}>
+                    <Lock size={16} />
                   </div>
                   <input 
-                    type="password" 
+                    type={showPassword ? "text" : "password"}
                     value={loginForm.password}
                     onChange={(e) => setLoginForm({...loginForm, password: e.target.value})}
-                    className={`w-full text-xs font-medium tracking-wide pl-11 pr-3.5 py-3.5 rounded-xl outline-none transition-all border ${
+                    className={`w-full text-xs font-medium tracking-wide pl-11 pr-10 py-3.5 rounded-xl outline-none transition-all border ${
                       isDarkMode 
-                        ? 'bg-black/35 border-white/5 text-white focus:border-primary/50 focus:shadow-[0_0_15px_rgba(37,99,235,0.15)] focus:bg-black/60' 
-                        : 'bg-slate-50 border-slate-200/70 text-slate-900 focus:border-primary/50 focus:shadow-[0_0_15px_rgba(37,99,235,0.08)] focus:bg-white'
+                        ? 'bg-[#151722] border-white/10 text-white focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/20' 
+                        : 'bg-[#f8fafc] border-slate-200 text-slate-900 focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/20 focus:bg-white'
                     }`} 
-                    placeholder="••••••••" 
+                    placeholder="••••••••••••" 
                     required
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-slate-600 transition-colors"
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+                
+                {/* Forgot Password Right-Aligned */}
+                <div className="flex justify-end mt-2">
+                  <button
+                    type="button"
+                    onClick={() => showToast('Comunícate con soporte para recuperar tu contraseña', 'info')}
+                    className="text-xs font-semibold text-[#6366f1] hover:text-[#4f46e5] dark:text-[#818cf8] transition-colors"
+                  >
+                    Forgot Password?
+                  </button>
                 </div>
               </div>
    
@@ -1797,8 +1811,8 @@ export default function App() {
                 disabled={isAuthenticating}
                 className={`w-full flex items-center justify-center gap-2 mt-6 py-4 rounded-xl text-xs font-bold tracking-wider uppercase transition-all duration-300 shadow-md active:scale-98 disabled:opacity-70 disabled:hover:scale-100 ${
                   isDarkMode 
-                    ? 'bg-gradient-to-r from-purple-600 to-indigo-650 hover:from-purple-500 hover:to-indigo-600 text-white hover:scale-[1.01] hover:shadow-[0_0_20px_rgba(124,58,237,0.35)] shadow-purple-950/20' 
-                    : 'bg-primary text-white hover:bg-primary-hover hover:scale-[1.01] hover:shadow-[0_0_20px_rgba(37,99,235,0.25)]'
+                    ? 'bg-[#6366f1] hover:bg-[#4f46e5] text-white hover:scale-[1.01] hover:shadow-[0_0_20px_rgba(99,102,241,0.35)] shadow-indigo-950/20' 
+                    : 'bg-[#6366f1] hover:bg-[#4f46e5] text-white hover:scale-[1.01] hover:shadow-[0_0_20px_rgba(99,102,241,0.25)]'
                 }`}
               >
                 {isAuthenticating ? (
@@ -1807,24 +1821,70 @@ export default function App() {
                   </>
                 ) : (
                   <>
-                    Iniciar Sesión <ArrowRight size={14} />
+                    Sign In
                   </>
                 )}
               </button>
             </form>
 
-            {/* Footer de la Agencia */}
-            <div className="mt-8 pt-5 border-t border-dashed border-current/10 text-center">
-              <p className={`text-[10px] font-bold tracking-widest uppercase ${isDarkMode ? 'text-gray-650' : 'text-gray-405'}`}>
-                Agencia WebFix &copy; 2026
+            {/* Footer con Sign Up */}
+            <div className="mt-6 text-center">
+              <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-slate-500'}`}>
+                Don't have an account?{' '}
+                <span 
+                  onClick={() => showToast('Registro no habilitado para la versión pública', 'info')}
+                  className="font-semibold text-[#6366f1] hover:underline cursor-pointer"
+                >
+                  Sign Up
+                </span>
               </p>
             </div>
+
+            {/* Continuar con Redes Sociales */}
+            <div className="mt-8 flex flex-col items-center gap-3">
+              <span className="text-[10px] font-bold tracking-widest uppercase text-slate-400 dark:text-gray-500">
+                Continue with...
+              </span>
+              <div className="flex justify-center gap-3 w-full">
+                <button 
+                  type="button"
+                  onClick={() => showToast('Google Login no disponible', 'info')}
+                  className="flex items-center justify-center w-11 h-11 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm"
+                >
+                  <svg className="w-5 h-5" viewBox="0 0 24 24">
+                    <path fill="#EA4335" d="M12 5.04c1.66 0 3.2.57 4.38 1.69l3.27-3.27C17.67 1.58 14.97 1 12 1 7.35 1 3.37 3.67 1.39 7.56l3.89 3.02C6.21 7.63 8.87 5.04 12 5.04z" />
+                    <path fill="#4285F4" d="M23.49 12.27c0-.81-.07-1.59-.2-2.34H12v4.44h6.44c-.28 1.48-1.12 2.73-2.38 3.58v2.98h3.84c2.25-2.07 3.59-5.12 3.59-8.66z" />
+                    <path fill="#FBBC05" d="M5.28 14.54c-.23-.69-.37-1.42-.37-2.18s.14-1.49.37-2.18L1.39 7.16C.5 8.94 0 10.92 0 13s.5 4.06 1.39 5.84l3.89-3.3z" />
+                    <path fill="#34A853" d="M12 23c3.24 0 5.97-1.07 7.96-2.92l-3.84-2.98c-1.07.72-2.43 1.15-4.12 1.15-3.13 0-5.79-2.59-6.72-5.54l-3.89 3.02C3.37 20.33 7.35 23 12 23z" />
+                  </svg>
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => showToast('Microsoft Login no disponible', 'info')}
+                  className="flex items-center justify-center w-11 h-11 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm"
+                >
+                  <svg className="w-5 h-5" viewBox="0 0 23 23">
+                    <path fill="#f25022" d="M0 0h11v11H0z" />
+                    <path fill="#7fba00" d="M12 0h11v11H12z" />
+                    <path fill="#00a4ef" d="M0 12h11v11H0z" />
+                    <path fill="#ffb900" d="M12 12h11v11H12z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Marca de la Agencia */}
+            <div className="mt-8 pt-5 border-t border-dashed border-current/10 text-center">
+              <p className={`text-[10px] font-bold tracking-widest uppercase ${isDarkMode ? 'text-gray-650' : 'text-gray-400'}`}>
+                Agencia WebFix &copy; 2026
+              </p>
           </div>
         </div>
-
       </div>
-    );
-  }
+
+    </div>
+  );
+}
 
   const isPersonasActive = activePageId === 'personas' || activePageId === 'team';
   const isProyectosActive = activePageId === 'proyectos_general' || activePageId === 'paginas_general' || activePageId === 'calendar' || activePage?.type === 'project' || activePage?.type === 'doc';
