@@ -167,6 +167,14 @@ function round2(v) {
   return Math.round((Number(v) + Number.EPSILON) * 100) / 100;
 }
 
+// Normaliza una fecha a DD/MM/YYYY (formato exigido por el SRI). Acepta
+// YYYY-MM-DD (la convierte) o una fecha ya en DD/MM/YYYY (la deja igual).
+export function fechaSRI(f) {
+  if (!f) return '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(f)) return f.split('-').reverse().join('/');
+  return f;
+}
+
 // Generar estructura XML para Factura
 export function generarFacturaXML(emisorConfig, facturaData, terceroData, items = []) {
   const codigoNumerico = facturaData.codigoNumerico ||
@@ -305,6 +313,8 @@ export function generarRetencionXML(emisorConfig, retencionData, terceroData) {
   const retenciones = retencionData.retenciones || [];
   let impuestosXml = '';
   retenciones.forEach(ret => {
+    // numDocSustento debe ser 15 dígitos exactos (estab+ptoEmi+secuencial), sin guiones
+    const numDoc = String(ret.numDocSustento || '').replace(/\D/g, '').padStart(15, '0').slice(-15);
     impuestosXml += `
     <impuesto>
       <codigo>${ret.codigo}</codigo>
@@ -313,8 +323,8 @@ export function generarRetencionXML(emisorConfig, retencionData, terceroData) {
       <porcentajeRetener>${Number(ret.porcentajeRetener).toFixed(2)}</porcentajeRetener>
       <valorRetenido>${Number(ret.valorRetenido).toFixed(2)}</valorRetenido>
       <codDocSustento>${ret.codDocSustento || '01'}</codDocSustento>
-      <numDocSustento>${ret.numDocSustento || '000-000-000000000'}</numDocSustento>
-      <fechaEmisionDocSustento>${ret.fechaEmisionDocSustento || retencionData.date.split('-').reverse().join('/')}</fechaEmisionDocSustento>
+      <numDocSustento>${numDoc}</numDocSustento>
+      <fechaEmisionDocSustento>${fechaSRI(ret.fechaEmisionDocSustento || retencionData.date)}</fechaEmisionDocSustento>
     </impuesto>`;
   });
 
@@ -415,10 +425,10 @@ export function generarNotaCreditoXML(emisorConfig, ncData, terceroData, items =
     <obligadoContabilidad>${emisorConfig.obligadoContabilidad ? 'SI' : 'NO'}</obligadoContabilidad>
     <codDocModificado>${ncData.codDocModificado || '01'}</codDocModificado>
     <numDocModificado>${ncData.numDocModificado || '001-001-000000000'}</numDocModificado>
-    <fechaEmisionDocSustento>${ncData.fechaEmisionDocSustento || ncData.date.split('-').reverse().join('/')}</fechaEmisionDocSustento>
+    <fechaEmisionDocSustento>${fechaSRI(ncData.fechaEmisionDocSustento || ncData.date)}</fechaEmisionDocSustento>
     <totalSinImpuestos>${Number(ncData.baseImponible).toFixed(2)}</totalSinImpuestos>
     <valorModificacion>${Number(ncData.total).toFixed(2)}</valorModificacion>
-    <motivo>${ncData.motivo || 'Devolución de mercadería'}</motivo>
+    <moneda>DOLAR</moneda>
     <totalConImpuestos>
       <totalImpuesto>
         <codigo>2</codigo>
@@ -427,6 +437,7 @@ export function generarNotaCreditoXML(emisorConfig, ncData, terceroData, items =
         <valor>${Number(ncData.ivaValor).toFixed(2)}</valor>
       </totalImpuesto>
     </totalConImpuestos>
+    <motivo>${ncData.motivo || 'Devolución de mercadería'}</motivo>
   </infoNotaCredito>
   <detalles>${detallesXml}
   </detalles>
@@ -459,7 +470,7 @@ export function generarLiquidacionXML(emisorConfig, liqData, terceroData, items 
     const lineIva = lineSub * ((parseInt(item.ivaCategory) || 15) / 100);
     detallesXml += `
     <detalle>
-      <codigoInterno>P${idx + 1}</codigoInterno>
+      <codigoPrincipal>P${idx + 1}</codigoPrincipal>
       <descripcion>${item.name || 'Detalle'}</descripcion>
       <cantidad>${Number(item.quantity).toFixed(2)}</cantidad>
       <precioUnitario>${Number(item.price).toFixed(2)}</precioUnitario>
@@ -521,6 +532,84 @@ export function generarLiquidacionXML(emisorConfig, liqData, terceroData, items 
   <detalles>${detallesXml}
   </detalles>
 </liquidacionCompra>`;
+
+  return { xml, claveAcceso };
+}
+
+// Generar estructura XML para Guía de Remisión (06)
+export function generarGuiaRemisionXML(emisorConfig, guiaData, destinatarioData, items = []) {
+  const codigoNumerico = guiaData.codigoNumerico ||
+    (guiaData.claveAcceso && guiaData.claveAcceso.length === 49 ? guiaData.claveAcceso.substring(39, 47) : null) ||
+    '12345678';
+
+  const claveAcceso = generarClaveAcceso({
+    fechaEmision: guiaData.date,
+    tipoComprobante: '06',
+    ruc: emisorConfig.ruc,
+    ambiente: emisorConfig.ambiente,
+    establecimiento: emisorConfig.establecimiento,
+    puntoEmision: emisorConfig.puntoEmision,
+    secuencial: guiaData.secuencial || '000000001',
+    codigoNumerico
+  });
+
+  const fechaDDMMYYYY = (f) => f.split('-').reverse().join('/');
+  const fechaIni = guiaData.fechaIniTransporte || guiaData.date;
+  const fechaFin = guiaData.fechaFinTransporte || guiaData.date;
+
+  const activeItems = items.length > 0 ? items : (guiaData.items || []);
+  let detallesXml = '';
+  activeItems.forEach((item, idx) => {
+    const cantidad = parseFloat(item.quantity) || 1;
+    detallesXml += `
+      <detalle>
+        <codigoInterno>${escaparXml(item.code || `P${idx + 1}`)}</codigoInterno>
+        <descripcion>${escaparXml(item.name || 'Detalle')}</descripcion>
+        <cantidad>${cantidad.toFixed(2)}</cantidad>
+      </detalle>`;
+  });
+
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<guiaRemision id="comprobante" version="1.1.0">
+  <infoTributaria>
+    <ambiente>${emisorConfig.ambiente}</ambiente>
+    <tipoEmision>1</tipoEmision>
+    <razonSocial>${escaparXml(emisorConfig.razonSocial)}</razonSocial>
+    <nombreComercial>${escaparXml(emisorConfig.nombreComercial || emisorConfig.razonSocial)}</nombreComercial>
+    <ruc>${emisorConfig.ruc}</ruc>
+    <claveAcceso>${claveAcceso}</claveAcceso>
+    <codDoc>06</codDoc>
+    <estab>${emisorConfig.establecimiento}</estab>
+    <ptoEmi>${emisorConfig.puntoEmision}</ptoEmi>
+    <secuencial>${String(guiaData.secuencial || '1').padStart(9, '0')}</secuencial>
+    <dirMatriz>${escaparXml(emisorConfig.direccionMatriz || 'Ecuador')}</dirMatriz>
+  </infoTributaria>
+  <infoGuiaRemision>
+    <dirEstablecimiento>${escaparXml(emisorConfig.direccionMatriz || 'Ecuador')}</dirEstablecimiento>
+    <dirPartida>${escaparXml(guiaData.dirPartida || emisorConfig.direccionMatriz || 'Ecuador')}</dirPartida>
+    <razonSocialTransportista>${escaparXml(guiaData.razonSocialTransportista || emisorConfig.razonSocial)}</razonSocialTransportista>
+    <tipoIdentificacionTransportista>${guiaData.tipoIdentificacionTransportista || '04'}</tipoIdentificacionTransportista>
+    <rucTransportista>${guiaData.rucTransportista || emisorConfig.ruc}</rucTransportista>
+    <obligadoContabilidad>${emisorConfig.obligadoContabilidad ? 'SI' : 'NO'}</obligadoContabilidad>
+    <fechaIniTransporte>${fechaDDMMYYYY(fechaIni)}</fechaIniTransporte>
+    <fechaFinTransporte>${fechaDDMMYYYY(fechaFin)}</fechaFinTransporte>
+    <placa>${escaparXml(guiaData.placa || 'AAA0001')}</placa>
+  </infoGuiaRemision>
+  <destinatarios>
+    <destinatario>
+      <identificacionDestinatario>${destinatarioData.ruc}</identificacionDestinatario>
+      <razonSocialDestinatario>${escaparXml(destinatarioData.name)}</razonSocialDestinatario>
+      <dirDestinatario>${escaparXml(destinatarioData.address || guiaData.dirDestino || 'Ecuador')}</dirDestinatario>
+      <motivoTraslado>${escaparXml(guiaData.motivoTraslado || 'Venta')}</motivoTraslado>
+      <ruta>${escaparXml(guiaData.ruta || 'Ruta de entrega')}</ruta>
+      <codDocSustento>${guiaData.codDocSustento || '01'}</codDocSustento>
+      <numDocSustento>${guiaData.numDocSustento || `${emisorConfig.establecimiento}-${emisorConfig.puntoEmision}-${String(guiaData.secuencialSustento || guiaData.secuencial || '1').padStart(9, '0')}`}</numDocSustento>
+      <fechaEmisionDocSustento>${fechaDDMMYYYY(guiaData.fechaEmisionDocSustento || guiaData.date)}</fechaEmisionDocSustento>
+      <detalles>${detallesXml}
+      </detalles>
+    </destinatario>
+  </destinatarios>
+</guiaRemision>`;
 
   return { xml, claveAcceso };
 }
@@ -674,7 +763,7 @@ export async function simularTransmisionSRI(documentoData, configSRI, onLogUpdat
   <soapenv:Header/>
   <soapenv:Body>
     <ec:autorizacionComprobante>
-      <claveAcceso>${documentoData.claveAcceso}</claveAcceso>
+      <claveAccesoComprobante>${documentoData.claveAcceso}</claveAccesoComprobante>
     </ec:autorizacionComprobante>
   </soapenv:Body>
 </soapenv:Envelope>`;

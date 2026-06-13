@@ -111,7 +111,12 @@ export function firmarComprobanteXML(xmlString, p12Base64, password) {
     // IMPORTANTE: se construye ya en forma canónica C14N (xmlns antes de Id, y
     // elementos vacíos expandidos a <x></x>) para que el digest calculado aquí
     // coincida EXACTAMENTE con el que recalcula el SRI al canonicalizar el subárbol.
-    const signedPropertiesXml = `<xades:SignedProperties xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xades="http://uri.etsi.org/01903/v1.3.2#" Id="${signedPropertiesId}">` +
+    // El SRI usa C14N *inclusivo* y canonicaliza el SignedProperties EN CONTEXTO,
+    // por lo que hereda el xmlns:xades141 declarado en el QualifyingProperties
+    // ancestro. Debemos declararlo aquí también (en orden alfabético de prefijo:
+    // ds, xades, xades141) para que el digest cuadre; de lo contrario el SRI
+    // reporta "firma inválida (firma y/o certificados alterados)".
+    const signedPropertiesXml = `<xades:SignedProperties xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xades="http://uri.etsi.org/01903/v1.3.2#" xmlns:xades141="http://uri.etsi.org/01903/v1.4.1#" Id="${signedPropertiesId}">` +
       `<xades:SignedSignatureProperties>` +
         `<xades:SigningTime>${signingTime}</xades:SigningTime>` +
         `<xades:SigningCertificate>` +
