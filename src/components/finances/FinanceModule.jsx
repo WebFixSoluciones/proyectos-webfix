@@ -9,7 +9,6 @@ import FinanceDashboard from './FinanceDashboard';
 import TransactionsView from './TransactionsView';
 import ThirdPartiesView from './ThirdPartiesView';
 import ReportsView from './ReportsView';
-import FinanceSettings from './FinanceSettings';
 import FinanceChat from './FinanceChat';
 import ProductsView from './ProductsView';
 import QuotesView from './QuotesView';
@@ -147,7 +146,6 @@ export default function FinanceModule({
         { id: 'cxp', label: 'Cuentas por Pagar', icon: ArrowUpCircle },
         { id: 'gastos_creditos_sub', label: 'Gastos y Créditos', icon: CreditCard },
         { id: 'reports', label: 'Reportes', icon: Download },
-        { id: 'settings', label: 'Configuración', icon: Settings },
       ];
     }
     if (mode === 'compras') {
@@ -349,9 +347,8 @@ export default function FinanceModule({
                 <AccountsReceivablePayable type="cxp" transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} appId={appId} />
               )}
 
-              {/* REPORTES Y CONFIGURACIÓN */}
+              {/* REPORTES */}
               {activeTab === 'reports' && <ReportsView transactions={transactions} isDarkMode={isDarkMode} showToast={showToast} />}
-              {activeTab === 'settings' && <FinanceSettings isDarkMode={isDarkMode} showToast={showToast} db={db} storage={storage} appId={appId} />}
               {activeTab === 'gastos_creditos_sub' && (
                 <GastosCreditosModule isDarkMode={isDarkMode} showToast={showToast} transactions={transactions} thirdParties={thirdParties} db={db} appId={appId} />
               )}

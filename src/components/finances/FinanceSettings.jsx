@@ -185,6 +185,33 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
             <p className="text-[9px] text-gray-500 leading-relaxed">
               El ambiente determina a qué servidor del SRI se envían las facturas. La clave de Gemini habilita la categorización inteligente de facturas y OCR de compras.
             </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-white/10">
+              <div>
+                <label className="block text-[10px] font-bold uppercase mb-1 text-gray-500">Establecimiento (Estab.)</label>
+                <input
+                  type="text"
+                  maxLength={3}
+                  value={sriConfig.establecimiento || ''}
+                  onChange={e => setSriConfig({...sriConfig, establecimiento: e.target.value.replace(/\D/g, '').padStart(0, '0').slice(0, 3)})}
+                  onBlur={e => setSriConfig({...sriConfig, establecimiento: (e.target.value || '001').padStart(3, '0')})}
+                  className={inputClass}
+                  placeholder="001"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold uppercase mb-1 text-gray-500">Punto de Emisión (Pto. Emi.)</label>
+                <input
+                  type="text"
+                  maxLength={3}
+                  value={sriConfig.puntoEmision || ''}
+                  onChange={e => setSriConfig({...sriConfig, puntoEmision: e.target.value.replace(/\D/g, '').slice(0, 3)})}
+                  onBlur={e => setSriConfig({...sriConfig, puntoEmision: (e.target.value || '001').padStart(3, '0')})}
+                  className={inputClass}
+                  placeholder="001"
+                />
+              </div>
+            </div>
           </div>
 
           {/* VINCULACIÓN SRI ECUADOR */}
@@ -232,53 +259,19 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
           <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-white border-gray-200'}`}>
             <div className="flex items-center gap-2 mb-4 pb-2 border-b border-white/10">
               <Settings size={18} className="text-primary" />
-              <h3 className="text-base font-bold">Datos Comerciales / Proformas</h3>
+              <h3 className="text-base font-bold">Formatos de Impresión</h3>
             </div>
-            
+
             <div className="space-y-4">
-              
-              {/* Previsualización del Logo configurado */}
-              <div className="flex flex-col items-center justify-center p-4 rounded-xl border border-white/5 bg-black/10">
-                <label className="block text-[9px] font-bold uppercase mb-2 text-gray-500 text-center">Logotipo Oficial (Lectura)</label>
-                {sriConfig.logoUrl ? (
-                  <div className="w-20 h-20 flex items-center justify-center bg-white rounded-lg p-1.5 shadow-sm border border-gray-100">
-                    <img src={sriConfig.logoUrl} alt="Logo" className="max-h-full max-w-full object-contain" />
-                  </div>
-                ) : (
-                  <p className="text-[9px] text-gray-550 italic text-center">No se ha cargado logotipo todavía.</p>
-                )}
-                <span className="text-[8px] text-gray-550 text-center mt-2.5 leading-normal">
-                  Configure/cambie el logotipo desde <span className="font-bold">Ajustes de ERP &gt; Perfil de Empresa</span>.
-                </span>
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-500">Correo de Contacto (Proformas/Documentos)</label>
-                <input 
-                  type="email" 
-                  value={sriConfig.correoContacto || ''} 
-                  onChange={e => setSriConfig({...sriConfig, correoContacto: e.target.value})} 
-                  className={inputClass} 
-                  placeholder="ventas@empresa.com" 
-                />
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-500">Teléfono de Contacto (Proformas/Documentos)</label>
-                <input 
-                  type="text" 
-                  value={sriConfig.telefonoContacto || ''} 
-                  onChange={e => setSriConfig({...sriConfig, telefonoContacto: e.target.value})} 
-                  className={inputClass} 
-                  placeholder="0998765432" 
-                />
-              </div>
+              <p className="text-[10px] text-gray-500 leading-relaxed">
+                Los datos del logo, correo y teléfono que se imprimen en los documentos se configuran en <span className="font-bold">Perfil de Empresa</span>.
+              </p>
 
               <div>
                 <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-500">Plantilla de Cotización</label>
-                <select 
-                  value={sriConfig.cotizacionFormActivo || sriConfig.cotizacionFormatoActivo || 'basico'} 
-                  onChange={e => setSriConfig({...sriConfig, cotizacionFormatoActivo: e.target.value, cotizacionFormActivo: e.target.value})} 
+                <select
+                  value={sriConfig.cotizacionFormActivo || sriConfig.cotizacionFormatoActivo || 'basico'}
+                  onChange={e => setSriConfig({...sriConfig, cotizacionFormatoActivo: e.target.value, cotizacionFormActivo: e.target.value})}
                   className={inputClass}
                 >
                   <option value="basico" className="text-black">Plantilla Clásica (PDF)</option>

@@ -4,12 +4,13 @@ import {
   Save, Download, CheckCircle2, AlertTriangle, Key, Mail, Globe, 
   MapPin, Phone, Building, ShoppingCart, DollarSign, Package, Calendar, 
   Plus, Trash2, Eye, EyeOff, LayoutDashboard, ToggleLeft, ToggleRight,
-  Palette, CreditCard, Award, UploadCloud, ExternalLink, X, Lock, AlertCircle, CheckCircle, RefreshCw
+  Palette, CreditCard, Award, UploadCloud, ExternalLink, X, Lock, AlertCircle, CheckCircle, RefreshCw, FileText
 } from 'lucide-react';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import forge from 'node-forge';
 import { consultarRucSri } from '../../services/sriService';
+import FinanceSettings from '../finances/FinanceSettings';
 
 export default function GeneralSettings({ 
   isDarkMode, showToast, db, appId, storage,
@@ -1009,6 +1010,7 @@ export default function GeneralSettings({
 
   const tabs = [
     { id: 'profile', label: 'Perfil de Empresa', icon: Building },
+    { id: 'einvoicing', label: 'Facturación Electrónica', icon: FileText },
     { id: 'appearance', label: 'Apariencia y Tema', icon: Palette },
     { id: 'modules', label: 'Módulos ERP', icon: ToggleRight },
     { id: 'workspace', label: 'Google Workspace', icon: LinkIcon },
@@ -1055,8 +1057,8 @@ export default function GeneralSettings({
         {activeSubTab === 'profile' && (
           <form onSubmit={handleSaveProfile} className="space-y-6 animate-in fade-in duration-200">
             <div className="border-b border-white/5 pb-3">
-              <h3 className="text-sm font-black uppercase tracking-wider text-primary">Perfil de Empresa y Configuración Fiscal</h3>
-              <p className="text-[10px] text-gray-500 mt-1">Configure los datos tributarios oficiales de su negocio para la emisión de comprobantes electrónicos en Ecuador. Ingrese su RUC para importar automáticamente los datos del SRI.</p>
+              <h3 className="text-sm font-black uppercase tracking-wider text-primary">Perfil de Empresa</h3>
+              <p className="text-[10px] text-gray-500 mt-1">Identidad fiscal, firma electrónica y establecimientos de su negocio. El ambiente de emisión, secuenciales y formatos se configuran en la pestaña <span className="font-bold text-primary">Facturación Electrónica</span>.</p>
             </div>
 
             {/* ALERTA RUC INACTIVO */}
@@ -1082,7 +1084,9 @@ export default function GeneralSettings({
                 
                 {/* CARD 1: DATOS FISCALES DE LA EMPRESA */}
                 <div className={`p-5 rounded-3xl border space-y-4 ${isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-gray-50/50 border-gray-200 shadow-sm'}`}>
-                  <h4 className="text-xs font-black uppercase tracking-wider text-primary">Datos Fiscales de la Empresa</h4>
+                  <h4 className="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
+                    <Building size={14} className="text-primary" /> Identificación Fiscal
+                  </h4>
                   
                   {/* RUC CON BUSCADOR SRI */}
                   <div className="flex gap-2 items-end">
@@ -1177,7 +1181,9 @@ export default function GeneralSettings({
 
                 {/* CARD 2: INFORMACIÓN DE CONTACTO */}
                 <div className={`p-5 rounded-3xl border space-y-4 ${isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-gray-50/50 border-gray-200 shadow-sm'}`}>
-                  <h4 className="text-xs font-black uppercase tracking-wider text-primary">Información de Contacto</h4>
+                  <h4 className="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
+                    <Phone size={13} className="text-primary" /> Información de Contacto
+                  </h4>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
@@ -1215,7 +1221,9 @@ export default function GeneralSettings({
 
                 {/* CARD 3: PARÁMETROS TRIBUTARIOS CONTABLES */}
                 <div className={`p-5 rounded-3xl border space-y-4 ${isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-gray-50/50 border-gray-200 shadow-sm'}`}>
-                  <h4 className="text-xs font-black uppercase tracking-wider text-primary">Parámetros Tributarios Contables</h4>
+                  <h4 className="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
+                    <Shield size={13} className="text-primary" /> Parámetros Tributarios
+                  </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="flex items-center gap-2 py-1">
                       <input 
@@ -1292,46 +1300,6 @@ export default function GeneralSettings({
 
               {/* COLUMNA 2 (DERECHA) */}
               <div className="space-y-6">
-                
-                {/* LOGOTIPO OFICIAL */}
-                <div className={`p-5 rounded-3xl border space-y-4 ${isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-gray-50/50 border-gray-200 shadow-sm'}`}>
-                  <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-500 text-center">Logotipo Oficial de la Empresa</label>
-                  
-                  {companyProfile.logoUrl ? (
-                    <div className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border border-dashed border-emerald-500/30 bg-emerald-500/5">
-                      <div className="w-32 h-32 flex items-center justify-center bg-white rounded-2xl p-2 shadow-inner border border-gray-100">
-                        <img src={companyProfile.logoUrl} alt="Logo" className="max-h-full max-w-full object-contain" />
-                      </div>
-                      <div className="text-center">
-                        <p className="text-[10px] font-bold text-emerald-450">Logotipo Guardado</p>
-                        <button 
-                          type="button" 
-                          onClick={handleRemoveLogo} 
-                          className="text-[9px] text-red-500 hover:text-red-700 hover:underline font-bold mt-1.5 flex items-center justify-center gap-1 m-auto"
-                        >
-                          <Trash2 size={10} /> Eliminar Logotipo
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div>
-                      <label className={`w-full flex flex-col items-center justify-center gap-3 p-8 rounded-2xl border border-dashed cursor-pointer transition-all ${
-                        isDarkMode 
-                          ? 'border-white/20 hover:border-primary/40 hover:bg-white/5 text-gray-400' 
-                          : 'border-gray-300 hover:border-primary/40 hover:bg-gray-100/50 text-gray-650'
-                      }`}>
-                        <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} disabled={isUploadingLogo} />
-                        <UploadCloud size={28} className={isUploadingLogo ? 'animate-bounce text-primary' : 'text-gray-450'} />
-                        <span className="text-[10px] font-semibold text-center leading-normal">
-                          {isUploadingLogo ? 'Subiendo imagen...' : 'Subir Logotipo\n(PNG, JPG, SVG)'}
-                        </span>
-                      </label>
-                      <p className="text-[9px] text-gray-500 mt-2.5 text-center leading-relaxed">
-                        Este logotipo se insertará en el encabezado de todas las Facturas, Notas de Crédito, Guías de Remisión y Cotizaciones.
-                      </p>
-                    </div>
-                  )}
-                </div>
 
                 {/* FIRMA ELECTRÓNICA CARD */}
                 <div className={`p-5 rounded-3xl border space-y-4 ${
@@ -1376,14 +1344,14 @@ export default function GeneralSettings({
                           ? 'bg-red-500/10 border-red-500/20 text-red-500 dark:text-red-400'
                           : isDarkMode ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-emerald-100/50 border-emerald-200 text-emerald-800'
                       }`}>
-                        {!isFirmaMatch() 
-                          ? `El RUC/CI de la firma (${companyProfile.certificadoRuc}) no coincide con el RUC de la empresa (${companyProfile.ruc}) por identificación (cédula/RUC) ni Razón Social.` 
+                        {!isFirmaMatch()
+                          ? `El RUC/CI de la firma (${companyProfile.certificadoRuc}) no coincide con el RUC de la empresa (${companyProfile.ruc}) por identificación (cédula/RUC) ni Razón Social.`
                           : 'Firma electrónica verificada y lista para facturar en el SRI.'}
                       </p>
 
                       <div className="flex justify-end pt-1">
-                        <button 
-                          type="button" 
+                        <button
+                          type="button"
                           onClick={() => setIsFirmaOpen(true)}
                           className="px-3.5 py-1.5 rounded-xl text-[10px] font-bold border border-purple-500/30 hover:bg-purple-500/10 text-purple-400 transition-colors"
                         >
@@ -1396,8 +1364,8 @@ export default function GeneralSettings({
                       <p className="text-[10px] text-gray-500 leading-normal">
                         Configure su firma digital (.p12 / .pfx) para firmar comprobantes autorizados del SRI.
                       </p>
-                      <button 
-                        type="button" 
+                      <button
+                        type="button"
                         onClick={() => setIsFirmaOpen(true)}
                         disabled={!companyProfile.ruc}
                         className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-black transition-all ${
@@ -1411,6 +1379,46 @@ export default function GeneralSettings({
                       {!companyProfile.ruc && (
                         <p className="text-[9px] text-gray-500 italic">Debe ingresar y configurar su RUC primero.</p>
                       )}
+                    </div>
+                  )}
+                </div>
+
+                {/* LOGOTIPO OFICIAL */}
+                <div className={`p-5 rounded-3xl border space-y-4 ${isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-gray-50/50 border-gray-200 shadow-sm'}`}>
+                  <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-500 text-center">Logotipo Oficial de la Empresa</label>
+
+                  {companyProfile.logoUrl ? (
+                    <div className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border border-dashed border-emerald-500/30 bg-emerald-500/5">
+                      <div className="w-32 h-32 flex items-center justify-center bg-white rounded-2xl p-2 shadow-inner border border-gray-100">
+                        <img src={companyProfile.logoUrl} alt="Logo" className="max-h-full max-w-full object-contain" />
+                      </div>
+                      <div className="text-center">
+                        <p className="text-[10px] font-bold text-emerald-450">Logotipo Guardado</p>
+                        <button
+                          type="button"
+                          onClick={handleRemoveLogo}
+                          className="text-[9px] text-red-500 hover:text-red-700 hover:underline font-bold mt-1.5 flex items-center justify-center gap-1 m-auto"
+                        >
+                          <Trash2 size={10} /> Eliminar Logotipo
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <label className={`w-full flex flex-col items-center justify-center gap-3 p-8 rounded-2xl border border-dashed cursor-pointer transition-all ${
+                        isDarkMode
+                          ? 'border-white/20 hover:border-primary/40 hover:bg-white/5 text-gray-400'
+                          : 'border-gray-300 hover:border-primary/40 hover:bg-gray-100/50 text-gray-650'
+                      }`}>
+                        <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} disabled={isUploadingLogo} />
+                        <UploadCloud size={28} className={isUploadingLogo ? 'animate-bounce text-primary' : 'text-gray-450'} />
+                        <span className="text-[10px] font-semibold text-center leading-normal">
+                          {isUploadingLogo ? 'Subiendo imagen...' : 'Subir Logotipo\n(PNG, JPG, SVG)'}
+                        </span>
+                      </label>
+                      <p className="text-[9px] text-gray-500 mt-2.5 text-center leading-relaxed">
+                        Este logotipo se insertará en el encabezado de todas las Facturas, Notas de Crédito, Guías de Remisión y Cotizaciones.
+                      </p>
                     </div>
                   )}
                 </div>
@@ -1533,6 +1541,17 @@ export default function GeneralSettings({
               )}
             </div>
           </form>
+        )}
+
+        {/* PESTAÑA: FACTURACIÓN ELECTRÓNICA */}
+        {activeSubTab === 'einvoicing' && (
+          <div className="animate-in fade-in duration-200">
+            <div className="border-b border-white/5 pb-3 mb-6">
+              <h3 className="text-sm font-black uppercase tracking-wider text-primary">Facturación Electrónica (SRI)</h3>
+              <p className="text-[10px] text-gray-500 mt-1">Configure el ambiente de emisión, los secuenciales de cada comprobante y los formatos de impresión. El certificado de firma electrónica se gestiona en la pestaña Perfil de Empresa.</p>
+            </div>
+            <FinanceSettings isDarkMode={isDarkMode} showToast={showToast} db={db} storage={storage} appId={appId} />
+          </div>
         )}
 
         {/* PESTAÑA: APARIENCIA Y TEMA */}

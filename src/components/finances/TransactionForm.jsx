@@ -53,10 +53,10 @@ function sanitizeFirestoreData(obj) {
 
 export default function TransactionForm({ tx, onClose, thirdParties, products = [], isDarkMode, showToast, db, storage, appId }) {
   const [sriConfig, setSriConfig] = useState({
-    ruc: '1790000000001',
-    razonSocial: 'WEBFIX SOLUCIONES TECNOLOGICAS S.A.',
-    nombreComercial: 'WEBFIX SOLUCIONES',
-    direccionMatriz: 'Av. de los Shyris N34-102 y Holanda, Edificio Alfa, Oficina 5A, Quito',
+    ruc: '',
+    razonSocial: '',
+    nombreComercial: '',
+    direccionMatriz: '',
     ambiente: '1', // 1: Pruebas, 2: Producción
     establecimiento: '001',
     puntoEmision: '001',
@@ -66,8 +66,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     secuencialLiquidacion: 1,
     secuencialGuiaRemision: 1,
     secuencialNotaVenta: 1,
-    certificadoCargado: true,
-    certificadoNombre: 'certificado_demo.p12',
+    certificadoCargado: false,
+    certificadoNombre: '',
     obligadoContabilidad: true,
     regimenRimpe: 'rimpe_emprendedor',
     agenteRetencion: false,
