@@ -84,7 +84,7 @@ import ErpDashboard from './components/dashboard/ErpDashboard';
 import GeneralSettings from './components/dashboard/GeneralSettings';
 import FinanceChat from './components/finances/FinanceChat';
 import GastosCreditosModule from './components/finances/GastosCreditosModule';
-import ProductsView from './components/finances/ProductsView';
+import InventoryModule from './components/inventory/InventoryModule';
 import IconRenderer from './components/common/IconRenderer';
 import {
   COLUMN_COLORS, DEFAULT_COLUMNS, USER_COLORS,
@@ -2047,7 +2047,7 @@ export default function App() {
                 <FinanceModule mode="ventas" initialSubTab={ventasInitialSubTab} isDarkMode={isDarkMode} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} isLoading={isLoadingFinances} />
               )}
               {activePageId === 'inventario' && (
-                <ProductsView isDarkMode={isDarkMode} showToast={showToast} db={db} appId={appId} />
+                <InventoryModule isDarkMode={isDarkMode} />
               )}
               {activePageId === 'compras' && (
                 <FinanceModule mode="compras" isDarkMode={isDarkMode} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} isLoading={isLoadingFinances} />
@@ -2344,25 +2344,59 @@ export default function App() {
                                                 cycleColumnColor={cycleColumnColor}
                                                 editingColumnId={editingColumnId}
                                                 editingColumnTitle={editingColumnTitle}
-                                                setEditingColumnId={setEditingColumnId}
                                                 setEditingColumnTitle={setEditingColumnTitle}
-                                                renameColumn={renameColumn}
-                                                deleteColumn={deleteColumn}
-                                                colTasks={colTasks}
-                                                users={users}
-                                                isGeneratingAI={isGeneratingAI}
-                                                generateSubtasks={generateSubtasks}
-                                                setDrawerTask={setDrawerTask}
+                                                saveColumnTitle={saveColumnTitle}
+                                                startEditingColumn={startEditingColumn}
+                                                activePageTasks={activePage.tasks || []}
                                                 openNewTaskDrawer={openNewTaskDrawer}
-                                                currentGlassPanel={currentGlassPanel}
-                                                activePageId={activePageId}
-                                              />
+                                                handleDeleteColumn={handleDeleteColumn}
+                                                getColumnBgClass={getColumnBgClass}
+                                                getColorClass={getColorClass}
+                                              >
+                                                <SortableContext items={colTasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
+                                                  <div className="space-y-2 flex-1 min-h-[40px]">
+                                                    {colTasks.map(task => (
+                                                      <SortableTaskItem 
+                                                        key={task.id} 
+                                                        task={task} 
+                                                        isDarkMode={isDarkMode} 
+                                                        users={users}
+                                                        editingTaskId={editingTaskId}
+                                                        editingTaskContent={editingTaskContent}
+                                                        setEditingTaskContent={(val) => {
+                                                          setEditingTaskContent(val);
+                                                          setGlobalTasks(globalTasks.map(t => t.id === task.id ? { ...t, content: val } : t));
+                                                          setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', task.id), { content: val }, { merge: true }).catch((err) => console.error('inline save err:', err));
+                                                        }}
+                                                        handleInlineSave={() => setEditingTaskId(null)}
+                                                        setEditingTaskId={setEditingTaskId}
+                                                        startEditingTask={startEditingTask}
+                                                        setDrawerTask={setDrawerTask}
+                                                        activePageId={activePage.id}
+                                                      />
+                                                    ))}
+                                                  </div>
+                                                </SortableContext>
+                                              </SortableColumn>
                                             );
                                           })}
                                         </SortableContext>
                                         
-                                        <div className={`w-[260px] shrink-0 p-4 rounded-2xl flex flex-col gap-3 justify-center items-center border border-dashed transition-all duration-300 hover:border-solid ${isDarkMode ? 'border-white/10 hover:border-white/30 bg-white/[0.01]' : 'border-gray-300 hover:border-gray-400 bg-black/[0.01]'}`}>
-                                          <button onClick={addColumn} className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all shadow-sm ${isDarkMode ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}><Plus size={14} /> Añadir Columna</button>
+                                        <div className={`w-[200px] shrink-0 p-3 rounded-xl flex flex-col gap-2.5 border border-dashed transition-all duration-300 hover:border-solid ${isDarkMode ? 'border-white/10 hover:border-white/30 bg-white/[0.01]' : 'border-gray-300 hover:border-gray-400 bg-black/[0.01]'}`}>
+                                          <input 
+                                            type="text" 
+                                            value={newColumnName} 
+                                            onChange={(e) => setNewColumnName(e.target.value)} 
+                                            onKeyDown={(e) => e.key === 'Enter' && handleAddColumn()} 
+                                            placeholder="Nueva columna..." 
+                                            className={`w-full text-xs px-2.5 py-2 rounded-lg outline-none transition-shadow shadow-inner ${currentGlassInput}`} 
+                                          />
+                                          <button 
+                                            onClick={handleAddColumn} 
+                                            className={`flex items-center justify-center gap-1.5 w-full py-2 rounded-lg transition-all text-xs font-bold shadow-sm ${isDarkMode ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}
+                                          >
+                                            <Plus size={14} /> Crear Columna
+                                          </button>
                                         </div>
                                       </div>
                                     </DndContext>
