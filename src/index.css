@@ -215,4 +215,68 @@ h1, h2, h3, h4, h5, h6, .font-display {
   animation: liquid-blob-3 28s infinite ease-in-out;
 }
 
+/* --- HOUDINI PAINT WORKLET: RING PARTICLES --- */
+
+@property --animation-tick {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
+@keyframes tick-animation {
+  0% {
+    --animation-tick: 0;
+  }
+  100% {
+    --animation-tick: 1;
+  }
+}
+
+.ring-particles-bg-1 {
+  background-image: paint(ring-particles);
+  --ring-radius: 170;
+  --ring-thickness: 120;
+  --particle-count: 140;
+  --particle-rows: 24;
+  --particle-size: 1.5;
+  --particle-min-alpha: 0.12;
+  --particle-max-alpha: 0.65;
+  --ring-x: 50;
+  --ring-y: 50;
+  --seed: 100;
+  --particle-color: #1C45F2; /* Color primario WebFix claro */
+}
+
+.dark .ring-particles-bg-1 {
+  --particle-color: rgba(168, 85, 247, 0.7); /* Púrpura en modo oscuro */
+}
+
+.ring-particles-bg-2 {
+  background-image: paint(ring-particles);
+  --ring-radius: 270;
+  --ring-thickness: 150;
+  --particle-count: 200;
+  --particle-rows: 28;
+  --particle-size: 1.0;
+  --particle-min-alpha: 0.08;
+  --particle-max-alpha: 0.45;
+  --ring-x: 50;
+  --ring-y: 50;
+  --seed: 200;
+  --particle-color: rgba(99, 102, 241, 0.6); /* Indigo en modo claro */
+}
+
+.dark .ring-particles-bg-2 {
+  --particle-color: rgba(59, 130, 246, 0.6); /* Azul en modo oscuro */
+}
+
+.animate-ring-particles-1 {
+  animation: tick-animation 36s linear infinite;
+}
+
+.animate-ring-particles-2 {
+  animation: tick-animation 50s linear infinite;
+}
+
+
 

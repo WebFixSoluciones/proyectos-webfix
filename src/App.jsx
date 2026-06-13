@@ -378,6 +378,19 @@ export default function App() {
     document.documentElement.style.setProperty('--primary-color', primaryColor);
   }, [primaryColor]);
 
+  // --- CARGAR HOUDINI PAINT WORKLET (Antigravity Particles) ---
+  useEffect(() => {
+    if ('paintWorklet' in CSS) {
+      CSS.paintWorklet.addModule('/ringparticles.js')
+        .then(() => {
+          console.log('Houdini paintWorklet ringparticles loaded successfully');
+        })
+        .catch((err) => {
+          console.error('Failed to load Houdini paintWorklet:', err);
+        });
+    }
+  }, []);
+
   const [newColumnName, setNewColumnName] = useState('');
   const [currentProjectView, setCurrentProjectView] = useState('board'); // 'board' o 'list'
   
@@ -1690,12 +1703,19 @@ export default function App() {
   // --- PANTALLA DE LOGIN ---
   if (!isAuthenticated) {
     return (
-      <div className={`flex items-center justify-center min-h-screen w-full font-sans overflow-hidden transition-colors duration-500 relative z-0 ${isDarkMode ? 'bg-[#020204] text-gray-100' : 'bg-[#fafafa] text-gray-800'}`}>
+      <div className={`flex items-center justify-center min-h-screen w-full font-sans overflow-hidden transition-colors duration-500 relative z-0 ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>
         
+        {/* BASE BACKGROUND SOLID COLOR (-z-20) */}
+        <div className={`absolute inset-0 -z-20 transition-colors duration-500 ${isDarkMode ? 'bg-[#020204]' : 'bg-[#fafafa]'}`} />
+
         {/* GLOBAL BACKGROUND BLOBS (Minimalismo Líquido Puro) */}
-        <div className={`absolute top-[-10%] left-[-5%] w-[40rem] h-[40rem] rounded-full mix-blend-screen filter blur-[130px] pointer-events-none -z-10 transition-all duration-500 animate-liquid-1 ${isDarkMode ? 'bg-purple-950/20 opacity-30' : 'bg-purple-200/40 opacity-50'}`}></div>
-        <div className={`absolute top-[20%] right-[-10%] w-[35rem] h-[35rem] rounded-full mix-blend-screen filter blur-[120px] pointer-events-none -z-10 transition-all duration-500 animate-liquid-2 ${isDarkMode ? 'bg-primary/20 opacity-25' : 'bg-blue-100/40 opacity-50'}`}></div>
-        <div className={`absolute bottom-[-10%] left-[10%] w-[38rem] h-[38rem] rounded-full mix-blend-screen filter blur-[140px] pointer-events-none -z-10 transition-all duration-500 animate-liquid-3 ${isDarkMode ? 'bg-rose-950/20 opacity-20' : 'bg-rose-100/35 opacity-40'}`}></div>
+        <div className={`absolute top-[-10%] left-[-5%] w-[40rem] h-[40rem] rounded-full filter blur-[130px] pointer-events-none -z-10 transition-all duration-500 animate-liquid-1 ${isDarkMode ? 'mix-blend-screen bg-purple-950/20 opacity-30' : 'mix-blend-multiply bg-purple-200/45 opacity-50'}`}></div>
+        <div className={`absolute top-[20%] right-[-10%] w-[35rem] h-[35rem] rounded-full filter blur-[120px] pointer-events-none -z-10 transition-all duration-500 animate-liquid-2 ${isDarkMode ? 'mix-blend-screen bg-primary/20 opacity-25' : 'mix-blend-multiply bg-blue-100/45 opacity-55'}`}></div>
+        <div className={`absolute bottom-[-10%] left-[10%] w-[38rem] h-[38rem] rounded-full filter blur-[140px] pointer-events-none -z-10 transition-all duration-500 animate-liquid-3 ${isDarkMode ? 'mix-blend-screen bg-rose-950/20 opacity-20' : 'mix-blend-multiply bg-rose-100/40 opacity-45'}`}></div>
+        
+        {/* HOUDINI RING PARTICLES (Google Antigravity Particles Effect) */}
+        <div className="absolute inset-0 pointer-events-none -z-10 ring-particles-bg-1 animate-ring-particles-1 opacity-70" />
+        <div className="absolute inset-0 pointer-events-none -z-10 ring-particles-bg-2 animate-ring-particles-2 opacity-70" />
         
         {/* Theme Toggle flotante en la esquina */}
         <div className="absolute top-6 right-6 z-20">
