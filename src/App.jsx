@@ -137,7 +137,7 @@ const SortableTaskItem = ({
       className={`group p-2 rounded-lg border transition-all duration-300 relative backdrop-blur-xl ${
         isDarkMode 
           ? 'bg-white/[0.05] border-white/10 hover:border-white/20 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.3)] hover:bg-white/[0.08]' 
-          : 'bg-white/80 border-white hover:border-primary/25 shadow-sm hover:bg-white'
+          : 'bg-white border-gray-200/80 hover:border-primary/45 shadow-sm hover:shadow hover:bg-white'
       } ${isDragging ? 'z-50 shadow-2xl scale-105' : ''}`}
     >
       <div className="flex justify-between items-start mb-2">
@@ -2292,39 +2292,41 @@ export default function App() {
                                 >
                                   <ArrowLeft size={12} /> Volver a Proyectos
                                 </button>
-                                <span className={`text-xs font-bold ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                                  Proyecto activo: <span className="text-primary font-extrabold">{activePage.title}</span>
+                                <span className={`text-xs font-bold flex items-center gap-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-650'}`}>
+                                  Proyecto activo: 
+                                  <input 
+                                    type="text" 
+                                    value={activePage.title || ''} 
+                                    onChange={(e) => updateActivePage({ title: e.target.value })} 
+                                    placeholder="Título del proyecto" 
+                                    className="text-primary font-extrabold bg-transparent border-none outline-none focus:ring-0 p-0 rounded w-48 text-xs font-sans inline-block cursor-text focus:bg-black/5 dark:focus:bg-white/5" 
+                                  />
                                 </span>
                               </div>
                               <div className="px-8 py-6">
-                                <div className="mb-8">
-                                  <div className="group relative flex items-center gap-3">
-                                     <div className={`p-2.5 rounded-xl transition-colors backdrop-blur-md border ${isDarkMode ? 'bg-white/5 border-white/10 text-gray-200 shadow-sm' : 'bg-white/60 border-gray-200 text-gray-700 shadow-sm'}`}>
-                                       <IconRenderer name={activePage.icon} size={24} />
-                                     </div>
-                                     <input type="text" value={activePage.title} onChange={(e) => updateActivePage({ title: e.target.value })} placeholder="Título del proyecto" className={`w-full text-3xl font-bold border-none outline-none bg-transparent resize-none focus:ring-0 tracking-tight ${isDarkMode ? 'text-white placeholder-gray-700' : 'text-gray-900 placeholder-gray-400'}`} />
-                                  </div>
-                                  
-                                  <div className="flex items-center gap-2 mt-4 ml-14">
-                                    <UserCircle size={14} className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
-                                    <span className={`text-xs font-semibold uppercase tracking-wider ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>Líder:</span>
-                                    <select 
-                                      value={activePage.leadId || ''} 
-                                      onChange={(e) => updateActivePage({ leadId: e.target.value })} 
-                                      className={`px-2 py-1 text-xs font-semibold rounded-lg outline-none cursor-pointer transition-all border ${isDarkMode ? 'bg-white/5 border-white/10 text-gray-200 hover:bg-white/10' : 'bg-white/60 border-gray-200 text-gray-700 hover:bg-white'}`}
-                                    >
-                                      <option value="">Sin Asignar</option>
-                                      {users.map(u => <option key={u.id} value={u.id} className="text-black">{u.name}</option>)}
-                                    </select>
-                                  </div>
-                                </div>
-
-                                <div className="mt-6 animate-in fade-in duration-500 relative z-0">
+                                <div className="mt-2 animate-in fade-in duration-500 relative z-0">
                                   <div className={`flex items-center justify-between mb-6 border-b pb-3 ${isDarkMode ? 'border-white/10' : 'border-gray-200'}`}>
-                                    <div className={`flex items-center gap-2 text-xs font-semibold uppercase tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-gray-550'}`}>
-                                      {currentProjectView === 'board' ? <ListTodo size={16} /> : <AlignLeft size={16} />}
-                                      <span>{currentProjectView === 'board' ? 'Tablero de Tareas' : 'Lista de Tareas'}</span>
+                                    <div className="flex items-center gap-6">
+                                      <div className={`flex items-center gap-2 text-xs font-semibold uppercase tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-gray-550'}`}>
+                                        {currentProjectView === 'board' ? <ListTodo size={16} /> : <AlignLeft size={16} />}
+                                        <span>{currentProjectView === 'board' ? 'Tablero de Tareas' : 'Lista de Tareas'}</span>
+                                      </div>
+                                      
+                                      {/* Selector de Líder alineado al lado del título del tablero */}
+                                      <div className="flex items-center gap-1.5 text-xs">
+                                        <UserCircle size={14} className={isDarkMode ? 'text-gray-500' : 'text-gray-450'} />
+                                        <span className={`font-semibold uppercase tracking-wider ${isDarkMode ? 'text-gray-500' : 'text-gray-450'}`}>Líder:</span>
+                                        <select 
+                                          value={activePage.leadId || ''} 
+                                          onChange={(e) => updateActivePage({ leadId: e.target.value })} 
+                                          className={`px-2 py-0.5 text-[11px] font-semibold rounded-lg outline-none cursor-pointer transition-all border ${isDarkMode ? 'bg-white/5 border-white/10 text-gray-200 hover:bg-white/10' : 'bg-white/60 border-gray-200 text-gray-700 hover:bg-white'}`}
+                                        >
+                                          <option value="">Sin Asignar</option>
+                                          {users.map(u => <option key={u.id} value={u.id} className="text-black">{u.name}</option>)}
+                                        </select>
+                                      </div>
                                     </div>
+                                    
                                     <div className={`flex p-1 rounded-lg ${isDarkMode ? 'bg-white/5' : 'bg-black/5'}`}>
                                       <button onClick={() => setCurrentProjectView('board')} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${currentProjectView === 'board' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-white text-gray-950 shadow-sm') : (isDarkMode ? 'text-gray-500 hover:text-gray-300' : 'text-gray-500 hover:text-gray-750')}`}>Tablero</button>
                                       <button onClick={() => setCurrentProjectView('list')} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${currentProjectView === 'list' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-white text-gray-900 shadow-sm') : (isDarkMode ? 'text-gray-500 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700')}`}>Lista</button>
