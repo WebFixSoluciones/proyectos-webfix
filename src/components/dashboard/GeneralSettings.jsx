@@ -1038,7 +1038,7 @@ export default function GeneralSettings({
                     : 'bg-primary text-white shadow-md'
                   : isDarkMode 
                     ? 'text-gray-400 hover:text-gray-250 hover:bg-white/5' 
-                    : 'text-gray-650 hover:text-gray-900 hover:bg-black/5'
+                    : 'text-black hover:text-black hover:bg-black/5'
               }`}
             >
               <Icon size={16} />

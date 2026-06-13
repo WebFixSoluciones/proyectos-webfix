@@ -1752,7 +1752,7 @@ export default function App() {
             className={`group flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
               activePageId === 'dashboard'
                 ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-900')
-                : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-gray-700 hover:bg-primary-light hover:text-gray-900')
+                : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-black hover:bg-primary-light hover:text-black')
             }`}
           >
             <LayoutDashboard 
@@ -1773,7 +1773,7 @@ export default function App() {
               className={`group flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
                 activePageId === 'ventas'
                   ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-900')
-                  : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-gray-700 hover:bg-primary-light hover:text-gray-900')
+                  : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-black hover:bg-primary-light hover:text-black')
               }`}
             >
               <ShoppingCart 
@@ -1795,7 +1795,7 @@ export default function App() {
               className={`group flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
                 activePageId === 'compras'
                   ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-900')
-                  : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-gray-700 hover:bg-primary-light hover:text-gray-900')
+                  : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-black hover:bg-primary-light hover:text-black')
               }`}
             >
               <ShoppingBag 
@@ -1817,7 +1817,7 @@ export default function App() {
               className={`group flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
                 activePageId === 'gastos_creditos'
                   ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-900')
-                  : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-gray-700 hover:bg-primary-light hover:text-gray-900')
+                  : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-black hover:bg-primary-light hover:text-black')
               }`}
             >
               <CreditCard 
@@ -1839,7 +1839,7 @@ export default function App() {
               className={`group flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
                 activePageId === 'inventario'
                   ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-900')
-                  : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-gray-700 hover:bg-primary-light hover:text-gray-900')
+                  : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-black hover:bg-primary-light hover:text-black')
               }`}
             >
               <Package 
@@ -1861,7 +1861,7 @@ export default function App() {
               className={`group flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
                 activePageId === 'finances'
                   ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-900')
-                  : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-gray-700 hover:bg-primary-light hover:text-gray-900')
+                  : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-black hover:bg-primary-light hover:text-black')
               }`}
             >
               <DollarSign 
@@ -1883,7 +1883,7 @@ export default function App() {
               className={`group flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
                 activePageId === 'personas' || activePageId === 'team'
                   ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-900')
-                  : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-gray-700 hover:bg-primary-light hover:text-gray-900')
+                  : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-black hover:bg-primary-light hover:text-black')
               }`}
             >
               <Users 
@@ -1904,7 +1904,7 @@ export default function App() {
             className={`group flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
               isProyectosActive
                 ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-900')
-                : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-gray-700 hover:bg-primary-light hover:text-gray-900')
+                : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-black hover:bg-primary-light hover:text-black')
             }`}
           >
             <Briefcase 
@@ -1924,7 +1924,7 @@ export default function App() {
             className={`group flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
               activePageId === 'general_settings'
                 ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-900')
-                : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-gray-700 hover:bg-primary-light hover:text-gray-900')
+                : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-black hover:bg-primary-light hover:text-black')
             }`}
           >
             <Settings 
@@ -2109,7 +2109,7 @@ export default function App() {
                             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 ${
                               isActive
                                 ? (isDarkMode ? 'bg-primary/20 text-primary border-primary/30 shadow-sm' : 'bg-primary text-white border-primary shadow-sm')
-                                : (isDarkMode ? 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-white/5' : 'border-transparent text-gray-700 hover:text-gray-900 hover:bg-black/5')
+                                : (isDarkMode ? 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-white/5' : 'border-transparent text-black hover:text-black hover:bg-black/5')
                             }`}
                           >
                             <Icon size={13} />
@@ -2188,7 +2188,7 @@ export default function App() {
                             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 ${
                               isActive
                                 ? (isDarkMode ? 'bg-primary/20 text-primary border-primary/30 shadow-sm' : 'bg-primary text-white border-primary shadow-sm')
-                                : (isDarkMode ? 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-white/5' : 'border-transparent text-gray-700 hover:text-gray-900 hover:bg-black/5')
+                                : (isDarkMode ? 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-white/5' : 'border-transparent text-black hover:text-black hover:bg-black/5')
                             }`}
                           >
                             <Icon size={13} />
@@ -2291,7 +2291,7 @@ export default function App() {
                                         className={`p-1.5 rounded-xl transition-all border shadow-sm ${
                                           isDarkMode 
                                             ? 'border-white/10 hover:bg-white/5 text-gray-400 hover:text-white' 
-                                            : 'border-gray-200 hover:bg-black/5 text-gray-650 hover:text-black bg-white'
+                                            : 'border-gray-200 hover:bg-black/5 text-black hover:text-black bg-white'
                                         }`}
                                         title="Volver a la lista de proyectos"
                                       >
@@ -2522,7 +2522,7 @@ export default function App() {
                                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
                                     isDarkMode 
                                       ? 'border-white/10 hover:bg-white/5 text-gray-300 hover:text-white' 
-                                      : 'border-gray-200 hover:bg-black/5 text-gray-700 hover:text-black'
+                                      : 'border-gray-200 hover:bg-black/5 text-black hover:text-black'
                                   }`}
                                 >
                                   <ArrowLeft size={12} /> Volver a Páginas
