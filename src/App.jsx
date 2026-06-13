@@ -440,202 +440,7 @@ export default function App() {
     }, 3000); // Se oculta después de 3 segundos
   };
 
-  // --- SIMULACIÓN DE FLUIDOS E INTERACCIÓN DE HUMO PARA LOGIN ---
-  useEffect(() => {
-    if (isAuthenticated) return;
-    const canvas = document.getElementById('login-particles');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    let animationFrameId;
-    let width = (canvas.width = window.innerWidth);
-    let height = (canvas.height = window.innerHeight);
-
-    const handleResize = () => {
-      if (!canvas) return;
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
-    };
-    window.addEventListener('resize', handleResize);
-
-    // Seguimiento del mouse y cálculo de velocidad
-    let mouse = { x: -1000, y: -1000, lastX: -1000, lastY: -1000, active: false };
-    const handleMouseMove = (e) => {
-      mouse.active = true;
-      mouse.x = e.clientX;
-      mouse.y = e.clientY;
-      
-      if (mouse.lastX !== -1000 && mouse.lastY !== -1000) {
-        const dx = mouse.x - mouse.lastX;
-        const dy = mouse.y - mouse.lastY;
-        const speed = Math.sqrt(dx * dx + dy * dy);
-        
-        // Inyectar humo si el movimiento es suficiente
-        if (speed > 1) {
-          const particleCountToSpawn = Math.min(Math.floor(speed / 2) + 1, 4);
-          for (let i = 0; i < particleCountToSpawn; i++) {
-            spawnSmoke(mouse.x, mouse.y, dx * 0.15, dy * 0.15);
-          }
-        }
-      }
-      mouse.lastX = mouse.x;
-      mouse.lastY = mouse.y;
-    };
-
-    const handleMouseLeave = () => {
-      mouse.active = false;
-      mouse.x = -1000;
-      mouse.y = -1000;
-      mouse.lastX = -1000;
-      mouse.lastY = -1000;
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseleave', handleMouseLeave);
-
-    // Colores desaturados premium en formato RGBA
-    const colors = [
-      { r: 147, g: 197, b: 253 }, // Azul suave
-      { r: 165, g: 180, b: 252 }, // Indigo suave
-      { r: 216, g: 180, b: 254 }, // Morado suave
-      { r: 253, g: 164, b: 175 }, // Rosa tenue
-      { r: 203, g: 213, b: 225 }  // Gris
-    ];
-
-    let particles = [];
-    const maxParticles = 140;
-
-    const spawnSmoke = (x, y, vx, vy) => {
-      if (particles.length >= maxParticles) {
-        particles.shift(); // Reciclar la más vieja
-      }
-      
-      const color = colors[Math.floor(Math.random() * colors.length)];
-      const spread = 0.6;
-      const rx = (Math.random() - 0.5) * spread;
-      const ry = (Math.random() - 0.5) * spread;
-
-      particles.push({
-        x: x,
-        y: y,
-        vx: vx + rx,
-        vy: vy + ry,
-        radius: Math.random() * 25 + 15, // Nubes medianas
-        color: color,
-        life: 1.0,
-        decay: Math.random() * 0.012 + 0.008,
-        angle: Math.random() * Math.PI * 2,
-        spin: (Math.random() - 0.5) * 0.02
-      });
-    };
-
-    // Partículas ambientales constantes (corrientes de aire lentas)
-    const ambientParticles = [];
-    const ambientCount = 30;
-    for (let i = 0; i < ambientCount; i++) {
-      ambientParticles.push({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        baseY: Math.random() * height,
-        vx: Math.random() * 0.15 + 0.05,
-        radius: Math.random() * 20 + 10,
-        color: colors[Math.floor(Math.random() * colors.length)],
-        alpha: Math.random() * 0.18 + 0.05,
-        timeOffset: Math.random() * Math.PI * 2,
-        waveAmplitude: Math.random() * 25 + 10
-      });
-    }
-
-    let time = 0;
-    const animate = () => {
-      // Estela líquida mediante limpiado acumulativo
-      ctx.globalAlpha = 0.075;
-      ctx.fillStyle = isDarkMode ? '#020204' : '#fafafa';
-      ctx.fillRect(0, 0, width, height);
-      ctx.globalAlpha = 1.0;
-      
-      time += 1;
-
-      // 1. Mover y dibujar humo ambiental constante
-      ambientParticles.forEach(p => {
-        p.x += p.vx;
-        const currentY = p.baseY + Math.sin(p.x * 0.0025 + time * 0.003 + p.timeOffset) * p.waveAmplitude;
-        p.y = currentY;
-
-        if (p.x > width + 50) {
-          p.x = -50;
-          p.baseY = Math.random() * height;
-        }
-
-        if (mouse.active) {
-          const dx = p.x - mouse.x;
-          const dy = p.y - mouse.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 180) {
-            const force = (180 - dist) / 180;
-            const angle = Math.atan2(dy, dx);
-            p.x += Math.cos(angle) * force * 1.5;
-            p.baseY += Math.sin(angle) * force * 1.5;
-          }
-        }
-
-        const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.radius);
-        grad.addColorStop(0, `rgba(${p.color.r}, ${p.color.g}, ${p.color.b}, ${p.alpha})`);
-        grad.addColorStop(1, `rgba(${p.color.r}, ${p.color.g}, ${p.color.b}, 0)`);
-        
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fillStyle = grad;
-        ctx.fill();
-      });
-
-      // 2. Mover y dibujar humo inyectado por el usuario
-      for (let i = particles.length - 1; i >= 0; i--) {
-        const p = particles[i];
-        p.life -= p.decay;
-        
-        if (p.life <= 0) {
-          particles.splice(i, 1);
-          continue;
-        }
-
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vx *= 0.96;
-        p.vy *= 0.96;
-        p.y -= 0.15; // Flotación hacia arriba
-        p.radius += 0.25; // Dispersión
-        p.angle += p.spin;
-
-        const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.radius);
-        const alpha = p.life * 0.45;
-        grad.addColorStop(0, `rgba(${p.color.r}, ${p.color.g}, ${p.color.b}, ${alpha})`);
-        grad.addColorStop(0.5, `rgba(${p.color.r}, ${p.color.g}, ${p.color.b}, ${alpha * 0.4})`);
-        grad.addColorStop(1, `rgba(${p.color.r}, ${p.color.g}, ${p.color.b}, 0)`);
-
-        ctx.save();
-        ctx.translate(p.x, p.y);
-        ctx.rotate(p.angle);
-        ctx.translate(-p.x, -p.y);
-        
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fillStyle = grad;
-        ctx.fill();
-        ctx.restore();
-      }
-
-      animationFrameId = requestAnimationFrame(animate);
-    };
-
-    animate();
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseleave', handleMouseLeave);
-      cancelAnimationFrame(animationFrameId);
-    };
-  }, [isAuthenticated, isDarkMode]);
+  // --- LOGIN CON MINIMALISMO LÍQUIDO PURO (SIN CANVAS) ---
 
   // --- CARGAR LIBRERÍA DE GOOGLE (GIS) ---
   useEffect(() => {
@@ -1887,9 +1692,10 @@ export default function App() {
     return (
       <div className={`flex items-center justify-center min-h-screen w-full font-sans overflow-hidden transition-colors duration-500 relative z-0 ${isDarkMode ? 'bg-[#020204] text-gray-100' : 'bg-[#fafafa] text-gray-800'}`}>
         
-        {/* GLOBAL BACKGROUND BLOBS */}
+        {/* GLOBAL BACKGROUND BLOBS (Minimalismo Líquido Puro) */}
         <div className={`absolute top-[-10%] left-[-5%] w-[40rem] h-[40rem] rounded-full mix-blend-screen filter blur-[130px] pointer-events-none -z-10 transition-all duration-500 animate-liquid-1 ${isDarkMode ? 'bg-purple-950/20 opacity-30' : 'bg-purple-200/40 opacity-50'}`}></div>
         <div className={`absolute top-[20%] right-[-10%] w-[35rem] h-[35rem] rounded-full mix-blend-screen filter blur-[120px] pointer-events-none -z-10 transition-all duration-500 animate-liquid-2 ${isDarkMode ? 'bg-primary/20 opacity-25' : 'bg-blue-100/40 opacity-50'}`}></div>
+        <div className={`absolute bottom-[-10%] left-[10%] w-[38rem] h-[38rem] rounded-full mix-blend-screen filter blur-[140px] pointer-events-none -z-10 transition-all duration-500 animate-liquid-3 ${isDarkMode ? 'bg-rose-950/20 opacity-20' : 'bg-rose-100/35 opacity-40'}`}></div>
         
         {/* Theme Toggle flotante en la esquina */}
         <div className="absolute top-6 right-6 z-20">
@@ -1905,9 +1711,6 @@ export default function App() {
             {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
           </button>
         </div>
-
-        {/* Canvas de partículas de fondo (Estilo Google Antigravity) */}
-        <canvas id="login-particles" className="absolute inset-0 w-full h-full pointer-events-none -z-10" />
 
         {/* Card Centrado (Estilo Profesional Alineado a la Izquierda) */}
         <div className="w-full max-w-[420px] mx-4 relative group select-none">

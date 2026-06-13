@@ -199,3 +199,20 @@ h1, h2, h3, h4, h5, h6, .font-display {
   animation: liquid-blob-2 30s infinite ease-in-out;
 }
 
+@keyframes liquid-blob-3 {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1) rotate(0deg);
+  }
+  33% {
+    transform: translate(-60px, 40px) scale(0.9) rotate(90deg);
+  }
+  66% {
+    transform: translate(40px, -20px) scale(1.1) rotate(180deg);
+  }
+}
+
+.animate-liquid-3 {
+  animation: liquid-blob-3 28s infinite ease-in-out;
+}
+
+
