@@ -1760,7 +1760,7 @@ export default function App() {
               className={`transition-colors ${
                 activePageId === 'dashboard' 
                   ? 'text-primary' 
-                  : 'text-gray-500 group-hover:text-primary'
+                  : (isDarkMode ? 'text-gray-500 group-hover:text-primary' : 'text-black group-hover:text-primary')
               }`} 
             />
             {isSidebarOpen && <span>Mi espacio</span>}
@@ -1781,7 +1781,7 @@ export default function App() {
                 className={`transition-colors ${
                   activePageId === 'ventas' 
                     ? 'text-primary' 
-                    : (isDarkMode ? 'text-gray-500 group-hover:text-primary' : 'text-gray-500 group-hover:text-primary')
+                    : (isDarkMode ? 'text-gray-500 group-hover:text-primary' : 'text-black group-hover:text-primary')
                 }`} 
               />
               {isSidebarOpen && <span>Ventas</span>}
@@ -1803,7 +1803,7 @@ export default function App() {
                 className={`transition-colors ${
                   activePageId === 'compras' 
                     ? 'text-primary' 
-                    : (isDarkMode ? 'text-gray-500 group-hover:text-primary' : 'text-gray-500 group-hover:text-primary')
+                    : (isDarkMode ? 'text-gray-500 group-hover:text-primary' : 'text-black group-hover:text-primary')
                 }`} 
               />
               {isSidebarOpen && <span>Compras</span>}
@@ -1825,7 +1825,7 @@ export default function App() {
                 className={`transition-colors ${
                   activePageId === 'gastos_creditos' 
                     ? 'text-primary' 
-                    : (isDarkMode ? 'text-gray-500 group-hover:text-primary' : 'text-gray-500 group-hover:text-primary')
+                    : (isDarkMode ? 'text-gray-500 group-hover:text-primary' : 'text-black group-hover:text-primary')
                 }`} 
               />
               {isSidebarOpen && <span>Finanzas</span>}
@@ -1847,7 +1847,7 @@ export default function App() {
                 className={`transition-colors ${
                   activePageId === 'inventario' 
                     ? 'text-primary' 
-                    : (isDarkMode ? 'text-gray-500 group-hover:text-primary' : 'text-gray-500 group-hover:text-primary')
+                    : (isDarkMode ? 'text-gray-500 group-hover:text-primary' : 'text-black group-hover:text-primary')
                 }`} 
               />
               {isSidebarOpen && <span>Inventarios</span>}
@@ -1869,7 +1869,7 @@ export default function App() {
                 className={`transition-colors ${
                   activePageId === 'finances' 
                     ? 'text-primary' 
-                    : (isDarkMode ? 'text-gray-500 group-hover:text-primary' : 'text-gray-500 group-hover:text-primary')
+                    : (isDarkMode ? 'text-gray-500 group-hover:text-primary' : 'text-black group-hover:text-primary')
                 }`} 
               />
               {isSidebarOpen && <span>Contabilidad</span>}
@@ -1891,7 +1891,7 @@ export default function App() {
                 className={`transition-colors ${
                   activePageId === 'personas' || activePageId === 'team'
                     ? 'text-primary' 
-                    : (isDarkMode ? 'text-gray-500 group-hover:text-primary' : 'text-gray-500 group-hover:text-primary')
+                    : (isDarkMode ? 'text-gray-500 group-hover:text-primary' : 'text-black group-hover:text-primary')
                 }`} 
               />
               {isSidebarOpen && <span>Personas</span>}
@@ -1912,7 +1912,7 @@ export default function App() {
               className={`transition-colors ${
                 isProyectosActive 
                   ? 'text-primary' 
-                  : (isDarkMode ? 'text-gray-500 group-hover:text-primary' : 'text-gray-500 group-hover:text-primary')
+                  : (isDarkMode ? 'text-gray-500 group-hover:text-primary' : 'text-black group-hover:text-primary')
               }`} 
             />
             {isSidebarOpen && <span>Proyectos</span>}
@@ -1932,7 +1932,7 @@ export default function App() {
               className={`transition-colors ${
                 activePageId === 'general_settings' 
                   ? 'text-primary' 
-                  : (isDarkMode ? 'text-gray-500 group-hover:text-primary' : 'text-gray-500 group-hover:text-primary')
+                  : (isDarkMode ? 'text-gray-500 group-hover:text-primary' : 'text-black group-hover:text-primary')
               }`} 
             />
             {isSidebarOpen && <span>Ajustes</span>}
