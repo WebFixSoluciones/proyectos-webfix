@@ -84,7 +84,7 @@ import ErpDashboard from './components/dashboard/ErpDashboard';
 import GeneralSettings from './components/dashboard/GeneralSettings';
 import FinanceChat from './components/finances/FinanceChat';
 import GastosCreditosModule from './components/finances/GastosCreditosModule';
-import InventoryModule from './components/inventory/InventoryModule';
+import ProductsView from './components/finances/ProductsView';
 import IconRenderer from './components/common/IconRenderer';
 import {
   COLUMN_COLORS, DEFAULT_COLUMNS, USER_COLORS,
@@ -2047,7 +2047,7 @@ export default function App() {
                 <FinanceModule mode="ventas" initialSubTab={ventasInitialSubTab} isDarkMode={isDarkMode} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} isLoading={isLoadingFinances} />
               )}
               {activePageId === 'inventario' && (
-                <InventoryModule isDarkMode={isDarkMode} />
+                <ProductsView isDarkMode={isDarkMode} showToast={showToast} db={db} appId={appId} />
               )}
               {activePageId === 'compras' && (
                 <FinanceModule mode="compras" isDarkMode={isDarkMode} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} isLoading={isLoadingFinances} />
