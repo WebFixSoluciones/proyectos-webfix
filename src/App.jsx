@@ -55,7 +55,9 @@ import {
   CreditCard,
   ChevronDown,
   ShoppingBag,
-  Building
+  Building,
+  Calculator,
+  CloudOff
 } from 'lucide-react';
 
 import {
@@ -347,6 +349,18 @@ export default function App() {
   });
   const [ventasInitialSubTab, setVentasInitialSubTab] = useState('resumen_ventas');
   const [personasSubTab, setPersonasSubTab] = useState('cliente');
+  const [dbSyncError, setDbSyncError] = useState(() => sessionStorage.getItem('db_sync_error') === 'true');
+
+  const triggerSyncError = async () => {
+    try {
+      sessionStorage.setItem('db_sync_error', 'true');
+      setDbSyncError(true);
+      await signOut(auth);
+    } catch (e) {
+      console.error("Error signing out during sync error:", e);
+    }
+    window.location.reload();
+  };
   
   // --- ESTADOS DE GOOGLE CALENDAR REAL ---
   const [isGoogleConnected, setIsGoogleConnected] = useState(false);
@@ -443,6 +457,16 @@ export default function App() {
         }
     });
     return () => unsubscribe();
+  }, []);
+
+  // 1.5 Escuchador de estado Offline (pérdida de conexión)
+  useEffect(() => {
+    const handleOffline = () => {
+      console.warn("Dispositivo sin conexión a internet.");
+      triggerSyncError();
+    };
+    window.addEventListener('offline', handleOffline);
+    return () => window.removeEventListener('offline', handleOffline);
   }, []);
 
   // --- INTEGRACIÓN CON EL HISTORIAL DEL NAVEGADOR (botón Atrás/Adelante) ---
@@ -592,12 +616,18 @@ export default function App() {
       const unsubPages = onSnapshot(pagesCol, snap => {
         const pData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         setPages(pData);
+      }, err => {
+        console.error("Error subscribing to pages:", err);
+        triggerSyncError();
       });
       // 2. Escuchar Tareas (spread con doc.id)
       const unsubTasks = onSnapshot(tasksCol, snap => {
         const tData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         tData.sort((a, b) => (a.order || 0) - (b.order || 0));
         setGlobalTasks(tData);
+      }, err => {
+        console.error("Error subscribing to tasks:", err);
+        triggerSyncError();
       });
       // 3. Escuchar Meta (Users, Trash, Settings)
       const unsubMeta = onSnapshot(metaDoc, snap => {
@@ -617,6 +647,9 @@ export default function App() {
             document.documentElement.style.setProperty('--primary-color', data.primaryColor);
           }
         }
+      }, err => {
+        console.error("Error subscribing to meta:", err);
+        triggerSyncError();
       });
 
       // 4. Escuchar Transacciones de Finanzas
@@ -629,6 +662,7 @@ export default function App() {
       }, (err) => {
         console.error("Error subscribing to global transactions:", err);
         setIsLoadingFinances(false);
+        triggerSyncError();
       });
 
       // 5. Escuchar Terceros
@@ -638,6 +672,7 @@ export default function App() {
         setGlobalThirdParties(tpData);
       }, (err) => {
         console.error("Error subscribing to global third parties:", err);
+        triggerSyncError();
       });
 
       // 6. Escuchar Productos
@@ -647,6 +682,7 @@ export default function App() {
         setGlobalProducts(prodData);
       }, (err) => {
         console.error("Error subscribing to global products:", err);
+        triggerSyncError();
       });
 
       setIsCloudSynced(true);
@@ -1609,6 +1645,42 @@ export default function App() {
     window.location.reload();
   };
 
+  // --- PANTALLA DE ERROR DE CONEXIÓN / SINCRONIZACIÓN ---
+  if (dbSyncError) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen w-full bg-[#08080a] text-gray-100 font-sans p-6 z-[9999] relative overflow-hidden">
+        {/* Background decorative blobs */}
+        <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-red-600/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-orange-600/10 rounded-full blur-3xl animate-pulse"></div>
+
+        <div className="w-full max-w-md p-8 rounded-[2.5rem] bg-[#1a1a1a]/80 border border-red-500/20 shadow-[0_20px_50px_rgba(239,68,68,0.15)] flex flex-col text-center backdrop-blur-md">
+          <div className="flex justify-center mb-6">
+            <div className="p-4 rounded-2xl bg-red-500/10 text-red-500 border border-red-500/30 shadow-[0_0_30px_rgba(239,68,68,0.2)]">
+              <CloudOff size={32} className="animate-bounce" />
+            </div>
+          </div>
+          <h2 className="text-xl font-extrabold tracking-tight mb-3 text-white">Error de Sincronización</h2>
+          <p className="text-sm font-medium text-gray-400 mb-6 leading-relaxed">
+            Se ha perdido la sincronización con la base de datos centralizada. Por seguridad y para evitar pérdida de información, se cerró el sistema.
+          </p>
+          <div className="p-4 rounded-2xl bg-red-500/5 border border-red-500/10 text-xs font-semibold text-red-400 mb-8 leading-normal">
+            Por favor, verifica tu conexión a internet o comunícate con tu soporte técnico oficial.
+          </div>
+          <button
+            onClick={() => {
+              sessionStorage.removeItem('db_sync_error');
+              setDbSyncError(false);
+              window.location.reload();
+            }}
+            className="w-full py-3.5 rounded-xl text-xs font-bold tracking-wider uppercase bg-red-600 hover:bg-red-500 text-white transition-all shadow-md shadow-red-950/20 hover:scale-[1.02] active:scale-[0.98]"
+          >
+            Reintentar Conexión
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // --- PANTALLA DE LOGIN ---
   if (!isAuthenticated) {
     return (
@@ -1968,7 +2040,7 @@ export default function App() {
       <div className="flex-1 flex flex-col h-full overflow-hidden relative z-10 md:z-[60]">
         
         {/* Floating Topbar */}
-        <div className={`m-4 rounded-xl flex flex-col md:flex-row md:items-center px-6 py-4 justify-between gap-4 shrink-0 border ${isDarkMode ? 'bg-[#1a1a1a]/40 backdrop-blur-md border-white/5 shadow-sm' : 'bg-white/40 backdrop-blur-md border-white/40 shadow-sm'}`}>
+        <div className={`mt-3 mx-4 mb-2 rounded-xl flex flex-col md:flex-row md:items-center px-4 py-2.5 justify-between gap-4 shrink-0 border ${isDarkMode ? 'bg-[#1a1a1a]/40 backdrop-blur-md border-white/5 shadow-sm' : 'bg-white/40 backdrop-blur-md border-white/40 shadow-sm'}`}>
           <div className="flex items-center gap-3">
             <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-white/10 text-gray-400' : 'hover:bg-white/60 text-gray-600'}`}><Menu size={18} /></button>
             <div className={`p-2 rounded-xl border ${isDarkMode ? 'bg-primary/25 text-primary border-primary/20 shadow-sm' : 'bg-primary/10 text-primary border border-primary/15 shadow-sm'}`}>
@@ -1988,40 +2060,31 @@ export default function App() {
                   setVentasInitialSubTab(`pos_${Date.now()}`);
                   setActivePageId('ventas');
                 }} 
-                className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase transition-all shadow-sm shrink-0 ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all shadow-sm shrink-0 border ${
                   isDarkMode 
-                    ? 'bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 border border-orange-500/10 animate-pulse' 
-                    : 'bg-orange-600 hover:bg-orange-550 text-white shadow-sm'
+                    ? 'bg-orange-500/15 border-orange-500/30 text-orange-400 hover:bg-orange-500/25' 
+                    : 'bg-orange-50 border border-orange-200 text-orange-950 hover:bg-orange-100'
                 }`}
                 title="Abrir Punto de Venta (POS)"
               >
-                <ShoppingCart size={11} />
-                <span className="hidden sm:inline">POS</span>
+                <Calculator size={14} className={isDarkMode ? 'text-orange-400' : 'text-orange-600'} />
+                <span className="hidden sm:inline">Punto de venta</span>
               </button>
             )}
 
             {/* BOTÓN ASISTENTE AI GLOBAL */}
             <button 
               onClick={() => setIsGlobalChatOpen(!isGlobalChatOpen)} 
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] md:text-xs font-black uppercase transition-all border shrink-0 ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all border shrink-0 ${
                 isGlobalChatOpen 
-                  ? 'bg-purple-600 border-purple-600 text-white shadow-md' 
-                  : (isDarkMode ? 'bg-purple-500/10 border-purple-500/20 text-purple-400 hover:bg-purple-500/20' : 'bg-purple-50 border-purple-200 text-purple-950 hover:bg-purple-100')
+                  ? 'bg-purple-650 border-purple-650 text-white shadow-md' 
+                  : (isDarkMode ? 'bg-purple-500/15 border-purple-500/30 text-purple-400 hover:bg-purple-500/25' : 'bg-purple-50 border-purple-200 text-purple-950 hover:bg-purple-100')
               }`}
               title="Abrir Asistente AI"
             >
-              <Sparkles size={11} className={isGlobalChatOpen ? 'text-white' : 'text-purple-450'} />
+              <Sparkles size={14} className={isGlobalChatOpen ? 'text-white' : 'text-purple-600 dark:text-purple-450'} />
               <span className="hidden sm:inline">Asistente AI</span>
             </button>
-
-            {/* ESTADO DE SINCRONIZACIÓN NUBE */}
-            <div className={`hidden md:flex text-[9px] px-2.5 py-1 rounded-md tracking-[0.1em] uppercase items-center gap-1.5 transition-all ${isDarkMode ? 'bg-white/5 font-bold text-gray-400 border border-white/5' : 'bg-primary-light/70 text-black border border-primary/25/50 font-bold'}`}>
-              {isSaving ? (
-                <><RefreshCw size={10} className="animate-spin text-primary" /> Guardando</>
-              ) : (
-                <><Cloud size={10} className={isDarkMode ? "text-emerald-400" : "text-emerald-600"} /> Sincronizado</>
-              )}
-            </div>
 
             <button onClick={() => setActivePageId('general_settings')} className={`p-2 rounded-xl transition-colors ${isDarkMode ? 'hover:bg-white/10 text-gray-400' : 'hover:bg-[#f3f8ff] text-black'}`} title="Ajustes"><Settings size={16} /></button>
             <button onClick={() => setIsDarkMode(!isDarkMode)} className={`p-2 rounded-xl transition-colors ${isDarkMode ? 'hover:bg-white/10 text-gray-300' : 'hover:bg-[#f3f8ff] text-black'}`} title={isDarkMode ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}>{isDarkMode ? <Sun size={16} /> : <Moon size={16} />}</button>
@@ -2039,7 +2102,7 @@ export default function App() {
         <div className="flex-1 flex overflow-hidden min-h-0 relative">
 
           {/* Editor Area */}
-          <div className={`flex-1 overflow-y-auto scroll-smooth custom-scrollbar ${(isPersonasActive || isProyectosActive) ? 'pb-0 pt-0' : 'pb-12 pt-4 px-6 md:px-8'}`}>
+          <div className={`flex-1 overflow-y-auto scroll-smooth custom-scrollbar ${(isPersonasActive || isProyectosActive) ? 'pb-0 pt-0' : 'pb-12 pt-2 px-6 md:px-8'}`}>
             <div className={(isPersonasActive || isProyectosActive) ? 'w-full h-full' : 'max-w-[1600px] w-full mx-auto'}>
               
               {/* VISTAS FINANCIERAS MODULARES */}
