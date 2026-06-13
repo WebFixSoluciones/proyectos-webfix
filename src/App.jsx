@@ -2281,39 +2281,38 @@ export default function App() {
                             </div>
                           ) : (
                             <div className="animate-in fade-in duration-500">
-                              <div className={`flex items-center gap-3 px-8 py-3.5 border-b shrink-0 ${isDarkMode ? 'border-white/5 bg-[#121214]/40' : 'border-primary/10 bg-primary-light/40'}`}>
-                                <button 
-                                  onClick={() => setActivePageId('proyectos_general')}
-                                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
-                                    isDarkMode 
-                                      ? 'border-white/10 hover:bg-white/5 text-gray-300 hover:text-white' 
-                                      : 'border-gray-200 hover:bg-black/5 text-gray-700 hover:text-black'
-                                  }`}
-                                >
-                                  <ArrowLeft size={12} /> Volver a Proyectos
-                                </button>
-                                <span className={`text-xs font-bold flex items-center gap-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-650'}`}>
-                                  Proyecto activo: 
-                                  <input 
-                                    type="text" 
-                                    value={activePage.title || ''} 
-                                    onChange={(e) => updateActivePage({ title: e.target.value })} 
-                                    placeholder="Título del proyecto" 
-                                    className="text-primary font-extrabold bg-transparent border-none outline-none focus:ring-0 p-0 rounded w-48 text-xs font-sans inline-block cursor-text focus:bg-black/5 dark:focus:bg-white/5" 
-                                  />
-                                </span>
-                              </div>
                               <div className="px-8 py-6">
                                 <div className="mt-2 animate-in fade-in duration-500 relative z-0">
                                   <div className={`flex items-center justify-between mb-6 border-b pb-3 ${isDarkMode ? 'border-white/10' : 'border-gray-200'}`}>
-                                    <div className="flex items-center gap-6">
-                                      <div className={`flex items-center gap-2 text-xs font-semibold uppercase tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-gray-550'}`}>
-                                        {currentProjectView === 'board' ? <ListTodo size={16} /> : <AlignLeft size={16} />}
-                                        <span>{currentProjectView === 'board' ? 'Tablero de Tareas' : 'Lista de Tareas'}</span>
-                                      </div>
+                                    <div className="flex items-center gap-5">
+                                      {/* Pequeño botón de volver al listado de proyectos */}
+                                      <button 
+                                        onClick={() => setActivePageId('proyectos_general')}
+                                        className={`p-1.5 rounded-xl transition-all border shadow-sm ${
+                                          isDarkMode 
+                                            ? 'border-white/10 hover:bg-white/5 text-gray-400 hover:text-white' 
+                                            : 'border-gray-200 hover:bg-black/5 text-gray-650 hover:text-black bg-white'
+                                        }`}
+                                        title="Volver a la lista de proyectos"
+                                      >
+                                        <ArrowLeft size={14} />
+                                      </button>
+
+                                      {/* Título del proyecto editable inline */}
+                                      <input 
+                                        type="text" 
+                                        value={activePage.title || ''} 
+                                        onChange={(e) => updateActivePage({ title: e.target.value })} 
+                                        placeholder="Título del proyecto" 
+                                        className={`text-base font-bold bg-transparent border-none outline-none focus:ring-0 p-0.5 rounded w-52 transition-colors ${
+                                          isDarkMode 
+                                            ? 'text-white hover:bg-white/5 focus:bg-white/5' 
+                                            : 'text-gray-900 hover:bg-black/5 focus:bg-black/5'
+                                        }`} 
+                                      />
                                       
-                                      {/* Selector de Líder alineado al lado del título del tablero */}
-                                      <div className="flex items-center gap-1.5 text-xs">
+                                      {/* Selector de Líder */}
+                                      <div className="flex items-center gap-1.5 text-xs border-l pl-5 border-gray-200 dark:border-white/15">
                                         <UserCircle size={14} className={isDarkMode ? 'text-gray-500' : 'text-gray-450'} />
                                         <span className={`font-semibold uppercase tracking-wider ${isDarkMode ? 'text-gray-500' : 'text-gray-450'}`}>Líder:</span>
                                         <select 
