@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { Search, ShoppingCart, Plus, Minus, Trash2, User, Sparkles, CheckCircle2, DollarSign, X, ShieldAlert, Award, Layers, Tag, Bookmark, RefreshCw, LogOut, ArrowRight, ArrowLeft, ChevronRight, Settings, Barcode, Zap, Eye, Mic, Keyboard, History, Download, FileText, Unlock, UserPlus, Edit3, Phone, Mail, MoreHorizontal } from 'lucide-react';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, onSnapshot } from 'firebase/firestore';
 import { consultarRucSri } from '../../services/sriService';
+import { registrarMovimientoKardex } from '../../services/inventoryService';
 
 function sanitizeData(obj) {
   if (obj === null || obj === undefined) return null;
@@ -684,15 +685,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
         }
       }
 
-      // Decrementar stock
-      for (const item of cart) {
-        const prod = products.find(p => p.id === item.productId);
-        if (prod && prod.type === 'producto') {
-          const productRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_products', item.productId);
-          const nextStock = Math.max(0, (Number(prod.stock) || 0) - Number(item.quantity || 0));
-          await setDoc(productRef, sanitizeData({ stock: nextStock }), { merge: true });
-        }
-      }
+
 
       // Determinar método de pago dominante
       let pMethod = 'transferencia';
@@ -820,14 +813,27 @@ export default function PosView({ products, thirdParties, transactions = [], isD
     try {
       if (tx.items && Array.isArray(tx.items)) {
         for (const item of tx.items) {
-          const prod = products.find(p => p.id === item.productId);
-          if (prod && prod.type === 'producto') {
-            const productRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_products', item.productId);
-            const currentStock = Number(prod.stock) || 0;
-            const itemQty = Number(item.quantity) || 0;
-            await setDoc(productRef, sanitizeData({ 
-              stock: currentStock + itemQty 
-            }), { merge: true });
+          try {
+            // Reversar venta: volver a ingresar el producto (entrada)
+            const prodRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_products', item.productId);
+            const prodSnap = await getDoc(prodRef);
+            let currentCost = 0;
+            if (prodSnap.exists()) {
+              currentCost = Number(prodSnap.data().cost) || 0;
+            }
+
+            await registrarMovimientoKardex(db, appId, {
+              productId: item.productId,
+              type: 'entrada',
+              quantity: Number(item.quantity) || 0,
+              cost: currentCost,
+              price: 0,
+              concept: `Anulación de Venta POS ${tx.documentNumber || tx.id}`,
+              referenceId: tx.id,
+              bodega: tx.bodega || "Bodega Central"
+            });
+          } catch (err) {
+            console.error("Error al reversar stock de item en POS:", item, err);
           }
         }
       }
@@ -835,6 +841,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
       const txRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', tx.id);
       await setDoc(txRef, sanitizeData({
         sriStatus: 'anulado',
+        inventarioRegistrado: false,
         updatedAt: new Date().toISOString()
       }), { merge: true });
       

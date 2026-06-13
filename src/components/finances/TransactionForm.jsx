@@ -9,6 +9,7 @@ import { doc, getDoc, setDoc, collection, query, where, getDocs, runTransaction 
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { validarIdentificacion, generarFacturaXML, simularTransmisionSRI, consultarRucSri, generarRetencionXML, generarNotaCreditoXML, generarLiquidacionXML, generarGuiaRemisionXML } from '../../services/sriService';
 import { firmarComprobanteXML } from '../../services/xadesSigner';
+import { registrarMovimientoKardex } from '../../services/inventoryService';
 import RidePreviewModal from './RidePreviewModal';
 
 const SRI_RENTA_CODES = [
@@ -715,6 +716,112 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     return true;
   };
 
+  const registrarInventarioTransaccion = async (transaction) => {
+    if (transaction.inventarioRegistrado) return;
+
+    const items = transaction.items || [];
+    if (items.length === 0) return;
+
+    const isIngreso = transaction.type === 'ingreso';
+    const concept = isIngreso 
+      ? `Venta ${transaction.documentType === 'nota_venta' ? 'Nota de Venta' : 'Factura'} ${transaction.documentNumber || transaction.id}`
+      : `Compra/Gasto ${transaction.documentType || ''} ${transaction.documentNumber || transaction.id}`;
+
+    for (const item of items) {
+      if (!item.productId) continue;
+      
+      try {
+        if (isIngreso) {
+          const prodRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_products', item.productId);
+          const prodSnap = await getDoc(prodRef);
+          let currentCost = 0;
+          if (prodSnap.exists()) {
+            currentCost = Number(prodSnap.data().cost) || 0;
+          }
+
+          await registrarMovimientoKardex(db, appId, {
+            productId: item.productId,
+            type: 'salida',
+            quantity: Number(item.quantity) || 0,
+            cost: currentCost,
+            price: Number(item.price) || 0,
+            concept,
+            referenceId: transaction.id,
+            bodega: transaction.bodega || "Bodega Central"
+          });
+        } else {
+          await registrarMovimientoKardex(db, appId, {
+            productId: item.productId,
+            type: 'entrada',
+            quantity: Number(item.quantity) || 0,
+            cost: Number(item.price) || 0,
+            price: 0,
+            concept,
+            referenceId: transaction.id,
+            bodega: transaction.bodega || "Bodega Central"
+          });
+        }
+      } catch (err) {
+        console.error("Error al registrar movimiento de inventario para item:", item, err);
+      }
+    }
+
+    const txRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', transaction.id);
+    await setDoc(txRef, { inventarioRegistrado: true }, { merge: true });
+  };
+
+  const reversarInventarioTransaccion = async (transaction) => {
+    if (!transaction.inventarioRegistrado) return;
+
+    const items = transaction.items || [];
+    if (items.length === 0) return;
+
+    const isIngreso = transaction.type === 'ingreso';
+    const concept = `Anulación de ${isIngreso ? 'Venta' : 'Compra/Gasto'} ${transaction.documentType || ''} ${transaction.documentNumber || transaction.id}`;
+
+    for (const item of items) {
+      if (!item.productId) continue;
+
+      try {
+        if (isIngreso) {
+          const prodRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_products', item.productId);
+          const prodSnap = await getDoc(prodRef);
+          let currentCost = 0;
+          if (prodSnap.exists()) {
+            currentCost = Number(prodSnap.data().cost) || 0;
+          }
+
+          await registrarMovimientoKardex(db, appId, {
+            productId: item.productId,
+            type: 'entrada',
+            quantity: Number(item.quantity) || 0,
+            cost: currentCost,
+            price: 0,
+            concept,
+            referenceId: transaction.id,
+            bodega: transaction.bodega || "Bodega Central"
+          });
+        } else {
+          await registrarMovimientoKardex(db, appId, {
+            productId: item.productId,
+            type: 'salida',
+            quantity: Number(item.quantity) || 0,
+            cost: 0,
+            price: 0,
+            concept,
+            referenceId: transaction.id,
+            bodega: transaction.bodega || "Bodega Central"
+          });
+        }
+      } catch (err) {
+        console.error("Error al reversar movimiento de inventario para item:", item, err);
+      }
+    }
+
+    const txRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', transaction.id);
+    await setDoc(txRef, { inventarioRegistrado: false }, { merge: true });
+  };
+
   const handleSave = (options = {}) => {
     // If called via form submit event, prevent default
     if (options && typeof options.preventDefault === 'function') {
@@ -834,6 +941,12 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       };
 
       await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId), sanitizeFirestoreData(finalTxData), { merge: true });
+
+      // Si es un egreso (compra/gasto) o se está finalizando una Nota de Venta (ingreso)
+      if (finalTxData.type !== 'ingreso' || isFinalizingNotaVenta) {
+        await registrarInventarioTransaccion(finalTxData);
+        finalTxData.inventarioRegistrado = true;
+      }
 
       showToast('Transacción guardada', 'success');
       setFormData(finalTxData);
@@ -1015,6 +1128,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
       await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId), sanitizeFirestoreData(finalTx));
 
+      // Registrar en el Kardex y actualizar stock al emitir factura autorizada
+      await registrarInventarioTransaccion(finalTx);
+      finalTx.inventarioRegistrado = true;
+
       // El secuencial ya fue reservado e incrementado atómicamente al inicio
       // (transacción), por lo que aquí no es necesario volver a incrementarlo.
 
@@ -1050,12 +1167,17 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     try {
       const docId = formData.id;
       const isNotaVenta = formData.documentType === 'nota_venta';
+
+      // Reversar el inventario si ya estaba registrado
+      await reversarInventarioTransaccion(formData);
+
       await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId), sanitizeFirestoreData({
         sriStatus: 'anulado',
+        inventarioRegistrado: false,
         updatedAt: new Date().toISOString()
       }), { merge: true });
       
-      setFormData(prev => ({ ...prev, sriStatus: 'anulado' }));
+      setFormData(prev => ({ ...prev, sriStatus: 'anulado', inventarioRegistrado: false }));
       showToast(isNotaVenta ? "Nota de Venta anulada exitosamente" : "Comprobante anulado tributariamente", "success");
     } catch (e) {
       showToast("Error al anular", "error");
