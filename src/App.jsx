@@ -472,21 +472,22 @@ export default function App() {
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseleave', handleMouseLeave);
 
-    const colors = ['#1C40F2', '#6366f1', '#a855f7', '#f43f5e', '#38bdf8'];
+    // Colores desaturados premium (azul suave, morado suave, gris, rosa tenue)
+    const colors = ['#93c5fd', '#a5b4fc', '#d8b4fe', '#fda4af', '#cbd5e1'];
     const particles = [];
-    const particleCount = 85; // Alta densidad para look premium
+    const particleCount = 110; // Mayor densidad al no tener líneas
     for (let i = 0; i < particleCount; i++) {
       particles.push({
         x: Math.random() * width,
         baseY: Math.random() * height,
         y: 0,
-        vx: Math.random() * 0.4 + 0.25, // Velocidad horizontal base
-        radius: Math.random() * 2.5 + 1.2, // Tamaños variados y finos
+        vx: Math.random() * 0.12 + 0.04, // Velocidad baja
+        radius: Math.random() * 2 + 1, // Partículas de 1 a 3 px
         color: colors[Math.floor(Math.random() * colors.length)],
-        alpha: Math.random() * 0.5 + 0.2,
+        alpha: Math.random() * 0.5 + 0.2, // Opacidad entre 0.2 y 0.7
         timeOffset: Math.random() * Math.PI * 2,
-        waveAmplitude: Math.random() * 45 + 20, // Altura de oscilación sinusoidal
-        waveFrequency: Math.random() * 0.003 + 0.0015,
+        waveAmplitude: Math.random() * 30 + 15, // Oscilación suave
+        waveFrequency: Math.random() * 0.002 + 0.001, // Frecuencia baja
         offsetX: 0,
         offsetY: 0
       });
@@ -498,10 +499,10 @@ export default function App() {
       time += 1;
 
       particles.forEach(p => {
-        // Movimiento horizontal continuo
+        // Movimiento horizontal continuo muy lento
         p.x += p.vx;
         
-        // Movimiento vertical en onda sinusoidal
+        // Movimiento vertical en onda sinusoidal baja
         const targetY = p.baseY + Math.sin(p.x * p.waveFrequency + time * 0.01 + p.timeOffset) * p.waveAmplitude;
         p.y = targetY;
 
@@ -511,30 +512,36 @@ export default function App() {
           p.baseY = Math.random() * height;
         }
 
-        // Interacción elástica ante la cercanía del cursor
+        // Repulsión elástica leve al mover el mouse
         if (mouse.active) {
           const dx = (p.x + p.offsetX) - mouse.x;
           const dy = (p.y + p.offsetY) - mouse.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 150) {
-            const force = (150 - dist) / 150;
+          if (dist < 130) {
+            const force = (130 - dist) / 130;
             const angle = Math.atan2(dy, dx);
-            const targetOffsetX = Math.cos(angle) * force * 55;
-            const targetOffsetY = Math.sin(angle) * force * 55;
+            const targetOffsetX = Math.cos(angle) * force * 15; // Repulsión leve
+            const targetOffsetY = Math.sin(angle) * force * 15; // Repulsión leve
             
-            // Suavizado de la fuerza elástica
-            p.offsetX += (targetOffsetX - p.offsetX) * 0.1;
-            p.offsetY += (targetOffsetY - p.offsetY) * 0.1;
+            p.offsetX += (targetOffsetX - p.offsetX) * 0.08;
+            p.offsetY += (targetOffsetY - p.offsetY) * 0.08;
           } else {
-            p.offsetX *= 0.92;
-            p.offsetY *= 0.92;
+            p.offsetX *= 0.94;
+            p.offsetY *= 0.94;
           }
         } else {
-          p.offsetX *= 0.92;
-          p.offsetY *= 0.92;
+          p.offsetX *= 0.94;
+          p.offsetY *= 0.94;
         }
 
-        // Dibujar el punto
+        // Dibujar Glow muy suave (efecto premium de desenfoque)
+        ctx.beginPath();
+        ctx.arc(p.x + p.offsetX, p.y + p.offsetY, p.radius * 2.2, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.alpha * 0.18; // Brillo periférico sutil
+        ctx.fill();
+
+        // Dibujar el punto central nítido
         ctx.beginPath();
         ctx.arc(p.x + p.offsetX, p.y + p.offsetY, p.radius, 0, Math.PI * 2);
         ctx.fillStyle = p.color;
@@ -542,29 +549,6 @@ export default function App() {
         ctx.fill();
       });
 
-      // Dibujar enlaces extra finos y sutiles (look tecnológico futurista)
-      ctx.globalAlpha = 0.035;
-      ctx.strokeStyle = isDarkMode ? '#ffffff' : '#1C40F2';
-      for (let i = 0; i < particles.length; i++) {
-        for (let j = i + 1; j < particles.length; j++) {
-          const pi = particles[i];
-          const pj = particles[j];
-          const pix = pi.x + pi.offsetX;
-          const piy = pi.y + pi.offsetY;
-          const pjx = pj.x + pj.offsetX;
-          const pjy = pj.y + pj.offsetY;
-          const dx = pix - pjx;
-          const dy = piy - pjy;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 95) {
-            ctx.beginPath();
-            ctx.moveTo(pix, piy);
-            ctx.lineTo(pjx, pjy);
-            ctx.stroke();
-          }
-        }
-      }
-      ctx.globalAlpha = 1.0;
       animationFrameId = requestAnimationFrame(animate);
     };
 
@@ -1826,7 +1810,7 @@ export default function App() {
   // --- PANTALLA DE LOGIN ---
   if (!isAuthenticated) {
     return (
-      <div className={`flex items-center justify-center min-h-screen w-full font-sans overflow-hidden transition-colors duration-500 relative z-0 ${isDarkMode ? 'bg-[#020204] text-gray-100' : 'bg-white text-gray-800'}`}>
+      <div className={`flex items-center justify-center min-h-screen w-full font-sans overflow-hidden transition-colors duration-500 relative z-0 ${isDarkMode ? 'bg-[#020204] text-gray-100' : 'bg-[#fafafa] text-gray-800'}`}>
         
         {/* GLOBAL BACKGROUND BLOBS */}
         <div className={`absolute top-[-10%] left-[-5%] w-[40rem] h-[40rem] rounded-full mix-blend-screen filter blur-[130px] pointer-events-none -z-10 transition-all duration-500 animate-liquid-1 ${isDarkMode ? 'bg-purple-950/20 opacity-30' : 'bg-purple-200/40 opacity-50'}`}></div>
