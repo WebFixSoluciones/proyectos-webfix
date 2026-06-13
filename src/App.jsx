@@ -440,7 +440,7 @@ export default function App() {
     }, 3000); // Se oculta después de 3 segundos
   };
 
-  // --- EFECTO DE PARTÍCULAS INTERACTIVAS PARA LOGIN ---
+  // --- SIMULACIÓN DE FLUIDOS E INTERACCIÓN DE HUMO PARA LOGIN ---
   useEffect(() => {
     if (isAuthenticated) return;
     const canvas = document.getElementById('login-particles');
@@ -457,97 +457,172 @@ export default function App() {
     };
     window.addEventListener('resize', handleResize);
 
-    // Seguimiento del puntero del ratón
-    let mouse = { x: -1000, y: -1000, active: false };
+    // Seguimiento del mouse y cálculo de velocidad
+    let mouse = { x: -1000, y: -1000, lastX: -1000, lastY: -1000, active: false };
     const handleMouseMove = (e) => {
+      mouse.active = true;
       mouse.x = e.clientX;
       mouse.y = e.clientY;
-      mouse.active = true;
+      
+      if (mouse.lastX !== -1000 && mouse.lastY !== -1000) {
+        const dx = mouse.x - mouse.lastX;
+        const dy = mouse.y - mouse.lastY;
+        const speed = Math.sqrt(dx * dx + dy * dy);
+        
+        // Inyectar humo si el movimiento es suficiente
+        if (speed > 1) {
+          const particleCountToSpawn = Math.min(Math.floor(speed / 2) + 1, 4);
+          for (let i = 0; i < particleCountToSpawn; i++) {
+            spawnSmoke(mouse.x, mouse.y, dx * 0.15, dy * 0.15);
+          }
+        }
+      }
+      mouse.lastX = mouse.x;
+      mouse.lastY = mouse.y;
     };
+
     const handleMouseLeave = () => {
+      mouse.active = false;
       mouse.x = -1000;
       mouse.y = -1000;
-      mouse.active = false;
+      mouse.lastX = -1000;
+      mouse.lastY = -1000;
     };
+
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseleave', handleMouseLeave);
 
-    // Colores desaturados premium (azul suave, morado suave, gris, rosa tenue)
-    const colors = ['#93c5fd', '#a5b4fc', '#d8b4fe', '#fda4af', '#cbd5e1'];
-    const particles = [];
-    const particleCount = 110; // Mayor densidad al no tener líneas
-    for (let i = 0; i < particleCount; i++) {
+    // Colores desaturados premium en formato RGBA
+    const colors = [
+      { r: 147, g: 197, b: 253 }, // Azul suave
+      { r: 165, g: 180, b: 252 }, // Indigo suave
+      { r: 216, g: 180, b: 254 }, // Morado suave
+      { r: 253, g: 164, b: 175 }, // Rosa tenue
+      { r: 203, g: 213, b: 225 }  // Gris
+    ];
+
+    let particles = [];
+    const maxParticles = 140;
+
+    const spawnSmoke = (x, y, vx, vy) => {
+      if (particles.length >= maxParticles) {
+        particles.shift(); // Reciclar la más vieja
+      }
+      
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      const spread = 0.6;
+      const rx = (Math.random() - 0.5) * spread;
+      const ry = (Math.random() - 0.5) * spread;
+
       particles.push({
+        x: x,
+        y: y,
+        vx: vx + rx,
+        vy: vy + ry,
+        radius: Math.random() * 25 + 15, // Nubes medianas
+        color: color,
+        life: 1.0,
+        decay: Math.random() * 0.012 + 0.008,
+        angle: Math.random() * Math.PI * 2,
+        spin: (Math.random() - 0.5) * 0.02
+      });
+    };
+
+    // Partículas ambientales constantes (corrientes de aire lentas)
+    const ambientParticles = [];
+    const ambientCount = 30;
+    for (let i = 0; i < ambientCount; i++) {
+      ambientParticles.push({
         x: Math.random() * width,
+        y: Math.random() * height,
         baseY: Math.random() * height,
-        y: 0,
-        vx: Math.random() * 0.12 + 0.04, // Velocidad baja
-        radius: Math.random() * 2 + 1, // Partículas de 1 a 3 px
+        vx: Math.random() * 0.15 + 0.05,
+        radius: Math.random() * 20 + 10,
         color: colors[Math.floor(Math.random() * colors.length)],
-        alpha: Math.random() * 0.5 + 0.2, // Opacidad entre 0.2 y 0.7
+        alpha: Math.random() * 0.18 + 0.05,
         timeOffset: Math.random() * Math.PI * 2,
-        waveAmplitude: Math.random() * 30 + 15, // Oscilación suave
-        waveFrequency: Math.random() * 0.002 + 0.001, // Frecuencia baja
-        offsetX: 0,
-        offsetY: 0
+        waveAmplitude: Math.random() * 25 + 10
       });
     }
 
     let time = 0;
     const animate = () => {
-      ctx.clearRect(0, 0, width, height);
+      // Estela líquida mediante limpiado acumulativo
+      ctx.globalAlpha = 0.075;
+      ctx.fillStyle = isDarkMode ? '#020204' : '#fafafa';
+      ctx.fillRect(0, 0, width, height);
+      ctx.globalAlpha = 1.0;
+      
       time += 1;
 
-      particles.forEach(p => {
-        // Movimiento horizontal continuo muy lento
+      // 1. Mover y dibujar humo ambiental constante
+      ambientParticles.forEach(p => {
         p.x += p.vx;
-        
-        // Movimiento vertical en onda sinusoidal baja
-        const targetY = p.baseY + Math.sin(p.x * p.waveFrequency + time * 0.01 + p.timeOffset) * p.waveAmplitude;
-        p.y = targetY;
+        const currentY = p.baseY + Math.sin(p.x * 0.0025 + time * 0.003 + p.timeOffset) * p.waveAmplitude;
+        p.y = currentY;
 
-        // Si la partícula sale del borde derecho, reaparece en la izquierda
         if (p.x > width + 50) {
           p.x = -50;
           p.baseY = Math.random() * height;
         }
 
-        // Repulsión elástica leve al mover el mouse
         if (mouse.active) {
-          const dx = (p.x + p.offsetX) - mouse.x;
-          const dy = (p.y + p.offsetY) - mouse.y;
+          const dx = p.x - mouse.x;
+          const dy = p.y - mouse.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 130) {
-            const force = (130 - dist) / 130;
+          if (dist < 180) {
+            const force = (180 - dist) / 180;
             const angle = Math.atan2(dy, dx);
-            const targetOffsetX = Math.cos(angle) * force * 15; // Repulsión leve
-            const targetOffsetY = Math.sin(angle) * force * 15; // Repulsión leve
-            
-            p.offsetX += (targetOffsetX - p.offsetX) * 0.08;
-            p.offsetY += (targetOffsetY - p.offsetY) * 0.08;
-          } else {
-            p.offsetX *= 0.94;
-            p.offsetY *= 0.94;
+            p.x += Math.cos(angle) * force * 1.5;
+            p.baseY += Math.sin(angle) * force * 1.5;
           }
-        } else {
-          p.offsetX *= 0.94;
-          p.offsetY *= 0.94;
         }
 
-        // Dibujar Glow muy suave (efecto premium de desenfoque)
+        const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.radius);
+        grad.addColorStop(0, `rgba(${p.color.r}, ${p.color.g}, ${p.color.b}, ${p.alpha})`);
+        grad.addColorStop(1, `rgba(${p.color.r}, ${p.color.g}, ${p.color.b}, 0)`);
+        
         ctx.beginPath();
-        ctx.arc(p.x + p.offsetX, p.y + p.offsetY, p.radius * 2.2, 0, Math.PI * 2);
-        ctx.fillStyle = p.color;
-        ctx.globalAlpha = p.alpha * 0.18; // Brillo periférico sutil
-        ctx.fill();
-
-        // Dibujar el punto central nítido
-        ctx.beginPath();
-        ctx.arc(p.x + p.offsetX, p.y + p.offsetY, p.radius, 0, Math.PI * 2);
-        ctx.fillStyle = p.color;
-        ctx.globalAlpha = p.alpha;
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
         ctx.fill();
       });
+
+      // 2. Mover y dibujar humo inyectado por el usuario
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.life -= p.decay;
+        
+        if (p.life <= 0) {
+          particles.splice(i, 1);
+          continue;
+        }
+
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vx *= 0.96;
+        p.vy *= 0.96;
+        p.y -= 0.15; // Flotación hacia arriba
+        p.radius += 0.25; // Dispersión
+        p.angle += p.spin;
+
+        const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.radius);
+        const alpha = p.life * 0.45;
+        grad.addColorStop(0, `rgba(${p.color.r}, ${p.color.g}, ${p.color.b}, ${alpha})`);
+        grad.addColorStop(0.5, `rgba(${p.color.r}, ${p.color.g}, ${p.color.b}, ${alpha * 0.4})`);
+        grad.addColorStop(1, `rgba(${p.color.r}, ${p.color.g}, ${p.color.b}, 0)`);
+
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.angle);
+        ctx.translate(-p.x, -p.y);
+        
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
+        ctx.restore();
+      }
 
       animationFrameId = requestAnimationFrame(animate);
     };
