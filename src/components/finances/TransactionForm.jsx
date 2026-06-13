@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, runTransaction } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { validarIdentificacion, generarFacturaXML, simularTransmisionSRI, consultarRucSri, generarRetencionXML, generarNotaCreditoXML, generarLiquidacionXML } from '../../services/sriService';
+import { validarIdentificacion, generarFacturaXML, simularTransmisionSRI, consultarRucSri, generarRetencionXML, generarNotaCreditoXML, generarLiquidacionXML, generarGuiaRemisionXML } from '../../services/sriService';
 import { firmarComprobanteXML } from '../../services/xadesSigner';
 import RidePreviewModal from './RidePreviewModal';
 
@@ -64,6 +64,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     secuencialRetencion: 1,
     secuencialNotaCredito: 1,
     secuencialLiquidacion: 1,
+    secuencialGuiaRemision: 1,
     secuencialNotaVenta: 1,
     certificadoCargado: true,
     certificadoNombre: 'certificado_demo.p12',
@@ -107,7 +108,20 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     fechaEmisionDocSustento: new Date().toISOString().split('T')[0],
     motivo: 'Devolución de mercadería',
     referencia: '',
-    description: ''
+    description: '',
+    // Campos específicos de Guía de Remisión (06)
+    placa: '',
+    dirPartida: '',
+    dirDestino: '',
+    motivoTraslado: 'Venta',
+    ruta: '',
+    fechaIniTransporte: new Date().toISOString().split('T')[0],
+    fechaFinTransporte: new Date().toISOString().split('T')[0],
+    rucTransportista: '',
+    razonSocialTransportista: '',
+    tipoIdentificacionTransportista: '04',
+    codDocSustento: '01',
+    numDocSustento: ''
   });
 
   const [payments, setPayments] = useState({
@@ -241,6 +255,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 nextSec = String(configData.secuencialNotaCredito || 1);
               } else if (activeDocType === 'liquidacion') {
                 nextSec = String(configData.secuencialLiquidacion || 1);
+              } else if (activeDocType === 'guia_remision') {
+                nextSec = String(configData.secuencialGuiaRemision || 1);
               } else if (activeDocType === 'nota_venta') {
                 nextSec = String(configData.secuencialNotaVenta || 1);
               }
@@ -861,6 +877,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         secKey = 'secuencialNotaCredito';
       } else if (formData.documentType === 'liquidacion') {
         secKey = 'secuencialLiquidacion';
+      } else if (formData.documentType === 'guia_remision') {
+        secKey = 'secuencialGuiaRemision';
       }
 
       // Reservar el secuencial de forma ATÓMICA antes de transmitir. Esto evita
@@ -901,6 +919,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         xmlObj = generarNotaCreditoXML(configData, docData, matchedTercero, formData.items);
       } else if (formData.documentType === 'liquidacion') {
         xmlObj = generarLiquidacionXML(configData, docData, matchedTercero, formData.items);
+      } else if (formData.documentType === 'guia_remision') {
+        xmlObj = generarGuiaRemisionXML(configData, docData, matchedTercero, formData.items);
       } else {
         xmlObj = generarFacturaXML(configData, docData, matchedTercero, formData.items);
       }
@@ -1056,6 +1076,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       xmlObj = generarNotaCreditoXML(sriConfig, formData, matchedTercero, formData.items);
     } else if (formData.documentType === 'liquidacion') {
       xmlObj = generarLiquidacionXML(sriConfig, formData, matchedTercero, formData.items);
+    } else if (formData.documentType === 'guia_remision') {
+      xmlObj = generarGuiaRemisionXML(sriConfig, formData, matchedTercero, formData.items);
     } else {
       xmlObj = generarFacturaXML(sriConfig, formData, matchedTercero, formData.items);
     }
@@ -1426,6 +1448,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                           else if (newDocType === 'retencion') nextSec = String(sriConfig?.secuencialRetencion || 1);
                           else if (newDocType === 'nota_credito') nextSec = String(sriConfig?.secuencialNotaCredito || 1);
                           else if (newDocType === 'liquidacion') nextSec = String(sriConfig?.secuencialLiquidacion || 1);
+                          else if (newDocType === 'guia_remision') nextSec = String(sriConfig?.secuencialGuiaRemision || 1);
                           else if (newDocType === 'nota_venta') nextSec = String(sriConfig?.secuencialNotaVenta || 1);
                           setFormData(prev => ({ ...prev, documentType: newDocType, secuencial: nextSec }));
                         }} 
@@ -1437,6 +1460,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                           <option value="retencion">Comprobante de Retención</option>
                         ) : formData.documentType === 'nota_debito' ? (
                           <option value="nota_debito">Nota de Débito</option>
+                        ) : formData.documentType === 'liquidacion' ? (
+                          <option value="liquidacion">Liquidación de Compra</option>
+                        ) : formData.documentType === 'guia_remision' ? (
+                          <option value="guia_remision">Guía de Remisión</option>
                         ) : (
                           <>
                             <option value="factura" disabled={sriConfig?.rucActivo === false}>
@@ -1482,9 +1509,52 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       </div>
                     </div>
                   )}
+                  {/* Guía de Remisión extra fields */}
+                  {formData.documentType === 'guia_remision' && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 border-t border-dashed mt-4 pt-4 border-gray-200 dark:border-white/10">
+                      <div>
+                        <label className={labelClass}>Placa del Vehículo</label>
+                        <input disabled={!isEditable} type="text" required value={formData.placa || ''} onChange={e => setFormData({...formData, placa: e.target.value.toUpperCase()})} className={inputClass} placeholder="PBA1234" />
+                      </div>
+                      <div>
+                        <label className={labelClass}>Motivo del Traslado</label>
+                        <input disabled={!isEditable} type="text" required value={formData.motivoTraslado || ''} onChange={e => setFormData({...formData, motivoTraslado: e.target.value})} className={inputClass} placeholder="Ej. Venta / Traslado" />
+                      </div>
+                      <div>
+                        <label className={labelClass}>Dirección de Partida</label>
+                        <input disabled={!isEditable} type="text" required value={formData.dirPartida || ''} onChange={e => setFormData({...formData, dirPartida: e.target.value})} className={inputClass} placeholder={sriConfig?.direccionMatriz || 'Origen'} />
+                      </div>
+                      <div>
+                        <label className={labelClass}>Dirección de Destino</label>
+                        <input disabled={!isEditable} type="text" value={formData.dirDestino || ''} onChange={e => setFormData({...formData, dirDestino: e.target.value})} className={inputClass} placeholder="Destino del destinatario" />
+                      </div>
+                      <div>
+                        <label className={labelClass}>Fecha Inicio Transporte</label>
+                        <input disabled={!isEditable} type="date" required value={formData.fechaIniTransporte || ''} onChange={e => setFormData({...formData, fechaIniTransporte: e.target.value})} className={inputClass} />
+                      </div>
+                      <div>
+                        <label className={labelClass}>Fecha Fin Transporte</label>
+                        <input disabled={!isEditable} type="date" required value={formData.fechaFinTransporte || ''} onChange={e => setFormData({...formData, fechaFinTransporte: e.target.value})} className={inputClass} />
+                      </div>
+                      <div>
+                        <label className={labelClass}>Ruta</label>
+                        <input disabled={!isEditable} type="text" value={formData.ruta || ''} onChange={e => setFormData({...formData, ruta: e.target.value})} className={inputClass} placeholder="Ej. Quito - Guayaquil" />
+                      </div>
+                      <div>
+                        <label className={labelClass}>RUC Transportista</label>
+                        <input disabled={!isEditable} type="text" value={formData.rucTransportista || ''} onChange={e => setFormData({...formData, rucTransportista: e.target.value})} className={inputClass} placeholder={sriConfig?.ruc || 'RUC del transportista'} />
+                      </div>
+                      <div>
+                        <label className={labelClass}>Razón Social Transportista</label>
+                        <input disabled={!isEditable} type="text" value={formData.razonSocialTransportista || ''} onChange={e => setFormData({...formData, razonSocialTransportista: e.target.value})} className={inputClass} placeholder={sriConfig?.razonSocial || 'Nombre del transportista'} />
+                      </div>
+                      <div>
+                        <label className={labelClass}>Nro. Doc Sustento (Factura)</label>
+                        <input disabled={!isEditable} type="text" value={formData.numDocSustento || ''} onChange={e => setFormData({...formData, numDocSustento: e.target.value})} className={inputClass} placeholder="001-001-000000123" />
+                      </div>
+                    </div>
+                  )}
                 </div>
-
-                {/* Location and reference details */}
                 <div className={cardClass}>
                   <div className="flex items-center gap-2 mb-4">
                     <div className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-primary/10 text-primary' : 'bg-primary-light text-primary'}`}>

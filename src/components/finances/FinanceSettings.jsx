@@ -40,6 +40,7 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
     secuencialRetencion: 1,
     secuencialNotaCredito: 1,
     secuencialLiquidacion: 1,
+    secuencialGuiaRemision: 1,
     secuencialNotaVenta: 1
   });
   
@@ -343,6 +344,18 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
                   onChange={e => setSriConfig({...sriConfig, secuencialLiquidacion: parseInt(e.target.value, 10) || 1})} 
                   className={inputClass} 
                   placeholder="1" 
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-500">Próximo Secuencial de Guía de Remisión</label>
+                <input
+                  type="number"
+                  min="1"
+                  value={sriConfig.secuencialGuiaRemision || 1}
+                  onChange={e => setSriConfig({...sriConfig, secuencialGuiaRemision: parseInt(e.target.value, 10) || 1})}
+                  className={inputClass}
+                  placeholder="1"
                 />
               </div>
 
