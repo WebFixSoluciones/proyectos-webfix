@@ -222,17 +222,10 @@ export default function GastosCreditosModule({ isDarkMode, showToast, transactio
     <div className="flex flex-col h-full w-full animate-in fade-in duration-500 overflow-hidden">
       
       {/* CABECERA Y NAVEGACIÓN */}
-      <div className={`flex flex-col md:flex-row md:items-center justify-between gap-4 px-8 py-4 border-b shrink-0 ${
+      <div className={`flex items-center gap-3 px-8 py-3.5 border-b shrink-0 ${
         isDarkMode ? 'border-white/5 bg-[#121214]' : 'border-primary/10 bg-primary-light'
       }`}>
-        <div>
-          <h2 className="text-sm font-black flex items-center gap-2">
-            <CreditCard size={18} className="text-pink-500" />
-            <span>Control de Gastos y Créditos Financieros</span>
-          </h2>
-          <p className="text-[10px] text-gray-500 font-medium">Historial general de compras y control de endeudamiento corporativo de la empresa</p>
-        </div>
-        <div className="flex items-center gap-2 overflow-x-auto whitespace-nowrap scrollbar-none">
+        <div className="flex gap-2 overflow-x-auto whitespace-nowrap scrollbar-none flex-1">
           {[
             { id: 'resumen', label: 'Resumen Financiero', icon: TrendingUp },
             { id: 'pasivos', label: 'Pasivos y Financiamiento', icon: Landmark },
