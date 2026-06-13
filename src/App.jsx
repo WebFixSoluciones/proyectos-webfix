@@ -48,6 +48,7 @@ import {
   Mail,
   Key,
   ArrowRight,
+  ArrowLeft,
   Cloud,
   Settings,
   GripVertical,
