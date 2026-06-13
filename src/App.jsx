@@ -1826,7 +1826,7 @@ export default function App() {
   // --- PANTALLA DE LOGIN ---
   if (!isAuthenticated) {
     return (
-      <div className={`flex items-center justify-center min-h-screen w-full font-sans overflow-hidden transition-colors duration-500 relative z-0 ${isDarkMode ? 'bg-[#020204] text-gray-100' : 'bg-slate-50 text-gray-800'}`}>
+      <div className={`flex items-center justify-center min-h-screen w-full font-sans overflow-hidden transition-colors duration-500 relative z-0 ${isDarkMode ? 'bg-[#020204] text-gray-100' : 'bg-white text-gray-800'}`}>
         
         {/* GLOBAL BACKGROUND BLOBS */}
         <div className={`absolute top-[-10%] left-[-5%] w-[40rem] h-[40rem] rounded-full mix-blend-screen filter blur-[130px] pointer-events-none -z-10 transition-all duration-500 animate-liquid-1 ${isDarkMode ? 'bg-purple-950/20 opacity-30' : 'bg-purple-200/40 opacity-50'}`}></div>
