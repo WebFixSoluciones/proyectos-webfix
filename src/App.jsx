@@ -372,7 +372,7 @@ export default function App() {
   const [googleAccessToken, setGoogleAccessToken] = useState(null);
   
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [primaryColor, setPrimaryColor] = useState('#2563eb');
+  const [primaryColor, setPrimaryColor] = useState('#1C40F2');
 
   useEffect(() => {
     document.documentElement.style.setProperty('--primary-color', primaryColor);
@@ -1713,7 +1713,7 @@ export default function App() {
         {/* Card Centrado (Estilo Profesional Alineado a la Izquierda) */}
         <div className="w-full max-w-[420px] mx-4 relative group select-none">
           {/* Subtle Backglow */}
-          <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-tr from-[#6366f1]/10 to-[#a855f7]/10 blur-xl opacity-60 pointer-events-none"></div>
+          <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-tr from-[#1C40F2]/10 to-[#a855f7]/10 blur-xl opacity-60 pointer-events-none"></div>
           
           {/* La tarjeta principal */}
           <div className={`w-full p-8 sm:p-10 rounded-[2rem] flex flex-col border transition-all duration-500 relative z-10 ${
@@ -1727,32 +1727,32 @@ export default function App() {
               {companyProfile?.logoUrl ? (
                 <img src={companyProfile.logoUrl} alt="Logo de la Empresa" className="max-h-12 object-contain mb-4" />
               ) : (
-                <h2 className={`text-3xl font-bold tracking-tight mb-2 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                <h2 className={`text-3xl font-extrabold tracking-tight mb-2 ${isDarkMode ? 'text-white' : 'text-black'}`}>
                   Web Fix
                 </h2>
               )}
-              <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-slate-500'}`}>
+              <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-200' : 'text-black'}`}>
                 Iniciar sesión
               </span>
             </div>
             
             <form onSubmit={handleLogin} className="space-y-5 text-left">
               <div>
-                <label className={`block text-xs font-semibold mb-1.5 ${isDarkMode ? 'text-gray-300' : 'text-slate-700'}`}>
+                <label className={`block text-xs font-bold mb-1.5 ${isDarkMode ? 'text-white' : 'text-black'}`}>
                   Correo Electrónico
                 </label>
                 <div className="relative">
-                  <div className={`absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors ${isDarkMode ? 'text-gray-500' : 'text-slate-400'}`}>
+                  <div className={`absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>
                     <User size={16} />
                   </div>
                   <input 
                     type="email" 
                     value={loginForm.email}
                     onChange={(e) => setLoginForm({...loginForm, email: e.target.value})}
-                    className={`w-full text-xs font-medium tracking-wide pl-11 pr-3.5 py-3.5 rounded-xl outline-none transition-all border ${
+                    className={`w-full text-xs font-medium tracking-wide pl-11 pr-3.5 py-3.5 rounded-[10px] outline-none transition-all border ${
                       isDarkMode 
-                        ? 'bg-[#151722] border-white/10 text-white focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/20' 
-                        : 'bg-[#f8fafc] border-slate-200 text-slate-900 focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/20 focus:bg-white'
+                        ? 'bg-[#151722] border-white/10 text-white focus:border-[#1C40F2] focus:ring-2 focus:ring-[#1C40F2]/20' 
+                        : 'bg-[#f8fafc] border-slate-300 text-black focus:border-[#1C40F2] focus:ring-2 focus:ring-[#1C40F2]/20 focus:bg-white'
                     }`} 
                     placeholder="correo@ejemplo.com" 
                     required
@@ -1761,21 +1761,21 @@ export default function App() {
               </div>
    
               <div>
-                <label className={`block text-xs font-semibold mb-1.5 ${isDarkMode ? 'text-gray-300' : 'text-slate-700'}`}>
+                <label className={`block text-xs font-bold mb-1.5 ${isDarkMode ? 'text-white' : 'text-black'}`}>
                   Contraseña
                 </label>
                 <div className="relative">
-                  <div className={`absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors ${isDarkMode ? 'text-gray-500' : 'text-slate-400'}`}>
+                  <div className={`absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>
                     <Lock size={16} />
                   </div>
                   <input 
                     type={showPassword ? "text" : "password"}
                     value={loginForm.password}
                     onChange={(e) => setLoginForm({...loginForm, password: e.target.value})}
-                    className={`w-full text-xs font-medium tracking-wide pl-11 pr-10 py-3.5 rounded-xl outline-none transition-all border ${
+                    className={`w-full text-xs font-medium tracking-wide pl-11 pr-10 py-3.5 rounded-[10px] outline-none transition-all border ${
                       isDarkMode 
-                        ? 'bg-[#151722] border-white/10 text-white focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/20' 
-                        : 'bg-[#f8fafc] border-slate-200 text-slate-900 focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/20 focus:bg-white'
+                        ? 'bg-[#151722] border-white/10 text-white focus:border-[#1C40F2] focus:ring-2 focus:ring-[#1C40F2]/20' 
+                        : 'bg-[#f8fafc] border-slate-300 text-black focus:border-[#1C40F2] focus:ring-2 focus:ring-[#1C40F2]/20 focus:bg-white'
                     }`} 
                     placeholder="••••••••••••" 
                     required
@@ -1783,7 +1783,7 @@ export default function App() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-slate-600 transition-colors"
+                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-black/60 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors"
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
@@ -1794,7 +1794,7 @@ export default function App() {
                   <button
                     type="button"
                     onClick={() => showToast('Comunícate con soporte para recuperar tu contraseña', 'info')}
-                    className="text-xs font-semibold text-[#6366f1] hover:text-[#4f46e5] dark:text-[#818cf8] transition-colors"
+                    className="text-xs font-semibold text-[#1C40F2] hover:text-[#1633c1] dark:text-[#818cf8] transition-colors"
                   >
                     ¿Olvidaste tu contraseña?
                   </button>
@@ -1802,7 +1802,7 @@ export default function App() {
               </div>
    
               {loginError && (
-                <div className={`p-3 rounded-xl text-xs font-semibold tracking-wide flex items-center justify-center text-center animate-in fade-in duration-300 border ${
+                <div className={`p-3 rounded-[10px] text-xs font-semibold tracking-wide flex items-center justify-center text-center animate-in fade-in duration-300 border ${
                   isDarkMode ? 'bg-red-500/10 text-red-400 border-red-500/25' : 'bg-red-50 text-red-650 border-red-100'
                 }`}>
                   {loginError}
@@ -1812,10 +1812,10 @@ export default function App() {
               <button 
                 type="submit" 
                 disabled={isAuthenticating}
-                className={`w-full flex items-center justify-center gap-2 mt-6 py-4 rounded-xl text-xs font-bold tracking-wider uppercase transition-all duration-300 shadow-md active:scale-98 disabled:opacity-70 disabled:hover:scale-100 ${
+                className={`w-full flex items-center justify-center gap-2 mt-6 py-4 rounded-[10px] text-xs font-bold tracking-wider uppercase transition-all duration-300 shadow-md active:scale-98 disabled:opacity-70 disabled:hover:scale-100 ${
                   isDarkMode 
-                    ? 'bg-[#6366f1] hover:bg-[#4f46e5] text-white hover:scale-[1.01] hover:shadow-[0_0_20px_rgba(99,102,241,0.35)] shadow-indigo-950/20' 
-                    : 'bg-[#6366f1] hover:bg-[#4f46e5] text-white hover:scale-[1.01] hover:shadow-[0_0_20px_rgba(99,102,241,0.25)]'
+                    ? 'bg-[#1C40F2] hover:bg-[#1633c1] text-white hover:scale-[1.01] hover:shadow-[0_0_20px_rgba(28,64,242,0.35)] shadow-blue-950/20' 
+                    : 'bg-[#1C40F2] hover:bg-[#1633c1] text-white hover:scale-[1.01] hover:shadow-[0_0_20px_rgba(28,64,242,0.25)]'
                 }`}
               >
                 {isAuthenticating ? (
@@ -1829,29 +1829,29 @@ export default function App() {
                 )}
               </button>
             </form>
-
+ 
             {/* Footer con Registro */}
             <div className="mt-6 text-center">
               <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-slate-500'}`}>
                 ¿No tienes una cuenta?{' '}
                 <span 
                   onClick={() => showToast('Registro no habilitado para la versión pública', 'info')}
-                  className="font-semibold text-[#6366f1] hover:underline cursor-pointer"
+                  className="font-semibold text-[#1C40F2] hover:underline cursor-pointer"
                 >
                   Regístrate
                 </span>
               </p>
             </div>
-
-            {/* Derechos Reservados */}
-            <div className="mt-8 pt-5 border-t border-dashed border-current/10 text-center">
-              <p style={{ fontSize: '12px', color: '#000000' }} className="font-normal">
-                © WebFix 2026. Todos los derechos reservados
-              </p>
-            </div>
           </div>
         </div>
-
+ 
+        {/* Derechos Reservados como Pie de Página */}
+        <div className="absolute bottom-6 left-0 right-0 text-center z-10 pointer-events-none">
+          <p style={{ fontSize: '12px', color: '#000000' }} className="font-normal select-none pointer-events-auto">
+            © WebFix 2026. Todos los derechos reservados
+          </p>
+        </div>
+ 
       </div>
     );
   }

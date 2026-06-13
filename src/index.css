@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: var(--primary-color, #2563eb);
-  --color-primary-hover: color-mix(in srgb, var(--primary-color, #2563eb) 85%, #000000);
-  --color-primary-light: color-mix(in srgb, var(--primary-color, #2563eb) 8%, transparent);
+  --color-primary: var(--primary-color, #1C40F2);
+  --color-primary-hover: color-mix(in srgb, var(--primary-color, #1C40F2) 85%, #000000);
+  --color-primary-light: color-mix(in srgb, var(--primary-color, #1C40F2) 8%, transparent);
   --color-gray-150: #f1f5f9;
   --color-gray-250: #e2e8f0;
   --color-gray-550: #6b7280;
@@ -13,7 +13,7 @@
 }
 
 :root {
-  --primary-color: #2563eb;
+  --primary-color: #1C40F2;
 }
 
 /* --------------------------------------------------------------------------
