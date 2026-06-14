@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Plus, Search, Trash2, Edit2, FileText, CheckCircle2, AlertCircle, UploadCloud, Sparkles, AlertTriangle, Eye } from 'lucide-react';
-import { doc, deleteDoc, setDoc } from 'firebase/firestore';
+import { Plus, Search, Trash2, Edit2, FileText, CheckCircle2, AlertCircle, UploadCloud, Sparkles, AlertTriangle, Eye, Mail, Loader2 } from 'lucide-react';
+import { doc, deleteDoc, setDoc, getDoc } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { analizarComprobanteConGemini, parsearXMLComprobante } from '../../services/geminiService';
 import RidePreviewModal from './RidePreviewModal';
@@ -28,6 +28,9 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
   const [isDragging, setIsDragging] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [selectedRideTx, setSelectedRideTx] = useState(null);
+  const [emailModalTx, setEmailModalTx] = useState(null);
+  const [emailTarget, setEmailTarget] = useState('');
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
   
   const fileInputRef = useRef(null);
 
@@ -231,6 +234,80 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
         return isDarkMode 
           ? <span className="text-[10px] px-2 py-0.5 rounded-md bg-gray-550/20 text-gray-400 border border-white/5 font-bold uppercase">{status || 'Borrador'}</span>
           : <span className="text-[10px] px-2 py-0.5 rounded-md bg-gray-150 text-gray-700 border border-gray-300 font-bold uppercase">{status || 'Borrador'}</span>;
+    }
+  };
+
+  const handleOpenEmailModal = (tx) => {
+    const cliente = thirdParties.find(tp => tp.id === tx.thirdPartyId);
+    let initialEmail = cliente?.email || '';
+    if (initialEmail.includes('consumidorfinal')) {
+      initialEmail = '';
+    }
+    setEmailModalTx(tx);
+    setEmailTarget(initialEmail);
+  };
+
+  const handleSendEmail = async () => {
+    if (!emailTarget || emailTarget.trim() === '') {
+      showToast('Por favor ingrese un correo electrónico válido.', 'warning');
+      return;
+    }
+
+    setIsSendingEmail(true);
+    try {
+      const configRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config');
+      const configSnap = await getDoc(configRef);
+      if (!configSnap.exists()) {
+        showToast('Configuración del emisor no encontrada.', 'error');
+        setIsSendingEmail(false);
+        return;
+      }
+
+      const configData = configSnap.data();
+      if (!configData.smtpHost || !configData.smtpUser || !configData.smtpPass) {
+        showToast('Configuración SMTP incompleta en Ajustes.', 'warning');
+        setIsSendingEmail(false);
+        return;
+      }
+
+      const cliente = thirdParties.find(tp => tp.id === emailModalTx.thirdPartyId);
+
+      const emailPayload = {
+        smtpHost: configData.smtpHost,
+        smtpPort: configData.smtpPort,
+        smtpUser: configData.smtpUser,
+        smtpPass: configData.smtpPass,
+        smtpSecure: configData.smtpSecure,
+        to: emailTarget,
+        clientName: cliente?.name || 'Cliente',
+        documentNumber: emailModalTx.documentNumber,
+        total: emailModalTx.total,
+        pdfUrl: emailModalTx.pdfUrl || '',
+        xmlUrl: emailModalTx.xmlUrl || '',
+        companyName: configData.nombreComercial || configData.razonSocial || 'Facturación Electrónica'
+      };
+
+      const res = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(emailPayload)
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        showToast(`Comprobante enviado a ${emailTarget}`, 'success');
+        setEmailModalTx(null);
+      } else {
+        console.error("Fallo al enviar correo:", data.error);
+        showToast(`No se pudo enviar el correo: ${data.error}`, 'error');
+      }
+    } catch (err) {
+      console.error("Error al conectar con la API de envío de correos:", err);
+      showToast("Error al conectar con la API de correos.", "error");
+    } finally {
+      setIsSendingEmail(false);
     }
   };
 
@@ -472,6 +549,15 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
                           <Eye size={12}/>
                         </button>
                       )}
+                      {(tx.sriStatus === 'autorizado' || tx.xmlUrl || tx.pdfUrl) && (
+                        <button 
+                          onClick={() => handleOpenEmailModal(tx)}
+                          className="p-1.5 rounded-[10px] bg-blue-500/20 text-blue-500 hover:bg-blue-500/40 border border-blue-500/10 transition-all"
+                          title="Enviar Comprobante al Correo"
+                        >
+                          <Mail size={12}/>
+                        </button>
+                      )}
                     </div>
                   </td>
                   <td className="px-6 py-3.5 text-right">
@@ -501,6 +587,88 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
           db={db} 
           appId={appId} 
         />
+      )}
+
+      {emailModalTx && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className={`w-full max-w-md rounded-3xl border p-6 space-y-4 shadow-2xl transition-all scale-100 ${
+            isDarkMode 
+              ? 'bg-[#121420] border-white/10 text-white' 
+              : 'bg-white border-slate-200 text-slate-900 shadow-slate-300'
+          }`}>
+            {/* Header */}
+            <div className="flex items-center gap-3 pb-2 border-b border-gray-500/10">
+              <div className={`p-2 rounded-[10px] ${isDarkMode ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-650'}`}>
+                <Mail size={18} />
+              </div>
+              <div>
+                <h3 className="text-sm font-black uppercase tracking-wider">Reenviar Comprobante</h3>
+                <p className="text-[10px] text-gray-500 font-medium leading-none mt-1">
+                  Documento N°: {emailModalTx.documentNumber || '-'}
+                </p>
+              </div>
+            </div>
+
+            {/* Content / Form */}
+            <div className="space-y-4 py-2">
+              <p className="text-[10.5px] leading-relaxed text-gray-400">
+                Confirma o edita el correo electrónico del cliente para realizar el envío de los archivos reglamentarios (XML y visualización del RIDE).
+              </p>
+
+              <div>
+                <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">
+                  Correo Electrónico de Destino
+                </label>
+                <input 
+                  type="email" 
+                  value={emailTarget} 
+                  onChange={e => setEmailTarget(e.target.value)} 
+                  placeholder="ejemplo@cliente.com"
+                  className={`w-full px-3.5 py-2.5 text-xs rounded-[10px] border outline-none transition-all focus:ring-1 focus:ring-primary/25 ${
+                    isDarkMode 
+                      ? 'bg-[#151722]/85 border-white/10 text-white focus:border-primary/50' 
+                      : 'bg-slate-50 border-slate-200 text-black focus:border-primary'
+                  }`}
+                  disabled={isSendingEmail}
+                />
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button 
+                type="button" 
+                onClick={() => setEmailModalTx(null)}
+                disabled={isSendingEmail}
+                className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-[10px] border transition-colors ${
+                  isDarkMode 
+                    ? 'border-white/10 hover:bg-white/5 text-gray-300' 
+                    : 'border-slate-200 hover:bg-slate-50 text-slate-600'
+                }`}
+              >
+                Cancelar
+              </button>
+              
+              <button 
+                type="button" 
+                onClick={handleSendEmail}
+                disabled={isSendingEmail}
+                className="px-4 py-2 text-xs font-black uppercase tracking-wider rounded-[10px] bg-primary hover:bg-primary-hover text-white flex items-center gap-1.5 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {isSendingEmail ? (
+                  <>
+                    <Loader2 size={12} className="animate-spin" />
+                    Enviando...
+                  </>
+                ) : (
+                  <>
+                    Enviar
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
