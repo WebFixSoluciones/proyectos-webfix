@@ -7,6 +7,14 @@
     {
       "source": "/api/sri/:path*",
       "destination": "https://srienlinea.sri.gob.ec/:path*"
+    },
+    {
+      "source": "/api/sri-ws-pruebas/:path*",
+      "destination": "/api/sri-ws-pruebas/index.js?path=:path*"
+    },
+    {
+      "source": "/api/sri-ws-prod/:path*",
+      "destination": "/api/sri-ws-prod/index.js?path=:path*"
     }
   ]
 }
