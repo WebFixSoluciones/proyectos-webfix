@@ -410,41 +410,49 @@ export default function ReportsView({ transactions, isDarkMode, showToast }) {
             </div>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="border-b border-gray-200 dark:border-white/5 text-[10px] uppercase text-gray-500 font-bold">
-                  <th className="py-2 px-3">Tarifa / Porcentaje</th>
-                  <th className="py-2 px-3 text-right">Base Ventas</th>
-                  <th className="py-2 px-3 text-right">IVA Ventas</th>
-                  <th className="py-2 px-3 text-right">Base Compras</th>
-                  <th className="py-2 px-3 text-right">IVA Compras</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-white/5">
-                <tr className="hover:bg-black/5 dark:hover:bg-white/5">
-                  <td className="py-3 px-3 font-semibold">Tarifa 15% (General)</td>
-                  <td className="py-3 px-3 text-right font-mono">${ivaVentasBreakdown.iva15Base.toFixed(2)}</td>
-                  <td className="py-3 px-3 text-right font-mono text-primary">${ivaVentasBreakdown.iva15Val.toFixed(2)}</td>
-                  <td className="py-3 px-3 text-right font-mono">${ivaComprasBreakdown.iva15Base.toFixed(2)}</td>
-                  <td className="py-3 px-3 text-right font-mono text-primary">${ivaComprasBreakdown.iva15Val.toFixed(2)}</td>
-                </tr>
-                <tr className="hover:bg-black/5 dark:hover:bg-white/5">
-                  <td className="py-3 px-3 font-semibold">Tarifa 12% (Otros/Anterior)</td>
-                  <td className="py-3 px-3 text-right font-mono">${ivaVentasBreakdown.iva12Base.toFixed(2)}</td>
-                  <td className="py-3 px-3 text-right font-mono text-primary">${ivaVentasBreakdown.iva12Val.toFixed(2)}</td>
-                  <td className="py-3 px-3 text-right font-mono">${ivaComprasBreakdown.iva12Base.toFixed(2)}</td>
-                  <td className="py-3 px-3 text-right font-mono text-primary">${ivaComprasBreakdown.iva12Val.toFixed(2)}</td>
-                </tr>
-                <tr className="hover:bg-black/5 dark:hover:bg-white/5">
-                  <td className="py-3 px-3 font-semibold">Tarifa 0% (Exentos)</td>
-                  <td className="py-3 px-3 text-right font-mono">${ivaVentasBreakdown.iva0Base.toFixed(2)}</td>
-                  <td className="py-3 px-3 text-right font-mono text-gray-500">$0.00</td>
-                  <td className="py-3 px-3 text-right font-mono">${ivaComprasBreakdown.iva0Base.toFixed(2)}</td>
-                  <td className="py-3 px-3 text-right font-mono text-gray-500">$0.00</td>
-                </tr>
-              </tbody>
-            </table>
+          <div className={`rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm ${
+            isDarkMode ? 'border-white/5 bg-black/30' : 'border-slate-200/80 bg-white'
+          }`}>
+            <div className="overflow-x-auto custom-scrollbar">
+              <table className="w-full text-left text-xs whitespace-nowrap">
+                <thead className={`text-[10px] uppercase font-bold tracking-wider ${
+                  isDarkMode 
+                    ? 'bg-black/35 text-slate-400 border-b border-white/5' 
+                    : 'bg-slate-50 text-slate-600 border-b border-slate-100'
+                }`}>
+                  <tr>
+                    <th className="px-6 py-3.5">Tarifa / Porcentaje</th>
+                    <th className="px-6 py-3.5 text-right">Base Ventas</th>
+                    <th className="px-6 py-3.5 text-right">IVA Ventas</th>
+                    <th className="px-6 py-3.5 text-right">Base Compras</th>
+                    <th className="px-6 py-3.5 text-right">IVA Compras</th>
+                  </tr>
+                </thead>
+                <tbody className={`divide-y ${isDarkMode ? 'divide-white/5' : 'divide-slate-100'}`}>
+                  <tr className={`transition-colors ${isDarkMode ? 'hover:bg-white/[0.015]' : 'hover:bg-slate-50/40'}`}>
+                    <td className="px-6 py-3.5 font-semibold text-black dark:text-white">Tarifa 15% (General)</td>
+                    <td className="px-6 py-3.5 text-right font-mono text-black dark:text-white">${ivaVentasBreakdown.iva15Base.toFixed(2)}</td>
+                    <td className="px-6 py-3.5 text-right font-mono text-primary">${ivaVentasBreakdown.iva15Val.toFixed(2)}</td>
+                    <td className="px-6 py-3.5 text-right font-mono text-black dark:text-white">${ivaComprasBreakdown.iva15Base.toFixed(2)}</td>
+                    <td className="px-6 py-3.5 text-right font-mono text-primary">${ivaComprasBreakdown.iva15Val.toFixed(2)}</td>
+                  </tr>
+                  <tr className={`transition-colors ${isDarkMode ? 'hover:bg-white/[0.015]' : 'hover:bg-slate-50/40'}`}>
+                    <td className="px-6 py-3.5 font-semibold text-black dark:text-white">Tarifa 12% (Otros/Anterior)</td>
+                    <td className="px-6 py-3.5 text-right font-mono text-black dark:text-white">${ivaVentasBreakdown.iva12Base.toFixed(2)}</td>
+                    <td className="px-6 py-3.5 text-right font-mono text-primary">${ivaVentasBreakdown.iva12Val.toFixed(2)}</td>
+                    <td className="px-6 py-3.5 text-right font-mono text-black dark:text-white">${ivaComprasBreakdown.iva12Base.toFixed(2)}</td>
+                    <td className="px-6 py-3.5 text-right font-mono text-primary">${ivaComprasBreakdown.iva12Val.toFixed(2)}</td>
+                  </tr>
+                  <tr className={`transition-colors ${isDarkMode ? 'hover:bg-white/[0.015]' : 'hover:bg-slate-50/40'}`}>
+                    <td className="px-6 py-3.5 font-semibold text-black dark:text-white">Tarifa 0% (Exentos)</td>
+                    <td className="px-6 py-3.5 text-right font-mono text-black dark:text-white">${ivaVentasBreakdown.iva0Base.toFixed(2)}</td>
+                    <td className="px-6 py-3.5 text-right font-mono text-gray-400 font-medium">$0.00</td>
+                    <td className="px-6 py-3.5 text-right font-mono text-black dark:text-white">${ivaComprasBreakdown.iva0Base.toFixed(2)}</td>
+                    <td className="px-6 py-3.5 text-right font-mono text-gray-400 font-medium">$0.00</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
@@ -463,34 +471,42 @@ export default function ReportsView({ transactions, isDarkMode, showToast }) {
               <span className="text-xs font-bold text-red-500">${totalRetsEmitidasVal.toFixed(2)}</span>
             </div>
 
-            <div className="overflow-x-auto max-h-[300px] overflow-y-auto custom-scrollbar">
-              <table className="w-full text-left text-[11px] border-collapse">
-                <thead>
-                  <tr className="border-b border-gray-200 dark:border-white/5 text-[9px] uppercase text-gray-500 font-bold">
-                    <th className="py-2">Fecha</th>
-                    <th className="py-2">Tipo</th>
-                    <th className="py-2">Cód SRI</th>
-                    <th className="py-2 text-right">Base</th>
-                    <th className="py-2 text-right">Retenido</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 dark:divide-white/5">
-                  {retsEmitidas.map((r, i) => (
-                    <tr key={i} className="hover:bg-black/5 dark:hover:bg-white/5">
-                      <td className="py-2.5 text-gray-400 font-medium">{r.fecha}</td>
-                      <td className="py-2.5 font-bold">{r.impuesto}</td>
-                      <td className="py-2.5 font-mono">{r.codigo}</td>
-                      <td className="py-2.5 text-right font-mono">${r.base.toFixed(2)}</td>
-                      <td className="py-2.5 text-right font-mono font-bold text-red-500">${r.valor.toFixed(2)}</td>
-                    </tr>
-                  ))}
-                  {retsEmitidas.length === 0 && (
+            <div className={`rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm ${
+              isDarkMode ? 'border-white/5 bg-black/30' : 'border-slate-200/80 bg-white'
+            }`}>
+              <div className="overflow-x-auto max-h-[300px] overflow-y-auto custom-scrollbar">
+                <table className="w-full text-left text-xs whitespace-nowrap">
+                  <thead className={`text-[10px] uppercase font-bold tracking-wider ${
+                    isDarkMode 
+                      ? 'bg-black/35 text-slate-400 border-b border-white/5' 
+                      : 'bg-slate-50 text-slate-600 border-b border-slate-100'
+                  }`}>
                     <tr>
-                      <td colSpan="5" className="py-6 text-center text-gray-500 italic">No se registran retenciones emitidas en este periodo.</td>
+                      <th className="px-6 py-3.5">Fecha</th>
+                      <th className="px-6 py-3.5">Tipo</th>
+                      <th className="px-6 py-3.5">Cód SRI</th>
+                      <th className="px-6 py-3.5 text-right">Base</th>
+                      <th className="px-6 py-3.5 text-right">Retenido</th>
                     </tr>
-                  )}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className={`divide-y ${isDarkMode ? 'divide-white/5' : 'divide-slate-100'}`}>
+                    {retsEmitidas.map((r, i) => (
+                      <tr key={i} className={`transition-colors ${isDarkMode ? 'hover:bg-white/[0.015]' : 'hover:bg-slate-50/40'}`}>
+                        <td className="px-6 py-3.5 text-gray-400 font-medium">{r.fecha}</td>
+                        <td className="px-6 py-3.5 font-bold text-black dark:text-white">{r.impuesto}</td>
+                        <td className="px-6 py-3.5 font-mono text-[10px] text-gray-550 dark:text-gray-450 font-bold">{r.codigo}</td>
+                        <td className="px-6 py-3.5 text-right font-mono text-black dark:text-white">${r.base.toFixed(2)}</td>
+                        <td className="px-6 py-3.5 text-right font-mono font-bold text-red-500">${r.valor.toFixed(2)}</td>
+                      </tr>
+                    ))}
+                    {retsEmitidas.length === 0 && (
+                      <tr>
+                        <td colSpan="5" className="px-6 py-8 text-center text-gray-500 italic">No se registran retenciones emitidas en este periodo.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
 
@@ -504,34 +520,42 @@ export default function ReportsView({ transactions, isDarkMode, showToast }) {
               <span className="text-xs font-bold text-emerald-500">${totalRetsRecibidasVal.toFixed(2)}</span>
             </div>
 
-            <div className="overflow-x-auto max-h-[300px] overflow-y-auto custom-scrollbar">
-              <table className="w-full text-left text-[11px] border-collapse">
-                <thead>
-                  <tr className="border-b border-gray-200 dark:border-white/5 text-[9px] uppercase text-gray-500 font-bold">
-                    <th className="py-2">Fecha</th>
-                    <th className="py-2">Factura</th>
-                    <th className="py-2">Impuesto</th>
-                    <th className="py-2 text-right">Base</th>
-                    <th className="py-2 text-right">Valor</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 dark:divide-white/5">
-                  {retsRecibidas.map((r, i) => (
-                    <tr key={i} className="hover:bg-black/5 dark:hover:bg-white/5">
-                      <td className="py-2.5 text-gray-400 font-medium">{r.fecha}</td>
-                      <td className="py-2.5 font-mono truncate max-w-[120px]">{r.comprobante}</td>
-                      <td className="py-2.5 font-bold">{r.impuesto}</td>
-                      <td className="py-2.5 text-right font-mono">${r.base.toFixed(2)}</td>
-                      <td className="py-2.5 text-right font-mono font-bold text-emerald-500">${r.valor.toFixed(2)}</td>
-                    </tr>
-                  ))}
-                  {retsRecibidas.length === 0 && (
+            <div className={`rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm ${
+              isDarkMode ? 'border-white/5 bg-black/30' : 'border-slate-200/80 bg-white'
+            }`}>
+              <div className="overflow-x-auto max-h-[300px] overflow-y-auto custom-scrollbar">
+                <table className="w-full text-left text-xs whitespace-nowrap">
+                  <thead className={`text-[10px] uppercase font-bold tracking-wider ${
+                    isDarkMode 
+                      ? 'bg-black/35 text-slate-400 border-b border-white/5' 
+                      : 'bg-slate-50 text-slate-600 border-b border-slate-100'
+                  }`}>
                     <tr>
-                      <td colSpan="5" className="py-6 text-center text-gray-500 italic">No se registran retenciones recibidas en este periodo.</td>
+                      <th className="px-6 py-3.5">Fecha</th>
+                      <th className="px-6 py-3.5">Factura</th>
+                      <th className="px-6 py-3.5">Impuesto</th>
+                      <th className="px-6 py-3.5 text-right">Base</th>
+                      <th className="px-6 py-3.5 text-right">Valor</th>
                     </tr>
-                  )}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className={`divide-y ${isDarkMode ? 'divide-white/5' : 'divide-slate-100'}`}>
+                    {retsRecibidas.map((r, i) => (
+                      <tr key={i} className={`transition-colors ${isDarkMode ? 'hover:bg-white/[0.015]' : 'hover:bg-slate-50/40'}`}>
+                        <td className="px-6 py-3.5 text-gray-400 font-medium">{r.fecha}</td>
+                        <td className="px-6 py-3.5 font-mono text-[10px] font-bold">{r.comprobante}</td>
+                        <td className="px-6 py-3.5 font-bold text-black dark:text-white">{r.impuesto}</td>
+                        <td className="px-6 py-3.5 text-right font-mono text-black dark:text-white">${r.base.toFixed(2)}</td>
+                        <td className="px-6 py-3.5 text-right font-mono font-bold text-emerald-500">${r.valor.toFixed(2)}</td>
+                      </tr>
+                    ))}
+                    {retsRecibidas.length === 0 && (
+                      <tr>
+                        <td colSpan="5" className="px-6 py-8 text-center text-gray-500 italic">No se registran retenciones recibidas en este periodo.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
 

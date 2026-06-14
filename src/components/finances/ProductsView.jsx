@@ -185,14 +185,34 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
   return (
     <div className="space-y-6">
       {/* HEADER ACCIONES */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 mb-6">
+        <div>
+          <button
+            onClick={() => {
+              resetForm();
+              setIsModalOpen(true);
+            }}
+            className={`w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 rounded-[10px] text-xs font-bold transition-all hover-lift shadow-md ${
+              isDarkMode
+                ? "bg-gradient-to-r from-primary to-primary-hover text-white shadow-primary/20 hover:from-primary hover:to-primary-hover border border-primary/30"
+                : "bg-primary text-white hover:bg-primary-hover shadow-primary/10"
+            }`}
+          >
+            <Plus size={14} /> Registrar Producto
+          </button>
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
           <div
-            className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl border w-full sm:w-80 transition-all ${isDarkMode ? "bg-black/20 border-white/10 focus-within:border-violet-500/50 focus-within:ring-1 focus-within:ring-violet-500/30" : "bg-[#f3f8ff] border-primary/15 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/30"}`}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-[10px] border w-full sm:w-80 transition-all focus-within:ring-1 focus-within:ring-primary/25 ${
+              isDarkMode 
+                ? "bg-[#151722]/80 border-white/10 focus-within:border-primary/50" 
+                : "bg-white border-slate-200 focus-within:border-primary"
+            }`}
           >
             <Search
               size={14}
-              className={isDarkMode ? "text-gray-500" : "text-primary"}
+              className={isDarkMode ? "text-gray-500" : "text-gray-400"}
             />
             <input
               type="text"
@@ -205,32 +225,26 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className={`px-3 py-2.5 rounded-xl border text-xs outline-none cursor-pointer transition-all ${isDarkMode ? "bg-black/20 border-white/10 text-gray-300 hover:bg-black/35" : "bg-[#f3f8ff] border-primary/15 text-[#000000] font-bold hover:bg-primary-light"}`}
+            className={`px-3 py-2 rounded-[10px] border text-xs font-medium outline-none transition-all cursor-pointer ${
+              isDarkMode 
+                ? "bg-[#151722]/80 border-white/10 text-gray-300 focus:border-primary/50" 
+                : "bg-white border-slate-200 text-slate-700 focus:border-primary"
+            }`}
           >
-            <option value="all">Todos los tipos</option>
-            <option value="producto">Productos físicos</option>
-            <option value="servicio">Servicios / Horas</option>
+            <option value="all" className="text-black">Todos los tipos</option>
+            <option value="producto" className="text-black">Productos físicos</option>
+            <option value="servicio" className="text-black">Servicios / Horas</option>
           </select>
         </div>
-
-        <button
-          onClick={() => {
-            resetForm();
-            setIsModalOpen(true);
-          }}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all hover-lift shadow-md ${
-            isDarkMode
-              ? "bg-gradient-to-r from-primary to-primary-hover text-white shadow-primary/20 hover:from-primary hover:to-primary-hover border border-primary/30"
-              : "bg-primary text-white hover:bg-primary-hover"
-          }`}
-        >
-          <Plus size={14} /> Registrar Producto
-        </button>
       </div>
 
       {/* TABLA CATÁLOGO */}
       <div
-        className={`rounded-2xl border overflow-hidden backdrop-blur-xl ${isDarkMode ? "border-white/5 bg-white/[0.01] shadow-lg" : "border-primary/15 bg-[#f3f8ff] shadow-sm"}`}
+        className={`rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm ${
+          isDarkMode 
+            ? "border-white/5 bg-[#0f111a]/85 shadow-lg shadow-black/40" 
+            : "border-slate-200/80 bg-white"
+        }`}
       >
         {loading ? (
           <div className="flex justify-center items-center py-16">
@@ -240,21 +254,25 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
           <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-left text-xs whitespace-nowrap">
               <thead
-                className={`text-[10px] uppercase font-bold tracking-wider ${isDarkMode ? "bg-black/30 text-gray-400 border-b border-white/5" : "bg-primary-light text-[#000000] border-b border-primary/15"}`}
+                className={`text-[10px] uppercase font-bold tracking-wider ${
+                  isDarkMode 
+                    ? "bg-black/35 text-slate-400 border-b border-white/5" 
+                    : "bg-slate-50 text-slate-600 border-b border-slate-100"
+                }`}
               >
                 <tr>
-                  <th className="px-6 py-4">SKU / Código</th>
-                  <th className="px-6 py-4">Nombre</th>
-                  <th className="px-6 py-4">Tipo</th>
-                  <th className="px-6 py-4 text-right">Costo</th>
-                  <th className="px-6 py-4 text-right">P.V.P</th>
-                  <th className="px-6 py-4">IVA</th>
-                  <th className="px-6 py-4 text-center">Stock</th>
-                  <th className="px-6 py-4 text-right">Acciones</th>
+                  <th className="px-6 py-3.5">SKU / Código</th>
+                  <th className="px-6 py-3.5">Nombre</th>
+                  <th className="px-6 py-3.5">Tipo</th>
+                  <th className="px-6 py-3.5 text-right">Costo</th>
+                  <th className="px-6 py-3.5 text-right">P.V.P</th>
+                  <th className="px-6 py-3.5">IVA</th>
+                  <th className="px-6 py-3.5 text-center">Stock</th>
+                  <th className="px-6 py-3.5 text-right">Acciones</th>
                 </tr>
               </thead>
               <tbody
-                className={`divide-y ${isDarkMode ? "divide-white/5" : "divide-primary/10"}`}
+                className={`divide-y ${isDarkMode ? "divide-white/5" : "divide-slate-100"}`}
               >
                 {filtered.map((p) => {
                   const isLow = p.type === "producto" && p.stock <= p.minStock;
@@ -263,14 +281,14 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
                   return (
                     <tr
                       key={p.id}
-                      className={`transition-colors ${isDarkMode ? "hover:bg-white/[0.02]" : "hover:bg-primary-light"}`}
+                      className={`transition-colors ${isDarkMode ? "hover:bg-white/[0.015]" : "hover:bg-slate-50/40"}`}
                     >
                       <td
-                        className={`px-6 py-4 font-mono text-[10px] font-bold ${isDarkMode ? "text-gray-300" : "text-[#000000]"}`}
+                        className={`px-6 py-3.5 font-mono text-[10px] font-bold ${isDarkMode ? "text-gray-300" : "text-[#000000]"}`}
                       >
                         {p.sku}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-3.5">
                         <div
                           className={`font-bold text-xs ${isDarkMode ? "text-white" : "text-[#000000]"}`}
                         >
@@ -279,21 +297,21 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
                         <div className="flex flex-wrap gap-1 mt-1 text-[8px] font-bold uppercase tracking-wider">
                           {p.marca && (
                             <span
-                              className={`px-1.5 py-0.5 rounded ${isDarkMode ? "bg-white/5 text-gray-400" : "bg-primary-light text-black border border-primary/10"}`}
+                              className={`px-1.5 py-0.5 rounded-[10px] ${isDarkMode ? "bg-white/5 text-gray-400" : "bg-primary-light text-black border border-primary/10"}`}
                             >
                               Marca: {p.marca}
                             </span>
                           )}
                           {p.categoria && (
                             <span
-                              className={`px-1.5 py-0.5 rounded ${isDarkMode ? "bg-white/5 text-gray-400" : "bg-primary-light text-black border border-primary/10"}`}
+                              className={`px-1.5 py-0.5 rounded-[10px] ${isDarkMode ? "bg-white/5 text-gray-400" : "bg-primary-light text-black border border-primary/10"}`}
                             >
                               Cat: {p.categoria}
                             </span>
                           )}
                           {p.bodega && (
                             <span
-                              className={`px-1.5 py-0.5 rounded ${isDarkMode ? "bg-primary/10 text-primary border border-primary/10" : "bg-primary/10 text-primary border border-primary/25"}`}
+                              className={`px-1.5 py-0.5 rounded-[10px] ${isDarkMode ? "bg-primary/10 text-primary border border-primary/10" : "bg-primary/10 text-primary border border-primary/25"}`}
                             >
                               Bodega: {p.bodega}
                             </span>
@@ -301,16 +319,16 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
                         </div>
                         {p.description && (
                           <p
-                            className={`text-[9px] font-bold truncate mt-1 max-w-[220px] ${isDarkMode ? "text-gray-500" : "text-[#000000]"}`}
+                            className={`text-[9px] font-bold truncate mt-1 max-w-[220px] ${isDarkMode ? "text-gray-505" : "text-gray-500"}`}
                             title={p.description}
                           >
                             {p.description}
                           </p>
                         )}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-3.5">
                         <span
-                          className={`px-2 py-0.5 rounded-lg text-[9px] font-bold uppercase border ${
+                          className={`px-2 py-0.5 rounded-[10px] text-[9px] font-bold uppercase border ${
                             p.type === "producto"
                               ? isDarkMode
                                 ? "bg-primary/10 text-primary border-primary/20"
@@ -324,60 +342,60 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
                         </span>
                       </td>
                       <td
-                        className={`px-6 py-4 text-right font-bold ${isDarkMode ? "text-gray-300" : "text-[#000000]"}`}
+                        className={`px-6 py-3.5 text-right font-bold ${isDarkMode ? "text-gray-300" : "text-[#000000]"}`}
                       >
                         ${Number(p.cost || 0).toFixed(2)}
                       </td>
                       <td
-                        className={`px-6 py-4 text-right font-black ${isDarkMode ? "text-white" : "text-primary"}`}
+                        className={`px-6 py-3.5 text-right font-black ${isDarkMode ? "text-white" : "text-primary"}`}
                       >
                         ${Number(p.price || 0).toFixed(2)}
                       </td>
                       <td
-                        className={`px-6 py-4 font-bold ${isDarkMode ? "text-gray-350" : "text-[#000000]"}`}
+                        className={`px-6 py-3.5 font-bold ${isDarkMode ? "text-gray-400" : "text-[#000000]"}`}
                       >
                         {p.ivaCategory}%
                       </td>
-                      <td className="px-6 py-4 text-center">
+                      <td className="px-6 py-3.5 text-center">
                         {p.type === "servicio" ? (
                           <span className="text-gray-500 italic font-medium">
                             N/A
                           </span>
                         ) : isOut ? (
                           <span
-                            className={`px-2 py-1 rounded-lg text-[9px] font-bold uppercase border flex items-center justify-center gap-1 mx-auto max-w-[90px] bg-red-500/10 border-red-500/20 text-red-400 animate-pulse`}
+                            className={`px-2 py-1 rounded-[10px] text-[9px] font-bold uppercase border flex items-center justify-center gap-1 mx-auto max-w-[90px] bg-red-500/10 border-red-500/20 text-red-400 animate-pulse`}
                           >
                             <AlertTriangle size={10} /> Sin Stock
                           </span>
                         ) : isLow ? (
                           <span
-                            className={`px-2 py-1 rounded-lg text-[9px] font-bold uppercase border flex items-center justify-center gap-1 mx-auto max-w-[90px] bg-orange-500/10 border-orange-500/20 text-orange-400`}
+                            className={`px-2 py-1 rounded-[10px] text-[9px] font-bold uppercase border flex items-center justify-center gap-1 mx-auto max-w-[90px] bg-orange-500/10 border-orange-500/20 text-orange-400`}
                           >
                             <AlertTriangle size={10} /> {p.stock} (Bajo)
                           </span>
                         ) : (
                           <span
-                            className={`px-2.5 py-1 rounded-lg text-[9px] font-bold uppercase border flex items-center justify-center gap-1 mx-auto max-w-[70px] bg-emerald-500/10 border-emerald-500/20 text-emerald-400`}
+                            className={`px-2.5 py-1 rounded-[10px] text-[9px] font-bold uppercase border flex items-center justify-center gap-1 mx-auto max-w-[70px] bg-emerald-500/10 border-emerald-500/20 text-emerald-450`}
                           >
                             {p.stock}
                           </span>
                         )}
                       </td>
-                      <td className="px-6 py-4 text-right">
+                      <td className="px-6 py-3.5 text-right">
                         <div className="flex items-center justify-end gap-1.5">
                           <button
                             onClick={() => {
                               setFormData(p);
                               setIsModalOpen(true);
                             }}
-                            className={`p-2 rounded-xl transition-colors ${isDarkMode ? "hover:bg-primary/15 text-primary border border-transparent" : "hover:bg-primary/10 text-primary border border-primary/25 bg-white"}`}
+                            className={`p-1.5 rounded-[10px] transition-colors ${isDarkMode ? "hover:bg-primary/15 text-primary border border-transparent" : "hover:bg-primary/10 text-primary border border-primary/25 bg-white shadow-sm"}`}
                             title="Editar"
                           >
                             <Edit2 size={13} />
                           </button>
                           <button
                             onClick={() => handleDelete(p.id)}
-                            className={`p-2 rounded-xl transition-colors ${isDarkMode ? "hover:bg-red-500/15 text-red-400 border border-transparent" : "hover:bg-red-100 text-red-700 border border-red-200 bg-white"}`}
+                            className={`p-1.5 rounded-[10px] transition-colors ${isDarkMode ? "hover:bg-red-500/15 text-red-400 border border-transparent" : "hover:bg-red-50 text-red-650 border border-gray-300 bg-white shadow-sm"}`}
                             title="Eliminar"
                           >
                             <Trash2 size={13} />

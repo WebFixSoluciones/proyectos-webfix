@@ -452,54 +452,60 @@ export default function GastosCreditosModule({ isDarkMode, showToast, transactio
                     </div>
                   </div>
 
-                  <div className={`border rounded-3xl shadow-sm overflow-hidden ${isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'}`}>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left border-collapse">
-                        <thead>
-                          <tr className={`border-b text-[9px] font-black uppercase tracking-wider ${
-                            isDarkMode ? 'bg-black/10 border-white/5 text-gray-400' : 'bg-primary-light border-primary/15 text-[#000000]'
-                          }`}>
-                            <th className="py-3.5 px-4">Fecha</th>
-                            <th className="py-3.5 px-4">Descripción / Comprobante</th>
-                            <th className="py-3.5 px-4">Proveedor</th>
-                            <th className="py-3.5 px-4">Categoría</th>
-                            <th className="py-3.5 px-4 text-right">Subtotal</th>
-                            <th className="py-3.5 px-4 text-right">IVA</th>
-                            <th className="py-3.5 px-4 text-right">Total</th>
-                            <th className="py-3.5 px-4 text-center">Método Pago</th>
+                  <div className={`rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm ${
+                    isDarkMode 
+                      ? 'border-white/5 bg-[#0f111a]/85 shadow-lg shadow-black/40' 
+                      : 'border-slate-200/80 bg-white'
+                  }`}>
+                    <div className="overflow-x-auto custom-scrollbar">
+                      <table className="w-full text-left text-xs whitespace-nowrap">
+                        <thead className={`text-[10px] uppercase font-bold tracking-wider ${
+                          isDarkMode 
+                            ? 'bg-black/35 text-slate-400 border-b border-white/5' 
+                            : 'bg-slate-50 text-slate-600 border-b border-slate-100'
+                        }`}>
+                          <tr>
+                            <th className="px-6 py-3.5">Fecha</th>
+                            <th className="px-6 py-3.5">Descripción / Comprobante</th>
+                            <th className="px-6 py-3.5">Proveedor</th>
+                            <th className="px-6 py-3.5">Categoría</th>
+                            <th className="px-6 py-3.5 text-right">Subtotal</th>
+                            <th className="px-6 py-3.5 text-right">IVA</th>
+                            <th className="px-6 py-3.5 text-right">Total</th>
+                            <th className="px-6 py-3.5 text-center">Método Pago</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-200 dark:divide-white/5 text-xs">
+                        <tbody className={`divide-y ${isDarkMode ? 'divide-white/5' : 'divide-slate-100'}`}>
                           {historicalEgresos.map(tx => {
                             const contact = thirdParties.find(tp => tp.id === tx.thirdPartyId);
                             return (
-                              <tr key={tx.id} className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
-                                <td className="py-3.5 px-4 text-gray-400 font-medium">{tx.date}</td>
-                                <td className="py-3.5 px-4">
+                              <tr key={tx.id} className={`transition-colors ${isDarkMode ? 'hover:bg-white/[0.015]' : 'hover:bg-slate-50/40'}`}>
+                                <td className="px-6 py-3.5 text-gray-400 font-medium">{tx.date}</td>
+                                <td className="px-6 py-3.5">
                                   <div>
                                     <p className="font-bold text-black dark:text-white line-clamp-1">{tx.description || 'Sin descripción'}</p>
                                     <p className="text-[9px] text-gray-500 font-mono mt-0.5">{tx.documentNumber || `Sec: ${tx.secuencial || 'N/A'}`}</p>
                                   </div>
                                 </td>
-                                <td className="py-3.5 px-4 font-semibold">
+                                <td className="px-6 py-3.5 font-semibold text-black dark:text-white">
                                   {contact?.name || 'Proveedor Externo (S/N)'}
                                 </td>
-                                <td className="py-3.5 px-4">
-                                  <span className="px-2 py-0.5 rounded-md bg-white/5 border border-white/5 text-[9px] font-semibold text-gray-400 capitalize">
+                                <td className="px-6 py-3.5">
+                                  <span className="px-2 py-0.5 rounded-[10px] bg-white/5 border border-white/5 text-[9px] font-semibold text-gray-500 dark:text-gray-400 capitalize">
                                     {String(tx.category || 'gastos').replace('_', ' ')}
                                   </span>
                                 </td>
-                                <td className="py-3.5 px-4 text-right font-mono">${(Number(tx.baseImponible) || Number(tx.total) || 0).toFixed(2)}</td>
-                                <td className="py-3.5 px-4 text-right font-mono">${(Number(tx.ivaValor) || 0).toFixed(2)}</td>
-                                <td className="py-3.5 px-4 text-right font-bold text-red-500">${Number(tx.total).toFixed(2)}</td>
-                                <td className="py-3.5 px-4 text-center capitalize text-gray-400 font-medium">{tx.paymentMethod}</td>
+                                <td className="px-6 py-3.5 text-right font-mono">${(Number(tx.baseImponible) || Number(tx.total) || 0).toFixed(2)}</td>
+                                <td className="px-6 py-3.5 text-right font-mono">${(Number(tx.ivaValor) || 0).toFixed(2)}</td>
+                                <td className="px-6 py-3.5 text-right font-bold text-red-500">${Number(tx.total).toFixed(2)}</td>
+                                <td className="px-6 py-3.5 text-center capitalize text-gray-400 font-medium">{tx.paymentMethod}</td>
                               </tr>
                             );
                           })}
 
                           {historicalEgresos.length === 0 && (
                             <tr>
-                              <td colSpan="8" className="py-12 text-center text-gray-500 italic">
+                              <td colSpan="8" className="px-6 py-8 text-center text-gray-500 italic">
                                 No hay compras o egresos registrados en el ERP todavía.
                               </td>
                             </tr>

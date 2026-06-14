@@ -312,112 +312,161 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
       )}
 
       {/* FILTROS Y BUSQUEDA */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
-          <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border w-full sm:w-64 ${isDarkMode ? 'bg-black/20 border-white/10' : 'bg-white border-gray-355'}`}>
-            <Search size={14} className={isDarkMode ? 'text-gray-500' : 'text-gray-650'} />
+      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 mb-6">
+        <div>
+          <button 
+            onClick={() => {
+              if (forcedDocType) {
+                const defaultDocType = forcedDocType === 'ventas_resumen' ? 'factura' : forcedDocType;
+                const defaultType = forcedType || (forcedDocType === 'liquidacion' || forcedDocType === 'retencion' ? 'egreso' : 'ingreso');
+                onOpenForm({
+                  id: '',
+                  type: defaultType,
+                  documentType: defaultDocType,
+                  date: new Date().toISOString().split('T')[0],
+                  currency: 'USD',
+                  baseImponible: 0,
+                  ivaPorcentaje: 15,
+                  ivaValor: 0,
+                  retencionFuente: 0,
+                  retencionIva: 0,
+                  total: 0,
+                  paymentMethod: 'transferencia',
+                  paymentStatus: 'pendiente',
+                  sriStatus: 'pendiente',
+                  items: []
+                });
+              } else {
+                onOpenForm(null);
+              }
+            }}
+            className={`w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 rounded-[10px] text-xs font-bold transition-all hover-lift shadow-md ${
+              isDarkMode 
+                ? 'bg-gradient-to-r from-primary to-primary-hover text-white shadow-primary/20 border border-primary/30' 
+                : 'bg-primary text-white hover:bg-primary-hover shadow-primary/10'
+            }`}
+          >
+            <Plus size={15} /> Registrar {
+              forcedDocType 
+                ? (forcedDocType === 'ventas_resumen' 
+                    ? 'Venta' 
+                    : (docTypeTabs.find(t => t.id === forcedDocType)?.label || forcedDocType)) 
+                : 'Comprobante'
+            }
+          </button>
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
+          <div className={`flex items-center gap-2 px-3.5 py-2 rounded-[10px] border w-full sm:w-64 transition-all focus-within:ring-1 focus-within:ring-primary/25 ${
+            isDarkMode 
+              ? 'bg-[#151722]/80 border-white/10 focus-within:border-primary/50' 
+              : 'bg-white border-slate-200 focus-within:border-primary'
+          }`}>
+            <Search size={14} className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
             <input 
               type="text" 
               placeholder="Buscar documento o tercero..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="bg-transparent border-none outline-none text-xs w-full text-gray-900"
+              className="bg-transparent border-none outline-none text-xs w-full text-current placeholder-gray-500 focus:ring-0"
             />
           </div>
+
           {!forcedType && (
-            <select value={filterType} onChange={e => setFilterType(e.target.value)} className={`px-2.5 py-2 rounded-xl border text-xs outline-none ${isDarkMode ? 'bg-black/20 border-white/10 text-gray-300' : 'bg-white border-gray-355 text-gray-800 font-medium'}`}>
+            <select 
+              value={filterType} 
+              onChange={e => setFilterType(e.target.value)} 
+              className={`px-3 py-2 rounded-[10px] border text-xs font-medium outline-none transition-all cursor-pointer ${
+                isDarkMode 
+                  ? 'bg-[#151722]/80 border-white/10 text-gray-300 focus:border-primary/50' 
+                  : 'bg-white border-slate-200 text-slate-700 focus:border-primary'
+              }`}
+            >
               <option value="all" className="text-black">Todos los tipos</option>
               <option value="ingreso" className="text-black">Ingresos (Ventas)</option>
               <option value="egreso" className="text-black">Egresos (Compras)</option>
             </select>
           )}
-          <select value={filterMonth} onChange={e => setFilterMonth(e.target.value)} className={`px-2.5 py-2 rounded-xl border text-xs outline-none ${isDarkMode ? 'bg-black/20 border-white/10 text-gray-300' : 'bg-white border-gray-355 text-gray-800 font-medium'}`}>
-            <option value="all" className="text-black">Mes</option>
-            {['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'].map((m, i) => <option key={i} value={i} className="text-black">{m}</option>)}
+
+          <select 
+            value={filterMonth} 
+            onChange={e => setFilterMonth(e.target.value)} 
+            className={`px-3 py-2 rounded-[10px] border text-xs font-medium outline-none transition-all cursor-pointer ${
+              isDarkMode 
+                ? 'bg-[#151722]/80 border-white/10 text-gray-300 focus:border-primary/50' 
+                : 'bg-white border-slate-200 text-slate-700 focus:border-primary'
+            }`}
+          >
+            <option value="all" className="text-black">Mes: Todos</option>
+            {['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'].map((m, i) => (
+              <option key={i} value={i} className="text-black">{m}</option>
+            ))}
           </select>
-          <select value={filterYear} onChange={e => setFilterYear(e.target.value)} className={`px-2.5 py-2 rounded-xl border text-xs outline-none ${isDarkMode ? 'bg-black/20 border-white/10 text-gray-300' : 'bg-white border-gray-355 text-gray-800 font-medium'}`}>
-            <option value="all" className="text-black">Año</option>
-            {[2023, 2024, 2025, 2026, 2027].map(y => <option key={y} value={y} className="text-black">{y}</option>)}
+
+          <select 
+            value={filterYear} 
+            onChange={e => setFilterYear(e.target.value)} 
+            className={`px-3 py-2 rounded-[10px] border text-xs font-medium outline-none transition-all cursor-pointer ${
+              isDarkMode 
+                ? 'bg-[#151722]/80 border-white/10 text-gray-300 focus:border-primary/50' 
+                : 'bg-white border-slate-200 text-slate-700 focus:border-primary'
+            }`}
+          >
+            <option value="all" className="text-black">Año: Todos</option>
+            {[2023, 2024, 2025, 2026, 2027].map(y => (
+              <option key={y} value={y} className="text-black">{y}</option>
+            ))}
           </select>
         </div>
-
-        <button 
-          onClick={() => {
-            if (forcedDocType) {
-              const defaultDocType = forcedDocType === 'ventas_resumen' ? 'factura' : forcedDocType;
-              const defaultType = forcedType || (forcedDocType === 'liquidacion' || forcedDocType === 'retencion' ? 'egreso' : 'ingreso');
-              onOpenForm({
-                id: '',
-                type: defaultType,
-                documentType: defaultDocType,
-                date: new Date().toISOString().split('T')[0],
-                currency: 'USD',
-                baseImponible: 0,
-                ivaPorcentaje: 15,
-                ivaValor: 0,
-                retencionFuente: 0,
-                retencionIva: 0,
-                total: 0,
-                paymentMethod: 'transferencia',
-                paymentStatus: 'pendiente',
-                sriStatus: 'pendiente',
-                items: []
-              });
-            } else {
-              onOpenForm(null);
-            }
-          }}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold transition-transform shadow-sm hover:-translate-y-0.5 ${isDarkMode ? 'bg-primary text-white hover:bg-primary' : 'bg-primary text-white hover:bg-primary-hover'}`}
-        >
-          <Plus size={14} /> Registrar {
-            forcedDocType 
-              ? (forcedDocType === 'ventas_resumen' 
-                  ? 'Venta' 
-                  : (docTypeTabs.find(t => t.id === forcedDocType)?.label || forcedDocType)) 
-              : 'Comprobante'
-          }
-        </button>
       </div>
 
       {/* TABLA DE COMPROBANTES */}
-      <div className={`rounded-2xl border overflow-hidden backdrop-blur-xl ${isDarkMode ? 'border-white/10 bg-white/[0.02]' : 'border-gray-355 bg-white shadow-sm'}`}>
+      <div className={`rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm ${
+        isDarkMode 
+          ? 'border-white/5 bg-[#0f111a]/85 shadow-lg shadow-black/40' 
+          : 'border-slate-200/80 bg-white'
+      }`}>
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left text-xs whitespace-nowrap">
-            <thead className={`text-[10px] uppercase font-bold tracking-wider ${isDarkMode ? 'bg-black/40 text-gray-400' : 'bg-primary-light text-[#000000] border-b border-primary/15'}`}>
+            <thead className={`text-[10px] uppercase font-bold tracking-wider ${
+              isDarkMode 
+                ? 'bg-black/35 text-slate-400 border-b border-white/5' 
+                : 'bg-slate-50 text-slate-600 border-b border-slate-100'
+            }`}>
               <tr>
-                <th className="px-6 py-4">Fecha</th>
-                <th className="px-6 py-4">Tipo</th>
-                <th className="px-6 py-4">Documento</th>
-                <th className="px-6 py-4">Tercero</th>
-                <th className="px-6 py-4">Total</th>
-                <th className="px-6 py-4">Estado SRI</th>
-                <th className="px-6 py-4">Archivos</th>
-                <th className="px-6 py-4 text-right">Acciones</th>
+                <th className="px-6 py-3.5">Fecha</th>
+                <th className="px-6 py-3.5">Tipo</th>
+                <th className="px-6 py-3.5">Documento</th>
+                <th className="px-6 py-3.5">Tercero</th>
+                <th className="px-6 py-3.5">Total</th>
+                <th className="px-6 py-3.5">Estado SRI</th>
+                <th className="px-6 py-3.5">Archivos</th>
+                <th className="px-6 py-3.5 text-right">Acciones</th>
               </tr>
             </thead>
-            <tbody className={`divide-y ${isDarkMode ? 'divide-white/5' : 'divide-gray-300/60'}`}>
+            <tbody className={`divide-y ${isDarkMode ? 'divide-white/5' : 'divide-slate-100'}`}>
               {filtered.map(tx => (
-                <tr key={tx.id} className={`transition-colors ${isDarkMode ? 'hover:bg-white/5' : 'hover:bg-gray-100/40'}`}>
-                  <td className={`px-6 py-4 ${isDarkMode ? '' : 'text-black font-semibold'}`}>{tx.date}</td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider ${tx.type === 'ingreso' ? (isDarkMode ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-100 text-emerald-800 border border-emerald-300') : (isDarkMode ? 'bg-red-500/20 text-red-400' : 'bg-red-100 text-red-800 border border-red-300')}`}>
+                <tr key={tx.id} className={`transition-colors ${isDarkMode ? 'hover:bg-white/[0.015]' : 'hover:bg-slate-50/40'}`}>
+                  <td className={`px-6 py-3.5 ${isDarkMode ? '' : 'text-black font-semibold'}`}>{tx.date}</td>
+                  <td className="px-6 py-3.5">
+                    <span className={`px-2 py-0.5 rounded-[10px] text-[9px] font-bold uppercase tracking-wider ${tx.type === 'ingreso' ? (isDarkMode ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-100 text-emerald-850 border border-emerald-300') : (isDarkMode ? 'bg-red-500/20 text-red-400' : 'bg-red-100 text-red-850 border border-red-300')}`}>
                       {tx.type}
                     </span>
                   </td>
-                  <td className={`px-6 py-4 font-mono text-[10px] ${isDarkMode ? '' : 'text-black font-semibold'}`}>{tx.documentNumber || '-'}</td>
-                  <td className={`px-6 py-4 font-bold truncate max-w-[200px] ${isDarkMode ? '' : 'text-black'}`} title={thirdParties.find(tp => tp.id === tx.thirdPartyId)?.name}>
+                  <td className={`px-6 py-3.5 font-mono text-[10px] ${isDarkMode ? '' : 'text-black font-semibold'}`}>{tx.documentNumber || '-'}</td>
+                  <td className={`px-6 py-3.5 font-bold truncate max-w-[200px] ${isDarkMode ? '' : 'text-black'}`} title={thirdParties.find(tp => tp.id === tx.thirdPartyId)?.name}>
                     {thirdParties.find(tp => tp.id === tx.thirdPartyId)?.name || 'Desconocido'}
                   </td>
-                  <td className={`px-6 py-4 font-extrabold ${isDarkMode ? '' : 'text-black font-black'}`}>${Number(tx.total || 0).toFixed(2)}</td>
-                  <td className="px-6 py-4">{getStatusBadge(tx.sriStatus, tx.documentType)}</td>
-                  <td className="px-6 py-4">
+                  <td className={`px-6 py-3.5 font-extrabold ${isDarkMode ? '' : 'text-black font-black'}`}>${Number(tx.total || 0).toFixed(2)}</td>
+                  <td className="px-6 py-3.5">{getStatusBadge(tx.sriStatus, tx.documentType)}</td>
+                  <td className="px-6 py-3.5">
                     <div className="flex gap-1.5">
-                      {tx.xmlUrl ? <a href={tx.xmlUrl} target="_blank" rel="noreferrer" className="p-1.5 rounded bg-primary/20 text-primary hover:bg-primary/40" title="Ver XML"><FileText size={12}/></a> : <span className="p-1.5 rounded bg-gray-500/10 text-gray-400 border border-gray-200 opacity-60"><FileText size={12}/></span>}
-                      {tx.pdfUrl ? <a href={tx.pdfUrl} target="_blank" rel="noreferrer" className="p-1.5 rounded bg-red-500/20 text-red-500 hover:bg-red-500/40" title="Ver PDF"><FileText size={12}/></a> : <span className="p-1.5 rounded bg-gray-500/10 text-gray-400 border border-gray-200 opacity-60"><FileText size={12}/></span>}
+                      {tx.xmlUrl ? <a href={tx.xmlUrl} target="_blank" rel="noreferrer" className="p-1.5 rounded-[10px] bg-primary/20 text-primary hover:bg-primary/40" title="Ver XML"><FileText size={12}/></a> : <span className="p-1.5 rounded-[10px] bg-gray-500/10 text-gray-400 border border-gray-250 opacity-60"><FileText size={12}/></span>}
+                      {tx.pdfUrl ? <a href={tx.pdfUrl} target="_blank" rel="noreferrer" className="p-1.5 rounded-[10px] bg-red-500/20 text-red-500 hover:bg-red-500/40" title="Ver PDF"><FileText size={12}/></a> : <span className="p-1.5 rounded-[10px] bg-gray-500/10 text-gray-400 border border-gray-250 opacity-60"><FileText size={12}/></span>}
                       {tx.documentType && (
                         <button 
                           onClick={() => setSelectedRideTx(tx)}
-                          className="p-1.5 rounded bg-orange-500/20 text-orange-500 hover:bg-orange-500/40 border border-orange-500/10 transition-all"
+                          className="p-1.5 rounded-[10px] bg-orange-500/20 text-orange-500 hover:bg-orange-500/40 border border-orange-500/10 transition-all"
                           title={tx.documentType === 'nota_venta' ? "Ver Recibo / Imprimir" : "Ver RIDE Interactivo / Imprimir Factura"}
                         >
                           <Eye size={12}/>
@@ -425,10 +474,10 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
                       )}
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="px-6 py-3.5 text-right">
                     <div className="flex items-center justify-end gap-1.5">
-                      <button onClick={() => onOpenForm(tx)} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-primary/20 text-primary' : 'hover:bg-primary/10 text-primary border border-primary/25'}`}><Edit2 size={13}/></button>
-                      <button onClick={() => handleDelete(tx.id)} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-red-500/20 text-red-500' : 'hover:bg-red-100 text-red-600 border border-red-200'}`}><Trash2 size={13}/></button>
+                      <button onClick={() => onOpenForm(tx)} className={`p-1.5 rounded-[10px] transition-colors ${isDarkMode ? 'hover:bg-primary/20 text-primary' : 'hover:bg-primary/10 text-primary border border-primary/25'}`}><Edit2 size={13}/></button>
+                      <button onClick={() => handleDelete(tx.id)} className={`p-1.5 rounded-[10px] transition-colors ${isDarkMode ? 'hover:bg-red-500/20 text-red-400' : 'hover:bg-red-50 text-red-650 border border-gray-300'}`}><Trash2 size={13}/></button>
                     </div>
                   </td>
                 </tr>

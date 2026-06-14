@@ -256,112 +256,124 @@ export default function InventoryModule({ isDarkMode }: InventoryModuleProps) {
         {/* --- TAB: PRODUCTOS & SERVICIOS --- */}
         {activeTab === 'productos' && (
           <div className="w-full h-full flex flex-col space-y-6 animate-in fade-in duration-300">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <div>
-                <h1 className={`text-2xl font-bold tracking-tight flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                  <Package className={isDarkMode ? 'text-primary' : 'text-primary'} />
-                  Catálogo de Productos y Servicios
-                </h1>
-                <p className={`text-sm mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                  Gestiona productos estándar, combos, subproductos y tarifas de servicios.
-                </p>
-              </div>
-              <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            {/* Title & Description */}
+            <div>
+              <h1 className={`text-2xl font-bold tracking-tight flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                <Package className={isDarkMode ? 'text-primary' : 'text-primary'} />
+                Catálogo de Productos y Servicios
+              </h1>
+              <p className={`text-sm mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                Gestiona productos estándar, combos, subproductos y tarifas de servicios.
+              </p>
+            </div>
+
+            {/* FILTROS Y ACCIONES */}
+            <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 mb-6">
+              <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
                 <button 
                   onClick={() => setIsProductOpen(true)}
-                  className="px-3.5 py-2 rounded-xl font-bold text-xs bg-primary hover:bg-primary text-white shadow-[0_0_15px_rgba(37,99,235,0.3)] flex items-center gap-1.5 transition-all hover:scale-105"
+                  className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-[10px] text-xs font-bold transition-all hover-lift shadow-md bg-primary text-white hover:bg-primary/95`}
                 >
-                  <Plus size={16} /> Nuevo Producto
+                  <Plus size={15} /> Nuevo Producto
                 </button>
                 <button 
                   onClick={() => setIsServiceOpen(true)}
-                  className="px-3.5 py-2 rounded-xl font-bold text-xs bg-primary hover:bg-primary text-white shadow-[0_0_15px_rgba(79,70,229,0.3)] flex items-center gap-1.5 transition-all hover:scale-105"
+                  className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-[10px] text-xs font-bold transition-all hover-lift shadow-md bg-indigo-600 text-white hover:bg-indigo-550`}
                 >
-                  <Briefcase size={16} /> Nuevo Servicio
+                  <Briefcase size={15} /> Nuevo Servicio
                 </button>
                 <button 
                   onClick={() => setIsCatBrandOpen(true)}
-                  className={`px-3.5 py-2 rounded-xl font-bold text-xs border flex items-center gap-1.5 transition-all hover:scale-105 ${
-                    isDarkMode ? 'border-white/10 hover:bg-white/5 text-gray-300' : 'border-gray-200 hover:bg-gray-50 text-gray-700'
+                  className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-[10px] text-xs font-bold transition-all border shadow-sm ${
+                    isDarkMode ? 'bg-white/5 border-white/10 text-gray-305 hover:bg-white/10' : 'bg-gray-50 border-gray-300 text-gray-700 hover:bg-gray-100'
                   }`}
                 >
-                  <Tag size={16} /> Categorías/Marcas
+                  <Tag size={15} /> Categorías/Marcas
                 </button>
               </div>
-            </div>
 
-            {/* Filter Bar */}
-            <div className={`p-4 rounded-2xl border flex flex-col md:flex-row gap-4 items-center justify-between shadow-sm ${
-              isDarkMode ? 'bg-black/10 border-white/5' : 'bg-gray-50 border-gray-150'
-            }`}>
-              <div className="relative w-full md:w-80">
-                <Search size={16} className={`absolute left-3 top-1/2 -translate-y-1/2 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`} />
-                <input
-                  type="text"
-                  placeholder="Buscar por SKU o nombre..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className={`w-full pl-9 pr-4 py-2 rounded-xl border outline-none text-xs ${
-                    isDarkMode ? 'bg-black/20 border-white/10 text-white focus:border-primary' : 'bg-white border-gray-200 text-gray-800 focus:border-primary'
-                  }`}
-                />
-              </div>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
+                <div className={`flex items-center gap-2 px-3.5 py-2 rounded-[10px] border w-full sm:w-64 transition-all focus-within:ring-1 focus-within:ring-primary/25 ${
+                  isDarkMode 
+                    ? 'bg-[#151722]/80 border-white/10 focus-within:border-primary/50' 
+                    : 'bg-white border-slate-200 focus-within:border-primary'
+                }`}>
+                  <Search size={14} className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
+                  <input
+                    type="text"
+                    placeholder="Buscar por SKU o nombre..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="bg-transparent border-none outline-none text-xs w-full text-current placeholder-gray-500 focus:ring-0"
+                  />
+                </div>
 
-              <div className="flex flex-wrap gap-2 w-full md:w-auto justify-end">
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  className={`px-3 py-2 rounded-xl border outline-none text-xs ${
-                    isDarkMode ? 'bg-black/20 border-white/10 text-gray-300' : 'bg-white border-gray-200 text-gray-700'
+                  className={`px-3 py-2 rounded-[10px] border text-xs font-medium outline-none transition-all cursor-pointer ${
+                    isDarkMode 
+                      ? 'bg-[#151722]/80 border-white/10 text-gray-300 focus:border-primary/50' 
+                      : 'bg-white border-slate-200 text-slate-700 focus:border-primary'
                   }`}
                 >
-                  <option value="">Todas las Categorías</option>
+                  <option value="" className="text-black">Todas las Categorías</option>
                   {categories.map(c => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
+                    <option key={c.id} value={c.id} className="text-black">{c.name}</option>
                   ))}
                 </select>
 
                 <select
                   value={selectedType}
                   onChange={(e) => setSelectedType(e.target.value)}
-                  className={`px-3 py-2 rounded-xl border outline-none text-xs ${
-                    isDarkMode ? 'bg-black/20 border-white/10 text-gray-300' : 'bg-white border-gray-200 text-gray-700'
+                  className={`px-3 py-2 rounded-[10px] border text-xs font-medium outline-none transition-all cursor-pointer ${
+                    isDarkMode 
+                      ? 'bg-[#151722]/80 border-white/10 text-gray-300 focus:border-primary/50' 
+                      : 'bg-white border-slate-200 text-slate-700 focus:border-primary'
                   }`}
                 >
-                  <option value="">Todos los Tipos</option>
-                  <option value="STANDARD">Estándar</option>
-                  <option value="COMBO">Combo</option>
-                  <option value="SUBPRODUCT">Subproducto</option>
-                  <option value="SERVICE">Servicio</option>
+                  <option value="" className="text-black">Todos los Tipos</option>
+                  <option value="STANDARD" className="text-black">Estándar</option>
+                  <option value="COMBO" className="text-black">Combo</option>
+                  <option value="SUBPRODUCT" className="text-black">Subproducto</option>
+                  <option value="SERVICE" className="text-black">Servicio</option>
                 </select>
               </div>
             </div>
             
             {/* Products Table */}
-            <div className={`flex-1 rounded-3xl border overflow-hidden ${isDarkMode ? 'bg-black/20 border-white/10' : 'bg-white border-gray-200'}`}>
-              <div className="overflow-x-auto w-full h-full">
-                <table className="w-full text-left text-xs border-collapse">
-                  <thead>
-                    <tr className={`border-b ${tableHeaderClass}`}>
-                      <th className="p-4">SKU</th>
-                      <th className="p-4">Nombre</th>
-                      <th className="p-4">Tipo</th>
-                      <th className="p-4">Categoría</th>
-                      <th className="p-4">Costo Base</th>
-                      <th className="p-4">Precio Venta</th>
-                      <th className="p-4">Impuesto</th>
-                      <th className="p-4">Stock Actual</th>
-                      <th className="p-4 text-center">Acciones</th>
+            <div className={`rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm ${
+              isDarkMode 
+                ? 'border-white/5 bg-[#0f111a]/85 shadow-lg shadow-black/40' 
+                : 'border-slate-200/80 bg-white'
+            }`}>
+              <div className="overflow-x-auto custom-scrollbar">
+                <table className="w-full text-left text-xs whitespace-nowrap">
+                  <thead className={`text-[10px] uppercase font-bold tracking-wider ${
+                    isDarkMode 
+                      ? 'bg-black/35 text-slate-400 border-b border-white/5' 
+                      : 'bg-slate-50 text-slate-600 border-b border-slate-100'
+                  }`}>
+                    <tr>
+                      <th className="px-6 py-3.5">SKU</th>
+                      <th className="px-6 py-3.5">Nombre</th>
+                      <th className="px-6 py-3.5">Tipo</th>
+                      <th className="px-6 py-3.5">Categoría</th>
+                      <th className="px-6 py-3.5">Costo Base</th>
+                      <th className="px-6 py-3.5">Precio Venta</th>
+                      <th className="px-6 py-3.5">Impuesto</th>
+                      <th className="px-6 py-3.5">Stock Actual</th>
+                      <th className="px-6 py-3.5 text-center">Acciones</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/5">
+                  <tbody className={`divide-y ${isDarkMode ? 'divide-white/5' : 'divide-slate-100'}`}>
                     {loading ? (
                       <tr>
-                        <td colSpan={9} className="p-8 text-center text-gray-500 font-bold">Cargando catálogo...</td>
+                        <td colSpan={9} className="px-6 py-8 text-center text-gray-500 font-bold">Cargando catálogo...</td>
                       </tr>
                     ) : filteredProducts.length === 0 ? (
                       <tr>
-                        <td colSpan={9} className="p-8 text-center text-gray-500">No se encontraron productos ni servicios.</td>
+                        <td colSpan={9} className="px-6 py-8 text-center text-gray-500">No se encontraron productos ni servicios.</td>
                       </tr>
                     ) : (
                       filteredProducts.map(p => {
@@ -369,37 +381,37 @@ export default function InventoryModule({ isDarkMode }: InventoryModuleProps) {
                         const isService = p.type === 'SERVICE';
                         
                         return (
-                          <tr key={p.id} className={`border-b ${tableRowClass}`}>
-                            <td className="p-4 font-mono font-bold">{p.sku}</td>
-                            <td className="p-4">
-                              <span className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{p.name}</span>
+                          <tr key={p.id} className={`transition-colors ${isDarkMode ? 'hover:bg-white/[0.015]' : 'hover:bg-slate-50/40'}`}>
+                            <td className={`px-6 py-3.5 font-mono text-[10px] font-bold ${isDarkMode ? '' : 'text-black font-semibold'}`}>{p.sku}</td>
+                            <td className="px-6 py-3.5">
+                              <span className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900 font-bold'}`}>{p.name}</span>
                               {p.description && <p className="text-[10px] text-gray-500 mt-0.5">{p.description}</p>}
                             </td>
-                            <td className="p-4">
-                              {p.type === 'STANDARD' && <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary border border-primary/20">Estándar</span>}
-                              {p.type === 'COMBO' && <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/10 text-purple-400 border border-purple-500/20">Combo</span>}
-                              {p.type === 'SUBPRODUCT' && <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary border border-primary/20">Subproducto</span>}
-                              {p.type === 'SERVICE' && <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-pink-500/10 text-pink-400 border border-pink-500/20">Servicio</span>}
+                            <td className="px-6 py-3.5">
+                              {p.type === 'STANDARD' && <span className="px-2 py-0.5 rounded-[10px] text-[10px] font-bold bg-primary/10 text-primary border border-primary/20">Estándar</span>}
+                              {p.type === 'COMBO' && <span className="px-2 py-0.5 rounded-[10px] text-[10px] font-bold bg-purple-500/10 text-purple-400 border border-purple-500/20">Combo</span>}
+                              {p.type === 'SUBPRODUCT' && <span className="px-2 py-0.5 rounded-[10px] text-[10px] font-bold bg-primary/10 text-primary border border-primary/20">Subproducto</span>}
+                              {p.type === 'SERVICE' && <span className="px-2 py-0.5 rounded-[10px] text-[10px] font-bold bg-pink-500/10 text-pink-400 border border-pink-500/20">Servicio</span>}
                             </td>
-                            <td className="p-4 text-gray-500">{getCategoryName(p.categoryId)}</td>
-                            <td className="p-4 font-semibold">${p.baseCost.toFixed(2)}</td>
-                            <td className="p-4 font-bold text-emerald-500">${p.salePrice.toFixed(2)}</td>
-                            <td className="p-4 text-gray-500">{p.taxRate}%</td>
-                            <td className="p-4 font-bold">
+                            <td className="px-6 py-3.5 text-gray-500 font-medium">{getCategoryName(p.categoryId)}</td>
+                            <td className="px-6 py-3.5 font-semibold">${p.baseCost.toFixed(2)}</td>
+                            <td className="px-6 py-3.5 font-bold text-emerald-500">${p.salePrice.toFixed(2)}</td>
+                            <td className="px-6 py-3.5 text-gray-500 font-medium">{p.taxRate}%</td>
+                            <td className="px-6 py-3.5 font-bold">
                               {isService ? (
-                                <span className="text-gray-400 italic">N/A</span>
+                                <span className="text-gray-400 italic font-medium">N/A</span>
                               ) : stock > 0 ? (
                                 <span className="text-emerald-500">{stock} u.</span>
                               ) : (
                                 <span className="text-red-500">Agotado</span>
                               )}
                             </td>
-                            <td className="p-4 text-center">
+                            <td className="px-6 py-3.5 text-center">
                               <button
                                 onClick={() => p.id && handleDeleteProduct(p.id)}
-                                className="p-2 rounded-xl text-red-500 hover:bg-red-500/10 transition-all"
+                                className="p-1.5 rounded-[10px] text-red-500 hover:bg-red-500/10 transition-all border border-red-500/10 bg-white dark:bg-transparent shadow-sm"
                               >
-                                <Trash2 size={15} />
+                                <Trash2 size={13} />
                               </button>
                             </td>
                           </tr>
@@ -480,34 +492,34 @@ export default function InventoryModule({ isDarkMode }: InventoryModuleProps) {
             </div>
 
             {/* Selector de Producto */}
-            <div className={`p-5 rounded-2xl border grid grid-cols-1 md:grid-cols-2 gap-4 ${isDarkMode ? 'bg-black/10 border-white/5' : 'bg-gray-50 border-gray-150'}`}>
+            <div className={`p-5 rounded-[10px] border grid grid-cols-1 md:grid-cols-2 gap-4 ${isDarkMode ? 'bg-[#0f111a]/85 border-white/5' : 'bg-gray-50 border-gray-150'}`}>
               <div>
-                <label className="block text-xs font-semibold mb-1 uppercase tracking-wider text-gray-400">Seleccionar Producto Físico</label>
+                <label className="block text-xs font-semibold mb-1 uppercase tracking-wider text-gray-500">Seleccionar Producto Físico</label>
                 <select
                   value={kardexProductId}
                   onChange={(e) => setKardexProductId(e.target.value)}
-                  className={`w-full px-3 py-2 rounded-xl outline-none border text-xs ${
+                  className={`w-full px-3 py-2 rounded-[10px] outline-none border text-xs cursor-pointer ${
                     isDarkMode ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-800'
                   }`}
                 >
-                  <option value="">-- Selecciona un producto --</option>
+                  <option value="" className="text-black">-- Selecciona un producto --</option>
                   {products.filter(p => p.type !== 'SERVICE').map(p => (
-                    <option key={p.id} value={p.id}>{p.name} (SKU: {p.sku})</option>
+                    <option key={p.id} value={p.id} className="text-black">{p.name} (SKU: {p.sku})</option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold mb-1 uppercase tracking-wider text-gray-400">Sucursal / Bodega</label>
+                <label className="block text-xs font-semibold mb-1 uppercase tracking-wider text-gray-500">Sucursal / Bodega</label>
                 <select
                   value={kardexBranchId}
                   onChange={(e) => setKardexBranchId(e.target.value)}
-                  className={`w-full px-3 py-2 rounded-xl outline-none border text-xs ${
+                  className={`w-full px-3 py-2 rounded-[10px] outline-none border text-xs cursor-pointer ${
                     isDarkMode ? 'bg-black/30 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-800'
                   }`}
                 >
                   {BRANCHES.map(b => (
-                    <option key={b.id} value={b.id}>{b.name}</option>
+                    <option key={b.id} value={b.id} className="text-black">{b.name}</option>
                   ))}
                 </select>
               </div>
@@ -518,18 +530,18 @@ export default function InventoryModule({ isDarkMode }: InventoryModuleProps) {
                 {/* Summary Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {/* Stock Actual Card */}
-                  <div className={`p-5 rounded-2xl border ${isDarkMode ? 'bg-[#1a2e26]/30 border-emerald-500/20' : 'bg-emerald-50 border-emerald-200'}`}>
+                  <div className={`p-5 rounded-[10px] border ${isDarkMode ? 'bg-[#1a2e26]/30 border-emerald-500/20' : 'bg-emerald-50 border-emerald-200 shadow-sm'}`}>
                     <span className="block text-xs font-bold uppercase tracking-wider text-emerald-500 mb-1">Saldo Actual</span>
                     <div className="flex items-baseline gap-2">
                       <span className={`text-2xl font-black ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                         {kardexHistory[0]?.balanceQuantity ?? 0}
                       </span>
-                      <span className="text-xs text-gray-500">unidades</span>
+                      <span className="text-xs text-gray-500 font-semibold">unidades</span>
                     </div>
                   </div>
 
                   {/* Costo Promedio Card */}
-                  <div className={`p-5 rounded-2xl border ${isDarkMode ? 'bg-[#1d263b]/30 border-primary/20' : 'bg-primary-light border-primary/25'}`}>
+                  <div className={`p-5 rounded-[10px] border ${isDarkMode ? 'bg-[#1d263b]/30 border-primary/20' : 'bg-primary-light border-primary/25 shadow-sm'}`}>
                     <span className="block text-xs font-bold uppercase tracking-wider text-primary mb-1">Costo Promedio Ponderado</span>
                     <div className="flex items-baseline gap-2">
                       <span className={`text-2xl font-black ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
@@ -539,7 +551,7 @@ export default function InventoryModule({ isDarkMode }: InventoryModuleProps) {
                   </div>
 
                   {/* Valorización Card */}
-                  <div className={`p-5 rounded-2xl border ${isDarkMode ? 'bg-[#291e36]/30 border-purple-500/20' : 'bg-purple-50 border-purple-200'}`}>
+                  <div className={`p-5 rounded-[10px] border ${isDarkMode ? 'bg-[#291e36]/30 border-purple-500/20' : 'bg-purple-50 border-purple-205 shadow-sm'}`}>
                     <span className="block text-xs font-bold uppercase tracking-wider text-purple-500 mb-1">Valor Total del Inventario</span>
                     <div className="flex items-baseline gap-2">
                       <span className={`text-2xl font-black ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
@@ -550,50 +562,58 @@ export default function InventoryModule({ isDarkMode }: InventoryModuleProps) {
                 </div>
 
                 {/* Kardex Transactions Table */}
-                <div className={`rounded-3xl border overflow-hidden ${isDarkMode ? 'bg-black/20 border-white/10' : 'bg-white border-gray-200'}`}>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs border-collapse">
-                      <thead>
-                        <tr className={`border-b ${tableHeaderClass}`}>
-                          <th className="p-3">Fecha</th>
-                          <th className="p-3">Tipo Operación</th>
-                          <th className="p-3">Referencia Doc</th>
-                          <th className="p-3">Cantidad Movimiento</th>
-                          <th className="p-3">Costo Operación</th>
-                          <th className="p-3">Total Operación</th>
-                          <th className="p-3">Saldo Cantidad</th>
-                          <th className="p-3">Saldo Costo Prom.</th>
+                <div className={`rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm ${
+                  isDarkMode 
+                    ? 'border-white/5 bg-[#0f111a]/85 shadow-lg shadow-black/40' 
+                    : 'border-slate-200/80 bg-white'
+                }`}>
+                  <div className="overflow-x-auto custom-scrollbar">
+                    <table className="w-full text-left text-xs whitespace-nowrap">
+                      <thead className={`text-[10px] uppercase font-bold tracking-wider ${
+                        isDarkMode 
+                          ? 'bg-black/35 text-slate-400 border-b border-white/5' 
+                          : 'bg-slate-50 text-slate-600 border-b border-slate-100'
+                      }`}>
+                        <tr>
+                          <th className="px-6 py-3.5">Fecha</th>
+                          <th className="px-6 py-3.5">Tipo Operación</th>
+                          <th className="px-6 py-3.5">Referencia Doc</th>
+                          <th className="px-6 py-3.5">Cantidad Movimiento</th>
+                          <th className="px-6 py-3.5">Costo Operación</th>
+                          <th className="px-6 py-3.5">Total Operación</th>
+                          <th className="px-6 py-3.5">Saldo Cantidad</th>
+                          <th className="px-6 py-3.5">Saldo Costo Prom.</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-white/5">
+                      <tbody className={`divide-y ${isDarkMode ? 'divide-white/5' : 'divide-slate-100'}`}>
                         {kardexHistory.length === 0 ? (
                           <tr>
-                            <td colSpan={8} className="p-8 text-center text-gray-500">No hay movimientos registrados para este producto en la sucursal seleccionada.</td>
+                            <td colSpan={8} className="px-6 py-8 text-center text-gray-500">No hay movimientos registrados para este producto en la sucursal seleccionada.</td>
                           </tr>
                         ) : (
                           kardexHistory.map(tx => {
                             const isEntry = tx.quantity > 0;
                             return (
-                              <tr key={tx.id} className={`border-b ${tableRowClass}`}>
-                                <td className="p-3 text-gray-500">{new Date(tx.date as any).toLocaleString('es-ES')}</td>
-                                <td className="p-3">
-                                  {tx.type === 'PURCHASE_RECEIPT' && <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-500/10 text-green-400">Ingreso / Compra</span>}
-                                  {tx.type === 'CUSTOMER_RETURN' && <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400">Devolución Cliente</span>}
-                                  {tx.type === 'POSITIVE_ADJUSTMENT' && <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-500/10 text-teal-400">Ajuste Positivo</span>}
-                                  {tx.type === 'SALE' && <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/10 text-red-400">Egreso / Venta</span>}
-                                  {tx.type === 'TRANSFER_OUT' && <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/10 text-purple-400">Salida por Traslado</span>}
-                                  {tx.type === 'NEGATIVE_ADJUSTMENT' && <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-yellow-500/10 text-yellow-400">Ajuste Negativo</span>}
-                                  {tx.type === 'SHRINKAGE' && <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-500/10 text-orange-400">Mermas / Pérdida</span>}
-                                  {tx.type === 'MASSIVE_ZERO' && <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-600/20 text-red-500">Cero Inventario</span>}
+                              <tr key={tx.id} className={`transition-colors ${isDarkMode ? 'hover:bg-white/[0.015]' : 'hover:bg-slate-50/40'}`}>
+                                <td className="px-6 py-3.5 text-gray-500 font-medium">{new Date(tx.date as any).toLocaleString('es-ES')}</td>
+                                <td className="px-6 py-3.5">
+                                  {tx.type === 'PURCHASE_RECEIPT' && <span className="px-2 py-0.5 rounded-[10px] text-[10px] font-bold bg-green-500/10 text-green-400">Ingreso / Compra</span>}
+                                  {tx.type === 'CUSTOMER_RETURN' && <span className="px-2 py-0.5 rounded-[10px] text-[10px] font-bold bg-emerald-500/10 text-emerald-400">Devolución Cliente</span>}
+                                  {tx.type === 'POSITIVE_ADJUSTMENT' && <span className="px-2 py-0.5 rounded-[10px] text-[10px] font-bold bg-teal-500/10 text-teal-400">Ajuste Positivo</span>}
+                                  {tx.type === 'SALE' && <span className="px-2 py-0.5 rounded-[10px] text-[10px] font-bold bg-red-500/10 text-red-400">Egreso / Venta</span>}
+                                  {tx.type === 'TRANSFER_OUT' && <span className="px-2 py-0.5 rounded-[10px] text-[10px] font-bold bg-purple-500/10 text-purple-400">Salida por Traslado</span>}
+                                  {tx.type === 'NEGATIVE_ADJUSTMENT' && <span className="px-2 py-0.5 rounded-[10px] text-[10px] font-bold bg-yellow-500/10 text-yellow-400">Ajuste Negativo</span>}
+                                  {tx.type === 'SHRINKAGE' && <span className="px-2 py-0.5 rounded-[10px] text-[10px] font-bold bg-orange-500/10 text-orange-400">Mermas / Pérdida</span>}
+                                  {tx.type === 'MASSIVE_ZERO' && <span className="px-2 py-0.5 rounded-[10px] text-[10px] font-bold bg-red-650/20 text-red-500 border border-red-500/10">Cero Inventario</span>}
                                 </td>
-                                <td className="p-3 font-mono text-[10px] text-gray-400">{tx.referenceId}</td>
-                                <td className={`p-3 font-bold ${isEntry ? 'text-emerald-500' : 'text-red-500'}`}>
+                                <td className="px-6 py-3.5 font-mono text-[10px] text-gray-500 font-bold">{tx.referenceId}</td>
+                                <td className={`px-6 py-3.5 font-bold ${isEntry ? 'text-emerald-500' : 'text-red-500'}`}>
                                   {isEntry ? `+${tx.quantity}` : tx.quantity}
                                 </td>
-                                <td className="p-3">${tx.unitCost.toFixed(2)}</td>
-                                <td className="p-3">${tx.totalCost.toFixed(2)}</td>
-                                <td className="p-3 font-bold">{tx.balanceQuantity}</td>
-                                <td className="p-3 font-semibold text-primary">${tx.balanceAverageCost.toFixed(2)}</td>
+                                <td className="px-6 py-3.5 font-mono">${tx.unitCost.toFixed(2)}</td>
+                                <td className="px-6 py-3.5 font-mono">${tx.totalCost.toFixed(2)}</td>
+                                <td className="px-6 py-3.5 font-bold">{tx.balanceQuantity}</td>
+                                <td className="px-6 py-3.5 font-extrabold text-primary">${tx.balanceAverageCost.toFixed(2)}</td>
                               </tr>
                             );
                           })
@@ -615,62 +635,67 @@ export default function InventoryModule({ isDarkMode }: InventoryModuleProps) {
         {/* --- TAB: TRANSFERENCIAS --- */}
         {activeTab === 'transferencias' && (
           <div className="w-full h-full flex flex-col space-y-6 animate-in fade-in duration-300">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            {/* FILTROS Y ACCIONES */}
+            <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 mb-6">
               <div>
-                <h1 className={`text-2xl font-bold tracking-tight flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                  <ArrowRightLeft className={isDarkMode ? 'text-purple-400' : 'text-purple-600'} /> Transferencias entre Sucursales
-                </h1>
-                <p className={`text-sm mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Historial de movimientos y envíos de stock físico.</p>
+                <button 
+                  onClick={() => setIsTransferOpen(true)}
+                  className={`w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-[10px] text-xs font-bold transition-all shadow-md bg-purple-600 hover:bg-purple-550 text-white`}
+                >
+                  <PlusCircle size={15} /> Nueva Transferencia
+                </button>
               </div>
-              <button 
-                onClick={() => setIsTransferOpen(true)}
-                className="px-4 py-2 rounded-xl font-bold text-xs bg-purple-600 hover:bg-purple-500 text-white flex items-center gap-1.5"
-              >
-                <PlusCircle size={14} /> Nueva Transferencia
-              </button>
             </div>
 
-            <div className={`rounded-3xl border overflow-hidden ${isDarkMode ? 'bg-black/20 border-white/10' : 'bg-white border-gray-200'}`}>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs border-collapse">
-                  <thead>
-                    <tr className={`border-b ${tableHeaderClass}`}>
-                      <th className="p-3">Fecha</th>
-                      <th className="p-3">Tipo</th>
-                      <th className="p-3">Origen</th>
-                      <th className="p-3">Destino</th>
-                      <th className="p-3">Cant. Productos</th>
-                      <th className="p-3">Costo Envío</th>
-                      <th className="p-3">Responsable</th>
-                      <th className="p-3 text-center">Estado</th>
+            <div className={`rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm ${
+              isDarkMode 
+                ? 'border-white/5 bg-[#0f111a]/85 shadow-lg shadow-black/40' 
+                : 'border-slate-200/80 bg-white'
+            }`}>
+              <div className="overflow-x-auto custom-scrollbar">
+                <table className="w-full text-left text-xs whitespace-nowrap">
+                  <thead className={`text-[10px] uppercase font-bold tracking-wider ${
+                    isDarkMode 
+                      ? 'bg-black/35 text-slate-400 border-b border-white/5' 
+                      : 'bg-slate-50 text-slate-600 border-b border-slate-100'
+                  }`}>
+                    <tr>
+                      <th className="px-6 py-3.5">Fecha</th>
+                      <th className="px-6 py-3.5">Tipo</th>
+                      <th className="px-6 py-3.5">Origen</th>
+                      <th className="px-6 py-3.5">Destino</th>
+                      <th className="px-6 py-3.5">Cant. Productos</th>
+                      <th className="px-6 py-3.5">Costo Envío</th>
+                      <th className="px-6 py-3.5">Responsable</th>
+                      <th className="px-6 py-3.5 text-center">Estado</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/5">
+                  <tbody className={`divide-y ${isDarkMode ? 'divide-white/5' : 'divide-slate-100'}`}>
                     {transfers.length === 0 ? (
                       <tr>
-                        <td colSpan={8} className="p-8 text-center text-gray-500">No hay transferencias registradas.</td>
+                        <td colSpan={8} className="px-6 py-8 text-center text-gray-500">No hay transferencias registradas.</td>
                       </tr>
                     ) : (
                       transfers.map(tr => {
                         const fromName = BRANCHES.find(b => b.id === tr.sourceBranchId)?.name || 'Desconocida';
                         const toName = BRANCHES.find(b => b.id === tr.targetBranchId)?.name || 'Desconocida';
                         return (
-                          <tr key={tr.id} className={`border-b ${tableRowClass}`}>
-                            <td className="p-3 text-gray-500">{new Date(tr.createdAt).toLocaleString('es-ES')}</td>
-                            <td className="p-3">
+                          <tr key={tr.id} className={`transition-colors ${isDarkMode ? 'hover:bg-white/[0.015]' : 'hover:bg-slate-50/40'}`}>
+                            <td className="px-6 py-3.5 text-gray-500 font-medium">{new Date(tr.createdAt).toLocaleString('es-ES')}</td>
+                            <td className="px-6 py-3.5">
                               {tr.type === 'INTERNAL' ? (
-                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary">Interna</span>
+                                <span className="px-2 py-0.5 rounded-[10px] text-[10px] font-bold bg-primary/10 text-primary border border-primary/20">Interna</span>
                               ) : (
-                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-500/10 text-orange-400">Externa</span>
+                                <span className="px-2 py-0.5 rounded-[10px] text-[10px] font-bold bg-orange-500/10 text-orange-400 border border-orange-550/10">Externa</span>
                               )}
                             </td>
-                            <td className="p-3 font-semibold">{fromName}</td>
-                            <td className="p-3 font-semibold">{toName}</td>
-                            <td className="p-3 font-bold">{tr.items?.length ?? 0} ítems</td>
-                            <td className="p-3">${(tr.transferCost ?? 0).toFixed(2)}</td>
-                            <td className="p-3 text-gray-400">{tr.createdBy}</td>
-                            <td className="p-3 text-center">
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-500/10 text-green-400 flex items-center justify-center gap-1 w-20 mx-auto">
+                            <td className="px-6 py-3.5 font-semibold">{fromName}</td>
+                            <td className="px-6 py-3.5 font-semibold">{toName}</td>
+                            <td className="px-6 py-3.5 font-bold">{tr.items?.length ?? 0} ítems</td>
+                            <td className="px-6 py-3.5 font-mono">${(tr.transferCost ?? 0).toFixed(2)}</td>
+                            <td className="px-6 py-3.5 text-gray-400 font-medium">{tr.createdBy}</td>
+                            <td className="px-6 py-3.5 text-center">
+                              <span className="px-2 py-0.5 rounded-[10px] text-[10px] font-bold bg-green-500/10 text-green-400 flex items-center justify-center gap-1 w-24 mx-auto border border-green-500/10">
                                 <CheckCircle size={10} /> Completado
                               </span>
                             </td>
@@ -688,7 +713,7 @@ export default function InventoryModule({ isDarkMode }: InventoryModuleProps) {
         {/* --- TAB: AJUSTES --- */}
         {activeTab === 'ajustes' && (
           <div className="w-full h-full flex flex-col space-y-6 animate-in fade-in duration-300">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 mb-6">
               <div>
                 <h1 className={`text-2xl font-bold tracking-tight flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                   <Settings className={isDarkMode ? 'text-red-400' : 'text-red-600'} /> Ajustes de Inventario
@@ -697,53 +722,61 @@ export default function InventoryModule({ isDarkMode }: InventoryModuleProps) {
               </div>
               <button 
                 onClick={() => setIsAdjustmentOpen(true)}
-                className="px-4 py-2 rounded-xl font-bold text-xs bg-red-600 hover:bg-red-500 text-white flex items-center gap-1.5 shadow-[0_0_15px_rgba(220,38,38,0.3)] transition-all hover:scale-105"
+                className={`w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-[10px] text-xs font-bold transition-all shadow-md bg-red-600 hover:bg-red-550 text-white`}
               >
-                <RefreshCw size={14} /> Nuevo Ajuste
+                <RefreshCw size={15} /> Nuevo Ajuste
               </button>
             </div>
 
-            <div className={`rounded-3xl border overflow-hidden ${isDarkMode ? 'bg-black/20 border-white/10' : 'bg-white border-gray-200'}`}>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs border-collapse">
-                  <thead>
-                    <tr className={`border-b ${tableHeaderClass}`}>
-                      <th className="p-3">Fecha</th>
-                      <th className="p-3">Tipo Ajuste</th>
-                      <th className="p-3">Sucursal</th>
-                      <th className="p-3">Justificación / Motivo</th>
-                      <th className="p-3">Cant. Ítems</th>
-                      <th className="p-3">Autorizado Por</th>
-                      <th className="p-3 text-center">Estado</th>
+            <div className={`rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm ${
+              isDarkMode 
+                ? 'border-white/5 bg-[#0f111a]/85 shadow-lg shadow-black/40' 
+                : 'border-slate-200/80 bg-white'
+            }`}>
+              <div className="overflow-x-auto custom-scrollbar">
+                <table className="w-full text-left text-xs whitespace-nowrap">
+                  <thead className={`text-[10px] uppercase font-bold tracking-wider ${
+                    isDarkMode 
+                      ? 'bg-black/35 text-slate-400 border-b border-white/5' 
+                      : 'bg-slate-50 text-slate-600 border-b border-slate-100'
+                  }`}>
+                    <tr>
+                      <th className="px-6 py-3.5">Fecha</th>
+                      <th className="px-6 py-3.5">Tipo Ajuste</th>
+                      <th className="px-6 py-3.5">Sucursal</th>
+                      <th className="px-6 py-3.5">Justificación / Motivo</th>
+                      <th className="px-6 py-3.5">Cant. Ítems</th>
+                      <th className="px-6 py-3.5">Autorizado Por</th>
+                      <th className="px-6 py-3.5 text-center">Estado</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/5">
+                  <tbody className={`divide-y ${isDarkMode ? 'divide-white/5' : 'divide-slate-100'}`}>
                     {adjustments.length === 0 ? (
                       <tr>
-                        <td colSpan={7} className="p-8 text-center text-gray-500">No se han registrado ajustes.</td>
+                        <td colSpan={7} className="px-6 py-8 text-center text-gray-500">No se han registrado ajustes.</td>
                       </tr>
                     ) : (
                       adjustments.map(ad => {
                         const branchName = BRANCHES.find(b => b.id === ad.branchId)?.name || 'Desconocida';
                         const isZero = ad.type === 'ZERO_INVENTORY';
                         return (
-                          <tr key={ad.id} className={`border-b ${tableRowClass}`}>
-                            <td className="p-3 text-gray-500">{new Date(ad.createdAt).toLocaleString('es-ES')}</td>
-                            <td className="p-3">
+                          <tr key={ad.id} className={`transition-colors ${isDarkMode ? 'hover:bg-white/[0.015]' : 'hover:bg-slate-50/40'}`}>
+                            <td className="px-6 py-3.5 text-gray-500 font-medium">{new Date(ad.createdAt).toLocaleString('es-ES')}</td>
+                            <td className="px-6 py-3.5">
                               {isZero ? (
-                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-600/20 text-red-500 flex items-center gap-1 border border-red-500/20">
+                                <span className="px-2 py-0.5 rounded-[10px] text-[10px] font-bold bg-red-600/20 text-red-500 flex items-center gap-1 border border-red-500/20">
                                   <ShieldAlert size={10} /> Cero Inventario
                                 </span>
                               ) : (
-                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary">Manual</span>
+                                <span className="px-2 py-0.5 rounded-[10px] text-[10px] font-bold bg-primary/10 text-primary border border-primary/20">Manual</span>
                               )}
                             </td>
-                            <td className="p-3 font-semibold">{branchName}</td>
-                            <td className="p-3 max-w-xs truncate" title={ad.reason}>{ad.reason}</td>
-                            <td className="p-3 font-bold">{ad.items?.length ?? 0} items</td>
-                            <td className="p-3 text-gray-400">{ad.confirmedBy}</td>
-                            <td className="p-3 text-center">
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-500/10 text-green-400 flex items-center justify-center gap-1 w-20 mx-auto">
+                            <td className="px-6 py-3.5 font-semibold">{branchName}</td>
+                            <td className="px-6 py-3.5 max-w-xs truncate" title={ad.reason}>{ad.reason}</td>
+                            <td className="px-6 py-3.5 font-bold">{ad.items?.length ?? 0} items</td>
+                            <td className="px-6 py-3.5 text-gray-400 font-medium">{ad.confirmedBy}</td>
+                            <td className="px-6 py-3.5 text-center">
+                              <span className="px-2 py-0.5 rounded-[10px] text-[10px] font-bold bg-green-500/10 text-green-400 flex items-center justify-center gap-1 w-24 mx-auto border border-green-500/10">
                                 <CheckCircle size={10} /> Aplicado
                               </span>
                             </td>

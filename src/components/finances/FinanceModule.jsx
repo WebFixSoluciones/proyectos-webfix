@@ -388,33 +388,43 @@ export default function FinanceModule({
                   </div>
 
                   {/* Tabla de últimas compras */}
-                  <div className={`p-6 rounded-3xl border ${isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'}`}>
-                    <h3 className="text-xs font-bold uppercase tracking-wider mb-4">Últimas Compras Registradas</h3>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left border-collapse text-xs">
-                        <thead>
-                          <tr className="border-b text-[9px] font-black uppercase text-gray-500 tracking-wider">
-                            <th className="py-2.5 px-3">Fecha</th>
-                            <th className="py-2.5 px-3">Comprobante</th>
-                            <th className="py-2.5 px-3">Contacto</th>
-                            <th className="py-2.5 px-3 text-right">Total</th>
-                            <th className="py-2.5 px-3 text-center">Estado Pago</th>
+                  <div className={`rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm ${
+                    isDarkMode 
+                      ? 'border-white/5 bg-[#0f111a]/85 shadow-lg shadow-black/40' 
+                      : 'border-slate-200/80 bg-white'
+                  }`}>
+                    <div className="p-6 pb-2 border-b border-dashed border-white/5 dark:border-white/5">
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-black dark:text-white">Últimas Compras Registradas</h3>
+                    </div>
+                    <div className="overflow-x-auto custom-scrollbar">
+                      <table className="w-full text-left text-xs whitespace-nowrap">
+                        <thead className={`text-[10px] uppercase font-bold tracking-wider ${
+                          isDarkMode 
+                            ? 'bg-black/35 text-slate-400 border-b border-white/5' 
+                            : 'bg-slate-50 text-slate-600 border-b border-slate-100'
+                        }`}>
+                          <tr>
+                            <th className="px-6 py-3.5">Fecha</th>
+                            <th className="px-6 py-3.5">Comprobante</th>
+                            <th className="px-6 py-3.5">Contacto</th>
+                            <th className="px-6 py-3.5 text-right">Total</th>
+                            <th className="px-6 py-3.5 text-center">Estado Pago</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-white/5">
+                        <tbody className={`divide-y ${isDarkMode ? 'divide-white/5' : 'divide-slate-100'}`}>
                           {transactions
                             .filter(t => t.type === 'egreso' && t.documentType !== 'retencion')
                             .slice(0, 5)
                             .map(tx => {
                               const contact = thirdParties.find(tp => tp.id === tx.thirdPartyId);
                               return (
-                                <tr key={tx.id} className="hover:bg-white/5 transition-colors">
-                                  <td className="py-2.5 px-3 text-gray-400">{tx.date}</td>
-                                  <td className="py-2.5 px-3 font-mono font-bold">{tx.documentNumber || `Sec: ${tx.secuencial || 'N/A'}`}</td>
-                                  <td className="py-2.5 px-3">{contact?.name || 'Proveedor Externo'}</td>
-                                  <td className="py-2.5 px-3 text-right font-bold text-red-500">${Number(tx.total).toFixed(2)}</td>
-                                  <td className="py-2.5 px-3 text-center">
-                                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${
+                                <tr key={tx.id} className={`transition-colors ${isDarkMode ? 'hover:bg-white/[0.015]' : 'hover:bg-slate-50/40'}`}>
+                                  <td className="px-6 py-3.5 text-gray-400 font-medium">{tx.date}</td>
+                                  <td className="px-6 py-3.5 font-mono text-[10px] font-bold">{tx.documentNumber || `Sec: ${tx.secuencial || 'N/A'}`}</td>
+                                  <td className="px-6 py-3.5 font-semibold text-black dark:text-white">{contact?.name || 'Proveedor Externo'}</td>
+                                  <td className="px-6 py-3.5 text-right font-bold text-red-500">${Number(tx.total).toFixed(2)}</td>
+                                  <td className="px-6 py-3.5 text-center">
+                                    <span className={`px-2 py-0.5 rounded-[10px] text-[9px] font-bold ${
                                       tx.paymentStatus === 'pagado' ? 'bg-emerald-500/10 text-emerald-450' : 'bg-amber-500/10 text-amber-450'
                                     }`}>
                                       {tx.paymentStatus === 'pagado' ? 'Pagado' : 'Pendiente'}
@@ -425,7 +435,7 @@ export default function FinanceModule({
                             })}
                           {transactions.filter(t => t.type === 'egreso' && t.documentType !== 'retencion').length === 0 && (
                             <tr>
-                              <td colSpan="5" className="py-6 text-center text-gray-500 italic">No hay compras registradas en este período.</td>
+                              <td colSpan="5" className="px-6 py-8 text-center text-gray-500 italic">No hay compras registradas en este período.</td>
                             </tr>
                           )}
                         </tbody>

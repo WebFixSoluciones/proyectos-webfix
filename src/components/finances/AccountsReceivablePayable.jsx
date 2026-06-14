@@ -171,57 +171,63 @@ export default function AccountsReceivablePayable({ type = 'cxc', transactions =
       </div>
 
       {/* BARRA DE FILTROS */}
-      <div className={`p-4 rounded-3xl border flex flex-col sm:flex-row gap-3 justify-between items-center shadow-sm ${
-        isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'
-      }`}>
-        <div className="relative w-full sm:max-w-md">
-          <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-450 pointer-events-none">
-            <Search size={14} />
-          </span>
-          <input 
-            type="text" 
-            placeholder="Buscar por comprobante o contacto..."
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-            className={`w-full text-xs pl-9 pr-3 py-2 rounded-xl outline-none border transition-all ${
+      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 mb-6">
+        <div>
+          <button 
+            onClick={exportToCSV}
+            className={`w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-[10px] text-xs font-bold transition-all border shrink-0 ${
               isDarkMode 
-                ? 'bg-black/25 border-white/10 text-white focus:border-primary/50' 
-                : 'bg-gray-100 border-gray-200 text-gray-900 focus:bg-white focus:border-primary'
+                ? 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10' 
+                : 'bg-gray-50 border-gray-300 text-gray-705 hover:bg-gray-100 shadow-sm'
             }`}
-          />
+          >
+            <Download size={14} />
+            <span>Exportar Listado</span>
+          </button>
         </div>
 
-        <button 
-          onClick={exportToCSV}
-          className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all border shrink-0 ${
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
+          <div className={`flex items-center gap-2 px-3.5 py-2 rounded-[10px] border w-full sm:w-64 transition-all focus-within:ring-1 focus-within:ring-primary/25 ${
             isDarkMode 
-              ? 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10' 
-              : 'bg-gray-50 border-gray-300 text-gray-700 hover:bg-gray-100 shadow-sm'
-          }`}
-        >
-          <Download size={14} />
-          <span>Exportar Listado</span>
-        </button>
+              ? 'bg-[#151722]/80 border-white/10 focus-within:border-primary/50' 
+              : 'bg-white border-slate-200 focus-within:border-primary'
+          }`}>
+            <Search size={14} className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
+            <input 
+              type="text" 
+              placeholder="Buscar por comprobante o contacto..."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              className="bg-transparent border-none outline-none text-xs w-full text-current placeholder-gray-500 focus:ring-0"
+            />
+          </div>
+        </div>
       </div>
 
       {/* TABLA DE CUENTAS */}
-      <div className={`border rounded-3xl shadow-sm overflow-hidden ${isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'}`}>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className={`border-b text-[9px] font-black uppercase tracking-wider ${
-                isDarkMode ? 'bg-black/10 border-white/5 text-gray-400' : 'bg-primary-light border-primary/15 text-[#000000]'
-              }`}>
-                <th className="py-3.5 px-4">Fecha</th>
-                <th className="py-3.5 px-4">Comprobante</th>
-                <th className="py-3.5 px-4">Contacto</th>
-                <th className="py-3.5 px-4 text-right">Total Documento</th>
-                <th className="py-3.5 px-4 text-right">Abonado</th>
-                <th className="py-3.5 px-4 text-right">Pendiente</th>
-                <th className="py-3.5 px-4 text-center">Acciones</th>
+      <div className={`rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm ${
+        isDarkMode 
+          ? 'border-white/5 bg-[#0f111a]/85 shadow-lg shadow-black/40' 
+          : 'border-slate-200/80 bg-white'
+      }`}>
+        <div className="overflow-x-auto custom-scrollbar">
+          <table className="w-full text-left text-xs whitespace-nowrap">
+            <thead className={`text-[10px] uppercase font-bold tracking-wider ${
+              isDarkMode 
+                ? 'bg-black/35 text-slate-400 border-b border-white/5' 
+                : 'bg-slate-50 text-slate-600 border-b border-slate-100'
+            }`}>
+              <tr>
+                <th className="px-6 py-3.5">Fecha</th>
+                <th className="px-6 py-3.5">Comprobante</th>
+                <th className="px-6 py-3.5">Contacto</th>
+                <th className="px-6 py-3.5 text-right">Total Documento</th>
+                <th className="px-6 py-3.5 text-right">Abonado</th>
+                <th className="px-6 py-3.5 text-right">Pendiente</th>
+                <th className="px-6 py-3.5 text-center">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-white/5 text-xs">
+            <tbody className={`divide-y ${isDarkMode ? 'divide-white/5' : 'divide-slate-100'}`}>
               {filteredTxs.map(tx => {
                 const contact = thirdParties.find(tp => tp.id === tx.thirdPartyId);
                 const paid = Number(tx.paidAmount) || 0;
@@ -229,29 +235,29 @@ export default function AccountsReceivablePayable({ type = 'cxc', transactions =
                 const pending = total - paid;
                 
                 return (
-                  <tr key={tx.id} className={`hover:bg-black/5 dark:hover:bg-white/5 transition-colors`}>
-                    <td className={`py-3.5 px-4 font-medium ${isDarkMode ? 'text-gray-400' : 'text-black font-semibold'}`}>{tx.date}</td>
-                    <td className="py-3.5 px-4 font-mono font-bold">
+                  <tr key={tx.id} className={`transition-colors ${isDarkMode ? 'hover:bg-white/[0.015]' : 'hover:bg-slate-50/40'}`}>
+                    <td className={`px-6 py-3.5 font-medium ${isDarkMode ? 'text-gray-400' : 'text-black font-semibold'}`}>{tx.date}</td>
+                    <td className="px-6 py-3.5 font-mono text-[10px]">
                       {tx.documentNumber || `Sec: ${tx.secuencial || 'N/A'}`}
                     </td>
-                    <td className="py-3.5 px-4">
+                    <td className="px-6 py-3.5">
                       <div>
-                        <p className="font-bold text-black dark:text-white">{contact?.name || 'Desconocido'}</p>
-                        <p className="text-[9px] text-gray-600 dark:text-gray-400 font-mono">{contact?.ruc}</p>
+                        <p className={`font-bold ${isDarkMode ? '' : 'text-black font-semibold'}`}>{contact?.name || 'Desconocido'}</p>
+                        <p className="text-[9px] text-gray-500 font-mono">{contact?.ruc}</p>
                       </div>
                     </td>
-                    <td className="py-3.5 px-4 text-right font-semibold text-black dark:text-white">${total.toFixed(2)}</td>
-                    <td className="py-3.5 px-4 text-right text-emerald-700 dark:text-emerald-400 font-bold">${paid.toFixed(2)}</td>
-                    <td className="py-3.5 px-4 text-right text-red-700 dark:text-red-400 font-black">${pending.toFixed(2)}</td>
-                    <td className="py-3.5 px-4 text-center">
-                      <div className="flex justify-center gap-2">
+                    <td className={`px-6 py-3.5 text-right font-semibold ${isDarkMode ? '' : 'text-black'}`}>${total.toFixed(2)}</td>
+                    <td className="px-6 py-3.5 text-right text-emerald-700 dark:text-emerald-400 font-bold">${paid.toFixed(2)}</td>
+                    <td className="px-6 py-3.5 text-right text-red-700 dark:text-red-400 font-black">${pending.toFixed(2)}</td>
+                    <td className="px-6 py-3.5 text-center">
+                      <div className="flex justify-center gap-1.5">
                         <button
                           onClick={() => {
                             setSelectedTx(tx);
                             setPaymentAmount(pending.toFixed(2));
                             setIsHistoryOpen(false);
                           }}
-                          className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all shadow-sm ${
+                          className={`flex items-center gap-1 px-2.5 py-1.5 rounded-[10px] text-[10px] font-bold uppercase transition-all shadow-sm ${
                             isCxC 
                               ? 'bg-emerald-600 hover:bg-emerald-500 text-white' 
                               : 'bg-red-600 hover:bg-red-500 text-white'
@@ -267,8 +273,8 @@ export default function AccountsReceivablePayable({ type = 'cxc', transactions =
                               setSelectedTx(tx);
                               setIsHistoryOpen(true);
                             }}
-                            className={`p-1.5 rounded-lg border transition-colors ${
-                              isDarkMode ? 'hover:bg-white/5 border-white/10 text-gray-400' : 'hover:bg-gray-100 border-gray-300 text-gray-650'
+                            className={`p-1.5 rounded-[10px] border transition-colors ${
+                              isDarkMode ? 'hover:bg-white/5 border-white/10 text-gray-400' : 'hover:bg-gray-50 border-gray-300 text-gray-650 bg-white shadow-sm'
                             }`}
                             title="Historial de Abonos"
                           >
@@ -282,7 +288,7 @@ export default function AccountsReceivablePayable({ type = 'cxc', transactions =
               })}
               {filteredTxs.length === 0 && (
                 <tr>
-                  <td colSpan="7" className="py-12 text-center text-gray-500 italic">
+                  <td colSpan="7" className="px-6 py-12 text-center text-gray-500 italic">
                     No se encontraron cuentas pendientes que coincidan con la búsqueda.
                   </td>
                 </tr>

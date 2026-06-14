@@ -293,21 +293,29 @@ export default function TransferModal({ isDarkMode, onClose, onSuccess }: Transf
           {/* Items Table */}
           <div className="space-y-2">
             <label className={labelClass}>Ítems a Enviar ({items.length})</label>
-            <div className={`rounded-2xl border overflow-hidden ${isDarkMode ? 'border-white/10' : 'border-gray-200'}`}>
-              <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className={isDarkMode ? 'bg-white/5 text-gray-400' : 'bg-gray-100 text-gray-600'}>
-                    <th className="p-3">Producto</th>
-                    <th className="p-3">Costo Base ($)</th>
-                    <th className="p-3">Cantidad</th>
-                    <th className="p-3">Total Estimado</th>
-                    <th className="p-3 text-center">Acción</th>
+            <div className={`rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm ${
+              isDarkMode 
+                ? 'border-white/5 bg-[#0f111a]/85 shadow-lg shadow-black/40' 
+                : 'border-slate-200/80 bg-white'
+            }`}>
+              <table className="w-full text-left text-xs whitespace-nowrap">
+                <thead className={`text-[10px] uppercase font-bold tracking-wider ${
+                  isDarkMode 
+                    ? 'bg-black/35 text-slate-400 border-b border-white/5' 
+                    : 'bg-slate-50 text-slate-600 border-b border-slate-100'
+                }`}>
+                  <tr>
+                    <th className="px-6 py-3.5">Producto</th>
+                    <th className="px-6 py-3.5">Costo Base ($)</th>
+                    <th className="px-6 py-3.5">Cantidad</th>
+                    <th className="px-6 py-3.5">Total Estimado</th>
+                    <th className="px-6 py-3.5 text-center">Acción</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5">
+                <tbody className={`divide-y ${isDarkMode ? 'divide-white/5' : 'divide-slate-100'}`}>
                   {items.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className={`p-8 text-center ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                      <td colSpan={5} className="px-6 py-8 text-center text-gray-500 italic">
                         No has agregado ningún ítem a la lista todavía.
                       </td>
                     </tr>
@@ -315,18 +323,20 @@ export default function TransferModal({ isDarkMode, onClose, onSuccess }: Transf
                     items.map((item, index) => {
                       const p = products.find(prod => prod.id === item.productId);
                       return (
-                        <tr key={index} className={isDarkMode ? 'hover:bg-white/5' : 'hover:bg-black/5'}>
-                          <td className="p-3 font-semibold">{p?.name} <span className="text-gray-500 font-normal">({p?.sku})</span></td>
-                          <td className="p-3">${item.unitCost.toFixed(2)}</td>
-                          <td className="p-3 font-bold">{item.quantity}</td>
-                          <td className="p-3">${(item.quantity * item.unitCost).toFixed(2)}</td>
-                          <td className="p-3 text-center">
+                        <tr key={index} className={`transition-colors ${isDarkMode ? 'hover:bg-white/[0.015]' : 'hover:bg-slate-50/40'}`}>
+                          <td className="px-6 py-3.5 font-semibold text-black dark:text-white">
+                            {p?.name} <span className="text-gray-500 font-normal">({p?.sku})</span>
+                          </td>
+                          <td className="px-6 py-3.5 font-mono">${item.unitCost.toFixed(2)}</td>
+                          <td className="px-6 py-3.5 font-bold">{item.quantity}</td>
+                          <td className="px-6 py-3.5 font-mono">${(item.quantity * item.unitCost).toFixed(2)}</td>
+                          <td className="px-6 py-3.5 text-center">
                             <button
                               type="button"
                               onClick={() => handleRemoveItem(index)}
-                              className="p-1.5 rounded-lg text-red-500 hover:bg-red-500/10 transition-all"
+                              className="p-1.5 rounded-[10px] text-red-500 hover:bg-red-500/10 transition-all border border-red-500/10 bg-white dark:bg-transparent shadow-sm"
                             >
-                              <Trash2 size={14} />
+                              <Trash2 size={13} />
                             </button>
                           </td>
                         </tr>

@@ -1961,89 +1961,97 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     )}
 
                     {/* Products Table */}
-                    <div className="max-h-[45vh] overflow-y-auto overflow-x-auto">
+                    <div className="max-h-[45vh] overflow-y-auto custom-scrollbar">
                       {(formData.items || []).length > 0 ? (
-                        <table className="w-full text-left border-collapse min-w-[500px]">
-                          <thead>
-                            <tr className={`border-b text-[10px] font-bold uppercase ${
-                              isDarkMode ? 'border-white/10 text-gray-400' : 'border-gray-200 text-gray-500'
+                        <div className={`rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm ${
+                          isDarkMode 
+                            ? 'border-white/5 bg-[#0f111a]/85 shadow-lg shadow-black/40' 
+                            : 'border-slate-200/80 bg-white'
+                        }`}>
+                          <table className="w-full text-left text-xs whitespace-nowrap min-w-[500px]">
+                            <thead className={`text-[10px] uppercase font-bold tracking-wider ${
+                              isDarkMode 
+                                ? 'bg-black/35 text-slate-400 border-b border-white/5' 
+                                : 'bg-slate-50 text-slate-600 border-b border-slate-100'
                             }`}>
-                              <th className="py-2 px-3">Producto / Servicio</th>
-                              <th className="py-2 px-3 text-center w-28">Cantidad</th>
-                              <th className="py-2 px-3 text-right w-32">P. Unitario</th>
-                              <th className="py-2 px-3 text-right w-28">Subtotal</th>
-                              {isEditable && <th className="py-2 px-3 text-center w-12"></th>}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {(formData.items || []).map((item, index) => {
-                              const subtotalLine = (parseFloat(item.price) || 0) * (parseInt(item.quantity) || 1);
-                              return (
-                                <tr 
-                                  key={index} 
-                                  className={`border-b text-xs transition-colors ${
-                                    isDarkMode ? 'border-white/5 hover:bg-white/5 text-white' : 'border-gray-100 hover:bg-gray-50 text-gray-900'
-                                  }`}
-                                >
-                                  <td className="py-2 px-3 font-semibold">
-                                    {item.productId ? (
-                                      <div>
-                                        <div className={`font-bold text-xs truncate max-w-[200px] ${isDarkMode ? 'text-white' : 'text-gray-900'}`} title={item.name}>
-                                          {item.name}
+                              <tr>
+                                <th className="px-6 py-3.5">Producto / Servicio</th>
+                                <th className="px-6 py-3.5 text-center w-28">Cantidad</th>
+                                <th className="px-6 py-3.5 text-right w-32">P. Unitario</th>
+                                <th className="px-6 py-3.5 text-right w-28">Subtotal</th>
+                                {isEditable && <th className="px-6 py-3.5 text-center w-12"></th>}
+                              </tr>
+                            </thead>
+                            <tbody className={`divide-y ${isDarkMode ? 'divide-white/5' : 'divide-slate-100'}`}>
+                              {(formData.items || []).map((item, index) => {
+                                const subtotalLine = (parseFloat(item.price) || 0) * (parseInt(item.quantity) || 1);
+                                return (
+                                  <tr 
+                                    key={index} 
+                                    className={`transition-colors ${
+                                      isDarkMode ? 'hover:bg-white/[0.015] text-white' : 'hover:bg-slate-50/40 text-gray-900'
+                                    }`}
+                                  >
+                                    <td className="px-6 py-3.5 font-semibold">
+                                      {item.productId ? (
+                                        <div>
+                                          <div className={`font-bold text-xs truncate max-w-[200px] ${isDarkMode ? 'text-white' : 'text-gray-900'}`} title={item.name}>
+                                            {item.name}
+                                          </div>
+                                          <span className={`text-[9px] font-mono ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                                            {item.sku ? `SKU: ${item.sku}` : ''} {item.codigoBarras ? `| EAN: ${item.codigoBarras}` : ''}
+                                          </span>
                                         </div>
-                                        <span className={`text-[9px] font-mono ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-                                          {item.sku ? `SKU: ${item.sku}` : ''} {item.codigoBarras ? `| EAN: ${item.codigoBarras}` : ''}
-                                        </span>
-                                      </div>
-                                    ) : (
-                                      <select 
-                                        disabled={!isEditable}
-                                        value={item.productId} 
-                                        onChange={(e) => handleItemChange(index, 'productId', e.target.value)} 
-                                        className={`text-xs px-2 py-1 rounded-lg border ${isDarkMode ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
-                                      >
-                                        <option value="" disabled>Seleccionar...</option>
-                                        {products.map(p => (
-                                          <option key={p.id} value={p.id}>{p.name} — ${Number(p.price).toFixed(2)}</option>
-                                        ))}
-                                      </select>
-                                    )}
-                                  </td>
-                                  <td className="py-2 px-3 text-center">
-                                    <div className={`inline-flex items-center gap-0.5 border rounded-lg p-0.5 ${isDarkMode ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'}`}>
-                                      <button type="button" disabled={!isEditable} onClick={() => {
-                                        const q = parseInt(item.quantity) || 1;
-                                        if (q > 1) handleItemChange(index, 'quantity', q - 1);
-                                      }} className={`w-6 h-6 rounded flex items-center justify-center font-bold text-xs ${isDarkMode ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>-</button>
-                                      <input disabled={!isEditable} type="number" value={item.quantity} min="1" onChange={(e) => handleItemChange(index, 'quantity', Math.max(1, parseInt(e.target.value) || 1))} className={`w-10 text-center text-xs font-bold bg-transparent outline-none border-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${isDarkMode ? 'text-white' : 'text-gray-900'}`} />
-                                      <button type="button" disabled={!isEditable} onClick={() => {
-                                        handleItemChange(index, 'quantity', (parseInt(item.quantity) || 1) + 1);
-                                      }} className={`w-6 h-6 rounded flex items-center justify-center font-bold text-xs ${isDarkMode ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>+</button>
-                                    </div>
-                                  </td>
-                                  <td className="py-2 px-3 text-right">
-                                    <div className="relative inline-block w-24">
-                                      <span className={`absolute left-2 top-1.5 text-[10px] font-bold ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>$</span>
-                                      <input disabled={!isEditable} type="number" step="0.01" required value={item.price} onChange={(e) => handleItemChange(index, 'price', e.target.value)} className={`w-full text-xs pl-5 pr-2 py-1 rounded-lg border outline-none text-right font-bold ${isDarkMode ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-gray-300 text-gray-900'}`} placeholder="0.00" />
-                                    </div>
-                                  </td>
-                                  <td className={`py-2 px-3 text-right font-mono font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                                    ${subtotalLine.toFixed(2)}
-                                  </td>
-                                  {isEditable && (
-                                    <td className="py-2 px-3 text-center">
-                                      <button type="button" onClick={() => handleRemoveItem(index)} className="p-1 rounded bg-red-500/10 hover:bg-red-500/20 text-red-500">
-                                        <Trash2 size={13} />
-                                      </button>
+                                      ) : (
+                                        <select 
+                                          disabled={!isEditable}
+                                          value={item.productId} 
+                                          onChange={(e) => handleItemChange(index, 'productId', e.target.value)} 
+                                          className={`text-xs px-2 py-1 rounded-[10px] border ${isDarkMode ? 'bg-[#151722]/80 border-white/10 text-white' : 'bg-white border-slate-200 text-gray-900'}`}
+                                        >
+                                          <option value="" disabled>Seleccionar...</option>
+                                          {products.map(p => (
+                                            <option key={p.id} value={p.id}>{p.name} — ${Number(p.price).toFixed(2)}</option>
+                                          ))}
+                                        </select>
+                                      )}
                                     </td>
-                                  )}
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
+                                    <td className="px-6 py-3.5 text-center">
+                                      <div className={`inline-flex items-center gap-0.5 border rounded-[10px] p-0.5 ${isDarkMode ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'}`}>
+                                        <button type="button" disabled={!isEditable} onClick={() => {
+                                          const q = parseInt(item.quantity) || 1;
+                                          if (q > 1) handleItemChange(index, 'quantity', q - 1);
+                                        }} className={`w-6 h-6 rounded-[10px] flex items-center justify-center font-bold text-xs ${isDarkMode ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>-</button>
+                                        <input disabled={!isEditable} type="number" value={item.quantity} min="1" onChange={(e) => handleItemChange(index, 'quantity', Math.max(1, parseInt(e.target.value) || 1))} className={`w-10 text-center text-xs font-bold bg-transparent outline-none border-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${isDarkMode ? 'text-white' : 'text-gray-900'}`} />
+                                        <button type="button" disabled={!isEditable} onClick={() => {
+                                          handleItemChange(index, 'quantity', (parseInt(item.quantity) || 1) + 1);
+                                        }} className={`w-6 h-6 rounded-[10px] flex items-center justify-center font-bold text-xs ${isDarkMode ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>+</button>
+                                      </div>
+                                    </td>
+                                    <td className="px-6 py-3.5 text-right">
+                                      <div className="relative inline-block w-24">
+                                        <span className={`absolute left-2 top-1.5 text-[10px] font-bold ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>$</span>
+                                        <input disabled={!isEditable} type="number" step="0.01" required value={item.price} onChange={(e) => handleItemChange(index, 'price', e.target.value)} className={`w-full text-xs pl-5 pr-2 py-1 rounded-[10px] border outline-none text-right font-bold ${isDarkMode ? 'bg-[#151722]/80 border-white/10 text-white' : 'bg-white border-slate-200 text-gray-900'}`} placeholder="0.00" />
+                                      </div>
+                                    </td>
+                                    <td className={`px-6 py-3.5 text-right font-mono font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                                      ${subtotalLine.toFixed(2)}
+                                    </td>
+                                    {isEditable && (
+                                      <td className="px-6 py-3.5 text-center">
+                                        <button type="button" onClick={() => handleRemoveItem(index)} className="p-1.5 rounded-[10px] bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/10">
+                                          <Trash2 size={13} />
+                                        </button>
+                                      </td>
+                                    )}
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
                       ) : (
-                        <div className={`py-16 text-center text-xs italic ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                        <div className={`py-16 text-center text-xs italic rounded-[10px] border ${isDarkMode ? 'text-gray-500 bg-[#0f111a]/85 border-white/5' : 'text-gray-400 bg-white border-slate-200/80'}`}>
                           No hay productos en el carrito. Utiliza el buscador de arriba.
                         </div>
                       )}

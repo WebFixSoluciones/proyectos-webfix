@@ -11,6 +11,7 @@ export default function QuotesView({ products, thirdParties, isDarkMode, showToa
   const [isBlocked, setIsBlocked] = useState(false);
   const [companyConfig, setCompanyConfig] = useState(null);
   const [selectedQuoteTx, setSelectedQuoteTx] = useState(null);
+  const [filterStatus, setFilterStatus] = useState('all');
 
   useEffect(() => {
     if (!appId || !db) return;
@@ -209,20 +210,22 @@ export default function QuotesView({ products, thirdParties, isDarkMode, showToa
   const getStatusBadge = (status) => {
     switch (status) {
       case 'facturado': 
-        return <span className="text-[9px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-500 font-bold uppercase">Facturado</span>;
+        return <span className="text-[9px] px-2 py-0.5 rounded-[10px] bg-emerald-500/20 text-emerald-500 font-bold uppercase">Facturado</span>;
       case 'enviado': 
-        return <span className="text-[9px] px-2 py-0.5 rounded bg-primary/20 text-primary font-bold uppercase">Enviado</span>;
+        return <span className="text-[9px] px-2 py-0.5 rounded-[10px] bg-primary/20 text-primary font-bold uppercase">Enviado</span>;
       case 'vencido': 
-        return <span className="text-[9px] px-2 py-0.5 rounded bg-red-500/20 text-red-500 font-bold uppercase">Vencido</span>;
+        return <span className="text-[9px] px-2 py-0.5 rounded-[10px] bg-red-500/20 text-red-500 font-bold uppercase">Vencido</span>;
       default: 
-        return <span className="text-[9px] px-2 py-0.5 rounded bg-gray-550/20 text-gray-500 font-bold uppercase">Borrador</span>;
+        return <span className="text-[9px] px-2 py-0.5 rounded-[10px] bg-gray-550/20 text-gray-550 font-bold uppercase">Borrador</span>;
     }
   };
 
   const filtered = quotes.filter(q => {
     const matchedTpName = thirdParties.find(tp => tp.id === q.thirdPartyId)?.name || '';
-    return q.quoteNumber.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    const matchesSearch = q.quoteNumber.toLowerCase().includes(searchTerm.toLowerCase()) || 
            matchedTpName.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = filterStatus === 'all' || q.status === filterStatus;
+    return matchesSearch && matchesStatus;
   });
 
   const inputClass = `w-full text-xs px-3 py-2.5 rounded-xl outline-none transition-all border ${
@@ -248,42 +251,70 @@ export default function QuotesView({ products, thirdParties, isDarkMode, showToa
         </div>
       )}
 
-      {/* HEADER ACCIONES */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border w-full sm:w-80 ${isDarkMode ? 'bg-black/20 border-white/10' : 'bg-white border-gray-355'}`}>
-          <Search size={14} className={isDarkMode ? 'text-gray-500' : 'text-gray-605'} />
-          <input 
-            type="text" 
-            placeholder="Buscar por número o cliente..." 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="bg-transparent border-none outline-none text-xs w-full text-gray-900"
+      {/* FILTROS Y BUSQUEDA */}
+      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 mb-6">
+        <div>
+          <button 
+            onClick={() => { 
+              if (isBlocked) {
+                showToast("Completa la Razón Social, RUC y Logo en Configuración primero", "error");
+                return;
+              }
+              resetForm(); 
+              setIsModalOpen(true); 
+            }}
             disabled={isBlocked}
-          />
+            className={`w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 rounded-[10px] text-xs font-bold transition-all hover-lift shadow-md ${
+              isBlocked 
+                ? 'bg-gray-450/20 text-gray-500 border border-white/5 cursor-not-allowed opacity-50' 
+                : (isDarkMode ? 'bg-primary text-white hover:bg-primary/95 shadow-primary/25 border border-primary/30' : 'bg-primary text-white hover:bg-primary-hover shadow-primary/10')
+            }`}
+          >
+            <Plus size={15} /> Nueva Cotización
+          </button>
         </div>
-        
-        <button 
-          onClick={() => { 
-            if (isBlocked) {
-              showToast("Completa la Razón Social, RUC y Logo en Configuración primero", "error");
-              return;
-            }
-            resetForm(); 
-            setIsModalOpen(true); 
-          }}
-          disabled={isBlocked}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold transition-all shadow-sm ${
-            isBlocked 
-              ? 'bg-gray-450/20 text-gray-500 border border-white/5 cursor-not-allowed opacity-50' 
-              : (isDarkMode ? 'bg-primary text-white hover:bg-primary hover:-translate-y-0.5' : 'bg-primary text-white hover:bg-primary-hover hover:-translate-y-0.5')
-          }`}
-        >
-          <Plus size={14} /> Nueva Cotización
-        </button>
+
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
+          <div className={`flex items-center gap-2 px-3.5 py-2 rounded-[10px] border w-full sm:w-64 transition-all focus-within:ring-1 focus-within:ring-primary/25 ${
+            isDarkMode 
+              ? 'bg-[#151722]/80 border-white/10 focus-within:border-primary/50' 
+              : 'bg-white border-slate-200 focus-within:border-primary'
+          }`}>
+            <Search size={14} className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
+            <input 
+              type="text" 
+              placeholder="Buscar por número o cliente..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="bg-transparent border-none outline-none text-xs w-full text-current placeholder-gray-500 focus:ring-0"
+              disabled={isBlocked}
+            />
+          </div>
+
+          <select 
+            value={filterStatus} 
+            onChange={e => setFilterStatus(e.target.value)} 
+            className={`px-3 py-2 rounded-[10px] border text-xs font-medium outline-none transition-all cursor-pointer ${
+              isDarkMode 
+                ? 'bg-[#151722]/80 border-white/10 text-gray-300 focus:border-primary/50' 
+                : 'bg-white border-slate-200 text-slate-700 focus:border-primary'
+            }`}
+          >
+            <option value="all" className="text-black">Todos los estados</option>
+            <option value="borrador" className="text-black">Borrador</option>
+            <option value="enviado" className="text-black">Enviado</option>
+            <option value="facturado" className="text-black">Facturado</option>
+            <option value="vencido" className="text-black">Vencido</option>
+          </select>
+        </div>
       </div>
 
       {/* TABLA COTIZACIONES */}
-      <div className={`rounded-2xl border overflow-hidden backdrop-blur-xl ${isDarkMode ? 'border-white/10 bg-white/[0.02]' : 'border-gray-355 bg-white shadow-sm'}`}>
+      <div className={`rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm ${
+        isDarkMode 
+          ? 'border-white/5 bg-[#0f111a]/85 shadow-lg shadow-black/40' 
+          : 'border-slate-200/80 bg-white'
+      }`}>
         {loading ? (
           <div className="flex justify-center items-center py-12">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
@@ -291,38 +322,42 @@ export default function QuotesView({ products, thirdParties, isDarkMode, showToa
         ) : (
           <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-left text-xs whitespace-nowrap">
-              <thead className={`text-[10px] uppercase font-bold tracking-wider ${isDarkMode ? 'bg-black/40 text-gray-400' : 'bg-primary-light text-[#000000] border-b border-primary/15'}`}>
+              <thead className={`text-[10px] uppercase font-bold tracking-wider ${
+                isDarkMode 
+                  ? 'bg-black/35 text-slate-400 border-b border-white/5' 
+                  : 'bg-slate-50 text-slate-600 border-b border-slate-100'
+              }`}>
                 <tr>
-                  <th className="px-6 py-4">Cotización</th>
-                  <th className="px-6 py-4">Fecha</th>
-                  <th className="px-6 py-4">Validez</th>
-                  <th className="px-6 py-4">Cliente</th>
-                  <th className="px-6 py-4 text-right">Items</th>
-                  <th className="px-6 py-4 text-right">Total</th>
-                  <th className="px-6 py-4">Estado</th>
-                  <th className="px-6 py-4 text-right">Acciones</th>
+                  <th className="px-6 py-3.5">Cotización</th>
+                  <th className="px-6 py-3.5">Fecha</th>
+                  <th className="px-6 py-3.5">Validez</th>
+                  <th className="px-6 py-3.5">Cliente</th>
+                  <th className="px-6 py-3.5 text-right">Items</th>
+                  <th className="px-6 py-3.5 text-right">Total</th>
+                  <th className="px-6 py-3.5">Estado</th>
+                  <th className="px-6 py-3.5 text-right">Acciones</th>
                 </tr>
               </thead>
-              <tbody className={`divide-y ${isDarkMode ? 'divide-white/5' : 'divide-gray-300/60'}`}>
+              <tbody className={`divide-y ${isDarkMode ? 'divide-white/5' : 'divide-slate-100'}`}>
                 {filtered.map(q => {
                   const client = thirdParties.find(tp => tp.id === q.thirdPartyId);
                   return (
-                    <tr key={q.id} className={`transition-colors ${isDarkMode ? 'hover:bg-white/5' : 'hover:bg-gray-100/40'}`}>
-                      <td className={`px-6 py-4 font-mono text-[10px] ${isDarkMode ? '' : 'text-black font-extrabold'}`}>{q.quoteNumber}</td>
-                      <td className="px-6 py-4">{q.date}</td>
-                      <td className="px-6 py-4">{q.validUntil || '-'}</td>
-                      <td className={`px-6 py-4 font-bold truncate max-w-[200px] ${isDarkMode ? '' : 'text-black'}`} title={client?.name}>
+                    <tr key={q.id} className={`transition-colors ${isDarkMode ? 'hover:bg-white/[0.015]' : 'hover:bg-slate-50/40'}`}>
+                      <td className={`px-6 py-3.5 font-mono text-[10px] ${isDarkMode ? '' : 'text-black font-semibold'}`}>{q.quoteNumber}</td>
+                      <td className="px-6 py-3.5">{q.date}</td>
+                      <td className="px-6 py-3.5">{q.validUntil || '-'}</td>
+                      <td className={`px-6 py-3.5 font-bold truncate max-w-[200px] ${isDarkMode ? '' : 'text-black'}`} title={client?.name}>
                         {client?.name || 'Desconocido'}
                       </td>
-                      <td className="px-6 py-4 text-right font-medium">{q.items?.length || 0}</td>
-                      <td className={`px-6 py-4 text-right font-black ${isDarkMode ? '' : 'text-black'}`}>${Number(q.total || 0).toFixed(2)}</td>
-                      <td className="px-6 py-4">{getStatusBadge(q.status)}</td>
-                      <td className="px-6 py-4 text-right">
+                      <td className="px-6 py-3.5 text-right font-medium">{q.items?.length || 0}</td>
+                      <td className={`px-6 py-3.5 text-right font-black ${isDarkMode ? '' : 'text-black'}`}>${Number(q.total || 0).toFixed(2)}</td>
+                      <td className="px-6 py-3.5">{getStatusBadge(q.status)}</td>
+                      <td className="px-6 py-3.5 text-right">
                         <div className="flex items-center justify-end gap-1.5">
                           {q.status !== 'facturado' && (
                             <button 
                               onClick={() => handlePromote(q)}
-                              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-bold bg-emerald-600 text-white hover:bg-emerald-500 transition-all shadow-sm shrink-0`}
+                              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-[10px] text-[10px] font-bold bg-emerald-600 text-white hover:bg-emerald-500 transition-all shadow-sm shrink-0`}
                               title="Promover a Factura SRI"
                             >
                               <ShoppingBag size={10} /> Facturar
@@ -330,13 +365,13 @@ export default function QuotesView({ products, thirdParties, isDarkMode, showToa
                           )}
                           <button 
                             onClick={() => setSelectedQuoteTx({ ...q, documentType: 'cotizacion', documentNumber: q.quoteNumber, baseImponible: q.subtotal, ivaValor: q.ivaValor, total: q.total })} 
-                            className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-orange-500/20 text-orange-400' : 'hover:bg-orange-150 text-orange-700 border border-orange-200'}`}
+                            className={`p-1.5 rounded-[10px] transition-colors ${isDarkMode ? 'hover:bg-orange-500/20 text-orange-400' : 'hover:bg-orange-50 text-orange-700 border border-orange-200 shadow-sm'}`}
                             title="Ver RIDE Proforma / Imprimir"
                           >
                             <Eye size={13}/>
                           </button>
-                          <button onClick={() => { setFormData(q); setIsModalOpen(true); }} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-primary/20 text-primary' : 'hover:bg-primary/10 text-primary border border-primary/25'}`}><Edit2 size={13}/></button>
-                          <button onClick={() => handleDelete(q.id)} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-red-500/20 text-red-500' : 'hover:bg-red-100 text-red-600 border border-red-200'}`}><Trash2 size={13}/></button>
+                          <button onClick={() => { setFormData(q); setIsModalOpen(true); }} className={`p-1.5 rounded-[10px] transition-colors ${isDarkMode ? 'hover:bg-primary/20 text-primary' : 'hover:bg-primary/10 text-primary border border-primary/25 bg-white shadow-sm'}`}><Edit2 size={13}/></button>
+                          <button onClick={() => handleDelete(q.id)} className={`p-1.5 rounded-[10px] transition-colors ${isDarkMode ? 'hover:bg-red-500/20 text-red-500' : 'hover:bg-red-50 text-red-650 border border-red-200 bg-white shadow-sm'}`}><Trash2 size={13}/></button>
                         </div>
                       </td>
                     </tr>

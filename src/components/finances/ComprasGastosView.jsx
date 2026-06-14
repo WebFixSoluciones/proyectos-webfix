@@ -291,41 +291,49 @@ Gracias por su compra`;
       </div>
 
       {/* HISTORIAL RECIENTE GASTOS IA */}
-      <div className={`p-6 rounded-3xl border space-y-4 ${
-        isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'
+      <div className={`rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm ${
+        isDarkMode 
+          ? 'border-white/5 bg-[#0f111a]/85 shadow-lg shadow-black/40' 
+          : 'border-slate-200/80 bg-white'
       }`}>
-        <h3 className="text-xs font-bold uppercase tracking-wider">Últimos Gastos Registrados con IA</h3>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs">
-            <thead>
-              <tr className="border-b text-[9px] font-black uppercase text-gray-500 tracking-wider">
-                <th className="py-2.5 px-3">Fecha</th>
-                <th className="py-2.5 px-3">Proveedor / RUC</th>
-                <th className="py-2.5 px-3">Documento</th>
-                <th className="py-2.5 px-3">Categoría</th>
-                <th className="py-2.5 px-3 text-right">Base</th>
-                <th className="py-2.5 px-3 text-right">IVA</th>
-                <th className="py-2.5 px-3 text-right">Total</th>
-                <th className="py-2.5 px-3 text-center">Acciones</th>
+        <div className="p-6 pb-2 border-b border-dashed border-white/5 dark:border-white/5">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-black dark:text-white">Últimos Gastos Registrados con IA</h3>
+        </div>
+        <div className="overflow-x-auto custom-scrollbar">
+          <table className="w-full text-left text-xs whitespace-nowrap">
+            <thead className={`text-[10px] uppercase font-bold tracking-wider ${
+              isDarkMode 
+                ? 'bg-black/35 text-slate-400 border-b border-white/5' 
+                : 'bg-slate-50 text-slate-600 border-b border-slate-100'
+            }`}>
+              <tr>
+                <th className="px-6 py-3.5">Fecha</th>
+                <th className="px-6 py-3.5">Proveedor / RUC</th>
+                <th className="px-6 py-3.5">Documento</th>
+                <th className="px-6 py-3.5">Categoría</th>
+                <th className="px-6 py-3.5 text-right">Base</th>
+                <th className="px-6 py-3.5 text-right">IVA</th>
+                <th className="px-6 py-3.5 text-right">Total</th>
+                <th className="px-6 py-3.5 text-center">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className={`divide-y ${isDarkMode ? 'divide-white/5' : 'divide-slate-100'}`}>
               {currentExpenses.map(tx => (
-                <tr key={tx.id} className="hover:bg-white/5 transition-colors">
-                  <td className="py-2.5 px-3 text-gray-400">{tx.date}</td>
-                  <td className="py-2.5 px-3 font-semibold">{tx.description}</td>
-                  <td className="py-2.5 px-3 font-mono">{tx.documentNumber}</td>
-                  <td className="py-2.5 px-3 capitalize text-gray-400">{String(tx.category || '').replace('_', ' ')}</td>
-                  <td className="py-2.5 px-3 text-right font-mono">${(Number(tx.baseImponible) || 0).toFixed(2)}</td>
-                  <td className="py-2.5 px-3 text-right font-mono">${(Number(tx.ivaValor) || 0).toFixed(2)}</td>
-                  <td className="py-2.5 px-3 text-right font-bold text-red-500">${Number(tx.total).toFixed(2)}</td>
-                  <td className="py-2.5 px-3 text-center">
+                <tr key={tx.id} className={`transition-colors ${isDarkMode ? 'hover:bg-white/[0.015]' : 'hover:bg-slate-50/40'}`}>
+                  <td className="px-6 py-3.5 text-gray-400 font-medium">{tx.date}</td>
+                  <td className="px-6 py-3.5 font-semibold text-black dark:text-white">{tx.description}</td>
+                  <td className="px-6 py-3.5 font-mono text-[10px]">{tx.documentNumber}</td>
+                  <td className="px-6 py-3.5 capitalize text-gray-500 font-medium">{String(tx.category || '').replace('_', ' ')}</td>
+                  <td className="px-6 py-3.5 text-right font-mono">${(Number(tx.baseImponible) || 0).toFixed(2)}</td>
+                  <td className="px-6 py-3.5 text-right font-mono">${(Number(tx.ivaValor) || 0).toFixed(2)}</td>
+                  <td className="px-6 py-3.5 text-right font-bold text-red-500">${Number(tx.total).toFixed(2)}</td>
+                  <td className="px-6 py-3.5 text-center">
                     <button
                       onClick={() => handleDeleteGasto(tx.id)}
-                      className="p-1.5 rounded-lg border border-white/10 hover:bg-red-500/15 hover:text-red-400 text-gray-400 transition-colors"
+                      className="p-1.5 rounded-[10px] border border-white/10 hover:bg-red-500/15 hover:text-red-400 text-gray-400 transition-colors bg-white dark:bg-transparent shadow-sm"
                       title="Eliminar gasto"
                     >
-                      <Trash2 size={12} />
+                      <Trash2 size={13} />
                     </button>
                   </td>
                 </tr>
@@ -333,7 +341,7 @@ Gracias por su compra`;
 
               {currentExpenses.length === 0 && (
                 <tr>
-                  <td colSpan="8" className="py-6 text-center text-gray-600 italic">No hay gastos ingresados por IA en esta sesión.</td>
+                  <td colSpan="8" className="px-6 py-8 text-center text-gray-500 italic">No hay gastos ingresados por IA en esta sesión.</td>
                 </tr>
               )}
             </tbody>

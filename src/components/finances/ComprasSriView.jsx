@@ -213,41 +213,47 @@ export default function ComprasSriView({ transactions = [], isDarkMode, showToas
       </div>
 
       {/* LISTADO DE COMPROBANTES */}
-      <div className={`border rounded-3xl shadow-sm overflow-hidden ${isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'}`}>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className={`border-b text-[9px] font-black uppercase tracking-wider ${
-                isDarkMode ? 'bg-black/10 border-white/5 text-gray-400' : 'bg-primary-light border-primary/15 text-[#000000]'
-              }`}>
-                <th className="py-3.5 px-4">Fecha</th>
-                <th className="py-3.5 px-4">Comprobante</th>
-                <th className="py-3.5 px-4">Emisor (Proveedor)</th>
-                <th className="py-3.5 px-4 text-right">Subtotal</th>
-                <th className="py-3.5 px-4 text-right">IVA (15%)</th>
-                <th className="py-3.5 px-4 text-right">Total</th>
-                <th className="py-3.5 px-4 text-center">Estado Contable</th>
-                <th className="py-3.5 px-4 text-center">Acción</th>
+      <div className={`rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm ${
+        isDarkMode 
+          ? 'border-white/5 bg-[#0f111a]/85 shadow-lg shadow-black/40' 
+          : 'border-slate-200/80 bg-white'
+      }`}>
+        <div className="overflow-x-auto custom-scrollbar">
+          <table className="w-full text-left text-xs whitespace-nowrap">
+            <thead className={`text-[10px] uppercase font-bold tracking-wider ${
+              isDarkMode 
+                ? 'bg-black/35 text-slate-400 border-b border-white/5' 
+                : 'bg-slate-50 text-slate-600 border-b border-slate-100'
+            }`}>
+              <tr>
+                <th className="px-6 py-3.5">Fecha</th>
+                <th className="px-6 py-3.5">Comprobante</th>
+                <th className="px-6 py-3.5">Emisor (Proveedor)</th>
+                <th className="px-6 py-3.5 text-right">Subtotal</th>
+                <th className="px-6 py-3.5 text-right">IVA (15%)</th>
+                <th className="px-6 py-3.5 text-right">Total</th>
+                <th className="px-6 py-3.5 text-center">Estado Contable</th>
+                <th className="px-6 py-3.5 text-center">Acción</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-white/5 text-xs">
+            <tbody className={`divide-y ${isDarkMode ? 'divide-white/5' : 'divide-slate-100'}`}>
               {sriBills.map(bill => {
                 const isImported = transactions.some(t => t.documentNumber === bill.documentNumber);
                 return (
-                  <tr key={bill.id} className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
-                    <td className="py-3.5 px-4 text-gray-400 font-medium">{bill.date}</td>
-                    <td className="py-3.5 px-4 font-mono font-bold">{bill.documentNumber}</td>
-                    <td className="py-3.5 px-4">
+                  <tr key={bill.id} className={`transition-colors ${isDarkMode ? 'hover:bg-white/[0.015]' : 'hover:bg-slate-50/40'}`}>
+                    <td className="px-6 py-3.5 text-gray-400 font-medium">{bill.date}</td>
+                    <td className="px-6 py-3.5 font-mono text-[10px] font-bold">{bill.documentNumber}</td>
+                    <td className="px-6 py-3.5">
                       <div>
                         <p className="font-bold text-black dark:text-white line-clamp-1">{bill.razonSocial}</p>
                         <p className="text-[9px] text-gray-500 font-mono">RUC: {bill.ruc}</p>
                       </div>
                     </td>
-                    <td className="py-3.5 px-4 text-right font-mono">${bill.baseImponible.toFixed(2)}</td>
-                    <td className="py-3.5 px-4 text-right font-mono">${bill.ivaValor.toFixed(2)}</td>
-                    <td className="py-3.5 px-4 text-right font-bold text-red-500">${bill.total.toFixed(2)}</td>
-                    <td className="py-3.5 px-4 text-center">
-                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold ${
+                    <td className="px-6 py-3.5 text-right font-mono">${bill.baseImponible.toFixed(2)}</td>
+                    <td className="px-6 py-3.5 text-right font-mono">${bill.ivaValor.toFixed(2)}</td>
+                    <td className="px-6 py-3.5 text-right font-bold text-red-500">${bill.total.toFixed(2)}</td>
+                    <td className="px-6 py-3.5 text-center">
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-[10px] text-[9px] font-bold ${
                         isImported 
                           ? 'bg-emerald-500/10 text-emerald-450' 
                           : 'bg-amber-500/10 text-amber-450'
@@ -256,14 +262,14 @@ export default function ComprasSriView({ transactions = [], isDarkMode, showToas
                         {isImported ? 'Importado' : 'Pendiente'}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 text-center">
+                    <td className="px-6 py-3.5 text-center">
                       <button
                         onClick={() => handleImportBill(bill)}
                         disabled={isImported}
-                        className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all flex items-center gap-1 mx-auto ${
+                        className={`px-3 py-1.5 rounded-[10px] text-[10px] font-black uppercase transition-all flex items-center gap-1 mx-auto ${
                           isImported 
-                            ? 'bg-gray-550/10 text-gray-550 cursor-not-allowed' 
-                            : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm'
+                            ? 'bg-gray-550/10 text-gray-550 cursor-not-allowed border border-white/5 shadow-inner' 
+                            : 'bg-emerald-650 hover:bg-emerald-600 text-white shadow-sm'
                         }`}
                       >
                         <Download size={10} />
@@ -276,7 +282,7 @@ export default function ComprasSriView({ transactions = [], isDarkMode, showToas
 
               {sriBills.length === 0 && (
                 <tr>
-                  <td colSpan="8" className="py-12 text-center text-gray-500 italic">
+                  <td colSpan="8" className="px-6 py-8 text-center text-gray-500 italic">
                     {companyRuc 
                       ? 'Haga clic en "Consultar Facturas SRI" para recuperar los comprobantes asociados a su RUC.' 
                       : 'Configure el RUC de su empresa para poder realizar consultas.'}
