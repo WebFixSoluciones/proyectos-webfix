@@ -83,36 +83,76 @@ export default async function handler(req, res) {
       to,
       subject: `Comprobante Electrónico Autorizado: ${documentNumber || ''}`,
       html: `
-        <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #f0f0f0; border-radius: 10px;">
-          <h2 style="color: #4f46e5; border-bottom: 2px solid #eef2ff; padding-bottom: 10px;">Comprobante Electrónico</h2>
-          <p>Estimado(a) <strong>${clientName || 'Cliente'}</strong>,</p>
-          <p>Le informamos que se ha generado y autorizado un comprobante electrónico a su nombre por parte de <strong>${companyName || 'nuestra empresa'}</strong>.</p>
+        <div style="max-width: 600px; margin: 30px auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);">
+          <!-- Top Accent Line -->
+          <div style="height: 6px; background: linear-gradient(90deg, #4f46e5 0%, #7c3aed 50%, #db2777 100%);"></div>
           
-          <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-            <tr style="background-color: #f9fafb;">
-              <td style="padding: 10px; border: 1px solid #e5e7eb; font-weight: bold;">Establecimiento / Razón Social:</td>
-              <td style="padding: 10px; border: 1px solid #e5e7eb;">${companyName || ''}</td>
-            </tr>
-            <tr>
-              <td style="padding: 10px; border: 1px solid #e5e7eb; font-weight: bold;">Número de Comprobante:</td>
-              <td style="padding: 10px; border: 1px solid #e5e7eb; font-mono">${documentNumber || ''}</td>
-            </tr>
-            <tr style="background-color: #f9fafb;">
-              <td style="padding: 10px; border: 1px solid #e5e7eb; font-weight: bold;">Monto Total:</td>
-              <td style="padding: 10px; border: 1px solid #e5e7eb; font-weight: bold; color: #16a34a;">$${Number(total || 0).toFixed(2)}</td>
-            </tr>
-          </table>
-
-          <p>Adjunto a este correo electrónico encontrará los archivos reglamentarios en formato <strong>XML</strong> y su representación impresa en formato <strong>PDF</strong>.</p>
-          
-          <div style="margin: 25px 0; text-align: center;">
-            ${pdfUrl ? `<a href="${pdfUrl}" target="_blank" style="background-color: #4f46e5; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; margin-right: 10px; display: inline-block;">Ver PDF Online</a>` : ''}
-            ${xmlUrl ? `<a href="${xmlUrl}" target="_blank" style="background-color: #10b981; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Ver XML Online</a>` : ''}
+          <!-- Header/Branding -->
+          <div style="padding: 32px 32px 20px 32px; text-align: center;">
+            <span style="font-size: 22px; font-weight: 850; letter-spacing: -0.5px; color: #1e293b; display: block; line-height: 1.2;">
+              ${companyName || 'Facturación Electrónica'}
+            </span>
+            <span style="font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: #64748b; font-weight: 700; display: block; margin-top: 8px;">
+              Documento Tributario SRI
+            </span>
           </div>
 
-          <p style="font-size: 11px; color: #666; border-top: 1px solid #e5e7eb; padding-top: 15px; margin-top: 25px;">
-            Este es un correo automático. Por favor no responda a esta dirección de correo.
-          </p>
+          <!-- Divider -->
+          <div style="height: 1px; background-color: #f1f5f9; margin: 0 32px;"></div>
+
+          <!-- Body Content -->
+          <div style="padding: 24px 32px 32px 32px; color: #334155; font-size: 13.5px; line-height: 1.6;">
+            <p style="margin-top: 0; margin-bottom: 16px; color: #0f172a; font-weight: 600;">
+              Estimado(a) ${clientName || 'Cliente'},
+            </p>
+            <p style="margin-bottom: 24px; color: #475569;">
+              Le informamos que se ha generado y autorizado con éxito un comprobante electrónico a su nombre. A continuación, se detallan los datos clave del documento:
+            </p>
+
+            <!-- Details Card -->
+            <div style="background-color: #f8fafc; border: 1px solid #f1f5f9; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="padding: 6px 0; font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; width: 45%;">Establecimiento / Emisor:</td>
+                  <td style="padding: 6px 0; font-size: 12.5px; color: #0f172a; font-weight: 700; text-align: right;">${companyName || ''}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 6px 0; font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Nro. Comprobante:</td>
+                  <td style="padding: 6px 0; font-size: 12.5px; color: #0f172a; font-family: monospace; font-weight: 700; text-align: right;">${documentNumber || ''}</td>
+                </tr>
+                <tr style="border-top: 1px solid #e2e8f0;">
+                  <td style="padding: 12px 0 0 0; font-size: 13.5px; color: #1e293b; font-weight: 700;">Monto Total Autorizado:</td>
+                  <td style="padding: 12px 0 0 0; font-size: 18px; color: #10b981; font-weight: 850; text-align: right;">$${Number(total || 0).toFixed(2)}</td>
+                </tr>
+              </table>
+            </div>
+
+            <p style="color: #64748b; font-size: 12px; margin-bottom: 24px; line-height: 1.5;">
+              De acuerdo con la normativa legal de facturación del SRI, hemos adjuntado a este correo el archivo oficial firmado digitalmente en formato <strong>XML</strong>, así como la representación impresa en formato <strong>PDF</strong> (si aplica).
+            </p>
+
+            <!-- Actions -->
+            <div style="text-align: center; margin: 28px 0 8px 0;">
+              ${pdfUrl ? `
+                <a href="${pdfUrl}" target="_blank" style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 12.5px; display: inline-block; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2); margin-right: 8px; margin-bottom: 8px; transition: all 0.2s;">
+                  Ver PDF Online (SRI)
+                </a>
+              ` : ''}
+              ${xmlUrl && !xmlUrl.startsWith('data:') ? `
+                <a href="${xmlUrl}" target="_blank" style="background-color: #0f172a; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 12.5px; display: inline-block; border: 1px solid #1e293b; margin-bottom: 8px;">
+                  Descargar XML
+                </a>
+              ` : ''}
+            </div>
+          </div>
+
+          <!-- Footer Info -->
+          <div style="background-color: #f8fafc; border-top: 1px solid #f1f5f9; padding: 24px 32px; text-align: center;">
+            <p style="font-size: 10.5px; color: #94a3b8; line-height: 1.5; margin: 0;">
+              Este comprobante fue emitido automáticamente por nuestro sistema de facturación electrónica. 
+              <br>Por favor no responda a este correo, ya que la dirección de origen no es monitoreada.
+            </p>
+          </div>
         </div>
       `,
       attachments
