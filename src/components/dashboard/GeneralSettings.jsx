@@ -50,7 +50,12 @@ export default function GeneralSettings({
     certificadoBase64: '',
     certificadoRuc: '',
     certificadoSujeto: '',
-    logoUrl: ''
+    logoUrl: '',
+    smtpHost: '',
+    smtpPort: '',
+    smtpUser: '',
+    smtpPass: '',
+    smtpSecure: false
   });
 
   const [isExtractingSRI, setIsExtractingSRI] = useState(false);
@@ -138,7 +143,12 @@ export default function GeneralSettings({
             certificadoBase64: finData.certificadoBase64 || '',
             certificadoRuc: finData.certificadoRuc || '',
             certificadoSujeto: finData.certificadoSujeto || '',
-            logoUrl: finData.logoUrl || ''
+            logoUrl: finData.logoUrl || '',
+            smtpHost: finData.smtpHost || '',
+            smtpPort: finData.smtpPort || '',
+            smtpUser: finData.smtpUser || '',
+            smtpPass: finData.smtpPass || '',
+            smtpSecure: finData.smtpSecure || false
           }));
         } else if (snap.exists() && snap.data().companyProfile) {
           const cp = snap.data().companyProfile;
@@ -159,7 +169,12 @@ export default function GeneralSettings({
             certificadoBase64: cp.certificadoBase64 || '',
             certificadoRuc: cp.certificadoRuc || '',
             certificadoSujeto: cp.certificadoSujeto || '',
-            logoUrl: cp.logoUrl || ''
+            logoUrl: cp.logoUrl || '',
+            smtpHost: cp.smtpHost || '',
+            smtpPort: cp.smtpPort || '',
+            smtpUser: cp.smtpUser || '',
+            smtpPass: cp.smtpPass || '',
+            smtpSecure: cp.smtpSecure || false
           }));
         }
         
@@ -781,7 +796,12 @@ export default function GeneralSettings({
         certificadoBase64: companyProfile.certificadoBase64 || '',
         certificadoRuc: companyProfile.certificadoRuc || '',
         certificadoSujeto: companyProfile.certificadoSujeto || '',
-        logoUrl: companyProfile.logoUrl || ''
+        logoUrl: companyProfile.logoUrl || '',
+        smtpHost: companyProfile.smtpHost || '',
+        smtpPort: companyProfile.smtpPort || '',
+        smtpUser: companyProfile.smtpUser || '',
+        smtpPass: companyProfile.smtpPass || '',
+        smtpSecure: companyProfile.smtpSecure || false
       };
       await setDoc(configRef, profileToSave, { merge: true });
 
@@ -1214,6 +1234,69 @@ export default function GeneralSettings({
                         onChange={e => setCompanyProfile({...companyProfile, web: e.target.value})} 
                         className={inputClass} 
                         placeholder="www.empresa.com" 
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* CARD 2.5: CONFIGURACIÓN DE CORREO SALIENTE (SMTP) */}
+                <div className={`p-5 rounded-3xl border space-y-4 ${isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-gray-50/50 border-gray-200 shadow-sm'}`}>
+                  <h4 className="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
+                    <Mail size={13} className="text-primary" /> Correo Saliente (SMTP)
+                  </h4>
+                  <p className="text-[10px] text-gray-500 leading-normal">
+                    Configura tu cuenta de correo para enviar automáticamente los comprobantes electrónicos (XML y PDF) autorizados a tus clientes.
+                  </p>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="sm:col-span-2">
+                      <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">Servidor SMTP (Host)</label>
+                      <input 
+                        type="text" 
+                        value={companyProfile.smtpHost || ''} 
+                        onChange={e => setCompanyProfile({...companyProfile, smtpHost: e.target.value})} 
+                        className={inputClass} 
+                        placeholder="smtp.gmail.com o mail.tuempresa.com" 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">Puerto SMTP</label>
+                      <input 
+                        type="text" 
+                        value={companyProfile.smtpPort || ''} 
+                        onChange={e => setCompanyProfile({...companyProfile, smtpPort: e.target.value})} 
+                        className={inputClass} 
+                        placeholder="465 (SSL) o 587 (TLS)" 
+                      />
+                    </div>
+                    <div className="flex items-center gap-2 pt-5">
+                      <input 
+                        type="checkbox" 
+                        id="smtpSecure"
+                        checked={!!companyProfile.smtpSecure} 
+                        onChange={e => setCompanyProfile({...companyProfile, smtpSecure: e.target.checked})} 
+                        className="rounded border-gray-300 text-primary focus:ring-primary h-3.5 w-3.5" 
+                      />
+                      <label htmlFor="smtpSecure" className="text-[10px] font-bold uppercase text-gray-500 cursor-pointer">Usar Conexión Segura (SSL/TLS)</label>
+                    </div>
+                    <div>
+                      <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">Usuario / Correo SMTP</label>
+                      <input 
+                        type="email" 
+                        value={companyProfile.smtpUser || ''} 
+                        onChange={e => setCompanyProfile({...companyProfile, smtpUser: e.target.value})} 
+                        className={inputClass} 
+                        placeholder="facturacion@tuempresa.com" 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">Contraseña SMTP</label>
+                      <input 
+                        type="password" 
+                        value={companyProfile.smtpPass || ''} 
+                        onChange={e => setCompanyProfile({...companyProfile, smtpPass: e.target.value})} 
+                        className={inputClass} 
+                        placeholder="••••••••••••" 
                       />
                     </div>
                   </div>

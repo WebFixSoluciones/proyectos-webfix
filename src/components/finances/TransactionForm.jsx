@@ -970,6 +970,53 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     });
   };
 
+  const enviarCorreoComprobante = async (txData, cliente, configSRI) => {
+    if (!cliente?.email || cliente.email.includes('consumidorfinal') || cliente.email.trim() === '') {
+      console.log("El cliente no tiene un correo válido registrado. Omitiendo envío de correo.");
+      return;
+    }
+
+    if (!configSRI.smtpHost || !configSRI.smtpUser || !configSRI.smtpPass) {
+      console.log("Servidor SMTP no configurado en los ajustes. Omitiendo envío de correo.");
+      return;
+    }
+
+    try {
+      const emailPayload = {
+        smtpHost: configSRI.smtpHost,
+        smtpPort: configSRI.smtpPort,
+        smtpUser: configSRI.smtpUser,
+        smtpPass: configSRI.smtpPass,
+        smtpSecure: configSRI.smtpSecure,
+        to: cliente.email,
+        clientName: cliente.name,
+        documentNumber: txData.documentNumber,
+        total: txData.total,
+        pdfUrl: txData.pdfUrl || '',
+        xmlUrl: txData.xmlUrl || '',
+        companyName: configSRI.nombreComercial || configSRI.razonSocial || 'Facturación Electrónica'
+      };
+
+      const res = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(emailPayload)
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        showToast(`Correo de comprobante enviado a ${cliente.email}`, 'success');
+      } else {
+        console.error("Fallo al enviar correo:", data.error);
+        showToast(`No se pudo enviar el correo: ${data.error}`, 'warning');
+      }
+    } catch (err) {
+      console.error("Error al conectar con la API de envío de correos:", err);
+    }
+  };
+
   const executeEmitirSRI = async () => {
     if (!validateForm()) return;
 
@@ -1137,6 +1184,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
       setFormData(finalTx);
       showToast('Comprobante autorizado tributariamente por el SRI', 'success');
+
+      // Enviar correo de comprobante al cliente de forma asíncrona
+      enviarCorreoComprobante(finalTx, matchedTercero, configData);
+
       setCurrentStep(3);
     } catch (err) {
       console.error(err);
