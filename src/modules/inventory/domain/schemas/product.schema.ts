@@ -25,9 +25,22 @@ export const ProductSchema = z.object({
   })).optional(), // Para COMBO
   
   // SRI & Tax
-  taxRate: z.number().default(15), // IVA Ecuador actual, o 0, etc.
+  taxRate: z.number().default(15),
   
   stock: z.number().default(0),
+  
+  // New visual and tier pricing fields
+  showInSales: z.boolean().default(true).optional(),
+  imageUrl: z.string().optional(),
+  inventoryType: z.enum(['PHYSICAL', 'VIRTUAL']).default('PHYSICAL').optional(),
+  priceA: z.number().optional(),
+  priceB: z.number().optional(),
+  priceC: z.number().optional(),
+  priceASinImpuesto: z.number().optional(),
+  priceBSinImpuesto: z.number().optional(),
+  priceCSinImpuesto: z.number().optional(),
+  priceWithoutTax: z.number().optional(),
+  ivaCalculated: z.number().optional(),
   
   status: z.enum(['ACTIVE', 'INACTIVE']).default('ACTIVE'),
   
