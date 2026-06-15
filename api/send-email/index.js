@@ -14,11 +14,20 @@ export default async function handler(req, res) {
     smtpSecure, 
     to, 
     clientName, 
+    clientIdentification,
     documentNumber, 
     total, 
     pdfUrl, 
     xmlUrl,
-    companyName
+    companyName,
+    logoUrl,
+    companyRuc,
+    companyAddress,
+    companyPhone,
+    claveAcceso,
+    fechaAutorizacion,
+    documentType,
+    date
   } = req.body;
 
   if (!smtpHost || !smtpPort || !smtpUser || !smtpPass) {
@@ -83,74 +92,138 @@ export default async function handler(req, res) {
       to,
       subject: `Comprobante Electrónico Autorizado: ${documentNumber || ''}`,
       html: `
-        <div style="max-width: 600px; margin: 30px auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);">
-          <!-- Top Accent Line -->
-          <div style="height: 6px; background: linear-gradient(90deg, #4f46e5 0%, #7c3aed 50%, #db2777 100%);"></div>
+        <div style="max-width: 700px; margin: 20px auto; font-family: Arial, sans-serif; background: #ffffff; border: 1px solid #cccccc; border-top: 6px solid #999999; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.08);">
           
-          <!-- Header/Branding -->
-          <div style="padding: 32px 32px 20px 32px; text-align: center;">
-            <span style="font-size: 22px; font-weight: 850; letter-spacing: -0.5px; color: #1e293b; display: block; line-height: 1.2;">
-              ${companyName || 'Facturación Electrónica'}
-            </span>
-            <span style="font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: #64748b; font-weight: 700; display: block; margin-top: 8px;">
-              Documento Tributario SRI
+          <!-- Header / Branding (Logo right, Details left) -->
+          <div style="padding: 24px 24px 20px 24px;">
+            <table style="width: 100%; border-collapse: collapse; border: none;">
+              <tr>
+                <td style="vertical-align: top; width: 60%; font-family: Arial, sans-serif; border: none;">
+                  <span style="font-size: 26px; font-weight: bold; color: #333333; display: block; line-height: 1.1; margin-bottom: 12px;">
+                    ${companyName || 'Facturación Electrónica'}
+                  </span>
+                  <div style="font-size: 11px; color: #333333; line-height: 1.5; font-family: Arial, sans-serif;">
+                    ${companyRuc ? `<strong>Ruc:</strong> ${companyRuc}<br>` : ''}
+                    ${companyAddress ? `<strong>Dirección:</strong> ${companyAddress}<br>` : ''}
+                    ${companyPhone ? `<strong>Teléfono:</strong> ${companyPhone}` : ''}
+                  </div>
+                </td>
+                <td style="vertical-align: middle; text-align: right; width: 40%; border: none;">
+                  ${logoUrl ? `
+                    <img src="${logoUrl}" alt="${companyName}" style="max-height: 85px; max-width: 200px; object-fit: contain;" />
+                  ` : ''}
+                </td>
+              </tr>
+            </table>
+          </div>
+
+          <!-- Estimado Cliente Bar -->
+          <div style="background-color: #e2f0f4; padding: 10px 24px; border-top: 1px solid #c8e1e7; border-bottom: 1px solid #c8e1e7;">
+            <span style="font-family: Arial, sans-serif; font-size: 13.5px; font-weight: bold; color: #2c525d; text-transform: uppercase;">
+              Estimado Cliente: ${String(clientName || 'Cliente').toUpperCase()}
             </span>
           </div>
 
-          <!-- Divider -->
-          <div style="height: 1px; background-color: #f1f5f9; margin: 0 32px;"></div>
+          <!-- Greeting -->
+          <div style="padding: 20px 24px 10px 24px; font-family: Arial, sans-serif; font-size: 12.5px; color: #333333; line-height: 1.5;">
+            <p style="margin: 0 0 10px 0;">Reciba un cordial saludo de ${companyName || 'nuestra empresa'}.</p>
+            <p style="margin: 0;">Nos complace informarle que su documento electrónico ha sido generado con el siguiente detalle.</p>
+          </div>
 
-          <!-- Body Content -->
-          <div style="padding: 24px 32px 32px 32px; color: #334155; font-size: 13.5px; line-height: 1.6;">
-            <p style="margin-top: 0; margin-bottom: 16px; color: #0f172a; font-weight: 600;">
-              Estimado(a) ${clientName || 'Cliente'},
-            </p>
-            <p style="margin-bottom: 24px; color: #475569;">
-              Le informamos que se ha generado y autorizado con éxito un comprobante electrónico a su nombre. A continuación, se detallan los datos clave del documento:
-            </p>
+          <!-- Details and Client Grid (2 Columns) -->
+          <div style="padding: 10px 24px 20px 24px;">
+            <table style="width: 100%; border-collapse: collapse; border: none;">
+              <tr>
+                <!-- Left Column: Detalle -->
+                <td style="width: 49%; vertical-align: top; padding-right: 1%; border: none;">
+                  <div style="background-color: #e2f0f4; border: 1px solid #c8e1e7; padding: 8px 12px; font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; color: #2c525d;">
+                    Detalle
+                  </div>
+                  <div style="border: 1px solid #e2e8f0; border-top: none; padding: 12px; font-family: Arial, sans-serif; font-size: 11px; color: #333333; line-height: 1.7; min-height: 195px; background: #ffffff;">
+                    <ul style="margin: 0; padding-left: 14px; list-style-type: disc;">
+                      <li style="margin-bottom: 6px;">
+                        <strong>Tipo De Documento</strong><br>
+                        ${String(documentType || 'factura').toUpperCase()}
+                      </li>
+                      <li style="margin-bottom: 6px;">
+                        <strong>Documento Electrónico No</strong><br>
+                        ${documentNumber || ''}
+                      </li>
+                      <li style="margin-bottom: 6px;">
+                        <strong>Autorización Electrónica</strong><br>
+                        <span style="font-family: monospace; word-break: break-all; font-size: 10px; color: #444444;">${claveAcceso || ''}</span>
+                      </li>
+                      <li style="margin-bottom: 6px;">
+                        <strong>Fecha de Autorización</strong><br>
+                        ${fechaAutorizacion || ''}
+                      </li>
+                      <li style="margin-bottom: 6px;">
+                        <strong>Clave Acceso</strong><br>
+                        <span style="font-family: monospace; word-break: break-all; font-size: 10px; color: #444444;">${claveAcceso || ''}</span>
+                      </li>
+                      <li style="margin-bottom: 6px; font-size: 12px; color: #10b981; list-style-type: none; margin-left: -14px;">
+                        <strong>Monto Total:</strong> $${Number(total || 0).toFixed(2)}
+                      </li>
+                    </ul>
+                  </div>
+                </td>
+                
+                <!-- Right Column: Datos Cliente -->
+                <td style="width: 49%; vertical-align: top; padding-left: 1%; border: none;">
+                  <div style="background-color: #e2f0f4; border: 1px solid #c8e1e7; padding: 8px 12px; font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; color: #2c525d;">
+                    Datos Cliente
+                  </div>
+                  <div style="border: 1px solid #e2e8f0; border-top: none; padding: 12px; font-family: Arial, sans-serif; font-size: 11px; color: #333333; line-height: 1.7; min-height: 195px; background: #ffffff;">
+                    <ul style="margin: 0; padding-left: 14px; list-style-type: disc;">
+                      <li style="margin-bottom: 8px;">
+                        <strong>C.I./Ruc/Pass</strong><br>
+                        ${clientIdentification || ''}
+                      </li>
+                      <li style="margin-bottom: 8px;">
+                        <strong>Fecha Emisión</strong><br>
+                        ${date || ''}
+                      </li>
+                      <li style="margin-bottom: 8px;">
+                        <strong>Usuario</strong><br>
+                        ${clientIdentification || ''}
+                      </li>
+                      <li style="margin-bottom: 8px;">
+                        <strong>Password</strong><br>
+                        ${clientIdentification || ''}
+                      </li>
+                      ${claveAcceso ? `
+                        <li style="margin-bottom: 4px;">
+                          <strong>PAGINA WEB</strong><br>
+                          <a href="https://srienlinea.sri.gob.ec/comprobantes-electronicos-internet/publico/detalle.jsf?claveAcceso=${claveAcceso}" target="_blank" style="color: #0066cc; text-decoration: underline; font-size: 10px; word-break: break-all;">
+                            Consultar Comprobante (SRI)
+                          </a>
+                        </li>
+                      ` : ''}
+                    </ul>
+                  </div>
+                </td>
+              </tr>
+            </table>
+          </div>
 
-            <!-- Details Card -->
-            <div style="background-color: #f8fafc; border: 1px solid #f1f5f9; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
-              <table style="width: 100%; border-collapse: collapse;">
-                <tr>
-                  <td style="padding: 6px 0; font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; width: 45%;">Establecimiento / Emisor:</td>
-                  <td style="padding: 6px 0; font-size: 12.5px; color: #0f172a; font-weight: 700; text-align: right;">${companyName || ''}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 6px 0; font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Nro. Comprobante:</td>
-                  <td style="padding: 6px 0; font-size: 12.5px; color: #0f172a; font-family: monospace; font-weight: 700; text-align: right;">${documentNumber || ''}</td>
-                </tr>
-                <tr style="border-top: 1px solid #e2e8f0;">
-                  <td style="padding: 12px 0 0 0; font-size: 13.5px; color: #1e293b; font-weight: 700;">Monto Total Autorizado:</td>
-                  <td style="padding: 12px 0 0 0; font-size: 18px; color: #10b981; font-weight: 850; text-align: right;">$${Number(total || 0).toFixed(2)}</td>
-                </tr>
-              </table>
-            </div>
-
-            <p style="color: #64748b; font-size: 12px; margin-bottom: 24px; line-height: 1.5;">
-              De acuerdo con la normativa legal de facturación del SRI, hemos adjuntado a este correo el archivo oficial firmado digitalmente en formato <strong>XML</strong>, así como la representación impresa en formato <strong>PDF</strong> (si aplica).
-            </p>
-
-            <!-- Actions -->
-            <div style="text-align: center; margin: 28px 0 8px 0;">
-              ${pdfUrl ? `
-                <a href="${pdfUrl}" target="_blank" style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 12.5px; display: inline-block; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2); margin-right: 8px; margin-bottom: 8px; transition: all 0.2s;">
-                  Ver PDF Online (SRI)
-                </a>
-              ` : ''}
-              ${xmlUrl && !xmlUrl.startsWith('data:') ? `
-                <a href="${xmlUrl}" target="_blank" style="background-color: #0f172a; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 12.5px; display: inline-block; border: 1px solid #1e293b; margin-bottom: 8px;">
-                  Descargar XML
-                </a>
-              ` : ''}
-            </div>
+          <!-- Quick Actions / Download Buttons -->
+          <div style="text-align: center; padding: 0 24px 20px 24px;">
+            ${pdfUrl ? `
+              <a href="${pdfUrl}" target="_blank" style="background-color: #0066cc; color: #ffffff; padding: 10px 18px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 12px; display: inline-block; margin-right: 8px; margin-bottom: 8px; font-family: Arial, sans-serif;">
+                Visualizar PDF
+              </a>
+            ` : ''}
+            ${xmlUrl && !xmlUrl.startsWith('data:') ? `
+              <a href="${xmlUrl}" target="_blank" style="background-color: #333333; color: #ffffff; padding: 10px 18px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 12px; display: inline-block; border: 1px solid #111111; margin-bottom: 8px; font-family: Arial, sans-serif;">
+                Descargar XML
+              </a>
+            ` : ''}
           </div>
 
           <!-- Footer Info -->
-          <div style="background-color: #f8fafc; border-top: 1px solid #f1f5f9; padding: 24px 32px; text-align: center;">
-            <p style="font-size: 10.5px; color: #94a3b8; line-height: 1.5; margin: 0;">
-              Este comprobante fue emitido automáticamente por nuestro sistema de facturación electrónica. 
-              <br>Por favor no responda a este correo, ya que la dirección de origen no es monitoreada.
+          <div style="background-color: #ffffff; border-top: 1px solid #e2e8f0; padding: 15px 24px; text-align: center;">
+            <p style="font-family: Arial, sans-serif; font-size: 11px; color: #000000; font-weight: normal; margin: 0; line-height: 1.4;">
+              sistema de facturación electrónica desarrollado por <strong>Web Fix</strong>
             </p>
           </div>
         </div>

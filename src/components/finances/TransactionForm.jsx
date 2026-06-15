@@ -990,11 +990,20 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         smtpSecure: configSRI.smtpSecure,
         to: cliente.email,
         clientName: cliente.name,
+        clientIdentification: cliente.ruc || cliente.identificacion || '',
         documentNumber: txData.documentNumber,
         total: txData.total,
         pdfUrl: txData.pdfUrl || '',
         xmlUrl: txData.xmlUrl || '',
-        companyName: configSRI.nombreComercial || configSRI.razonSocial || 'Facturación Electrónica'
+        companyName: configSRI.nombreComercial || configSRI.razonSocial || 'Facturación Electrónica',
+        logoUrl: configSRI.logoUrl || '',
+        companyRuc: configSRI.ruc || '',
+        companyAddress: configSRI.direccionMatriz || '',
+        companyPhone: configSRI.telefono || configSRI.telefonoContacto || '',
+        claveAcceso: txData.claveAcceso || '',
+        fechaAutorizacion: txData.fechaAutorizacion || new Date().toLocaleString(),
+        documentType: txData.documentType || 'factura',
+        date: txData.date || ''
       };
 
       const res = await fetch('/api/send-email', {
@@ -1157,6 +1166,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         documentNumber: docNum,
         sriStatus: 'autorizado',
         claveAcceso: result.claveAcceso,
+        fechaAutorizacion: result.fechaAutorizacion || new Date().toLocaleString(),
         codigoNumerico, // Guardar el código numérico generado
         xmlUrl: result.xmlUrl,
         pdfUrl: result.pdfUrl,

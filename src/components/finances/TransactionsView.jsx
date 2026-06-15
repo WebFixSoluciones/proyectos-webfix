@@ -280,11 +280,20 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
         smtpSecure: configData.smtpSecure,
         to: emailTarget,
         clientName: cliente?.name || 'Cliente',
+        clientIdentification: cliente?.ruc || cliente?.identificacion || '',
         documentNumber: emailModalTx.documentNumber,
         total: emailModalTx.total,
         pdfUrl: emailModalTx.pdfUrl || '',
         xmlUrl: emailModalTx.xmlUrl || '',
-        companyName: configData.nombreComercial || configData.razonSocial || 'Facturación Electrónica'
+        companyName: configData.nombreComercial || configData.razonSocial || 'Facturación Electrónica',
+        logoUrl: configData.logoUrl || '',
+        companyRuc: configData.ruc || '',
+        companyAddress: configData.direccionMatriz || '',
+        companyPhone: configData.telefono || configData.telefonoContacto || '',
+        claveAcceso: emailModalTx.claveAcceso || '',
+        fechaAutorizacion: emailModalTx.fechaAutorizacion || emailModalTx.date || new Date().toLocaleString(),
+        documentType: emailModalTx.documentType || 'factura',
+        date: emailModalTx.date || ''
       };
 
       const res = await fetch('/api/send-email', {
