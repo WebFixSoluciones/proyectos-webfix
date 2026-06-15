@@ -285,7 +285,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
             <div className={`p-3 rounded-xl mb-2.5 ${isDarkMode ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/15' : 'bg-emerald-100 text-emerald-700'}`}>
               <FileText size={20} />
             </div>
-            <span className="text-[11px] font-black">Consola SRI</span>
+            <span className="text-[11px] font-black">Facturación</span>
           </button>
 
           {/* Item 3: Inventario */}
@@ -546,7 +546,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
             <div className="flex items-center justify-between mb-5">
               <h3 className={`text-base font-bold flex items-center gap-2 ${isDarkMode ? 'text-gray-200' : 'text-gray-850'}`}>
                 <FileText size={18} className={isDarkMode ? 'text-emerald-400' : 'text-emerald-600'} />
-                Consola Electrónica SRI
+                Facturación Electrónica
               </h3>
               <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isDarkMode ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-100 text-emerald-800'}`}>
                 Ecuador SRI
