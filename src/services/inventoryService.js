@@ -1,12 +1,9 @@
-import { doc, getDoc, setDoc, collection, addDoc, getDocs, writeBatch } from "firebase/firestore";
-
-// Helper para redondear a 4 decimales en cálculos de costo
-const round4 = (num) => Math.round((num + Number.EPSILON) * 10000) / 10000;
-const round2 = (num) => Math.round((num + Number.EPSILON) * 100) / 100;
+import { doc, getDoc } from "firebase/firestore";
+import { kardexService } from "../modules/inventory/services/KardexService";
 
 /**
  * Registra un movimiento de Kardex y actualiza la existencia/costo del producto.
- * Si el producto es un Combo, desglosa y afecta las existencias de sus componentes.
+ * Redirigido al nuevo KardexService centralizado.
  */
 export async function registrarMovimientoKardex(db, appId, {
   productId,
@@ -24,7 +21,7 @@ export async function registrarMovimientoKardex(db, appId, {
   
   if (qty <= 0) return;
 
-  const productRef = doc(db, "artifacts", appId, "public", "data", "finances_products", productId);
+  const productRef = doc(db, "artifacts", appId, "public", "data", "inventory_products", productId);
   const productSnap = await getDoc(productRef);
 
   if (!productSnap.exists()) {
@@ -34,91 +31,67 @@ export async function registrarMovimientoKardex(db, appId, {
   const productData = productSnap.data();
 
   // Si el producto es un Combo, desglosamos y registramos movimientos para sus componentes
-  if (productData.productCategoryType === 'combo' && productData.comboItems && productData.comboItems.length > 0) {
+  if ((productData.type === 'COMBO' || productData.productCategoryType === 'combo') && productData.comboItems && productData.comboItems.length > 0) {
     for (const item of productData.comboItems) {
-      // La cantidad a descontar es la cantidad del combo vendida multiplicada por la cantidad del componente en el combo
       const componentQty = qty * (Number(item.quantity) || 1);
       
-      // Consultamos el componente para obtener su costo actual
-      const compRef = doc(db, "artifacts", appId, "public", "data", "finances_products", item.productId);
+      const compRef = doc(db, "artifacts", appId, "public", "data", "inventory_products", item.productId);
       const compSnap = await getDoc(compRef);
       let compCost = 0;
       if (compSnap.exists()) {
-        compCost = Number(compSnap.data().cost) || 0;
+        compCost = Number(compSnap.data().baseCost) || Number(compSnap.data().cost) || 0;
       }
 
       await registrarMovimientoKardex(db, appId, {
         productId: item.productId,
         type,
         quantity: componentQty,
-        cost: compCost, // Usar el costo actual del componente
-        price: 0, // En el desglose del combo, el precio se imputa al combo principal
+        cost: compCost,
+        price: 0,
         concept: `${concept} (Componente de Combo: ${productData.name})`,
         referenceId,
         bodega
       });
     }
-    return; // No alteramos stock físico del combo principal ya que es una entidad virtual
+    return;
   }
 
-  const currentStock = Number(productData.stock) || 0;
-  const currentCost = Number(productData.cost) || 0;
+  // Mapear bodega a branchId
+  let branchId = 'sucursal-central-uuid';
+  if (bodega.toLowerCase().includes('sur')) {
+    branchId = 'sucursal-sur-uuid';
+  } else if (bodega.toLowerCase().includes('norte')) {
+    branchId = 'sucursal-norte-uuid';
+  }
 
-  let previousStock = currentStock;
-  let previousAvgCost = currentCost;
-  let newStock = currentStock;
-  let newAvgCost = currentCost;
-
+  // Mapear tipos de movimiento al nuevo Kardex
+  let mappedType = 'SALE';
   const isEntry = ['entrada', 'ajuste_ingreso', 'transferencia_entrada'].includes(type);
+  const isAnulacion = concept.toLowerCase().includes('anulaci') || concept.toLowerCase().includes('revers');
 
   if (isEntry) {
-    newStock = currentStock + qty;
-    // Fórmula de Costo Promedio Ponderado (CPP)
-    const totalPreviousValue = currentStock * currentCost;
-    const totalEntryValue = qty * unitCost;
-    newAvgCost = newStock > 0 ? round4((totalPreviousValue + totalEntryValue) / newStock) : 0;
+    if (isAnulacion) {
+      mappedType = 'CUSTOMER_RETURN';
+    } else {
+      mappedType = 'PURCHASE_RECEIPT';
+    }
   } else {
-    // Es una salida
-    newStock = Math.max(0, currentStock - qty);
-    // En las salidas el costo promedio ponderado no se altera
-    newAvgCost = currentCost;
+    if (isAnulacion) {
+      mappedType = 'NEGATIVE_ADJUSTMENT';
+    } else {
+      mappedType = 'SALE';
+    }
   }
 
-  const now = new Date();
-  const dateStr = now.toISOString().split('T')[0];
-  const timeStr = now.toTimeString().split(' ')[0];
-
-  const kardexId = `kdx_${now.getTime()}_${Math.random().toString(36).substr(2, 5)}`;
-  const kardexData = {
-    id: kardexId,
+  // Llamar al nuevo KardexService unificado
+  await kardexService.registerTransaction(
     productId,
-    productName: productData.name,
-    productSku: productData.sku,
-    date: dateStr,
-    time: timeStr,
-    type,
-    quantity: qty,
-    cost: unitCost,
-    price: unitPrice,
-    previousStock,
-    previousAvgCost,
-    newStock,
-    newAvgCost,
-    concept,
-    referenceId,
-    bodega,
-    createdAt: now.toISOString()
-  };
-
-  // 1. Guardar log en finances_kardex
-  await setDoc(doc(db, "artifacts", appId, "public", "data", "finances_kardex", kardexId), kardexData);
-
-  // 2. Actualizar stock y costo en el catálogo
-  await setDoc(productRef, {
-    stock: newStock,
-    cost: newAvgCost,
-    updatedAt: now.toISOString()
-  }, { merge: true });
+    branchId,
+    mappedType,
+    referenceId || `sys_${Date.now()}`,
+    qty,
+    isEntry ? (unitCost || unitPrice || 0) : 0 // En salidas, el costo se resuelve por promedio ponderado
+  );
 }
 
 /**

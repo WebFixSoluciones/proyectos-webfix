@@ -1,6 +1,8 @@
 import { kardexRepository, KardexRepository } from '../repositories/KardexRepository';
 import { KardexTransaction, TransactionTypeEnum } from '../domain/schemas/kardex-transfer.schema';
 import { z } from 'zod';
+import { doc, updateDoc } from 'firebase/firestore';
+import { db, appId } from '../../../firebase';
 
 export class KardexService {
   constructor(private repo: KardexRepository = kardexRepository) {}
@@ -71,7 +73,29 @@ export class KardexService {
       balanceAverageCost: newAverageCost
     };
 
-    return await this.repo.save(newTx);
+    const savedTx = await this.repo.save(newTx);
+
+    // INTEGRACIÓN Y CENTRALIZACIÓN: Actualizar stock y costo en el documento del producto
+    try {
+      const productRef = doc(db, 'artifacts', appId, 'public', 'data', 'inventory_products', productId);
+      await updateDoc(productRef, {
+        stock: newBalanceQty,
+        baseCost: newAverageCost,
+        updatedAt: new Date()
+      });
+
+      // También mantener finances_products sincronizado como respaldo
+      const financesProductRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_products', productId);
+      await updateDoc(financesProductRef, {
+        stock: newBalanceQty,
+        cost: newAverageCost,
+        updatedAt: new Date().toISOString()
+      });
+    } catch (err) {
+      console.error("Error al actualizar stock/costo del producto tras transaccion de Kardex:", err);
+    }
+
+    return savedTx;
   }
 }
 

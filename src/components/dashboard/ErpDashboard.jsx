@@ -53,7 +53,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
 
     const txCol = collection(db, 'artifacts', appId, 'public', 'data', 'finances_transactions');
     const tpCol = collection(db, 'artifacts', appId, 'public', 'data', 'finances_third_parties');
-    const prodCol = collection(db, 'artifacts', appId, 'public', 'data', 'finances_products');
+    const prodCol = collection(db, 'artifacts', appId, 'public', 'data', 'inventory_products');
     const settingsRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config');
 
     const unsubTx = onSnapshot(txCol, (snap) => {
@@ -68,7 +68,16 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
     });
 
     const unsubProd = onSnapshot(prodCol, (snap) => {
-      const prodData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const prodData = snap.docs.map(d => {
+        const data = d.data();
+        return {
+          id: d.id,
+          ...data,
+          type: data.type === 'SERVICE' ? 'servicio' : 'producto',
+          stock: Number(data.stock) || 0,
+          minStock: 5
+        };
+      });
       setProducts(prodData);
     });
 

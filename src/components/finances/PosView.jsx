@@ -815,11 +815,11 @@ export default function PosView({ products, thirdParties, transactions = [], isD
         for (const item of tx.items) {
           try {
             // Reversar venta: volver a ingresar el producto (entrada)
-            const prodRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_products', item.productId);
+            const prodRef = doc(db, 'artifacts', appId, 'public', 'data', 'inventory_products', item.productId);
             const prodSnap = await getDoc(prodRef);
             let currentCost = 0;
             if (prodSnap.exists()) {
-              currentCost = Number(prodSnap.data().cost) || 0;
+              currentCost = Number(prodSnap.data().baseCost) || 0;
             }
 
             await registrarMovimientoKardex(db, appId, {

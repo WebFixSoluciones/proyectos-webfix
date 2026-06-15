@@ -10,7 +10,7 @@ import TransactionsView from './TransactionsView';
 import ThirdPartiesView from './ThirdPartiesView';
 import ReportsView from './ReportsView';
 import FinanceChat from './FinanceChat';
-import ProductsView from './ProductsView';
+import InventoryModule from '../inventory/InventoryModule';
 import QuotesView from './QuotesView';
 import PosView from './PosView';
 import TransactionForm from './TransactionForm';
@@ -312,7 +312,7 @@ export default function FinanceModule({
 
               {/* SECCIÓN INVENTARIO */}
               {activeTab === 'products' && (
-                <ProductsView isDarkMode={isDarkMode} showToast={showToast} db={db} appId={appId} />
+                <InventoryModule isDarkMode={isDarkMode} />
               )}
 
               {/* SECCIÓN PERSONAS */}

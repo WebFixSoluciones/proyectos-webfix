@@ -431,7 +431,32 @@ export default function App() {
   const [globalTransactions, setGlobalTransactions] = useState([]);
   const [globalThirdParties, setGlobalThirdParties] = useState([]);
   const [globalProducts, setGlobalProducts] = useState([]);
+  const [rawProducts, setRawProducts] = useState([]);
+  const [globalCategories, setGlobalCategories] = useState([]);
+  const [globalBrands, setGlobalBrands] = useState([]);
   const [isLoadingFinances, setIsLoadingFinances] = useState(true);
+
+  // Mapear rawProducts de inventario a globalProducts financieros con soporte reactivo de categorias y marcas
+  useEffect(() => {
+    const mapped = rawProducts.map(p => {
+      const catName = globalCategories.find(c => c.id === p.categoryId)?.name || "";
+      const brandName = globalBrands.find(b => b.id === p.brandId)?.name || "";
+      return {
+        ...p,
+        price: Number(p.salePrice) || 0,
+        cost: Number(p.baseCost) || 0,
+        ivaCategory: Number(p.taxRate) || 15,
+        type: p.type === 'SERVICE' ? 'servicio' : 'producto',
+        stock: Number(p.stock) || 0,
+        minStock: 5,
+        categoria: catName,
+        marca: brandName,
+        bodega: "Bodega Central",
+        codigoBarras: ""
+      };
+    });
+    setGlobalProducts(mapped);
+  }, [rawProducts, globalCategories, globalBrands]);
   const [isGlobalChatOpen, setIsGlobalChatOpen] = useState(false);
 
   const [isCloudSynced, setIsCloudSynced] = useState(false);
@@ -695,14 +720,32 @@ export default function App() {
         triggerSyncError();
       });
 
-      // 6. Escuchar Productos
-      const prodCol = collection(db, 'artifacts', appId, 'public', 'data', 'finances_products');
+      // 6. Escuchar Productos (Centralizado desde inventory_products)
+      const prodCol = collection(db, 'artifacts', appId, 'public', 'data', 'inventory_products');
       const unsubProd = onSnapshot(prodCol, (snap) => {
         const prodData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        setGlobalProducts(prodData);
+        setRawProducts(prodData);
       }, (err) => {
         console.error("Error subscribing to global products:", err);
         triggerSyncError();
+      });
+
+      // 7. Escuchar Categorías de Inventario
+      const catCol = collection(db, 'artifacts', appId, 'public', 'data', 'inventory_categories');
+      const unsubCat = onSnapshot(catCol, (snap) => {
+        const catData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        setGlobalCategories(catData);
+      }, (err) => {
+        console.error("Error subscribing to global categories:", err);
+      });
+
+      // 8. Escuchar Marcas de Inventario
+      const brandCol = collection(db, 'artifacts', appId, 'public', 'data', 'inventory_brands');
+      const unsubBrand = onSnapshot(brandCol, (snap) => {
+        const brandData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        setGlobalBrands(brandData);
+      }, (err) => {
+        console.error("Error subscribing to global brands:", err);
       });
 
       setIsCloudSynced(true);
@@ -714,6 +757,8 @@ export default function App() {
         unsubTx(); 
         unsubTp(); 
         unsubProd(); 
+        unsubCat();
+        unsubBrand();
       };
     });
 

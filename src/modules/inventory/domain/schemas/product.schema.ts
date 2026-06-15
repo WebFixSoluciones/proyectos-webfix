@@ -27,6 +27,8 @@ export const ProductSchema = z.object({
   // SRI & Tax
   taxRate: z.number().default(15), // IVA Ecuador actual, o 0, etc.
   
+  stock: z.number().default(0),
+  
   status: z.enum(['ACTIVE', 'INACTIVE']).default('ACTIVE'),
   
   createdAt: z.date().optional(),
