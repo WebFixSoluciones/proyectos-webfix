@@ -2,7 +2,7 @@ import React from 'react';
 import {
   Monitor, Palette, Rocket, Briefcase, LayoutDashboard, CalendarDays,
   Users, Trash2, ShoppingCart, ShoppingBag, CreditCard, DollarSign,
-  Package, FileText
+  Package, FileText, LifeBuoy
 } from 'lucide-react';
 
 // Helper para renderizar iconos a partir de un nombre lógico
@@ -22,6 +22,7 @@ export default function IconRenderer({ name, size = 18, className = "" }) {
     case 'finances': return <DollarSign size={size} className={className} />;
     case 'inventario': return <Package size={size} className={className} />;
     case 'personas': return <Users size={size} className={className} />;
+    case 'life-buoy': return <LifeBuoy size={size} className={className} />;
     default: return <FileText size={size} className={className} />;
   }
 }

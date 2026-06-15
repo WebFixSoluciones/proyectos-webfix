@@ -278,5 +278,105 @@ h1, h2, h3, h4, h5, h6, .font-display {
   animation: tick-animation 50s linear infinite;
 }
 
+/* ==========================================================================
+   Estandarización de Border Radius y Eliminación de Sombras (Diseño ERP)
+   ========================================================================== */
+
+/* 1. Estandarización de Cards, Paneles y Contenedores a 10px */
+.rounded:not(.rounded-full),
+.rounded-sm:not(.rounded-full),
+.rounded-md:not(.rounded-full),
+.rounded-lg:not(.rounded-full),
+.rounded-xl:not(.rounded-full),
+.rounded-2xl:not(.rounded-full),
+.rounded-3xl:not(.rounded-full),
+.rounded-4xl:not(.rounded-full),
+.rounded-5xl:not(.rounded-full),
+[class*="rounded-"]:not(.rounded-full):not([class*="rounded-full"]),
+.glass-panel-light,
+.glass-panel-dark {
+  border-radius: 10px !important;
+}
+
+/* 2. Estandarización de Botones, Inputs, Selects, Textareas, Atajos y Enlaces Tipo Botón a 4px */
+/* Selectores de Etiquetas base */
+button:not(.rounded-full),
+[role="button"]:not(.rounded-full),
+input:not(.rounded-full):not([type="checkbox"]):not([type="radio"]),
+select:not(.rounded-full),
+textarea:not(.rounded-full),
+kbd:not(.rounded-full),
+code:not(.rounded-full),
+.btn:not(.rounded-full),
+/* Aumentando especificidad para anular clases de Tailwind aplicadas a botones/controles */
+button[class*="rounded-"]:not(.rounded-full),
+button.rounded:not(.rounded-full),
+button.rounded-sm:not(.rounded-full),
+button.rounded-md:not(.rounded-full),
+button.rounded-lg:not(.rounded-full),
+button.rounded-xl:not(.rounded-full),
+button.rounded-2xl:not(.rounded-full),
+button.rounded-3xl:not(.rounded-full),
+[role="button"][class*="rounded-"]:not(.rounded-full),
+[role="button"].rounded:not(.rounded-full),
+[role="button"].rounded-sm:not(.rounded-full),
+[role="button"].rounded-md:not(.rounded-full),
+[role="button"].rounded-lg:not(.rounded-full),
+[role="button"].rounded-xl:not(.rounded-full),
+input[class*="rounded-"]:not(.rounded-full),
+input.rounded:not(.rounded-full),
+input.rounded-sm:not(.rounded-full),
+input.rounded-md:not(.rounded-full),
+input.rounded-lg:not(.rounded-full),
+input.rounded-xl:not(.rounded-full),
+select[class*="rounded-"]:not(.rounded-full),
+select.rounded:not(.rounded-full),
+select.rounded-sm:not(.rounded-full),
+select.rounded-md:not(.rounded-full),
+select.rounded-lg:not(.rounded-full),
+textarea[class*="rounded-"]:not(.rounded-full),
+textarea.rounded:not(.rounded-full),
+textarea.rounded-sm:not(.rounded-full),
+textarea.rounded-md:not(.rounded-full),
+textarea.rounded-lg:not(.rounded-full),
+kbd[class*="rounded-"]:not(.rounded-full),
+kbd.rounded:not(.rounded-full),
+kbd.rounded-sm:not(.rounded-full),
+kbd.rounded-md:not(.rounded-full),
+kbd.rounded-lg:not(.rounded-full),
+/* Enlaces que funcionan como botones (usualmente con fondos bg- y clases rounded) */
+a[class*="bg-"]:not(.rounded-full),
+a[class*="btn"]:not(.rounded-full),
+a.rounded:not(.rounded-full),
+a.rounded-sm:not(.rounded-full),
+a.rounded-md:not(.rounded-full),
+a.rounded-lg:not(.rounded-full),
+a.rounded-xl:not(.rounded-full),
+a.rounded-2xl:not(.rounded-full),
+a[class*="rounded-"]:not(.rounded-full) {
+  border-radius: 4px !important;
+}
+
+/* 3. Eliminación Completa de Sombras en Tarjetas, Paneles y Botones */
+button,
+[role="button"],
+input,
+select,
+textarea,
+.glass-panel-light,
+.glass-panel-dark,
+[class*="shadow-"],
+[class*="shadow\["],
+.shadow-sm,
+.shadow,
+.shadow-md,
+.shadow-lg,
+.shadow-xl,
+.shadow-2xl,
+.shadow-inner {
+  box-shadow: none !important;
+}
+
+
 
 

@@ -60,7 +60,8 @@ import {
   ShoppingBag,
   Building,
   Calculator,
-  CloudOff
+  CloudOff,
+  LifeBuoy
 } from 'lucide-react';
 
 import {
@@ -90,6 +91,7 @@ import FinanceModule from './components/finances/FinanceModule';
 import ErpDashboard from './components/dashboard/ErpDashboard';
 import GeneralSettings from './components/dashboard/GeneralSettings';
 import HiringServicesModule from './components/dashboard/HiringServicesModule';
+import SupportModule from './components/dashboard/SupportModule';
 import FinanceChat from './components/finances/FinanceChat';
 import GastosCreditosModule from './components/finances/GastosCreditosModule';
 import InventoryModule from './components/inventory/InventoryModule';
@@ -795,6 +797,8 @@ export default function App() {
     activePage = { id: 'paginas_general', title: 'Páginas del Espacio', icon: 'file-text', type: 'paginas_general' };
   } else if (activePageId === 'contratar_servicios') {
     activePage = { id: 'contratar_servicios', title: 'Servicios Web Fix', icon: 'rocket', type: 'contratar_servicios' };
+  } else if (activePageId === 'soporte_tecnico') {
+    activePage = { id: 'soporte_tecnico', title: 'Soporte Técnico', icon: 'life-buoy', type: 'soporte_tecnico' };
   } else {
     activePage = pages.find(p => p.id === activePageId) || { id: 'empty', title: 'Sin páginas', type: 'empty' };
     if (activePage.type === 'project') {
@@ -887,6 +891,12 @@ export default function App() {
           title: 'Servicios de Crecimiento Web Fix',
           desc: 'Adquiere y gestiona servicios de diseño, correo corporativo y marketing digital para potenciar tu marca',
           icon: 'rocket'
+        };
+      case 'soporte_tecnico':
+        return {
+          title: 'Soporte Técnico Especializado',
+          desc: 'Envía tus solicitudes de ayuda técnica y reportes de incidencias directamente a nuestro equipo',
+          icon: 'life-buoy'
         };
       default:
         return {
@@ -2149,26 +2159,6 @@ export default function App() {
             {isSidebarOpen && <span>Proyectos</span>}
           </button>
 
-          {/* Servicios Web Fix */}
-          <button 
-            onClick={() => { setActivePageId('contratar_servicios'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
-            className={`group flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
-              activePageId === 'contratar_servicios'
-                ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-900')
-                : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-black hover:bg-primary-light hover:text-black')
-            }`}
-          >
-            <Rocket 
-              size={18} 
-              className={`transition-colors ${
-                activePageId === 'contratar_servicios' 
-                  ? 'text-primary' 
-                  : (isDarkMode ? 'text-gray-500 group-hover:text-primary' : 'text-black group-hover:text-primary')
-              }`} 
-            />
-            {isSidebarOpen && <span>Servicios Web Fix</span>}
-          </button>
-
           {/* 9. Ajustes */}
           <button 
             onClick={() => { setActivePageId('general_settings'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
@@ -2192,9 +2182,36 @@ export default function App() {
 
         {/* Bottom Area */}
         <div className={`p-3 border-t ${isDarkMode ? 'border-white/5' : 'border-black/5'} space-y-1`}>
-          {/* Nueva tarea */}
-          <button onClick={() => { openNewTaskDrawer('todo'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} className={`flex items-center gap-3 w-full px-3 py-2 text-xs rounded-xl transition-all font-medium ${isDarkMode ? 'text-primary hover:bg-primary/10' : 'text-primary hover:bg-primary-light'}`}>
-            <CheckSquare size={14} className="text-primary" />{isSidebarOpen && <span>Nueva tarea</span>}
+          {/* Servicios Web Fix */}
+          <button 
+            onClick={() => { setActivePageId('contratar_servicios'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
+            className={`flex items-center gap-3 w-full px-3 py-2 text-xs rounded-xl transition-all ${
+              activePageId === 'contratar_servicios'
+                ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm font-semibold' : 'bg-primary-light text-gray-900 border border-primary/15 font-semibold')
+                : (isDarkMode ? 'text-gray-400 hover:bg-white/5 font-light' : 'text-black hover:bg-[#f3f8ff] font-light')
+            }`}
+          >
+            <Rocket 
+              size={14} 
+              className={activePageId === 'contratar_servicios' ? 'text-primary' : (isDarkMode ? 'text-gray-500' : 'text-black')} 
+            />
+            {isSidebarOpen && <span>Servicios Web Fix</span>}
+          </button>
+
+          {/* Soporte Técnico */}
+          <button 
+            onClick={() => { setActivePageId('soporte_tecnico'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
+            className={`flex items-center gap-3 w-full px-3 py-2 text-xs rounded-xl transition-all ${
+              activePageId === 'soporte_tecnico'
+                ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm font-semibold' : 'bg-primary-light text-gray-900 border border-primary/15 font-semibold')
+                : (isDarkMode ? 'text-gray-400 hover:bg-white/5 font-light' : 'text-black hover:bg-[#f3f8ff] font-light')
+            }`}
+          >
+            <LifeBuoy 
+              size={14} 
+              className={activePageId === 'soporte_tecnico' ? 'text-primary' : (isDarkMode ? 'text-gray-500' : 'text-black')} 
+            />
+            {isSidebarOpen && <span>Soporte Técnico</span>}
           </button>
 
           {/* Papelera */}
@@ -2322,6 +2339,16 @@ export default function App() {
               {/* VISTA: CONTRATACIÓN DE SERVICIOS */}
               {activePageId === 'contratar_servicios' && (
                 <HiringServicesModule 
+                  isDarkMode={isDarkMode} 
+                  showToast={showToast} 
+                  db={db} 
+                  appId={appId} 
+                />
+              )}
+
+              {/* VISTA: SOPORTE TÉCNICO */}
+              {activePageId === 'soporte_tecnico' && (
+                <SupportModule 
                   isDarkMode={isDarkMode} 
                   showToast={showToast} 
                   db={db} 
