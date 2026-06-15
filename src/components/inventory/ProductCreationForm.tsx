@@ -463,6 +463,13 @@ export default function ProductCreationForm({
     e.preventDefault();
     if (!newSupplierName.trim() || !newSupplierRuc.trim()) return;
 
+    const trimmedRuc = newSupplierRuc.trim();
+    const isDuplicate = suppliers.some((s: any) => s.ruc && s.ruc.trim() === trimmedRuc);
+    if (isDuplicate) {
+      alert("Ya existe un proveedor con este RUC/Identificación");
+      return;
+    }
+
     try {
       const supId = `tp_${new Date().getTime()}_prov`;
       const supplierPayload = {

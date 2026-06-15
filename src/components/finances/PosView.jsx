@@ -784,6 +784,12 @@ export default function PosView({ products, thirdParties, transactions = [], isD
       showToast("Nombre e identificación obligatorios", "error");
       return;
     }
+    const trimmedRuc = quickAddFormData.ruc.trim();
+    const isDuplicate = (thirdParties || []).some(tp => tp.ruc && tp.ruc.trim() === trimmedRuc);
+    if (isDuplicate) {
+      showToast("Ya existe un cliente con este RUC/Identificación", "error");
+      return;
+    }
     try {
       const docId = `tp_${new Date().getTime()}`;
       await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_third_parties', docId), sanitizeData({

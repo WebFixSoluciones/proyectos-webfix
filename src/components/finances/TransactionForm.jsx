@@ -206,6 +206,12 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       showToast('Nombre y RUC/Identificación son obligatorios', 'error');
       return;
     }
+    const trimmedRuc = quickAddFormData.ruc.trim();
+    const isDuplicate = (thirdParties || []).some(tp => tp.ruc && tp.ruc.trim() === trimmedRuc);
+    if (isDuplicate) {
+      showToast('Ya existe un contacto con este RUC/Identificación', 'error');
+      return;
+    }
     try {
       const docId = `tp_${new Date().getTime()}`;
       const relationType = formData.type === 'ingreso' ? 'cliente' : 'proveedor';

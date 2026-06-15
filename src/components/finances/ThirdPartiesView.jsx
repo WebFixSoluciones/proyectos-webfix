@@ -64,6 +64,13 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
       return;
     }
 
+    const trimmedRuc = formData.ruc.trim();
+    const isDuplicate = thirdParties.some(tp => tp.ruc.trim() === trimmedRuc && tp.id !== formData.id);
+    if (isDuplicate) {
+      showToast('Ya existe un contacto con este RUC/Identificación', 'error');
+      return;
+    }
+
     try {
       const docId = formData.id || `tp_${new Date().getTime()}`;
       await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_third_parties', docId), {

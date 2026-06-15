@@ -1271,6 +1271,12 @@ export default function App() {
 
   const saveDrawerUser = async () => {
     if (!drawerUser || !drawerUser.name.trim()) return;
+    const trimmedName = drawerUser.name.trim().toLowerCase();
+    const isDuplicate = users.some(u => u.name.trim().toLowerCase() === trimmedName && u.id !== drawerUser.id);
+    if (isDuplicate) {
+      showToast('Ya existe un usuario con este nombre', 'error');
+      return;
+    }
     const initials = drawerUser.name.trim().split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase() || 'U';
     const userToSave = { ...drawerUser, initials, name: drawerUser.name.trim() };
     
