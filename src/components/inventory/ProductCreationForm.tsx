@@ -101,7 +101,7 @@ export default function ProductCreationForm({
     }
   };
 
-  const inputClass = `w-full px-4 py-2.5 rounded-xl outline-none transition-all border ${
+  const inputClass = `w-full px-4 py-2 rounded-xl outline-none transition-all border ${
     isDarkMode 
       ? 'bg-black/30 border-white/10 text-white focus:border-primary focus:bg-black/50 shadow-inner' 
       : 'bg-white/50 border-gray-200 text-gray-800 focus:border-primary focus:bg-white shadow-inner'
@@ -124,19 +124,23 @@ export default function ProductCreationForm({
       } custom-scrollbar`}
     >
       {/* Header */}
-      <div className={`sticky top-0 z-10 px-6 py-5 border-b backdrop-blur-md flex items-center justify-between ${
+      <div className={`sticky top-0 z-10 px-6 py-4 border-b backdrop-blur-md flex items-center justify-between ${
         isDarkMode ? 'border-white/10 bg-gray-900/80' : 'border-gray-100 bg-white/80'
       }`}>
         <div className="flex items-center gap-3">
-          <div className={`p-2.5 rounded-xl shadow-inner ${isDarkMode ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
-            <Package size={24} />
+          <div className={`p-2 rounded-xl shadow-inner ${isDarkMode ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+            <Package size={20} />
           </div>
           <div>
-            <h2 className={`text-xl font-bold tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-              {productToEdit ? 'Editar Producto' : 'Nuevo Producto'}
+            <h2 className={`text-base font-bold tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+              {productToEdit?.id ? 'Editar Producto' : 'Nuevo Producto'} - {
+                formData.type === 'STANDARD' ? 'Estándar' :
+                formData.type === 'SUBPRODUCT' ? 'Subproducto' :
+                formData.type === 'COMBO' ? 'Combo' : 'Estándar'
+              }
             </h2>
-            <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-              {productToEdit ? `Edita los detalles del producto` : 'Añade un nuevo ítem estándar al inventario'}
+            <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              {productToEdit?.id ? 'Edita los detalles del producto seleccionado' : 'Registra un nuevo artículo en tu inventario'}
             </p>
           </div>
         </div>
@@ -146,12 +150,12 @@ export default function ProductCreationForm({
               isDarkMode ? 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-900'
             }`}
           >
-            <X size={20} />
+            <X size={18} />
           </button>
         </div>
 
         {/* Content */}
-        <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-8">
+        <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-5">
           
           {error && (
             <div className={`flex items-center gap-3 p-4 rounded-xl border ${

@@ -257,204 +257,195 @@ export default function InventoryModule({ isDarkMode }: InventoryModuleProps) {
         {/* --- TAB: PRODUCTOS & SERVICIOS --- */}
         {activeTab === 'productos' && (
           <div className="w-full h-full flex flex-col space-y-6 animate-in fade-in duration-300">
-            {/* Title & Description */}
-            <div>
-              <h1 className={`text-2xl font-bold tracking-tight flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                <Package className={isDarkMode ? 'text-primary' : 'text-primary'} />
-                Catálogo de Productos y Servicios
-              </h1>
-              <p className={`text-sm mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                Gestiona productos estándar, combos, subproductos y tarifas de servicios.
-              </p>
-            </div>
+            {!inlineFormMode ? (
+              <>
+                {/* FILTROS Y ACCIONES */}
+                <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 mb-6">
+                  <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                    <button 
+                      onClick={() => setShowProductTypeSelector(true)}
+                      className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-[10px] text-xs font-bold transition-all hover-lift shadow-md bg-primary text-white hover:bg-primary/95`}
+                    >
+                      <Plus size={15} /> Nuevo Producto
+                    </button>
+                    <button 
+                      onClick={() => {
+                        setInlineFormMode('create_service');
+                        setEditingProduct(null);
+                        setTimeout(() => {
+                          document.getElementById('inline-form-container')?.scrollIntoView({ behavior: 'smooth' });
+                        }, 100);
+                      }}
+                      className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-[10px] text-xs font-bold transition-all hover-lift shadow-md bg-indigo-600 text-white hover:bg-indigo-550`}
+                    >
+                      <Briefcase size={15} /> Nuevo Servicio
+                    </button>
+                    <button 
+                      onClick={() => setIsCatBrandOpen(true)}
+                      className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-[10px] text-xs font-bold transition-all border shadow-sm ${
+                        isDarkMode ? 'bg-white/5 border-white/10 text-gray-305 hover:bg-white/10' : 'bg-gray-50 border-gray-300 text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      <Tag size={15} /> Categorías/Marcas
+                    </button>
+                  </div>
 
-            {/* FILTROS Y ACCIONES */}
-            <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 mb-6">
-              <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
-                <button 
-                  onClick={() => setShowProductTypeSelector(true)}
-                  className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-[10px] text-xs font-bold transition-all hover-lift shadow-md bg-primary text-white hover:bg-primary/95`}
-                >
-                  <Plus size={15} /> Nuevo Producto
-                </button>
-                <button 
-                  onClick={() => {
-                    setInlineFormMode('create_service');
-                    setEditingProduct(null);
-                    setTimeout(() => {
-                      document.getElementById('inline-form-container')?.scrollIntoView({ behavior: 'smooth' });
-                    }, 100);
-                  }}
-                  className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-[10px] text-xs font-bold transition-all hover-lift shadow-md bg-indigo-600 text-white hover:bg-indigo-550`}
-                >
-                  <Briefcase size={15} /> Nuevo Servicio
-                </button>
-                <button 
-                  onClick={() => setIsCatBrandOpen(true)}
-                  className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-[10px] text-xs font-bold transition-all border shadow-sm ${
-                    isDarkMode ? 'bg-white/5 border-white/10 text-gray-305 hover:bg-white/10' : 'bg-gray-50 border-gray-300 text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  <Tag size={15} /> Categorías/Marcas
-                </button>
-              </div>
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
+                    <div className={`flex items-center gap-2 px-3.5 py-2 rounded-[10px] border w-full sm:w-64 transition-all focus-within:ring-1 focus-within:ring-primary/25 ${
+                      isDarkMode 
+                        ? 'bg-[#151722]/80 border-white/10 focus-within:border-primary/50' 
+                        : 'bg-white border-slate-200 focus-within:border-primary'
+                    }`}>
+                      <Search size={14} className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
+                      <input
+                        type="text"
+                        placeholder="Buscar por SKU o nombre..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="bg-transparent border-none outline-none text-xs w-full text-current placeholder-gray-500 focus:ring-0"
+                      />
+                    </div>
 
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
-                <div className={`flex items-center gap-2 px-3.5 py-2 rounded-[10px] border w-full sm:w-64 transition-all focus-within:ring-1 focus-within:ring-primary/25 ${
-                  isDarkMode 
-                    ? 'bg-[#151722]/80 border-white/10 focus-within:border-primary/50' 
-                    : 'bg-white border-slate-200 focus-within:border-primary'
-                }`}>
-                  <Search size={14} className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
-                  <input
-                    type="text"
-                    placeholder="Buscar por SKU o nombre..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="bg-transparent border-none outline-none text-xs w-full text-current placeholder-gray-500 focus:ring-0"
-                  />
+                    <select
+                      value={selectedCategory}
+                      onChange={(e) => setSelectedCategory(e.target.value)}
+                      className={`px-3 py-2 rounded-[10px] border text-xs font-medium outline-none transition-all cursor-pointer ${
+                        isDarkMode 
+                          ? 'bg-[#151722]/80 border-white/10 text-gray-300 focus:border-primary/50' 
+                          : 'bg-white border-slate-200 text-slate-700 focus:border-primary'
+                      }`}
+                    >
+                      <option value="" className="text-black">Todas las Categorías</option>
+                      {categories.map(c => (
+                        <option key={c.id} value={c.id} className="text-black">{c.name}</option>
+                      ))}
+                    </select>
+
+                    <select
+                      value={selectedType}
+                      onChange={(e) => setSelectedType(e.target.value)}
+                      className={`px-3 py-2 rounded-[10px] border text-xs font-medium outline-none transition-all cursor-pointer ${
+                        isDarkMode 
+                          ? 'bg-[#151722]/80 border-white/10 text-gray-300 focus:border-primary/50' 
+                          : 'bg-white border-slate-200 text-slate-700 focus:border-primary'
+                      }`}
+                    >
+                      <option value="" className="text-black">Todos los Tipos</option>
+                      <option value="STANDARD" className="text-black">Estándar</option>
+                      <option value="COMBO" className="text-black">Combo</option>
+                      <option value="SUBPRODUCT" className="text-black">Subproducto</option>
+                      <option value="SERVICE" className="text-black">Servicio</option>
+                    </select>
+                  </div>
                 </div>
-
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className={`px-3 py-2 rounded-[10px] border text-xs font-medium outline-none transition-all cursor-pointer ${
-                    isDarkMode 
-                      ? 'bg-[#151722]/80 border-white/10 text-gray-300 focus:border-primary/50' 
-                      : 'bg-white border-slate-200 text-slate-700 focus:border-primary'
-                  }`}
-                >
-                  <option value="" className="text-black">Todas las Categorías</option>
-                  {categories.map(c => (
-                    <option key={c.id} value={c.id} className="text-black">{c.name}</option>
-                  ))}
-                </select>
-
-                <select
-                  value={selectedType}
-                  onChange={(e) => setSelectedType(e.target.value)}
-                  className={`px-3 py-2 rounded-[10px] border text-xs font-medium outline-none transition-all cursor-pointer ${
-                    isDarkMode 
-                      ? 'bg-[#151722]/80 border-white/10 text-gray-300 focus:border-primary/50' 
-                      : 'bg-white border-slate-200 text-slate-700 focus:border-primary'
-                  }`}
-                >
-                  <option value="" className="text-black">Todos los Tipos</option>
-                  <option value="STANDARD" className="text-black">Estándar</option>
-                  <option value="COMBO" className="text-black">Combo</option>
-                  <option value="SUBPRODUCT" className="text-black">Subproducto</option>
-                  <option value="SERVICE" className="text-black">Servicio</option>
-                </select>
-              </div>
-            </div>
-            
-            {/* Products Table */}
-            <div className={`rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm ${
-              isDarkMode 
-                ? 'border-white/5 bg-[#0f111a]/85 shadow-lg shadow-black/40' 
-                : 'border-slate-200/80 bg-white'
-            }`}>
-              <div className="overflow-x-auto custom-scrollbar">
-                <table className="w-full text-left text-xs whitespace-nowrap">
-                  <thead className={`text-[10px] uppercase font-bold tracking-wider ${
-                    isDarkMode 
-                      ? 'bg-black/35 text-slate-400 border-b border-white/5' 
-                      : 'bg-slate-50 text-slate-600 border-b border-slate-100'
-                  }`}>
-                    <tr>
-                      <th className="px-6 py-3.5">SKU</th>
-                      <th className="px-6 py-3.5">Nombre</th>
-                      <th className="px-6 py-3.5">Tipo</th>
-                      <th className="px-6 py-3.5">Categoría</th>
-                      <th className="px-6 py-3.5">Costo Base</th>
-                      <th className="px-6 py-3.5">Precio Venta</th>
-                      <th className="px-6 py-3.5">Impuesto</th>
-                      <th className="px-6 py-3.5">Stock Actual</th>
-                      <th className="px-6 py-3.5 text-center">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody className={`divide-y ${isDarkMode ? 'divide-white/5' : 'divide-slate-100'}`}>
-                    {loading ? (
-                      <tr>
-                        <td colSpan={9} className="px-6 py-8 text-center text-gray-500 font-bold">Cargando catálogo...</td>
-                      </tr>
-                    ) : filteredProducts.length === 0 ? (
-                      <tr>
-                        <td colSpan={9} className="px-6 py-8 text-center text-gray-500">No se encontraron productos ni servicios.</td>
-                      </tr>
-                    ) : (
-                      filteredProducts.map(p => {
-                        const stock = stocks[p.id || ''] !== undefined ? stocks[p.id || ''] : 0;
-                        const isService = p.type === 'SERVICE';
-                        
-                        return (
-                          <tr key={p.id} className={`transition-colors ${isDarkMode ? 'hover:bg-white/[0.015]' : 'hover:bg-slate-50/40'}`}>
-                            <td className={`px-6 py-3.5 font-mono text-[10px] font-bold ${isDarkMode ? '' : 'text-black font-semibold'}`}>{p.sku}</td>
-                            <td className="px-6 py-3.5">
-                              <span className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900 font-bold'}`}>{p.name}</span>
-                              {p.description && <p className="text-[10px] text-gray-500 mt-0.5">{p.description}</p>}
-                            </td>
-                            <td className="px-6 py-3.5">
-                              {p.type === 'STANDARD' && <span className="px-2 py-0.5 rounded-[10px] text-[10px] font-bold bg-primary/10 text-primary border border-primary/20">Estándar</span>}
-                              {p.type === 'COMBO' && <span className="px-2 py-0.5 rounded-[10px] text-[10px] font-bold bg-purple-500/10 text-purple-400 border border-purple-500/20">Combo</span>}
-                              {p.type === 'SUBPRODUCT' && <span className="px-2 py-0.5 rounded-[10px] text-[10px] font-bold bg-primary/10 text-primary border border-primary/20">Subproducto</span>}
-                              {p.type === 'SERVICE' && <span className="px-2 py-0.5 rounded-[10px] text-[10px] font-bold bg-pink-500/10 text-pink-400 border border-pink-500/20">Servicio</span>}
-                            </td>
-                            <td className="px-6 py-3.5 text-gray-500 font-medium">{getCategoryName(p.categoryId)}</td>
-                            <td className="px-6 py-3.5 font-semibold">${p.baseCost.toFixed(2)}</td>
-                            <td className="px-6 py-3.5 font-bold text-emerald-500">${p.salePrice.toFixed(2)}</td>
-                            <td className="px-6 py-3.5 text-gray-500 font-medium">{p.taxRate}%</td>
-                            <td className="px-6 py-3.5 font-bold">
-                              {isService ? (
-                                <span className="text-gray-400 italic font-medium">N/A</span>
-                              ) : stock > 0 ? (
-                                <span className="text-emerald-500">{stock} u.</span>
-                              ) : (
-                                <span className="text-red-500">Agotado</span>
-                              )}
-                            </td>
-                            <td className="px-6 py-3.5 text-center">
-                              <div className="flex items-center justify-center gap-2">
-                                <button
-                                  onClick={() => {
-                                    if (p.id) {
-                                      if (p.type === 'SERVICE') {
-                                        setInlineFormMode('edit_service');
-                                      } else {
-                                        setInlineFormMode('edit_product');
-                                      }
-                                      setEditingProduct(p);
-                                      setTimeout(() => {
-                                        document.getElementById('inline-form-container')?.scrollIntoView({ behavior: 'smooth' });
-                                      }, 100);
-                                    }
-                                  }}
-                                  className="p-1.5 rounded-[10px] text-primary hover:bg-primary/10 transition-all border border-primary/10 bg-white dark:bg-transparent shadow-sm"
-                                  title="Editar"
-                                >
-                                  <Edit2 size={13} />
-                                </button>
-                                <button
-                                  onClick={() => p.id && handleDeleteProduct(p.id)}
-                                  className="p-1.5 rounded-[10px] text-red-500 hover:bg-red-500/10 transition-all border border-red-500/10 bg-white dark:bg-transparent shadow-sm"
-                                  title="Eliminar"
-                                >
-                                  <Trash2 size={13} />
-                                </button>
-                              </div>
-                            </td>
+                
+                {/* Products Table */}
+                <div className={`rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm ${
+                  isDarkMode 
+                    ? 'border-white/5 bg-[#0f111a]/85 shadow-lg shadow-black/40' 
+                    : 'border-slate-200/80 bg-white'
+                }`}>
+                  <div className="overflow-x-auto custom-scrollbar">
+                    <table className="w-full text-left text-xs whitespace-nowrap">
+                      <thead className={`text-[10px] uppercase font-bold tracking-wider ${
+                        isDarkMode 
+                          ? 'bg-black/35 text-slate-400 border-b border-white/5' 
+                          : 'bg-slate-50 text-slate-600 border-b border-slate-100'
+                      }`}>
+                        <tr>
+                          <th className="px-6 py-3.5">SKU</th>
+                          <th className="px-6 py-3.5">Nombre</th>
+                          <th className="px-6 py-3.5">Tipo</th>
+                          <th className="px-6 py-3.5">Categoría</th>
+                          <th className="px-6 py-3.5">Costo Base</th>
+                          <th className="px-6 py-3.5">Precio Venta</th>
+                          <th className="px-6 py-3.5">Impuesto</th>
+                          <th className="px-6 py-3.5">Stock Actual</th>
+                          <th className="px-6 py-3.5 text-center">Acciones</th>
+                        </tr>
+                      </thead>
+                      <tbody className={`divide-y ${isDarkMode ? 'divide-white/5' : 'divide-slate-100'}`}>
+                        {loading ? (
+                          <tr>
+                            <td colSpan={9} className="px-6 py-8 text-center text-gray-500 font-bold">Cargando catálogo...</td>
                           </tr>
-                        );
-                      })
-                    )}
-                  </tbody>
-                </table>
-            </div>
-          </div>
-
-          {/* Formulario Inline */}
-          {inlineFormMode && (
-              <div id="inline-form-container" className="mt-8 animate-in slide-in-from-bottom duration-300">
+                        ) : filteredProducts.length === 0 ? (
+                          <tr>
+                            <td colSpan={9} className="px-6 py-8 text-center text-gray-500">No se encontraron productos ni servicios.</td>
+                          </tr>
+                        ) : (
+                          filteredProducts.map(p => {
+                            const stock = stocks[p.id || ''] !== undefined ? stocks[p.id || ''] : 0;
+                            const isService = p.type === 'SERVICE';
+                            
+                            return (
+                              <tr key={p.id} className={`transition-colors ${isDarkMode ? 'hover:bg-white/[0.015]' : 'hover:bg-slate-50/40'}`}>
+                                <td className={`px-6 py-3.5 font-mono text-[10px] font-bold ${isDarkMode ? '' : 'text-black font-semibold'}`}>{p.sku}</td>
+                                <td className="px-6 py-3.5">
+                                  <span className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900 font-bold'}`}>{p.name}</span>
+                                  {p.description && <p className="text-[10px] text-gray-500 mt-0.5">{p.description}</p>}
+                                </td>
+                                <td className="px-6 py-3.5">
+                                  {p.type === 'STANDARD' && <span className="px-2 py-0.5 rounded-[10px] text-[10px] font-bold bg-primary/10 text-primary border border-primary/20">Estándar</span>}
+                                  {p.type === 'COMBO' && <span className="px-2 py-0.5 rounded-[10px] text-[10px] font-bold bg-purple-500/10 text-purple-400 border border-purple-500/20">Combo</span>}
+                                  {p.type === 'SUBPRODUCT' && <span className="px-2 py-0.5 rounded-[10px] text-[10px] font-bold bg-primary/10 text-primary border border-primary/20">Subproducto</span>}
+                                  {p.type === 'SERVICE' && <span className="px-2 py-0.5 rounded-[10px] text-[10px] font-bold bg-pink-500/10 text-pink-400 border border-pink-500/20">Servicio</span>}
+                                </td>
+                                <td className="px-6 py-3.5 text-gray-500 font-medium">{getCategoryName(p.categoryId)}</td>
+                                <td className="px-6 py-3.5 font-semibold">${p.baseCost.toFixed(2)}</td>
+                                <td className="px-6 py-3.5 font-bold text-emerald-500">${p.salePrice.toFixed(2)}</td>
+                                <td className="px-6 py-3.5 text-gray-500 font-medium">{p.taxRate}%</td>
+                                <td className="px-6 py-3.5 font-bold">
+                                  {isService ? (
+                                    <span className="text-gray-400 italic font-medium">N/A</span>
+                                  ) : stock > 0 ? (
+                                    <span className="text-emerald-500">{stock} u.</span>
+                                  ) : (
+                                    <span className="text-red-500">Agotado</span>
+                                  )}
+                                </td>
+                                <td className="px-6 py-3.5 text-center">
+                                  <div className="flex items-center justify-center gap-2">
+                                    <button
+                                      onClick={() => {
+                                        if (p.id) {
+                                          if (p.type === 'SERVICE') {
+                                            setInlineFormMode('edit_service');
+                                          } else {
+                                            setInlineFormMode('edit_product');
+                                          }
+                                          setEditingProduct(p);
+                                          setTimeout(() => {
+                                            document.getElementById('inline-form-container')?.scrollIntoView({ behavior: 'smooth' });
+                                          }, 100);
+                                        }
+                                      }}
+                                      className="p-1.5 rounded-[10px] text-primary hover:bg-primary/10 transition-all border border-primary/10 bg-white dark:bg-transparent shadow-sm"
+                                      title="Editar"
+                                    >
+                                      <Edit2 size={13} />
+                                    </button>
+                                    <button
+                                      onClick={() => p.id && handleDeleteProduct(p.id)}
+                                      className="p-1.5 rounded-[10px] text-red-500 hover:bg-red-500/10 transition-all border border-red-500/10 bg-white dark:bg-transparent shadow-sm"
+                                      title="Eliminar"
+                                    >
+                                      <Trash2 size={13} />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </>
+            ) : (
+              /* Formulario Inline */
+              <div id="inline-form-container" className="animate-in slide-in-from-bottom duration-300">
                 {inlineFormMode === 'create_product' || inlineFormMode === 'edit_product' ? (
                   <ProductCreationForm
                     key={editingProduct?.id || editingProduct?.type || 'new-product'}
@@ -496,13 +487,7 @@ export default function InventoryModule({ isDarkMode }: InventoryModuleProps) {
         {/* --- TAB: CATEGORÍAS Y MARCAS --- */}
         {activeTab === 'categorias' && (
           <div className="w-full h-full flex flex-col space-y-6 animate-in fade-in duration-300">
-            <div className="flex justify-between items-center">
-              <div>
-                <h1 className={`text-2xl font-bold tracking-tight flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                  <Tag className={isDarkMode ? 'text-primary' : 'text-primary'} /> Categorías y Marcas
-                </h1>
-                <p className={`text-sm mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Organización y marcas asignadas para el catálogo.</p>
-              </div>
+            <div className="flex justify-end items-center mb-6">
               <button 
                 onClick={() => setIsCatBrandOpen(true)}
                 className="px-4 py-2 rounded-xl font-bold text-xs bg-primary hover:bg-primary text-white flex items-center gap-1.5"
@@ -552,12 +537,7 @@ export default function InventoryModule({ isDarkMode }: InventoryModuleProps) {
         {/* --- TAB: KARDEX --- */}
         {activeTab === 'kardex' && (
           <div className="w-full h-full flex flex-col space-y-6 animate-in fade-in duration-300">
-            <div>
-              <h1 className={`text-2xl font-bold tracking-tight flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                <BarChart3 className={isDarkMode ? 'text-emerald-400' : 'text-emerald-600'} /> Kardex (Promedio Ponderado)
-              </h1>
-              <p className={`text-sm mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Historial de entradas, salidas y valuación del inventario por sucursal.</p>
-            </div>
+
 
             {/* Selector de Producto */}
             <div className={`p-5 rounded-[10px] border grid grid-cols-1 md:grid-cols-2 gap-4 ${isDarkMode ? 'bg-[#0f111a]/85 border-white/5' : 'bg-gray-50 border-gray-150'}`}>
@@ -781,13 +761,7 @@ export default function InventoryModule({ isDarkMode }: InventoryModuleProps) {
         {/* --- TAB: AJUSTES --- */}
         {activeTab === 'ajustes' && (
           <div className="w-full h-full flex flex-col space-y-6 animate-in fade-in duration-300">
-            <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 mb-6">
-              <div>
-                <h1 className={`text-2xl font-bold tracking-tight flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                  <Settings className={isDarkMode ? 'text-red-400' : 'text-red-600'} /> Ajustes de Inventario
-                </h1>
-                <p className={`text-sm mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Ajustes manuales y aplicación de Cero Inventario por auditorías.</p>
-              </div>
+            <div className="flex justify-end items-center mb-6">
               <button 
                 onClick={() => setIsAdjustmentOpen(true)}
                 className={`w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-[10px] text-xs font-bold transition-all shadow-md bg-red-600 hover:bg-red-550 text-white`}
