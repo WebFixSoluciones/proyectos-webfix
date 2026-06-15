@@ -11,18 +11,26 @@ interface ServiceCreationFormProps {
   isDarkMode: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  isInline?: boolean;
+  serviceToEdit?: any;
 }
 
-export default function ServiceCreationForm({ isDarkMode, onClose, onSuccess }: ServiceCreationFormProps) {
+export default function ServiceCreationForm({ 
+  isDarkMode, 
+  onClose, 
+  onSuccess,
+  isInline = false,
+  serviceToEdit = null
+}: ServiceCreationFormProps) {
   const [formData, setFormData] = useState({
-    sku: '',
-    name: '',
-    description: '',
+    sku: serviceToEdit?.sku || '',
+    name: serviceToEdit?.name || '',
+    description: serviceToEdit?.description || '',
     type: 'SERVICE',
-    categoryId: '',
-    baseCost: 0,
-    marginPercentage: 50, // Margen predeterminado mayor para servicios
-    taxRate: 15, // IVA estándar
+    categoryId: serviceToEdit?.categoryId || '',
+    baseCost: serviceToEdit?.baseCost || 0,
+    marginPercentage: serviceToEdit?.marginPercentage || 50,
+    taxRate: serviceToEdit?.taxRate || 15,
   });
 
   const [categories, setCategories] = useState<Category[]>([]);
@@ -59,15 +67,22 @@ export default function ServiceCreationForm({ isDarkMode, onClose, onSuccess }: 
     setError(null);
 
     try {
-      await productRepository.create({
-        ...formData,
-        type: 'SERVICE',
-        salePrice: calculatedSalePrice,
-      });
+      if (serviceToEdit && serviceToEdit.id) {
+        await productRepository.update(serviceToEdit.id, {
+          ...formData,
+          type: 'SERVICE',
+          salePrice: calculatedSalePrice,
+        });
+      } else {
+        await productRepository.create({
+          ...formData,
+          type: 'SERVICE',
+          salePrice: calculatedSalePrice,
+        });
+      }
       onSuccess();
-      onClose();
     } catch (err: any) {
-      console.error("Error creating service:", err);
+      console.error("Error saving service:", err);
       if (err.issues) {
         setError(err.issues[0].message);
       } else {
@@ -92,32 +107,31 @@ export default function ServiceCreationForm({ isDarkMode, onClose, onSuccess }: 
     isDarkMode ? 'text-gray-500' : 'text-gray-400'
   }`;
 
-  return (
-    <div className={`fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 backdrop-blur-xl bg-black/40 animate-in fade-in duration-300`}>
-      <div 
-        className={`relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl border ${
-          isDarkMode 
-            ? 'bg-gray-900/95 border-white/10' 
-            : 'bg-white/95 border-white/40'
-        } custom-scrollbar`}
-      >
-        {/* Header */}
-        <div className={`sticky top-0 z-10 px-6 py-5 border-b backdrop-blur-md flex items-center justify-between ${
-          isDarkMode ? 'border-white/10 bg-gray-900/80' : 'border-gray-100 bg-white/80'
-        }`}>
-          <div className="flex items-center gap-3">
-            <div className={`p-2.5 rounded-xl shadow-inner ${isDarkMode ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
-              <Briefcase size={24} />
-            </div>
-            <div>
-              <h2 className={`text-xl font-bold tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                Nuevo Servicio
-              </h2>
-              <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                Añade un nuevo servicio intangible al catálogo de ventas
-              </p>
-            </div>
+  const formJSX = (
+    <div 
+      className={isInline ? `w-full rounded-3xl border shadow-xl ${isDarkMode ? 'bg-gray-900/95 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}` : `relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl border ${
+        isDarkMode 
+          ? 'bg-gray-900/95 border-white/10' 
+          : 'bg-white/95 border-white/40'
+      } custom-scrollbar`}
+    >
+      {/* Header */}
+      <div className={`sticky top-0 z-10 px-6 py-5 border-b backdrop-blur-md flex items-center justify-between ${
+        isDarkMode ? 'border-white/10 bg-gray-900/80' : 'border-gray-100 bg-white/80'
+      }`}>
+        <div className="flex items-center gap-3">
+          <div className={`p-2.5 rounded-xl shadow-inner ${isDarkMode ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+            <Briefcase size={24} />
           </div>
+          <div>
+            <h2 className={`text-xl font-bold tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+              {serviceToEdit ? 'Editar Servicio' : 'Nuevo Servicio'}
+            </h2>
+            <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              {serviceToEdit ? `Edita los detalles del servicio` : 'Añade un nuevo servicio intangible al catálogo de ventas'}
+            </p>
+          </div>
+        </div>
           <button 
             onClick={onClose}
             className={`p-2 rounded-xl transition-all hover:scale-105 ${
@@ -338,6 +352,15 @@ export default function ServiceCreationForm({ isDarkMode, onClose, onSuccess }: 
           </div>
         </form>
       </div>
-    </div>
-  );
+    );
+
+    if (isInline) {
+      return formJSX;
+    }
+
+    return (
+      <div className={`fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 backdrop-blur-xl bg-black/40 animate-in fade-in duration-300`}>
+        {formJSX}
+      </div>
+    );
 }

@@ -3,7 +3,7 @@ import {
   Package, Plus, Search, Filter, Tag, BarChart3, 
   ArrowRightLeft, Settings, Database, RefreshCw, 
   Trash2, Briefcase, PlusCircle, CheckCircle, ShieldAlert,
-  MapPin, SlidersHorizontal, Layers, Award
+  MapPin, SlidersHorizontal, Layers, Award, Edit2, X, Box
 } from 'lucide-react';
 import ProductCreationForm from './ProductCreationForm';
 import ServiceCreationForm from './ServiceCreationForm';
@@ -40,9 +40,10 @@ export default function InventoryModule({ isDarkMode }: InventoryModuleProps) {
   const [brands, setBrands] = useState<Brand[]>([]);
   const [stocks, setStocks] = useState<Record<string, number>>({});
   
-  // Modals open states
-  const [isProductOpen, setIsProductOpen] = useState(false);
-  const [isServiceOpen, setIsServiceOpen] = useState(false);
+  // Modals / Inline forms open states
+  const [inlineFormMode, setInlineFormMode] = useState<'create_product' | 'create_service' | 'edit_product' | 'edit_service' | null>(null);
+  const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [showProductTypeSelector, setShowProductTypeSelector] = useState(false);
   const [isCatBrandOpen, setIsCatBrandOpen] = useState(false);
   const [isTransferOpen, setIsTransferOpen] = useState(false);
   const [isAdjustmentOpen, setIsAdjustmentOpen] = useState(false);
@@ -271,13 +272,19 @@ export default function InventoryModule({ isDarkMode }: InventoryModuleProps) {
             <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 mb-6">
               <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
                 <button 
-                  onClick={() => setIsProductOpen(true)}
+                  onClick={() => setShowProductTypeSelector(true)}
                   className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-[10px] text-xs font-bold transition-all hover-lift shadow-md bg-primary text-white hover:bg-primary/95`}
                 >
                   <Plus size={15} /> Nuevo Producto
                 </button>
                 <button 
-                  onClick={() => setIsServiceOpen(true)}
+                  onClick={() => {
+                    setInlineFormMode('create_service');
+                    setEditingProduct(null);
+                    setTimeout(() => {
+                      document.getElementById('inline-form-container')?.scrollIntoView({ behavior: 'smooth' });
+                    }, 100);
+                  }}
                   className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-[10px] text-xs font-bold transition-all hover-lift shadow-md bg-indigo-600 text-white hover:bg-indigo-550`}
                 >
                   <Briefcase size={15} /> Nuevo Servicio
@@ -407,12 +414,34 @@ export default function InventoryModule({ isDarkMode }: InventoryModuleProps) {
                               )}
                             </td>
                             <td className="px-6 py-3.5 text-center">
-                              <button
-                                onClick={() => p.id && handleDeleteProduct(p.id)}
-                                className="p-1.5 rounded-[10px] text-red-500 hover:bg-red-500/10 transition-all border border-red-500/10 bg-white dark:bg-transparent shadow-sm"
-                              >
-                                <Trash2 size={13} />
-                              </button>
+                              <div className="flex items-center justify-center gap-2">
+                                <button
+                                  onClick={() => {
+                                    if (p.id) {
+                                      if (p.type === 'SERVICE') {
+                                        setInlineFormMode('edit_service');
+                                      } else {
+                                        setInlineFormMode('edit_product');
+                                      }
+                                      setEditingProduct(p);
+                                      setTimeout(() => {
+                                        document.getElementById('inline-form-container')?.scrollIntoView({ behavior: 'smooth' });
+                                      }, 100);
+                                    }
+                                  }}
+                                  className="p-1.5 rounded-[10px] text-primary hover:bg-primary/10 transition-all border border-primary/10 bg-white dark:bg-transparent shadow-sm"
+                                  title="Editar"
+                                >
+                                  <Edit2 size={13} />
+                                </button>
+                                <button
+                                  onClick={() => p.id && handleDeleteProduct(p.id)}
+                                  className="p-1.5 rounded-[10px] text-red-500 hover:bg-red-500/10 transition-all border border-red-500/10 bg-white dark:bg-transparent shadow-sm"
+                                  title="Eliminar"
+                                >
+                                  <Trash2 size={13} />
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         );
@@ -420,8 +449,47 @@ export default function InventoryModule({ isDarkMode }: InventoryModuleProps) {
                     )}
                   </tbody>
                 </table>
-              </div>
             </div>
+          </div>
+
+          {/* Formulario Inline */}
+          {inlineFormMode && (
+              <div id="inline-form-container" className="mt-8 animate-in slide-in-from-bottom duration-300">
+                {inlineFormMode === 'create_product' || inlineFormMode === 'edit_product' ? (
+                  <ProductCreationForm
+                    key={editingProduct?.id || editingProduct?.type || 'new-product'}
+                    isDarkMode={isDarkMode}
+                    isInline={true}
+                    productToEdit={editingProduct}
+                    onClose={() => {
+                      setInlineFormMode(null);
+                      setEditingProduct(null);
+                    }}
+                    onSuccess={() => {
+                      setInlineFormMode(null);
+                      setEditingProduct(null);
+                      loadCatalogData();
+                    }}
+                  />
+                ) : (
+                  <ServiceCreationForm
+                    key={editingProduct?.id || 'new-service'}
+                    isDarkMode={isDarkMode}
+                    isInline={true}
+                    serviceToEdit={editingProduct}
+                    onClose={() => {
+                      setInlineFormMode(null);
+                      setEditingProduct(null);
+                    }}
+                    onSuccess={() => {
+                      setInlineFormMode(null);
+                      setEditingProduct(null);
+                      loadCatalogData();
+                    }}
+                  />
+                )}
+              </div>
+            )}
           </div>
         )}
 
@@ -793,26 +861,111 @@ export default function InventoryModule({ isDarkMode }: InventoryModuleProps) {
       </div>
 
       {/* --- MODAL DIALOGS --- */}
-      {isProductOpen && (
-        <ProductCreationForm 
-          isDarkMode={isDarkMode} 
-          onClose={() => setIsProductOpen(false)} 
-          onSuccess={() => {
-            setIsProductOpen(false);
-            loadCatalogData();
-          }}
-        />
-      )}
+      {showProductTypeSelector && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-xl bg-black/40 animate-in fade-in duration-300">
+          <div className={`w-full max-w-md p-6 rounded-3xl border shadow-2xl transition-all ${
+            isDarkMode ? 'bg-[#121214] border-white/10 text-white' : 'bg-white border-slate-200 text-slate-900'
+          }`}>
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-base font-bold flex items-center gap-2">
+                <Package className="text-primary" size={18} />
+                Seleccionar Tipo de Producto
+              </h3>
+              <button 
+                onClick={() => setShowProductTypeSelector(false)}
+                className={`p-1.5 rounded-lg transition-all ${
+                  isDarkMode ? 'hover:bg-white/5 text-gray-400 hover:text-white' : 'hover:bg-gray-100 text-gray-500 hover:text-gray-900'
+                }`}
+              >
+                <X size={16} />
+              </button>
+            </div>
+            
+            <p className={`text-xs mb-4 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              ¿Qué tipo de producto deseas registrar en el catálogo?
+            </p>
+            
+            <div className="space-y-2.5">
+              <button
+                onClick={() => {
+                  setInlineFormMode('create_product');
+                  setEditingProduct({ type: 'STANDARD' });
+                  setShowProductTypeSelector(false);
+                  setTimeout(() => {
+                    document.getElementById('inline-form-container')?.scrollIntoView({ behavior: 'smooth' });
+                  }, 100);
+                }}
+                className={`w-full p-4 rounded-2xl border text-left transition-all flex items-start gap-3.5 group ${
+                  isDarkMode 
+                    ? 'border-white/5 bg-white/[0.02] hover:bg-primary/10 hover:border-primary/30' 
+                    : 'border-slate-100 bg-slate-50 hover:bg-primary/5 hover:border-primary/30'
+                }`}
+              >
+                <div className={`p-2.5 rounded-xl bg-primary/10 text-primary group-hover:scale-110 transition-transform`}>
+                  <Package size={16} />
+                </div>
+                <div>
+                  <span className="block text-xs font-bold">Producto Estándar</span>
+                  <span className={`block text-[10px] mt-0.5 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    Productos individuales sin variantes ni agrupaciones.
+                  </span>
+                </div>
+              </button>
 
-      {isServiceOpen && (
-        <ServiceCreationForm 
-          isDarkMode={isDarkMode} 
-          onClose={() => setIsServiceOpen(false)} 
-          onSuccess={() => {
-            setIsServiceOpen(false);
-            loadCatalogData();
-          }}
-        />
+              <button
+                onClick={() => {
+                  setInlineFormMode('create_product');
+                  setEditingProduct({ type: 'SUBPRODUCT' });
+                  setShowProductTypeSelector(false);
+                  setTimeout(() => {
+                    document.getElementById('inline-form-container')?.scrollIntoView({ behavior: 'smooth' });
+                  }, 100);
+                }}
+                className={`w-full p-4 rounded-2xl border text-left transition-all flex items-start gap-3.5 group ${
+                  isDarkMode 
+                    ? 'border-white/5 bg-white/[0.02] hover:bg-primary/10 hover:border-primary/30' 
+                    : 'border-slate-100 bg-slate-50 hover:bg-primary/5 hover:border-primary/30'
+                }`}
+              >
+                <div className={`p-2.5 rounded-xl bg-primary/10 text-primary group-hover:scale-110 transition-transform`}>
+                  <Layers size={16} />
+                </div>
+                <div>
+                  <span className="block text-xs font-bold">Subproducto / Variante</span>
+                  <span className={`block text-[10px] mt-0.5 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    Mismo artículo con variaciones (talla, color o dimensiones).
+                  </span>
+                </div>
+              </button>
+
+              <button
+                onClick={() => {
+                  setInlineFormMode('create_product');
+                  setEditingProduct({ type: 'COMBO' });
+                  setShowProductTypeSelector(false);
+                  setTimeout(() => {
+                    document.getElementById('inline-form-container')?.scrollIntoView({ behavior: 'smooth' });
+                  }, 100);
+                }}
+                className={`w-full p-4 rounded-2xl border text-left transition-all flex items-start gap-3.5 group ${
+                  isDarkMode 
+                    ? 'border-white/5 bg-white/[0.02] hover:bg-purple-500/10 hover:border-purple-500/30' 
+                    : 'border-slate-100 bg-slate-50 hover:bg-purple-500/5 hover:border-purple-500/30'
+                }`}
+              >
+                <div className={`p-2.5 rounded-xl bg-purple-500/10 text-purple-400 group-hover:scale-110 transition-transform`}>
+                  <Box size={16} />
+                </div>
+                <div>
+                  <span className="block text-xs font-bold">Combo / Kit</span>
+                  <span className={`block text-[10px] mt-0.5 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    Paquete que agrupa múltiples productos estándar o servicios.
+                  </span>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {isCatBrandOpen && (

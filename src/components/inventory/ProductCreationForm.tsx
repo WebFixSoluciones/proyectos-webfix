@@ -13,19 +13,27 @@ interface ProductCreationFormProps {
   isDarkMode: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  isInline?: boolean;
+  productToEdit?: any;
 }
 
-export default function ProductCreationForm({ isDarkMode, onClose, onSuccess }: ProductCreationFormProps) {
+export default function ProductCreationForm({ 
+  isDarkMode, 
+  onClose, 
+  onSuccess,
+  isInline = false,
+  productToEdit = null
+}: ProductCreationFormProps) {
   const [formData, setFormData] = useState({
-    sku: '',
-    name: '',
-    description: '',
-    type: 'STANDARD',
-    categoryId: '',
-    brandId: '',
-    baseCost: 0,
-    marginPercentage: 30,
-    taxRate: 15,
+    sku: productToEdit?.sku || '',
+    name: productToEdit?.name || '',
+    description: productToEdit?.description || '',
+    type: productToEdit?.type || 'STANDARD',
+    categoryId: productToEdit?.categoryId || '',
+    brandId: productToEdit?.brandId || '',
+    baseCost: productToEdit?.baseCost || 0,
+    marginPercentage: productToEdit?.marginPercentage || 30,
+    taxRate: productToEdit?.taxRate || 15,
   });
 
   const [categories, setCategories] = useState<Category[]>([]);
@@ -67,16 +75,22 @@ export default function ProductCreationForm({ isDarkMode, onClose, onSuccess }: 
     setError(null);
 
     try {
-      await productRepository.create({
-        ...formData,
-        type: formData.type as any,
-        salePrice: calculatedSalePrice,
-      });
+      if (productToEdit && productToEdit.id) {
+        await productRepository.update(productToEdit.id, {
+          ...formData,
+          type: formData.type as any,
+          salePrice: calculatedSalePrice,
+        });
+      } else {
+        await productRepository.create({
+          ...formData,
+          type: formData.type as any,
+          salePrice: calculatedSalePrice,
+        });
+      }
       onSuccess();
-      onClose();
     } catch (err: any) {
-      console.error("Error creating product:", err);
-      // Extraemos el mensaje de Zod si es posible
+      console.error("Error saving product:", err);
       if (err.issues) {
         setError(err.issues[0].message);
       } else {
@@ -101,32 +115,31 @@ export default function ProductCreationForm({ isDarkMode, onClose, onSuccess }: 
     isDarkMode ? 'text-gray-500' : 'text-gray-400'
   }`;
 
-  return (
-    <div className={`fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 backdrop-blur-xl bg-black/40 animate-in fade-in duration-300`}>
-      <div 
-        className={`relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl border ${
-          isDarkMode 
-            ? 'bg-gray-900/95 border-white/10' 
-            : 'bg-white/95 border-white/40'
-        } custom-scrollbar`}
-      >
-        {/* Header */}
-        <div className={`sticky top-0 z-10 px-6 py-5 border-b backdrop-blur-md flex items-center justify-between ${
-          isDarkMode ? 'border-white/10 bg-gray-900/80' : 'border-gray-100 bg-white/80'
-        }`}>
-          <div className="flex items-center gap-3">
-            <div className={`p-2.5 rounded-xl shadow-inner ${isDarkMode ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
-              <Package size={24} />
-            </div>
-            <div>
-              <h2 className={`text-xl font-bold tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                Nuevo Producto
-              </h2>
-              <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                Añade un nuevo ítem estándar al inventario
-              </p>
-            </div>
+  const formJSX = (
+    <div 
+      className={isInline ? `w-full rounded-3xl border shadow-xl ${isDarkMode ? 'bg-gray-900/95 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}` : `relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl border ${
+        isDarkMode 
+          ? 'bg-gray-900/95 border-white/10' 
+          : 'bg-white/95 border-white/40'
+      } custom-scrollbar`}
+    >
+      {/* Header */}
+      <div className={`sticky top-0 z-10 px-6 py-5 border-b backdrop-blur-md flex items-center justify-between ${
+        isDarkMode ? 'border-white/10 bg-gray-900/80' : 'border-gray-100 bg-white/80'
+      }`}>
+        <div className="flex items-center gap-3">
+          <div className={`p-2.5 rounded-xl shadow-inner ${isDarkMode ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+            <Package size={24} />
           </div>
+          <div>
+            <h2 className={`text-xl font-bold tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+              {productToEdit ? 'Editar Producto' : 'Nuevo Producto'}
+            </h2>
+            <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              {productToEdit ? `Edita los detalles del producto` : 'Añade un nuevo ítem estándar al inventario'}
+            </p>
+          </div>
+        </div>
           <button 
             onClick={onClose}
             className={`p-2 rounded-xl transition-all hover:scale-105 ${
@@ -365,6 +378,15 @@ export default function ProductCreationForm({ isDarkMode, onClose, onSuccess }: 
           </div>
         </form>
       </div>
-    </div>
-  );
+    );
+
+    if (isInline) {
+      return formJSX;
+    }
+
+    return (
+      <div className={`fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 backdrop-blur-xl bg-black/40 animate-in fade-in duration-300`}>
+        {formJSX}
+      </div>
+    );
 }
