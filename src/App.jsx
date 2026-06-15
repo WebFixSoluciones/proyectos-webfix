@@ -89,6 +89,7 @@ import { auth, db, storage, appId } from './firebase';
 import FinanceModule from './components/finances/FinanceModule';
 import ErpDashboard from './components/dashboard/ErpDashboard';
 import GeneralSettings from './components/dashboard/GeneralSettings';
+import HiringServicesModule from './components/dashboard/HiringServicesModule';
 import FinanceChat from './components/finances/FinanceChat';
 import GastosCreditosModule from './components/finances/GastosCreditosModule';
 import InventoryModule from './components/inventory/InventoryModule';
@@ -747,6 +748,8 @@ export default function App() {
     activePage = { id: 'proyectos_general', title: 'Gestión de Proyectos', icon: 'project', type: 'proyectos_general' };
   } else if (activePageId === 'paginas_general') {
     activePage = { id: 'paginas_general', title: 'Páginas del Espacio', icon: 'file-text', type: 'paginas_general' };
+  } else if (activePageId === 'contratar_servicios') {
+    activePage = { id: 'contratar_servicios', title: 'Servicios Web Fix', icon: 'rocket', type: 'contratar_servicios' };
   } else {
     activePage = pages.find(p => p.id === activePageId) || { id: 'empty', title: 'Sin páginas', type: 'empty' };
     if (activePage.type === 'project') {
@@ -833,6 +836,12 @@ export default function App() {
           title: 'Páginas y Documentos',
           desc: 'Crea, organiza y mejora textos y notas rápidas con inteligencia artificial',
           icon: 'file-text'
+        };
+      case 'contratar_servicios':
+        return {
+          title: 'Servicios de Crecimiento Web Fix',
+          desc: 'Adquiere y gestiona servicios de diseño, correo corporativo y marketing digital para potenciar tu marca',
+          icon: 'rocket'
         };
       default:
         return {
@@ -2095,6 +2104,26 @@ export default function App() {
             {isSidebarOpen && <span>Proyectos</span>}
           </button>
 
+          {/* Servicios Web Fix */}
+          <button 
+            onClick={() => { setActivePageId('contratar_servicios'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
+            className={`group flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
+              activePageId === 'contratar_servicios'
+                ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-900')
+                : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-black hover:bg-primary-light hover:text-black')
+            }`}
+          >
+            <Rocket 
+              size={18} 
+              className={`transition-colors ${
+                activePageId === 'contratar_servicios' 
+                  ? 'text-primary' 
+                  : (isDarkMode ? 'text-gray-500 group-hover:text-primary' : 'text-black group-hover:text-primary')
+              }`} 
+            />
+            {isSidebarOpen && <span>Servicios Web Fix</span>}
+          </button>
+
           {/* 9. Ajustes */}
           <button 
             onClick={() => { setActivePageId('general_settings'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
@@ -2242,6 +2271,16 @@ export default function App() {
                   setActiveModules={setActiveModules} 
                   primaryColor={primaryColor}
                   setPrimaryColor={setPrimaryColor}
+                />
+              )}
+
+              {/* VISTA: CONTRATACIÓN DE SERVICIOS */}
+              {activePageId === 'contratar_servicios' && (
+                <HiringServicesModule 
+                  isDarkMode={isDarkMode} 
+                  showToast={showToast} 
+                  db={db} 
+                  appId={appId} 
                 />
               )}
 
