@@ -64,6 +64,24 @@ export default function InventoryModule({ isDarkMode }: InventoryModuleProps) {
   
   const [loading, setLoading] = useState(false);
 
+  // Helper to scroll the inner scrollable container to the top, avoiding window scroll side effects
+  const scrollToForm = () => {
+    setTimeout(() => {
+      const container = document.getElementById('inline-form-container');
+      if (container) {
+        let parent = container.parentElement;
+        while (parent) {
+          const style = window.getComputedStyle(parent);
+          if (style.overflowY === 'auto' || style.overflowY === 'scroll') {
+            parent.scrollTo({ top: 0, behavior: 'smooth' });
+            break;
+          }
+          parent = parent.parentElement;
+        }
+      }
+    }, 100);
+  };
+
   // Load basic catalog data
   useEffect(() => {
     loadCatalogData();
@@ -272,9 +290,7 @@ export default function InventoryModule({ isDarkMode }: InventoryModuleProps) {
                       onClick={() => {
                         setInlineFormMode('create_service');
                         setEditingProduct(null);
-                        setTimeout(() => {
-                          document.getElementById('inline-form-container')?.scrollIntoView({ behavior: 'smooth' });
-                        }, 100);
+                        scrollToForm();
                       }}
                       className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-[10px] text-xs font-bold transition-all hover-lift shadow-md bg-indigo-600 text-white hover:bg-indigo-550`}
                     >
@@ -415,9 +431,7 @@ export default function InventoryModule({ isDarkMode }: InventoryModuleProps) {
                                             setInlineFormMode('edit_product');
                                           }
                                           setEditingProduct(p);
-                                          setTimeout(() => {
-                                            document.getElementById('inline-form-container')?.scrollIntoView({ behavior: 'smooth' });
-                                          }, 100);
+                                          scrollToForm();
                                         }
                                       }}
                                       className="p-1.5 rounded-[10px] text-primary hover:bg-primary/10 transition-all border border-primary/10 bg-white dark:bg-transparent shadow-sm"
@@ -865,9 +879,7 @@ export default function InventoryModule({ isDarkMode }: InventoryModuleProps) {
                   setInlineFormMode('create_product');
                   setEditingProduct({ type: 'STANDARD' });
                   setShowProductTypeSelector(false);
-                  setTimeout(() => {
-                    document.getElementById('inline-form-container')?.scrollIntoView({ behavior: 'smooth' });
-                  }, 100);
+                  scrollToForm();
                 }}
                 className={`w-full p-4 rounded-2xl border text-left transition-all flex items-start gap-3.5 group ${
                   isDarkMode 
@@ -891,9 +903,7 @@ export default function InventoryModule({ isDarkMode }: InventoryModuleProps) {
                   setInlineFormMode('create_product');
                   setEditingProduct({ type: 'SUBPRODUCT' });
                   setShowProductTypeSelector(false);
-                  setTimeout(() => {
-                    document.getElementById('inline-form-container')?.scrollIntoView({ behavior: 'smooth' });
-                  }, 100);
+                  scrollToForm();
                 }}
                 className={`w-full p-4 rounded-2xl border text-left transition-all flex items-start gap-3.5 group ${
                   isDarkMode 
@@ -917,9 +927,7 @@ export default function InventoryModule({ isDarkMode }: InventoryModuleProps) {
                   setInlineFormMode('create_product');
                   setEditingProduct({ type: 'COMBO' });
                   setShowProductTypeSelector(false);
-                  setTimeout(() => {
-                    document.getElementById('inline-form-container')?.scrollIntoView({ behavior: 'smooth' });
-                  }, 100);
+                  scrollToForm();
                 }}
                 className={`w-full p-4 rounded-2xl border text-left transition-all flex items-start gap-3.5 group ${
                   isDarkMode 
