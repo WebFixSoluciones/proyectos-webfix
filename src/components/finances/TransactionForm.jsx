@@ -2927,15 +2927,17 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 </div>
                 <div>
                   <label className="block text-[9px] font-bold uppercase mb-1 text-gray-500">Régimen</label>
-                  <select 
-                    value={quickAddFormData.tipoContribuyente || 'general'} 
-                    onChange={e => setQuickAddFormData({...quickAddFormData, tipoContribuyente: e.target.value})} 
-                    className={inputClass}
-                  >
-                    <option value="general">General</option>
-                    <option value="rimpe_popular">RIMPE Popular</option>
-                    <option value="rimpe_emprendedor">RIMPE Emprendedor</option>
-                  </select>
+                  <input 
+                    type="text" 
+                    readOnly 
+                    disabled 
+                    value={
+                      quickAddFormData.tipoContribuyente === 'rimpe_popular' ? 'RIMPE Popular' :
+                      quickAddFormData.tipoContribuyente === 'rimpe_emprendedor' ? 'RIMPE Emprendedor' :
+                      quickAddFormData.tipoContribuyente === 'microempresas' ? 'Microempresas' : 'Régimen General'
+                    }
+                    className={inputClass} 
+                  />
                 </div>
               </div>
 
