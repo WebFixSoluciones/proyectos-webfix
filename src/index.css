@@ -17,6 +17,22 @@
 }
 
 /* --------------------------------------------------------------------------
+   Bloqueo de Scroll a Nivel de Ventana (Evita pérdida del Header al enfocar inputs)
+   -------------------------------------------------------------------------- */
+@media screen {
+  html,
+  body,
+  #root {
+    height: 100% !important;
+    width: 100% !important;
+    overflow: hidden !important;
+    position: fixed !important;
+    top: 0;
+    left: 0;
+  }
+}
+
+/* --------------------------------------------------------------------------
    Configuración Tipográfica Global
    -------------------------------------------------------------------------- */
 body, .font-sans, input, textarea, select, button, .font-mono, kbd, code, pre {
