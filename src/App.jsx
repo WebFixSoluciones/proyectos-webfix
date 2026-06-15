@@ -592,6 +592,19 @@ export default function App() {
     }
   }, [activePageId, pages]);
 
+  // Bloquear de forma reactiva cualquier intento de scroll en la ventana del navegador (evita que el layout se desplace)
+  useEffect(() => {
+    const preventWindowScroll = () => {
+      if (window.scrollY !== 0 || window.scrollX !== 0) {
+        window.scrollTo(0, 0);
+      }
+    };
+    window.addEventListener('scroll', preventWindowScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', preventWindowScroll);
+    };
+  }, []);
+
   useEffect(() => {
     if (!isAuthenticated || !auth.currentUser) return;
 

@@ -32,6 +32,15 @@
   }
 }
 
+/* Prevenir zoom automático e intentos de scroll de iOS Safari al enfocar inputs */
+@media screen and (max-width: 768px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
 /* --------------------------------------------------------------------------
    Configuración Tipográfica Global
    -------------------------------------------------------------------------- */

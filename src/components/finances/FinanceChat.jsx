@@ -9,10 +9,12 @@ export default function FinanceChat({ transactions, thirdParties, isDarkMode, on
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const chatEndRef = useRef(null);
+  const chatContainerRef = useRef(null);
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
   }, [messages, isLoading]);
 
   const handleSend = async (e) => {
@@ -66,7 +68,7 @@ export default function FinanceChat({ transactions, thirdParties, isDarkMode, on
       </div>
 
       {/* BURBUJAS DE CHAT */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 custom-scrollbar text-xs">
+      <div ref={chatContainerRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3 custom-scrollbar text-xs">
         {messages.map((msg, i) => (
           <div key={i} className={`flex gap-2 max-w-[85%] ${msg.role === 'user' ? 'ml-auto flex-row-reverse' : ''}`}>
             <div className={`p-2 rounded-xl shrink-0 flex items-center justify-center h-7 w-7 ${msg.role === 'user' ? 'bg-primary text-white' : 'bg-purple-600/20 text-purple-400'}`}>
@@ -100,7 +102,6 @@ export default function FinanceChat({ transactions, thirdParties, isDarkMode, on
             </div>
           </div>
         )}
-        <div ref={chatEndRef} />
       </div>
 
       {/* INPUT CHAT */}
