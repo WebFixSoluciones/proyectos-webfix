@@ -4,9 +4,12 @@ import {
   Percent, FileText, AlertCircle, Image, Edit2, 
   Plus, Layers, FolderPlus, HelpCircle
 } from 'lucide-react';
+import { collection, getDocs, doc, setDoc } from 'firebase/firestore';
+import { db, appId } from '../../firebase';
 import { productRepository } from '../../modules/inventory/repositories/ProductRepository';
 import { categoryBrandRepository } from '../../modules/inventory/repositories/CategoryBrandRepository';
 import { Category, Brand } from '../../modules/inventory/domain/schemas/category-brand.schema';
+import { kardexService } from '../../modules/inventory/services/KardexService';
 
 interface ProductCreationFormProps {
   isDarkMode: boolean;
@@ -76,6 +79,42 @@ export default function ProductCreationForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Step 2 State
+  const [formStep, setFormStep] = useState<'product_details' | 'stock_initialization'>('product_details');
+  const [savedProductId, setSavedProductId] = useState<string | null>(null);
+
+  // Stock limits
+  const [stockMinimo, setStockMinimo] = useState<number>(productToEdit?.stockMinimo || 5);
+  const [stockMaximo, setStockMaximo] = useState<number>(productToEdit?.stockMaximo || 100);
+
+  // Stock initialization method
+  const [initStockType, setInitStockType] = useState<'none' | 'existing_purchase' | 'new_purchase'>('none');
+
+  // Existing Purchases List
+  const [existingPurchases, setExistingPurchases] = useState<any[]>([]);
+  const [selectedPurchaseId, setSelectedPurchaseId] = useState<string>('');
+
+  // Suppliers List
+  const [suppliers, setSuppliers] = useState<any[]>([]);
+
+  // New purchase inline form details
+  const [newPurchase, setNewPurchase] = useState({
+    supplierId: '',
+    documentNumber: '',
+    date: new Date().toISOString().split('T')[0],
+    quantity: 1,
+    unitCost: formData.baseCost || 0,
+    paymentMethod: 'efectivo',
+    paymentStatus: 'pagado',
+  });
+
+  // Modal to add supplier inline
+  const [showNewSupplierPopup, setShowNewSupplierPopup] = useState(false);
+  const [newSupplierName, setNewSupplierName] = useState('');
+  const [newSupplierRuc, setNewSupplierRuc] = useState('');
+  const [newSupplierPhone, setNewSupplierPhone] = useState('');
+  const [newSupplierEmail, setNewSupplierEmail] = useState('');
+
   // Load categories and brands
   useEffect(() => {
     async function loadData() {
@@ -92,6 +131,29 @@ export default function ProductCreationForm({
     }
     loadData();
   }, []);
+
+  // Load finances data for Step 2
+  useEffect(() => {
+    async function loadFinancesData() {
+      if (formStep !== 'stock_initialization') return;
+      try {
+        // Fetch suppliers
+        const tpCol = collection(db, 'artifacts', appId, 'public', 'data', 'finances_third_parties');
+        const tpSnap = await getDocs(tpCol);
+        const allTp = tpSnap.docs.map(d => d.data());
+        setSuppliers(allTp.filter(tp => tp.type === 'proveedor'));
+
+        // Fetch purchases
+        const txCol = collection(db, 'artifacts', appId, 'public', 'data', 'finances_transactions');
+        const txSnap = await getDocs(txCol);
+        const allTx = txSnap.docs.map(d => d.data());
+        setExistingPurchases(allTx.filter(tx => tx.type === 'egreso' && tx.documentType === 'factura'));
+      } catch (err) {
+        console.error("Error loading finances suppliers/transactions:", err);
+      }
+    }
+    loadFinancesData();
+  }, [formStep]);
 
   // Initialize prices on edit
   useEffect(() => {
@@ -261,12 +323,24 @@ export default function ProductCreationForm({
     };
 
     try {
+      let savedProduct;
       if (productToEdit && productToEdit.id) {
         await productRepository.update(productToEdit.id, payload);
+        savedProduct = { ...payload, id: productToEdit.id };
       } else {
-        await productRepository.create(payload);
+        savedProduct = await productRepository.create(payload);
       }
-      onSuccess();
+
+      if (formData.inventoryType === 'VIRTUAL') {
+        onSuccess();
+      } else {
+        setSavedProductId(savedProduct.id || null);
+        setNewPurchase(prev => ({
+          ...prev,
+          unitCost: formData.baseCost || 0
+        }));
+        setFormStep('stock_initialization');
+      }
     } catch (err: any) {
       console.error("Error saving product:", err);
       if (err.issues) {
@@ -276,6 +350,156 @@ export default function ProductCreationForm({
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleStep2Submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!savedProductId) return;
+    setLoading(true);
+    setError(null);
+
+    try {
+      // 1. Update stock limits in product document
+      await productRepository.update(savedProductId, {
+        stockMinimo,
+        stockMaximo
+      });
+
+      // 2. Perform stock initialization if requested
+      if (initStockType === 'existing_purchase') {
+        if (!selectedPurchaseId) {
+          throw new Error("Debe seleccionar una compra existente.");
+        }
+        if (newPurchase.quantity <= 0) {
+          throw new Error("La cantidad a ingresar debe ser mayor a cero.");
+        }
+        
+        await kardexService.registerTransaction(
+          savedProductId,
+          'sucursal-central-uuid',
+          'PURCHASE_RECEIPT',
+          selectedPurchaseId,
+          newPurchase.quantity,
+          newPurchase.unitCost
+        );
+      } else if (initStockType === 'new_purchase') {
+        if (!newPurchase.supplierId) {
+          throw new Error("Debe seleccionar un proveedor.");
+        }
+        if (!newPurchase.documentNumber.trim()) {
+          throw new Error("Debe ingresar el número de factura.");
+        }
+        if (newPurchase.quantity <= 0) {
+          throw new Error("La cantidad a ingresar debe ser mayor a cero.");
+        }
+
+        const txId = `tx_${new Date().getTime()}_compra_inicial`;
+        const subtotal = newPurchase.quantity * newPurchase.unitCost;
+        const iva = formData.taxRate > 0 ? (subtotal * (formData.taxRate / 100)) : 0;
+        const total = subtotal + iva;
+
+        // Create a new purchase document in finances_transactions
+        const purchasePayload = {
+          id: txId,
+          type: 'egreso',
+          documentType: 'factura',
+          date: newPurchase.date,
+          documentNumber: newPurchase.documentNumber.trim(),
+          thirdPartyId: newPurchase.supplierId,
+          category: 'compras_inventario',
+          description: `Compra inicial de stock - ${formData.name}`,
+          currency: 'USD',
+          baseImponible: parseFloat(subtotal.toFixed(2)),
+          ivaPorcentaje: formData.taxRate,
+          ivaValor: parseFloat(iva.toFixed(2)),
+          total: parseFloat(total.toFixed(2)),
+          paymentMethod: newPurchase.paymentMethod,
+          paymentStatus: newPurchase.paymentStatus,
+          sriStatus: 'pendiente',
+          paymentsBreakdown: {
+            efectivo: newPurchase.paymentMethod === 'efectivo' ? parseFloat(total.toFixed(2)) : 0,
+            transferencia: newPurchase.paymentMethod === 'transferencia' ? parseFloat(total.toFixed(2)) : 0,
+            tarjeta: newPurchase.paymentMethod === 'tarjeta' ? parseFloat(total.toFixed(2)) : 0,
+            cruce_cuentas: 0
+          },
+          items: [{
+            productId: savedProductId,
+            name: formData.name,
+            sku: formData.sku.toUpperCase(),
+            quantity: newPurchase.quantity,
+            price: newPurchase.unitCost,
+            taxRate: formData.taxRate,
+            ivaCalculated: parseFloat(iva.toFixed(2)),
+            subtotal: parseFloat(subtotal.toFixed(2)),
+            total: parseFloat(total.toFixed(2))
+          }],
+          createdAt: new Date().toISOString()
+        };
+
+        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', txId), purchasePayload);
+
+        // Register in Kardex
+        await kardexService.registerTransaction(
+          savedProductId,
+          'sucursal-central-uuid',
+          'PURCHASE_RECEIPT',
+          txId,
+          newPurchase.quantity,
+          newPurchase.unitCost
+        );
+      }
+
+      onSuccess();
+    } catch (err: any) {
+      console.error("Error saving step 2:", err);
+      setError(err.message || "Error al inicializar el inventario físico.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddNewSupplier = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newSupplierName.trim() || !newSupplierRuc.trim()) return;
+
+    try {
+      const supId = `tp_${new Date().getTime()}_prov`;
+      const supplierPayload = {
+        id: supId,
+        type: 'proveedor',
+        name: newSupplierName.trim(),
+        ruc: newSupplierRuc.trim(),
+        phone: newSupplierPhone.trim(),
+        email: newSupplierEmail.trim(),
+        status: 'active',
+        createdAt: new Date().toISOString()
+      };
+
+      const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_third_parties', supId);
+      await setDoc(docRef, supplierPayload);
+
+      // Refresh list and select it
+      const tpCol = collection(db, 'artifacts', appId, 'public', 'data', 'finances_third_parties');
+      const tpSnap = await getDocs(tpCol);
+      const allTp = tpSnap.docs.map(d => d.data());
+      const filteredSuppliers = allTp.filter(tp => tp.type === 'proveedor');
+      setSuppliers(filteredSuppliers);
+      
+      setNewPurchase(prev => ({
+        ...prev,
+        supplierId: supId
+      }));
+
+      // Reset
+      setNewSupplierName('');
+      setNewSupplierRuc('');
+      setNewSupplierPhone('');
+      setNewSupplierEmail('');
+      setShowNewSupplierPopup(false);
+    } catch (err) {
+      console.error("Error saving supplier inline:", err);
+      alert("Error al guardar el proveedor.");
     }
   };
 
@@ -333,7 +557,7 @@ export default function ProductCreationForm({
       </div>
 
       {/* Content */}
-      <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-6">
+      <form onSubmit={formStep === 'product_details' ? handleSubmit : handleStep2Submit} className="p-5 sm:p-6 space-y-6">
         {error && (
           <div className={`flex items-center gap-3 p-4 rounded-xl border ${
             isDarkMode ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-red-50 border-red-200 text-red-600'
@@ -343,7 +567,8 @@ export default function ProductCreationForm({
           </div>
         )}
 
-        {/* Mostrar en Ventas Toggle */}
+        {formStep === 'product_details' ? (
+          <>
         <div className={`p-4 rounded-2xl border flex items-center justify-between shadow-sm ${
           isDarkMode ? 'bg-white/[0.02] border-white/5' : 'bg-gray-50 border-gray-150'
         }`}>
@@ -887,6 +1112,327 @@ export default function ProductCreationForm({
             )}
           </button>
         </div>
+          </>
+        ) : (
+          <div className="space-y-6">
+            <div className={`p-4.5 rounded-2xl border ${
+              isDarkMode ? 'bg-primary/5 border-primary/20 text-primary' : 'bg-primary/5 border-primary/15 text-primary-dark'
+            } text-xs flex items-center gap-3`}>
+              <Box size={22} className="shrink-0 animate-bounce" />
+              <div>
+                <p className="font-extrabold uppercase tracking-wide">Paso 2: Inicialización de Stock y Límites</p>
+                <p className="mt-0.5 opacity-90">Configura los límites de stock y la cantidad inicial del inventario físico para el producto recién guardado.</p>
+              </div>
+            </div>
+
+            {/* Límites de Stock */}
+            <div className="space-y-4">
+              <h3 className={`text-xs font-bold flex items-center gap-2 uppercase tracking-wider ${isDarkMode ? 'text-primary' : 'text-primary'}`}>
+                <Layers size={14} /> Límites de Control de Stock
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="relative group">
+                  <label className={labelClass}>Stock Mínimo *</label>
+                  <input
+                    type="number"
+                    min="0"
+                    required
+                    value={stockMinimo}
+                    onChange={(e) => setStockMinimo(parseInt(e.target.value) || 0)}
+                    className={inputClass}
+                  />
+                  <p className="text-[10px] text-gray-500 mt-1">Nivel crítico para alertas de reabastecimiento.</p>
+                </div>
+
+                <div className="relative group">
+                  <label className={labelClass}>Stock Máximo *</label>
+                  <input
+                    type="number"
+                    min="1"
+                    required
+                    value={stockMaximo}
+                    onChange={(e) => setStockMaximo(parseInt(e.target.value) || 0)}
+                    className={inputClass}
+                  />
+                  <p className="text-[10px] text-gray-500 mt-1">Capacidad máxima ideal para almacenamiento.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Inicializar Inventario */}
+            <div className="space-y-4 pt-2">
+              <h3 className={`text-xs font-bold flex items-center gap-2 uppercase tracking-wider ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                <DollarSign size={14} /> Inicializar Stock por medio de Compra
+              </h3>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setInitStockType('none')}
+                  className={`p-3 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1 ${
+                    initStockType === 'none'
+                      ? (isDarkMode ? 'border-primary bg-primary/10 text-primary shadow-lg shadow-primary/10' : 'border-primary bg-primary/5 text-primary shadow-sm')
+                      : (isDarkMode ? 'border-white/5 bg-white/[0.02] text-gray-400 hover:bg-white/5' : 'border-slate-200 bg-slate-50 text-gray-550 hover:bg-slate-100')
+                  }`}
+                >
+                  <span className="text-xs font-bold">Sin Stock Inicial</span>
+                  <span className="text-[9px] opacity-70">Empezar con 0 unidades</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setInitStockType('existing_purchase')}
+                  className={`p-3 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1 ${
+                    initStockType === 'existing_purchase'
+                      ? (isDarkMode ? 'border-primary bg-primary/10 text-primary shadow-lg shadow-primary/10' : 'border-primary bg-primary/5 text-primary shadow-sm')
+                      : (isDarkMode ? 'border-white/5 bg-white/[0.02] text-gray-400 hover:bg-white/5' : 'border-slate-200 bg-slate-50 text-gray-555 hover:bg-slate-100')
+                  }`}
+                >
+                  <span className="text-xs font-bold">Asociar Compra Existente</span>
+                  <span className="text-[9px] opacity-70">Seleccionar factura previa</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setInitStockType('new_purchase')}
+                  className={`p-3 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1 ${
+                    initStockType === 'new_purchase'
+                      ? (isDarkMode ? 'border-primary bg-primary/10 text-primary shadow-lg shadow-primary/10' : 'border-primary bg-primary/5 text-primary shadow-sm')
+                      : (isDarkMode ? 'border-white/5 bg-white/[0.02] text-gray-400 hover:bg-white/5' : 'border-slate-200 bg-slate-50 text-gray-555 hover:bg-slate-100')
+                  }`}
+                >
+                  <span className="text-xs font-bold">Crear Compra Inline</span>
+                  <span className="text-[9px] opacity-70">Ingresar factura nueva</span>
+                </button>
+              </div>
+
+              {/* ASOCIAR A COMPRA EXISTENTE */}
+              {initStockType === 'existing_purchase' && (
+                <div className={`p-4.5 rounded-2xl border space-y-4 ${
+                  isDarkMode ? 'bg-black/20 border-white/5' : 'bg-slate-50 border-slate-200'
+                }`}>
+                  <div>
+                    <label className={labelClass}>Seleccionar Factura de Compra *</label>
+                    <select
+                      required
+                      value={selectedPurchaseId}
+                      onChange={(e) => setSelectedPurchaseId(e.target.value)}
+                      className={inputClass}
+                    >
+                      <option value="">-- Seleccionar Factura --</option>
+                      {existingPurchases.map(purchase => {
+                        const supName = suppliers.find(s => s.id === purchase.thirdPartyId)?.name || purchase.thirdParty?.name || 'Proveedor Desconocido';
+                        return (
+                          <option key={purchase.id} value={purchase.id} className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>
+                            {purchase.date} | Doc: {purchase.documentNumber} | {supName} | Total: ${purchase.total.toFixed(2)}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className={labelClass}>Cantidad a ingresar *</label>
+                      <input
+                        type="number"
+                        min="1"
+                        required
+                        value={newPurchase.quantity}
+                        onChange={(e) => setNewPurchase({ ...newPurchase, quantity: parseInt(e.target.value) || 0 })}
+                        className={inputClass}
+                      />
+                    </div>
+                    <div>
+                      <label className={labelClass}>Costo Unitario ($) *</label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        required
+                        value={newPurchase.unitCost}
+                        onChange={(e) => setNewPurchase({ ...newPurchase, unitCost: parseFloat(e.target.value) || 0 })}
+                        className={inputClass}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* CREAR COMPRA INLINE */}
+              {initStockType === 'new_purchase' && (
+                <div className={`p-4.5 rounded-2xl border space-y-4 ${
+                  isDarkMode ? 'bg-black/20 border-white/5' : 'bg-slate-50 border-slate-200'
+                }`}>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Proveedor Selector con botón + */}
+                    <div>
+                      <label className={labelClass}>Proveedor *</label>
+                      <div className="flex items-center gap-2">
+                        <select
+                          required
+                          value={newPurchase.supplierId}
+                          onChange={(e) => setNewPurchase({ ...newPurchase, supplierId: e.target.value })}
+                          className={inputClass}
+                        >
+                          <option value="">-- Seleccionar Proveedor --</option>
+                          {suppliers.map(sup => (
+                            <option key={sup.id} value={sup.id} className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>{sup.name} (RUC: {sup.ruc})</option>
+                          ))}
+                        </select>
+                        <button
+                          type="button"
+                          onClick={() => setShowNewSupplierPopup(true)}
+                          className={`p-2 rounded-xl transition-all border ${
+                            isDarkMode 
+                              ? 'bg-white/5 border-white/10 hover:bg-white/10 text-primary' 
+                              : 'bg-gray-50 border-gray-300 hover:bg-gray-100 text-primary'
+                          }`}
+                          title="Agregar Proveedor"
+                        >
+                          <Plus size={16} />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className={labelClass}>Número de Factura *</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="Ej. 001-001-000000123"
+                        value={newPurchase.documentNumber}
+                        onChange={(e) => setNewPurchase({ ...newPurchase, documentNumber: e.target.value })}
+                        className={inputClass}
+                      />
+                    </div>
+
+                    <div>
+                      <label className={labelClass}>Fecha de Emisión *</label>
+                      <input
+                        type="date"
+                        required
+                        value={newPurchase.date}
+                        onChange={(e) => setNewPurchase({ ...newPurchase, date: e.target.value })}
+                        className={inputClass}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className={labelClass}>Cantidad *</label>
+                        <input
+                          type="number"
+                          min="1"
+                          required
+                          value={newPurchase.quantity}
+                          onChange={(e) => setNewPurchase({ ...newPurchase, quantity: parseInt(e.target.value) || 0 })}
+                          className={inputClass}
+                        />
+                      </div>
+                      <div>
+                        <label className={labelClass}>Costo Unitario *</label>
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          required
+                          value={newPurchase.unitCost}
+                          onChange={(e) => setNewPurchase({ ...newPurchase, unitCost: parseFloat(e.target.value) || 0 })}
+                          className={inputClass}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className={labelClass}>Método de Pago</label>
+                      <select
+                        value={newPurchase.paymentMethod}
+                        onChange={(e) => setNewPurchase({ ...newPurchase, paymentMethod: e.target.value })}
+                        className={inputClass}
+                      >
+                        <option value="efectivo">Efectivo</option>
+                        <option value="transferencia">Transferencia</option>
+                        <option value="tarjeta">Tarjeta</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className={labelClass}>Estado del Pago</label>
+                      <select
+                        value={newPurchase.paymentStatus}
+                        onChange={(e) => setNewPurchase({ ...newPurchase, paymentStatus: e.target.value })}
+                        className={inputClass}
+                      >
+                        <option value="pagado">Pagado / Cobrado</option>
+                        <option value="pendiente">Pendiente (Cuentas por Pagar)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Cálculos Resumen Compra */}
+                  <div className={`p-3 rounded-xl border text-[10px] space-y-1.5 ${
+                    isDarkMode ? 'bg-white/[0.02] border-white/5' : 'bg-white border-slate-200'
+                  }`}>
+                    <div className="flex justify-between">
+                      <span>Subtotal:</span>
+                      <span className="font-bold font-mono">
+                        ${(newPurchase.quantity * newPurchase.unitCost).toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>IVA Aplicado ({formData.taxRate}%):</span>
+                      <span className="font-bold font-mono">
+                        ${(formData.taxRate > 0 ? ((newPurchase.quantity * newPurchase.unitCost) * (formData.taxRate / 100)) : 0).toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-emerald-500 font-bold border-t border-dashed pt-1.5 mt-1 border-white/10">
+                      <span>Total Egreso / Compra:</span>
+                      <span className="font-mono">
+                        ${(formData.taxRate > 0 
+                          ? ((newPurchase.quantity * newPurchase.unitCost) * (1 + formData.taxRate / 100)) 
+                          : (newPurchase.quantity * newPurchase.unitCost)).toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Step 2 Submit Buttons */}
+            <div className="pt-4 flex justify-end gap-4 border-t border-dashed border-white/10">
+              <button
+                type="button"
+                onClick={() => setFormStep('product_details')}
+                disabled={loading}
+                className={`px-6 py-2 rounded-xl font-bold transition-all text-xs ${
+                  isDarkMode 
+                    ? 'bg-white/5 hover:bg-white/10 text-white' 
+                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                }`}
+              >
+                Volver a Paso 1
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="px-8 py-2 rounded-xl font-bold transition-all text-xs bg-emerald-500 hover:bg-emerald-600 text-white shadow-[0_0_15px_rgba(16,185,129,0.3)] flex items-center gap-2 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+              >
+                {loading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Finalizando...
+                  </>
+                ) : (
+                  <>
+                    <Save size={14} />
+                    Finalizar y Guardar
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
       </form>
 
       {/* POPUP MODAL: AGREGAR CATEGORÍA */}
@@ -1077,6 +1623,86 @@ export default function ProductCreationForm({
               </div>
             </div>
           </div>
+        </div>
+      )}
+      
+      {/* POPUP MODAL: AGREGAR PROVEEDOR IN-SITU */}
+      {showNewSupplierPopup && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 backdrop-blur-xl bg-black/55 animate-in fade-in duration-200">
+          <form onSubmit={handleAddNewSupplier} className={`w-full max-w-sm p-6 rounded-3xl border shadow-2xl space-y-4 ${
+            isDarkMode ? 'bg-[#121214] border-white/10 text-white' : 'bg-white border-slate-200 text-slate-900'
+          }`}>
+            <h3 className="text-sm font-bold flex items-center gap-2">
+              <Plus className="text-primary" size={18} />
+              Agregar Nuevo Proveedor
+            </h3>
+            
+            <div className="space-y-3">
+              <div>
+                <label className="block text-[9px] font-bold uppercase mb-1">Razón Social / Nombre *</label>
+                <input 
+                  type="text" 
+                  required
+                  value={newSupplierName}
+                  onChange={(e) => setNewSupplierName(e.target.value)}
+                  placeholder="Ej. Distribuidora S.A."
+                  className={inputClass}
+                />
+              </div>
+
+              <div>
+                <label className="block text-[9px] font-bold uppercase mb-1">RUC / Cédula *</label>
+                <input 
+                  type="text" 
+                  required
+                  value={newSupplierRuc}
+                  onChange={(e) => setNewSupplierRuc(e.target.value)}
+                  placeholder="Ej. 1790011223001"
+                  className={inputClass}
+                />
+              </div>
+
+              <div>
+                <label className="block text-[9px] font-bold uppercase mb-1">Teléfono</label>
+                <input 
+                  type="text" 
+                  value={newSupplierPhone}
+                  onChange={(e) => setNewSupplierPhone(e.target.value)}
+                  placeholder="Opcional..."
+                  className={inputClass}
+                />
+              </div>
+
+              <div>
+                <label className="block text-[9px] font-bold uppercase mb-1">Email</label>
+                <input 
+                  type="email" 
+                  value={newSupplierEmail}
+                  onChange={(e) => setNewSupplierEmail(e.target.value)}
+                  placeholder="Opcional..."
+                  className={inputClass}
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button 
+                  type="button" 
+                  onClick={() => setShowNewSupplierPopup(false)}
+                  className={`px-4 py-1.5 rounded-xl text-[10px] font-bold ${
+                    isDarkMode ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                  }`}
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="submit"
+                  className="px-4 py-1.5 rounded-xl text-[10px] font-bold bg-primary hover:bg-primary text-white"
+                >
+                  Guardar Proveedor
+                </button>
+              </div>
+            </div>
+          </form>
         </div>
       )}
     </div>

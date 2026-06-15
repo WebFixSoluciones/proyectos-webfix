@@ -554,14 +554,14 @@ export default function PosView({ products, thirdParties, transactions = [], isD
   const warehouses = ['all', ...new Set(products.map(p => p.bodega).filter(Boolean))];
 
   const addToCart = (product) => {
-    if (product.type === 'producto' && product.stock <= 0) {
+    if (product.type === 'producto' && product.inventoryType !== 'VIRTUAL' && product.stock <= 0) {
       showToast("Producto sin stock disponible", "error");
       return;
     }
 
     const existing = cart.find(item => item.productId === product.id);
     if (existing) {
-      if (product.type === 'producto' && existing.quantity >= product.stock) {
+      if (product.type === 'producto' && product.inventoryType !== 'VIRTUAL' && existing.quantity >= product.stock) {
         showToast("Excede stock disponible", "error");
         return;
       }
@@ -596,7 +596,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
       return;
     }
 
-    if (prod && prod.type === 'producto' && nextQty > prod.stock) {
+    if (prod && prod.type === 'producto' && prod.inventoryType !== 'VIRTUAL' && nextQty > prod.stock) {
       showToast("Excede stock disponible", "error");
       return;
     }
@@ -1223,7 +1223,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
             /* LIST LAYOUT */
             <div className="flex-1 overflow-y-auto flex flex-col gap-2.5 p-1 custom-scrollbar">
               {filteredProducts.map(p => {
-                const isOutOfStock = p.type === 'producto' && p.stock <= 0;
+                const isOutOfStock = p.type === 'producto' && p.inventoryType !== 'VIRTUAL' && p.stock <= 0;
                 return (
                   <div 
                     key={p.id}
@@ -1254,6 +1254,11 @@ export default function PosView({ products, thirdParties, transactions = [], isD
 
                     <div className="flex items-center gap-6 shrink-0">
                       {posConfig.showStock && p.type === 'producto' && (() => {
+                        if (p.inventoryType === 'VIRTUAL') {
+                          return (
+                            <span className="text-[10px] text-gray-400 italic">Virtual (N/A)</span>
+                          );
+                        }
                         const minStk = p.minStock !== undefined ? Number(p.minStock) : 2;
                         const isCritical = p.stock <= minStk;
                         return (
@@ -1299,7 +1304,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
             /* GRID LAYOUT */
             <div className={`flex-1 overflow-y-auto grid ${getGridColsClass()} gap-3 p-1 custom-scrollbar`}>
               {filteredProducts.map(p => {
-                const isOutOfStock = p.type === 'producto' && p.stock <= 0;
+                const isOutOfStock = p.type === 'producto' && p.inventoryType !== 'VIRTUAL' && p.stock <= 0;
                 return (
                   <div 
                     key={p.id}
@@ -1324,6 +1329,11 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                     <div className={`flex justify-between items-center mt-3 pt-3 border-t ${isDarkMode ? 'border-white/5' : 'border-primary/15'}`}>
                       <span className={`text-sm font-black ${isDarkMode ? 'text-white' : 'text-black'}`}>${Number(p.price).toFixed(2)}</span>
                       {posConfig.showStock && p.type === 'producto' && (() => {
+                        if (p.inventoryType === 'VIRTUAL') {
+                          return (
+                            <span className="text-[10px] text-gray-400 italic">Virtual (N/A)</span>
+                          );
+                        }
                         const minStk = p.minStock !== undefined ? Number(p.minStock) : 2;
                         const isCritical = p.stock <= minStk;
                         return (
@@ -1606,7 +1616,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                     onChange={e => {
                       const val = parseInt(e.target.value) || 1;
                       const prod = products.find(p => p.id === item.productId);
-                      if (prod && prod.type === 'producto' && val > prod.stock) {
+                      if (prod && prod.type === 'producto' && prod.inventoryType !== 'VIRTUAL' && val > prod.stock) {
                         showToast("Excede stock disponible", "error");
                         return;
                       }

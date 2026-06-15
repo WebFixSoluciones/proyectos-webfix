@@ -44,7 +44,9 @@ export class ProductRepository {
         cost: validatedData.baseCost,
         ivaCategory: validatedData.taxRate,
         stock: validatedData.type === 'SERVICE' ? 0 : 0, // Inicializado en 0 (el stock real se calcula del Kardex)
-        minStock: 5,
+        minStock: validatedData.stockMinimo !== undefined ? validatedData.stockMinimo : 5,
+        maxStock: validatedData.stockMaximo !== undefined ? validatedData.stockMaximo : 100,
+        inventoryType: validatedData.inventoryType || 'PHYSICAL',
         type: validatedData.type === 'SERVICE' ? 'servicio' : 'producto',
         marca: brandName,
         categoria: categoryName,
@@ -90,6 +92,9 @@ export class ProductRepository {
       if (updates.baseCost !== undefined) updateData.cost = updates.baseCost;
       if (updates.taxRate !== undefined) updateData.ivaCategory = updates.taxRate;
       if (updates.type !== undefined) updateData.type = updates.type === 'SERVICE' ? 'servicio' : 'producto';
+      if (updates.stockMinimo !== undefined) updateData.minStock = updates.stockMinimo;
+      if (updates.stockMaximo !== undefined) updateData.maxStock = updates.stockMaximo;
+      if (updates.inventoryType !== undefined) updateData.inventoryType = updates.inventoryType;
       
       if (Object.keys(updateData).length > 0) {
         updateData.updatedAt = new Date().toISOString();

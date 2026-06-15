@@ -412,8 +412,8 @@ export default function InventoryModule({ isDarkMode }: InventoryModuleProps) {
                                 <td className="px-6 py-3.5 font-bold text-emerald-500">${p.salePrice.toFixed(2)}</td>
                                 <td className="px-6 py-3.5 text-gray-500 font-medium">{p.taxRate}%</td>
                                 <td className="px-6 py-3.5 font-bold">
-                                  {isService ? (
-                                    <span className="text-gray-400 italic font-medium">N/A</span>
+                                  {isService || p.inventoryType === 'VIRTUAL' ? (
+                                    <span className="text-gray-400 italic font-medium">Virtual (N/A)</span>
                                   ) : stock > 0 ? (
                                     <span className="text-emerald-500">{stock} u.</span>
                                   ) : (

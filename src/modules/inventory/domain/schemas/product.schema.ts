@@ -41,6 +41,8 @@ export const ProductSchema = z.object({
   priceCSinImpuesto: z.number().optional(),
   priceWithoutTax: z.number().optional(),
   ivaCalculated: z.number().optional(),
+  stockMinimo: z.number().nonnegative().optional().default(5),
+  stockMaximo: z.number().nonnegative().optional().default(100),
   
   status: z.enum(['ACTIVE', 'INACTIVE']).default('ACTIVE'),
   
