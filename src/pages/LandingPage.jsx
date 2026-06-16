@@ -152,9 +152,9 @@ export default function LandingPage({ isDarkMode, setIsDarkMode }) {
           </div>
 
           <nav className="hidden md:flex items-center gap-8 text-xs font-semibold text-gray-500 dark:text-gray-400">
-            <a href="#beneficios" className="hover:text-primary transition-colors">Beneficios</a>
-            <a href="#precios" className="hover:text-primary transition-colors">Planes</a>
-            <a href="#faqs" className="hover:text-primary transition-colors">Preguntas Frecuentes</a>
+            <button onClick={() => document.getElementById('beneficios')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-primary transition-colors cursor-pointer">Beneficios</button>
+            <button onClick={() => document.getElementById('precios')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-primary transition-colors cursor-pointer">Planes</button>
+            <button onClick={() => document.getElementById('faqs')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-primary transition-colors cursor-pointer">Preguntas Frecuentes</button>
           </nav>
 
           <div className="flex items-center gap-4">
@@ -198,12 +198,12 @@ export default function LandingPage({ isDarkMode, setIsDarkMode }) {
           >
             Prueba Gratis 14 Días <ArrowRight size={14} />
           </button>
-          <a 
-            href="#precios"
+          <button 
+            onClick={() => document.getElementById('precios')?.scrollIntoView({ behavior: 'smooth' })}
             className={`px-8 py-4 text-xs font-bold rounded-xl border flex items-center justify-center transition-all ${isDarkMode ? 'border-white/10 hover:bg-white/5 text-white' : 'border-slate-200 hover:bg-slate-50 text-slate-700'}`}
           >
             Ver Planes de Suscripción
-          </a>
+          </button>
         </div>
       </section>
 
