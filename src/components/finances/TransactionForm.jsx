@@ -977,6 +977,11 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   };
 
   const enviarCorreoComprobante = async (txData, cliente, configSRI) => {
+    if (txData?.documentType === 'nota_venta') {
+      console.log("Los recibos (nota de venta) son de registro interno y no se envían por correo. Omitiendo envío de correo.");
+      return;
+    }
+
     if (!cliente?.email || cliente.email.includes('consumidorfinal') || cliente.email.trim() === '') {
       console.log("El cliente no tiene un correo válido registrado. Omitiendo envío de correo.");
       return;

@@ -559,7 +559,7 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
                           <Eye size={12}/>
                         </button>
                       )}
-                      {(tx.sriStatus === 'autorizado' || tx.xmlUrl || tx.pdfUrl) && (
+                      {(tx.sriStatus === 'autorizado' || tx.xmlUrl || tx.pdfUrl) && tx.documentType !== 'nota_venta' && (
                         <button 
                           onClick={() => handleOpenEmailModal(tx)}
                           className="p-1.5 rounded-[10px] bg-blue-500/20 text-blue-500 hover:bg-blue-500/40 border border-blue-500/10 transition-all"

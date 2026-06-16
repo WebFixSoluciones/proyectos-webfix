@@ -40,6 +40,12 @@ export default async function handler(req, res) {
     return;
   }
 
+  // Short-circuit nota_venta (recibos) since they are only internal registration documents
+  if (String(documentType || '').toLowerCase() === 'nota_venta') {
+    res.status(200).json({ success: true, message: 'Los recibos (nota de venta) son solo de registro interno y no se envían por correo.' });
+    return;
+  }
+
   try {
     // 1. Configurar el transportador SMTP del cliente
     const transporter = nodemailer.createTransport({
@@ -89,14 +95,14 @@ export default async function handler(req, res) {
     // 3. Crear el cuerpo del correo
     const docTypeLabel = (() => {
       switch (String(documentType || 'factura').toLowerCase()) {
-        case 'factura': return 'Factura Electrónica';
-        case 'retencion': return 'Comprobante de Retención';
+        case 'factura': return 'Factura';
+        case 'retencion': return 'Retención';
         case 'nota_credito': return 'Nota de Crédito';
         case 'nota_debito': return 'Nota de Débito';
         case 'liquidacion': return 'Liquidación de Compra';
         case 'guia_remision': return 'Guía de Remisión';
         case 'nota_venta': return 'Nota de Venta';
-        default: return 'Comprobante Electrónico';
+        default: return 'Comprobante';
       }
     })();
 
@@ -105,119 +111,128 @@ export default async function handler(req, res) {
       to,
       subject: `Comprobante Electrónico Autorizado: ${documentNumber || ''}`,
       html: `
-        <div style="max-width: 620px; margin: 20px auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #ffffff; border: 1px solid #000000; border-radius: 12px; overflow: hidden;">
-          
-          <!-- Header / Branding -->
-          <div style="background-color: #1C40F2; padding: 28px 24px; text-align: left;">
-            <span style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 10px; font-weight: 700; color: #ffffff; text-transform: uppercase; display: block; margin-bottom: 6px;">
-              ${String(companyName || 'EMISOR').toUpperCase()} · NOTIFICACIÓN
-            </span>
-            <h1 style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 22px; font-weight: 700; color: #ffffff; margin: 0 0 10px 0; line-height: 1.2;">
-              ${docTypeLabel}
-            </h1>
-            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 10.5px; color: #ffffff; line-height: 1.4;">
-              ${companyRuc ? `<strong>RUC:</strong> ${companyRuc} ` : ''}
-              ${companyAddress ? `| <strong>Dirección:</strong> ${companyAddress} ` : ''}
-              ${companyPhone ? `| <strong>Teléfono:</strong> ${companyPhone}` : ''}
-            </div>
-          </div>
-
-          <!-- Estimado Cliente / Saludo -->
-          <div style="padding: 24px 24px 10px 24px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13px; color: #000000; line-height: 1.6;">
-            <p style="margin: 0 0 10px 0; font-weight: 700; font-size: 14px;">Estimado cliente <strong>${clientName || 'Cliente'}</strong>,</p>
-            <p style="margin: 0; font-weight: 300;">Reciba un cordial saludo. Nos complace informarle que su documento electrónico ha sido generado con el siguiente detalle:</p>
-          </div>
-
-          <!-- Details and Client Grid (2 Columns) -->
-          <div style="padding: 10px 24px 20px 24px;">
-            <table style="width: 100%; border-collapse: collapse; border: none; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
-              <tr>
-                <!-- Columna Izquierda: Detalle Tributario -->
-                <td style="width: 48%; vertical-align: top; padding: 20px; border: 1px solid #000000; border-radius: 8px; background-color: #ffffff;">
-                  <span style="font-size: 10px; font-weight: 700; color: #1C40F2; text-transform: uppercase; display: block; margin-bottom: 12px;">
-                    DETALLE TRIBUTARIO
-                  </span>
-                  <div style="font-size: 11px; color: #000000; line-height: 1.6;">
-                    <div style="margin-bottom: 8px;">
-                      <strong style="color: #000000; font-weight: 400; font-size: 10.5px;">Fecha Autorización:</strong><br>
-                      <span style="color: #000000; font-weight: 700;">${fechaAutorizacion || ''}</span>
-                    </div>
-                    <div>
-                      <strong style="color: #000000; font-weight: 400; font-size: 10.5px;">Clave de Acceso:</strong><br>
-                      <span style="font-family: SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace; font-size: 9.5px; color: #000000; word-break: break-all; font-weight: 700; display: block; margin-top: 4px; line-height: 1.4; background-color: #ffffff; padding: 6px 0; border: none;">
-                        ${claveAcceso || ''}
-                      </span>
-                    </div>
-                  </div>
-                </td>
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+          <style>
+            body {
+              font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+            }
+          </style>
+        </head>
+        <body style="margin: 0; padding: 0; background-color: #F2F4FF; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+          <table style="width: 100%; border-collapse: collapse; border: none; background-color: #F2F4FF; padding: 40px 0; margin: 0;">
+            <tr>
+              <td align="center" style="padding: 40px 20px; border: none;">
                 
-                <!-- Espaciador -->
-                <td style="width: 4%; border: none;"></td>
-                
-                <!-- Columna Derecha: Datos Cliente -->
-                <td style="width: 48%; vertical-align: top; padding: 20px; border: 1px solid #000000; border-radius: 8px; background-color: #ffffff;">
-                  <span style="font-size: 10px; font-weight: 700; color: #1C40F2; text-transform: uppercase; display: block; margin-bottom: 12px;">
-                    DATOS RÁPIDOS
-                  </span>
-                  <div style="font-size: 11px; color: #000000; line-height: 1.8;">
-                    <div style="margin-bottom: 6px;">
-                      <strong style="color: #000000; font-weight: 400; font-size: 10.5px;">Documento:</strong><br>
-                      <span style="font-weight: 700; color: #000000;">${documentNumber || ''}</span>
-                    </div>
-                    <div style="margin-bottom: 6px;">
-                      <strong style="color: #000000; font-weight: 400; font-size: 10.5px;">Fecha Emisión:</strong><br>
-                      <span style="font-weight: 700; color: #000000;">${date || ''}</span>
-                    </div>
-                    <div style="margin-bottom: 6px;">
-                      <strong style="color: #000000; font-weight: 400; font-size: 10.5px;">Cliente:</strong><br>
-                      <span style="font-weight: 700; color: #000000;">${clientName || ''}</span>
-                    </div>
-                    <div>
-                      <strong style="color: #000000; font-weight: 400; font-size: 10.5px;">Identificación:</strong><br>
-                      <span style="font-weight: 700; color: #000000;">${clientIdentification || ''}</span>
-                    </div>
+                <!-- Main Container Box -->
+                <div style="max-width: 600px; width: 100%; background-color: #ffffff; border: 1px solid #CAD1F4; border-radius: 8px; overflow: hidden; text-align: left;">
+                  
+                  <!-- Header / Branding -->
+                  <div style="background-color: #1C40F2; padding: 32px 24px; text-align: center; border: none;">
+                    <h1 style="font-family: 'Inter', sans-serif; font-size: 20px; font-weight: 800; color: #ffffff; margin: 0 0 10px 0; line-height: 1.2;">
+                      ¡Hola, ${String(clientName || 'Cliente').toUpperCase()}
+                    </h1>
+                    <p style="font-family: 'Inter', sans-serif; font-size: 13.5px; font-weight: 400; color: #ffffff; margin: 0; line-height: 1.2;">
+                      Nuevo Comprobante Electrónico
+                    </p>
                   </div>
-                </td>
-              </tr>
-            </table>
-          </div>
 
-          <!-- Monto Total Card (Compact & Centered) -->
-          <div style="text-align: center; padding: 0 24px 20px 24px;">
-            <div style="max-width: 240px; margin: 0 auto; padding: 12px 16px; border-radius: 8px; background-color: #1C40F2; text-align: center; display: inline-block; width: 100%;">
-              <span style="font-size: 9px; font-weight: 700; color: #ffffff; text-transform: uppercase; display: block; margin-bottom: 4px;">
-                MONTO TOTAL
-              </span>
-              <div style="font-size: 26px; font-weight: 700; color: #ffffff; margin: 0; line-height: 1;">
-                $${Number(total || 0).toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </div>
-              <span style="font-size: 9px; color: #ffffff; display: block; margin-top: 4px;">
-                Valores en USD
-              </span>
-            </div>
-          </div>
+                  <!-- Body Content -->
+                  <div style="padding: 30px 24px; background-color: #ffffff;">
+                    <p style="font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700; color: #000000; margin: 0 0 24px 0; line-height: 1.5; text-transform: uppercase;">
+                      ${String(companyName || 'EMISOR').toUpperCase()}, ha emitido un comprobante electrónico a su nombre.
+                    </p>
 
-          <!-- Quick Actions / Download Buttons -->
-          <div style="text-align: center; padding: 10px 24px 28px 24px;">
-            ${pdfUrl ? `
-              <a href="${pdfUrl}" target="_blank" style="background-color: #1C40F2; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 30px; font-weight: 700; font-size: 12px; display: inline-block; margin-right: 12px; margin-bottom: 8px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
-                Visualizar PDF
-              </a>
-            ` : ''}
-            ${xmlUrl && !xmlUrl.startsWith('data:') ? `
-              <a href="${xmlUrl}" target="_blank" style="background-color: #ffffff; color: #000000; padding: 11px 28px; text-decoration: none; border-radius: 30px; font-weight: 700; font-size: 12px; display: inline-block; border: 1px solid #000000; margin-bottom: 8px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
-                Descargar XML
-              </a>
-            ` : ''}
-          </div>
+                    <table style="width: 100%; border-collapse: collapse; border: none;">
+                      <tr>
+                        <!-- Left column: Document Icon -->
+                        <td style="width: 45px; vertical-align: top; padding-right: 20px; border: none;">
+                          <div style="font-size: 36px; line-height: 1; text-align: left; color: #000000; padding-top: 4px;">
+                            📄
+                          </div>
+                        </td>
+                        <!-- Right column: Details -->
+                        <td style="vertical-align: top; border: none;">
+                          <div style="font-family: 'Inter', sans-serif; font-size: 11.5px; color: #000000; line-height: 1.6; text-align: left;">
+                            
+                            <div style="margin-bottom: 12px;">
+                              <strong style="font-weight: 700; display: block; color: #000000;">Clave de Acceso:</strong>
+                              <span style="font-weight: 400; display: block; color: #000000; word-break: break-all; margin-top: 2px;">${claveAcceso || ''}</span>
+                            </div>
 
-          <!-- Footer Info -->
-          <div style="background-color: #ffffff; border-top: 1px solid #000000; padding: 18px 24px; text-align: center;">
-            <p style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 10.5px; color: #000000; font-weight: 400; margin: 0; line-height: 1.4;">
-              Sistema de facturación electrónica desarrollado por <strong>Web Fix</strong>
-            </p>
-          </div>
-        </div>
+                            <div style="margin-bottom: 12px;">
+                              <strong style="font-weight: 700; display: block; color: #000000;">${docTypeLabel}:</strong>
+                              <span style="font-weight: 400; display: block; color: #000000; margin-top: 2px;">${documentNumber || ''}</span>
+                            </div>
+
+                            <div style="margin-bottom: 12px;">
+                              <strong style="font-weight: 700; display: block; color: #000000;">Fecha Emisión:</strong>
+                              <span style="font-weight: 400; display: block; color: #000000; margin-top: 2px;">${date || ''}</span>
+                            </div>
+
+                            <div style="margin-bottom: 12px;">
+                              <strong style="font-weight: 700; display: block; color: #000000;">Cliente:</strong>
+                              <span style="font-weight: 400; display: block; color: #000000; margin-top: 2px;">${String(clientName || '').toUpperCase()}</span>
+                            </div>
+
+                            <div style="margin-bottom: 12px;">
+                              <strong style="font-weight: 700; display: block; color: #000000;">Identificación:</strong>
+                              <span style="font-weight: 400; display: block; color: #000000; margin-top: 2px;">${clientIdentification || ''}</span>
+                            </div>
+
+                            <!-- Total Block -->
+                            <table style="width: 240px; border-collapse: collapse; background-color: #1C40F2; border-radius: 5px; margin-top: 20px; border: none;">
+                              <tr>
+                                <td style="padding: 10px 14px; font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 700; color: #ffffff; text-align: left; border: none;">
+                                  Total Incl. IVA
+                                </td>
+                                <td style="padding: 10px 14px; font-family: 'Inter', sans-serif; font-size: 18px; font-weight: 800; color: #ffffff; text-align: right; border: none;">
+                                  $${Number(total || 0).toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </td>
+                              </tr>
+                            </table>
+
+                          </div>
+                        </td>
+                      </tr>
+                    </table>
+                  </div>
+
+                  <!-- Buttons Bar -->
+                  <div style="border-top: 1px solid #CAD1F4; padding: 24px; text-align: center; background-color: #ffffff;">
+                    ${pdfUrl ? `
+                      <a href="${pdfUrl}" target="_blank" style="background-color: #000000; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: 700; font-size: 10px; text-transform: uppercase; font-family: 'Inter', sans-serif; display: inline-block; margin-right: 15px;">
+                        DESCARGAR PDF
+                      </a>
+                    ` : ''}
+                    ${xmlUrl && !xmlUrl.startsWith('data:') ? `
+                      <a href="${xmlUrl}" target="_blank" style="background-color: #000000; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: 700; font-size: 10px; text-transform: uppercase; font-family: 'Inter', sans-serif; display: inline-block;">
+                        DESCARGAR XML
+                      </a>
+                    ` : ''}
+                  </div>
+
+                </div>
+
+                <!-- Outside text (Validity) -->
+                <p style="font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 400; color: #000000; text-align: center; max-width: 500px; margin: 20px auto 0 auto; line-height: 1.4; padding: 0 10px;">
+                  Le recordamos que este documento digital si tiene validez tributaria, por lo que le sugerimos conservarlo para los fines fiscales pertinentes.
+                </p>
+
+                <!-- Outside footer -->
+                <p style="font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 700; color: #000000; text-align: center; margin: 24px 0 0 0; padding: 0 10px;">
+                  Sistema de Facturación © WebFix Soluciones. Todos los derechos reservados.
+                </p>
+
+              </td>
+            </tr>
+          </table>
+        </body>
+        </html>
       `,
       attachments
     };
