@@ -56,6 +56,8 @@ export default function SuperAdminPage({ isDarkMode, showToast }) {
       const list = [];
       snap.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
       setTenants(list);
+    }, (error) => {
+      console.warn("Superadmin tenants subscription blocked by security rules:", error);
     });
 
     // 2. Listen to Transfers
@@ -63,6 +65,8 @@ export default function SuperAdminPage({ isDarkMode, showToast }) {
       const list = [];
       snap.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
       setTransfers(list);
+    }, (error) => {
+      console.warn("Superadmin transfers subscription blocked by security rules:", error);
     });
 
     // 3. Load or Initialize Plans in Firestore

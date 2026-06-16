@@ -377,6 +377,8 @@ export default function App() {
       if (list.length > 0) {
         setPlansList(list);
       }
+    }, (error) => {
+      console.warn("Firestore plans subscription blocked by security rules:", error);
     });
     return () => unsubPlans();
   }, []);

@@ -3,15 +3,42 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // Solo personal con sesión iniciada por correo/contraseña (no anónimos).
-    // Bloquea el acceso anónimo: aunque alguien obtenga un token anónimo,
-    // no podrá leer ni escribir los datos de la empresa.
     function esPersonalAutorizado() {
       return request.auth != null
         && request.auth.token.firebase.sign_in_provider == 'password';
     }
 
+    function esSuperAdmin() {
+      return request.auth != null 
+        && (request.auth.token.email == 'admin@webfix.com' 
+            || (exists(/databases/$(database)/documents/users/$(request.auth.uid)) 
+                && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'superadmin'));
+    }
+
+    // 1. Sandbox de Inquilinos (Aislamiento Multi-tenant)
     match /artifacts/{appId}/public/data/{document=**} {
       allow read, write: if esPersonalAutorizado();
+    }
+
+    // 2. Colección de Usuarios
+    match /users/{uid} {
+      allow read, write: if (request.auth != null && request.auth.uid == uid) || esSuperAdmin();
+    }
+
+    // 3. Colección de Inquilinos (Tenants)
+    match /tenants/{tenantId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // 4. Colección de Planes
+    match /plans/{planId} {
+      allow read: if true;
+      allow write: if esSuperAdmin();
+    }
+
+    // 5. Comprobantes de Transferencias Bancarias (Payment Vouchers)
+    match /payment_vouchers/{voucherId} {
+      allow read, write: if request.auth != null;
     }
 
     // Denegar por defecto cualquier otra ruta no contemplada arriba.

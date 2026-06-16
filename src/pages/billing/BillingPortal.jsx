@@ -59,6 +59,8 @@ export default function BillingPortal({ isDarkMode, showToast }) {
       const list = [];
       snap.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
       setHistory(list);
+    }, (error) => {
+      console.warn("Billing transfers subscription blocked by security rules:", error);
     });
     return () => unsub();
   }, [tenantId]);
