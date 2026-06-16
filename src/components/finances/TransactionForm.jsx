@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, runTransaction } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { validarIdentificacion, generarFacturaXML, simularTransmisionSRI, consultarRucSri, generarRetencionXML, generarNotaCreditoXML, generarLiquidacionXML, generarGuiaRemisionXML } from '../../services/sriService';
+import { validarIdentificacion, generarFacturaXML, simularTransmisionSRI, consultarRucSri, generarRetencionXML, generarNotaCreditoXML, generarLiquidacionXML, generarGuiaRemisionXML, getEcuadorDateString, getEcuadorTimeString } from '../../services/sriService';
 import { firmarComprobanteXML } from '../../services/xadesSigner';
 import { registrarMovimientoKardex } from '../../services/inventoryService';
 import RidePreviewModal from './RidePreviewModal';
@@ -81,7 +81,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   const [formData, setFormData] = useState({
     id: '',
     type: 'ingreso',
-    date: new Date().toISOString().split('T')[0],
+    date: getEcuadorDateString(),
     documentType: 'factura',
     documentNumber: '',
     thirdPartyId: '',
@@ -106,7 +106,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     retenciones: [],
     codDocModificado: '01',
     numDocModificado: '',
-    fechaEmisionDocSustento: new Date().toISOString().split('T')[0],
+    fechaEmisionDocSustento: getEcuadorDateString(),
     motivo: 'Devolución de mercadería',
     referencia: '',
     description: '',
@@ -116,8 +116,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     dirDestino: '',
     motivoTraslado: 'Venta',
     ruta: '',
-    fechaIniTransporte: new Date().toISOString().split('T')[0],
-    fechaFinTransporte: new Date().toISOString().split('T')[0],
+    fechaIniTransporte: getEcuadorDateString(),
+    fechaFinTransporte: getEcuadorDateString(),
     rucTransportista: '',
     razonSocialTransportista: '',
     tipoIdentificacionTransportista: '04',
@@ -153,7 +153,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   const [creditDueDate, setCreditDueDate] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() + 30);
-    return d.toISOString().split('T')[0];
+    return getEcuadorDateString(d);
   });
   const [creditObservations, setCreditObservations] = useState('');
   const [isCreditModalOpen, setIsCreditModalOpen] = useState(false);
@@ -454,7 +454,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
           valorRetenido: 0, 
           codDocSustento: '01', 
           numDocSustento: '', 
-          fechaEmisionDocSustento: new Date().toISOString().split('T')[0] 
+          fechaEmisionDocSustento: getEcuadorDateString() 
         }
       ]
     }));
@@ -875,8 +875,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
       // Lock system date & time automatically (non-modifiable)
       const now = new Date();
-      const serverDate = now.toISOString().split('T')[0];
-      const serverTime = now.toTimeString().split(' ')[0];
+      const serverDate = getEcuadorDateString(now);
+      const serverTime = getEcuadorTimeString(now);
       updatedFormData.date = serverDate;
       updatedFormData.time = serverTime;
 
@@ -1080,8 +1080,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       const codigoNumerico = formData.codigoNumerico || Math.floor(10000000 + Math.random() * 90000000).toString();
       
       const now = new Date();
-      const serverDate = now.toISOString().split('T')[0];
-      const serverTime = now.toTimeString().split(' ')[0];
+      const serverDate = getEcuadorDateString(now);
+      const serverTime = getEcuadorTimeString(now);
 
       const docData = { ...formData, date: serverDate, time: serverTime, secuencial: sec, codigoNumerico };
 

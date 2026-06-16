@@ -3,6 +3,28 @@
  * Maneja validaciones tributarias, generación de clave de acceso, estructura XML y estados del SRI.
  */
 
+// Helpers para obtener la fecha y hora oficial de Ecuador (GMT-5, America/Guayaquil)
+export function getEcuadorDateString(d = new Date()) {
+  const formatter = new Intl.DateTimeFormat('sv-SE', {
+    timeZone: 'America/Guayaquil',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+  return formatter.format(d);
+}
+
+export function getEcuadorTimeString(d = new Date()) {
+  const formatter = new Intl.DateTimeFormat('sv-SE', {
+    timeZone: 'America/Guayaquil',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  });
+  return formatter.format(d);
+}
+
 // Validador de RUC / CI Ecuatoriano
 export function validarIdentificacion(identificacion) {
   if (!identificacion) return false;

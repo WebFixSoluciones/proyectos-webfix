@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Search, ShoppingCart, Plus, Minus, Trash2, User, Sparkles, CheckCircle2, DollarSign, X, ShieldAlert, Award, Layers, Tag, Bookmark, RefreshCw, LogOut, ArrowRight, ArrowLeft, ChevronRight, Settings, Barcode, Zap, Eye, Mic, Keyboard, History, Download, FileText, Unlock, UserPlus, Edit3, Phone, Mail, MoreHorizontal } from 'lucide-react';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, onSnapshot } from 'firebase/firestore';
-import { consultarRucSri } from '../../services/sriService';
+import { consultarRucSri, getEcuadorDateString } from '../../services/sriService';
 import { registrarMovimientoKardex } from '../../services/inventoryService';
 
 function sanitizeData(obj) {
@@ -695,7 +695,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
 
       const invoiceData = {
         type: 'ingreso',
-        date: new Date().toISOString().split('T')[0],
+        date: getEcuadorDateString(),
         documentType: posDocType,
         thirdPartyId: clientDocId,
         thirdParty: client,
@@ -873,8 +873,8 @@ export default function PosView({ products, thirdParties, transactions = [], isD
       const finalQuote = {
         id: docId,
         quoteNumber: `COT-${new Date().getFullYear()}-${String(new Date().getTime()).slice(-4)}`,
-        date: new Date().toISOString().split('T')[0],
-        validUntil: validDate.toISOString().split('T')[0],
+        date: getEcuadorDateString(),
+        validUntil: getEcuadorDateString(validDate),
         thirdPartyId: selectedClientId || '',
         items: cart,
         subtotal: Number(getSubtotalWithDiscount().toFixed(2)),
