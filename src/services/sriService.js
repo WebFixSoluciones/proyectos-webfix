@@ -4,25 +4,30 @@
  */
 
 // Helpers para obtener la fecha y hora oficial de Ecuador (GMT-5, America/Guayaquil)
+// Ecuador NO tiene horario de verano (DST), siempre UTC-5.
+// Se usa desplazamiento manual en lugar de Intl.DateTimeFormat para garantizar
+// el resultado correcto incluso cuando el servidor/navegador corre en UTC u otro huso.
+const ECUADOR_OFFSET_MS = -5 * 60 * 60 * 1000; // -5 horas en ms
+
+function _toEcuadorUTCDate(d) {
+  // Desplaza el instante al equivalente UTC que representa la hora local Ecuador
+  return new Date(d.getTime() + ECUADOR_OFFSET_MS);
+}
+
 export function getEcuadorDateString(d = new Date()) {
-  const formatter = new Intl.DateTimeFormat('sv-SE', {
-    timeZone: 'America/Guayaquil',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit'
-  });
-  return formatter.format(d);
+  const ec = _toEcuadorUTCDate(d);
+  const year  = ec.getUTCFullYear();
+  const month = String(ec.getUTCMonth() + 1).padStart(2, '0');
+  const day   = String(ec.getUTCDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 export function getEcuadorTimeString(d = new Date()) {
-  const formatter = new Intl.DateTimeFormat('sv-SE', {
-    timeZone: 'America/Guayaquil',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false
-  });
-  return formatter.format(d);
+  const ec = _toEcuadorUTCDate(d);
+  const h  = String(ec.getUTCHours()).padStart(2, '0');
+  const m  = String(ec.getUTCMinutes()).padStart(2, '0');
+  const s  = String(ec.getUTCSeconds()).padStart(2, '0');
+  return `${h}:${m}:${s}`;
 }
 
 // Validador de RUC / CI Ecuatoriano
