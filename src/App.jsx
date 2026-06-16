@@ -352,6 +352,23 @@ export default function App() {
   const location = useLocation();
 
   const [plansList, setPlansList] = useState(Object.values(PLANS));
+  const [pages, setPages] = useState(INITIAL_PAGES);
+  const [trash, setTrash] = useState([]);
+  const [users, setUsers] = useState(MOCK_USERS);
+  const [activePageId, setActivePageId] = useState('dashboard');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [activeModules, setActiveModules] = useState({
+    dashboard: true,
+    ventas: true,
+    finances: true,
+    compras: true,
+    gastos_creditos: true,
+    inventario: true,
+    personas: true,
+    calendar: true,
+    team: true,
+    proyectos_general: true
+  });
 
   useEffect(() => {
     const unsubPlans = onSnapshot(collection(db, 'plans'), (snap) => {
@@ -404,23 +421,7 @@ export default function App() {
     }
   }, [activePageId, isAuthenticated, navigate]);
 
-  const [pages, setPages] = useState(INITIAL_PAGES);
-  const [trash, setTrash] = useState([]);
-  const [users, setUsers] = useState(MOCK_USERS);
-  const [activePageId, setActivePageId] = useState('dashboard');
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [activeModules, setActiveModules] = useState({
-    dashboard: true,
-    ventas: true,
-    finances: true,
-    compras: true,
-    gastos_creditos: true,
-    inventario: true,
-    personas: true,
-    calendar: true,
-    team: true,
-    proyectos_general: true
-  });
+
 
   useEffect(() => {
     if (!planId) return;
