@@ -33,14 +33,14 @@ export function AuthProvider({ children }) {
               uid: user.uid,
               email: user.email,
               tenantId: defaultTenantId,
-              role: user.email === 'admin@webfix.com' ? 'superadmin' : 'admin',
+              role: user.email === 'aurresta@webfixsoluciones.net' ? 'superadmin' : 'admin',
               status: 'active'
             };
             await setDoc(userDocRef, profile, { merge: true });
             tempTenantId = defaultTenantId;
           }
 
-          if (user.email === 'admin@webfix.com' && profile.role !== 'superadmin') {
+          if (user.email === 'aurresta@webfixsoluciones.net' && profile.role !== 'superadmin') {
             profile.role = 'superadmin';
             await setDoc(userDocRef, { role: 'superadmin' }, { merge: true });
           }
