@@ -87,6 +87,15 @@ import { onAuthStateChanged, signInAnonymously, signInWithCustomToken, signOut, 
 import { doc, setDoc, onSnapshot, collection, updateDoc, deleteDoc, writeBatch, getDocs, getDoc } from 'firebase/firestore';
 
 import { auth, db, storage, appId } from './firebase';
+import { useAuth } from './contexts/AuthContext';
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import LandingPage from './pages/LandingPage';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import SuperAdminPage from './pages/SuperAdminPage';
+import BillingPortal from './pages/billing/BillingPortal';
+import { PLANS } from './config/plans';
+
 import FinanceModule from './components/finances/FinanceModule';
 import ErpDashboard from './components/dashboard/ErpDashboard';
 import GeneralSettings from './components/dashboard/GeneralSettings';
@@ -337,6 +346,64 @@ const SortableColumn = ({
 };
 
 export default function App() {
+  const { currentUser, tenantInfo, planId, planStatus, role: userRole } = useAuth();
+  const isAuthenticated = !!currentUser;
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const [plansList, setPlansList] = useState(Object.values(PLANS));
+
+  useEffect(() => {
+    const unsubPlans = onSnapshot(collection(db, 'plans'), (snap) => {
+      const list = [];
+      snap.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
+      if (list.length > 0) {
+        setPlansList(list);
+      }
+    });
+    return () => unsubPlans();
+  }, []);
+
+  useEffect(() => {
+    const path = location.pathname;
+    if (!isAuthenticated) {
+      if (path.startsWith('/app') || path === '/superadmin') {
+        navigate('/login');
+      }
+    } else {
+      if (path === '/login' || path === '/register' || path === '/') {
+        if (userRole === 'superadmin') {
+          navigate('/superadmin');
+        } else {
+          navigate('/app');
+        }
+      }
+    }
+  }, [isAuthenticated, location.pathname, userRole, navigate]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const path = location.pathname;
+    if (path.startsWith('/app/')) {
+      const subpage = path.substring(5);
+      if (subpage === 'billing') {
+        setActivePageId('billing');
+      }
+    }
+  }, [location.pathname, isAuthenticated]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const currentPath = location.pathname;
+    if (activePageId === 'billing') {
+      if (currentPath !== '/app/billing') navigate('/app/billing');
+    } else {
+      if (currentPath === '/app/billing') {
+        navigate('/app');
+      }
+    }
+  }, [activePageId, isAuthenticated, navigate]);
+
   const [pages, setPages] = useState(INITIAL_PAGES);
   const [trash, setTrash] = useState([]);
   const [users, setUsers] = useState(MOCK_USERS);
@@ -351,8 +418,29 @@ export default function App() {
     inventario: true,
     personas: true,
     calendar: true,
-    team: true
+    team: true,
+    proyectos_general: true
   });
+
+  useEffect(() => {
+    if (!planId) return;
+    const currentPlan = plansList.find(p => p.id === planId) || PLANS[planId];
+    if (currentPlan && currentPlan.modules) {
+      const newModules = {
+        dashboard: currentPlan.modules.includes('dashboard'),
+        ventas: currentPlan.modules.includes('ventas'),
+        finances: currentPlan.modules.includes('finances') || currentPlan.modules.includes('contabilidad') || currentPlan.modules.includes('enterprise'),
+        compras: currentPlan.modules.includes('compras') || currentPlan.modules.includes('contabilidad') || currentPlan.modules.includes('enterprise'),
+        gastos_creditos: currentPlan.modules.includes('gastos_creditos') || currentPlan.modules.includes('contabilidad') || currentPlan.modules.includes('enterprise'),
+        inventario: currentPlan.modules.includes('inventario') || currentPlan.modules.includes('professional') || currentPlan.modules.includes('enterprise'),
+        personas: currentPlan.modules.includes('personas') || currentPlan.modules.includes('starter') || currentPlan.modules.includes('professional') || currentPlan.modules.includes('enterprise'),
+        calendar: currentPlan.modules.includes('calendar') || currentPlan.modules.includes('professional') || currentPlan.modules.includes('enterprise'),
+        team: currentPlan.modules.includes('team') || currentPlan.modules.includes('professional') || currentPlan.modules.includes('enterprise'),
+        proyectos_general: currentPlan.modules.includes('proyectos_general') || currentPlan.modules.includes('professional') || currentPlan.modules.includes('enterprise')
+      };
+      setActiveModules(newModules);
+    }
+  }, [planId, plansList]);
   const [ventasInitialSubTab, setVentasInitialSubTab] = useState('resumen_ventas');
   const [personasSubTab, setPersonasSubTab] = useState('cliente');
   const [dbSyncError, setDbSyncError] = useState(() => sessionStorage.getItem('db_sync_error') === 'true');
@@ -419,7 +507,6 @@ export default function App() {
   const [googleClientId, setGoogleClientId] = useState('');
 
   // --- SISTEMA DE LOGIN ---
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
   const [loginError, setLoginError] = useState('');
   const [isAuthenticating, setIsAuthenticating] = useState(false);
@@ -493,18 +580,12 @@ export default function App() {
     document.body.appendChild(script);
   }, []);
 
-  // 1. Escuchador de Autenticación de Firebase
+  // Limpiar sincronización de la nube al cerrar sesión
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, user => {
-        if (user) {
-            setIsAuthenticated(true);
-        } else {
-            setIsAuthenticated(false);
-            setIsCloudSynced(false);
-        }
-    });
-    return () => unsubscribe();
-  }, []);
+    if (!isAuthenticated) {
+      setIsCloudSynced(false);
+    }
+  }, [isAuthenticated]);
 
   // 1.5 Escuchador de estado Offline (pérdida de conexión)
   useEffect(() => {
@@ -802,6 +883,8 @@ export default function App() {
     activePage = { id: 'team', title: 'Equipo y Roles', icon: 'team', type: 'team' };
   } else if (activePageId === 'general_settings') {
     activePage = { id: 'general_settings', title: 'Ajustes', icon: 'settings', type: 'general_settings' };
+  } else if (activePageId === 'billing') {
+    activePage = { id: 'billing', title: 'Suscripción', icon: 'credit-card', type: 'billing' };
   } else if (activePageId === 'trash') {
     activePage = { id: 'trash', title: 'Papelera', icon: 'trash', type: 'trash' };
   } else if (activePageId === 'proyectos_general') {
@@ -910,6 +993,12 @@ export default function App() {
           title: 'Soporte Técnico Especializado',
           desc: 'Envía tus solicitudes de ayuda técnica y reportes de incidencias directamente a nuestro equipo',
           icon: 'life-buoy'
+        };
+      case 'billing':
+        return {
+          title: 'Suscripción y Facturación SaaS',
+          desc: 'Gestiona tu plan contratado, revisa tus consumos y reporta tus pagos por transferencia o PayPhone',
+          icon: 'credit-card'
         };
       default:
         return {
@@ -1783,192 +1872,31 @@ export default function App() {
     );
   }
 
-  // --- PANTALLA DE LOGIN ---
-  if (!isAuthenticated) {
-    return (
-      <div className={`flex items-center justify-center min-h-screen w-full font-sans overflow-hidden transition-colors duration-500 relative z-0 ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>
-        
-        {/* BASE BACKGROUND SOLID COLOR (-z-20) */}
-        <div className={`absolute inset-0 -z-20 transition-colors duration-500 ${isDarkMode ? 'bg-[#020204]' : 'bg-[#fafafa]'}`} />
-
-        {/* GLOBAL BACKGROUND BLOBS (Minimalismo Líquido Puro) */}
-        <div className={`absolute top-[-10%] left-[-5%] w-[40rem] h-[40rem] rounded-full filter blur-[130px] pointer-events-none -z-10 transition-all duration-500 animate-liquid-1 ${isDarkMode ? 'mix-blend-screen bg-purple-950/20 opacity-30' : 'mix-blend-multiply bg-purple-200/45 opacity-50'}`}></div>
-        <div className={`absolute top-[20%] right-[-10%] w-[35rem] h-[35rem] rounded-full filter blur-[120px] pointer-events-none -z-10 transition-all duration-500 animate-liquid-2 ${isDarkMode ? 'mix-blend-screen bg-primary/20 opacity-25' : 'mix-blend-multiply bg-blue-100/45 opacity-55'}`}></div>
-        <div className={`absolute bottom-[-10%] left-[10%] w-[38rem] h-[38rem] rounded-full filter blur-[140px] pointer-events-none -z-10 transition-all duration-500 animate-liquid-3 ${isDarkMode ? 'mix-blend-screen bg-rose-950/20 opacity-20' : 'mix-blend-multiply bg-rose-100/40 opacity-45'}`}></div>
-        
-        {/* HOUDINI RING PARTICLES (Google Antigravity Particles Effect) */}
-        <div className="absolute inset-0 pointer-events-none -z-10 ring-particles-bg-1 animate-ring-particles-1 opacity-70" />
-        <div className="absolute inset-0 pointer-events-none -z-10 ring-particles-bg-2 animate-ring-particles-2 opacity-70" />
-        
-        {/* Theme Toggle flotante en la esquina */}
-        <div className="absolute top-6 right-6 z-20">
-          <button 
-            onClick={() => setIsDarkMode(!isDarkMode)} 
-            className={`p-2.5 rounded-xl transition-all active:scale-95 border backdrop-blur-md shadow-sm flex items-center justify-center ${
-              isDarkMode 
-                ? 'bg-white/5 border-white/10 hover:bg-white/10 text-amber-400 hover:text-amber-300' 
-                : 'bg-white border-slate-200/80 hover:bg-slate-50 text-indigo-600 hover:text-indigo-700'
-            }`} 
-            title={isDarkMode ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
-          >
-            {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
-        </div>
-
-        {/* Card Centrado (Estilo Profesional Alineado a la Izquierda) */}
-        <div className="w-full max-w-[420px] mx-4 relative group select-none">
-          {/* Subtle Backglow */}
-          <div className="absolute inset-0 rounded-[10px] bg-gradient-to-tr from-[#1C40F2]/10 to-[#a855f7]/10 blur-xl opacity-60 pointer-events-none"></div>
-          
-          {/* La tarjeta principal */}
-          <div className={`w-full p-8 sm:p-10 rounded-[10px] flex flex-col border transition-all duration-500 relative z-10 ${
-            isDarkMode 
-              ? 'bg-[#0f111a]/95 border-white/5 shadow-2xl shadow-black/60' 
-              : 'bg-white/95 border-slate-200/60 shadow-xl shadow-slate-100/60'
-          }`}>
-            
-            {/* Header de la Empresa o Web Fix (Isotipo + Wordmark) */}
-            <div className="text-left mb-8 select-none">
-              {companyProfile?.logoUrl ? (
-                <img src={companyProfile.logoUrl} alt="Logo de la Empresa" className="max-h-12 object-contain mb-4" />
-              ) : (
-                <div className="flex items-center gap-2.5 mb-5 select-none">
-                  <div className="w-9 h-9 rounded-[10px] bg-gradient-to-br from-[#1C40F2] to-[#6366f1] flex items-center justify-center shadow-md shadow-blue-500/20">
-                    <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-                    </svg>
-                  </div>
-                  <span className={`text-2xl font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                    Web Fix
-                  </span>
-                </div>
-              )}
-              <span className={`text-[18px] font-medium leading-none block ${isDarkMode ? 'text-gray-200' : 'text-black'}`}>
-                Iniciar sesión
-              </span>
-            </div>
-            
-            <form onSubmit={handleLogin} className="space-y-5 text-left">
-              <div>
-                <label className={`block text-[12px] font-normal mb-1.5 ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                  Correo Electrónico
-                </label>
-                <div className="relative">
-                  <div className={`absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>
-                    <User size={16} />
-                  </div>
-                  <input 
-                    type="email" 
-                    value={loginForm.email}
-                    onChange={(e) => setLoginForm({...loginForm, email: e.target.value})}
-                    className={`w-full text-xs font-medium tracking-wide pl-11 pr-3.5 py-3.5 rounded-[10px] outline-none transition-all border ${
-                      isDarkMode 
-                        ? 'bg-[#151722] border-white/10 text-white focus:border-[#1C40F2] focus:ring-2 focus:ring-[#1C40F2]/20' 
-                        : 'bg-[#f8fafc] border-slate-300 text-black focus:border-[#1C40F2] focus:ring-2 focus:ring-[#1C40F2]/20 focus:bg-white'
-                    }`} 
-                    placeholder="correo@ejemplo.com" 
-                    required
-                  />
-                </div>
-              </div>
-   
-              <div>
-                <label className={`block text-[12px] font-normal mb-1.5 ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                  Contraseña
-                </label>
-                <div className="relative">
-                  <div className={`absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>
-                    <Lock size={16} />
-                  </div>
-                  <input 
-                    type={showPassword ? "text" : "password"}
-                    value={loginForm.password}
-                    onChange={(e) => setLoginForm({...loginForm, password: e.target.value})}
-                    className={`w-full text-xs font-medium tracking-wide pl-11 pr-10 py-3.5 rounded-[10px] outline-none transition-all border ${
-                      isDarkMode 
-                        ? 'bg-[#151722] border-white/10 text-white focus:border-[#1C40F2] focus:ring-2 focus:ring-[#1C40F2]/20' 
-                        : 'bg-[#f8fafc] border-slate-300 text-black focus:border-[#1C40F2] focus:ring-2 focus:ring-[#1C40F2]/20 focus:bg-white'
-                    }`} 
-                    placeholder="••••••••••••" 
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-black/60 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors"
-                  >
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-                
-                {/* Olvidaste tu contraseña */}
-                <div className="flex justify-end mt-2">
-                  <button
-                    type="button"
-                    onClick={() => showToast('Comunícate con soporte para recuperar tu contraseña', 'info')}
-                    className="text-xs font-semibold text-primary hover:text-primary-hover transition-colors"
-                  >
-                    ¿Olvidaste tu contraseña?
-                  </button>
-                </div>
-              </div>
-   
-              {loginError && (
-                <div className={`p-3 rounded-[10px] text-xs font-semibold tracking-wide flex items-center justify-center text-center animate-in fade-in duration-300 border ${
-                  isDarkMode ? 'bg-red-500/10 text-red-400 border-red-500/25' : 'bg-red-50 text-red-650 border-red-100'
-                }`}>
-                  {loginError}
-                </div>
-              )}
-   
-              <button 
-                type="submit" 
-                disabled={isAuthenticating}
-                className={`w-full flex items-center justify-center gap-2 mt-6 py-4 rounded-[10px] text-xs font-bold tracking-wider uppercase transition-all duration-300 shadow-md active:scale-98 disabled:opacity-70 disabled:hover:scale-100 bg-[#1C40F2] hover:bg-[#1633c1] text-white hover:scale-[1.01] hover:shadow-[0_0_20px_rgba(28,64,242,0.25)]`}
-              >
-                {isAuthenticating ? (
-                  <>
-                    <RefreshCw size={14} className="animate-spin" /> Verificando...
-                  </>
-                ) : (
-                  <>
-                    INICIAR SESIÓN
-                  </>
-                )}
-              </button>
-            </form>
- 
-            {/* Footer con Registro */}
-            <div className="mt-6 text-center">
-              <p style={{ fontSize: '12px', color: isDarkMode ? '#e2e8f0' : '#000000' }} className="font-normal select-none">
-                ¿No tienes una cuenta?{' '}
-                <span 
-                  onClick={() => showToast('Registro no habilitado para la versión pública', 'info')}
-                  className="font-bold text-primary hover:underline cursor-pointer"
-                >
-                  Regístrate
-                </span>
-              </p>
-            </div>
-          </div>
-        </div>
- 
-        {/* Derechos Reservados como Pie de Página */}
-        <div className="absolute bottom-6 left-0 right-0 text-center z-10 pointer-events-none">
-          <p style={{ fontSize: '12px', color: isDarkMode ? 'rgba(255, 255, 255, 0.4)' : '#000000' }} className="font-normal select-none pointer-events-auto">
-            © WebFix 2026. Todos los derechos reservados
-          </p>
-        </div>
- 
-      </div>
-    );
-  }
+  // --- DETECTAR MÓDULOS BLOQUEADOS O SUSPENDIDOS ---
+  const isPageGated = ['finances', 'compras', 'gastos_creditos', 'inventario', 'calendar', 'team', 'proyectos_general', 'paginas_general'].includes(activePageId) || activePage?.type === 'project' || activePage?.type === 'doc';
+  
+  const isModuleLocked = (() => {
+    if (!isPageGated) return false;
+    if (activePageId === 'proyectos_general' || activePage?.type === 'project' || activePage?.type === 'doc') {
+      return !activeModules.proyectos_general;
+    }
+    if (activePageId === 'team') {
+      return !activeModules.team;
+    }
+    return !activeModules[activePageId];
+  })();
 
   const isPersonasActive = activePageId === 'personas' || activePageId === 'team';
   const isProyectosActive = activePageId === 'proyectos_general' || activePageId === 'paginas_general' || activePageId === 'calendar' || activePage?.type === 'project' || activePage?.type === 'doc';
 
   return (
-    <div className={`flex h-screen w-full font-sans overflow-hidden transition-colors duration-500 relative z-0 ${isDarkMode ? 'bg-[#08080a] text-gray-100' : 'bg-[#f4f4f9] text-gray-800'}`}>
+    <Routes>
+      <Route path="/" element={<LandingPage isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} />} />
+      <Route path="/login" element={<LoginPage isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} showToast={showToast} companyProfile={companyProfile} />} />
+      <Route path="/register" element={<RegisterPage isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} showToast={showToast} />} />
+      <Route path="/superadmin" element={<SuperAdminPage isDarkMode={isDarkMode} showToast={showToast} />} />
+      <Route path="/app/*" element={
+        <div className={`flex h-screen w-full font-sans overflow-hidden transition-colors duration-500 relative z-0 ${isDarkMode ? 'bg-[#08080a] text-gray-100' : 'bg-[#f4f4f9] text-gray-800'}`}>
       
       {/* GLOBAL BACKGROUND BLOBS (Glassmorphism Core) */}
       <div className={`absolute top-[-10%] left-[-5%] w-[40rem] h-[40rem] rounded-full mix-blend-screen filter blur-[120px] opacity-40 pointer-events-none -z-10 ${isDarkMode ? 'bg-purple-900' : 'bg-purple-300'}`}></div>
@@ -2197,6 +2125,26 @@ export default function App() {
             />
             {isSidebarOpen && <span>Ajustes</span>}
           </button>
+
+          {/* 10. Suscripción y Pago */}
+          <button 
+            onClick={() => { setActivePageId('billing'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
+            className={`group flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
+              activePageId === 'billing'
+                ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-900')
+                : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-black hover:bg-primary-light hover:text-black')
+            }`}
+          >
+            <CreditCard 
+              size={18} 
+              className={`transition-colors ${
+                activePageId === 'billing' 
+                  ? 'text-primary' 
+                  : (isDarkMode ? 'text-gray-500 group-hover:text-primary' : 'text-black group-hover:text-primary')
+              }`} 
+            />
+            {isSidebarOpen && <span>Suscripción</span>}
+          </button>
         </div>
 
         {/* Bottom Area */}
@@ -2317,11 +2265,49 @@ export default function App() {
           {/* Editor Area */}
           <div className={`flex-1 overflow-y-auto scroll-smooth custom-scrollbar ${(isPersonasActive || isProyectosActive) ? 'pb-0 pt-0' : 'pb-12 pt-2 px-6 md:px-8'}`}>
             <div className={(isPersonasActive || isProyectosActive) ? 'w-full h-full' : 'max-w-[1600px] w-full mx-auto'}>
-              
-              {/* VISTAS FINANCIERAS MODULARES */}
-              {activePageId === 'finances' && (
-                <FinanceModule mode="contabilidad" isDarkMode={isDarkMode} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} isLoading={isLoadingFinances} />
-              )}
+              {planStatus === 'suspended' && activePageId !== 'billing' ? (
+                <div className="flex flex-col items-center justify-center p-12 text-center h-[70vh] w-full select-none animate-in fade-in duration-300">
+                  <div className="p-5 rounded-2xl bg-red-500/10 text-red-500 mb-6 border border-red-500/20 shadow-[0_0_30px_rgba(239,68,68,0.1)]">
+                    <Lock size={36} />
+                  </div>
+                  <h2 className="text-lg font-black tracking-tight mb-2 text-red-500">Servicio Suspendido</h2>
+                  <p className="text-xs font-semibold text-gray-500 max-w-sm mb-6 leading-relaxed">
+                    Tu acceso al ERP ha sido temporalmente suspendido debido al vencimiento o falta de pago de tu suscripción.
+                  </p>
+                  <button
+                    onClick={() => setActivePageId('billing')}
+                    className="px-5 py-3 rounded-xl bg-[#1C40F2] text-white text-xs font-bold uppercase tracking-wider transition-all shadow-md shadow-blue-500/10 hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    Registrar Pago / Suscripción
+                  </button>
+                </div>
+              ) : isModuleLocked ? (
+                <div className="flex flex-col items-center justify-center p-12 text-center h-[70vh] w-full select-none animate-in fade-in duration-300">
+                  <div className="p-5 rounded-2xl bg-[#1C40F2]/10 text-primary mb-6 border border-[#1C40F2]/20 shadow-[0_0_30px_rgba(28,64,242,0.1)]">
+                    <Lock size={36} className="text-[#1C40F2]" />
+                  </div>
+                  <h2 className="text-lg font-black tracking-tight mb-2">Módulo Premium Reservado</h2>
+                  <p className="text-xs font-semibold text-gray-500 max-w-sm mb-6 leading-relaxed">
+                    Este módulo no está incluido en tu plan actual. Actualiza tu cuenta para habilitarlo de forma inmediata.
+                  </p>
+                  <button
+                    onClick={() => setActivePageId('billing')}
+                    className="px-5 py-3 rounded-xl bg-[#1C40F2] text-white text-xs font-bold uppercase tracking-wider transition-all shadow-md shadow-blue-500/10 hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    Ver Planes y Precios
+                  </button>
+                </div>
+              ) : (
+                <>
+                  {/* VISTA: PORTAL DE SUSCRIPCIÓN Y PAGOS */}
+                  {activePageId === 'billing' && (
+                    <BillingPortal isDarkMode={isDarkMode} showToast={showToast} />
+                  )}
+
+                  {/* VISTAS FINANCIERAS MODULARES */}
+                  {activePageId === 'finances' && (
+                    <FinanceModule mode="contabilidad" isDarkMode={isDarkMode} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} isLoading={isLoadingFinances} />
+                  )}
               {activePageId === 'ventas' && (
                 <FinanceModule mode="ventas" initialSubTab={ventasInitialSubTab} isDarkMode={isDarkMode} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} isLoading={isLoadingFinances} />
               )}
@@ -2940,6 +2926,8 @@ export default function App() {
                   </div>
                 </div>
               )}
+                </>
+              )}
 
             </div> {/* Closes mx-auto */}
           </div> {/* Closes Editor Area */}
@@ -3282,6 +3270,9 @@ export default function App() {
         ))}
       </div>
 
-    </div>
+        </div>
+      } />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }

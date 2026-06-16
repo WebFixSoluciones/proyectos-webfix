@@ -17,4 +17,11 @@ export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
-export const appId = firebaseConfig.appId;
+
+export let appId = firebaseConfig.appId;
+
+export function setTenantId(newId) {
+  if (newId) {
+    appId = newId;
+  }
+}
