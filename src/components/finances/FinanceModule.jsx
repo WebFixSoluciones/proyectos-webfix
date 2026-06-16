@@ -4,6 +4,7 @@ import {
   ArrowDownCircle, ArrowUpCircle, TrendingUp, Calculator, Building, Percent, CreditCard
 } from 'lucide-react';
 import { collection, onSnapshot } from 'firebase/firestore';
+import { getEcuadorDateString } from '../../services/sriService';
 import { db, storage, appId } from '../../firebase';
 import FinanceDashboard from './FinanceDashboard';
 import TransactionsView from './TransactionsView';
@@ -78,7 +79,7 @@ export default function FinanceModule({
     const prefilled = {
       id: '',
       type: 'ingreso',
-      date: new Date().toISOString().split('T')[0],
+      date: getEcuadorDateString(),
       documentType: 'factura',
       thirdPartyId: quote.thirdPartyId,
       category: 'ventas',
@@ -350,7 +351,7 @@ export default function FinanceModule({
                       </div>
                       <p className="text-2xl font-black">
                         ${transactions
-                          .filter(t => t.type === 'egreso' && t.date?.startsWith(new Date().toISOString().slice(0, 7)))
+                          .filter(t => t.type === 'egreso' && t.date?.startsWith(getEcuadorDateString().slice(0, 7)))
                           .reduce((sum, t) => sum + (Number(t.total) || 0), 0)
                           .toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </p>

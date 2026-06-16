@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, runTransaction } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { validarIdentificacion, generarFacturaXML, simularTransmisionSRI, consultarRucSri, generarRetencionXML, generarNotaCreditoXML, generarLiquidacionXML, generarGuiaRemisionXML, getEcuadorDateString, getEcuadorTimeString } from '../../services/sriService';
+import { validarIdentificacion, generarFacturaXML, simularTransmisionSRI, consultarRucSri, generarRetencionXML, generarNotaCreditoXML, generarLiquidacionXML, generarGuiaRemisionXML, getEcuadorDateString, getEcuadorTimeString, getEcuadorDateTimeString } from '../../services/sriService';
 import { firmarComprobanteXML } from '../../services/xadesSigner';
 import { registrarMovimientoKardex } from '../../services/inventoryService';
 import RidePreviewModal from './RidePreviewModal';
@@ -1007,7 +1007,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         companyAddress: configSRI.direccionMatriz || '',
         companyPhone: configSRI.telefono || configSRI.telefonoContacto || '',
         claveAcceso: txData.claveAcceso || '',
-        fechaAutorizacion: txData.fechaAutorizacion || new Date().toLocaleString(),
+        fechaAutorizacion: txData.fechaAutorizacion || getEcuadorDateTimeString(),
         documentType: txData.documentType || 'factura',
         date: txData.date || ''
       };
@@ -1172,7 +1172,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         documentNumber: docNum,
         sriStatus: 'autorizado',
         claveAcceso: result.claveAcceso,
-        fechaAutorizacion: result.fechaAutorizacion || new Date().toLocaleString(),
+        fechaAutorizacion: result.fechaAutorizacion || getEcuadorDateTimeString(),
         codigoNumerico, // Guardar el código numérico generado
         xmlUrl: result.xmlUrl,
         pdfUrl: result.pdfUrl,

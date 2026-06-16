@@ -5,6 +5,7 @@ import {
   ArrowDownCircle, ArrowUpCircle, History, TrendingUp
 } from 'lucide-react';
 import { doc, setDoc, collection, onSnapshot, addDoc, deleteDoc } from 'firebase/firestore';
+import { getEcuadorDateString } from '../../services/sriService';
 
 export default function GastosCreditosModule({ isDarkMode, showToast, transactions = [], thirdParties = [], db, appId }) {
   const [activeTab, setActiveTab] = useState('resumen'); // 'resumen' | 'pasivos' | 'historial_gastos'
@@ -24,7 +25,7 @@ export default function GastosCreditosModule({ isDarkMode, showToast, transactio
     limiteCredito: '',
     fechaCorte: '',
     fechaPago: '',
-    nextPaymentDate: new Date().toISOString().split('T')[0]
+    nextPaymentDate: getEcuadorDateString()
   });
 
   // Estados para modal de pago de cuota
@@ -87,7 +88,7 @@ export default function GastosCreditosModule({ isDarkMode, showToast, transactio
       setNewLiability({
         type: 'prestamo', entity: '', montoInicial: '', tasaInteres: '',
         plazoMeses: '', cuotaMensual: '', saldoPendiente: '', limiteCredito: '',
-        fechaCorte: '', fechaPago: '', nextPaymentDate: new Date().toISOString().split('T')[0]
+        fechaCorte: '', fechaPago: '', nextPaymentDate: getEcuadorDateString()
       });
     } catch (err) {
       console.error(err);
@@ -115,7 +116,7 @@ export default function GastosCreditosModule({ isDarkMode, showToast, transactio
         amount,
         method: paymentMethod,
         reference: paymentRef || '',
-        date: new Date().toISOString().split('T')[0]
+        date: getEcuadorDateString()
       };
 
       const updatedHistory = [...(selectedLiability.paymentsHistory || []), paymentLog];
@@ -135,7 +136,7 @@ export default function GastosCreditosModule({ isDarkMode, showToast, transactio
         id: txId,
         type: 'egreso',
         documentType: 'nota_venta',
-        date: new Date().toISOString().split('T')[0],
+        date: getEcuadorDateString(),
         documentNumber: docNum,
         thirdPartyId: '', // Pago financiero interno
         category: 'gastos_administrativos', // Categoría contable

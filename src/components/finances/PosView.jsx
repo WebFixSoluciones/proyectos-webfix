@@ -2371,7 +2371,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                           <div className="text-right">
                             <p className={`font-bold uppercase ${isDarkMode ? 'text-white' : 'text-primary'}`}>COMPROBANTE</p>
                             <p className={isDarkMode ? 'text-gray-400' : 'text-black font-medium'}>Establecimiento: {activeSession.branch}</p>
-                            <p className={isDarkMode ? 'text-gray-400' : 'text-black font-medium'}>Fecha: {new Date().toLocaleDateString()}</p>
+                            <p className={isDarkMode ? 'text-gray-400' : 'text-black font-medium'}>Fecha: {getEcuadorDateString().split('-').reverse().join('/')}</p>
                             <p className={isDarkMode ? 'text-gray-400' : 'text-black font-medium'}>Ambiente SRI: PRUEBAS (Offline)</p>
                           </div>
                         </div>

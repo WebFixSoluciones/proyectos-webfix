@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Sparkles, Save, CheckCircle2, AlertTriangle, FileText, X, RefreshCw, Copy, Trash2, ArrowUpRight } from 'lucide-react';
 import { doc, setDoc, deleteDoc } from 'firebase/firestore';
 import { analizarTextoFacturaConGemini } from '../../services/geminiService';
+import { getEcuadorDateString } from '../../services/sriService';
 
 export default function ComprasGastosView({ transactions = [], isDarkMode, showToast, db, appId }) {
   const [pastedText, setPastedText] = useState('');
@@ -62,7 +63,7 @@ Gracias por su compra`;
         id: txId,
         type: 'egreso',
         documentType: 'nota_venta',
-        date: parsedData.date || new Date().toISOString().split('T')[0],
+        date: parsedData.date || getEcuadorDateString(),
         documentNumber: parsedData.documentNumber || `REC-${new Date().getTime().toString().slice(-6)}`,
         thirdPartyId: '', // Proveedor externo
         category: parsedData.category || 'gastos_administrativos',

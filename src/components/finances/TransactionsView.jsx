@@ -3,6 +3,7 @@ import { Plus, Search, Trash2, Edit2, FileText, CheckCircle2, AlertCircle, Uploa
 import { doc, deleteDoc, setDoc, getDoc } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { analizarComprobanteConGemini, parsearXMLComprobante } from '../../services/geminiService';
+import { getEcuadorDateString, getEcuadorDateTimeString } from '../../services/sriService';
 import RidePreviewModal from './RidePreviewModal';
 
 export default function TransactionsView({ transactions, thirdParties, isDarkMode, showToast, db, storage, appId, onOpenForm, forcedDocType, forcedType }) {
@@ -139,7 +140,7 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
       const newTxData = {
         id: '',
         type: 'egreso',
-        date: extracted.date || new Date().toISOString().split('T')[0],
+        date: extracted.date || getEcuadorDateString(),
         documentType: 'factura',
         documentNumber: extracted.documentNumber || '',
         thirdPartyId,
@@ -291,7 +292,7 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
         companyAddress: configData.direccionMatriz || '',
         companyPhone: configData.telefono || configData.telefonoContacto || '',
         claveAcceso: emailModalTx.claveAcceso || '',
-        fechaAutorizacion: emailModalTx.fechaAutorizacion || emailModalTx.date || new Date().toLocaleString(),
+        fechaAutorizacion: emailModalTx.fechaAutorizacion || emailModalTx.date || getEcuadorDateTimeString(),
         documentType: emailModalTx.documentType || 'factura',
         date: emailModalTx.date || ''
       };
@@ -409,7 +410,7 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
                   id: '',
                   type: defaultType,
                   documentType: defaultDocType,
-                  date: new Date().toISOString().split('T')[0],
+                  date: getEcuadorDateString(),
                   currency: 'USD',
                   baseImponible: 0,
                   ivaPorcentaje: 15,

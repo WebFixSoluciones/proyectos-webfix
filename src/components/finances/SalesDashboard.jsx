@@ -4,6 +4,7 @@ import {
   Activity, ArrowDownRight, Tag, ShieldCheck, HelpCircle
 } from 'lucide-react';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { getEcuadorDateString } from '../../services/sriService';
 
 export default function SalesDashboard({ transactions, thirdParties, products, isDarkMode, db, appId }) {
   const [activeSession, setActiveSession] = useState(null);
@@ -28,7 +29,7 @@ export default function SalesDashboard({ transactions, thirdParties, products, i
   }, [appId, db]);
 
   // Cálculos de fechas
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getEcuadorDateString();
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
 

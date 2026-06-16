@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Trash2, Edit2, FileText, CheckCircle2, ChevronRight, AlertCircle, ShoppingBag, Eye } from 'lucide-react';
 import { collection, onSnapshot, doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
+import { getEcuadorDateString } from '../../services/sriService';
 import RidePreviewModal from './RidePreviewModal';
 
 export default function QuotesView({ products, thirdParties, isDarkMode, showToast, db, appId, onPromoteToInvoice }) {
@@ -41,7 +42,7 @@ export default function QuotesView({ products, thirdParties, isDarkMode, showToa
   const [formData, setFormData] = useState({
     id: '',
     quoteNumber: '',
-    date: new Date().toISOString().split('T')[0],
+    date: getEcuadorDateString(),
     validUntil: '',
     thirdPartyId: '',
     items: [],
@@ -71,7 +72,7 @@ export default function QuotesView({ products, thirdParties, isDarkMode, showToa
       setFormData(prev => ({
         ...prev,
         quoteNumber: `COT-${String(nextNum).padStart(6, '0')}`,
-        validUntil: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // 15 días validez por defecto
+        validUntil: getEcuadorDateString(new Date(Date.now() + 15 * 24 * 60 * 60 * 1000)) // 15 días validez por defecto
       }));
     }
   }, [isModalOpen, quotes, formData.id]);
@@ -196,7 +197,7 @@ export default function QuotesView({ products, thirdParties, isDarkMode, showToa
     setFormData({
       id: '',
       quoteNumber: '',
-      date: new Date().toISOString().split('T')[0],
+      date: getEcuadorDateString(),
       validUntil: '',
       thirdPartyId: '',
       items: [],

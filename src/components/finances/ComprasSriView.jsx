@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Download, CheckCircle2, AlertTriangle, FileText, RefreshCw, ShoppingBag, Eye, ShieldAlert } from 'lucide-react';
 import { doc, setDoc, getDoc, getDocs, collection } from 'firebase/firestore';
+import { getEcuadorDateString } from '../../services/sriService';
 
 export default function ComprasSriView({ transactions = [], isDarkMode, showToast, db, appId }) {
   const [sriBills, setSriBills] = useState([]);
@@ -65,7 +66,7 @@ export default function ComprasSriView({ transactions = [], isDarkMode, showToas
             ruc: '1760001040001',
             razonSocial: 'CORPORACION NACIONAL DE TELECOMUNICACIONES CNT EP',
             documentNumber: '001-777-089912233',
-            date: new Date().toISOString().split('T')[0],
+            date: getEcuadorDateString(),
             baseImponible: 25.00,
             ivaValor: 3.75,
             total: 28.75,
@@ -79,7 +80,7 @@ export default function ComprasSriView({ transactions = [], isDarkMode, showToas
             ruc: '1790016919001',
             razonSocial: 'CORPORACION FAVORITA C.A. (SUPERMAXI)',
             documentNumber: '005-102-000456789',
-            date: new Date().toISOString().split('T')[0],
+            date: getEcuadorDateString(),
             baseImponible: 120.50,
             ivaValor: 18.08,
             total: 138.58,
@@ -93,7 +94,7 @@ export default function ComprasSriView({ transactions = [], isDarkMode, showToas
             ruc: '1792286433001',
             razonSocial: 'EDRAN S.A. (NETLIFE)',
             documentNumber: '002-010-098765432',
-            date: new Date().toISOString().split('T')[0],
+            date: getEcuadorDateString(),
             baseImponible: 44.00,
             ivaValor: 6.60,
             total: 50.60,

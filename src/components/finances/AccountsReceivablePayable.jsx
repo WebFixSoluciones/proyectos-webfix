@@ -4,6 +4,7 @@ import {
   AlertTriangle, RefreshCw, Eye, ArrowDownCircle, ArrowUpCircle, X, Download, Users
 } from 'lucide-react';
 import { doc, setDoc } from 'firebase/firestore';
+import { getEcuadorDateString } from '../../services/sriService';
 
 export default function AccountsReceivablePayable({ type = 'cxc', transactions = [], thirdParties = [], isDarkMode, showToast, db, appId }) {
   const isCxC = type === 'cxc';
@@ -64,7 +65,7 @@ export default function AccountsReceivablePayable({ type = 'cxc', transactions =
       amount: parsedAmount,
       method: paymentMethod,
       reference: paymentRef || '',
-      date: new Date().toISOString().split('T')[0]
+      date: getEcuadorDateString()
     };
 
     const newHistory = [...(selectedTx.paymentsHistory || []), paymentLog];
