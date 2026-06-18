@@ -89,7 +89,12 @@ import { doc, setDoc, onSnapshot, collection, updateDoc, deleteDoc, writeBatch, 
 import { auth, db, storage, appId } from './firebase';
 import { useAuth } from './contexts/AuthContext';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
-import LandingPage from './pages/LandingPage';
+import LandingLayout from './pages/landing/LandingLayout';
+import LandingHome from './pages/landing/LandingHome';
+import LandingFeatures from './pages/landing/LandingFeatures';
+import LandingPricing from './pages/landing/LandingPricing';
+import LandingAbout from './pages/landing/LandingAbout';
+import LandingContact from './pages/landing/LandingContact';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import SuperAdminPage from './pages/SuperAdminPage';
@@ -1894,7 +1899,13 @@ export default function App() {
 
   return (
     <Routes>
-      <Route path="/" element={<LandingPage isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} />} />
+      <Route element={<LandingLayout />}>
+        <Route path="/" element={<LandingHome />} />
+        <Route path="/soluciones" element={<LandingFeatures />} />
+        <Route path="/precios" element={<LandingPricing />} />
+        <Route path="/nosotros" element={<LandingAbout />} />
+        <Route path="/contacto" element={<LandingContact />} />
+      </Route>
       <Route path="/login" element={<LoginPage isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} showToast={showToast} companyProfile={companyProfile} />} />
       <Route path="/register" element={<RegisterPage isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} showToast={showToast} />} />
       <Route path="/superadmin" element={<SuperAdminPage isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} showToast={showToast} />} />
