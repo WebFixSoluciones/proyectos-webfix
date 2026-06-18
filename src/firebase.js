@@ -3,7 +3,7 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
-const firebaseConfig = {
+export const firebaseConfig = {
   apiKey: "AIzaSyBRw4Mi3m6gke6vBNTIaL99ewgGMjwB4ns",
   authDomain: "proyectos-webfix.firebaseapp.com",
   projectId: "proyectos-webfix",
