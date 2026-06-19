@@ -453,14 +453,20 @@ export default function App() {
   const [comprasInitialSubTab, setComprasInitialSubTab] = useState('compras_resumen');
   const [contabilidadInitialSubTab, setContabilidadInitialSubTab] = useState('dashboard');
   const [billingInitialSubTab, setBillingInitialSubTab] = useState('facturacion');
+  const [gastosInitialSubTab, setGastosInitialSubTab] = useState('resumen');
+  const [inventarioInitialSubTab, setInventarioInitialSubTab] = useState('productos');
   const [expandedSidebarMenu, setExpandedSidebarMenu] = useState(null);
   const [personasSubTab, setPersonasSubTab] = useState('cliente');
 
   useEffect(() => {
-    if (['ventas', 'compras', 'finances', 'billing'].includes(activePageId)) {
+    if (['ventas', 'compras', 'finances', 'billing', 'gastos_creditos', 'inventario'].includes(activePageId)) {
       setExpandedSidebarMenu(activePageId);
+    } else if (activePageId === 'personas' || activePageId === 'team') {
+      setExpandedSidebarMenu('personas_menu');
+    } else if (activePageId === 'proyectos_general' || activePageId === 'paginas_general' || activePageId === 'calendar' || activePage?.type === 'project' || activePage?.type === 'doc') {
+      setExpandedSidebarMenu('proyectos_menu');
     }
-  }, [activePageId]);
+  }, [activePageId, activePage]);
 
   const [dbSyncError, setDbSyncError] = useState(() => sessionStorage.getItem('db_sync_error') === 'true');
 
@@ -2030,7 +2036,7 @@ export default function App() {
                         setActivePageId('ventas'); 
                         if(window.innerWidth < 768) setIsSidebarOpen(false); 
                       }}
-                      className={`block w-full text-left py-1.5 px-2 rounded-lg text-xs transition-colors font-medium ${ventasInitialSubTab === sub.id && activePageId === 'ventas' ? (isDarkMode ? 'text-primary bg-primary/10' : 'text-primary bg-primary-light font-bold') : 'text-gray-500 hover:text-primary dark:text-gray-400 dark:hover:text-primary'}`}
+                      className="block w-full text-left py-1.5 px-2 text-xs font-bold text-black dark:text-white bg-transparent"
                     >
                       {sub.label}
                     </button>
@@ -2090,7 +2096,7 @@ export default function App() {
                         setActivePageId('compras'); 
                         if(window.innerWidth < 768) setIsSidebarOpen(false); 
                       }}
-                      className={`block w-full text-left py-1.5 px-2 rounded-lg text-xs transition-colors font-medium ${comprasInitialSubTab === sub.id && activePageId === 'compras' ? (isDarkMode ? 'text-primary bg-primary/10' : 'text-primary bg-primary-light font-bold') : 'text-gray-500 hover:text-primary dark:text-gray-400 dark:hover:text-primary'}`}
+                      className="block w-full text-left py-1.5 px-2 text-xs font-bold text-black dark:text-white bg-transparent"
                     >
                       {sub.label}
                     </button>
@@ -2102,46 +2108,120 @@ export default function App() {
 
           {/* 4. Finanzas (Gastos y Créditos) */}
           {activeModules.gastos_creditos && (
-            <button 
-              onClick={() => { setActivePageId('gastos_creditos'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
-              className={`group flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
-                activePageId === 'gastos_creditos'
-                  ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-950')
-                  : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-black hover:bg-primary-light hover:text-black')
-              }`}
-            >
-              <CreditCard 
-                size={18} 
-                className={`transition-colors ${
-                  activePageId === 'gastos_creditos' 
-                    ? 'text-primary' 
-                    : (isDarkMode ? 'text-gray-500 group-hover:text-primary' : 'text-black group-hover:text-primary')
-                }`} 
-              />
-              {isSidebarOpen && <span>Finanzas</span>}
-            </button>
+            <div className="space-y-1">
+              <button 
+                onClick={() => {
+                  setExpandedSidebarMenu(expandedSidebarMenu === 'gastos_creditos' ? null : 'gastos_creditos');
+                  setGastosInitialSubTab('resumen');
+                  setActivePageId('gastos_creditos');
+                }} 
+                className={`group flex items-center justify-between gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
+                  activePageId === 'gastos_creditos'
+                    ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-900')
+                    : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-black hover:bg-primary-light hover:text-black')
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <CreditCard 
+                    size={18} 
+                    className={`transition-colors ${
+                      activePageId === 'gastos_creditos' 
+                        ? 'text-primary' 
+                        : (isDarkMode ? 'text-gray-500 group-hover:text-primary' : 'text-black group-hover:text-primary')
+                    }`} 
+                  />
+                  {isSidebarOpen && <span>Finanzas</span>}
+                </div>
+                {isSidebarOpen && (
+                  <ChevronDown 
+                    size={14} 
+                    className={`transition-transform duration-250 ${expandedSidebarMenu === 'gastos_creditos' ? 'rotate-180' : ''}`} 
+                  />
+                )}
+              </button>
+              
+              {isSidebarOpen && expandedSidebarMenu === 'gastos_creditos' && (
+                <div className="pl-9 pr-2 space-y-1 border-l border-gray-200 dark:border-white/5 ml-5 mt-1 select-none animate-in slide-in-from-top-1 duration-200">
+                  {[
+                    { id: 'resumen', label: 'Resumen Financiero' },
+                    { id: 'pasivos', label: 'Pasivos y Financiamiento' },
+                    { id: 'historial_gastos', label: 'Historial de Egresos' }
+                  ].map(sub => (
+                    <button 
+                      key={sub.id}
+                      onClick={() => { 
+                        setGastosInitialSubTab(sub.id); 
+                        setActivePageId('gastos_creditos'); 
+                        if(window.innerWidth < 768) setIsSidebarOpen(false); 
+                      }}
+                      className="block w-full text-left py-1.5 px-2 text-xs font-bold text-black dark:text-white bg-transparent"
+                    >
+                      {sub.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
 
           {/* 5. Inventarios */}
           {activeModules.inventario && (
-            <button 
-              onClick={() => { setActivePageId('inventario'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
-              className={`group flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
-                activePageId === 'inventario'
-                  ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-950')
-                  : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-black hover:bg-primary-light hover:text-black')
-              }`}
-            >
-              <Package 
-                size={18} 
-                className={`transition-colors ${
-                  activePageId === 'inventario' 
-                    ? 'text-primary' 
-                    : (isDarkMode ? 'text-gray-500 group-hover:text-primary' : 'text-black group-hover:text-primary')
-                }`} 
-              />
-              {isSidebarOpen && <span>Inventarios</span>}
-            </button>
+            <div className="space-y-1">
+              <button 
+                onClick={() => {
+                  setExpandedSidebarMenu(expandedSidebarMenu === 'inventario' ? null : 'inventario');
+                  setInventarioInitialSubTab('productos');
+                  setActivePageId('inventario');
+                }} 
+                className={`group flex items-center justify-between gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
+                  activePageId === 'inventario'
+                    ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-900')
+                    : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-black hover:bg-primary-light hover:text-black')
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <Package 
+                    size={18} 
+                    className={`transition-colors ${
+                      activePageId === 'inventario' 
+                        ? 'text-primary' 
+                        : (isDarkMode ? 'text-gray-500 group-hover:text-primary' : 'text-black group-hover:text-primary')
+                    }`} 
+                  />
+                  {isSidebarOpen && <span>Inventarios</span>}
+                </div>
+                {isSidebarOpen && (
+                  <ChevronDown 
+                    size={14} 
+                    className={`transition-transform duration-250 ${expandedSidebarMenu === 'inventario' ? 'rotate-180' : ''}`} 
+                  />
+                )}
+              </button>
+              
+              {isSidebarOpen && expandedSidebarMenu === 'inventario' && (
+                <div className="pl-9 pr-2 space-y-1 border-l border-gray-200 dark:border-white/5 ml-5 mt-1 select-none animate-in slide-in-from-top-1 duration-200">
+                  {[
+                    { id: 'productos', label: 'Catálogo de Productos' },
+                    { id: 'categorias', label: 'Categorías y Marcas' },
+                    { id: 'kardex', label: 'Movimientos Kardex' },
+                    { id: 'transferencias', label: 'Transferencias' },
+                    { id: 'ajustes', label: 'Ajustes de Inventario' }
+                  ].map(sub => (
+                    <button 
+                      key={sub.id}
+                      onClick={() => { 
+                        setInventarioInitialSubTab(sub.id); 
+                        setActivePageId('inventario'); 
+                        if(window.innerWidth < 768) setIsSidebarOpen(false); 
+                      }}
+                      className="block w-full text-left py-1.5 px-2 text-xs font-bold text-black dark:text-white bg-transparent"
+                    >
+                      {sub.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
 
           {/* 6. Contabilidad */}
@@ -2195,7 +2275,7 @@ export default function App() {
                         setActivePageId('finances'); 
                         if(window.innerWidth < 768) setIsSidebarOpen(false); 
                       }}
-                      className={`block w-full text-left py-1.5 px-2 rounded-lg text-xs transition-colors font-medium ${contabilidadInitialSubTab === sub.id && activePageId === 'finances' ? (isDarkMode ? 'text-primary bg-primary/10' : 'text-primary bg-primary-light font-bold') : 'text-gray-500 hover:text-primary dark:text-gray-400 dark:hover:text-primary'}`}
+                      className="block w-full text-left py-1.5 px-2 text-xs font-bold text-black dark:text-white bg-transparent"
                     >
                       {sub.label}
                     </button>
@@ -2207,45 +2287,119 @@ export default function App() {
 
           {/* 7. Personas */}
           {activeModules.personas && (
-            <button 
-              onClick={() => { setActivePageId('personas'); setPersonasSubTab('cliente'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
-              className={`group flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
-                activePageId === 'personas' || activePageId === 'team'
-                  ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-950')
-                  : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-black hover:bg-primary-light hover:text-black')
-              }`}
-            >
-              <Users 
-                size={18} 
-                className={`transition-colors ${
+            <div className="space-y-1">
+              <button 
+                onClick={() => {
+                  setExpandedSidebarMenu(expandedSidebarMenu === 'personas_menu' ? null : 'personas_menu');
+                  setPersonasSubTab('cliente');
+                  setActivePageId('personas');
+                }} 
+                className={`group flex items-center justify-between gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
                   activePageId === 'personas' || activePageId === 'team'
-                    ? 'text-primary' 
-                    : (isDarkMode ? 'text-gray-500 group-hover:text-primary' : 'text-black group-hover:text-primary')
-                }`} 
-              />
-              {isSidebarOpen && <span>Personas</span>}
-            </button>
+                    ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-900')
+                    : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-black hover:bg-primary-light hover:text-black')
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <Users 
+                    size={18} 
+                    className={`transition-colors ${
+                      activePageId === 'personas' || activePageId === 'team'
+                        ? 'text-primary' 
+                        : (isDarkMode ? 'text-gray-500 group-hover:text-primary' : 'text-black group-hover:text-primary')
+                    }`} 
+                  />
+                  {isSidebarOpen && <span>Personas</span>}
+                </div>
+                {isSidebarOpen && (
+                  <ChevronDown 
+                    size={14} 
+                    className={`transition-transform duration-250 ${expandedSidebarMenu === 'personas_menu' ? 'rotate-180' : ''}`} 
+                  />
+                )}
+              </button>
+              
+              {isSidebarOpen && expandedSidebarMenu === 'personas_menu' && (
+                <div className="pl-9 pr-2 space-y-1 border-l border-gray-200 dark:border-white/5 ml-5 mt-1 select-none animate-in slide-in-from-top-1 duration-200">
+                  {[
+                    { id: 'cliente', label: 'Clientes' },
+                    { id: 'proveedor', label: 'Proveedores' },
+                    { id: 'team', label: 'Equipo' }
+                  ].map(sub => (
+                    <button 
+                      key={sub.id}
+                      onClick={() => { 
+                        if (sub.id === 'team') {
+                          setActivePageId('team');
+                        } else {
+                          setActivePageId('personas');
+                          setPersonasSubTab(sub.id);
+                        }
+                        if(window.innerWidth < 768) setIsSidebarOpen(false); 
+                      }}
+                      className="block w-full text-left py-1.5 px-2 text-xs font-bold text-black dark:text-white bg-transparent"
+                    >
+                      {sub.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
 
           {/* 8. Proyectos */}
-          <button 
-            onClick={() => { setActivePageId('proyectos_general'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
-            className={`group flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
-              isProyectosActive
-                ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-950')
-                : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-black hover:bg-primary-light hover:text-black')
-            }`}
-          >
-            <Briefcase 
-              size={18} 
-              className={`transition-colors ${
-                isProyectosActive 
-                  ? 'text-primary' 
-                  : (isDarkMode ? 'text-gray-500 group-hover:text-primary' : 'text-black group-hover:text-primary')
-              }`} 
-            />
-            {isSidebarOpen && <span>Proyectos</span>}
-          </button>
+          <div className="space-y-1">
+            <button 
+              onClick={() => {
+                setExpandedSidebarMenu(expandedSidebarMenu === 'proyectos_menu' ? null : 'proyectos_menu');
+                setActivePageId('proyectos_general');
+              }} 
+              className={`group flex items-center justify-between gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
+                isProyectosActive
+                  ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-900')
+                  : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-black hover:bg-primary-light hover:text-black')
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <Briefcase 
+                  size={18} 
+                  className={`transition-colors ${
+                    isProyectosActive 
+                      ? 'text-primary' 
+                      : (isDarkMode ? 'text-gray-500 group-hover:text-primary' : 'text-black group-hover:text-primary')
+                  }`} 
+                />
+                {isSidebarOpen && <span>Proyectos</span>}
+              </div>
+              {isSidebarOpen && (
+                <ChevronDown 
+                  size={14} 
+                  className={`transition-transform duration-250 ${expandedSidebarMenu === 'proyectos_menu' ? 'rotate-180' : ''}`} 
+                />
+              )}
+            </button>
+            
+            {isSidebarOpen && expandedSidebarMenu === 'proyectos_menu' && (
+              <div className="pl-9 pr-2 space-y-1 border-l border-gray-200 dark:border-white/5 ml-5 mt-1 select-none animate-in slide-in-from-top-1 duration-200">
+                {[
+                  { id: 'proyectos_general', label: 'Mis Proyectos' },
+                  { id: 'paginas_general', label: 'Paginas' },
+                  { id: 'calendar', label: 'Calendario' }
+                ].map(sub => (
+                  <button 
+                    key={sub.id}
+                    onClick={() => { 
+                      setActivePageId(sub.id); 
+                      if(window.innerWidth < 768) setIsSidebarOpen(false); 
+                    }}
+                    className="block w-full text-left py-1.5 px-2 text-xs font-bold text-black dark:text-white bg-transparent"
+                  >
+                    {sub.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
           {/* 9. Ajustes */}
           <button 
@@ -2316,7 +2470,7 @@ export default function App() {
                       setActivePageId('billing'); 
                       if(window.innerWidth < 768) setIsSidebarOpen(false); 
                     }}
-                    className={`block w-full text-left py-1.5 px-2 rounded-lg text-xs transition-colors font-medium ${billingInitialSubTab === sub.id && activePageId === 'billing' ? (isDarkMode ? 'text-primary bg-primary/10' : 'text-primary bg-primary-light font-bold') : 'text-gray-500 hover:text-primary dark:text-gray-400 dark:hover:text-primary'}`}
+                    className="block w-full text-left py-1.5 px-2 text-xs font-bold text-black dark:text-white bg-transparent"
                   >
                     {sub.label}
                   </button>
@@ -2540,41 +2694,6 @@ export default function App() {
               {/* MÓDULO UNIFICADO: PERSONAS */}
               {isPersonasActive && (
                 <div className="flex flex-col h-full w-full overflow-hidden animate-in fade-in duration-500">
-                  {/* Tabs horizontales para Personas */}
-                  <div className={`flex items-center gap-3 px-8 py-3.5 border-b shrink-0 ${isDarkMode ? 'border-white/5 bg-[#121214]' : 'border-primary/10 bg-primary-light'}`}>
-                    <div className="flex gap-2 overflow-x-auto whitespace-nowrap scrollbar-none flex-1">
-                      {[
-                        { id: 'cliente', label: 'Clientes', icon: Users },
-                        { id: 'proveedor', label: 'Proveedores', icon: Building },
-                        { id: 'team', label: 'Equipo', icon: Shield }
-                      ].map(tab => {
-                        const Icon = tab.icon;
-                        const isActive = tab.id === 'team' ? activePageId === 'team' : (activePageId === 'personas' && personasSubTab === tab.id);
-                        return (
-                          <button
-                            key={tab.id}
-                            onClick={() => {
-                              if (tab.id === 'team') {
-                                setActivePageId('team');
-                              } else {
-                                setActivePageId('personas');
-                                setPersonasSubTab(tab.id);
-                              }
-                            }}
-                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 ${
-                              isActive
-                                ? (isDarkMode ? 'bg-primary/20 text-primary border-primary/30 shadow-sm' : 'bg-primary text-white border-primary shadow-sm')
-                                : (isDarkMode ? 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-white/5' : 'border-transparent text-black hover:text-black hover:bg-black/5')
-                            }`}
-                          >
-                            <Icon size={13} />
-                            <span>{tab.label}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
                   {/* Contenido de Personas */}
                   <div className="flex flex-1 overflow-hidden min-h-0 bg-transparent">
                     <div className={`flex-1 overflow-y-auto px-0 py-0 custom-scrollbar ${isDarkMode ? 'bg-[#0f0f11]' : 'bg-white'}`}>
@@ -2633,36 +2752,6 @@ export default function App() {
               {/* MÓDULO UNIFICADO: PROYECTOS */}
               {isProyectosActive && (
                 <div className="flex flex-col h-full w-full overflow-hidden animate-in fade-in duration-500">
-                  {/* Tabs horizontales para Proyectos */}
-                  <div className={`flex items-center gap-3 px-8 py-3.5 border-b shrink-0 ${isDarkMode ? 'border-white/5 bg-[#121214]' : 'border-primary/10 bg-primary-light'}`}>
-                    <div className="flex gap-2 overflow-x-auto whitespace-nowrap scrollbar-none flex-1">
-                      {[
-                        { id: 'proyectos_general', label: 'Mis Proyectos', icon: Briefcase, match: (id) => id === 'proyectos_general' || activePage?.type === 'project' },
-                        { id: 'paginas_general', label: 'Paginas', icon: FileText, match: (id) => id === 'paginas_general' || activePage?.type === 'doc' },
-                        { id: 'calendar', label: 'Calendario', icon: CalendarDays, match: (id) => id === 'calendar' }
-                      ].map(tab => {
-                        const Icon = tab.icon;
-                        const isActive = tab.match(activePageId);
-                        return (
-                          <button
-                            key={tab.id}
-                            onClick={() => {
-                              setActivePageId(tab.id);
-                            }}
-                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 ${
-                              isActive
-                                ? (isDarkMode ? 'bg-primary/20 text-primary border-primary/30 shadow-sm' : 'bg-primary text-white border-primary shadow-sm')
-                                : (isDarkMode ? 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-white/5' : 'border-transparent text-black hover:text-black hover:bg-black/5')
-                            }`}
-                          >
-                            <Icon size={13} />
-                            <span>{tab.label}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
                   {/* Cuerpo de Proyectos */}
                   <div className="flex flex-1 overflow-hidden min-h-0 bg-transparent">
                     <div className={`flex-1 overflow-y-auto custom-scrollbar ${isDarkMode ? 'bg-[#0f0f11]' : 'bg-white'} ${
