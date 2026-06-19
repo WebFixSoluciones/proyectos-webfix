@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { 
   X, UploadCloud, Calculator, FileText, CheckCircle2, AlertTriangle, Sparkles, 
   Terminal, ShieldAlert, Download, Plus, Trash2, RefreshCw, ArrowLeft, ArrowRight, 
-  User, DollarSign, CreditCard, Layers, Search, Building
+  User, DollarSign, CreditCard, Layers, Search, Building, ChevronDown, UserPlus
 } from 'lucide-react';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, runTransaction } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
@@ -1536,30 +1536,31 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom duration-300">
             {/* Top Row: 2-Column grid (Left: Client & Document, Right: Parameters) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Column 1 (Left): Client search, Receptor details card, Doc info card */}
-              <div className="space-y-5">
-                {/* Client Search */}
-                <div className={cardClass}>
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-primary/10 text-primary' : 'bg-primary-light text-primary'}`}>
-                      <User size={14} />
-                    </div>
-                    <h4 className={sectionTitleClass}>Selección de Cliente</h4>
+              {/* Column 1 (Left): Unified Client & Document card */}
+              <div className="space-y-4">
+                {/* Header title above card */}
+                <div className="flex items-center gap-2 px-1">
+                  <div className="text-primary">
+                    <Layers size={16} />
                   </div>
-                  <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-end">
-                    <div className="flex-1 w-full">
-                      <label className={labelClass}>
-                        <Search size={11} className="inline mr-1" />
-                        Ingresa Cliente (Nombre o RUC / CI)
-                      </label>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-primary">
+                    Datos de Venta Cliente
+                  </h4>
+                </div>
+
+                <div className={cardClass}>
+                  {/* Row 1: Search client input + add button */}
+                  <div className="flex gap-3 items-center mb-4">
+                    <div className="flex-1 relative">
                       <select 
                         disabled={!isEditable} 
                         required 
                         value={formData.thirdPartyId} 
                         onChange={e => setFormData({...formData, thirdPartyId: e.target.value})} 
-                        className={inputClass}
+                        className={`${inputClass} pl-9 pr-8`}
+                        style={{ appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none' }}
                       >
-                        <option value="" disabled>Selecciona un contacto...</option>
+                        <option value="" disabled>Ingrese Cliente (Nombre o Ruc / CI) ..</option>
                         {thirdParties
                           .filter(tp => formData.type === 'ingreso' ? tp.type === 'cliente' : tp.type === 'proveedor')
                           .map(tp => (
@@ -1569,6 +1570,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                           ))
                         }
                       </select>
+                      <Search className={`absolute left-3 top-3.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`} size={14} />
+                      <div className="absolute right-3 top-3.5 pointer-events-none text-gray-500">
+                        <ChevronDown size={14} />
+                      </div>
                     </div>
                     {isEditable && (
                       <button
@@ -1580,85 +1585,54 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                           });
                           setIsQuickAddOpen(true);
                         }}
-                        className={`px-4 py-2.5 rounded-xl border flex items-center gap-1.5 font-bold text-xs transition-all shrink-0 ${
-                          isDarkMode 
-                            ? 'bg-primary/15 text-primary border-primary/30 hover:bg-primary/25' 
-                            : 'bg-primary-light border-primary/25 text-primary hover:bg-primary/10'
-                        }`}
+                        className="p-2.5 rounded-xl bg-[#1C40F2] hover:bg-blue-700 text-white font-bold text-xs transition-all shrink-0 flex items-center justify-center"
                         title="Crear Contacto Rápido"
                       >
-                        <Plus size={14} />
-                        <span>Nuevo</span>
+                        <UserPlus size={16} />
                       </button>
                     )}
                   </div>
-                </div>
 
-                {/* Selected Client Information Card (High Contrast) */}
-                <div className={cardClass}>
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-purple-500/10 text-purple-400' : 'bg-purple-50 text-purple-600'}`}>
-                      <User size={14} />
-                    </div>
-                    <h4 className={sectionTitleClass}>Datos del Cliente (Receptor)</h4>
-                  </div>
-
+                  {/* Row 2: Selected Client Information Card (Blue background) */}
                   {matchedTercero ? (
-                    <div className="space-y-3 p-4 rounded-xl border bg-slate-50 dark:bg-white/5 border-slate-200/60 dark:border-white/10 text-gray-900 dark:text-white">
-                      <div>
-                        <p className="text-slate-500 dark:text-gray-400 uppercase text-[9px] font-extrabold tracking-wide">Razón Social / Nombre</p>
-                        <p className="text-slate-900 dark:text-white font-bold text-xs truncate">{matchedTercero.name}</p>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-xl bg-[#f0f4ff]/70 dark:bg-blue-950/20 text-gray-900 dark:text-white mb-4">
+                      {/* Column 1 */}
+                      <div className="space-y-3">
                         <div>
-                          <p className="text-slate-500 dark:text-gray-400 uppercase text-[9px] font-extrabold tracking-wide">Identificación</p>
+                          <p className="text-slate-400 dark:text-slate-500 uppercase text-[9px] font-extrabold tracking-wider">Razón Social</p>
+                          <p className="text-slate-900 dark:text-white font-bold text-xs truncate uppercase">{matchedTercero.name}</p>
+                        </div>
+                        <div>
+                          <p className="text-slate-400 dark:text-slate-500 uppercase text-[9px] font-extrabold tracking-wider">Identificación</p>
                           <p className="text-slate-900 dark:text-white font-mono font-bold text-xs">{matchedTercero.ruc}</p>
                         </div>
+                      </div>
+
+                      {/* Column 2 */}
+                      <div className="space-y-3">
                         <div>
-                          <p className="text-slate-500 dark:text-gray-400 uppercase text-[9px] font-extrabold tracking-wide">Teléfono</p>
-                          <p className="text-slate-900 dark:text-white font-bold text-xs">{matchedTercero.telefono || '(No registrado)'}</p>
+                          <p className="text-slate-400 dark:text-slate-500 uppercase text-[9px] font-extrabold tracking-wider">Correo</p>
+                          <p className="text-slate-900 dark:text-white font-bold text-xs truncate lowercase">{matchedTercero.email || '(No registrado)'}</p>
+                        </div>
+                        <div>
+                          <p className="text-slate-400 dark:text-slate-500 uppercase text-[9px] font-extrabold tracking-wider">Dirección</p>
+                          <p className="text-slate-900 dark:text-white font-bold text-xs truncate uppercase">{matchedTercero.direccion || '(No registrada)'}</p>
                         </div>
                       </div>
+
+                      {/* Column 3 */}
                       <div>
-                        <p className="text-slate-500 dark:text-gray-400 uppercase text-[9px] font-extrabold tracking-wide">Correo Electrónico</p>
-                        <p className="text-slate-900 dark:text-white font-bold text-xs truncate">{matchedTercero.email || '(No registrado)'}</p>
-                      </div>
-                      <div>
-                        <p className="text-slate-500 dark:text-gray-400 uppercase text-[9px] font-extrabold tracking-wide">Dirección</p>
-                        <p className="text-slate-900 dark:text-white font-bold text-xs truncate">{matchedTercero.direccion || '(No registrada)'}</p>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4 border-t border-dashed border-gray-300 dark:border-white/10 pt-3">
-                        <div>
-                          <p className="text-slate-500 dark:text-gray-400 uppercase text-[9px] font-extrabold tracking-wide">Régimen SRI</p>
-                          <p className={`text-xs font-extrabold uppercase ${
-                            matchedTercero.tipoContribuyente?.includes('rimpe') ? 'text-purple-600 dark:text-purple-400' : 'text-primary'
-                          }`}>
-                            {matchedTercero.tipoContribuyente || 'General'}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-slate-500 dark:text-gray-400 uppercase text-[9px] font-extrabold tracking-wide">Deuda CxC Pendiente</p>
-                          <p className={`text-xs font-extrabold ${clientDebt > 0 ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
-                            ${clientDebt.toFixed(2)}
-                          </p>
-                        </div>
+                        <p className="text-slate-400 dark:text-slate-500 uppercase text-[9px] font-extrabold tracking-wider">Teléfono</p>
+                        <p className="text-slate-900 dark:text-white font-bold text-xs">{matchedTercero.telefono || '(No registrado)'}</p>
                       </div>
                     </div>
                   ) : (
-                    <div className="p-6 text-center rounded-xl border border-dashed text-xs font-semibold border-amber-300 bg-amber-50/50 text-amber-700 dark:border-amber-500/20 dark:bg-amber-500/5 dark:text-amber-400">
+                    <div className="p-6 text-center rounded-xl border border-dashed border-amber-300 bg-amber-50/50 text-amber-700 dark:border-amber-500/20 dark:bg-amber-500/5 dark:text-amber-400 mb-4 text-xs font-semibold">
                       ⚠️ Selecciona un cliente para cargar su información tributaria y habilitar la facturación.
                     </div>
                   )}
-                </div>
 
-                {/* Document configuration */}
-                <div className={cardClass}>
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-primary/10 text-primary' : 'bg-primary-light text-primary'}`}>
-                      <FileText size={14} />
-                    </div>
-                    <h4 className={sectionTitleClass}>Datos del Documento</h4>
-                  </div>
+                  {/* Row 3: Document configuration */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className={labelClass}>Tipo de Documento</label>
@@ -1685,24 +1659,24 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                           else if (newDocType === 'nota_venta') nextSec = String(sriConfig?.secuencialNotaVenta || 1);
                           setFormData(prev => ({ ...prev, documentType: newDocType, secuencial: nextSec }));
                         }} 
-                        className={inputClass}
+                        className={`${inputClass} uppercase`}
                       >
                         {formData.documentType === 'nota_credito' ? (
-                          <option value="nota_credito">Nota de Crédito</option>
+                          <option value="nota_credito">NOTA DE CRÉDITO</option>
                         ) : formData.documentType === 'retencion' ? (
-                          <option value="retencion">Comprobante de Retención</option>
+                          <option value="retencion">COMPROBANTE DE RETENCIÓN</option>
                         ) : formData.documentType === 'nota_debito' ? (
-                          <option value="nota_debito">Nota de Débito</option>
+                          <option value="nota_debito">NOTA DE DÉBITO</option>
                         ) : formData.documentType === 'liquidacion' ? (
-                          <option value="liquidacion">Liquidación de Compra</option>
+                          <option value="liquidacion">LIQUIDACIÓN DE COMPRA</option>
                         ) : formData.documentType === 'guia_remision' ? (
-                          <option value="guia_remision">Guía de Remisión</option>
+                          <option value="guia_remision">GUÍA DE REMISIÓN</option>
                         ) : (
                           <>
                             <option value="factura" disabled={sriConfig?.rucActivo === false}>
-                              Factura Electrónica {sriConfig?.rucActivo === false ? '(Bloqueado)' : ''}
+                              FACTURA ELECTRÓNICA {sriConfig?.rucActivo === false ? '(Bloqueado)' : ''}
                             </option>
-                            <option value="nota_venta">Nota de Venta (Recibo)</option>
+                            <option value="nota_venta">NOTA DE VENTA (RECIBO)</option>
                           </>
                         )}
                       </select>
@@ -1711,9 +1685,9 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       <label className={labelClass}>Fecha de Emisión</label>
                       <input 
                         disabled={true} 
-                        type="date" 
-                        value={formData.date} 
-                        className={`${inputClass} cursor-not-allowed`} 
+                        type="text" 
+                        value={formData.date ? formData.date.split('-').reverse().join('/') : ''} 
+                        className={`${inputClass} cursor-not-allowed text-center font-bold`} 
                       />
                     </div>
                   </div>
@@ -1791,7 +1765,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               </div>
 
               {/* Column 2 (Right): Location, Reference & Details */}
-              <div className="space-y-5">
+              <div className="space-y-4">
                 <div className={`${cardClass} h-full`}>
                   <div className="flex items-center gap-2 mb-4">
                     <div className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-primary/10 text-primary' : 'bg-primary-light text-primary'}`}>
@@ -1840,12 +1814,12 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     </div>
                     <div>
                       <label className={labelClass}>Descripción / Detalle del Documento</label>
-                      <textarea 
+                      <input 
                         disabled={!isEditable} 
-                        rows={5}
+                        type="text" 
                         value={formData.description || ''} 
                         onChange={e => setFormData({...formData, description: e.target.value})} 
-                        className={`${inputClass} resize-none`} 
+                        className={inputClass} 
                         placeholder="Ingresa notas o información detallada sobre esta transacción..." 
                       />
                     </div>
