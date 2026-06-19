@@ -1410,34 +1410,20 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
           </div>
           <div>
             <h2 className="text-sm font-bold flex items-center gap-2">
-              {formData.id ? 'Detalles de' : 'Asistente de'} {formData.type === 'ingreso' ? 'Venta Directa' : 'Gasto / Egreso'}
-              <span className={`px-2 py-0.5 rounded text-[9px] uppercase font-bold tracking-wide ${
-                formData.type === 'ingreso' 
-                  ? 'bg-emerald-500/10 text-emerald-400' 
-                  : 'bg-red-500/10 text-red-400'
-              }`}>
-                {formData.type === 'ingreso' ? 'Ingreso' : 'Egreso'}
-              </span>
+              {formData.id ? 'Detalles de' : 'Asistente de'} {formData.type === 'ingreso' ? 'Venta' : 'Gasto / Egreso'}
             </h2>
             {formData.claveAcceso && <p className="text-[9px] font-mono text-gray-400 mt-0.5">Clave SRI: {formData.claveAcceso}</p>}
           </div>
         </div>
 
-        {/* COMPACT STEPPER */}
-        <div className="flex items-center gap-1 bg-slate-100 dark:bg-white/5 p-1 rounded-xl">
+        {/* COMPACT STEPPER (Clean, non-button indicators) */}
+        <div className="flex items-center gap-3">
           {steps.map((step, idx) => (
             <button
               key={step.id}
               type="button"
+              disabled={isLockedInStep3 || (!isEditable && step.id > 1)}
               onClick={() => {
-                if (isLockedInStep3) {
-                  showToast('Este documento ya fue finalizado y no puede ser editado.', 'error');
-                  return;
-                }
-                if (!isEditable) {
-                  setCurrentStep(step.id);
-                  return;
-                }
                 if (step.id > 1 && !formData.thirdPartyId) {
                   showToast('Selecciona primero un cliente en el Paso 1', 'error');
                   return;
@@ -1460,28 +1446,28 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 }
                 setCurrentStep(step.id);
               }}
-              className={`px-2 py-1 md:px-3 md:py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 md:gap-1.5 ${
-                currentStep === step.id
-                  ? 'bg-primary text-white shadow-sm'
-                  : currentStep > step.id
-                    ? 'text-emerald-500 hover:bg-slate-200 dark:hover:bg-white/10'
-                    : 'text-gray-400 dark:text-gray-500 hover:bg-slate-200 dark:hover:bg-white/10'
+              className={`flex items-center gap-2 focus:outline-none transition-all ${
+                currentStep === step.id ? 'opacity-100' : 'opacity-60 hover:opacity-100'
               }`}
             >
-              <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] ${
+              <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black transition-all ${
                 currentStep === step.id
-                  ? 'bg-white text-primary'
-                  : currentStep > step.id
-                    ? 'bg-emerald-500/20 text-emerald-500'
-                    : 'bg-gray-300 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+                  ? 'bg-[#1C40F2] text-white shadow-sm'
+                  : 'bg-slate-200 dark:bg-white/10 text-slate-600 dark:text-slate-400'
               }`}>
                 {step.id}
               </span>
-              <span className="hidden sm:inline text-[9px] md:text-[10px] tracking-wide uppercase">{step.name}</span>
+              <span className={`hidden sm:inline text-[9px] md:text-[10px] font-extrabold uppercase ${
+                currentStep === step.id ? 'text-[#1C40F2]' : 'text-slate-500 dark:text-slate-400'
+              }`}>
+                {step.name}
+              </span>
+              {idx < steps.length - 1 && (
+                <span className="text-slate-300 dark:text-white/10 font-normal ml-1">/</span>
+              )}
             </button>
           ))}
         </div>
-
         <button 
           onClick={onClose} 
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border transition-all text-xs font-semibold ${
@@ -1593,18 +1579,17 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     )}
                   </div>
 
-                  {/* Row 2: Selected Client Information Card (Transparent combination with primary blue color, black text in light mode) */}
                   {matchedTercero ? (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-xl bg-[#1C40F2]/5 dark:bg-[#1C40F2]/10 border border-[#1C40F2]/10 text-gray-900 dark:text-white mb-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-xl bg-[#1C40F2]/5 dark:bg-[#1C40F2]/10 border border-[#1C40F2]/10 mb-4">
                       {/* Column 1 */}
                       <div className="space-y-3">
                         <div>
                           <p className="text-slate-400 dark:text-slate-500 uppercase text-[9px] font-extrabold">Razón Social</p>
-                          <p className="text-slate-950 dark:text-white font-bold text-xs truncate uppercase">{matchedTercero.name}</p>
+                          <p style={{ color: isDarkMode ? '#FFFFFF' : '#000000' }} className="font-medium text-xs truncate uppercase">{matchedTercero.name}</p>
                         </div>
                         <div>
                           <p className="text-slate-400 dark:text-slate-500 uppercase text-[9px] font-extrabold">Identificación</p>
-                          <p className="text-slate-950 dark:text-white font-mono font-bold text-xs">{matchedTercero.ruc}</p>
+                          <p style={{ color: isDarkMode ? '#FFFFFF' : '#000000' }} className="font-mono font-medium text-xs">{matchedTercero.ruc}</p>
                         </div>
                       </div>
 
@@ -1612,18 +1597,18 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       <div className="space-y-3">
                         <div>
                           <p className="text-slate-400 dark:text-slate-500 uppercase text-[9px] font-extrabold">Correo</p>
-                          <p className="text-slate-950 dark:text-white font-bold text-xs truncate lowercase">{matchedTercero.email || '(No registrado)'}</p>
+                          <p style={{ color: isDarkMode ? '#FFFFFF' : '#000000' }} className="font-medium text-xs truncate lowercase">{matchedTercero.email || '(No registrado)'}</p>
                         </div>
                         <div>
                           <p className="text-slate-400 dark:text-slate-500 uppercase text-[9px] font-extrabold">Dirección</p>
-                          <p className="text-slate-950 dark:text-white font-bold text-xs truncate uppercase">{matchedTercero.direccion || '(No registrada)'}</p>
+                          <p style={{ color: isDarkMode ? '#FFFFFF' : '#000000' }} className="font-medium text-xs truncate uppercase">{matchedTercero.direccion || '(No registrada)'}</p>
                         </div>
                       </div>
 
                       {/* Column 3 */}
                       <div>
                         <p className="text-slate-400 dark:text-slate-500 uppercase text-[9px] font-extrabold">Teléfono</p>
-                        <p className="text-slate-950 dark:text-white font-bold text-xs">{matchedTercero.telefono || '(No registrado)'}</p>
+                        <p style={{ color: isDarkMode ? '#FFFFFF' : '#000000' }} className="font-medium text-xs">{matchedTercero.telefono || '(No registrado)'}</p>
                       </div>
                     </div>
                   ) : (
@@ -1945,81 +1930,66 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               </div>
             ) : (
               <div className="space-y-4 pt-2">
-                {/* Header title above card */}
-                <div className="flex items-center gap-2 px-1">
-                  <div className="text-primary">
-                    <Layers size={16} />
-                  </div>
-                  <h4 className="text-xs font-bold uppercase text-primary">
-                    Selección de Productos (MINIPOS)
-                  </h4>
-                </div>
-
                 <div className={cardClass}>
-                  {isEditable && (
-                    <div className="flex justify-end mb-4">
-                      <button type="button" onClick={handleAddItem} className="px-3 py-1.5 rounded-xl bg-primary hover:bg-primary/95 text-white font-bold text-xs flex items-center gap-1.5 transition-all">
-                        <Plus size={12} /> Fila Manual
-                      </button>
-                    </div>
-                  )}
-
-                <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 pt-1 w-full">
-                  {/* Left Column (col-span-3): Product search & Cart table */}
-                  <div className="lg:col-span-3 space-y-4">
-                    {/* Product Search */}
-                    {isEditable && (
-                      <div className="relative">
-                        <div className="relative">
-                          <input 
-                            type="text" 
-                            value={productSearchTerm}
-                            onChange={e => setProductSearchTerm(e.target.value)}
-                            className={`${inputClass} pl-9`}
-                            placeholder="Buscar productos por nombre, SKU o código de barras..."
-                          />
-                          <Search className={`absolute left-3 top-3.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`} size={14} />
-                          {productSearchTerm && (
-                            <button type="button" onClick={() => setProductSearchTerm('')} className="absolute right-3 top-3.5 text-gray-400 hover:text-red-500">
-                              <X size={14} />
-                            </button>
-                          )}
-                        </div>
-                        {/* Search Results dropdown */}
-                        {productSearchTerm.trim() !== '' && (
-                          <div className={`absolute z-30 w-full rounded-xl border shadow-xl max-h-60 overflow-y-auto mt-1 ${
-                            isDarkMode ? 'bg-[#1e1e22] border-white/10' : 'bg-white border-gray-200'
-                          }`}>
-                            {products.filter(p => 
-                              p.name?.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
-                              p.sku?.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
-                              p.codigoBarras?.toLowerCase().includes(productSearchTerm.toLowerCase())
-                            ).slice(0, 10).map(p => (
-                              <button
-                                key={p.id}
-                                type="button"
-                                onClick={() => handleAddProductToCart(p)}
-                                className={`w-full text-left px-4 py-3 text-xs flex justify-between items-center border-b last:border-0 transition-colors ${
-                                  isDarkMode ? 'border-white/5 hover:bg-white/10 text-white' : 'border-gray-100 hover:bg-primary-light text-gray-900'
-                                }`}
-                              >
-                                <div>
-                                  <p className={`font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{p.name}</p>
-                                  <p className={`text-[10px] font-mono ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-                                    {p.sku ? `SKU: ${p.sku}` : ''} {p.codigoBarras ? ` | EAN: ${p.codigoBarras}` : ''}
-                                  </p>
-                                </div>
-                                <span className="font-bold text-primary">${Number(p.price).toFixed(2)}</span>
+                  <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 pt-1 w-full">
+                    {/* Left Column (col-span-3): Product search & Cart table */}
+                    <div className="lg:col-span-3 space-y-4">
+                      {/* Product Search */}
+                      {isEditable && (
+                        <div className="flex items-center gap-3">
+                          <div className="relative flex-1">
+                            <input 
+                              type="text" 
+                              value={productSearchTerm}
+                              onChange={e => setProductSearchTerm(e.target.value)}
+                              className={`${inputClass} pl-9`}
+                              placeholder="Buscar productos por nombre, SKU o código de barras..."
+                            />
+                            <Search className={`absolute left-3 top-3.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`} size={14} />
+                            {productSearchTerm && (
+                              <button type="button" onClick={() => setProductSearchTerm('')} className="absolute right-3 top-3.5 text-gray-400 hover:text-red-500">
+                                <X size={14} />
                               </button>
-                            ))}
+                            )}
+                            {/* Search Results dropdown */}
+                            {productSearchTerm.trim() !== '' && (
+                              <div className={`absolute z-30 w-full rounded-xl border shadow-xl max-h-60 overflow-y-auto mt-1 ${
+                                isDarkMode ? 'bg-[#1e1e22] border-white/10' : 'bg-white border-gray-200'
+                              }`}>
+                                {products.filter(p => 
+                                  p.name?.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
+                                  p.sku?.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
+                                  p.codigoBarras?.toLowerCase().includes(productSearchTerm.toLowerCase())
+                                ).slice(0, 10).map(p => (
+                                  <button
+                                    key={p.id}
+                                    type="button"
+                                    onClick={() => handleAddProductToCart(p)}
+                                    className={`w-full text-left px-4 py-3 text-xs flex justify-between items-center border-b last:border-0 transition-colors ${
+                                      isDarkMode ? 'border-white/5 hover:bg-white/10 text-white' : 'border-gray-100 hover:bg-primary-light text-gray-900'
+                                    }`}
+                                  >
+                                    <div>
+                                      <p className={`font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{p.name}</p>
+                                      <p className={`text-[10px] font-mono ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                                        {p.sku ? `SKU: ${p.sku}` : ''} {p.codigoBarras ? ` | EAN: ${p.codigoBarras}` : ''}
+                                      </p>
+                                    </div>
+                                    <span className="font-bold text-primary">${Number(p.price).toFixed(2)}</span>
+                                  </button>
+                                ))}
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                    )}
+                          <button type="button" onClick={handleAddItem} className="px-3 py-2.5 rounded-xl bg-primary hover:bg-primary/95 text-white font-bold text-xs flex items-center gap-1.5 transition-all shrink-0">
+                            <Plus size={14} /> <span className="hidden sm:inline">Fila Manual</span>
+                          </button>
+                        </div>
+                      )}
 
-                    {/* Products Table */}
-                    <div className="max-h-[45vh] overflow-y-auto custom-scrollbar">
-                      {(formData.items || []).length > 0 ? (
+                      {/* Products Table */}
+                      <div className="max-h-[45vh] overflow-y-auto custom-scrollbar">
+                        {(formData.items || []).length > 0 ? (
                         <div className={`rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm ${
                           isDarkMode 
                             ? 'border-white/5 bg-[#0f111a]/85 shadow-lg shadow-black/40' 
@@ -2124,16 +2094,16 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                           <span className="font-extrabold uppercase text-[10px] text-slate-500 dark:text-gray-400 text-right">Valor</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="font-semibold text-gray-600 dark:text-gray-300">Subtotal:</span>
-                          <span className="font-bold text-slate-900 dark:text-white">${Number(formData.baseImponible).toFixed(2)}</span>
+                          <span className="font-semibold text-slate-700 dark:text-gray-300">Subtotal:</span>
+                          <span className="font-bold text-black dark:text-white">${Number(formData.baseImponible).toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="font-semibold text-gray-600 dark:text-gray-300">IVA ({formData.ivaPorcentaje}%):</span>
-                          <span className="font-bold text-slate-900 dark:text-white">${Number(formData.ivaValor).toFixed(2)}</span>
+                          <span className="font-semibold text-slate-700 dark:text-gray-300">IVA ({formData.ivaPorcentaje}%):</span>
+                          <span className="font-bold text-black dark:text-white">${Number(formData.ivaValor).toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between pt-3 border-t border-dashed border-gray-300 dark:border-white/10 font-bold text-sm">
-                          <span className="text-slate-900 dark:text-white font-extrabold">TOTAL TRIBUTARIO:</span>
-                          <span className="text-primary dark:text-primary font-black text-base">${Number(formData.total).toFixed(2)}</span>
+                          <span className="text-black dark:text-white font-extrabold">TOTAL TRIBUTARIO:</span>
+                          <span style={{ color: '#1C40F2' }} className="font-black text-base">${Number(formData.total).toFixed(2)}</span>
                         </div>
                       </div>
                       <div className={`p-4 rounded-xl border border-dashed text-[10px] leading-relaxed flex items-start gap-2 ${
