@@ -92,6 +92,19 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
       : '0000000000000000000000000000000000000000000000000'
   );
 
+  const getPlazoDias = () => {
+    if (!tx.creditDueDate || !tx.date) return 'N/D';
+    try {
+      const f1 = new Date(tx.date);
+      const f2 = new Date(tx.creditDueDate);
+      const diffTime = Math.abs(f2 - f1);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      return `${diffDays} Días (Vence: ${tx.creditDueDate.split('-').reverse().join('/')})`;
+    } catch (e) {
+      return `Vence: ${tx.creditDueDate.split('-').reverse().join('/')}`;
+    }
+  };
+
   const handlePrint = () => {
     window.print();
   };
@@ -294,7 +307,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
                       <div className="text-[8.5px] text-black space-y-0.5">
                         <p><span className="font-bold">NÚMERO DE AUTORIZACIÓN:</span></p>
                         <p className="font-mono text-[8px] break-all tracking-wide leading-none">{claveAcceso}</p>
-                        <p className="mt-1"><span className="font-bold">FECHA Y HORA DE AUTORIZACIÓN:</span> {tx.date} 12:00:00 (Offline)</p>
+                        <p className="mt-1"><span className="font-bold">FECHA Y HORA DE AUTORIZACIÓN:</span> {tx.fechaAutorizacion || (tx.date.split('-').reverse().join('/') + ' ' + (tx.time || '12:00:00'))}</p>
                         <p><span className="font-bold">AMBIENTE:</span> {emisor.ambiente === '2' ? 'PRODUCCIÓN' : 'PRUEBAS'}</p>
                         <p><span className="font-bold">EMISIÓN:</span> NORMAL</p>
                         
@@ -308,47 +321,56 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
                 {/* Datos del Receptor */}
                 <div className="mt-3 p-3 rounded-lg border border-gray-300 grid grid-cols-1 md:grid-cols-2 gap-2 print-grid-2 text-[8.5px] text-black">
                   <div>
-                    <p><span className="font-bold">Razón Social / Nombres y Apellidos:</span> {client.name}</p>
-                    <p><span className="font-bold">Identificación:</span> {client.ruc}</p>
-                    <p><span className="font-bold">Fecha de Emisión:</span> {tx.date.split('-').reverse().join('/')}</p>
+                    <p><span className="font-bold">FECHA EMISIÓN:</span> {tx.date.split('-').reverse().join('/')}</p>
+                    <p><span className="font-bold">FECHA VENCIMIENTO:</span> {tx.creditDueDate ? tx.creditDueDate.split('-').reverse().join('/') : tx.date.split('-').reverse().join('/')}</p>
+                    <p><span className="font-bold">GUÍA DE REMISIÓN:</span> {tx.guiaRemision || 'Sin Guía'}</p>
+                    <p><span className="font-bold">DOC. REFERENCIA:</span> {tx.docReferencia || 'Ninguno'}</p>
+                    <p><span className="font-bold">DOC. INTERNO:</span> {tx.docInterno || tx.quoteNumber || 'Ninguno'}</p>
                   </div>
-                  <div className="md:text-right print:text-right">
-                    <p><span className="font-bold">Dirección:</span> {client.direccion || 'Ecuador'}</p>
-                    <p><span className="font-bold">Guía de Remisión:</span> Sin Guía</p>
-                    <p><span className="font-bold">Correo:</span> {client.email || 'N/D'}</p>
+                  <div>
+                    <p><span className="font-bold">Razon Social:</span> {client.name}</p>
+                    <p><span className="font-bold">CI o RUC:</span> {client.ruc}</p>
+                    <p><span className="font-bold">DIRECCIÓN:</span> {client.direccion || 'Ecuador'}</p>
+                    <p><span className="font-bold">EMAIL:</span> {client.email || 'N/D'}</p>
                   </div>
                 </div>
 
                 {/* Detalle de Artículos */}
                 <div className="mt-3 border border-gray-300 rounded-lg overflow-hidden">
                   <table className="w-full text-left text-[9px] text-black">
-                    <thead className="bg-gray-100 font-bold uppercase text-[8px] border-b border-gray-300 text-black">
+                    <thead className="bg-gray-100 font-bold uppercase text-[7.5px] border-b border-gray-300 text-black">
                       <tr>
-                        <th className="px-2.5 py-1.5 border-r border-gray-300 w-16">Cod. Principal</th>
-                        <th className="px-2.5 py-1.5 border-r border-gray-300 w-12 text-right">Cant</th>
-                        <th className="px-2.5 py-1.5 border-r border-gray-300">Descripción</th>
-                        <th className="px-2.5 py-1.5 border-r border-gray-300 text-right w-16">Precio Unitario</th>
-                        <th className="px-2.5 py-1.5 border-r border-gray-300 text-right w-12">Desc</th>
-                        <th className="px-2.5 py-1.5 text-right w-16">Precio Total</th>
+                        <th className="px-2.5 py-1.5 border-r border-gray-300 w-8 text-center">ITEM</th>
+                        <th className="px-2.5 py-1.5 border-r border-gray-300 w-16">CODIGO</th>
+                        <th className="px-2.5 py-1.5 border-r border-gray-300">DESCRIPCION</th>
+                        <th className="px-2.5 py-1.5 border-r border-gray-300 w-12 text-center">U/M</th>
+                        <th className="px-2.5 py-1.5 border-r border-gray-300 w-12 text-right">CANTIDAD</th>
+                        <th className="px-2.5 py-1.5 border-r border-gray-300 text-right w-16">V.UNIT</th>
+                        <th className="px-2.5 py-1.5 border-r border-gray-300 text-right w-12">DESC.</th>
+                        <th className="px-2.5 py-1.5 text-right w-16">V.TOTAL</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
                       {tx.items && tx.items.length > 0 ? (
                         tx.items.map((item, idx) => (
                           <tr key={idx}>
+                            <td className="px-2.5 py-1.5 border-r border-gray-300 text-center font-mono">{idx + 1}</td>
                             <td className="px-2.5 py-1.5 border-r border-gray-300 font-mono">{item.sku || 'SERV'}</td>
-                            <td className="px-2.5 py-1.5 border-r border-gray-300 text-right">{item.quantity}</td>
                             <td className="px-2.5 py-1.5 border-r border-gray-300 font-medium">{item.name}</td>
+                            <td className="px-2.5 py-1.5 border-r border-gray-300 text-center uppercase font-mono">{item.unit || 'UNIDAD'}</td>
+                            <td className="px-2.5 py-1.5 border-r border-gray-300 text-right">{item.quantity}</td>
                             <td className="px-2.5 py-1.5 border-r border-gray-300 text-right">${Number(item.price).toFixed(2)}</td>
-                            <td className="px-2.5 py-1.5 border-r border-gray-300 text-right">$0.00</td>
-                            <td className="px-2.5 py-1.5 text-right font-bold">${(item.price * item.quantity).toFixed(2)}</td>
+                            <td className="px-2.5 py-1.5 border-r border-gray-300 text-right">${Number(item.itemDiscount || 0).toFixed(2)}</td>
+                            <td className="px-2.5 py-1.5 text-right font-bold">${((item.price * item.quantity) - (item.itemDiscount || 0)).toFixed(2)}</td>
                           </tr>
                         ))
                       ) : (
                         <tr>
+                          <td className="px-2.5 py-1.5 border-r border-gray-300 text-center font-mono">1</td>
                           <td className="px-2.5 py-1.5 border-r border-gray-300 font-mono">COM01</td>
-                          <td className="px-2.5 py-1.5 border-r border-gray-300 text-right">1</td>
                           <td className="px-2.5 py-1.5 border-r border-gray-300 font-medium">Servicios Comerciales - {tx.category || 'Ventas'}</td>
+                          <td className="px-2.5 py-1.5 border-r border-gray-300 text-center uppercase font-mono">UNIDAD</td>
+                          <td className="px-2.5 py-1.5 border-r border-gray-300 text-right">1</td>
                           <td className="px-2.5 py-1.5 border-r border-gray-300 text-right">${Number(tx.baseImponible).toFixed(2)}</td>
                           <td className="px-2.5 py-1.5 border-r border-gray-300 text-right">$0.00</td>
                           <td className="px-2.5 py-1.5 text-right font-bold">${Number(tx.baseImponible).toFixed(2)}</td>
@@ -369,7 +391,52 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
                       <p className="font-bold text-[9px] border-b border-gray-200 pb-1 uppercase mb-1">Información Adicional</p>
                       <p><span className="font-bold">Email:</span> {client.email || 'N/D'}</p>
                       <p><span className="font-bold">Teléfono:</span> {client.telefono || 'N/D'}</p>
+                      <p><span className="font-bold">Dirección:</span> {client.direccion || 'Ecuador'}</p>
                       <p><span className="font-bold">Origen:</span> {tx.isPOS ? 'Punto de Venta POS' : 'Factura Manual'}</p>
+                      
+                      <div className="mt-1.5 pt-1.5 border-t border-gray-200 space-y-0.5">
+                        <p className="font-bold text-[8px] uppercase tracking-wider text-black">Detalle del Pago / Plazo:</p>
+                        
+                        {tx.isPreventa ? (
+                          <>
+                            <p><span className="font-bold">Tipo:</span> PREVENTA / PEDIDO</p>
+                            <p><span className="font-bold">Anticipo Abonado:</span> ${Number(tx.paidAmount || 0).toFixed(2)}</p>
+                            <p><span className="font-bold">Saldo Pendiente:</span> ${Number(tx.total - (tx.paidAmount || 0)).toFixed(2)}</p>
+                          </>
+                        ) : (
+                          <>
+                            <p><span className="font-bold">Condición:</span> {tx.paymentMethod === 'credito' ? 'CRÉDITO' : 'CONTADO'}</p>
+                            {tx.paymentMethod === 'credito' && (
+                              <p><span className="font-bold">Plazo:</span> {getPlazoDias()}</p>
+                            )}
+                          </>
+                        )}
+                        
+                        <p className="font-bold mt-1 text-[7.5px] uppercase">Forma de Pago:</p>
+                        {(() => {
+                          const breakdown = tx.paymentsBreakdown || {};
+                          const list = [];
+                          if (Number(breakdown.efectivo || 0) > 0) list.push(`Efectivo: $${Number(breakdown.efectivo).toFixed(2)}`);
+                          if (Number(breakdown.transferencia || 0) > 0) list.push(`Transferencia: $${Number(breakdown.transferencia).toFixed(2)}`);
+                          if (Number(breakdown.tarjeta || 0) > 0) list.push(`Tarjeta: $${Number(breakdown.tarjeta).toFixed(2)}`);
+                          if (Number(breakdown.cruce_cuentas || 0) > 0) list.push(`Compensación: $${Number(breakdown.cruce_cuentas).toFixed(2)}`);
+                          if (Number(breakdown.credito || 0) > 0) list.push(`Crédito / CxC: $${Number(breakdown.credito).toFixed(2)}`);
+                          
+                          if (list.length === 0) {
+                            const methodLabel = {
+                              efectivo: 'Efectivo',
+                              transferencia: 'Transferencia',
+                              tarjeta: 'Tarjeta de Crédito/Débito',
+                              cruce_cuentas: 'Compensación de Deudas',
+                              credito: 'Crédito'
+                            }[tx.paymentMethod] || 'Efectivo';
+                            list.push(`${methodLabel}: $${Number(tx.total || 0).toFixed(2)}`);
+                          }
+                          return list.map((itemStr, idx) => (
+                            <p key={idx} className="pl-1.5">• {itemStr}</p>
+                          ));
+                        })()}
+                      </div>
                     </div>
 
                     {/* Formas de pago */}

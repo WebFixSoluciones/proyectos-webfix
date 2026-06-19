@@ -99,6 +99,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import SuperAdminPage from './pages/SuperAdminPage';
 import BillingPortal from './pages/billing/BillingPortal';
+import PublicRideView from './pages/PublicRideView';
 import { PLANS } from './config/plans';
 
 import FinanceModule from './components/finances/FinanceModule';
@@ -1951,7 +1952,6 @@ export default function App() {
 
   const isPersonasActive = activePageId === 'personas' || activePageId === 'team';
   const isProyectosActive = activePageId === 'proyectos_general' || activePageId === 'paginas_general' || activePageId === 'calendar' || activePage?.type === 'project' || activePage?.type === 'doc';
-
   return (
     <Routes>
       <Route element={<LandingLayout />}>
@@ -1964,6 +1964,7 @@ export default function App() {
       <Route path="/login" element={<LoginPage isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} showToast={showToast} companyProfile={companyProfile} />} />
       <Route path="/register" element={<RegisterPage isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} showToast={showToast} />} />
       <Route path="/superadmin" element={<SuperAdminPage showToast={showToast} />} />
+      <Route path="/public/ride" element={<PublicRideView />} />
       <Route path="/app/*" element={
         <div className={`flex h-screen w-full font-sans overflow-hidden transition-colors duration-500 relative z-0 ${isDarkMode ? 'bg-[#08080a] text-gray-100' : 'bg-[#f4f4f9] text-gray-800'}`}>
       

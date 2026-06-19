@@ -16,6 +16,24 @@ service cloud.firestore {
     }
 
     // 1. Sandbox de Inquilinos (Aislamiento Multi-tenant)
+    match /artifacts/{appId}/public/data/finances_transactions/{docId} {
+      allow read: if true;
+      allow write: if esPersonalAutorizado() && (
+        esSuperAdmin() || 
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.tenantId == appId)
+      );
+    }
+
+    match /artifacts/{appId}/public/data/finances_settings/config {
+      allow read: if true;
+      allow write: if esPersonalAutorizado() && (
+        esSuperAdmin() || 
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.tenantId == appId)
+      );
+    }
+
     match /artifacts/{appId}/public/data/{document=**} {
       allow read, write: if esPersonalAutorizado() && (
         esSuperAdmin() || 
