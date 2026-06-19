@@ -1422,6 +1422,66 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
             {formData.claveAcceso && <p className="text-[9px] font-mono text-gray-400 mt-0.5">Clave SRI: {formData.claveAcceso}</p>}
           </div>
         </div>
+
+        {/* COMPACT STEPPER */}
+        <div className="flex items-center gap-1 bg-slate-100 dark:bg-white/5 p-1 rounded-xl">
+          {steps.map((step, idx) => (
+            <button
+              key={step.id}
+              type="button"
+              onClick={() => {
+                if (isLockedInStep3) {
+                  showToast('Este documento ya fue finalizado y no puede ser editado.', 'error');
+                  return;
+                }
+                if (!isEditable) {
+                  setCurrentStep(step.id);
+                  return;
+                }
+                if (step.id > 1 && !formData.thirdPartyId) {
+                  showToast('Selecciona primero un cliente en el Paso 1', 'error');
+                  return;
+                }
+                if (step.id > 2) {
+                  if (!formData.items || formData.items.length === 0) {
+                    showToast('Debes seleccionar productos en el Paso 2', 'error');
+                    return;
+                  }
+                  const invalid = formData.items.some(item => !item.productId || Number(item.quantity) <= 0 || Number(item.price) < 0);
+                  if (invalid) {
+                    showToast('Corrige los productos en el Paso 2', 'error');
+                    return;
+                  }
+                  const pStatus = calculatePaymentStatus();
+                  if (!pStatus.isValid) {
+                    showToast(pStatus.error, 'error');
+                    return;
+                  }
+                }
+                setCurrentStep(step.id);
+              }}
+              className={`px-2 py-1 md:px-3 md:py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 md:gap-1.5 ${
+                currentStep === step.id
+                  ? 'bg-primary text-white shadow-sm'
+                  : currentStep > step.id
+                    ? 'text-emerald-500 hover:bg-slate-200 dark:hover:bg-white/10'
+                    : 'text-gray-400 dark:text-gray-500 hover:bg-slate-200 dark:hover:bg-white/10'
+              }`}
+            >
+              <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] ${
+                currentStep === step.id
+                  ? 'bg-white text-primary'
+                  : currentStep > step.id
+                    ? 'bg-emerald-500/20 text-emerald-500'
+                    : 'bg-gray-300 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+              }`}>
+                {step.id}
+              </span>
+              <span className="hidden sm:inline text-[9px] md:text-[10px] tracking-wide uppercase">{step.name}</span>
+            </button>
+          ))}
+        </div>
+
         <button 
           onClick={onClose} 
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border transition-all text-xs font-semibold ${
@@ -1434,84 +1494,6 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
           <span>Cerrar</span>
         </button>
       </div>
-
-      {/* STEP INDICATOR BAR */}
-      {true && (
-        <div className={`px-6 py-4 border-b shrink-0 ${isDarkMode ? 'border-white/5 bg-[#121214]' : 'border-gray-200 bg-white'}`}>
-          <div className="flex items-center justify-between max-w-3xl mx-auto">
-            {steps.map((step, idx) => (
-              <React.Fragment key={step.id}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    // Si el documento está bloqueado en paso 3, no permitir regresar
-                    if (isLockedInStep3) {
-                      showToast('Este documento ya fue finalizado y no puede ser editado.', 'error');
-                      return;
-                    }
-
-                    if (!isEditable) {
-                      setCurrentStep(step.id);
-                      return;
-                    }
-                    
-                    if (step.id > 1 && !formData.thirdPartyId) {
-                      showToast('Selecciona primero un cliente en el Paso 1', 'error');
-                      return;
-                    }
-                    if (step.id > 2) {
-                      if (!formData.items || formData.items.length === 0) {
-                        showToast('Debes seleccionar productos en el Paso 2', 'error');
-                        return;
-                      }
-                      const invalid = formData.items.some(item => !item.productId || Number(item.quantity) <= 0 || Number(item.price) < 0);
-                      if (invalid) {
-                        showToast('Corrige los productos en el Paso 2', 'error');
-                        return;
-                      }
-                      const pStatus = calculatePaymentStatus();
-                      if (!pStatus.isValid) {
-                        showToast(pStatus.error, 'error');
-                        return;
-                      }
-                    }
-                    setCurrentStep(step.id);
-                  }}
-                  className={`flex flex-col items-center gap-1.5 focus:outline-none group relative ${isLockedInStep3 ? 'cursor-not-allowed' : ''}`}
-                >
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
-                    currentStep === step.id
-                      ? 'bg-primary text-white ring-4 ring-primary/20 shadow-md'
-                      : currentStep > step.id
-                        ? 'bg-emerald-600 text-white'
-                        : isDarkMode 
-                          ? 'bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10' 
-                          : 'bg-white border border-gray-300 text-gray-500 hover:bg-gray-50'
-                  }`}>
-                    {step.id}
-                  </div>
-                  <span className={`text-[10px] font-bold tracking-wide uppercase transition-colors ${
-                    currentStep === step.id
-                      ? 'text-primary'
-                      : currentStep > step.id
-                        ? 'text-emerald-500'
-                        : isDarkMode ? 'text-gray-500' : 'text-gray-400'
-                  }`}>
-                    {step.name}
-                  </span>
-                </button>
-                {idx < steps.length - 1 && (
-                  <div className={`flex-1 h-0.5 mx-2 transition-all ${
-                    currentStep > step.id 
-                      ? 'bg-emerald-600/50' 
-                      : isDarkMode ? 'bg-white/5' : 'bg-gray-200'
-                  }`} />
-                )}
-              </React.Fragment>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* STATE BANNERS (Sri authorized / canceled) */}
       {isAuthorized && (
@@ -1552,10 +1534,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         {/* ═══════════════════════════════════════════════════════ */}
         {currentStep === 1 && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom duration-300">
-            {/* Top Row: Client + Invoice Config */}
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-              {/* Left Column (col-span-3): Invoice Config & Location */}
-              <div className="lg:col-span-3 space-y-5">
+            {/* Top Row: 2-Column grid (Left: Client & Document, Right: Parameters) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Column 1 (Left): Client search, Receptor details card, Doc info card */}
+              <div className="space-y-5">
                 {/* Client Search */}
                 <div className={cardClass}>
                   <div className="flex items-center gap-2 mb-3">
@@ -1612,9 +1594,66 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   </div>
                 </div>
 
+                {/* Selected Client Information Card (High Contrast) */}
+                <div className={cardClass}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-purple-500/10 text-purple-400' : 'bg-purple-50 text-purple-600'}`}>
+                      <User size={14} />
+                    </div>
+                    <h4 className={sectionTitleClass}>Datos del Cliente (Receptor)</h4>
+                  </div>
+
+                  {matchedTercero ? (
+                    <div className="space-y-3 p-4 rounded-xl border bg-slate-50 dark:bg-white/5 border-slate-200/60 dark:border-white/10 text-gray-900 dark:text-white">
+                      <div>
+                        <p className="text-slate-500 dark:text-gray-400 uppercase text-[9px] font-extrabold tracking-wide">Razón Social / Nombre</p>
+                        <p className="text-slate-900 dark:text-white font-bold text-xs truncate">{matchedTercero.name}</p>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-slate-500 dark:text-gray-400 uppercase text-[9px] font-extrabold tracking-wide">Identificación</p>
+                          <p className="text-slate-900 dark:text-white font-mono font-bold text-xs">{matchedTercero.ruc}</p>
+                        </div>
+                        <div>
+                          <p className="text-slate-500 dark:text-gray-400 uppercase text-[9px] font-extrabold tracking-wide">Teléfono</p>
+                          <p className="text-slate-900 dark:text-white font-bold text-xs">{matchedTercero.telefono || '(No registrado)'}</p>
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-slate-500 dark:text-gray-400 uppercase text-[9px] font-extrabold tracking-wide">Correo Electrónico</p>
+                        <p className="text-slate-900 dark:text-white font-bold text-xs truncate">{matchedTercero.email || '(No registrado)'}</p>
+                      </div>
+                      <div>
+                        <p className="text-slate-500 dark:text-gray-400 uppercase text-[9px] font-extrabold tracking-wide">Dirección</p>
+                        <p className="text-slate-900 dark:text-white font-bold text-xs truncate">{matchedTercero.direccion || '(No registrada)'}</p>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4 border-t border-dashed border-gray-300 dark:border-white/10 pt-3">
+                        <div>
+                          <p className="text-slate-500 dark:text-gray-400 uppercase text-[9px] font-extrabold tracking-wide">Régimen SRI</p>
+                          <p className={`text-xs font-extrabold uppercase ${
+                            matchedTercero.tipoContribuyente?.includes('rimpe') ? 'text-purple-600 dark:text-purple-400' : 'text-primary'
+                          }`}>
+                            {matchedTercero.tipoContribuyente || 'General'}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-slate-500 dark:text-gray-400 uppercase text-[9px] font-extrabold tracking-wide">Deuda CxC Pendiente</p>
+                          <p className={`text-xs font-extrabold ${clientDebt > 0 ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                            ${clientDebt.toFixed(2)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-6 text-center rounded-xl border border-dashed text-xs font-semibold border-amber-300 bg-amber-50/50 text-amber-700 dark:border-amber-500/20 dark:bg-amber-500/5 dark:text-amber-400">
+                      ⚠️ Selecciona un cliente para cargar su información tributaria y habilitar la facturación.
+                    </div>
+                  )}
+                </div>
+
                 {/* Document configuration */}
                 <div className={cardClass}>
-                  <div className="flex items-center gap-2 mb-4">
+                  <div className="flex items-center gap-2 mb-3">
                     <div className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-primary/10 text-primary' : 'bg-primary-light text-primary'}`}>
                       <FileText size={14} />
                     </div>
@@ -1749,18 +1788,45 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     </div>
                   )}
                 </div>
-                <div className={cardClass}>
+              </div>
+
+              {/* Column 2 (Right): Location, Reference & Details */}
+              <div className="space-y-5">
+                <div className={`${cardClass} h-full`}>
                   <div className="flex items-center gap-2 mb-4">
                     <div className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-primary/10 text-primary' : 'bg-primary-light text-primary'}`}>
                       <Building size={14} />
                     </div>
                     <h4 className={sectionTitleClass}>Ubicación y Referencia</h4>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className={labelClass}>Establecimiento</label>
-                      <input disabled type="text" value={`${sriConfig?.establecimiento || '001'} - Sucursal`} className={inputClass} />
+                  <div className="space-y-4">
+                    {/* Sucursal & Bodega on single row */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className={labelClass}>Establecimiento (Sucursal)</label>
+                        <select 
+                          disabled={!isEditable} 
+                          value={formData.establecimiento || sriConfig?.establecimiento || '001'} 
+                          onChange={e => setFormData({...formData, establecimiento: e.target.value})} 
+                          className={inputClass}
+                        >
+                          <option value={sriConfig?.establecimiento || '001'}>{sriConfig?.establecimiento || '001'} - Sucursal Matriz</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className={labelClass}>Bodega</label>
+                        <select 
+                          disabled={!isEditable} 
+                          value={formData.bodega || 'Bodega Central'} 
+                          onChange={e => setFormData({...formData, bodega: e.target.value})} 
+                          className={inputClass}
+                        >
+                          <option value="Bodega Central">Bodega Central</option>
+                          <option value="Bodega de Exhibición">Bodega de Exhibición</option>
+                        </select>
+                      </div>
                     </div>
+
                     <div>
                       <label className={labelClass}>Referencia de Venta</label>
                       <input 
@@ -1769,84 +1835,21 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         value={formData.referencia || ''} 
                         onChange={e => setFormData({...formData, referencia: e.target.value})} 
                         className={inputClass} 
-                        placeholder="Ej. Pedido #1024" 
+                        placeholder="Ej. Pedido #1024 o Código de Compra" 
                       />
                     </div>
-                    <div className="sm:col-span-2">
-                      <label className={labelClass}>Descripción / Detalle</label>
-                      <input 
+                    <div>
+                      <label className={labelClass}>Descripción / Detalle del Documento</label>
+                      <textarea 
                         disabled={!isEditable} 
-                        type="text" 
+                        rows={5}
                         value={formData.description || ''} 
                         onChange={e => setFormData({...formData, description: e.target.value})} 
-                        className={inputClass} 
-                        placeholder="Ej. Venta de suministros..." 
+                        className={`${inputClass} resize-none`} 
+                        placeholder="Ingresa notas o información detallada sobre esta transacción..." 
                       />
                     </div>
                   </div>
-                </div>
-              </div>
-
-              {/* Right Column (col-span-2): Selected Client Information Card */}
-              <div className="lg:col-span-2">
-                <div className={`${cardClass} h-full`}>
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-purple-500/10 text-purple-400' : 'bg-purple-50 text-purple-600'}`}>
-                      <User size={14} />
-                    </div>
-                    <h4 className={sectionTitleClass}>Datos del Cliente (Receptor)</h4>
-                  </div>
-
-                  {matchedTercero ? (
-                    <div className={`space-y-4 p-4 rounded-xl border ${
-                      isDarkMode ? 'bg-white/5 border-white/10 text-white' : 'bg-primary-light border-primary/15 text-gray-900'
-                    }`}>
-                      <div>
-                        <p className="text-[9px] font-bold uppercase text-gray-500">Razón Social / Nombre</p>
-                        <p className={`text-xs font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{matchedTercero.name}</p>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-[9px] font-bold uppercase text-gray-500">Identificación</p>
-                          <p className={`text-xs font-mono font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{matchedTercero.ruc}</p>
-                        </div>
-                        <div>
-                          <p className="text-[9px] font-bold uppercase text-gray-500">Teléfono</p>
-                          <p className={`text-xs font-semibold ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{matchedTercero.telefono || '(No registrado)'}</p>
-                        </div>
-                      </div>
-                      <div>
-                        <p className="text-[9px] font-bold uppercase text-gray-500">Correo Electrónico</p>
-                        <p className={`text-xs font-semibold truncate ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{matchedTercero.email || '(No registrado)'}</p>
-                      </div>
-                      <div>
-                        <p className="text-[9px] font-bold uppercase text-gray-500">Dirección</p>
-                        <p className={`text-xs font-semibold ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{matchedTercero.direccion || '(No registrada)'}</p>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4 border-t border-dashed border-gray-300 dark:border-white/10 pt-3">
-                        <div>
-                          <p className="text-[9px] font-bold uppercase text-gray-500">Régimen SRI</p>
-                          <p className={`text-xs font-bold uppercase ${
-                            matchedTercero.tipoContribuyente?.includes('rimpe') ? 'text-purple-600 dark:text-purple-400' : 'text-primary dark:text-primary'
-                          }`}>
-                            {matchedTercero.tipoContribuyente || 'General'}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-[9px] font-bold uppercase text-gray-500">Deuda CxC Pendiente</p>
-                          <p className={`text-xs font-extrabold ${clientDebt > 0 ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
-                            ${clientDebt.toFixed(2)}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className={`p-8 text-center rounded-xl border border-dashed text-xs font-semibold ${
-                      isDarkMode ? 'border-amber-500/20 bg-amber-500/5 text-amber-400' : 'border-amber-300 bg-amber-50/50 text-amber-700'
-                    }`}>
-                      ⚠️ Selecciona un cliente para cargar su información tributaria y habilitar la facturación.
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
@@ -1963,28 +1966,27 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 </div>
               </div>
             ) : (
-              /* ======= PRODUCTS + MINI POS LAYOUT ======= */
-              <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 pt-2 w-full">
-                {/* Carrito de compra (Lado Izquierdo, col-span-3) */}
-                <div className="lg:col-span-3">
-                  <div className={cardClass}>
-                    <div className="flex justify-between items-center mb-4">
-                      <div className="flex items-center gap-2">
-                        <div className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-primary/10 text-primary' : 'bg-primary-light text-primary'}`}>
-                          <Layers size={14} />
-                        </div>
-                        <h3 className={sectionTitleClass}>Selección de Productos (Carrito)</h3>
-                      </div>
-                      {isEditable && (
-                        <button type="button" onClick={handleAddItem} className="px-3 py-1.5 rounded-xl bg-primary hover:bg-primary text-white font-bold text-xs flex items-center gap-1.5 transition-all">
-                          <Plus size={12} /> Fila Manual
-                        </button>
-                      )}
+              <div className={cardClass}>
+                <div className="flex justify-between items-center mb-5 border-b border-gray-100 dark:border-white/5 pb-3">
+                  <div className="flex items-center gap-2">
+                    <div className={`p-1.5 rounded-lg bg-primary/10 text-primary`}>
+                      <Layers size={14} />
                     </div>
+                    <h3 className="text-sm font-black tracking-tight text-primary uppercase">Selección de Productos (MINIPOS)</h3>
+                  </div>
+                  {isEditable && (
+                    <button type="button" onClick={handleAddItem} className="px-3 py-1.5 rounded-xl bg-primary hover:bg-primary text-white font-bold text-xs flex items-center gap-1.5 transition-all">
+                      <Plus size={12} /> Fila Manual
+                    </button>
+                  )}
+                </div>
 
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 pt-1 w-full">
+                  {/* Left Column (col-span-3): Product search & Cart table */}
+                  <div className="lg:col-span-3 space-y-4">
                     {/* Product Search */}
                     {isEditable && (
-                      <div className="relative mb-4">
+                      <div className="relative">
                         <div className="relative">
                           <input 
                             type="text" 
@@ -2129,38 +2131,34 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       )}
                     </div>
                   </div>
-                </div>
 
-                {/* Resumen de totales (Lado Derecho, col-span-2) */}
-                <div className="lg:col-span-2">
-                  <div className={`${cardClass} h-full flex flex-col justify-between`}>
-                    <div>
-                      <div className="flex items-center gap-2 mb-4">
-                        <div className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}`}>
-                          <Calculator size={14} />
-                        </div>
-                        <h3 className={sectionTitleClass}>Totales e Impuestos</h3>
-                      </div>
-                      <div className={`p-4 rounded-xl border text-xs space-y-2.5 ${isDarkMode ? 'bg-white/5 border-white/10 text-white' : 'bg-gray-50 border-gray-200 text-gray-900'}`}>
-                        <div className="flex justify-between">
-                          <span className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Subtotal:</span>
-                          <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>${Number(formData.baseImponible).toFixed(2)}</span>
+                  {/* Right Column (col-span-2): Totals & Taxes */}
+                  <div className="lg:col-span-2 flex flex-col justify-between">
+                    <div className="space-y-4">
+                      <div className={`p-5 rounded-2xl border text-xs space-y-3 bg-slate-50 border-slate-200 dark:bg-white/5 dark:border-white/10 text-gray-900 dark:text-white`}>
+                        <div className="flex justify-between items-center pb-2 border-b border-gray-200 dark:border-white/5">
+                          <span className="font-extrabold uppercase text-[10px] text-slate-500 dark:text-gray-400">Concepto</span>
+                          <span className="font-extrabold uppercase text-[10px] text-slate-500 dark:text-gray-400 text-right">Valor</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>IVA ({formData.ivaPorcentaje}%):</span>
-                          <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>${Number(formData.ivaValor).toFixed(2)}</span>
+                          <span className="font-semibold text-gray-600 dark:text-gray-300">Subtotal:</span>
+                          <span className="font-bold text-slate-900 dark:text-white">${Number(formData.baseImponible).toFixed(2)}</span>
                         </div>
-                        <div className={`flex justify-between pt-2 border-t font-bold text-sm ${isDarkMode ? 'border-white/10 text-white' : 'border-gray-300 text-gray-900'}`}>
-                          <span>Total Neto:</span>
-                          <span className="text-primary font-extrabold text-sm">${Number(formData.total).toFixed(2)}</span>
+                        <div className="flex justify-between">
+                          <span className="font-semibold text-gray-600 dark:text-gray-300">IVA ({formData.ivaPorcentaje}%):</span>
+                          <span className="font-bold text-slate-900 dark:text-white">${Number(formData.ivaValor).toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between pt-3 border-t border-dashed border-gray-300 dark:border-white/10 font-bold text-sm">
+                          <span className="text-slate-900 dark:text-white font-extrabold">TOTAL TRIBUTARIO:</span>
+                          <span className="text-primary dark:text-primary font-black text-base">${Number(formData.total).toFixed(2)}</span>
                         </div>
                       </div>
-                    </div>
-                    <div className={`mt-6 p-3.5 rounded-xl border border-dashed text-[10px] leading-relaxed flex items-start gap-2 ${
-                      isDarkMode ? 'border-white/10 text-gray-500' : 'border-gray-300 text-gray-500'
-                    }`}>
-                      <AlertTriangle size={14} className="shrink-0 text-amber-500" />
-                      <span>Verifica que el RUC del cliente y las cantidades ingresadas sean las correctas antes de continuar al pago.</span>
+                      <div className={`p-4 rounded-xl border border-dashed text-[10px] leading-relaxed flex items-start gap-2 ${
+                        isDarkMode ? 'border-white/10 text-gray-500' : 'border-gray-300 text-gray-500'
+                      }`}>
+                        <AlertTriangle size={14} className="shrink-0 text-amber-500" />
+                        <span>Verifica que el RUC del cliente, el establecimiento emisor y las cantidades ingresadas sean las correctas antes de continuar al pago.</span>
+                      </div>
                     </div>
                   </div>
                 </div>

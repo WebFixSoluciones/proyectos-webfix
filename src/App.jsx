@@ -2215,7 +2215,7 @@ export default function App() {
       <div className="flex-1 flex flex-col h-full overflow-hidden relative z-10 md:z-[60]">
         
         {/* Floating Topbar */}
-        <div className={`mt-3 mx-4 mb-2 rounded-xl flex flex-col md:flex-row md:items-center px-4 py-2.5 justify-between gap-4 shrink-0 border ${isDarkMode ? 'bg-[#1a1a1a]/40 backdrop-blur-md border-white/5 shadow-sm' : 'bg-white/40 backdrop-blur-md border-white/40 shadow-sm'}`}>
+        <div className={`mt-0 mx-0 mb-3 rounded-b-xl rounded-t-none flex flex-col md:flex-row md:items-center px-4 py-2.5 justify-between gap-4 shrink-0 border-b border-t-0 border-x-0 ${isDarkMode ? 'bg-[#151517] border-white/5 shadow-sm' : 'bg-white border-slate-200 shadow-sm'}`}>
           <div className="flex items-center gap-3">
             <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-white/10 text-gray-400' : 'hover:bg-white/60 text-gray-600'}`}><Menu size={18} /></button>
             <div className={`p-2 rounded-xl border ${isDarkMode ? 'bg-primary/25 text-primary border-primary/20 shadow-sm' : 'bg-primary/10 text-primary border border-primary/15 shadow-sm'}`}>
