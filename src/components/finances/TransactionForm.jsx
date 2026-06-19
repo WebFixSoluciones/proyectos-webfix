@@ -1541,9 +1541,9 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 {/* Header title above card */}
                 <div className="flex items-center gap-2 px-1">
                   <div className="text-primary">
-                    <Layers size={16} />
+                    <User size={16} />
                   </div>
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-primary">
+                  <h4 className="text-xs font-bold uppercase text-primary">
                     Datos de Venta Cliente
                   </h4>
                 </div>
@@ -1593,41 +1593,41 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     )}
                   </div>
 
-                  {/* Row 2: Selected Client Information Card (Blue background) */}
+                  {/* Row 2: Selected Client Information Card (Transparent combination with primary blue color, black text in light mode) */}
                   {matchedTercero ? (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-xl bg-[#f0f4ff]/70 dark:bg-blue-950/20 text-gray-900 dark:text-white mb-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-xl bg-[#1C40F2]/5 dark:bg-[#1C40F2]/10 border border-[#1C40F2]/10 text-gray-900 dark:text-white mb-4">
                       {/* Column 1 */}
                       <div className="space-y-3">
                         <div>
-                          <p className="text-slate-400 dark:text-slate-500 uppercase text-[9px] font-extrabold tracking-wider">Razón Social</p>
-                          <p className="text-slate-900 dark:text-white font-bold text-xs truncate uppercase">{matchedTercero.name}</p>
+                          <p className="text-slate-400 dark:text-slate-500 uppercase text-[9px] font-extrabold">Razón Social</p>
+                          <p className="text-slate-950 dark:text-white font-bold text-xs truncate uppercase">{matchedTercero.name}</p>
                         </div>
                         <div>
-                          <p className="text-slate-400 dark:text-slate-500 uppercase text-[9px] font-extrabold tracking-wider">Identificación</p>
-                          <p className="text-slate-900 dark:text-white font-mono font-bold text-xs">{matchedTercero.ruc}</p>
+                          <p className="text-slate-400 dark:text-slate-500 uppercase text-[9px] font-extrabold">Identificación</p>
+                          <p className="text-slate-950 dark:text-white font-mono font-bold text-xs">{matchedTercero.ruc}</p>
                         </div>
                       </div>
 
                       {/* Column 2 */}
                       <div className="space-y-3">
                         <div>
-                          <p className="text-slate-400 dark:text-slate-500 uppercase text-[9px] font-extrabold tracking-wider">Correo</p>
-                          <p className="text-slate-900 dark:text-white font-bold text-xs truncate lowercase">{matchedTercero.email || '(No registrado)'}</p>
+                          <p className="text-slate-400 dark:text-slate-500 uppercase text-[9px] font-extrabold">Correo</p>
+                          <p className="text-slate-950 dark:text-white font-bold text-xs truncate lowercase">{matchedTercero.email || '(No registrado)'}</p>
                         </div>
                         <div>
-                          <p className="text-slate-400 dark:text-slate-500 uppercase text-[9px] font-extrabold tracking-wider">Dirección</p>
-                          <p className="text-slate-900 dark:text-white font-bold text-xs truncate uppercase">{matchedTercero.direccion || '(No registrada)'}</p>
+                          <p className="text-slate-400 dark:text-slate-500 uppercase text-[9px] font-extrabold">Dirección</p>
+                          <p className="text-slate-950 dark:text-white font-bold text-xs truncate uppercase">{matchedTercero.direccion || '(No registrada)'}</p>
                         </div>
                       </div>
 
                       {/* Column 3 */}
                       <div>
-                        <p className="text-slate-400 dark:text-slate-500 uppercase text-[9px] font-extrabold tracking-wider">Teléfono</p>
-                        <p className="text-slate-900 dark:text-white font-bold text-xs">{matchedTercero.telefono || '(No registrado)'}</p>
+                        <p className="text-slate-400 dark:text-slate-500 uppercase text-[9px] font-extrabold">Teléfono</p>
+                        <p className="text-slate-950 dark:text-white font-bold text-xs">{matchedTercero.telefono || '(No registrado)'}</p>
                       </div>
                     </div>
                   ) : (
-                    <div className="p-6 text-center rounded-xl border border-dashed border-amber-300 bg-amber-50/50 text-amber-700 dark:border-amber-500/20 dark:bg-amber-500/5 dark:text-amber-400 mb-4 text-xs font-semibold">
+                    <div className="p-6 text-center rounded-xl border border-dashed border-amber-300 bg-[#1C40F2]/5 text-amber-700 dark:border-amber-500/20 dark:text-amber-400 mb-4 text-xs font-semibold">
                       ⚠️ Selecciona un cliente para cargar su información tributaria y habilitar la facturación.
                     </div>
                   )}
@@ -1766,13 +1766,17 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
               {/* Column 2 (Right): Location, Reference & Details */}
               <div className="space-y-4">
-                <div className={`${cardClass} h-full`}>
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-primary/10 text-primary' : 'bg-primary-light text-primary'}`}>
-                      <Building size={14} />
-                    </div>
-                    <h4 className={sectionTitleClass}>Ubicación y Referencia</h4>
+                {/* Header title above card */}
+                <div className="flex items-center gap-2 px-1">
+                  <div className="text-primary">
+                    <Building size={16} />
                   </div>
+                  <h4 className="text-xs font-bold uppercase text-primary">
+                    Ubicación y Referencia
+                  </h4>
+                </div>
+
+                <div className={cardClass}>
                   <div className="space-y-4">
                     {/* Sucursal & Bodega on single row */}
                     <div className="grid grid-cols-2 gap-4">
@@ -1940,20 +1944,25 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 </div>
               </div>
             ) : (
-              <div className={cardClass}>
-                <div className="flex justify-between items-center mb-5 border-b border-gray-100 dark:border-white/5 pb-3">
-                  <div className="flex items-center gap-2">
-                    <div className={`p-1.5 rounded-lg bg-primary/10 text-primary`}>
-                      <Layers size={14} />
-                    </div>
-                    <h3 className="text-sm font-black tracking-tight text-primary uppercase">Selección de Productos (MINIPOS)</h3>
+              <div className="space-y-4 pt-2">
+                {/* Header title above card */}
+                <div className="flex items-center gap-2 px-1">
+                  <div className="text-primary">
+                    <Layers size={16} />
                   </div>
-                  {isEditable && (
-                    <button type="button" onClick={handleAddItem} className="px-3 py-1.5 rounded-xl bg-primary hover:bg-primary text-white font-bold text-xs flex items-center gap-1.5 transition-all">
-                      <Plus size={12} /> Fila Manual
-                    </button>
-                  )}
+                  <h4 className="text-xs font-bold uppercase text-primary">
+                    Selección de Productos (MINIPOS)
+                  </h4>
                 </div>
+
+                <div className={cardClass}>
+                  {isEditable && (
+                    <div className="flex justify-end mb-4">
+                      <button type="button" onClick={handleAddItem} className="px-3 py-1.5 rounded-xl bg-primary hover:bg-primary/95 text-white font-bold text-xs flex items-center gap-1.5 transition-all">
+                        <Plus size={12} /> Fila Manual
+                      </button>
+                    </div>
+                  )}
 
                 <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 pt-1 w-full">
                   {/* Left Column (col-span-3): Product search & Cart table */}
@@ -2137,6 +2146,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   </div>
                 </div>
               </div>
+            </div>
             )}
           </div>
         )}
