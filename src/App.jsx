@@ -450,7 +450,18 @@ export default function App() {
     }
   }, [planId, plansList]);
   const [ventasInitialSubTab, setVentasInitialSubTab] = useState('resumen_ventas');
+  const [comprasInitialSubTab, setComprasInitialSubTab] = useState('compras_resumen');
+  const [contabilidadInitialSubTab, setContabilidadInitialSubTab] = useState('dashboard');
+  const [billingInitialSubTab, setBillingInitialSubTab] = useState('facturacion');
+  const [expandedSidebarMenu, setExpandedSidebarMenu] = useState(null);
   const [personasSubTab, setPersonasSubTab] = useState('cliente');
+
+  useEffect(() => {
+    if (['ventas', 'compras', 'finances', 'billing'].includes(activePageId)) {
+      setExpandedSidebarMenu(activePageId);
+    }
+  }, [activePageId]);
+
   const [dbSyncError, setDbSyncError] = useState(() => sessionStorage.getItem('db_sync_error') === 'true');
 
   const triggerSyncError = async () => {
@@ -1970,55 +1981,132 @@ export default function App() {
 
           {/* 2. Ventas */}
           {activeModules.ventas && (
-            <button 
-              onClick={() => { setVentasInitialSubTab('resumen_ventas'); setActivePageId('ventas'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
-              className={`group flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
-                activePageId === 'ventas'
-                  ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-900')
-                  : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-black hover:bg-primary-light hover:text-black')
-              }`}
-            >
-              <ShoppingCart 
-                size={18} 
-                className={`transition-colors ${
-                  activePageId === 'ventas' 
-                    ? 'text-primary' 
-                    : (isDarkMode ? 'text-gray-500 group-hover:text-primary' : 'text-black group-hover:text-primary')
-                }`} 
-              />
-              {isSidebarOpen && <span>Ventas</span>}
-            </button>
+            <div className="space-y-1">
+              <button 
+                onClick={() => {
+                  setExpandedSidebarMenu(expandedSidebarMenu === 'ventas' ? null : 'ventas');
+                  setVentasInitialSubTab('resumen_ventas');
+                  setActivePageId('ventas');
+                }} 
+                className={`group flex items-center justify-between gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
+                  activePageId === 'ventas'
+                    ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-900')
+                    : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-black hover:bg-primary-light hover:text-black')
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <ShoppingCart 
+                    size={18} 
+                    className={`transition-colors ${
+                      activePageId === 'ventas' 
+                        ? 'text-primary' 
+                        : (isDarkMode ? 'text-gray-500 group-hover:text-primary' : 'text-black group-hover:text-primary')
+                    }`} 
+                  />
+                  {isSidebarOpen && <span>Ventas</span>}
+                </div>
+                {isSidebarOpen && (
+                  <ChevronDown 
+                    size={14} 
+                    className={`transition-transform duration-250 ${expandedSidebarMenu === 'ventas' ? 'rotate-180' : ''}`} 
+                  />
+                )}
+              </button>
+              
+              {isSidebarOpen && expandedSidebarMenu === 'ventas' && (
+                <div className="pl-9 pr-2 space-y-1 border-l border-gray-200 dark:border-white/5 ml-5 mt-1 select-none animate-in slide-in-from-top-1 duration-200">
+                  {[
+                    { id: 'resumen_ventas', label: 'Resumen' },
+                    { id: 'ventas_preventa', label: 'Facturación / Vender' },
+                    { id: 'pos', label: 'Punto de Venta (POS)' },
+                    { id: 'quotes', label: 'Cotizaciones / Proformas' },
+                    { id: 'nota_credito', label: 'Notas de Crédito' },
+                    { id: 'retencion', label: 'Retenciones Recibidas' }
+                  ].map(sub => (
+                    <button 
+                      key={sub.id}
+                      onClick={() => { 
+                        setVentasInitialSubTab(sub.id); 
+                        setActivePageId('ventas'); 
+                        if(window.innerWidth < 768) setIsSidebarOpen(false); 
+                      }}
+                      className={`block w-full text-left py-1.5 px-2 rounded-lg text-xs transition-colors font-medium ${ventasInitialSubTab === sub.id && activePageId === 'ventas' ? (isDarkMode ? 'text-primary bg-primary/10' : 'text-primary bg-primary-light font-bold') : 'text-gray-500 hover:text-primary dark:text-gray-400 dark:hover:text-primary'}`}
+                    >
+                      {sub.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
 
           {/* 3. Compras */}
           {activeModules.compras && (
-            <button 
-              onClick={() => { setActivePageId('compras'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
-              className={`group flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
-                activePageId === 'compras'
-                  ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-900')
-                  : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-black hover:bg-primary-light hover:text-black')
-              }`}
-            >
-              <ShoppingBag 
-                size={18} 
-                className={`transition-colors ${
-                  activePageId === 'compras' 
-                    ? 'text-primary' 
-                    : (isDarkMode ? 'text-gray-500 group-hover:text-primary' : 'text-black group-hover:text-primary')
-                }`} 
-              />
-              {isSidebarOpen && <span>Compras</span>}
-            </button>
+            <div className="space-y-1">
+              <button 
+                onClick={() => {
+                  setExpandedSidebarMenu(expandedSidebarMenu === 'compras' ? null : 'compras');
+                  setComprasInitialSubTab('compras_resumen');
+                  setActivePageId('compras');
+                }} 
+                className={`group flex items-center justify-between gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
+                  activePageId === 'compras'
+                    ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-900')
+                    : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-black hover:bg-primary-light hover:text-black')
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <ShoppingBag 
+                    size={18} 
+                    className={`transition-colors ${
+                      activePageId === 'compras' 
+                        ? 'text-primary' 
+                        : (isDarkMode ? 'text-gray-500 group-hover:text-primary' : 'text-black group-hover:text-primary')
+                    }`} 
+                  />
+                  {isSidebarOpen && <span>Compras</span>}
+                </div>
+                {isSidebarOpen && (
+                  <ChevronDown 
+                    size={14} 
+                    className={`transition-transform duration-250 ${expandedSidebarMenu === 'compras' ? 'rotate-180' : ''}`} 
+                  />
+                )}
+              </button>
+              
+              {isSidebarOpen && expandedSidebarMenu === 'compras' && (
+                <div className="pl-9 pr-2 space-y-1 border-l border-gray-200 dark:border-white/5 ml-5 mt-1 select-none animate-in slide-in-from-top-1 duration-200">
+                  {[
+                    { id: 'compras_resumen', label: 'Resumen' },
+                    { id: 'compras_sri', label: 'Facturas Recibidas SRI' },
+                    { id: 'compras_gastos', label: 'Gastos con IA' },
+                    { id: 'compras_nc', label: 'Notas de Crédito' },
+                    { id: 'compras_retencion', label: 'Retenciones Emitidas' }
+                  ].map(sub => (
+                    <button 
+                      key={sub.id}
+                      onClick={() => { 
+                        setComprasInitialSubTab(sub.id); 
+                        setActivePageId('compras'); 
+                        if(window.innerWidth < 768) setIsSidebarOpen(false); 
+                      }}
+                      className={`block w-full text-left py-1.5 px-2 rounded-lg text-xs transition-colors font-medium ${comprasInitialSubTab === sub.id && activePageId === 'compras' ? (isDarkMode ? 'text-primary bg-primary/10' : 'text-primary bg-primary-light font-bold') : 'text-gray-500 hover:text-primary dark:text-gray-400 dark:hover:text-primary'}`}
+                    >
+                      {sub.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
 
-          {/* 4. Finanzas */}
+          {/* 4. Finanzas (Gastos y Créditos) */}
           {activeModules.gastos_creditos && (
             <button 
               onClick={() => { setActivePageId('gastos_creditos'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
               className={`group flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
                 activePageId === 'gastos_creditos'
-                  ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-900')
+                  ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-950')
                   : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-black hover:bg-primary-light hover:text-black')
               }`}
             >
@@ -2040,7 +2128,7 @@ export default function App() {
               onClick={() => { setActivePageId('inventario'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
               className={`group flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
                 activePageId === 'inventario'
-                  ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-900')
+                  ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-950')
                   : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-black hover:bg-primary-light hover:text-black')
               }`}
             >
@@ -2058,24 +2146,63 @@ export default function App() {
 
           {/* 6. Contabilidad */}
           {activeModules.finances && (
-            <button 
-              onClick={() => { setActivePageId('finances'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
-              className={`group flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
-                activePageId === 'finances'
-                  ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-900')
-                  : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-black hover:bg-primary-light hover:text-black')
-              }`}
-            >
-              <DollarSign 
-                size={18} 
-                className={`transition-colors ${
-                  activePageId === 'finances' 
-                    ? 'text-primary' 
-                    : (isDarkMode ? 'text-gray-500 group-hover:text-primary' : 'text-black group-hover:text-primary')
-                }`} 
-              />
-              {isSidebarOpen && <span>Contabilidad</span>}
-            </button>
+            <div className="space-y-1">
+              <button 
+                onClick={() => {
+                  setExpandedSidebarMenu(expandedSidebarMenu === 'finances' ? null : 'finances');
+                  setContabilidadInitialSubTab('dashboard');
+                  setActivePageId('finances');
+                }} 
+                className={`group flex items-center justify-between gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
+                  activePageId === 'finances'
+                    ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-900')
+                    : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-black hover:bg-primary-light hover:text-black')
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <DollarSign 
+                    size={18} 
+                    className={`transition-colors ${
+                      activePageId === 'finances' 
+                        ? 'text-primary' 
+                        : (isDarkMode ? 'text-gray-500 group-hover:text-primary' : 'text-black group-hover:text-primary')
+                    }`} 
+                  />
+                  {isSidebarOpen && <span>Contabilidad</span>}
+                </div>
+                {isSidebarOpen && (
+                  <ChevronDown 
+                    size={14} 
+                    className={`transition-transform duration-250 ${expandedSidebarMenu === 'finances' ? 'rotate-180' : ''}`} 
+                  />
+                )}
+              </button>
+              
+              {isSidebarOpen && expandedSidebarMenu === 'finances' && (
+                <div className="pl-9 pr-2 space-y-1 border-l border-gray-200 dark:border-white/5 ml-5 mt-1 select-none animate-in slide-in-from-top-1 duration-200">
+                  {[
+                    { id: 'dashboard', label: 'Resumen' },
+                    { id: 'sri_docs', label: 'Documentos SRI' },
+                    { id: 'cxc', label: 'Cuentas por Cobrar' },
+                    { id: 'cxp', label: 'Cuentas por Pagar' },
+                    { id: 'gastos_creditos_sub', label: 'Gastos y Créditos' },
+                    { id: 'reports', label: 'Reportes Financieros' }
+                  ].map(sub => (
+                    <button 
+                      key={sub.id}
+                      onClick={() => { 
+                        setContabilidadInitialSubTab(sub.id); 
+                        setActivePageId('finances'); 
+                        if(window.innerWidth < 768) setIsSidebarOpen(false); 
+                      }}
+                      className={`block w-full text-left py-1.5 px-2 rounded-lg text-xs transition-colors font-medium ${contabilidadInitialSubTab === sub.id && activePageId === 'finances' ? (isDarkMode ? 'text-primary bg-primary/10' : 'text-primary bg-primary-light font-bold') : 'text-gray-500 hover:text-primary dark:text-gray-400 dark:hover:text-primary'}`}
+                    >
+                      {sub.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
 
           {/* 7. Personas */}
@@ -2084,7 +2211,7 @@ export default function App() {
               onClick={() => { setActivePageId('personas'); setPersonasSubTab('cliente'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
               className={`group flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
                 activePageId === 'personas' || activePageId === 'team'
-                  ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-900')
+                  ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-950')
                   : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-black hover:bg-primary-light hover:text-black')
               }`}
             >
@@ -2105,7 +2232,7 @@ export default function App() {
             onClick={() => { setActivePageId('proyectos_general'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
             className={`group flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
               isProyectosActive
-                ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-900')
+                ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-950')
                 : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-black hover:bg-primary-light hover:text-black')
             }`}
           >
@@ -2125,7 +2252,7 @@ export default function App() {
             onClick={() => { setActivePageId('general_settings'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
             className={`group flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
               activePageId === 'general_settings'
-                ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-900')
+                ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-950')
                 : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-black hover:bg-primary-light hover:text-black')
             }`}
           >
@@ -2141,24 +2268,59 @@ export default function App() {
           </button>
 
           {/* 10. Suscripción y Pago */}
-          <button 
-            onClick={() => { setActivePageId('billing'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
-            className={`group flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
-              activePageId === 'billing'
-                ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-900')
-                : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-black hover:bg-primary-light hover:text-black')
-            }`}
-          >
-            <CreditCard 
-              size={18} 
-              className={`transition-colors ${
-                activePageId === 'billing' 
-                  ? 'text-primary' 
-                  : (isDarkMode ? 'text-gray-500 group-hover:text-primary' : 'text-black group-hover:text-primary')
-              }`} 
-            />
-            {isSidebarOpen && <span>Suscripción</span>}
-          </button>
+          <div className="space-y-1">
+            <button 
+              onClick={() => {
+                setExpandedSidebarMenu(expandedSidebarMenu === 'billing' ? null : 'billing');
+                setBillingInitialSubTab('planes');
+                setActivePageId('billing');
+              }} 
+              className={`group flex items-center justify-between gap-3 w-full px-3 py-2 rounded-xl transition-all font-medium ${
+                activePageId === 'billing'
+                  ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm' : 'bg-primary-light text-gray-900')
+                  : (isDarkMode ? 'text-gray-400 hover:bg-primary/15 hover:text-white' : 'text-black hover:bg-primary-light hover:text-black')
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <CreditCard 
+                  size={18} 
+                  className={`transition-colors ${
+                    activePageId === 'billing' 
+                      ? 'text-primary' 
+                      : (isDarkMode ? 'text-gray-500 group-hover:text-primary' : 'text-black group-hover:text-primary')
+                  }`} 
+                />
+                {isSidebarOpen && <span>Suscripción</span>}
+              </div>
+              {isSidebarOpen && (
+                <ChevronDown 
+                  size={14} 
+                  className={`transition-transform duration-250 ${expandedSidebarMenu === 'billing' ? 'rotate-180' : ''}`} 
+                />
+              )}
+            </button>
+            
+            {isSidebarOpen && expandedSidebarMenu === 'billing' && (
+              <div className="pl-9 pr-2 space-y-1 border-l border-gray-200 dark:border-white/5 ml-5 mt-1 select-none animate-in slide-in-from-top-1 duration-200">
+                {[
+                  { id: 'planes', label: 'Planes y Precios' },
+                  { id: 'facturacion', label: 'Historial de Pagos' }
+                ].map(sub => (
+                  <button 
+                    key={sub.id}
+                    onClick={() => { 
+                      setBillingInitialSubTab(sub.id); 
+                      setActivePageId('billing'); 
+                      if(window.innerWidth < 768) setIsSidebarOpen(false); 
+                    }}
+                    className={`block w-full text-left py-1.5 px-2 rounded-lg text-xs transition-colors font-medium ${billingInitialSubTab === sub.id && activePageId === 'billing' ? (isDarkMode ? 'text-primary bg-primary/10' : 'text-primary bg-primary-light font-bold') : 'text-gray-500 hover:text-primary dark:text-gray-400 dark:hover:text-primary'}`}
+                  >
+                    {sub.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Bottom Area */}
@@ -2215,7 +2377,7 @@ export default function App() {
       <div className="flex-1 flex flex-col h-full overflow-hidden relative z-10 md:z-[60]">
         
         {/* Floating Topbar */}
-        <div className={`mt-0 mx-0 mb-3 rounded-b-xl rounded-t-none flex flex-col md:flex-row md:items-center px-4 py-2.5 justify-between gap-4 shrink-0 border-b border-t-0 border-x-0 ${isDarkMode ? 'bg-[#151517] border-white/5 shadow-sm' : 'bg-white border-slate-200 shadow-sm'}`}>
+        <div className={`mt-0 mx-0 mb-3 rounded-none flex flex-col md:flex-row md:items-center px-4 py-2.5 justify-between gap-4 shrink-0 border-b border-t-0 border-x-0 ${isDarkMode ? 'bg-[#151517] border-white/5 shadow-sm' : 'bg-white border-slate-200 shadow-sm'}`}>
           <div className="flex items-center gap-3">
             <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-white/10 text-gray-400' : 'hover:bg-white/60 text-gray-600'}`}><Menu size={18} /></button>
             <div className={`p-2 rounded-xl border ${isDarkMode ? 'bg-primary/25 text-primary border-primary/20 shadow-sm' : 'bg-primary/10 text-primary border border-primary/15 shadow-sm'}`}>
@@ -2315,12 +2477,12 @@ export default function App() {
                 <>
                   {/* VISTA: PORTAL DE SUSCRIPCIÓN Y PAGOS */}
                   {activePageId === 'billing' && (
-                    <BillingPortal isDarkMode={isDarkMode} showToast={showToast} />
+                    <BillingPortal isDarkMode={isDarkMode} showToast={showToast} initialSubTab={billingInitialSubTab} />
                   )}
 
                   {/* VISTAS FINANCIERAS MODULARES */}
                   {activePageId === 'finances' && (
-                    <FinanceModule mode="contabilidad" isDarkMode={isDarkMode} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} isLoading={isLoadingFinances} />
+                    <FinanceModule mode="contabilidad" initialSubTab={contabilidadInitialSubTab} isDarkMode={isDarkMode} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} isLoading={isLoadingFinances} />
                   )}
               {activePageId === 'ventas' && (
                 <FinanceModule mode="ventas" initialSubTab={ventasInitialSubTab} isDarkMode={isDarkMode} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} isLoading={isLoadingFinances} />
@@ -2329,7 +2491,7 @@ export default function App() {
                 <InventoryModule isDarkMode={isDarkMode} />
               )}
               {activePageId === 'compras' && (
-                <FinanceModule mode="compras" isDarkMode={isDarkMode} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} isLoading={isLoadingFinances} />
+                <FinanceModule mode="compras" initialSubTab={comprasInitialSubTab} isDarkMode={isDarkMode} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} isLoading={isLoadingFinances} />
               )}
               {activePageId === 'gastos_creditos' && (
                 <GastosCreditosModule isDarkMode={isDarkMode} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} db={db} appId={appId} />
