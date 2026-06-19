@@ -39,11 +39,20 @@ export default function FinanceModule({
     return 'dashboard'; // 'contabilidad'
   };
 
-  const [activeTab, setActiveTab] = useState(() => getInitialTab(mode));
+  const [activeTab, setActiveTab] = useState(() => {
+    if (initialSubTab && (mode === 'compras' || mode === 'contabilidad')) {
+      return initialSubTab;
+    }
+    return getInitialTab(mode);
+  });
 
   // Sync state if mode changes
   useEffect(() => {
-    setActiveTab(getInitialTab(mode));
+    if (initialSubTab && (mode === 'compras' || mode === 'contabilidad')) {
+      setActiveTab(initialSubTab);
+    } else {
+      setActiveTab(getInitialTab(mode));
+    }
   }, [mode]);
 
   // Sincronizar subTab de ventas y personas desde prop de navegación rápida
@@ -55,12 +64,16 @@ export default function FinanceModule({
         setActiveTab('ventas');
       } else if (mode === 'personas') {
         setSubTabPersonas(initialSubTab);
+      } else if (mode === 'compras') {
+        setActiveTab(initialSubTab);
+      } else if (mode === 'contabilidad') {
+        setActiveTab(initialSubTab);
       }
     }
   }, [initialSubTab, mode]);
 
   // Estados de sub-navegación ERP
-  const [subTabVentas, setSubTabVentas] = useState(() => initialSubTab || 'resumen_ventas');
+  const [subTabVentas, setSubTabVentas] = useState(() => (mode === 'ventas' && initialSubTab) ? (String(initialSubTab).startsWith('pos') ? 'pos' : initialSubTab) : 'resumen_ventas');
   const [subTabSri, setSubTabSri] = useState('nota_credito');
   const [subTabPersonas, setSubTabPersonas] = useState(() => (mode === 'personas' && initialSubTab) ? initialSubTab : 'cliente');
 
@@ -170,60 +183,7 @@ export default function FinanceModule({
   return (
     <div className={`flex flex-col h-full w-full animate-in fade-in duration-500 overflow-hidden`}>
       
-      {/* BARRA DE NAVEGACIÓN ESTÁNDAR DE SUBMÓDULOS */}
-      {mode !== 'personas' && (
-        <div className={`flex items-center gap-3 px-8 py-3.5 border-b shrink-0 ${isDarkMode ? 'border-white/5 bg-[#121214]' : 'border-primary/10 bg-primary-light'}`}>
-          <div className="flex gap-2 overflow-x-auto whitespace-nowrap scrollbar-none flex-1">
-            
-            {/* Si el modo es Contabilidad o Compras: Renderizar displayedTabs */}
-            {['contabilidad', 'compras'].includes(mode) && displayedTabs.map(tab => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 ${
-                    isActive
-                      ? (isDarkMode ? 'bg-primary/20 text-primary border-primary/30 shadow-sm' : 'bg-primary text-white border-primary shadow-sm')
-                      : (isDarkMode ? 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-white/5' : 'border-transparent text-black hover:text-black hover:bg-black/5')
-                  }`}
-                >
-                  <Icon size={13} />
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
-
-            {/* Si el modo es Ventas: Renderizar ventas subtabs */}
-            {mode === 'ventas' && [
-              { id: 'resumen_ventas', label: 'Resumen', icon: TrendingUp },
-              { id: 'ventas_preventa', label: 'Ventas', icon: ShoppingCart },
-              { id: 'pos', label: 'POS', icon: Calculator },
-              { id: 'quotes', label: 'Cotizaciones', icon: FileText },
-              { id: 'nota_credito', label: 'Notas de Crédito', icon: ArrowDownCircle },
-              { id: 'retencion', label: 'Retenciones', icon: Percent }
-            ].map(sub => {
-              const Icon = sub.icon;
-              const isActive = subTabVentas === sub.id;
-              return (
-                <button
-                  key={sub.id}
-                  onClick={() => setSubTabVentas(sub.id)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 ${
-                    isActive
-                      ? (isDarkMode ? 'bg-primary/20 text-primary border-primary/30 shadow-sm' : 'bg-primary text-white border-primary shadow-sm')
-                      : (isDarkMode ? 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-white/5' : 'border-transparent text-black hover:text-black hover:bg-black/5')
-                  }`}
-                >
-                  <Icon size={13} />
-                  <span>{sub.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      {/* BARRA DE NAVEGACIÓN ESTÁNDAR DE SUBMÓDULOS DESTE ACCORDION SIDEBAR */}
 
       {/* SUB-SUB-NAVEGACIÓN SI ACTIVE TAB TIENE SUB-TABS (ej: sri_docs en contabilidad) */}
       {activeTab === 'sri_docs' && mode === 'contabilidad' && (

@@ -2303,8 +2303,11 @@ export default function App() {
             {isSidebarOpen && expandedSidebarMenu === 'billing' && (
               <div className="pl-9 pr-2 space-y-1 border-l border-gray-200 dark:border-white/5 ml-5 mt-1 select-none animate-in slide-in-from-top-1 duration-200">
                 {[
-                  { id: 'planes', label: 'Planes y Precios' },
-                  { id: 'facturacion', label: 'Historial de Pagos' }
+                  { id: 'facturacion', label: 'Facturación Electrónica' },
+                  { id: 'paginas', label: 'Páginas Web' },
+                  { id: 'correos', label: 'Correos Corporativos' },
+                  { id: 'whatsapp', label: 'WhatsApp CRM' },
+                  { id: 'historial', label: 'Historial de Pagos' }
                 ].map(sub => (
                   <button 
                     key={sub.id}
@@ -2325,22 +2328,6 @@ export default function App() {
 
         {/* Bottom Area */}
         <div className={`p-3 border-t ${isDarkMode ? 'border-white/5' : 'border-black/5'} space-y-1`}>
-          {/* Servicios Web Fix */}
-          <button 
-            onClick={() => { setActivePageId('contratar_servicios'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
-            className={`flex items-center gap-3 w-full px-3 py-2 text-xs rounded-xl transition-all ${
-              activePageId === 'contratar_servicios'
-                ? (isDarkMode ? 'bg-primary/15 text-white shadow-sm font-semibold' : 'bg-primary-light text-gray-900 border border-primary/15 font-semibold')
-                : (isDarkMode ? 'text-gray-400 hover:bg-white/5 font-light' : 'text-black hover:bg-[#f3f8ff] font-light')
-            }`}
-          >
-            <Rocket 
-              size={14} 
-              className={activePageId === 'contratar_servicios' ? 'text-primary' : (isDarkMode ? 'text-gray-500' : 'text-black')} 
-            />
-            {isSidebarOpen && <span>Servicios Web Fix</span>}
-          </button>
-
           {/* Soporte Técnico */}
           <button 
             onClick={() => { setActivePageId('soporte_tecnico'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} 
