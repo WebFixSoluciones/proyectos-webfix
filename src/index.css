@@ -402,6 +402,81 @@ textarea,
   box-shadow: none !important;
 }
 
+/* ==========================================================================
+   Estilos Exclusivos para la Landing Page (Evitan los Overrides del ERP)
+   ========================================================================== */
+
+.landing-card {
+  border-radius: 24px !important;
+  box-shadow: 0 10px 30px -10px rgba(28, 64, 242, 0.06), 0 1px 3px rgba(28, 64, 242, 0.02) !important;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease !important;
+}
+
+.landing-card:hover {
+  transform: translateY(-6px) !important;
+  box-shadow: 0 20px 40px -15px rgba(28, 64, 242, 0.12), 0 2px 8px rgba(28, 64, 242, 0.04) !important;
+  border-color: rgba(28, 64, 242, 0.25) !important;
+}
+
+.landing-card-dark {
+  border-radius: 24px !important;
+  background: #0b0f19 !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5) !important;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease !important;
+}
+
+.landing-card-dark:hover {
+  transform: translateY(-6px) !important;
+  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.8) !important;
+  border-color: rgba(28, 64, 242, 0.4) !important;
+}
+
+.landing-button-primary {
+  border-radius: 9999px !important;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  box-shadow: 0 4px 12px -3px rgba(28, 64, 242, 0.3) !important;
+}
+
+.landing-button-primary:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 24px -4px rgba(28, 64, 242, 0.5) !important;
+}
+
+.landing-button-secondary {
+  border-radius: 9999px !important;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
+
+.landing-button-secondary:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 16px -4px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Estilos específicos para el Stream Carousel (Feature Stepper) */
+.stream-step {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  border-left: 3px solid transparent;
+}
+
+.stream-step.active {
+  border-left-color: var(--primary-color, #1C40F2);
+  background: rgba(28, 64, 242, 0.04);
+}
+
+.stream-step-progress {
+  height: 2px;
+  width: 0%;
+  background-color: var(--primary-color, #1C40F2);
+  transition: width 9s linear;
+}
+
+.stream-step.active .stream-step-progress {
+  width: 100%;
+}
+
+
 
 
 

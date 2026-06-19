@@ -1908,7 +1908,7 @@ export default function App() {
       </Route>
       <Route path="/login" element={<LoginPage isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} showToast={showToast} companyProfile={companyProfile} />} />
       <Route path="/register" element={<RegisterPage isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} showToast={showToast} />} />
-      <Route path="/superadmin" element={<SuperAdminPage isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} showToast={showToast} />} />
+      <Route path="/superadmin" element={<SuperAdminPage showToast={showToast} />} />
       <Route path="/app/*" element={
         <div className={`flex h-screen w-full font-sans overflow-hidden transition-colors duration-500 relative z-0 ${isDarkMode ? 'bg-[#08080a] text-gray-100' : 'bg-[#f4f4f9] text-gray-800'}`}>
       

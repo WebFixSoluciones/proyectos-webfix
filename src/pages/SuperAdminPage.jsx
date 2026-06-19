@@ -33,7 +33,8 @@ import { collection, doc, getDocs, getDoc, setDoc, updateDoc, onSnapshot, delete
 import { db, auth, firebaseConfig } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
 
-export default function SuperAdminPage({ isDarkMode, setIsDarkMode, showToast }) {
+export default function SuperAdminPage({ showToast }) {
+  const isDarkMode = false;
   const navigate = useNavigate();
   const { currentUser, logout, role } = useAuth();
   
@@ -642,18 +643,6 @@ export default function SuperAdminPage({ isDarkMode, setIsDarkMode, showToast })
 
         {/* Footer Settings Area */}
         <div className={`p-4 border-t ${isDarkMode ? 'border-white/5' : 'border-black/5'} space-y-2 shrink-0`}>
-          {/* Darkmode toggle */}
-          <button
-            onClick={() => setIsDarkMode(!isDarkMode)}
-            className={`w-full flex items-center ${isSidebarOpen ? 'px-3 justify-between' : 'justify-center'} py-2 rounded-lg text-xs transition-colors ${
-              isDarkMode ? 'text-amber-400 hover:bg-white/5' : 'text-gray-600 hover:bg-slate-100'
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              {isDarkMode ? <Sun size={15} /> : <Moon size={15} />}
-              {isSidebarOpen && <span>{isDarkMode ? 'Modo Claro' : 'Modo Oscuro'}</span>}
-            </div>
-          </button>
 
           {/* Go to ERP */}
           <button
