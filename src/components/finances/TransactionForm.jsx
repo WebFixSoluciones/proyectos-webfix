@@ -1513,7 +1513,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       )}
 
       {/* STEP CONTAINER BODY */}
-      <div className="flex-1 p-6 max-w-[1400px] w-full mx-auto">
+      <div className="flex-1 p-4 md:p-6 max-w-[1400px] w-full mx-auto">
 
         {/* ═══════════════════════════════════════════════════════ */}
         {/* PASO 1: CABECERA & SELECCIÓN DE PRODUCTOS (MINI POS)   */}
@@ -1988,7 +1988,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       )}
 
                       {/* Products Table */}
-                      <div className="max-h-[45vh] overflow-y-auto custom-scrollbar">
+                      <div className="overflow-y-auto custom-scrollbar">
                         {(formData.items || []).length > 0 ? (
                         <div className={`rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm ${
                           isDarkMode 
@@ -2097,12 +2097,30 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                           <span className="font-semibold text-slate-700 dark:text-gray-300">Subtotal:</span>
                           <span className="font-bold text-black dark:text-white">${Number(formData.baseImponible).toFixed(2)}</span>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="font-semibold text-slate-700 dark:text-gray-300">IVA ({formData.ivaPorcentaje}%):</span>
-                          <span className="font-bold text-black dark:text-white">${Number(formData.ivaValor).toFixed(2)}</span>
+                        <div className="flex justify-between items-center">
+                          <span className="font-semibold text-slate-700 dark:text-gray-300">IVA:</span>
+                          <div className="flex items-center gap-2">
+                            <select
+                              disabled={!isEditable}
+                              value={formData.ivaPorcentaje}
+                              onChange={e => {
+                                const pct = Number(e.target.value);
+                                const ivaVal = Number((formData.baseImponible * pct / 100).toFixed(2));
+                                setFormData(prev => ({ ...prev, ivaPorcentaje: pct, ivaValor: ivaVal, total: Number((prev.baseImponible + ivaVal).toFixed(2)) }));
+                              }}
+                              className={`text-[10px] font-bold px-1.5 py-1 rounded-lg border outline-none ${
+                                isDarkMode ? 'bg-white/10 border-white/10 text-white' : 'bg-white border-gray-300 text-gray-900'
+                              }`}
+                            >
+                              <option value={0}>0% (Exento)</option>
+                              <option value={5}>5%</option>
+                              <option value={15}>15%</option>
+                            </select>
+                            <span className="font-bold text-black dark:text-white">${Number(formData.ivaValor).toFixed(2)}</span>
+                          </div>
                         </div>
                         <div className="flex justify-between pt-3 border-t border-dashed border-gray-300 dark:border-white/10 font-bold text-sm">
-                          <span className="text-black dark:text-white font-extrabold">TOTAL TRIBUTARIO:</span>
+                          <span className="text-black dark:text-white font-extrabold">TOTAL:</span>
                           <span style={{ color: '#1C40F2' }} className="font-black text-base">${Number(formData.total).toFixed(2)}</span>
                         </div>
                       </div>
