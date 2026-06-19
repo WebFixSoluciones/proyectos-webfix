@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { 
   X, UploadCloud, Calculator, FileText, CheckCircle2, AlertTriangle, Sparkles, 
   Terminal, ShieldAlert, Download, Plus, Trash2, RefreshCw, ArrowLeft, ArrowRight, 
-  User, DollarSign, CreditCard, Layers, Search, Building, ChevronDown, UserPlus
+  User, DollarSign, CreditCard, Layers, Search, Building, ChevronDown, UserPlus, Tag
 } from 'lucide-react';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, runTransaction } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
@@ -157,6 +157,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   });
   const [creditObservations, setCreditObservations] = useState('');
   const [isCreditModalOpen, setIsCreditModalOpen] = useState(false);
+
+  // MiniPOS Discount
+  const [generalDiscountType, setGeneralDiscountType] = useState('percent'); // 'percent' | 'fixed'
+  const [generalDiscountValue, setGeneralDiscountValue] = useState(0);
 
   const [confirmDialog, setConfirmDialog] = useState(null);
   const fileInputRef = useRef(null);
@@ -514,7 +518,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       ...prev,
       items: [
         ...(prev.items || []),
-        { productId: '', name: '', price: 0, quantity: 1, ivaCategory: 15 }
+        { productId: '', name: '', price: 0, quantity: 1, ivaCategory: 15, itemDiscount: 0 }
       ]
     }));
   };
@@ -524,6 +528,28 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       ...prev,
       items: (prev.items || []).filter((_, i) => i !== index)
     }));
+  };
+
+  const handleClearItems = () => {
+    setFormData(prev => ({ ...prev, items: [], baseImponible: 0, ivaValor: 0, total: 0 }));
+    setGeneralDiscountValue(0);
+  };
+
+  // Recalculate totals considering general and per-item discounts
+  const recalcTotals = (items, ivaPct, genDiscType, genDiscVal) => {
+    const rawSubtotal = items.reduce((acc, it) => acc + (parseFloat(it.price) || 0) * (parseInt(it.quantity) || 1), 0);
+    const itemDiscountTotal = items.reduce((acc, it) => {
+      const lineTotal = (parseFloat(it.price) || 0) * (parseInt(it.quantity) || 1);
+      return acc + Math.min(lineTotal, parseFloat(it.itemDiscount) || 0);
+    }, 0);
+    const afterItemDiscount = Math.max(0, rawSubtotal - itemDiscountTotal);
+    const genDisc = genDiscType === 'percent'
+      ? afterItemDiscount * (Math.min(100, parseFloat(genDiscVal) || 0) / 100)
+      : Math.min(afterItemDiscount, parseFloat(genDiscVal) || 0);
+    const base = Math.max(0, afterItemDiscount - genDisc);
+    const iva = Number((base * (ivaPct / 100)).toFixed(2));
+    const total = Number((base + iva).toFixed(2));
+    return { baseImponible: Number(base.toFixed(2)), ivaValor: iva, total };
   };
 
   const handleItemChange = (index, field, value) => {
@@ -537,42 +563,41 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
           productId: value,
           name: prod.name,
           price: prod.price,
-          ivaCategory: prod.ivaCategory
+          ivaCategory: prod.ivaCategory,
+          itemDiscount: updatedItems[index].itemDiscount || 0
         };
       }
     } else {
-      updatedItems[index] = {
-        ...updatedItems[index],
-        [field]: value
-      };
+      updatedItems[index] = { ...updatedItems[index], [field]: value };
     }
 
-    setFormData(prev => ({ ...prev, items: updatedItems }));
+    const totals = recalcTotals(updatedItems, formData.ivaPorcentaje, generalDiscountType, generalDiscountValue);
+    setFormData(prev => ({ ...prev, items: updatedItems, ...totals }));
   };
 
   const handleAddProductToCart = (product) => {
     const existingIndex = (formData.items || []).findIndex(item => item.productId === product.id);
+    let updatedItems;
     if (existingIndex > -1) {
-      const updatedItems = [...formData.items];
+      updatedItems = [...formData.items];
       updatedItems[existingIndex].quantity = (parseInt(updatedItems[existingIndex].quantity) || 0) + 1;
-      setFormData(prev => ({ ...prev, items: updatedItems }));
     } else {
-      setFormData(prev => ({
-        ...prev,
-        items: [
-          ...(prev.items || []),
-          { 
-            productId: product.id, 
-            name: product.name, 
-            sku: product.sku || '',
-            codigoBarras: product.codigoBarras || '',
-            price: Number(product.price) || 0, 
-            quantity: 1, 
-            ivaCategory: product.ivaCategory || 15 
-          }
-        ]
-      }));
+      updatedItems = [
+        ...(formData.items || []),
+        { 
+          productId: product.id, 
+          name: product.name, 
+          sku: product.sku || '',
+          codigoBarras: product.codigoBarras || '',
+          price: Number(product.price) || 0, 
+          quantity: 1, 
+          ivaCategory: product.ivaCategory || 15,
+          itemDiscount: 0
+        }
+      ];
     }
+    const totals = recalcTotals(updatedItems, formData.ivaPorcentaje, generalDiscountType, generalDiscountValue);
+    setFormData(prev => ({ ...prev, items: updatedItems, ...totals }));
     setProductSearchTerm('');
     showToast(`Añadido: ${product.name}`, 'success');
   };
@@ -1987,6 +2012,61 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         </div>
                       )}
 
+                      {/* MiniPOS Action Bar */}
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {/* General Discount */}
+                        <div className={`flex items-center gap-1 rounded-xl border px-2 py-1.5 flex-1 min-w-[200px] ${
+                          isDarkMode ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'
+                        }`}>
+                          <Tag size={12} className="text-primary shrink-0" />
+                          <span className={`text-[10px] font-bold uppercase shrink-0 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Dto:</span>
+                          <select
+                            disabled={!isEditable}
+                            value={generalDiscountType}
+                            onChange={e => {
+                              const newType = e.target.value;
+                              setGeneralDiscountType(newType);
+                              const totals = recalcTotals(formData.items || [], formData.ivaPorcentaje, newType, generalDiscountValue);
+                              setFormData(prev => ({ ...prev, ...totals }));
+                            }}
+                            className={`text-[10px] font-bold border-0 bg-transparent outline-none ${isDarkMode ? 'text-white' : 'text-gray-900'}`}
+                          >
+                            <option value="percent">%</option>
+                            <option value="fixed">$</option>
+                          </select>
+                          <input
+                            disabled={!isEditable}
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={generalDiscountValue}
+                            onChange={e => {
+                              const v = e.target.value;
+                              setGeneralDiscountValue(v);
+                              const totals = recalcTotals(formData.items || [], formData.ivaPorcentaje, generalDiscountType, v);
+                              setFormData(prev => ({ ...prev, ...totals }));
+                            }}
+                            className={`w-16 text-xs font-bold bg-transparent outline-none text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${isDarkMode ? 'text-white' : 'text-gray-900'}`}
+                            placeholder="0"
+                          />
+                        </div>
+                        {/* Clear Cart */}
+                        {isEditable && (formData.items || []).length > 0 && (
+                          <button
+                            type="button"
+                            onClick={handleClearItems}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-[10px] font-bold uppercase transition-all ${
+                              isDarkMode
+                                ? 'bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500/20'
+                                : 'bg-red-50 border-red-200 text-red-600 hover:bg-red-100'
+                            }`}
+                          >
+                            <Trash2 size={12} />
+                            Limpiar
+                          </button>
+                        )}
+                      </div>
+
                       {/* Products Table */}
                       <div className="overflow-y-auto custom-scrollbar">
                         {(formData.items || []).length > 0 ? (
@@ -2002,16 +2082,19 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                                 : 'bg-slate-50 text-slate-600 border-b border-slate-100'
                             }`}>
                               <tr>
-                                <th className="px-6 py-3.5">Producto / Servicio</th>
-                                <th className="px-6 py-3.5 text-center w-28">Cantidad</th>
-                                <th className="px-6 py-3.5 text-right w-32">P. Unitario</th>
-                                <th className="px-6 py-3.5 text-right w-28">Subtotal</th>
-                                {isEditable && <th className="px-6 py-3.5 text-center w-12"></th>}
+                                <th className="px-4 py-3">Producto / Servicio</th>
+                                <th className="px-3 py-3 text-center w-24">Cant.</th>
+                                <th className="px-3 py-3 text-right w-28">P. Unit.</th>
+                                {isEditable && <th className="px-3 py-3 text-right w-24">Dto. ($)</th>}
+                                <th className="px-3 py-3 text-right w-24">Subtotal</th>
+                                {isEditable && <th className="px-2 py-3 text-center w-10"></th>}
                               </tr>
                             </thead>
                             <tbody className={`divide-y ${isDarkMode ? 'divide-white/5' : 'divide-slate-100'}`}>
                               {(formData.items || []).map((item, index) => {
-                                const subtotalLine = (parseFloat(item.price) || 0) * (parseInt(item.quantity) || 1);
+                                const lineBase = (parseFloat(item.price) || 0) * (parseInt(item.quantity) || 1);
+                                const lineDiscount = Math.min(lineBase, parseFloat(item.itemDiscount) || 0);
+                                const subtotalLine = Math.max(0, lineBase - lineDiscount);
                                 return (
                                   <tr 
                                     key={index} 
@@ -2019,14 +2102,14 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                                       isDarkMode ? 'hover:bg-white/[0.015] text-white' : 'hover:bg-slate-50/40 text-gray-900'
                                     }`}
                                   >
-                                    <td className="px-6 py-3.5 font-semibold">
+                                    <td className="px-4 py-2.5 font-semibold">
                                       {item.productId ? (
                                         <div>
-                                          <div className={`font-bold text-xs truncate max-w-[200px] ${isDarkMode ? 'text-white' : 'text-gray-900'}`} title={item.name}>
+                                          <div className={`font-bold text-xs truncate max-w-[180px] ${isDarkMode ? 'text-white' : 'text-gray-900'}`} title={item.name}>
                                             {item.name}
                                           </div>
                                           <span className={`text-[9px] font-mono ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-                                            {item.sku ? `SKU: ${item.sku}` : ''} {item.codigoBarras ? `| EAN: ${item.codigoBarras}` : ''}
+                                            {item.sku ? `SKU: ${item.sku}` : ''}
                                           </span>
                                         </div>
                                       ) : (
@@ -2043,31 +2126,50 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                                         </select>
                                       )}
                                     </td>
-                                    <td className="px-6 py-3.5 text-center">
+                                    <td className="px-3 py-2.5 text-center">
                                       <div className={`inline-flex items-center gap-0.5 border rounded-[10px] p-0.5 ${isDarkMode ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'}`}>
                                         <button type="button" disabled={!isEditable} onClick={() => {
                                           const q = parseInt(item.quantity) || 1;
                                           if (q > 1) handleItemChange(index, 'quantity', q - 1);
-                                        }} className={`w-6 h-6 rounded-[10px] flex items-center justify-center font-bold text-xs ${isDarkMode ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>-</button>
-                                        <input disabled={!isEditable} type="number" value={item.quantity} min="1" onChange={(e) => handleItemChange(index, 'quantity', Math.max(1, parseInt(e.target.value) || 1))} className={`w-10 text-center text-xs font-bold bg-transparent outline-none border-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${isDarkMode ? 'text-white' : 'text-gray-900'}`} />
+                                        }} className={`w-5 h-5 rounded-[8px] flex items-center justify-center font-bold text-xs ${isDarkMode ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>-</button>
+                                        <input disabled={!isEditable} type="number" value={item.quantity} min="1" onChange={(e) => handleItemChange(index, 'quantity', Math.max(1, parseInt(e.target.value) || 1))} className={`w-8 text-center text-xs font-bold bg-transparent outline-none border-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${isDarkMode ? 'text-white' : 'text-gray-900'}`} />
                                         <button type="button" disabled={!isEditable} onClick={() => {
                                           handleItemChange(index, 'quantity', (parseInt(item.quantity) || 1) + 1);
-                                        }} className={`w-6 h-6 rounded-[10px] flex items-center justify-center font-bold text-xs ${isDarkMode ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>+</button>
+                                        }} className={`w-5 h-5 rounded-[8px] flex items-center justify-center font-bold text-xs ${isDarkMode ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>+</button>
                                       </div>
                                     </td>
-                                    <td className="px-6 py-3.5 text-right">
-                                      <div className="relative inline-block w-24">
-                                        <span className={`absolute left-2 top-1.5 text-[10px] font-bold ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>$</span>
-                                        <input disabled={!isEditable} type="number" step="0.01" required value={item.price} onChange={(e) => handleItemChange(index, 'price', e.target.value)} className={`w-full text-xs pl-5 pr-2 py-1 rounded-[10px] border outline-none text-right font-bold ${isDarkMode ? 'bg-[#151722]/80 border-white/10 text-white' : 'bg-white border-slate-200 text-gray-900'}`} placeholder="0.00" />
+                                    <td className="px-3 py-2.5 text-right">
+                                      <div className="relative inline-block w-20">
+                                        <span className={`absolute left-1.5 top-1.5 text-[10px] font-bold ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>$</span>
+                                        <input disabled={!isEditable} type="number" step="0.01" required value={item.price} onChange={(e) => handleItemChange(index, 'price', e.target.value)} className={`w-full text-xs pl-4 pr-1 py-1 rounded-[8px] border outline-none text-right font-bold ${isDarkMode ? 'bg-[#151722]/80 border-white/10 text-white' : 'bg-white border-slate-200 text-gray-900'}`} placeholder="0.00" />
                                       </div>
-                                    </td>
-                                    <td className={`px-6 py-3.5 text-right font-mono font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                                      ${subtotalLine.toFixed(2)}
                                     </td>
                                     {isEditable && (
-                                      <td className="px-6 py-3.5 text-center">
-                                        <button type="button" onClick={() => handleRemoveItem(index)} className="p-1.5 rounded-[10px] bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/10">
-                                          <Trash2 size={13} />
+                                      <td className="px-3 py-2.5 text-right">
+                                        <div className="relative inline-block w-20">
+                                          <span className={`absolute left-1.5 top-1.5 text-[10px] font-bold ${isDarkMode ? 'text-orange-400' : 'text-orange-500'}`}>-$</span>
+                                          <input
+                                            type="number"
+                                            min="0"
+                                            step="0.01"
+                                            value={item.itemDiscount || ''}
+                                            onChange={(e) => handleItemChange(index, 'itemDiscount', e.target.value)}
+                                            className={`w-full text-xs pl-5 pr-1 py-1 rounded-[8px] border outline-none text-right font-bold ${isDarkMode ? 'bg-orange-500/10 border-orange-500/20 text-orange-300' : 'bg-orange-50 border-orange-200 text-orange-700'}`}
+                                            placeholder="0.00"
+                                          />
+                                        </div>
+                                      </td>
+                                    )}
+                                    <td className={`px-3 py-2.5 text-right font-mono font-bold text-xs ${
+                                      lineDiscount > 0 ? 'text-emerald-500' : isDarkMode ? 'text-white' : 'text-gray-900'
+                                    }`}>
+                                      ${subtotalLine.toFixed(2)}
+                                      {lineDiscount > 0 && <span className={`block text-[9px] line-through font-normal ${isDarkMode ? 'text-gray-600' : 'text-gray-400'}`}>${lineBase.toFixed(2)}</span>}
+                                    </td>
+                                    {isEditable && (
+                                      <td className="px-2 py-2.5 text-center">
+                                        <button type="button" onClick={() => handleRemoveItem(index)} className="p-1 rounded-[8px] bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/10">
+                                          <Trash2 size={12} />
                                         </button>
                                       </td>
                                     )}
@@ -2093,10 +2195,40 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                           <span className="font-extrabold uppercase text-[10px] text-slate-500 dark:text-gray-400">Concepto</span>
                           <span className="font-extrabold uppercase text-[10px] text-slate-500 dark:text-gray-400 text-right">Valor</span>
                         </div>
+                        {/* Subtotal bruto */}
                         <div className="flex justify-between">
-                          <span className="font-semibold text-slate-700 dark:text-gray-300">Subtotal:</span>
+                          <span className="font-semibold text-slate-700 dark:text-gray-300">Subtotal bruto:</span>
+                          <span className="font-bold text-black dark:text-white">
+                            ${((formData.items || []).reduce((a, it) => a + (parseFloat(it.price)||0)*(parseInt(it.quantity)||1), 0)).toFixed(2)}
+                          </span>
+                        </div>
+                        {/* Descuento por ítem */}
+                        {(formData.items || []).some(it => parseFloat(it.itemDiscount) > 0) && (
+                          <div className="flex justify-between text-orange-500">
+                            <span className="font-semibold">Dto. por ítem:</span>
+                            <span className="font-bold">-${(formData.items||[]).reduce((a,it) => a + Math.min((parseFloat(it.price)||0)*(parseInt(it.quantity)||1), parseFloat(it.itemDiscount)||0),0).toFixed(2)}</span>
+                          </div>
+                        )}
+                        {/* Descuento general */}
+                        {parseFloat(generalDiscountValue) > 0 && (
+                          <div className="flex justify-between text-orange-500">
+                            <span className="font-semibold">Dto. general {generalDiscountType === 'percent' ? `(${generalDiscountValue}%)` : '($)'}:</span>
+                            <span className="font-bold">-${(() => {
+                              const rawSub = (formData.items||[]).reduce((a,it) => a+(parseFloat(it.price)||0)*(parseInt(it.quantity)||1), 0);
+                              const itemDiscs = (formData.items||[]).reduce((a,it) => a+Math.min((parseFloat(it.price)||0)*(parseInt(it.quantity)||1), parseFloat(it.itemDiscount)||0),0);
+                              const afterItem = Math.max(0, rawSub - itemDiscs);
+                              return generalDiscountType === 'percent'
+                                ? (afterItem * Math.min(100, parseFloat(generalDiscountValue)||0) / 100).toFixed(2)
+                                : Math.min(afterItem, parseFloat(generalDiscountValue)||0).toFixed(2);
+                            })()}</span>
+                          </div>
+                        )}
+                        {/* Base imponible */}
+                        <div className="flex justify-between border-t border-dashed border-gray-200 dark:border-white/10 pt-2">
+                          <span className="font-semibold text-slate-700 dark:text-gray-300">Base imponible:</span>
                           <span className="font-bold text-black dark:text-white">${Number(formData.baseImponible).toFixed(2)}</span>
                         </div>
+                        {/* IVA selector */}
                         <div className="flex justify-between items-center">
                           <span className="font-semibold text-slate-700 dark:text-gray-300">IVA:</span>
                           <div className="flex items-center gap-2">
@@ -2105,8 +2237,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                               value={formData.ivaPorcentaje}
                               onChange={e => {
                                 const pct = Number(e.target.value);
-                                const ivaVal = Number((formData.baseImponible * pct / 100).toFixed(2));
-                                setFormData(prev => ({ ...prev, ivaPorcentaje: pct, ivaValor: ivaVal, total: Number((prev.baseImponible + ivaVal).toFixed(2)) }));
+                                const totals = recalcTotals(formData.items || [], pct, generalDiscountType, generalDiscountValue);
+                                setFormData(prev => ({ ...prev, ivaPorcentaje: pct, ...totals }));
                               }}
                               className={`text-[10px] font-bold px-1.5 py-1 rounded-lg border outline-none ${
                                 isDarkMode ? 'bg-white/10 border-white/10 text-white' : 'bg-white border-gray-300 text-gray-900'
@@ -2119,7 +2251,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                             <span className="font-bold text-black dark:text-white">${Number(formData.ivaValor).toFixed(2)}</span>
                           </div>
                         </div>
-                        <div className="flex justify-between pt-3 border-t border-dashed border-gray-300 dark:border-white/10 font-bold text-sm">
+                        <div className="flex justify-between pt-2 border-t border-dashed border-gray-300 dark:border-white/10 font-bold text-sm">
                           <span className="text-black dark:text-white font-extrabold">TOTAL:</span>
                           <span style={{ color: '#1C40F2' }} className="font-black text-base">${Number(formData.total).toFixed(2)}</span>
                         </div>

@@ -109,7 +109,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
   );
 
   return (
-    <div className="fixed inset-0 z-[120] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-hidden animate-in fade-in">
+    <div className="fixed inset-0 z-[120] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-hidden animate-in fade-in print-modal-backdrop">
       
       {/* Estilos temporales para imprimir solamente el comprobante */}
       <style dangerouslySetInnerHTML={{__html: `
@@ -117,31 +117,71 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
           body * {
             visibility: hidden !important;
             background-color: transparent !important;
-            color: #000000 !important;
             box-shadow: none !important;
           }
+          
           #print-area-wrapper, #print-area-wrapper * {
             visibility: visible !important;
           }
-          #print-area-wrapper {
+          
+          .print-modal-backdrop {
             position: absolute !important;
             left: 0 !important;
             top: 0 !important;
             width: 100% !important;
+            height: auto !important;
+            min-height: auto !important;
+            overflow: visible !important;
+            display: block !important;
+            background: #ffffff !important;
+            backdrop-filter: none !important;
             margin: 0 !important;
             padding: 0 !important;
-            box-shadow: none !important;
+          }
+          
+          .print-modal-content {
+            position: relative !important;
+            display: block !important;
+            width: 100% !important;
+            height: auto !important;
+            max-height: none !important;
+            overflow: visible !important;
+            margin: 0 !important;
+            padding: 0 !important;
             border: none !important;
+            box-shadow: none !important;
+            background: transparent !important;
+          }
+          
+          .print-modal-scroll {
+            position: relative !important;
+            display: block !important;
+            width: 100% !important;
+            height: auto !important;
+            overflow: visible !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: transparent !important;
+          }
+          
+          #print-area-wrapper {
+            position: relative !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
             background: #ffffff !important;
             color: #000000 !important;
+            display: block !important;
           }
-          .no-print {
+          
+          .no-print, .no-print * {
             display: none !important;
+            visibility: hidden !important;
           }
         }
       `}} />
 
-      <div className={`w-full max-w-4xl h-[90vh] flex flex-col rounded-3xl overflow-hidden shadow-2xl border ${
+      <div className={`w-full max-w-4xl h-[90vh] flex flex-col rounded-3xl overflow-hidden shadow-2xl border print-modal-content ${
         isDarkMode ? 'bg-[#121214] border-white/10' : 'bg-gray-50 border-gray-300'
       }`}>
         
@@ -195,7 +235,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
         </div>
 
         {/* Contenedor del Comprobante */}
-        <div className="flex-1 overflow-y-auto p-8 flex justify-center bg-gray-500/20 custom-scrollbar print:p-0 print:bg-white">
+        <div className="flex-1 overflow-y-auto p-8 flex justify-center bg-gray-500/20 custom-scrollbar print-modal-scroll print:p-0 print:bg-white">
           
           <div id="print-area-wrapper" className="w-full">
             

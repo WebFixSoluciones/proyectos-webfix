@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Search, ShoppingCart, Plus, Minus, Trash2, User, Sparkles, CheckCircle2, DollarSign, X, ShieldAlert, Award, Layers, Tag, Bookmark, RefreshCw, LogOut, ArrowRight, ArrowLeft, ChevronRight, Settings, Barcode, Zap, Eye, Mic, Keyboard, History, Download, FileText, Unlock, UserPlus, Edit3, Phone, Mail, MoreHorizontal } from 'lucide-react';
+import { Search, ShoppingCart, Plus, Minus, Trash2, User, Sparkles, CheckCircle2, DollarSign, CreditCard, X, ShieldAlert, Award, Layers, Tag, Bookmark, RefreshCw, LogOut, ArrowRight, ArrowLeft, ChevronRight, Settings, Barcode, Zap, Eye, Mic, Keyboard, History, Download, FileText, Unlock, UserPlus, Edit3, Phone, Mail, MoreHorizontal } from 'lucide-react';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, onSnapshot } from 'firebase/firestore';
 import { consultarRucSri, getEcuadorDateString } from '../../services/sriService';
 import { registrarMovimientoKardex } from '../../services/inventoryService';
@@ -99,6 +99,12 @@ export default function PosView({ products, thirdParties, transactions = [], isD
     transferenciaRef: '',
     tarjetaRef: '',
     cruceRef: ''
+  });
+  const [activePayments, setActivePayments] = useState({
+    efectivo: true,
+    transferencia: false,
+    tarjeta: false,
+    cruce_cuentas: false
   });
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -331,6 +337,9 @@ export default function PosView({ products, thirdParties, transactions = [], isD
               efectivo: 0, transferencia: 0, tarjeta: 0, cruce_cuentas: 0,
               transferenciaRef: '', tarjetaRef: '', cruceRef: ''
             });
+            setActivePayments({
+              efectivo: true, transferencia: false, tarjeta: false, cruce_cuentas: false
+            });
             setCheckoutStep(1);
             setIsCheckoutOpen(true);
           } else {
@@ -356,6 +365,9 @@ export default function PosView({ products, thirdParties, transactions = [], isD
           setPayments({
             efectivo: 0, transferencia: 0, tarjeta: 0, cruce_cuentas: 0,
             transferenciaRef: '', tarjetaRef: '', cruceRef: ''
+          });
+          setActivePayments({
+            efectivo: true, transferencia: false, tarjeta: false, cruce_cuentas: false
           });
           setCheckoutStep(1);
           setIsCheckoutOpen(true);
@@ -739,6 +751,12 @@ export default function PosView({ products, thirdParties, transactions = [], isD
         transferenciaRef: '',
         tarjetaRef: '',
         cruceRef: ''
+      });
+      setActivePayments({
+        efectivo: true,
+        transferencia: false,
+        tarjeta: false,
+        cruce_cuentas: false
       });
       setIsCheckoutOpen(false);
       setCheckoutStep(1);
@@ -1745,6 +1763,9 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                     efectivo: 0, transferencia: 0, tarjeta: 0, cruce_cuentas: 0,
                     transferenciaRef: '', tarjetaRef: '', cruceRef: ''
                   });
+                  setActivePayments({
+                    efectivo: true, transferencia: false, tarjeta: false, cruce_cuentas: false
+                  });
                   setCheckoutStep(1);
                   setIsCheckoutOpen(true);
                 }}
@@ -2104,62 +2125,130 @@ export default function PosView({ products, thirdParties, transactions = [], isD
 
                     <div className="space-y-3">
                       <h4 className={`text-xs font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Medios de Pago (Admite Combinados)</h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {/* Efectivo */}
-                        <div className={`p-3 rounded-xl border space-y-1.5 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-primary/15 bg-primary/5'}`}>
-                          <label className="text-xs font-bold block">Efectivo ($)</label>
-                          <input type="number" step="0.01" value={payments.efectivo || ''} onChange={e => setPayments({...payments, efectivo: e.target.value})} className={isDarkMode ? 'glass-input-dark px-3 py-2 w-full text-sm font-semibold rounded-lg border' : 'glass-input-light px-3 py-2 w-full text-sm font-semibold rounded-lg border'} placeholder="0.00" />
-                          <div className="flex gap-1.5 mt-1.5 flex-wrap">
-                            {[10, 20, 50].map(val => (
-                              <button
-                                key={val}
-                                type="button"
-                                onClick={() => {
-                                  const current = Number(payments.efectivo) || 0;
-                                  setPayments({ ...payments, efectivo: (current + val).toFixed(2) });
-                                }}
-                                className={`px-1.5 py-0.5 text-xs font-bold rounded border transition-colors ${
-                                  isDarkMode ? 'border-white/10 bg-white/5 text-white hover:bg-white/10' : 'border-primary/15 bg-white text-primary hover:bg-primary-light'
-                                }`}
-                              >
-                                +{val}
-                              </button>
-                            ))}
+                      
+                      <div className="grid grid-cols-4 gap-2 mb-3">
+                        {[
+                          { id: 'efectivo', label: 'Efectivo', icon: DollarSign, key: 'efectivo' },
+                          { id: 'transferencia', label: 'Transf.', icon: RefreshCw, key: 'transferencia' },
+                          { id: 'tarjeta', label: 'Tarjeta', icon: CreditCard, key: 'tarjeta' },
+                          { id: 'cruce_cuentas', label: 'Crédito', icon: User, key: 'cruce_cuentas' }
+                        ].map(m => {
+                          const isSelected = activePayments[m.key];
+                          return (
                             <button
+                              key={m.id}
                               type="button"
                               onClick={() => {
-                                const pending = Math.max(0, totalToPay - (Number(payments.tarjeta) || 0) - (Number(payments.transferencia) || 0) - (Number(payments.cruce_cuentas) || 0));
-                                setPayments({ ...payments, efectivo: pending.toFixed(2) });
+                                setActivePayments(prev => {
+                                  const updated = { ...prev, [m.key]: !prev[m.key] };
+                                  if (!updated[m.key]) {
+                                    setPayments(p => ({ ...p, [m.key]: 0 }));
+                                  } else {
+                                    const ef = m.key === 'efectivo' ? 0 : Number(payments.efectivo) || 0;
+                                    const tr = m.key === 'transferencia' ? 0 : Number(payments.transferencia) || 0;
+                                    const tj = m.key === 'tarjeta' ? 0 : Number(payments.tarjeta) || 0;
+                                    const cr = m.key === 'cruce_cuentas' ? 0 : Number(payments.cruce_cuentas) || 0;
+                                    const remaining = Math.max(0, totalToPay - ef - tr - tj - cr);
+                                    setPayments(p => ({ ...p, [m.key]: remaining > 0 ? remaining.toFixed(2) : '' }));
+                                  }
+                                  return updated;
+                                });
                               }}
-                              className={`px-1.5 py-0.5 text-xs font-bold rounded border transition-colors ${
-                                isDarkMode ? 'border-primary/20 bg-primary/20 text-primary hover:bg-primary/30' : 'border-primary/25 bg-primary-light text-primary hover:bg-primary/10'
+                              className={`flex flex-col items-center justify-center p-2 rounded-xl border transition-all gap-1 ${
+                                isSelected 
+                                  ? 'bg-primary border-primary text-white shadow-sm'
+                                  : isDarkMode 
+                                    ? 'border-white/10 bg-white/5 text-gray-400 hover:bg-white/10'
+                                    : 'border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100'
                               }`}
                             >
-                              Exacto
+                              <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors ${
+                                isSelected ? 'bg-white text-primary' : isDarkMode ? 'bg-primary/20 text-primary' : 'bg-primary text-white'
+                              }`}>
+                                <m.icon size={12} />
+                              </div>
+                              <span className="text-[8px] font-bold uppercase tracking-wide">{m.label}</span>
                             </button>
+                          );
+                        })}
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {/* Efectivo */}
+                        {activePayments.efectivo && (
+                          <div className={`p-3 rounded-xl border space-y-1.5 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-primary/15 bg-primary/5'}`}>
+                            <div className="flex justify-between items-center mb-0.5">
+                              <span className="text-xs font-bold block">Efectivo ($)</span>
+                              <span className={`text-[9px] font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-gray-400'}`}>Monto Recibido</span>
+                            </div>
+                            <input type="number" step="0.01" value={payments.efectivo || ''} onChange={e => setPayments({...payments, efectivo: e.target.value})} className={isDarkMode ? 'glass-input-dark px-3 py-2 w-full text-sm font-semibold rounded-lg border' : 'glass-input-light px-3 py-2 w-full text-sm font-semibold rounded-lg border'} placeholder="0.00" />
+                            <div className="flex gap-1.5 mt-1.5 flex-wrap">
+                              {[10, 20, 50].map(val => (
+                                <button
+                                  key={val}
+                                  type="button"
+                                  onClick={() => {
+                                    const current = Number(payments.efectivo) || 0;
+                                    setPayments({ ...payments, efectivo: (current + val).toFixed(2) });
+                                  }}
+                                  className={`px-1.5 py-0.5 text-xs font-bold rounded border transition-colors ${
+                                    isDarkMode ? 'border-white/10 bg-white/5 text-white hover:bg-white/10' : 'border-primary/15 bg-white text-primary hover:bg-primary-light'
+                                  }`}
+                                >
+                                  +{val}
+                                </button>
+                              ))}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const pending = Math.max(0, totalToPay - (Number(payments.tarjeta) || 0) - (Number(payments.transferencia) || 0) - (Number(payments.cruce_cuentas) || 0));
+                                  setPayments({ ...payments, efectivo: pending.toFixed(2) });
+                                }}
+                                className={`px-1.5 py-0.5 text-xs font-bold rounded border transition-colors ${
+                                  isDarkMode ? 'border-primary/20 bg-primary/20 text-primary hover:bg-primary/30' : 'border-primary/25 bg-primary-light text-primary hover:bg-primary/10'
+                                }`}
+                              >
+                                Exacto
+                              </button>
+                            </div>
                           </div>
-                        </div>
+                        )}
 
                         {/* Tarjeta */}
-                        <div className={`p-3 rounded-xl border space-y-1.5 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-primary/15 bg-primary/5'}`}>
-                          <label className="text-xs font-bold block">Tarjeta ($)</label>
-                          <input type="number" step="0.01" value={payments.tarjeta || ''} onChange={e => setPayments({...payments, tarjeta: e.target.value})} className={isDarkMode ? 'glass-input-dark px-2 py-1.5 w-full text-xs rounded-lg border' : 'glass-input-light px-2 py-1.5 w-full text-xs rounded-lg border'} placeholder="0.00" />
-                          <input type="text" value={payments.tarjetaRef} onChange={e => setPayments({...payments, tarjetaRef: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} px-2 py-1 w-full text-xs rounded-lg border`} placeholder="Ref/Aut" />
-                        </div>
+                        {activePayments.tarjeta && (
+                          <div className={`p-3 rounded-xl border space-y-1.5 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-primary/15 bg-primary/5'}`}>
+                            <div className="flex justify-between items-center mb-0.5">
+                              <span className="text-xs font-bold block">Tarjeta ($)</span>
+                              <span className={`text-[9px] font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-gray-400'}`}>Monto Tarjeta</span>
+                            </div>
+                            <input type="number" step="0.01" value={payments.tarjeta || ''} onChange={e => setPayments({...payments, tarjeta: e.target.value})} className={isDarkMode ? 'glass-input-dark px-2 py-1.5 w-full text-xs rounded-lg border' : 'glass-input-light px-2 py-1.5 w-full text-xs rounded-lg border'} placeholder="0.00" />
+                            <input type="text" value={payments.tarjetaRef} onChange={e => setPayments({...payments, tarjetaRef: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} px-2 py-1 w-full text-xs rounded-lg border`} placeholder="Ref/Aut" />
+                          </div>
+                        )}
 
                         {/* Transferencia */}
-                        <div className={`p-3 rounded-xl border space-y-1.5 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-primary/15 bg-primary/5'}`}>
-                          <label className="text-[11px] font-bold block">Transferencia ($)</label>
-                          <input type="number" step="0.01" value={payments.transferencia || ''} onChange={e => setPayments({...payments, transferencia: e.target.value})} className={isDarkMode ? 'glass-input-dark px-2 py-1.5 w-full text-xs rounded-lg border' : 'glass-input-light px-2 py-1.5 w-full text-xs rounded-lg border'} placeholder="0.00" />
-                          <input type="text" value={payments.transferenciaRef} onChange={e => setPayments({...payments, transferenciaRef: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} px-2 py-1 w-full text-xs rounded-lg border`} placeholder="Nro Ref" />
-                        </div>
+                        {activePayments.transferencia && (
+                          <div className={`p-3 rounded-xl border space-y-1.5 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-primary/15 bg-primary/5'}`}>
+                            <div className="flex justify-between items-center mb-0.5">
+                              <span className="text-xs font-bold block">Transferencia ($)</span>
+                              <span className={`text-[9px] font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-gray-400'}`}>Monto Transferido</span>
+                            </div>
+                            <input type="number" step="0.01" value={payments.transferencia || ''} onChange={e => setPayments({...payments, transferencia: e.target.value})} className={isDarkMode ? 'glass-input-dark px-2 py-1.5 w-full text-xs rounded-lg border' : 'glass-input-light px-2 py-1.5 w-full text-xs rounded-lg border'} placeholder="0.00" />
+                            <input type="text" value={payments.transferenciaRef} onChange={e => setPayments({...payments, transferenciaRef: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} px-2 py-1 w-full text-xs rounded-lg border`} placeholder="Nro Ref" />
+                          </div>
+                        )}
 
                         {/* Cruce de Cuentas */}
-                        <div className={`p-3 rounded-xl border space-y-1.5 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-primary/15 bg-primary/5'}`}>
-                          <label className="text-[11px] font-bold block">Cruce Cuentas ($)</label>
-                          <input type="number" step="0.01" value={payments.cruce_cuentas || ''} onChange={e => setPayments({...payments, cruce_cuentas: e.target.value})} className={isDarkMode ? 'glass-input-dark px-2 py-1.5 w-full text-xs rounded-lg border' : 'glass-input-light px-2 py-1.5 w-full text-xs rounded-lg border'} placeholder="0.00" />
-                          <input type="text" value={payments.cruceRef} onChange={e => setPayments({...payments, cruceRef: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} px-2 py-1 w-full text-[9px] rounded-lg border`} placeholder="Nro Doc" />
-                        </div>
+                        {activePayments.cruce_cuentas && (
+                          <div className={`p-3 rounded-xl border space-y-1.5 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-primary/15 bg-primary/5'}`}>
+                            <div className="flex justify-between items-center mb-0.5">
+                              <span className="text-xs font-bold block">Cruce Cuentas ($)</span>
+                              <span className={`text-[9px] font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-gray-400'}`}>Monto Crédito</span>
+                            </div>
+                            <input type="number" step="0.01" value={payments.cruce_cuentas || ''} onChange={e => setPayments({...payments, cruce_cuentas: e.target.value})} className={isDarkMode ? 'glass-input-dark px-2 py-1.5 w-full text-xs rounded-lg border' : 'glass-input-light px-2 py-1.5 w-full text-xs rounded-lg border'} placeholder="0.00" />
+                            <input type="text" value={payments.cruceRef} onChange={e => setPayments({...payments, cruceRef: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} px-2 py-1 w-full text-[9px] rounded-lg border`} placeholder="Nro Doc" />
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -2275,62 +2364,141 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                       <div className="space-y-3">
                         <h4 className={`text-xs md:text-sm font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Medios de Pago (Admite combinados)</h4>
                         
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {/* Efectivo */}
-                          <div className={`p-4 rounded-xl border space-y-2 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-primary/15 bg-primary/5'}`}>
-                            <label className={`text-xs md:text-sm font-bold block ${isDarkMode ? 'text-white' : 'text-black'}`}>Efectivo ($)</label>
-                            <input type="number" step="0.01" value={payments.efectivo || ''} onChange={e => setPayments({...payments, efectivo: e.target.value})} className={isDarkMode ? 'glass-input-dark px-3.5 py-3 w-full text-base font-bold rounded-xl outline-none border' : 'glass-input-light px-3.5 py-3 w-full text-base font-bold rounded-xl outline-none border'} placeholder="0.00" />
-                            <div className="flex flex-wrap gap-1.5 mt-2">
-                              {[5, 10, 20, 50, 100].map(val => (
-                                <button
-                                  key={val}
-                                  type="button"
-                                  onClick={() => {
-                                    const current = Number(payments.efectivo) || 0;
-                                    setPayments({ ...payments, efectivo: (current + val).toFixed(2) });
-                                  }}
-                                  className={`px-2.5 py-1 text-xs md:text-sm font-bold rounded-lg border transition-colors ${
-                                    isDarkMode ? 'border-white/10 bg-white/5 hover:bg-white/10 text-white' : 'border-primary/15 bg-white hover:bg-primary-light text-primary hover:bg-primary/10'
-                                  }`}
-                                >
-                                  +{val}
-                                </button>
-                              ))}
+                        <div className="grid grid-cols-4 gap-2.5 mb-5">
+                          {[
+                            { id: 'efectivo', label: 'Efectivo', icon: DollarSign, key: 'efectivo' },
+                            { id: 'transferencia', label: 'Transf.', icon: RefreshCw, key: 'transferencia' },
+                            { id: 'tarjeta', label: 'Tarjeta', icon: CreditCard, key: 'tarjeta' },
+                            { id: 'cruce_cuentas', label: 'Crédito', icon: User, key: 'cruce_cuentas' }
+                          ].map(m => {
+                            const isSelected = activePayments[m.key];
+                            return (
                               <button
+                                key={m.id}
                                 type="button"
                                 onClick={() => {
-                                  const pending = Math.max(0, totalToPay - (Number(payments.tarjeta) || 0) - (Number(payments.transferencia) || 0) - (Number(payments.cruce_cuentas) || 0));
-                                  setPayments({ ...payments, efectivo: pending.toFixed(2) });
+                                  setActivePayments(prev => {
+                                    const updated = { ...prev, [m.key]: !prev[m.key] };
+                                    if (!updated[m.key]) {
+                                      setPayments(p => ({ ...p, [m.key]: 0 }));
+                                    } else {
+                                      const ef = m.key === 'efectivo' ? 0 : Number(payments.efectivo) || 0;
+                                      const tr = m.key === 'transferencia' ? 0 : Number(payments.transferencia) || 0;
+                                      const tj = m.key === 'tarjeta' ? 0 : Number(payments.tarjeta) || 0;
+                                      const cr = m.key === 'cruce_cuentas' ? 0 : Number(payments.cruce_cuentas) || 0;
+                                      const remaining = Math.max(0, totalToPay - ef - tr - tj - cr);
+                                      setPayments(p => ({ ...p, [m.key]: remaining > 0 ? remaining.toFixed(2) : '' }));
+                                    }
+                                    return updated;
+                                  });
                                 }}
-                                className={`px-2.5 py-1 text-xs md:text-sm font-bold rounded-lg border transition-colors ${
-                                  isDarkMode ? 'border-primary/20 bg-primary/20 hover:bg-primary/30 text-primary' : 'border-primary/25 bg-primary-light hover:bg-primary/10 text-primary'
+                                className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all gap-1.5 ${
+                                  isSelected 
+                                    ? 'bg-primary border-primary text-white shadow-md'
+                                    : isDarkMode 
+                                      ? 'border-white/10 bg-white/5 text-gray-400 hover:bg-white/10'
+                                      : 'border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100'
                                 }`}
                               >
-                                Exacto
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+                                  isSelected ? 'bg-white text-primary' : isDarkMode ? 'bg-primary/20 text-primary' : 'bg-primary text-white'
+                                }`}>
+                                  <m.icon size={14} />
+                                </div>
+                                <span className="text-[9px] font-bold uppercase tracking-wide">{m.label}</span>
                               </button>
+                            );
+                          })}
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {/* Efectivo */}
+                          {activePayments.efectivo && (
+                            <div className={`p-4 rounded-xl border space-y-2 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-primary/15 bg-primary/5'}`}>
+                              <div className="flex justify-between items-center mb-1">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center"><DollarSign size={12} /></div>
+                                  <span className={`text-xs md:text-sm font-bold block ${isDarkMode ? 'text-white' : 'text-black'}`}>Efectivo ($)</span>
+                                </div>
+                                <span className={`text-[10px] font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-gray-400'}`}>Monto Recibido</span>
+                              </div>
+                              <input type="number" step="0.01" value={payments.efectivo || ''} onChange={e => setPayments({...payments, efectivo: e.target.value})} className={isDarkMode ? 'glass-input-dark px-3.5 py-3 w-full text-base font-bold rounded-xl outline-none border' : 'glass-input-light px-3.5 py-3 w-full text-base font-bold rounded-xl outline-none border'} placeholder="0.00" />
+                              <div className="flex flex-wrap gap-1.5 mt-2">
+                                {[5, 10, 20, 50, 100].map(val => (
+                                  <button
+                                    key={val}
+                                    type="button"
+                                    onClick={() => {
+                                      const current = Number(payments.efectivo) || 0;
+                                      setPayments({ ...payments, efectivo: (current + val).toFixed(2) });
+                                    }}
+                                    className={`px-2.5 py-1 text-xs md:text-sm font-bold rounded-lg border transition-colors ${
+                                      isDarkMode ? 'border-white/10 bg-white/5 hover:bg-white/10 text-white' : 'border-primary/15 bg-white hover:bg-primary-light text-primary hover:bg-primary/10'
+                                    }`}
+                                  >
+                                    +{val}
+                                  </button>
+                                ))}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const pending = Math.max(0, totalToPay - (Number(payments.tarjeta) || 0) - (Number(payments.transferencia) || 0) - (Number(payments.cruce_cuentas) || 0));
+                                    setPayments({ ...payments, efectivo: pending.toFixed(2) });
+                                  }}
+                                  className={`px-2.5 py-1 text-xs md:text-sm font-bold rounded-lg border transition-colors ${
+                                    isDarkMode ? 'border-primary/20 bg-primary/20 hover:bg-primary/30 text-primary' : 'border-primary/25 bg-primary-light hover:bg-primary/10 text-primary'
+                                  }`}
+                                >
+                                  Exacto
+                                </button>
+                              </div>
                             </div>
-                          </div>
+                          )}
                           
                           {/* Tarjeta */}
-                          <div className={`p-4 rounded-xl border space-y-2 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-primary/15 bg-primary/5'}`}>
-                            <label className={`text-xs md:text-sm font-bold block ${isDarkMode ? 'text-white' : 'text-black'}`}>Tarjeta (Crédito/Débito) ($)</label>
-                            <input type="number" step="0.01" value={payments.tarjeta || ''} onChange={e => setPayments({...payments, tarjeta: e.target.value})} className={isDarkMode ? 'glass-input-dark px-3 py-2.5 w-full text-sm font-bold rounded-xl outline-none border' : 'glass-input-light px-3 py-2.5 w-full text-sm font-bold rounded-xl outline-none border'} placeholder="0.00" />
-                            <input type="text" value={payments.tarjetaRef} onChange={e => setPayments({...payments, tarjetaRef: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} px-3 py-2 w-full text-sm mt-1.5 rounded-xl border`} placeholder="Ref / Autorización" />
-                          </div>
+                          {activePayments.tarjeta && (
+                            <div className={`p-4 rounded-xl border space-y-2 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-primary/15 bg-primary/5'}`}>
+                              <div className="flex justify-between items-center mb-1">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center"><CreditCard size={12} /></div>
+                                  <span className={`text-xs md:text-sm font-bold block ${isDarkMode ? 'text-white' : 'text-black'}`}>Tarjeta (Crédito/Débito) ($)</span>
+                                </div>
+                                <span className={`text-[10px] font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-gray-400'}`}>Monto Tarjeta</span>
+                              </div>
+                              <input type="number" step="0.01" value={payments.tarjeta || ''} onChange={e => setPayments({...payments, tarjeta: e.target.value})} className={isDarkMode ? 'glass-input-dark px-3 py-2.5 w-full text-sm font-bold rounded-xl outline-none border' : 'glass-input-light px-3 py-2.5 w-full text-sm font-bold rounded-xl outline-none border'} placeholder="0.00" />
+                              <input type="text" value={payments.tarjetaRef} onChange={e => setPayments({...payments, tarjetaRef: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} px-3 py-2 w-full text-sm mt-1.5 rounded-xl border`} placeholder="Ref / Autorización" />
+                            </div>
+                          )}
 
                           {/* Transferencia */}
-                          <div className={`p-4 rounded-xl border space-y-2 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-primary/15 bg-primary/5'}`}>
-                            <label className={`text-xs md:text-sm font-bold block ${isDarkMode ? 'text-white' : 'text-black'}`}>Transferencia Bancaria ($)</label>
-                            <input type="number" step="0.01" value={payments.transferencia || ''} onChange={e => setPayments({...payments, transferencia: e.target.value})} className={isDarkMode ? 'glass-input-dark px-3 py-2.5 w-full text-sm font-bold rounded-xl outline-none border' : 'glass-input-light px-3 py-2.5 w-full text-sm font-bold rounded-xl outline-none border'} placeholder="0.00" />
-                            <input type="text" value={payments.transferenciaRef} onChange={e => setPayments({...payments, transferenciaRef: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} px-3 py-2 w-full text-xs mt-1.5 rounded-xl border`} placeholder="Nro Referencia / Comprobante" />
-                          </div>
+                          {activePayments.transferencia && (
+                            <div className={`p-4 rounded-xl border space-y-2 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-primary/15 bg-primary/5'}`}>
+                              <div className="flex justify-between items-center mb-1">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center"><RefreshCw size={12} /></div>
+                                  <span className={`text-xs md:text-sm font-bold block ${isDarkMode ? 'text-white' : 'text-black'}`}>Transferencia Bancaria ($)</span>
+                                </div>
+                                <span className={`text-[10px] font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-gray-400'}`}>Monto Transferido</span>
+                              </div>
+                              <input type="number" step="0.01" value={payments.transferencia || ''} onChange={e => setPayments({...payments, transferencia: e.target.value})} className={isDarkMode ? 'glass-input-dark px-3 py-2.5 w-full text-sm font-bold rounded-xl outline-none border' : 'glass-input-light px-3 py-2.5 w-full text-sm font-bold rounded-xl outline-none border'} placeholder="0.00" />
+                              <input type="text" value={payments.transferenciaRef} onChange={e => setPayments({...payments, transferenciaRef: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} px-3 py-2 w-full text-xs mt-1.5 rounded-xl border`} placeholder="Nro Referencia / Comprobante" />
+                            </div>
+                          )}
 
                           {/* Cruce de Cuentas */}
-                          <div className={`p-4 rounded-xl border space-y-2 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-primary/15 bg-primary/5'}`}>
-                            <label className={`text-xs md:text-sm font-bold block ${isDarkMode ? 'text-white' : 'text-black'}`}>Cruce de Cuentas ($)</label>
-                            <input type="number" step="0.01" value={payments.cruce_cuentas || ''} onChange={e => setPayments({...payments, cruce_cuentas: e.target.value})} className={isDarkMode ? 'glass-input-dark px-3 py-2.5 w-full text-sm font-bold rounded-xl outline-none border' : 'glass-input-light px-3 py-2.5 w-full text-sm font-bold rounded-xl outline-none border'} placeholder="0.00" />
-                            <input type="text" value={payments.cruceRef} onChange={e => setPayments({...payments, cruceRef: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} px-3 py-2 w-full text-xs mt-1.5 rounded-xl border`} placeholder="Nro de Documento Relacionado" />
-                          </div>
+                          {activePayments.cruce_cuentas && (
+                            <div className={`p-4 rounded-xl border space-y-2 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-primary/15 bg-primary/5'}`}>
+                              <div className="flex justify-between items-center mb-1">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center"><User size={12} /></div>
+                                  <span className={`text-xs md:text-sm font-bold block ${isDarkMode ? 'text-white' : 'text-black'}`}>Cruce de Cuentas ($)</span>
+                                </div>
+                                <span className={`text-[10px] font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-gray-400'}`}>Monto Crédito</span>
+                              </div>
+                              <input type="number" step="0.01" value={payments.cruce_cuentas || ''} onChange={e => setPayments({...payments, cruce_cuentas: e.target.value})} className={isDarkMode ? 'glass-input-dark px-3 py-2.5 w-full text-sm font-bold rounded-xl outline-none border' : 'glass-input-light px-3 py-2.5 w-full text-sm font-bold rounded-xl outline-none border'} placeholder="0.00" />
+                              <input type="text" value={payments.cruceRef} onChange={e => setPayments({...payments, cruceRef: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} px-3 py-2 w-full text-xs mt-1.5 rounded-xl border`} placeholder="Nro de Documento Relacionado" />
+                            </div>
+                          )}
                         </div>
                       </div>
 
