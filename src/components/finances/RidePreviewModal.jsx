@@ -98,13 +98,13 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
 
   // Generador de código de barras visual usando CSS puro
   const MockBarcode = () => (
-    <div className="flex flex-col items-center my-2 select-none print:my-1">
-      <div className="flex h-8 w-full bg-white items-stretch justify-center gap-[1px] px-1 py-1">
+    <div className="flex flex-col items-center my-1 select-none print:my-0.5">
+      <div className="flex h-6 w-full bg-white items-stretch justify-center gap-[1px] px-1 py-0.5">
         {[2,1,3,1,4,1,2,2,1,3,1,4,1,2,2,1,3,1,4,1,2,2,1,3,1,4,1,2,2,1,3,1,4,1,2,2,1,3,1,4,1,2].map((w, idx) => (
-          <div key={idx} className={`bg-black`} style={{ width: `${w}px` }}></div>
+          <div key={idx} className="bg-black" style={{ width: `${w}px` }}></div>
         ))}
       </div>
-      <span className="text-[7.5px] font-mono tracking-[0.15em] text-black text-center mt-0.5">{claveAcceso}</span>
+      <span className="text-[7px] font-mono tracking-[0.1em] text-black text-center mt-0.5">{claveAcceso}</span>
     </div>
   );
 
@@ -174,6 +174,19 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
             display: block !important;
           }
           
+          /* Custom print layout grids */
+          .print-grid-2 {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 12px !important;
+          }
+          
+          .print-grid-5 {
+            display: grid !important;
+            grid-template-columns: 3fr 2fr !important;
+            gap: 12px !important;
+          }
+          
           .no-print, .no-print * {
             display: none !important;
             visibility: hidden !important;
@@ -241,66 +254,65 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
             
             {/* FORMATO 1: RIDE OFICIAL A4 */}
             {viewFormat === 'ride' && (
-              <div className="w-full max-w-3xl mx-auto p-6 bg-white border border-gray-300 text-black shadow-lg text-[10.5px] font-sans leading-normal print:shadow-none print:border-none print:p-0">
+              <div className="w-full max-w-3xl mx-auto p-5 bg-white border border-gray-300 text-black shadow-lg text-[9.5px] font-sans leading-snug print:shadow-none print:border-none print:p-0">
                 
                 {/* Cabecera Principal */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start print-grid-2">
                   
                   {/* Columna Izquierda: Datos del Emisor */}
-                  <div className="p-4 rounded-xl border border-gray-300 space-y-2">
+                  <div className="p-3 rounded-lg border border-gray-300 space-y-1">
                     {emisor.logoUrl ? (
-                      <img src={emisor.logoUrl} alt="Logo" className="max-h-12 max-w-[120px] object-contain mb-2 print:max-h-10" />
+                      <img src={emisor.logoUrl} alt="Logo" className="max-h-9 max-w-[110px] object-contain mb-1.5 print:max-h-8" />
                     ) : (
-                      <div className="h-10 w-28 bg-gray-200 border border-gray-300 rounded flex items-center justify-center font-bold text-[9px] text-gray-600 tracking-wider mb-2">LOGOTIPO</div>
+                      <div className="h-8 w-24 bg-gray-200 border border-gray-300 rounded flex items-center justify-center font-bold text-[8px] text-gray-600 tracking-wider mb-1.5">LOGOTIPO</div>
                     )}
-                    <h2 className="font-extrabold text-[12px] uppercase leading-tight">{emisor.razonSocial}</h2>
-                    <p className="font-bold">{emisor.nombreComercial}</p>
-                    <p><span className="font-bold">Dirección Matriz:</span> {emisor.direccionMatriz}</p>
-                    <p><span className="font-bold">Dirección Establecimiento:</span> {emisor.direccionMatriz}</p>
-                    <p><span className="font-bold">Contribuyente Especial Nro:</span> {emisor.resolucionMicro || 'No'}</p>
-                    <p><span className="font-bold">Obligado a llevar contabilidad:</span> {emisor.obligadoContabilidad ? 'SI' : 'NO'}</p>
-                    {emisor.contribuyenteRimpe && emisor.contribuyenteRimpe !== 'general' && (
-                      <p className="font-bold text-[9px] text-gray-800 border border-gray-300 rounded px-1.5 py-0.5 inline-block uppercase">
-                        Régimen: {emisor.contribuyenteRimpe.replace('_', ' ')}
-                      </p>
-                    )}
+                    <h2 className="font-extrabold text-[11px] uppercase leading-tight text-black">{emisor.razonSocial}</h2>
+                    <p className="font-bold text-[9.5px] text-black">{emisor.nombreComercial}</p>
+                    <div className="text-[8.5px] text-black space-y-0.5 mt-1">
+                      <p><span className="font-bold">Dirección Matriz:</span> {emisor.direccionMatriz}</p>
+                      <p><span className="font-bold">Dirección Sucursal:</span> {emisor.direccionMatriz}</p>
+                      <p><span className="font-bold">Obligado a llevar contabilidad:</span> {emisor.obligadoContabilidad ? 'SÍ' : 'NO'}</p>
+                      {emisor.contribuyenteRimpe && emisor.contribuyenteRimpe !== 'general' && (
+                        <p className="mt-1"><span className="font-bold uppercase border border-black border-dashed px-1 py-0.2 text-[8px]">Régimen Rimpe: {emisor.contribuyenteRimpe.replace('_', ' ')}</span></p>
+                      )}
+                    </div>
                   </div>
 
                   {/* Columna Derecha: Autorización y Factura */}
-                  <div className="p-4 rounded-xl border border-gray-300 space-y-1.5">
-                    <h2 className="font-black text-[13px] tracking-wide text-gray-800">R.U.C.: {emisor.ruc}</h2>
-                    <p className="text-[12px] font-black tracking-wider uppercase text-primary">{getDocTypeLabel()}</p>
-                    <p><span className="font-bold">No.</span> {docNumFormatted}</p>
+                  <div className="p-3 rounded-lg border border-gray-300 space-y-1">
+                    <h2 className="font-extrabold text-[12px] tracking-wide text-black">R.U.C.: {emisor.ruc}</h2>
+                    <p className="text-[11px] font-black tracking-wider uppercase text-black">{getDocTypeLabel()}</p>
+                    <p className="text-[9.5px]"><span className="font-bold">No.</span> {docNumFormatted}</p>
                     {tx.documentType === 'nota_venta' ? (
-                      <>
+                      <div className="text-[8.5px] text-black space-y-0.5">
                         <p><span className="font-bold">TIPO DE DOCUMENTO:</span> RECIBO INTERNO</p>
                         <p><span className="font-bold">ESTADO:</span> REGISTRADO</p>
                         <p><span className="font-bold">VALIDEZ:</span> CONTROL INTERNO / NO TRIBUTARIO</p>
                         <p><span className="font-bold">FECHA DE REGISTRO:</span> {tx.date.split('-').reverse().join('/')} {tx.time || ''}</p>
-                      </>
+                      </div>
                     ) : (
-                      <>
+                      <div className="text-[8.5px] text-black space-y-0.5">
                         <p><span className="font-bold">NÚMERO DE AUTORIZACIÓN:</span></p>
-                        <p className="font-mono text-[9px] break-all tracking-wide">{claveAcceso}</p>
-                        <p><span className="font-bold">FECHA Y HORA DE AUTORIZACIÓN:</span> {tx.date} 12:00:00 (Offline)</p>
+                        <p className="font-mono text-[8px] break-all tracking-wide leading-none">{claveAcceso}</p>
+                        <p className="mt-1"><span className="font-bold">FECHA Y HORA DE AUTORIZACIÓN:</span> {tx.date} 12:00:00 (Offline)</p>
                         <p><span className="font-bold">AMBIENTE:</span> {emisor.ambiente === '2' ? 'PRODUCCIÓN' : 'PRUEBAS'}</p>
                         <p><span className="font-bold">EMISIÓN:</span> NORMAL</p>
                         
                         {/* Código de barras */}
                         <MockBarcode />
-                      </>
+                      </div>
                     )}
                   </div>
                 </div>
 
                 {/* Datos del Receptor */}
-                <div className="mt-4 p-4 rounded-xl border border-gray-300 grid grid-cols-1 md:grid-cols-2 gap-2">
+                <div className="mt-3 p-3 rounded-lg border border-gray-300 grid grid-cols-1 md:grid-cols-2 gap-2 print-grid-2 text-[8.5px] text-black">
                   <div>
                     <p><span className="font-bold">Razón Social / Nombres y Apellidos:</span> {client.name}</p>
                     <p><span className="font-bold">Identificación:</span> {client.ruc}</p>
                     <p><span className="font-bold">Fecha de Emisión:</span> {tx.date.split('-').reverse().join('/')}</p>
                   </div>
-                  <div className="md:text-right">
+                  <div className="md:text-right print:text-right">
                     <p><span className="font-bold">Dirección:</span> {client.direccion || 'Ecuador'}</p>
                     <p><span className="font-bold">Guía de Remisión:</span> Sin Guía</p>
                     <p><span className="font-bold">Correo:</span> {client.email || 'N/D'}</p>
@@ -308,38 +320,38 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
                 </div>
 
                 {/* Detalle de Artículos */}
-                <div className="mt-4 border border-gray-300 rounded-xl overflow-hidden">
-                  <table className="w-full text-left text-[9.5px]">
-                    <thead className="bg-gray-100 font-bold uppercase text-[8.5px] border-b border-gray-300">
+                <div className="mt-3 border border-gray-300 rounded-lg overflow-hidden">
+                  <table className="w-full text-left text-[9px] text-black">
+                    <thead className="bg-gray-100 font-bold uppercase text-[8px] border-b border-gray-300 text-black">
                       <tr>
-                        <th className="px-3 py-2 border-r border-gray-300 w-16">Cod. Principal</th>
-                        <th className="px-3 py-2 border-r border-gray-300 w-12 text-right">Cant</th>
-                        <th className="px-3 py-2 border-r border-gray-300">Descripción</th>
-                        <th className="px-3 py-2 border-r border-gray-300 text-right w-16">Precio Unitario</th>
-                        <th className="px-3 py-2 border-r border-gray-300 text-right w-12">Desc</th>
-                        <th className="px-3 py-2 text-right w-16">Precio Total</th>
+                        <th className="px-2.5 py-1.5 border-r border-gray-300 w-16">Cod. Principal</th>
+                        <th className="px-2.5 py-1.5 border-r border-gray-300 w-12 text-right">Cant</th>
+                        <th className="px-2.5 py-1.5 border-r border-gray-300">Descripción</th>
+                        <th className="px-2.5 py-1.5 border-r border-gray-300 text-right w-16">Precio Unitario</th>
+                        <th className="px-2.5 py-1.5 border-r border-gray-300 text-right w-12">Desc</th>
+                        <th className="px-2.5 py-1.5 text-right w-16">Precio Total</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
                       {tx.items && tx.items.length > 0 ? (
                         tx.items.map((item, idx) => (
                           <tr key={idx}>
-                            <td className="px-3 py-2 border-r border-gray-300 font-mono">{item.sku || 'SERV'}</td>
-                            <td className="px-3 py-2 border-r border-gray-300 text-right">{item.quantity}</td>
-                            <td className="px-3 py-2 border-r border-gray-300 font-medium">{item.name}</td>
-                            <td className="px-3 py-2 border-r border-gray-300 text-right">${Number(item.price).toFixed(2)}</td>
-                            <td className="px-3 py-2 border-r border-gray-300 text-right">$0.00</td>
-                            <td className="px-3 py-2 text-right font-bold">${(item.price * item.quantity).toFixed(2)}</td>
+                            <td className="px-2.5 py-1.5 border-r border-gray-300 font-mono">{item.sku || 'SERV'}</td>
+                            <td className="px-2.5 py-1.5 border-r border-gray-300 text-right">{item.quantity}</td>
+                            <td className="px-2.5 py-1.5 border-r border-gray-300 font-medium">{item.name}</td>
+                            <td className="px-2.5 py-1.5 border-r border-gray-300 text-right">${Number(item.price).toFixed(2)}</td>
+                            <td className="px-2.5 py-1.5 border-r border-gray-300 text-right">$0.00</td>
+                            <td className="px-2.5 py-1.5 text-right font-bold">${(item.price * item.quantity).toFixed(2)}</td>
                           </tr>
                         ))
                       ) : (
                         <tr>
-                          <td className="px-3 py-2 border-r border-gray-300 font-mono">COM01</td>
-                          <td className="px-3 py-2 border-r border-gray-300 text-right">1</td>
-                          <td className="px-3 py-2 border-r border-gray-300 font-medium">Servicios Comerciales - {tx.category || 'Ventas'}</td>
-                          <td className="px-3 py-2 border-r border-gray-300 text-right">${Number(tx.baseImponible).toFixed(2)}</td>
-                          <td className="px-3 py-2 border-r border-gray-300 text-right">$0.00</td>
-                          <td className="px-3 py-2 text-right font-bold">${Number(tx.baseImponible).toFixed(2)}</td>
+                          <td className="px-2.5 py-1.5 border-r border-gray-300 font-mono">COM01</td>
+                          <td className="px-2.5 py-1.5 border-r border-gray-300 text-right">1</td>
+                          <td className="px-2.5 py-1.5 border-r border-gray-300 font-medium">Servicios Comerciales - {tx.category || 'Ventas'}</td>
+                          <td className="px-2.5 py-1.5 border-r border-gray-300 text-right">${Number(tx.baseImponible).toFixed(2)}</td>
+                          <td className="px-2.5 py-1.5 border-r border-gray-300 text-right">$0.00</td>
+                          <td className="px-2.5 py-1.5 text-right font-bold">${Number(tx.baseImponible).toFixed(2)}</td>
                         </tr>
                       )}
                     </tbody>
@@ -347,37 +359,37 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
                 </div>
 
                 {/* Formas de Pago e Información Adicional y Totales */}
-                <div className="mt-4 grid grid-cols-1 md:grid-cols-5 gap-4 items-start">
+                <div className="mt-3 grid grid-cols-1 md:grid-cols-5 gap-3 items-start print-grid-5">
                   
                   {/* Columna Izquierda: Información Adicional y Pagos */}
-                  <div className="md:col-span-3 space-y-3">
+                  <div className="md:col-span-3 space-y-2.5">
                     
                     {/* Información adicional */}
-                    <div className="p-3 rounded-xl border border-gray-300 space-y-1">
-                      <p className="font-bold text-[9.5px] border-b border-gray-200 pb-1 uppercase mb-1">Información Adicional</p>
+                    <div className="p-2.5 rounded-lg border border-gray-300 space-y-0.5 text-[8.5px] text-black">
+                      <p className="font-bold text-[9px] border-b border-gray-200 pb-1 uppercase mb-1">Información Adicional</p>
                       <p><span className="font-bold">Email:</span> {client.email || 'N/D'}</p>
                       <p><span className="font-bold">Teléfono:</span> {client.telefono || 'N/D'}</p>
                       <p><span className="font-bold">Origen:</span> {tx.isPOS ? 'Punto de Venta POS' : 'Factura Manual'}</p>
                     </div>
 
                     {/* Formas de pago */}
-                    <div className="border border-gray-300 rounded-xl overflow-hidden">
-                      <table className="w-full text-left text-[9px]">
-                        <thead className="bg-gray-100 font-bold border-b border-gray-300 text-[8px] uppercase">
+                    <div className="border border-gray-300 rounded-lg overflow-hidden">
+                      <table className="w-full text-left text-[8.5px] text-black">
+                        <thead className="bg-gray-100 font-bold border-b border-gray-300 text-[7.5px] uppercase">
                           <tr>
-                            <th className="px-3 py-1.5 border-r border-gray-250">Forma de Pago</th>
-                            <th className="px-3 py-1.5 text-right w-20">Valor</th>
+                            <th className="px-2.5 py-1.5 border-r border-gray-250">Forma de Pago</th>
+                            <th className="px-2.5 py-1.5 text-right w-20">Valor</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
                           <tr>
-                            <td className="px-3 py-1.5 border-r border-gray-250 uppercase font-medium">
+                            <td className="px-2.5 py-1.5 border-r border-gray-250 uppercase font-medium">
                               {tx.paymentMethod === 'efectivo' && '01 - SIN UTILIZACION DEL SISTEMA FINANCIERO (EFECTIVO)'}
                               {tx.paymentMethod === 'tarjeta' && '19 - TARJETA DE CREDITO/DEBITO'}
                               {tx.paymentMethod === 'transferencia' && '20 - OTROS CON UTILIZACION DEL SISTEMA FINANCIERO'}
                               {tx.paymentMethod === 'cruce_cuentas' && '15 - COMPENSACION DE DEUDAS'}
                             </td>
-                            <td className="px-3 py-1.5 text-right font-bold">${Number(tx.total).toFixed(2)}</td>
+                            <td className="px-2.5 py-1.5 text-right font-bold">${Number(tx.total).toFixed(2)}</td>
                           </tr>
                         </tbody>
                       </table>
@@ -385,36 +397,36 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
                   </div>
 
                   {/* Columna Derecha: Totales Factura */}
-                  <div className="md:col-span-2 border border-gray-300 rounded-xl overflow-hidden">
-                    <table className="w-full text-right text-[10px]">
+                  <div className="md:col-span-2 border border-gray-300 rounded-lg overflow-hidden">
+                    <table className="w-full text-right text-[9px] text-black">
                       <tbody className="divide-y divide-gray-250 font-medium">
                         <tr>
-                          <td className="px-3 py-2 bg-gray-50 border-r border-gray-250 w-24">SUBTOTAL 15%</td>
-                          <td className="px-3 py-2 font-bold">${Number(tx.baseImponible).toFixed(2)}</td>
+                          <td className="px-2.5 py-1.5 bg-gray-50 border-r border-gray-250 w-24">SUBTOTAL 15%</td>
+                          <td className="px-2.5 py-1.5 font-bold">${Number(tx.baseImponible).toFixed(2)}</td>
                         </tr>
                         <tr>
-                          <td className="px-3 py-2 bg-gray-50 border-r border-gray-250">SUBTOTAL 0%</td>
-                          <td className="px-3 py-2">$0.00</td>
+                          <td className="px-2.5 py-1.5 bg-gray-50 border-r border-gray-250">SUBTOTAL 0%</td>
+                          <td className="px-2.5 py-1.5">$0.00</td>
                         </tr>
                         <tr>
-                          <td className="px-3 py-2 bg-gray-50 border-r border-gray-250">SUBTOTAL No Objeto IVA</td>
-                          <td className="px-3 py-2">$0.00</td>
+                          <td className="px-2.5 py-1.5 bg-gray-50 border-r border-gray-250">SUBTOTAL No Objeto IVA</td>
+                          <td className="px-2.5 py-1.5">$0.00</td>
                         </tr>
                         <tr>
-                          <td className="px-3 py-2 bg-gray-50 border-r border-gray-250">SUBTOTAL SIN IMPUESTOS</td>
-                          <td className="px-3 py-2 font-bold">${Number(tx.baseImponible).toFixed(2)}</td>
+                          <td className="px-2.5 py-1.5 bg-gray-50 border-r border-gray-250">SUBTOTAL SIN IMPUESTOS</td>
+                          <td className="px-2.5 py-1.5 font-bold">${Number(tx.baseImponible).toFixed(2)}</td>
                         </tr>
                         <tr>
-                          <td className="px-3 py-2 bg-gray-50 border-r border-gray-250">TOTAL DESCUENTO</td>
-                          <td className="px-3 py-2">$0.00</td>
+                          <td className="px-2.5 py-1.5 bg-gray-50 border-r border-gray-250">TOTAL DESCUENTO</td>
+                          <td className="px-2.5 py-1.5">$0.00</td>
                         </tr>
                         <tr>
-                          <td className="px-3 py-2 bg-gray-50 border-r border-gray-250 text-primary">IVA 15%</td>
-                          <td className="px-3 py-2 font-bold text-primary">${Number(tx.ivaValor).toFixed(2)}</td>
+                          <td className="px-2.5 py-1.5 bg-gray-50 border-r border-gray-250 text-black">IVA 15%</td>
+                          <td className="px-2.5 py-1.5 font-bold text-black">${Number(tx.ivaValor).toFixed(2)}</td>
                         </tr>
-                        <tr className="bg-gray-100 font-extrabold text-[11px]">
-                          <td className="px-3 py-2.5 border-r border-gray-300">VALOR TOTAL</td>
-                          <td className="px-3 py-2.5 text-primary">${Number(tx.total).toFixed(2)}</td>
+                        <tr className="bg-gray-100 font-extrabold text-[10px]">
+                          <td className="px-2.5 py-2 border-r border-gray-300">VALOR TOTAL</td>
+                          <td className="px-2.5 py-2 text-black font-black">${Number(tx.total).toFixed(2)}</td>
                         </tr>
                       </tbody>
                     </table>
