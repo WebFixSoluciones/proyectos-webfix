@@ -459,14 +459,15 @@ export default function App() {
   const [personasSubTab, setPersonasSubTab] = useState('cliente');
 
   useEffect(() => {
+    const activePageType = pages.find(p => p.id === activePageId)?.type;
     if (['ventas', 'compras', 'finances', 'billing', 'gastos_creditos', 'inventario'].includes(activePageId)) {
       setExpandedSidebarMenu(activePageId);
     } else if (activePageId === 'personas' || activePageId === 'team') {
       setExpandedSidebarMenu('personas_menu');
-    } else if (activePageId === 'proyectos_general' || activePageId === 'paginas_general' || activePageId === 'calendar' || activePage?.type === 'project' || activePage?.type === 'doc') {
+    } else if (activePageId === 'proyectos_general' || activePageId === 'paginas_general' || activePageId === 'calendar' || activePageType === 'project' || activePageType === 'doc') {
       setExpandedSidebarMenu('proyectos_menu');
     }
-  }, [activePageId, activePage]);
+  }, [activePageId, pages]);
 
   const [dbSyncError, setDbSyncError] = useState(() => sessionStorage.getItem('db_sync_error') === 'true');
 
