@@ -2066,19 +2066,26 @@ export default function App() {
                     { id: 'quotes', label: 'Cotizaciones / Proformas' },
                     { id: 'nota_credito', label: 'Notas de Crédito' },
                     { id: 'retencion', label: 'Retenciones Recibidas' }
-                  ].map(sub => (
-                    <button 
-                      key={sub.id}
-                      onClick={() => { 
-                        setVentasInitialSubTab(sub.id); 
-                        setActivePageId('ventas'); 
-                        if(window.innerWidth < 768) setIsSidebarOpen(false); 
-                      }}
-                      className="block w-full text-left py-1.5 px-2 text-xs font-bold text-black dark:text-white bg-transparent"
-                    >
-                      {sub.label}
-                    </button>
-                  ))}
+                  ].map(sub => {
+                    const isActive = activePageId === 'ventas' && (sub.id === 'pos' ? (ventasInitialSubTab && ventasInitialSubTab.startsWith('pos')) : ventasInitialSubTab === sub.id);
+                    return (
+                      <button 
+                        key={sub.id}
+                        onClick={() => { 
+                          setVentasInitialSubTab(sub.id); 
+                          setActivePageId('ventas'); 
+                          if(window.innerWidth < 768) setIsSidebarOpen(false); 
+                        }}
+                        className={`block w-full text-left py-1.5 px-3 rounded-lg text-xs font-bold transition-all ${
+                          isActive 
+                            ? (isDarkMode ? 'text-primary bg-primary/15' : 'text-primary bg-primary-light')
+                            : (isDarkMode ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-600 hover:text-black hover:bg-black/5')
+                        }`}
+                      >
+                        {sub.label}
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -2126,19 +2133,26 @@ export default function App() {
                     { id: 'compras_gastos', label: 'Gastos con IA' },
                     { id: 'compras_nc', label: 'Notas de Crédito' },
                     { id: 'compras_retencion', label: 'Retenciones Emitidas' }
-                  ].map(sub => (
-                    <button 
-                      key={sub.id}
-                      onClick={() => { 
-                        setComprasInitialSubTab(sub.id); 
-                        setActivePageId('compras'); 
-                        if(window.innerWidth < 768) setIsSidebarOpen(false); 
-                      }}
-                      className="block w-full text-left py-1.5 px-2 text-xs font-bold text-black dark:text-white bg-transparent"
-                    >
-                      {sub.label}
-                    </button>
-                  ))}
+                  ].map(sub => {
+                    const isActive = activePageId === 'compras' && comprasInitialSubTab === sub.id;
+                    return (
+                      <button 
+                        key={sub.id}
+                        onClick={() => { 
+                          setComprasInitialSubTab(sub.id); 
+                          setActivePageId('compras'); 
+                          if(window.innerWidth < 768) setIsSidebarOpen(false); 
+                        }}
+                        className={`block w-full text-left py-1.5 px-3 rounded-lg text-xs font-bold transition-all ${
+                          isActive 
+                            ? (isDarkMode ? 'text-primary bg-primary/15' : 'text-primary bg-primary-light')
+                            : (isDarkMode ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-600 hover:text-black hover:bg-black/5')
+                        }`}
+                      >
+                        {sub.label}
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -2184,19 +2198,26 @@ export default function App() {
                     { id: 'resumen', label: 'Resumen Financiero' },
                     { id: 'pasivos', label: 'Pasivos y Financiamiento' },
                     { id: 'historial_gastos', label: 'Historial de Egresos' }
-                  ].map(sub => (
-                    <button 
-                      key={sub.id}
-                      onClick={() => { 
-                        setGastosInitialSubTab(sub.id); 
-                        setActivePageId('gastos_creditos'); 
-                        if(window.innerWidth < 768) setIsSidebarOpen(false); 
-                      }}
-                      className="block w-full text-left py-1.5 px-2 text-xs font-bold text-black dark:text-white bg-transparent"
-                    >
-                      {sub.label}
-                    </button>
-                  ))}
+                  ].map(sub => {
+                    const isActive = activePageId === 'gastos_creditos' && gastosInitialSubTab === sub.id;
+                    return (
+                      <button 
+                        key={sub.id}
+                        onClick={() => { 
+                          setGastosInitialSubTab(sub.id); 
+                          setActivePageId('gastos_creditos'); 
+                          if(window.innerWidth < 768) setIsSidebarOpen(false); 
+                        }}
+                        className={`block w-full text-left py-1.5 px-3 rounded-lg text-xs font-bold transition-all ${
+                          isActive 
+                            ? (isDarkMode ? 'text-primary bg-primary/15' : 'text-primary bg-primary-light')
+                            : (isDarkMode ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-600 hover:text-black hover:bg-black/5')
+                        }`}
+                      >
+                        {sub.label}
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -2244,19 +2265,26 @@ export default function App() {
                     { id: 'kardex', label: 'Movimientos Kardex' },
                     { id: 'transferencias', label: 'Transferencias' },
                     { id: 'ajustes', label: 'Ajustes de Inventario' }
-                  ].map(sub => (
-                    <button 
-                      key={sub.id}
-                      onClick={() => { 
-                        setInventarioInitialSubTab(sub.id); 
-                        setActivePageId('inventario'); 
-                        if(window.innerWidth < 768) setIsSidebarOpen(false); 
-                      }}
-                      className="block w-full text-left py-1.5 px-2 text-xs font-bold text-black dark:text-white bg-transparent"
-                    >
-                      {sub.label}
-                    </button>
-                  ))}
+                  ].map(sub => {
+                    const isActive = activePageId === 'inventario' && inventarioInitialSubTab === sub.id;
+                    return (
+                      <button 
+                        key={sub.id}
+                        onClick={() => { 
+                          setInventarioInitialSubTab(sub.id); 
+                          setActivePageId('inventario'); 
+                          if(window.innerWidth < 768) setIsSidebarOpen(false); 
+                        }}
+                        className={`block w-full text-left py-1.5 px-3 rounded-lg text-xs font-bold transition-all ${
+                          isActive 
+                            ? (isDarkMode ? 'text-primary bg-primary/15' : 'text-primary bg-primary-light')
+                            : (isDarkMode ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-600 hover:text-black hover:bg-black/5')
+                        }`}
+                      >
+                        {sub.label}
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -2305,19 +2333,26 @@ export default function App() {
                     { id: 'cxp', label: 'Cuentas por Pagar' },
                     { id: 'gastos_creditos_sub', label: 'Gastos y Créditos' },
                     { id: 'reports', label: 'Reportes Financieros' }
-                  ].map(sub => (
-                    <button 
-                      key={sub.id}
-                      onClick={() => { 
-                        setContabilidadInitialSubTab(sub.id); 
-                        setActivePageId('finances'); 
-                        if(window.innerWidth < 768) setIsSidebarOpen(false); 
-                      }}
-                      className="block w-full text-left py-1.5 px-2 text-xs font-bold text-black dark:text-white bg-transparent"
-                    >
-                      {sub.label}
-                    </button>
-                  ))}
+                  ].map(sub => {
+                    const isActive = activePageId === 'finances' && contabilidadInitialSubTab === sub.id;
+                    return (
+                      <button 
+                        key={sub.id}
+                        onClick={() => { 
+                          setContabilidadInitialSubTab(sub.id); 
+                          setActivePageId('finances'); 
+                          if(window.innerWidth < 768) setIsSidebarOpen(false); 
+                        }}
+                        className={`block w-full text-left py-1.5 px-3 rounded-lg text-xs font-bold transition-all ${
+                          isActive 
+                            ? (isDarkMode ? 'text-primary bg-primary/15' : 'text-primary bg-primary-light')
+                            : (isDarkMode ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-600 hover:text-black hover:bg-black/5')
+                        }`}
+                      >
+                        {sub.label}
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -2363,23 +2398,30 @@ export default function App() {
                     { id: 'cliente', label: 'Clientes' },
                     { id: 'proveedor', label: 'Proveedores' },
                     { id: 'team', label: 'Equipo' }
-                  ].map(sub => (
-                    <button 
-                      key={sub.id}
-                      onClick={() => { 
-                        if (sub.id === 'team') {
-                          setActivePageId('team');
-                        } else {
-                          setActivePageId('personas');
-                          setPersonasSubTab(sub.id);
-                        }
-                        if(window.innerWidth < 768) setIsSidebarOpen(false); 
-                      }}
-                      className="block w-full text-left py-1.5 px-2 text-xs font-bold text-black dark:text-white bg-transparent"
-                    >
-                      {sub.label}
-                    </button>
-                  ))}
+                  ].map(sub => {
+                    const isActive = sub.id === 'team' ? activePageId === 'team' : (activePageId === 'personas' && personasSubTab === sub.id);
+                    return (
+                      <button 
+                        key={sub.id}
+                        onClick={() => { 
+                          if (sub.id === 'team') {
+                            setActivePageId('team');
+                          } else {
+                            setActivePageId('personas');
+                            setPersonasSubTab(sub.id);
+                          }
+                          if(window.innerWidth < 768) setIsSidebarOpen(false); 
+                        }}
+                        className={`block w-full text-left py-1.5 px-3 rounded-lg text-xs font-bold transition-all ${
+                          isActive 
+                            ? (isDarkMode ? 'text-primary bg-primary/15' : 'text-primary bg-primary-light')
+                            : (isDarkMode ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-600 hover:text-black hover:bg-black/5')
+                        }`}
+                      >
+                        {sub.label}
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -2423,18 +2465,25 @@ export default function App() {
                   { id: 'proyectos_general', label: 'Mis Proyectos' },
                   { id: 'paginas_general', label: 'Paginas' },
                   { id: 'calendar', label: 'Calendario' }
-                ].map(sub => (
-                  <button 
-                    key={sub.id}
-                    onClick={() => { 
-                      setActivePageId(sub.id); 
-                      if(window.innerWidth < 768) setIsSidebarOpen(false); 
-                    }}
-                    className="block w-full text-left py-1.5 px-2 text-xs font-bold text-black dark:text-white bg-transparent"
-                  >
-                    {sub.label}
-                  </button>
-                ))}
+                ].map(sub => {
+                  const isActive = activePageId === sub.id;
+                  return (
+                    <button 
+                      key={sub.id}
+                      onClick={() => { 
+                        setActivePageId(sub.id); 
+                        if(window.innerWidth < 768) setIsSidebarOpen(false); 
+                      }}
+                      className={`block w-full text-left py-1.5 px-3 rounded-lg text-xs font-bold transition-all ${
+                        isActive 
+                          ? (isDarkMode ? 'text-primary bg-primary/15' : 'text-primary bg-primary-light')
+                          : (isDarkMode ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-600 hover:text-black hover:bg-black/5')
+                      }`}
+                    >
+                      {sub.label}
+                    </button>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -2499,20 +2548,27 @@ export default function App() {
                   { id: 'paginas', label: 'Páginas Web' },
                   { id: 'correos', label: 'Correos Corporativos' },
                   { id: 'whatsapp', label: 'WhatsApp CRM' },
-                  { id: 'historial', label: 'Historial de Pagos' }
-                ].map(sub => (
-                  <button 
-                    key={sub.id}
-                    onClick={() => { 
-                      setBillingInitialSubTab(sub.id); 
-                      setActivePageId('billing'); 
-                      if(window.innerWidth < 768) setIsSidebarOpen(false); 
-                    }}
-                    className="block w-full text-left py-1.5 px-2 text-xs font-bold text-black dark:text-white bg-transparent"
-                  >
-                    {sub.label}
-                  </button>
-                ))}
+                  { id: 'pagos', label: 'Historial de Pagos' }
+                ].map(sub => {
+                  const isActive = activePageId === 'billing' && (sub.id === 'pagos' ? (billingInitialSubTab === 'pagos' || billingInitialSubTab === 'historial') : billingInitialSubTab === sub.id);
+                  return (
+                    <button 
+                      key={sub.id}
+                      onClick={() => { 
+                        setBillingInitialSubTab(sub.id); 
+                        setActivePageId('billing'); 
+                        if(window.innerWidth < 768) setIsSidebarOpen(false); 
+                      }}
+                      className={`block w-full text-left py-1.5 px-3 rounded-lg text-xs font-bold transition-all ${
+                        isActive 
+                          ? (isDarkMode ? 'text-primary bg-primary/15' : 'text-primary bg-primary-light')
+                          : (isDarkMode ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-600 hover:text-black hover:bg-black/5')
+                      }`}
+                    >
+                      {sub.label}
+                    </button>
+                  );
+                })}
               </div>
             )}
           </div>
