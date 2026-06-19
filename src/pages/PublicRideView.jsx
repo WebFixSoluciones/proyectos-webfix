@@ -427,11 +427,8 @@ export default function PublicRideView() {
             <div className="mt-3 border border-gray-300 text-[8px] text-black">
               {/* Fila 1 */}
               <div className="grid grid-cols-12">
-                <div className="col-span-8 py-[2px] px-1.5 truncate">
+                <div className="col-span-10 py-[2px] px-1.5 truncate">
                   <span className="font-bold">CLIENTE:</span> {client.name}
-                </div>
-                <div className="col-span-2 py-[2px] px-1.5">
-                  <span className="font-bold">CODIGO:</span> {client.id ? client.id.replace(/[^0-9]/g, '').slice(-10) : '0010752914'}
                 </div>
                 <div className="col-span-2 py-[2px] px-1.5">
                   <span className="font-bold">DOC. INTERNO:</span> {tx.docInterno || tx.quoteNumber || 'Ninguno'}
@@ -485,25 +482,6 @@ export default function PublicRideView() {
                 </div>
                 <div className="col-span-4 py-[2px] px-1.5">
                   <span className="font-bold">FECHA VENCIMIENTO:</span> {tx.creditDueDate ? tx.creditDueDate.split('-').reverse().join('/') : tx.date.split('-').reverse().join('/')}
-                </div>
-              </div>
-
-              {/* Fila 7 */}
-              <div className="grid grid-cols-12">
-                <div className="col-span-6 py-[2px] px-1.5">
-                  <span className="font-bold">CONDICIÓN DE PAGO:</span> {tx.paymentMethod === 'credito' ? 'Crédito' : 'Contado'}
-                </div>
-                <div className="col-span-6 py-[2px] px-1.5">
-                  <span className="font-bold">FORMA DE PAGO:</span> {(() => {
-                    switch (tx.paymentMethod) {
-                      case 'efectivo': return 'Efectivo';
-                      case 'tarjeta': return 'Tarjeta Crédito';
-                      case 'transferencia': return 'Transferencia';
-                      case 'cruce_cuentas': return 'Compensación de Deudas';
-                      case 'credito': return 'Crédito';
-                      default: return 'Otros con Utilización del Sistema Financiero';
-                    }
-                  })()}
                 </div>
               </div>
             </div>
@@ -563,12 +541,21 @@ export default function PublicRideView() {
               <div className="md:col-span-3 space-y-2">
                 <div className="p-2 border border-gray-300 space-y-1">
                   <p className="font-bold border-b border-gray-200 pb-0.5 uppercase mb-1">Información Adicional</p>
-                  <p><span className="font-bold">OBSERVACIONES:</span> {tx.observaciones || tx.notes || 'VENTA DESDE LA ISLA DE FACTURACIÓN'}</p>
-                  <div className="grid grid-cols-2 gap-2 mt-1">
+                  <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 mt-1 text-[7.5px]">
                     <p><span className="font-bold">Asesor:</span> {tx.createdBy || 'ADMINISTRADOR'}</p>
-                    <p><span className="font-bold">Orden:</span> {tx.ordenNumber || (tx.id ? tx.id.replace(/[^0-9]/g, '').slice(-10) : '0020461851')}</p>
+                    <p><span className="font-bold">Tipo Orden:</span> ZVTA</p>
+                    <p><span className="font-bold">Condición de Pago:</span> {tx.paymentMethod === 'credito' ? 'Crédito' : 'Contado'}</p>
+                    <p className="truncate"><span className="font-bold">Forma de Pago:</span> {(() => {
+                      switch (tx.paymentMethod) {
+                        case 'efectivo': return 'Efectivo';
+                        case 'tarjeta': return 'Tarjeta Crédito';
+                        case 'transferencia': return 'Transferencia';
+                        case 'cruce_cuentas': return 'Compensación de Deudas';
+                        case 'credito': return 'Crédito';
+                        default: return 'Otros con Utilización del Sistema Financiero';
+                      }
+                    })()}</p>
                   </div>
-                  <p><span className="font-bold">Tipo Orden:</span> ZVTA</p>
                   
                   {/* Tabla de desglose de pagos */}
                   <table className="w-full text-left text-[7.5px] border border-gray-300 mt-2">
