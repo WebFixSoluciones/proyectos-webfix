@@ -216,6 +216,73 @@ export default function PublicRideView() {
   };
   const emisorCiudad = getEmisorCity();
 
+  const calculateTaxDetails = () => {
+    const items = tx.items || [];
+    let subtotal15 = 0;
+    let subtotal5 = 0;
+    let subtotal0 = 0;
+    let subtotalNoObjeto = 0;
+    let subtotalExento = 0;
+    let totalDiscount = 0;
+
+    if (items.length > 0) {
+      items.forEach(item => {
+        const itemQty = Number(item.quantity) || 1;
+        const itemPrice = Number(item.price) || 0;
+        const itemDisc = Number(item.itemDiscount) || 0;
+        const lineBase = (itemPrice * itemQty) - itemDisc;
+        const rate = Number(item.ivaCategory);
+
+        if (rate === 15 || rate === 12) {
+          subtotal15 += lineBase;
+        } else if (rate === 5) {
+          subtotal5 += lineBase;
+        } else if (rate === 0) {
+          subtotal0 += lineBase;
+        } else if (item.ivaCategory === 'no_objeto') {
+          subtotalNoObjeto += lineBase;
+        } else if (item.ivaCategory === 'exento') {
+          subtotalExento += lineBase;
+        } else {
+          // Fallback based on global VAT value
+          if (Number(tx.ivaValor) > 0) {
+            subtotal15 += lineBase;
+          } else {
+            subtotal0 += lineBase;
+          }
+        }
+        totalDiscount += itemDisc;
+      });
+    } else {
+      const base = Number(tx.baseImponible) || 0;
+      if (Number(tx.ivaValor) > 0) {
+        subtotal15 = base;
+      } else {
+        subtotal0 = base;
+      }
+      totalDiscount = Number(tx.descuentoValor) || 0;
+    }
+
+    const subtotalSinImpuestos = subtotal15 + subtotal5 + subtotal0 + subtotalNoObjeto + subtotalExento;
+    const iva15 = subtotal15 * 0.15;
+    const iva5 = subtotal5 * 0.05;
+    const finalIva15 = Math.abs(iva15 - Number(tx.ivaValor)) < 0.1 ? Number(tx.ivaValor) : iva15;
+
+    return {
+      subtotal15,
+      subtotal5,
+      subtotal0,
+      subtotalNoObjeto,
+      subtotalExento,
+      subtotalSinImpuestos,
+      totalDiscount,
+      iva15: finalIva15,
+      iva5,
+      total: Number(tx.total) || (subtotalSinImpuestos + finalIva15 + iva5)
+    };
+  };
+  const taxDetails = calculateTaxDetails();
+
   const formatSequential = (seqVal, estab = '001', pto = '001') => {
     if (!seqVal) return `${estab}-${pto}-000000001`;
     const cleanSeq = String(seqVal).replace(/[^0-9]/g, '');
@@ -359,74 +426,74 @@ export default function PublicRideView() {
             {/* Datos del Receptor Compactos (Detalle de Cliente) */}
             <div className="mt-3 border border-gray-300 text-[8px] text-black">
               {/* Fila 1 */}
-              <div className="grid grid-cols-12 border-b border-gray-300">
-                <div className="col-span-8 p-1.5 border-r border-gray-300 truncate">
+              <div className="grid grid-cols-12">
+                <div className="col-span-8 py-[2px] px-1.5 truncate">
                   <span className="font-bold">CLIENTE:</span> {client.name}
                 </div>
-                <div className="col-span-2 p-1.5 border-r border-gray-300">
+                <div className="col-span-2 py-[2px] px-1.5">
                   <span className="font-bold">CODIGO:</span> {client.id ? client.id.replace(/[^0-9]/g, '').slice(-10) : '0010752914'}
                 </div>
-                <div className="col-span-2 p-1.5">
+                <div className="col-span-2 py-[2px] px-1.5">
                   <span className="font-bold">DOC. INTERNO:</span> {tx.docInterno || tx.quoteNumber || 'Ninguno'}
                 </div>
               </div>
 
               {/* Fila 2 */}
-              <div className="grid grid-cols-12 border-b border-gray-300">
-                <div className="col-span-8 p-1.5 border-r border-gray-300 truncate">
+              <div className="grid grid-cols-12">
+                <div className="col-span-8 py-[2px] px-1.5 truncate">
                   <span className="font-bold">DIRECCIÓN:</span> {client.direccion || 'Ecuador'}
                 </div>
-                <div className="col-span-4 p-1.5">
+                <div className="col-span-4 py-[2px] px-1.5">
                   <span className="font-bold">DOC. REFERENCIA:</span> {tx.docReferencia || 'Ninguno'}
                 </div>
               </div>
 
               {/* Fila 3 */}
-              <div className="grid grid-cols-12 border-b border-gray-300">
-                <div className="col-span-8 p-1.5 border-r border-gray-300">
+              <div className="grid grid-cols-12">
+                <div className="col-span-8 py-[2px] px-1.5">
                   <span className="font-bold">CI o RUC:</span> {client.ruc}
                 </div>
-                <div className="col-span-4 p-1.5">
+                <div className="col-span-4 py-[2px] px-1.5">
                   <span className="font-bold">FECHA ORDEN:</span> {tx.fechaOrden || tx.date.split('-').reverse().join('/')}
                 </div>
               </div>
 
               {/* Fila 4 */}
-              <div className="grid grid-cols-12 border-b border-gray-300">
-                <div className="col-span-8 p-1.5 border-r border-gray-300">
+              <div className="grid grid-cols-12">
+                <div className="col-span-8 py-[2px] px-1.5">
                   <span className="font-bold">TELÉFONO:</span> {client.telefono || 'N/D'}
                 </div>
-                <div className="col-span-4 p-1.5">
+                <div className="col-span-4 py-[2px] px-1.5">
                   <span className="font-bold">GUÍA DE REMISIÓN:</span> {tx.guiaRemision || 'Sin Guía'}
                 </div>
               </div>
 
               {/* Fila 5 */}
-              <div className="grid grid-cols-12 border-b border-gray-300">
-                <div className="col-span-8 p-1.5 border-r border-gray-300 uppercase">
+              <div className="grid grid-cols-12">
+                <div className="col-span-8 py-[2px] px-1.5 uppercase">
                   <span className="font-bold">CIUDAD:</span> {client.ciudad || (client.direccion ? client.direccion.split(',').pop().trim().toUpperCase() : 'QUITO')}
                 </div>
-                <div className="col-span-4 p-1.5">
+                <div className="col-span-4 py-[2px] px-1.5">
                   <span className="font-bold">FECHA EMISIÓN:</span> {tx.date.split('-').reverse().join('/')}
                 </div>
               </div>
 
               {/* Fila 6 */}
-              <div className="grid grid-cols-12 border-b border-gray-300">
-                <div className="col-span-8 p-1.5 border-r border-gray-300 truncate">
+              <div className="grid grid-cols-12">
+                <div className="col-span-8 py-[2px] px-1.5 truncate">
                   <span className="font-bold">EMAIL:</span> {client.email || 'N/D'}
                 </div>
-                <div className="col-span-4 p-1.5">
+                <div className="col-span-4 py-[2px] px-1.5">
                   <span className="font-bold">FECHA VENCIMIENTO:</span> {tx.creditDueDate ? tx.creditDueDate.split('-').reverse().join('/') : tx.date.split('-').reverse().join('/')}
                 </div>
               </div>
 
               {/* Fila 7 */}
               <div className="grid grid-cols-12">
-                <div className="col-span-6 p-1.5 border-r border-gray-300">
+                <div className="col-span-6 py-[2px] px-1.5">
                   <span className="font-bold">CONDICIÓN DE PAGO:</span> {tx.paymentMethod === 'credito' ? 'Crédito' : 'Contado'}
                 </div>
-                <div className="col-span-6 p-1.5">
+                <div className="col-span-6 py-[2px] px-1.5">
                   <span className="font-bold">FORMA DE PAGO:</span> {(() => {
                     switch (tx.paymentMethod) {
                       case 'efectivo': return 'Efectivo';
@@ -442,7 +509,7 @@ export default function PublicRideView() {
             </div>
 
             {/* Detalle de Artículos */}
-            <div className="mt-3 border border-gray-300 rounded-none overflow-hidden">
+            <div className="mt-3 border border-gray-300 overflow-hidden" style={{ borderRadius: '0px' }}>
               <table className="w-full text-left text-[9px] text-black">
                 <thead className="bg-gray-100 font-bold uppercase text-[7.5px] border-b border-gray-300 text-black">
                   <tr>
@@ -536,64 +603,64 @@ export default function PublicRideView() {
                 <table className="w-full text-right text-[8px] text-black">
                   <tbody className="divide-y divide-gray-200 font-medium">
                     <tr>
-                      <td className="px-2 py-1 bg-gray-50 border-r border-gray-300 text-left">Subtotal 15%</td>
-                      <td className="px-2 py-1 font-bold">${Number(tx.baseImponible || 0).toFixed(2)}</td>
+                      <td className="px-2 py-[2px] bg-gray-50 border-r border-gray-300 text-left">Subtotal 15%</td>
+                      <td className="px-2 py-[2px] font-bold">${Number(taxDetails.subtotal15 || 0).toFixed(2)}</td>
                     </tr>
                     <tr>
-                      <td className="px-2 py-1 bg-gray-50 border-r border-gray-300 text-left">Subtotal 5%</td>
-                      <td className="px-2 py-1">$0.00</td>
+                      <td className="px-2 py-[2px] bg-gray-50 border-r border-gray-300 text-left">Subtotal 5%</td>
+                      <td className="px-2 py-[2px] font-bold">${Number(taxDetails.subtotal5 || 0).toFixed(2)}</td>
                     </tr>
                     <tr>
-                      <td className="px-2 py-1 bg-gray-50 border-r border-gray-300 text-left">Subtotal 0%</td>
-                      <td className="px-2 py-1">$0.00</td>
+                      <td className="px-2 py-[2px] bg-gray-50 border-r border-gray-300 text-left">Subtotal 0%</td>
+                      <td className="px-2 py-[2px] font-bold">${Number(taxDetails.subtotal0 || 0).toFixed(2)}</td>
                     </tr>
                     <tr>
-                      <td className="px-2 py-1 bg-gray-50 border-r border-gray-300 text-left">Subtotal No Sujeto de IVA</td>
-                      <td className="px-2 py-1">$0.00</td>
+                      <td className="px-2 py-[2px] bg-gray-50 border-r border-gray-300 text-left">Subtotal No Sujeto de IVA</td>
+                      <td className="px-2 py-[2px] font-bold">${Number(taxDetails.subtotalNoObjeto || 0).toFixed(2)}</td>
                     </tr>
                     <tr>
-                      <td className="px-2 py-1 bg-gray-50 border-r border-gray-300 text-left">Subtotal Exento de IVA</td>
-                      <td className="px-2 py-1">$0.00</td>
+                      <td className="px-2 py-[2px] bg-gray-50 border-r border-gray-300 text-left">Subtotal Exento de IVA</td>
+                      <td className="px-2 py-[2px] font-bold">${Number(taxDetails.subtotalExento || 0).toFixed(2)}</td>
                     </tr>
                     <tr>
-                      <td className="px-2 py-1 bg-gray-50 border-r border-gray-300 text-left">Subtotal Sin Impuestos</td>
-                      <td className="px-2 py-1 font-bold">${Number(tx.baseImponible || 0).toFixed(2)}</td>
+                      <td className="px-2 py-[2px] bg-gray-50 border-r border-gray-300 text-left">Subtotal Sin Impuestos</td>
+                      <td className="px-2 py-[2px] font-bold">${Number(taxDetails.subtotalSinImpuestos || 0).toFixed(2)}</td>
                     </tr>
                     <tr>
-                      <td className="px-2 py-1 bg-gray-50 border-r border-gray-300 text-left">Total Descuento</td>
-                      <td className="px-2 py-1">${Number(tx.descuentoValor || 0).toFixed(2)}</td>
+                      <td className="px-2 py-[2px] bg-gray-50 border-r border-gray-300 text-left">Total Descuento</td>
+                      <td className="px-2 py-[2px] font-bold">${Number(taxDetails.totalDiscount || 0).toFixed(2)}</td>
                     </tr>
                     <tr>
-                      <td className="px-2 py-1 bg-gray-50 border-r border-gray-300 text-left">Valor ICE</td>
-                      <td className="px-2 py-1">$0.00</td>
+                      <td className="px-2 py-[2px] bg-gray-50 border-r border-gray-300 text-left">Valor ICE</td>
+                      <td className="px-2 py-[2px] font-bold">${Number(tx.iceValor || 0).toFixed(2)}</td>
                     </tr>
                     <tr>
-                      <td className="px-2 py-1 bg-gray-50 border-r border-gray-300 text-left">IVA 15%</td>
-                      <td className="px-2 py-1 font-bold">${Number(tx.ivaValor || 0).toFixed(2)}</td>
+                      <td className="px-2 py-[2px] bg-gray-50 border-r border-gray-300 text-left">IVA 15%</td>
+                      <td className="px-2 py-[2px] font-bold">${Number(taxDetails.iva15 || 0).toFixed(2)}</td>
                     </tr>
                     <tr>
-                      <td className="px-2 py-1 bg-gray-50 border-r border-gray-300 text-left">IVA 5%</td>
-                      <td className="px-2 py-1">$0.00</td>
+                      <td className="px-2 py-[2px] bg-gray-50 border-r border-gray-300 text-left">IVA 5%</td>
+                      <td className="px-2 py-[2px] font-bold">${Number(taxDetails.iva5 || 0).toFixed(2)}</td>
                     </tr>
                     <tr>
-                      <td className="px-2 py-1 bg-gray-50 border-r border-gray-300 text-left">IRBPNR</td>
-                      <td className="px-2 py-1">$0.00</td>
+                      <td className="px-2 py-[2px] bg-gray-50 border-r border-gray-300 text-left">IRBPNR</td>
+                      <td className="px-2 py-[2px] font-bold">${Number(tx.irbpnrValor || 0).toFixed(2)}</td>
                     </tr>
                     <tr>
-                      <td className="px-2 py-1 bg-gray-50 border-r border-gray-300 text-left">Propina</td>
-                      <td className="px-2 py-1">$0.00</td>
+                      <td className="px-2 py-[2px] bg-gray-50 border-r border-gray-300 text-left">Propina</td>
+                      <td className="px-2 py-[2px] font-bold">${Number(tx.propinaValor || 0).toFixed(2)}</td>
                     </tr>
                     <tr className="bg-gray-100 font-extrabold text-[9px] border-y border-gray-300">
-                      <td className="px-2 py-1.5 border-r border-gray-300 text-left">Valor Total</td>
-                      <td className="px-2 py-1.5 text-black font-black">${Number(tx.total || 0).toFixed(2)}</td>
+                      <td className="px-2 py-1 border-r border-gray-300 text-left">Valor Total</td>
+                      <td className="px-2 py-1 text-black font-black">${Number(taxDetails.total || 0).toFixed(2)}</td>
                     </tr>
                     <tr>
-                      <td className="px-2 py-1 bg-gray-50 border-r border-gray-300 text-left">IRF 1.75%</td>
-                      <td className="px-2 py-1">$0.00</td>
+                      <td className="px-2 py-[2px] bg-gray-50 border-r border-gray-300 text-left">IRF 1.75%</td>
+                      <td className="px-2 py-[2px]">${Number(tx.irf175Valor || 0).toFixed(2)}</td>
                     </tr>
                     <tr>
-                      <td className="px-2 py-1 bg-gray-50 border-r border-gray-300 text-left">IRF 2.75%</td>
-                      <td className="px-2 py-1">$0.00</td>
+                      <td className="px-2 py-[2px] bg-gray-50 border-r border-gray-300 text-left">IRF 2.75%</td>
+                      <td className="px-2 py-[2px]">${Number(tx.irf275Valor || 0).toFixed(2)}</td>
                     </tr>
                   </tbody>
                 </table>
