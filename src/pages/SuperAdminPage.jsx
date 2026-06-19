@@ -22,11 +22,14 @@ import {
   Sun,
   Moon,
   ChevronLeft,
-  Plus
+  Plus,
+  ShieldAlert,
+  Download,
+  RefreshCw
 } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
-import { collection, doc, getDocs, getDoc, setDoc, updateDoc, onSnapshot } from 'firebase/firestore';
+import { collection, doc, getDocs, getDoc, setDoc, updateDoc, onSnapshot, deleteDoc } from 'firebase/firestore';
 import { db, auth, firebaseConfig } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -68,6 +71,13 @@ export default function SuperAdminPage({ isDarkMode, setIsDarkMode, showToast })
     sendResetEmail: true
   });
   const [isCreatingTenant, setIsCreatingTenant] = useState(false);
+
+  // God Mode States
+  const [godModeCollection, setGodModeCollection] = useState('finances_transactions');
+  const [godModeData, setGodModeData] = useState([]);
+  const [isLoadingGodMode, setIsLoadingGodMode] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isWiping, setIsWiping] = useState(false);
 
   // Gating check: ensure only superadmins can access this page
   useEffect(() => {
@@ -268,6 +278,143 @@ export default function SuperAdminPage({ isDarkMode, setIsDarkMode, showToast })
       showToast("Error al guardar plan", "error");
     }
   };
+
+  // --- GOD MODE FUNCTIONS ---
+  const handleExportBackup = async () => {
+    if (!selectedTenantDetails) return;
+    setIsExporting(true);
+    try {
+      const collections = [
+        'finances_transactions',
+        'finances_third_parties',
+        'inventory_products',
+        'finances_liabilities',
+        'finances_settings',
+        'meta'
+      ];
+      const backupData = {};
+      
+      for (const colName of collections) {
+        const colRef = collection(db, 'artifacts', selectedTenantDetails.id, 'public', 'data', colName);
+        const snap = await getDocs(colRef);
+        backupData[colName] = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      }
+      
+      const jsonString = JSON.stringify(backupData, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `backup_tenant_${selectedTenantDetails.id}_${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      showToast("Backup generado y descargado exitosamente", "success");
+    } catch (err) {
+      console.error("Error exporting backup:", err);
+      showToast("Error al generar el backup", "error");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const loadGodModeData = async () => {
+    if (!selectedTenantDetails) return;
+    setIsLoadingGodMode(true);
+    try {
+      const colRef = collection(db, 'artifacts', selectedTenantDetails.id, 'public', 'data', godModeCollection);
+      const snap = await getDocs(colRef);
+      const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      data.sort((a, b) => {
+        const dateA = a.createdAt || a.date || a.updatedAt || '';
+        const dateB = b.createdAt || b.date || b.updatedAt || '';
+        return dateB.localeCompare(dateA);
+      });
+      setGodModeData(data.slice(0, 150));
+    } catch (err) {
+      console.error("Error loading god mode data:", err);
+      showToast("Error al cargar los datos crudos", "error");
+    } finally {
+      setIsLoadingGodMode(false);
+    }
+  };
+
+  useEffect(() => {
+    if (viewMode === 'edit' && selectedTenantDetails) {
+      loadGodModeData();
+    }
+  }, [viewMode, selectedTenantDetails, godModeCollection]);
+
+  const handleDeleteGodModeDoc = async (docId) => {
+    if (!window.confirm(`PELIGRO (God Mode): Estás a punto de borrar permanentemente el documento ${docId}. Esta acción saltará todas las reglas del ERP y no se puede deshacer. ¿Continuar?`)) {
+      return;
+    }
+    try {
+      await deleteDoc(doc(db, 'artifacts', selectedTenantDetails.id, 'public', 'data', godModeCollection, docId));
+      showToast(`Documento ${docId} eliminado exitosamente`, "success");
+      setGodModeData(prev => prev.filter(d => d.id !== docId));
+      
+      if (godModeCollection === 'finances_transactions') {
+        setTenantStats(prev => ({...prev, transactionsCount: Math.max(0, prev.transactionsCount - 1)}));
+      } else if (godModeCollection === 'inventory_products') {
+        setTenantStats(prev => ({...prev, productsCount: Math.max(0, prev.productsCount - 1)}));
+      }
+    } catch (err) {
+      console.error("Error deleting doc:", err);
+      showToast("Error al eliminar documento", "error");
+    }
+  };
+
+  const handleWipeSandbox = async () => {
+    if (!selectedTenantDetails) return;
+    const confirmId = window.prompt(
+      `ZONA DE PELIGRO (God Mode):\n` +
+      `Estás a punto de ELIMINAR permanentemente TODOS los datos operativos (Gastos, Ventas, Clientes/Proveedores, Productos e Inventario, Créditos/Obligaciones) del inquilino "${selectedTenantDetails.companyName}".\n\n` +
+      `Esta acción NO se puede deshacer y desconfigurará temporalmente el ERP del cliente hasta que registre nuevos datos.\n\n` +
+      `Para confirmar, escribe exactamente el ID del inquilino ("${selectedTenantDetails.id}") a continuación:`
+    );
+
+    if (confirmId !== selectedTenantDetails.id) {
+      if (confirmId !== null) {
+        showToast("Confirmación incorrecta. Operación cancelada.", "error");
+      }
+      return;
+    }
+
+    setIsWiping(true);
+    try {
+      const collectionsToWipe = [
+        'finances_transactions',
+        'finances_third_parties',
+        'inventory_products',
+        'finances_liabilities'
+      ];
+
+      let totalDeleted = 0;
+      for (const colName of collectionsToWipe) {
+        const colRef = collection(db, 'artifacts', selectedTenantDetails.id, 'public', 'data', colName);
+        const snap = await getDocs(colRef);
+        
+        for (const docObj of snap.docs) {
+          await deleteDoc(doc(db, 'artifacts', selectedTenantDetails.id, 'public', 'data', colName, docObj.id));
+          totalDeleted++;
+        }
+      }
+
+      setTenantStats({ transactionsCount: 0, productsCount: 0 });
+      setGodModeData([]);
+      
+      showToast(`Sandbox de inquilino limpiado con éxito. Se eliminaron ${totalDeleted} documentos.`, "success");
+    } catch (err) {
+      console.error("Error wiping sandbox:", err);
+      showToast("Error al limpiar el sandbox del inquilino: " + err.message, "error");
+    } finally {
+      setIsWiping(false);
+    }
+  };
+  // --------------------------
 
   // Manual Tenant and Admin creation logic via Temporary Firebase App
   const handleCreateTenant = async (e) => {
@@ -903,6 +1050,106 @@ export default function SuperAdminPage({ isDarkMode, setIsDarkMode, showToast })
 
                     </div>
 
+                  </div>
+
+                  {/* GOD MODE SECTION (Bottom full width) */}
+                  <div className={`mt-8 p-6 rounded-2xl border ${isDarkMode ? 'bg-[#1a0505]/80 border-red-500/30' : 'bg-red-50/80 border-red-200'} space-y-6`}>
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-red-500/10 text-red-500">
+                        <ShieldAlert size={24} />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-black uppercase tracking-wider text-red-500">God Mode: Herramientas Avanzadas y Mitigación</h3>
+                        <p className="text-[10px] text-gray-500 dark:text-gray-400">Peligro: Estas herramientas modifican directamente la base de datos saltándose las reglas del ERP.</p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-4">
+                      <button 
+                        onClick={handleExportBackup}
+                        disabled={isExporting}
+                        className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-lg flex items-center gap-2 transition-colors"
+                      >
+                        <Download size={14} /> 
+                        {isExporting ? 'Generando JSON...' : 'Generar Backup Completo (JSON)'}
+                      </button>
+
+                      <button 
+                        onClick={handleWipeSandbox}
+                        disabled={isWiping}
+                        className="px-4 py-2 bg-red-500/10 hover:bg-red-600 text-red-500 hover:text-white text-xs font-bold rounded-lg flex items-center gap-2 transition-colors border border-red-500/30"
+                      >
+                        <XCircle size={14} /> 
+                        {isWiping ? 'Limpiando Sandbox...' : 'Resetear Sandbox (Vaciar Data)'}
+                      </button>
+                    </div>
+
+                    <div className={`p-5 rounded-xl border ${isDarkMode ? 'bg-black/40 border-white/10' : 'bg-white/60 border-slate-200'}`}>
+                      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between mb-4">
+                        <h4 className="text-xs font-bold uppercase text-gray-600 dark:text-gray-300">Explorador de Datos Crudos</h4>
+                        <div className="flex items-center gap-2">
+                          <label className="text-[10px] font-bold text-gray-500 uppercase">Colección:</label>
+                          <select 
+                            value={godModeCollection}
+                            onChange={(e) => setGodModeCollection(e.target.value)}
+                            className={`p-1.5 text-xs font-mono rounded-lg border outline-none ${isDarkMode ? 'bg-[#151722] border-white/10 text-white' : 'bg-white border-slate-300 text-black'}`}
+                          >
+                            <option value="finances_transactions">finances_transactions</option>
+                            <option value="finances_third_parties">finances_third_parties</option>
+                            <option value="inventory_products">inventory_products</option>
+                            <option value="finances_liabilities">finances_liabilities</option>
+                            <option value="finances_settings">finances_settings</option>
+                            <option value="meta">meta</option>
+                          </select>
+                          <button onClick={loadGodModeData} className="p-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors" title="Refrescar Datos">
+                            <RefreshCw size={14} className={isLoadingGodMode ? 'animate-spin' : ''} />
+                          </button>
+                        </div>
+                      </div>
+
+                      {isLoadingGodMode ? (
+                        <div className="text-center py-6 text-gray-500 text-xs font-semibold">Cargando datos crudos...</div>
+                      ) : (
+                        <div className="overflow-x-auto rounded-lg border border-slate-200/50 dark:border-white/5">
+                          <table className="w-full text-left text-xs whitespace-nowrap">
+                            <thead className={`bg-slate-100 dark:bg-white/5 border-b border-slate-200/50 dark:border-white/5 text-[9px] font-bold uppercase tracking-wider text-gray-500`}>
+                              <tr>
+                                <th className="px-4 py-3">ID Documento</th>
+                                <th className="px-4 py-3">Datos Clave (JSON Extract)</th>
+                                <th className="px-4 py-3 text-right">Acción Peligrosa</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-200/50 dark:divide-white/5">
+                              {godModeData.length === 0 ? (
+                                <tr><td colSpan="3" className="px-4 py-8 text-center text-gray-500 font-semibold italic">Colección vacía.</td></tr>
+                              ) : (
+                                godModeData.map(docData => (
+                                  <tr key={docData.id} className="hover:bg-red-500/10 transition-colors">
+                                    <td className="px-4 py-3 font-mono text-[10px] text-gray-600 dark:text-gray-300 font-bold">{docData.id}</td>
+                                    <td className="px-4 py-3">
+                                      <div className="max-w-xl truncate font-mono text-[9px] text-gray-500 bg-black/5 dark:bg-white/5 p-1 rounded">
+                                        {JSON.stringify(docData).substring(0, 150)}...
+                                      </div>
+                                    </td>
+                                    <td className="px-4 py-3 text-right">
+                                      <button 
+                                        onClick={() => handleDeleteGodModeDoc(docData.id)}
+                                        className="px-2.5 py-1.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded text-[9px] font-black uppercase transition-colors"
+                                      >
+                                        Forzar Borrado
+                                      </button>
+                                    </td>
+                                  </tr>
+                                ))
+                              )}
+                            </tbody>
+                          </table>
+                          {godModeData.length === 150 && (
+                            <div className="p-2 text-center text-[9px] text-amber-500 font-bold bg-amber-500/10 border-t border-amber-500/20">Mostrando solo los 150 registros más recientes.</div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
