@@ -18,8 +18,10 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
     tipoIdentificacion: 'ruc',
     direccion: '',
     telefono: '',
-    tipoContribuyente: 'general'
+    tipoContribuyente: 'general',
+    ciudad: ''
   });
+
 
   const filtered = thirdParties.filter(tp => {
     const matchesSearch = tp.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -39,6 +41,21 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
     setIsQueryingSri(true);
     try {
       const result = await consultarRucSri(formData.ruc);
+      const guessCity = (address) => {
+        if (!address) return '';
+        const cleanAddr = address.toLowerCase();
+        if (cleanAddr.includes('quito')) return 'Quito';
+        if (cleanAddr.includes('guayaquil')) return 'Guayaquil';
+        if (cleanAddr.includes('cuenca')) return 'Cuenca';
+        if (cleanAddr.includes('ambato')) return 'Ambato';
+        if (cleanAddr.includes('manta')) return 'Manta';
+        if (cleanAddr.includes('loja')) return 'Loja';
+        if (cleanAddr.includes('ibarra')) return 'Ibarra';
+        if (cleanAddr.includes('santo domingo')) return 'Santo Domingo';
+        if (cleanAddr.includes('portoviejo')) return 'Portoviejo';
+        if (cleanAddr.includes('riobamba')) return 'Riobamba';
+        return '';
+      };
       setFormData(prev => ({
         ...prev,
         name: result.name,
@@ -46,7 +63,8 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
         direccion: result.direccion,
         telefono: result.telefono,
         email: result.email || prev.email,
-        tipoContribuyente: result.tipoContribuyente || 'general'
+        tipoContribuyente: result.tipoContribuyente || 'general',
+        ciudad: guessCity(result.direccion) || prev.ciudad || ''
       }));
       showToast('Datos fiscales cargados exitosamente desde el SRI', 'success');
     } catch (e) {
@@ -82,6 +100,7 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
         direccion: formData.direccion || '',
         telefono: formData.telefono || '',
         tipoContribuyente: formData.tipoContribuyente || 'general',
+        ciudad: formData.ciudad || '',
         updatedAt: new Date().toISOString()
       }, { merge: true });
 
@@ -104,7 +123,8 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
       tipoIdentificacion: 'ruc',
       direccion: '',
       telefono: '',
-      tipoContribuyente: 'general'
+      tipoContribuyente: 'general',
+      ciudad: ''
     });
   };
 
@@ -255,11 +275,14 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
                       <span className={isDarkMode ? 'text-gray-300' : 'text-black font-semibold'}>{tp.ruc}</span>
                     </td>
                     <td className={`px-6 py-3.5 text-xs font-bold ${isDarkMode ? 'text-gray-300' : 'text-black'}`}>{tp.telefono || '-'}</td>
-                    <td className={`px-6 py-3.5 text-xs max-w-[220px] truncate ${isDarkMode ? 'text-gray-400' : 'text-black font-semibold'}`} title={tp.direccion}>{tp.direccion || '-'}</td>
+                    <td className={`px-6 py-3.5 text-xs max-w-[220px] truncate ${isDarkMode ? 'text-gray-400' : 'text-black font-semibold'}`} title={tp.direccion}>
+                       {tp.direccion || '-'}
+                       {tp.ciudad && <span className="block text-[10px] text-gray-500 font-bold uppercase mt-0.5">{tp.ciudad}</span>}
+                     </td>
                     <td className="px-6 py-3.5 text-xs font-bold text-primary hover:underline"><a href={`mailto:${tp.email}`}>{tp.email || '-'}</a></td>
                     <td className="px-6 py-3.5 text-right">
                       <div className="flex items-center justify-end gap-1.5">
-                        <button onClick={() => { setFormData(tp); setIsModalOpen(true); }} className={`p-2 rounded-[10px] transition-colors ${isDarkMode ? 'hover:bg-primary/15 text-primary border border-transparent' : 'hover:bg-primary-light text-primary border border-gray-100'}`} title="Editar"><Edit2 size={13}/></button>
+                        <button onClick={() => { setFormData({ id: tp.id || '', name: tp.name || '', ruc: tp.ruc || '', email: tp.email || '', type: tp.type || forcedType || 'cliente', tipoIdentificacion: tp.tipoIdentificacion || 'ruc', direccion: tp.direccion || '', telefono: tp.telefono || '', tipoContribuyente: tp.tipoContribuyente || 'general', ciudad: tp.ciudad || '' }); setIsModalOpen(true); }} className={`p-2 rounded-[10px] transition-colors ${isDarkMode ? 'hover:bg-primary/15 text-primary border border-transparent' : 'hover:bg-primary-light text-primary border border-gray-100'}`} title="Editar"><Edit2 size={13}/></button>
                         <button onClick={() => handleDelete(tp.id)} className={`p-2 rounded-[10px] transition-colors ${isDarkMode ? 'hover:bg-red-500/15 text-red-400 border border-transparent' : 'hover:bg-red-50 text-red-650 border border-gray-200'}`} title="Eliminar"><Trash2 size={13}/></button>
                       </div>
                     </td>
@@ -349,10 +372,16 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
                 </div>
               </div>
 
-              <div>
-                <label className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Dirección Matriz / Domicilio</label>
-                <input type="text" value={formData.direccion || ''} onChange={e => setFormData({...formData, direccion: e.target.value})} className={inputClass} placeholder="Av. de los Shyris y Holanda, Quito" />
-              </div>
+              <div className="grid grid-cols-3 gap-4 font-mono">
+                 <div className="col-span-2 font-sans">
+                   <label className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Dirección Matriz / Domicilio</label>
+                   <input type="text" value={formData.direccion || ''} onChange={e => setFormData({...formData, direccion: e.target.value})} className={inputClass} placeholder="Av. de los Shyris y Holanda, Quito" />
+                 </div>
+                 <div className="font-sans">
+                   <label className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Ciudad</label>
+                   <input type="text" value={formData.ciudad || ''} onChange={e => setFormData({...formData, ciudad: e.target.value})} className={inputClass} placeholder="Ej. Quito" />
+                 </div>
+               </div>
 
               <div>
                 <label className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Correo Electrónico (Notificación SRI)</label>

@@ -117,6 +117,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
     email: '',
     tipoIdentificacion: 'ruc',
     direccion: '',
+    ciudad: '',
     telefono: '',
     tipoContribuyente: 'general'
   });
@@ -783,6 +784,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
         name: result.name,
         tipoIdentificacion: result.tipoIdentificacion,
         direccion: result.direccion,
+        ciudad: result.ciudad || '',
         telefono: result.telefono,
         email: result.email || prev.email,
         tipoContribuyente: result.tipoContribuyente || 'general'
@@ -818,6 +820,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
         type: 'cliente',
         tipoIdentificacion: quickAddFormData.tipoIdentificacion || 'ruc',
         direccion: quickAddFormData.direccion || '',
+        ciudad: quickAddFormData.ciudad || '',
         telefono: quickAddFormData.telefono || '',
         tipoContribuyente: quickAddFormData.tipoContribuyente || 'general',
         updatedAt: new Date().toISOString()
@@ -2734,16 +2737,30 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                 </div>
               </div>
 
-              <div>
-                <label className={`block text-[9px] font-bold uppercase mb-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Dirección Domicilio</label>
-                <input 
-                  type="text" 
-                  value={quickAddFormData.direccion || ''} 
-                  onChange={e => setQuickAddFormData({...quickAddFormData, direccion: e.target.value})} 
-                  className={`w-full text-xs px-2.5 py-2.5 rounded-xl outline-none border ${
-                    isDarkMode ? 'bg-black border-white/10 text-white focus:border-primary/50' : 'bg-white border-primary/15 text-black focus:border-primary'
-                  }`} 
-                />
+              <div className="grid grid-cols-3 gap-3">
+                <div className="col-span-2">
+                  <label className={`block text-[9px] font-bold uppercase mb-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Dirección Domicilio</label>
+                  <input 
+                    type="text" 
+                    value={quickAddFormData.direccion || ''} 
+                    onChange={e => setQuickAddFormData({...quickAddFormData, direccion: e.target.value})} 
+                    className={`w-full text-xs px-2.5 py-2.5 rounded-xl outline-none border ${
+                      isDarkMode ? 'bg-black border-white/10 text-white focus:border-primary/50' : 'bg-white border-primary/15 text-black focus:border-primary'
+                    }`} 
+                  />
+                </div>
+                <div>
+                  <label className={`block text-[9px] font-bold uppercase mb-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Ciudad</label>
+                  <input 
+                    type="text" 
+                    value={quickAddFormData.ciudad || ''} 
+                    onChange={e => setQuickAddFormData({...quickAddFormData, ciudad: e.target.value})} 
+                    className={`w-full text-xs px-2.5 py-2.5 rounded-xl outline-none border ${
+                      isDarkMode ? 'bg-black border-white/10 text-white focus:border-primary/50' : 'bg-white border-primary/15 text-black focus:border-primary'
+                    }`} 
+                    placeholder="Ej. Quito"
+                  />
+                </div>
               </div>
 
               <div>

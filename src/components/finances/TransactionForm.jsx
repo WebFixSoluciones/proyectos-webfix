@@ -174,6 +174,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     email: '',
     tipoIdentificacion: 'ruc',
     direccion: '',
+    ciudad: '',
     telefono: '',
     tipoContribuyente: 'general'
   });
@@ -191,6 +192,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         name: result.name,
         tipoIdentificacion: result.tipoIdentificacion,
         direccion: result.direccion,
+        ciudad: result.ciudad || '',
         telefono: result.telefono,
         email: result.email || prev.email,
         tipoContribuyente: result.tipoContribuyente || 'general'
@@ -226,6 +228,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         type: relationType,
         tipoIdentificacion: quickAddFormData.tipoIdentificacion || 'ruc',
         direccion: quickAddFormData.direccion || '',
+        ciudad: quickAddFormData.ciudad || '',
         telefono: quickAddFormData.telefono || '',
         tipoContribuyente: quickAddFormData.tipoContribuyente || 'general',
         updatedAt: new Date().toISOString()
@@ -3048,15 +3051,27 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 </div>
               </div>
 
-              <div>
-                <label className="block text-[9px] font-bold uppercase mb-1 text-gray-500">Dirección</label>
-                <input 
-                  type="text" 
-                  value={quickAddFormData.direccion || ''} 
-                  onChange={e => setQuickAddFormData({...quickAddFormData, direccion: e.target.value})} 
-                  className={inputClass} 
-                  placeholder="Av. de los Shyris, Quito" 
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[9px] font-bold uppercase mb-1 text-gray-500">Dirección</label>
+                  <input 
+                    type="text" 
+                    value={quickAddFormData.direccion || ''} 
+                    onChange={e => setQuickAddFormData({...quickAddFormData, direccion: e.target.value})} 
+                    className={inputClass} 
+                    placeholder="Av. de los Shyris" 
+                  />
+                </div>
+                <div>
+                  <label className="block text-[9px] font-bold uppercase mb-1 text-gray-500">Ciudad</label>
+                  <input 
+                    type="text" 
+                    value={quickAddFormData.ciudad || ''} 
+                    onChange={e => setQuickAddFormData({...quickAddFormData, ciudad: e.target.value})} 
+                    className={inputClass} 
+                    placeholder="Quito" 
+                  />
+                </div>
               </div>
 
               <div>

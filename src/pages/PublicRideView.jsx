@@ -4,6 +4,50 @@ import { Printer, X, FileText, CheckCircle, AlertCircle, RefreshCw } from 'lucid
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 
+function numeroALetras(num) {
+  const unidades = ['SIN', 'UN', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE'];
+  const decenas = ['DIEZ', 'ONCE', 'DOCE', 'TRECE', 'CATORCE', 'QUINCE', 'DIECISEIS', 'DIECISIETE', 'DIECIOCHO', 'DIECINUEVE', 'VEINTE'];
+  const decenasGrandes = ['', '', 'VEINTE', 'TREINTA', 'CUARENTA', 'CINCUENTA', 'SESENTA', 'SETENTA', 'OCHENTA', 'NOVENTA'];
+  const centenas = ['', 'CIEN', 'DOSCIENTOS', 'TRESCIENTOS', 'CUATROCIENTOS', 'QUINIENTOS', 'SEISCIENTOS', 'SETECIENTOS', 'OCHECIENTOS', 'NOVECIENTOS'];
+
+  function decodificar(n) {
+    if (n < 10) return unidades[n];
+    if (n >= 10 && n <= 19) return decenas[n - 10];
+    if (n >= 20 && n <= 29) return n === 20 ? 'VEINTE' : 'VEINTI' + unidades[n - 20];
+    const dec = Math.floor(n / 10);
+    const uni = n % 10;
+    return decenasGrandes[dec] + (uni > 0 ? ' Y ' + unidades[uni] : '');
+  }
+
+  function centenasFn(n) {
+    if (n === 100) return 'CIEN';
+    if (n < 100) return decodificar(n);
+    const cen = Math.floor(n / 100);
+    const resto = n % 100;
+    return (cen === 1 ? 'CIENTO' : centenas[cen]) + (resto > 0 ? ' ' + decodificar(resto) : '');
+  }
+
+  function milesFn(n) {
+    if (n < 1000) return centenasFn(n);
+    const mil = Math.floor(n / 1000);
+    const resto = n % 1000;
+    let milStr = '';
+    if (mil === 1) milStr = 'MIL';
+    else milStr = centenasFn(mil) + ' MIL';
+    return milStr + (resto > 0 ? ' ' + centenasFn(resto) : '');
+  }
+
+  const partes = String(Number(num).toFixed(2)).split('.');
+  const entero = parseInt(partes[0]);
+  const decimales = partes[1];
+
+  let enteroStr = '';
+  if (entero === 0) enteroStr = 'CERO';
+  else enteroStr = milesFn(entero);
+
+  return `SON: ${enteroStr} CON ${decimales}/100 DÓLARES`;
+}
+
 export default function PublicRideView() {
   const [searchParams] = useSearchParams();
   const claveAcceso = searchParams.get('claveAcceso');
@@ -132,6 +176,46 @@ export default function PublicRideView() {
     }
   };
 
+  const getPaymentsTableRows = () => {
+    const breakdown = tx.paymentsBreakdown || {};
+    const rows = [];
+    const getMethodLabel = (method) => {
+      switch (method) {
+        case 'efectivo': return '01 - SIN UTILIZACION DEL SISTEMA FINANCIERO (EFECTIVO)';
+        case 'tarjeta': return '19 - TARJETA DE CREDITO/DEBITO';
+        case 'transferencia': return '20 - OTROS CON UTILIZACION DEL SISTEMA FINANCIERO';
+        case 'cruce_cuentas': return '15 - COMPENSACION DE DEUDAS';
+        case 'credito': return '19 - TARJETA DE CREDITO/DEBITO (CRÉDITO)';
+        default: return '20 - OTROS CON UTILIZACION DEL SISTEMA FINANCIERO';
+      }
+    };
+    if (Number(breakdown.efectivo || 0) > 0) rows.push({ method: getMethodLabel('efectivo'), val: breakdown.efectivo });
+    if (Number(breakdown.transferencia || 0) > 0) rows.push({ method: getMethodLabel('transferencia'), val: breakdown.transferencia });
+    if (Number(breakdown.tarjeta || 0) > 0) rows.push({ method: getMethodLabel('tarjeta'), val: breakdown.tarjeta });
+    if (Number(breakdown.cruce_cuentas || 0) > 0) rows.push({ method: getMethodLabel('cruce_cuentas'), val: breakdown.cruce_cuentas });
+    if (Number(breakdown.credito || 0) > 0) rows.push({ method: getMethodLabel('credito'), val: breakdown.credito });
+
+    if (rows.length === 0) {
+      rows.push({ method: getMethodLabel(tx.paymentMethod || 'efectivo'), val: tx.total || 0 });
+    }
+    return rows;
+  };
+
+  const getEmisorCity = () => {
+    if (emisor.ciudad) return emisor.ciudad.toUpperCase();
+    if (!emisor.direccionMatriz) return 'QUITO';
+    const parts = emisor.direccionMatriz.split(',');
+    if (parts.length > 1) {
+      const lastPart = parts[parts.length - 1].trim().toUpperCase();
+      if (lastPart === 'ECUADOR' && parts.length > 2) {
+        return parts[parts.length - 2].trim().toUpperCase();
+      }
+      return lastPart;
+    }
+    return 'QUITO';
+  };
+  const emisorCiudad = getEmisorCity();
+
   const formatSequential = (seqVal, estab = '001', pto = '001') => {
     if (!seqVal) return `${estab}-${pto}-000000001`;
     const cleanSeq = String(seqVal).replace(/[^0-9]/g, '');
@@ -206,111 +290,199 @@ export default function PublicRideView() {
         <div id="print-area-wrapper" className="w-full max-w-3xl">
           <div className="w-full mx-auto p-5 bg-white border border-gray-300 text-black shadow-2xl text-[9.5px] font-sans leading-snug print:shadow-none print:border-none print:p-0">
             
-            {/* Cabecera Principal */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start print-grid-2">
+            {/* Cabecera Principal Compacta */}
+            <div className="border border-gray-300 grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-300 print:grid-cols-2 print:divide-x print:divide-y-0 text-[8.5px] text-black">
               
               {/* Columna Izquierda: Datos del Emisor */}
-              <div className="p-3 rounded-lg border border-gray-300 space-y-1">
+              <div className="p-3 flex items-start gap-3 min-w-0">
                 {emisor.logoUrl ? (
-                  <img src={emisor.logoUrl} alt="Logo" className="max-h-9 max-w-[110px] object-contain mb-1.5 print:max-h-8" />
+                  <img src={emisor.logoUrl} alt="Logo" className="max-h-12 max-w-[100px] object-contain print:max-h-10 shrink-0" />
                 ) : (
-                  <div className="h-8 w-24 bg-gray-200 border border-gray-300 rounded flex items-center justify-center font-bold text-[8px] text-gray-600 tracking-wider mb-1.5">LOGOTIPO</div>
+                  <div className="h-10 w-20 bg-gray-200 border border-gray-300 rounded flex items-center justify-center font-bold text-[8px] text-gray-600 tracking-wider shrink-0">LOGOTIPO</div>
                 )}
-                <h2 className="font-extrabold text-[11px] uppercase leading-tight text-black">{emisor.razonSocial}</h2>
-                <p className="font-bold text-[9.5px] text-black">{emisor.nombreComercial}</p>
-                <div className="text-[8.5px] text-black space-y-0.5 mt-1">
-                  <p><span className="font-bold">Dirección Matriz:</span> {emisor.direccionMatriz}</p>
-                  <p><span className="font-bold">Dirección Sucursal:</span> {emisor.direccionMatriz}</p>
+                <div className="space-y-0.5 min-w-0 flex-1">
+                  <h2 className="font-extrabold text-[10px] uppercase leading-tight text-black truncate">{emisor.razonSocial}</h2>
+                  {emisor.nombreComercial && <p className="font-bold text-[9px] text-black truncate">{emisor.nombreComercial}</p>}
+                  <p><span className="font-bold">RUC:</span> {emisor.ruc}</p>
+                  {emisor.contribuyenteEspecial && (
+                    <p><span className="font-bold">Contribuyente Especial Resolución Nro.</span> {emisor.especialResolucion || '3257'}</p>
+                  )}
                   <p><span className="font-bold">Obligado a llevar contabilidad:</span> {emisor.obligadoContabilidad ? 'SÍ' : 'NO'}</p>
+                  {emisor.agenteRetencion && (
+                    <p><span className="font-bold">Gran Contribuyente:</span> {emisor.agenteResolucion || 'NAC-GCR-OIOC21-00000928-E'}</p>
+                  )}
+                  <p className="truncate"><span className="font-bold">Dirección Matriz:</span> {emisor.direccionMatriz}</p>
+                  {emisor.sucursales && emisor.sucursales.length > 0 && emisor.sucursales[0].direccion !== emisor.direccionMatriz && (
+                    <p className="truncate"><span className="font-bold">Dirección Sucursal:</span> {emisor.sucursales[0].direccion}</p>
+                  )}
+                  <p><span className="font-bold">Teléfono:</span> {emisor.telefonoContacto || emisor.telefono || 'N/D'}</p>
+                  <p className="uppercase"><span className="font-bold">Ciudad:</span> {emisorCiudad} - ECUADOR</p>
                   {emisor.contribuyenteRimpe && emisor.contribuyenteRimpe !== 'general' && (
-                    <p className="mt-1"><span className="font-bold uppercase border border-black border-dashed px-1 py-0.2 text-[8px]">Régimen Rimpe: {emisor.contribuyenteRimpe.replace('_', ' ')}</span></p>
+                    <p className="mt-0.5"><span className="font-bold uppercase border border-black border-dashed px-1 py-0.2 text-[7.5px]">Régimen Rimpe: {emisor.contribuyenteRimpe.replace('_', ' ')}</span></p>
                   )}
                 </div>
               </div>
 
               {/* Columna Derecha: Autorización y Factura */}
-              <div className="p-3 rounded-lg border border-gray-300 space-y-1">
-                <h2 className="font-extrabold text-[12px] tracking-wide text-black">R.U.C.: {emisor.ruc}</h2>
-                <p className="text-[11px] font-black tracking-wider uppercase text-black">{getDocTypeLabel()}</p>
-                <p className="text-[9.5px]"><span className="font-bold">No.</span> {docNumFormatted}</p>
+              <div className="p-3 flex flex-col justify-between space-y-1 min-w-0">
                 {tx.documentType === 'nota_venta' ? (
-                  <div className="text-[8.5px] text-black space-y-0.5">
+                  <div className="space-y-0.5">
                     <p><span className="font-bold">TIPO DE DOCUMENTO:</span> RECIBO INTERNO</p>
                     <p><span className="font-bold">ESTADO:</span> REGISTRADO</p>
                     <p><span className="font-bold">VALIDEZ:</span> CONTROL INTERNO / NO TRIBUTARIO</p>
                     <p><span className="font-bold">FECHA DE REGISTRO:</span> {tx.date.split('-').reverse().join('/')} {tx.time || ''}</p>
                   </div>
                 ) : (
-                  <div className="text-[8.5px] text-black space-y-0.5">
-                    <p><span className="font-bold">NÚMERO DE AUTORIZACIÓN:</span></p>
-                    <p className="font-mono text-[8px] break-all tracking-wide leading-none">{claveAcceso}</p>
+                  <div className="space-y-0.5">
+                    <div className="flex justify-between items-center text-[8px]">
+                      <p><span className="font-bold">Ambiente:</span> {emisor.ambiente === '2' ? 'PRODUCCIÓN' : 'PRUEBAS'}</p>
+                      <p><span className="font-bold">Emisión:</span> NORMAL</p>
+                    </div>
+                    <p className="mt-1"><span className="font-bold">Clave Acceso/ No. Autorización:</span></p>
+                    <p className="font-mono text-[7.5px] break-all tracking-wide leading-none">{claveAcceso}</p>
                     <p className="mt-1"><span className="font-bold">FECHA Y HORA DE AUTORIZACIÓN:</span> {tx.fechaAutorizacion || (tx.date.split('-').reverse().join('/') + ' ' + (tx.time || '12:00:00'))}</p>
-                    <p><span className="font-bold">AMBIENTE:</span> {emisor.ambiente === '2' ? 'PRODUCCIÓN' : 'PRUEBAS'}</p>
-                    <p><span className="font-bold">EMISIÓN:</span> NORMAL</p>
                     
                     {/* Código de barras */}
-                    <MockBarcode />
+                    <div className="my-1.5">
+                      <MockBarcode />
+                    </div>
                   </div>
                 )}
+                <div className="border-t border-gray-250 pt-1.5 mt-auto">
+                  <h2 className="font-extrabold text-[11px] tracking-wide text-black uppercase leading-none">
+                    {getDocTypeLabel()} {docNumFormatted}
+                  </h2>
+                </div>
               </div>
             </div>
 
-            {/* Datos del Receptor */}
-            <div className="mt-3 p-3 rounded-lg border border-gray-300 grid grid-cols-1 md:grid-cols-2 gap-2 print-grid-2 text-[8.5px] text-black">
-              <div>
-                <p><span className="font-bold">FECHA EMISIÓN:</span> {tx.date.split('-').reverse().join('/')}</p>
-                <p><span className="font-bold">FECHA VENCIMIENTO:</span> {tx.creditDueDate ? tx.creditDueDate.split('-').reverse().join('/') : tx.date.split('-').reverse().join('/')}</p>
-                <p><span className="font-bold">GUÍA DE REMISIÓN:</span> {tx.guiaRemision || 'Sin Guía'}</p>
-                <p><span className="font-bold">DOC. REFERENCIA:</span> {tx.docReferencia || 'Ninguno'}</p>
-                <p><span className="font-bold">DOC. INTERNO:</span> {tx.docInterno || tx.quoteNumber || 'Ninguno'}</p>
+            {/* Datos del Receptor Compactos (Detalle de Cliente) */}
+            <div className="mt-3 border border-gray-300 text-[8px] text-black">
+              {/* Fila 1 */}
+              <div className="grid grid-cols-12 border-b border-gray-300">
+                <div className="col-span-8 p-1.5 border-r border-gray-300 truncate">
+                  <span className="font-bold">CLIENTE:</span> {client.name}
+                </div>
+                <div className="col-span-2 p-1.5 border-r border-gray-300">
+                  <span className="font-bold">CODIGO:</span> {client.id ? client.id.replace(/[^0-9]/g, '').slice(-10) : '0010752914'}
+                </div>
+                <div className="col-span-2 p-1.5">
+                  <span className="font-bold">DOC. INTERNO:</span> {tx.docInterno || tx.quoteNumber || 'Ninguno'}
+                </div>
               </div>
-              <div>
-                <p><span className="font-bold">Razon Social:</span> {client.name}</p>
-                <p><span className="font-bold">CI o RUC:</span> {client.ruc}</p>
-                <p><span className="font-bold">DIRECCIÓN:</span> {client.direccion || 'Ecuador'}</p>
-                <p><span className="font-bold">EMAIL:</span> {client.email || 'N/D'}</p>
+
+              {/* Fila 2 */}
+              <div className="grid grid-cols-12 border-b border-gray-300">
+                <div className="col-span-8 p-1.5 border-r border-gray-300 truncate">
+                  <span className="font-bold">DIRECCIÓN:</span> {client.direccion || 'Ecuador'}
+                </div>
+                <div className="col-span-4 p-1.5">
+                  <span className="font-bold">DOC. REFERENCIA:</span> {tx.docReferencia || 'Ninguno'}
+                </div>
+              </div>
+
+              {/* Fila 3 */}
+              <div className="grid grid-cols-12 border-b border-gray-300">
+                <div className="col-span-8 p-1.5 border-r border-gray-300">
+                  <span className="font-bold">CI o RUC:</span> {client.ruc}
+                </div>
+                <div className="col-span-4 p-1.5">
+                  <span className="font-bold">FECHA ORDEN:</span> {tx.fechaOrden || tx.date.split('-').reverse().join('/')}
+                </div>
+              </div>
+
+              {/* Fila 4 */}
+              <div className="grid grid-cols-12 border-b border-gray-300">
+                <div className="col-span-8 p-1.5 border-r border-gray-300">
+                  <span className="font-bold">TELÉFONO:</span> {client.telefono || 'N/D'}
+                </div>
+                <div className="col-span-4 p-1.5">
+                  <span className="font-bold">GUÍA DE REMISIÓN:</span> {tx.guiaRemision || 'Sin Guía'}
+                </div>
+              </div>
+
+              {/* Fila 5 */}
+              <div className="grid grid-cols-12 border-b border-gray-300">
+                <div className="col-span-8 p-1.5 border-r border-gray-300 uppercase">
+                  <span className="font-bold">CIUDAD:</span> {client.ciudad || (client.direccion ? client.direccion.split(',').pop().trim().toUpperCase() : 'QUITO')}
+                </div>
+                <div className="col-span-4 p-1.5">
+                  <span className="font-bold">FECHA EMISIÓN:</span> {tx.date.split('-').reverse().join('/')}
+                </div>
+              </div>
+
+              {/* Fila 6 */}
+              <div className="grid grid-cols-12 border-b border-gray-300">
+                <div className="col-span-8 p-1.5 border-r border-gray-300 truncate">
+                  <span className="font-bold">EMAIL:</span> {client.email || 'N/D'}
+                </div>
+                <div className="col-span-4 p-1.5">
+                  <span className="font-bold">FECHA VENCIMIENTO:</span> {tx.creditDueDate ? tx.creditDueDate.split('-').reverse().join('/') : tx.date.split('-').reverse().join('/')}
+                </div>
+              </div>
+
+              {/* Fila 7 */}
+              <div className="grid grid-cols-12">
+                <div className="col-span-6 p-1.5 border-r border-gray-300">
+                  <span className="font-bold">CONDICIÓN DE PAGO:</span> {tx.paymentMethod === 'credito' ? 'Crédito' : 'Contado'}
+                </div>
+                <div className="col-span-6 p-1.5">
+                  <span className="font-bold">FORMA DE PAGO:</span> {(() => {
+                    switch (tx.paymentMethod) {
+                      case 'efectivo': return 'Efectivo';
+                      case 'tarjeta': return 'Tarjeta Crédito';
+                      case 'transferencia': return 'Transferencia';
+                      case 'cruce_cuentas': return 'Compensación de Deudas';
+                      case 'credito': return 'Crédito';
+                      default: return 'Otros con Utilización del Sistema Financiero';
+                    }
+                  })()}
+                </div>
               </div>
             </div>
 
             {/* Detalle de Artículos */}
-            <div className="mt-3 border border-gray-300 rounded-lg overflow-hidden">
+            <div className="mt-3 border border-gray-300 rounded-none overflow-hidden">
               <table className="w-full text-left text-[9px] text-black">
                 <thead className="bg-gray-100 font-bold uppercase text-[7.5px] border-b border-gray-300 text-black">
                   <tr>
-                    <th className="px-2.5 py-1.5 border-r border-gray-300 w-8 text-center">ITEM</th>
-                    <th className="px-2.5 py-1.5 border-r border-gray-300 w-16">CODIGO</th>
-                    <th className="px-2.5 py-1.5 border-r border-gray-300">DESCRIPCION</th>
-                    <th className="px-2.5 py-1.5 border-r border-gray-300 w-12 text-center">U/M</th>
-                    <th className="px-2.5 py-1.5 border-r border-gray-300 w-12 text-right">CANTIDAD</th>
-                    <th className="px-2.5 py-1.5 border-r border-gray-300 text-right w-16">V.UNIT</th>
-                    <th className="px-2.5 py-1.5 border-r border-gray-300 text-right w-12">DESC.</th>
-                    <th className="px-2.5 py-1.5 text-right w-16">V.TOTAL</th>
+                    <th className="px-2 py-1 border-r border-gray-300 w-8 text-center">ITEM</th>
+                    <th className="px-2 py-1 border-r border-gray-300 w-16">CODIGO</th>
+                    <th className="px-2 py-1 border-r border-gray-300">DESCRIPCION</th>
+                    <th className="px-2 py-1 border-r border-gray-300 w-10 text-center">U/M</th>
+                    <th className="px-2 py-1 border-r border-gray-300 w-20 text-center">COD/BARRAS</th>
+                    <th className="px-2 py-1 border-r border-gray-300 w-10 text-right">CANTIDAD</th>
+                    <th className="px-2 py-1 border-r border-gray-300 text-right w-16">V.UNIT</th>
+                    <th className="px-2 py-1 border-r border-gray-300 text-right w-12">DESC.</th>
+                    <th className="px-2 py-1 text-right w-16">V.TOTAL</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {tx.items && tx.items.length > 0 ? (
                     tx.items.map((item, idx) => (
-                      <tr key={idx}>
-                        <td className="px-2.5 py-1.5 border-r border-gray-300 text-center font-mono">{idx + 1}</td>
-                        <td className="px-2.5 py-1.5 border-r border-gray-300 font-mono">{item.sku || 'SERV'}</td>
-                        <td className="px-2.5 py-1.5 border-r border-gray-300 font-medium">{item.name}</td>
-                        <td className="px-2.5 py-1.5 border-r border-gray-300 text-center uppercase font-mono">{item.unit || 'UNIDAD'}</td>
-                        <td className="px-2.5 py-1.5 border-r border-gray-300 text-right">{item.quantity}</td>
-                        <td className="px-2.5 py-1.5 border-r border-gray-300 text-right">${Number(item.price).toFixed(2)}</td>
-                        <td className="px-2.5 py-1.5 border-r border-gray-300 text-right">${Number(item.itemDiscount || 0).toFixed(2)}</td>
-                        <td className="px-2.5 py-1.5 text-right font-bold">${((item.price * item.quantity) - (item.itemDiscount || 0)).toFixed(2)}</td>
+                      <tr key={idx} className="border-b border-gray-200">
+                        <td className="px-2 py-1 border-r border-gray-300 text-center font-mono">{idx + 1}</td>
+                        <td className="px-2 py-1 border-r border-gray-300 font-mono">{item.sku || 'SERV'}</td>
+                        <td className="px-2 py-1 border-r border-gray-300 font-medium">{item.name}</td>
+                        <td className="px-2 py-1 border-r border-gray-300 text-center uppercase font-mono">{item.unit || 'UNIDAD'}</td>
+                        <td className="px-2 py-1 border-r border-gray-300 text-center font-mono">{item.barcode || item.sku || 'N/A'}</td>
+                        <td className="px-2 py-1 border-r border-gray-300 text-right">{item.quantity}</td>
+                        <td className="px-2 py-1 border-r border-gray-300 text-right">${Number(item.price).toFixed(2)}</td>
+                        <td className="px-2 py-1 border-r border-gray-300 text-right">${Number(item.itemDiscount || 0).toFixed(2)}</td>
+                        <td className="px-2 py-1 text-right font-bold">${((item.price * item.quantity) - (item.itemDiscount || 0)).toFixed(2)}</td>
                       </tr>
                     ))
                   ) : (
-                    <tr>
-                      <td className="px-2.5 py-1.5 border-r border-gray-300 text-center font-mono">1</td>
-                      <td className="px-2.5 py-1.5 border-r border-gray-300 font-mono">COM01</td>
-                      <td className="px-2.5 py-1.5 border-r border-gray-300 font-medium">Servicios Comerciales - {tx.category || 'Ventas'}</td>
-                      <td className="px-2.5 py-1.5 border-r border-gray-300 text-center uppercase font-mono">UNIDAD</td>
-                      <td className="px-2.5 py-1.5 border-r border-gray-300 text-right">1</td>
-                      <td className="px-2.5 py-1.5 border-r border-gray-300 text-right">${Number(tx.baseImponible).toFixed(2)}</td>
-                      <td className="px-2.5 py-1.5 border-r border-gray-300 text-right">$0.00</td>
-                      <td className="px-2.5 py-1.5 text-right font-bold">${Number(tx.baseImponible).toFixed(2)}</td>
+                    <tr className="border-b border-gray-200">
+                      <td className="px-2 py-1 border-r border-gray-300 text-center font-mono">1</td>
+                      <td className="px-2 py-1 border-r border-gray-300 font-mono">COM01</td>
+                      <td className="px-2 py-1 border-r border-gray-300 font-medium">Servicios Comerciales - {tx.category || 'Ventas'}</td>
+                      <td className="px-2 py-1 border-r border-gray-300 text-center uppercase font-mono">UNIDAD</td>
+                      <td className="px-2 py-1 border-r border-gray-300 text-center font-mono">N/A</td>
+                      <td className="px-2 py-1 border-r border-gray-300 text-right">1</td>
+                      <td className="px-2 py-1 border-r border-gray-300 text-right">${Number(tx.baseImponible).toFixed(2)}</td>
+                      <td className="px-2 py-1 border-r border-gray-300 text-right">$0.00</td>
+                      <td className="px-2 py-1 text-right font-bold">${Number(tx.baseImponible).toFixed(2)}</td>
                     </tr>
                   )}
                 </tbody>
@@ -318,124 +490,123 @@ export default function PublicRideView() {
             </div>
 
             {/* Formas de Pago e Información Adicional y Totales */}
-            <div className="mt-3 grid grid-cols-1 md:grid-cols-5 gap-3 items-start print-grid-5">
+            <div className="mt-3 grid grid-cols-1 md:grid-cols-5 gap-3 items-start print-grid-5 text-[8px] text-black">
               
               {/* Columna Izquierda: Información Adicional y Pagos */}
-              <div className="md:col-span-3 space-y-2.5">
-                
-                {/* Información adicional */}
-                <div className="p-2.5 rounded-lg border border-gray-300 space-y-0.5 text-[8.5px] text-black">
-                  <p className="font-bold text-[9px] border-b border-gray-200 pb-1 uppercase mb-1">Información Adicional</p>
-                  <p><span className="font-bold">Email:</span> {client.email || 'N/D'}</p>
-                  <p><span className="font-bold">Teléfono:</span> {client.telefono || 'N/D'}</p>
-                  <p><span className="font-bold">Dirección:</span> {client.direccion || 'Ecuador'}</p>
-                  <p><span className="font-bold">Origen:</span> {tx.isPOS ? 'Punto de Venta POS' : 'Factura Manual'}</p>
-                  
-                  <div className="mt-1.5 pt-1.5 border-t border-gray-200 space-y-0.5">
-                    <p className="font-bold text-[8px] uppercase tracking-wider text-black">Detalle del Pago / Plazo:</p>
-                    
-                    {tx.isPreventa ? (
-                      <>
-                        <p><span className="font-bold">Tipo:</span> PREVENTA / PEDIDO</p>
-                        <p><span className="font-bold">Anticipo Abonado:</span> ${Number(tx.paidAmount || 0).toFixed(2)}</p>
-                        <p><span className="font-bold">Saldo Pendiente:</span> ${Number(tx.total - (tx.paidAmount || 0)).toFixed(2)}</p>
-                      </>
-                    ) : (
-                      <>
-                        <p><span className="font-bold">Condición:</span> {tx.paymentMethod === 'credito' ? 'CRÉDITO' : 'CONTADO'}</p>
-                        {tx.paymentMethod === 'credito' && (
-                          <p><span className="font-bold">Plazo:</span> {getPlazoDias()}</p>
-                        )}
-                      </>
-                    )}
-                    
-                    <p className="font-bold mt-1 text-[7.5px] uppercase">Forma de Pago:</p>
-                    {(() => {
-                      const breakdown = tx.paymentsBreakdown || {};
-                      const list = [];
-                      if (Number(breakdown.efectivo || 0) > 0) list.push(`Efectivo: $${Number(breakdown.efectivo).toFixed(2)}`);
-                      if (Number(breakdown.transferencia || 0) > 0) list.push(`Transferencia: $${Number(breakdown.transferencia).toFixed(2)}`);
-                      if (Number(breakdown.tarjeta || 0) > 0) list.push(`Tarjeta: $${Number(breakdown.tarjeta).toFixed(2)}`);
-                      if (Number(breakdown.cruce_cuentas || 0) > 0) list.push(`Compensación: $${Number(breakdown.cruce_cuentas).toFixed(2)}`);
-                      if (Number(breakdown.credito || 0) > 0) list.push(`Crédito / CxC: $${Number(breakdown.credito).toFixed(2)}`);
-                      
-                      if (list.length === 0) {
-                        const methodLabel = {
-                          efectivo: 'Efectivo',
-                          transferencia: 'Transferencia',
-                          tarjeta: 'Tarjeta de Crédito/Débito',
-                          cruce_cuentas: 'Compensación de Deudas',
-                          credito: 'Crédito'
-                        }[tx.paymentMethod] || 'Efectivo';
-                        list.push(`${methodLabel}: $${Number(tx.total || 0).toFixed(2)}`);
-                      }
-                      return list.map((itemStr, idx) => (
-                        <p key={idx} className="pl-1.5">• {itemStr}</p>
-                      ));
-                    })()}
+              <div className="md:col-span-3 space-y-2">
+                <div className="p-2 border border-gray-300 space-y-1">
+                  <p className="font-bold border-b border-gray-200 pb-0.5 uppercase mb-1">Información Adicional</p>
+                  <p><span className="font-bold">OBSERVACIONES:</span> {tx.observaciones || tx.notes || 'VENTA DESDE LA ISLA DE FACTURACIÓN'}</p>
+                  <div className="grid grid-cols-2 gap-2 mt-1">
+                    <p><span className="font-bold">Asesor:</span> {tx.createdBy || 'ADMINISTRADOR'}</p>
+                    <p><span className="font-bold">Orden:</span> {tx.ordenNumber || (tx.id ? tx.id.replace(/[^0-9]/g, '').slice(-10) : '0020461851')}</p>
                   </div>
-                </div>
-
-                {/* Formas de pago oficial SRI */}
-                <div className="border border-gray-300 rounded-lg overflow-hidden">
-                  <table className="w-full text-left text-[8.5px] text-black">
-                    <thead className="bg-gray-100 font-bold border-b border-gray-300 text-[7.5px] uppercase">
+                  <p><span className="font-bold">Tipo Orden:</span> ZVTA</p>
+                  
+                  {/* Tabla de desglose de pagos */}
+                  <table className="w-full text-left text-[7.5px] border border-gray-300 mt-2">
+                    <thead className="bg-gray-100 font-bold border-b border-gray-300">
                       <tr>
-                        <th className="px-2.5 py-1.5 border-r border-gray-250">Forma de Pago</th>
-                        <th className="px-2.5 py-1.5 text-right w-20">Valor</th>
+                        <th className="px-2 py-0.5 border-r border-gray-300">Forma Pago</th>
+                        <th className="px-2 py-0.5 border-r border-gray-300 text-right">Valor</th>
+                        <th className="px-2 py-0.5 border-r border-gray-300 text-center">Plazo</th>
+                        <th className="px-2 py-0.5 text-center">Tiempo</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
-                      <tr>
-                        <td className="px-2.5 py-1.5 border-r border-gray-250 uppercase font-medium">
-                          {tx.paymentMethod === 'efectivo' && '01 - SIN UTILIZACION DEL SISTEMA FINANCIERO (EFECTIVO)'}
-                          {tx.paymentMethod === 'tarjeta' && '19 - TARJETA DE CREDITO/DEBITO'}
-                          {tx.paymentMethod === 'transferencia' && '20 - OTROS CON UTILIZACION DEL SISTEMA FINANCIERO'}
-                          {tx.paymentMethod === 'cruce_cuentas' && '15 - COMPENSACION DE DEUDAS'}
-                        </td>
-                        <td className="px-2.5 py-1.5 text-right font-bold">${Number(tx.total).toFixed(2)}</td>
-                      </tr>
+                      {getPaymentsTableRows().map((row, idx) => (
+                        <tr key={idx}>
+                          <td className="px-2 py-0.5 border-r border-gray-300 uppercase">{row.method}</td>
+                          <td className="px-2 py-0.5 border-r border-gray-300 text-right">${Number(row.val).toFixed(2)}</td>
+                          <td className="px-2 py-0.5 border-r border-gray-300 text-center">000</td>
+                          <td className="px-2 py-0.5 text-center">DIAS</td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
+                
+                <p className="text-[7.5px] uppercase font-bold text-gray-700 bg-gray-100 p-1.5 rounded border border-gray-300 text-center tracking-wide leading-none">
+                  Son: {numeroALetras(tx.total)}
+                </p>
               </div>
 
               {/* Columna Derecha: Totales Factura */}
-              <div className="md:col-span-2 border border-gray-300 rounded-lg overflow-hidden">
-                <table className="w-full text-right text-[9px] text-black">
-                  <tbody className="divide-y divide-gray-250 font-medium">
+              <div className="md:col-span-2 border border-gray-300 overflow-hidden">
+                <table className="w-full text-right text-[8px] text-black">
+                  <tbody className="divide-y divide-gray-200 font-medium">
                     <tr>
-                      <td className="px-2.5 py-1.5 bg-gray-50 border-r border-gray-250 w-24">SUBTOTAL 15%</td>
-                      <td className="px-2.5 py-1.5 font-bold">${Number(tx.baseImponible).toFixed(2)}</td>
+                      <td className="px-2 py-1 bg-gray-50 border-r border-gray-300 text-left">Subtotal 15%</td>
+                      <td className="px-2 py-1 font-bold">${Number(tx.baseImponible || 0).toFixed(2)}</td>
                     </tr>
                     <tr>
-                      <td className="px-2.5 py-1.5 bg-gray-50 border-r border-gray-250">SUBTOTAL 0%</td>
-                      <td className="px-2.5 py-1.5">$0.00</td>
+                      <td className="px-2 py-1 bg-gray-50 border-r border-gray-300 text-left">Subtotal 5%</td>
+                      <td className="px-2 py-1">$0.00</td>
                     </tr>
                     <tr>
-                      <td className="px-2.5 py-1.5 bg-gray-50 border-r border-gray-250">SUBTOTAL No Objeto IVA</td>
-                      <td className="px-2.5 py-1.5">$0.00</td>
+                      <td className="px-2 py-1 bg-gray-50 border-r border-gray-300 text-left">Subtotal 0%</td>
+                      <td className="px-2 py-1">$0.00</td>
                     </tr>
                     <tr>
-                      <td className="px-2.5 py-1.5 bg-gray-50 border-r border-gray-250">SUBTOTAL SIN IMPUESTOS</td>
-                      <td className="px-2.5 py-1.5 font-bold">${Number(tx.baseImponible).toFixed(2)}</td>
+                      <td className="px-2 py-1 bg-gray-50 border-r border-gray-300 text-left">Subtotal No Sujeto de IVA</td>
+                      <td className="px-2 py-1">$0.00</td>
                     </tr>
                     <tr>
-                      <td className="px-2.5 py-1.5 bg-gray-50 border-r border-gray-250">TOTAL DESCUENTO</td>
-                      <td className="px-2.5 py-1.5">$0.00</td>
+                      <td className="px-2 py-1 bg-gray-50 border-r border-gray-300 text-left">Subtotal Exento de IVA</td>
+                      <td className="px-2 py-1">$0.00</td>
                     </tr>
                     <tr>
-                      <td className="px-2.5 py-1.5 bg-gray-50 border-r border-gray-250 text-black">IVA 15%</td>
-                      <td className="px-2.5 py-1.5 font-bold text-black">${Number(tx.ivaValor).toFixed(2)}</td>
+                      <td className="px-2 py-1 bg-gray-50 border-r border-gray-300 text-left">Subtotal Sin Impuestos</td>
+                      <td className="px-2 py-1 font-bold">${Number(tx.baseImponible || 0).toFixed(2)}</td>
                     </tr>
-                    <tr className="bg-gray-100 font-extrabold text-[10px]">
-                      <td className="px-2.5 py-2 border-r border-gray-300">VALOR TOTAL</td>
-                      <td className="px-2.5 py-2 text-black font-black">${Number(tx.total).toFixed(2)}</td>
+                    <tr>
+                      <td className="px-2 py-1 bg-gray-50 border-r border-gray-300 text-left">Total Descuento</td>
+                      <td className="px-2 py-1">${Number(tx.descuentoValor || 0).toFixed(2)}</td>
+                    </tr>
+                    <tr>
+                      <td className="px-2 py-1 bg-gray-50 border-r border-gray-300 text-left">Valor ICE</td>
+                      <td className="px-2 py-1">$0.00</td>
+                    </tr>
+                    <tr>
+                      <td className="px-2 py-1 bg-gray-50 border-r border-gray-300 text-left">IVA 15%</td>
+                      <td className="px-2 py-1 font-bold">${Number(tx.ivaValor || 0).toFixed(2)}</td>
+                    </tr>
+                    <tr>
+                      <td className="px-2 py-1 bg-gray-50 border-r border-gray-300 text-left">IVA 5%</td>
+                      <td className="px-2 py-1">$0.00</td>
+                    </tr>
+                    <tr>
+                      <td className="px-2 py-1 bg-gray-50 border-r border-gray-300 text-left">IRBPNR</td>
+                      <td className="px-2 py-1">$0.00</td>
+                    </tr>
+                    <tr>
+                      <td className="px-2 py-1 bg-gray-50 border-r border-gray-300 text-left">Propina</td>
+                      <td className="px-2 py-1">$0.00</td>
+                    </tr>
+                    <tr className="bg-gray-100 font-extrabold text-[9px] border-y border-gray-300">
+                      <td className="px-2 py-1.5 border-r border-gray-300 text-left">Valor Total</td>
+                      <td className="px-2 py-1.5 text-black font-black">${Number(tx.total || 0).toFixed(2)}</td>
+                    </tr>
+                    <tr>
+                      <td className="px-2 py-1 bg-gray-50 border-r border-gray-300 text-left">IRF 1.75%</td>
+                      <td className="px-2 py-1">$0.00</td>
+                    </tr>
+                    <tr>
+                      <td className="px-2 py-1 bg-gray-50 border-r border-gray-300 text-left">IRF 2.75%</td>
+                      <td className="px-2 py-1">$0.00</td>
                     </tr>
                   </tbody>
                 </table>
               </div>
 
+            </div>
+
+            {/* Texto de Compromiso / Letra de Pagaré */}
+            <div className="mt-3 p-3 border border-gray-300 text-[7.2px] leading-relaxed text-black text-justify font-sans">
+              HE RECIBIDO LOS ARTÍCULOS O SERVICIOS DETALLADOS EN ESTA FACTURA, POR EL VALOR INDICADO EN EL "TOTAL".
+              DEBO Y PAGARÉ A <span className="font-bold">{emisor.razonSocial}</span> INCONDICIONALMENTE Y SIN PROTESTO EL VALOR ADEUDADO. EN CASO DE MORA ME
+              SUJETO A PAGAR EL INTERÉS MÁXIMO PREVISTO EN LA LEY Y A SER DEMANDADO EN JUICIO O VERBAL SUMARIO A ELECCIÓN DEL ACTOR,
+              ANTE LOS JUECES DE LA CIUDAD DE <span className="font-bold">{emisorCiudad}</span>, PARA LO CUAL RENUNCIO OTRO DOMICILIO.
             </div>
 
           </div>
