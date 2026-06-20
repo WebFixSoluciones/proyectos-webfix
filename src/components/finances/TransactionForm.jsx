@@ -1924,12 +1924,12 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                               type="button"
                               onClick={() => handleAddProductToCart(p)}
                               className={`w-full text-left px-3 py-2 text-xs flex justify-between items-center border-b last:border-0 transition-colors ${
-                                isDarkMode ? 'border-white/5 hover:bg-white/10 text-white' : 'border-gray-100 hover:bg-primary-light text-gray-900'
+                                isDarkMode ? 'border-white/5 hover:bg-white/10 text-white' : 'border-gray-100 hover:bg-primary-light text-black'
                               }`}
                             >
                               <div>
                                 <p style={{ color: isDarkMode ? '#ffffff' : '#000000' }} className="font-bold">{p.name}</p>
-                                <p style={{ color: isDarkMode ? '#a0a0a0' : '#404040' }} className="text-[10px] font-mono">
+                                <p style={{ color: isDarkMode ? '#ffffff' : '#000000' }} className="text-[10px] font-mono">
                                   {p.sku ? `SKU: ${p.sku}` : ''} {p.codigoBarras ? ` | EAN: ${p.codigoBarras}` : ''}
                                 </p>
                               </div>
@@ -2631,11 +2631,11 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               <div className={`${cardClass} space-y-[5px]`}>
                 <h4 style={{ color: isDarkMode ? '#FFFFFF' : '#000000' }} className="text-[10px] font-bold uppercase">Vista Previa del Comprobante</h4>
 
-                <div className={`p-[5px] rounded-[10px] border text-[10px] space-y-[5px] bg-white text-gray-900 border-gray-300 shadow-inner font-mono max-h-[60vh] overflow-y-auto`}>
+                <div className={`p-[5px] rounded-[10px] border text-[10px] space-y-[5px] bg-white text-black border-gray-300 shadow-inner font-mono max-h-[60vh] overflow-y-auto`}>
                   <div className="text-center border-b pb-[5px] border-gray-300">
                     <p className="font-bold text-xs uppercase">{sriConfig.nombreComercial || 'WEBFIX ERP'}</p>
                     <p className="text-[9px] font-bold">{sriConfig.razonSocial}</p>
-                    <p className="text-[8px] text-gray-600 mt-[2px]">{sriConfig.direccionMatriz}</p>
+                    <p className="text-[8px] text-black mt-[2px]">{sriConfig.direccionMatriz}</p>
                     <p className="text-[9px] font-bold mt-[4px]">RUC: {sriConfig.ruc}</p>
                   </div>
 
@@ -2700,7 +2700,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
                   {/* Pagos desglosados */}
                   <div className="border-t border-dashed border-gray-300 pt-[4px] text-[8px] space-y-[2px] text-black">
-                    <p className="font-bold uppercase text-[8px] text-gray-700">Forma de Pago:</p>
+                    <p className="font-bold uppercase text-[8px] text-black">Forma de Pago:</p>
                     {Number(payments.efectivo) > 0 && <p>Efectivo: ${Number(payments.efectivo).toFixed(2)}</p>}
                     {Number(payments.transferencia) > 0 && <p>Transferencia: ${Number(payments.transferencia).toFixed(2)}</p>}
                     {Number(payments.tarjeta) > 0 && <p>Tarjeta: ${Number(payments.tarjeta).toFixed(2)}</p>}
