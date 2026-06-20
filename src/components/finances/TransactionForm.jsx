@@ -2193,15 +2193,25 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   {/* Right Column (col-span-2): Totals & Taxes */}
                   <div className="lg:col-span-2 flex flex-col justify-between">
                     <div className="space-y-4">
-                      <div className={`p-5 rounded-2xl border text-xs space-y-3 bg-slate-50 border-slate-200 dark:bg-white/5 dark:border-white/10 text-gray-900 dark:text-white`}>
-                        <div className="flex justify-between items-center pb-2 border-b border-gray-200 dark:border-white/5">
-                          <span className="font-extrabold uppercase text-[10px] text-slate-500 dark:text-gray-400">Concepto</span>
-                          <span className="font-extrabold uppercase text-[10px] text-slate-500 dark:text-gray-400 text-right">Valor</span>
+                      <div className={`p-5 rounded-2xl border text-xs space-y-3 ${
+                        isDarkMode 
+                          ? 'bg-white/5 border-white/10 text-white' 
+                          : 'bg-slate-50 border-slate-200 text-gray-900'
+                      }`}>
+                        <div className={`flex justify-between items-center pb-2 border-b ${
+                          isDarkMode ? 'border-white/5' : 'border-gray-200'
+                        }`}>
+                          <span className={`font-extrabold uppercase text-[10px] ${
+                            isDarkMode ? 'text-gray-400' : 'text-slate-500'
+                          }`}>Concepto</span>
+                          <span className={`font-extrabold uppercase text-[10px] ${
+                            isDarkMode ? 'text-gray-400' : 'text-slate-500'
+                          } text-right`}>Valor</span>
                         </div>
                         {/* Subtotal bruto */}
                         <div className="flex justify-between">
-                          <span className="font-semibold text-slate-700 dark:text-gray-300">Subtotal bruto:</span>
-                          <span className="font-bold text-black dark:text-white">
+                          <span className={`font-semibold ${isDarkMode ? 'text-gray-300' : 'text-slate-700'}`}>Subtotal bruto:</span>
+                          <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                             ${((formData.items || []).reduce((a, it) => a + (parseFloat(it.price)||0)*(parseInt(it.quantity)||1), 0)).toFixed(2)}
                           </span>
                         </div>
@@ -2227,13 +2237,15 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                           </div>
                         )}
                         {/* Base imponible */}
-                        <div className="flex justify-between border-t border-dashed border-gray-200 dark:border-white/10 pt-2">
-                          <span className="font-semibold text-slate-700 dark:text-gray-300">Base imponible:</span>
-                          <span className="font-bold text-black dark:text-white">${Number(formData.baseImponible).toFixed(2)}</span>
+                        <div className={`flex justify-between border-t border-dashed pt-2 ${
+                          isDarkMode ? 'border-white/10' : 'border-gray-200'
+                        }`}>
+                          <span className={`font-semibold ${isDarkMode ? 'text-gray-300' : 'text-slate-700'}`}>Base imponible:</span>
+                          <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>${Number(formData.baseImponible).toFixed(2)}</span>
                         </div>
                         {/* IVA selector */}
                         <div className="flex justify-between items-center">
-                          <span className="font-semibold text-slate-700 dark:text-gray-300">IVA:</span>
+                          <span className={`font-semibold ${isDarkMode ? 'text-gray-300' : 'text-slate-700'}`}>IVA:</span>
                           <div className="flex items-center gap-2">
                             <select
                               disabled={!isEditable}
@@ -2251,11 +2263,13 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                               <option value={5}>5%</option>
                               <option value={15}>15%</option>
                             </select>
-                            <span className="font-bold text-black dark:text-white">${Number(formData.ivaValor).toFixed(2)}</span>
+                            <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>${Number(formData.ivaValor).toFixed(2)}</span>
                           </div>
                         </div>
-                        <div className="flex justify-between pt-2 border-t border-dashed border-gray-300 dark:border-white/10 font-bold text-sm">
-                          <span className="text-black dark:text-white font-extrabold">TOTAL:</span>
+                        <div className={`flex justify-between pt-2 border-t border-dashed font-bold text-sm ${
+                          isDarkMode ? 'border-white/10' : 'border-gray-300'
+                        }`}>
+                          <span className={`font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>TOTAL:</span>
                           <span style={{ color: '#1C40F2' }} className="font-black text-base">${Number(formData.total).toFixed(2)}</span>
                         </div>
                       </div>
