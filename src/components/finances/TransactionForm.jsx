@@ -136,7 +136,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   });
 
   const [activePayments, setActivePayments] = useState({
-    efectivo: true,
+    efectivo: false,
     transferencia: false,
     tarjeta: false,
     cruce_cuentas: false
@@ -449,24 +449,46 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     const hasItems = formData.items && formData.items.length > 0;
     
     if (hasItems) {
-      let subtotal = 0;
+      let rawSubtotal = 0;
+      let itemDiscountTotal = 0;
       let ivaVal = 0;
       
       formData.items.forEach(item => {
-        const lineSub = (parseFloat(item.price) || 0) * (parseInt(item.quantity) || 1);
-        const lineIva = lineSub * ((parseInt(item.ivaCategory) || 15) / 100);
-        subtotal += lineSub;
+        const price = parseFloat(item.price) || 0;
+        const qty = parseInt(item.quantity) || 1;
+        const lineSub = price * qty;
+        const lineDiscount = Math.min(lineSub, parseFloat(item.itemDiscount) || 0);
+        const lineBase = Math.max(0, lineSub - lineDiscount);
+        const lineIva = lineBase * ((parseInt(item.ivaCategory) || 15) / 100);
+        
+        rawSubtotal += lineSub;
+        itemDiscountTotal += lineDiscount;
         ivaVal += lineIva;
       });
 
+      const afterItemDiscount = Math.max(0, rawSubtotal - itemDiscountTotal);
+      const genDisc = generalDiscountType === 'percent'
+        ? afterItemDiscount * (Math.min(100, parseFloat(generalDiscountValue) || 0) / 100)
+        : Math.min(afterItemDiscount, parseFloat(generalDiscountValue) || 0);
+      
+      const baseImponibleVal = Math.max(0, afterItemDiscount - genDisc);
+      
+      let finalIvaVal = ivaVal;
+      if (afterItemDiscount > 0) {
+        const ratio = baseImponibleVal / afterItemDiscount;
+        finalIvaVal = ivaVal * ratio;
+      } else {
+        finalIvaVal = 0;
+      }
+
       const retFuente = Number(formData.retencionFuente) || 0;
       const retIva = Number(formData.retencionIva) || 0;
-      const totalVal = subtotal + ivaVal - retFuente - retIva;
+      const totalVal = baseImponibleVal + finalIvaVal - retFuente - retIva;
 
       setFormData(prev => ({
         ...prev,
-        baseImponible: subtotal.toFixed(2),
-        ivaValor: ivaVal.toFixed(2),
+        baseImponible: baseImponibleVal.toFixed(2),
+        ivaValor: finalIvaVal.toFixed(2),
         total: totalVal.toFixed(2)
       }));
     } else {
@@ -493,7 +515,9 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     formData.retencionIva, 
     formData.items,
     formData.retenciones,
-    formData.documentType
+    formData.documentType,
+    generalDiscountType,
+    generalDiscountValue
   ]);
 
   // Métodos para el desglose de retenciones
@@ -587,23 +611,6 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     setGeneralDiscountValue(0);
   };
 
-  // Recalculate totals considering general and per-item discounts
-  const recalcTotals = (items, ivaPct, genDiscType, genDiscVal) => {
-    const rawSubtotal = items.reduce((acc, it) => acc + (parseFloat(it.price) || 0) * (parseInt(it.quantity) || 1), 0);
-    const itemDiscountTotal = items.reduce((acc, it) => {
-      const lineTotal = (parseFloat(it.price) || 0) * (parseInt(it.quantity) || 1);
-      return acc + Math.min(lineTotal, parseFloat(it.itemDiscount) || 0);
-    }, 0);
-    const afterItemDiscount = Math.max(0, rawSubtotal - itemDiscountTotal);
-    const genDisc = genDiscType === 'percent'
-      ? afterItemDiscount * (Math.min(100, parseFloat(genDiscVal) || 0) / 100)
-      : Math.min(afterItemDiscount, parseFloat(genDiscVal) || 0);
-    const base = Math.max(0, afterItemDiscount - genDisc);
-    const iva = Number((base * (ivaPct / 100)).toFixed(2));
-    const total = Number((base + iva).toFixed(2));
-    return { baseImponible: Number(base.toFixed(2)), ivaValor: iva, total };
-  };
-
   const handleItemChange = (index, field, value) => {
     const updatedItems = [...(formData.items || [])];
     
@@ -623,8 +630,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       updatedItems[index] = { ...updatedItems[index], [field]: value };
     }
 
-    const totals = recalcTotals(updatedItems, formData.ivaPorcentaje, generalDiscountType, generalDiscountValue);
-    setFormData(prev => ({ ...prev, items: updatedItems, ...totals }));
+    setFormData(prev => ({ ...prev, items: updatedItems }));
   };
 
   const handleAddProductToCart = (product) => {
@@ -648,8 +654,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         }
       ];
     }
-    const totals = recalcTotals(updatedItems, formData.ivaPorcentaje, generalDiscountType, generalDiscountValue);
-    setFormData(prev => ({ ...prev, items: updatedItems, ...totals }));
+    setFormData(prev => ({ ...prev, items: updatedItems }));
     setProductSearchTerm('');
     showToast(`Añadido: ${product.name}`, 'success');
   };
@@ -2098,10 +2103,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         disabled={!isEditable}
                         value={generalDiscountType}
                         onChange={e => {
-                          const newType = e.target.value;
-                          setGeneralDiscountType(newType);
-                          const totals = recalcTotals(formData.items || [], formData.ivaPorcentaje, newType, generalDiscountValue);
-                          setFormData(prev => ({ ...prev, ...totals }));
+                          setGeneralDiscountType(e.target.value);
                         }}
                         className={`text-[11px] font-bold border-0 bg-transparent outline-none ${isDarkMode ? 'text-white' : 'text-black'}`}
                       >
@@ -2115,10 +2117,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         step="0.01"
                         value={generalDiscountValue}
                         onChange={e => {
-                          const v = e.target.value;
-                          setGeneralDiscountValue(v);
-                          const totals = recalcTotals(formData.items || [], formData.ivaPorcentaje, generalDiscountType, v);
-                          setFormData(prev => ({ ...prev, ...totals }));
+                          setGeneralDiscountValue(e.target.value);
                         }}
                         className={`w-12 text-[13px] font-bold bg-transparent outline-none text-center ${isDarkMode ? 'text-white' : 'text-black'}`}
                         placeholder="0"
@@ -2345,11 +2344,14 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       { id: 'cruce_cuentas', label: 'Crédito', icon: User, key: 'cruce_cuentas' }
                     ].map(m => {
                       const isSelected = activePayments[m.key];
+                      const isClientSelected = !!formData.thirdPartyId;
                       return (
                         <button
                           key={m.id}
                           type="button"
+                          disabled={!isClientSelected}
                           onClick={() => {
+                            if (!isClientSelected) return;
                             setActivePayments(prev => {
                               const updated = { ...prev, [m.key]: !prev[m.key] };
                               if (!updated[m.key]) {
@@ -2368,15 +2370,23 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                             });
                           }}
                           className={`flex flex-col items-center justify-center p-[8px] rounded-[8px] border transition-all gap-[6px] ${
-                            isSelected 
-                              ? 'bg-[#1C40F2] border-[#1C40F2] text-white shadow-sm'
-                              : isDarkMode 
-                                ? 'border-white/10 bg-white/5 text-gray-400 hover:bg-white/10'
-                                : 'border-gray-200 bg-gray-50 text-black hover:bg-gray-100'
+                            !isClientSelected
+                              ? 'opacity-40 cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400 dark:border-white/5 dark:bg-white/5'
+                              : isSelected 
+                                ? 'bg-[#1C40F2] border-[#1C40F2] text-white shadow-sm'
+                                : isDarkMode 
+                                  ? 'border-white/10 bg-white/5 text-gray-400 hover:bg-white/10'
+                                  : 'border-gray-200 bg-gray-50 text-black hover:bg-gray-100'
                           }`}
                         >
                           <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
-                            isSelected ? 'bg-white text-[#1C40F2]' : isDarkMode ? 'bg-[#1C40F2]/20 text-[#1C40F2]' : 'bg-[#1C40F2] text-white'
+                            !isClientSelected
+                              ? 'bg-gray-300 text-gray-500 dark:bg-white/10 dark:text-gray-500'
+                              : isSelected 
+                                ? 'bg-white text-[#1C40F2]' 
+                                : isDarkMode 
+                                  ? 'bg-[#1C40F2]/20 text-[#1C40F2]' 
+                                  : 'bg-[#1C40F2] text-white'
                           }`}>
                             <m.icon size={18} />
                           </div>
