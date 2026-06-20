@@ -809,6 +809,11 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       return false;
     }
 
+    if (!formData.items || formData.items.length === 0) {
+      showValidationErrorAlert('FALTA AGREGAR PRODUCTOS AL COMPROBANTE');
+      return false;
+    }
+
     if (Number(formData.total) < 0) {
       showValidationErrorAlert('EL TOTAL LIQUIDADO NO PUEDE SER MENOR A CERO');
       return false;
@@ -951,6 +956,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       options.preventDefault();
       options = {};
     }
+
+    // Validate first before showing confirmation dialog
+    if (!validateForm()) return;
+
     const { isFinalizingNotaVenta = false } = options;
 
     let title = "";
@@ -1081,6 +1090,9 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   };
 
   const handleEmitirSRI = () => {
+    // Validate first before showing confirmation dialog
+    if (!validateForm()) return;
+
     setConfirmDialog({
       title: "Confirmar Emisión SRI",
       message: "Se firmará digitalmente y se enviará la FACTURA ELECTRÓNICA al SRI de forma oficial. Esta acción no se puede deshacer y tiene validez tributaria.",
