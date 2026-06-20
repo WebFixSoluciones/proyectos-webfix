@@ -179,6 +179,26 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     tipoContribuyente: 'general'
   });
 
+  // Client search by indicio/letters
+  const [clientSearchTerm, setClientSearchTerm] = useState('');
+
+  // Advanced product search popup
+  const [isAdvancedSearchOpen, setIsAdvancedSearchOpen] = useState(false);
+  const [advSearchTerm, setAdvSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+
+  // Quick product creation modal
+  const [isQuickAddProductOpen, setIsQuickAddProductOpen] = useState(false);
+  const [quickAddProductFormData, setQuickAddProductFormData] = useState({
+    name: '',
+    sku: '',
+    codigoBarras: '',
+    price: '',
+    baseCost: '',
+    ivaCategory: 15,
+    stock: ''
+  });
+
   const queryQuickAddSRI = async () => {
     if (!quickAddFormData.ruc) {
       showToast('Por favor, ingresa un número de RUC o Cédula', 'error');
@@ -239,6 +259,35 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     } catch (err) {
       console.error(err);
       showToast('Error al guardar contacto', 'error');
+    }
+  };
+
+  const handleQuickAddProductSave = async (e) => {
+    e.preventDefault();
+    if (!quickAddProductFormData.name || !quickAddProductFormData.price) {
+      showToast('Nombre y Precio son obligatorios', 'error');
+      return;
+    }
+    try {
+      const productId = `prod_${new Date().getTime()}`;
+      const newProdData = {
+        id: productId,
+        name: quickAddProductFormData.name,
+        sku: quickAddProductFormData.sku || '',
+        codigoBarras: quickAddProductFormData.codigoBarras || '',
+        price: Number(quickAddProductFormData.price) || 0,
+        baseCost: Number(quickAddProductFormData.baseCost) || 0,
+        ivaCategory: Number(quickAddProductFormData.ivaCategory) || 15,
+        stock: Number(quickAddProductFormData.stock) || 0,
+        updatedAt: new Date().toISOString()
+      };
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'inventory_products', productId), sanitizeFirestoreData(newProdData));
+      showToast('Producto creado y agregado al carrito', 'success');
+      handleAddProductToCart(newProdData);
+      setIsQuickAddProductOpen(false);
+    } catch (err) {
+      console.error("Error creating product:", err);
+      showToast('Error al guardar el producto', 'error');
     }
   };
 
@@ -1436,6 +1485,13 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   ];
 
   const matchedTercero = thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
+  const filteredClients = (thirdParties || [])
+    .filter(tp => formData.type === 'ingreso' ? tp.type === 'cliente' : tp.type === 'proveedor')
+    .filter(tp =>
+      !clientSearchTerm ||
+      tp.name?.toLowerCase().includes(clientSearchTerm.toLowerCase()) ||
+      tp.ruc?.toLowerCase().includes(clientSearchTerm.toLowerCase())
+    );
   const paymentStatus = calculatePaymentStatus();
   const efVal = Number(payments.efectivo) || 0;
   const tjVal = Number(payments.tarjeta) || 0;
@@ -1567,28 +1623,48 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 {/* Client Search + Quick Add row */}
                 <div className="flex gap-[5px] items-center mb-[5px]">
                   <div className="flex-1 relative">
-                    <select 
-                      disabled={!isEditable} 
-                      required 
-                      value={formData.thirdPartyId} 
-                      onChange={e => setFormData({...formData, thirdPartyId: e.target.value})} 
+                    <input 
+                      disabled={!isEditable}
+                      type="text"
+                      value={clientSearchTerm}
+                      onChange={e => setClientSearchTerm(e.target.value)}
                       className={`${inputClass} pl-[25px] pr-[20px]`}
-                      style={{ appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none' }}
-                    >
-                      <option value="" disabled>Seleccione Cliente (Nombre o RUC / CI) ..</option>
-                      {thirdParties
-                        .filter(tp => formData.type === 'ingreso' ? tp.type === 'cliente' : tp.type === 'proveedor')
-                        .map(tp => (
-                          <option key={tp.id} value={tp.id}>
-                            {tp.name} — RUC/CI: {tp.ruc}
-                          </option>
-                        ))
-                      }
-                    </select>
+                      placeholder={matchedTercero ? `${matchedTercero.name} — RUC/CI: ${matchedTercero.ruc}` : "Escribe para buscar cliente..."}
+                    />
                     <Search className={`absolute left-[8px] top-[7px] ${isDarkMode ? 'text-gray-400' : 'text-black'}`} size={12} />
-                    <div className={`absolute right-[8px] top-[7px] pointer-events-none ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>
-                      <ChevronDown size={12} />
-                    </div>
+                    {clientSearchTerm && (
+                      <button type="button" onClick={() => setClientSearchTerm('')} className="absolute right-[8px] top-[7px] text-gray-400 hover:text-red-500">
+                        <X size={12} />
+                      </button>
+                    )}
+                    
+                    {clientSearchTerm.trim() !== '' && (
+                      <div className={`absolute z-30 w-full rounded-[10px] border shadow-xl max-h-60 overflow-y-auto mt-1 ${
+                        isDarkMode ? 'bg-[#1e1e22] border-white/10 text-white' : 'bg-white border-gray-300 text-black'
+                      }`}>
+                        {filteredClients.slice(0, 10).map(tp => (
+                          <button
+                            key={tp.id}
+                            type="button"
+                            onClick={() => {
+                              setFormData(prev => ({ ...prev, thirdPartyId: tp.id }));
+                              setClientSearchTerm('');
+                            }}
+                            className={`w-full text-left px-3 py-2 text-xs flex flex-col border-b last:border-0 transition-colors ${
+                              isDarkMode ? 'border-white/5 hover:bg-white/10 text-white' : 'border-gray-100 hover:bg-primary-light text-black'
+                            }`}
+                          >
+                            <span className="font-bold">{tp.name}</span>
+                            <span className="text-[10px] font-mono opacity-80">RUC/CI: {tp.ruc} | Tel: {tp.telefono || 'S/N'}</span>
+                          </button>
+                        ))}
+                        {filteredClients.length === 0 && (
+                          <div className="p-3 text-center text-xs text-gray-500 font-mono">
+                            No se encontraron clientes. Usa (+) para crear uno.
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                   
                   {isEditable && (
@@ -1946,10 +2022,11 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         <button 
                           type="button"
                           onClick={() => {
-                            handleQuickAddFirstMatch();
+                            setAdvSearchTerm(productSearchTerm);
+                            setIsAdvancedSearchOpen(true);
                           }}
                           className="px-[8px] py-[5px] rounded-[8px] bg-[#1C40F2] hover:bg-blue-700 text-white font-bold text-xs flex items-center gap-[3px] transition-all"
-                          title="Buscar y agregar primero"
+                          title="Búsqueda Avanzada de Productos"
                         >
                           <Search size={12} />
                           <span>Buscar</span>
@@ -1957,7 +2034,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         
                         <button 
                           type="button"
-                          onClick={handleQuickAddFirstMatch}
+                          onClick={handleQuickAddMatch || handleQuickAddFirstMatch}
                           className="p-[6px] rounded-[8px] bg-yellow-500 hover:bg-yellow-600 text-black font-bold text-xs flex items-center justify-center transition-all"
                           title="Agregar rápido (ZAP)"
                         >
@@ -1966,11 +2043,18 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
                         <button 
                           type="button" 
-                          onClick={handleAddItem} 
-                          className="px-[8px] py-[5px] rounded-[8px] bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-[3px] transition-all"
+                          onClick={() => {
+                            setQuickAddProductFormData({
+                              name: '', sku: '', codigoBarras: '', price: '', baseCost: '', ivaCategory: 15, stock: ''
+                            });
+                            setIsQuickAddProductOpen(true);
+                          }}
+                          className="px-[8px] py-[5px] rounded-[8px] bg-[#1C40F2] hover:bg-blue-700 text-white font-bold text-xs flex items-center gap-[2px] transition-all"
+                          title="Registrar y Agregar Nuevo Producto"
                         >
-                          <Plus size={12} />
-                          <span>Fila Manual</span>
+                          <Layers size={12} />
+                          <Plus size={10} />
+                          <span>Añadir</span>
                         </button>
                       </>
                     )}
@@ -2195,28 +2279,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         <span className="font-bold">${Number(formData.baseImponible).toFixed(2)}</span>
                       </div>
 
-                      {/* IVA selector */}
-                      <div className="flex justify-between items-center">
-                        <span className="font-semibold">IVA:</span>
-                        <div className="flex items-center gap-[5px]">
-                          <select
-                            disabled={!isEditable}
-                            value={formData.ivaPorcentaje}
-                            onChange={e => {
-                              const pct = Number(e.target.value);
-                              const totals = recalcTotals(formData.items || [], pct, generalDiscountType, generalDiscountValue);
-                              setFormData(prev => ({ ...prev, ivaPorcentaje: pct, ...totals }));
-                            }}
-                            className={`text-[10px] font-bold px-[4px] py-[2px] rounded-[6px] border outline-none ${
-                              isDarkMode ? 'bg-white/10 border-white/10 text-white' : 'bg-white border-gray-300 text-black'
-                            }`}
-                          >
-                            <option value={0}>0%</option>
-                            <option value={5}>5%</option>
-                            <option value={15}>15%</option>
-                          </select>
-                          <span className="font-bold">${Number(formData.ivaValor).toFixed(2)}</span>
-                        </div>
+                      {/* IVA static display */}
+                      <div className="flex justify-between">
+                        <span className="font-semibold">IVA ({formData.ivaPorcentaje}%):</span>
+                        <span className="font-bold">${Number(formData.ivaValor).toFixed(2)}</span>
                       </div>
                     </>
                   )}
@@ -2423,13 +2489,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   </h3>
                 </div>
 
-                {/* Display sequential preview */}
-                <div className={`p-[4px] rounded-[8px] border text-[10px] mb-[5px] ${isDarkMode ? 'bg-white/5 border-white/10 text-white' : 'bg-gray-100 border-gray-300 text-black'}`}>
-                  <span style={{ color: isDarkMode ? '#a0a0a0' : '#404040' }} className="font-bold uppercase text-[8px] block">Número asignado al guardar:</span>
-                  <span className="font-mono font-bold">
-                    {formData.documentNumber || `${sriConfig?.establecimiento || '001'}-${sriConfig?.puntoEmision || '001'}-${String(formData.secuencial || 1).padStart(9, '0')}`}
-                  </span>
-                </div>
+                {/* Sequencial preview eliminated per request */}
 
                 {/* Save & Emission buttons */}
                 <div className="space-y-[4px]">
@@ -3095,6 +3155,262 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 Aceptar / Confirmar
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* POPUP BÚSQUEDA AVANZADA DE PRODUCTOS */}
+      {isAdvancedSearchOpen && (
+        <div className="fixed inset-0 z-[160] flex items-center justify-center p-[5px] bg-black/85 backdrop-blur-sm animate-in fade-in">
+          <div className={`w-full max-w-2xl p-[5px] rounded-[10px] shadow-2xl border flex flex-col max-h-[85vh] ${
+            isDarkMode ? 'bg-[#151517] border border-white/10 text-white' : 'bg-white border border-gray-250 text-black'
+          }`}>
+            {/* Header */}
+            <div className="flex justify-between items-center mb-[5px] border-b pb-[3px] dark:border-white/5">
+              <h3 className="text-xs font-bold flex items-center gap-[3px] text-black dark:text-white uppercase">
+                <Search className="text-[#1C40F2]" size={14} />
+                Búsqueda Avanzada de Productos
+              </h3>
+              <button 
+                type="button" 
+                onClick={() => setIsAdvancedSearchOpen(false)}
+                className="p-[3px] rounded-[8px] hover:bg-white/10"
+              >
+                <X size={12} />
+              </button>
+            </div>
+
+            {/* Search and category filter row */}
+            <div className="flex gap-[5px] mb-[5px]">
+              <div className="relative flex-1">
+                <input 
+                  type="text" 
+                  value={advSearchTerm} 
+                  onChange={e => setAdvSearchTerm(e.target.value)} 
+                  className={inputClass}
+                  placeholder="Buscar por nombre, SKU, barra..."
+                />
+                {advSearchTerm && (
+                  <button type="button" onClick={() => setAdvSearchTerm('')} className="absolute right-[8px] top-[4px] text-gray-400 hover:text-red-500">
+                    <X size={10} />
+                  </button>
+                )}
+              </div>
+              {(() => {
+                const cats = ['all', ...new Set(products.map(p => p.category).filter(Boolean))];
+                if (cats.length > 1) {
+                  return (
+                    <select
+                      value={selectedCategory}
+                      onChange={e => setSelectedCategory(e.target.value)}
+                      className={`${inputClass} w-auto`}
+                    >
+                      <option value="all">Todas las Categorías</option>
+                      {cats.filter(c => c !== 'all').map(c => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                  );
+                }
+                return null;
+              })()}
+            </div>
+
+            {/* Products scrollable list */}
+            <div className="flex-1 overflow-y-auto space-y-[3px] min-h-[250px] max-h-[50vh] pr-[2px]">
+              {(() => {
+                const filtered = products.filter(p => {
+                  const matchText = !advSearchTerm || 
+                    p.name?.toLowerCase().includes(advSearchTerm.toLowerCase()) ||
+                    p.sku?.toLowerCase().includes(advSearchTerm.toLowerCase()) ||
+                    p.codigoBarras?.toLowerCase().includes(advSearchTerm.toLowerCase());
+                  const matchCat = selectedCategory === 'all' || p.category === selectedCategory;
+                  return matchText && matchCat;
+                });
+
+                if (filtered.length === 0) {
+                  return (
+                    <div style={{ color: isDarkMode ? '#FFFFFF' : '#000000' }} className="py-8 text-center text-xs italic rounded-[8px] border border-dashed border-gray-300">
+                      No se encontraron productos coincidentes.
+                    </div>
+                  );
+                }
+
+                return filtered.map(p => {
+                  const isAlreadyInCart = (formData.items || []).some(it => it.productId === p.id);
+                  const cartQty = (formData.items || []).find(it => it.productId === p.id)?.quantity || 0;
+
+                  return (
+                    <div 
+                      key={p.id} 
+                      className={`p-[5px] rounded-[8px] border flex justify-between items-center transition-all ${
+                        isDarkMode ? 'bg-white/5 border-white/5 text-white' : 'bg-gray-50 border-gray-250 text-black'
+                      }`}
+                    >
+                      <div>
+                        <div className="flex items-center gap-[5px]">
+                          <p className="font-bold text-xs">{p.name}</p>
+                          {p.category && (
+                            <span className="px-[4px] py-[1px] rounded-[4px] text-[8px] font-bold bg-gray-200 text-gray-800 dark:bg-white/10 dark:text-gray-300 uppercase">
+                              {p.category}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[9px] font-mono opacity-85">
+                          {p.sku ? `SKU: ${p.sku}` : ''} {p.codigoBarras ? ` | Barra: ${p.codigoBarras}` : ''}
+                          {p.stock !== undefined ? ` | Stock: ${p.stock}` : ''}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-[5px] shrink-0">
+                        <span style={{ color: '#1C40F2' }} className="font-black text-xs mr-[3px]">${Number(p.price).toFixed(2)}</span>
+                        {isAlreadyInCart && (
+                          <span className="text-[9px] font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-[5px] py-[2px] rounded-[6px]">
+                            En Carrito ({cartQty})
+                          </span>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleAddProductToCart(p)}
+                          className="px-[8px] py-[3px] rounded-[6px] bg-[#1C40F2] hover:bg-blue-700 text-white font-bold text-[10px] transition-all"
+                        >
+                          + Añadir
+                        </button>
+                      </div>
+                    </div>
+                  );
+                });
+              })()}
+            </div>
+
+            {/* Footer */}
+            <div className="flex justify-end mt-[5px] pt-[5px] border-t border-gray-250 dark:border-white/5">
+              <button
+                type="button"
+                onClick={() => setIsAdvancedSearchOpen(false)}
+                className={`px-[10px] py-[5px] rounded-[8px] text-xs font-bold transition-all border ${
+                  isDarkMode ? 'border-white/10 hover:bg-white/5 text-white' : 'border-gray-300 hover:bg-gray-100 text-black'
+                }`}
+              >
+                Volver a la Consola
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL CREAR PRODUCTO RAPIDO */}
+      {isQuickAddProductOpen && (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-[5px] bg-black/85 backdrop-blur-sm animate-in fade-in">
+          <div className={`w-full max-w-md p-[5px] rounded-[10px] shadow-2xl border ${
+            isDarkMode ? 'bg-[#151517] border border-white/10 text-white' : 'bg-white border-gray-200 text-black'
+          }`}>
+            <h3 style={{ color: isDarkMode ? '#FFFFFF' : '#000000' }} className="text-xs font-bold mb-[5px] border-b pb-[3px] dark:border-white/5 uppercase">
+              Nuevo Producto (Rápido)
+            </h3>
+            
+            <form onSubmit={handleQuickAddProductSave} className="space-y-[5px]">
+              <div>
+                <label className="block text-[8px] font-bold uppercase mb-[2px] text-black dark:text-white/60">Nombre del Producto / Servicio</label>
+                <input 
+                  type="text" 
+                  required 
+                  value={quickAddProductFormData.name} 
+                  onChange={e => setQuickAddProductFormData({...quickAddProductFormData, name: e.target.value})} 
+                  className={inputClass} 
+                  placeholder="Ej. Servicio de Mantenimiento PC" 
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-[5px]">
+                <div>
+                  <label className="block text-[8px] font-bold uppercase mb-[2px] text-black dark:text-white/60">SKU / Código</label>
+                  <input 
+                    type="text" 
+                    value={quickAddProductFormData.sku} 
+                    onChange={e => setQuickAddProductFormData({...quickAddProductFormData, sku: e.target.value})} 
+                    className={inputClass} 
+                    placeholder="SKU-100" 
+                  />
+                </div>
+                <div>
+                  <label className="block text-[8px] font-bold uppercase mb-[2px] text-black dark:text-white/60">Código de Barras</label>
+                  <input 
+                    type="text" 
+                    value={quickAddProductFormData.codigoBarras} 
+                    onChange={e => setQuickAddProductFormData({...quickAddProductFormData, codigoBarras: e.target.value})} 
+                    className={inputClass} 
+                    placeholder="7861000..." 
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-[5px]">
+                <div>
+                  <label className="block text-[8px] font-bold uppercase mb-[2px] text-black dark:text-white/60">P. Venta ($)</label>
+                  <input 
+                    type="number" 
+                    step="0.0001"
+                    required 
+                    value={quickAddProductFormData.price} 
+                    onChange={e => setQuickAddProductFormData({...quickAddProductFormData, price: e.target.value})} 
+                    className={inputClass} 
+                    placeholder="10.00" 
+                  />
+                </div>
+                <div>
+                  <label className="block text-[8px] font-bold uppercase mb-[2px] text-black dark:text-white/60">Costo ($)</label>
+                  <input 
+                    type="number" 
+                    step="0.0001" 
+                    value={quickAddProductFormData.baseCost} 
+                    onChange={e => setQuickAddProductFormData({...quickAddProductFormData, baseCost: e.target.value})} 
+                    className={inputClass} 
+                    placeholder="6.50" 
+                  />
+                </div>
+                <div>
+                  <label className="block text-[8px] font-bold uppercase mb-[2px] text-black dark:text-white/60">Stock Inicial</label>
+                  <input 
+                    type="number" 
+                    value={quickAddProductFormData.stock} 
+                    onChange={e => setQuickAddProductFormData({...quickAddProductFormData, stock: e.target.value})} 
+                    className={inputClass} 
+                    placeholder="10" 
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[8px] font-bold uppercase mb-[2px] text-black dark:text-white/60">Categoría IVA</label>
+                <select 
+                  value={quickAddProductFormData.ivaCategory} 
+                  onChange={e => setQuickAddProductFormData({...quickAddProductFormData, ivaCategory: Number(e.target.value)})} 
+                  className={inputClass}
+                >
+                  <option value={15}>15% IVA</option>
+                  <option value={5}>5% IVA</option>
+                  <option value={0}>0% IVA</option>
+                </select>
+              </div>
+
+              <div className="flex justify-end gap-[5px] mt-[5px] pt-[5px] border-t border-white/5">
+                <button 
+                  type="button" 
+                  onClick={() => setIsQuickAddProductOpen(false)} 
+                  className={`px-[10px] py-[5px] rounded-[8px] text-xs font-semibold ${isDarkMode ? 'hover:bg-white/10 text-white' : 'hover:bg-gray-100 text-black'}`}
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="submit" 
+                  className="px-[10px] py-[5px] rounded-[8px] text-xs font-bold bg-[#1C40F2] hover:bg-blue-700 text-white shadow-sm flex items-center gap-[3px]"
+                >
+                  <Plus size={12} />
+                  <span>Añadir</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
