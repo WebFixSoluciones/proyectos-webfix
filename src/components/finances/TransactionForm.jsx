@@ -2228,9 +2228,9 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     </div>
                   )}
 
-                  <div className="flex justify-between pt-[4px] border-t font-bold text-xs border-gray-300 dark:border-white/10">
-                    <span style={{ color: isDarkMode ? '#FFFFFF' : '#000000' }} className="font-bold">TOTAL:</span>
-                    <span style={{ color: '#1C40F2' }} className="font-black text-sm">${Number(formData.total).toFixed(2)}</span>
+                  <div className="flex justify-between items-center pt-[4px] border-t font-bold text-xs border-gray-300 dark:border-white/10">
+                    <span style={{ color: isDarkMode ? '#FFFFFF' : '#000000' }} className="font-bold text-xs">TOTAL:</span>
+                    <span style={{ color: '#1C40F2' }} className="font-black text-xl">${Number(formData.total).toFixed(2)}</span>
                   </div>
                 </div>
               </div>
@@ -2275,7 +2275,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                               return updated;
                             });
                           }}
-                          className={`flex flex-col items-center justify-center p-[4px] rounded-[8px] border transition-all gap-[2px] ${
+                          className={`flex flex-col items-center justify-center p-[5px] rounded-[8px] border transition-all gap-[4px] ${
                             isSelected 
                               ? 'bg-[#1C40F2] border-[#1C40F2] text-white shadow-sm'
                               : isDarkMode 
@@ -2283,12 +2283,12 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                                 : 'border-gray-300 bg-gray-50 text-black hover:bg-gray-100'
                           }`}
                         >
-                          <div className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors ${
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
                             isSelected ? 'bg-white text-[#1C40F2]' : isDarkMode ? 'bg-[#1C40F2]/20 text-[#1C40F2]' : 'bg-[#1C40F2] text-white'
                           }`}>
-                            <m.icon size={11} />
+                            <m.icon size={16} />
                           </div>
-                          <span className="text-[8px] font-bold uppercase">{m.label}</span>
+                          <span className="text-[10px] font-bold uppercase">{m.label}</span>
                         </button>
                       );
                     })}
