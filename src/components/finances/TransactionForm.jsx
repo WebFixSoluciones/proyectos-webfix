@@ -157,6 +157,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   });
   const [creditObservations, setCreditObservations] = useState('');
   const [isCreditModalOpen, setIsCreditModalOpen] = useState(false);
+  const [mobileTab, setMobileTab] = useState('cliente'); // 'cliente' | 'carrito' | 'pago'
 
   // MiniPOS Discount
   const [generalDiscountType, setGeneralDiscountType] = useState('percent'); // 'percent' | 'fixed'
@@ -1549,8 +1550,13 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
             <Calculator size={16} />
           </div>
           <div>
-            <h2 className="text-xs font-bold flex items-center gap-[3px] text-black dark:text-white">
-              {formData.id ? 'Detalles de' : 'Asistente de'} {formData.type === 'ingreso' ? 'Venta' : 'Gasto / Egreso'}
+            {/* Desktop / Tablet Header Title */}
+            <h2 className="text-xs font-black uppercase tracking-wider text-black dark:text-white hidden sm:block">
+              {formData.type === 'ingreso' ? 'Asistente de Ventas' : 'Asistente de Compras'}
+            </h2>
+            {/* Mobile Header Title */}
+            <h2 className="text-xs font-black uppercase tracking-wider text-black dark:text-white sm:hidden">
+              {formData.type === 'ingreso' ? 'Ventas' : 'Compras'}
             </h2>
             {formData.claveAcceso && <p className="text-[9px] font-mono text-black dark:text-white/60 mt-[1px]">Clave SRI: {formData.claveAcceso}</p>}
           </div>
@@ -1645,12 +1651,45 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         {/* PASO 1: CABECERA, PRODUCTOS & PAGO (MINI POS)           */}
         {/* ═══════════════════════════════════════════════════════ */}
         {currentStep === 1 && (
-          <div className="grid grid-cols-12 gap-[12px] animate-in fade-in slide-in-from-bottom duration-300">
-            {/* Left Column: lg:col-span-8 */}
-            <div className="col-span-12 lg:col-span-8 space-y-[12px]">
-              
-              {/* Card 1: Client and location details */}
-              <div className={cardClass}>
+          <div className="space-y-[12px]">
+            {/* Mobile Navigation Tabs */}
+            <div className="flex lg:hidden w-full p-[4px] rounded-[10px] bg-slate-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 gap-[4px] mb-[4px]">
+              {[
+                { id: 'cliente', label: 'Cliente', count: formData.thirdPartyId ? '✓' : '⚠️' },
+                { id: 'carrito', label: 'Carrito', count: formData.items?.length || 0 },
+                { id: 'pago', label: 'Pago', count: `$${Number(formData.total).toFixed(2)}` }
+              ].map(tab => {
+                const isActive = mobileTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setMobileTab(tab.id)}
+                    className={`flex-1 flex flex-col items-center justify-center py-[8px] rounded-[8px] transition-all text-xs font-black uppercase ${
+                      isActive 
+                        ? 'bg-[#1C40F2] text-white shadow-md'
+                        : isDarkMode ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-slate-600 hover:text-black hover:bg-slate-200'
+                    }`}
+                  >
+                    <span>{tab.label}</span>
+                    <span className={`text-[9px] mt-[2px] font-bold px-[6px] py-[1px] rounded-full ${
+                      isActive
+                        ? 'bg-white/20 text-white'
+                        : isDarkMode ? 'bg-white/10 text-white/80' : 'bg-slate-200 text-slate-800'
+                    }`}>
+                      {tab.count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="grid grid-cols-12 gap-[12px] animate-in fade-in slide-in-from-bottom duration-300">
+              {/* Left Column: lg:col-span-8 */}
+              <div className="col-span-12 lg:col-span-8 space-y-[12px]">
+                
+                {/* Card 1: Client and location details */}
+                <div className={`${cardClass} ${mobileTab === 'cliente' ? 'block' : 'hidden lg:block'}`}>
                 <div className="flex items-center gap-[6px] mb-[10px]">
                   <div className="text-[#1C40F2]">
                     <User size={14} />
@@ -1727,7 +1766,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
                 {/* Client detail card (extremely compact) */}
                 {matchedTercero ? (
-                  <div className={`grid grid-cols-3 gap-[10px] p-[8px] rounded-[8px] ${isDarkMode ? 'bg-white/5 border border-white/10' : 'bg-gray-50 border border-gray-150'} mb-[8px] text-[11px]`}>
+                  <div className={`grid grid-cols-1 sm:grid-cols-3 gap-[10px] p-[8px] rounded-[8px] ${isDarkMode ? 'bg-white/5 border border-white/10' : 'bg-gray-50 border border-gray-150'} mb-[8px] text-[11px]`}>
                     <div>
                       <p className={`uppercase text-[9px] font-bold ${isDarkMode ? 'text-white/60' : 'text-[#000000]/60'}`}>Razón Social</p>
                       <p style={{ color: isDarkMode ? '#FFFFFF' : '#000000' }} className="font-semibold truncate uppercase text-[11px]">{matchedTercero.name}</p>
@@ -1750,7 +1789,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 )}
 
                 {/* Document Type, Establishment, Bodega, Reference in a compact grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-[8px]">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[8px]">
                   <div>
                     <label className={labelClass}>Tipo Documento</label>
                     <select 
@@ -1831,7 +1870,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 </div>
 
                 {/* Second row of info: Reference & Description */}
-                <div className="grid grid-cols-2 gap-[8px] mt-[8px]">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-[8px] mt-[8px]">
                   <div>
                     <label className={labelClass}>Referencia</label>
                     <input 
@@ -2007,7 +2046,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 </div>
               ) : (
                 /* Products Table & Search card */
-                <div className={cardClass}>
+                <div className={`${cardClass} ${mobileTab === 'carrito' ? 'block' : 'hidden lg:block'}`}>
                   <div className="flex items-center gap-[5px] mb-[5px] flex-wrap">
                     {/* Search Field */}
                     <div className="relative flex-1 min-w-[200px]">
@@ -2252,7 +2291,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
             </div>
 
             {/* Right Column: lg:col-span-4 */}
-            <div className="col-span-12 lg:col-span-4 space-y-[12px]">
+            <div className={`col-span-12 lg:col-span-4 space-y-[12px] ${mobileTab === 'pago' ? 'block' : 'hidden lg:block'}`}>
               
               {/* Totales Card */}
               <div className={cardClass}>
@@ -2614,6 +2653,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               )}
             </div>
           </div>
+          </div>
         )}
 
         {/* ═══════════════════════════════════════════════════════ */}
@@ -2814,51 +2854,127 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       <div className={`sticky bottom-0 z-20 px-[12px] py-[10px] border-t backdrop-blur-md flex justify-between items-center ${
         isDarkMode ? 'border-white/5 bg-[#151517]/95' : 'border-gray-250 bg-white/95'
       }`}>
-        <button
-          type="button"
-          onClick={handlePrevStep}
-          disabled={currentStep === 1 || isLockedInStep2}
-          className={`flex items-center gap-[4px] px-[12px] py-[8px] rounded-[8px] text-xs font-semibold border transition-all ${
-            currentStep === 1 || isLockedInStep2
-              ? 'opacity-0 pointer-events-none' 
-              : isDarkMode 
-                ? 'border-white/10 hover:bg-white/5 text-gray-300' 
-                : 'border-gray-300 hover:bg-gray-100 text-black'
-          }`}
-        >
-          <ArrowLeft size={12} />
-          <span>Atrás</span>
-        </button>
+        {/* Mobile Navigation Buttons (Step 1) */}
+        {currentStep === 1 && (
+          <div className="flex lg:hidden items-center justify-between w-full">
+            {/* Atrás (Mobile) */}
+            {mobileTab !== 'cliente' ? (
+              <button
+                type="button"
+                onClick={() => setMobileTab(mobileTab === 'pago' ? 'carrito' : 'cliente')}
+                className={`flex items-center gap-[4px] px-[12px] py-[8px] rounded-[8px] text-xs font-semibold border transition-all ${
+                  isDarkMode 
+                    ? 'border-white/10 hover:bg-white/5 text-gray-300' 
+                    : 'border-gray-300 hover:bg-gray-100 text-black'
+                }`}
+              >
+                <ArrowLeft size={12} />
+                <span>Atrás</span>
+              </button>
+            ) : (
+              <div className="w-[60px]" />
+            )}
 
-        <span className={`text-[11px] font-bold uppercase ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>
-          Paso {currentStep} de 2
-        </span>
+            <span className={`text-[11px] font-bold uppercase ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>
+              {mobileTab === 'cliente' ? '1. Cliente' : mobileTab === 'carrito' ? '2. Carrito' : '3. Pago'}
+            </span>
 
-        {currentStep < 2 ? (
+            {/* Siguiente (Mobile) */}
+            {mobileTab !== 'pago' ? (
+              <button
+                type="button"
+                onClick={() => setMobileTab(mobileTab === 'cliente' ? 'carrito' : 'pago')}
+                className="flex items-center gap-[4px] px-[12px] py-[8px] rounded-[8px] text-xs font-bold bg-[#1C40F2] text-white hover:bg-blue-700 transition-all shadow-sm"
+              >
+                <span>Siguiente</span>
+                <ArrowRight size={14} />
+              </button>
+            ) : (
+              <div className="w-[75px]" />
+            )}
+          </div>
+        )}
+
+        {/* Desktop Navigation (original) */}
+        <div className={`hidden lg:flex justify-between items-center w-full`}>
           <button
             type="button"
-            disabled={currentStep === 1 && isEditable && !formData.documentNumber}
-            onClick={handleNextStep}
-            className={`flex items-center gap-[4px] px-[12px] py-[8px] rounded-[8px] text-xs font-bold transition-all shadow-sm ${
-              currentStep === 1 && isEditable && !formData.documentNumber
-                ? 'opacity-50 cursor-not-allowed bg-gray-300 text-gray-500 border border-gray-300 dark:bg-white/5 dark:border-white/10'
-                : 'bg-[#1C40F2] text-white hover:bg-blue-700'
+            onClick={handlePrevStep}
+            disabled={currentStep === 1 || isLockedInStep2}
+            className={`flex items-center gap-[4px] px-[12px] py-[8px] rounded-[8px] text-xs font-semibold border transition-all ${
+              currentStep === 1 || isLockedInStep2
+                ? 'opacity-0 pointer-events-none' 
+                : isDarkMode 
+                  ? 'border-white/10 hover:bg-white/5 text-gray-300' 
+                  : 'border-gray-300 hover:bg-gray-100 text-black'
             }`}
           >
-            <span>Siguiente</span>
-            <ArrowRight size={14} />
+            <ArrowLeft size={12} />
+            <span>Atrás</span>
           </button>
-        ) : (
-          <button
-            type="button"
-            onClick={onClose}
-            className={`flex items-center gap-1.5 px-6 py-3 rounded-xl text-xs font-bold bg-primary text-white hover:bg-primary transition-all shadow-md hover:-translate-y-0.5`}
-          >
-            <span>Terminar / Salir</span>
-          </button>
+
+          <span className={`text-[11px] font-bold uppercase ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>
+            Paso {currentStep} de 2
+          </span>
+
+          {currentStep < 2 ? (
+            <button
+              type="button"
+              disabled={currentStep === 1 && isEditable && !formData.documentNumber}
+              onClick={handleNextStep}
+              className={`flex items-center gap-[4px] px-[12px] py-[8px] rounded-[8px] text-xs font-bold transition-all shadow-sm ${
+                currentStep === 1 && isEditable && !formData.documentNumber
+                  ? 'opacity-50 cursor-not-allowed bg-gray-300 text-gray-500 border border-gray-300 dark:bg-white/5 dark:border-white/10'
+                  : 'bg-[#1C40F2] text-white hover:bg-blue-700'
+              }`}
+            >
+              <span>Siguiente</span>
+              <ArrowRight size={14} />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={onClose}
+              className={`flex items-center gap-1.5 px-6 py-3 rounded-xl text-xs font-bold bg-primary text-white hover:bg-primary transition-all shadow-md hover:-translate-y-0.5`}
+            >
+              <span>Terminar / Salir</span>
+            </button>
+          )}
+        </div>
+
+        {/* Mobile Navigation when in Step 2 */}
+        {currentStep === 2 && (
+          <div className="flex lg:hidden justify-between items-center w-full">
+            <button
+              type="button"
+              onClick={handlePrevStep}
+              disabled={isLockedInStep2}
+              className={`flex items-center gap-[4px] px-[12px] py-[8px] rounded-[8px] text-xs font-semibold border transition-all ${
+                isLockedInStep2
+                  ? 'opacity-0 pointer-events-none' 
+                  : isDarkMode 
+                    ? 'border-white/10 hover:bg-white/5 text-gray-300' 
+                    : 'border-gray-300 hover:bg-gray-100 text-black'
+              }`}
+            >
+              <ArrowLeft size={12} />
+              <span>Atrás</span>
+            </button>
+            
+            <span className={`text-[11px] font-bold uppercase ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>
+              Paso 2 de 2
+            </span>
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex items-center gap-[4px] px-[12px] py-[8px] rounded-[8px] text-xs font-bold bg-[#1C40F2] text-white hover:bg-blue-700 transition-all shadow-sm"
+            >
+              <span>Terminar</span>
+            </button>
+          </div>
         )}
       </div>
-
 
       {/* MODAL SEGUIMIENTO DE CRÉDITO / CXC */}
       {isCreditModalOpen && (
