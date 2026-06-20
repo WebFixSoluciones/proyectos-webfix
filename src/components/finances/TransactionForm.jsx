@@ -2721,9 +2721,9 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         <button
           type="button"
           onClick={handlePrevStep}
-          disabled={currentStep === 1 || isLockedInStep3}
+          disabled={currentStep === 1 || isLockedInStep2}
           className={`flex items-center gap-[3px] px-[8px] py-[5px] rounded-[8px] text-xs font-semibold border transition-all ${
-            currentStep === 1 || isLockedInStep3
+            currentStep === 1 || isLockedInStep2
               ? 'opacity-0 pointer-events-none' 
               : isDarkMode 
                 ? 'border-white/10 hover:bg-white/5 text-gray-300' 
