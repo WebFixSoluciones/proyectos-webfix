@@ -780,36 +780,59 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     }));
   };
 
+  const showValidationErrorAlert = (message) => {
+    setConfirmDialog({
+      title: "Validación de Emisión",
+      message: message.toUpperCase(),
+      type: "danger",
+      isAlert: true,
+      confirmLabel: "Aceptar",
+      onConfirm: () => setConfirmDialog(null),
+      onCancel: () => setConfirmDialog(null)
+    });
+  };
+
   const validateForm = () => {
     if (!formData.thirdPartyId) {
-      showToast('Selecciona un tercero', 'error');
+      showValidationErrorAlert('FALTA INGRESAR CLIENTE');
       return false;
     }
 
     const matchedTercero = thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
     if (!matchedTercero) {
-      showToast('Contacto inválido', 'error');
+      showValidationErrorAlert('FALTA INGRESAR CLIENTE');
       return false;
     }
 
     if (!validarIdentificacion(matchedTercero.ruc)) {
-      showToast(`El RUC/CI del contacto (${matchedTercero.ruc}) es incorrecto`, 'error');
+      showValidationErrorAlert(`EL RUC/CI DEL CONTACTO (${matchedTercero.ruc}) ES INCORRECTO`);
       return false;
     }
 
     if (Number(formData.total) < 0) {
-      showToast('El total liquidado no puede ser menor a cero', 'error');
+      showValidationErrorAlert('EL TOTAL LIQUIDADO NO PUEDE SER MENOR A CERO');
       return false;
     }
 
     if (formData.documentNumber && !/^\d{3}-\d{3}-\d{9}$/.test(formData.documentNumber)) {
-      showToast('El número de comprobante debe tener el formato 000-000-000000000', 'error');
+      showValidationErrorAlert('EL NÚMERO DE COMPROBANTE DEBE TENER EL FORMATO 000-000-000000000');
       return false;
     }
 
     const pStatus = calculatePaymentStatus();
     if (!pStatus.isValid) {
-      showToast(pStatus.error, 'error');
+      // Determine if there's no payment at all
+      const total = Number(formData.total) || 0;
+      const ef = Number(payments.efectivo) || 0;
+      const tr = Number(payments.transferencia) || 0;
+      const tj = Number(payments.tarjeta) || 0;
+      const cr = Number(payments.cruce_cuentas) || 0;
+      const sum = ef + tr + tj + cr;
+      if (sum === 0 && total > 0) {
+        showValidationErrorAlert('FALTA INGRESAR VALOR EN MEDIO DE PAGO');
+      } else {
+        showValidationErrorAlert(pStatus.error);
+      }
       return false;
     }
 
@@ -3121,17 +3144,19 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
             </div>
 
             <div className="flex justify-end gap-[8px]">
-              <button
-                type="button"
-                onClick={confirmDialog.onCancel}
-                className={`px-[12px] py-[6px] rounded-[8px] text-xs font-bold transition-all border ${
-                  isDarkMode 
-                    ? 'border-white/10 hover:bg-white/5 text-white' 
-                    : 'border-gray-300 hover:bg-gray-100 text-black'
-                }`}
-              >
-                Cancelar
-              </button>
+              {!confirmDialog.isAlert && (
+                <button
+                  type="button"
+                  onClick={confirmDialog.onCancel}
+                  className={`px-[12px] py-[6px] rounded-[8px] text-xs font-bold transition-all border ${
+                    isDarkMode 
+                      ? 'border-white/10 hover:bg-white/5 text-white' 
+                      : 'border-gray-300 hover:bg-gray-100 text-black'
+                  }`}
+                >
+                  Cancelar
+                </button>
+              )}
               <button
                 type="button"
                 onClick={confirmDialog.onConfirm}
@@ -3143,7 +3168,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       : 'bg-[#1C40F2] hover:bg-blue-700'
                 }`}
               >
-                Aceptar / Confirmar
+                {confirmDialog.confirmLabel || 'Aceptar / Confirmar'}
               </button>
             </div>
           </div>
