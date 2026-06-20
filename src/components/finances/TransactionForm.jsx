@@ -1444,7 +1444,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   const totalPaid = efVal + tjVal + trVal + crVal;
 
   return createPortal(
-    <div className={`fixed inset-0 z-[100] w-screen h-screen overflow-y-auto flex flex-col font-sans ${isDarkMode ? 'bg-[#0c0c0e] text-white' : 'bg-gray-50 text-gray-900'}`}>
+    <div className={`fixed inset-0 z-[100] w-screen h-screen overflow-y-auto flex flex-col font-sans ${isDarkMode ? 'bg-[#0c0c0e] text-white' : 'bg-gray-50 text-black'}`}>
       
       {/* TOP HEADER */}
       <div className={`sticky top-0 z-20 flex items-center justify-between px-[8px] py-[5px] border-b backdrop-blur-md ${isDarkMode ? 'border-white/5 bg-[#151517]/95' : 'border-gray-200 bg-white/95'}`}>
@@ -1456,7 +1456,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
             <h2 className="text-xs font-bold flex items-center gap-[3px] text-black dark:text-white">
               {formData.id ? 'Detalles de' : 'Asistente de'} {formData.type === 'ingreso' ? 'Venta' : 'Gasto / Egreso'}
             </h2>
-            {formData.claveAcceso && <p className="text-[9px] font-mono text-gray-500 dark:text-gray-450 mt-[1px]">Clave SRI: {formData.claveAcceso}</p>}
+            {formData.claveAcceso && <p className="text-[9px] font-mono text-black dark:text-white/60 mt-[1px]">Clave SRI: {formData.claveAcceso}</p>}
           </div>
         </div>
 
@@ -2766,41 +2766,41 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
       {/* MODAL SEGUIMIENTO DE CRÉDITO / CXC */}
       {isCreditModalOpen && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-in fade-in">
-          <div className={`w-full max-w-md p-6 rounded-3xl shadow-2xl border ${
-            isDarkMode ? 'bg-[#151517] border border-white/10 text-white' : 'bg-white border border-gray-200 text-gray-900'
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-[5px] bg-black/85 backdrop-blur-sm animate-in fade-in">
+          <div className={`w-full max-w-md p-[5px] rounded-[10px] shadow-2xl border ${
+            isDarkMode ? 'bg-[#151517] border border-white/10 text-white' : 'bg-white border border-gray-200 text-black'
           }`}>
-            <div className="flex justify-between items-center mb-4 border-b pb-2 dark:border-white/5">
-              <h3 className="text-sm font-black flex items-center gap-2">
-                <User className="text-amber-500" size={16} />
+            <div className="flex justify-between items-center mb-[5px] border-b pb-[3px] dark:border-white/5">
+              <h3 className="text-xs font-bold flex items-center gap-[3px] text-black dark:text-white">
+                <User className="text-amber-500" size={14} />
                 Seguimiento de Cuenta por Cobrar
               </h3>
               <button 
                 type="button" 
                 onClick={() => setIsCreditModalOpen(false)}
-                className="p-1.5 rounded-lg hover:bg-white/10"
+                className="p-[3px] rounded-[8px] hover:bg-white/10"
               >
-                <X size={14} />
+                <X size={12} />
               </button>
             </div>
 
-            <div className="space-y-4">
-              <div className={`p-4 rounded-2xl border text-xs space-y-2 ${
-                isDarkMode ? 'bg-black/10 border-white/5' : 'bg-gray-50 border-gray-200'
+            <div className="space-y-[5px]">
+              <div className={`p-[5px] rounded-[10px] border text-[10px] space-y-[3px] ${
+                isDarkMode ? 'bg-black/10 border-white/5 text-white' : 'bg-gray-100 border-gray-300 text-black'
               }`}>
                 <div className="flex justify-between">
-                  <span className={isDarkMode ? 'text-gray-400' : 'text-gray-500'}>Cliente:</span>
-                  <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{matchedTercero?.name || 'Cliente no seleccionado'}</span>
+                  <span className={isDarkMode ? 'text-white/60' : 'text-black/85'}>Cliente:</span>
+                  <span className="font-bold">{matchedTercero?.name || 'Cliente no seleccionado'}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className={isDarkMode ? 'text-gray-400' : 'text-gray-500'}>Cupo de Crédito:</span>
-                  <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>${(Number(matchedTercero?.limiteCredito) || 1000).toFixed(2)}</span>
+                  <span className={isDarkMode ? 'text-white/60' : 'text-black/85'}>Cupo de Crédito:</span>
+                  <span className="font-bold">${(Number(matchedTercero?.limiteCredito) || 1000).toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-red-400">
+                <div className="flex justify-between text-red-650 dark:text-red-400">
                   <span>Deuda Pendiente Actual:</span>
                   <span className="font-bold">${clientDebt.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-primary border-t border-dashed dark:border-white/5 pt-2">
+                <div className="flex justify-between text-[#1C40F2] border-t border-dashed border-gray-350 dark:border-white/5 pt-[2px]">
                   <span>Monto Venta Actual:</span>
                   <span className="font-bold">${Number(formData.total).toFixed(2)}</span>
                 </div>
@@ -2810,8 +2810,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   const totalVenta = Number(formData.total) || 0;
                   const available = limit - clientDebt - totalVenta;
                   return (
-                    <div className={`flex justify-between border-t border-dashed dark:border-white/5 pt-2 ${
-                      available < 0 ? 'text-red-500 font-extrabold animate-pulse' : 'text-emerald-400 font-bold'
+                    <div className={`flex justify-between border-t border-dashed border-gray-350 dark:border-white/5 pt-[2px] ${
+                      available < 0 ? 'text-red-600 dark:text-red-400 font-bold' : 'text-emerald-700 dark:text-emerald-450 font-bold'
                     }`}>
                       <span>Cupo Disponible Resultante:</span>
                       <span>${available.toFixed(2)}</span>
@@ -2826,11 +2826,11 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 const available = limit - clientDebt - totalVenta;
                 if (available < 0) {
                   return (
-                    <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] leading-normal flex items-start gap-2">
-                      <AlertTriangle size={16} className="shrink-0 mt-0.5" />
+                    <div className="p-[5px] rounded-[10px] bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-450 text-[9px] leading-normal flex items-start gap-[3px]">
+                      <AlertTriangle size={12} className="shrink-0 mt-[1px]" />
                       <div>
                         <p className="font-bold">⚠️ Límite de Crédito Superado</p>
-                        <p className="opacity-90">La deuda actual más esta venta superan el cupo disponible del cliente en ${(Math.abs(available)).toFixed(2)}.</p>
+                        <p className="opacity-90 font-normal">La deuda actual más esta venta superan el cupo disponible del cliente en ${(Math.abs(available)).toFixed(2)}.</p>
                       </div>
                     </div>
                   );
@@ -2838,9 +2838,9 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 return null;
               })()}
 
-              <div className="space-y-3">
+              <div className="space-y-[5px]">
                 <div>
-                  <label className="block text-[9px] font-bold uppercase mb-1 text-gray-500">Fecha de Vencimiento de la Deuda</label>
+                  <label className="block text-[8px] font-bold uppercase mb-[2px] text-black dark:text-white/60">Fecha de Vencimiento de la Deuda</label>
                   <input 
                     type="date" 
                     value={creditDueDate} 
@@ -2849,7 +2849,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   />
                 </div>
                 <div>
-                  <label className="block text-[9px] font-bold uppercase mb-1 text-gray-500">Observaciones / Comentario de Crédito</label>
+                  <label className="block text-[8px] font-bold uppercase mb-[2px] text-black dark:text-white/60">Observaciones / Comentario de Crédito</label>
                   <textarea 
                     rows={3}
                     value={creditObservations} 
@@ -2860,15 +2860,15 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2.5 mt-4 pt-3 border-t dark:border-white/5">
+              <div className="flex justify-end gap-[5px] mt-[5px] pt-[5px] border-t border-gray-250 dark:border-white/5">
                 <button 
                   type="button" 
                   onClick={() => {
                     setIsCreditModalOpen(false);
                     setFormData(prev => ({ ...prev, paymentMethod: 'efectivo' }));
                   }} 
-                  className={`px-4 py-2 rounded-xl text-xs font-semibold ${
-                    isDarkMode ? 'hover:bg-white/10 text-gray-300' : 'hover:bg-gray-100 text-gray-700'
+                  className={`px-[10px] py-[5px] rounded-[8px] text-xs font-semibold border transition-all ${
+                    isDarkMode ? 'border-white/10 hover:bg-white/5 text-white' : 'border-gray-300 hover:bg-gray-100 text-black'
                   }`}
                 >
                   Cancelar
@@ -2876,7 +2876,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 <button 
                   type="button" 
                   onClick={() => setIsCreditModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-500 text-white shadow-md"
+                  className="px-[10px] py-[5px] rounded-[8px] text-xs font-bold bg-amber-600 hover:bg-amber-500 text-white shadow-sm"
                 >
                   Confirmar Crédito
                 </button>
@@ -2888,16 +2888,16 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
       {/* MODAL CREAR CONTACTO RAPIDO */}
       {isQuickAddOpen && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-in fade-in">
-          <div className={`w-full max-w-md p-6 rounded-3xl shadow-2xl ${isDarkMode ? 'bg-[#151517] border border-white/10 text-white' : 'bg-white border border-gray-200 text-gray-900'}`}>
-            <h3 className="text-sm font-black mb-4">
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-[5px] bg-black/85 backdrop-blur-sm animate-in fade-in">
+          <div className={`w-full max-w-md p-[5px] rounded-[10px] shadow-2xl border ${isDarkMode ? 'bg-[#151517] border border-white/10 text-white' : 'bg-white border border-gray-200 text-black'}`}>
+            <h3 style={{ color: isDarkMode ? '#FFFFFF' : '#000000' }} className="text-xs font-bold mb-[5px] border-b pb-[3px] dark:border-white/5 uppercase">
               Nuevo {formData.type === 'ingreso' ? 'Cliente' : 'Proveedor'} (Rápido)
             </h3>
             
-            <form onSubmit={handleQuickAddSave} className="space-y-3.5">
-              <div className="grid grid-cols-2 gap-3">
+            <form onSubmit={handleQuickAddSave} className="space-y-[5px]">
+              <div className="grid grid-cols-2 gap-[5px]">
                 <div>
-                  <label className="block text-[9px] font-bold uppercase mb-1 text-gray-500">Identificación</label>
+                  <label className="block text-[8px] font-bold uppercase mb-[2px] text-black dark:text-white/60">Identificación</label>
                   <select 
                     value={quickAddFormData.tipoIdentificacion || 'ruc'} 
                     onChange={e => setQuickAddFormData({...quickAddFormData, tipoIdentificacion: e.target.value})} 
@@ -2909,8 +2909,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[9px] font-bold uppercase mb-1 text-gray-500">Número</label>
-                  <div className="flex gap-1.5">
+                  <label className="block text-[8px] font-bold uppercase mb-[2px] text-black dark:text-white/60">Número</label>
+                  <div className="flex gap-[5px]">
                     <input 
                       type="text" 
                       required 
@@ -2923,7 +2923,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       type="button"
                       disabled={isQueryingSri}
                       onClick={queryQuickAddSRI}
-                      className={`px-3.5 rounded-xl border flex items-center justify-center transition-all shrink-0 ${
+                      className={`px-[10px] rounded-[8px] border flex items-center justify-center transition-all shrink-0 ${
                         isDarkMode 
                           ? 'bg-purple-600/20 text-purple-400 border-purple-500/30 hover:bg-purple-500/30' 
                           : 'bg-purple-50 border-purple-200 text-purple-800 hover:bg-purple-100 shadow-sm'
@@ -2937,7 +2937,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               </div>
 
               <div>
-                <label className="block text-[9px] font-bold uppercase mb-1 text-gray-500">Razón Social / Nombres</label>
+                <label className="block text-[8px] font-bold uppercase mb-[2px] text-black dark:text-white/60">Razón Social / Nombres</label>
                 <input 
                   type="text" 
                   required 
@@ -2948,9 +2948,9 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-[5px]">
                 <div>
-                  <label className="block text-[9px] font-bold uppercase mb-1 text-gray-500">Teléfono</label>
+                  <label className="block text-[8px] font-bold uppercase mb-[2px] text-black dark:text-white/60">Teléfono</label>
                   <input 
                     type="text" 
                     value={quickAddFormData.telefono || ''} 
@@ -2960,7 +2960,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   />
                 </div>
                 <div>
-                  <label className="block text-[9px] font-bold uppercase mb-1 text-gray-500">Régimen</label>
+                  <label className="block text-[8px] font-bold uppercase mb-[2px] text-black dark:text-white/60">Régimen</label>
                   <input 
                     type="text" 
                     readOnly 
@@ -2975,9 +2975,9 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-[5px]">
                 <div>
-                  <label className="block text-[9px] font-bold uppercase mb-1 text-gray-500">Dirección</label>
+                  <label className="block text-[8px] font-bold uppercase mb-[2px] text-black dark:text-white/60">Dirección</label>
                   <input 
                     type="text" 
                     value={quickAddFormData.direccion || ''} 
@@ -2987,7 +2987,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   />
                 </div>
                 <div>
-                  <label className="block text-[9px] font-bold uppercase mb-1 text-gray-500">Ciudad</label>
+                  <label className="block text-[8px] font-bold uppercase mb-[2px] text-black dark:text-white/60">Ciudad</label>
                   <input 
                     type="text" 
                     value={quickAddFormData.ciudad || ''} 
@@ -2999,7 +2999,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               </div>
 
               <div>
-                <label className="block text-[9px] font-bold uppercase mb-1 text-gray-500">Correo Electrónico</label>
+                <label className="block text-[8px] font-bold uppercase mb-[2px] text-black dark:text-white/60">Correo Electrónico</label>
                 <input 
                   type="email" 
                   value={quickAddFormData.email || ''} 
@@ -3009,17 +3009,17 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 />
               </div>
 
-              <div className="flex justify-end gap-2.5 mt-5 pt-3 border-t border-white/5">
+              <div className="flex justify-end gap-[5px] mt-[5px] pt-[5px] border-t border-white/5">
                 <button 
                   type="button" 
                   onClick={() => setIsQuickAddOpen(false)} 
-                  className={`px-3.5 py-2 rounded-xl text-xs font-semibold ${isDarkMode ? 'hover:bg-white/10 text-gray-300' : 'hover:bg-gray-100 text-gray-700'}`}
+                  className={`px-[10px] py-[5px] rounded-[8px] text-xs font-semibold ${isDarkMode ? 'hover:bg-white/10 text-white' : 'hover:bg-gray-100 text-black'}`}
                 >
                   Cancelar
                 </button>
                 <button 
                   type="submit" 
-                  className="px-4 py-2 rounded-xl text-xs font-black bg-emerald-600 text-white hover:bg-emerald-500 transition-transform hover:-translate-y-0.5 shadow-md"
+                  className="px-[10px] py-[5px] rounded-[8px] text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-500 transition-transform hover:-translate-y-0.5 shadow-md"
                 >
                   Guardar y Seleccionar
                 </button>
@@ -3031,52 +3031,52 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
       {/* CUSTOM CONFIRMATION DIALOG MODAL */}
       {confirmDialog && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className={`w-full max-w-md p-6 rounded-3xl shadow-2xl border transition-all ${
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-[5px] bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className={`w-full max-w-md p-[5px] rounded-[10px] shadow-2xl border transition-all ${
             isDarkMode 
               ? 'bg-[#151517] border-white/10 text-white' 
-              : 'bg-white border-gray-200 text-gray-900 shadow-xl'
+              : 'bg-white border-gray-200 text-black shadow-xl'
           }`}>
-            <div className="flex items-center gap-3.5 mb-4">
-              <div className={`p-3 rounded-2xl shrink-0 ${
+            <div className="flex items-center gap-[5px] mb-[5px]">
+              <div className={`p-[5px] rounded-[8px] shrink-0 ${
                 confirmDialog.type === 'danger'
                   ? 'bg-red-500/10 text-red-500'
                   : confirmDialog.type === 'warning'
                     ? 'bg-amber-500/10 text-amber-500'
-                    : 'bg-primary/10 text-primary'
+                    : 'bg-primary/10 text-[#1C40F2]'
               }`}>
                 {confirmDialog.type === 'danger' ? (
-                  <ShieldAlert size={22} />
+                  <ShieldAlert size={16} />
                 ) : confirmDialog.type === 'warning' ? (
-                  <AlertTriangle size={22} />
+                  <AlertTriangle size={16} />
                 ) : (
-                  <FileText size={22} />
+                  <FileText size={16} />
                 )}
               </div>
               <div>
-                <h3 className="text-sm font-black uppercase">
+                <h3 style={{ color: isDarkMode ? '#FFFFFF' : '#000000' }} className="text-xs font-bold uppercase">
                   {confirmDialog.title}
                 </h3>
-                <p className={`text-[10px] mt-0.5 font-semibold ${isDarkMode ? 'text-white/60' : 'text-black'}`}>
+                <p className="text-[8px] mt-[1px] font-bold uppercase text-black dark:text-white/60">
                   Acción de Seguridad Requerida
                 </p>
               </div>
             </div>
 
-            <div className={`p-4 rounded-2xl border text-xs leading-relaxed mb-5 ${
-              isDarkMode ? 'bg-black/10 border-white/5 text-gray-300' : 'bg-gray-50 border-gray-200 text-gray-700'
+            <div style={{ color: isDarkMode ? '#FFFFFF' : '#000000' }} className={`p-[5px] rounded-[10px] border text-xs leading-normal mb-[5px] font-normal ${
+              isDarkMode ? 'bg-black/10 border-white/5' : 'bg-gray-50 border-gray-200'
             }`}>
               {confirmDialog.message}
             </div>
 
-            <div className="flex justify-end gap-2.5">
+            <div className="flex justify-end gap-[5px]">
               <button
                 type="button"
                 onClick={confirmDialog.onCancel}
-                className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all border ${
+                className={`px-[10px] py-[5px] rounded-[8px] text-xs font-bold transition-all border ${
                   isDarkMode 
-                    ? 'border-white/10 hover:bg-white/5 text-gray-300' 
-                    : 'border-gray-300 hover:bg-gray-100 text-gray-700'
+                    ? 'border-white/10 hover:bg-white/5 text-white' 
+                    : 'border-gray-300 hover:bg-gray-100 text-black'
                 }`}
               >
                 Cancelar
@@ -3084,12 +3084,12 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               <button
                 type="button"
                 onClick={confirmDialog.onConfirm}
-                className={`px-5 py-2.5 rounded-xl text-xs font-black text-white shadow-md transition-all ${
+                className={`px-[10px] py-[5px] rounded-[8px] text-xs font-bold text-white shadow-md transition-all ${
                   confirmDialog.type === 'danger'
                     ? 'bg-red-600 hover:bg-red-500'
                     : confirmDialog.type === 'warning'
                       ? 'bg-amber-600 hover:bg-amber-500'
-                      : 'bg-primary hover:bg-primary'
+                      : 'bg-[#1C40F2] hover:bg-blue-700'
                 }`}
               >
                 Aceptar / Confirmar
