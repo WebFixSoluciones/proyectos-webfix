@@ -2034,7 +2034,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         
                         <button 
                           type="button"
-                          onClick={handleQuickAddMatch || handleQuickAddFirstMatch}
+                          onClick={handleQuickAddFirstMatch}
                           className="p-[6px] rounded-[8px] bg-yellow-500 hover:bg-yellow-600 text-black font-bold text-xs flex items-center justify-center transition-all"
                           title="Agregar rápido (ZAP)"
                         >
