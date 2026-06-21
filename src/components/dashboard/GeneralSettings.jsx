@@ -857,7 +857,7 @@ export default function GeneralSettings({
   const handleSaveAppearance = async (e) => {
     e.preventDefault();
     if (!primaryColor || !/^#[0-9A-Fa-f]{6}$/.test(primaryColor)) {
-      showToast("Por favor ingresa un color hexadecimal válido (ej. #1C40F2)", "error");
+      showToast("Por favor ingresa un color hexadecimal válido (ej. #4F46E5)", "error");
       return;
     }
     try {
@@ -1652,7 +1652,7 @@ export default function GeneralSettings({
                   <div className="relative w-12 h-12 rounded-xl overflow-hidden border border-gray-300 dark:border-white/10 shrink-0">
                     <input 
                       type="color" 
-                      value={primaryColor || '#1C40F2'} 
+                      value={primaryColor || '#4F46E5'} 
                       onChange={e => setPrimaryColor(e.target.value)} 
                       className="absolute inset-0 w-full h-full p-0 border-0 cursor-pointer"
                     />
@@ -1660,7 +1660,7 @@ export default function GeneralSettings({
                   <div className="flex-1">
                     <input 
                       type="text" 
-                      value={primaryColor || '#1C40F2'} 
+                      value={primaryColor || '#4F46E5'} 
                       onChange={e => {
                         let val = e.target.value;
                         if (val && !val.startsWith('#')) val = '#' + val;
@@ -1668,7 +1668,7 @@ export default function GeneralSettings({
                       }} 
                       maxLength={7}
                       className={inputClass} 
-                      placeholder="#1C40F2" 
+                      placeholder="#4F46E5" 
                     />
                   </div>
                 </div>
@@ -1679,7 +1679,7 @@ export default function GeneralSettings({
                 <label className="block text-[8px] font-bold uppercase mb-2 text-gray-500">Colores Recomendados</label>
                 <div className="flex flex-wrap gap-2">
                   {[
-                    { name: 'Azul WebFix', hex: '#1C40F2' },
+                    { name: 'Azul WebFix', hex: '#4F46E5' },
                     { name: 'Esmeralda', hex: '#10b981' },
                     { name: 'Índigo', hex: '#6366f1' },
                     { name: 'Violeta', hex: '#8b5cf6' },

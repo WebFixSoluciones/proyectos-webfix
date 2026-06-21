@@ -490,7 +490,7 @@ export default function App() {
   const [googleAccessToken, setGoogleAccessToken] = useState(null);
   
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [primaryColor, setPrimaryColor] = useState('#1C40F2');
+  const [primaryColor, setPrimaryColor] = useState('#4F46E5');
 
   useEffect(() => {
     document.documentElement.style.setProperty('--primary-color', primaryColor);
