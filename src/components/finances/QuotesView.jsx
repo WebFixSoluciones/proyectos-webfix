@@ -265,11 +265,7 @@ export default function QuotesView({ products, thirdParties, isDarkMode, showToa
               setIsModalOpen(true); 
             }}
             disabled={isBlocked}
-            className={`w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 rounded-[10px] text-xs font-bold transition-all hover-lift shadow-md ${
-              isBlocked 
-                ? 'bg-gray-450/20 text-gray-500 border border-white/5 cursor-not-allowed opacity-50' 
-                : (isDarkMode ? 'bg-primary text-white hover:bg-primary/95 shadow-primary/25 border border-primary/30' : 'bg-primary text-white hover:bg-primary-hover shadow-primary/10')
-            }`}
+            className={`btn-primary w-full sm:w-auto ${isBlocked ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <Plus size={15} /> Nueva Cotización
           </button>
@@ -358,21 +354,21 @@ export default function QuotesView({ products, thirdParties, isDarkMode, showToa
                           {q.status !== 'facturado' && (
                             <button 
                               onClick={() => handlePromote(q)}
-                              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-[10px] text-[10px] font-bold bg-emerald-600 text-white hover:bg-emerald-500 transition-all shadow-sm shrink-0`}
+                              className="btn-primary text-xs shrink-0 animate-pulse-glow"
                               title="Promover a Factura SRI"
                             >
-                              <ShoppingBag size={10} /> Facturar
+                              <ShoppingBag size={12} /> Facturar
                             </button>
                           )}
                           <button 
                             onClick={() => setSelectedQuoteTx({ ...q, documentType: 'cotizacion', documentNumber: q.quoteNumber, baseImponible: q.subtotal, ivaValor: q.ivaValor, total: q.total })} 
-                            className={`p-1.5 rounded-[10px] transition-colors ${isDarkMode ? 'hover:bg-orange-500/20 text-orange-400' : 'hover:bg-orange-50 text-orange-700 border border-orange-200 shadow-sm'}`}
+                            className={`btn-icon ${isDarkMode ? 'hover:bg-orange-500/20 text-orange-400' : 'hover:bg-orange-50 text-orange-700 border border-orange-200 bg-white'}`}
                             title="Ver RIDE Proforma / Imprimir"
                           >
                             <Eye size={13}/>
                           </button>
-                          <button onClick={() => { setFormData(q); setIsModalOpen(true); }} className={`p-1.5 rounded-[10px] transition-colors ${isDarkMode ? 'hover:bg-primary/20 text-primary' : 'hover:bg-primary/10 text-primary border border-primary/25 bg-white shadow-sm'}`}><Edit2 size={13}/></button>
-                          <button onClick={() => handleDelete(q.id)} className={`p-1.5 rounded-[10px] transition-colors ${isDarkMode ? 'hover:bg-red-500/20 text-red-500' : 'hover:bg-red-50 text-red-650 border border-red-200 bg-white shadow-sm'}`}><Trash2 size={13}/></button>
+                          <button onClick={() => { setFormData(q); setIsModalOpen(true); }} className={`btn-icon ${isDarkMode ? 'hover:bg-primary/20 text-primary' : 'hover:bg-primary/10 text-primary border border-primary/25 bg-white'}`}><Edit2 size={13}/></button>
+                          <button onClick={() => handleDelete(q.id)} className={`btn-icon ${isDarkMode ? 'hover:bg-red-500/20 text-red-500' : 'hover:bg-red-50 text-red-650 border border-red-200 bg-white'}`}><Trash2 size={13}/></button>
                         </div>
                       </td>
                     </tr>
@@ -425,7 +421,7 @@ export default function QuotesView({ products, thirdParties, isDarkMode, showToa
               <div className="space-y-3">
                 <div className="flex justify-between items-center border-b border-white/5 pb-2">
                   <h4 className="text-xs font-bold text-gray-400 uppercase">Detalle de Productos / Servicios</h4>
-                  <button type="button" onClick={handleAddItem} className="px-2.5 py-1 rounded bg-primary hover:bg-primary text-white font-bold text-[10px] uppercase flex items-center gap-1">
+                  <button type="button" onClick={handleAddItem} className="btn-secondary h-8 px-3 text-[11px] uppercase flex items-center gap-1">
                     <Plus size={10} /> Agregar Ítem
                   </button>
                 </div>
@@ -475,7 +471,7 @@ export default function QuotesView({ products, thirdParties, isDarkMode, showToa
                         ${((parseFloat(item.price) || 0) * (parseInt(item.quantity) || 1)).toFixed(2)}
                       </div>
 
-                      <button type="button" onClick={() => handleRemoveItem(index)} className="p-2 rounded-lg bg-red-600/20 text-red-500 hover:bg-red-600/30">
+                      <button type="button" onClick={() => handleRemoveItem(index)} className={`btn-icon ${isDarkMode ? 'hover:bg-red-500/20 text-red-500' : 'hover:bg-red-50 text-red-650 border border-red-200 bg-white'}`}>
                         <Trash2 size={13} />
                       </button>
                     </div>
@@ -496,8 +492,8 @@ export default function QuotesView({ products, thirdParties, isDarkMode, showToa
               </div>
 
               <div className="flex justify-end gap-3 pt-4 border-t border-white/5">
-                <button type="button" onClick={() => setIsModalOpen(false)} className={`px-4 py-2.5 rounded-xl text-xs font-semibold ${isDarkMode ? 'hover:bg-white/10 text-gray-300' : 'hover:bg-gray-200 text-gray-700'}`}>Cancelar</button>
-                <button type="submit" className="px-5 py-2.5 rounded-xl text-xs font-semibold bg-primary text-white hover:bg-primary shadow-md">Guardar Cotización</button>
+                <button type="button" onClick={() => setIsModalOpen(false)} className="btn-secondary">Cancelar</button>
+                <button type="submit" className="btn-primary">Guardar Cotización</button>
               </div>
 
             </form>

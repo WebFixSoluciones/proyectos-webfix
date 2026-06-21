@@ -992,7 +992,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                 <textarea value={openingForm.notes} onChange={e => setOpeningForm({...openingForm, notes: e.target.value})} className={`w-full text-sm px-3.5 py-3 rounded-2xl outline-none transition-all border min-h-[70px] resize-none ${isDarkMode ? 'glass-input-dark' : 'glass-input-light'}`} placeholder="Sin novedades..." />
               </div>
 
-              <button type="submit" className="w-full py-3.5 mt-4 rounded-xl text-sm font-bold uppercase tracking-wider transition-all duration-300 hover-lift bg-gradient-to-r from-emerald-650 to-teal-650 text-white shadow-md hover:from-emerald-500 hover:to-teal-500 border border-emerald-500/30">
+              <button type="submit" className="btn-primary w-full mt-4">
                 Abrir Caja y Activar POS
               </button>
             </form>
@@ -1034,13 +1034,13 @@ export default function PosView({ products, thirdParties, transactions = [], isD
 
         <div className="flex items-center gap-2">
           {hasSuspendedSale && (
-            <button onClick={resumeSale} className={`px-3.5 py-1.5 rounded-xl border font-bold text-xs uppercase ${isDarkMode ? 'border-yellow-500/20 bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20' : 'border-yellow-200 bg-yellow-50 text-yellow-700 hover:bg-yellow-100'}`}>
+            <button onClick={resumeSale} className="btn-secondary">
               Recuperar Venta
             </button>
           )}
           <button 
             onClick={() => setIsShortcutsOpen(true)} 
-            className={`p-2.5 rounded-xl transition-all ${isDarkMode ? 'bg-white/5 text-gray-405 hover:text-white hover:bg-white/10' : 'bg-primary-light text-primary hover:bg-primary/10 hover:text-primary'}`}
+            className={`btn-icon ${isDarkMode ? 'hover:bg-white/10 text-gray-400' : 'hover:bg-primary/10 text-primary border border-primary/25 bg-white'}`}
             title="Ver Atajos de Teclado (Guía Visual)"
           >
             <Keyboard size={16} />
@@ -1048,7 +1048,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
           {!isPreventaOnly && (
             <button 
               onClick={() => setIsHistoryOpen(true)} 
-              className={`p-2.5 rounded-xl transition-all ${isDarkMode ? 'bg-white/5 text-gray-405 hover:text-white hover:bg-white/10' : 'bg-primary-light text-primary hover:bg-primary/10 hover:text-primary'}`}
+              className={`btn-icon ${isDarkMode ? 'hover:bg-white/10 text-gray-400' : 'hover:bg-primary/10 text-primary border border-primary/25 bg-white'}`}
               title="Ver Ventas Emitidas en esta Sesión"
             >
               <History size={16} />
@@ -1056,7 +1056,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
           )}
           <button 
             onClick={() => setIsConfigOpen(true)} 
-            className={`p-2.5 rounded-xl transition-all ${isDarkMode ? 'bg-white/5 text-gray-405 hover:text-white hover:bg-white/10' : 'bg-primary-light text-primary hover:bg-primary/10 hover:text-primary'}`}
+            className={`btn-icon ${isDarkMode ? 'hover:bg-white/10 text-gray-400' : 'hover:bg-primary/10 text-primary border border-primary/25 bg-white'}`}
             title="Configuración Visual del POS"
           >
             <Settings size={16} />
@@ -1064,11 +1064,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
           {!isPreventaOnly && (
             <button 
               onClick={handleOpenCloseModal} 
-              className={`px-3 h-9 rounded-xl flex items-center justify-center gap-1.5 font-bold text-[10px] uppercase transition-all ${
-                isDarkMode 
-                  ? 'bg-white/5 text-primary hover:text-primary hover:bg-white/10' 
-                  : 'bg-primary-light text-primary hover:bg-primary/10 hover:text-primary'
-              }`}
+              className="btn-secondary text-[11px]"
               title="Arqueo / Cerrar Caja"
             >
               <DollarSign size={13} />
@@ -1083,7 +1079,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                 window.location.reload();
               }
             }} 
-            className={`p-2.5 rounded-xl transition-all ${isDarkMode ? 'bg-white/5 text-gray-400 hover:text-white' : 'bg-primary-light text-primary hover:bg-primary/10'}`} 
+            className={`btn-icon ${isDarkMode ? 'hover:bg-white/10 text-gray-400' : 'hover:bg-primary/10 text-primary border border-primary/25 bg-white'}`} 
             title="Volver al ERP / Cerrar POS"
           >
             <LogOut size={16} />
@@ -1120,21 +1116,25 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                     <button 
                       type="button" 
                       onClick={startVoiceSearch} 
-                      className={`p-1 rounded-lg transition-all ${isListening ? 'text-red-500 animate-pulse bg-red-500/10' : (isDarkMode ? 'text-gray-400 hover:text-white' : 'text-primary hover:bg-primary-light')}`}
+                      className={`btn-icon ${isListening ? 'text-red-500 animate-pulse bg-red-500/10' : (isDarkMode ? 'text-gray-400 hover:text-white' : 'text-primary hover:bg-primary-light')}`}
                       title="Buscar por dictado de voz"
                     >
                       <Mic size={14} />
                     </button>
-                    {searchTerm && <button onClick={() => setSearchTerm('')}><X size={12} className={isDarkMode ? 'text-gray-500' : 'text-primary'} /></button>}
+                    {searchTerm && (
+                      <button 
+                        type="button"
+                        onClick={() => setSearchTerm('')}
+                        className="btn-icon text-gray-500 dark:text-gray-450 hover:text-gray-700 dark:hover:text-white"
+                      >
+                        <X size={12} />
+                      </button>
+                    )}
                   </div>
                   <button 
                     type="button"
                     onClick={handleCreateQuote}
-                    className={`px-3.5 h-11 rounded-xl text-xs font-black uppercase transition-all flex items-center justify-center gap-1.5 border shadow-sm ${
-                      isDarkMode 
-                        ? 'bg-primary/15 border-primary/20 text-primary hover:bg-primary/30' 
-                        : 'bg-primary-light border-primary/20 text-primary hover:bg-primary/10'
-                    }`}
+                    className="btn-secondary text-xs uppercase"
                     title="Guardar como Cotización (Proforma)"
                   >
                     <FileText size={12} /> Cotizar
@@ -1145,7 +1145,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                 <div className="flex items-center gap-2 overflow-x-auto py-2.5 custom-scrollbar scrollbar-none">
                   <button
                     onClick={() => setFilterCategory('all')}
-                    className={`px-4 py-2 rounded-xl text-xs font-bold uppercase transition-all whitespace-nowrap shrink-0 border shadow-sm ${
+                    className={`px-4 py-2 rounded-[var(--radius-button)] text-xs font-bold uppercase transition-all whitespace-nowrap shrink-0 border ${
                       filterCategory === 'all'
                         ? 'bg-primary border-primary text-white'
                         : (isDarkMode ? 'bg-black/40 border-white/5 text-gray-455 hover:text-white' : 'bg-primary-light border-primary/15 text-black hover:bg-primary/10')
@@ -1157,7 +1157,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                     <button
                       key={cat}
                       onClick={() => setFilterCategory(cat)}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold uppercase transition-all whitespace-nowrap shrink-0 border shadow-sm ${
+                      className={`px-4 py-2 rounded-[var(--radius-button)] text-xs font-bold uppercase transition-all whitespace-nowrap shrink-0 border ${
                         filterCategory === cat
                           ? 'bg-primary border-primary text-white'
                           : (isDarkMode ? 'bg-black/40 border-white/5 text-gray-455 hover:text-white' : 'bg-primary-light border-primary/15 text-black hover:bg-primary/10')
@@ -1186,21 +1186,25 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                     <button 
                       type="button" 
                       onClick={startVoiceSearch} 
-                      className={`p-1 rounded-lg transition-all ${isListening ? 'text-red-500 animate-pulse bg-red-500/10' : (isDarkMode ? 'text-gray-400 hover:text-white' : 'text-primary hover:bg-primary-light')}`}
+                      className={`btn-icon ${isListening ? 'text-red-500 animate-pulse bg-red-500/10' : (isDarkMode ? 'text-gray-400 hover:text-white' : 'text-primary hover:bg-primary-light')}`}
                       title="Buscar por dictado de voz"
                     >
                       <Mic size={14} />
                     </button>
-                    {searchTerm && <button onClick={() => setSearchTerm('')}><X size={12} className={isDarkMode ? 'text-gray-500' : 'text-primary'} /></button>}
+                    {searchTerm && (
+                      <button 
+                        type="button"
+                        onClick={() => setSearchTerm('')}
+                        className="btn-icon text-gray-500 dark:text-gray-450 hover:text-gray-700 dark:hover:text-white"
+                      >
+                        <X size={12} />
+                      </button>
+                    )}
                   </div>
                   <button 
                     type="button"
                     onClick={handleCreateQuote}
-                    className={`px-3.5 h-11 rounded-xl text-xs font-black uppercase transition-all flex items-center justify-center gap-1.5 border shadow-sm ${
-                      isDarkMode 
-                        ? 'bg-primary/15 border-primary/20 text-primary hover:bg-primary/30' 
-                        : 'bg-primary-light border-primary/20 text-primary hover:bg-primary/10'
-                    }`}
+                    className="btn-secondary text-xs uppercase"
                     title="Guardar como Cotización (Proforma)"
                   >
                     <FileText size={12} /> Cotizar
@@ -1308,11 +1312,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                           e.stopPropagation();
                           addToCart(p);
                         }}
-                        className={`p-1.5 rounded-lg border transition-all ${
-                          isOutOfStock 
-                            ? 'bg-transparent text-gray-400 border-gray-400/20' 
-                            : 'bg-primary hover:bg-primary text-white border-primary hover:scale-105'
-                        }`}
+                        className={`btn-icon bg-primary text-white ${isOutOfStock ? 'opacity-50 cursor-not-allowed' : ''}`}
                       >
                         <Plus size={14} />
                       </button>
@@ -1435,12 +1435,14 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                 />
                 {clientSearchTerm && (
                   <button 
+                    type="button"
                     onClick={() => {
                       setClientSearchTerm('');
                       setIsClientDropdownOpen(false);
                     }}
+                    className="btn-icon text-gray-500 hover:text-gray-750 dark:hover:text-white"
                   >
-                    <X size={12} className={isDarkMode ? 'text-gray-500' : 'text-primary'} />
+                    <X size={12} />
                   </button>
                 )}
               </div>
@@ -1454,7 +1456,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   });
                   setIsQuickAddOpen(true);
                 }} 
-                className="px-4 h-11 rounded-xl bg-primary hover:bg-primary text-white shadow-md flex items-center justify-center transition-all shrink-0 active:scale-95"
+                className="btn-icon bg-primary text-white hover:bg-primary-hover shrink-0"
                 title="Crear Nuevo Cliente"
               >
                 <UserPlus size={14} />
@@ -1560,7 +1562,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                               setIsQuickAddOpen(true);
                             }
                           }} 
-                          className="p-1.5 rounded-lg text-gray-500 hover:text-primary hover:bg-primary/10 dark:text-gray-400 dark:hover:text-primary dark:hover:bg-primary/10 transition-all"
+                          className={`btn-icon ${isDarkMode ? 'hover:bg-primary/20 text-primary' : 'hover:bg-primary/10 text-primary border border-primary/25 bg-white'}`}
                           title="Editar Cliente"
                         >
                           <Edit3 size={12} />
@@ -1568,7 +1570,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                         <button 
                           type="button"
                           onClick={() => setSelectedClientId('')} 
-                          className="p-1.5 rounded-lg text-gray-500 hover:text-red-500 hover:bg-red-500/10 dark:text-gray-400 dark:hover:text-red-400 dark:hover:bg-red-400/10 transition-all"
+                          className={`btn-icon ${isDarkMode ? 'hover:bg-red-500/20 text-red-500' : 'hover:bg-red-50 text-red-650 border border-red-200 bg-white'}`}
                           title="Quitar Cliente"
                         >
                           <X size={12} />
@@ -1627,9 +1629,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   <button 
                     type="button" 
                     onClick={() => removeFromCart(item.productId)} 
-                    className={`p-2 rounded-xl transition-all shrink-0 ${
-                      isDarkMode ? 'bg-red-500/10 hover:bg-red-500/20 text-red-400' : 'bg-red-50 hover:bg-red-100 text-red-600'
-                    }`}
+                    className={`btn-icon shrink-0 ${isDarkMode ? 'hover:bg-red-500/20 text-red-500' : 'hover:bg-red-50 text-red-650 border border-red-200 bg-white'}`}
                     title="Eliminar ítem"
                   >
                     <Trash2 size={13} />
@@ -1658,9 +1658,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   <button 
                     type="button" 
                     onClick={() => updateQuantity(item.productId, 1)} 
-                    className={`p-2 rounded-xl transition-all shrink-0 ${
-                      isDarkMode ? 'bg-primary/20 hover:bg-primary/35 text-primary' : 'bg-primary-light hover:bg-primary/10 text-primary'
-                    }`}
+                    className={`btn-icon shrink-0 ${isDarkMode ? 'hover:bg-primary/20 text-primary' : 'hover:bg-primary/10 text-primary border border-primary/25 bg-white'}`}
                   >
                     <Plus size={13} />
                   </button>
@@ -1673,9 +1671,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   {/* Botón de opciones (tres puntos) */}
                   <button 
                     type="button" 
-                    className={`p-2 rounded-full transition-all shrink-0 ${
-                      isDarkMode ? 'bg-white/5 text-gray-400 hover:bg-white/10' : 'bg-gray-100 hover:bg-gray-200 text-gray-650'
-                    }`}
+                    className={`btn-icon shrink-0 ${isDarkMode ? 'hover:bg-white/10 text-gray-400' : 'hover:bg-gray-250 text-gray-655 border bg-white'}`}
                   >
                     <MoreHorizontal size={13} />
                   </button>
@@ -1697,7 +1693,13 @@ export default function PosView({ products, thirdParties, transactions = [], isD
               <div className={`p-3 rounded-xl border space-y-2 ${isDarkMode ? 'border-white/5 bg-black/20' : 'border-primary/15 bg-white shadow-sm'}`}>
                 <div className="flex justify-between items-center">
                   <span className={`text-xs font-bold ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>DESCUENTO GENERAL</span>
-                  <button onClick={() => { setIsDiscountOpen(false); setDiscountValue(0); }} className="text-gray-500 hover:text-black"><X size={10} /></button>
+                  <button 
+                    type="button"
+                    onClick={() => { setIsDiscountOpen(false); setDiscountValue(0); }} 
+                    className="btn-icon text-gray-500 hover:text-black dark:hover:text-white"
+                  >
+                    <X size={10} />
+                  </button>
                 </div>
                 <div className="flex gap-1">
                   <select value={discountType} onChange={e => setDiscountType(e.target.value)} className={`text-sm px-2 py-1.5 rounded-lg border outline-none ${isDarkMode ? 'bg-black border-white/10 text-white' : 'bg-white border-primary/20 text-black'}`}>
@@ -1709,13 +1711,13 @@ export default function PosView({ products, thirdParties, transactions = [], isD
               </div>
             ) : (
               <div className="flex gap-2">
-                <button onClick={() => setIsDiscountOpen(true)} className={`flex-1 py-2 rounded-xl border font-bold text-xs uppercase transition-all ${isDarkMode ? 'border-white/5 hover:bg-white/5 text-gray-400' : 'border-primary/15 hover:bg-primary/10 bg-white text-black shadow-sm'}`}>
+                <button onClick={() => setIsDiscountOpen(true)} className="btn-secondary flex-1">
                   <Tag size={12} className="inline mr-1 text-primary" /> Descuento
                 </button>
-                <button onClick={suspendSale} className={`flex-1 py-2 rounded-xl border font-bold text-xs uppercase transition-all ${isDarkMode ? 'border-white/5 hover:bg-white/5 text-gray-400' : 'border-primary/15 hover:bg-primary/10 bg-white text-black shadow-sm'}`}>
+                <button onClick={suspendSale} className="btn-secondary flex-1">
                   <Bookmark size={12} className="inline mr-1 text-primary" /> Suspender
                 </button>
-                <button onClick={() => setCart([])} className={`flex-1 py-2 rounded-xl border font-bold text-xs uppercase transition-all ${isDarkMode ? 'border-white/5 hover:bg-white/5 text-red-400' : 'border-red-100 hover:bg-red-50 bg-white text-red-650 shadow-sm'}`}>
+                <button onClick={() => setCart([])} className="btn-danger flex-1">
                   <Trash2 size={12} className="inline mr-1 text-red-500" /> Vaciar
                 </button>
               </div>
@@ -1746,11 +1748,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
               <button 
                 type="button" 
                 onClick={playCashRegisterSound}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-3.5 rounded-xl text-base font-black border transition-all active:scale-[0.98] ${
-                  isDarkMode 
-                    ? 'border-white/5 hover:bg-white/10 text-gray-300 bg-white/5' 
-                    : 'border-primary/20 hover:bg-primary-light bg-white text-primary shadow-sm'
-                }`}
+                className="btn-secondary flex-1 flex items-center justify-center gap-1.5"
                 title="Simular Apertura de Gaveta de Dinero"
               >
                 <Unlock size={13} className="text-primary" /> Abrir Gaveta
@@ -1772,7 +1770,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   setCheckoutStep(1);
                   setIsCheckoutOpen(true);
                 }}
-                className="flex-[2] flex items-center justify-center gap-2 py-3.5 rounded-xl text-base font-black bg-primary text-white hover:bg-primary shadow-md transition-all active:scale-[0.98]"
+                className="btn-primary flex-[2] flex items-center justify-center gap-2"
               >
                 <Sparkles size={13} /> Cobrar (F12)
               </button>
@@ -1804,9 +1802,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
               </div>
               <button 
                 onClick={() => setIsConfigOpen(false)} 
-                className={`p-1.5 rounded-lg transition-colors ${
-                  isDarkMode ? 'hover:bg-white/5 text-gray-400 hover:text-white' : 'hover:bg-primary/10 text-[#000000]'
-                }`}
+                className="btn-icon"
               >
                 <X size={16} />
               </button>
@@ -1819,14 +1815,14 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   <button
                     type="button"
                     onClick={() => setPosConfig(prev => ({ ...prev, viewType: 'grid' }))}
-                    className={`py-2.5 rounded-xl text-xs font-bold border transition-all ${posConfig.viewType === 'grid' ? 'bg-primary border-primary text-white shadow-sm' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-400 hover:text-white' : 'bg-white border-primary/15 text-[#000000] hover:bg-primary-light')}`}
+                    className={`py-2.5 rounded-[var(--radius-button)] text-xs font-bold border transition-all ${posConfig.viewType === 'grid' ? 'bg-primary border-primary text-white' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-450 hover:text-white' : 'bg-white border-primary/15 text-[#000000] hover:bg-primary-light')}`}
                   >
                     Grid
                   </button>
                   <button
                     type="button"
                     onClick={() => setPosConfig(prev => ({ ...prev, viewType: 'list' }))}
-                    className={`py-2.5 rounded-xl text-xs font-bold border transition-all ${posConfig.viewType === 'list' ? 'bg-primary border-primary text-white shadow-sm' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-400 hover:text-white' : 'bg-white border-primary/15 text-[#000000] hover:bg-primary-light')}`}
+                    className={`py-2.5 rounded-[var(--radius-button)] text-xs font-bold border transition-all ${posConfig.viewType === 'list' ? 'bg-primary border-primary text-white' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-450 hover:text-white' : 'bg-white border-primary/15 text-[#000000] hover:bg-primary-light')}`}
                   >
                     Lista
                   </button>
@@ -1839,14 +1835,14 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   <button
                     type="button"
                     onClick={() => setPosConfig(prev => ({ ...prev, showCarousel: false }))}
-                    className={`py-2.5 rounded-xl text-xs font-bold border transition-all ${!posConfig.showCarousel ? 'bg-primary border-primary text-white shadow-sm' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-400 hover:text-white' : 'bg-white border-primary/15 text-[#000000] hover:bg-primary-light')}`}
+                    className={`py-2.5 rounded-[var(--radius-button)] text-xs font-bold border transition-all ${!posConfig.showCarousel ? 'bg-primary border-primary text-white' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-450 hover:text-white' : 'bg-white border-primary/15 text-[#000000] hover:bg-primary-light')}`}
                   >
                     Normales
                   </button>
                   <button
                     type="button"
                     onClick={() => setPosConfig(prev => ({ ...prev, showCarousel: true }))}
-                    className={`py-2.5 rounded-xl text-xs font-bold border transition-all ${posConfig.showCarousel ? 'bg-primary border-primary text-white shadow-sm' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-400 hover:text-white' : 'bg-white border-primary/15 text-[#000000] hover:bg-primary-light')}`}
+                    className={`py-2.5 rounded-[var(--radius-button)] text-xs font-bold border transition-all ${posConfig.showCarousel ? 'bg-primary border-primary text-white' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-455 hover:text-white' : 'bg-white border-primary/15 text-[#000000] hover:bg-primary-light')}`}
                   >
                     Carrusel
                   </button>
@@ -1859,14 +1855,14 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   <button
                     type="button"
                     onClick={() => setPosConfig(prev => ({ ...prev, cartPosition: 'left' }))}
-                    className={`py-2.5 rounded-xl text-xs font-bold border transition-all ${posConfig.cartPosition === 'left' ? 'bg-primary border-primary text-white shadow-sm' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-400 hover:text-white' : 'bg-white border-primary/15 text-[#000000] hover:bg-primary-light')}`}
+                    className={`py-2.5 rounded-[var(--radius-button)] text-xs font-bold border transition-all ${posConfig.cartPosition === 'left' ? 'bg-primary border-primary text-white' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-450 hover:text-white' : 'bg-white border-primary/15 text-[#000000] hover:bg-primary-light')}`}
                   >
                     Izquierda
                   </button>
                   <button
                     type="button"
                     onClick={() => setPosConfig(prev => ({ ...prev, cartPosition: 'right' }))}
-                    className={`py-2.5 rounded-xl text-xs font-bold border transition-all ${posConfig.cartPosition === 'right' ? 'bg-primary border-primary text-white shadow-sm' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-400 hover:text-white' : 'bg-white border-primary/15 text-[#000000] hover:bg-primary-light')}`}
+                    className={`py-2.5 rounded-[var(--radius-button)] text-xs font-bold border transition-all ${posConfig.cartPosition === 'right' ? 'bg-primary border-primary text-white' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-450 hover:text-white' : 'bg-white border-primary/15 text-[#000000] hover:bg-primary-light')}`}
                   >
                     Derecha
                   </button>
@@ -1878,9 +1874,9 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                 <button
                   type="button"
                   onClick={() => setPosConfig(prev => ({ ...prev, barcodeMode: !prev.barcodeMode }))}
-                  className={`w-full py-3 px-4 rounded-xl text-xs font-bold border transition-all flex items-center justify-between ${
+                  className={`w-full py-3 px-4 rounded-[var(--radius-button)] text-xs font-bold border transition-all flex items-center justify-between ${
                     posConfig.barcodeMode
-                      ? 'bg-primary border-primary text-white shadow-sm'
+                      ? 'bg-primary border-primary text-white'
                       : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-455 hover:text-white' : 'bg-primary-light border-primary/15 text-[#000000] hover:bg-primary-light')
                   }`}
                 >
@@ -1896,9 +1892,9 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                 <button
                   type="button"
                   onClick={() => setPosConfig(prev => ({ ...prev, expressCheckout: !prev.expressCheckout }))}
-                  className={`w-full py-3 px-4 rounded-xl text-xs font-bold border transition-all flex items-center justify-between ${
+                  className={`w-full py-3 px-4 rounded-[var(--radius-button)] text-xs font-bold border transition-all flex items-center justify-between ${
                     posConfig.expressCheckout
-                      ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm'
+                      ? 'bg-emerald-600 border-emerald-600 text-white'
                       : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-455 hover:text-white' : 'bg-primary-light border-primary/15 text-[#000000] hover:bg-primary-light')
                   }`}
                 >
@@ -1914,9 +1910,9 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                 <button
                   type="button"
                   onClick={() => setPosConfig(prev => ({ ...prev, showStock: !prev.showStock }))}
-                  className={`w-full py-3 px-4 rounded-xl text-[11px] font-bold border transition-all flex items-center justify-between ${
+                  className={`w-full py-3 px-4 rounded-[var(--radius-button)] text-[11px] font-bold border transition-all flex items-center justify-between ${
                     posConfig.showStock
-                      ? 'bg-primary border-primary text-white shadow-sm'
+                      ? 'bg-primary border-primary text-white'
                       : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-455 hover:text-white' : 'bg-primary-light border-primary/15 text-[#000000] hover:bg-primary-light')
                   }`}
                 >
@@ -2000,8 +1996,8 @@ export default function PosView({ products, thirdParties, transactions = [], isD
               </div>
 
               <div className={`flex justify-end gap-2.5 mt-6 pt-3 border-t ${isDarkMode ? 'border-white/5' : 'border-primary/15'}`}>
-                <button type="button" onClick={() => setIsClosingOpen(false)} className={`px-3.5 py-2 rounded-xl text-xs font-semibold ${isDarkMode ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-primary-light text-black'}`}>Cancelar</button>
-                <button type="submit" className="px-4 py-2 rounded-xl text-xs font-black bg-red-600 hover:bg-red-500 text-white">Confirmar y Cerrar Caja</button>
+                <button type="button" onClick={() => setIsClosingOpen(false)} className="btn-secondary">Cancelar</button>
+                <button type="submit" className="btn-danger">Confirmar y Cerrar Caja</button>
               </div>
             </form>
           </div>
@@ -2037,7 +2033,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                     <span className={checkoutStep === 3 ? 'text-primary' : (isDarkMode ? 'text-gray-400' : 'text-gray-500')}>3. Emisión</span>
                   </div>
                 )}
-                <button onClick={() => setIsCheckoutOpen(false)} className={isDarkMode ? 'text-gray-455 hover:text-white' : 'text-gray-555 hover:text-black'}><X size={17}/></button>
+                <button onClick={() => setIsCheckoutOpen(false)} className="btn-icon"><X size={17}/></button>
               </div>
             </div>
 
@@ -2075,7 +2071,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                             });
                             setIsQuickAddOpen(true);
                           }}
-                          className="px-4 py-2.5 rounded-xl bg-primary hover:bg-primary text-white transition-all shrink-0 text-sm md:text-base font-bold shadow-sm"
+                          className="btn-primary shrink-0"
                         >
                           Crear
                         </button>
@@ -2157,9 +2153,9 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                                   return updated;
                                 });
                               }}
-                              className={`flex flex-col items-center justify-center p-2 rounded-xl border transition-all gap-1 ${
+                              className={`flex flex-col items-center justify-center p-2 rounded-[var(--radius-button)] border transition-all gap-1 ${
                                 isSelected 
-                                  ? 'bg-primary border-primary text-white shadow-sm'
+                                  ? 'bg-primary border-primary text-white'
                                   : isDarkMode 
                                     ? 'border-white/10 bg-white/5 text-gray-400 hover:bg-white/10'
                                     : 'border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100'
@@ -2194,7 +2190,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                                     const current = Number(payments.efectivo) || 0;
                                     setPayments({ ...payments, efectivo: (current + val).toFixed(2) });
                                   }}
-                                  className={`px-1.5 py-0.5 text-xs font-bold rounded border transition-colors ${
+                                  className={`px-1.5 py-0.5 text-xs font-bold rounded-[var(--radius-button)] border transition-colors ${
                                     isDarkMode ? 'border-white/10 bg-white/5 text-white hover:bg-white/10' : 'border-primary/15 bg-white text-primary hover:bg-primary-light'
                                   }`}
                                 >
@@ -2207,7 +2203,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                                   const pending = Math.max(0, totalToPay - (Number(payments.tarjeta) || 0) - (Number(payments.transferencia) || 0) - (Number(payments.cruce_cuentas) || 0));
                                   setPayments({ ...payments, efectivo: pending.toFixed(2) });
                                 }}
-                                className={`px-1.5 py-0.5 text-xs font-bold rounded border transition-colors ${
+                                className={`px-1.5 py-0.5 text-xs font-bold rounded-[var(--radius-button)] border transition-colors ${
                                   isDarkMode ? 'border-primary/20 bg-primary/20 text-primary hover:bg-primary/30' : 'border-primary/25 bg-primary-light text-primary hover:bg-primary/10'
                                 }`}
                               >
@@ -2304,7 +2300,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                               });
                               setIsQuickAddOpen(true);
                             }}
-                            className="px-4 py-2.5 rounded-xl bg-primary hover:bg-primary text-white transition-all shrink-0 text-xs md:text-sm font-bold shadow-sm"
+                            className="btn-primary shrink-0"
                           >
                             Crear Nuevo Cliente
                           </button>
@@ -2395,9 +2391,9 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                                     return updated;
                                   });
                                 }}
-                                className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all gap-1.5 ${
+                                className={`flex flex-col items-center justify-center p-3 rounded-[var(--radius-button)] border transition-all gap-1.5 ${
                                   isSelected 
-                                    ? 'bg-primary border-primary text-white shadow-md'
+                                    ? 'bg-primary border-primary text-white'
                                     : isDarkMode 
                                       ? 'border-white/10 bg-white/5 text-gray-400 hover:bg-white/10'
                                       : 'border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100'
@@ -2435,7 +2431,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                                       const current = Number(payments.efectivo) || 0;
                                       setPayments({ ...payments, efectivo: (current + val).toFixed(2) });
                                     }}
-                                    className={`px-2.5 py-1 text-xs md:text-sm font-bold rounded-lg border transition-colors ${
+                                    className={`px-2.5 py-1 text-xs md:text-sm font-bold rounded-[var(--radius-button)] border transition-colors ${
                                       isDarkMode ? 'border-white/10 bg-white/5 hover:bg-white/10 text-white' : 'border-primary/15 bg-white hover:bg-primary-light text-primary hover:bg-primary/10'
                                     }`}
                                   >
@@ -2448,7 +2444,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                                     const pending = Math.max(0, totalToPay - (Number(payments.tarjeta) || 0) - (Number(payments.transferencia) || 0) - (Number(payments.cruce_cuentas) || 0));
                                     setPayments({ ...payments, efectivo: pending.toFixed(2) });
                                   }}
-                                  className={`px-2.5 py-1 text-xs md:text-sm font-bold rounded-lg border transition-colors ${
+                                  className={`px-2.5 py-1 text-xs md:text-sm font-bold rounded-[var(--radius-button)] border transition-colors ${
                                     isDarkMode ? 'border-primary/20 bg-primary/20 hover:bg-primary/30 text-primary' : 'border-primary/25 bg-primary-light hover:bg-primary/10 text-primary'
                                   }`}
                                 >
@@ -2587,9 +2583,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   <button 
                     type="button" 
                     onClick={() => setIsCheckoutOpen(false)}
-                    className={`px-4 py-2 rounded-xl border text-xs font-semibold ${
-                      isDarkMode ? 'border-white/5 hover:bg-white/5 text-gray-300' : 'border-primary/20 hover:bg-primary-light bg-white text-black'
-                    }`}
+                    className="btn-secondary"
                   >
                     Cancelar
                   </button>
@@ -2597,7 +2591,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                     type="button" 
                     onClick={handleFinalCheckout} 
                     disabled={isProcessing || remainingDue > 0}
-                    className="px-6 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs flex items-center gap-1.5 shadow-sm hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                    className="btn-primary"
                   >
                     {isProcessing ? <RefreshCw size={13} className="animate-spin" /> : <Sparkles size={13} />} Emitir y Finalizar Venta
                   </button>
@@ -2608,9 +2602,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                     type="button" 
                     disabled={checkoutStep === 1 || isProcessing}
                     onClick={() => setCheckoutStep(prev => prev - 1)}
-                    className={`px-4 py-2 rounded-xl border text-xs font-semibold disabled:opacity-30 transition-colors ${
-                      isDarkMode ? 'border-white/5 hover:bg-white/5 text-gray-300' : 'border-primary/20 hover:bg-primary-light bg-white text-black'
-                    }`}
+                    className="btn-secondary"
                   >
                     Anterior
                   </button>
@@ -2625,7 +2617,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                         }
                         setCheckoutStep(prev => prev + 1);
                       }}
-                      className="px-5 py-2 rounded-xl bg-primary hover:bg-primary text-white font-bold text-xs shadow-sm hover:scale-105 active:scale-95 transition-all"
+                      className="btn-primary"
                     >
                       Siguiente
                     </button>
@@ -2634,7 +2626,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                       type="button" 
                       onClick={handleFinalCheckout} 
                       disabled={isProcessing}
-                      className="px-6 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs flex items-center gap-1.5 shadow-sm hover:scale-105 active:scale-95 transition-all"
+                      className="btn-primary px-6"
                     >
                       {isProcessing ? <RefreshCw size={13} className="animate-spin" /> : <Sparkles size={13} />} Finalizar Venta y Emitir SRI
                     </button>
@@ -2688,7 +2680,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                       type="button"
                       disabled={isQueryingSri}
                       onClick={queryQuickClientSRI}
-                      className="px-3 rounded-xl border border-purple-500/30 bg-purple-500/20 text-purple-400 hover:bg-purple-500/35 shrink-0 flex items-center justify-center transition-all active:scale-95"
+                      className="btn-icon border border-purple-500/30 bg-purple-500/20 text-purple-400 hover:bg-purple-500/35 shrink-0 transition-all active:scale-95"
                     >
                       {isQueryingSri ? <RefreshCw size={13} className="animate-spin" /> : <Sparkles size={13} />}
                     </button>
@@ -2776,8 +2768,8 @@ export default function PosView({ products, thirdParties, transactions = [], isD
               </div>
 
               <div className={`flex justify-end gap-2.5 mt-6 pt-4 border-t ${isDarkMode ? 'border-white/5' : 'border-primary/15'}`}>
-                <button type="button" onClick={() => setIsQuickAddOpen(false)} className={`px-3.5 py-2 rounded-xl text-xs font-semibold ${isDarkMode ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-primary/10 text-black'}`}>Cancelar</button>
-                <button type="submit" className="px-4 py-2 rounded-xl text-sm font-black bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm hover:scale-105 active:scale-95 transition-all">Guardar y Seleccionar</button>
+                <button type="button" onClick={() => setIsQuickAddOpen(false)} className="btn-secondary">Cancelar</button>
+                <button type="submit" className="btn-primary">Guardar y Seleccionar</button>
               </div>
             </form>
           </div>
@@ -2823,7 +2815,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
               <button 
                 type="button" 
                 onClick={() => setIsShortcutsOpen(false)} 
-                className="px-5 py-2.5 rounded-xl text-xs font-black transition-all bg-primary hover:bg-primary text-white shadow-sm hover:scale-105 active:scale-95"
+                className="btn-primary"
               >
                 Entendido
               </button>
@@ -2850,8 +2842,9 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                 </div>
               </div>
               <button 
+                type="button"
                 onClick={() => setIsHistoryOpen(false)} 
-                className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-white/5 text-gray-450 hover:text-white' : 'hover:bg-primary/10 text-gray-650 hover:text-black'}`}
+                className="btn-icon text-gray-500 hover:text-gray-700 dark:hover:text-white"
               >
                 <X size={16} />
               </button>
@@ -2929,8 +2922,8 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                               href={tx.pdfUrl} 
                               target="_blank" 
                               rel="noreferrer" 
-                              className={`p-1.5 rounded-lg border flex items-center justify-center transition-colors ${
-                                isDarkMode ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/25' : 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                              className={`btn-icon ${
+                                isDarkMode ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/25' : 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border'
                               }`} 
                               title="Descargar PDF RIDE"
                             >
@@ -2938,7 +2931,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                             </a>
                           ) : (
                             <span 
-                              className={`p-1.5 rounded-lg border opacity-40 cursor-not-allowed flex items-center justify-center ${
+                              className={`btn-icon opacity-40 cursor-not-allowed flex items-center justify-center ${
                                 isDarkMode ? 'border-white/5 bg-white/5 text-gray-500' : 'border-gray-250 bg-gray-100 text-gray-400'
                               }`} 
                               title="PDF no disponible"
@@ -2952,8 +2945,8 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                               href={tx.xmlUrl} 
                               target="_blank" 
                               rel="noreferrer" 
-                              className={`p-1.5 rounded-lg border flex items-center justify-center transition-colors ${
-                                isDarkMode ? 'border-primary/20 bg-primary/10 text-primary hover:bg-primary/25' : 'border-primary/25 bg-primary-light text-primary hover:bg-primary/10'
+                              className={`btn-icon ${
+                                isDarkMode ? 'border-primary/20 bg-primary/10 text-primary hover:bg-primary/25' : 'border-primary/25 bg-primary-light text-primary hover:bg-primary/10 border'
                               }`} 
                               title="Descargar XML SRI"
                             >
@@ -2966,11 +2959,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                           <button
                             type="button"
                             onClick={() => handleVoidTransaction(tx)}
-                            className={`px-2.5 py-1.5 rounded-xl border text-xs font-black uppercase flex items-center gap-1 transition-all ${
-                              isDarkMode 
-                                ? 'border-red-500/35 bg-red-600/15 text-red-400 hover:bg-red-600/25' 
-                                : 'border-red-200 bg-red-50 text-red-700 hover:bg-red-100'
-                            }`}
+                            className="btn-danger text-xs flex items-center gap-1"
                           >
                             <ShieldAlert size={10} /> Anular Venta
                           </button>
@@ -2987,9 +2976,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
               <button 
                 type="button" 
                 onClick={() => setIsHistoryOpen(false)}
-                className={`w-full py-2.5 rounded-xl text-xs font-black transition-all ${
-                  isDarkMode ? 'bg-white/5 text-gray-300 hover:bg-white/10' : 'bg-white border border-primary/20 hover:bg-primary-light text-black shadow-sm'
-                }`}
+                className="btn-secondary w-full"
               >
                 Cerrar Panel
               </button>

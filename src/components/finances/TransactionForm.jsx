@@ -1584,7 +1584,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
             >
               <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black transition-all ${
                 currentStep === step.id
-                  ? 'bg-[#1C40F2] text-white shadow-sm'
+                  ? 'bg-[#1C40F2] text-white'
                   : 'bg-slate-200 dark:bg-white/10 text-slate-600 dark:text-slate-400'
               }`}>
                 {step.id}
@@ -1602,11 +1602,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         </div>
         <button 
           onClick={onClose} 
-          className={`flex items-center gap-[3px] px-[8px] py-[4px] rounded-[8px] border transition-all text-xs font-semibold ${
-            isDarkMode 
-              ? 'border-white/10 hover:bg-white/5 text-gray-400 hover:text-white' 
-              : 'border-gray-300 hover:bg-gray-100 text-black'
-          }`}
+          className="btn-secondary"
         >
           <X size={12} />
           <span>Cerrar</span>
@@ -1708,9 +1704,9 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     key={tab.id}
                     type="button"
                     onClick={() => setMobileTab(tab.id)}
-                    className={`flex-1 flex flex-col items-center justify-center py-[5px] px-[2px] rounded-[8px] transition-all ${
+                    className={`flex-1 flex flex-col items-center justify-center py-[5px] px-[2px] rounded-[var(--radius-button)] transition-all ${
                       isActive 
-                        ? 'bg-[#1C40F2] text-white shadow-sm font-black'
+                        ? 'bg-[#1C40F2] text-white font-black'
                         : isDarkMode ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-slate-650 hover:text-black hover:bg-slate-200'
                     }`}
                   >
@@ -1796,10 +1792,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         });
                         setIsQuickAddOpen(true);
                       }}
-                      className="p-[6px] rounded-[8px] bg-[#1C40F2] hover:bg-blue-700 text-white font-bold text-xs transition-all shrink-0 flex items-center justify-center"
+                      className="btn-icon bg-primary text-white hover:bg-primary-hover shrink-0"
                       title="Crear Contacto Rápido"
                     >
-                      <UserPlus size={14} />
+                      <Plus size={14} />
                     </button>
                   )}
                 </div>
@@ -2015,7 +2011,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       <h3 style={{ color: isDarkMode ? '#FFFFFF' : '#000000' }} className="text-[12px] font-bold uppercase">Desglose de Retenciones</h3>
                     </div>
                     {isEditable && (
-                      <button type="button" onClick={handleAddRetencion} className="px-[12px] py-[6px] rounded-[8px] bg-[#1C40F2] hover:bg-blue-700 text-white font-bold text-xs flex items-center gap-[4px]">
+                      <button type="button" onClick={handleAddRetencion} className="btn-secondary h-8 px-3 text-xs flex items-center gap-[4px]">
                         <Plus size={12} /> Añadir Fila
                       </button>
                     )}
@@ -2024,7 +2020,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     {(formData.retenciones || []).map((ret, index) => (
                       <div key={index} className={`p-[8px] rounded-[8px] border space-y-[8px] relative ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-150'}`}>
                         {isEditable && (
-                          <button type="button" onClick={() => handleRemoveRetencion(index)} className="absolute top-[5px] right-[5px] p-[3px] rounded-[8px] bg-red-500/10 hover:bg-red-500/20 text-red-500">
+                          <button type="button" onClick={() => handleRemoveRetencion(index)} className="absolute top-[5px] right-[5px] btn-icon text-red-500 hover:bg-red-500/10">
                             <Trash2 size={12} />
                           </button>
                         )}
@@ -2145,7 +2141,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                             setAdvSearchTerm(productSearchTerm);
                             setIsAdvancedSearchOpen(true);
                           }}
-                          className="px-[12px] py-[6px] rounded-[8px] bg-[#1C40F2] hover:bg-blue-700 text-white font-bold text-xs flex items-center gap-[4px] transition-all"
+                          className="btn-secondary"
                           title="Búsqueda Avanzada de Productos"
                         >
                           <Search size={12} />
@@ -2160,7 +2156,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                             });
                             setIsQuickAddProductOpen(true);
                           }}
-                          className="px-[12px] py-[6px] rounded-[8px] bg-[#1C40F2] hover:bg-blue-700 text-white font-bold text-xs flex items-center gap-[4px] transition-all"
+                          className="btn-primary"
                           title="Registrar y Agregar Nuevo Producto"
                         >
                           <Layers size={12} />
@@ -2209,11 +2205,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       <button
                         type="button"
                         onClick={handleClearItems}
-                        className={`flex items-center gap-[4px] px-[10px] py-[6px] rounded-[8px] border text-[11px] font-bold uppercase transition-all ${
-                          isDarkMode
-                            ? 'bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500/20'
-                            : 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100'
-                        }`}
+                        className="btn-danger"
                       >
                         <Trash2 size={10} />
                         Limpiar
@@ -2274,11 +2266,11 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                                     <button type="button" disabled={!isEditable} onClick={() => {
                                       const q = parseInt(item.quantity) || 1;
                                       if (q > 1) handleItemChange(index, 'quantity', q - 1);
-                                    }} className={`w-5 h-5 rounded-[6px] flex items-center justify-center font-bold text-xs ${isDarkMode ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-gray-100 hover:bg-gray-200 text-black'}`}>-</button>
+                                    }} className={`w-5 h-5 rounded-[var(--radius-button)] flex items-center justify-center font-bold text-xs ${isDarkMode ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-gray-100 hover:bg-gray-200 text-black'}`}>-</button>
                                     <input disabled={!isEditable} type="number" value={item.quantity} min="1" onChange={(e) => handleItemChange(index, 'quantity', Math.max(1, parseInt(e.target.value) || 1))} className={`w-8 text-center text-[11px] font-bold bg-transparent outline-none border-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${isDarkMode ? 'text-white' : 'text-black'}`} />
                                     <button type="button" disabled={!isEditable} onClick={() => {
                                       handleItemChange(index, 'quantity', (parseInt(item.quantity) || 1) + 1);
-                                    }} className={`w-5 h-5 rounded-[6px] flex items-center justify-center font-bold text-xs ${isDarkMode ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-gray-100 hover:bg-gray-200 text-black'}`}>+</button>
+                                    }} className={`w-5 h-5 rounded-[var(--radius-button)] flex items-center justify-center font-bold text-xs ${isDarkMode ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-gray-100 hover:bg-gray-200 text-black'}`}>+</button>
                                   </div>
                                 </td>
 
@@ -2311,7 +2303,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
                                 {isEditable && (
                                   <td className="px-[8px] py-[6px] text-center">
-                                    <button type="button" onClick={() => handleRemoveItem(index)} className="p-[4px] rounded-[6px] bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/10">
+                                    <button type="button" onClick={() => handleRemoveItem(index)} className="btn-icon text-red-500 hover:bg-red-500/10">
                                       <Trash2 size={10} />
                                     </button>
                                   </td>
@@ -2449,11 +2441,11 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                               return updated;
                             });
                           }}
-                          className={`flex flex-col items-center justify-center p-[8px] rounded-[8px] border transition-all gap-[6px] ${
+                          className={`flex flex-col items-center justify-center p-[8px] rounded-[var(--radius-button)] border transition-all gap-[6px] ${
                             !isClientSelected
                               ? 'opacity-40 cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400 dark:border-white/5 dark:bg-white/5'
                               : isSelected 
-                                ? 'bg-[#1C40F2] border-[#1C40F2] text-white shadow-sm'
+                                ? 'bg-[#1C40F2] border-[#1C40F2] text-white'
                                 : isDarkMode 
                                   ? 'border-white/10 bg-white/5 text-gray-400 hover:bg-white/10'
                                   : 'border-gray-200 bg-gray-50 text-black hover:bg-gray-100'
@@ -2534,7 +2526,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                             <span className="absolute left-[8px] top-[5px] text-xs font-bold text-black opacity-60">$</span>
                             <input disabled={!isEditable} type="number" step="0.01" value={payments.cruce_cuentas || ''} onChange={e => setPayments(prev => ({ ...prev, cruce_cuentas: e.target.value }))} className={`${inputClass} pl-[20px] font-bold`} placeholder="0.00" />
                           </div>
-                          <button type="button" onClick={() => setIsCreditModalOpen(true)} className={`w-full py-[5px] rounded-[8px] border text-[10px] font-bold uppercase ${isDarkMode ? 'bg-amber-500/10 border-amber-500/20 text-amber-400 hover:bg-amber-500/20' : 'bg-amber-50/55 border-amber-200 text-amber-900 hover:bg-amber-100'}`}>
+                          <button type="button" onClick={() => setIsCreditModalOpen(true)} className={`w-full py-[5px] rounded-[var(--radius-button)] border text-[10px] font-bold uppercase ${isDarkMode ? 'bg-amber-500/10 border-amber-500/20 text-amber-400 hover:bg-amber-500/20' : 'bg-amber-50/55 border-amber-200 text-amber-900 hover:bg-amber-100'}`}>
                             Configurar Plazo de Crédito
                           </button>
                         </div>
@@ -2616,11 +2608,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         type="button" 
                         onClick={handleSave} 
                         disabled={isUploading || isEmitting} 
-                        className={`w-full flex items-center justify-center gap-[4px] py-[10px] rounded-[8px] text-[13px] font-bold transition-all border ${
-                          isDarkMode 
-                            ? 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10' 
-                            : 'bg-gray-100 border-gray-200 text-black hover:bg-gray-200'
-                        }`}
+                        className={`btn-secondary w-full ${isUploading || isEmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                       >
                         <CheckCircle2 size={12} />
                         <span>Guardar Borrador</span>
@@ -2632,7 +2620,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                           type="button" 
                           onClick={handleEmitirSRI} 
                           disabled={isUploading || isEmitting} 
-                          className="w-full flex items-center justify-center gap-[4px] py-[12px] rounded-[8px] text-[13px] font-bold bg-[#1C40F2] text-white hover:bg-blue-700 shadow-sm transition-all uppercase"
+                          className={`btn-primary w-full ${isUploading || isEmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                           <Sparkles size={12} />
                           <span>Emitir Factura Electrónica (SRI)</span>
@@ -2645,7 +2633,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                           type="button" 
                           onClick={() => handleSave({ isFinalizingNotaVenta: true })} 
                           disabled={isUploading || isEmitting} 
-                          className="w-full flex items-center justify-center gap-[4px] py-[12px] rounded-[8px] text-[13px] font-bold bg-emerald-600 text-white hover:bg-emerald-500 shadow-sm transition-all uppercase"
+                          className={`btn-primary w-full ${isUploading || isEmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                           <CheckCircle2 size={12} />
                           <span>Registrar Nota de Venta</span>
@@ -2658,7 +2646,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                           type="button" 
                           onClick={handleSave} 
                           disabled={isUploading || isEmitting} 
-                          className="w-full flex items-center justify-center gap-[4px] py-[12px] rounded-[8px] text-[13px] font-bold bg-emerald-600 text-white hover:bg-emerald-500 shadow-sm transition-all uppercase"
+                          className={`btn-primary w-full ${isUploading || isEmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                           <CheckCircle2 size={12} />
                           <span>Registrar Compra / Gasto</span>
@@ -2750,7 +2738,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       setPrintFormat('ticket');
                       setPrintTx(formData);
                     }}
-                    className="flex items-center justify-center gap-[6px] py-[10px] px-[12px] rounded-[8px] text-[12px] font-bold bg-[#1C40F2] text-white hover:bg-blue-700 transition-all shadow-sm"
+                    className="btn-primary w-full flex items-center justify-center gap-[6px]"
                   >
                     <Calculator size={12} />
                     <span>Imprimir Ticket (80mm)</span>
@@ -2763,7 +2751,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       setPrintFormat('ride');
                       setPrintTx(formData);
                     }}
-                    className="flex items-center justify-center gap-[6px] py-[10px] px-[12px] rounded-[8px] text-[12px] font-bold bg-purple-600 text-white hover:bg-purple-500 transition-all shadow-sm"
+                    className="btn-secondary w-full flex items-center justify-center gap-[6px]"
                   >
                     <FileText size={12} />
                     <span>Imprimir RIDE (A4)</span>
@@ -2774,11 +2762,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     <button 
                       type="button" 
                       onClick={downloadXMLFile}
-                      className={`flex items-center justify-center gap-[6px] py-[10px] px-[12px] rounded-[8px] text-[12px] font-bold transition-all border sm:col-span-2 ${
-                        isDarkMode 
-                          ? 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10' 
-                          : 'bg-gray-100 border-gray-150 text-black hover:bg-gray-200'
-                      }`}
+                      className="btn-secondary w-full sm:col-span-2 flex items-center justify-center gap-[6px]"
                     >
                       <Download size={12} />
                       <span>Descargar XML Autorizado</span>
@@ -2792,9 +2776,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     <button 
                       type="button" 
                       onClick={handleAnular}
-                      className={`w-full flex items-center justify-center gap-[6px] py-[10px] rounded-[8px] text-xs font-bold transition-all border ${
-                        isDarkMode ? 'bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500/20' : 'bg-red-50 border-red-205 text-red-700 hover:bg-red-100'
-                      }`}
+                      className="btn-danger w-full flex items-center justify-center gap-[6px]"
                     >
                       <ShieldAlert size={12} />
                       <span>{formData.documentType === 'nota_venta' ? 'Anular Nota de Venta' : 'Anular Documento ante el SRI'}</span>
@@ -2904,11 +2886,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               <button
                 type="button"
                 onClick={() => setMobileTab(mobileTab === 'pago' ? 'carrito' : 'cliente')}
-                className={`flex items-center gap-[4px] px-[12px] py-[8px] rounded-[8px] text-xs font-semibold border transition-all ${
-                  isDarkMode 
-                    ? 'border-white/10 hover:bg-white/5 text-gray-300' 
-                    : 'border-gray-300 hover:bg-gray-100 text-black'
-                }`}
+                className="btn-secondary"
               >
                 <ArrowLeft size={12} />
                 <span>Atrás</span>
@@ -2926,7 +2904,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               <button
                 type="button"
                 onClick={() => setMobileTab(mobileTab === 'cliente' ? 'carrito' : 'pago')}
-                className="flex items-center gap-[4px] px-[12px] py-[8px] rounded-[8px] text-xs font-bold bg-[#1C40F2] text-white hover:bg-blue-700 transition-all shadow-sm"
+                className="btn-primary"
               >
                 <span>Siguiente</span>
                 <ArrowRight size={14} />
@@ -2943,12 +2921,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
             type="button"
             onClick={handlePrevStep}
             disabled={currentStep === 1 || isLockedInStep2}
-            className={`flex items-center gap-[4px] px-[12px] py-[8px] rounded-[8px] text-xs font-semibold border transition-all ${
-              currentStep === 1 || isLockedInStep2
-                ? 'opacity-0 pointer-events-none' 
-                : isDarkMode 
-                  ? 'border-white/10 hover:bg-white/5 text-gray-300' 
-                  : 'border-gray-300 hover:bg-gray-100 text-black'
+            className={`btn-secondary ${
+              currentStep === 1 || isLockedInStep2 ? 'opacity-0 pointer-events-none' : ''
             }`}
           >
             <ArrowLeft size={12} />
@@ -2964,10 +2938,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               type="button"
               disabled={currentStep === 1 && isEditable && !formData.documentNumber}
               onClick={handleNextStep}
-              className={`flex items-center gap-[4px] px-[12px] py-[8px] rounded-[8px] text-xs font-bold transition-all shadow-sm ${
-                currentStep === 1 && isEditable && !formData.documentNumber
-                  ? 'opacity-50 cursor-not-allowed bg-gray-300 text-gray-500 border border-gray-300 dark:bg-white/5 dark:border-white/10'
-                  : 'bg-[#1C40F2] text-white hover:bg-blue-700'
+              className={`btn-primary ${
+                currentStep === 1 && isEditable && !formData.documentNumber ? 'opacity-50 cursor-not-allowed' : ''
               }`}
             >
               <span>Siguiente</span>
@@ -2977,7 +2949,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
             <button
               type="button"
               onClick={onClose}
-              className={`flex items-center gap-1.5 px-6 py-3 rounded-xl text-xs font-bold bg-primary text-white hover:bg-primary transition-all shadow-md hover:-translate-y-0.5`}
+              className="btn-primary px-6"
             >
               <span>Terminar / Salir</span>
             </button>
@@ -2991,13 +2963,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               type="button"
               onClick={handlePrevStep}
               disabled={isLockedInStep2}
-              className={`flex items-center gap-[4px] px-[12px] py-[8px] rounded-[8px] text-xs font-semibold border transition-all ${
-                isLockedInStep2
-                  ? 'opacity-0 pointer-events-none' 
-                  : isDarkMode 
-                    ? 'border-white/10 hover:bg-white/5 text-gray-300' 
-                    : 'border-gray-300 hover:bg-gray-100 text-black'
-              }`}
+              className={`btn-secondary ${isLockedInStep2 ? 'opacity-0 pointer-events-none' : ''}`}
             >
               <ArrowLeft size={12} />
               <span>Atrás</span>
@@ -3010,7 +2976,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
             <button
               type="button"
               onClick={onClose}
-              className="flex items-center gap-[4px] px-[12px] py-[8px] rounded-[8px] text-xs font-bold bg-[#1C40F2] text-white hover:bg-blue-700 transition-all shadow-sm"
+              className="btn-primary"
             >
               <span>Terminar</span>
             </button>
@@ -3121,16 +3087,14 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     setIsCreditModalOpen(false);
                     setFormData(prev => ({ ...prev, paymentMethod: 'efectivo' }));
                   }} 
-                  className={`px-[12px] py-[6px] rounded-[8px] text-xs font-semibold border transition-all ${
-                    isDarkMode ? 'border-white/10 hover:bg-white/5 text-white' : 'border-gray-300 hover:bg-gray-100 text-black'
-                  }`}
+                  className="btn-secondary"
                 >
                   Cancelar
                 </button>
                 <button 
                   type="button" 
                   onClick={() => setIsCreditModalOpen(false)}
-                  className="px-[12px] py-[6px] rounded-[8px] text-xs font-bold bg-amber-600 hover:bg-amber-500 text-white shadow-sm"
+                  className="btn-primary"
                 >
                   Confirmar Crédito
                 </button>
@@ -3177,11 +3141,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       type="button"
                       disabled={isQueryingSri}
                       onClick={queryQuickAddSRI}
-                      className={`px-[12px] rounded-[8px] border flex items-center justify-center transition-all shrink-0 ${
-                        isDarkMode 
-                          ? 'bg-purple-600/20 text-purple-400 border-purple-500/30 hover:bg-purple-500/30' 
-                          : 'bg-purple-50 border-purple-200 text-purple-800 hover:bg-purple-100 shadow-sm'
-                      }`}
+                      className="btn-icon bg-purple-600/20 text-purple-400 border border-purple-500/30 hover:bg-purple-500/30 shrink-0"
                       title="Consultar SRI"
                     >
                       {isQueryingSri ? <RefreshCw size={13} className="animate-spin" /> : <Sparkles size={13} />}
@@ -3267,13 +3227,13 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 <button 
                   type="button" 
                   onClick={() => setIsQuickAddOpen(false)} 
-                  className={`px-[12px] py-[6px] rounded-[8px] text-xs font-semibold ${isDarkMode ? 'hover:bg-white/10 text-white' : 'hover:bg-gray-100 text-black'}`}
+                  className="btn-secondary"
                 >
                   Cancelar
                 </button>
                 <button 
                   type="submit" 
-                  className="px-[12px] py-[6px] rounded-[8px] text-xs font-bold bg-[#1C40F2] text-white hover:bg-blue-700 transition-transform hover:-translate-y-0.5 shadow-md"
+                  className="btn-primary"
                 >
                   Guardar y Seleccionar
                 </button>
@@ -3328,11 +3288,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 <button
                   type="button"
                   onClick={confirmDialog.onCancel}
-                  className={`px-[12px] py-[6px] rounded-[8px] text-xs font-bold transition-all border ${
-                    isDarkMode 
-                      ? 'border-white/10 hover:bg-white/5 text-white' 
-                      : 'border-gray-300 hover:bg-gray-100 text-black'
-                  }`}
+                  className="btn-secondary"
                 >
                   Cancelar
                 </button>
@@ -3340,13 +3296,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               <button
                 type="button"
                 onClick={confirmDialog.onConfirm}
-                className={`px-[12px] py-[6px] rounded-[8px] text-xs font-bold text-white shadow-md transition-all ${
-                  confirmDialog.type === 'danger'
-                    ? 'bg-red-600 hover:bg-red-500'
-                    : confirmDialog.type === 'warning'
-                      ? 'bg-amber-600 hover:bg-amber-500'
-                      : 'bg-[#1C40F2] hover:bg-blue-700'
-                }`}
+                className={confirmDialog.type === 'danger' ? 'btn-danger' : 'btn-primary'}
               >
                 {confirmDialog.confirmLabel || 'Aceptar / Confirmar'}
               </button>
@@ -3468,7 +3418,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         <button
                           type="button"
                           onClick={() => handleAddProductToCart(p)}
-                          className="px-[12px] py-[6px] rounded-[8px] bg-[#1C40F2] hover:bg-blue-700 text-white font-bold text-xs transition-all"
+                          className="btn-primary"
                         >
                           + Añadir
                         </button>
@@ -3484,9 +3434,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               <button
                 type="button"
                 onClick={() => setIsAdvancedSearchOpen(false)}
-                className={`px-[12px] py-[6px] rounded-[8px] text-xs font-bold transition-all border ${
-                  isDarkMode ? 'border-white/10 hover:bg-white/5 text-white' : 'border-gray-300 hover:bg-gray-100 text-black'
-                }`}
+                className="btn-secondary"
               >
                 Volver a la Consola
               </button>
@@ -3594,13 +3542,13 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 <button 
                   type="button" 
                   onClick={() => setIsQuickAddProductOpen(false)} 
-                  className={`px-[12px] py-[6px] rounded-[8px] text-xs font-semibold ${isDarkMode ? 'hover:bg-white/10 text-white' : 'hover:bg-gray-100 text-black'}`}
+                  className="btn-secondary"
                 >
                   Cancelar
                 </button>
                 <button 
                   type="submit" 
-                  className="px-[10px] py-[5px] rounded-[8px] text-xs font-bold bg-[#1C40F2] hover:bg-blue-700 text-white shadow-sm flex items-center gap-[3px]"
+                  className="btn-primary"
                 >
                   <Plus size={12} />
                   <span>Añadir</span>
