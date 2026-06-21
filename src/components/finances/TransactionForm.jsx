@@ -662,7 +662,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
   const handleQuickAddFirstMatch = () => {
     if (!productSearchTerm.trim()) {
-      showToast('⚠️ Escribe un término de búsqueda para agregar rápido', 'warning');
+      showToast('Escribe un término de búsqueda para agregar rápido', 'warning');
       return;
     }
     const filtered = products.filter(p => 
@@ -673,7 +673,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     if (filtered.length > 0) {
       handleAddProductToCart(filtered[0]);
     } else {
-      showToast('⚠️ No se encontraron coincidencias para agregar rápido', 'error');
+      showToast('No se encontraron coincidencias para agregar rápido', 'error');
     }
   };
 
@@ -1438,7 +1438,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   const handleNextStep = () => {
     if (currentStep === 1) {
       if (!formData.thirdPartyId) {
-        showToast('⚠️ Selecciona un cliente antes de continuar', 'error');
+        showToast('Selecciona un cliente antes de continuar', 'error');
         return;
       }
       const mt = thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
@@ -1454,7 +1454,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       // Validate products / retenciones (moved to Step 1!)
       if (formData.documentType !== 'retencion') {
         if (!formData.items || formData.items.length === 0) {
-          showToast('⚠️ Agrega al menos un producto o servicio antes de continuar', 'error');
+          showToast('Agrega al menos un producto o servicio antes de continuar', 'error');
           return;
         }
         const invalid = formData.items.some(item => !item.productId || Number(item.quantity) <= 0 || Number(item.price) < 0);
@@ -1464,7 +1464,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         }
       } else {
         if (!formData.retenciones || formData.retenciones.length === 0) {
-          showToast('⚠️ Agrega al menos una fila de retención', 'error');
+          showToast('Agrega al menos una fila de retención', 'error');
           return;
         }
         const invalid = formData.retenciones.some(ret => !ret.baseImponible || Number(ret.baseImponible) <= 0 || !ret.porcentajeRetener);
@@ -1490,7 +1490,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
       // Must be emitted or registered before printing in Step 3
       if (isEditable && !formData.documentNumber) {
-        showToast('⚠️ Debes registrar la venta o emitir el comprobante al SRI antes de continuar', 'error');
+        showToast('Debes registrar la venta o emitir el comprobante al SRI antes de continuar', 'error');
         return;
       }
     }
@@ -1572,7 +1572,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               onClick={() => {
                 if (step.id === 2) {
                   if (isEditable && !formData.documentNumber) {
-                    showToast('⚠️ Debes registrar la venta o emitir el comprobante antes de ver la impresión', 'error');
+                    showToast('Debes registrar la venta o emitir el comprobante antes de ver la impresión', 'error');
                     return;
                   }
                 }
@@ -1653,32 +1653,72 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         {currentStep === 1 && (
           <div className="space-y-[12px]">
             {/* Mobile Navigation Tabs */}
-            <div className="flex lg:hidden w-full p-[4px] rounded-[10px] bg-slate-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 gap-[4px] mb-[4px]">
+            <div className="flex lg:hidden w-full p-[3px] rounded-[10px] bg-slate-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 gap-[3px] mb-[4px]">
               {[
-                { id: 'cliente', label: 'Cliente', count: formData.thirdPartyId ? '✓' : '⚠️' },
-                { id: 'carrito', label: 'Carrito', count: formData.items?.length || 0 },
-                { id: 'pago', label: 'Pago', count: `$${Number(formData.total).toFixed(2)}` }
+                { 
+                  id: 'cliente', 
+                  label: 'Cliente', 
+                  icon: User,
+                  badge: formData.thirdPartyId ? (
+                    <span className="text-[9px] font-extrabold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 dark:bg-emerald-500/20 px-2 py-0.5 rounded-full">Listo</span>
+                  ) : (
+                    <span className="text-[9px] font-extrabold text-amber-600 dark:text-amber-400 bg-amber-500/10 dark:bg-amber-500/20 px-2 py-0.5 rounded-full">Pendiente</span>
+                  ),
+                  activeBadge: formData.thirdPartyId ? (
+                    <span className="text-[9px] font-extrabold text-[#1C40F2] bg-white px-2 py-0.5 rounded-full">Listo</span>
+                  ) : (
+                    <span className="text-[9px] font-extrabold text-[#1C40F2] bg-white px-2 py-0.5 rounded-full">Pendiente</span>
+                  )
+                },
+                { 
+                  id: 'carrito', 
+                  label: 'Carrito', 
+                  icon: Layers,
+                  badge: (
+                    <span className="text-[9px] font-extrabold text-slate-650 dark:text-slate-350 bg-slate-200 dark:bg-white/10 px-2 py-0.5 rounded-full">
+                      {formData.items?.length || 0}
+                    </span>
+                  ),
+                  activeBadge: (
+                    <span className="text-[9px] font-extrabold text-[#1C40F2] bg-white px-2 py-0.5 rounded-full">
+                      {formData.items?.length || 0}
+                    </span>
+                  )
+                },
+                { 
+                  id: 'pago', 
+                  label: 'Pago', 
+                  icon: CreditCard,
+                  badge: (
+                    <span className="text-[9px] font-extrabold text-emerald-650 dark:text-emerald-400 bg-emerald-500/10 dark:bg-emerald-500/20 px-2 py-0.5 rounded-full">
+                      ${Number(formData.total).toFixed(2)}
+                    </span>
+                  ),
+                  activeBadge: (
+                    <span className="text-[9px] font-extrabold text-[#1C40F2] bg-white px-2 py-0.5 rounded-full">
+                      ${Number(formData.total).toFixed(2)}
+                    </span>
+                  )
+                }
               ].map(tab => {
                 const isActive = mobileTab === tab.id;
+                const IconComponent = tab.icon;
                 return (
                   <button
                     key={tab.id}
                     type="button"
                     onClick={() => setMobileTab(tab.id)}
-                    className={`flex-1 flex flex-col items-center justify-center py-[8px] rounded-[8px] transition-all text-xs font-black uppercase ${
+                    className={`flex-1 flex flex-col items-center justify-center py-[5px] px-[2px] rounded-[8px] transition-all ${
                       isActive 
-                        ? 'bg-[#1C40F2] text-white shadow-md'
-                        : isDarkMode ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-slate-600 hover:text-black hover:bg-slate-200'
+                        ? 'bg-[#1C40F2] text-white shadow-sm font-black'
+                        : isDarkMode ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-slate-650 hover:text-black hover:bg-slate-200'
                     }`}
                   >
-                    <span>{tab.label}</span>
-                    <span className={`text-[9px] mt-[2px] font-bold px-[6px] py-[1px] rounded-full ${
-                      isActive
-                        ? 'bg-white/20 text-white'
-                        : isDarkMode ? 'bg-white/10 text-white/80' : 'bg-slate-200 text-slate-800'
-                    }`}>
-                      {tab.count}
-                    </span>
+                    <div className="flex items-center gap-[3px] mb-[2px]">
+                      <IconComponent size={11} className="shrink-0" />
+                      <span className="text-[10px] font-bold uppercase tracking-wider">{tab.label}</span>
+                    </div>
+                    {isActive ? tab.activeBadge : tab.badge}
                   </button>
                 );
               })}
@@ -1783,8 +1823,9 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     </div>
                   </div>
                 ) : (
-                  <div className={`p-[8px] text-center rounded-[8px] border border-dashed ${isDarkMode ? 'border-amber-500/20 bg-amber-500/5 text-amber-400' : 'border-amber-150 bg-amber-50/55 text-amber-900'} mb-[8px] text-[11px] font-semibold`}>
-                    ⚠️ Selecciona un cliente para habilitar la facturación.
+                  <div className={`p-[8px] flex items-center justify-center gap-1.5 rounded-[8px] border border-dashed ${isDarkMode ? 'border-amber-500/20 bg-amber-500/5 text-amber-400' : 'border-amber-150 bg-amber-55/55 text-amber-900'} mb-[8px] text-[11px] font-semibold`}>
+                    <AlertTriangle size={12} className="shrink-0" />
+                    <span>Selecciona un cliente para habilitar la facturación.</span>
                   </div>
                 )}
 
@@ -2191,7 +2232,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                             <th className="px-[8px] py-[6px]">Producto / Servicio</th>
                             <th className="px-[8px] py-[6px] text-center w-20">Cant.</th>
                             <th className="px-[8px] py-[6px] text-right w-24">P. Unit.</th>
-                            {isEditable && <th className="px-[8px] py-[6px] text-right w-20">Dto. ($)</th>}
+                            {isEditable && <th className="px-[8px] py-[6px] text-right w-20 hidden sm:table-cell">Dto. ($)</th>}
                             <th className="px-[8px] py-[6px] text-right w-20">Subtotal</th>
                             {isEditable && <th className="px-[8px] py-[6px] text-center w-8"></th>}
                           </tr>
@@ -2249,7 +2290,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                                 </td>
 
                                 {isEditable && (
-                                  <td className="px-[8px] py-[6px] text-right">
+                                  <td className="px-[8px] py-[6px] text-right hidden sm:table-cell">
                                     <div className="relative inline-block w-20">
                                       <span className="absolute left-[5px] top-[5px] text-[11px] font-bold text-orange-500">-$</span>
                                       <input
@@ -2625,10 +2666,11 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       )}
                     </>
                   ) : (
-                    <div style={{ color: isDarkMode ? '#4ade80' : '#15803d' }} className={`p-[6px] rounded-[8px] text-center text-xs font-bold border ${
+                    <div style={{ color: isDarkMode ? '#4ade80' : '#15803d' }} className={`p-[6px] flex items-center justify-center gap-1.5 rounded-[8px] text-xs font-bold border ${
                       isDarkMode ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-emerald-300 bg-emerald-50'
                     }`}>
-                      ✓ Autorizado / registrado con éxito.
+                      <CheckCircle2 size={12} className="shrink-0" />
+                      <span>Autorizado / registrado con éxito.</span>
                     </div>
                   )}
                 </div>
@@ -3041,7 +3083,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     <div className="p-[8px] rounded-[10px] bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-450 text-[10px] leading-normal flex items-start gap-[4px]">
                       <AlertTriangle size={12} className="shrink-0 mt-[1px]" />
                       <div>
-                        <p className="font-bold">⚠️ Límite de Crédito Superado</p>
+                        <p className="font-bold">Límite de Crédito Superado</p>
                         <p className="opacity-90 font-normal">La deuda actual más esta venta superan el cupo disponible del cliente en ${(Math.abs(available)).toFixed(2)}.</p>
                       </div>
                     </div>
