@@ -167,7 +167,7 @@ Gracias por su compra`;
           <button
             onClick={handleAnalyzeText}
             disabled={analyzing || !pastedText.trim()}
-            className="w-full py-2.5 rounded-xl bg-pink-600 hover:bg-pink-500 text-white font-bold text-xs flex justify-center items-center gap-2 shadow-md transition-all disabled:opacity-50"
+            className="w-full h-[34px] rounded-[var(--radius-button)] bg-pink-600 hover:bg-pink-500 text-white font-semibold text-xs flex justify-center items-center gap-2 transition-all disabled:opacity-50 border-none"
           >
             {analyzing ? <RefreshCw size={14} className="animate-spin" /> : <Sparkles size={14} />}
             <span>{analyzing ? 'Analizando Gasto con Gemini...' : 'Analizar Gasto con IA'}</span>
@@ -185,7 +185,7 @@ Gracias por su compra`;
                   <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1">
                     <CheckCircle2 size={14} /> Campos Extraídos por IA
                   </h4>
-                  <button type="button" onClick={() => setParsedData(null)} className="p-1 rounded-lg hover:bg-white/5 text-gray-400"><X size={14} /></button>
+                  <button type="button" onClick={() => setParsedData(null)} className="btn-icon text-gray-400"><X size={14} /></button>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 text-xs">
@@ -274,7 +274,7 @@ Gracias por su compra`;
 
               <button
                 type="submit"
-                className="w-full mt-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex justify-center items-center gap-1.5 shadow-md"
+                className="w-full h-[34px] rounded-[var(--radius-button)] bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex justify-center items-center gap-1.5 transition-all border-none"
               >
                 <Save size={14} />
                 <span>Confirmar y Registrar Gasto</span>
@@ -331,7 +331,7 @@ Gracias por su compra`;
                   <td className="px-6 py-3.5 text-center">
                     <button
                       onClick={() => handleDeleteGasto(tx.id)}
-                      className="p-1.5 rounded-[10px] border border-white/10 hover:bg-red-500/15 hover:text-red-400 text-gray-400 transition-colors bg-white dark:bg-transparent shadow-sm"
+                      className="btn-icon bg-red-600 text-white hover:bg-red-700"
                       title="Eliminar gasto"
                     >
                       <Trash2 size={13} />

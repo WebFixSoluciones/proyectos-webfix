@@ -192,11 +192,7 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
               resetForm();
               setIsModalOpen(true);
             }}
-            className={`w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 rounded-[10px] text-xs font-bold transition-all hover-lift shadow-md ${
-              isDarkMode
-                ? "bg-gradient-to-r from-primary to-primary-hover text-white shadow-primary/20 hover:from-primary hover:to-primary-hover border border-primary/30"
-                : "bg-primary text-white hover:bg-primary-hover shadow-primary/10"
-            }`}
+            className="btn-primary w-full sm:w-auto"
           >
             <Plus size={14} /> Registrar Producto
           </button>
@@ -388,14 +384,14 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
                               setFormData(p);
                               setIsModalOpen(true);
                             }}
-                            className={`p-1.5 rounded-[10px] transition-colors ${isDarkMode ? "hover:bg-primary/15 text-primary border border-transparent" : "hover:bg-primary/10 text-primary border border-primary/25 bg-white shadow-sm"}`}
+                            className="btn-icon bg-primary text-white hover:bg-primary-hover"
                             title="Editar"
                           >
                             <Edit2 size={13} />
                           </button>
                           <button
                             onClick={() => handleDelete(p.id)}
-                            className={`p-1.5 rounded-[10px] transition-colors ${isDarkMode ? "hover:bg-red-500/15 text-red-400 border border-transparent" : "hover:bg-red-50 text-red-650 border border-gray-300 bg-white shadow-sm"}`}
+                            className="btn-icon bg-red-600 text-white hover:bg-red-700"
                             title="Eliminar"
                           >
                             <Trash2 size={13} />
@@ -433,7 +429,7 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
               </h2>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? "hover:bg-white/5 text-gray-400 hover:text-white" : "hover:bg-black/5 text-gray-550 hover:text-gray-900"}`}
+                className="btn-icon text-gray-450 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
               >
                 <Plus size={16} className="rotate-45" />
               </button>
@@ -697,17 +693,13 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className={`px-5 py-2.5 rounded-xl text-xs font-semibold transition-all ${isDarkMode ? "hover:bg-white/5 text-gray-300" : "hover:bg-gray-100 text-gray-700"}`}
+                  className="btn-secondary"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all hover-lift shadow-md ${
-                    isDarkMode
-                      ? "bg-gradient-to-r from-primary to-primary-hover text-white hover:from-primary hover:to-primary-hover"
-                      : "bg-primary text-white hover:bg-primary-hover"
-                  }`}
+                  className="btn-primary"
                 >
                   Guardar Producto
                 </button>

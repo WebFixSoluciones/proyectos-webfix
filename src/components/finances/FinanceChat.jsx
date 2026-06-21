@@ -61,7 +61,7 @@ export default function FinanceChat({ transactions, thirdParties, isDarkMode, on
           </div>
         </div>
         {onClose && (
-          <button onClick={onClose} className="p-1 rounded hover:bg-white/10 text-gray-400 hover:text-gray-200">
+          <button onClick={onClose} className="btn-icon text-gray-400 hover:text-gray-200">
             <X size={14} />
           </button>
         )}
@@ -116,7 +116,7 @@ export default function FinanceChat({ transactions, thirdParties, isDarkMode, on
         <button 
           type="submit" 
           disabled={!input.trim() || isLoading}
-          className="p-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white disabled:opacity-50 transition-all shadow-md shrink-0"
+          className="btn-icon bg-purple-600 text-white hover:bg-purple-500 disabled:opacity-50 shrink-0"
         >
           <Send size={14} />
         </button>

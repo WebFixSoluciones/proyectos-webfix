@@ -371,7 +371,7 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
       </div>
 
       <div className="flex justify-end gap-3 pt-4 border-t border-white/5">
-        <button type="submit" className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold bg-primary text-white hover:bg-primary transition-all shadow-md hover:-translate-y-0.5 active:scale-95">
+        <button type="submit" className="btn-primary">
           <Save size={16} /> Guardar Configuración
         </button>
       </div>

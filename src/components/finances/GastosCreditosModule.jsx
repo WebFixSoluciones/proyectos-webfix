@@ -336,13 +336,13 @@ export default function GastosCreditosModule({ isDarkMode, showToast, transactio
                       <div className="mt-4 pt-4 border-t border-dashed border-white/5 flex gap-2">
                         <button
                           onClick={() => setActiveTab('pasivos')}
-                          className="px-4 py-2 rounded-xl bg-pink-600 hover:bg-pink-500 text-white font-bold text-xs"
+                          className="h-[34px] px-4 rounded-[var(--radius-button)] bg-pink-600 hover:bg-pink-500 text-white font-semibold text-xs transition-all border-none"
                         >
                           Ver Mis Créditos
                         </button>
                         <button
                           onClick={() => setIsAddModalOpen(true)}
-                          className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-white flex items-center gap-1.5"
+                          className="btn-secondary"
                         >
                           <Plus size={14} /> Registrar Deuda
                         </button>
@@ -359,7 +359,7 @@ export default function GastosCreditosModule({ isDarkMode, showToast, transactio
                     <h3 className="text-xs font-bold uppercase tracking-wider">Obligaciones Comerciales y Bancarias</h3>
                     <button
                       onClick={() => setIsAddModalOpen(true)}
-                      className="px-4 py-2 rounded-xl bg-pink-600 hover:bg-pink-500 text-white font-bold text-xs flex items-center gap-1.5"
+                      className="h-[34px] px-4 rounded-[var(--radius-button)] bg-pink-600 hover:bg-pink-500 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition-all border-none"
                     >
                       <Plus size={14} /> Registrar Nuevo Pasivo
                     </button>
@@ -414,17 +414,17 @@ export default function GastosCreditosModule({ isDarkMode, showToast, transactio
                               setPaymentAmount(liab.cuotaMensual || '');
                             }}
                             disabled={liab.saldoPendiente <= 0}
-                            className={`flex-1 py-2 rounded-xl text-[10px] font-black uppercase text-center ${
+                            className={`flex-1 h-[34px] rounded-[var(--radius-button)] text-xs font-semibold text-center transition-all border-none ${
                               liab.saldoPendiente > 0 
-                                ? 'bg-pink-600 hover:bg-pink-500 text-white shadow-md' 
-                                : 'bg-gray-550/20 text-gray-500 cursor-not-allowed'
+                                ? 'bg-pink-600 hover:bg-pink-500 text-white' 
+                                : 'bg-gray-500/20 text-gray-400 dark:text-gray-500 cursor-not-allowed'
                             }`}
                           >
                             Pagar Cuota
                           </button>
                           <button
                             onClick={() => handleDeleteLiability(liab.id)}
-                            className="p-2 rounded-xl border border-white/10 hover:bg-red-500/10 hover:text-red-400 text-gray-400 transition-colors"
+                            className="btn-icon bg-red-600 text-white hover:bg-red-700"
                             title="Eliminar registro"
                           >
                             <Trash2 size={14} />
@@ -528,7 +528,7 @@ export default function GastosCreditosModule({ isDarkMode, showToast, transactio
           <div className={`w-full max-w-md p-6 rounded-3xl shadow-2xl ${isDarkMode ? 'bg-[#151517] border border-white/10' : 'bg-white border border-gray-200'}`}>
             <div className="flex justify-between items-center mb-4 border-b pb-2 border-white/5">
               <h3 className="text-sm font-black">Registrar Pago de Cuota / Abono</h3>
-              <button onClick={() => setSelectedLiability(null)} className="p-1 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white"><X size={16} /></button>
+              <button onClick={() => setSelectedLiability(null)} className="btn-icon text-gray-400 hover:text-white"><X size={16} /></button>
             </div>
 
             <form onSubmit={handleRecordPayment} className="space-y-4">
@@ -590,13 +590,13 @@ export default function GastosCreditosModule({ isDarkMode, showToast, transactio
                 <button
                   type="button"
                   onClick={() => setSelectedLiability(null)}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-semibold ${isDarkMode ? 'hover:bg-white/10 text-gray-300' : 'hover:bg-gray-150 text-gray-700'}`}
+                  className="btn-secondary"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl text-xs font-black uppercase transition-transform hover:-translate-y-0.5 shadow-md bg-pink-600 hover:bg-pink-500 text-white"
+                  className="h-[34px] px-4 rounded-[var(--radius-button)] text-xs font-semibold flex items-center justify-center gap-1.5 transition-all text-white border-none bg-pink-600 hover:bg-pink-500"
                 >
                   Confirmar Pago
                 </button>
@@ -612,7 +612,7 @@ export default function GastosCreditosModule({ isDarkMode, showToast, transactio
           <div className={`w-full max-w-md p-6 rounded-3xl shadow-2xl ${isDarkMode ? 'bg-[#151517] border border-white/10' : 'bg-white border border-gray-200'}`}>
             <div className="flex justify-between items-center mb-4 border-b pb-2 border-white/5">
               <h3 className="text-sm font-black">Registrar Nuevo Pasivo</h3>
-              <button onClick={() => setIsAddModalOpen(false)} className="p-1 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white"><X size={16} /></button>
+              <button onClick={() => setIsAddModalOpen(false)} className="btn-icon text-gray-400 hover:text-white"><X size={16} /></button>
             </div>
 
             <form onSubmit={handleAddLiability} className="space-y-4">
@@ -732,13 +732,13 @@ export default function GastosCreditosModule({ isDarkMode, showToast, transactio
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-semibold ${isDarkMode ? 'hover:bg-white/10 text-gray-300' : 'hover:bg-gray-150 text-gray-700'}`}
+                  className="btn-secondary"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl text-xs font-black uppercase bg-pink-600 hover:bg-pink-500 text-white font-sans"
+                  className="h-[34px] px-4 rounded-[var(--radius-button)] text-xs font-semibold flex items-center justify-center gap-1.5 transition-all text-white border-none bg-pink-600 hover:bg-pink-500"
                 >
                   Registrar Deuda
                 </button>

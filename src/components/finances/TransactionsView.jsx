@@ -427,11 +427,7 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
                 onOpenForm(null);
               }
             }}
-            className={`w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 rounded-[10px] text-xs font-bold transition-all hover-lift shadow-md ${
-              isDarkMode 
-                ? 'bg-gradient-to-r from-primary to-primary-hover text-white shadow-primary/20 border border-primary/30' 
-                : 'bg-primary text-white hover:bg-primary-hover shadow-primary/10'
-            }`}
+            className="btn-primary w-full sm:w-auto"
           >
             <Plus size={15} /> Registrar {
               forcedDocType 
@@ -548,32 +544,71 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
                   <td className="px-6 py-3.5">{getStatusBadge(tx.sriStatus, tx.documentType)}</td>
                   <td className="px-6 py-3.5">
                     <div className="flex gap-1.5">
-                      {tx.xmlUrl ? <a href={tx.xmlUrl} target="_blank" rel="noreferrer" className="p-1.5 rounded-[10px] bg-primary/20 text-primary hover:bg-primary/40" title="Ver XML"><FileText size={12}/></a> : <span className="p-1.5 rounded-[10px] bg-gray-500/10 text-gray-400 border border-gray-250 opacity-60"><FileText size={12}/></span>}
-                      {tx.pdfUrl ? <a href={tx.pdfUrl} target="_blank" rel="noreferrer" className="p-1.5 rounded-[10px] bg-red-500/20 text-red-500 hover:bg-red-500/40" title="Ver PDF"><FileText size={12}/></a> : <span className="p-1.5 rounded-[10px] bg-gray-500/10 text-gray-400 border border-gray-250 opacity-60"><FileText size={12}/></span>}
+                      {tx.xmlUrl ? (
+                        <a 
+                          href={tx.xmlUrl} 
+                          target="_blank" 
+                          rel="noreferrer" 
+                          className="btn-icon bg-primary text-white hover:bg-primary-hover" 
+                          title="Ver XML"
+                        >
+                          <FileText size={13}/>
+                        </a>
+                      ) : (
+                        <span 
+                          className="btn-icon bg-gray-200 dark:bg-white/10 text-gray-400 dark:text-gray-500 opacity-60 cursor-not-allowed"
+                          title="XML no disponible"
+                        >
+                          <FileText size={13}/>
+                        </span>
+                      )}
+                      
+                      {tx.pdfUrl ? (
+                        <a 
+                          href={tx.pdfUrl} 
+                          target="_blank" 
+                          rel="noreferrer" 
+                          className="btn-icon bg-red-600 text-white hover:bg-red-700" 
+                          title="Ver PDF"
+                        >
+                          <FileText size={13}/>
+                        </a>
+                      ) : (
+                        <span 
+                          className="btn-icon bg-gray-200 dark:bg-white/10 text-gray-400 dark:text-gray-500 opacity-60 cursor-not-allowed"
+                          title="PDF no disponible"
+                        >
+                          <FileText size={13}/>
+                        </span>
+                      )}
+
                       {tx.documentType && (
                         <button 
+                          type="button"
                           onClick={() => setSelectedRideTx(tx)}
-                          className="p-1.5 rounded-[10px] bg-orange-500/20 text-orange-500 hover:bg-orange-500/40 border border-orange-500/10 transition-all"
+                          className="btn-icon bg-amber-600 text-white hover:bg-amber-700 transition-all"
                           title={tx.documentType === 'nota_venta' ? "Ver Recibo / Imprimir" : "Ver RIDE Interactivo / Imprimir Factura"}
                         >
-                          <Eye size={12}/>
+                          <Eye size={13}/>
                         </button>
                       )}
+                      
                       {(tx.sriStatus === 'autorizado' || tx.xmlUrl || tx.pdfUrl) && tx.documentType !== 'nota_venta' && (
                         <button 
+                          type="button"
                           onClick={() => handleOpenEmailModal(tx)}
-                          className="p-1.5 rounded-[10px] bg-blue-500/20 text-blue-500 hover:bg-blue-500/40 border border-blue-500/10 transition-all"
+                          className="btn-icon bg-blue-600 text-white hover:bg-blue-700 transition-all"
                           title="Enviar Comprobante al Correo"
                         >
-                          <Mail size={12}/>
+                          <Mail size={13}/>
                         </button>
                       )}
                     </div>
                   </td>
                   <td className="px-6 py-3.5 text-right">
                     <div className="flex items-center justify-end gap-1.5">
-                      <button onClick={() => onOpenForm(tx)} className={`p-1.5 rounded-[10px] transition-colors ${isDarkMode ? 'hover:bg-primary/20 text-primary' : 'hover:bg-primary/10 text-primary border border-primary/25'}`}><Edit2 size={13}/></button>
-                      <button onClick={() => handleDelete(tx.id)} className={`p-1.5 rounded-[10px] transition-colors ${isDarkMode ? 'hover:bg-red-500/20 text-red-400' : 'hover:bg-red-50 text-red-650 border border-gray-300'}`}><Trash2 size={13}/></button>
+                       <button type="button" onClick={() => onOpenForm(tx)} className="btn-icon bg-primary text-white hover:bg-primary-hover" title="Editar"><Edit2 size={13}/></button>
+                       <button type="button" onClick={() => handleDelete(tx.id)} className="btn-icon bg-red-600 text-white hover:bg-red-700" title="Eliminar"><Trash2 size={13}/></button>
                     </div>
                   </td>
                 </tr>

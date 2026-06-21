@@ -202,10 +202,8 @@ export default function ComprasSriView({ transactions = [], isDarkMode, showToas
         <button
           onClick={handleFetchSriBills}
           disabled={loading || !companyRuc}
-          className={`px-5 py-2.5 rounded-xl font-black text-xs flex items-center gap-2 shadow-sm transition-transform active:scale-95 shrink-0 ${
-            !companyRuc
-              ? 'bg-gray-500/10 text-gray-500 border border-white/5 cursor-not-allowed'
-              : 'bg-primary hover:bg-primary-hover text-white'
+          className={`btn-primary shrink-0 ${
+            !companyRuc ? 'opacity-50 cursor-not-allowed' : ''
           }`}
         >
           <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
@@ -267,10 +265,10 @@ export default function ComprasSriView({ transactions = [], isDarkMode, showToas
                       <button
                         onClick={() => handleImportBill(bill)}
                         disabled={isImported}
-                        className={`px-3 py-1.5 rounded-[10px] text-[10px] font-black uppercase transition-all flex items-center gap-1 mx-auto ${
+                        className={`h-[34px] px-3.5 rounded-[var(--radius-button)] text-xs font-semibold flex items-center justify-center gap-1.5 transition-all text-white border-none mx-auto ${
                           isImported 
-                            ? 'bg-gray-550/10 text-gray-550 cursor-not-allowed border border-white/5 shadow-inner' 
-                            : 'bg-emerald-650 hover:bg-emerald-600 text-white shadow-sm'
+                            ? 'bg-gray-500/20 text-gray-400 dark:text-gray-500 cursor-not-allowed' 
+                            : 'bg-emerald-650 hover:bg-emerald-600'
                         }`}
                       >
                         <Download size={10} />

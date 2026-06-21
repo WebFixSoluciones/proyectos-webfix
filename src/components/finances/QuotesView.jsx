@@ -362,13 +362,25 @@ export default function QuotesView({ products, thirdParties, isDarkMode, showToa
                           )}
                           <button 
                             onClick={() => setSelectedQuoteTx({ ...q, documentType: 'cotizacion', documentNumber: q.quoteNumber, baseImponible: q.subtotal, ivaValor: q.ivaValor, total: q.total })} 
-                            className={`btn-icon ${isDarkMode ? 'hover:bg-orange-500/20 text-orange-400' : 'hover:bg-orange-50 text-orange-700 border border-orange-200 bg-white'}`}
+                            className="btn-icon bg-amber-600 text-white hover:bg-amber-700"
                             title="Ver RIDE Proforma / Imprimir"
                           >
                             <Eye size={13}/>
                           </button>
-                          <button onClick={() => { setFormData(q); setIsModalOpen(true); }} className={`btn-icon ${isDarkMode ? 'hover:bg-primary/20 text-primary' : 'hover:bg-primary/10 text-primary border border-primary/25 bg-white'}`}><Edit2 size={13}/></button>
-                          <button onClick={() => handleDelete(q.id)} className={`btn-icon ${isDarkMode ? 'hover:bg-red-500/20 text-red-500' : 'hover:bg-red-50 text-red-650 border border-red-200 bg-white'}`}><Trash2 size={13}/></button>
+                          <button 
+                            onClick={() => { setFormData(q); setIsModalOpen(true); }} 
+                            className="btn-icon bg-primary text-white hover:bg-primary-hover"
+                            title="Editar"
+                          >
+                            <Edit2 size={13}/>
+                          </button>
+                          <button 
+                            onClick={() => handleDelete(q.id)} 
+                            className="btn-icon bg-red-600 text-white hover:bg-red-700"
+                            title="Eliminar"
+                          >
+                            <Trash2 size={13}/>
+                          </button>
                         </div>
                       </td>
                     </tr>

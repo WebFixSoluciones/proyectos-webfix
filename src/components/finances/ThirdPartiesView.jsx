@@ -152,11 +152,7 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
         <div>
           <button 
             onClick={() => { resetForm(); setIsModalOpen(true); }}
-            className={`w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 rounded-[10px] text-xs font-bold transition-all hover-lift shadow-md ${
-              isDarkMode 
-                ? 'bg-gradient-to-r from-primary to-primary-hover text-white shadow-primary/20 border border-primary/30' 
-                : 'bg-primary text-white hover:bg-primary-hover shadow-primary/10'
-            }`}
+            className="btn-primary w-full sm:w-auto"
           >
             <Plus size={15} /> Nuevo {forcedType === 'cliente' ? 'Cliente' : forcedType === 'proveedor' ? 'Proveedor' : 'Contacto'}
           </button>
@@ -282,8 +278,20 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
                     <td className="px-6 py-3.5 text-xs font-bold text-primary hover:underline"><a href={`mailto:${tp.email}`}>{tp.email || '-'}</a></td>
                     <td className="px-6 py-3.5 text-right">
                       <div className="flex items-center justify-end gap-1.5">
-                        <button onClick={() => { setFormData({ id: tp.id || '', name: tp.name || '', ruc: tp.ruc || '', email: tp.email || '', type: tp.type || forcedType || 'cliente', tipoIdentificacion: tp.tipoIdentificacion || 'ruc', direccion: tp.direccion || '', telefono: tp.telefono || '', tipoContribuyente: tp.tipoContribuyente || 'general', ciudad: tp.ciudad || '' }); setIsModalOpen(true); }} className={`p-2 rounded-[10px] transition-colors ${isDarkMode ? 'hover:bg-primary/15 text-primary border border-transparent' : 'hover:bg-primary-light text-primary border border-gray-100'}`} title="Editar"><Edit2 size={13}/></button>
-                        <button onClick={() => handleDelete(tp.id)} className={`p-2 rounded-[10px] transition-colors ${isDarkMode ? 'hover:bg-red-500/15 text-red-400 border border-transparent' : 'hover:bg-red-50 text-red-650 border border-gray-200'}`} title="Eliminar"><Trash2 size={13}/></button>
+                        <button 
+                          onClick={() => { setFormData({ id: tp.id || '', name: tp.name || '', ruc: tp.ruc || '', email: tp.email || '', type: tp.type || forcedType || 'cliente', tipoIdentificacion: tp.tipoIdentificacion || 'ruc', direccion: tp.direccion || '', telefono: tp.telefono || '', tipoContribuyente: tp.tipoContribuyente || 'general', ciudad: tp.ciudad || '' }); setIsModalOpen(true); }} 
+                          className="btn-icon bg-primary text-white hover:bg-primary-hover" 
+                          title="Editar"
+                        >
+                          <Edit2 size={13}/>
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(tp.id)} 
+                          className="btn-icon bg-red-600 text-white hover:bg-red-700" 
+                          title="Eliminar"
+                        >
+                          <Trash2 size={13}/>
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -307,7 +315,10 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
               <h2 className="text-base font-bold font-display uppercase tracking-wider">
                 {formData.id ? 'Editar' : 'Nuevo'} {forcedType === 'cliente' ? 'Cliente' : forcedType === 'proveedor' ? 'Proveedor' : 'Contacto'}
               </h2>
-              <button onClick={() => setIsModalOpen(false)} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-white/5 text-gray-400 hover:text-white' : 'hover:bg-black/5 text-gray-550 hover:text-gray-900'}`}>
+              <button 
+                onClick={() => setIsModalOpen(false)} 
+                className="btn-icon text-gray-450 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+              >
                 <Plus size={16} className="rotate-45" />
               </button>
             </div>
@@ -338,10 +349,10 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
                       type="button"
                       disabled={isQueryingSri}
                       onClick={querySRI}
-                      className={`px-4 rounded-xl border flex items-center justify-center transition-all shrink-0 hover-lift ${
+                      className={`btn-icon shrink-0 ${
                         isDarkMode 
-                          ? 'bg-purple-600/20 text-purple-400 border-purple-500/30 hover:bg-purple-500/30 shadow-[0_0_15px_rgba(139,92,246,0.1)]' 
-                          : 'bg-purple-50 border-purple-200 text-purple-800 hover:bg-purple-100 shadow-sm'
+                          ? 'bg-purple-600/20 text-purple-400 hover:bg-purple-500/30' 
+                          : 'bg-purple-50 text-purple-800 hover:bg-purple-100 border border-purple-200'
                       }`}
                       title="Consultar base del SRI"
                     >
@@ -399,12 +410,19 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
               )}
 
               <div className="flex justify-end gap-3 mt-8 pt-4 border-t border-white/5">
-                <button type="button" onClick={() => setIsModalOpen(false)} className={`px-5 py-2.5 rounded-xl text-xs font-semibold transition-all ${isDarkMode ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-gray-100 text-gray-700'}`}>Cancelar</button>
-                <button type="submit" className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all hover-lift shadow-md ${
-                  isDarkMode 
-                    ? 'bg-gradient-to-r from-primary to-primary-hover text-white hover:from-primary hover:to-primary-hover' 
-                    : 'bg-primary text-white hover:bg-primary-hover'
-                }`}>Guardar Persona</button>
+                <button 
+                  type="button" 
+                  onClick={() => setIsModalOpen(false)} 
+                  className="btn-secondary"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="submit" 
+                  className="btn-primary"
+                >
+                  Guardar Persona
+                </button>
               </div>
             </form>
           </div>

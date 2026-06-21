@@ -175,12 +175,9 @@ export default function AccountsReceivablePayable({ type = 'cxc', transactions =
       <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 mb-6">
         <div>
           <button 
+            type="button"
             onClick={exportToCSV}
-            className={`w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-[10px] text-xs font-bold transition-all border shrink-0 ${
-              isDarkMode 
-                ? 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10' 
-                : 'bg-gray-50 border-gray-300 text-gray-705 hover:bg-gray-100 shadow-sm'
-            }`}
+            className="btn-secondary w-full sm:w-auto"
           >
             <Download size={14} />
             <span>Exportar Listado</span>
@@ -253,15 +250,16 @@ export default function AccountsReceivablePayable({ type = 'cxc', transactions =
                     <td className="px-6 py-3.5 text-center">
                       <div className="flex justify-center gap-1.5">
                         <button
+                          type="button"
                           onClick={() => {
                             setSelectedTx(tx);
                             setPaymentAmount(pending.toFixed(2));
                             setIsHistoryOpen(false);
                           }}
-                          className={`flex items-center gap-1 px-2.5 py-1.5 rounded-[10px] text-[10px] font-bold uppercase transition-all shadow-sm ${
+                          className={`h-[34px] px-3.5 rounded-[var(--radius-button)] text-xs font-semibold flex items-center justify-center gap-1.5 transition-all text-white ${
                             isCxC 
-                              ? 'bg-emerald-600 hover:bg-emerald-500 text-white' 
-                              : 'bg-red-600 hover:bg-red-500 text-white'
+                              ? 'bg-emerald-600 hover:bg-emerald-700' 
+                              : 'bg-red-600 hover:bg-red-700'
                           }`}
                         >
                           <DollarSign size={10} />
@@ -270,16 +268,15 @@ export default function AccountsReceivablePayable({ type = 'cxc', transactions =
                         
                         {(tx.paymentsHistory && tx.paymentsHistory.length > 0) && (
                           <button
+                            type="button"
                             onClick={() => {
                               setSelectedTx(tx);
                               setIsHistoryOpen(true);
                             }}
-                            className={`p-1.5 rounded-[10px] border transition-colors ${
-                              isDarkMode ? 'hover:bg-white/5 border-white/10 text-gray-400' : 'hover:bg-gray-50 border-gray-300 text-gray-650 bg-white shadow-sm'
-                            }`}
+                            className="btn-icon bg-amber-600 text-white hover:bg-amber-700"
                             title="Historial de Abonos"
                           >
-                            <Eye size={12} />
+                            <Eye size={13} />
                           </button>
                         )}
                       </div>
@@ -307,7 +304,7 @@ export default function AccountsReceivablePayable({ type = 'cxc', transactions =
               <h3 className="text-sm font-black">
                 {isHistoryOpen ? 'Historial de Abonos / Pagos' : `Registrar ${isCxC ? 'Abono de Cliente' : 'Pago a Proveedor'}`}
               </h3>
-              <button onClick={() => setSelectedTx(null)} className="p-1 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white"><X size={16} /></button>
+              <button onClick={() => setSelectedTx(null)} className="btn-icon text-gray-400 hover:text-white"><X size={16} /></button>
             </div>
 
             {isHistoryOpen ? (
@@ -333,7 +330,7 @@ export default function AccountsReceivablePayable({ type = 'cxc', transactions =
                 <div className="flex justify-end gap-2 pt-2">
                   <button 
                     onClick={() => setIsHistoryOpen(false)}
-                    className={`px-4 py-2 rounded-xl text-xs font-semibold ${isDarkMode ? 'bg-white/5 text-gray-300 hover:bg-white/10' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                    className="btn-secondary"
                   >
                     Volver a Registrar Abono
                   </button>
@@ -400,14 +397,14 @@ export default function AccountsReceivablePayable({ type = 'cxc', transactions =
                   <button
                     type="button"
                     onClick={() => setSelectedTx(null)}
-                    className={`px-3.5 py-2 rounded-xl text-xs font-semibold ${isDarkMode ? 'hover:bg-white/10 text-gray-300' : 'hover:bg-gray-150 text-gray-700'}`}
+                    className="btn-secondary"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
-                    className={`px-4 py-2 rounded-xl text-xs font-black uppercase transition-transform hover:-translate-y-0.5 shadow-md ${
-                      isCxC ? 'bg-emerald-600 hover:bg-emerald-500 text-white' : 'bg-red-600 hover:bg-red-500 text-white'
+                    className={`h-[34px] px-4 rounded-[var(--radius-button)] text-xs font-semibold flex items-center justify-center gap-1.5 transition-all text-white border-none ${
+                      isCxC ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-red-600 hover:bg-red-700'
                     }`}
                   >
                     Registrar Cobro
