@@ -1,0 +1,67 @@
+:root {
+  /* 1. BORDER RADIUS */
+  --radius-card: 10px;
+  --radius-button: 5px;
+  --radius-input: 6px;
+  --radius-badge: 4px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+
+  /* 2. TIPOGRAFÍA (Inter como fuente principal) */
+  --text-xs: 11px;
+  --text-sm: 13px;
+  --text-base: 14px;
+  --text-md: 15px;
+  --text-lg: 17px;
+  --text-xl: 20px;
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* 3. PALETA DE ESTADOS FIJA */
+  --status-authorized-bg: #ECFDF5;
+  --status-authorized-text: #065F46;
+  --status-authorized-border: #6EE7B7;
+
+  --status-registered-bg: #EFF6FF;
+  --status-registered-text: #1E40AF;
+  --status-registered-border: #BFDBFE;
+
+  --status-pending-bg: #FFFBEB;
+  --status-pending-text: #92400E;
+  --status-pending-border: #FCD34D;
+
+  --status-rejected-bg: #FEF2F2;
+  --status-rejected-text: #991B1B;
+  --status-rejected-border: #FECACA;
+
+  --status-draft-bg: #F9FAFB;
+  --status-draft-text: #374151;
+  --status-draft-border: #D1D5DB;
+
+  --status-cancelled-bg: #F3F4F6;
+  --status-cancelled-text: #6B7280;
+  --status-cancelled-border: #E5E7EB;
+
+  /* 4. ESPACIADO */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  /* 5. SOMBRAS */
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-modal: 0 20px 40px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-dropdown: 0 4px 12px rgba(0, 0, 0, 0.10);
+
+  /* 6. COLOR PRIMARIO */
+  --color-primary: var(--primary-color, #4F46E5);
+  --color-primary-hover: color-mix(in srgb, var(--primary-color, #4F46E5) 90%, #000000);
+  --color-primary-light: color-mix(in srgb, var(--primary-color, #4F46E5) 10%, transparent);
+  --color-primary-text: #FFFFFF;
+}

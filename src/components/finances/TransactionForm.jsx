@@ -1502,17 +1502,17 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     setCurrentStep(prev => Math.max(prev - 1, 1));
   };
 
-  const inputClass = `w-full text-[13px] px-[10px] py-[6px] rounded-[8px] outline-none transition-all border font-semibold ${
+  const inputClass = `w-full text-sm px-[10px] py-[6px] rounded-input outline-none transition-all border font-semibold ${
     isDarkMode 
       ? 'bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-primary/50 disabled:opacity-50' 
       : 'bg-white border-gray-200 text-black placeholder:text-gray-400 focus:border-primary focus:ring-1 focus:ring-primary/30 disabled:bg-gray-50 disabled:text-gray-500'
   }`;
 
-  const labelClass = `block text-[11px] font-bold uppercase mb-[4px] ${
+  const labelClass = `block text-xs font-bold uppercase mb-[4px] ${
     isDarkMode ? 'text-gray-300' : 'text-black'
   }`;
 
-  const cardClass = `p-[12px] rounded-[10px] border ${
+  const cardClass = `p-[12px] rounded-card border ${
     isDarkMode ? 'bg-[#18181b] border-white/10' : 'bg-white border-gray-150 shadow-sm text-black'
   }`;
 
@@ -1546,7 +1546,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       {/* TOP HEADER */}
       <div className={`sticky top-0 z-20 flex items-center justify-between px-[8px] py-[5px] border-b backdrop-blur-md ${isDarkMode ? 'border-white/5 bg-[#151517]/95' : 'border-gray-200 bg-white/95'}`}>
         <div className="flex items-center gap-[5px]">
-          <div className={`p-[5px] rounded-[10px] ${formData.type === 'ingreso' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
+          <div className={`p-[5px] rounded-card ${formData.type === 'ingreso' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
             <Calculator size={16} />
           </div>
           <div>
@@ -1615,7 +1615,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
       {/* STATE BANNERS (Sri authorized / canceled) */}
       {isAuthorized && (
-        <div className="m-[5px] mb-0 p-[5px] rounded-[10px] border border-dashed bg-emerald-500/10 border-emerald-500/20 text-emerald-400 flex items-center gap-[3px]">
+        <div className="m-[5px] mb-0 p-[5px] rounded-card border border-dashed bg-emerald-500/10 border-emerald-500/20 text-emerald-400 flex items-center gap-[3px]">
           <CheckCircle2 size={16} className="shrink-0" />
           <div className="text-[10px]">
             <p className="font-bold text-black dark:text-white">
@@ -1631,7 +1631,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       )}
 
       {isAnulado && (
-        <div className="m-[5px] mb-0 p-[5px] rounded-[10px] border border-dashed bg-red-500/10 border-red-500/20 text-red-400 flex items-center gap-[3px]">
+        <div className="m-[5px] mb-0 p-[5px] rounded-card border border-dashed bg-red-500/10 border-red-500/20 text-red-400 flex items-center gap-[3px]">
           <ShieldAlert size={16} className="shrink-0" />
           <div className="text-[10px]">
             <p className="font-bold text-black dark:text-white">Comprobante Anulado</p>
@@ -1653,7 +1653,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         {currentStep === 1 && (
           <div className="space-y-[12px]">
             {/* Mobile Navigation Tabs */}
-            <div className="flex lg:hidden w-full p-[3px] rounded-[10px] bg-slate-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 gap-[3px] mb-[4px]">
+            <div className="flex lg:hidden w-full p-[3px] rounded-card bg-slate-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 gap-[3px] mb-[4px]">
               {[
                 { 
                   id: 'cliente', 
@@ -1758,7 +1758,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     )}
                     
                     {clientSearchTerm.trim() !== '' && (
-                      <div className={`absolute z-30 w-full rounded-[10px] border shadow-xl max-h-60 overflow-y-auto mt-1 ${
+                      <div className={`absolute z-30 w-full rounded-card border shadow-xl max-h-60 overflow-y-auto mt-1 ${
                         isDarkMode ? 'bg-[#1e1e22] border-white/10 text-white' : 'bg-white border-gray-300 text-black'
                       }`}>
                         {filteredClients.slice(0, 10).map(tp => (
@@ -2107,7 +2107,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       
                       {/* Search Results dropdown */}
                       {productSearchTerm.trim() !== '' && (
-                        <div className={`absolute z-30 w-full rounded-[10px] border shadow-xl max-h-60 overflow-y-auto mt-1 ${
+                        <div className={`absolute z-30 w-full rounded-card border shadow-xl max-h-60 overflow-y-auto mt-1 ${
                           isDarkMode ? 'bg-[#1e1e22] border-white/10' : 'bg-white border-gray-300'
                         }`}>
                           {products.filter(p => 
@@ -2726,7 +2726,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 </div>
 
                 {formData.claveAcceso && (
-                  <div className={`p-[8px] rounded-[10px] border text-left font-mono text-[10px] break-all ${isDarkMode ? 'bg-white/5 border-white/10 text-white' : 'bg-gray-50 border-gray-150 text-black'}`}>
+                  <div className={`p-[8px] rounded-card border text-left font-mono text-[10px] break-all ${isDarkMode ? 'bg-white/5 border-white/10 text-white' : 'bg-gray-50 border-gray-150 text-black'}`}>
                     <span style={{ color: isDarkMode ? '#4ade80' : '#16a34a' }} className="font-bold uppercase text-[9px] block mb-[4px]">Clave de Acceso SRI:</span>
                     {formData.claveAcceso}
                   </div>
@@ -2809,7 +2809,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               <div className={`${cardClass} space-y-[8px]`}>
                 <h4 style={{ color: isDarkMode ? '#FFFFFF' : '#000000' }} className="text-[12px] font-bold uppercase">Vista Previa del Comprobante</h4>
 
-                <div className={`p-[10px] rounded-[10px] border text-[11px] space-y-[8px] bg-white text-black border-gray-200 shadow-inner font-mono max-h-[60vh] overflow-y-auto`}>
+                <div className={`p-[10px] rounded-card border text-[11px] space-y-[8px] bg-white text-black border-gray-200 shadow-inner font-mono max-h-[60vh] overflow-y-auto`}>
                   <div className="text-center border-b pb-[8px] border-gray-200">
                     <p className="font-bold text-xs uppercase">{sriConfig.nombreComercial || 'WEBFIX ERP'}</p>
                     <p className="text-[9px] font-bold">{sriConfig.razonSocial}</p>
@@ -3021,7 +3021,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       {/* MODAL SEGUIMIENTO DE CRÉDITO / CXC */}
       {isCreditModalOpen && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-[10px] bg-black/85 backdrop-blur-sm animate-in fade-in">
-          <div className={`w-full max-w-md p-[20px] rounded-[10px] shadow-2xl border ${
+          <div className={`w-full max-w-md p-[20px] rounded-card shadow-2xl border ${
             isDarkMode ? 'bg-[#151517] border border-white/10 text-white' : 'bg-white border border-gray-150 text-black'
           }`}>
             <div className="flex justify-between items-center mb-[12px] border-b pb-[8px] dark:border-white/5">
@@ -3039,7 +3039,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
             </div>
 
             <div className="space-y-[10px]">
-              <div className={`p-[10px] rounded-[10px] border text-[11px] space-y-[4px] ${
+              <div className={`p-[10px] rounded-card border text-[11px] space-y-[4px] ${
                 isDarkMode ? 'bg-black/10 border-white/5 text-white' : 'bg-gray-50 border-gray-150 text-black'
               }`}>
                 <div className="flex justify-between">
@@ -3080,7 +3080,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 const available = limit - clientDebt - totalVenta;
                 if (available < 0) {
                   return (
-                    <div className="p-[8px] rounded-[10px] bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-450 text-[10px] leading-normal flex items-start gap-[4px]">
+                    <div className="p-[8px] rounded-card bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-450 text-[10px] leading-normal flex items-start gap-[4px]">
                       <AlertTriangle size={12} className="shrink-0 mt-[1px]" />
                       <div>
                         <p className="font-bold">Límite de Crédito Superado</p>
@@ -3143,7 +3143,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       {/* MODAL CREAR CONTACTO RAPIDO */}
       {isQuickAddOpen && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-[10px] bg-black/85 backdrop-blur-sm animate-in fade-in">
-          <div className={`w-full max-w-md p-[20px] rounded-[10px] shadow-2xl border ${isDarkMode ? 'bg-[#151517] border border-white/10 text-white' : 'bg-white border border-gray-150 text-black'}`}>
+          <div className={`w-full max-w-md p-[20px] rounded-card shadow-2xl border ${isDarkMode ? 'bg-[#151517] border border-white/10 text-white' : 'bg-white border border-gray-150 text-black'}`}>
             <h3 style={{ color: isDarkMode ? '#FFFFFF' : '#000000' }} className="text-[13px] font-bold mb-[12px] border-b pb-[8px] dark:border-white/5 uppercase">
               Nuevo {formData.type === 'ingreso' ? 'Cliente' : 'Proveedor'} (Rápido)
             </h3>
@@ -3286,7 +3286,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       {/* CUSTOM CONFIRMATION DIALOG MODAL */}
       {confirmDialog && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-[10px] bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className={`w-full max-w-md p-[20px] rounded-[10px] shadow-2xl border transition-all ${
+          <div className={`w-full max-w-md p-[20px] rounded-card shadow-2xl border transition-all ${
             isDarkMode 
               ? 'bg-[#151517] border-white/10 text-white' 
               : 'bg-white border-gray-150 text-black shadow-xl'
@@ -3317,7 +3317,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               </div>
             </div>
 
-            <div style={{ color: isDarkMode ? '#FFFFFF' : '#000000' }} className={`p-[10px] rounded-[10px] border text-xs leading-normal mb-[12px] font-normal ${
+            <div style={{ color: isDarkMode ? '#FFFFFF' : '#000000' }} className={`p-[10px] rounded-card border text-xs leading-normal mb-[12px] font-normal ${
               isDarkMode ? 'bg-black/10 border-white/5' : 'bg-gray-50 border-gray-150'
             }`}>
               {confirmDialog.message}
@@ -3358,7 +3358,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       {/* POPUP BÚSQUEDA AVANZADA DE PRODUCTOS */}
       {isAdvancedSearchOpen && (
         <div className="fixed inset-0 z-[160] flex items-center justify-center p-[10px] bg-black/85 backdrop-blur-sm animate-in fade-in">
-          <div className={`w-full max-w-2xl p-[20px] rounded-[10px] shadow-2xl border flex flex-col max-h-[85vh] ${
+          <div className={`w-full max-w-2xl p-[20px] rounded-card shadow-2xl border flex flex-col max-h-[85vh] ${
             isDarkMode ? 'bg-[#151517] border border-white/10 text-white' : 'bg-white border border-gray-150 text-black'
           }`}>
             {/* Header */}
@@ -3498,7 +3498,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       {/* MODAL CREAR PRODUCTO RAPIDO */}
       {isQuickAddProductOpen && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-[10px] bg-black/85 backdrop-blur-sm animate-in fade-in">
-          <div className={`w-full max-w-md p-[20px] rounded-[10px] shadow-2xl border ${
+          <div className={`w-full max-w-md p-[20px] rounded-card shadow-2xl border ${
             isDarkMode ? 'bg-[#151517] border border-white/10 text-white' : 'bg-white border border-gray-150 text-black'
           }`}>
             <h3 style={{ color: isDarkMode ? '#FFFFFF' : '#000000' }} className="text-[13px] font-bold mb-[12px] border-b pb-[8px] dark:border-white/5 uppercase">

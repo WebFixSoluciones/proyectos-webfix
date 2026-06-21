@@ -1,19 +1,74 @@
 @import "tailwindcss";
+@import "./designTokens.css";
 
 @theme {
-  --color-primary: var(--primary-color, #1C40F2);
-  --color-primary-hover: color-mix(in srgb, var(--primary-color, #1C40F2) 85%, #000000);
-  --color-primary-light: color-mix(in srgb, var(--primary-color, #1C40F2) 8%, transparent);
+  /* COLOR PRIMARIO */
+  --color-primary: var(--color-primary);
+  --color-primary-hover: var(--color-primary-hover);
+  --color-primary-light: var(--color-primary-light);
+  --color-primary-text: var(--color-primary-text);
+
+  /* BORDER RADIUS */
+  --radius-card: var(--radius-card);
+  --radius-button: var(--radius-button);
+  --radius-input: var(--radius-input);
+  --radius-badge: var(--radius-badge);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+
+  /* TIPOGRAFÍA */
+  --text-xs: var(--text-xs);
+  --text-sm: var(--text-sm);
+  --text-base: var(--text-base);
+  --text-md: var(--text-md);
+  --text-lg: var(--text-lg);
+  --text-xl: var(--text-xl);
+
+  --font-weight-normal: var(--font-weight-normal);
+  --font-weight-medium: var(--font-weight-medium);
+  --font-weight-semibold: var(--font-weight-semibold);
+  --font-weight-bold: var(--font-weight-bold);
+
+  /* ESPACIADO */
+  --spacing-1: var(--space-1);
+  --spacing-2: var(--space-2);
+  --spacing-3: var(--space-3);
+  --spacing-4: var(--space-4);
+  --spacing-5: var(--space-5);
+  --spacing-6: var(--space-6);
+  --spacing-8: var(--space-8);
+
+  /* SOMBRAS */
+  --shadow-card: var(--shadow-card);
+  --shadow-modal: var(--shadow-modal);
+  --shadow-dropdown: var(--shadow-dropdown);
+
+  /* PALETA DE ESTADOS */
+  --color-status-authorized-bg: var(--status-authorized-bg);
+  --color-status-authorized-text: var(--status-authorized-text);
+  --color-status-authorized-border: var(--status-authorized-border);
+  --color-status-registered-bg: var(--status-registered-bg);
+  --color-status-registered-text: var(--status-registered-text);
+  --color-status-registered-border: var(--status-registered-border);
+  --color-status-pending-bg: var(--status-pending-bg);
+  --color-status-pending-text: var(--status-pending-text);
+  --color-status-pending-border: var(--status-pending-border);
+  --color-status-rejected-bg: var(--status-rejected-bg);
+  --color-status-rejected-text: var(--status-rejected-text);
+  --color-status-rejected-border: var(--status-rejected-border);
+  --color-status-draft-bg: var(--status-draft-bg);
+  --color-status-draft-text: var(--status-draft-text);
+  --color-status-draft-border: var(--status-draft-border);
+  --color-status-cancelled-bg: var(--status-cancelled-bg);
+  --color-status-cancelled-text: var(--status-cancelled-text);
+  --color-status-cancelled-border: var(--status-cancelled-border);
+
   --color-gray-150: #f1f5f9;
   --color-gray-250: #e2e8f0;
   --color-gray-550: #6b7280;
   --color-gray-705: #374151;
   --color-gray-850: #1f2937;
   --font-mono: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-}
-
-:root {
-  --primary-color: #1C40F2;
 }
 
 /* --------------------------------------------------------------------------
@@ -51,6 +106,54 @@ body, .font-sans, input, textarea, select, button, .font-mono, kbd, code, pre {
 h1, h2, h3, h4, h5, h6, .font-display {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
   letter-spacing: -0.025em;
+}
+
+body {
+  font-size: var(--text-base);
+  font-weight: var(--font-weight-normal);
+}
+
+/* REGLAS DEL ERP:
+   - Heading de página = text-lg 600
+   - Label de tabla = text-sm 500
+   - Body de tabla = text-sm 400
+   - Title de modal = text-xl 600 */
+
+/* Heading de página */
+.page-heading,
+.page-header h1,
+h1.page-title {
+  font-size: var(--text-lg) !important;
+  font-weight: var(--font-weight-semibold) !important;
+}
+
+/* Title de modal */
+.modal-title,
+.modal-header h2,
+h2.modal-title {
+  font-size: var(--text-xl) !important;
+  font-weight: var(--font-weight-semibold) !important;
+}
+
+/* Label de tabla */
+th,
+thead th,
+.table-header th {
+  font-size: var(--text-sm) !important;
+  font-weight: var(--font-weight-medium) !important;
+}
+
+/* Body de tabla */
+td,
+tbody td,
+.table-body td {
+  font-size: var(--text-sm) !important;
+  font-weight: var(--font-weight-normal) !important;
+}
+
+/* Inputs, labels, selectores */
+input, select, textarea, label {
+  font-size: var(--text-sm);
 }
 
 /* --------------------------------------------------------------------------
@@ -307,7 +410,7 @@ h1, h2, h3, h4, h5, h6, .font-display {
    Estandarización de Border Radius y Eliminación de Sombras (Diseño ERP)
    ========================================================================== */
 
-/* 1. Estandarización de Cards, Paneles y Contenedores a 10px */
+/* 1. Estandarización de Cards, Paneles y Contenedores */
 .rounded:not(.rounded-full),
 .rounded-sm:not(.rounded-full),
 .rounded-md:not(.rounded-full),
@@ -320,20 +423,13 @@ h1, h2, h3, h4, h5, h6, .font-display {
 [class*="rounded-"]:not(.rounded-full):not([class*="rounded-full"]),
 .glass-panel-light,
 .glass-panel-dark {
-  border-radius: 10px !important;
+  border-radius: var(--radius-card) !important;
 }
 
-/* 2. Estandarización de Botones, Inputs, Selects, Textareas, Atajos y Enlaces Tipo Botón a 4px */
-/* Selectores de Etiquetas base */
+/* 2. Estandarización de Botones a --radius-button (5px) */
 button:not(.rounded-full),
 [role="button"]:not(.rounded-full),
-input:not(.rounded-full):not([type="checkbox"]):not([type="radio"]),
-select:not(.rounded-full),
-textarea:not(.rounded-full),
-kbd:not(.rounded-full),
-code:not(.rounded-full),
 .btn:not(.rounded-full),
-/* Aumentando especificidad para anular clases de Tailwind aplicadas a botones/controles */
 button[class*="rounded-"]:not(.rounded-full),
 button.rounded:not(.rounded-full),
 button.rounded-sm:not(.rounded-full),
@@ -348,6 +444,22 @@ button.rounded-3xl:not(.rounded-full),
 [role="button"].rounded-md:not(.rounded-full),
 [role="button"].rounded-lg:not(.rounded-full),
 [role="button"].rounded-xl:not(.rounded-full),
+a[class*="bg-"]:not(.rounded-full),
+a[class*="btn"]:not(.rounded-full),
+a.rounded:not(.rounded-full),
+a.rounded-sm:not(.rounded-full),
+a.rounded-md:not(.rounded-full),
+a.rounded-lg:not(.rounded-full),
+a.rounded-xl:not(.rounded-full),
+a.rounded-2xl:not(.rounded-full),
+a[class*="rounded-"]:not(.rounded-full) {
+  border-radius: var(--radius-button) !important;
+}
+
+/* 3. Estandarización de Inputs, Selects y Textareas a --radius-input (6px) */
+input:not(.rounded-full):not([type="checkbox"]):not([type="radio"]),
+select:not(.rounded-full),
+textarea:not(.rounded-full),
 input[class*="rounded-"]:not(.rounded-full),
 input.rounded:not(.rounded-full),
 input.rounded-sm:not(.rounded-full),
@@ -363,43 +475,45 @@ textarea[class*="rounded-"]:not(.rounded-full),
 textarea.rounded:not(.rounded-full),
 textarea.rounded-sm:not(.rounded-full),
 textarea.rounded-md:not(.rounded-full),
-textarea.rounded-lg:not(.rounded-full),
+textarea.rounded-lg:not(.rounded-full) {
+  border-radius: var(--radius-input) !important;
+}
+
+/* 4. Estandarización de Badges, Chips y Atajos a --radius-badge (4px) */
+kbd:not(.rounded-full),
+code:not(.rounded-full),
+.badge:not(.rounded-full),
+.chip:not(.rounded-full),
+[class*="badge"]:not(.rounded-full),
+[class*="chip"]:not(.rounded-full),
 kbd[class*="rounded-"]:not(.rounded-full),
 kbd.rounded:not(.rounded-full),
 kbd.rounded-sm:not(.rounded-full),
 kbd.rounded-md:not(.rounded-full),
-kbd.rounded-lg:not(.rounded-full),
-/* Enlaces que funcionan como botones (usualmente con fondos bg- y clases rounded) */
-a[class*="bg-"]:not(.rounded-full),
-a[class*="btn"]:not(.rounded-full),
-a.rounded:not(.rounded-full),
-a.rounded-sm:not(.rounded-full),
-a.rounded-md:not(.rounded-full),
-a.rounded-lg:not(.rounded-full),
-a.rounded-xl:not(.rounded-full),
-a.rounded-2xl:not(.rounded-full),
-a[class*="rounded-"]:not(.rounded-full) {
-  border-radius: 4px !important;
+kbd.rounded-lg:not(.rounded-full) {
+  border-radius: var(--radius-badge) !important;
 }
 
-/* 3. Eliminación Completa de Sombras en Tarjetas, Paneles y Botones */
-button,
-[role="button"],
-input,
-select,
-textarea,
+/* 5. Estandarización de Sombras del Sistema */
 .glass-panel-light,
 .glass-panel-dark,
-[class*="shadow-"],
-[class*="shadow\["],
-.shadow-sm,
-.shadow,
-.shadow-md,
-.shadow-lg,
-.shadow-xl,
-.shadow-2xl,
-.shadow-inner {
-  box-shadow: none !important;
+.card,
+[class*="card"] {
+  box-shadow: var(--shadow-card) !important;
+}
+
+.modal,
+[class*="modal"],
+.confirm-modal,
+[class*="dialog-modal"] {
+  box-shadow: var(--shadow-modal) !important;
+}
+
+.dropdown,
+[class*="dropdown"],
+.select-results,
+[class*="dropdown-menu"] {
+  box-shadow: var(--shadow-dropdown) !important;
 }
 
 /* ==========================================================================
