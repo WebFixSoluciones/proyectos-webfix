@@ -68,6 +68,8 @@
   --color-gray-550: #6b7280;
   --color-gray-705: #374151;
   --color-gray-850: #1f2937;
+  
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
@@ -500,20 +502,54 @@ kbd.rounded-lg:not(.rounded-full) {
 .card,
 [class*="card"] {
   box-shadow: var(--shadow-card) !important;
+  background-color: var(--color-card-surface) !important;
+  border: 1px solid var(--color-outline-variant) !important;
+}
+
+.dark .glass-panel-light,
+.dark .glass-panel-dark,
+.dark .card,
+.dark [class*="card"] {
+  background-color: var(--color-card-surface) !important;
+  border: 1px solid var(--color-outline) !important;
 }
 
 .modal,
-[class*="modal"],
+[class*="modal-content"],
 .confirm-modal,
-[class*="dialog-modal"] {
-  box-shadow: var(--shadow-modal) !important;
+[class*="dialog-modal"],
+div[role="dialog"]:not([class*="overlay"]):not([class*="backdrop"]) {
+  box-shadow: none !important;
+  background-color: var(--color-card-surface) !important;
+  border: 1px solid var(--color-outline-variant) !important;
+  border-radius: var(--radius-card) !important;
+}
+
+.dark .modal,
+.dark [class*="modal-content"],
+.dark .confirm-modal,
+.dark [class*="dialog-modal"],
+.dark div[role="dialog"]:not([class*="overlay"]):not([class*="backdrop"]) {
+  background-color: var(--color-surface) !important;
+  border: 1px solid var(--color-outline) !important;
 }
 
 .dropdown,
 [class*="dropdown"],
 .select-results,
 [class*="dropdown-menu"] {
-  box-shadow: var(--shadow-dropdown) !important;
+  box-shadow: none !important;
+  background-color: var(--color-card-surface) !important;
+  border: 1px solid var(--color-outline-variant) !important;
+  border-radius: var(--radius-card) !important;
+}
+
+.dark .dropdown,
+.dark [class*="dropdown"],
+.dark .select-results,
+.dark [class*="dropdown-menu"] {
+  background-color: var(--color-surface) !important;
+  border: 1px solid var(--color-outline) !important;
 }
 
 /* ==========================================================================
@@ -711,6 +747,233 @@ button:not(.rounded-full),
 }
 .light .btn-icon:hover {
   background: rgba(0, 0, 0, 0.05);
+}
+
+/* ==========================================================================
+   ANULACIÓN ABSOLUTA DE SOMBRAS EN TODO EL ERP (Pure Flat Aesthetic)
+   ========================================================================== */
+.shadow-sm, .shadow, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl, .shadow-3xl,
+[class*="shadow-"] {
+  box-shadow: none !important;
+}
+
+/* Redefinición obligatoria de la clase de redondeado hardcodeada 10px a 8px */
+.rounded-\[10px\] {
+  border-radius: 8px !important;
+}
+
+/* ==========================================================================
+   ESTRUCTURA DE SUPERFICIES Y MENÚS DEL TEMA
+   ========================================================================== */
+
+/* 1. Sidebar en Deep Navy (Alto contraste futurista) */
+.erp-sidebar {
+  background-color: var(--color-deep-navy, #070B18) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
+  color: #ffffff !important;
+}
+
+.erp-sidebar a, 
+.erp-sidebar button {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.erp-sidebar a svg, 
+.erp-sidebar button svg {
+  color: rgba(255, 255, 255, 0.6) !important;
+  transition: color 150ms ease !important;
+}
+
+.erp-sidebar a:hover, 
+.erp-sidebar button:hover {
+  background-color: rgba(28, 64, 242, 0.15) !important;
+  color: #ffffff !important;
+}
+
+.erp-sidebar a:hover svg, 
+.erp-sidebar button:hover svg {
+  color: #ffffff !important;
+}
+
+/* Items activos de navegación lateral */
+.erp-sidebar .active-link,
+.erp-sidebar .bg-primary-light,
+.erp-sidebar .bg-primary\/15 {
+  background-color: var(--color-primary) !important;
+  color: #ffffff !important;
+}
+
+.erp-sidebar .active-link svg,
+.erp-sidebar .bg-primary-light svg,
+.erp-sidebar .bg-primary\/15 svg {
+  color: #ffffff !important;
+}
+
+/* 2. Topbar Cabecera en superficie clara plana */
+.erp-topbar {
+  background-color: var(--color-card-surface) !important;
+  border-bottom: 1px solid var(--color-outline-variant) !important;
+  box-shadow: none !important;
+}
+.dark .erp-topbar {
+  background-color: var(--color-surface) !important;
+  border-bottom: 1px solid var(--color-outline) !important;
+}
+
+/* ==========================================================================
+   ESTILIZACIÓN GLOBAL DE COMPONENTES DEL SISTEMA
+   ========================================================================== */
+
+/* 1. Inputs, selects y textareas globales en light mode */
+html:not(.dark) input:not(.rounded-full):not([type="checkbox"]):not([type="radio"]),
+html:not(.dark) select:not(.rounded-full),
+html:not(.dark) textarea:not(.rounded-full) {
+  background-color: #E2E8FF !important;
+  border: none !important;
+  border-radius: var(--radius-input) !important;
+  color: #131b2e !important;
+  padding-left: 12px !important;
+  padding-right: 12px !important;
+  transition: all 150ms ease-in-out !important;
+}
+
+html:not(.dark) input:not(.rounded-full):not([type="checkbox"]):not([type="radio"]):focus,
+html:not(.dark) select:not(.rounded-full):focus,
+html:not(.dark) textarea:not(.rounded-full):focus {
+  background-color: #ffffff !important;
+  outline: none !important;
+  border: 2px solid var(--color-primary) !important;
+  box-shadow: none !important;
+}
+
+/* 2. Modales en estética Pure Flat */
+.modal,
+[class*="modal"],
+.confirm-modal,
+[class*="dialog-modal"],
+[role="dialog"] {
+  box-shadow: none !important;
+  background-color: var(--color-card-surface) !important;
+  border: 1px solid var(--color-outline-variant) !important;
+  border-radius: var(--radius-card) !important;
+}
+
+.dark .modal,
+.dark [class*="modal"],
+.dark .confirm-modal,
+.dark [class*="dialog-modal"],
+.dark [role="dialog"] {
+  background-color: var(--color-surface) !important;
+  border: 1px solid var(--color-outline) !important;
+}
+
+/* 3. Badges, chips e indicadores */
+html:not(.dark) .badge, 
+html:not(.dark) .chip, 
+html:not(.dark) [class*="badge"], 
+html:not(.dark) [class*="chip"] {
+  background-color: color-mix(in srgb, var(--color-primary) 10%, transparent) !important;
+  color: var(--color-primary) !important;
+  border: none !important;
+  border-radius: var(--radius-badge) !important;
+  font-weight: 600 !important;
+}
+
+/* 4. Tablas de datos de alta densidad estilo Futuristic Precision */
+table, .table {
+  border-collapse: collapse !important;
+  width: 100% !important;
+  border: none !important;
+}
+
+thead th, .table-header th {
+  background-color: var(--color-deep-navy, #070B18) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  padding: 8px 12px !important;
+  text-align: left !important;
+  border: none !important;
+}
+
+tbody tr:nth-child(even), .table-row:nth-child(even) {
+  background-color: var(--color-neutral-tint, #DDE4FF) !important;
+}
+
+tbody tr:nth-child(odd), .table-row:nth-child(odd) {
+  background-color: #ffffff !important;
+}
+
+tbody tr:hover, .table-row:hover {
+  background-color: color-mix(in srgb, var(--color-primary) 5%, transparent) !important;
+  transition: background-color 150ms ease;
+}
+
+td, tbody td, .table-body td {
+  padding: 8px 12px !important;
+  border: none !important;
+  color: #131b2e !important;
+}
+
+.dark thead th {
+  background-color: #0d1424 !important;
+}
+.dark tbody tr:nth-child(even) {
+  background-color: #1b243b !important;
+}
+.dark tbody tr:nth-child(odd) {
+  background-color: #131b2e !important;
+}
+.dark td {
+  color: #eef0ff !important;
+}
+
+/* 5. Circular function icon buttons (del ejemplo de la imagen de color y funciones) */
+button.rounded-full[class*="text-blue-"], 
+button.rounded-full[class*="text-primary"],
+.btn-icon-primary {
+  background-color: var(--color-primary) !important;
+  color: #ffffff !important;
+  border-radius: 9999px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+button.rounded-full[class*="text-red-"], 
+button.rounded-full[class*="text-danger"],
+.btn-icon-danger {
+  background-color: var(--color-error) !important;
+  color: #ffffff !important;
+  border-radius: 9999px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+button.rounded-full[class*="text-green-"], 
+button.rounded-full[class*="text-emerald-"], 
+button.rounded-full[class*="text-secondary"],
+.btn-icon-success {
+  background-color: var(--color-secondary-container) !important;
+  color: var(--color-on-secondary-container) !important;
+  border-radius: 9999px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Tarjetas de login y registro */
+.erp-auth-card {
+  background-color: var(--color-card-surface) !important;
+  border: 1px solid var(--color-outline-variant) !important;
+  box-shadow: none !important;
+  border-radius: var(--radius-card) !important;
+}
+.dark .erp-auth-card {
+  background-color: var(--color-surface) !important;
+  border: 1px solid var(--color-outline) !important;
+  box-shadow: none !important;
+  border-radius: var(--radius-card) !important;
 }
 
 
