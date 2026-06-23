@@ -25,7 +25,7 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
 
   const filtered = thirdParties.filter(tp => {
     const matchesSearch = tp.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          tp.ruc.includes(searchTerm) || 
+                          String(tp.ruc || '').includes(searchTerm) || 
                           (tp.direccion || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = !forcedType || tp.type === forcedType;
     const matchesIdType = filterIdType === 'all' || (tp.tipoIdentificacion || 'ruc').toLowerCase() === filterIdType;
@@ -82,8 +82,8 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
       return;
     }
 
-    const trimmedRuc = formData.ruc.trim();
-    const isDuplicate = thirdParties.some(tp => tp.ruc.trim() === trimmedRuc && tp.id !== formData.id);
+    const trimmedRuc = String(formData.ruc || '').trim();
+    const isDuplicate = thirdParties.some(tp => String(tp.ruc || '').trim() === trimmedRuc && tp.id !== formData.id);
     if (isDuplicate) {
       showToast('Ya existe un contacto con este RUC/Identificación', 'error');
       return;

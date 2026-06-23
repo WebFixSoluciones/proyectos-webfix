@@ -234,7 +234,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       return;
     }
     const trimmedRuc = quickAddFormData.ruc.trim();
-    const isDuplicate = (thirdParties || []).some(tp => tp.ruc && tp.ruc.trim() === trimmedRuc);
+    const isDuplicate = (thirdParties || []).some(tp => tp.ruc && String(tp.ruc).trim() === trimmedRuc);
     if (isDuplicate) {
       showToast('Ya existe un contacto con este RUC/Identificación', 'error');
       return;
