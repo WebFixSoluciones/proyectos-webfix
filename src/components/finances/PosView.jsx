@@ -693,6 +693,8 @@ export default function PosView({ products, thirdParties, transactions = [], isD
           await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_third_parties', clientDocId), sanitizeData({
             id: clientDocId,
             ...client,
+            isValidated: true,
+            validado: true,
             updatedAt: new Date().toISOString()
           }));
         }
@@ -823,6 +825,8 @@ export default function PosView({ products, thirdParties, transactions = [], isD
         ciudad: quickAddFormData.ciudad || '',
         telefono: quickAddFormData.telefono || '',
         tipoContribuyente: quickAddFormData.tipoContribuyente || 'general',
+        isValidated: true,
+        validado: true,
         updatedAt: new Date().toISOString()
       }));
       setSelectedClientId(docId);
@@ -1482,9 +1486,9 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                     Consumidor Final (9999999999999)
                   </div>
                   {thirdParties
-                    .filter(tp => tp.type === 'cliente' && 
+                    .filter(tp => tp.type !== 'proveedor' && 
                       (tp.name.toLowerCase().includes(clientSearchTerm.toLowerCase()) || 
-                       tp.ruc.includes(clientSearchTerm))
+                       String(tp.ruc || '').includes(clientSearchTerm))
                     )
                     .map(tp => (
                       <div 
@@ -2058,8 +2062,8 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                             }`}
                           >
                             <option value="" className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>Consumidor Final (9999999999999)</option>
-                            {thirdParties.filter(tp => tp.type === 'cliente').map(tp => (
-                              <option key={tp.id} value={tp.id} className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>{tp.name} - RUC: {tp.ruc}</option>
+                            {thirdParties.filter(tp => tp.type !== 'proveedor' && tp.type !== 'empleado').map(tp => (
+                              <option key={tp.id} value={tp.id} className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>{tp.name} - RUC: {String(tp.ruc)}</option>
                             ))}
                           </select>
                         </div>
@@ -2287,8 +2291,8 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                               }`}
                             >
                               <option value="" className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>Consumidor Final (9999999999999)</option>
-                              {thirdParties.filter(tp => tp.type === 'cliente').map(tp => (
-                                <option key={tp.id} value={tp.id} className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>{tp.name} - RUC: {tp.ruc}</option>
+                              {thirdParties.filter(tp => tp.type !== 'proveedor' && tp.type !== 'empleado').map(tp => (
+                                <option key={tp.id} value={tp.id} className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>{tp.name} - RUC: {String(tp.ruc)}</option>
                               ))}
                             </select>
                           </div>

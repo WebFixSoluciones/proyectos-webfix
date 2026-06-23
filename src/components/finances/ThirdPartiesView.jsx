@@ -27,7 +27,7 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
     const matchesSearch = tp.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           String(tp.ruc || '').includes(searchTerm) || 
                           (tp.direccion || '').toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = !forcedType || tp.type === forcedType;
+    const matchesType = !forcedType || (forcedType === 'cliente' ? tp.type !== 'proveedor' : tp.type === forcedType);
     const matchesIdType = filterIdType === 'all' || (tp.tipoIdentificacion || 'ruc').toLowerCase() === filterIdType;
     const matchesRegimen = filterRegimen === 'all' || tp.tipoContribuyente === filterRegimen;
     return matchesSearch && matchesType && matchesIdType && matchesRegimen;
@@ -101,6 +101,8 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
         telefono: formData.telefono || '',
         tipoContribuyente: formData.tipoContribuyente || 'general',
         ciudad: formData.ciudad || '',
+        isValidated: true,
+        validado: true,
         updatedAt: new Date().toISOString()
       }, { merge: true });
 

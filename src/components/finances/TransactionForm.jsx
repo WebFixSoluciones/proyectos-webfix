@@ -252,6 +252,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         ciudad: quickAddFormData.ciudad || '',
         telefono: quickAddFormData.telefono || '',
         tipoContribuyente: quickAddFormData.tipoContribuyente || 'general',
+        isValidated: true,
+        validado: true,
         updatedAt: new Date().toISOString()
       }));
       showToast('Contacto guardado y seleccionado', 'success');
@@ -810,7 +812,11 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       return false;
     }
 
-    if (!validarIdentificacion(matchedTercero.ruc)) {
+    if (!validarIdentificacion(
+      matchedTercero.ruc,
+      matchedTercero.tipoIdentificacion,
+      matchedTercero.isValidated || matchedTercero.validado
+    )) {
       showValidationErrorAlert(`EL RUC/CI DEL CONTACTO (${matchedTercero.ruc}) ES INCORRECTO`);
       return false;
     }
@@ -1263,6 +1269,9 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       const result = await simularTransmisionSRI(
         {
           rucReceptor: matchedTercero.ruc,
+          tipoIdentificacion: matchedTercero.tipoIdentificacion,
+          isValidated: matchedTercero.isValidated || matchedTercero.validado,
+          validado: matchedTercero.isValidated || matchedTercero.validado,
           total: formData.total,
           claveAcceso,
           xml: signedXml
@@ -1446,7 +1455,11 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         showToast('El contacto seleccionado no es válido', 'error');
         return;
       }
-      if (!validarIdentificacion(mt.ruc)) {
+      if (!validarIdentificacion(
+        mt.ruc,
+        mt.tipoIdentificacion,
+        mt.isValidated || mt.validado
+      )) {
         showToast(`El RUC/CI del contacto (${mt.ruc}) no es válido para Ecuador`, 'error');
         return;
       }
@@ -1527,7 +1540,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
   const matchedTercero = thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
   const filteredClients = (thirdParties || [])
-    .filter(tp => formData.type === 'ingreso' ? tp.type === 'cliente' : tp.type === 'proveedor')
+    .filter(tp => formData.type === 'ingreso' ? tp.type !== 'proveedor' : tp.type === 'proveedor')
     .filter(tp =>
       !clientSearchTerm ||
       tp.name?.toLowerCase().includes(clientSearchTerm.toLowerCase()) ||

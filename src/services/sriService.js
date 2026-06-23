@@ -39,10 +39,23 @@ export function getEcuadorDateTimeString(d = new Date()) {
 }
 
 // Validador de RUC / CI Ecuatoriano
-export function validarIdentificacion(identificacion) {
+export function validarIdentificacion(identificacion, tipoIdentificacion = '', isValidated = false) {
   if (!identificacion) return false;
   const clean = String(identificacion).trim();
   if (clean === '9999999999999') return true; // Consumidor Final es válido de inmediato
+
+  // Omitir validación local si es pasaporte, extranjero o ya fue validado
+  const cleanTipo = String(tipoIdentificacion || '').toLowerCase();
+  if (
+    cleanTipo === 'pasaporte' || 
+    cleanTipo === '06' || 
+    cleanTipo === 'exterior' || 
+    cleanTipo === '08' || 
+    isValidated === true || 
+    isValidated === 'true'
+  ) {
+    return true;
+  }
 
   const len = clean.length;
   if (len !== 10 && len !== 13) return false;
@@ -717,7 +730,11 @@ export async function simularTransmisionSRI(documentoData, configSRI, onLogUpdat
     addLog(`Iniciando conexión con WebServices del SRI [Ambiente: ${envLabel}]...`, "info");
     addLog("Validando estructura del documento...", "info");
 
-    if (!validarIdentificacion(documentoData.rucReceptor)) {
+    if (!validarIdentificacion(
+      documentoData.rucReceptor,
+      documentoData.tipoIdentificacion,
+      documentoData.isValidated || documentoData.validado
+    )) {
       throw new Error(`RUC/CI del receptor inválido (${documentoData.rucReceptor}).`);
     }
     if (Number(documentoData.total) <= 0) {
@@ -857,7 +874,11 @@ function ejecutarSimulacionSRI(documentoData, configSRI, onLogUpdate) {
     
     addLog("Iniciando validación previa del comprobante...", "info");
     setTimeout(() => {
-      if (!validarIdentificacion(documentoData.rucReceptor)) {
+      if (!validarIdentificacion(
+        documentoData.rucReceptor,
+        documentoData.tipoIdentificacion,
+        documentoData.isValidated || documentoData.validado
+      )) {
         addLog(`Error: RUC/CI del receptor inválido (${documentoData.rucReceptor}).`, "error");
         reject({ status: 'rechazado', error: 'Identificación de receptor inválida', logs });
         return;
