@@ -342,6 +342,30 @@ export default function PublicRideView() {
             margin: 0 !important;
             padding: 0 !important;
           }
+          
+          /* Collapse the card border, shadow, padding in print */
+          #print-area-wrapper > div {
+            border: none !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            max-width: 100% !important;
+            width: 100% !important;
+          }
+          
+          /* Force fonts to exactly 8px for tables, th, td */
+          #print-area-wrapper table,
+          #print-area-wrapper th,
+          #print-area-wrapper td {
+            font-size: 8px !important;
+          }
+          
+          /* Force fonts for additional info block */
+          #print-area-wrapper .grid-cols-2,
+          #print-area-wrapper .grid-cols-2 *,
+          #print-area-wrapper p.uppercase {
+            font-size: 8px !important;
+          }
         }
       `}} />
 
