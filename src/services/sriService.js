@@ -1015,9 +1015,20 @@ export async function consultarRucSri(rucOrCi) {
   // Si es cédula de 10 dígitos, convertir a RUC de 13 para la consulta
   const rucParaConsulta = clean.length === 10 ? clean + '001' : clean;
 
-  // Validar estructura del RUC antes de consultar
-  if (!validarIdentificacion(clean)) {
-    throw new Error(`La identificación ${clean} no es un RUC/CI válido según el algoritmo de verificación ecuatoriano.`);
+  // Validación estructural básica antes de consultar al SRI.
+  // NO se aplica el check-digit local aquí porque el SRI es la fuente autoritativa.
+  // Algunos RUCs emitidos directamente por el SRI tienen un dígito verificador
+  // que no coincide con el algoritmo estándar (ej: entidades anteriores a 2000).
+  const soloDigitos = /^\d+$/.test(clean);
+  if (!soloDigitos) {
+    throw new Error(`La identificación ${clean} solo puede contener dígitos numéricos.`);
+  }
+  const provincia = parseInt(clean.substring(0, 2), 10);
+  if (provincia < 1 || provincia > 24) {
+    throw new Error(`La identificación ${clean} tiene un código de provincia inválido (${clean.substring(0, 2)}). Debe estar entre 01 y 24.`);
+  }
+  if (clean.length === 13 && !clean.endsWith('001')) {
+    throw new Error(`El RUC de 13 dígitos ${clean} debe terminar en 001.`);
   }
 
   const errores = [];
