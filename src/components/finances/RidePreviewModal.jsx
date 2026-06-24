@@ -273,7 +273,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
   );
 
   return (
-    <div className="fixed inset-0 z-[120] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-hidden animate-in fade-in print-modal-backdrop">
+    <div className="fixed inset-0 z-[120] bg-black/80 backdrop-blur-md flex items-start justify-center p-4 overflow-y-auto animate-in fade-in print-modal-backdrop print:items-start print:overflow-visible">
       
       {/* Estilos temporales para imprimir solamente el comprobante */}
       <style dangerouslySetInnerHTML={{__html: `
@@ -418,7 +418,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
             
             {/* FORMATO 1: RIDE OFICIAL A4 */}
             {viewFormat === 'ride' && (
-              <div className="w-full max-w-3xl mx-auto p-5 bg-white border border-gray-300 text-black shadow-lg text-[9.5px] font-sans leading-snug print:shadow-none print:border-none print:p-0">
+              <div className="w-full max-w-3xl mx-auto p-5 bg-white border border-gray-300 text-black shadow-lg text-[8.5px] font-sans leading-tight print:shadow-none print:border-none print:p-0">
                 
                 {/* Cabecera Principal Compacta */}
                 <div className="border border-gray-300 grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-300 print:grid-cols-2 print:divide-x print:divide-y-0 text-[8.5px] text-black">
@@ -549,48 +549,47 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
                   </div>
                 </div>
 
-                {/* Detalle de Artículos */}
-                <div className="mt-3 border border-gray-300 overflow-hidden" style={{ borderRadius: '0px' }}>
-                  <table className="w-full text-left text-[9px] text-black">
-                    <thead className="bg-gray-100 font-bold uppercase text-[7.5px] border-b border-gray-300 text-black">
+                <div className="mt-2 border border-gray-300 overflow-hidden">
+                  <table className="w-full text-left text-[8px] text-black">
+                    <thead className="bg-gray-100 font-bold uppercase text-[7px] border-b border-gray-300 text-black">
                       <tr>
-                        <th className="px-2 py-1 border-r border-gray-300 w-8 text-center">ITEM</th>
-                        <th className="px-2 py-1 border-r border-gray-300 w-16">CODIGO</th>
-                        <th className="px-2 py-1 border-r border-gray-300">DESCRIPCION</th>
-                        <th className="px-2 py-1 border-r border-gray-300 w-10 text-center">U/M</th>
-                        <th className="px-2 py-1 border-r border-gray-300 w-20 text-center">COD/BARRAS</th>
-                        <th className="px-2 py-1 border-r border-gray-300 w-10 text-right">CANTIDAD</th>
-                        <th className="px-2 py-1 border-r border-gray-300 text-right w-16">V.UNIT</th>
-                        <th className="px-2 py-1 border-r border-gray-300 text-right w-12">DESC.</th>
-                        <th className="px-2 py-1 text-right w-16">V.TOTAL</th>
+                        <th className="px-1 py-[2px] border-r border-gray-300 w-7 text-center">ITEM</th>
+                        <th className="px-1 py-[2px] border-r border-gray-300 w-14">CODIGO</th>
+                        <th className="px-1 py-[2px] border-r border-gray-300">DESCRIPCION</th>
+                        <th className="px-1 py-[2px] border-r border-gray-300 w-9 text-center">U/M</th>
+                        <th className="px-1 py-[2px] border-r border-gray-300 w-18 text-center">COD/BARRAS</th>
+                        <th className="px-1 py-[2px] border-r border-gray-300 w-9 text-right">CANTIDAD</th>
+                        <th className="px-1 py-[2px] border-r border-gray-300 text-right w-14">V.UNIT</th>
+                        <th className="px-1 py-[2px] border-r border-gray-300 text-right w-10">DESC.</th>
+                        <th className="px-1 py-[2px] text-right w-14">V.TOTAL</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
                       {tx.items && tx.items.length > 0 ? (
                         tx.items.map((item, idx) => (
                           <tr key={idx} className="border-b border-gray-200">
-                            <td className="px-2 py-1 border-r border-gray-300 text-center font-mono">{idx + 1}</td>
-                            <td className="px-2 py-1 border-r border-gray-300 font-mono">{item.sku || 'SERV'}</td>
-                            <td className="px-2 py-1 border-r border-gray-300 font-medium">{item.name}</td>
-                            <td className="px-2 py-1 border-r border-gray-300 text-center uppercase font-mono">{item.unit || 'UNIDAD'}</td>
-                            <td className="px-2 py-1 border-r border-gray-300 text-center font-mono">{item.barcode || item.sku || 'N/A'}</td>
-                            <td className="px-2 py-1 border-r border-gray-300 text-right">{item.quantity}</td>
-                            <td className="px-2 py-1 border-r border-gray-300 text-right">${Number(item.price).toFixed(2)}</td>
-                            <td className="px-2 py-1 border-r border-gray-300 text-right">${Number(item.itemDiscount || 0).toFixed(2)}</td>
-                            <td className="px-2 py-1 text-right font-bold">${((item.price * item.quantity) - (item.itemDiscount || 0)).toFixed(2)}</td>
+                            <td className="px-1 py-[1px] border-r border-gray-300 text-center font-mono">{idx + 1}</td>
+                            <td className="px-1 py-[1px] border-r border-gray-300 font-mono">{item.sku || 'SERV'}</td>
+                            <td className="px-1 py-[1px] border-r border-gray-300 font-medium">{item.name}</td>
+                            <td className="px-1 py-[1px] border-r border-gray-300 text-center uppercase font-mono">{item.unit || 'UNIDAD'}</td>
+                            <td className="px-1 py-[1px] border-r border-gray-300 text-center font-mono">{item.barcode || item.sku || 'N/A'}</td>
+                            <td className="px-1 py-[1px] border-r border-gray-300 text-right">{item.quantity}</td>
+                            <td className="px-1 py-[1px] border-r border-gray-300 text-right">${Number(item.price).toFixed(2)}</td>
+                            <td className="px-1 py-[1px] border-r border-gray-300 text-right">${Number(item.itemDiscount || 0).toFixed(2)}</td>
+                            <td className="px-1 py-[1px] text-right font-bold">${((item.price * item.quantity) - (item.itemDiscount || 0)).toFixed(2)}</td>
                           </tr>
                         ))
                       ) : (
                         <tr className="border-b border-gray-200">
-                          <td className="px-2 py-1 border-r border-gray-300 text-center font-mono">1</td>
-                          <td className="px-2 py-1 border-r border-gray-300 font-mono">COM01</td>
-                          <td className="px-2 py-1 border-r border-gray-300 font-medium">Servicios Comerciales - {tx.category || 'Ventas'}</td>
-                          <td className="px-2 py-1 border-r border-gray-300 text-center uppercase font-mono">UNIDAD</td>
-                          <td className="px-2 py-1 border-r border-gray-300 text-center font-mono">N/A</td>
-                          <td className="px-2 py-1 border-r border-gray-300 text-right">1</td>
-                          <td className="px-2 py-1 border-r border-gray-300 text-right">${Number(tx.baseImponible).toFixed(2)}</td>
-                          <td className="px-2 py-1 border-r border-gray-300 text-right">$0.00</td>
-                          <td className="px-2 py-1 text-right font-bold">${Number(tx.baseImponible).toFixed(2)}</td>
+                          <td className="px-1 py-[1px] border-r border-gray-300 text-center font-mono">1</td>
+                          <td className="px-1 py-[1px] border-r border-gray-300 font-mono">COM01</td>
+                          <td className="px-1 py-[1px] border-r border-gray-300 font-medium">Servicios Comerciales - {tx.category || 'Ventas'}</td>
+                          <td className="px-1 py-[1px] border-r border-gray-300 text-center uppercase font-mono">UNIDAD</td>
+                          <td className="px-1 py-[1px] border-r border-gray-300 text-center font-mono">N/A</td>
+                          <td className="px-1 py-[1px] border-r border-gray-300 text-right">1</td>
+                          <td className="px-1 py-[1px] border-r border-gray-300 text-right">${Number(tx.baseImponible).toFixed(2)}</td>
+                          <td className="px-1 py-[1px] border-r border-gray-300 text-right">$0.00</td>
+                          <td className="px-1 py-[1px] text-right font-bold">${Number(tx.baseImponible).toFixed(2)}</td>
                         </tr>
                       )}
                     </tbody>
@@ -601,10 +600,10 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
                 <div className="mt-3 grid grid-cols-1 md:grid-cols-5 gap-3 items-start print-grid-5 text-[8px] text-black">
                   
                   {/* Columna Izquierda: Información Adicional y Pagos */}
-                  <div className="md:col-span-3 space-y-2">
-                    <div className="p-2 border border-gray-300 space-y-1">
-                      <p className="font-bold border-b border-gray-200 pb-0.5 uppercase mb-1">Información Adicional</p>
-                      <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 mt-1 text-[7.5px]">
+                  <div className="md:col-span-3 space-y-1.5">
+                    <div className="p-1.5 border border-gray-300 space-y-0.5">
+                      <p className="font-bold border-b border-gray-200 pb-0.5 uppercase mb-0.5">Información Adicional</p>
+                      <div className="grid grid-cols-2 gap-x-2 gap-y-0 mt-0.5 text-[7px]">
                         <p><span className="font-bold">Asesor:</span> {tx.createdBy || 'ADMINISTRADOR'}</p>
                         <p><span className="font-bold">Tipo Orden:</span> ZVTA</p>
                         <p><span className="font-bold">Condición de Pago:</span> {tx.paymentMethod === 'credito' ? 'Crédito' : 'Contado'}</p>
@@ -618,6 +617,9 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
                             default: return 'Otros con Utilización del Sistema Financiero';
                           }
                         })()}</p>
+                        {tx.description && (
+                          <p className="col-span-2 truncate"><span className="font-bold">Descripción Adicional:</span> {tx.description}</p>
+                        )}
                       </div>
                       
                       {/* Tabla de desglose de pagos */}
@@ -648,69 +650,68 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
                     </p>
                   </div>
 
-                  {/* Columna Derecha: Totales Factura */}
                   <div className="md:col-span-2 border border-gray-300 overflow-hidden">
-                    <table className="w-full text-right text-[8px] text-black">
+                    <table className="w-full text-right text-[7.5px] text-black">
                       <tbody className="divide-y divide-gray-200 font-medium">
                         <tr>
-                          <td className="px-2 py-[2px] bg-gray-50 border-r border-gray-300 text-left">Subtotal 15%</td>
-                          <td className="px-2 py-[2px] font-bold">${Number(taxDetails.subtotal15 || 0).toFixed(2)}</td>
+                          <td className="px-1.5 py-[1px] bg-gray-50 border-r border-gray-300 text-left">Subtotal 15%</td>
+                          <td className="px-1.5 py-[1px] font-bold">${Number(taxDetails.subtotal15 || 0).toFixed(2)}</td>
                         </tr>
                         <tr>
-                          <td className="px-2 py-[2px] bg-gray-50 border-r border-gray-300 text-left">Subtotal 5%</td>
-                          <td className="px-2 py-[2px] font-bold">${Number(taxDetails.subtotal5 || 0).toFixed(2)}</td>
+                          <td className="px-1.5 py-[1px] bg-gray-50 border-r border-gray-300 text-left">Subtotal 5%</td>
+                          <td className="px-1.5 py-[1px] font-bold">${Number(taxDetails.subtotal5 || 0).toFixed(2)}</td>
                         </tr>
                         <tr>
-                          <td className="px-2 py-[2px] bg-gray-50 border-r border-gray-300 text-left">Subtotal 0%</td>
-                          <td className="px-2 py-[2px] font-bold">${Number(taxDetails.subtotal0 || 0).toFixed(2)}</td>
+                          <td className="px-1.5 py-[1px] bg-gray-50 border-r border-gray-300 text-left">Subtotal 0%</td>
+                          <td className="px-1.5 py-[1px] font-bold">${Number(taxDetails.subtotal0 || 0).toFixed(2)}</td>
                         </tr>
                         <tr>
-                          <td className="px-2 py-[2px] bg-gray-50 border-r border-gray-300 text-left">Subtotal No Sujeto de IVA</td>
-                          <td className="px-2 py-[2px] font-bold">${Number(taxDetails.subtotalNoObjeto || 0).toFixed(2)}</td>
+                          <td className="px-1.5 py-[1px] bg-gray-50 border-r border-gray-300 text-left">Subtotal No Sujeto de IVA</td>
+                          <td className="px-1.5 py-[1px] font-bold">${Number(taxDetails.subtotalNoObjeto || 0).toFixed(2)}</td>
                         </tr>
                         <tr>
-                          <td className="px-2 py-[2px] bg-gray-50 border-r border-gray-300 text-left">Subtotal Exento de IVA</td>
-                          <td className="px-2 py-[2px] font-bold">${Number(taxDetails.subtotalExento || 0).toFixed(2)}</td>
+                          <td className="px-1.5 py-[1px] bg-gray-50 border-r border-gray-300 text-left">Subtotal Exento de IVA</td>
+                          <td className="px-1.5 py-[1px] font-bold">${Number(taxDetails.subtotalExento || 0).toFixed(2)}</td>
                         </tr>
                         <tr>
-                          <td className="px-2 py-[2px] bg-gray-50 border-r border-gray-300 text-left">Subtotal Sin Impuestos</td>
-                          <td className="px-2 py-[2px] font-bold">${Number(taxDetails.subtotalSinImpuestos || 0).toFixed(2)}</td>
+                          <td className="px-1.5 py-[1px] bg-gray-50 border-r border-gray-300 text-left">Subtotal Sin Impuestos</td>
+                          <td className="px-1.5 py-[1px] font-bold">${Number(taxDetails.subtotalSinImpuestos || 0).toFixed(2)}</td>
                         </tr>
                         <tr>
-                          <td className="px-2 py-[2px] bg-gray-50 border-r border-gray-300 text-left">Total Descuento</td>
-                          <td className="px-2 py-[2px] font-bold">${Number(taxDetails.totalDiscount || 0).toFixed(2)}</td>
+                          <td className="px-1.5 py-[1px] bg-gray-50 border-r border-gray-300 text-left">Total Descuento</td>
+                          <td className="px-1.5 py-[1px] font-bold">${Number(taxDetails.totalDiscount || 0).toFixed(2)}</td>
                         </tr>
                         <tr>
-                          <td className="px-2 py-[2px] bg-gray-50 border-r border-gray-300 text-left">Valor ICE</td>
-                          <td className="px-2 py-[2px] font-bold">${Number(tx.iceValor || 0).toFixed(2)}</td>
+                          <td className="px-1.5 py-[1px] bg-gray-50 border-r border-gray-300 text-left">Valor ICE</td>
+                          <td className="px-1.5 py-[1px] font-bold">${Number(tx.iceValor || 0).toFixed(2)}</td>
                         </tr>
                         <tr>
-                          <td className="px-2 py-[2px] bg-gray-50 border-r border-gray-300 text-left">IVA 15%</td>
-                          <td className="px-2 py-[2px] font-bold">${Number(taxDetails.iva15 || 0).toFixed(2)}</td>
+                          <td className="px-1.5 py-[1px] bg-gray-50 border-r border-gray-300 text-left">IVA 15%</td>
+                          <td className="px-1.5 py-[1px] font-bold">${Number(taxDetails.iva15 || 0).toFixed(2)}</td>
                         </tr>
                         <tr>
-                          <td className="px-2 py-[2px] bg-gray-50 border-r border-gray-300 text-left">IVA 5%</td>
-                          <td className="px-2 py-[2px] font-bold">${Number(taxDetails.iva5 || 0).toFixed(2)}</td>
+                          <td className="px-1.5 py-[1px] bg-gray-50 border-r border-gray-300 text-left">IVA 5%</td>
+                          <td className="px-1.5 py-[1px] font-bold">${Number(taxDetails.iva5 || 0).toFixed(2)}</td>
                         </tr>
                         <tr>
-                          <td className="px-2 py-[2px] bg-gray-50 border-r border-gray-300 text-left">IRBPNR</td>
-                          <td className="px-2 py-[2px] font-bold">${Number(tx.irbpnrValor || 0).toFixed(2)}</td>
+                          <td className="px-1.5 py-[1px] bg-gray-50 border-r border-gray-300 text-left">IRBPNR</td>
+                          <td className="px-1.5 py-[1px] font-bold">${Number(tx.irbpnrValor || 0).toFixed(2)}</td>
                         </tr>
                         <tr>
-                          <td className="px-2 py-[2px] bg-gray-50 border-r border-gray-300 text-left">Propina</td>
-                          <td className="px-2 py-[2px] font-bold">${Number(tx.propinaValor || 0).toFixed(2)}</td>
+                          <td className="px-1.5 py-[1px] bg-gray-50 border-r border-gray-300 text-left">Propina</td>
+                          <td className="px-1.5 py-[1px] font-bold">${Number(tx.propinaValor || 0).toFixed(2)}</td>
                         </tr>
-                        <tr className="bg-gray-100 font-extrabold text-[9px] border-y border-gray-300">
-                          <td className="px-2 py-1 border-r border-gray-300 text-left">Valor Total</td>
-                          <td className="px-2 py-1 text-black font-black">${Number(taxDetails.total || 0).toFixed(2)}</td>
-                        </tr>
-                        <tr>
-                          <td className="px-2 py-[2px] bg-gray-50 border-r border-gray-300 text-left">IRF 1.75%</td>
-                          <td className="px-2 py-[2px]">${Number(tx.irf175Valor || 0).toFixed(2)}</td>
+                        <tr className="bg-gray-100 font-extrabold text-[8.5px] border-y border-gray-300">
+                          <td className="px-1.5 py-[2px] border-r border-gray-300 text-left">Valor Total</td>
+                          <td className="px-1.5 py-[2px] text-black font-black">${Number(taxDetails.total || 0).toFixed(2)}</td>
                         </tr>
                         <tr>
-                          <td className="px-2 py-[2px] bg-gray-50 border-r border-gray-300 text-left">IRF 2.75%</td>
-                          <td className="px-2 py-[2px]">${Number(tx.irf275Valor || 0).toFixed(2)}</td>
+                          <td className="px-1.5 py-[1px] bg-gray-50 border-r border-gray-300 text-left">IRF 1.75%</td>
+                          <td className="px-1.5 py-[1px]">${Number(tx.irf175Valor || 0).toFixed(2)}</td>
+                        </tr>
+                        <tr>
+                          <td className="px-1.5 py-[1px] bg-gray-50 border-r border-gray-300 text-left">IRF 2.75%</td>
+                          <td className="px-1.5 py-[1px]">${Number(tx.irf275Valor || 0).toFixed(2)}</td>
                         </tr>
                       </tbody>
                     </table>
