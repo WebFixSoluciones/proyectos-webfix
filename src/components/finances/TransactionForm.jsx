@@ -3175,31 +3175,15 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-[8px]">
-                <div>
-                  <label className="block text-[10px] font-bold uppercase mb-[4px] text-black dark:text-white/60">Teléfono</label>
-                  <input 
-                    type="text" 
-                    value={quickAddFormData.telefono || ''} 
-                    onChange={e => setQuickAddFormData({...quickAddFormData, telefono: e.target.value})} 
-                    className={inputClass} 
-                    placeholder="0998765432" 
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-bold uppercase mb-[4px] text-black dark:text-white/60">Régimen</label>
-                  <input 
-                    type="text" 
-                    readOnly 
-                    disabled 
-                    value={
-                      quickAddFormData.tipoContribuyente === 'rimpe_popular' ? 'RIMPE Popular' :
-                      quickAddFormData.tipoContribuyente === 'rimpe_emprendedor' ? 'RIMPE Emprendedor' :
-                      quickAddFormData.tipoContribuyente === 'microempresas' ? 'Microempresas' : 'Régimen General'
-                    }
-                    className={inputClass} 
-                  />
-                </div>
+              <div>
+                <label className="block text-[10px] font-bold uppercase mb-[4px] text-black dark:text-white/60">Teléfono</label>
+                <input 
+                  type="text" 
+                  value={quickAddFormData.telefono || ''} 
+                  onChange={e => setQuickAddFormData({...quickAddFormData, telefono: e.target.value})} 
+                  className={inputClass} 
+                  placeholder="0998765432" 
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-[8px]">

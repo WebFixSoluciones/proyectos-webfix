@@ -6,7 +6,6 @@ import { consultarRucSri } from '../../services/sriService';
 export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, db, appId, forcedType }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterIdType, setFilterIdType] = useState('all');
-  const [filterRegimen, setFilterRegimen] = useState('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isQueryingSri, setIsQueryingSri] = useState(false);
   const [formData, setFormData] = useState({ 
@@ -29,8 +28,7 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
                           (tp.direccion || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = !forcedType || (forcedType === 'cliente' ? tp.type !== 'proveedor' : tp.type === forcedType);
     const matchesIdType = filterIdType === 'all' || (tp.tipoIdentificacion || 'ruc').toLowerCase() === filterIdType;
-    const matchesRegimen = filterRegimen === 'all' || tp.tipoContribuyente === filterRegimen;
-    return matchesSearch && matchesType && matchesIdType && matchesRegimen;
+    return matchesSearch && matchesType && matchesIdType;
   });
 
   const querySRI = async () => {
@@ -191,20 +189,7 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
             <option value="pasaporte" className="text-black">Pasaporte</option>
           </select>
 
-          <select 
-            value={filterRegimen} 
-            onChange={e => setFilterRegimen(e.target.value)} 
-            className={`px-3 py-2 rounded-[10px] border text-xs font-medium outline-none transition-all cursor-pointer ${
-              isDarkMode 
-                ? 'bg-[#151722]/80 border-white/10 text-gray-300 focus:border-primary/50' 
-                : 'bg-white border-slate-200 text-slate-700 focus:border-primary'
-            }`}
-          >
-            <option value="all" className="text-black">Régimen: Todos</option>
-            <option value="general" className="text-black">General</option>
-            <option value="rimpe_emprendedor" className="text-black">RIMPE Emprendedor</option>
-            <option value="rimpe_popular" className="text-black">RIMPE Popular</option>
-          </select>
+
         </div>
       </div>
 
@@ -252,19 +237,7 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
                         </div>
                         <div>
                           <p className={`font-bold text-xs ${isDarkMode ? 'text-white' : 'text-black'}`}>{tp.name}</p>
-                          {tp.tipoContribuyente && (
-                            <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase inline-flex items-center gap-1 mt-1 border ${
-                              tp.tipoContribuyente === 'general' ? (isDarkMode ? 'bg-primary/10 text-primary border-primary/20' : 'bg-primary-light text-primary border-primary/20') :
-                              tp.tipoContribuyente === 'rimpe_emprendedor' ? (isDarkMode ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-emerald-50 text-emerald-700 border-emerald-200') :
-                              (isDarkMode ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-amber-50 text-amber-800 border-amber-250')
-                            }`}>
-                              <span className={`w-1 h-1 rounded-full ${
-                                tp.tipoContribuyente === 'general' ? 'bg-primary' :
-                                tp.tipoContribuyente === 'rimpe_emprendedor' ? 'bg-emerald-400' : 'bg-amber-400 animate-pulse'
-                              }`}></span>
-                              Régimen: {tp.tipoContribuyente.replace('_', ' ')}
-                            </span>
-                          )}
+
                         </div>
                       </div>
                     </td>
@@ -369,20 +342,9 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
                 <input type="text" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className={inputClass} placeholder="Ej. Juan Pérez o WEBFIX S.A." />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Teléfono Contacto</label>
-                  <input type="text" value={formData.telefono || ''} onChange={e => setFormData({...formData, telefono: e.target.value})} className={inputClass} placeholder="Ej. 0998765432 o 022987654" />
-                </div>
-                <div>
-                  <label className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Régimen Contribuyente</label>
-                  <select value={formData.tipoContribuyente || 'general'} onChange={e => setFormData({...formData, tipoContribuyente: e.target.value})} className={`${inputClass} cursor-pointer`}>
-                    <option value="general" className="text-black">Régimen General</option>
-                    <option value="rimpe_popular" className="text-black">RIMPE Popular</option>
-                    <option value="rimpe_emprendedor" className="text-black">RIMPE Emprendedor</option>
-                    <option value="microempresas" className="text-black">Microempresas</option>
-                  </select>
-                </div>
+              <div>
+                <label className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Teléfono Contacto</label>
+                <input type="text" value={formData.telefono || ''} onChange={e => setFormData({...formData, telefono: e.target.value})} className={inputClass} placeholder="Ej. 0998765432 o 022987654" />
               </div>
 
               <div className="grid grid-cols-3 gap-4 font-mono">

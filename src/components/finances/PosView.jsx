@@ -2705,32 +2705,16 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className={`block text-[9px] font-bold uppercase mb-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Teléfono</label>
-                  <input 
-                    type="text" 
-                    value={quickAddFormData.telefono || ''} 
-                    onChange={e => setQuickAddFormData({...quickAddFormData, telefono: e.target.value})} 
-                    className={`w-full text-xs px-2.5 py-2.5 rounded-xl outline-none border ${
-                      isDarkMode ? 'bg-black border-white/10 text-white focus:border-primary/50' : 'bg-white border-primary/15 text-black focus:border-primary'
-                    }`} 
-                  />
-                </div>
-                <div>
-                  <label className={`block text-[9px] font-bold uppercase mb-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Contribuyente</label>
-                  <select 
-                    value={quickAddFormData.tipoContribuyente} 
-                    onChange={e => setQuickAddFormData({...quickAddFormData, tipoContribuyente: e.target.value})} 
-                    className={`w-full text-xs px-2.5 py-2.5 rounded-xl outline-none border ${
-                      isDarkMode ? 'bg-black border-white/10 text-white' : 'bg-white border-primary/15 text-black'
-                    }`}
-                  >
-                    <option value="general" className="text-black bg-white">Régimen General</option>
-                    <option value="rimpe_popular" className="text-black bg-white">RIMPE Popular</option>
-                    <option value="rimpe_emprendedor" className="text-black bg-white">RIMPE Emprendedor</option>
-                  </select>
-                </div>
+              <div>
+                <label className={`block text-[9px] font-bold uppercase mb-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Teléfono</label>
+                <input 
+                  type="text" 
+                  value={quickAddFormData.telefono || ''} 
+                  onChange={e => setQuickAddFormData({...quickAddFormData, telefono: e.target.value})} 
+                  className={`w-full text-xs px-2.5 py-2.5 rounded-xl outline-none border ${
+                    isDarkMode ? 'bg-black border-white/10 text-white focus:border-primary/50' : 'bg-white border-primary/15 text-black focus:border-primary'
+                  }`} 
+                />
               </div>
 
               <div className="grid grid-cols-3 gap-3">
