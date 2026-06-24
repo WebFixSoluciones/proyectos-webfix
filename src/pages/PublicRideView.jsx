@@ -298,9 +298,9 @@ export default function PublicRideView() {
 
   const MockBarcode = () => (
     <div className="flex flex-col items-center my-1 select-none print:my-0.5">
-      <div className="flex h-6 w-full bg-white items-stretch justify-center gap-[1px] px-1 py-0.5">
+      <div className="flex h-6 w-full bg-white items-stretch justify-center gap-[1px] px-1 py-0.5" style={{ backgroundColor: '#ffffff' }}>
         {[2,1,3,1,4,1,2,2,1,3,1,4,1,2,2,1,3,1,4,1,2,2,1,3,1,4,1,2,2,1,3,1,4,1,2,2,1,3,1,4,1,2].map((w, idx) => (
-          <div key={idx} className="bg-black" style={{ width: `${w}px` }}></div>
+          <div key={idx} className="bg-black" style={{ width: `${w}px`, backgroundColor: '#000000', height: '100%' }}></div>
         ))}
       </div>
       <span className="text-[7px] font-mono tracking-[0.1em] text-black text-center mt-0.5">{claveAcceso}</span>
@@ -312,13 +312,20 @@ export default function PublicRideView() {
       {/* Estilos temporales para imprimir */}
       <style dangerouslySetInnerHTML={{__html: `
         @media print {
+          @page {
+            margin: 0 !important;
+          }
+          body {
+            margin: 0 !important;
+            padding: 0 !important;
+          }
           body * {
             visibility: hidden !important;
-            background-color: transparent !important;
-            box-shadow: none !important;
           }
           #print-area-wrapper, #print-area-wrapper * {
             visibility: visible !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
           }
           #print-area-wrapper {
             position: absolute !important;
@@ -489,7 +496,7 @@ export default function PublicRideView() {
             {/* Detalle de Artículos */}
             <div className="mt-3 border border-gray-300 overflow-hidden" style={{ borderRadius: '0px' }}>
               <table className="w-full text-left text-[9px] text-black">
-                <thead className="bg-gray-100 font-bold uppercase text-[7.5px] border-b border-gray-300 text-black">
+                <thead className="bg-gray-100 font-bold uppercase text-[9px] border-b border-gray-300 text-black">
                   <tr>
                     <th className="px-2 py-1 border-r border-gray-300 w-8 text-center">ITEM</th>
                     <th className="px-2 py-1 border-r border-gray-300 w-16">CODIGO</th>
@@ -535,13 +542,13 @@ export default function PublicRideView() {
             </div>
 
             {/* Formas de Pago e Información Adicional y Totales */}
-            <div className="mt-3 grid grid-cols-1 md:grid-cols-5 gap-3 items-start print-grid-5 text-[8px] text-black">
+            <div className="mt-3 grid grid-cols-1 md:grid-cols-5 gap-3 items-start print-grid-5 text-[9px] text-black">
               
               {/* Columna Izquierda: Información Adicional y Pagos */}
               <div className="md:col-span-3 space-y-2">
                 <div className="p-2 border border-gray-300 space-y-1">
                   <p className="font-bold border-b border-gray-200 pb-0.5 uppercase mb-1">Información Adicional</p>
-                  <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 mt-1 text-[7.5px]">
+                  <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 mt-1 text-[9px]">
                     <p><span className="font-bold">Asesor:</span> {tx.createdBy || 'ADMINISTRADOR'}</p>
                     <p><span className="font-bold">Tipo Orden:</span> ZVTA</p>
                     <p><span className="font-bold">Condición de Pago:</span> {tx.paymentMethod === 'credito' ? 'Crédito' : 'Contado'}</p>
@@ -558,7 +565,7 @@ export default function PublicRideView() {
                   </div>
                   
                   {/* Tabla de desglose de pagos */}
-                  <table className="w-full text-left text-[7.5px] border border-gray-300 mt-2">
+                  <table className="w-full text-left text-[9px] border border-gray-300 mt-2">
                     <thead className="bg-gray-100 font-bold border-b border-gray-300">
                       <tr>
                         <th className="px-2 py-0.5 border-r border-gray-300">Forma Pago</th>
@@ -580,14 +587,14 @@ export default function PublicRideView() {
                   </table>
                 </div>
                 
-                <p className="text-[7.5px] uppercase font-bold text-gray-700 bg-gray-100 p-1.5 rounded border border-gray-300 text-center tracking-wide leading-none">
+                <p className="text-[9px] uppercase font-bold text-gray-700 bg-gray-100 p-1.5 rounded border border-gray-300 text-center tracking-wide leading-none">
                   Son: {numeroALetras(tx.total)}
                 </p>
               </div>
 
               {/* Columna Derecha: Totales Factura */}
               <div className="md:col-span-2 border border-gray-300 overflow-hidden">
-                <table className="w-full text-right text-[8px] text-black">
+                <table className="w-full text-right text-[9px] text-black">
                   <tbody className="divide-y divide-gray-200 font-medium">
                     <tr>
                       <td className="px-2 py-[2px] bg-gray-50 border-r border-gray-300 text-left">Subtotal 15%</td>

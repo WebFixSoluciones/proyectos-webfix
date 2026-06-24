@@ -263,9 +263,9 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
   // Generador de código de barras visual usando CSS puro
   const MockBarcode = () => (
     <div className="flex flex-col items-center my-1 select-none print:my-0.5">
-      <div className="flex h-6 w-full bg-white items-stretch justify-center gap-[1px] px-1 py-0.5">
+      <div className="flex h-6 w-full bg-white items-stretch justify-center gap-[1px] px-1 py-0.5" style={{ backgroundColor: '#ffffff' }}>
         {[2,1,3,1,4,1,2,2,1,3,1,4,1,2,2,1,3,1,4,1,2,2,1,3,1,4,1,2,2,1,3,1,4,1,2,2,1,3,1,4,1,2].map((w, idx) => (
-          <div key={idx} className="bg-black" style={{ width: `${w}px` }}></div>
+          <div key={idx} className="bg-black" style={{ width: `${w}px`, backgroundColor: '#000000', height: '100%' }}></div>
         ))}
       </div>
       <span className="text-[7px] font-mono tracking-[0.1em] text-black text-center mt-0.5">{claveAcceso}</span>
@@ -278,14 +278,23 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
       {/* Estilos temporales para imprimir solamente el comprobante */}
       <style dangerouslySetInnerHTML={{__html: `
         @media print {
+          @page {
+            margin: 0 !important;
+          }
+          
+          body {
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+          
           body * {
             visibility: hidden !important;
-            background-color: transparent !important;
-            box-shadow: none !important;
           }
           
           #print-area-wrapper, #print-area-wrapper * {
             visibility: visible !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
           }
           
           .print-modal-backdrop {
@@ -304,7 +313,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
           }
           
           .print-modal-content {
-            position: relative !important;
+            position: static !important;
             display: block !important;
             width: 100% !important;
             height: auto !important;
@@ -318,7 +327,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
           }
           
           .print-modal-scroll {
-            position: relative !important;
+            position: static !important;
             display: block !important;
             width: 100% !important;
             height: auto !important;
@@ -329,7 +338,9 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
           }
           
           #print-area-wrapper {
-            position: relative !important;
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
             width: 100% !important;
             margin: 0 !important;
             padding: 0 !important;
@@ -550,8 +561,8 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
                 </div>
 
                 <div className="mt-2 border border-gray-300 overflow-hidden">
-                  <table className="w-full text-left text-[8px] text-black">
-                    <thead className="bg-gray-100 font-bold uppercase text-[7px] border-b border-gray-300 text-black">
+                  <table className="w-full text-left text-[9px] text-black">
+                    <thead className="bg-gray-100 font-bold uppercase text-[9px] border-b border-gray-300 text-black">
                       <tr>
                         <th className="px-1 py-[2px] border-r border-gray-300 w-7 text-center">ITEM</th>
                         <th className="px-1 py-[2px] border-r border-gray-300 w-14">CODIGO</th>
@@ -597,13 +608,13 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
                 </div>
 
                 {/* Formas de Pago e Información Adicional y Totales */}
-                <div className="mt-3 grid grid-cols-1 md:grid-cols-5 gap-3 items-start print-grid-5 text-[8px] text-black">
+                <div className="mt-3 grid grid-cols-1 md:grid-cols-5 gap-3 items-start print-grid-5 text-[9px] text-black">
                   
                   {/* Columna Izquierda: Información Adicional y Pagos */}
                   <div className="md:col-span-3 space-y-1.5">
                     <div className="p-1.5 border border-gray-300 space-y-0.5">
                       <p className="font-bold border-b border-gray-200 pb-0.5 uppercase mb-0.5">Información Adicional</p>
-                      <div className="grid grid-cols-2 gap-x-2 gap-y-0 mt-0.5 text-[7px]">
+                      <div className="grid grid-cols-2 gap-x-2 gap-y-0 mt-0.5 text-[9px]">
                         <p><span className="font-bold">Asesor:</span> {tx.createdBy || 'ADMINISTRADOR'}</p>
                         <p><span className="font-bold">Tipo Orden:</span> ZVTA</p>
                         <p><span className="font-bold">Condición de Pago:</span> {tx.paymentMethod === 'credito' ? 'Crédito' : 'Contado'}</p>
@@ -623,7 +634,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
                       </div>
                       
                       {/* Tabla de desglose de pagos */}
-                      <table className="w-full text-left text-[7.5px] border border-gray-300 mt-2">
+                      <table className="w-full text-left text-[9px] border border-gray-300 mt-2">
                         <thead className="bg-gray-100 font-bold border-b border-gray-300">
                           <tr>
                             <th className="px-2 py-0.5 border-r border-gray-300">Forma Pago</th>
@@ -645,13 +656,13 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
                       </table>
                     </div>
                     
-                    <p className="text-[7.5px] uppercase font-bold text-gray-700 bg-gray-100 p-1.5 rounded border border-gray-300 text-center tracking-wide leading-none">
+                    <p className="text-[9px] uppercase font-bold text-gray-700 bg-gray-100 p-1.5 rounded border border-gray-300 text-center tracking-wide leading-none">
                       Son: {numeroALetras(tx.total)}
                     </p>
                   </div>
 
                   <div className="md:col-span-2 border border-gray-300 overflow-hidden">
-                    <table className="w-full text-right text-[7.5px] text-black">
+                    <table className="w-full text-right text-[9px] text-black">
                       <tbody className="divide-y divide-gray-200 font-medium">
                         <tr>
                           <td className="px-1.5 py-[1px] bg-gray-50 border-r border-gray-300 text-left">Subtotal 15%</td>
@@ -701,7 +712,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
                           <td className="px-1.5 py-[1px] bg-gray-50 border-r border-gray-300 text-left">Propina</td>
                           <td className="px-1.5 py-[1px] font-bold">${Number(tx.propinaValor || 0).toFixed(2)}</td>
                         </tr>
-                        <tr className="bg-gray-100 font-extrabold text-[8.5px] border-y border-gray-300">
+                        <tr className="bg-gray-100 font-extrabold text-[9px] border-y border-gray-300">
                           <td className="px-1.5 py-[2px] border-r border-gray-300 text-left">Valor Total</td>
                           <td className="px-1.5 py-[2px] text-black font-black">${Number(taxDetails.total || 0).toFixed(2)}</td>
                         </tr>
@@ -841,9 +852,9 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
                       <p>Consulte su RIDE en su correo.</p>
                       
                       {/* Codigo de barras en el ticket */}
-                      <div className="flex h-5 w-full bg-white items-stretch justify-center gap-[0.5px] px-2 py-0.5">
+                      <div className="flex h-5 w-full bg-white items-stretch justify-center gap-[0.5px] px-2 py-0.5" style={{ backgroundColor: '#ffffff' }}>
                         {[1,1,2,1,2,1,1,2,1,1,2,1,2,1,1,2,1,1,2,1,2,1,1,2,1,1,2,1].map((w, idx) => (
-                          <div key={idx} className="bg-black" style={{ width: `${w}px` }}></div>
+                          <div key={idx} className="bg-black" style={{ width: `${w}px`, backgroundColor: '#000000', height: '100%' }}></div>
                         ))}
                       </div>
                       <p className="font-mono text-[7px] break-all">{claveAcceso.slice(0, 30)}...</p>
