@@ -26,3 +26,6 @@ dist-ssr
 # Security and Temporary directories
 pk12/
 tmp_verify/
+
+# Superpowers Brainstorm Companion
+.superpowers/

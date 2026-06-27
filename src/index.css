@@ -691,27 +691,100 @@ button:not(.rounded-full),
 }
 
 /* BOTÓN ICONO */
+/* BOTÓN ICONO CON ESTILOS GENERALES Y DINÁMICOS */
 .btn-icon {
   width: 32px !important;
   height: 32px !important;
-  border-radius: var(--radius-button) !important;
+  border-radius: 10px !important; /* 10px border radius solicitado */
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
   box-shadow: none !important;
   border: none;
   cursor: pointer !important;
-  background: transparent;
-  color: inherit;
   padding: 0 !important;
   transition: all 150ms ease !important;
+  
+  /* Valores base por defecto usando variables dinámicas del sistema */
+  --btn-base-color: var(--color-primary);
+  background-color: var(--color-primary-light) !important;
+  color: var(--color-primary) !important;
 }
 
 .btn-icon:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background-color: color-mix(in srgb, var(--btn-base-color) 20%, transparent) !important;
 }
-.light .btn-icon:hover {
-  background: rgba(0, 0, 0, 0.05);
+
+/* MAPEO INTELIGENTE DE COLORES DE TAILWIND */
+/* Mantiene la coherencia visual con los nombres de clase actuales */
+
+/* Si tiene bg-primary */
+.btn-icon.bg-primary {
+  --btn-base-color: var(--color-primary);
+  background-color: var(--color-primary-light) !important;
+  color: var(--color-primary) !important;
+}
+
+/* Si tiene bg-red-600 o bg-red-500 (para PDF o Eliminar) */
+.btn-icon.bg-red-600,
+.btn-icon.bg-red-500,
+.btn-icon.text-red-500 {
+  --btn-base-color: #ef4444;
+  background-color: color-mix(in srgb, #ef4444 12%, transparent) !important;
+  color: #ef4444 !important;
+}
+.btn-icon.bg-red-600:hover,
+.btn-icon.bg-red-500:hover {
+  background-color: color-mix(in srgb, #ef4444 20%, transparent) !important;
+}
+
+/* Si tiene bg-amber-600 o bg-amber-500 (para RIDE) */
+.btn-icon.bg-amber-600,
+.btn-icon.bg-amber-500 {
+  --btn-base-color: #d97706;
+  background-color: color-mix(in srgb, #d97706 12%, transparent) !important;
+  color: #d97706 !important;
+}
+.btn-icon.bg-amber-600:hover,
+.btn-icon.bg-amber-500:hover {
+  background-color: color-mix(in srgb, #d97706 20%, transparent) !important;
+}
+
+/* Si tiene bg-blue-600 o bg-blue-505 (para Reenviar Correo) */
+.btn-icon.bg-blue-600,
+.btn-icon.bg-blue-505,
+.btn-icon.bg-blue-500 {
+  --btn-base-color: #2563eb;
+  background-color: color-mix(in srgb, #2563eb 12%, transparent) !important;
+  color: #2563eb !important;
+}
+.btn-icon.bg-blue-600:hover,
+.btn-icon.bg-blue-505:hover,
+.btn-icon.bg-blue-500:hover {
+  background-color: color-mix(in srgb, #2563eb 20%, transparent) !important;
+}
+
+/* Si el archivo está deshabilitado / gris (ej. XML no disponible) */
+.btn-icon.bg-gray-200 {
+  background-color: rgba(148, 163, 184, 0.12) !important;
+  color: #94a3b8 !important;
+  opacity: 0.6;
+  cursor: not-allowed !important;
+}
+
+/* Preservar botones de tipo cerrar (X) o navegación que no llevan fondo */
+.btn-icon.text-gray-400,
+.btn-icon.text-gray-500,
+.btn-icon.text-gray-450 {
+  background-color: transparent !important;
+  color: inherit !important;
+  opacity: 0.7;
+}
+.btn-icon.text-gray-400:hover,
+.btn-icon.text-gray-500:hover,
+.btn-icon.text-gray-450:hover {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+  opacity: 1;
 }
 
 
