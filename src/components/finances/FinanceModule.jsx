@@ -59,9 +59,16 @@ export default function FinanceModule({
   useEffect(() => {
     if (initialSubTab) {
       if (mode === 'ventas') {
-        const targetSub = String(initialSubTab).startsWith('pos') ? 'pos' : initialSubTab;
-        setSubTabVentas(targetSub);
-        setActiveTab('ventas');
+        if (initialSubTab === 'ventas_preventa') {
+          setSubTabVentas('resumen_ventas');
+          setEditingTx(null);
+          setIsModalOpen(true);
+          setActiveTab('ventas');
+        } else {
+          const targetSub = String(initialSubTab).startsWith('pos') ? 'pos' : initialSubTab;
+          setSubTabVentas(targetSub);
+          setActiveTab('ventas');
+        }
       } else if (mode === 'personas') {
         setSubTabPersonas(initialSubTab);
       } else if (mode === 'compras') {
@@ -264,6 +271,9 @@ export default function FinanceModule({
               )}
               {activeTab === 'ventas' && subTabVentas === 'retencion' && (
                 <TransactionsView transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} forcedDocType="retencion" forcedType="ingreso" />
+              )}
+              {activeTab === 'ventas' && subTabVentas === 'preventas' && (
+                <TransactionsView transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} isPreventaTab={true} forcedType="ingreso" />
               )}
 
               {/* SECCIÓN DOCUMENTOS SRI */}

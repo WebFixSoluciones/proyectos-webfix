@@ -1,12 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Plus, Search, Trash2, Edit2, FileText, CheckCircle2, AlertCircle, UploadCloud, Sparkles, AlertTriangle, Eye, Mail, Loader2 } from 'lucide-react';
+import { Plus, Search, Trash2, Edit2, FileText, CheckCircle2, AlertCircle, UploadCloud, Sparkles, AlertTriangle, Eye, Mail, Loader2, Truck, Clock } from 'lucide-react';
 import { doc, deleteDoc, setDoc, getDoc } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { analizarComprobanteConGemini, parsearXMLComprobante } from '../../services/geminiService';
 import { getEcuadorDateString, getEcuadorDateTimeString } from '../../services/sriService';
 import RidePreviewModal from './RidePreviewModal';
 
-export default function TransactionsView({ transactions, thirdParties, isDarkMode, showToast, db, storage, appId, onOpenForm, forcedDocType, forcedType }) {
+export default function TransactionsView({ transactions, thirdParties, isDarkMode, showToast, db, storage, appId, onOpenForm, forcedDocType, forcedType, isPreventaTab = false }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState(forcedType || 'all');
   const [filterDocType, setFilterDocType] = useState(forcedDocType || 'all'); // Filtro por Tipo de Comprobante SRI
@@ -33,9 +33,29 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
   const [emailTarget, setEmailTarget] = useState('');
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   
+  const handleToggleDelivery = async (txId, currentStatus) => {
+    if (!db || !appId) return;
+    try {
+      const nextStatus = currentStatus === 'entregado' ? 'pendiente' : 'entregado';
+      const txRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', txId);
+      await setDoc(txRef, { deliveryStatus: nextStatus }, { merge: true });
+      showToast(`Preventa marcada como ${nextStatus === 'entregado' ? 'despachada' : 'pendiente'}`, 'success');
+    } catch (err) {
+      console.error("Error al actualizar despacho", err);
+      showToast("Error al actualizar estado de despacho", "error");
+    }
+  };
+  
   const fileInputRef = useRef(null);
 
   const filtered = transactions.filter(tx => {
+    // Filtrar preventas
+    if (isPreventaTab) {
+      if (!tx.isPreventa) return false;
+    } else {
+      if (forcedDocType === 'ventas_resumen' && tx.isPreventa) return false;
+    }
+
     const matchesSearch = (tx.documentNumber || '').includes(searchTerm) || 
                           (thirdParties.find(tp => tp.id === tx.thirdPartyId)?.name || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = filterType === 'all' || tx.type === filterType;
@@ -403,7 +423,27 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
         <div>
           <button 
             onClick={() => {
-              if (forcedDocType) {
+              if (isPreventaTab) {
+                onOpenForm({
+                  id: '',
+                  type: 'ingreso',
+                  documentType: 'factura',
+                  date: getEcuadorDateString(),
+                  currency: 'USD',
+                  baseImponible: 0,
+                  ivaPorcentaje: 15,
+                  ivaValor: 0,
+                  retencionFuente: 0,
+                  retencionIva: 0,
+                  total: 0,
+                  paymentMethod: 'transferencia',
+                  paymentStatus: 'pendiente',
+                  sriStatus: 'pendiente',
+                  isPreventa: true,
+                  deliveryStatus: 'pendiente',
+                  items: []
+                });
+              } else if (forcedDocType) {
                 const defaultDocType = forcedDocType === 'ventas_resumen' ? 'factura' : forcedDocType;
                 const defaultType = forcedType || (forcedDocType === 'liquidacion' || forcedDocType === 'retencion' ? 'egreso' : 'ingreso');
                 onOpenForm({
@@ -430,11 +470,13 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
             className="btn-primary w-full sm:w-auto"
           >
             <Plus size={15} /> Registrar {
-              forcedDocType 
-                ? (forcedDocType === 'ventas_resumen' 
-                    ? 'Venta' 
-                    : (docTypeTabs.find(t => t.id === forcedDocType)?.label || forcedDocType)) 
-                : 'Comprobante'
+              isPreventaTab
+                ? 'Preventa'
+                : (forcedDocType 
+                    ? (forcedDocType === 'ventas_resumen' 
+                        ? 'Venta' 
+                        : (docTypeTabs.find(t => t.id === forcedDocType)?.label || forcedDocType)) 
+                    : 'Comprobante')
             }
           </button>
         </div>
@@ -523,6 +565,7 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
                 <th className="px-6 py-3.5">Tercero</th>
                 <th className="px-6 py-3.5">Total</th>
                 <th className="px-6 py-3.5">Estado SRI</th>
+                {isPreventaTab && <th className="px-6 py-3.5">Despacho</th>}
                 <th className="px-6 py-3.5">Archivos</th>
                 <th className="px-6 py-3.5 text-right">Acciones</th>
               </tr>
@@ -542,6 +585,27 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
                   </td>
                   <td className={`px-6 py-3.5 font-extrabold ${isDarkMode ? '' : 'text-black font-black'}`}>${Number(tx.total || 0).toFixed(2)}</td>
                   <td className="px-6 py-3.5">{getStatusBadge(tx.sriStatus, tx.documentType)}</td>
+                  {isPreventaTab && (
+                    <td className="px-6 py-3.5">
+                      {tx.deliveryStatus === 'entregado' ? (
+                        <span 
+                          onClick={() => handleToggleDelivery(tx.id, tx.deliveryStatus)}
+                          className="px-2.5 py-1 rounded-[10px] text-[9px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/30 flex items-center gap-1.5 w-fit cursor-pointer hover:opacity-85 transition-all"
+                        >
+                          <Truck size={11} /> Entregado
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => handleToggleDelivery(tx.id, tx.deliveryStatus)}
+                          className="btn-icon bg-amber-600 text-white hover:bg-amber-700 transition-all"
+                          title="Marcar como Entregado / Despachado"
+                        >
+                          <Clock size={13} />
+                        </button>
+                      )}
+                    </td>
+                  )}
                   <td className="px-6 py-3.5">
                     <div className="flex gap-1.5">
                       {tx.xmlUrl ? (
@@ -615,7 +679,7 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan="8" className="px-6 py-8 text-center text-gray-500 italic">No se encontraron comprobantes.</td>
+                  <td colSpan={isPreventaTab ? 9 : 8} className="px-6 py-8 text-center text-gray-500 italic">No se encontraron comprobantes.</td>
                 </tr>
               )}
             </tbody>

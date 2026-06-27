@@ -958,11 +958,13 @@ export default function App() {
           };
         }
         const subtabs = {
-          resumen_ventas: { title: 'Ventas: Resumen', desc: 'Panel informativo y métricas clave de facturación electrónica' },
-          ventas_preventa: { title: 'Facturación / Registrar Venta', desc: 'Genera facturas, notas de venta y comprobantes electrónicos SRI' },
-          quotes: { title: 'Cotizaciones y Proformas', desc: 'Emisión y gestión de proformas comerciales para clientes' },
+          resumen_ventas: { title: 'Ventas: Historial de Ventas', desc: 'Listado y métricas de comprobantes electrónicos de venta autorizados' },
+          ventas_preventa: { title: 'Registrar Venta', desc: 'Registro directo de ventas y facturación electrónica' },
+          pos: { title: 'Punto de Venta (POS)', desc: 'Facturación rápida e intuitiva para tiendas y comercio directo' },
+          preventas: { title: 'Preventas', desc: 'Gestión y despacho de ventas y pedidos realizados de forma anticipada' },
+          quotes: { title: 'Cotizaciones', desc: 'Emisión y gestión de cotizaciones comerciales para clientes' },
           nota_credito: { title: 'Notas de Crédito', desc: 'Anulaciones y devoluciones tributarias autorizadas por el SRI' },
-          retencion: { title: 'Retenciones Recibidas', desc: 'Registro de retenciones de IVA y Renta recibidas de clientes' }
+          retencion: { title: 'Retenciones de Venta', desc: 'Registro de retenciones de IVA y Renta recibidas de clientes' }
         };
         const current = subtabs[ventasInitialSubTab] || { title: 'Módulo de Ventas y Proformas', desc: 'Punto de Venta (POS), cotizaciones comerciales y facturas de venta autorizadas' };
         return { ...current, icon: 'ventas' };
@@ -2061,12 +2063,13 @@ export default function App() {
               {isSidebarOpen && expandedSidebarMenu === 'ventas' && (
                 <div className="pl-9 pr-2 space-y-1 border-l border-gray-200 dark:border-white/5 ml-5 mt-1 select-none animate-in slide-in-from-top-1 duration-200">
                   {[
-                    { id: 'resumen_ventas', label: 'Resumen' },
-                    { id: 'ventas_preventa', label: 'Facturación / Vender' },
+                    { id: 'resumen_ventas', label: 'Historial de Ventas' },
+                    { id: 'ventas_preventa', label: 'Registrar Venta' },
                     { id: 'pos', label: 'Punto de Venta (POS)' },
-                    { id: 'quotes', label: 'Cotizaciones / Proformas' },
+                    { id: 'preventas', label: 'Preventas' },
+                    { id: 'quotes', label: 'Cotizaciones' },
                     { id: 'nota_credito', label: 'Notas de Crédito' },
-                    { id: 'retencion', label: 'Retenciones Recibidas' }
+                    { id: 'retencion', label: 'Retenciones de Venta' }
                   ].map(sub => {
                     const isActive = activePageId === 'ventas' && (sub.id === 'pos' ? (ventasInitialSubTab && ventasInitialSubTab.startsWith('pos')) : ventasInitialSubTab === sub.id);
                     return (
