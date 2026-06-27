@@ -397,7 +397,7 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
       )}
 
       {/* TABS DE TIPO DE DOCUMENTO SRI */}
-      {!forcedDocType && (
+      {!forcedDocType && !isPreventaTab && (
         <div className={`flex p-1 gap-1 rounded-2xl border overflow-x-auto custom-scrollbar whitespace-nowrap ${isDarkMode ? 'bg-black/30 border-white/10' : 'bg-gray-100/70 border-gray-200 shadow-inner'}`}>
           {docTypeTabs.map(tab => {
             const isActive = filterDocType === tab.id;
