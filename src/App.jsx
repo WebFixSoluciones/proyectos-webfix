@@ -1000,7 +1000,7 @@ export default function App() {
         };
       case 'compras': {
         const subtabs = {
-          compras_resumen: { title: 'Compras: Resumen', desc: 'Análisis y métricas clave de tus egresos y proveedores' },
+          compras_resumen: { title: 'Compras: Historial de Compras', desc: 'Listado y registro de facturas recibidas de tus proveedores' },
           compras_sri: { title: 'Facturas Recibidas SRI', desc: 'Sincroniza y concilia facturas emitidas por tus proveedores en el SRI' },
           compras_gastos: { title: 'Gastos con IA', desc: 'Clasificación y registro automático de gastos mediante inteligencia artificial' },
           compras_nc: { title: 'Notas de Crédito Recibidas', desc: 'Registro de devoluciones y descuentos aplicados por tus proveedores' },
@@ -2132,7 +2132,7 @@ export default function App() {
               {isSidebarOpen && expandedSidebarMenu === 'compras' && (
                 <div className="pl-9 pr-2 space-y-1 border-l border-gray-200 dark:border-white/5 ml-5 mt-1 select-none animate-in slide-in-from-top-1 duration-200">
                   {[
-                    { id: 'compras_resumen', label: 'Resumen' },
+                    { id: 'compras_resumen', label: 'Historial de Compras' },
                     { id: 'compras_sri', label: 'Facturas Recibidas SRI' },
                     { id: 'compras_gastos', label: 'Gastos con IA' },
                     { id: 'compras_nc', label: 'Notas de Crédito' },

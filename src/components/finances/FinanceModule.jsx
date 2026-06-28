@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   DollarSign, PieChart, Users, FileText, Download, Settings, Sparkles, ShoppingCart, Package, Bookmark,
-  ArrowDownCircle, ArrowUpCircle, TrendingUp, Calculator, Building, Percent, CreditCard
+  ArrowDownCircle, ArrowUpCircle, TrendingUp, Calculator, Building, Percent, CreditCard, ShoppingBag
 } from 'lucide-react';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { getEcuadorDateString } from '../../services/sriService';
@@ -15,6 +15,7 @@ import InventoryModule from '../inventory/InventoryModule';
 import QuotesView from './QuotesView';
 import PosView from './PosView';
 import TransactionForm from './TransactionForm';
+import PurchaseForm from './PurchaseForm';
 import AccountsReceivablePayable from './AccountsReceivablePayable';
 import SalesDashboard from './SalesDashboard';
 import ComprasSriView from './ComprasSriView';
@@ -175,7 +176,7 @@ export default function FinanceModule({
     }
     if (mode === 'compras') {
       return [
-        { id: 'compras_resumen', label: 'Resumen', icon: PieChart },
+        { id: 'compras_resumen', label: 'Historial de Compras', icon: ShoppingBag },
         { id: 'compras_sri', label: 'Facturas Recibidas (SRI)', icon: Download },
         { id: 'compras_gastos', label: 'Gastos con IA', icon: Sparkles },
         { id: 'compras_nc', label: 'Notas de Crédito', icon: FileText },
@@ -309,111 +310,18 @@ export default function FinanceModule({
 
               {/* SECCIÓN COMPRAS */}
               {activeTab === 'compras_resumen' && (
-                <div className="space-y-6 animate-in fade-in duration-300">
-                  {/* Tarjetas de Métricas de Compras */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                    <div className={`p-5 rounded-3xl border shadow-sm ${isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'}`}>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-[10px] font-black uppercase text-gray-500 tracking-wider">Compras del Mes</span>
-                        <div className="p-1.5 rounded-lg bg-orange-500/10 text-orange-500">
-                          <ShoppingCart size={16} />
-                        </div>
-                      </div>
-                      <p className="text-2xl font-black">
-                        ${transactions
-                          .filter(t => t.type === 'egreso' && t.date?.startsWith(getEcuadorDateString().slice(0, 7)))
-                          .reduce((sum, t) => sum + (Number(t.total) || 0), 0)
-                          .toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </p>
-                      <p className="text-[9px] text-gray-400 mt-1">Egresos totales registrados en este mes</p>
-                    </div>
-
-                    <div className={`p-5 rounded-3xl border shadow-sm ${isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'}`}>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-[10px] font-black uppercase text-gray-500 tracking-wider">Cuentas por Pagar</span>
-                        <div className="p-1.5 rounded-lg bg-red-500/10 text-red-500">
-                          <ArrowUpCircle size={16} />
-                        </div>
-                      </div>
-                      <p className="text-2xl font-black text-red-500">
-                        ${transactions
-                          .filter(t => t.type === 'egreso' && t.paymentStatus !== 'pagado')
-                          .reduce((sum, t) => sum + ((Number(t.total) || 0) - (Number(t.paidAmount) || 0)), 0)
-                          .toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </p>
-                      <p className="text-[9px] text-gray-400 mt-1">Saldos pendientes con proveedores</p>
-                    </div>
-
-                    <div className={`p-5 rounded-3xl border shadow-sm ${isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'}`}>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-[10px] font-black uppercase text-gray-500 tracking-wider">Retenciones Emitidas</span>
-                        <div className="p-1.5 rounded-lg bg-purple-500/10 text-purple-500">
-                          <Percent size={16} />
-                        </div>
-                      </div>
-                      <p className="text-2xl font-black">
-                        {transactions.filter(t => t.type === 'egreso' && t.documentType === 'retencion').length}
-                      </p>
-                      <p className="text-[9px] text-gray-400 mt-1">Documentos de retención de compras emitidos</p>
-                    </div>
-                  </div>
-
-                  {/* Tabla de últimas compras */}
-                  <div className={`rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm ${
-                    isDarkMode 
-                      ? 'border-white/5 bg-[#0f111a]/85 shadow-lg shadow-black/40' 
-                      : 'border-slate-200/80 bg-white'
-                  }`}>
-                    <div className="p-6 pb-2 border-b border-dashed border-white/5 dark:border-white/5">
-                      <h3 className="text-xs font-bold uppercase tracking-wider text-black dark:text-white">Últimas Compras Registradas</h3>
-                    </div>
-                    <div className="overflow-x-auto custom-scrollbar">
-                      <table className="w-full text-left text-xs whitespace-nowrap">
-                        <thead className={`text-[10px] uppercase font-bold tracking-wider ${
-                          isDarkMode 
-                            ? 'bg-black/35 text-slate-400 border-b border-white/5' 
-                            : 'bg-slate-50 text-slate-600 border-b border-slate-100'
-                        }`}>
-                          <tr>
-                            <th className="px-6 py-3.5">Fecha</th>
-                            <th className="px-6 py-3.5">Comprobante</th>
-                            <th className="px-6 py-3.5">Contacto</th>
-                            <th className="px-6 py-3.5 text-right">Total</th>
-                            <th className="px-6 py-3.5 text-center">Estado Pago</th>
-                          </tr>
-                        </thead>
-                        <tbody className={`divide-y ${isDarkMode ? 'divide-white/5' : 'divide-slate-100'}`}>
-                          {transactions
-                            .filter(t => t.type === 'egreso' && t.documentType !== 'retencion')
-                            .slice(0, 5)
-                            .map(tx => {
-                              const contact = thirdParties.find(tp => tp.id === tx.thirdPartyId);
-                              return (
-                                <tr key={tx.id} className={`transition-colors ${isDarkMode ? 'hover:bg-white/[0.015]' : 'hover:bg-slate-50/40'}`}>
-                                  <td className="px-6 py-3.5 text-gray-400 font-medium">{tx.date}</td>
-                                  <td className="px-6 py-3.5 font-mono text-[10px] font-bold">{tx.documentNumber || `Sec: ${tx.secuencial || 'N/A'}`}</td>
-                                  <td className="px-6 py-3.5 font-semibold text-black dark:text-white">{contact?.name || 'Proveedor Externo'}</td>
-                                  <td className="px-6 py-3.5 text-right font-bold text-red-500">${Number(tx.total).toFixed(2)}</td>
-                                  <td className="px-6 py-3.5 text-center">
-                                    <span className={`px-2 py-0.5 rounded-[10px] text-[9px] font-bold ${
-                                      tx.paymentStatus === 'pagado' ? 'bg-emerald-500/10 text-emerald-450' : 'bg-amber-500/10 text-amber-450'
-                                    }`}>
-                                      {tx.paymentStatus === 'pagado' ? 'Pagado' : 'Pendiente'}
-                                    </span>
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          {transactions.filter(t => t.type === 'egreso' && t.documentType !== 'retencion').length === 0 && (
-                            <tr>
-                              <td colSpan="5" className="px-6 py-8 text-center text-gray-500 italic">No hay compras registradas en este período.</td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
+                <TransactionsView 
+                  transactions={transactions} 
+                  thirdParties={thirdParties} 
+                  isDarkMode={isDarkMode} 
+                  showToast={showToast} 
+                  db={db} 
+                  storage={storage} 
+                  appId={appId} 
+                  onOpenForm={handleOpenFormModal} 
+                  forcedDocType="compras_resumen" 
+                  forcedType="egreso" 
+                />
               )}
 
               {activeTab === 'compras_sri' && (
@@ -438,17 +346,31 @@ export default function FinanceModule({
 
       {/* MODAL GLOBAL DE FACTURACIÓN (COMPARTIDO) */}
       {isModalOpen && (
-        <TransactionForm 
-          tx={editingTx} 
-          onClose={() => setIsModalOpen(false)} 
-          thirdParties={thirdParties} 
-          products={products}
-          isDarkMode={isDarkMode} 
-          showToast={showToast} 
-          db={db} 
-          storage={storage} 
-          appId={appId} 
-        />
+        editingTx?.type === 'egreso' && 
+        (editingTx?.documentType === 'factura' || editingTx?.documentType === 'nota_venta' || editingTx?.documentType === 'liquidacion' || !editingTx?.documentType) ? (
+          <PurchaseForm 
+            tx={editingTx} 
+            onClose={() => setIsModalOpen(false)} 
+            thirdParties={thirdParties} 
+            products={products}
+            isDarkMode={isDarkMode} 
+            showToast={showToast} 
+            db={db} 
+            appId={appId} 
+          />
+        ) : (
+          <TransactionForm 
+            tx={editingTx} 
+            onClose={() => setIsModalOpen(false)} 
+            thirdParties={thirdParties} 
+            products={products}
+            isDarkMode={isDarkMode} 
+            showToast={showToast} 
+            db={db} 
+            storage={storage} 
+            appId={appId} 
+          />
+        )
       )}
     </div>
   );

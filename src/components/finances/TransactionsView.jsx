@@ -65,6 +65,8 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
       matchesDocType = true;
     } else if (filterDocType === 'ventas_resumen') {
       matchesDocType = tx.type === 'ingreso' && (tx.documentType === 'factura' || tx.documentType === 'nota_venta');
+    } else if (filterDocType === 'compras_resumen') {
+      matchesDocType = tx.type === 'egreso' && (tx.documentType === 'factura' || tx.documentType === 'nota_venta' || tx.documentType === 'liquidacion');
     } else {
       matchesDocType = tx.documentType === filterDocType;
     }
@@ -444,7 +446,7 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
                   items: []
                 });
               } else if (forcedDocType) {
-                const defaultDocType = forcedDocType === 'ventas_resumen' ? 'factura' : forcedDocType;
+                const defaultDocType = (forcedDocType === 'ventas_resumen' || forcedDocType === 'compras_resumen') ? 'factura' : forcedDocType;
                 const defaultType = forcedType || (forcedDocType === 'liquidacion' || forcedDocType === 'retencion' ? 'egreso' : 'ingreso');
                 onOpenForm({
                   id: '',
@@ -475,7 +477,9 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
                 : (forcedDocType 
                     ? (forcedDocType === 'ventas_resumen' 
                         ? 'Venta' 
-                        : (docTypeTabs.find(t => t.id === forcedDocType)?.label || forcedDocType)) 
+                        : (forcedDocType === 'compras_resumen'
+                            ? 'Compra'
+                            : (docTypeTabs.find(t => t.id === forcedDocType)?.label || forcedDocType))) 
                     : 'Comprobante')
             }
           </button>
