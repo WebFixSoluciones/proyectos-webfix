@@ -1832,7 +1832,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     </div>
                   </div>
                 ) : (
-                  <div className={`p-[8px] flex items-center justify-center gap-1.5 rounded-[8px] border border-dashed ${isDarkMode ? 'border-amber-500/20 bg-amber-500/5 text-amber-400' : 'border-amber-150 bg-amber-55/55 text-amber-900'} mb-[8px] text-[11px] font-semibold`}>
+                  <div className={`p-[8px] flex items-center justify-center gap-1.5 rounded-[8px] border border-dashed ${isDarkMode ? 'border-red-500/20 bg-red-500/5 text-red-400' : 'border-red-200 bg-red-50 text-red-600'} mb-[8px] text-[11px] font-semibold`}>
                     <AlertTriangle size={12} className="shrink-0" />
                     <span>Selecciona un cliente para habilitar la facturación.</span>
                   </div>
