@@ -1521,7 +1521,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       : 'bg-white border-gray-200 text-black placeholder:text-gray-400 focus:border-primary focus:ring-1 focus:ring-primary/30 disabled:bg-gray-50 disabled:text-gray-500'
   }`;
 
-  const labelClass = `block text-xs font-bold uppercase mb-[4px] ${
+  const labelClass = `block text-[10px] font-bold uppercase mb-[4px] ${
     isDarkMode ? 'text-gray-300' : 'text-black'
   }`;
 
@@ -1743,7 +1743,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   <div className="text-[#1C40F2]">
                     <User size={14} />
                   </div>
-                  <h4 style={{ color: isDarkMode ? '#FFFFFF' : '#000000' }} className="text-[12px] font-bold uppercase">
+                  <h4 style={{ color: isDarkMode ? '#FFFFFF' : '#000000' }} className="text-[11px] font-bold uppercase">
                     Datos del Cliente y Emisión
                   </h4>
                 </div>
@@ -2021,7 +2021,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       <div className="text-[#1C40F2]">
                         <Layers size={14} />
                       </div>
-                      <h3 style={{ color: isDarkMode ? '#FFFFFF' : '#000000' }} className="text-[12px] font-bold uppercase">Desglose de Retenciones</h3>
+                      <h3 style={{ color: isDarkMode ? '#FFFFFF' : '#000000' }} className="text-[11px] font-bold uppercase">Desglose de Retenciones</h3>
                     </div>
                     {isEditable && (
                       <button type="button" onClick={handleAddRetencion} className="btn-secondary h-8 px-3 text-xs flex items-center gap-[4px]">
@@ -2345,7 +2345,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   <div className="text-[#1C40F2]">
                     <Calculator size={14} />
                   </div>
-                  <h3 style={{ color: isDarkMode ? '#FFFFFF' : '#000000' }} className="text-[12px] font-bold uppercase">Resumen e Impuestos</h3>
+                  <h3 style={{ color: isDarkMode ? '#FFFFFF' : '#000000' }} className="text-[11px] font-bold uppercase">Resumen e Impuestos</h3>
                 </div>
 
                 <div className={`p-[10px] rounded-[8px] border text-[13px] space-y-[6px] ${isDarkMode ? 'bg-white/5 border-white/10 text-white' : 'bg-gray-50 border-gray-150 text-black'}`}>
@@ -2418,7 +2418,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     <div className="text-[#1C40F2]">
                       <CreditCard size={14} />
                     </div>
-                    <h3 style={{ color: isDarkMode ? '#FFFFFF' : '#000000' }} className="text-[12px] font-bold uppercase">Medios de Pago</h3>
+                    <h3 style={{ color: isDarkMode ? '#FFFFFF' : '#000000' }} className="text-[11px] font-bold uppercase">Medios de Pago</h3>
                   </div>
 
                   <div className="grid grid-cols-4 gap-[8px] mb-[10px]">
@@ -2605,7 +2605,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   <div className="text-[#1C40F2]">
                     <Tag size={14} />
                   </div>
-                  <h3 style={{ color: isDarkMode ? '#FFFFFF' : '#000000' }} className="text-[12px] font-bold uppercase">
+                  <h3 style={{ color: isDarkMode ? '#FFFFFF' : '#000000' }} className="text-[11px] font-bold uppercase">
                     Emisión de Comprobante
                   </h3>
                 </div>
@@ -2740,7 +2740,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   <div className="text-[#1C40F2]">
                     <Download size={12} />
                   </div>
-                  <h4 style={{ color: isDarkMode ? '#FFFFFF' : '#000000' }} className="text-[12px] font-bold uppercase">Opciones de Impresión / Descarga</h4>
+                  <h4 style={{ color: isDarkMode ? '#FFFFFF' : '#000000' }} className="text-[11px] font-bold uppercase">Opciones de Impresión / Descarga</h4>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-[8px]">
@@ -2802,7 +2802,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
             {/* Right Column (col-span-12 lg:col-span-5): Vista Previa del Documento */}
             <div className="col-span-12 lg:col-span-5">
               <div className={`${cardClass} space-y-[8px]`}>
-                <h4 style={{ color: isDarkMode ? '#FFFFFF' : '#000000' }} className="text-[12px] font-bold uppercase">Vista Previa del Comprobante</h4>
+                <h4 style={{ color: isDarkMode ? '#FFFFFF' : '#000000' }} className="text-[11px] font-bold uppercase">Vista Previa del Comprobante</h4>
 
                 <div className={`p-[10px] rounded-card border text-[11px] space-y-[8px] bg-white text-black border-gray-200 shadow-inner font-mono max-h-[60vh] overflow-y-auto`}>
                   <div className="text-center border-b pb-[8px] border-gray-200">
