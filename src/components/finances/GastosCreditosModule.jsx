@@ -7,8 +7,14 @@ import {
 import { doc, setDoc, collection, onSnapshot, addDoc, deleteDoc } from 'firebase/firestore';
 import { getEcuadorDateString } from '../../services/sriService';
 
-export default function GastosCreditosModule({ isDarkMode, showToast, transactions = [], thirdParties = [], db, appId }) {
+export default function GastosCreditosModule({ isDarkMode, showToast, transactions = [], thirdParties = [], db, appId, initialSubTab }) {
   const [activeTab, setActiveTab] = useState('resumen'); // 'resumen' | 'pasivos' | 'historial_gastos'
+
+  useEffect(() => {
+    if (initialSubTab) {
+      setActiveTab(initialSubTab);
+    }
+  }, [initialSubTab]);
   const [liabilities, setLiabilities] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -222,35 +228,7 @@ export default function GastosCreditosModule({ isDarkMode, showToast, transactio
   return (
     <div className="flex flex-col h-full w-full animate-in fade-in duration-500 overflow-hidden">
       
-      {/* CABECERA Y NAVEGACIÓN */}
-      <div className={`flex items-center gap-3 px-8 py-3.5 border-b shrink-0 ${
-        isDarkMode ? 'border-white/5 bg-[#121214]' : 'border-primary/10 bg-primary-light'
-      }`}>
-        <div className="flex gap-2 overflow-x-auto whitespace-nowrap scrollbar-none flex-1">
-          {[
-            { id: 'resumen', label: 'Resumen Financiero', icon: TrendingUp },
-            { id: 'pasivos', label: 'Pasivos y Financiamiento', icon: Landmark },
-            { id: 'historial_gastos', label: 'Historial de Egresos', icon: History }
-          ].map(tab => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 ${
-                  isActive
-                    ? (isDarkMode ? 'bg-primary/20 text-primary border-primary/30 shadow-sm' : 'bg-primary text-white border-primary shadow-sm')
-                    : (isDarkMode ? 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-white/5' : 'border-transparent text-black hover:text-black hover:bg-black/5')
-                }`}
-              >
-                <Icon size={13} />
-                <span>{tab.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
+
 
       {/* CUERPO DEL MÓDULO */}
       <div className="flex flex-1 overflow-hidden min-h-0 bg-transparent">

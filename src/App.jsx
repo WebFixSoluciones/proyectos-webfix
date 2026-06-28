@@ -2727,13 +2727,13 @@ export default function App() {
                 <FinanceModule mode="ventas" initialSubTab={ventasInitialSubTab} isDarkMode={isDarkMode} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} isLoading={isLoadingFinances} />
               )}
               {activePageId === 'inventario' && (
-                <InventoryModule isDarkMode={isDarkMode} />
+                <InventoryModule isDarkMode={isDarkMode} initialSubTab={inventarioInitialSubTab} />
               )}
               {activePageId === 'compras' && (
                 <FinanceModule mode="compras" initialSubTab={comprasInitialSubTab} isDarkMode={isDarkMode} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} isLoading={isLoadingFinances} />
               )}
               {activePageId === 'gastos_creditos' && (
-                <GastosCreditosModule isDarkMode={isDarkMode} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} db={db} appId={appId} />
+                <GastosCreditosModule isDarkMode={isDarkMode} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} db={db} appId={appId} initialSubTab={gastosInitialSubTab} />
               )}
 
               {/* VISTA: CONFIGURACIÓN GENERAL */}

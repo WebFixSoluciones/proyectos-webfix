@@ -23,6 +23,7 @@ import { db, appId } from '../../firebase';
 
 interface InventoryModuleProps {
   isDarkMode: boolean;
+  initialSubTab?: string;
 }
 
 const BRANCHES = [
@@ -31,8 +32,14 @@ const BRANCHES = [
   { id: 'sucursal-norte-uuid', name: 'Sucursal Norte' }
 ];
 
-export default function InventoryModule({ isDarkMode }: InventoryModuleProps) {
+export default function InventoryModule({ isDarkMode, initialSubTab }: InventoryModuleProps) {
   const [activeTab, setActiveTab] = useState('productos');
+
+  useEffect(() => {
+    if (initialSubTab) {
+      setActiveTab(initialSubTab);
+    }
+  }, [initialSubTab]);
   
   // Data lists
   const [products, setProducts] = useState<Product[]>([]);
@@ -246,29 +253,7 @@ export default function InventoryModule({ isDarkMode }: InventoryModuleProps) {
   return (
     <div className="flex flex-col h-full w-full overflow-hidden animate-in fade-in duration-500">
       
-      {/* Sub-Tabs de Inventario */}
-      <div className={`flex items-center gap-3 px-8 py-3.5 border-b shrink-0 ${isDarkMode ? 'border-white/5 bg-[#121214]' : 'border-primary/10 bg-primary-light'}`}>
-        <div className="flex gap-2 overflow-x-auto whitespace-nowrap scrollbar-none flex-1">
-          {TABS.map(tab => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 ${
-                  isActive
-                    ? (isDarkMode ? 'bg-primary/20 text-primary border-primary/30 shadow-sm' : 'bg-primary text-white border-primary shadow-sm')
-                    : (isDarkMode ? 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-white/5' : 'border-transparent text-black hover:text-black hover:bg-black/5')
-                }`}
-              >
-                <Icon size={14} />
-                <span>{tab.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
+
 
       <div className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar">
         
