@@ -1526,7 +1526,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   }`;
 
   const cardClass = `p-[12px] rounded-card border ${
-    isDarkMode ? 'bg-[#18181b] border-white/10' : 'bg-white border-gray-150 shadow-sm text-black'
+    isDarkMode ? 'bg-[#18181b] border-white/10' : 'bg-white border-gray-150 text-black'
   }`;
 
   const sectionTitleClass = `text-xs font-bold uppercase ${
