@@ -1559,9 +1559,11 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       {/* TOP HEADER */}
       <div className={`sticky top-0 z-20 flex items-center justify-between px-[8px] py-[5px] border-b backdrop-blur-md ${isDarkMode ? 'border-white/5 bg-[#151517]/95' : 'border-gray-200 bg-white/95'}`}>
         <div className="flex items-center gap-[5px]">
-          <div className={`p-[5px] rounded-card ${formData.type === 'ingreso' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
-            <Calculator size={16} />
-          </div>
+          {!isInline && (
+            <div className={`p-[5px] rounded-card ${formData.type === 'ingreso' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
+              <Calculator size={16} />
+            </div>
+          )}
           <div>
             {/* Desktop / Tablet Header Title */}
             <h2 className="text-xs font-black uppercase tracking-wider text-black dark:text-white hidden sm:block">
@@ -1576,49 +1578,51 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         </div>
 
         {/* COMPACT STEPPER (Clean, non-button indicators) */}
-        <div className="flex items-center gap-[5px]">
-          {steps.map((step, idx) => (
-            <button
-              key={step.id}
-              type="button"
-              disabled={(isEditable && step.id === 2) || (isLockedInStep2 && step.id === 1)}
-              onClick={() => {
-                if (step.id === 2) {
-                  if (isEditable && !formData.documentNumber) {
-                    showToast('Debes registrar la venta o emitir el comprobante antes de ver la impresión', 'error');
-                    return;
+        {!isInline && (
+          <div className="flex items-center gap-[5px]">
+            {steps.map((step, idx) => (
+              <button
+                key={step.id}
+                type="button"
+                disabled={(isEditable && step.id === 2) || (isLockedInStep2 && step.id === 1)}
+                onClick={() => {
+                  if (step.id === 2) {
+                    if (isEditable && !formData.documentNumber) {
+                      showToast('Debes registrar la venta o emitir el comprobante antes de ver la impresión', 'error');
+                      return;
+                    }
                   }
-                }
-                setCurrentStep(step.id);
-              }}
-              className={`flex items-center gap-[3px] focus:outline-none transition-all ${
-                currentStep === step.id ? 'opacity-100' : 'opacity-60 hover:opacity-100'
-              }`}
-            >
-              <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black transition-all ${
-                currentStep === step.id
-                  ? 'bg-[#1C40F2] text-white'
-                  : 'bg-slate-200 dark:bg-white/10 text-slate-600 dark:text-slate-400'
-              }`}>
-                {step.id}
-              </span>
-              <span className={`hidden sm:inline text-[9px] font-extrabold uppercase ${
-                currentStep === step.id ? 'text-[#1C40F2]' : 'text-slate-500 dark:text-slate-400'
-              }`}>
-                {step.name}
-              </span>
-              {idx < steps.length - 1 && (
-                <span className="text-slate-300 dark:text-white/10 font-normal ml-1">/</span>
-              )}
-            </button>
-          ))}
-        </div>
+                  setCurrentStep(step.id);
+                }}
+                className={`flex items-center gap-[3px] focus:outline-none transition-all ${
+                  currentStep === step.id ? 'opacity-100' : 'opacity-60 hover:opacity-100'
+                }`}
+              >
+                <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black transition-all ${
+                  currentStep === step.id
+                    ? 'bg-[#1C40F2] text-white'
+                    : 'bg-slate-200 dark:bg-white/10 text-slate-600 dark:text-slate-400'
+                }`}>
+                  {step.id}
+                </span>
+                <span className={`hidden sm:inline text-[9px] font-extrabold uppercase ${
+                  currentStep === step.id ? 'text-[#1C40F2]' : 'text-slate-500 dark:text-slate-400'
+                }`}>
+                  {step.name}
+                </span>
+                {idx < steps.length - 1 && (
+                  <span className="text-slate-300 dark:text-white/10 font-normal ml-1">/</span>
+                )}
+              </button>
+            ))}
+          </div>
+        )}
         <button 
           onClick={onClose} 
           className="btn-secondary"
         >
           <X size={12} />
-          <span>Cerrar</span>
+          <span>{isInline ? 'Cancelar' : 'Cerrar'}</span>
         </button>
       </div>
 
@@ -2888,114 +2892,116 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       </div>
 
       {/* FOOTER WIZARD BAR */}
-      <div className={`sticky bottom-0 z-20 px-[12px] py-[10px] border-t backdrop-blur-md flex justify-between items-center ${
-        isDarkMode ? 'border-white/5 bg-[#151517]/95' : 'border-gray-250 bg-white/95'
-      }`}>
-        {/* Mobile Navigation Buttons (Step 1) */}
-        {currentStep === 1 && (
-          <div className="flex lg:hidden items-center justify-between w-full">
-            {/* Atrás (Mobile) */}
-            {mobileTab !== 'cliente' ? (
-              <button
-                type="button"
-                onClick={() => setMobileTab(mobileTab === 'pago' ? 'carrito' : 'cliente')}
-                className="btn-secondary"
-              >
-                <ArrowLeft size={12} />
-                <span>Atrás</span>
-              </button>
-            ) : (
-              <div className="w-[60px]" />
-            )}
+      {!isInline && (
+        <div className={`sticky bottom-0 z-20 px-[12px] py-[10px] border-t backdrop-blur-md flex justify-between items-center ${
+          isDarkMode ? 'border-white/5 bg-[#151517]/95' : 'border-gray-250 bg-white/95'
+        }`}>
+          {/* Mobile Navigation Buttons (Step 1) */}
+          {currentStep === 1 && (
+            <div className="flex lg:hidden items-center justify-between w-full">
+              {/* Atrás (Mobile) */}
+              {mobileTab !== 'cliente' ? (
+                <button
+                  type="button"
+                  onClick={() => setMobileTab(mobileTab === 'pago' ? 'carrito' : 'cliente')}
+                  className="btn-secondary"
+                >
+                  <ArrowLeft size={12} />
+                  <span>Atrás</span>
+                </button>
+              ) : (
+                <div className="w-[60px]" />
+              )}
+
+              <span className={`text-[11px] font-bold uppercase ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>
+                {mobileTab === 'cliente' ? '1. Cliente' : mobileTab === 'carrito' ? '2. Carrito' : '3. Pago'}
+              </span>
+
+              {/* Siguiente (Mobile) */}
+              {mobileTab !== 'pago' ? (
+                <button
+                  type="button"
+                  onClick={() => setMobileTab(mobileTab === 'cliente' ? 'carrito' : 'pago')}
+                  className="btn-primary"
+                >
+                  <span>Siguiente</span>
+                  <ArrowRight size={14} />
+                </button>
+              ) : (
+                <div className="w-[75px]" />
+              )}
+            </div>
+          )}
+
+          {/* Desktop Navigation (original) */}
+          <div className={`hidden lg:flex justify-between items-center w-full`}>
+            <button
+              type="button"
+              onClick={handlePrevStep}
+              disabled={currentStep === 1 || isLockedInStep2}
+              className={`btn-secondary ${
+                currentStep === 1 || isLockedInStep2 ? 'opacity-0 pointer-events-none' : ''
+              }`}
+            >
+              <ArrowLeft size={12} />
+              <span>Atrás</span>
+            </button>
 
             <span className={`text-[11px] font-bold uppercase ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>
-              {mobileTab === 'cliente' ? '1. Cliente' : mobileTab === 'carrito' ? '2. Carrito' : '3. Pago'}
+              Paso {currentStep} de 2
             </span>
 
-            {/* Siguiente (Mobile) */}
-            {mobileTab !== 'pago' ? (
+            {currentStep < 2 ? (
               <button
                 type="button"
-                onClick={() => setMobileTab(mobileTab === 'cliente' ? 'carrito' : 'pago')}
-                className="btn-primary"
+                disabled={currentStep === 1 && isEditable && !formData.documentNumber}
+                onClick={handleNextStep}
+                className={`btn-primary ${
+                  currentStep === 1 && isEditable && !formData.documentNumber ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
               >
                 <span>Siguiente</span>
                 <ArrowRight size={14} />
               </button>
             ) : (
-              <div className="w-[75px]" />
+              <button
+                type="button"
+                onClick={onClose}
+                className="btn-primary px-6"
+              >
+                <span>Terminar / Salir</span>
+              </button>
             )}
           </div>
-        )}
 
-        {/* Desktop Navigation (original) */}
-        <div className={`hidden lg:flex justify-between items-center w-full`}>
-          <button
-            type="button"
-            onClick={handlePrevStep}
-            disabled={currentStep === 1 || isLockedInStep2}
-            className={`btn-secondary ${
-              currentStep === 1 || isLockedInStep2 ? 'opacity-0 pointer-events-none' : ''
-            }`}
-          >
-            <ArrowLeft size={12} />
-            <span>Atrás</span>
-          </button>
+          {/* Mobile Navigation when in Step 2 */}
+          {currentStep === 2 && (
+            <div className="flex lg:hidden justify-between items-center w-full">
+              <button
+                type="button"
+                onClick={handlePrevStep}
+                disabled={isLockedInStep2}
+                className={`btn-secondary ${isLockedInStep2 ? 'opacity-0 pointer-events-none' : ''}`}
+              >
+                <ArrowLeft size={12} />
+                <span>Atrás</span>
+              </button>
+              
+              <span className={`text-[11px] font-bold uppercase ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>
+                Paso 2 de 2
+              </span>
 
-          <span className={`text-[11px] font-bold uppercase ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>
-            Paso {currentStep} de 2
-          </span>
-
-          {currentStep < 2 ? (
-            <button
-              type="button"
-              disabled={currentStep === 1 && isEditable && !formData.documentNumber}
-              onClick={handleNextStep}
-              className={`btn-primary ${
-                currentStep === 1 && isEditable && !formData.documentNumber ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
-            >
-              <span>Siguiente</span>
-              <ArrowRight size={14} />
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={onClose}
-              className="btn-primary px-6"
-            >
-              <span>Terminar / Salir</span>
-            </button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="btn-primary"
+              >
+                <span>Terminar</span>
+              </button>
+            </div>
           )}
         </div>
-
-        {/* Mobile Navigation when in Step 2 */}
-        {currentStep === 2 && (
-          <div className="flex lg:hidden justify-between items-center w-full">
-            <button
-              type="button"
-              onClick={handlePrevStep}
-              disabled={isLockedInStep2}
-              className={`btn-secondary ${isLockedInStep2 ? 'opacity-0 pointer-events-none' : ''}`}
-            >
-              <ArrowLeft size={12} />
-              <span>Atrás</span>
-            </button>
-            
-            <span className={`text-[11px] font-bold uppercase ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>
-              Paso 2 de 2
-            </span>
-
-            <button
-              type="button"
-              onClick={onClose}
-              className="btn-primary"
-            >
-              <span>Terminar</span>
-            </button>
-          </div>
-        )}
-      </div>
+      )}
 
       {/* MODAL SEGUIMIENTO DE CRÉDITO / CXC */}
       {isCreditModalOpen && (
