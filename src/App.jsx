@@ -3301,7 +3301,7 @@ export default function App() {
       {drawerTask && <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[70] transition-opacity" onClick={() => setDrawerTask(null)} />}
 
       {/* Drawer (Task) */}
-      <div className={`fixed inset-y-0 right-0 z-[80] w-full sm:w-[400px] shadow-[0_0_40px_rgba(0,0,0,0.5)] transform transition-transform duration-300 flex flex-col backdrop-blur-2xl ${drawerTask ? 'translate-x-0' : 'translate-x-full'} ${isDarkMode ? 'bg-[#0f0f11]/90 border-l border-white/10' : 'bg-white/90 border-l border-white/50'}`}>
+      <div className={`fixed inset-y-0 right-0 z-[80] w-full sm:w-[400px] ${drawerTask ? 'shadow-[0_0_40px_rgba(0,0,0,0.5)] translate-x-0' : 'translate-x-full'} transform transition-transform duration-300 flex flex-col backdrop-blur-2xl ${isDarkMode ? 'bg-[#0f0f11]/90 border-l border-white/10' : 'bg-white/90 border-l border-white/50'}`}>
         {drawerTask && (
           <>
             <div className={`flex items-center justify-between px-6 py-4 border-b shrink-0 ${isDarkMode ? 'border-white/10' : 'border-black/5'}`}>
@@ -3492,7 +3492,7 @@ export default function App() {
       {drawerUser && <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[70] transition-opacity" onClick={() => setDrawerUser(null)} />}
 
       {/* Drawer (User) */}
-      <div className={`fixed inset-y-0 right-0 z-[80] w-full sm:w-[400px] shadow-[0_0_40px_rgba(0,0,0,0.5)] transform transition-transform duration-300 flex flex-col backdrop-blur-2xl ${drawerUser ? 'translate-x-0' : 'translate-x-full'} ${isDarkMode ? 'bg-[#0f0f11]/90 border-l border-white/10' : 'bg-white/90 border-l border-white/50'}`}>
+      <div className={`fixed inset-y-0 right-0 z-[80] w-full sm:w-[400px] ${drawerUser ? 'shadow-[0_0_40px_rgba(0,0,0,0.5)] translate-x-0' : 'translate-x-full'} transform transition-transform duration-300 flex flex-col backdrop-blur-2xl ${isDarkMode ? 'bg-[#0f0f11]/90 border-l border-white/10' : 'bg-white/90 border-l border-white/50'}`}>
         {drawerUser && (
           <>
             <div className={`flex items-center justify-between px-6 py-4 border-b shrink-0 ${isDarkMode ? 'border-white/10' : 'border-black/5'}`}>
@@ -3559,7 +3559,7 @@ export default function App() {
       {isReportDrawerOpen && <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[70] transition-opacity" onClick={() => setIsReportDrawerOpen(false)} />}
 
       {/* Drawer (Report) */}
-      <div className={`fixed inset-y-0 right-0 z-[80] w-full sm:w-[400px] shadow-[0_0_40px_rgba(0,0,0,0.5)] transform transition-transform duration-300 flex flex-col backdrop-blur-2xl ${isReportDrawerOpen ? 'translate-x-0' : 'translate-x-full'} ${isDarkMode ? 'bg-[#0f0f11]/90 border-l border-white/10' : 'bg-white/90 border-l border-white/50'}`}>
+      <div className={`fixed inset-y-0 right-0 z-[80] w-full sm:w-[400px] ${isReportDrawerOpen ? 'shadow-[0_0_40px_rgba(0,0,0,0.5)] translate-x-0' : 'translate-x-full'} transform transition-transform duration-300 flex flex-col backdrop-blur-2xl ${isDarkMode ? 'bg-[#0f0f11]/90 border-l border-white/10' : 'bg-white/90 border-l border-white/50'}`}>
         {isReportDrawerOpen && (
           <>
             <div className={`flex items-center justify-between px-6 py-4 border-b shrink-0 ${isDarkMode ? 'border-white/10' : 'border-black/5'}`}>
