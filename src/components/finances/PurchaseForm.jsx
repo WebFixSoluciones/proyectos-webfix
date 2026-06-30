@@ -368,7 +368,12 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
   };
 
   return (
-    <div className="w-full flex flex-col gap-6 animate-in fade-in duration-300">
+    <div className="transaction-form-clean w-full flex flex-col gap-6 animate-in fade-in duration-300">
+      <style>{`
+        .transaction-form-clean * {
+          font-weight: 400 !important;
+        }
+      `}</style>
       <div className={`w-full rounded-3xl p-6 flex flex-col gap-6 border shadow-sm ${
         isDarkMode ? 'bg-[#0f111a] text-white border-white/5' : 'bg-white text-gray-900 border-slate-200'
       }`}>

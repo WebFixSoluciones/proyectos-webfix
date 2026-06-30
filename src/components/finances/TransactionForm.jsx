@@ -1554,7 +1554,12 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   const totalPaid = efVal + tjVal + trVal + crVal;
 
   const formJSX = (
-    <div className={isInline ? `w-full flex flex-col font-sans animate-in fade-in duration-300 ${isDarkMode ? 'bg-transparent text-white' : 'bg-transparent text-black'}` : `fixed inset-0 z-[100] w-screen h-screen overflow-y-auto flex flex-col font-sans ${isDarkMode ? 'bg-[#0c0c0e] text-white' : 'bg-gray-50 text-black'}`}>
+    <div className={`transaction-form-clean ${isInline ? `w-full flex flex-col font-sans animate-in fade-in duration-300 ${isDarkMode ? 'bg-transparent text-white' : 'bg-transparent text-black'}` : `fixed inset-0 z-[100] w-screen h-screen overflow-y-auto flex flex-col font-sans ${isDarkMode ? 'bg-[#0c0c0e] text-white' : 'bg-gray-50 text-black'}`}`}>
+      <style>{`
+        .transaction-form-clean * {
+          font-weight: 400 !important;
+        }
+      `}</style>
       
       {/* TOP HEADER */}
       <div className={`sticky top-0 z-20 flex items-center justify-between px-[8px] py-[5px] border-b backdrop-blur-md ${isDarkMode ? 'border-white/5 bg-[#151517]/95' : 'border-gray-200 bg-white/95'}`}>
