@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import "./designTokens.css";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   /* COLOR PRIMARIO */
   --color-primary: var(--color-primary);

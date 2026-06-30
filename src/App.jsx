@@ -489,7 +489,8 @@ export default function App() {
   const [events, setEvents] = useState([]);
   const [googleAccessToken, setGoogleAccessToken] = useState(null);
   
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const isDarkMode = false;
+  const setIsDarkMode = () => {};
   const [primaryColor, setPrimaryColor] = useState('#4F46E5');
 
   useEffect(() => {
@@ -2663,7 +2664,7 @@ export default function App() {
             </button>
 
             <button onClick={() => setActivePageId('general_settings')} className={`p-2 rounded-xl transition-colors ${isDarkMode ? 'hover:bg-white/10 text-gray-400' : 'hover:bg-[#f3f8ff] text-black'}`} title="Ajustes"><Settings size={16} /></button>
-            <button onClick={() => setIsDarkMode(!isDarkMode)} className={`p-2 rounded-xl transition-colors ${isDarkMode ? 'hover:bg-white/10 text-gray-300' : 'hover:bg-[#f3f8ff] text-black'}`} title={isDarkMode ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}>{isDarkMode ? <Sun size={16} /> : <Moon size={16} />}</button>
+
             
             {/* Eliminar Proyecto desde el Header */}
             {(activePage.type === 'project' || activePage.type === 'doc') ? (

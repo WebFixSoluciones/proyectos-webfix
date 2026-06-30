@@ -173,7 +173,7 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
                     type={showKey ? "text" : "password"} 
                     value={geminiKey} 
                     onChange={e => setGeminiKey(e.target.value)} 
-                    className="bg-transparent border-none outline-none text-xs w-full py-1 text-white font-medium" 
+                    className={`bg-transparent border-none outline-none text-xs w-full py-1 font-medium ${isDarkMode ? 'text-white' : 'text-black'}`} 
                     placeholder="AIzaSy..." 
                   />
                   <button type="button" onClick={() => setShowKey(!showKey)} className="text-gray-500 hover:text-gray-300">
