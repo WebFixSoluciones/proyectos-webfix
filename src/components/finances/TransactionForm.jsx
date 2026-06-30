@@ -52,7 +52,7 @@ function sanitizeFirestoreData(obj) {
   return obj;
 }
 
-export default function TransactionForm({ tx, onClose, thirdParties, products = [], isDarkMode, showToast, db, storage, appId }) {
+export default function TransactionForm({ tx, onClose, thirdParties, products = [], isDarkMode, showToast, db, storage, appId, isInline = false }) {
   const [sriConfig, setSriConfig] = useState({
     ruc: '',
     razonSocial: '',
@@ -1553,8 +1553,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   const crVal = Number(payments.cruce_cuentas) || 0;
   const totalPaid = efVal + tjVal + trVal + crVal;
 
-  return createPortal(
-    <div className={`fixed inset-0 z-[100] w-screen h-screen overflow-y-auto flex flex-col font-sans ${isDarkMode ? 'bg-[#0c0c0e] text-white' : 'bg-gray-50 text-black'}`}>
+  const formJSX = (
+    <div className={isInline ? `w-full flex flex-col font-sans animate-in fade-in duration-300 ${isDarkMode ? 'bg-transparent text-white' : 'bg-transparent text-black'}` : `fixed inset-0 z-[100] w-screen h-screen overflow-y-auto flex flex-col font-sans ${isDarkMode ? 'bg-[#0c0c0e] text-white' : 'bg-gray-50 text-black'}`}>
       
       {/* TOP HEADER */}
       <div className={`sticky top-0 z-20 flex items-center justify-between px-[8px] py-[5px] border-b backdrop-blur-md ${isDarkMode ? 'border-white/5 bg-[#151517]/95' : 'border-gray-200 bg-white/95'}`}>
@@ -3568,7 +3568,11 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         />
       )}
 
-    </div>,
-    document.body
+    </div>
   );
+
+  if (isInline) {
+    return formJSX;
+  }
+  return createPortal(formJSX, document.body);
 }

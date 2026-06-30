@@ -233,48 +233,67 @@ export default function FinanceModule({
               {activeTab === 'dashboard' && <FinanceDashboard transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} db={db} appId={appId} />}
               
               {/* SECCIÓN VENTAS */}
-              {activeTab === 'ventas' && subTabVentas === 'resumen_ventas' && (
-                <TransactionsView transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} forcedDocType="ventas_resumen" forcedType="ingreso" />
-              )}
-              {activeTab === 'ventas' && subTabVentas === 'ventas_preventa' && (
-                <PosView 
-                  products={products} 
-                  thirdParties={thirdParties} 
-                  transactions={transactions}
-                  isDarkMode={isDarkMode} 
-                  showToast={showToast} 
-                  db={db} 
-                  appId={appId} 
-                  onCheckout={handlePOSCheckout} 
-                  onClose={() => setSubTabVentas('resumen_ventas')}
-                  isPreventaOnly={true}
-                />
-              )}
-              {activeTab === 'ventas' && subTabVentas === 'pos' && (
-                <PosView 
-                  products={products} 
-                  thirdParties={thirdParties} 
-                  transactions={transactions}
-                  isDarkMode={isDarkMode} 
-                  showToast={showToast} 
-                  db={db} 
-                  appId={appId} 
-                  onCheckout={handlePOSCheckout} 
-                  onClose={() => setSubTabVentas('resumen_ventas')}
-                  isPreventaOnly={false}
-                />
-              )}
-              {activeTab === 'ventas' && subTabVentas === 'quotes' && (
-                <QuotesView products={products} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} appId={appId} onPromoteToInvoice={handlePromoteToInvoice} />
-              )}
-              {activeTab === 'ventas' && subTabVentas === 'nota_credito' && (
-                <TransactionsView transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} forcedDocType="nota_credito" forcedType="ingreso" />
-              )}
-              {activeTab === 'ventas' && subTabVentas === 'retencion' && (
-                <TransactionsView transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} forcedDocType="retencion" forcedType="ingreso" />
-              )}
-              {activeTab === 'ventas' && subTabVentas === 'preventas' && (
-                <TransactionsView transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} isPreventaTab={true} forcedType="ingreso" />
+              {activeTab === 'ventas' && (
+                isModalOpen && editingTx?.type === 'ingreso' ? (
+                  <TransactionForm 
+                    tx={editingTx} 
+                    onClose={() => setIsModalOpen(false)} 
+                    thirdParties={thirdParties} 
+                    products={products}
+                    isDarkMode={isDarkMode} 
+                    showToast={showToast} 
+                    db={db} 
+                    storage={storage} 
+                    appId={appId} 
+                    isInline={true}
+                  />
+                ) : (
+                  <>
+                    {subTabVentas === 'resumen_ventas' && (
+                      <TransactionsView transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} forcedDocType="ventas_resumen" forcedType="ingreso" />
+                    )}
+                    {subTabVentas === 'ventas_preventa' && (
+                      <PosView 
+                        products={products} 
+                        thirdParties={thirdParties} 
+                        transactions={transactions}
+                        isDarkMode={isDarkMode} 
+                        showToast={showToast} 
+                        db={db} 
+                        appId={appId} 
+                        onCheckout={handlePOSCheckout} 
+                        onClose={() => setSubTabVentas('resumen_ventas')}
+                        isPreventaOnly={true}
+                      />
+                    )}
+                    {subTabVentas === 'pos' && (
+                      <PosView 
+                        products={products} 
+                        thirdParties={thirdParties} 
+                        transactions={transactions}
+                        isDarkMode={isDarkMode} 
+                        showToast={showToast} 
+                        db={db} 
+                        appId={appId} 
+                        onCheckout={handlePOSCheckout} 
+                        onClose={() => setSubTabVentas('resumen_ventas')}
+                        isPreventaOnly={false}
+                      />
+                    )}
+                    {subTabVentas === 'quotes' && (
+                      <QuotesView products={products} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} appId={appId} onPromoteToInvoice={handlePromoteToInvoice} />
+                    )}
+                    {subTabVentas === 'nota_credito' && (
+                      <TransactionsView transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} forcedDocType="nota_credito" forcedType="ingreso" />
+                    )}
+                    {subTabVentas === 'retencion' && (
+                      <TransactionsView transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} forcedDocType="retencion" forcedType="ingreso" />
+                    )}
+                    {subTabVentas === 'preventas' && (
+                      <TransactionsView transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} isPreventaTab={true} forcedType="ingreso" />
+                    )}
+                  </>
+                )
               )}
 
               {/* SECCIÓN DOCUMENTOS SRI */}
@@ -362,7 +381,7 @@ export default function FinanceModule({
       {isModalOpen && !(
         editingTx?.type === 'egreso' && 
         (editingTx?.documentType === 'factura' || editingTx?.documentType === 'nota_venta' || editingTx?.documentType === 'liquidacion' || !editingTx?.documentType)
-      ) && (
+      ) && activeTab !== 'ventas' && (
         <TransactionForm 
           tx={editingTx} 
           onClose={() => setIsModalOpen(false)} 
