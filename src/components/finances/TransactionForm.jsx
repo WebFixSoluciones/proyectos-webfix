@@ -1515,18 +1515,18 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     setCurrentStep(prev => Math.max(prev - 1, 1));
   };
 
-  const inputClass = `w-full text-sm px-[10px] py-[6px] rounded-input outline-none transition-all border font-semibold ${
+  const inputClass = `w-full text-xs px-[10px] py-[6px] rounded-input outline-none transition-all ${
     isDarkMode 
-      ? 'bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-primary/50 disabled:opacity-50' 
-      : 'bg-white border-gray-200 text-black placeholder:text-gray-400 focus:border-primary focus:ring-1 focus:ring-primary/30 disabled:bg-gray-50 disabled:text-gray-500'
+      ? 'bg-white/5 text-white placeholder:text-gray-500 focus:bg-white/10 disabled:opacity-50' 
+      : 'bg-[#f8fafc] text-black placeholder:text-gray-400 focus:bg-[#f1f5f9] focus:ring-1 focus:ring-primary/20 disabled:bg-gray-50 disabled:text-gray-500'
   }`;
 
   const labelClass = `block text-[10px] font-bold uppercase mb-[4px] ${
     isDarkMode ? 'text-gray-300' : 'text-black'
   }`;
 
-  const cardClass = `p-[12px] rounded-card border ${
-    isDarkMode ? 'bg-[#18181b] border-white/10' : 'bg-white border-gray-150 text-black'
+  const cardClass = `p-[12px] rounded-card ${
+    isDarkMode ? 'bg-[#18181b] border border-white/5 text-white' : 'bg-white text-black'
   }`;
 
   const sectionTitleClass = `text-xs font-bold uppercase ${
@@ -1558,6 +1558,34 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       <style>{`
         .transaction-form-clean * {
           font-weight: 400 !important;
+        }
+        /* Minimalist Input & Control Overrides */
+        .transaction-form-clean input,
+        .transaction-form-clean select,
+        .transaction-form-clean textarea {
+          border: none !important;
+          box-shadow: none !important;
+          outline: none !important;
+          border-radius: 8px !important;
+          background-color: ${isDarkMode ? 'rgba(255, 255, 255, 0.05)' : '#f8fafc'} !important;
+          color: ${isDarkMode ? '#ffffff' : '#090d16'} !important;
+          transition: background-color 150ms ease, box-shadow 150ms ease !important;
+        }
+        .transaction-form-clean input:focus,
+        .transaction-form-clean select:focus,
+        .transaction-form-clean textarea:focus {
+          background-color: ${isDarkMode ? 'rgba(255, 255, 255, 0.09)' : '#f1f5f9'} !important;
+          box-shadow: 0 0 0 1px ${isDarkMode ? 'rgba(255, 255, 255, 0.15)' : 'rgba(28, 64, 242, 0.15)'} !important;
+        }
+        /* Flat Buttons styling */
+        .transaction-form-clean .btn-secondary {
+          background: ${isDarkMode ? 'rgba(255, 255, 255, 0.03)' : '#f8fafc'} !important;
+          border: 1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.08)' : '#e2e8f0'} !important;
+          color: ${isDarkMode ? '#ffffff' : '#475569'} !important;
+          font-weight: 400 !important;
+        }
+        .transaction-form-clean .btn-secondary:hover {
+          background: ${isDarkMode ? 'rgba(255, 255, 255, 0.07)' : '#f1f5f9'} !important;
         }
       `}</style>
       

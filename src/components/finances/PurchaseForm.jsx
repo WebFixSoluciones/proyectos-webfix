@@ -373,8 +373,36 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
         .transaction-form-clean * {
           font-weight: 400 !important;
         }
+        /* Minimalist Input & Control Overrides */
+        .transaction-form-clean input,
+        .transaction-form-clean select,
+        .transaction-form-clean textarea {
+          border: none !important;
+          box-shadow: none !important;
+          outline: none !important;
+          border-radius: 8px !important;
+          background-color: ${isDarkMode ? 'rgba(255, 255, 255, 0.05)' : '#f8fafc'} !important;
+          color: ${isDarkMode ? '#ffffff' : '#090d16'} !important;
+          transition: background-color 150ms ease, box-shadow 150ms ease !important;
+        }
+        .transaction-form-clean input:focus,
+        .transaction-form-clean select:focus,
+        .transaction-form-clean textarea:focus {
+          background-color: ${isDarkMode ? 'rgba(255, 255, 255, 0.09)' : '#f1f5f9'} !important;
+          box-shadow: 0 0 0 1px ${isDarkMode ? 'rgba(255, 255, 255, 0.15)' : 'rgba(28, 64, 242, 0.15)'} !important;
+        }
+        /* Flat Buttons styling */
+        .transaction-form-clean .btn-secondary {
+          background: ${isDarkMode ? 'rgba(255, 255, 255, 0.03)' : '#f8fafc'} !important;
+          border: 1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.08)' : '#e2e8f0'} !important;
+          color: ${isDarkMode ? '#ffffff' : '#475569'} !important;
+          font-weight: 400 !important;
+        }
+        .transaction-form-clean .btn-secondary:hover {
+          background: ${isDarkMode ? 'rgba(255, 255, 255, 0.07)' : '#f1f5f9'} !important;
+        }
       `}</style>
-      <div className={`w-full rounded-3xl p-6 flex flex-col gap-6 border shadow-sm ${
+      <div className={`w-full rounded-3xl p-6 flex flex-col gap-6 border ${
         isDarkMode ? 'bg-[#0f111a] text-white border-white/5' : 'bg-white text-gray-900 border-slate-200'
       }`}>
         
@@ -409,7 +437,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
           <div className="lg:col-span-2 space-y-6">
             
             {/* Card 1: Sucursal y Bodega */}
-            <div className={`p-5 rounded-2xl border-0 shadow-sm ${isDarkMode ? 'bg-[#151517]' : 'bg-white'}`}>
+            <div className={`p-5 rounded-2xl border-0 ${isDarkMode ? 'bg-[#151517]' : 'bg-white'}`}>
               <h3 className="text-xs font-black uppercase text-primary tracking-wider mb-4 flex items-center gap-2">
                 <Landmark size={14} /> Sucursal y Bodega
               </h3>
@@ -447,7 +475,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
             </div>
 
             {/* Card 2: Documento */}
-            <div className={`p-5 rounded-2xl border-0 shadow-sm ${isDarkMode ? 'bg-[#151517]' : 'bg-white'}`}>
+            <div className={`p-5 rounded-2xl border-0 ${isDarkMode ? 'bg-[#151517]' : 'bg-white'}`}>
               <h3 className="text-xs font-black uppercase text-primary tracking-wider mb-4 flex items-center gap-2">
                 <FileText size={14} /> Detalle del Documento
               </h3>
@@ -535,7 +563,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
             </div>
 
             {/* Card 3: Proveedor y Detalles */}
-            <div className={`p-5 rounded-2xl border-0 shadow-sm ${isDarkMode ? 'bg-[#151517]' : 'bg-white'}`}>
+            <div className={`p-5 rounded-2xl border-0 ${isDarkMode ? 'bg-[#151517]' : 'bg-white'}`}>
               <h3 className="text-xs font-black uppercase text-primary tracking-wider mb-4 flex items-center gap-2">
                 <Users size={14} /> Proveedor y Detalles
               </h3>
@@ -602,9 +630,8 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
 
           {/* Columna Derecha (1/3 de ancho: Resumen e Importación) */}
           <div className="space-y-6">
-            
             {/* Resumen de la Compra */}
-            <div className={`p-5 rounded-2xl border-0 shadow-sm flex flex-col gap-5 ${isDarkMode ? 'bg-[#151517]' : 'bg-white'}`}>
+            <div className={`p-5 rounded-2xl border-0 flex flex-col gap-5 ${isDarkMode ? 'bg-[#151517]' : 'bg-white'}`}>
               <h3 className="text-xs font-black uppercase text-primary tracking-wider flex items-center justify-between">
                 <span>Resumen de la Compra</span>
                 <span className="text-[9px] lowercase bg-primary/10 text-primary px-2.5 py-0.5 rounded-full font-bold">Autocompletado</span>
@@ -620,7 +647,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
                   className="hidden"
                 />
                 <button 
-                  type="button"
+                  type="button" 
                   onClick={() => fileInputRef.current?.click()}
                   className="btn-primary w-full py-2.5 flex items-center justify-center gap-2 hover-lift"
                 >
@@ -711,7 +738,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
         </div>
 
         {/* Sección Inferior: Tabla de Productos de la Factura de Compra */}
-        <div className={`p-5 rounded-2xl border-0 shadow-sm ${isDarkMode ? 'bg-[#151517]' : 'bg-white'}`}>
+        <div className={`p-5 rounded-2xl border-0 ${isDarkMode ? 'bg-[#151517]' : 'bg-white'}`}>
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-xs font-black uppercase text-primary tracking-wider flex items-center gap-2">
               <ShoppingBag size={14} /> Productos Ingresados al Inventario
