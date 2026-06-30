@@ -847,3 +847,105 @@ table td .table-icon-btn svg {
   stroke-width: 2.2px !important;
 }
 
+/* ==========================================================================
+   ESTILOS GLOBALES MINIMALISTAS - INSPIRADOS EN ALOEC APP
+   ========================================================================== */
+
+/* 1. Grosor uniforme de fuente a un máximo de 400 */
+body, 
+body *,
+html,
+html * {
+  font-weight: 400 !important;
+}
+
+/* 2. Tarjetas planas sin bordes ni sombras (Modo Claro) */
+:not(.dark):not([class*="dark"]) .card,
+:not(.dark):not([class*="dark"]) [class*="card"],
+:not(.dark):not([class*="dark"]) .glass-panel-light,
+:not(.dark):not([class*="dark"]) .transaction-form-clean .rounded-card {
+  box-shadow: none !important;
+  border: none !important;
+}
+
+/* Tarjetas en Modo Oscuro (conservan bordes sutiles sin sombras pesadas) */
+.dark .card,
+.dark [class*="card"],
+.dark .glass-panel-dark,
+[class*="dark"] .card,
+[class*="dark"] [class*="card"],
+[class*="dark"] .glass-panel-dark {
+  box-shadow: none !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+/* 3. Inputs, Selects y Textareas Minimalistas y Planos (Modo Claro) */
+:not(.dark):not([class*="dark"]) input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
+:not(.dark):not([class*="dark"]) select,
+:not(.dark):not([class*="dark"]) textarea {
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  border-radius: 8px !important;
+  background-color: #f8fafc !important;
+  color: #090d16 !important;
+  transition: background-color 150ms ease, box-shadow 150ms ease !important;
+}
+
+:not(.dark):not([class*="dark"]) input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):focus,
+:not(.dark):not([class*="dark"]) select:focus,
+:not(.dark):not([class*="dark"]) textarea:focus {
+  background-color: #f1f5f9 !important;
+  box-shadow: 0 0 0 1px rgba(28, 64, 242, 0.15) !important;
+}
+
+/* Inputs, Selects y Textareas en Modo Oscuro */
+.dark input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
+.dark select,
+.dark textarea,
+[class*="dark"] input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
+[class*="dark"] select,
+[class*="dark"] textarea {
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  border-radius: 8px !important;
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  color: #ffffff !important;
+  transition: background-color 150ms ease, box-shadow 150ms ease !important;
+}
+
+.dark input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):focus,
+.dark select:focus,
+.dark textarea:focus,
+[class*="dark"] input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):focus,
+[class*="dark"] select:focus,
+[class*="dark"] textarea:focus {
+  background-color: rgba(255, 255, 255, 0.09) !important;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15) !important;
+}
+
+/* 4. Botones Secundarios Livianos */
+:not(.dark):not([class*="dark"]) .btn-secondary {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #475569 !important;
+}
+
+:not(.dark):not([class*="dark"]) .btn-secondary:hover {
+  background: #f1f5f9 !important;
+}
+
+.dark .btn-secondary,
+[class*="dark"] .btn-secondary {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: #ffffff !important;
+}
+
+.dark .btn-secondary:hover,
+[class*="dark"] .btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.07) !important;
+}
+
+
