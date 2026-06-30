@@ -89,6 +89,12 @@ export default function FinanceModule({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTx, setEditingTx] = useState(null);
 
+  const isFormActive = isModalOpen && (
+    (editingTx?.type === 'ingreso') || 
+    (editingTx?.type === 'egreso' && 
+      (editingTx?.documentType === 'factura' || editingTx?.documentType === 'nota_venta' || editingTx?.documentType === 'liquidacion' || !editingTx?.documentType))
+  );
+
   // Abrir modal de factura prellenada (desde POS o Cotizaciones)
   const handleOpenFormModal = (prefilledData = null) => {
     setEditingTx(prefilledData);
@@ -223,7 +229,7 @@ export default function FinanceModule({
 
       {/* CUERPO PRINCIPAL */}
       <div className="flex flex-1 overflow-hidden min-h-0 bg-transparent">
-        <div className={`flex-1 overflow-y-auto px-8 py-6 custom-scrollbar ${isDarkMode ? 'bg-[#0f0f11]' : 'bg-white'}`}>
+        <div className={`flex-1 overflow-y-auto px-8 ${isFormActive ? 'pt-0 pb-6' : 'py-6'} custom-scrollbar ${isDarkMode ? 'bg-[#0f0f11]' : 'bg-white'}`}>
           {isLoading ? (
             <div className="flex justify-center items-center h-64">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
