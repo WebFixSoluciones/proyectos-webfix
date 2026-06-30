@@ -310,18 +310,32 @@ export default function FinanceModule({
 
               {/* SECCIÓN COMPRAS */}
               {activeTab === 'compras_resumen' && (
-                <TransactionsView 
-                  transactions={transactions} 
-                  thirdParties={thirdParties} 
-                  isDarkMode={isDarkMode} 
-                  showToast={showToast} 
-                  db={db} 
-                  storage={storage} 
-                  appId={appId} 
-                  onOpenForm={handleOpenFormModal} 
-                  forcedDocType="compras_resumen" 
-                  forcedType="egreso" 
-                />
+                isModalOpen && editingTx?.type === 'egreso' &&
+                (editingTx?.documentType === 'factura' || editingTx?.documentType === 'nota_venta' || editingTx?.documentType === 'liquidacion' || !editingTx?.documentType) ? (
+                  <PurchaseForm 
+                    tx={editingTx} 
+                    onClose={() => setIsModalOpen(false)} 
+                    thirdParties={thirdParties} 
+                    products={products}
+                    isDarkMode={isDarkMode} 
+                    showToast={showToast} 
+                    db={db} 
+                    appId={appId} 
+                  />
+                ) : (
+                  <TransactionsView 
+                    transactions={transactions} 
+                    thirdParties={thirdParties} 
+                    isDarkMode={isDarkMode} 
+                    showToast={showToast} 
+                    db={db} 
+                    storage={storage} 
+                    appId={appId} 
+                    onOpenForm={handleOpenFormModal} 
+                    forcedDocType="compras_resumen" 
+                    forcedType="egreso" 
+                  />
+                )
               )}
 
               {activeTab === 'compras_sri' && (
@@ -345,32 +359,21 @@ export default function FinanceModule({
       </div>
 
       {/* MODAL GLOBAL DE FACTURACIÓN (COMPARTIDO) */}
-      {isModalOpen && (
+      {isModalOpen && !(
         editingTx?.type === 'egreso' && 
-        (editingTx?.documentType === 'factura' || editingTx?.documentType === 'nota_venta' || editingTx?.documentType === 'liquidacion' || !editingTx?.documentType) ? (
-          <PurchaseForm 
-            tx={editingTx} 
-            onClose={() => setIsModalOpen(false)} 
-            thirdParties={thirdParties} 
-            products={products}
-            isDarkMode={isDarkMode} 
-            showToast={showToast} 
-            db={db} 
-            appId={appId} 
-          />
-        ) : (
-          <TransactionForm 
-            tx={editingTx} 
-            onClose={() => setIsModalOpen(false)} 
-            thirdParties={thirdParties} 
-            products={products}
-            isDarkMode={isDarkMode} 
-            showToast={showToast} 
-            db={db} 
-            storage={storage} 
-            appId={appId} 
-          />
-        )
+        (editingTx?.documentType === 'factura' || editingTx?.documentType === 'nota_venta' || editingTx?.documentType === 'liquidacion' || !editingTx?.documentType)
+      ) && (
+        <TransactionForm 
+          tx={editingTx} 
+          onClose={() => setIsModalOpen(false)} 
+          thirdParties={thirdParties} 
+          products={products}
+          isDarkMode={isDarkMode} 
+          showToast={showToast} 
+          db={db} 
+          storage={storage} 
+          appId={appId} 
+        />
       )}
     </div>
   );

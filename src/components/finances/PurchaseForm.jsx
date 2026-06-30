@@ -368,9 +368,9 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex justify-center p-4 md:p-6 animate-in fade-in duration-300">
-      <div className={`w-full max-w-6xl rounded-3xl p-6 flex flex-col gap-6 shadow-2xl relative self-start ${
-        isDarkMode ? 'bg-[#0f111a] text-white border border-white/5' : 'bg-[#f8fafc] text-gray-900 border border-slate-200'
+    <div className="w-full flex flex-col gap-6 animate-in fade-in duration-300">
+      <div className={`w-full rounded-3xl p-6 flex flex-col gap-6 border shadow-sm ${
+        isDarkMode ? 'bg-[#0f111a] text-white border-white/5' : 'bg-white text-gray-900 border-slate-200'
       }`}>
         
         {/* Cabecera del Formulario */}
