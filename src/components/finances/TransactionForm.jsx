@@ -1786,7 +1786,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       type="text"
                       value={clientSearchTerm}
                       onChange={e => setClientSearchTerm(e.target.value)}
-                      className={`${inputClass} pl-[25px] pr-[20px]`}
+                      className={`${inputClass} pr-[20px]`}
+                      style={{ paddingLeft: '28px' }}
                       placeholder={matchedTercero ? `${matchedTercero.name} — RUC/CI: ${matchedTercero.ruc}` : "Escribe para buscar cliente..."}
                     />
                     <Search className="absolute left-[8px] top-1/2 -translate-y-1/2 text-black" size={12} />
@@ -2132,7 +2133,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         type="text" 
                         value={productSearchTerm}
                         onChange={e => setProductSearchTerm(e.target.value)}
-                        className={`${inputClass} pl-[25px] pr-[20px]`}
+                        className={`${inputClass} pr-[20px]`}
+                        style={{ paddingLeft: '28px' }}
                         placeholder="Buscar por nombre, SKU o código de barras..."
                       />
                       <Search className="absolute left-[8px] top-1/2 -translate-y-1/2 text-black" size={12} />
@@ -2509,7 +2511,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         </div>
                         <div className="relative">
                           <span className="absolute left-[8px] top-1/2 -translate-y-1/2 text-xs font-bold text-black opacity-60">$</span>
-                          <input disabled={!isEditable} type="number" step="0.01" value={payments.efectivo || ''} onChange={e => setPayments(prev => ({ ...prev, efectivo: e.target.value }))} className={`${inputClass} pl-[20px] font-bold`} placeholder="0.00" />
+                          <input disabled={!isEditable} type="number" step="0.01" value={payments.efectivo || ''} onChange={e => setPayments(prev => ({ ...prev, efectivo: e.target.value }))} className={`${inputClass} font-bold`} style={{ paddingLeft: '24px' }} placeholder="0.00" />
                         </div>
                       </div>
                     )}
@@ -2523,7 +2525,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         <div className="space-y-[6px]">
                           <div className="relative">
                             <span className="absolute left-[8px] top-1/2 -translate-y-1/2 text-xs font-bold text-black opacity-60">$</span>
-                            <input disabled={!isEditable} type="number" step="0.01" value={payments.transferencia || ''} onChange={e => setPayments(prev => ({ ...prev, transferencia: e.target.value }))} className={`${inputClass} pl-[20px] font-bold`} placeholder="0.00" />
+                            <input disabled={!isEditable} type="number" step="0.01" value={payments.transferencia || ''} onChange={e => setPayments(prev => ({ ...prev, transferencia: e.target.value }))} className={`${inputClass} font-bold`} style={{ paddingLeft: '24px' }} placeholder="0.00" />
                           </div>
                           <input disabled={!isEditable} type="text" value={payments.transferenciaRef || ''} onChange={e => setPayments(prev => ({ ...prev, transferenciaRef: e.target.value }))} className={inputClass} placeholder="Banco / Referencia" />
                         </div>
@@ -2539,7 +2541,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         <div className="space-y-[6px]">
                           <div className="relative">
                             <span className="absolute left-[8px] top-1/2 -translate-y-1/2 text-xs font-bold text-black opacity-60">$</span>
-                            <input disabled={!isEditable} type="number" step="0.01" value={payments.tarjeta || ''} onChange={e => setPayments(prev => ({ ...prev, tarjeta: e.target.value }))} className={`${inputClass} pl-[20px] font-bold`} placeholder="0.00" />
+                            <input disabled={!isEditable} type="number" step="0.01" value={payments.tarjeta || ''} onChange={e => setPayments(prev => ({ ...prev, tarjeta: e.target.value }))} className={`${inputClass} font-bold`} style={{ paddingLeft: '24px' }} placeholder="0.00" />
                           </div>
                           <input disabled={!isEditable} type="text" value={payments.tarjetaRef || ''} onChange={e => setPayments(prev => ({ ...prev, tarjetaRef: e.target.value }))} className={inputClass} placeholder="Nro Lote / Autorización" />
                         </div>
@@ -2555,7 +2557,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         <div className="space-y-[6px]">
                           <div className="relative">
                             <span className="absolute left-[8px] top-1/2 -translate-y-1/2 text-xs font-bold text-black opacity-60">$</span>
-                            <input disabled={!isEditable} type="number" step="0.01" value={payments.cruce_cuentas || ''} onChange={e => setPayments(prev => ({ ...prev, cruce_cuentas: e.target.value }))} className={`${inputClass} pl-[20px] font-bold`} placeholder="0.00" />
+                            <input disabled={!isEditable} type="number" step="0.01" value={payments.cruce_cuentas || ''} onChange={e => setPayments(prev => ({ ...prev, cruce_cuentas: e.target.value }))} className={`${inputClass} font-bold`} style={{ paddingLeft: '24px' }} placeholder="0.00" />
                           </div>
                           <button type="button" onClick={() => setIsCreditModalOpen(true)} className={`w-full py-[5px] rounded-[var(--radius-button)] border text-[10px] font-bold uppercase bg-amber-50/55 border-amber-200 text-amber-900 hover:bg-amber-100`}>
                             Configurar Plazo de Crédito
