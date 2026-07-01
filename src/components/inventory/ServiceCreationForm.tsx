@@ -197,7 +197,7 @@ export default function ServiceCreationForm({
               <div className="relative group md:col-span-2">
                 <label className={labelClass}>Descripción (Opcional)</label>
                 <div className="relative">
-                  <div className={`absolute left-3 top-3 text-gray-400`}><FileText size={16} /></div>
+                  <div className={iconContainerClass}><FileText size={16} /></div>
                   <textarea
                     name="description"
                     value={formData.description}

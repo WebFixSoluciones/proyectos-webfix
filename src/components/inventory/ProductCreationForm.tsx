@@ -709,7 +709,7 @@ export default function ProductCreationForm({
             <div className="md:col-span-12 relative group">
               <label className={labelClass}>Descripción (Opcional)</label>
               <div className="relative">
-                <div className="absolute left-3 top-2.5 text-gray-400"><FileText size={14} /></div>
+                <div className={iconContainerClass}><FileText size={14} /></div>
                 <textarea
                   name="description"
                   value={formData.description}

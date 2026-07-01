@@ -2062,7 +2062,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     {(formData.retenciones || []).map((ret, index) => (
                       <div key={index} className={`p-[8px] rounded-[8px] border space-y-[8px] relative bg-gray-50 border-gray-150`}>
                         {isEditable && (
-                          <button type="button" onClick={() => handleRemoveRetencion(index)} className="absolute top-[5px] right-[5px] btn-icon text-red-500 hover:bg-red-500/10">
+                          <button type="button" onClick={() => handleRemoveRetencion(index)} className="absolute top-2 right-2 btn-icon text-red-500 hover:bg-red-500/10">
                             <Trash2 size={12} />
                           </button>
                         )}
@@ -3345,7 +3345,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   placeholder="Buscar por nombre, SKU, barra..."
                 />
                 {advSearchTerm && (
-                  <button type="button" onClick={() => setAdvSearchTerm('')} className="absolute right-[8px] top-[4px] text-gray-400 hover:text-red-500">
+                  <button type="button" onClick={() => setAdvSearchTerm('')} className="absolute right-[8px] top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500">
                     <X size={10} />
                   </button>
                 )}
