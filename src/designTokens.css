@@ -5,9 +5,9 @@
   --color-primary-light: color-mix(in srgb, var(--primary-color) 8%, transparent);
   --color-primary-text: #FFFFFF;
 
-  --stripe-text-primary: #0A2540;
-  --stripe-text-secondary: #425466;
-  --stripe-text-tertiary: #697386;
+  --stripe-text-primary: #000000;
+  --stripe-text-secondary: #1a1a1a;
+  --stripe-text-tertiary: #333333;
   --stripe-border: #E6EBF1;
   --stripe-border-light: #F2F4F7;
   --stripe-bg: #F6F9FC;

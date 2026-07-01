@@ -1218,7 +1218,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                   <div>
                     
-                    <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} className={`w-full text-xs font-bold px-2.5 py-2 rounded-xl border outline-none bg-white border-primary/15 text-black`}>
+                    <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} className="w-full text-[11px] font-medium px-2 py-1 rounded-md border outline-none bg-white border-[#E6EBF1] text-black">
                       <option value="all" className={'text-black bg-white'}>Categorías (Todos)</option>
                       {categories.filter(c => c !== 'all').map(c => <option key={c} value={c} className={'text-black bg-white'}>{c}</option>)}
                     </select>
@@ -1226,7 +1226,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
 
                   <div>
                     
-                    <select value={filterBrand} onChange={e => setFilterBrand(e.target.value)} className={`w-full text-xs font-bold px-2.5 py-2 rounded-xl border outline-none bg-white border-primary/15 text-black`}>
+                    <select value={filterBrand} onChange={e => setFilterBrand(e.target.value)} className="w-full text-[11px] font-medium px-2 py-1 rounded-md border outline-none bg-white border-[#E6EBF1] text-black">
                       <option value="all" className={'text-black bg-white'}>Marcas (Todos)</option>
                       {brands.filter(b => b !== 'all').map(b => <option key={b} value={b} className={'text-black bg-white'}>{b}</option>)}
                     </select>
@@ -1234,7 +1234,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
 
                   <div>
                     
-                    <select value={filterWarehouse} onChange={e => setFilterWarehouse(e.target.value)} className={`w-full text-xs font-bold px-2.5 py-2 rounded-xl border outline-none bg-white border-primary/15 text-black`}>
+                    <select value={filterWarehouse} onChange={e => setFilterWarehouse(e.target.value)} className="w-full text-[11px] font-medium px-2 py-1 rounded-md border outline-none bg-white border-[#E6EBF1] text-black">
                       <option value="all" className={'text-black bg-white'}>Bodegas (Todos)</option>
                       {warehouses.filter(w => w !== 'all').map(w => <option key={w} value={w} className={'text-black bg-white'}>{w}</option>)}
                     </select>
@@ -1242,7 +1242,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
 
                   <div>
                     
-                    <select value={filterStock} onChange={e => setFilterStock(e.target.value)} className={`w-full text-xs font-bold px-2.5 py-2 rounded-xl border outline-none bg-white border-primary/15 text-black`}>
+                    <select value={filterStock} onChange={e => setFilterStock(e.target.value)} className="w-full text-[11px] font-medium px-2 py-1 rounded-md border outline-none bg-white border-[#E6EBF1] text-black">
                       <option value="all" className={'text-black bg-white'}>Inventario completo</option>
                       <option value="instock" className={'text-black bg-white'}>Solo disponibles (Con Stock)</option>
                     </select>

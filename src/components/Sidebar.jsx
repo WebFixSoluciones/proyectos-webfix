@@ -21,14 +21,14 @@ export default function Sidebar({
 
   const navBase = "group flex items-center gap-3 w-full px-3 py-2 rounded-md transition-all text-[13px] font-medium";
   const navActive = "bg-[color-mix(in_srgb,var(--primary-color)_8%,transparent)] text-[var(--primary-color)]";
-  const navInactive = "text-[#425466] hover:bg-[#F6F9FC] hover:text-[#0A2540]";
+  const navInactive = "text-[#1a1a1a] hover:bg-[#F6F9FC] hover:text-black";
   const navBtnClass = (isActive) => `${navBase} ${isActive ? navActive : navInactive}`;
 
-  const iconClass = (isActive) => `shrink-0 transition-colors ${isActive ? 'text-[var(--primary-color)]' : 'text-[#697386] group-hover:text-[#425466]'}`;
+  const iconClass = (isActive) => `shrink-0 transition-colors ${isActive ? 'text-[var(--primary-color)]' : 'text-[#333333] group-hover:text-black'}`;
 
   const subBase = "block w-full text-left py-1.5 px-3 rounded-md text-[12px] font-medium transition-all";
   const subActive = "text-[var(--primary-color)] bg-[color-mix(in_srgb,var(--primary-color)_6%,transparent)]";
-  const subInactive = "text-[#697386] hover:text-[#0A2540] hover:bg-[#F6F9FC]";
+  const subInactive = "text-[#333333] hover:text-black hover:bg-[#F6F9FC]";
   const subItemClass = (isActive) => `${subBase} ${isActive ? subActive : subInactive}`;
 
   const menuBorderClass = "pl-9 pr-2 space-y-0.5 border-l border-[#E6EBF1] ml-5 mt-1 select-none";
@@ -75,7 +75,7 @@ export default function Sidebar({
                   <ShoppingCart size={16} className={iconClass(activePageId === 'ventas')} />
                   {isSidebarOpen && <span>Ventas</span>}
                 </div>
-                {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu === 'ventas' ? 'rotate-180' : ''} text-[#697386]`} />}
+                {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu === 'ventas' ? 'rotate-180' : ''} text-[#333333]`} />}
               </button>
               {isSidebarOpen && expandedSidebarMenu === 'ventas' && (
                 <div className={menuBorderClass}>
@@ -95,7 +95,7 @@ export default function Sidebar({
                   <ShoppingBag size={16} className={iconClass(activePageId === 'compras')} />
                   {isSidebarOpen && <span>Compras</span>}
                 </div>
-                {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu === 'compras' ? 'rotate-180' : ''} text-[#697386]`} />}
+                {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu === 'compras' ? 'rotate-180' : ''} text-[#333333]`} />}
               </button>
               {isSidebarOpen && expandedSidebarMenu === 'compras' && (
                 <div className={menuBorderClass}>
@@ -115,7 +115,7 @@ export default function Sidebar({
                   <CreditCard size={16} className={iconClass(activePageId === 'gastos_creditos')} />
                   {isSidebarOpen && <span>Finanzas</span>}
                 </div>
-                {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu === 'gastos_creditos' ? 'rotate-180' : ''} text-[#697386]`} />}
+                {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu === 'gastos_creditos' ? 'rotate-180' : ''} text-[#333333]`} />}
               </button>
               {isSidebarOpen && expandedSidebarMenu === 'gastos_creditos' && (
                 <div className={menuBorderClass}>
@@ -135,7 +135,7 @@ export default function Sidebar({
                   <Package size={16} className={iconClass(activePageId === 'inventario')} />
                   {isSidebarOpen && <span>Inventarios</span>}
                 </div>
-                {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu === 'inventario' ? 'rotate-180' : ''} text-[#697386]`} />}
+                {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu === 'inventario' ? 'rotate-180' : ''} text-[#333333]`} />}
               </button>
               {isSidebarOpen && expandedSidebarMenu === 'inventario' && (
                 <div className={menuBorderClass}>
@@ -155,7 +155,7 @@ export default function Sidebar({
                   <DollarSign size={16} className={iconClass(activePageId === 'finances')} />
                   {isSidebarOpen && <span>Contabilidad</span>}
                 </div>
-                {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu === 'finances' ? 'rotate-180' : ''} text-[#697386]`} />}
+                {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu === 'finances' ? 'rotate-180' : ''} text-[#333333]`} />}
               </button>
               {isSidebarOpen && expandedSidebarMenu === 'finances' && (
                 <div className={menuBorderClass}>
@@ -175,7 +175,7 @@ export default function Sidebar({
                   <Users size={16} className={iconClass(activePageId === 'personas' || activePageId === 'team')} />
                   {isSidebarOpen && <span>Personas</span>}
                 </div>
-                {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu === 'personas_menu' ? 'rotate-180' : ''} text-[#697386]`} />}
+                {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu === 'personas_menu' ? 'rotate-180' : ''} text-[#333333]`} />}
               </button>
               {isSidebarOpen && expandedSidebarMenu === 'personas_menu' && (
                 <div className={menuBorderClass}>
@@ -194,7 +194,7 @@ export default function Sidebar({
                 <Briefcase size={16} className={iconClass(isProyectosActive)} />
                 {isSidebarOpen && <span>Proyectos</span>}
               </div>
-              {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu === 'proyectos_menu' ? 'rotate-180' : ''} text-[#697386]`} />}
+              {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu === 'proyectos_menu' ? 'rotate-180' : ''} text-[#333333]`} />}
             </button>
             {isSidebarOpen && expandedSidebarMenu === 'proyectos_menu' && (
               <div className={menuBorderClass}>
@@ -217,7 +217,7 @@ export default function Sidebar({
                 <CreditCard size={16} className={iconClass(activePageId === 'billing')} />
                 {isSidebarOpen && <span>Suscripcion</span>}
               </div>
-              {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu === 'billing' ? 'rotate-180' : ''} text-[#697386]`} />}
+              {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu === 'billing' ? 'rotate-180' : ''} text-[#333333]`} />}
             </button>
             {isSidebarOpen && expandedSidebarMenu === 'billing' && (
               <div className={menuBorderClass}>
@@ -231,18 +231,18 @@ export default function Sidebar({
         </div>
 
         <div className="p-2.5 border-t border-[#E6EBF1] space-y-1">
-          <button onClick={() => { setActivePageId('soporte_tecnico'); closeMobile(); }} className={`flex items-center gap-2.5 w-full px-2.5 py-2 text-[12px] rounded-md transition-all font-medium ${activePageId === 'soporte_tecnico' ? 'bg-[color-mix(in_srgb,var(--primary-color)_8%,transparent)] text-[var(--primary-color)]' : 'text-[#697386] hover:bg-[#F6F9FC] hover:text-[#0A2540]'}`}>
-            <LifeBuoy size={14} className={activePageId === 'soporte_tecnico' ? 'text-[var(--primary-color)]' : 'text-[#697386]'} />
+          <button onClick={() => { setActivePageId('soporte_tecnico'); closeMobile(); }} className={`flex items-center gap-2.5 w-full px-2.5 py-2 text-[12px] rounded-md transition-all font-medium ${activePageId === 'soporte_tecnico' ? 'bg-[color-mix(in_srgb,var(--primary-color)_8%,transparent)] text-[var(--primary-color)]' : 'text-[#333333] hover:bg-[#F6F9FC] hover:text-black'}`}>
+            <LifeBuoy size={14} className={activePageId === 'soporte_tecnico' ? 'text-[var(--primary-color)]' : 'text-[#333333]'} />
             {isSidebarOpen && <span>Soporte Tecnico</span>}
           </button>
-          <button onClick={() => { setActivePageId('trash'); closeMobile(); }} className={`flex items-center justify-between w-full px-2.5 py-2 text-[12px] rounded-md transition-all font-medium ${activePageId === 'trash' ? 'bg-[#FFF0F0] text-[#CD2B31]' : 'text-[#697386] hover:bg-[#F6F9FC] hover:text-[#0A2540]'}`}>
+          <button onClick={() => { setActivePageId('trash'); closeMobile(); }} className={`flex items-center justify-between w-full px-2.5 py-2 text-[12px] rounded-md transition-all font-medium ${activePageId === 'trash' ? 'bg-[#FFF0F0] text-[#CD2B31]' : 'text-[#333333] hover:bg-[#F6F9FC] hover:text-black'}`}>
             <div className="flex items-center gap-2.5">
-              <Trash2 size={14} className={activePageId === 'trash' ? 'text-[#CD2B31]' : 'text-[#697386]'} />
+              <Trash2 size={14} className={activePageId === 'trash' ? 'text-[#CD2B31]' : 'text-[#333333]'} />
               {isSidebarOpen && <span>Papelera</span>}
             </div>
             {isSidebarOpen && trash.length > 0 && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#F2F4F7] text-[#425466] font-medium">{trash.length}</span>}
           </button>
-          <button onClick={() => { handleLogout(); closeMobile(); }} className="mt-1 flex items-center gap-2.5 w-full px-2.5 py-2 text-[12px] rounded-md transition-all font-medium text-[#697386] hover:bg-[#F6F9FC] hover:text-[#0A2540]">
+          <button onClick={() => { handleLogout(); closeMobile(); }} className="mt-1 flex items-center gap-2.5 w-full px-2.5 py-2 text-[12px] rounded-md transition-all font-medium text-[#333333] hover:bg-[#F6F9FC] hover:text-black">
             <LogOut size={14} />{isSidebarOpen && <span>Cerrar Sesion</span>}
           </button>
         </div>

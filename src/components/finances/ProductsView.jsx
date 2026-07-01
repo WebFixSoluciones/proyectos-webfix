@@ -214,13 +214,11 @@ export default function ProductsView({ showToast, db, appId }) {
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className={`px-3 py-2 rounded-[10px] border text-xs font-medium outline-none transition-all cursor-pointer ${
-              "bg-white border-[#E6EBF1] text-[#425466] focus:border-primary"
-            }`}
+            className="px-2.5 py-1.5 rounded-md border text-[11px] font-medium outline-none transition-all cursor-pointer bg-white border-[#E6EBF1] text-black focus:border-primary"
           >
-            <option value="all" className="text-[#0A2540]">Todos los tipos</option>
-            <option value="producto" className="text-[#0A2540]">Productos físicos</option>
-            <option value="servicio" className="text-[#0A2540]">Servicios / Horas</option>
+            <option value="all">Todos los tipos</option>
+            <option value="producto">Productos fisicos</option>
+            <option value="servicio">Servicios / Horas</option>
           </select>
         </div>
       </div>

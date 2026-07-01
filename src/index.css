@@ -52,8 +52,8 @@
   --color-status-cancelled-border: var(--status-cancelled-border);
   --color-gray-150: #F2F4F7;
   --color-gray-250: #E6EBF1;
-  --color-gray-550: #697386;
-  --color-gray-705: #425466;
+  --color-gray-550: #333333;
+  --color-gray-705: #1a1a1a;
   --color-gray-850: #0A2540;
   --font-sans: 'Inter', sans-serif;
   --font-mono: 'Inter', sans-serif;

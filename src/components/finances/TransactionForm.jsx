@@ -1789,9 +1789,9 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       className={`${inputClass} pl-[25px] pr-[20px]`}
                       placeholder={matchedTercero ? `${matchedTercero.name} — RUC/CI: ${matchedTercero.ruc}` : "Escribe para buscar cliente..."}
                     />
-                    <Search className={`absolute left-[8px] top-[7px] text-black`} size={12} />
+                    <Search className="absolute left-[8px] top-1/2 -translate-y-1/2 text-black" size={12} />
                     {clientSearchTerm && (
-                      <button type="button" onClick={() => setClientSearchTerm('')} className="absolute right-[8px] top-[7px] text-gray-400 hover:text-red-500">
+                      <button type="button" onClick={() => setClientSearchTerm('')} className="absolute right-[8px] top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500">
                         <X size={12} />
                       </button>
                     )}
@@ -2135,9 +2135,9 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         className={`${inputClass} pl-[25px] pr-[20px]`}
                         placeholder="Buscar por nombre, SKU o código de barras..."
                       />
-                      <Search className={`absolute left-[8px] top-[7px] text-black`} size={12} />
+                      <Search className="absolute left-[8px] top-1/2 -translate-y-1/2 text-black" size={12} />
                       {productSearchTerm && (
-                        <button type="button" onClick={() => setProductSearchTerm('')} className="absolute right-[8px] top-[7px] text-gray-400 hover:text-red-500">
+                        <button type="button" onClick={() => setProductSearchTerm('')} className="absolute right-[8px] top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500">
                           <X size={12} />
                         </button>
                       )}
@@ -2313,7 +2313,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
                                 <td className="px-[8px] py-[6px] text-right">
                                   <div className="relative inline-block w-20">
-                                    <span className="absolute left-[5px] top-[5px] text-[11px] font-bold opacity-80">$</span>
+                                    <span className="absolute left-[5px] top-1/2 -translate-y-1/2 text-[11px] font-bold opacity-80">$</span>
                                     <input disabled={!isEditable} type="number" step="0.01" required value={item.price} onChange={(e) => handleItemChange(index, 'price', e.target.value)} className={`w-full text-[11px] pl-[12px] pr-[2px] py-[4px] rounded-[6px] border outline-none text-right font-bold bg-white border-gray-200 text-black`} />
                                   </div>
                                 </td>
@@ -2321,7 +2321,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                                 {isEditable && (
                                   <td className="px-[8px] py-[6px] text-right hidden sm:table-cell">
                                     <div className="relative inline-block w-20">
-                                      <span className="absolute left-[5px] top-[5px] text-[11px] font-bold text-orange-500">-$</span>
+                                      <span className="absolute left-[5px] top-1/2 -translate-y-1/2 text-[11px] font-bold text-orange-500">-$</span>
                                       <input
                                         type="number"
                                         min="0"
@@ -2508,7 +2508,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                           <span style={{ color: '#404040'}} className="text-[10px] uppercase">Recibido</span>
                         </div>
                         <div className="relative">
-                          <span className="absolute left-[8px] top-[5px] text-xs font-bold text-black opacity-60">$</span>
+                          <span className="absolute left-[8px] top-1/2 -translate-y-1/2 text-xs font-bold text-black opacity-60">$</span>
                           <input disabled={!isEditable} type="number" step="0.01" value={payments.efectivo || ''} onChange={e => setPayments(prev => ({ ...prev, efectivo: e.target.value }))} className={`${inputClass} pl-[20px] font-bold`} placeholder="0.00" />
                         </div>
                       </div>
@@ -2522,7 +2522,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         </div>
                         <div className="space-y-[6px]">
                           <div className="relative">
-                            <span className="absolute left-[8px] top-[5px] text-xs font-bold text-black opacity-60">$</span>
+                            <span className="absolute left-[8px] top-1/2 -translate-y-1/2 text-xs font-bold text-black opacity-60">$</span>
                             <input disabled={!isEditable} type="number" step="0.01" value={payments.transferencia || ''} onChange={e => setPayments(prev => ({ ...prev, transferencia: e.target.value }))} className={`${inputClass} pl-[20px] font-bold`} placeholder="0.00" />
                           </div>
                           <input disabled={!isEditable} type="text" value={payments.transferenciaRef || ''} onChange={e => setPayments(prev => ({ ...prev, transferenciaRef: e.target.value }))} className={inputClass} placeholder="Banco / Referencia" />
@@ -2538,7 +2538,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         </div>
                         <div className="space-y-[6px]">
                           <div className="relative">
-                            <span className="absolute left-[8px] top-[5px] text-xs font-bold text-black opacity-60">$</span>
+                            <span className="absolute left-[8px] top-1/2 -translate-y-1/2 text-xs font-bold text-black opacity-60">$</span>
                             <input disabled={!isEditable} type="number" step="0.01" value={payments.tarjeta || ''} onChange={e => setPayments(prev => ({ ...prev, tarjeta: e.target.value }))} className={`${inputClass} pl-[20px] font-bold`} placeholder="0.00" />
                           </div>
                           <input disabled={!isEditable} type="text" value={payments.tarjetaRef || ''} onChange={e => setPayments(prev => ({ ...prev, tarjetaRef: e.target.value }))} className={inputClass} placeholder="Nro Lote / Autorización" />
@@ -2554,7 +2554,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         </div>
                         <div className="space-y-[6px]">
                           <div className="relative">
-                            <span className="absolute left-[8px] top-[5px] text-xs font-bold text-black opacity-60">$</span>
+                            <span className="absolute left-[8px] top-1/2 -translate-y-1/2 text-xs font-bold text-black opacity-60">$</span>
                             <input disabled={!isEditable} type="number" step="0.01" value={payments.cruce_cuentas || ''} onChange={e => setPayments(prev => ({ ...prev, cruce_cuentas: e.target.value }))} className={`${inputClass} pl-[20px] font-bold`} placeholder="0.00" />
                           </div>
                           <button type="button" onClick={() => setIsCreditModalOpen(true)} className={`w-full py-[5px] rounded-[var(--radius-button)] border text-[10px] font-bold uppercase bg-amber-50/55 border-amber-200 text-amber-900 hover:bg-amber-100`}>
