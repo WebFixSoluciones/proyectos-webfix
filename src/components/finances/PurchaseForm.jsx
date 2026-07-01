@@ -9,7 +9,7 @@ import { registrarMovimientoKardex } from '../../services/inventoryService';
 import { parsearXMLComprobante } from '../../services/geminiService';
 import { getEcuadorDateString } from '../../services/sriService';
 
-export default function PurchaseForm({ tx, onClose, thirdParties, products = [], isDarkMode, showToast, db, appId }) {
+export default function PurchaseForm({ tx, onClose, thirdParties, products = [], showToast, db, appId }) {
   const [loading, setLoading] = useState(false);
   const [sriConfig, setSriConfig] = useState(null);
   
@@ -100,24 +100,24 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
         const day = cleanVal.substring(0, 2);
         const month = cleanVal.substring(2, 4);
         const year = cleanVal.substring(4, 8);
-        next.date = `${year}-${month}-${day}`;
+        next.date = `year-month-day`;
 
         // 2. Extraer número de comprobante (posiciones 24-39: 3 estab + 3 ptoEmi + 9 secuencial)
         const estab = cleanVal.substring(24, 27);
         const ptoEmi = cleanVal.substring(27, 30);
         const sec = cleanVal.substring(30, 39);
-        next.documentNumber = `${estab}-${ptoEmi}-${sec}`;
+        next.documentNumber = `estab-ptoEmi-sec`;
 
         // 3. Extraer RUC emisor (posiciones 10-23: 13 dígitos)
         const supplierRuc = cleanVal.substring(10, 23);
         const matchedSupplier = thirdParties.find(tp => tp.ruc === supplierRuc);
         if (matchedSupplier) {
           next.thirdPartyId = matchedSupplier.id;
-          showToast(`Proveedor '${matchedSupplier.name}' detectado y seleccionado`, 'info');
+          showToast(`Proveedor 'matchedSupplier.name' detectado y seleccionado`, 'info');
         } else {
           // Si no existe, prellenar RUC para creación rápida
           setNewSupplier(prevSupp => ({ ...prevSupp, ruc: supplierRuc }));
-          showToast(`Proveedor con RUC ${supplierRuc} no registrado. Puedes crearlo con el botón '+'`, 'warning');
+          showToast(`Proveedor con RUC supplierRuc no registrado. Puedes crearlo con el botón '+'`, 'warning');
         }
       }
       return next;
@@ -128,7 +128,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
   const handleXmlUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    showToast(`Analizando XML '${file.name}'...`, 'info');
+    showToast(`Analizando XML 'file.name'...`, 'info');
     
     try {
       const text = await file.text();
@@ -178,7 +178,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
             phone: data.phone || '',
             address: ''
           });
-          showToast(`Proveedor '${data.razonSocial}' no registrado. Crea uno nuevo.`, 'warning');
+          showToast(`Proveedor 'data.razonSocial' no registrado. Crea uno nuevo.`, 'warning');
         }
 
         // Extraer clave de acceso si existe en el XML
@@ -282,7 +282,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
     }
     setLoading(true);
     try {
-      const docId = `supp_${Date.now()}`;
+      const docId = `supp_Date.now()`;
       const payload = {
         id: docId,
         ruc: newSupplier.ruc,
@@ -329,7 +329,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
 
     setLoading(true);
     try {
-      const docId = formData.id || `compra_${Date.now()}`;
+      const docId = formData.id || `compra_Date.now()`;
       
       const payload = {
         ...formData,
@@ -351,7 +351,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
           quantity: Number(item.quantity),
           cost: Number(item.price),
           price: Number(item.price),
-          concept: `Compra #${formData.documentNumber}`,
+          concept: `Compra #formData.documentNumber`,
           referenceId: docId,
           bodega: formData.bodega
         });
@@ -381,29 +381,29 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
           box-shadow: none !important;
           outline: none !important;
           border-radius: 8px !important;
-          background-color: ${isDarkMode ? 'rgba(255, 255, 255, 0.05)' : '#f8fafc'} !important;
-          color: ${isDarkMode ? '#ffffff' : '#090d16'} !important;
+          background-color: #f8fafc !important;
+          color: #090d16 !important;
           transition: background-color 150ms ease, box-shadow 150ms ease !important;
         }
         .transaction-form-clean input:focus,
         .transaction-form-clean select:focus,
         .transaction-form-clean textarea:focus {
-          background-color: ${isDarkMode ? 'rgba(255, 255, 255, 0.09)' : '#f1f5f9'} !important;
-          box-shadow: 0 0 0 1px ${isDarkMode ? 'rgba(255, 255, 255, 0.15)' : 'rgba(28, 64, 242, 0.15)'} !important;
+          background-color: #f1f5f9 !important;
+          box-shadow: 0 0 0 1px rgba(28, 64, 242, 0.15) !important;
         }
         /* Flat Buttons styling */
         .transaction-form-clean .btn-secondary {
-          background: ${isDarkMode ? 'rgba(255, 255, 255, 0.03)' : '#f8fafc'} !important;
-          border: 1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.08)' : '#e2e8f0'} !important;
-          color: ${isDarkMode ? '#ffffff' : '#475569'} !important;
+          background: #f8fafc !important;
+          border: 1px solid #e2e8f0 !important;
+          color: #475569 !important;
           font-weight: 400 !important;
         }
         .transaction-form-clean .btn-secondary:hover {
-          background: ${isDarkMode ? 'rgba(255, 255, 255, 0.07)' : '#f1f5f9'} !important;
+          background: #f1f5f9 !important;
         }
       `}</style>
       <div className={`w-full rounded-3xl p-6 flex flex-col gap-6 border ${
-        isDarkMode ? 'bg-[#0f111a] text-white border-white/5' : 'bg-white text-gray-900 border-slate-200'
+        'bg-white text-gray-900 border-slate-200'
       }`}>
         
         {/* Cabecera del Formulario */}
@@ -411,7 +411,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
           <div className="flex items-center gap-3">
             <button 
               onClick={onClose} 
-              className={`p-2 rounded-xl transition-all ${isDarkMode ? 'hover:bg-white/5 text-gray-400 hover:text-white' : 'hover:bg-slate-100 text-slate-500'}`}
+              className={`p-2 rounded-xl transition-all hover:bg-slate-100 text-slate-500`}
               title="Volver"
             >
               <ArrowLeft size={18} />
@@ -424,7 +424,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
           
           <button 
             onClick={onClose}
-            className={`p-2 rounded-xl transition-all ${isDarkMode ? 'hover:bg-white/5 text-gray-400 hover:text-white' : 'hover:bg-slate-100 text-slate-500'}`}
+            className={`p-2 rounded-xl transition-all hover:bg-slate-100 text-slate-500`}
           >
             <X size={18} />
           </button>
@@ -437,7 +437,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
           <div className="lg:col-span-2 space-y-6">
             
             {/* Card 1: Sucursal y Bodega */}
-            <div className={`p-5 rounded-2xl border-0 ${isDarkMode ? 'bg-[#151517]' : 'bg-white'}`}>
+            <div className={`p-5 rounded-2xl border-0 bg-white`}>
               <h3 className="text-xs font-black uppercase text-primary tracking-wider mb-4 flex items-center gap-2">
                 <Landmark size={14} /> Sucursal y Bodega
               </h3>
@@ -447,12 +447,10 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
                   <select 
                     value={formData.branch}
                     onChange={e => setFormData(prev => ({ ...prev, branch: e.target.value }))}
-                    className={`w-full text-xs px-3 py-2.5 outline-none rounded-xl border transition-all ${
-                      isDarkMode ? 'bg-black/25 border-white/5 focus:border-primary/50' : 'bg-slate-50 border-slate-200 focus:border-primary'
-                    }`}
+                    className={`w-full text-xs px-3 py-2.5 outline-none rounded-xl border transition-all bg-slate-50 border-slate-200 focus:border-primary`}
                   >
                     {branches.map(b => (
-                      <option key={b.codigo} value={b.codigo} className="text-black">{b.nombre || `${b.codigo} - Sucursal`}</option>
+                      <option key={b.codigo} value={b.codigo} className="text-black">{b.nombre || `b.codigo - Sucursal`}</option>
                     ))}
                   </select>
                 </div>
@@ -462,9 +460,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
                   <select 
                     value={formData.bodega}
                     onChange={e => setFormData(prev => ({ ...prev, bodega: e.target.value }))}
-                    className={`w-full text-xs px-3 py-2.5 outline-none rounded-xl border transition-all ${
-                      isDarkMode ? 'bg-black/25 border-white/5 focus:border-primary/50' : 'bg-slate-50 border-slate-200 focus:border-primary'
-                    }`}
+                    className={`w-full text-xs px-3 py-2.5 outline-none rounded-xl border transition-all bg-slate-50 border-slate-200 focus:border-primary`}
                   >
                     {warehouses.map(w => (
                       <option key={w} value={w} className="text-black">{w}</option>
@@ -475,7 +471,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
             </div>
 
             {/* Card 2: Documento */}
-            <div className={`p-5 rounded-2xl border-0 ${isDarkMode ? 'bg-[#151517]' : 'bg-white'}`}>
+            <div className={`p-5 rounded-2xl border-0 bg-white`}>
               <h3 className="text-xs font-black uppercase text-primary tracking-wider mb-4 flex items-center gap-2">
                 <FileText size={14} /> Detalle del Documento
               </h3>
@@ -486,9 +482,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
                   <select 
                     value={formData.documentType}
                     onChange={e => setFormData(prev => ({ ...prev, documentType: e.target.value }))}
-                    className={`w-full text-xs px-3 py-2.5 outline-none rounded-xl border transition-all ${
-                      isDarkMode ? 'bg-black/25 border-white/5 focus:border-primary/50' : 'bg-slate-50 border-slate-200 focus:border-primary'
-                    }`}
+                    className={`w-full text-xs px-3 py-2.5 outline-none rounded-xl border transition-all bg-slate-50 border-slate-200 focus:border-primary`}
                   >
                     <option value="factura" className="text-black">Factura de Compra</option>
                     <option value="nota_venta" className="text-black">Nota de Venta / Recibo</option>
@@ -502,9 +496,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
                     type="date"
                     value={formData.date}
                     onChange={e => setFormData(prev => ({ ...prev, date: e.target.value }))}
-                    className={`w-full text-xs px-3 py-2.5 outline-none rounded-xl border transition-all ${
-                      isDarkMode ? 'bg-black/25 border-white/5 focus:border-primary/50' : 'bg-slate-50 border-slate-200 focus:border-primary'
-                    }`}
+                    className={`w-full text-xs px-3 py-2.5 outline-none rounded-xl border transition-all bg-slate-50 border-slate-200 focus:border-primary`}
                   />
                 </div>
               </div>
@@ -520,9 +512,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
                     value={formData.claveAcceso}
                     onChange={e => handleClaveAccesoChange(e.target.value)}
                     placeholder="Ej. 2406202601179000000000120010010000001431234567819"
-                    className={`w-full text-xs px-3 py-2.5 outline-none rounded-xl border transition-all font-mono tracking-widest ${
-                      isDarkMode ? 'bg-black/25 border-white/5 focus:border-primary/50' : 'bg-slate-50 border-slate-200 focus:border-primary'
-                    }`}
+                    className={`w-full text-xs px-3 py-2.5 outline-none rounded-xl border transition-all font-mono tracking-widest bg-slate-50 border-slate-200 focus:border-primary`}
                   />
                   {formData.claveAcceso.length === 49 && (
                     <div className="flex items-center gap-1.5 mt-2 text-[10px] text-blue-500">
@@ -540,9 +530,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
                       value={formData.documentNumber}
                       onChange={e => setFormData(prev => ({ ...prev, documentNumber: e.target.value }))}
                       placeholder="001-001-000000143"
-                      className={`w-full text-xs px-3 py-2.5 outline-none rounded-xl border transition-all font-mono ${
-                        isDarkMode ? 'bg-black/25 border-white/5 focus:border-primary/50' : 'bg-slate-50 border-slate-200 focus:border-primary'
-                      }`}
+                      className={`w-full text-xs px-3 py-2.5 outline-none rounded-xl border transition-all font-mono bg-slate-50 border-slate-200 focus:border-primary`}
                     />
                   </div>
 
@@ -553,9 +541,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
                       value={formData.docSustento}
                       onChange={e => setFormData(prev => ({ ...prev, docSustento: e.target.value }))}
                       placeholder="Ej. Liquidación, Físico, etc."
-                      className={`w-full text-xs px-3 py-2.5 outline-none rounded-xl border transition-all ${
-                        isDarkMode ? 'bg-black/25 border-white/5 focus:border-primary/50' : 'bg-slate-50 border-slate-200 focus:border-primary'
-                      }`}
+                      className={`w-full text-xs px-3 py-2.5 outline-none rounded-xl border transition-all bg-slate-50 border-slate-200 focus:border-primary`}
                     />
                   </div>
                 </div>
@@ -563,7 +549,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
             </div>
 
             {/* Card 3: Proveedor y Detalles */}
-            <div className={`p-5 rounded-2xl border-0 ${isDarkMode ? 'bg-[#151517]' : 'bg-white'}`}>
+            <div className={`p-5 rounded-2xl border-0 bg-white`}>
               <h3 className="text-xs font-black uppercase text-primary tracking-wider mb-4 flex items-center gap-2">
                 <Users size={14} /> Proveedor y Detalles
               </h3>
@@ -575,9 +561,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
                     <select
                       value={formData.thirdPartyId}
                       onChange={e => setFormData(prev => ({ ...prev, thirdPartyId: e.target.value }))}
-                      className={`flex-1 text-xs px-3 py-2.5 outline-none rounded-xl border transition-all ${
-                        isDarkMode ? 'bg-black/25 border-white/5 focus:border-primary/50' : 'bg-slate-50 border-slate-200 focus:border-primary'
-                      }`}
+                      className={`flex-1 text-xs px-3 py-2.5 outline-none rounded-xl border transition-all bg-slate-50 border-slate-200 focus:border-primary`}
                     >
                       <option value="" className="text-black">-- Selecciona un Proveedor --</option>
                       {thirdParties.filter(tp => tp.type === 'proveedor' || tp.type === 'ambos').map(tp => (
@@ -604,9 +588,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
                       value={formData.reference}
                       onChange={e => setFormData(prev => ({ ...prev, reference: e.target.value }))}
                       placeholder="Ej. Orden de Compra #12, Pedido Web"
-                      className={`w-full text-xs px-3 py-2.5 outline-none rounded-xl border transition-all ${
-                        isDarkMode ? 'bg-black/25 border-white/5 focus:border-primary/50' : 'bg-slate-50 border-slate-200 focus:border-primary'
-                      }`}
+                      className={`w-full text-xs px-3 py-2.5 outline-none rounded-xl border transition-all bg-slate-50 border-slate-200 focus:border-primary`}
                     />
                   </div>
 
@@ -617,9 +599,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
                       value={formData.description}
                       onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
                       placeholder="Detalles del egreso..."
-                      className={`w-full text-xs px-3 py-2.5 outline-none rounded-xl border transition-all ${
-                        isDarkMode ? 'bg-black/25 border-white/5 focus:border-primary/50' : 'bg-slate-50 border-slate-200 focus:border-primary'
-                      }`}
+                      className={`w-full text-xs px-3 py-2.5 outline-none rounded-xl border transition-all bg-slate-50 border-slate-200 focus:border-primary`}
                     />
                   </div>
                 </div>
@@ -631,7 +611,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
           {/* Columna Derecha (1/3 de ancho: Resumen e Importación) */}
           <div className="space-y-6">
             {/* Resumen de la Compra */}
-            <div className={`p-5 rounded-2xl border-0 flex flex-col gap-5 ${isDarkMode ? 'bg-[#151517]' : 'bg-white'}`}>
+            <div className={`p-5 rounded-2xl border-0 flex flex-col gap-5 bg-white`}>
               <h3 className="text-xs font-black uppercase text-primary tracking-wider flex items-center justify-between">
                 <span>Resumen de la Compra</span>
                 <span className="text-[9px] lowercase bg-primary/10 text-primary px-2.5 py-0.5 rounded-full font-bold">Autocompletado</span>
@@ -660,19 +640,19 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
               <div className="space-y-2 border-t pt-4 dark:border-white/5 border-slate-200 text-xs">
                 <div className="flex justify-between text-gray-400">
                   <span>Descuentos:</span>
-                  <span className="font-semibold text-black dark:text-white">${formData.descuento.toFixed(2)}</span>
+                  <span className="font-semibold text-black dark:text-white">formData.descuento.toFixed(2)</span>
                 </div>
                 <div className="flex justify-between text-gray-400">
                   <span>Subtotal base 15%:</span>
-                  <span className="font-semibold text-black dark:text-white">${formData.baseImponible.toFixed(2)}</span>
+                  <span className="font-semibold text-black dark:text-white">formData.baseImponible.toFixed(2)</span>
                 </div>
                 <div className="flex justify-between text-gray-400">
                   <span>IVA total (15%):</span>
-                  <span className="font-semibold text-black dark:text-white">${formData.ivaValor.toFixed(2)}</span>
+                  <span className="font-semibold text-black dark:text-white">formData.ivaValor.toFixed(2)</span>
                 </div>
                 <div className="flex justify-between text-lg font-black border-t pt-3 mt-2 dark:border-white/5 border-slate-200">
                   <span className="text-primary">Total:</span>
-                  <span className="text-primary">${formData.total.toFixed(2)}</span>
+                  <span className="text-primary">formData.total.toFixed(2)</span>
                 </div>
               </div>
 
@@ -683,9 +663,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
                   <select
                     value={formData.paymentMethod}
                     onChange={e => setFormData(prev => ({ ...prev, paymentMethod: e.target.value }))}
-                    className={`w-full text-xs px-2.5 py-2 outline-none rounded-xl border transition-all ${
-                      isDarkMode ? 'bg-black/25 border-white/5 focus:border-primary/50' : 'bg-slate-50 border-slate-200 focus:border-primary'
-                    }`}
+                    className={`w-full text-xs px-2.5 py-2 outline-none rounded-xl border transition-all bg-slate-50 border-slate-200 focus:border-primary`}
                   >
                     <option value="transferencia" className="text-black">Transferencia Bancaria</option>
                     <option value="efectivo" className="text-black">Efectivo / Caja Chica</option>
@@ -699,9 +677,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
                   <select
                     value={formData.paymentStatus}
                     onChange={e => setFormData(prev => ({ ...prev, paymentStatus: e.target.value }))}
-                    className={`w-full text-xs px-2.5 py-2 outline-none rounded-xl border transition-all ${
-                      isDarkMode ? 'bg-black/25 border-white/5 focus:border-primary/50' : 'bg-slate-50 border-slate-200 focus:border-primary'
-                    }`}
+                    className={`w-full text-xs px-2.5 py-2 outline-none rounded-xl border transition-all bg-slate-50 border-slate-200 focus:border-primary`}
                   >
                     <option value="pendiente" className="text-black">Pendiente (CXP)</option>
                     <option value="pagado" className="text-black">Pagado al Instante</option>
@@ -716,7 +692,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
                 type="button" 
                 onClick={onClose}
                 className={`flex-1 py-3 rounded-2xl text-xs font-black uppercase tracking-wider transition-all border ${
-                  isDarkMode ? 'border-white/10 hover:bg-white/5 text-gray-300' : 'border-slate-200 hover:bg-slate-50 text-slate-700 bg-white'
+                  'border-slate-200 hover:bg-slate-50 text-slate-700 bg-white'
                 }`}
               >
                 Cancelar
@@ -738,7 +714,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
         </div>
 
         {/* Sección Inferior: Tabla de Productos de la Factura de Compra */}
-        <div className={`p-5 rounded-2xl border-0 ${isDarkMode ? 'bg-[#151517]' : 'bg-white'}`}>
+        <div className={`p-5 rounded-2xl border-0 bg-white`}>
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-xs font-black uppercase text-primary tracking-wider flex items-center gap-2">
               <ShoppingBag size={14} /> Productos Ingresados al Inventario
@@ -773,12 +749,12 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
                           value={item.productId}
                           onChange={e => handleItemFieldChange(idx, 'productId', e.target.value)}
                           className={`w-full text-xs px-2.5 py-2 outline-none rounded-xl border transition-all ${
-                            isDarkMode ? 'bg-black/20 border-white/5 focus:border-primary/50' : 'bg-slate-50 border-slate-200 focus:border-primary'
+                            'bg-slate-50 border-slate-200 focus:border-primary'
                           }`}
                         >
                           <option value="" className="text-black">-- Selecciona del Inventario --</option>
                           {products.map(p => (
-                            <option key={p.id} value={p.id} className="text-black">{p.sku ? `[${p.sku}] ` : ''}{p.name} (Costo: ${(p.baseCost || p.cost || 0).toFixed(2)})</option>
+                            <option key={p.id} value={p.id} className="text-black">{p.sku ? `[p.sku] ` : ''}{p.name} (Costo: ${(p.baseCost || p.cost || 0).toFixed(2)})</option>
                           ))}
                         </select>
                         {item.tempCode && !item.productId && (
@@ -798,7 +774,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
                         value={item.quantity}
                         onChange={e => handleItemFieldChange(idx, 'quantity', parseFloat(e.target.value) || 0)}
                         className={`w-full text-xs px-2.5 py-2 outline-none rounded-xl border text-center transition-all ${
-                          isDarkMode ? 'bg-black/20 border-white/5 focus:border-primary/50' : 'bg-slate-50 border-slate-200 focus:border-primary'
+                          'bg-slate-50 border-slate-200 focus:border-primary'
                         }`}
                       />
                     </td>
@@ -811,7 +787,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
                         value={item.price}
                         onChange={e => handleItemFieldChange(idx, 'price', parseFloat(e.target.value) || 0)}
                         className={`w-full text-xs px-2.5 py-2 outline-none rounded-xl border text-right transition-all font-mono ${
-                          isDarkMode ? 'bg-black/20 border-white/5 focus:border-primary/50' : 'bg-slate-50 border-slate-200 focus:border-primary'
+                          'bg-slate-50 border-slate-200 focus:border-primary'
                         }`}
                       />
                     </td>
@@ -824,7 +800,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
                         value={item.discount}
                         onChange={e => handleItemFieldChange(idx, 'discount', parseFloat(e.target.value) || 0)}
                         className={`w-full text-xs px-2.5 py-2 outline-none rounded-xl border text-center transition-all ${
-                          isDarkMode ? 'bg-black/20 border-white/5 focus:border-primary/50' : 'bg-slate-50 border-slate-200 focus:border-primary'
+                          'bg-slate-50 border-slate-200 focus:border-primary'
                         }`}
                       />
                     </td>
@@ -864,7 +840,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
           <form 
             onSubmit={handleSaveQuickSupplier}
             className={`w-full max-w-md rounded-2xl p-5 shadow-2xl relative flex flex-col gap-4 animate-in zoom-in duration-200 ${
-              isDarkMode ? 'bg-[#151517] text-white border border-white/5' : 'bg-white text-gray-900 border border-slate-200'
+              'bg-white text-gray-900 border border-slate-200'
             }`}
           >
             <div className="flex justify-between items-center border-b pb-2 dark:border-white/5 border-slate-100">
@@ -874,7 +850,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
               <button 
                 type="button" 
                 onClick={() => setIsAddSupplierOpen(false)}
-                className={`p-1 rounded-lg transition-all ${isDarkMode ? 'hover:bg-white/5 text-gray-400 hover:text-white' : 'hover:bg-slate-100 text-slate-500'}`}
+                className={`p-1 rounded-lg transition-all hover:bg-slate-100 text-slate-500`}
               >
                 <X size={16} />
               </button>
@@ -889,7 +865,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
                   value={newSupplier.ruc}
                   onChange={e => setNewSupplier(prev => ({ ...prev, ruc: e.target.value }))}
                   className={`w-full text-xs px-3 py-2 outline-none rounded-xl border transition-all ${
-                    isDarkMode ? 'bg-black/20 border-white/5 focus:border-primary/50' : 'bg-slate-50 border-slate-200 focus:border-primary'
+                    'bg-slate-50 border-slate-200 focus:border-primary'
                   }`}
                 />
               </div>
@@ -902,7 +878,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
                   value={newSupplier.name}
                   onChange={e => setNewSupplier(prev => ({ ...prev, name: e.target.value }))}
                   className={`w-full text-xs px-3 py-2 outline-none rounded-xl border transition-all ${
-                    isDarkMode ? 'bg-black/20 border-white/5 focus:border-primary/50' : 'bg-slate-50 border-slate-200 focus:border-primary'
+                    'bg-slate-50 border-slate-200 focus:border-primary'
                   }`}
                 />
               </div>
@@ -914,7 +890,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
                   value={newSupplier.email}
                   onChange={e => setNewSupplier(prev => ({ ...prev, email: e.target.value }))}
                   className={`w-full text-xs px-3 py-2 outline-none rounded-xl border transition-all ${
-                    isDarkMode ? 'bg-black/20 border-white/5 focus:border-primary/50' : 'bg-slate-50 border-slate-200 focus:border-primary'
+                    'bg-slate-50 border-slate-200 focus:border-primary'
                   }`}
                 />
               </div>
@@ -927,7 +903,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
                     value={newSupplier.phone}
                     onChange={e => setNewSupplier(prev => ({ ...prev, phone: e.target.value }))}
                     className={`w-full text-xs px-3 py-2 outline-none rounded-xl border transition-all ${
-                      isDarkMode ? 'bg-black/20 border-white/5 focus:border-primary/50' : 'bg-slate-50 border-slate-200 focus:border-primary'
+                      'bg-slate-50 border-slate-200 focus:border-primary'
                     }`}
                   />
                 </div>
@@ -939,7 +915,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
                     value={newSupplier.address}
                     onChange={e => setNewSupplier(prev => ({ ...prev, address: e.target.value }))}
                     className={`w-full text-xs px-3 py-2 outline-none rounded-xl border transition-all ${
-                      isDarkMode ? 'bg-black/20 border-white/5 focus:border-primary/50' : 'bg-slate-50 border-slate-200 focus:border-primary'
+                      'bg-slate-50 border-slate-200 focus:border-primary'
                     }`}
                   />
                 </div>
@@ -951,7 +927,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
                 type="button" 
                 onClick={() => setIsAddSupplierOpen(false)}
                 className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all border ${
-                  isDarkMode ? 'border-white/10 hover:bg-white/5 text-gray-300' : 'border-slate-200 hover:bg-slate-50 text-slate-700'
+                  'border-slate-200 hover:bg-slate-50 text-slate-700'
                 }`}
               >
                 Cancelar

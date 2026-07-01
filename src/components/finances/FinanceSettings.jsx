@@ -4,7 +4,7 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import forge from 'node-forge';
 
-export default function FinanceSettings({ isDarkMode, showToast, db, storage, appId }) {
+export default function FinanceSettings({  showToast, db, storage, appId }) {
   const [loading, setLoading] = useState(true);
   const [showKey, setShowKey] = useState(false);
   const [sriConfig, setSriConfig] = useState({
@@ -119,9 +119,7 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
   };
 
   const inputClass = `w-full text-xs px-3 py-2.5 rounded-xl outline-none transition-all border ${
-    isDarkMode 
-      ? 'bg-black/20 border-white/10 text-white focus:border-primary/50' 
-      : 'bg-white border-gray-200 text-gray-900 focus:border-primary/50'
+    'bg-white border-gray-200 text-gray-900 focus:border-primary/50'
   }`;
 
   if (loading) {
@@ -138,7 +136,7 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
         <div className="md:col-span-2 space-y-6">
           
           {/* CONFIGURACIÓN AMBIENTE Y GEMINI */}
-          <div className={`p-6 rounded-2xl border space-y-4 ${isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-white border-gray-200'}`}>
+          <div className={`p-6 rounded-2xl border space-y-4 bg-white border-gray-200`}>
             <div className="flex items-center gap-2 mb-2 pb-3 border-b border-white/10">
               <Sparkles size={18} className="text-purple-500" />
               <h3 className="text-base font-bold">Integraciones y Entornos</h3>
@@ -151,14 +149,14 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
                   <button 
                     type="button" 
                     onClick={() => setSriConfig({...sriConfig, ambiente: '1'})} 
-                    className={`py-2.5 text-xs font-bold rounded-xl border transition-all ${sriConfig.ambiente === '1' ? 'bg-primary text-white border-primary' : (isDarkMode ? 'bg-black/25 text-gray-400 border-white/10 hover:text-white' : 'bg-gray-100 text-gray-600 border-gray-200')}`}
+                    className={`py-2.5 text-xs font-bold rounded-xl border transition-all ${sriConfig.ambiente === '1' ? 'bg-primary text-white border-primary' : ('bg-gray-100 text-gray-600 border-gray-200')}`}
                   >
                     PRUEBAS
                   </button>
                   <button 
                     type="button" 
                     onClick={() => setSriConfig({...sriConfig, ambiente: '2'})} 
-                    className={`py-2.5 text-xs font-bold rounded-xl border transition-all ${sriConfig.ambiente === '2' ? 'bg-emerald-600 text-white border-emerald-600' : (isDarkMode ? 'bg-black/25 text-gray-400 border-white/10 hover:text-white' : 'bg-gray-100 text-gray-600 border-gray-200')}`}
+                    className={`py-2.5 text-xs font-bold rounded-xl border transition-all ${sriConfig.ambiente === '2' ? 'bg-emerald-600 text-white border-emerald-600' : ('bg-gray-100 text-gray-600 border-gray-200')}`}
                   >
                     PRODUCCIÓN
                   </button>
@@ -167,13 +165,13 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
 
               <div>
                 <label className="label-field label-field-dark">Google Gemini API Key</label>
-                <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border mt-1 ${isDarkMode ? 'bg-black/20 border-white/10' : 'bg-white border-gray-200'}`}>
+                <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border mt-1 bg-white border-gray-200`}>
                   <Key size={14} className="text-gray-500" />
                   <input 
                     type={showKey ? "text" : "password"} 
                     value={geminiKey} 
                     onChange={e => setGeminiKey(e.target.value)} 
-                    className={`bg-transparent border-none outline-none text-xs w-full py-1 font-medium ${isDarkMode ? 'text-white' : 'text-black'}`} 
+                    className={`bg-transparent border-none outline-none text-xs w-full py-1 font-medium text-black`} 
                     placeholder="AIzaSy..." 
                   />
                   <button type="button" onClick={() => setShowKey(!showKey)} className="text-gray-500 hover:text-gray-300">
@@ -215,7 +213,7 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
           </div>
 
           {/* VINCULACIÓN SRI ECUADOR */}
-          <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-white border-gray-200'}`}>
+          <div className={`p-6 rounded-2xl border bg-white border-gray-200`}>
             <div className="flex items-center gap-2 mb-4 pb-2 border-b border-white/10">
               <ExternalLink size={18} className="text-primary" />
               <h3 className="text-base font-bold">Guía de Vinculación con el SRI (Ecuador)</h3>
@@ -239,8 +237,8 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
 
               <div className={`p-3.5 rounded-xl border text-[9px] ${
                 sriConfig.ambiente === '2'
-                  ? (isDarkMode ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-450' : 'bg-emerald-50 border-emerald-250 text-emerald-800')
-                  : (isDarkMode ? 'bg-amber-500/10 border-amber-500/20 text-amber-450' : 'bg-amber-50 border-amber-250 text-amber-800')
+                  ? ('bg-emerald-50 border-emerald-250 text-emerald-800')
+                  : ('bg-amber-50 border-amber-250 text-amber-800')
               }`}>
                 <p className="font-bold uppercase tracking-wider mb-1">Endpoints SRI Configurados ({sriConfig.ambiente === '2' ? 'Producción' : 'Pruebas'}):</p>
                 <div className="font-mono space-y-0.5 opacity-90">
@@ -256,7 +254,7 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
         {/* COLUMNA DERECHA: DATOS COMERCIALES */}
         <div className="space-y-6">
           
-          <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-white border-gray-200'}`}>
+          <div className={`p-6 rounded-2xl border bg-white border-gray-200`}>
             <div className="flex items-center gap-2 mb-4 pb-2 border-b border-white/10">
               <Settings size={18} className="text-primary" />
               <h3 className="text-base font-bold">Formatos de Impresión</h3>
@@ -282,7 +280,7 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
           </div>
 
           {/* SECUENCIALES DE COMPROBANTES */}
-          <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-white border-gray-200'}`}>
+          <div className={`p-6 rounded-2xl border bg-white border-gray-200`}>
             <div className="flex items-center gap-2 mb-4 pb-2 border-b border-white/10">
               <Settings size={18} className="text-purple-500" />
               <h3 className="text-base font-bold">Secuenciales de Facturación (SRI)</h3>

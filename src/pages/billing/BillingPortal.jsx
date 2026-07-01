@@ -133,7 +133,7 @@ const PRODUCTS_CATALOG = {
   }
 };
 
-export default function BillingPortal({ isDarkMode, showToast, initialSubTab }) {
+export default function BillingPortal({ showToast, initialSubTab }) {
   const navigate = useNavigate();
   const { tenantInfo, planId, planStatus, tenantId } = useAuth();
   const [activePlan, setActivePlan] = useState('starter');
@@ -305,7 +305,7 @@ export default function BillingPortal({ isDarkMode, showToast, initialSubTab }) 
   };
 
   return (
-    <div className={`p-6 max-w-5xl mx-auto space-y-8 text-left ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>
+    <div className={`p-6 max-w-5xl mx-auto space-y-8 text-left text-gray-800`}>
       
       {/* Header Info */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -313,7 +313,7 @@ export default function BillingPortal({ isDarkMode, showToast, initialSubTab }) 
           <h2 className="text-xl font-extrabold tracking-tight">Suscripción y Facturación</h2>
           <p className="text-xs text-gray-500 font-medium">Administra los módulos de tu negocio y realiza tus pagos.</p>
         </div>
-        <div className={`p-4 rounded-xl border flex items-center gap-3 ${isDarkMode ? 'bg-[#0f0f11]/60 border-white/5' : 'bg-white border-slate-200'}`}>
+        <div className={`p-4 rounded-xl border flex items-center gap-3 bg-white border-slate-200`}>
           <div className="p-2 bg-primary/10 rounded-lg text-primary">
             <Building size={18} />
           </div>
@@ -326,7 +326,7 @@ export default function BillingPortal({ isDarkMode, showToast, initialSubTab }) 
 
       {/* Grid: Plan Selector & Payment Form */}
       {activeCategory === 'historial' ? (
-        <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-[#0f0f11]/40 border-white/5' : 'bg-white border-slate-200 shadow-sm'}`}>
+        <div className={`p-6 rounded-2xl border bg-white border-slate-200 shadow-sm`}>
           <h3 className="text-xs font-bold uppercase tracking-wider mb-4">Historial de Transacciones</h3>
           <div className="overflow-x-auto text-[11px]">
             <table className="w-full text-left">
@@ -371,7 +371,7 @@ export default function BillingPortal({ isDarkMode, showToast, initialSubTab }) 
           
           {/* Left Col: Plan Selector */}
           <div className="lg:col-span-2 space-y-6">
-            <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-[#0f0f11]/40 border-white/5' : 'bg-white border-slate-200 shadow-sm'}`}>
+            <div className={`p-6 rounded-2xl border bg-white border-slate-200 shadow-sm`}>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                 <div>
                   <h3 className="text-xs font-bold uppercase tracking-wider text-primary">
@@ -409,7 +409,7 @@ export default function BillingPortal({ isDarkMode, showToast, initialSubTab }) 
                       className={`p-5 rounded-xl border cursor-pointer transition-all flex flex-col justify-between ${
                         isSelected 
                           ? 'border-[#1C40F2] bg-[#1C40F2]/5 dark:bg-[#1C40F2]/10 ring-1 ring-[#1C40F2]/30 shadow-sm' 
-                          : (isDarkMode ? 'border-white/5 hover:border-white/10 bg-white/2' : 'border-slate-200 bg-slate-50 hover:bg-slate-100/50')
+                          : 'border-slate-200 bg-slate-50 hover:bg-slate-100/50'
                       }`}
                     >
                       <div>
@@ -437,7 +437,7 @@ export default function BillingPortal({ isDarkMode, showToast, initialSubTab }) 
 
           {/* Right Col: Checkout & Payment details */}
           <div className="space-y-6">
-            <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-[#0f0f11]/40 border-white/5' : 'bg-white border-slate-200 shadow-sm'}`}>
+            <div className={`p-6 rounded-2xl border bg-white border-slate-200 shadow-sm`}>
               <h3 className="text-xs font-bold uppercase tracking-wider mb-4">Resumen del Pago</h3>
               
               <div className="space-y-3.5 text-xs font-medium mb-6">
@@ -504,7 +504,7 @@ export default function BillingPortal({ isDarkMode, showToast, initialSubTab }) 
                     <select 
                       value={transferData.bankName} 
                       onChange={e => setTransferData({ ...transferData, bankName: e.target.value })}
-                      className={`w-full p-2.5 rounded-lg border outline-none ${isDarkMode ? 'bg-[#151722] border-white/10' : 'bg-white border-slate-300'}`}
+                      className={`w-full p-2.5 rounded-lg border outline-none bg-white border-slate-300`}
                     >
                       <option value="Banco Pichincha">Banco Pichincha</option>
                       <option value="Banco Guayaquil">Banco Guayaquil</option>
@@ -519,7 +519,7 @@ export default function BillingPortal({ isDarkMode, showToast, initialSubTab }) 
                       value={transferData.referenceNumber}
                       onChange={e => setTransferData({ ...transferData, referenceNumber: e.target.value })}
                       placeholder="Referencia de 6-8 dígitos"
-                      className={`w-full p-2.5 rounded-lg border outline-none ${isDarkMode ? 'bg-[#151722] border-white/10' : 'bg-white border-slate-300'}`}
+                      className={`w-full p-2.5 rounded-lg border outline-none bg-white border-slate-300`}
                       required
                     />
                   </div>
@@ -530,7 +530,7 @@ export default function BillingPortal({ isDarkMode, showToast, initialSubTab }) 
                       value={transferData.amount}
                       onChange={e => setTransferData({ ...transferData, amount: e.target.value })}
                       placeholder={`Total: $${billingPeriod === 'yearly' ? getPrice(getSelectedPlanConfig()) * 12 : getPrice(getSelectedPlanConfig())}`}
-                      className={`w-full p-2.5 rounded-lg border outline-none ${isDarkMode ? 'bg-[#151722] border-white/10' : 'bg-white border-slate-300'}`}
+                      className={`w-full p-2.5 rounded-lg border outline-none bg-white border-slate-300`}
                       required
                     />
                   </div>
@@ -554,7 +554,7 @@ export default function BillingPortal({ isDarkMode, showToast, initialSubTab }) 
       {/* PAYPHONE SIMULATION MODAL */}
       {showPayPhoneSim && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className={`w-full max-w-sm p-6 rounded-2xl border shadow-2xl relative text-center ${isDarkMode ? 'bg-[#0f0f11] border-[#1C40F2]/30 text-white' : 'bg-white border-slate-200 text-black'}`}>
+          <div className={`w-full max-w-sm p-6 rounded-2xl border shadow-2xl relative text-center bg-white border-slate-200 text-black`}>
             <div className="flex justify-between items-center mb-6">
               <span className="text-xs font-black uppercase text-[#ff6b00] tracking-wider">Pasarela PayPhone (Sandbox)</span>
               <button onClick={() => setShowPayPhoneSim(false)} className="text-gray-400 hover:text-white">✕</button>
@@ -580,16 +580,16 @@ export default function BillingPortal({ isDarkMode, showToast, initialSubTab }) 
             <form onSubmit={(e) => { e.preventDefault(); completePayPhoneSim(); }} className="space-y-4 text-xs font-medium text-left">
               <div>
                 <label className="block font-bold mb-1">Número de tarjeta</label>
-                <input type="text" placeholder="4000 1234 5678 9010" className={`w-full p-2.5 rounded-lg border outline-none ${isDarkMode ? 'bg-[#151722] border-white/10' : 'bg-white border-slate-300'}`} required />
+                <input type="text" placeholder="4000 1234 5678 9010" className={`w-full p-2.5 rounded-lg border outline-none bg-white border-slate-300`} required />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block font-bold mb-1">Expiración</label>
-                  <input type="text" placeholder="MM/AA" className={`w-full p-2.5 rounded-lg border outline-none ${isDarkMode ? 'bg-[#151722] border-white/10' : 'bg-white border-slate-300'}`} required />
+                  <input type="text" placeholder="MM/AA" className={`w-full p-2.5 rounded-lg border outline-none bg-white border-slate-300`} required />
                 </div>
                 <div>
                   <label className="block font-bold mb-1">CVV</label>
-                  <input type="password" placeholder="•••" maxLength={3} className={`w-full p-2.5 rounded-lg border outline-none ${isDarkMode ? 'bg-[#151722] border-white/10' : 'bg-white border-slate-300'}`} required />
+                  <input type="password" placeholder="•••" maxLength={3} className={`w-full p-2.5 rounded-lg border outline-none bg-white border-slate-300`} required />
                 </div>
               </div>
 

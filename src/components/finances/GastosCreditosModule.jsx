@@ -7,7 +7,7 @@ import {
 import { doc, setDoc, collection, onSnapshot, addDoc, deleteDoc } from 'firebase/firestore';
 import { getEcuadorDateString } from '../../services/sriService';
 
-export default function GastosCreditosModule({ isDarkMode, showToast, transactions = [], thirdParties = [], db, appId, initialSubTab }) {
+export default function GastosCreditosModule({ showToast, transactions = [], thirdParties = [], db, appId, initialSubTab }) {
   const [activeTab, setActiveTab] = useState('resumen'); // 'resumen' | 'pasivos' | 'historial_gastos'
 
   useEffect(() => {
@@ -219,11 +219,7 @@ export default function GastosCreditosModule({ isDarkMode, showToast, transactio
     }
   };
 
-  const inputClass = `w-full text-xs px-3 py-2.5 outline-none rounded-xl border transition-all ${
-    isDarkMode 
-      ? 'bg-black/20 border-white/10 text-white focus:border-primary/50' 
-      : 'bg-white border-gray-300 text-gray-900 focus:border-primary'
-  }`;
+  const inputClass = `w-full text-xs px-3 py-2.5 outline-none rounded-xl border transition-all bg-white border-gray-300 text-gray-900 focus:border-primary`;
 
   return (
     <div className="flex flex-col h-full w-full animate-in fade-in duration-500 overflow-hidden">
@@ -232,7 +228,7 @@ export default function GastosCreditosModule({ isDarkMode, showToast, transactio
 
       {/* CUERPO DEL MÓDULO */}
       <div className="flex flex-1 overflow-hidden min-h-0 bg-transparent">
-        <div className={`flex-1 overflow-y-auto px-8 py-6 custom-scrollbar ${isDarkMode ? 'bg-[#0f0f11]' : 'bg-white'}`}>
+        <div className="flex-1 overflow-y-auto px-8 py-6 custom-scrollbar bg-white">
           {loading ? (
             <div className="flex justify-center items-center h-64">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500"></div>
@@ -244,7 +240,7 @@ export default function GastosCreditosModule({ isDarkMode, showToast, transactio
                 <div className="space-y-6">
                   {/* Tarjetas métricas */}
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                    <div className={`p-5 rounded-3xl border shadow-sm ${isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'}`}>
+                    <div className="p-5 rounded-3xl border shadow-sm bg-white border-gray-200">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-[10px] font-black uppercase text-gray-500 tracking-wider">Total Endeudamiento</span>
                         <div className="p-1.5 rounded-lg bg-red-500/10 text-red-500">
@@ -255,7 +251,7 @@ export default function GastosCreditosModule({ isDarkMode, showToast, transactio
                       <p className="text-[9px] text-gray-400 mt-1">Saldo pendiente acumulado de todas las obligaciones</p>
                     </div>
 
-                    <div className={`p-5 rounded-3xl border shadow-sm ${isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'}`}>
+                    <div className="p-5 rounded-3xl border shadow-sm bg-white border-gray-200">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-[10px] font-black uppercase text-gray-500 tracking-wider">Pago de Cuotas Mensual</span>
                         <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-500">
@@ -266,7 +262,7 @@ export default function GastosCreditosModule({ isDarkMode, showToast, transactio
                       <p className="text-[9px] text-gray-400 mt-1">Suma del pago mensual programado de cuotas</p>
                     </div>
 
-                    <div className={`p-5 rounded-3xl border shadow-sm ${isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'}`}>
+                    <div className="p-5 rounded-3xl border shadow-sm bg-white border-gray-200">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-[10px] font-black uppercase text-gray-500 tracking-wider">Total Gastos ERP</span>
                         <div className="p-1.5 rounded-lg bg-pink-500/10 text-pink-500">
@@ -280,7 +276,7 @@ export default function GastosCreditosModule({ isDarkMode, showToast, transactio
 
                   {/* Resumen por tipo de pasivo */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className={`p-6 rounded-3xl border ${isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'}`}>
+                    <div className="p-6 rounded-3xl border bg-white border-gray-200">
                       <h3 className="text-xs font-bold uppercase tracking-wider mb-4">Composición de Deuda Financiera</h3>
                       <div className="space-y-4">
                         <div className="flex justify-between items-center text-xs">
@@ -304,7 +300,7 @@ export default function GastosCreditosModule({ isDarkMode, showToast, transactio
                       </div>
                     </div>
 
-                    <div className={`p-6 rounded-3xl border flex flex-col justify-between ${isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'}`}>
+                    <div className="p-6 rounded-3xl border flex flex-col justify-between bg-white border-gray-200">
                       <div>
                         <h3 className="text-xs font-bold uppercase tracking-wider mb-2">Salud Crediticia del Negocio</h3>
                         <p className="text-[10px] text-gray-500 leading-normal">
@@ -345,9 +341,7 @@ export default function GastosCreditosModule({ isDarkMode, showToast, transactio
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {liabilities.map(liab => (
-                      <div key={liab.id} className={`p-5 rounded-3xl border shadow-sm relative flex flex-col justify-between ${
-                        isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'
-                      }`}>
+                      <div key={liab.id} className="p-5 rounded-3xl border shadow-sm relative flex flex-col justify-between bg-white border-gray-200">
                         <div>
                           <div className="flex justify-between items-start mb-3">
                             <span className="p-2.5 rounded-xl bg-white/5 border border-white/5">
@@ -431,18 +425,10 @@ export default function GastosCreditosModule({ isDarkMode, showToast, transactio
                     </div>
                   </div>
 
-                  <div className={`rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm ${
-                    isDarkMode 
-                      ? 'border-white/5 bg-[#0f111a]/85 shadow-lg shadow-black/40' 
-                      : 'border-slate-200/80 bg-white'
-                  }`}>
+                  <div className="rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm border-slate-200/80 bg-white">
                     <div className="overflow-x-auto custom-scrollbar">
                       <table className="w-full text-left text-xs whitespace-nowrap">
-                        <thead className={`text-[10px] uppercase font-bold tracking-wider ${
-                          isDarkMode 
-                            ? 'bg-black/35 text-slate-400 border-b border-white/5' 
-                            : 'bg-slate-50 text-slate-600 border-b border-slate-100'
-                        }`}>
+                        <thead className="text-[10px] uppercase font-bold tracking-wider bg-slate-50 text-slate-600 border-b border-slate-100">
                           <tr>
                             <th className="px-6 py-3.5">Fecha</th>
                             <th className="px-6 py-3.5">Descripción / Comprobante</th>
@@ -454,11 +440,11 @@ export default function GastosCreditosModule({ isDarkMode, showToast, transactio
                             <th className="px-6 py-3.5 text-center">Método Pago</th>
                           </tr>
                         </thead>
-                        <tbody className={`divide-y ${isDarkMode ? 'divide-white/5' : 'divide-slate-100'}`}>
+                        <tbody className="divide-y divide-slate-100">
                           {historicalEgresos.map(tx => {
                             const contact = thirdParties.find(tp => tp.id === tx.thirdPartyId);
                             return (
-                              <tr key={tx.id} className={`transition-colors ${isDarkMode ? 'hover:bg-white/[0.015]' : 'hover:bg-slate-50/40'}`}>
+                              <tr key={tx.id} className="transition-colors hover:bg-slate-50/40">
                                 <td className="px-6 py-3.5 text-gray-400 font-medium">{tx.date}</td>
                                 <td className="px-6 py-3.5">
                                   <div>
@@ -503,7 +489,7 @@ export default function GastosCreditosModule({ isDarkMode, showToast, transactio
       {/* MODAL: REGISTRAR PAGO DE CUOTA */}
       {selectedLiability && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-in fade-in">
-          <div className={`w-full max-w-md p-6 rounded-3xl shadow-2xl ${isDarkMode ? 'bg-[#151517] border border-white/10' : 'bg-white border border-gray-200'}`}>
+          <div className="w-full max-w-md p-6 rounded-3xl shadow-2xl bg-white border border-gray-200">
             <div className="flex justify-between items-center mb-4 border-b pb-2 border-white/5">
               <h3 className="text-sm font-black">Registrar Pago de Cuota / Abono</h3>
               <button onClick={() => setSelectedLiability(null)} className="btn-icon text-gray-400 hover:text-white"><X size={16} /></button>
@@ -587,7 +573,7 @@ export default function GastosCreditosModule({ isDarkMode, showToast, transactio
       {/* MODAL: AGREGAR PASIVO */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-in fade-in">
-          <div className={`w-full max-w-md p-6 rounded-3xl shadow-2xl ${isDarkMode ? 'bg-[#151517] border border-white/10' : 'bg-white border border-gray-200'}`}>
+          <div className="w-full max-w-md p-6 rounded-3xl shadow-2xl bg-white border border-gray-200">
             <div className="flex justify-between items-center mb-4 border-b pb-2 border-white/5">
               <h3 className="text-sm font-black">Registrar Nuevo Pasivo</h3>
               <button onClick={() => setIsAddModalOpen(false)} className="btn-icon text-gray-400 hover:text-white"><X size={16} /></button>

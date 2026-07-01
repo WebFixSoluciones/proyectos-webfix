@@ -134,7 +134,7 @@ const glassInputLight = "glass-input-light";
 
 // --- COMPONENTES DND-KIT ---
 const SortableTaskItem = ({ 
-  task, isDarkMode, users, editingTaskId, editingTaskContent, 
+  task, users, editingTaskId, editingTaskContent, 
   setEditingTaskContent, handleInlineSave, setEditingTaskId, 
   startEditingTask, setDrawerTask, activePageId 
 }) => {
@@ -160,9 +160,7 @@ const SortableTaskItem = ({
       ref={setNodeRef} 
       style={style}
       className={`group p-2 rounded-lg border transition-all duration-300 relative backdrop-blur-xl ${
-        isDarkMode 
-          ? 'bg-white/[0.05] border-white/10 hover:border-white/20 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.3)] hover:bg-white/[0.08]' 
-          : 'bg-white border-gray-200/80 hover:border-primary/45 shadow-sm hover:shadow hover:bg-white'
+        'bg-white border-gray-200/80 hover:border-primary/45 shadow-sm hover:shadow hover:bg-white'
       } ${isDragging ? 'z-50 shadow-2xl scale-105' : ''}`}
     >
       <div className="flex justify-between items-start mb-2">
@@ -170,7 +168,7 @@ const SortableTaskItem = ({
           <div 
             {...attributes} 
             {...listeners} 
-            className={`cursor-grab active:cursor-grabbing mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity ${isDarkMode ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'}`}
+            className={`cursor-grab active:cursor-grabbing mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity ${'text-gray-400 hover:text-gray-600'}`}
           >
             <GripVertical size={14} />
           </div>
@@ -193,7 +191,7 @@ const SortableTaskItem = ({
                 onClick={(e) => startEditingTask(e, task)}
                 onPointerDown={(e) => e.stopPropagation()}
                 title="Clic para editar título"
-                className={`text-xs font-light leading-tight cursor-text transition-colors hover:text-primary ${isDarkMode ? 'text-gray-100' : 'text-gray-800'} w-full`}
+                className={`text-xs font-light leading-tight cursor-text transition-colors hover:text-primary ${'text-gray-800'} w-full`}
               >
                 {task.content}
               </p>
@@ -204,7 +202,7 @@ const SortableTaskItem = ({
         <button 
           onClick={() => setDrawerTask({ ...task, projectId: activePageId })}
           onPointerDown={(e) => e.stopPropagation()}
-          className={`absolute top-2.5 right-2.5 opacity-0 group-hover:opacity-100 p-1.5 rounded-lg transition-all shrink-0 backdrop-blur-xl shadow-sm ${isDarkMode ? 'bg-white/20 text-white hover:bg-primary border border-white/10' : 'bg-white/90 text-gray-800 hover:text-white hover:bg-primary border border-gray-200'}`}
+          className={`absolute top-2.5 right-2.5 opacity-0 group-hover:opacity-100 p-1.5 rounded-lg transition-all shrink-0 backdrop-blur-xl shadow-sm ${'bg-white/90 text-gray-800 hover:text-white hover:bg-primary border border-gray-200'}`}
           title="Editar detalles completos"
         >
           <Pencil size={12} />
@@ -212,7 +210,7 @@ const SortableTaskItem = ({
       </div>
 
       {task.meetLink && (
-        <a href={task.meetLink} target="_blank" rel="noopener noreferrer" onPointerDown={(e) => e.stopPropagation()} className={`inline-flex items-center gap-1.5 px-2 py-1 mb-2 ml-5 rounded-md text-[10px] font-bold transition-all shadow-sm ${isDarkMode ? 'bg-primary/30 text-primary hover:bg-primary/50 border border-primary/20' : 'bg-primary/10 text-primary hover:bg-primary/15 border border-primary/25'}`}>
+        <a href={task.meetLink} target="_blank" rel="noopener noreferrer" onPointerDown={(e) => e.stopPropagation()} className={`inline-flex items-center gap-1.5 px-2 py-1 mb-2 ml-5 rounded-md text-[10px] font-bold transition-all shadow-sm ${'bg-primary/10 text-primary hover:bg-primary/15 border border-primary/25'}`}>
           <Video size={10} /> Unirse a Meet
         </a>
       )}
@@ -222,19 +220,17 @@ const SortableTaskItem = ({
           {task.notes && task.notes.length > 0 && (
             <div className="relative group/tooltip w-max">
               <span className={`flex items-center gap-1 text-[10px] px-2 py-1 rounded-lg font-semibold cursor-help transition-all shadow-sm ${
-                isDarkMode 
-                  ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30 hover:bg-yellow-500/30' 
-                  : 'bg-yellow-100/80 text-yellow-700 border border-yellow-200 hover:bg-yellow-200'
+                'bg-yellow-100/80 text-yellow-700 border border-yellow-200 hover:bg-yellow-200'
               }`}>
                 <MessageSquare size={10} /> {task.notes.length}
               </span>
-              <div className={`absolute bottom-full left-0 mb-2 w-64 p-3 rounded-xl shadow-[0_5px_20px_-5px_rgba(0,0,0,0.5)] opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all duration-300 z-50 backdrop-blur-3xl border ${isDarkMode ? 'bg-gray-900/90 border-white/10' : 'bg-white/95 border-gray-200'}`}>
-                <h4 className={`text-[10px] font-bold uppercase tracking-wider mb-2 pb-1.5 border-b ${isDarkMode ? 'text-gray-400 border-white/10' : 'text-gray-500 border-gray-100'}`}>Notas Históricas</h4>
+              <div className={`absolute bottom-full left-0 mb-2 w-64 p-3 rounded-xl shadow-[0_5px_20px_-5px_rgba(0,0,0,0.5)] opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all duration-300 z-50 backdrop-blur-3xl border ${'bg-white/95 border-gray-200'}`}>
+                <h4 className={`text-[10px] font-bold uppercase tracking-wider mb-2 pb-1.5 border-b ${'text-gray-500 border-gray-100'}`}>Notas Históricas</h4>
                 <div className="space-y-3 max-h-40 overflow-y-auto pr-1 custom-scrollbar">
                   {task.notes.map(note => (
                     <div key={note.id} className="text-xs">
-                      <span className={`block text-[9px] font-medium mb-0.5 ${isDarkMode ? 'text-primary' : 'text-primary'}`}>{note.date}</span>
-                      <p className={`leading-relaxed font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{note.text}</p>
+                      <span className={`block text-[9px] font-medium mb-0.5 ${'text-primary'}`}>{note.date}</span>
+                      <p className={`leading-relaxed font-medium ${'text-gray-700'}`}>{note.text}</p>
                     </div>
                   ))}
                 </div>
@@ -243,9 +239,7 @@ const SortableTaskItem = ({
           )}
           {task.subtasks && task.subtasks.length > 0 && (
             <span className={`flex items-center gap-1 text-[10px] px-2 py-1 rounded-lg font-semibold transition-all shadow-sm ${
-              isDarkMode 
-                ? 'bg-primary/20 text-primary border border-primary/30' 
-                : 'bg-primary/10/80 text-primary border border-primary/25'
+              'bg-primary/10/80 text-primary border border-primary/25'
             }`}>
               <ListTodo size={10} /> {task.subtasks.filter(s => s.completed).length}/{task.subtasks.length}
             </span>
@@ -263,7 +257,7 @@ const SortableTaskItem = ({
 };
 
 const SortableColumn = ({ 
-  col, isDarkMode, children, cycleColumnColor, editingColumnId, 
+  col, children, cycleColumnColor, editingColumnId, 
   editingColumnTitle, setEditingColumnTitle, saveColumnTitle, 
   startEditingColumn, activePageTasks, openNewTaskDrawer, handleDeleteColumn,
   getColumnBgClass, getColorClass
@@ -287,7 +281,7 @@ const SortableColumn = ({
     <div 
       ref={setNodeRef}
       style={style}
-      className={`snap-center shrink-0 w-[200px] rounded-xl p-2.5 flex flex-col backdrop-blur-2xl transition-all border shadow-lg ${getColumnBgClass(col.color, isDarkMode)} ${isDragging ? 'z-40 shadow-2xl scale-105' : ''}`}
+      className={`snap-center shrink-0 w-[200px] rounded-xl p-2.5 flex flex-col backdrop-blur-2xl transition-all border shadow-lg ${getColumnBgClass(col.color)} ${isDragging ? 'z-40 shadow-2xl scale-105' : ''}`}
     >
       {/* HEADER COLUMNA */}
       <div className="flex items-center justify-between mb-4 group/col px-1">
@@ -295,7 +289,7 @@ const SortableColumn = ({
           <div 
             {...attributes} 
             {...listeners} 
-            className={`cursor-grab active:cursor-grabbing ${isDarkMode ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'}`}
+            className={`cursor-grab active:cursor-grabbing ${'text-gray-400 hover:text-gray-600'}`}
           >
             <GripVertical size={14} />
           </div>
@@ -329,16 +323,16 @@ const SortableColumn = ({
             </button>
           )}
           
-          <span className={`opacity-0 group-hover/col:opacity-100 transition-opacity text-[10px] font-medium w-4 h-4 flex items-center justify-center rounded-full shadow-sm border ${isDarkMode ? 'bg-white/10 text-white border-white/20' : 'bg-white/80 text-gray-800 border-white/50'}`}>
+          <span className={`opacity-0 group-hover/col:opacity-100 transition-opacity text-[10px] font-medium w-4 h-4 flex items-center justify-center rounded-full shadow-sm border ${'bg-white/80 text-gray-800 border-white/50'}`}>
             {activePageTasks.filter(t => t.status === col.id).length}
           </span>
         </div>
         
         <div className="flex items-center gap-1 opacity-0 group-hover/col:opacity-100 transition-opacity">
-          <button onClick={() => openNewTaskDrawer(col.id)} onPointerDown={(e) => e.stopPropagation()} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'bg-white/5 hover:bg-white/20 text-white' : 'bg-black/5 hover:bg-white text-gray-800'}`} title="Añadir tarea aquí">
+          <button onClick={() => openNewTaskDrawer(col.id)} onPointerDown={(e) => e.stopPropagation()} className={`p-1.5 rounded-lg transition-colors ${'bg-black/5 hover:bg-white text-gray-800'}`} title="Añadir tarea aquí">
             <Plus size={14} />
           </button>
-          <button onClick={() => handleDeleteColumn(col.id)} onPointerDown={(e) => e.stopPropagation()} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'bg-red-500/10 hover:bg-red-500/40 text-red-300' : 'bg-red-100 hover:bg-red-200 text-red-600'}`} title="Eliminar columna">
+          <button onClick={() => handleDeleteColumn(col.id)} onPointerDown={(e) => e.stopPropagation()} className={`p-1.5 rounded-lg transition-colors ${'bg-red-100 hover:bg-red-200 text-red-600'}`} title="Eliminar columna">
             <X size={12} />
           </button>
         </div>
@@ -1863,9 +1857,9 @@ export default function App() {
   const projectsList = pages.filter(p => p.type === 'project');
   const allTasksGlobal = globalTasks;
 
-  const currentGlassPanel = isDarkMode ? glassPanelDark : glassPanelLight;
+  const currentGlassPanel = glassPanelLight;
 
-  const currentGlassInput = isDarkMode ? glassInputDark : glassInputLight;
+  const currentGlassInput = glassInputLight;
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -1973,8 +1967,8 @@ export default function App() {
         <Route path="/nosotros" element={<LandingAbout />} />
         <Route path="/contacto" element={<LandingContact />} />
       </Route>
-      <Route path="/login" element={<LoginPage isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} showToast={showToast} companyProfile={companyProfile} />} />
-      <Route path="/register" element={<RegisterPage isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} showToast={showToast} />} />
+      <Route path="/login" element={<LoginPage showToast={showToast} companyProfile={companyProfile} />} />
+      <Route path="/register" element={<RegisterPage showToast={showToast} />} />
       <Route path="/superadmin" element={<SuperAdminPage showToast={showToast} />} />
       <Route path="/public/ride" element={<PublicRideView />} />
       <Route path="/app/*" element={
@@ -2095,30 +2089,29 @@ export default function App() {
                 <>
                   {/* VISTA: PORTAL DE SUSCRIPCIÓN Y PAGOS */}
                   {activePageId === 'billing' && (
-                    <BillingPortal isDarkMode={isDarkMode} showToast={showToast} initialSubTab={billingInitialSubTab} />
+                    <BillingPortal showToast={showToast} initialSubTab={billingInitialSubTab} />
                   )}
 
                   {/* VISTAS FINANCIERAS MODULARES */}
                   {activePageId === 'finances' && (
-                    <FinanceModule mode="contabilidad" initialSubTab={contabilidadInitialSubTab} isDarkMode={isDarkMode} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} isLoading={isLoadingFinances} />
+                    <FinanceModule mode="contabilidad" initialSubTab={contabilidadInitialSubTab} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} isLoading={isLoadingFinances} />
                   )}
               {activePageId === 'ventas' && (
-                <FinanceModule mode="ventas" initialSubTab={ventasInitialSubTab} isDarkMode={isDarkMode} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} isLoading={isLoadingFinances} />
+                <FinanceModule mode="ventas" initialSubTab={ventasInitialSubTab} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} isLoading={isLoadingFinances} />
               )}
               {activePageId === 'inventario' && (
-                <InventoryModule isDarkMode={isDarkMode} initialSubTab={inventarioInitialSubTab} />
+                <InventoryModule initialSubTab={inventarioInitialSubTab} />
               )}
               {activePageId === 'compras' && (
-                <FinanceModule mode="compras" initialSubTab={comprasInitialSubTab} isDarkMode={isDarkMode} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} isLoading={isLoadingFinances} />
+                <FinanceModule mode="compras" initialSubTab={comprasInitialSubTab} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} isLoading={isLoadingFinances} />
               )}
               {activePageId === 'gastos_creditos' && (
-                <GastosCreditosModule isDarkMode={isDarkMode} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} db={db} appId={appId} initialSubTab={gastosInitialSubTab} />
+                <GastosCreditosModule showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} db={db} appId={appId} initialSubTab={gastosInitialSubTab} />
               )}
 
               {/* VISTA: CONFIGURACIÓN GENERAL */}
               {activePageId === 'general_settings' && (
                 <GeneralSettings 
-                  isDarkMode={isDarkMode} 
                   showToast={showToast} 
                   db={db} 
                   appId={appId} 
@@ -2138,7 +2131,6 @@ export default function App() {
               {/* VISTA: CONTRATACIÓN DE SERVICIOS */}
               {activePageId === 'contratar_servicios' && (
                 <HiringServicesModule 
-                  isDarkMode={isDarkMode} 
                   showToast={showToast} 
                   db={db} 
                   appId={appId} 
@@ -2148,7 +2140,6 @@ export default function App() {
               {/* VISTA: SOPORTE TÉCNICO */}
               {activePageId === 'soporte_tecnico' && (
                 <SupportModule 
-                  isDarkMode={isDarkMode} 
                   showToast={showToast} 
                   db={db} 
                   appId={appId} 
@@ -2160,7 +2151,6 @@ export default function App() {
                 <ErpDashboard 
                   projectsList={projectsList} 
                   allTasksGlobal={allTasksGlobal} 
-                  isDarkMode={isDarkMode} 
                   setActivePageId={setActivePageId} 
                   setVentasInitialSubTab={setVentasInitialSubTab}
                   db={db} 
@@ -2173,12 +2163,11 @@ export default function App() {
                 <div className="flex flex-col h-full w-full overflow-hidden animate-in fade-in duration-500">
                   {/* Contenido de Personas */}
                   <div className="flex flex-1 overflow-hidden min-h-0 bg-transparent">
-                    <div className={`flex-1 overflow-y-auto px-0 py-0 custom-scrollbar ${isDarkMode ? 'bg-[#0f0f11]' : 'bg-white'}`}>
+                    <div className={`flex-1 overflow-y-auto px-0 py-0 custom-scrollbar ${'bg-white'}`}>
                       {activePageId === 'personas' && (
                         <FinanceModule 
                           mode="personas" 
                           initialSubTab={personasSubTab} 
-                          isDarkMode={isDarkMode} 
                           showToast={showToast} 
                           transactions={globalTransactions} 
                           thirdParties={globalThirdParties} 
@@ -2189,7 +2178,7 @@ export default function App() {
                       {activePageId === 'team' && (
                         <div className="animate-in fade-in duration-500 px-8 py-6">
                           <div className="flex justify-end mb-6">
-                            <button onClick={openNewUserDrawer} className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-transform shadow-sm hover:-translate-y-0.5 ${isDarkMode ? 'bg-primary text-white shadow-primary/40' : 'bg-primary text-white hover:bg-primary-hover'}`}>
+                            <button onClick={openNewUserDrawer} className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-transform shadow-sm hover:-translate-y-0.5 ${'bg-primary text-white hover:bg-primary-hover'}`}>
                               <UserPlus size={16} /> Invitar Miembro
                             </button>
                           </div>
@@ -2203,17 +2192,17 @@ export default function App() {
                                   </div>
                                   <div>
                                     <h3 className="font-bold text-base">{user.name}</h3>
-                                    <p className={`text-xs font-medium mt-0.5 ${isDarkMode ? 'text-gray-400' : 'text-gray-550'}`}>{user.job}</p>
+                                    <p className={`text-xs font-medium mt-0.5 ${'text-gray-550'}`}>{user.job}</p>
                                   </div>
                                 </div>
                                 <div className="flex items-center justify-between mt-auto border-t pt-3 border-white/10">
                                   <div className="flex items-center gap-1.5">
                                     <Shield size={14} className={user.role === 'Admin' ? 'text-red-400' : (user.role === 'Miembro' ? 'text-primary' : 'text-gray-500')} />
-                                    <span className={`text-xs font-semibold ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{user.role}</span>
+                                    <span className={`text-xs font-semibold ${'text-gray-600'}`}>{user.role}</span>
                                   </div>
                                   <div className="flex items-center gap-1">
-                                    <button onClick={() => setDrawerUser(user)} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-white/10 text-gray-400 hover:text-primary' : 'hover:bg-black/5 text-gray-500 hover:text-primary'}`} title="Editar Usuario"><Pencil size={14} /></button>
-                                    <button onClick={(e) => deleteUser(user.id, e)} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-red-500/20 text-gray-400 hover:text-red-400' : 'hover:bg-red-100 text-gray-500 hover:text-red-650'}`} title="Eliminar Usuario"><Trash2 size={14} /></button>
+                                    <button onClick={() => setDrawerUser(user)} className={`p-1.5 rounded-lg transition-colors ${'hover:bg-black/5 text-gray-500 hover:text-primary'}`} title="Editar Usuario"><Pencil size={14} /></button>
+                                    <button onClick={(e) => deleteUser(user.id, e)} className={`p-1.5 rounded-lg transition-colors ${'hover:bg-red-100 text-gray-500 hover:text-red-650'}`} title="Eliminar Usuario"><Trash2 size={14} /></button>
                                   </div>
                                 </div>
                               </div>
@@ -2231,7 +2220,7 @@ export default function App() {
                 <div className="flex flex-col h-full w-full overflow-hidden animate-in fade-in duration-500">
                   {/* Cuerpo de Proyectos */}
                   <div className="flex flex-1 overflow-hidden min-h-0 bg-transparent">
-                    <div className={`flex-1 overflow-y-auto custom-scrollbar ${isDarkMode ? 'bg-[#0f0f11]' : 'bg-white'} ${
+                    <div className={`flex-1 overflow-y-auto custom-scrollbar ${'bg-white'} ${
                       (activePage.type === 'project' || activePage.type === 'doc') ? 'px-0 py-0' : 'px-8 py-6'
                     }`}>
                       
@@ -2244,7 +2233,7 @@ export default function App() {
                                 <h3 className="text-lg font-bold">Listado de Proyectos</h3>
                                 <button 
                                   onClick={addProject} 
-                                  className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-transform shadow-sm hover:-translate-y-0.5 ${isDarkMode ? 'bg-primary text-white' : 'bg-primary text-white hover:bg-primary-hover'}`}
+                                  className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-transform shadow-sm hover:-translate-y-0.5 ${'bg-primary text-white hover:bg-primary-hover'}`}
                                 >
                                   <Plus size={14} /> Nuevo Proyecto
                                 </button>
@@ -2262,27 +2251,25 @@ export default function App() {
                                       key={proj.id} 
                                       onClick={() => setActivePageId(proj.id)}
                                       className={`p-5 rounded-2xl flex flex-col justify-between cursor-pointer border transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
-                                        isDarkMode 
-                                          ? 'bg-[#151517] border-white/5 hover:bg-[#1a1a1c] hover:border-white/10' 
-                                          : 'bg-white border-gray-150 hover:bg-[#fbfcfd] hover:border-gray-300 shadow-sm'
+                                        'bg-white border-gray-150 hover:bg-[#fbfcfd] hover:border-gray-300 shadow-sm'
                                       }`}
                                     >
                                       <div>
                                         <div className="flex items-start justify-between gap-4 mb-3">
                                           <div className="flex items-center gap-3">
-                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isDarkMode ? 'bg-primary/10 text-primary' : 'bg-primary-light text-primary'}`}>
+                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${'bg-primary-light text-primary'}`}>
                                               <Briefcase size={20} />
                                             </div>
                                             <div>
                                               <h4 className="font-bold text-base truncate max-w-[180px]">{proj.title || 'Sin título'}</h4>
-                                              <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-550'}`}>
+                                              <p className={`text-xs ${'text-gray-550'}`}>
                                                 {totalTasksCount} tareas • {completedTasksCount} completadas
                                               </p>
                                             </div>
                                           </div>
                                           <button 
                                             onClick={(e) => { e.stopPropagation(); deletePage(proj.id, e); }}
-                                            className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-red-500/20 text-gray-400 hover:text-red-400' : 'hover:bg-red-100 text-gray-500 hover:text-red-650'}`}
+                                            className={`p-1.5 rounded-lg transition-colors ${'hover:bg-red-100 text-gray-500 hover:text-red-650'}`}
                                             title="Eliminar Proyecto"
                                           >
                                             <Trash2 size={14} />
@@ -2291,10 +2278,10 @@ export default function App() {
 
                                         <div className="mt-4">
                                           <div className="flex justify-between items-center text-xs font-semibold mb-1">
-                                            <span className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Progreso</span>
-                                            <span className={isDarkMode ? 'text-primary' : 'text-primary'}>{progressPercent}%</span>
+                                            <span className={'text-gray-600'}>Progreso</span>
+                                            <span className={'text-primary'}>{progressPercent}%</span>
                                           </div>
-                                          <div className={`w-full h-2 rounded-full overflow-hidden ${isDarkMode ? 'bg-white/5' : 'bg-black/5'}`}>
+                                          <div className={`w-full h-2 rounded-full overflow-hidden ${'bg-black/5'}`}>
                                             <div className="h-full bg-primary transition-all duration-500" style={{ width: `${progressPercent}%` }}></div>
                                           </div>
                                         </div>
@@ -2303,7 +2290,7 @@ export default function App() {
                                   );
                                 })}
                                 {pages.filter(p => p.type === 'project').length === 0 && (
-                                  <div className={`col-span-full text-center py-12 rounded-2xl border border-dashed ${isDarkMode ? 'border-white/10 text-gray-500' : 'border-gray-200 text-gray-400'}`}>
+                                  <div className={`col-span-full text-center py-12 rounded-2xl border border-dashed ${'border-gray-200 text-gray-400'}`}>
                                     No hay proyectos creados aún.
                                   </div>
                                 )}
@@ -2313,15 +2300,13 @@ export default function App() {
                             <div className="animate-in fade-in duration-500">
                               <div className="px-8 py-6">
                                 <div className="mt-2 animate-in fade-in duration-500 relative z-0">
-                                  <div className={`flex items-center justify-between mb-6 border-b pb-3 ${isDarkMode ? 'border-white/10' : 'border-gray-200'}`}>
+                                  <div className={`flex items-center justify-between mb-6 border-b pb-3 ${'border-gray-200'}`}>
                                     <div className="flex items-center gap-5">
                                       {/* Pequeño botón de volver al listado de proyectos */}
                                       <button 
                                         onClick={() => setActivePageId('proyectos_general')}
                                         className={`p-1.5 rounded-xl transition-all border shadow-sm ${
-                                          isDarkMode 
-                                            ? 'border-white/10 hover:bg-white/5 text-gray-400 hover:text-white' 
-                                            : 'border-gray-200 hover:bg-black/5 text-black hover:text-black bg-white'
+                                          'border-gray-200 hover:bg-black/5 text-black hover:text-black bg-white'
                                         }`}
                                         title="Volver a la lista de proyectos"
                                       >
@@ -2335,20 +2320,18 @@ export default function App() {
                                         onChange={(e) => updateActivePage({ title: e.target.value })} 
                                         placeholder="Título del proyecto" 
                                         className={`text-base font-bold bg-transparent border-none outline-none focus:ring-0 p-0.5 rounded w-52 transition-colors ${
-                                          isDarkMode 
-                                            ? 'text-white hover:bg-white/5 focus:bg-white/5' 
-                                            : 'text-gray-900 hover:bg-black/5 focus:bg-black/5'
+                                          'text-gray-900 hover:bg-black/5 focus:bg-black/5'
                                         }`} 
                                       />
                                       
                                       {/* Selector de Líder */}
                                       <div className="flex items-center gap-1.5 text-xs border-l pl-5 border-gray-200 dark:border-white/15">
-                                        <UserCircle size={14} className={isDarkMode ? 'text-gray-500' : 'text-gray-450'} />
-                                        <span className={`font-semibold uppercase tracking-wider ${isDarkMode ? 'text-gray-500' : 'text-gray-450'}`}>Líder:</span>
+                                        <UserCircle size={14} className={'text-gray-450'} />
+                                        <span className={`font-semibold uppercase tracking-wider ${'text-gray-450'}`}>Líder:</span>
                                         <select 
                                           value={activePage.leadId || ''} 
                                           onChange={(e) => updateActivePage({ leadId: e.target.value })} 
-                                          className={`px-2 py-0.5 text-[11px] font-semibold rounded-lg outline-none cursor-pointer transition-all border ${isDarkMode ? 'bg-white/5 border-white/10 text-gray-200 hover:bg-white/10' : 'bg-white/60 border-gray-200 text-gray-700 hover:bg-white'}`}
+                                          className={`px-2 py-0.5 text-[11px] font-semibold rounded-lg outline-none cursor-pointer transition-all border ${'bg-white/60 border-gray-200 text-gray-700 hover:bg-white'}`}
                                         >
                                           <option value="">Sin Asignar</option>
                                           {users.map(u => <option key={u.id} value={u.id} className="text-black">{u.name}</option>)}
@@ -2356,9 +2339,9 @@ export default function App() {
                                       </div>
                                     </div>
                                     
-                                    <div className={`flex p-1 rounded-lg ${isDarkMode ? 'bg-white/5' : 'bg-black/5'}`}>
-                                      <button onClick={() => setCurrentProjectView('board')} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${currentProjectView === 'board' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-white text-gray-950 shadow-sm') : (isDarkMode ? 'text-gray-500 hover:text-gray-300' : 'text-gray-500 hover:text-gray-750')}`}>Tablero</button>
-                                      <button onClick={() => setCurrentProjectView('list')} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${currentProjectView === 'list' ? (isDarkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-white text-gray-900 shadow-sm') : (isDarkMode ? 'text-gray-500 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700')}`}>Lista</button>
+                                    <div className={`flex p-1 rounded-lg ${'bg-black/5'}`}>
+                                      <button onClick={() => setCurrentProjectView('board')} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${currentProjectView === 'board' ? ('bg-white text-gray-950 shadow-sm') : ('text-gray-500 hover:text-gray-750')}`}>Tablero</button>
+                                      <button onClick={() => setCurrentProjectView('list')} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${currentProjectView === 'list' ? ('bg-white text-gray-900 shadow-sm') : ('text-gray-500 hover:text-gray-700')}`}>Lista</button>
                                     </div>
                                   </div>
 
@@ -2371,8 +2354,7 @@ export default function App() {
                                             return (
                                               <SortableColumn 
                                                 key={col.id} 
-                                                col={col} 
-                                                isDarkMode={isDarkMode}
+                                                col={col}
                                                 cycleColumnColor={cycleColumnColor}
                                                 editingColumnId={editingColumnId}
                                                 editingColumnTitle={editingColumnTitle}
@@ -2391,7 +2373,6 @@ export default function App() {
                                                       <SortableTaskItem 
                                                         key={task.id} 
                                                         task={task} 
-                                                        isDarkMode={isDarkMode} 
                                                         users={users}
                                                         editingTaskId={editingTaskId}
                                                         editingTaskContent={editingTaskContent}
@@ -2414,7 +2395,7 @@ export default function App() {
                                           })}
                                         </SortableContext>
                                         
-                                        <div className={`w-[200px] shrink-0 p-3 rounded-xl flex flex-col gap-2.5 border border-dashed transition-all duration-300 hover:border-solid ${isDarkMode ? 'border-white/10 hover:border-white/30 bg-white/[0.01]' : 'border-gray-300 hover:border-gray-400 bg-black/[0.01]'}`}>
+                                        <div className={`w-[200px] shrink-0 p-3 rounded-xl flex flex-col gap-2.5 border border-dashed transition-all duration-300 hover:border-solid ${'border-gray-300 hover:border-gray-400 bg-black/[0.01]'}`}>
                                           <input 
                                             type="text" 
                                             value={newColumnName} 
@@ -2425,7 +2406,7 @@ export default function App() {
                                           />
                                           <button 
                                             onClick={handleAddColumn} 
-                                            className={`flex items-center justify-center gap-1.5 w-full py-2 rounded-lg transition-all text-xs font-bold shadow-sm ${isDarkMode ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}
+                                            className={`flex items-center justify-center gap-1.5 w-full py-2 rounded-lg transition-all text-xs font-bold shadow-sm ${'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}
                                           >
                                             <Plus size={14} /> Crear Columna
                                           </button>
@@ -2437,7 +2418,7 @@ export default function App() {
                                       {(activePage.columns || DEFAULT_COLUMNS).map(col => {
                                         const colTasks = (activePage.tasks || []).filter(t => t.status === col.id).sort((a, b) => (a.order || 0) - (b.order || 0));
                                         return (
-                                          <div key={col.id} className={`p-5 rounded-2xl border shadow-sm ${isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-150'}`}>
+                                          <div key={col.id} className={`p-5 rounded-2xl border shadow-sm ${'bg-white border-gray-150'}`}>
                                             <div className="flex items-center justify-between mb-4">
                                               <span className={`text-xs font-bold px-2.5 py-1 rounded-lg ${getColumnColorClass(col.color)}`}>{col.title} ({colTasks.length})</span>
                                             </div>
@@ -2450,16 +2431,16 @@ export default function App() {
                                                   return (
                                                     <div key={task.id} className="group py-3 flex flex-col md:flex-row md:items-center justify-between gap-3 cursor-pointer" onClick={() => setDrawerTask(task)}>
                                                       <div className="flex items-center gap-3 md:w-1/2">
-                                                        <div className={`p-1.5 rounded-lg shrink-0 ${isDarkMode ? 'bg-white/5 text-gray-400' : 'bg-black/5 text-gray-650'}`}>
+                                                        <div className={`p-1.5 rounded-lg shrink-0 ${'bg-black/5 text-gray-650'}`}>
                                                           <CheckSquare size={14} />
                                                         </div>
-                                                        <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-300 group-hover:text-white' : 'text-gray-700 group-hover:text-black'}`}>{task.content}</span>
+                                                        <span className={`text-sm font-medium ${'text-gray-700 group-hover:text-black'}`}>{task.content}</span>
                                                       </div>
                                                       <div className="flex items-center gap-4 md:w-1/2 md:justify-end ml-7 md:ml-0">
-                                                        {task.meetLink && <span className={`flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-md opacity-70 group-hover:opacity-100 transition-opacity ${isDarkMode ? 'bg-primary/20 text-primary border border-primary/20' : 'bg-primary/10 text-primary border border-primary/25'}`}><Video size={10} /> Videollamada</span>}
+                                                        {task.meetLink && <span className={`flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-md opacity-70 group-hover:opacity-100 transition-opacity ${'bg-primary/10 text-primary border border-primary/25'}`}><Video size={10} /> Videollamada</span>}
                                                         {assignedUser ? (
                                                           <div className={`flex items-center gap-2 opacity-70 group-hover:opacity-100 transition-opacity min-w-[120px] justify-end`}>
-                                                            <span className={`text-xs font-semibold truncate ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{assignedUser.name}</span>
+                                                            <span className={`text-xs font-semibold truncate ${'text-gray-600'}`}>{assignedUser.name}</span>
                                                             <div className={`w-6 h-6 rounded-full flex shrink-0 items-center justify-center text-[10px] font-bold text-white shadow-inner bg-gradient-to-br ${assignedUser.color}`}>{assignedUser.initials}</div>
                                                           </div>
                                                         ) : (
@@ -2470,7 +2451,7 @@ export default function App() {
                                                   );
                                                 })
                                               )}
-                                              <div className={`px-4 py-3 transition-colors cursor-pointer rounded-b-xl flex items-center gap-2 ${isDarkMode ? 'hover:bg-white/[0.03] text-gray-500 hover:text-gray-300' : 'hover:bg-black/[0.03] text-gray-500 hover:text-gray-700'}`} onClick={() => openNewTaskDrawer(col.id)}>
+                                              <div className={`px-4 py-3 transition-colors cursor-pointer rounded-b-xl flex items-center gap-2 ${'hover:bg-black/[0.03] text-gray-500 hover:text-gray-700'}`} onClick={() => openNewTaskDrawer(col.id)}>
                                                 <Plus size={14} />
                                                 <span className="text-xs font-semibold tracking-wide">Añadir nueva tarea</span>
                                               </div>
@@ -2496,7 +2477,7 @@ export default function App() {
                                 <h3 className="text-lg font-bold">Listado de Páginas</h3>
                                 <button 
                                   onClick={addPage} 
-                                  className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-transform shadow-sm hover:-translate-y-0.5 ${isDarkMode ? 'bg-primary text-white' : 'bg-primary text-white hover:bg-primary-hover'}`}
+                                  className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-transform shadow-sm hover:-translate-y-0.5 ${'bg-primary text-white hover:bg-primary-hover'}`}
                                 >
                                   <Plus size={14} /> Nueva Página
                                 </button>
@@ -2508,27 +2489,25 @@ export default function App() {
                                     key={docPage.id} 
                                     onClick={() => setActivePageId(docPage.id)}
                                     className={`p-5 rounded-2xl flex flex-col justify-between cursor-pointer border transition-all duration-350 hover:-translate-y-1 hover:shadow-md ${
-                                      isDarkMode 
-                                        ? 'bg-[#151517] border-white/5 hover:bg-[#1a1a1c] hover:border-white/10' 
-                                        : 'bg-white border-gray-150 hover:bg-[#fbfcfd] hover:border-gray-300 shadow-sm'
+                                      'bg-white border-gray-150 hover:bg-[#fbfcfd] hover:border-gray-300 shadow-sm'
                                     }`}
                                   >
                                     <div>
                                       <div className="flex items-start justify-between gap-4 mb-3">
                                         <div className="flex items-center gap-3">
-                                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isDarkMode ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}`}>
+                                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${'bg-emerald-50 text-emerald-600'}`}>
                                             <FileText size={20} />
                                           </div>
                                           <div>
                                             <h4 className="font-bold text-base truncate max-w-[180px]">{docPage.title || 'Sin título'}</h4>
-                                            <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-550'}`}>
+                                            <p className={`text-xs ${'text-gray-550'}`}>
                                               {docPage.content ? `${Math.round(docPage.content.split(' ').length)} palabras` : 'Vacía'}
                                             </p>
                                           </div>
                                         </div>
                                         <button 
                                           onClick={(e) => { e.stopPropagation(); deletePage(docPage.id, e); }}
-                                          className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-red-500/20 text-gray-400 hover:text-red-400' : 'hover:bg-red-100 text-gray-500 hover:text-red-650'}`}
+                                          className={`p-1.5 rounded-lg transition-colors ${'hover:bg-red-100 text-gray-500 hover:text-red-650'}`}
                                           title="Eliminar Página"
                                         >
                                           <Trash2 size={14} />
@@ -2538,7 +2517,7 @@ export default function App() {
                                   </div>
                                 ))}
                                 {pages.filter(p => p.type === 'doc').length === 0 && (
-                                  <div className={`col-span-full text-center py-12 rounded-2xl border border-dashed ${isDarkMode ? 'border-white/10 text-gray-500' : 'border-gray-200 text-gray-400'}`}>
+                                  <div className={`col-span-full text-center py-12 rounded-2xl border border-dashed ${'border-gray-200 text-gray-400'}`}>
                                     No hay páginas creadas aún.
                                   </div>
                                 )}
@@ -2546,38 +2525,36 @@ export default function App() {
                             </div>
                           ) : (
                             <div className="animate-in fade-in duration-500">
-                              <div className={`flex items-center gap-3 px-8 py-3.5 border-b shrink-0 ${isDarkMode ? 'border-white/5 bg-[#121214]/40' : 'border-primary/10 bg-primary-light/40'}`}>
+                              <div className={`flex items-center gap-3 px-8 py-3.5 border-b shrink-0 ${'border-primary/10 bg-primary-light/40'}`}>
                                 <button 
                                   onClick={() => setActivePageId('paginas_general')}
                                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
-                                    isDarkMode 
-                                      ? 'border-white/10 hover:bg-white/5 text-gray-300 hover:text-white' 
-                                      : 'border-gray-200 hover:bg-black/5 text-black hover:text-black'
+                                    'border-gray-200 hover:bg-black/5 text-black hover:text-black'
                                   }`}
                                 >
                                   <ArrowLeft size={12} /> Volver a Páginas
                                 </button>
-                                <span className={`text-xs font-bold ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                <span className={`text-xs font-bold ${'text-gray-600'}`}>
                                   Página activa: <span className="text-primary font-extrabold">{activePage.title}</span>
                                 </span>
                               </div>
                               <div className="max-w-4xl mx-auto px-6 md:px-12 lg:px-24 py-8">
                                 <div className="mb-8">
                                   <div className="group relative flex items-center gap-3">
-                                     <div className={`p-2.5 rounded-xl transition-colors backdrop-blur-md border ${isDarkMode ? 'bg-white/5 border-white/10 text-gray-200 shadow-sm' : 'bg-white/60 border-gray-200 text-gray-700 shadow-sm'}`}>
+                                     <div className={`p-2.5 rounded-xl transition-colors backdrop-blur-md border ${'bg-white/60 border-gray-200 text-gray-700 shadow-sm'}`}>
                                        <IconRenderer name={activePage.icon} size={24} />
                                      </div>
-                                     <input type="text" value={activePage.title} onChange={(e) => updateActivePage({ title: e.target.value })} placeholder="Título del documento" className={`w-full text-3xl font-bold border-none outline-none bg-transparent resize-none focus:ring-0 tracking-tight ${isDarkMode ? 'text-white placeholder-gray-700' : 'text-gray-900 placeholder-gray-400'}`} />
+                                     <input type="text" value={activePage.title} onChange={(e) => updateActivePage({ title: e.target.value })} placeholder="Título del documento" className={`w-full text-3xl font-bold border-none outline-none bg-transparent resize-none focus:ring-0 tracking-tight ${'text-gray-900 placeholder-gray-400'}`} />
                                   </div>
                                 </div>
 
-                                <div className={`flex flex-wrap gap-2 mb-6 p-2 rounded-xl animate-in fade-in duration-300 ${isDarkMode ? 'bg-white/5 border border-white/5 backdrop-blur-md' : 'bg-white/40 border border-white/40 backdrop-blur-md shadow-sm'}`}>
-                                  <span className={`flex items-center px-2 text-[10px] font-bold uppercase tracking-wider ${isDarkMode ? 'text-purple-400' : 'text-purple-600'}`}>Herramientas IA</span>
-                                  <button onClick={() => handleAiAction('improve')} disabled={isGeneratingAI || !activePage.content.trim()} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${isDarkMode ? 'bg-purple-500/20 text-purple-300 hover:bg-purple-500/40 border border-purple-500/20' : 'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>{isGeneratingAI ? <RefreshCw size={12} className="animate-spin" /> : <Wand2 size={12} />} Mejorar</button>
-                                  <button onClick={() => handleAiAction('summarize')} disabled={isGeneratingAI || !activePage.content.trim()} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${isDarkMode ? 'bg-purple-500/20 text-purple-300 hover:bg-purple-500/40 border border-purple-500/20' : 'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>{isGeneratingAI ? <RefreshCw size={12} className="animate-spin" /> : <Sparkles size={12} />} Resumir</button>
-                                  <button onClick={() => handleAiAction('continue')} disabled={isGeneratingAI || !activePage.content.trim()} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${isDarkMode ? 'bg-purple-500/20 text-purple-300 hover:bg-purple-500/40 border border-purple-500/20' : 'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>{isGeneratingAI ? <RefreshCw size={12} className="animate-spin" /> : <Sparkles size={12} />} Continuar</button>
+                                <div className={`flex flex-wrap gap-2 mb-6 p-2 rounded-xl animate-in fade-in duration-300 ${'bg-white/40 border border-white/40 backdrop-blur-md shadow-sm'}`}>
+                                  <span className={`flex items-center px-2 text-[10px] font-bold uppercase tracking-wider ${'text-purple-600'}`}>Herramientas IA</span>
+                                  <button onClick={() => handleAiAction('improve')} disabled={isGeneratingAI || !activePage.content.trim()} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>{isGeneratingAI ? <RefreshCw size={12} className="animate-spin" /> : <Wand2 size={12} />} Mejorar</button>
+                                  <button onClick={() => handleAiAction('summarize')} disabled={isGeneratingAI || !activePage.content.trim()} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>{isGeneratingAI ? <RefreshCw size={12} className="animate-spin" /> : <Sparkles size={12} />} Resumir</button>
+                                  <button onClick={() => handleAiAction('continue')} disabled={isGeneratingAI || !activePage.content.trim()} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>{isGeneratingAI ? <RefreshCw size={12} className="animate-spin" /> : <Sparkles size={12} />} Continuar</button>
                                 </div>
-                                <textarea ref={contentRef} value={activePage.content} onChange={(e) => updateActivePage({ content: e.target.value })} placeholder="Presiona '/' para comandos o empieza a escribir..." className={`w-full text-[13px] leading-tight border-none outline-none bg-transparent resize-none focus:ring-0 min-h-[300px] font-medium ${isDarkMode ? 'text-gray-100 placeholder-gray-500' : 'text-gray-900 placeholder-gray-500'}`} />
+                                <textarea ref={contentRef} value={activePage.content} onChange={(e) => updateActivePage({ content: e.target.value })} placeholder="Presiona '/' para comandos o empieza a escribir..." className={`w-full text-[13px] leading-tight border-none outline-none bg-transparent resize-none focus:ring-0 min-h-[300px] font-medium ${'text-gray-900 placeholder-gray-500'}`} />
                               </div>
                             </div>
                           )}
@@ -2590,22 +2567,22 @@ export default function App() {
                           <div className={`p-6 rounded-2xl ${currentGlassPanel}`}>
                             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                               <div>
-                                <h2 className="text-lg font-semibold flex items-center gap-2"><Calendar size={20} className={isDarkMode ? 'text-primary' : 'text-primary'} /> Google Workspace (API Real)</h2>
-                                <p className={`text-sm mt-1 font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Lee tus eventos reales y genera enlaces oficiales de Google Meet.</p>
+                                <h2 className="text-lg font-semibold flex items-center gap-2"><Calendar size={20} className={'text-primary'} /> Google Workspace (API Real)</h2>
+                                <p className={`text-sm mt-1 font-medium ${'text-gray-500'}`}>Lee tus eventos reales y genera enlaces oficiales de Google Meet.</p>
                               </div>
                               
                               {!googleClientId ? (
-                                <button onClick={() => setActivePageId('general_settings')} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-transform shadow-sm hover:-translate-y-0.5 ${isDarkMode ? 'bg-white/10 text-white shadow-white/5 hover:bg-white/20 border border-white/10' : 'bg-gray-900 text-white hover:bg-gray-800'}`}>
+                                <button onClick={() => setActivePageId('general_settings')} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-transform shadow-sm hover:-translate-y-0.5 ${'bg-gray-900 text-white hover:bg-gray-800'}`}>
                                   <Settings size={16} /> Configurar Integración
                                 </button>
                               ) : !isGoogleConnected ? (
-                                <button onClick={handleConnectGoogle} disabled={isConnecting} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-transform shadow-sm hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:translate-y-0 ${isDarkMode ? 'bg-primary text-white shadow-primary/40' : 'bg-primary text-white'}`}>
+                                <button onClick={handleConnectGoogle} disabled={isConnecting} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-transform shadow-sm hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:translate-y-0 ${'bg-primary text-white'}`}>
                                   {isConnecting ? <RefreshCw className="animate-spin" size={16} /> : <LogIn size={16} />} {isConnecting ? 'Conectando...' : 'Conectar Google'}
                                 </button>
                               ) : (
                                 <div className="flex items-center gap-3">
-                                  <span className={`text-xs px-3 py-1.5 rounded-lg border flex items-center gap-1.5 font-semibold shadow-inner ${isDarkMode ? 'bg-green-500/20 text-green-300 border-green-500/30' : 'bg-green-100/60 text-green-700 border-green-200'}`}><span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Sincronizado</span>
-                                  <button onClick={handleDisconnectGoogle} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${isDarkMode ? 'bg-white/5 text-gray-400 hover:text-red-400 hover:bg-red-500/20' : 'bg-black/5 text-gray-600 hover:text-red-650'}`}><LogOut size={14} /> Desconectar</button>
+                                  <span className={`text-xs px-3 py-1.5 rounded-lg border flex items-center gap-1.5 font-semibold shadow-inner ${'bg-green-100/60 text-green-700 border-green-200'}`}><span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Sincronizado</span>
+                                  <button onClick={handleDisconnectGoogle} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${'bg-black/5 text-gray-600 hover:text-red-650'}`}><LogOut size={14} /> Desconectar</button>
                                 </div>
                               )}
                             </div>
@@ -2613,9 +2590,9 @@ export default function App() {
 
                           {isGoogleConnected && (
                             <div className="space-y-5">
-                              <div className={`flex items-center justify-between border-b pb-3 ${isDarkMode ? 'border-white/10' : 'border-gray-200'}`}>
+                              <div className={`flex items-center justify-between border-b pb-3 ${'border-gray-200'}`}>
                                 <h3 className="text-lg font-semibold">Próximos Eventos Reales (7 días)</h3>
-                                <button onClick={handleCreateInstantMeetUI} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all text-xs font-semibold shadow-sm ${isDarkMode ? 'bg-primary/20 text-primary hover:bg-primary/40 border border-primary/20' : 'bg-primary/10 text-primary hover:bg-primary/15 border border-primary/25'}`}><Video size={14} /> Crear Meet Real</button>
+                                <button onClick={handleCreateInstantMeetUI} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all text-xs font-semibold shadow-sm ${'bg-primary/10 text-primary hover:bg-primary/15 border border-primary/25'}`}><Video size={14} /> Crear Meet Real</button>
                               </div>
                               <div className="grid grid-cols-1 gap-3">
                                 {events.length > 0 ? events.map(event => (
@@ -2624,25 +2601,25 @@ export default function App() {
                                       <div className={`px-2.5 py-1 rounded-lg text-xs font-bold border backdrop-blur-md shadow-inner ${event.color} border-current/20`}>{event.date}</div>
                                       <div>
                                         <h4 className="text-base font-semibold mb-0.5 max-w-[250px] truncate">{event.title}</h4>
-                                        <div className={`flex items-center gap-1.5 text-xs font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-550'}`}><Clock size={14} />{event.time}</div>
+                                        <div className={`flex items-center gap-1.5 text-xs font-medium ${'text-gray-550'}`}><Clock size={14} />{event.time}</div>
                                       </div>
                                     </div>
                                     <div className="mt-4 md:mt-0 w-full md:w-auto flex flex-wrap gap-2 justify-start md:justify-end">
-                                      <button onClick={() => convertEventToTask(event)} className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all shadow-sm ${isDarkMode ? 'bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/40 border border-emerald-500/20' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}`}>
+                                      <button onClick={() => convertEventToTask(event)} className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all shadow-sm ${'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}`}>
                                           <CheckSquare size={14} /> Convertir en Tarea
                                       </button>
-                                      <button onClick={() => generateMeetingAgenda(event)} disabled={isGeneratingAI} className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all disabled:opacity-50 shadow-sm ${isDarkMode ? 'bg-purple-500/20 text-purple-300 hover:bg-purple-500/40 border border-purple-500/20' : 'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>
+                                      <button onClick={() => generateMeetingAgenda(event)} disabled={isGeneratingAI} className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all disabled:opacity-50 shadow-sm ${'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>
                                           {isGeneratingAI ? <RefreshCw className="animate-spin" size={14} /> : <Wand2 size={14} />} Agenda con IA
                                       </button>
                                       {event.meetLink && (
-                                        <a href={event.meetLink} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all shadow-sm ${isDarkMode ? 'bg-primary/20 text-primary hover:bg-primary/40 border border-primary/20' : 'bg-primary/10 text-primary hover:bg-primary/15 border border-primary/25'}`}>
+                                        <a href={event.meetLink} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all shadow-sm ${'bg-primary/10 text-primary hover:bg-primary/15 border border-primary/25'}`}>
                                           <Video size={14} /> Unirse a Meet
                                         </a>
                                       )}
                                     </div>
                                   </div>
                                 )) : (
-                                  <div className={`col-span-full text-center py-12 rounded-2xl border border-dashed ${isDarkMode ? 'border-white/10 text-gray-500' : 'border-gray-200 text-gray-400'}`}>
+                                  <div className={`col-span-full text-center py-12 rounded-2xl border border-dashed ${'border-gray-200 text-gray-400'}`}>
                                     No hay eventos para los próximos 7 días.
                                   </div>
                                 )}
@@ -2663,11 +2640,10 @@ export default function App() {
 
         {/* Chat Lateral de IA Global */}
         {isGlobalChatOpen && (
-          <div className={`w-80 border-l shrink-0 flex flex-col p-4 animate-in slide-in-from-right duration-300 ${isDarkMode ? 'border-white/10 bg-[#0f0f11]' : 'border-primary/10 bg-primary-light'}`}>
+          <div className={`w-80 border-l shrink-0 flex flex-col p-4 animate-in slide-in-from-right duration-300 ${'border-primary/10 bg-primary-light'}`}>
             <FinanceChat 
               transactions={globalTransactions} 
               thirdParties={globalThirdParties} 
-              isDarkMode={isDarkMode} 
               onClose={() => setIsGlobalChatOpen(false)} 
             />
           </div>
@@ -2680,21 +2656,21 @@ export default function App() {
       {drawerTask && <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[70] transition-opacity" onClick={() => setDrawerTask(null)} />}
 
       {/* Drawer (Task) */}
-      <div className={`fixed inset-y-0 right-0 z-[80] w-full sm:w-[400px] ${drawerTask ? 'shadow-[0_0_40px_rgba(0,0,0,0.5)] translate-x-0' : 'translate-x-full'} transform transition-transform duration-300 flex flex-col backdrop-blur-2xl ${isDarkMode ? 'bg-[#0f0f11]/90 border-l border-white/10' : 'bg-white/90 border-l border-white/50'}`}>
+      <div className={`fixed inset-y-0 right-0 z-[80] w-full sm:w-[400px] ${drawerTask ? 'shadow-[0_0_40px_rgba(0,0,0,0.5)] translate-x-0' : 'translate-x-full'} transform transition-transform duration-300 flex flex-col backdrop-blur-2xl ${'bg-white/90 border-l border-white/50'}`}>
         {drawerTask && (
           <>
-            <div className={`flex items-center justify-between px-6 py-4 border-b shrink-0 ${isDarkMode ? 'border-white/10' : 'border-black/5'}`}>
+            <div className={`flex items-center justify-between px-6 py-4 border-b shrink-0 ${'border-black/5'}`}>
               <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-xl shadow-inner ${isDarkMode ? 'bg-white/10 text-white border border-white/10' : 'bg-primary/10 text-primary border border-white/50'}`}><Briefcase size={18} /></div>
-                <h2 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{drawerTask.id && globalTasks.some(t => t.id === drawerTask.id) ? 'Detalles de Tarea' : 'Crear Tarea'}</h2>
+                <div className={`p-2 rounded-xl shadow-inner ${'bg-primary/10 text-primary border border-white/50'}`}><Briefcase size={18} /></div>
+                <h2 className={`text-lg font-bold ${'text-gray-900'}`}>{drawerTask.id && globalTasks.some(t => t.id === drawerTask.id) ? 'Detalles de Tarea' : 'Crear Tarea'}</h2>
               </div>
               <div className="flex items-center gap-1">
                 {drawerTask.id && globalTasks.some(t => t.id === drawerTask.id) && (
-                  <button onClick={handleDeleteTaskFromDrawer} className={`p-2 rounded-lg transition-all shadow-sm ${isDarkMode ? 'bg-red-500/10 hover:bg-red-500/30 text-red-400 border border-red-500/20' : 'bg-red-50 hover:bg-red-100 text-red-500 border border-red-100'}`} title="Eliminar tarea">
+                  <button onClick={handleDeleteTaskFromDrawer} className={`p-2 rounded-lg transition-all shadow-sm ${'bg-red-50 hover:bg-red-100 text-red-500 border border-red-100'}`} title="Eliminar tarea">
                     <Trash2 size={16} />
                   </button>
                 )}
-                <button onClick={() => setDrawerTask(null)} className={`p-2 rounded-lg transition-all shadow-sm ${isDarkMode ? 'bg-white/5 hover:bg-white/20 text-gray-300 border border-white/5' : 'bg-white hover:bg-gray-100 text-gray-600 border border-gray-200'}`}><X size={16} /></button>
+                <button onClick={() => setDrawerTask(null)} className={`p-2 rounded-lg transition-all shadow-sm ${'bg-white hover:bg-gray-100 text-gray-600 border border-gray-200'}`}><X size={16} /></button>
               </div>
             </div>
 
@@ -2705,8 +2681,8 @@ export default function App() {
                     <Clock size={16} />
                   </div>
                   <div>
-                    <p className={`text-[10px] font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Tiempo Invertido</p>
-                    <p className={`text-sm font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                    <p className={`text-[10px] font-bold uppercase tracking-wider ${'text-gray-500'}`}>Tiempo Invertido</p>
+                    <p className={`text-sm font-semibold ${'text-gray-800'}`}>
                       {Math.floor(((drawerTask.timeSpent || 0) + (isTimerRunning && activeTimerTaskId === drawerTask.id ? elapsedTime : 0)) / 60)} min {((drawerTask.timeSpent || 0) + (isTimerRunning && activeTimerTaskId === drawerTask.id ? elapsedTime : 0)) % 60} seg
                     </p>
                   </div>
@@ -2721,13 +2697,13 @@ export default function App() {
 
               <div className="space-y-4">
                 <div>
-                  <label className={`block text-[10px] font-bold uppercase tracking-wider mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>¿Qué hay que hacer?</label>
+                  <label className={`block text-[10px] font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}>¿Qué hay que hacer?</label>
                   <input type="text" value={drawerTask.content} onChange={(e) => setDrawerTask(prev => ({ ...prev, content: e.target.value }))} className={`w-full text-sm font-semibold px-3 py-2 rounded-xl outline-none transition-all shadow-inner ${currentGlassInput}`} placeholder="Ej. Implementar Auth con Firebase..." />
                 </div>
                 
                 {/* Nuevo Selector de Asignación */}
                 <div>
-                  <label className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}><UserCircle size={14} className={isDarkMode ? 'text-emerald-400' : 'text-emerald-500'}/> Asignado a</label>
+                  <label className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}><UserCircle size={14} className={'text-emerald-500'}/> Asignado a</label>
                   <select value={drawerTask.assigneeId || ''} onChange={(e) => setDrawerTask(prev => ({ ...prev, assigneeId: e.target.value }))} className={`w-full px-3 py-2 text-sm font-medium rounded-lg outline-none cursor-pointer transition-all shadow-inner ${currentGlassInput}`}>
                     <option value="" className="text-black">Sin asignar</option>
                     {users.map(u => <option key={u.id} value={u.id} className="text-black">{u.name} - {u.job}</option>)}
@@ -2736,13 +2712,13 @@ export default function App() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className={`block text-[10px] font-bold uppercase tracking-wider mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Proyecto Maestro</label>
+                    <label className={`block text-[10px] font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}>Proyecto Maestro</label>
                     <select value={drawerTask.projectId || ''} onChange={(e) => setDrawerTask(prev => ({ ...prev, projectId: e.target.value }))} className={`w-full px-3 py-2 text-sm font-medium rounded-lg outline-none cursor-pointer transition-all shadow-inner ${currentGlassInput}`}>
                       {projectsList.map(p => <option key={p.id} value={p.id} className="text-black">{p.title}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className={`block text-[10px] font-bold uppercase tracking-wider mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Fase actual</label>
+                    <label className={`block text-[10px] font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}>Fase actual</label>
                     <select value={drawerTask.status} onChange={(e) => setDrawerTask(prev => ({ ...prev, status: e.target.value }))} className={`w-full px-3 py-2 text-sm font-medium rounded-lg outline-none cursor-pointer transition-all shadow-inner ${currentGlassInput}`}>
                       {((projectsList.find(p => p.id === drawerTask.projectId)?.columns) || DEFAULT_COLUMNS).map(c => <option key={c.id} value={c.id} className="text-black">{c.title}</option>)}
                     </select>
@@ -2750,9 +2726,9 @@ export default function App() {
                 </div>
 
                 {/* --- NUEVO: Integración Google Workspace en Drawer --- */}
-                <div className={`p-4 rounded-xl border ${isDarkMode ? 'bg-black/20 border-white/10' : 'bg-primary-light border-primary/15'}`}>
-                  <label className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider mb-3 ${isDarkMode ? 'text-gray-400' : 'text-primary'}`}>
-                    <Calendar size={14} className={isDarkMode ? 'text-primary' : 'text-primary'} /> Google Workspace (API Real)
+                <div className={`p-4 rounded-xl border ${'bg-primary-light border-primary/15'}`}>
+                  <label className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider mb-3 ${'text-primary'}`}>
+                    <Calendar size={14} className={'text-primary'} /> Google Workspace (API Real)
                   </label>
                   {!isGoogleConnected ? (
                      <div className="flex items-start gap-2 text-xs italic opacity-80">
@@ -2766,11 +2742,11 @@ export default function App() {
                            <div className="flex-1 px-3 py-2 text-xs rounded-lg truncate bg-black/10 border border-white/10 opacity-70">
                              {drawerTask.meetLink}
                            </div>
-                           <a href={drawerTask.meetLink} target="_blank" rel="noopener noreferrer" className={`px-3 py-2 rounded-lg text-xs font-bold transition-all shadow-sm shrink-0 ${isDarkMode ? 'bg-primary/80 text-white hover:bg-primary' : 'bg-primary text-white hover:bg-primary-hover'}`}>Entrar</a>
+                           <a href={drawerTask.meetLink} target="_blank" rel="noopener noreferrer" className={`px-3 py-2 rounded-lg text-xs font-bold transition-all shadow-sm shrink-0 ${'bg-primary text-white hover:bg-primary-hover'}`}>Entrar</a>
                            <button onClick={() => setDrawerTask(p => ({...p, meetLink: ''}))} className="p-2 rounded-lg transition-colors bg-red-500/10 text-red-400 hover:bg-red-500/30 border border-red-500/20 shrink-0" title="Quitar enlace"><X size={14}/></button>
                          </div>
                        ) : (
-                         <button onClick={handleGenerateMeetForTask} className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all border shadow-sm ${isDarkMode ? 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10' : 'bg-white border-gray-200 text-primary hover:bg-gray-50'}`}>
+                         <button onClick={handleGenerateMeetForTask} className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all border shadow-sm ${'bg-white border-gray-200 text-primary hover:bg-gray-50'}`}>
                             <Video size={14} /> Crear Evento y Generar Meet
                          </button>
                        )}
@@ -2780,25 +2756,25 @@ export default function App() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}><CalendarDays size={14} className={isDarkMode ? 'text-primary' : 'text-primary'} /> Arranca el</label>
-                    <input type="date" value={drawerTask.startDate || ''} onChange={(e) => setDrawerTask(prev => ({ ...prev, startDate: e.target.value }))} className={`w-full px-3 py-2 text-xs font-medium rounded-lg outline-none transition-all shadow-inner ${isDarkMode ? '[color-scheme:dark]' : ''} ${currentGlassInput}`} />
+                    <label className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}><CalendarDays size={14} className={'text-primary'} /> Arranca el</label>
+                    <input type="date" value={drawerTask.startDate || ''} onChange={(e) => setDrawerTask(prev => ({ ...prev, startDate: e.target.value }))} className={`w-full px-3 py-2 text-xs font-medium rounded-lg outline-none transition-all shadow-inner ${''} ${currentGlassInput}`} />
                   </div>
                   <div>
-                    <label className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}><CalendarDays size={14} className={isDarkMode ? 'text-red-400' : 'text-red-500'} /> Fecha Límite</label>
-                    <input type="date" value={drawerTask.dueDate || ''} onChange={(e) => setDrawerTask(prev => ({ ...prev, dueDate: e.target.value }))} className={`w-full px-3 py-2 text-xs font-medium rounded-lg outline-none transition-all shadow-inner ${isDarkMode ? '[color-scheme:dark]' : ''} ${currentGlassInput}`} />
+                    <label className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}><CalendarDays size={14} className={'text-red-500'} /> Fecha Límite</label>
+                    <input type="date" value={drawerTask.dueDate || ''} onChange={(e) => setDrawerTask(prev => ({ ...prev, dueDate: e.target.value }))} className={`w-full px-3 py-2 text-xs font-medium rounded-lg outline-none transition-all shadow-inner ${''} ${currentGlassInput}`} />
                   </div>
                 </div>
                 <div>
-                  <label className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}><DollarSign size={14} className={isDarkMode ? 'text-green-400' : 'text-green-500'} /> Presupuesto Asignado (USD)</label>
+                  <label className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}><DollarSign size={14} className={'text-green-500'} /> Presupuesto Asignado (USD)</label>
                   <input type="number" value={drawerTask.budget || ''} onChange={(e) => setDrawerTask(prev => ({ ...prev, budget: e.target.value }))} placeholder="Ej. 1200" className={`w-full px-3 py-2 text-sm font-medium rounded-lg outline-none transition-all shadow-inner ${currentGlassInput}`} />
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}><AlignLeft size={14} className={isDarkMode ? 'text-purple-400' : 'text-purple-500'} /> Descripción</label>
+                    <label className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider ${'text-gray-500'}`}><AlignLeft size={14} className={'text-purple-500'} /> Descripción</label>
                     <button 
                       onClick={generateTaskPlan}
                       disabled={isGeneratingAI || !drawerTask.content}
-                      className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold transition-all shadow-sm disabled:opacity-50 hover:scale-105 ${isDarkMode ? 'bg-gradient-to-r from-purple-600/50 to-primary-hover/50 text-white border border-purple-500/30' : 'bg-gradient-to-r from-purple-100 to-indigo-100 text-purple-800 border border-purple-200'}`}
+                      className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold transition-all shadow-sm disabled:opacity-50 hover:scale-105 ${'bg-gradient-to-r from-purple-100 to-indigo-100 text-purple-800 border border-purple-200'}`}
                     >
                       {isGeneratingAI ? <RefreshCw size={12} className="animate-spin" /> : <Sparkles size={12} />} ✨ Plan IA
                     </button>
@@ -2807,14 +2783,14 @@ export default function App() {
                 </div>
               </div>
 
-              <div className={`h-px w-full ${isDarkMode ? 'bg-white/10' : 'bg-black/10'}`}></div>
+              <div className={`h-px w-full ${'bg-black/10'}`}></div>
 
               {/* CHECKLIST / SUBTAREAS */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}><ListTodo size={14} className={isDarkMode ? 'text-primary' : 'text-primary'} /> Subtareas (Checklist)</label>
+                  <label className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider ${'text-gray-500'}`}><ListTodo size={14} className={'text-primary'} /> Subtareas (Checklist)</label>
                   {drawerTask.subtasks && drawerTask.subtasks.length > 0 && (
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isDarkMode ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${'bg-primary/10 text-primary'}`}>
                       {drawerTask.subtasks.filter(s => s.completed).length} / {drawerTask.subtasks.length}
                     </span>
                   )}
@@ -2822,46 +2798,46 @@ export default function App() {
                 
                 <div className="space-y-2 mb-3">
                   {(drawerTask.subtasks || []).map(st => (
-                    <div key={st.id} className={`flex items-center gap-2 p-2 rounded-lg border ${isDarkMode ? 'bg-black/20 border-white/10' : 'bg-white/50 border-gray-200'} group`}>
-                      <button onClick={() => toggleSubtask(st.id)} className={`w-4 h-4 rounded flex shrink-0 items-center justify-center border transition-all ${st.completed ? 'bg-primary border-primary text-white' : (isDarkMode ? 'border-gray-500 hover:border-gray-300' : 'border-gray-400 hover:border-gray-600')}`}>
+                    <div key={st.id} className={`flex items-center gap-2 p-2 rounded-lg border ${'bg-white/50 border-gray-200'} group`}>
+                      <button onClick={() => toggleSubtask(st.id)} className={`w-4 h-4 rounded flex shrink-0 items-center justify-center border transition-all ${st.completed ? 'bg-primary border-primary text-white' : ('border-gray-400 hover:border-gray-600')}`}>
                          {st.completed && <CheckSquare size={10} />}
                       </button>
-                      <span className={`flex-1 text-xs font-medium ${st.completed ? 'line-through opacity-50' : ''} ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>{st.text}</span>
-                      <button onClick={() => removeSubtask(st.id)} className={`opacity-0 group-hover:opacity-100 p-1 rounded transition-colors ${isDarkMode ? 'text-red-400 hover:bg-red-500/20' : 'text-red-500 hover:bg-red-100'}`}><X size={12} /></button>
+                      <span className={`flex-1 text-xs font-medium ${st.completed ? 'line-through opacity-50' : ''} ${'text-gray-700'}`}>{st.text}</span>
+                      <button onClick={() => removeSubtask(st.id)} className={`opacity-0 group-hover:opacity-100 p-1 rounded transition-colors ${'text-red-500 hover:bg-red-100'}`}><X size={12} /></button>
                     </div>
                   ))}
                 </div>
 
                 <div className="flex gap-2">
                   <input type="text" value={newSubtaskText} onChange={(e) => setNewSubtaskText(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addSubtask()} placeholder="Agregar un paso o subtarea..." className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-lg outline-none transition-all shadow-inner ${currentGlassInput}`} />
-                  <button onClick={addSubtask} disabled={!newSubtaskText.trim()} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-50 ${isDarkMode ? 'bg-primary/20 text-primary hover:bg-primary/40 border border-primary/30' : 'bg-primary/10 text-primary hover:bg-primary/15'}`}><Plus size={14}/></button>
+                  <button onClick={addSubtask} disabled={!newSubtaskText.trim()} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-50 ${'bg-primary/10 text-primary hover:bg-primary/15'}`}><Plus size={14}/></button>
                 </div>
               </div>
               
-              <div className={`h-px w-full ${isDarkMode ? 'bg-white/10' : 'bg-black/10'}`}></div>
+              <div className={`h-px w-full ${'bg-black/10'}`}></div>
 
               <div>
-                <label className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider mb-3 ${isDarkMode ? 'text-yellow-400' : 'text-yellow-600'}`}><MessageSquare size={14} /> Historial de Avances</label>
+                <label className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider mb-3 ${'text-yellow-600'}`}><MessageSquare size={14} /> Historial de Avances</label>
                 <div className="flex items-start gap-2 mb-4">
                   <textarea value={quickNoteText} onChange={(e) => setQuickNoteText(e.target.value)} placeholder="Agrega un update rápido..." rows={2} className={`flex-1 px-3 py-2 text-sm font-medium rounded-lg outline-none resize-none transition-all shadow-inner ${currentGlassInput}`} />
-                  <button onClick={addQuickNote} disabled={!quickNoteText.trim()} className={`px-3 py-2 rounded-lg transition-all font-semibold text-xs shadow-sm disabled:opacity-50 ${isDarkMode ? 'bg-yellow-500/20 text-yellow-300 hover:bg-yellow-500/40 border border-yellow-500/30' : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200 border border-yellow-200'}`}>Subir</button>
+                  <button onClick={addQuickNote} disabled={!quickNoteText.trim()} className={`px-3 py-2 rounded-lg transition-all font-semibold text-xs shadow-sm disabled:opacity-50 ${'bg-yellow-100 text-yellow-700 hover:bg-yellow-200 border border-yellow-200'}`}>Subir</button>
                 </div>
                 <div className="space-y-3">
                   {drawerTask.notes && drawerTask.notes.length > 0 ? (
                     drawerTask.notes.map((note) => (
-                      <div key={note.id} className={`p-3 rounded-xl border shadow-sm backdrop-blur-md ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-white/60 border-white/50'}`}>
-                        <div className={`flex items-center gap-1.5 mb-1.5 text-[10px] font-bold ${isDarkMode ? 'text-yellow-400' : 'text-yellow-600'}`}><Clock size={12} /> {note.date}</div>
-                        <p className={`text-xs font-medium leading-relaxed ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>{note.text}</p>
+                      <div key={note.id} className={`p-3 rounded-xl border shadow-sm backdrop-blur-md ${'bg-white/60 border-white/50'}`}>
+                        <div className={`flex items-center gap-1.5 mb-1.5 text-[10px] font-bold ${'text-yellow-600'}`}><Clock size={12} /> {note.date}</div>
+                        <p className={`text-xs font-medium leading-relaxed ${'text-gray-800'}`}>{note.text}</p>
                       </div>
                     ))
                   ) : (
-                    <div className={`text-center py-5 text-xs font-medium italic rounded-xl border border-dashed ${isDarkMode ? 'text-gray-500 border-white/10 bg-white/5' : 'text-gray-400 border-black/10 bg-black/5'}`}>No hay avances documentados aún.</div>
+                    <div className={`text-center py-5 text-xs font-medium italic rounded-xl border border-dashed ${'text-gray-400 border-black/10 bg-black/5'}`}>No hay avances documentados aún.</div>
                   )}
                 </div>
               </div>
             </div>
-            <div className={`px-6 py-4 border-t flex justify-end shrink-0 ${isDarkMode ? 'border-white/10 bg-black/20 backdrop-blur-md' : 'border-black/5 bg-white/40 backdrop-blur-md'}`}>
-              <button onClick={saveDrawerTask} className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-transform hover:scale-105 shadow-sm ${isDarkMode ? 'bg-primary text-white shadow-primary/40' : 'bg-primary text-white'}`}><Save size={16} /> Guardar Tarea</button>
+            <div className={`px-6 py-4 border-t flex justify-end shrink-0 ${'border-black/5 bg-white/40 backdrop-blur-md'}`}>
+              <button onClick={saveDrawerTask} className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-transform hover:scale-105 shadow-sm ${'bg-primary text-white'}`}><Save size={16} /> Guardar Tarea</button>
             </div>
           </>
         )}
@@ -2871,15 +2847,15 @@ export default function App() {
       {drawerUser && <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[70] transition-opacity" onClick={() => setDrawerUser(null)} />}
 
       {/* Drawer (User) */}
-      <div className={`fixed inset-y-0 right-0 z-[80] w-full sm:w-[400px] ${drawerUser ? 'shadow-[0_0_40px_rgba(0,0,0,0.5)] translate-x-0' : 'translate-x-full'} transform transition-transform duration-300 flex flex-col backdrop-blur-2xl ${isDarkMode ? 'bg-[#0f0f11]/90 border-l border-white/10' : 'bg-white/90 border-l border-white/50'}`}>
+      <div className={`fixed inset-y-0 right-0 z-[80] w-full sm:w-[400px] ${drawerUser ? 'shadow-[0_0_40px_rgba(0,0,0,0.5)] translate-x-0' : 'translate-x-full'} transform transition-transform duration-300 flex flex-col backdrop-blur-2xl ${'bg-white/90 border-l border-white/50'}`}>
         {drawerUser && (
           <>
-            <div className={`flex items-center justify-between px-6 py-4 border-b shrink-0 ${isDarkMode ? 'border-white/10' : 'border-black/5'}`}>
+            <div className={`flex items-center justify-between px-6 py-4 border-b shrink-0 ${'border-black/5'}`}>
               <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-xl shadow-inner ${isDarkMode ? 'bg-primary/20 text-primary border border-primary/20' : 'bg-primary/10 text-primary border border-primary/25'}`}><UserPlus size={18} /></div>
-                <h2 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{drawerUser.isNew ? 'Invitar Miembro' : 'Editar Usuario'}</h2>
+                <div className={`p-2 rounded-xl shadow-inner ${'bg-primary/10 text-primary border border-primary/25'}`}><UserPlus size={18} /></div>
+                <h2 className={`text-lg font-bold ${'text-gray-900'}`}>{drawerUser.isNew ? 'Invitar Miembro' : 'Editar Usuario'}</h2>
               </div>
-              <button onClick={() => setDrawerUser(null)} className={`p-2 rounded-lg transition-all shadow-sm ${isDarkMode ? 'bg-white/5 hover:bg-white/20 text-gray-300 border border-white/5' : 'bg-white hover:bg-gray-100 text-gray-600 border border-gray-200'}`}><X size={16} /></button>
+              <button onClick={() => setDrawerUser(null)} className={`p-2 rounded-lg transition-all shadow-sm ${'bg-white hover:bg-gray-100 text-gray-600 border border-gray-200'}`}><X size={16} /></button>
             </div>
 
             <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6 custom-scrollbar">
@@ -2892,17 +2868,17 @@ export default function App() {
                 </div>
 
                 <div>
-                  <label className={`block text-[10px] font-bold uppercase tracking-wider mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Nombre Completo</label>
+                  <label className={`block text-[10px] font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}>Nombre Completo</label>
                   <input type="text" value={drawerUser.name} onChange={(e) => setDrawerUser(prev => ({ ...prev, name: e.target.value }))} className={`w-full text-sm font-semibold px-3 py-2 rounded-xl outline-none transition-all shadow-inner ${currentGlassInput}`} placeholder="Ej. Jane Doe" />
                 </div>
                 
                 <div>
-                  <label className={`block text-[10px] font-bold uppercase tracking-wider mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Cargo / Puesto</label>
+                  <label className={`block text-[10px] font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}>Cargo / Puesto</label>
                   <input type="text" value={drawerUser.job} onChange={(e) => setDrawerUser(prev => ({ ...prev, job: e.target.value }))} className={`w-full text-sm font-semibold px-3 py-2 rounded-xl outline-none transition-all shadow-inner ${currentGlassInput}`} placeholder="Ej. Frontend Developer" />
                 </div>
 
                 <div>
-                  <label className={`block text-[10px] font-bold uppercase tracking-wider mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Rol en el Sistema</label>
+                  <label className={`block text-[10px] font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}>Rol en el Sistema</label>
                   <select value={drawerUser.role} onChange={(e) => setDrawerUser(prev => ({ ...prev, role: e.target.value }))} className={`w-full px-3 py-2 text-sm font-medium rounded-lg outline-none cursor-pointer transition-all shadow-inner ${currentGlassInput}`}>
                     <option value="Admin" className="text-black">Admin</option>
                     <option value="Miembro" className="text-black">Miembro</option>
@@ -2911,7 +2887,7 @@ export default function App() {
                 </div>
 
                 <div>
-                  <label className={`block text-[10px] font-bold uppercase tracking-wider mb-3 mt-4 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Color del Avatar</label>
+                  <label className={`block text-[10px] font-bold uppercase tracking-wider mb-3 mt-4 ${'text-gray-500'}`}>Color del Avatar</label>
                   <div className="flex gap-3 flex-wrap">
                     {USER_COLORS.map(colorClass => (
                       <button 
@@ -2926,9 +2902,9 @@ export default function App() {
               </div>
             </div>
             
-            <div className={`px-6 py-4 border-t flex justify-end shrink-0 ${isDarkMode ? 'border-white/10 bg-black/20 backdrop-blur-md' : 'border-black/5 bg-white/40 backdrop-blur-md'}`}>
-              <button onClick={() => setDrawerUser(null)} className={`px-4 py-2.5 rounded-lg font-semibold text-sm transition-colors ${isDarkMode ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-gray-100 text-gray-600'}`}>Cancelar</button>
-              <button onClick={saveDrawerUser} disabled={!drawerUser.name.trim()} className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-transform shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 hover:scale-105 ${isDarkMode ? 'bg-primary text-white shadow-primary/40' : 'bg-primary text-white hover:bg-primary-hover'}`}><Save size={16} /> Guardar Usuario</button>
+            <div className={`px-6 py-4 border-t flex justify-end shrink-0 ${'border-black/5 bg-white/40 backdrop-blur-md'}`}>
+              <button onClick={() => setDrawerUser(null)} className={`px-4 py-2.5 rounded-lg font-semibold text-sm transition-colors ${'hover:bg-gray-100 text-gray-600'}`}>Cancelar</button>
+              <button onClick={saveDrawerUser} disabled={!drawerUser.name.trim()} className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-transform shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 hover:scale-105 ${'bg-primary text-white hover:bg-primary-hover'}`}><Save size={16} /> Guardar Usuario</button>
             </div>
           </>
         )}
@@ -2938,23 +2914,23 @@ export default function App() {
       {isReportDrawerOpen && <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[70] transition-opacity" onClick={() => setIsReportDrawerOpen(false)} />}
 
       {/* Drawer (Report) */}
-      <div className={`fixed inset-y-0 right-0 z-[80] w-full sm:w-[400px] ${isReportDrawerOpen ? 'shadow-[0_0_40px_rgba(0,0,0,0.5)] translate-x-0' : 'translate-x-full'} transform transition-transform duration-300 flex flex-col backdrop-blur-2xl ${isDarkMode ? 'bg-[#0f0f11]/90 border-l border-white/10' : 'bg-white/90 border-l border-white/50'}`}>
+      <div className={`fixed inset-y-0 right-0 z-[80] w-full sm:w-[400px] ${isReportDrawerOpen ? 'shadow-[0_0_40px_rgba(0,0,0,0.5)] translate-x-0' : 'translate-x-full'} transform transition-transform duration-300 flex flex-col backdrop-blur-2xl ${'bg-white/90 border-l border-white/50'}`}>
         {isReportDrawerOpen && (
           <>
-            <div className={`flex items-center justify-between px-6 py-4 border-b shrink-0 ${isDarkMode ? 'border-white/10' : 'border-black/5'}`}>
+            <div className={`flex items-center justify-between px-6 py-4 border-b shrink-0 ${'border-black/5'}`}>
               <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-xl shadow-inner ${isDarkMode ? 'bg-primary/20 text-primary border border-primary/20' : 'bg-primary/10 text-primary border border-primary/25'}`}><Download size={18} /></div>
-                <h2 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Exportar Informes</h2>
+                <div className={`p-2 rounded-xl shadow-inner ${'bg-primary/10 text-primary border border-primary/25'}`}><Download size={18} /></div>
+                <h2 className={`text-lg font-bold ${'text-gray-900'}`}>Exportar Informes</h2>
               </div>
-              <button onClick={() => setIsReportDrawerOpen(false)} className={`p-2 rounded-lg transition-all shadow-sm ${isDarkMode ? 'bg-white/5 hover:bg-white/20 text-gray-300 border border-white/5' : 'bg-white hover:bg-gray-100 text-gray-600 border border-gray-200'}`}><X size={16} /></button>
+              <button onClick={() => setIsReportDrawerOpen(false)} className={`p-2 rounded-lg transition-all shadow-sm ${'bg-white hover:bg-gray-100 text-gray-600 border border-gray-200'}`}><X size={16} /></button>
             </div>
 
             <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6 custom-scrollbar">
               <div className="space-y-4">
-                <p className={`text-sm font-medium leading-relaxed ${isDarkMode ? 'text-gray-400' : 'text-gray-600'} mb-4`}>Selecciona los filtros para descargar un reporte detallado en formato CSV compatible con Excel y Google Sheets.</p>
+                <p className={`text-sm font-medium leading-relaxed ${'text-gray-600'} mb-4`}>Selecciona los filtros para descargar un reporte detallado en formato CSV compatible con Excel y Google Sheets.</p>
                 
                 <div>
-                  <label className={`block text-[10px] font-bold uppercase tracking-wider mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Filtrar por Proyecto</label>
+                  <label className={`block text-[10px] font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}>Filtrar por Proyecto</label>
                   <select value={reportFilters.projectId} onChange={(e) => setReportFilters(prev => ({ ...prev, projectId: e.target.value }))} className={`w-full px-3 py-2 text-sm font-medium rounded-lg outline-none cursor-pointer transition-all shadow-inner ${currentGlassInput}`}>
                     <option value="all" className="text-black">Todos los proyectos</option>
                     {projectsList.map(p => <option key={p.id} value={p.id} className="text-black">{p.title}</option>)}
@@ -2962,7 +2938,7 @@ export default function App() {
                 </div>
 
                 <div>
-                  <label className={`block text-[10px] font-bold uppercase tracking-wider mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Filtrar por Estado</label>
+                  <label className={`block text-[10px] font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}>Filtrar por Estado</label>
                   <select value={reportFilters.status} onChange={(e) => setReportFilters(prev => ({ ...prev, status: e.target.value }))} className={`w-full px-3 py-2 text-sm font-medium rounded-lg outline-none cursor-pointer transition-all shadow-inner ${currentGlassInput}`}>
                     <option value="all" className="text-black">Todos los estados</option>
                     {DEFAULT_COLUMNS.map(c => <option key={c.id} value={c.id} className="text-black">{c.title}</option>)}
@@ -2970,7 +2946,7 @@ export default function App() {
                 </div>
 
                 <div>
-                  <label className={`block text-[10px] font-bold uppercase tracking-wider mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Filtrar por Asignado</label>
+                  <label className={`block text-[10px] font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}>Filtrar por Asignado</label>
                   <select value={reportFilters.assigneeId} onChange={(e) => setReportFilters(prev => ({ ...prev, assigneeId: e.target.value }))} className={`w-full px-3 py-2 text-sm font-medium rounded-lg outline-none cursor-pointer transition-all shadow-inner ${currentGlassInput}`}>
                     <option value="all" className="text-black">Todo el equipo</option>
                     {users.map(u => <option key={u.id} value={u.id} className="text-black">{u.name}</option>)}
@@ -2980,8 +2956,8 @@ export default function App() {
               </div>
             </div>
             
-            <div className={`px-6 py-4 border-t flex justify-end shrink-0 ${isDarkMode ? 'border-white/10 bg-black/20 backdrop-blur-md' : 'border-black/5 bg-white/40 backdrop-blur-md'}`}>
-              <button onClick={exportToCSV} className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-transform shadow-sm hover:scale-105 ${isDarkMode ? 'bg-primary text-white shadow-primary/40' : 'bg-primary text-white hover:bg-primary-hover'}`}><Download size={16} /> Descargar CSV</button>
+            <div className={`px-6 py-4 border-t flex justify-end shrink-0 ${'border-black/5 bg-white/40 backdrop-blur-md'}`}>
+              <button onClick={exportToCSV} className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-transform shadow-sm hover:scale-105 ${'bg-primary text-white hover:bg-primary-hover'}`}><Download size={16} /> Descargar CSV</button>
             </div>
           </>
         )}
@@ -2990,7 +2966,7 @@ export default function App() {
       {/* Contenedor de Toasts (Notificaciones Flotantes Minimalistas) */}
       <div className="fixed bottom-6 right-6 z-[100] flex flex-col gap-2 pointer-events-none">
         {toasts.map(toast => (
-          <div key={toast.id} className={`animate-in slide-in-from-bottom-5 fade-in duration-300 flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-lg pointer-events-auto backdrop-blur-md border ${isDarkMode ? 'bg-[#1a1a1a]/90 border-white/10 text-white' : 'bg-white/90 border-gray-200 text-gray-800'}`}>
+          <div key={toast.id} className={`animate-in slide-in-from-bottom-5 fade-in duration-300 flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-lg pointer-events-auto backdrop-blur-md border ${'bg-white/90 border-gray-200 text-gray-800'}`}>
             {toast.type === 'success' && <CheckCircle2 size={16} className="text-emerald-500" />}
             {toast.type === 'error' && <X size={16} className="text-red-500" />}
             {toast.type === 'sync' && <Cloud size={16} className="text-primary animate-pulse" />}

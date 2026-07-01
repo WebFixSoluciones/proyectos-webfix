@@ -6,7 +6,6 @@ import { kardexRepository } from '../../modules/inventory/repositories/KardexRep
 import { Product } from '../../modules/inventory/domain/schemas/product.schema';
 
 interface TransferModalProps {
-  isDarkMode: boolean;
   onClose: () => void;
   onSuccess: () => void;
 }
@@ -17,7 +16,7 @@ const BRANCHES = [
   { id: 'sucursal-norte-uuid', name: 'Sucursal Norte' }
 ];
 
-export default function TransferModal({ isDarkMode, onClose, onSuccess }: TransferModalProps) {
+export default function TransferModal({ onClose, onSuccess }: TransferModalProps) {
   const [transferType, setTransferType] = useState<'INTERNAL' | 'EXTERNAL'>('INTERNAL');
   const [sourceBranch, setSourceBranch] = useState(BRANCHES[0].id);
   const [targetBranch, setTargetBranch] = useState(BRANCHES[1].id);
@@ -132,45 +131,33 @@ export default function TransferModal({ isDarkMode, onClose, onSuccess }: Transf
     }
   };
 
-  const inputClass = `w-full px-3 py-2.5 rounded-xl outline-none transition-all border text-sm ${
-    isDarkMode 
-      ? 'bg-black/30 border-white/10 text-white focus:border-purple-500 shadow-inner' 
-      : 'bg-white border-gray-200 text-gray-800 focus:border-purple-500 shadow-inner'
-  }`;
+  const inputClass = `w-full px-3 py-2.5 rounded-xl outline-none transition-all border text-sm bg-white border-gray-200 text-gray-800 focus:border-purple-500 shadow-inner`;
 
-  const labelClass = `block text-xs font-semibold mb-1.5 uppercase tracking-wider ${
-    isDarkMode ? 'text-gray-400' : 'text-gray-500'
-  }`;
+  const labelClass = `block text-xs font-semibold mb-1.5 uppercase tracking-wider text-gray-500`;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 backdrop-blur-xl bg-black/40 animate-in fade-in duration-300">
       <div 
-        className={`w-full max-w-4xl max-h-[90vh] flex flex-col rounded-3xl shadow-2xl border overflow-hidden ${
-          isDarkMode ? 'bg-gray-900/95 border-white/10' : 'bg-white/95 border-white/40'
-        }`}
+        className={`w-full max-w-4xl max-h-[90vh] flex flex-col rounded-3xl shadow-2xl border overflow-hidden bg-white/95 border-white/40`}
       >
         {/* Header */}
-        <div className={`modal-header-std modal-header-std-dark ${
-          isDarkMode ? 'border-white/10 bg-gray-900/80' : 'border-gray-100 bg-white/80'
-        }`}>
+        <div className={`modal-header-std modal-header-std-dark border-gray-100 bg-white/80`}>
           <div className="flex items-center gap-2.5">
-            <div className={`p-2 rounded-lg ${isDarkMode ? 'bg-purple-500/20 text-purple-400' : 'bg-purple-100 text-purple-600'}`}>
+            <div className={`p-2 rounded-lg bg-purple-100 text-purple-600`}>
               <ArrowRightLeft size={20} />
             </div>
             <div>
-              <h2 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+              <h2 className={`text-lg font-bold text-gray-900`}>
                 Nueva Transferencia Interna / Externa
               </h2>
-              <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              <p className={`text-xs text-gray-500`}>
                 Mueve productos físicos entre bodegas o sucursales
               </p>
             </div>
           </div>
           <button 
             onClick={onClose}
-            className={`p-1.5 rounded-xl transition-all hover:scale-105 ${
-              isDarkMode ? 'bg-white/5 text-gray-400 hover:text-white' : 'bg-gray-100 text-gray-500 hover:text-gray-900'
-            }`}
+            className={`p-1.5 rounded-xl transition-all hover:scale-105 bg-gray-100 text-gray-500 hover:text-gray-900`}
           >
             <X size={18} />
           </button>
@@ -179,9 +166,7 @@ export default function TransferModal({ isDarkMode, onClose, onSuccess }: Transf
         {/* Content */}
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
           {error && (
-            <div className={`p-4 rounded-xl border text-sm font-medium ${
-              isDarkMode ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-red-50 border-red-200 text-red-600'
-            }`}>
+            <div className={`p-4 rounded-xl border text-sm font-medium bg-red-50 border-red-200 text-red-600`}>
               {error}
             </div>
           )}
@@ -249,8 +234,8 @@ export default function TransferModal({ isDarkMode, onClose, onSuccess }: Transf
           <div className="w-full h-px bg-gradient-to-r from-transparent via-gray-500/20 to-transparent"></div>
 
           {/* Add Item Form */}
-          <div className={`p-5 rounded-2xl border ${isDarkMode ? 'bg-black/10 border-white/5' : 'bg-gray-50 border-gray-100'}`}>
-            <h3 className={`text-xs font-bold mb-4 uppercase tracking-wider ${isDarkMode ? 'text-purple-400' : 'text-purple-600'}`}>
+          <div className={`p-5 rounded-2xl border bg-gray-50 border-gray-100`}>
+            <h3 className={`text-xs font-bold mb-4 uppercase tracking-wider text-purple-600`}>
               Agregar Productos al Envío
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
@@ -293,17 +278,9 @@ export default function TransferModal({ isDarkMode, onClose, onSuccess }: Transf
           {/* Items Table */}
           <div className="space-y-2">
             <label className={labelClass}>Ítems a Enviar ({items.length})</label>
-            <div className={`rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm ${
-              isDarkMode 
-                ? 'border-white/5 bg-[#0f111a]/85 shadow-lg shadow-black/40' 
-                : 'border-slate-200/80 bg-white'
-            }`}>
+            <div className={`rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm border-slate-200/80 bg-white`}>
               <table className="w-full text-left text-xs whitespace-nowrap">
-                <thead className={`text-[10px] uppercase font-bold tracking-wider ${
-                  isDarkMode 
-                    ? 'bg-black/35 text-slate-400 border-b border-white/5' 
-                    : 'bg-slate-50 text-slate-600 border-b border-slate-100'
-                }`}>
+                <thead className={`text-[10px] uppercase font-bold tracking-wider bg-slate-50 text-slate-600 border-b border-slate-100`}>
                   <tr>
                     <th className="px-6 py-3.5">Producto</th>
                     <th className="px-6 py-3.5">Costo Base ($)</th>
@@ -312,7 +289,7 @@ export default function TransferModal({ isDarkMode, onClose, onSuccess }: Transf
                     <th className="px-6 py-3.5 text-center">Acción</th>
                   </tr>
                 </thead>
-                <tbody className={`divide-y ${isDarkMode ? 'divide-white/5' : 'divide-slate-100'}`}>
+                <tbody className={`divide-y divide-slate-100`}>
                   {items.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="px-6 py-8 text-center text-gray-500 italic">
@@ -323,8 +300,8 @@ export default function TransferModal({ isDarkMode, onClose, onSuccess }: Transf
                     items.map((item, index) => {
                       const p = products.find(prod => prod.id === item.productId);
                       return (
-                        <tr key={index} className={`transition-colors ${isDarkMode ? 'hover:bg-white/[0.015]' : 'hover:bg-slate-50/40'}`}>
-                          <td className="px-6 py-3.5 font-semibold text-black dark:text-white">
+                        <tr key={index} className={`transition-colors hover:bg-slate-50/40`}>
+                          <td className="px-6 py-3.5 font-semibold text-black">
                             {p?.name} <span className="text-gray-500 font-normal">({p?.sku})</span>
                           </td>
                           <td className="px-6 py-3.5 font-mono">${item.unitCost.toFixed(2)}</td>
@@ -334,7 +311,7 @@ export default function TransferModal({ isDarkMode, onClose, onSuccess }: Transf
                             <button
                               type="button"
                               onClick={() => handleRemoveItem(index)}
-                              className="p-1.5 rounded-[10px] text-red-500 hover:bg-red-500/10 transition-all border border-red-500/10 bg-white dark:bg-transparent shadow-sm"
+                              className="p-1.5 rounded-[10px] text-red-500 hover:bg-red-500/10 transition-all border border-red-500/10 bg-white shadow-sm"
                             >
                               <Trash2 size={13} />
                             </button>
@@ -354,11 +331,7 @@ export default function TransferModal({ isDarkMode, onClose, onSuccess }: Transf
               type="button"
               onClick={onClose}
               disabled={loading}
-              className={`px-6 py-2.5 rounded-xl font-bold transition-all text-sm ${
-                isDarkMode 
-                  ? 'bg-white/5 hover:bg-white/10 text-white' 
-                  : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-              }`}
+              className={`px-6 py-2.5 rounded-xl font-bold transition-all text-sm bg-gray-100 hover:bg-gray-200 text-gray-700`}
             >
               Cancelar
             </button>

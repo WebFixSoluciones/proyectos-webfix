@@ -12,7 +12,6 @@ import { Category, Brand } from '../../modules/inventory/domain/schemas/category
 import { kardexService } from '../../modules/inventory/services/KardexService';
 
 interface ProductCreationFormProps {
-  isDarkMode: boolean;
   onClose: () => void;
   onSuccess: () => void;
   isInline?: boolean;
@@ -20,7 +19,6 @@ interface ProductCreationFormProps {
 }
 
 export default function ProductCreationForm({ 
-  isDarkMode, 
   onClose, 
   onSuccess,
   isInline = false,
@@ -510,43 +508,31 @@ export default function ProductCreationForm({
     }
   };
 
-  const inputClass = `w-full px-3 py-2 rounded-xl outline-none transition-all border text-xs ${
-    isDarkMode 
-      ? 'bg-black/30 border-white/10 text-white focus:border-primary focus:bg-black/50 shadow-inner' 
-      : 'bg-white/50 border-gray-200 text-gray-800 focus:border-primary focus:bg-white shadow-inner'
-  }`;
+  const inputClass = `w-full px-3 py-2 rounded-xl outline-none transition-all border text-xs bg-white/50 border-gray-200 text-gray-800 focus:border-primary focus:bg-white shadow-inner`;
 
-  const labelClass = `block text-[10px] font-bold mb-1 uppercase tracking-wider ${
-    isDarkMode ? 'text-gray-400' : 'text-gray-500'
-  }`;
+  const labelClass = `block text-[10px] font-bold mb-1 uppercase tracking-wider text-gray-500`;
 
   const iconContainerClass = `absolute left-3 top-1/2 -translate-y-1/2 text-gray-400`;
 
   const formJSX = (
     <div 
-      className={isInline ? `w-full rounded-3xl border shadow-xl ${isDarkMode ? 'bg-gray-900/95 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}` : `relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl border ${
-        isDarkMode 
-          ? 'bg-gray-900/95 border-white/10' 
-          : 'bg-white/95 border-white/40'
-      } custom-scrollbar`}
+      className={isInline ? `w-full rounded-3xl border shadow-xl bg-white border-gray-200 text-gray-900` : `relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl border bg-white/95 border-white/40 custom-scrollbar`}
     >
       {/* Header */}
-      <div className={`modal-header-std modal-header-std-dark ${
-        isDarkMode ? 'border-white/10 bg-gray-900/80' : 'border-gray-100 bg-white/80'
-      }`}>
+      <div className={`modal-header-std modal-header-std-dark border-gray-100 bg-white/80`}>
         <div className="flex items-center gap-3">
-          <div className={`p-2 rounded-xl shadow-inner ${isDarkMode ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+          <div className={`p-2 rounded-xl shadow-inner bg-primary/10 text-primary`}>
             <Package size={20} />
           </div>
           <div>
-            <h2 className={`text-sm font-bold tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+            <h2 className={`text-sm font-bold tracking-tight text-gray-900`}>
               {productToEdit?.id ? 'Editar Producto' : 'Nuevo Producto'} - {
                 formData.type === 'STANDARD' ? 'Estándar' :
                 formData.type === 'SUBPRODUCT' ? 'Subproducto' :
                 formData.type === 'COMBO' ? 'Combo' : 'Estándar'
               }
             </h2>
-            <p className={`text-[10px] ${isDarkMode ? 'text-gray-400' : 'text-gray-505'}`}>
+            <p className={`text-[10px] text-gray-500`}>
               {productToEdit?.id ? 'Edita los detalles del producto seleccionado' : 'Registra un nuevo artículo en tu inventario'}
             </p>
           </div>
@@ -555,9 +541,7 @@ export default function ProductCreationForm({
         <button 
           onClick={onClose}
           type="button"
-          className={`p-2 rounded-xl transition-all hover:scale-105 ${
-            isDarkMode ? 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-900'
-          }`}
+          className={`p-2 rounded-xl transition-all hover:scale-105 bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-900`}
         >
           <X size={18} />
         </button>
@@ -566,9 +550,7 @@ export default function ProductCreationForm({
       {/* Content */}
       <form onSubmit={formStep === 'product_details' ? handleSubmit : handleStep2Submit} className="p-5 sm:p-6 space-y-6">
         {error && (
-          <div className={`flex items-center gap-3 p-4 rounded-xl border ${
-            isDarkMode ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-red-50 border-red-200 text-red-600'
-          }`}>
+          <div className={`flex items-center gap-3 p-4 rounded-xl border bg-red-50 border-red-200 text-red-600`}>
             <AlertCircle size={18} className="shrink-0" />
             <p className="text-xs font-medium">{error}</p>
           </div>
@@ -576,12 +558,10 @@ export default function ProductCreationForm({
 
         {formStep === 'product_details' ? (
           <>
-        <div className={`p-4 rounded-2xl border flex items-center justify-between shadow-sm ${
-          isDarkMode ? 'bg-white/[0.02] border-white/5' : 'bg-gray-50 border-gray-150'
-        }`}>
+        <div className={`p-4 rounded-2xl border flex items-center justify-between shadow-sm bg-gray-50 border-gray-150`}>
           <div>
             <span className="block text-xs font-bold">Mostrar en Ventas</span>
-            <span className={`block text-[10px] ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+            <span className={`block text-[10px] text-gray-500`}>
               Selecciona esta opción si deseas mostrar el producto en el módulo de ventas y POS.
             </span>
           </div>
@@ -598,7 +578,7 @@ export default function ProductCreationForm({
 
         {/* Información Básica */}
         <div className="space-y-4">
-          <h3 className={`text-xs font-bold flex items-center gap-2 uppercase tracking-wider ${isDarkMode ? 'text-primary' : 'text-primary'}`}>
+          <h3 className={`text-xs font-bold flex items-center gap-2 uppercase tracking-wider text-primary`}>
             <Box size={14} /> Información Básica
           </h3>
           
@@ -619,11 +599,9 @@ export default function ProductCreationForm({
                     </button>
                   </div>
                 ) : (
-                  <label className={`w-20 h-20 rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all hover:border-primary/50 hover:bg-primary/5 ${
-                    isDarkMode ? 'border-white/10 bg-white/[0.02]' : 'border-gray-300 bg-gray-50'
-                  }`}>
+                  <label className={`w-20 h-20 rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all hover:border-primary/50 hover:bg-primary/5 border-gray-300 bg-gray-50`}>
                     <Image size={18} className="text-gray-400 mb-1" />
-                    <span className="text-[9px] text-gray-505 font-bold">Añadir</span>
+                    <span className="text-[9px] text-gray-500 font-bold">Añadir</span>
                     <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
                   </label>
                 )}
@@ -685,11 +663,7 @@ export default function ProductCreationForm({
                   <button
                     type="button"
                     onClick={() => setShowCategoryPopup(true)}
-                    className={`p-2 rounded-xl transition-all border ${
-                      isDarkMode 
-                        ? 'bg-white/5 border-white/10 hover:bg-white/10 text-primary' 
-                        : 'bg-gray-50 border-gray-300 hover:bg-gray-100 text-primary'
-                    }`}
+                    className={`p-2 rounded-xl transition-all border bg-gray-50 border-gray-300 hover:bg-gray-100 text-primary`}
                     title="Agregar Categoría"
                   >
                     <FolderPlus size={16} />
@@ -718,11 +692,7 @@ export default function ProductCreationForm({
                   <button
                     type="button"
                     onClick={() => setShowBrandPopup(true)}
-                    className={`p-2 rounded-xl transition-all border ${
-                      isDarkMode 
-                        ? 'bg-white/5 border-white/10 hover:bg-white/10 text-primary' 
-                        : 'bg-gray-50 border-gray-300 hover:bg-gray-100 text-primary'
-                    }`}
+                    className={`p-2 rounded-xl transition-all border bg-gray-50 border-gray-300 hover:bg-gray-100 text-primary`}
                     title="Agregar Marca"
                   >
                     <Plus size={16} />
@@ -751,7 +721,7 @@ export default function ProductCreationForm({
 
         {/* Gestión de Impuestos y Precio */}
         <div className="space-y-4">
-          <h3 className={`text-xs font-bold flex items-center gap-2 uppercase tracking-wider ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
+          <h3 className={`text-xs font-bold flex items-center gap-2 uppercase tracking-wider text-emerald-600`}>
             <DollarSign size={14} /> Gestión de Impuestos y Precio
           </h3>
 
@@ -840,15 +810,13 @@ export default function ProductCreationForm({
 
         {/* Lista de Precios Adicionales */}
         <div className="space-y-4">
-          <h3 className={`text-xs font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+          <h3 className={`text-xs font-bold uppercase tracking-wider text-gray-500`}>
             Lista de Precios
           </h3>
           
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             {/* Precio Base Display */}
-            <div className={`p-4 rounded-2xl border ${
-              isDarkMode ? 'bg-[#151722]/40 border-white/5' : 'bg-gray-50 border-gray-150'
-            }`}>
+            <div className={`p-4 rounded-2xl border bg-gray-50 border-gray-150`}>
               <span className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Precio Base</span>
               <div className="space-y-2">
                 <div>
@@ -865,8 +833,8 @@ export default function ProductCreationForm({
             {/* Precio A */}
             <div className={`p-4 rounded-2xl border transition-all ${
               hasPriceA 
-                ? (isDarkMode ? 'bg-[#151722]/80 border-primary/30' : 'bg-white border-primary/30 shadow-md')
-                : (isDarkMode ? 'bg-white/[0.01] border-white/5 opacity-50' : 'bg-slate-100/50 border-slate-200 opacity-60')
+                ? 'bg-white border-primary/30 shadow-md'
+                : 'bg-slate-100/50 border-slate-200 opacity-60'
             }`}>
               <div className="flex items-center justify-between mb-2">
                 <span className="block text-[10px] font-bold uppercase tracking-wider">Precio A</span>
@@ -900,9 +868,7 @@ export default function ProductCreationForm({
                           priceASinImpuesto: parseFloat(priceSin.toFixed(2)) 
                         }));
                       }}
-                      className={`w-full px-2 py-1 rounded-lg border text-xs bg-transparent outline-none ${
-                        isDarkMode ? 'border-white/10 text-white' : 'border-gray-300 text-gray-800'
-                      }`}
+                      className={`w-full px-2 py-1 rounded-lg border text-xs bg-transparent outline-none border-gray-300 text-gray-800`}
                     />
                   </div>
                   <div>
@@ -918,8 +884,8 @@ export default function ProductCreationForm({
             {/* Precio B */}
             <div className={`p-4 rounded-2xl border transition-all ${
               hasPriceB 
-                ? (isDarkMode ? 'bg-[#151722]/80 border-primary/30' : 'bg-white border-primary/30 shadow-md')
-                : (isDarkMode ? 'bg-white/[0.01] border-white/5 opacity-50' : 'bg-slate-100/50 border-slate-200 opacity-60')
+                ? 'bg-white border-primary/30 shadow-md'
+                : 'bg-slate-100/50 border-slate-200 opacity-60'
             }`}>
               <div className="flex items-center justify-between mb-2">
                 <span className="block text-[10px] font-bold uppercase tracking-wider">Precio B</span>
@@ -953,9 +919,7 @@ export default function ProductCreationForm({
                           priceBSinImpuesto: parseFloat(priceSin.toFixed(2)) 
                         }));
                       }}
-                      className={`w-full px-2 py-1 rounded-lg border text-xs bg-transparent outline-none ${
-                        isDarkMode ? 'border-white/10 text-white' : 'border-gray-300 text-gray-800'
-                      }`}
+                      className={`w-full px-2 py-1 rounded-lg border text-xs bg-transparent outline-none border-gray-300 text-gray-800`}
                     />
                   </div>
                   <div>
@@ -971,8 +935,8 @@ export default function ProductCreationForm({
             {/* Precio C */}
             <div className={`p-4 rounded-2xl border transition-all ${
               hasPriceC 
-                ? (isDarkMode ? 'bg-[#151722]/80 border-primary/30' : 'bg-white border-primary/30 shadow-md')
-                : (isDarkMode ? 'bg-white/[0.01] border-white/5 opacity-50' : 'bg-slate-100/50 border-slate-200 opacity-60')
+                ? 'bg-white border-primary/30 shadow-md'
+                : 'bg-slate-100/50 border-slate-200 opacity-60'
             }`}>
               <div className="flex items-center justify-between mb-2">
                 <span className="block text-[10px] font-bold uppercase tracking-wider">Precio C</span>
@@ -1006,9 +970,7 @@ export default function ProductCreationForm({
                           priceCSinImpuesto: parseFloat(priceSin.toFixed(2)) 
                         }));
                       }}
-                      className={`w-full px-2 py-1 rounded-lg border text-xs bg-transparent outline-none ${
-                        isDarkMode ? 'border-white/10 text-white' : 'border-gray-300 text-gray-800'
-                      }`}
+                      className={`w-full px-2 py-1 rounded-lg border text-xs bg-transparent outline-none border-gray-300 text-gray-800`}
                     />
                   </div>
                   <div>
@@ -1028,7 +990,7 @@ export default function ProductCreationForm({
           {/* Costo Base */}
           <div className="space-y-3">
             <label className={labelClass}>Costo Base de Adquisición ($)</label>
-            <p className={`text-[10px] ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+            <p className={`text-[10px] text-gray-500`}>
               ¿Cuánto te costó adquirir o producir este artículo? (Para calcular ganancia real)
             </p>
             <div className="relative">
@@ -1054,7 +1016,7 @@ export default function ProductCreationForm({
           {/* Manejo de Inventario */}
           <div className="space-y-3">
             <label className={labelClass}>Manejo de Inventario</label>
-            <p className={`text-[10px] ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+            <p className={`text-[10px] text-gray-500`}>
               Selecciona cómo deseas manejar el inventario de este producto
             </p>
             <div className="grid grid-cols-2 gap-4">
@@ -1063,8 +1025,8 @@ export default function ProductCreationForm({
                 onClick={() => setFormData(prev => ({ ...prev, inventoryType: 'PHYSICAL' }))}
                 className={`p-3 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1.5 ${
                   formData.inventoryType === 'PHYSICAL'
-                    ? (isDarkMode ? 'border-primary bg-primary/10 text-primary shadow-lg shadow-primary/10' : 'border-primary bg-primary/5 text-primary shadow-sm')
-                    : (isDarkMode ? 'border-white/5 bg-white/[0.02] text-gray-400 hover:bg-white/5' : 'border-slate-200 bg-slate-50 text-gray-500 hover:bg-slate-100')
+                    ? 'border-primary bg-primary/5 text-primary shadow-sm'
+                    : 'border-slate-200 bg-slate-50 text-gray-500 hover:bg-slate-100'
                 }`}
               >
                 <Box size={20} />
@@ -1076,8 +1038,8 @@ export default function ProductCreationForm({
                 onClick={() => setFormData(prev => ({ ...prev, inventoryType: 'VIRTUAL' }))}
                 className={`p-3 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1.5 ${
                   formData.inventoryType === 'VIRTUAL'
-                    ? (isDarkMode ? 'border-primary bg-primary/10 text-primary shadow-lg shadow-primary/10' : 'border-primary bg-primary/5 text-primary shadow-sm')
-                    : (isDarkMode ? 'border-white/5 bg-white/[0.02] text-gray-400 hover:bg-white/5' : 'border-slate-200 bg-slate-50 text-gray-500 hover:bg-slate-100')
+                    ? 'border-primary bg-primary/5 text-primary shadow-sm'
+                    : 'border-slate-200 bg-slate-50 text-gray-500 hover:bg-slate-100'
                 }`}
               >
                 <Layers size={20} />
@@ -1093,11 +1055,7 @@ export default function ProductCreationForm({
             type="button"
             onClick={onClose}
             disabled={loading}
-            className={`px-6 py-2 rounded-xl font-bold transition-all text-xs ${
-              isDarkMode 
-                ? 'bg-white/5 hover:bg-white/10 text-white' 
-                : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-            }`}
+            className={`px-6 py-2 rounded-xl font-bold transition-all text-xs bg-gray-100 hover:bg-gray-200 text-gray-700`}
           >
             Cancelar
           </button>
@@ -1122,9 +1080,7 @@ export default function ProductCreationForm({
           </>
         ) : (
           <div className="space-y-6">
-            <div className={`p-4.5 rounded-2xl border ${
-              isDarkMode ? 'bg-primary/5 border-primary/20 text-primary' : 'bg-primary/5 border-primary/15 text-primary-dark'
-            } text-xs flex items-center gap-3`}>
+            <div className={`p-4.5 rounded-2xl border bg-primary/5 border-primary/15 text-primary-dark text-xs flex items-center gap-3`}>
               <Box size={22} className="shrink-0 animate-bounce" />
               <div>
                 <p className="font-extrabold uppercase tracking-wide">Paso 2: Inicialización de Stock y Límites</p>
@@ -1134,7 +1090,7 @@ export default function ProductCreationForm({
 
             {/* Límites de Stock */}
             <div className="space-y-4">
-              <h3 className={`text-xs font-bold flex items-center gap-2 uppercase tracking-wider ${isDarkMode ? 'text-primary' : 'text-primary'}`}>
+              <h3 className={`text-xs font-bold flex items-center gap-2 uppercase tracking-wider text-primary`}>
                 <Layers size={14} /> Límites de Control de Stock
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1168,7 +1124,7 @@ export default function ProductCreationForm({
 
             {/* Inicializar Inventario */}
             <div className="space-y-4 pt-2">
-              <h3 className={`text-xs font-bold flex items-center gap-2 uppercase tracking-wider ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
+              <h3 className={`text-xs font-bold flex items-center gap-2 uppercase tracking-wider text-emerald-600`}>
                 <DollarSign size={14} /> Inicializar Stock por medio de Compra
               </h3>
               
@@ -1178,8 +1134,8 @@ export default function ProductCreationForm({
                   onClick={() => setInitStockType('none')}
                   className={`p-3 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1 ${
                     initStockType === 'none'
-                      ? (isDarkMode ? 'border-primary bg-primary/10 text-primary shadow-lg shadow-primary/10' : 'border-primary bg-primary/5 text-primary shadow-sm')
-                      : (isDarkMode ? 'border-white/5 bg-white/[0.02] text-gray-400 hover:bg-white/5' : 'border-slate-200 bg-slate-50 text-gray-550 hover:bg-slate-100')
+                      ? 'border-primary bg-primary/5 text-primary shadow-sm'
+                      : 'border-slate-200 bg-slate-50 text-gray-550 hover:bg-slate-100'
                   }`}
                 >
                   <span className="text-xs font-bold">Sin Stock Inicial</span>
@@ -1191,8 +1147,8 @@ export default function ProductCreationForm({
                   onClick={() => setInitStockType('existing_purchase')}
                   className={`p-3 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1 ${
                     initStockType === 'existing_purchase'
-                      ? (isDarkMode ? 'border-primary bg-primary/10 text-primary shadow-lg shadow-primary/10' : 'border-primary bg-primary/5 text-primary shadow-sm')
-                      : (isDarkMode ? 'border-white/5 bg-white/[0.02] text-gray-400 hover:bg-white/5' : 'border-slate-200 bg-slate-50 text-gray-555 hover:bg-slate-100')
+                      ? 'border-primary bg-primary/5 text-primary shadow-sm'
+                      : 'border-slate-200 bg-slate-50 text-gray-555 hover:bg-slate-100'
                   }`}
                 >
                   <span className="text-xs font-bold">Asociar Compra Existente</span>
@@ -1204,8 +1160,8 @@ export default function ProductCreationForm({
                   onClick={() => setInitStockType('new_purchase')}
                   className={`p-3 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1 ${
                     initStockType === 'new_purchase'
-                      ? (isDarkMode ? 'border-primary bg-primary/10 text-primary shadow-lg shadow-primary/10' : 'border-primary bg-primary/5 text-primary shadow-sm')
-                      : (isDarkMode ? 'border-white/5 bg-white/[0.02] text-gray-400 hover:bg-white/5' : 'border-slate-200 bg-slate-50 text-gray-555 hover:bg-slate-100')
+                      ? 'border-primary bg-primary/5 text-primary shadow-sm'
+                      : 'border-slate-200 bg-slate-50 text-gray-555 hover:bg-slate-100'
                   }`}
                 >
                   <span className="text-xs font-bold">Crear Compra Inline</span>
@@ -1215,9 +1171,7 @@ export default function ProductCreationForm({
 
               {/* ASOCIAR A COMPRA EXISTENTE */}
               {initStockType === 'existing_purchase' && (
-                <div className={`p-4.5 rounded-2xl border space-y-4 ${
-                  isDarkMode ? 'bg-black/20 border-white/5' : 'bg-slate-50 border-slate-200'
-                }`}>
+                <div className={`p-4.5 rounded-2xl border space-y-4 bg-slate-50 border-slate-200`}>
                   <div>
                     <label className={labelClass}>Seleccionar Factura de Compra *</label>
                     <select
@@ -1230,7 +1184,7 @@ export default function ProductCreationForm({
                       {existingPurchases.map(purchase => {
                         const supName = suppliers.find(s => s.id === purchase.thirdPartyId)?.name || purchase.thirdParty?.name || 'Proveedor Desconocido';
                         return (
-                          <option key={purchase.id} value={purchase.id} className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>
+                          <option key={purchase.id} value={purchase.id} className="text-black bg-white">
                             {purchase.date} | Doc: {purchase.documentNumber} | {supName} | Total: ${purchase.total.toFixed(2)}
                           </option>
                         );
@@ -1268,9 +1222,7 @@ export default function ProductCreationForm({
 
               {/* CREAR COMPRA INLINE */}
               {initStockType === 'new_purchase' && (
-                <div className={`p-4.5 rounded-2xl border space-y-4 ${
-                  isDarkMode ? 'bg-black/20 border-white/5' : 'bg-slate-50 border-slate-200'
-                }`}>
+                <div className={`p-4.5 rounded-2xl border space-y-4 bg-slate-50 border-slate-200`}>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Proveedor Selector con botón + */}
                     <div>
@@ -1284,17 +1236,13 @@ export default function ProductCreationForm({
                         >
                           <option value="">-- Seleccionar Proveedor --</option>
                           {suppliers.map(sup => (
-                            <option key={sup.id} value={sup.id} className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>{sup.name} (RUC: {sup.ruc})</option>
+                            <option key={sup.id} value={sup.id} className="text-black bg-white">{sup.name} (RUC: {sup.ruc})</option>
                           ))}
                         </select>
                         <button
                           type="button"
                           onClick={() => setShowNewSupplierPopup(true)}
-                          className={`p-2 rounded-xl transition-all border ${
-                            isDarkMode 
-                              ? 'bg-white/5 border-white/10 hover:bg-white/10 text-primary' 
-                              : 'bg-gray-50 border-gray-300 hover:bg-gray-100 text-primary'
-                          }`}
+                          className={`p-2 rounded-xl transition-all border bg-gray-50 border-gray-300 hover:bg-gray-100 text-primary`}
                           title="Agregar Proveedor"
                         >
                           <Plus size={16} />
@@ -1378,9 +1326,7 @@ export default function ProductCreationForm({
                   </div>
 
                   {/* Cálculos Resumen Compra */}
-                  <div className={`p-3 rounded-xl border text-[10px] space-y-1.5 ${
-                    isDarkMode ? 'bg-white/[0.02] border-white/5' : 'bg-white border-slate-200'
-                  }`}>
+                  <div className={`p-3 rounded-xl border text-[10px] space-y-1.5 bg-white border-slate-200`}>
                     <div className="flex justify-between">
                       <span>Subtotal:</span>
                       <span className="font-bold font-mono">
@@ -1412,11 +1358,7 @@ export default function ProductCreationForm({
                 type="button"
                 onClick={() => setFormStep('product_details')}
                 disabled={loading}
-                className={`px-6 py-2 rounded-xl font-bold transition-all text-xs ${
-                  isDarkMode 
-                    ? 'bg-white/5 hover:bg-white/10 text-white' 
-                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                }`}
+                className={`px-6 py-2 rounded-xl font-bold transition-all text-xs bg-gray-100 hover:bg-gray-200 text-gray-700`}
               >
                 Volver a Paso 1
               </button>
@@ -1445,9 +1387,7 @@ export default function ProductCreationForm({
       {/* POPUP MODAL: AGREGAR CATEGORÍA */}
       {showCategoryPopup && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 backdrop-blur-xl bg-black/55 animate-in fade-in duration-200">
-          <form onSubmit={handleAddCategory} className={`w-full max-w-sm p-6 rounded-3xl border shadow-2xl ${
-            isDarkMode ? 'bg-[#121214] border-white/10 text-white' : 'bg-white border-slate-200 text-slate-900'
-          }`}>
+          <form onSubmit={handleAddCategory} className={`w-full max-w-sm p-6 rounded-3xl border shadow-2xl bg-white border-slate-200 text-slate-900`}>
             <h3 className="text-sm font-bold flex items-center gap-2 mb-4">
               <FolderPlus className="text-primary" size={18} />
               Agregar Nueva Categoría
@@ -1481,9 +1421,7 @@ export default function ProductCreationForm({
                 <button 
                   type="button" 
                   onClick={() => setShowCategoryPopup(false)}
-                  className={`px-4 py-1.5 rounded-xl text-[10px] font-bold ${
-                    isDarkMode ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                  }`}
+                  className={`px-4 py-1.5 rounded-xl text-[10px] font-bold bg-gray-100 hover:bg-gray-200 text-gray-700`}
                 >
                   Cancelar
                 </button>
@@ -1502,9 +1440,7 @@ export default function ProductCreationForm({
       {/* POPUP MODAL: AGREGAR MARCA */}
       {showBrandPopup && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 backdrop-blur-xl bg-black/55 animate-in fade-in duration-200">
-          <form onSubmit={handleAddBrand} className={`w-full max-w-sm p-6 rounded-3xl border shadow-2xl ${
-            isDarkMode ? 'bg-[#121214] border-white/10 text-white' : 'bg-white border-slate-200 text-slate-900'
-          }`}>
+          <form onSubmit={handleAddBrand} className={`w-full max-w-sm p-6 rounded-3xl border shadow-2xl bg-white border-slate-200 text-slate-900`}>
             <h3 className="text-sm font-bold flex items-center gap-2 mb-4">
               <Plus className="text-primary" size={18} />
               Agregar Nueva Marca
@@ -1538,9 +1474,7 @@ export default function ProductCreationForm({
                 <button 
                   type="button" 
                   onClick={() => setShowBrandPopup(false)}
-                  className={`px-4 py-1.5 rounded-xl text-[10px] font-bold ${
-                    isDarkMode ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                  }`}
+                  className={`px-4 py-1.5 rounded-xl text-[10px] font-bold bg-gray-100 hover:bg-gray-200 text-gray-700`}
                 >
                   Cancelar
                 </button>
@@ -1559,14 +1493,12 @@ export default function ProductCreationForm({
       {/* POPUP MODAL: CALCULADOR DE PRECIOS SIN IMPUESTO */}
       {showPriceWithoutTaxPopup && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 backdrop-blur-xl bg-black/55 animate-in fade-in duration-200">
-          <div className={`w-full max-w-sm p-6 rounded-3xl border shadow-2xl ${
-            isDarkMode ? 'bg-[#121214] border-white/10 text-white' : 'bg-white border-slate-200 text-slate-900'
-          }`}>
+          <div className={`w-full max-w-sm p-6 rounded-3xl border shadow-2xl bg-white border-slate-200 text-slate-900`}>
             <h3 className="text-sm font-bold flex items-center gap-2 mb-3">
               <DollarSign className="text-primary" size={18} />
               Calculador de Precio Sin Impuesto
             </h3>
-            <p className={`text-[10px] mb-4 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+            <p className={`text-[10px] mb-4 text-gray-500`}>
               Ingresa el precio subtotal sin impuestos y calcularemos el valor final automáticamente.
             </p>
             
@@ -1589,9 +1521,7 @@ export default function ProductCreationForm({
               </div>
 
               {/* Muestra cálculo rápido */}
-              <div className={`p-3 rounded-xl border text-[10px] space-y-1.5 ${
-                isDarkMode ? 'bg-white/[0.02] border-white/5' : 'bg-slate-50 border-slate-200'
-              }`}>
+              <div className={`p-3 rounded-xl border text-[10px] space-y-1.5 bg-slate-50 border-slate-200`}>
                 <div className="flex justify-between">
                   <span>Impuesto Aplicado:</span>
                   <span className="font-bold">{formData.taxRate}%</span>
@@ -1614,9 +1544,7 @@ export default function ProductCreationForm({
                 <button 
                   type="button" 
                   onClick={() => setShowPriceWithoutTaxPopup(false)}
-                  className={`px-4 py-1.5 rounded-xl text-[10px] font-bold ${
-                    isDarkMode ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                  }`}
+                  className={`px-4 py-1.5 rounded-xl text-[10px] font-bold bg-gray-100 hover:bg-gray-200 text-gray-700`}
                 >
                   Cancelar
                 </button>
@@ -1636,9 +1564,7 @@ export default function ProductCreationForm({
       {/* POPUP MODAL: AGREGAR PROVEEDOR IN-SITU */}
       {showNewSupplierPopup && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 backdrop-blur-xl bg-black/55 animate-in fade-in duration-200">
-          <form onSubmit={handleAddNewSupplier} className={`w-full max-w-sm p-6 rounded-3xl border shadow-2xl space-y-4 ${
-            isDarkMode ? 'bg-[#121214] border-white/10 text-white' : 'bg-white border-slate-200 text-slate-900'
-          }`}>
+          <form onSubmit={handleAddNewSupplier} className={`w-full max-w-sm p-6 rounded-3xl border shadow-2xl space-y-4 bg-white border-slate-200 text-slate-900`}>
             <h3 className="text-sm font-bold flex items-center gap-2">
               <Plus className="text-primary" size={18} />
               Agregar Nuevo Proveedor
@@ -1695,9 +1621,7 @@ export default function ProductCreationForm({
                 <button 
                   type="button" 
                   onClick={() => setShowNewSupplierPopup(false)}
-                  className={`px-4 py-1.5 rounded-xl text-[10px] font-bold ${
-                    isDarkMode ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                  }`}
+                  className={`px-4 py-1.5 rounded-xl text-[10px] font-bold bg-gray-100 hover:bg-gray-200 text-gray-700`}
                 >
                   Cancelar
                 </button>

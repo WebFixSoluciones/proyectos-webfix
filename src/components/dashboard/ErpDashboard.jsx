@@ -36,7 +36,7 @@ const IconRenderer = ({ name, size = 18, className = "" }) => {
   }
 };
 
-export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode, setActivePageId, setVentasInitialSubTab, db, appId }) {
+export default function ErpDashboard({ projectsList, allTasksGlobal, setActivePageId, setVentasInitialSubTab, db, appId }) {
   const [transactions, setTransactions] = useState([]);
   const [thirdParties, setThirdParties] = useState([]);
   const [products, setProducts] = useState([]);
@@ -161,15 +161,9 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
     }
   };
 
-  const cardClass = `p-5 rounded-2xl border transition-all duration-300 surface-card ${
-    isDarkMode 
-      ? 'border-white/5 hover:border-white/10 hover:shadow-[0_8px_30px_rgb(0,0,0,0.2)]' 
-      : 'border-gray-300/80 hover:border-gray-400 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] text-gray-900'
-  }`;
+  const cardClass = `p-5 rounded-2xl border transition-all duration-300 surface-card border-gray-300/80 hover:border-gray-400 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] text-gray-900`;
 
-  const currentGlassPanel = isDarkMode 
-    ? 'surface-card border border-white/[0.08]' 
-    : 'surface-card border border-gray-250 shadow-sm';
+  const currentGlassPanel = 'surface-card border border-gray-250 shadow-sm';
 
   const getColorClass = (colorId) => {
     const color = COLUMN_COLORS.find(c => c.id === colorId) || COLUMN_COLORS[0];
@@ -184,7 +178,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
       const parts = t.split(/(\*\*.*?\*\*)/g);
       return parts.map((part, i) => {
         if (part.startsWith('**') && part.endsWith('**')) {
-          return <strong key={i} className={`font-bold ${isDarkMode ? 'text-white' : 'text-gray-950'}`}>{part.slice(2, -2)}</strong>;
+          return <strong key={i} className={`font-bold text-gray-950`}>{part.slice(2, -2)}</strong>;
         }
         return part;
       });
@@ -196,14 +190,14 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
 
       if (cleanLine.startsWith('###')) {
         return (
-          <h4 key={index} className={`text-xs font-bold uppercase tracking-wider mt-4 mb-2 ${isDarkMode ? 'text-purple-300' : 'text-purple-900'}`}>
+          <h4 key={index} className={`text-xs font-bold uppercase tracking-wider mt-4 mb-2 text-purple-900`}>
             {cleanLine.replace('###', '').trim()}
           </h4>
         );
       }
       if (cleanLine.startsWith('##')) {
         return (
-          <h3 key={index} className={`text-sm font-bold mt-4 mb-2 flex items-center gap-1.5 ${isDarkMode ? 'text-purple-200 border-b border-white/5 pb-1' : 'text-purple-950 border-b border-gray-200 pb-1'}`}>
+          <h3 key={index} className={`text-sm font-bold mt-4 mb-2 flex items-center gap-1.5 text-purple-950 border-b border-gray-200 pb-1`}>
             <span className="w-1.5 h-3 rounded-full bg-purple-500"></span>
             {cleanLine.replace('##', '').trim()}
           </h3>
@@ -211,20 +205,20 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
       }
       if (cleanLine.startsWith('#')) {
         return (
-          <h2 key={index} className={`text-base font-extrabold mt-5 mb-3 ${isDarkMode ? 'text-white' : 'text-gray-950'}`}>
+          <h2 key={index} className={`text-base font-extrabold mt-5 mb-3 text-gray-950`}>
             {cleanLine.replace('#', '').trim()}
           </h2>
         );
       }
       if (cleanLine.startsWith('-') || cleanLine.startsWith('*')) {
         return (
-          <li key={index} className={`ml-4 list-disc text-xs leading-relaxed mb-1.5 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+          <li key={index} className={`ml-4 list-disc text-xs leading-relaxed mb-1.5 text-gray-700`}>
             {parseBoldText(cleanLine.substring(1).trim())}
           </li>
         );
       }
       return (
-        <p key={index} className={`text-xs leading-relaxed mb-2 last:mb-0 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+        <p key={index} className={`text-xs leading-relaxed mb-2 last:mb-0 text-gray-700`}>
           {parseBoldText(cleanLine)}
         </p>
       );
@@ -264,12 +258,12 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
 
       {/* SECCIÓN ACCESOS RÁPIDOS */}
       <div className="space-y-3">
-        <h3 className={`text-xs font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-gray-650'}`}>Accesos Rápidos</h3>
+        <h3 className={`text-xs font-bold uppercase tracking-wider text-gray-650`}>Accesos Rápidos</h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
           {/* Item 1: POS */}
           <button 
             onClick={() => { setVentasInitialSubTab && setVentasInitialSubTab('pos'); setActivePageId('ventas'); }}
-            className={`flex flex-col items-center justify-center p-4 rounded-2xl text-center transition-all duration-300 hover-lift ${isDarkMode ? 'surface-card' : 'bg-white shadow-sm hover:shadow-md'}`}
+            className={`flex flex-col items-center justify-center p-4 rounded-2xl text-center transition-all duration-300 hover-lift bg-white shadow-sm hover:shadow-md`}
           >
             <div className="p-3 rounded-xl mb-2.5 bg-primary/10 text-primary">
               <ShoppingCart size={20} />
@@ -280,7 +274,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
           {/* Item 2: Facturas SRI */}
           <button 
             onClick={() => { setVentasInitialSubTab && setVentasInitialSubTab('resumen_ventas'); setActivePageId('ventas'); }}
-            className={`flex flex-col items-center justify-center p-4 rounded-2xl text-center transition-all duration-300 hover-lift ${isDarkMode ? 'surface-card' : 'bg-white shadow-sm hover:shadow-md'}`}
+            className={`flex flex-col items-center justify-center p-4 rounded-2xl text-center transition-all duration-300 hover-lift bg-white shadow-sm hover:shadow-md`}
           >
             <div className="p-3 rounded-xl mb-2.5 bg-primary/10 text-primary">
               <FileText size={20} />
@@ -291,7 +285,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
           {/* Item 3: Inventario */}
           <button 
             onClick={() => setActivePageId('inventario')}
-            className={`flex flex-col items-center justify-center p-4 rounded-2xl text-center transition-all duration-300 hover-lift ${isDarkMode ? 'surface-card' : 'bg-white shadow-sm hover:shadow-md'}`}
+            className={`flex flex-col items-center justify-center p-4 rounded-2xl text-center transition-all duration-300 hover-lift bg-white shadow-sm hover:shadow-md`}
           >
             <div className="p-3 rounded-xl mb-2.5 bg-primary/10 text-primary">
               <Package size={20} />
@@ -302,7 +296,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
           {/* Item 4: Personas */}
           <button 
             onClick={() => setActivePageId('personas')}
-            className={`flex flex-col items-center justify-center p-4 rounded-2xl text-center transition-all duration-300 hover-lift ${isDarkMode ? 'surface-card' : 'bg-white shadow-sm hover:shadow-md'}`}
+            className={`flex flex-col items-center justify-center p-4 rounded-2xl text-center transition-all duration-300 hover-lift bg-white shadow-sm hover:shadow-md`}
           >
             <div className="p-3 rounded-xl mb-2.5 bg-primary/10 text-primary">
               <Users size={20} />
@@ -313,7 +307,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
           {/* Item 5: Calendario */}
           <button 
             onClick={() => setActivePageId('calendar')}
-            className={`flex flex-col items-center justify-center p-4 rounded-2xl text-center transition-all duration-300 hover-lift ${isDarkMode ? 'surface-card' : 'bg-white shadow-sm hover:shadow-md'}`}
+            className={`flex flex-col items-center justify-center p-4 rounded-2xl text-center transition-all duration-300 hover-lift bg-white shadow-sm hover:shadow-md`}
           >
             <div className="p-3 rounded-xl mb-2.5 bg-primary/10 text-primary">
               <CalendarDays size={20} />
@@ -324,7 +318,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
           {/* Item 6: Ajustes */}
           <button 
             onClick={() => setActivePageId('general_settings')}
-            className={`flex flex-col items-center justify-center p-4 rounded-2xl text-center transition-all duration-300 hover-lift ${isDarkMode ? 'surface-card' : 'bg-white shadow-sm hover:shadow-md'}`}
+            className={`flex flex-col items-center justify-center p-4 rounded-2xl text-center transition-all duration-300 hover-lift bg-white shadow-sm hover:shadow-md`}
           >
             <div className="p-3 rounded-xl mb-2.5 bg-primary/10 text-primary">
               <Settings size={20} />
@@ -335,26 +329,22 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
       </div>
 
       {/* METRICAS ERP GENERALES - ESTRUCTURA DE CINTA HORIZONTAL ULTRA-LIGERA */}
-      <div className={`p-5 rounded-2xl border ${
-        isDarkMode 
-          ? 'bg-[#151517]/40 border-white/5' 
-          : 'bg-gray-50/50 border-gray-200/80 shadow-sm'
-      }`}>
+      <div className={`p-5 rounded-2xl border bg-gray-50/50 border-gray-200/80 shadow-sm`}>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 divide-y sm:divide-y-0 sm:divide-x divide-gray-250 dark:divide-white/5">
           
           {/* VENTAS / INGRESOS */}
           <div className="flex items-center gap-4 sm:px-2">
-            <div className={`p-3 rounded-2xl shrink-0 ${isDarkMode ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-700'}`}>
+            <div className={`p-3 rounded-2xl shrink-0 bg-emerald-50 text-emerald-700`}>
               <TrendingUp size={22} />
             </div>
             <div className="min-w-0 flex-1">
-              <span className={`text-[10px] font-bold uppercase tracking-wider block ${isDarkMode ? 'text-gray-500' : 'text-gray-600'}`}>Ventas (Mes)</span>
-              <p className={`text-xl font-black tracking-tight mt-0.5 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
+              <span className={`text-[10px] font-bold uppercase tracking-wider block text-gray-600`}>Ventas (Mes)</span>
+              <p className={`text-xl font-black tracking-tight mt-0.5 text-emerald-600`}>
                 ${totalSales.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
               <div className="flex items-center gap-1.5 mt-0.5 text-[9px] text-gray-500">
                 <span>Por cobrar:</span>
-                <span className={`font-bold ${isDarkMode ? 'text-emerald-350' : 'text-emerald-700'}`}>
+                <span className={`font-bold text-emerald-700`}>
                   ${outstandingCollections.toFixed(2)}
                 </span>
               </div>
@@ -363,17 +353,17 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
 
           {/* GASTOS / EGRESOS */}
           <div className="flex items-center gap-4 pt-4 sm:pt-0 sm:pl-6 sm:px-2">
-            <div className={`p-3 rounded-2xl shrink-0 ${isDarkMode ? 'bg-red-500/10 text-red-400' : 'bg-red-50 text-red-700'}`}>
+            <div className={`p-3 rounded-2xl shrink-0 bg-red-50 text-red-700`}>
               <TrendingDown size={22} />
             </div>
             <div className="min-w-0 flex-1">
-              <span className={`text-[10px] font-bold uppercase tracking-wider block ${isDarkMode ? 'text-gray-500' : 'text-gray-600'}`}>Gastos (Mes)</span>
-              <p className={`text-xl font-black tracking-tight mt-0.5 ${isDarkMode ? 'text-red-400' : 'text-red-650'}`}>
+              <span className={`text-[10px] font-bold uppercase tracking-wider block text-gray-600`}>Gastos (Mes)</span>
+              <p className={`text-xl font-black tracking-tight mt-0.5 text-red-650`}>
                 ${totalExpenses.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
               <div className="flex items-center gap-1.5 mt-0.5 text-[9px] text-gray-500">
                 <span>Balance neto:</span>
-                <span className={`font-bold ${(totalSales - totalExpenses) >= 0 ? (isDarkMode ? 'text-white' : 'text-gray-800') : 'text-red-500'}`}>
+                <span className={`font-bold ${(totalSales - totalExpenses) >= 0 ? 'text-gray-800' : 'text-red-500'}`}>
                   ${(totalSales - totalExpenses).toFixed(2)}
                 </span>
               </div>
@@ -382,15 +372,15 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
 
           {/* INVENTARIO / STOCKS */}
           <div className="flex items-center gap-4 pt-4 sm:pt-0 lg:pl-6 sm:px-2">
-            <div className={`p-3 rounded-2xl shrink-0 ${isDarkMode ? 'bg-primary/10 text-primary' : 'bg-primary-light text-primary'}`}>
+            <div className={`p-3 rounded-2xl shrink-0 bg-primary-light text-primary`}>
               <Package size={22} />
             </div>
             <div className="min-w-0 flex-1">
-              <span className={`text-[10px] font-bold uppercase tracking-wider block ${isDarkMode ? 'text-gray-500' : 'text-gray-600'}`}>Inventario</span>
+              <span className={`text-[10px] font-bold uppercase tracking-wider block text-gray-600`}>Inventario</span>
               <p className="text-xl font-black tracking-tight mt-0.5">{products.length} Items</p>
               <div className="flex items-center gap-1 mt-0.5 text-[9px]">
                 <span className="text-gray-500">Crítico:</span>
-                <span className={`font-bold flex items-center gap-1 ${lowStockCount > 0 ? 'text-red-500 animate-pulse' : (isDarkMode ? 'text-gray-400' : 'text-gray-700')}`}>
+                <span className={`font-bold flex items-center gap-1 ${lowStockCount > 0 ? 'text-red-500 animate-pulse' : 'text-gray-700'}`}>
                   {lowStockCount > 0 && <AlertCircle size={9} />}
                   {lowStockCount} {lowStockCount === 1 ? 'alerta' : 'alertas'}
                 </span>
@@ -400,11 +390,11 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
 
           {/* GESTIÓN DE PROYECTOS */}
           <div className="flex items-center gap-4 pt-4 sm:pt-0 lg:pl-6 sm:px-2">
-            <div className={`p-3 rounded-2xl shrink-0 ${isDarkMode ? 'bg-purple-500/10 text-purple-400' : 'bg-purple-50 text-purple-700'}`}>
+            <div className={`p-3 rounded-2xl shrink-0 bg-purple-50 text-purple-700`}>
               <FolderOpen size={22} />
             </div>
             <div className="min-w-0 flex-1">
-              <span className={`text-[10px] font-bold uppercase tracking-wider block ${isDarkMode ? 'text-gray-500' : 'text-gray-600'}`}>Proyectos</span>
+              <span className={`text-[10px] font-bold uppercase tracking-wider block text-gray-600`}>Proyectos</span>
               <p className="text-xl font-black tracking-tight mt-0.5">{projectsList.length} Activos</p>
               <div className="flex items-center gap-1.5 mt-0.5 text-[9px] text-gray-500">
                 <span>Tareas:</span>
@@ -424,11 +414,11 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
         {/* PANEL IZQUIERDO: PROYECTOS Y TAREAS (Col Span 7) */}
         <div className={`${currentGlassPanel} xl:col-span-7 p-6 rounded-2xl`}>
           <div className="flex items-center justify-between mb-5">
-            <h3 className={`text-base font-bold flex items-center gap-2 ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-              <Briefcase size={18} className={isDarkMode ? 'text-primary' : 'text-primary'} />
+            <h3 className={`text-base font-bold flex items-center gap-2 text-gray-800`}>
+              <Briefcase size={18} className="text-primary" />
               Progreso de Proyectos Activos
             </h3>
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isDarkMode ? 'bg-white/10 text-gray-300' : 'bg-gray-200 text-gray-850'}`}>
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-200 text-gray-850`}>
               {projectsList.length} Proyectos
             </span>
           </div>
@@ -445,15 +435,11 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
                   <div 
                     key={project.id} 
                     onClick={() => setActivePageId(project.id)}
-                    className={`p-3.5 rounded-xl border cursor-pointer hover:scale-[1.01] transition-all group ${
-                      isDarkMode 
-                        ? 'bg-black/20 border-white/5 hover:bg-white/[0.04]' 
-                        : 'bg-white border-gray-250 hover:bg-gray-50 shadow-sm'
-                    }`}
+                    className={`p-3.5 rounded-xl border cursor-pointer hover:scale-[1.01] transition-all group bg-white border-gray-250 hover:bg-gray-50 shadow-sm`}
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2 font-bold text-xs group-hover:underline">
-                        <span className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-white/5 text-gray-300' : 'bg-black/5 text-gray-705'}`}>
+                        <span className={`p-1.5 rounded-lg bg-black/5 text-gray-705`}>
                           <IconRenderer name={project.icon} size={13} />
                         </span>
                         {project.title}
@@ -461,13 +447,13 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                         progressPercent === 100 
                           ? 'bg-emerald-500/20 text-emerald-500' 
-                          : (isDarkMode ? 'bg-white/10 text-white' : 'bg-gray-200 text-gray-900')
+                          : 'bg-gray-200 text-gray-900'
                       }`}>
                         {progressPercent}%
                       </span>
                     </div>
 
-                    <div className={`h-2 w-full rounded-full overflow-hidden backdrop-blur-md border ${isDarkMode ? 'bg-white/5 border-white/5' : 'bg-gray-200 border-white/50'}`}>
+                    <div className={`h-2 w-full rounded-full overflow-hidden backdrop-blur-md border bg-gray-200 border-white/50`}>
                       <div 
                         className={`h-full rounded-full transition-all duration-1000 ${
                           progressPercent === 100 
@@ -498,13 +484,13 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
 
           {/* DISTRIBUCION DE TAREAS GLOBAL */}
           {allTasksGlobal.length > 0 && (
-            <div className={`mt-5 pt-4 border-t ${isDarkMode ? 'border-white/5' : 'border-gray-200'}`}>
-              <h4 className={`text-[10px] font-bold uppercase tracking-wider mb-2.5 flex items-center gap-1.5 ${isDarkMode ? 'text-gray-400' : 'text-gray-700'}`}>
+            <div className={`mt-5 pt-4 border-t border-gray-200`}>
+              <h4 className={`text-[10px] font-bold uppercase tracking-wider mb-2.5 flex items-center gap-1.5 text-gray-700`}>
                 <BarChart3 size={12} />
                 Estado de Tareas en toda la Empresa
               </h4>
               
-              <div className={`h-3 w-full rounded-full overflow-hidden flex border shadow-inner ${isDarkMode ? 'border-white/5 bg-black/25' : 'border-gray-250 bg-gray-150'}`}>
+              <div className={`h-3 w-full rounded-full overflow-hidden flex border shadow-inner border-gray-250 bg-gray-150`}>
                 {Array.from(new Set(projectsList.flatMap(p => (p.columns || DEFAULT_COLUMNS).map(c => c.id)))).map((statusId) => {
                   const count = allTasksGlobal.filter(t => t.status === statusId).length;
                   const percent = Math.round((count / allTasksGlobal.length) * 100);
@@ -531,7 +517,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
                   return count > 0 ? (
                     <div key={statusId} className="flex items-center gap-1 text-gray-500">
                       <span className={`w-2.5 h-2.5 rounded-full ${dotClass}`}></span>
-                      <span>{colDef.title}: <strong className={isDarkMode ? 'text-white' : 'text-gray-900'}>{count}</strong></span>
+                      <span>{colDef.title}: <strong className="text-gray-900">{count}</strong></span>
                     </div>
                   ) : null;
                 })}
@@ -544,11 +530,11 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
         <div className={`${currentGlassPanel} xl:col-span-5 p-6 rounded-2xl flex flex-col justify-between`}>
           <div>
             <div className="flex items-center justify-between mb-5">
-              <h3 className={`text-base font-bold flex items-center gap-2 ${isDarkMode ? 'text-gray-200' : 'text-gray-850'}`}>
-                <FileText size={18} className={isDarkMode ? 'text-emerald-400' : 'text-emerald-600'} />
+              <h3 className={`text-base font-bold flex items-center gap-2 text-gray-850`}>
+                <FileText size={18} className="text-emerald-600" />
                 Facturación Electrónica
               </h3>
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isDarkMode ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-100 text-emerald-800'}`}>
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800`}>
                 Ecuador SRI
               </span>
             </div>
@@ -568,10 +554,10 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
                 return (
                   <div key={item.key} className="space-y-1">
                     <div className="flex justify-between items-center text-[10px] font-bold">
-                      <span className={isDarkMode ? 'text-gray-400' : 'text-gray-650'}>{item.label}</span>
-                      <span className={isDarkMode ? 'text-white' : 'text-gray-900'}>{count} ({percent}%)</span>
+                      <span className="text-gray-650">{item.label}</span>
+                      <span className="text-gray-900">{count} ({percent}%)</span>
                     </div>
-                    <div className={`w-full h-1.5 rounded-full overflow-hidden ${isDarkMode ? 'bg-white/5' : 'bg-gray-200'}`}>
+                    <div className={`w-full h-1.5 rounded-full overflow-hidden bg-gray-200`}>
                       <div className={`h-full ${item.color} rounded-full`} style={{ width: `${percent}%` }}></div>
                     </div>
                   </div>
@@ -592,7 +578,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
               <div className="flex items-start gap-3">
                 <ShieldAlert size={16} className="mt-0.5" />
                 <div className="space-y-0.5">
-                  <p className={`text-[10px] font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Firma Electrónica Autorizada</p>
+                  <p className={`text-[10px] font-bold text-gray-900`}>Firma Electrónica Autorizada</p>
                   <p className="text-[9px] leading-normal opacity-85">
                     {certStatus === 'none' && 'No se ha detectado ninguna firma p12 activa. Cárgala en Configuración para validar comprobantes.'}
                     {certStatus === 'expired' && 'Tu firma electrónica cargada está expirada. Reemplázala inmediatamente.'}
@@ -604,7 +590,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
             </div>
           </div>
 
-          <div className={`mt-5 pt-4 border-t text-[10px] flex justify-between items-center ${isDarkMode ? 'border-white/5 text-gray-500' : 'border-gray-250 text-gray-600'}`}>
+          <div className={`mt-5 pt-4 border-t text-[10px] flex justify-between items-center border-gray-250 text-gray-600`}>
             <span>Esquema XML XSD 1.0.0</span>
             <span className="font-bold flex items-center gap-1 text-emerald-500">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
@@ -616,11 +602,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
       </div>
 
       {/* SECCIÓN: AI ERP ADVISOR (DIAGNÓSTICO ESTRATÉGICO CON GEMINI) */}
-      <div className={`p-6 rounded-3xl relative overflow-hidden border ${
-        isDarkMode 
-          ? 'bg-gradient-to-br from-[#1c142e] via-[#151517] to-[#151517] border-[#4c2d7a]/20 shadow-[0_4px_30px_rgba(0,0,0,0.4)]' 
-          : 'bg-gradient-to-br from-[#f6f2fc] via-white to-white border-purple-200 shadow-md'
-      }`}>
+      <div className={`p-6 rounded-3xl relative overflow-hidden border bg-gradient-to-br from-[#f6f2fc] via-white to-white border-purple-200 shadow-md`}>
         <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/10 rounded-full blur-[60px] pointer-events-none -z-10"></div>
         <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-primary/5 rounded-full blur-[40px] pointer-events-none -z-10"></div>
 
@@ -630,10 +612,10 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
               <Sparkles size={20} />
             </div>
             <div>
-              <h3 className={`text-base font-bold ${isDarkMode ? 'text-purple-300' : 'text-purple-950'}`}>
+              <h3 className={`text-base font-bold text-purple-950`}>
                 AI ERP Advisor - Diagnóstico Inteligente
               </h3>
-              <p className={`text-xs mt-0.5 ${isDarkMode ? 'text-gray-400' : 'text-gray-605'}`}>
+              <p className={`text-xs mt-0.5 text-gray-605`}>
                 Recomendaciones ejecutivas de negocio basadas en finanzas, inventarios y proyectos
               </p>
             </div>
@@ -642,11 +624,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
           <button
             onClick={runAiAdvisor}
             disabled={isGeneratingReport}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md active:scale-95 disabled:opacity-50 ${
-              isDarkMode 
-                ? 'bg-gradient-to-r from-purple-600 to-primary-hover text-white hover:from-purple-500 hover:to-primary-hover shadow-purple-900/30 border border-purple-500/40' 
-                : 'bg-purple-600 text-white hover:bg-purple-700 shadow-purple-200/50'
-            }`}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md active:scale-95 disabled:opacity-50 bg-purple-600 text-white hover:bg-purple-700 shadow-purple-200/50`}
           >
             {isGeneratingReport ? <RefreshCw size={13} className="animate-spin" /> : <Sparkles size={13} />}
             {aiReport ? 'Recargar Diagnóstico con IA' : 'Generar Diagnóstico Estratégico'}
@@ -655,9 +633,9 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
 
         {/* CONTENIDO DEL REPORTE */}
         {isGeneratingReport ? (
-          <div className={`flex flex-col items-center justify-center py-12 rounded-2xl border border-dashed ${isDarkMode ? 'bg-black/20 border-white/5 shimmer-loading' : 'bg-gray-50/50 border-gray-250 shimmer-loading-light'}`}>
+          <div className={`flex flex-col items-center justify-center py-12 rounded-2xl border border-dashed bg-gray-50/50 border-gray-250 shimmer-loading-light`}>
             <RefreshCw size={24} className="animate-spin text-purple-500 mb-3" />
-            <p className={`text-xs font-bold ${isDarkMode ? 'text-purple-300' : 'text-purple-900'}`}>Analizando métricas corporativas...</p>
+            <p className={`text-xs font-bold text-purple-900`}>Analizando métricas corporativas...</p>
             <p className="text-[10px] text-gray-500 mt-1">Gemini está procesando stock de inventario, liquidez SRI y tareas pendientes.</p>
           </div>
         ) : aiError ? (
@@ -665,20 +643,14 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
             <strong>Error:</strong> {aiError}
           </div>
         ) : aiReport ? (
-          <div className={`p-5 rounded-2xl border backdrop-blur-md transition-all ${
-            isDarkMode 
-              ? 'bg-black/35 border-white/[0.05] shadow-[inset_0_1px_20px_rgba(255,255,255,0.02)]' 
-              : 'bg-white border-gray-250 shadow-sm'
-          }`}>
+          <div className={`p-5 rounded-2xl border backdrop-blur-md transition-all bg-white border-gray-250 shadow-sm`}>
             <div className="prose prose-sm max-w-none prose-invert">
               {renderMarkdown(aiReport)}
             </div>
           </div>
         ) : (
-          <div className={`p-6 rounded-2xl border text-center border-dashed ${
-            isDarkMode ? 'bg-black/10 border-white/5' : 'bg-gray-50/50 border-gray-250'
-          }`}>
-            <p className={`text-xs italic ${isDarkMode ? 'text-purple-300/80' : 'text-purple-800/80'} font-medium`}>
+          <div className={`p-6 rounded-2xl border text-center border-dashed bg-gray-50/50 border-gray-250`}>
+            <p className={`text-xs italic text-purple-800/80 font-medium`}>
               Haz clic en "Generar Diagnóstico Estratégico" para que la Inteligencia Artificial analice tus productos, stock de almacén, cobranzas pendientes, cumplimiento del SRI y estado de proyectos para brindarte un reporte corporativo optimizado.
             </p>
           </div>

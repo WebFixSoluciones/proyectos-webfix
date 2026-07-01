@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Globe, Mail, Megaphone, CheckCircle2, X, MessageSquare, Loader2, ArrowRight } from 'lucide-react';
 import { doc, setDoc } from 'firebase/firestore';
 
-export default function HiringServicesModule({ isDarkMode, showToast, db, appId }) {
+export default function HiringServicesModule({ showToast, db, appId }) {
   const [selectedService, setSelectedService] = useState(null);
   const [formData, setFormData] = useState({
     nombreContacto: '',
@@ -123,25 +123,17 @@ export default function HiringServicesModule({ isDarkMode, showToast, db, appId 
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank');
   };
 
-  const inputClass = `w-full px-3.5 py-2 text-xs rounded-[10px] border outline-none transition-all focus:ring-1 focus:ring-primary/25 ${
-    isDarkMode 
-      ? 'bg-[#151722]/80 border-white/10 text-white focus:border-primary/50' 
-      : 'bg-white border-slate-200 text-black focus:border-primary'
-  }`;
+  const inputClass = `w-full px-3.5 py-2 text-xs rounded-[10px] border outline-none transition-all focus:ring-1 focus:ring-primary/25 bg-white border-slate-200 text-black focus:border-primary`;
 
   return (
     <div className="space-y-6">
       {/* Banner de Presentación */}
-      <div className={`p-6 rounded-[10px] border relative overflow-hidden ${
-        isDarkMode 
-          ? 'bg-gradient-to-r from-primary/10 via-slate-900 to-slate-900 border-white/5' 
-          : 'bg-gradient-to-r from-primary-light via-white to-white border-slate-200 shadow-sm'
-      }`}>
+      <div className={`p-6 rounded-[10px] border relative overflow-hidden bg-gradient-to-r from-primary-light via-white to-white border-slate-200 shadow-sm`}>
         <div className="max-w-2xl space-y-2 relative z-10">
           <span className="text-[9px] font-black uppercase tracking-widest text-primary bg-primary/10 px-2 py-0.5 rounded-full">
             Servicios Web Fix
           </span>
-          <h2 className={`text-xl font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+          <h2 className={`text-xl font-black tracking-tight text-slate-900`}>
             Lleva tu negocio al siguiente nivel digital
           </h2>
           <p className="text-xs text-gray-500 leading-relaxed">
@@ -154,15 +146,11 @@ export default function HiringServicesModule({ isDarkMode, showToast, db, appId 
       {/* Grid de Servicios */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {services.map(service => (
-          <div key={service.id} className={`rounded-[10px] border flex flex-col justify-between overflow-hidden transition-all duration-300 hover:shadow-lg ${
-            isDarkMode 
-              ? 'bg-[#121420] border-white/5 hover:border-white/10' 
-              : 'bg-white border-slate-200 hover:border-primary/30 shadow-sm'
-          }`}>
+          <div key={service.id} className={`rounded-[10px] border flex flex-col justify-between overflow-hidden transition-all duration-300 hover:shadow-lg bg-white border-slate-200 hover:border-primary/30 shadow-sm`}>
             <div className="p-6 space-y-4">
               {/* Header de Tarjeta */}
               <div className="flex items-center justify-between">
-                <div className={`p-2.5 rounded-[10px] ${isDarkMode ? 'bg-white/[0.02]' : 'bg-slate-50'}`}>
+                <div className={`p-2.5 rounded-[10px] bg-slate-50`}>
                   {service.icon}
                 </div>
                 <span className={`text-[8.5px] font-black uppercase tracking-wider px-2 py-0.5 rounded-[8px] ${
@@ -177,7 +165,7 @@ export default function HiringServicesModule({ isDarkMode, showToast, db, appId 
               </div>
 
               <div className="space-y-1.5">
-                <h3 className={`text-sm font-black uppercase tracking-wide ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                <h3 className={`text-sm font-black uppercase tracking-wide text-slate-900`}>
                   {service.title}
                 </h3>
                 <p className="text-xs text-gray-500 leading-normal min-h-[48px]">
@@ -206,7 +194,7 @@ export default function HiringServicesModule({ isDarkMode, showToast, db, appId 
             </div>
 
             {/* Acción */}
-            <div className={`p-4 border-t ${isDarkMode ? 'bg-white/[0.01] border-white/5' : 'bg-slate-50/50 border-slate-100'}`}>
+            <div className={`p-4 border-t bg-slate-50/50 border-slate-100`}>
               <button 
                 onClick={() => handleOpenModal(service)}
                 className="w-full py-2.5 text-xs font-black uppercase tracking-wider rounded-[10px] bg-primary hover:bg-primary-hover text-white flex items-center justify-center gap-1.5 transition-all shadow-sm"
@@ -221,15 +209,11 @@ export default function HiringServicesModule({ isDarkMode, showToast, db, appId 
       {/* Modal de Solicitud */}
       {selectedService && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className={`w-full max-w-md rounded-3xl border p-6 space-y-4 shadow-2xl transition-all scale-100 ${
-            isDarkMode 
-              ? 'bg-[#121420] border-white/10 text-white' 
-              : 'bg-white border-slate-200 text-slate-900 shadow-slate-300'
-          }`}>
+          <div className={`w-full max-w-md rounded-3xl border p-6 space-y-4 shadow-2xl transition-all scale-100 bg-white border-slate-200 text-slate-900 shadow-slate-300`}>
             {/* Modal Header */}
             <div className="flex items-center justify-between pb-2 border-b border-gray-500/10">
               <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-[10px] ${isDarkMode ? 'bg-white/[0.02]' : 'bg-slate-50'}`}>
+                <div className={`p-2 rounded-[10px] bg-slate-50`}>
                   {selectedService.icon}
                 </div>
                 <div>
@@ -326,11 +310,7 @@ export default function HiringServicesModule({ isDarkMode, showToast, db, appId 
                     type="button" 
                     onClick={() => setSelectedService(null)}
                     disabled={isSaving}
-                    className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-[10px] border transition-colors ${
-                      isDarkMode 
-                        ? 'border-white/10 hover:bg-white/5 text-gray-300' 
-                        : 'border-slate-200 hover:bg-slate-50 text-slate-600'
-                    }`}
+                    className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-[10px] border transition-colors border-slate-200 hover:bg-slate-50 text-slate-600`}
                   >
                     Cancelar
                   </button>
@@ -377,11 +357,7 @@ export default function HiringServicesModule({ isDarkMode, showToast, db, appId 
                   <button 
                     type="button" 
                     onClick={() => setSelectedService(null)}
-                    className={`w-full py-2.5 text-xs font-black uppercase tracking-wider rounded-[10px] border transition-colors ${
-                      isDarkMode 
-                        ? 'border-white/10 hover:bg-white/5 text-gray-300' 
-                        : 'border-slate-200 hover:bg-slate-50 text-slate-600'
-                    }`}
+                    className={`w-full py-2.5 text-xs font-black uppercase tracking-wider rounded-[10px] border transition-colors border-slate-200 hover:bg-slate-50 text-slate-600`}
                   >
                     Cerrar Ventana
                   </button>

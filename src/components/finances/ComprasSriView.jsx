@@ -3,7 +3,7 @@ import { Download, CheckCircle2, AlertTriangle, FileText, RefreshCw, ShoppingBag
 import { doc, setDoc, getDoc, getDocs, collection } from 'firebase/firestore';
 import { getEcuadorDateString } from '../../services/sriService';
 
-export default function ComprasSriView({ transactions = [], isDarkMode, showToast, db, appId }) {
+export default function ComprasSriView({ transactions = [], showToast, db, appId }) {
   const [sriBills, setSriBills] = useState([]);
   const [loading, setLoading] = useState(false);
   const [companyRuc, setCompanyRuc] = useState('');
@@ -62,7 +62,7 @@ export default function ComprasSriView({ transactions = [], isDarkMode, showToas
         // Generar facturas de compra mock dirigidas al RUC actual de la empresa
         const mockBills = [
           {
-            id: `sri_bill_${companyRuc}_1`,
+            id: `sri_bill_companyRuc_1`,
             ruc: '1760001040001',
             razonSocial: 'CORPORACION NACIONAL DE TELECOMUNICACIONES CNT EP',
             documentNumber: '001-777-089912233',
@@ -76,7 +76,7 @@ export default function ComprasSriView({ transactions = [], isDarkMode, showToas
             receiverRuc: companyRuc
           },
           {
-            id: `sri_bill_${companyRuc}_2`,
+            id: `sri_bill_companyRuc_2`,
             ruc: '1790016919001',
             razonSocial: 'CORPORACION FAVORITA C.A. (SUPERMAXI)',
             documentNumber: '005-102-000456789',
@@ -90,7 +90,7 @@ export default function ComprasSriView({ transactions = [], isDarkMode, showToas
             receiverRuc: companyRuc
           },
           {
-            id: `sri_bill_${companyRuc}_3`,
+            id: `sri_bill_companyRuc_3`,
             ruc: '1792286433001',
             razonSocial: 'EDRAN S.A. (NETLIFE)',
             documentNumber: '002-010-098765432',
@@ -112,7 +112,7 @@ export default function ComprasSriView({ transactions = [], isDarkMode, showToas
         }
 
         setSriBills(mockBills);
-        showToast(`Sincronizadas con éxito 3 facturas emitidas a su RUC (${companyRuc})`, "success");
+        showToast(`Sincronizadas con éxito 3 facturas emitidas a su RUC (companyRuc)`, "success");
       } catch (err) {
         console.error(err);
         showToast("Error al guardar comprobantes en la base de datos", "error");
@@ -132,7 +132,7 @@ export default function ComprasSriView({ transactions = [], isDarkMode, showToas
     }
 
     try {
-      const txId = `tx_${new Date().getTime()}_${bill.id}`;
+      const txId = `tx_new Date().getTime()_bill.id`;
       const payload = {
         id: txId,
         type: 'egreso',
@@ -141,7 +141,7 @@ export default function ComprasSriView({ transactions = [], isDarkMode, showToas
         documentNumber: bill.documentNumber,
         thirdPartyId: '', // Proveedor externo
         category: bill.category,
-        description: `${bill.description} (Importado SRI)`,
+        description: `bill.description (Importado SRI)`,
         currency: 'USD',
         baseImponible: bill.baseImponible,
         ivaPorcentaje: 15,
@@ -161,7 +161,7 @@ export default function ComprasSriView({ transactions = [], isDarkMode, showToas
       };
 
       await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', txId), payload);
-      showToast(`Factura ${bill.documentNumber} importada exitosamente`, "success");
+      showToast(`Factura bill.documentNumber importada exitosamente`, "success");
     } catch (err) {
       console.error(err);
       showToast("Error al importar la factura", "error");
@@ -184,7 +184,7 @@ export default function ComprasSriView({ transactions = [], isDarkMode, showToas
 
       {/* HEADER ACCIONES */}
       <div className={`p-6 rounded-3xl border flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 shadow-sm ${
-        isDarkMode ? 'bg-[#151517] border-white/5 text-gray-300' : 'bg-white border-gray-250 text-gray-700'
+        'bg-white border-gray-250 text-gray-700'
       }`}>
         <div className="space-y-1">
           <h3 className="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
@@ -213,16 +213,12 @@ export default function ComprasSriView({ transactions = [], isDarkMode, showToas
 
       {/* LISTADO DE COMPROBANTES */}
       <div className={`rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm ${
-        isDarkMode 
-          ? 'border-white/5 bg-[#0f111a]/85 shadow-lg shadow-black/40' 
-          : 'border-slate-200/80 bg-white'
+        'border-slate-200/80 bg-white'
       }`}>
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left text-xs whitespace-nowrap">
             <thead className={`text-[10px] uppercase font-bold tracking-wider ${
-              isDarkMode 
-                ? 'bg-black/35 text-slate-400 border-b border-white/5' 
-                : 'bg-slate-50 text-slate-600 border-b border-slate-100'
+              'bg-slate-50 text-slate-600 border-b border-slate-100'
             }`}>
               <tr>
                 <th className="px-6 py-3.5">Fecha</th>
@@ -235,11 +231,11 @@ export default function ComprasSriView({ transactions = [], isDarkMode, showToas
                 <th className="px-6 py-3.5 text-center">Acción</th>
               </tr>
             </thead>
-            <tbody className={`divide-y ${isDarkMode ? 'divide-white/5' : 'divide-slate-100'}`}>
+            <tbody className={`divide-y divide-slate-100`}>
               {sriBills.map(bill => {
                 const isImported = transactions.some(t => t.documentNumber === bill.documentNumber);
                 return (
-                  <tr key={bill.id} className={`transition-colors ${isDarkMode ? 'hover:bg-white/[0.015]' : 'hover:bg-slate-50/40'}`}>
+                  <tr key={bill.id} className={`transition-colors hover:bg-slate-50/40`}>
                     <td className="px-6 py-3.5 text-gray-400 font-medium">{bill.date}</td>
                     <td className="px-6 py-3.5 font-mono text-[10px] font-bold">{bill.documentNumber}</td>
                     <td className="px-6 py-3.5">
@@ -248,9 +244,9 @@ export default function ComprasSriView({ transactions = [], isDarkMode, showToas
                         <p className="text-[9px] text-gray-500 font-mono">RUC: {bill.ruc}</p>
                       </div>
                     </td>
-                    <td className="px-6 py-3.5 text-right font-mono">${bill.baseImponible.toFixed(2)}</td>
-                    <td className="px-6 py-3.5 text-right font-mono">${bill.ivaValor.toFixed(2)}</td>
-                    <td className="px-6 py-3.5 text-right font-bold text-red-500">${bill.total.toFixed(2)}</td>
+                    <td className="px-6 py-3.5 text-right font-mono">bill.baseImponible.toFixed(2)</td>
+                    <td className="px-6 py-3.5 text-right font-mono">bill.ivaValor.toFixed(2)</td>
+                    <td className="px-6 py-3.5 text-right font-bold text-red-500">bill.total.toFixed(2)</td>
                     <td className="px-6 py-3.5 text-center">
                       <span className={`inline-flex items-center gap-1 badge-status-sm ${
                         isImported 

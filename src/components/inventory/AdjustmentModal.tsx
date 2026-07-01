@@ -156,9 +156,7 @@ export default function AdjustmentModal({ onClose, onSuccess }: AdjustmentModalP
           </div>
           <button 
             onClick={onClose}
-            className={`p-1.5 rounded-xl transition-all hover:scale-105 ${
-              isDarkMode ? 'bg-white/5 text-gray-400 hover:text-white' : 'bg-gray-100 text-gray-500 hover:text-gray-900'
-            }`}
+            className={`p-1.5 rounded-xl transition-all hover:scale-105 bg-gray-100 text-gray-500 hover:text-gray-900`}
           >
             <X size={18} />
           </button>
@@ -167,9 +165,7 @@ export default function AdjustmentModal({ onClose, onSuccess }: AdjustmentModalP
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-5 custom-scrollbar">
           {error && (
-            <div className={`p-4 rounded-xl border text-sm font-medium ${
-              isDarkMode ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-red-50 border-red-200 text-red-600'
-            }`}>
+            <div className={`p-4 rounded-xl border text-sm font-medium bg-red-50 border-red-200 text-red-600`}>
               {error}
             </div>
           )}
@@ -315,11 +311,7 @@ export default function AdjustmentModal({ onClose, onSuccess }: AdjustmentModalP
               type="button"
               onClick={onClose}
               disabled={loading}
-              className={`px-6 py-2.5 rounded-xl font-bold transition-all text-sm ${
-                isDarkMode 
-                  ? 'bg-white/5 hover:bg-white/10 text-white' 
-                  : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-              }`}
+              className={`px-6 py-2.5 rounded-xl font-bold transition-all text-sm bg-gray-100 hover:bg-gray-200 text-gray-700`}
             >
               Cancelar
             </button>

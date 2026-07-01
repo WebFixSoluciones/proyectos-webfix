@@ -25,7 +25,6 @@ import GastosCreditosModule from './GastosCreditosModule';
 export default function FinanceModule({ 
   mode = 'contabilidad', 
   initialSubTab, 
-  isDarkMode, 
   showToast,
   transactions = [],
   thirdParties = [],
@@ -201,8 +200,8 @@ export default function FinanceModule({
 
       {/* SUB-SUB-NAVEGACIÓN SI ACTIVE TAB TIENE SUB-TABS (ej: sri_docs en contabilidad) */}
       {activeTab === 'sri_docs' && mode === 'contabilidad' && (
-        <div className={`flex items-center gap-2 px-8 py-2 border-b shrink-0 ${isDarkMode ? 'border-white/5 bg-[#121214]/50' : 'border-primary/10 bg-primary-light/50'}`}>
-          <span className={`text-[9px] font-black uppercase tracking-wider ${isDarkMode ? 'text-gray-500' : 'text-primary'}`}>Tipo Doc:</span>
+        <div className="flex items-center gap-2 px-8 py-2 border-b shrink-0 border-primary/10 bg-primary-light/50">
+          <span className="text-[9px] font-black uppercase tracking-wider text-primary">Tipo Doc:</span>
           <div className="flex gap-1.5 overflow-x-auto whitespace-nowrap scrollbar-none">
             {[
               { id: 'nota_credito', label: 'Notas de Crédito' },
@@ -216,8 +215,8 @@ export default function FinanceModule({
                 onClick={() => setSubTabSri(sub.id)}
                 className={`px-3 py-1 rounded-lg text-xs font-bold transition-all border ${
                   subTabSri === sub.id
-                    ? (isDarkMode ? 'bg-emerald-500/20 text-emerald-450 border-emerald-500/30' : 'bg-emerald-600 text-white border-emerald-600 shadow-sm')
-                    : (isDarkMode ? 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-white/5' : 'border-transparent text-black hover:text-black hover:bg-black/5')
+                    ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+                    : 'border-transparent text-black hover:text-black hover:bg-black/5'
                 }`}
               >
                 {sub.label}
@@ -229,14 +228,14 @@ export default function FinanceModule({
 
       {/* CUERPO PRINCIPAL */}
       <div className="flex flex-1 overflow-hidden min-h-0 bg-transparent">
-        <div className={`flex-1 overflow-y-auto px-8 ${isFormActive ? 'pt-0 pb-6' : 'py-6'} custom-scrollbar ${isDarkMode ? 'bg-[#0f0f11]' : 'bg-white'}`}>
+        <div className={`flex-1 overflow-y-auto px-8 ${isFormActive ? 'pt-0 pb-6' : 'py-6'} custom-scrollbar bg-white`}>
           {isLoading ? (
             <div className="flex justify-center items-center h-64">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
             </div>
           ) : (
             <>
-              {activeTab === 'dashboard' && <FinanceDashboard transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} db={db} appId={appId} />}
+              {activeTab === 'dashboard' && <FinanceDashboard transactions={transactions} thirdParties={thirdParties} db={db} appId={appId} />}
               
               {/* SECCIÓN VENTAS */}
               {activeTab === 'ventas' && (
@@ -246,7 +245,7 @@ export default function FinanceModule({
                     onClose={() => setIsModalOpen(false)} 
                     thirdParties={thirdParties} 
                     products={products}
-                    isDarkMode={isDarkMode} 
+                    
                     showToast={showToast} 
                     db={db} 
                     storage={storage} 
@@ -256,14 +255,14 @@ export default function FinanceModule({
                 ) : (
                   <>
                     {subTabVentas === 'resumen_ventas' && (
-                      <TransactionsView transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} forcedDocType="ventas_resumen" forcedType="ingreso" />
+                      <TransactionsView transactions={transactions} thirdParties={thirdParties} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} forcedDocType="ventas_resumen" forcedType="ingreso" />
                     )}
                     {subTabVentas === 'ventas_preventa' && (
                       <PosView 
                         products={products} 
                         thirdParties={thirdParties} 
                         transactions={transactions}
-                        isDarkMode={isDarkMode} 
+                        
                         showToast={showToast} 
                         db={db} 
                         appId={appId} 
@@ -277,7 +276,7 @@ export default function FinanceModule({
                         products={products} 
                         thirdParties={thirdParties} 
                         transactions={transactions}
-                        isDarkMode={isDarkMode} 
+                        
                         showToast={showToast} 
                         db={db} 
                         appId={appId} 
@@ -287,16 +286,16 @@ export default function FinanceModule({
                       />
                     )}
                     {subTabVentas === 'quotes' && (
-                      <QuotesView products={products} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} appId={appId} onPromoteToInvoice={handlePromoteToInvoice} />
+                      <QuotesView products={products} thirdParties={thirdParties} showToast={showToast} db={db} appId={appId} onPromoteToInvoice={handlePromoteToInvoice} />
                     )}
                     {subTabVentas === 'nota_credito' && (
-                      <TransactionsView transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} forcedDocType="nota_credito" forcedType="ingreso" />
+                      <TransactionsView transactions={transactions} thirdParties={thirdParties} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} forcedDocType="nota_credito" forcedType="ingreso" />
                     )}
                     {subTabVentas === 'retencion' && (
-                      <TransactionsView transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} forcedDocType="retencion" forcedType="ingreso" />
+                      <TransactionsView transactions={transactions} thirdParties={thirdParties} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} forcedDocType="retencion" forcedType="ingreso" />
                     )}
                     {subTabVentas === 'preventas' && (
-                      <TransactionsView transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} isPreventaTab={true} forcedType="ingreso" />
+                      <TransactionsView transactions={transactions} thirdParties={thirdParties} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} isPreventaTab={true} forcedType="ingreso" />
                     )}
                   </>
                 )
@@ -304,33 +303,33 @@ export default function FinanceModule({
 
               {/* SECCIÓN DOCUMENTOS SRI */}
               {activeTab === 'sri_docs' && (
-                <TransactionsView transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} forcedDocType={subTabSri} />
+                <TransactionsView transactions={transactions} thirdParties={thirdParties} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} forcedDocType={subTabSri} />
               )}
 
               {/* SECCIÓN INVENTARIO */}
               {activeTab === 'products' && (
-                <InventoryModule isDarkMode={isDarkMode} />
+                <InventoryModule />
               )}
 
               {/* SECCIÓN PERSONAS */}
               {activeTab === 'personas' && (
-                <ThirdPartiesView thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} appId={appId} forcedType={subTabPersonas} />
+                <ThirdPartiesView thirdParties={thirdParties} showToast={showToast} db={db} appId={appId} forcedType={subTabPersonas} />
               )}
 
               {/* SECCIÓN CUENTAS POR COBRAR (CxC) */}
               {activeTab === 'cxc' && (
-                <AccountsReceivablePayable type="cxc" transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} appId={appId} />
+                <AccountsReceivablePayable type="cxc" transactions={transactions} thirdParties={thirdParties} showToast={showToast} db={db} appId={appId} />
               )}
 
               {/* SECCIÓN CUENTAS POR PAGAR (CxP) */}
               {activeTab === 'cxp' && (
-                <AccountsReceivablePayable type="cxp" transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} appId={appId} />
+                <AccountsReceivablePayable type="cxp" transactions={transactions} thirdParties={thirdParties} showToast={showToast} db={db} appId={appId} />
               )}
 
               {/* REPORTES */}
-              {activeTab === 'reports' && <ReportsView transactions={transactions} isDarkMode={isDarkMode} showToast={showToast} />}
+              {activeTab === 'reports' && <ReportsView transactions={transactions} showToast={showToast} />}
               {activeTab === 'gastos_creditos_sub' && (
-                <GastosCreditosModule isDarkMode={isDarkMode} showToast={showToast} transactions={transactions} thirdParties={thirdParties} db={db} appId={appId} />
+                <GastosCreditosModule showToast={showToast} transactions={transactions} thirdParties={thirdParties} db={db} appId={appId} />
               )}
 
               {/* SECCIÓN COMPRAS */}
@@ -342,7 +341,7 @@ export default function FinanceModule({
                     onClose={() => setIsModalOpen(false)} 
                     thirdParties={thirdParties} 
                     products={products}
-                    isDarkMode={isDarkMode} 
+                    
                     showToast={showToast} 
                     db={db} 
                     appId={appId} 
@@ -351,7 +350,7 @@ export default function FinanceModule({
                   <TransactionsView 
                     transactions={transactions} 
                     thirdParties={thirdParties} 
-                    isDarkMode={isDarkMode} 
+                    
                     showToast={showToast} 
                     db={db} 
                     storage={storage} 
@@ -364,19 +363,19 @@ export default function FinanceModule({
               )}
 
               {activeTab === 'compras_sri' && (
-                <ComprasSriView transactions={transactions} isDarkMode={isDarkMode} showToast={showToast} db={db} appId={appId} />
+                <ComprasSriView transactions={transactions} showToast={showToast} db={db} appId={appId} />
               )}
 
               {activeTab === 'compras_gastos' && (
-                <ComprasGastosView transactions={transactions} isDarkMode={isDarkMode} showToast={showToast} db={db} appId={appId} />
+                <ComprasGastosView transactions={transactions} showToast={showToast} db={db} appId={appId} />
               )}
 
               {activeTab === 'compras_nc' && (
-                <TransactionsView transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} forcedDocType="nota_credito" forcedType="egreso" />
+                <TransactionsView transactions={transactions} thirdParties={thirdParties} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} forcedDocType="nota_credito" forcedType="egreso" />
               )}
 
               {activeTab === 'compras_retencion' && (
-                <TransactionsView transactions={transactions} thirdParties={thirdParties} isDarkMode={isDarkMode} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} forcedDocType="retencion" forcedType="egreso" />
+                <TransactionsView transactions={transactions} thirdParties={thirdParties} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} forcedDocType="retencion" forcedType="egreso" />
               )}
             </>
           )}
@@ -393,7 +392,7 @@ export default function FinanceModule({
           onClose={() => setIsModalOpen(false)} 
           thirdParties={thirdParties} 
           products={products}
-          isDarkMode={isDarkMode} 
+          
           showToast={showToast} 
           db={db} 
           storage={storage} 

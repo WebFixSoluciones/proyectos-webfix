@@ -13,7 +13,7 @@ import { consultarRucSri } from '../../services/sriService';
 import FinanceSettings from '../finances/FinanceSettings';
 
 export default function GeneralSettings({ 
-  isDarkMode, showToast, db, appId, storage,
+  showToast, db, appId, storage,
   users = [], trash = [], handleDownloadBackup, 
   googleClientId, setGoogleClientId, 
   activeModules = {}, setActiveModules,
@@ -1022,11 +1022,7 @@ export default function GeneralSettings({
     }
   };
 
-  const inputClass = `w-full text-xs px-3 py-2.5 rounded-xl outline-none transition-all border ${
-    isDarkMode 
-      ? 'bg-black/25 border-white/10 text-white focus:border-primary/50' 
-      : 'bg-white border-gray-300 text-gray-900 focus:border-primary focus:ring-1 focus:ring-primary/35 font-medium'
-  }`;
+  const inputClass = `w-full text-xs px-3 py-2.5 rounded-xl outline-none transition-all border bg-white border-gray-300 text-gray-900 focus:border-primary focus:ring-1 focus:ring-primary/35 font-medium`;
 
   const tabs = [
     { id: 'profile', label: 'Perfil de Empresa', icon: Building },
@@ -1053,12 +1049,8 @@ export default function GeneralSettings({
               onClick={() => setActiveSubTab(tab.id)}
               className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-semibold transition-all text-left ${
                 isActive 
-                  ? isDarkMode 
-                    ? 'bg-primary/25 text-primary border border-primary/20 shadow-sm' 
-                    : 'bg-primary text-white shadow-md'
-                  : isDarkMode 
-                    ? 'text-gray-400 hover:text-gray-250 hover:bg-white/5' 
-                    : 'text-black hover:text-black hover:bg-black/5'
+                  ? 'bg-primary text-white shadow-md'
+                  : 'text-black hover:text-black hover:bg-black/5'
               }`}
             >
               <Icon size={16} />
@@ -1069,9 +1061,7 @@ export default function GeneralSettings({
       </div>
 
       {/* CONTENIDO DE PESTAÑA */}
-      <div className={`flex-1 p-6 rounded-3xl border shadow-sm ${
-        isDarkMode ? 'bg-[#151517] border-white/5 text-gray-300' : 'bg-white border-gray-200 text-gray-700'
-      }`}>
+      <div className={`flex-1 p-6 rounded-3xl border shadow-sm bg-white border-gray-200 text-gray-700`}>
         
         {/* PESTAÑA: PERFIL EMPRESA */}
         {activeSubTab === 'profile' && (
@@ -1103,7 +1093,7 @@ export default function GeneralSettings({
               <div className="space-y-6">
                 
                 {/* CARD 1: DATOS FISCALES DE LA EMPRESA */}
-                <div className={`p-5 rounded-3xl border space-y-4 ${isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-gray-50/50 border-gray-200 shadow-sm'}`}>
+                <div className={`p-5 rounded-3xl border space-y-4 bg-gray-50/50 border-gray-200 shadow-sm`}>
                   <h4 className="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
                     <Building size={14} className="text-primary" /> Identificación Fiscal
                   </h4>
@@ -1127,11 +1117,7 @@ export default function GeneralSettings({
                       type="button"
                       onClick={handleSRIExtraction}
                       disabled={isExtractingSRI}
-                      className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all border flex items-center gap-1.5 shrink-0 ${
-                        isDarkMode 
-                          ? 'bg-primary/10 border-primary/30 text-primary hover:bg-primary/20' 
-                          : 'bg-primary hover:bg-primary text-white shadow-sm'
-                      }`}
+                      className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all border flex items-center gap-1.5 shrink-0 bg-primary hover:bg-primary text-white shadow-sm`}
                     >
                       {isExtractingSRI && <RefreshCw size={12} className="animate-spin" />}
                       {isExtractingSRI ? 'Consultando...' : 'Configurar Empresa'}
@@ -1200,7 +1186,7 @@ export default function GeneralSettings({
                 </div>
 
                 {/* CARD 2: INFORMACIÓN DE CONTACTO */}
-                <div className={`p-5 rounded-3xl border space-y-4 ${isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-gray-50/50 border-gray-200 shadow-sm'}`}>
+                <div className={`p-5 rounded-3xl border space-y-4 bg-gray-50/50 border-gray-200 shadow-sm`}>
                   <h4 className="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
                     <Phone size={13} className="text-primary" /> Información de Contacto
                   </h4>
@@ -1240,7 +1226,7 @@ export default function GeneralSettings({
                 </div>
 
                 {/* CARD 2.5: CONFIGURACIÓN DE CORREO SALIENTE (SMTP) */}
-                <div className={`p-5 rounded-3xl border space-y-4 ${isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-gray-50/50 border-gray-200 shadow-sm'}`}>
+                <div className={`p-5 rounded-3xl border space-y-4 bg-gray-50/50 border-gray-200 shadow-sm`}>
                   <h4 className="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
                     <Mail size={13} className="text-primary" /> Correo Saliente (SMTP)
                   </h4>
@@ -1303,7 +1289,7 @@ export default function GeneralSettings({
                 </div>
 
                 {/* CARD 3: PARÁMETROS TRIBUTARIOS CONTABLES */}
-                <div className={`p-5 rounded-3xl border space-y-4 ${isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-gray-50/50 border-gray-200 shadow-sm'}`}>
+                <div className={`p-5 rounded-3xl border space-y-4 bg-gray-50/50 border-gray-200 shadow-sm`}>
                   <h4 className="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
                     <Shield size={13} className="text-primary" /> Parámetros Tributarios
                   </h4>
@@ -1389,8 +1375,8 @@ export default function GeneralSettings({
                   companyProfile.certificadoCargado
                     ? !isFirmaMatch()
                       ? 'bg-red-500/5 border-red-500/20 text-red-900 dark:text-red-300'
-                      : isDarkMode ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-300' : 'bg-emerald-50/50 border-emerald-200 text-emerald-900 shadow-sm'
-                    : isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-gray-50/50 border-gray-200 shadow-sm'
+                      : 'bg-emerald-50/50 border-emerald-200 text-emerald-900 shadow-sm'
+                    : 'bg-gray-50/50 border-gray-200 shadow-sm'
                 }`}>
                   <div className="flex justify-between items-center">
                     <h4 className="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
@@ -1425,7 +1411,7 @@ export default function GeneralSettings({
                       <p className={`text-[10px] p-2.5 rounded-xl border leading-relaxed ${
                         !isFirmaMatch()
                           ? 'bg-red-500/10 border-red-500/20 text-red-500 dark:text-red-400'
-                          : isDarkMode ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-emerald-100/50 border-emerald-200 text-emerald-800'
+                          : 'bg-emerald-100/50 border-emerald-200 text-emerald-800'
                       }`}>
                         {!isFirmaMatch()
                           ? `El RUC/CI de la firma (${companyProfile.certificadoRuc}) no coincide con el RUC de la empresa (${companyProfile.ruc}) por identificación (cédula/RUC) ni Razón Social.`
@@ -1467,7 +1453,7 @@ export default function GeneralSettings({
                 </div>
 
                 {/* LOGOTIPO OFICIAL */}
-                <div className={`p-5 rounded-3xl border space-y-4 ${isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-gray-50/50 border-gray-200 shadow-sm'}`}>
+                <div className={`p-5 rounded-3xl border space-y-4 bg-gray-50/50 border-gray-200 shadow-sm`}>
                   <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-500 text-center">Logotipo Oficial de la Empresa</label>
 
                   {companyProfile.logoUrl ? (
@@ -1488,11 +1474,7 @@ export default function GeneralSettings({
                     </div>
                   ) : (
                     <div>
-                      <label className={`w-full flex flex-col items-center justify-center gap-3 p-8 rounded-2xl border border-dashed cursor-pointer transition-all ${
-                        isDarkMode
-                          ? 'border-white/20 hover:border-primary/40 hover:bg-white/5 text-gray-400'
-                          : 'border-gray-300 hover:border-primary/40 hover:bg-gray-100/50 text-gray-650'
-                      }`}>
+                      <label className={`w-full flex flex-col items-center justify-center gap-3 p-8 rounded-2xl border border-dashed cursor-pointer transition-all border-gray-300 hover:border-primary/40 hover:bg-gray-100/50 text-gray-650`}>
                         <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} disabled={isUploadingLogo} />
                         <UploadCloud size={28} className={isUploadingLogo ? 'animate-bounce text-primary' : 'text-gray-450'} />
                         <span className="text-[10px] font-semibold text-center leading-normal">
@@ -1507,14 +1489,14 @@ export default function GeneralSettings({
                 </div>
 
                 {/* CARD 3: ESTABLECIMIENTOS DEL SRI (Bloqueado) */}
-                <div className={`p-5 rounded-3xl border space-y-4 ${isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-gray-50/50 border-gray-200 shadow-sm'}`}>
+                <div className={`p-5 rounded-3xl border space-y-4 bg-gray-50/50 border-gray-200 shadow-sm`}>
                   <h4 className="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
                     <Lock size={12} className="text-gray-400" /> Establecimientos del SRI (Bloqueado)
                   </h4>
 
                   <div className="space-y-3 max-h-[180px] overflow-y-auto pr-1">
                     {companyProfile.sucursales && companyProfile.sucursales.map(branch => (
-                      <div key={branch.codigo} className={`p-3 rounded-xl border space-y-2 ${isDarkMode ? 'bg-black/20 border-white/5' : 'bg-white border-gray-200'} opacity-85`}>
+                      <div key={branch.codigo} className={`p-3 rounded-xl border space-y-2 bg-white border-gray-200 opacity-85`}>
                         <div className="flex justify-between items-start">
                           <div>
                             <p className="text-xs font-black flex items-center gap-1 text-gray-700 dark:text-gray-200">
@@ -1560,16 +1542,14 @@ export default function GeneralSettings({
                 </div>
 
                 {/* CARD 4: BODEGAS DE INVENTARIO (Manual) */}
-                <div className={`p-5 rounded-3xl border space-y-4 ${isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-gray-50/50 border-gray-200 shadow-sm'}`}>
+                <div className={`p-5 rounded-3xl border space-y-4 bg-gray-50/50 border-gray-200 shadow-sm`}>
                   <h4 className="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
                     <Package size={14} className="text-emerald-500" /> Bodegas de Inventario (Manual)
                   </h4>
 
-                  <div className={`flex flex-wrap gap-2 min-h-[60px] p-3 rounded-2xl border border-dashed ${isDarkMode ? 'border-white/10 bg-black/15' : 'border-gray-300 bg-white'} align-middle`}>
+                  <div className={`flex flex-wrap gap-2 min-h-[60px] p-3 rounded-2xl border border-dashed border-gray-300 bg-white align-middle`}>
                     {companyProfile.bodegas.map(wh => (
-                      <div key={wh} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold ${
-                        isDarkMode ? 'bg-white/5 text-gray-200 border border-white/5' : 'bg-white text-gray-800 border border-gray-200 shadow-sm'
-                      }`}>
+                      <div key={wh} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-white text-gray-800 border border-gray-200 shadow-sm`}>
                         <span>{wh}</span>
                         {wh !== 'Bodega Central' && (
                           <button 
@@ -1633,7 +1613,7 @@ export default function GeneralSettings({
               <h3 className="text-sm font-black uppercase tracking-wider text-primary">Facturación Electrónica (SRI)</h3>
               <p className="text-[10px] text-gray-500 mt-1">Configure el ambiente de emisión, los secuenciales de cada comprobante y los formatos de impresión. El certificado de firma electrónica se gestiona en la pestaña Perfil de Empresa.</p>
             </div>
-            <FinanceSettings isDarkMode={isDarkMode} showToast={showToast} db={db} storage={storage} appId={appId} />
+            <FinanceSettings showToast={showToast} db={db} storage={storage} appId={appId} />
           </div>
         )}
 
@@ -1724,7 +1704,7 @@ export default function GeneralSettings({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {/* CARD: PROYECTOS */}
-              <div className={`p-4 rounded-3xl border flex flex-col justify-between ${isDarkMode ? 'bg-black/10 border-white/5' : 'bg-gray-50 border-gray-200'}`}>
+              <div className={`p-4 rounded-3xl border flex flex-col justify-between bg-gray-50 border-gray-200`}>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="p-2 rounded-xl bg-primary/10 text-primary"><LayoutDashboard size={18} /></span>
@@ -1740,7 +1720,7 @@ export default function GeneralSettings({
               </div>
 
               {/* CARD: VENTAS */}
-              <div className={`p-4 rounded-3xl border flex flex-col justify-between ${isDarkMode ? 'bg-black/10 border-white/5' : 'bg-gray-50 border-gray-200'}`}>
+              <div className={`p-4 rounded-3xl border flex flex-col justify-between bg-gray-50 border-gray-200`}>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="p-2 rounded-xl bg-orange-500/10 text-orange-500"><ShoppingCart size={18} /></span>
@@ -1760,7 +1740,7 @@ export default function GeneralSettings({
               </div>
 
               {/* CARD: CONTABILIDAD */}
-              <div className={`p-4 rounded-3xl border flex flex-col justify-between ${isDarkMode ? 'bg-black/10 border-white/5' : 'bg-gray-50 border-gray-200'}`}>
+              <div className={`p-4 rounded-3xl border flex flex-col justify-between bg-gray-50 border-gray-200`}>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="p-2 rounded-xl bg-emerald-500/10 text-emerald-500"><DollarSign size={18} /></span>
@@ -1780,7 +1760,7 @@ export default function GeneralSettings({
               </div>
 
               {/* CARD: INVENTARIO */}
-              <div className={`p-4 rounded-3xl border flex flex-col justify-between ${isDarkMode ? 'bg-black/10 border-white/5' : 'bg-gray-50 border-gray-200'}`}>
+              <div className={`p-4 rounded-3xl border flex flex-col justify-between bg-gray-50 border-gray-200`}>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="p-2 rounded-xl bg-sky-500/10 text-sky-500"><Package size={18} /></span>
@@ -1800,7 +1780,7 @@ export default function GeneralSettings({
               </div>
 
               {/* CARD: PERSONAS */}
-              <div className={`p-4 rounded-3xl border flex flex-col justify-between ${isDarkMode ? 'bg-black/10 border-white/5' : 'bg-gray-50 border-gray-200'}`}>
+              <div className={`p-4 rounded-3xl border flex flex-col justify-between bg-gray-50 border-gray-200`}>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="p-2 rounded-xl bg-teal-500/10 text-teal-500"><Users size={18} /></span>
@@ -1820,7 +1800,7 @@ export default function GeneralSettings({
               </div>
 
               {/* CARD: CALENDARIO */}
-              <div className={`p-4 rounded-3xl border flex flex-col justify-between ${isDarkMode ? 'bg-black/10 border-white/5' : 'bg-gray-50 border-gray-200'}`}>
+              <div className={`p-4 rounded-3xl border flex flex-col justify-between bg-gray-50 border-gray-200`}>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="p-2 rounded-xl bg-purple-500/10 text-purple-500"><Calendar size={18} /></span>
@@ -1840,7 +1820,7 @@ export default function GeneralSettings({
               </div>
 
               {/* CARD: EQUIPO */}
-              <div className={`p-4 rounded-3xl border flex flex-col justify-between ${isDarkMode ? 'bg-black/10 border-white/5' : 'bg-gray-50 border-gray-200'}`}>
+              <div className={`p-4 rounded-3xl border flex flex-col justify-between bg-gray-50 border-gray-200`}>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="p-2 rounded-xl bg-yellow-500/10 text-yellow-500"><Users size={18} /></span>
@@ -1860,7 +1840,7 @@ export default function GeneralSettings({
               </div>
 
               {/* CARD: COMPRAS */}
-              <div className={`p-4 rounded-3xl border flex flex-col justify-between ${isDarkMode ? 'bg-black/10 border-white/5' : 'bg-gray-50 border-gray-200'}`}>
+              <div className={`p-4 rounded-3xl border flex flex-col justify-between bg-gray-50 border-gray-200`}>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="p-2 rounded-xl bg-orange-500/10 text-orange-500"><ShoppingCart size={18} /></span>
@@ -1880,7 +1860,7 @@ export default function GeneralSettings({
               </div>
 
               {/* CARD: GASTOS Y CRÉDITOS */}
-              <div className={`p-4 rounded-3xl border flex flex-col justify-between ${isDarkMode ? 'bg-black/10 border-white/5' : 'bg-gray-50 border-gray-200'}`}>
+              <div className={`p-4 rounded-3xl border flex flex-col justify-between bg-gray-50 border-gray-200`}>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="p-2 rounded-xl bg-pink-500/10 text-pink-500"><CreditCard size={18} /></span>
@@ -1921,9 +1901,7 @@ export default function GeneralSettings({
               />
             </div>
             
-            <div className={`p-4 rounded-2xl border text-xs leading-normal space-y-2 ${
-              isDarkMode ? 'bg-primary/10 border-primary/20 text-primary' : 'bg-primary-light border-primary/20 text-primary'
-            }`}>
+            <div className={`p-4 rounded-2xl border text-xs leading-normal space-y-2 bg-primary-light border-primary/20 text-primary`}>
               <p className="font-bold uppercase tracking-wider text-[9px]">Instrucciones de Vinculación:</p>
               <ol className="list-decimal pl-4 space-y-1.5">
                 <li>Ingresa a la consola de <a href="https://console.cloud.google.com" target="_blank" rel="noreferrer" className="underline font-bold">Google Cloud</a>.</li>
@@ -1977,9 +1955,7 @@ export default function GeneralSettings({
                     className={`px-4 rounded-xl text-xs font-bold transition-all border shrink-0 ${
                       testingKey 
                         ? 'bg-gray-500/10 text-gray-400 border-gray-500/20 cursor-not-allowed'
-                        : isDarkMode 
-                          ? 'bg-purple-500/10 hover:bg-purple-500/20 border-purple-500/30 text-purple-400' 
-                          : 'bg-purple-50 hover:bg-purple-100 border-purple-200 text-purple-800'
+                        : 'bg-purple-50 hover:bg-purple-100 border-purple-200 text-purple-800'
                     }`}
                   >
                     {testingKey ? 'Probando...' : 'Probar Clave'}
@@ -1990,8 +1966,8 @@ export default function GeneralSettings({
               {testResult && (
                 <div className={`p-3 rounded-xl border text-[10px] leading-relaxed font-semibold transition-all duration-300 ${
                   testResult.success 
-                    ? (isDarkMode ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-450' : 'bg-emerald-50 border-emerald-250 text-emerald-850')
-                    : (isDarkMode ? 'bg-red-500/10 border-red-500/20 text-red-450' : 'bg-red-50 border-red-200 text-red-850')
+                    ? 'bg-emerald-50 border-emerald-250 text-emerald-850'
+                    : 'bg-red-50 border-red-200 text-red-850'
                 }`}>
                   <p className="flex items-center gap-1.5 font-bold">
                     {testResult.success ? <CheckCircle2 size={13} className="text-emerald-505 shrink-0" /> : <AlertTriangle size={13} className="text-red-550 shrink-0" />}
@@ -2001,9 +1977,7 @@ export default function GeneralSettings({
               )}
             </div>
 
-            <div className={`p-4 rounded-2xl border text-xs leading-normal space-y-1.5 ${
-              isDarkMode ? 'bg-purple-600/10 border-purple-500/20 text-purple-400' : 'bg-purple-50 border-purple-200 text-purple-900'
-            }`}>
+            <div className={`p-4 rounded-2xl border text-xs leading-normal space-y-1.5 bg-purple-50 border-purple-200 text-purple-900`}>
               <p className="font-bold text-[9px] uppercase tracking-wider">¿Cómo obtener una clave de API gratuita?</p>
               <p>Puedes generar tu clave de API de Gemini ingresando a <a href="https://aistudio.google.com/" target="_blank" rel="noreferrer" className="underline font-bold">Google AI Studio</a> con tu cuenta de correo corporativo o personal de Google. Generar la clave toma 1 minuto y te dará acceso inmediato al asesor de Inteligencia Artificial.</p>
             </div>
@@ -2027,9 +2001,7 @@ export default function GeneralSettings({
             {/* LISTA DE USUARIOS */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {localUsers.map(user => (
-                <div key={user.id} className={`p-4 rounded-2xl border flex items-center justify-between shadow-sm ${
-                  isDarkMode ? 'bg-black/10 border-white/5' : 'bg-gray-50 border-gray-200'
-                }`}>
+                <div key={user.id} className={`p-4 rounded-2xl border flex items-center justify-between shadow-sm bg-gray-50 border-gray-200`}>
                   <div className="flex items-center gap-3">
                     <div className={`w-9 h-9 rounded-full bg-gradient-to-tr ${user.color || 'from-gray-400 to-gray-600'} flex items-center justify-center text-xs font-bold text-white shrink-0 shadow`}>
                       {user.initials}
@@ -2051,9 +2023,7 @@ export default function GeneralSettings({
             </div>
 
             {/* FORMULARIO AGREGAR USUARIO */}
-            <form onSubmit={handleAddUser} className={`p-5 rounded-3xl border space-y-4 ${
-              isDarkMode ? 'bg-black/15 border-white/5' : 'bg-gray-100/50 border-gray-250'
-            }`}>
+            <form onSubmit={handleAddUser} className={`p-5 rounded-3xl border space-y-4 bg-gray-100/50 border-gray-250`}>
               <h4 className="text-xs font-black uppercase tracking-wider text-gray-500">Registrar Nuevo Colaborador</h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
@@ -2118,9 +2088,7 @@ export default function GeneralSettings({
               <p className="text-[10px] text-gray-500 mt-1">Respalda localmente toda la base de datos de tu espacio de trabajo para mayor seguridad. Descarga un archivo estructurado en JSON listo para ser restaurado.</p>
             </div>
 
-            <div className={`p-5 rounded-3xl border flex flex-col sm:flex-row gap-4 items-center justify-between ${
-              isDarkMode ? 'bg-black/15 border-white/5' : 'bg-gray-50 border-gray-200'
-            }`}>
+            <div className={`p-5 rounded-3xl border flex flex-col sm:flex-row gap-4 items-center justify-between bg-gray-50 border-gray-200`}>
               <div className="space-y-1 text-xs">
                 <p className="font-bold">Respaldar Datos del ERP</p>
                 <p className="text-[10px] text-gray-500 leading-normal">Incluye Proyectos, Tareas, Clientes, Proveedores, Transacciones y Configuraciones.</p>
@@ -2128,17 +2096,13 @@ export default function GeneralSettings({
 
               <button 
                 onClick={handleDownloadBackup}
-                className={`flex justify-center items-center gap-2 px-5 py-3 rounded-2xl text-xs font-black transition-all shadow-md hover:-translate-y-0.5 uppercase tracking-wider shrink-0 ${
-                  isDarkMode ? 'bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30 border border-emerald-500/30' : 'bg-emerald-100 text-emerald-800 hover:bg-emerald-250 border border-emerald-300'
-                }`}
+                className={`flex justify-center items-center gap-2 px-5 py-3 rounded-2xl text-xs font-black transition-all shadow-md hover:-translate-y-0.5 uppercase tracking-wider shrink-0 bg-emerald-100 text-emerald-800 hover:bg-emerald-250 border border-emerald-300`}
               >
                 <Download size={14} /> Exportar Backup (JSON)
               </button>
             </div>
             
-            <div className={`p-4 rounded-2xl border text-xs flex gap-3 items-start ${
-              isDarkMode ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-400' : 'bg-yellow-50 border-yellow-200 text-yellow-950 font-medium'
-            }`}>
+            <div className={`p-4 rounded-2xl border text-xs flex gap-3 items-start bg-yellow-50 border-yellow-200 text-yellow-950 font-medium`}>
               <AlertTriangle size={16} className="shrink-0 mt-0.5" />
               <div>
                 <p className="font-bold uppercase tracking-wider text-[9px] mb-1">Precaución contable:</p>

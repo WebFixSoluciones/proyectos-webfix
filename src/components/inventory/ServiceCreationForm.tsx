@@ -8,7 +8,6 @@ import { categoryBrandRepository } from '../../modules/inventory/repositories/Ca
 import { Category } from '../../modules/inventory/domain/schemas/category-brand.schema';
 
 interface ServiceCreationFormProps {
-  isDarkMode: boolean;
   onClose: () => void;
   onSuccess: () => void;
   isInline?: boolean;
@@ -16,7 +15,6 @@ interface ServiceCreationFormProps {
 }
 
 export default function ServiceCreationForm({ 
-  isDarkMode, 
   onClose, 
   onSuccess,
   isInline = false,
@@ -93,50 +91,34 @@ export default function ServiceCreationForm({
     }
   };
 
-  const inputClass = `w-full px-4 py-2 rounded-xl outline-none transition-all border ${
-    isDarkMode 
-      ? 'bg-black/30 border-white/10 text-white focus:border-primary focus:bg-black/50 shadow-inner' 
-      : 'bg-white/50 border-gray-200 text-gray-800 focus:border-primary focus:bg-white shadow-inner'
-  }`;
+  const inputClass = `w-full px-4 py-2 rounded-xl outline-none transition-all border bg-white/50 border-gray-200 text-gray-800 focus:border-primary focus:bg-white shadow-inner`;
 
-  const labelClass = `block text-xs font-semibold mb-1.5 uppercase tracking-wider ${
-    isDarkMode ? 'text-gray-400' : 'text-gray-500'
-  }`;
+  const labelClass = `block text-xs font-semibold mb-1.5 uppercase tracking-wider text-gray-500`;
 
-  const iconContainerClass = `absolute left-3 top-1/2 -translate-y-1/2 ${
-    isDarkMode ? 'text-gray-500' : 'text-gray-400'
-  }`;
+  const iconContainerClass = `absolute left-3 top-1/2 -translate-y-1/2 text-gray-400`;
 
   const formJSX = (
     <div 
-      className={isInline ? `w-full rounded-3xl border shadow-xl ${isDarkMode ? 'bg-gray-900/95 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}` : `relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl border ${
-        isDarkMode 
-          ? 'bg-gray-900/95 border-white/10' 
-          : 'bg-white/95 border-white/40'
-      } custom-scrollbar`}
+      className={isInline ? `w-full rounded-3xl border shadow-xl bg-white border-gray-200 text-gray-900` : `relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl border bg-white/95 border-white/40 custom-scrollbar`}
     >
       {/* Header */}
-      <div className={`modal-header-std modal-header-std-dark ${
-        isDarkMode ? 'border-white/10 bg-gray-900/80' : 'border-gray-100 bg-white/80'
-      }`}>
+      <div className={`modal-header-std modal-header-std-dark border-gray-100 bg-white/80`}>
         <div className="flex items-center gap-3">
-          <div className={`p-2 rounded-xl shadow-inner ${isDarkMode ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+          <div className={`p-2 rounded-xl shadow-inner bg-primary/10 text-primary`}>
             <Briefcase size={20} />
           </div>
           <div>
-            <h2 className={`text-base font-bold tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+            <h2 className={`text-base font-bold tracking-tight text-gray-900`}>
               {serviceToEdit?.id ? 'Editar Servicio' : 'Nuevo Servicio'}
             </h2>
-            <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+            <p className={`text-xs text-gray-500`}>
               {serviceToEdit?.id ? 'Edita los detalles del servicio seleccionado' : 'Registra un nuevo servicio intangible en el catálogo'}
             </p>
           </div>
         </div>
           <button 
             onClick={onClose}
-            className={`p-2 rounded-xl transition-all hover:scale-105 ${
-              isDarkMode ? 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-900'
-            }`}
+            className={`p-2 rounded-xl transition-all hover:scale-105 bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-900`}
           >
             <X size={18} />
           </button>
@@ -146,9 +128,7 @@ export default function ServiceCreationForm({
         <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-5">
           
           {error && (
-            <div className={`flex items-center gap-3 p-4 rounded-xl border ${
-              isDarkMode ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-red-50 border-red-200 text-red-600'
-            }`}>
+            <div className={`flex items-center gap-3 p-4 rounded-xl border bg-red-50 border-red-200 text-red-600`}>
               <AlertCircle size={20} className="shrink-0" />
               <p className="text-sm font-medium">{error}</p>
             </div>
@@ -156,7 +136,7 @@ export default function ServiceCreationForm({
 
           {/* Información Básica */}
           <div>
-            <h3 className={`text-sm font-bold flex items-center gap-2 mb-4 uppercase tracking-wider ${isDarkMode ? 'text-primary' : 'text-primary'}`}>
+            <h3 className={`text-sm font-bold flex items-center gap-2 mb-4 uppercase tracking-wider text-primary`}>
               <Briefcase size={16} /> Información del Servicio
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -214,7 +194,7 @@ export default function ServiceCreationForm({
               <div className="relative group md:col-span-2">
                 <label className={labelClass}>Descripción (Opcional)</label>
                 <div className="relative">
-                  <div className={`absolute left-3 top-3 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}><FileText size={16} /></div>
+                  <div className={`absolute left-3 top-3 text-gray-400`}><FileText size={16} /></div>
                   <textarea
                     name="description"
                     value={formData.description}
@@ -232,7 +212,7 @@ export default function ServiceCreationForm({
 
           {/* Sección Precios */}
           <div>
-            <h3 className={`text-sm font-bold flex items-center gap-2 mb-4 uppercase tracking-wider ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
+            <h3 className={`text-sm font-bold flex items-center gap-2 mb-4 uppercase tracking-wider text-emerald-600`}>
               <DollarSign size={16} /> Tarifas y Precios
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -290,28 +270,24 @@ export default function ServiceCreationForm({
             </div>
 
             {/* Resumen de Pricing Card */}
-            <div className={`mt-6 p-5 rounded-2xl border flex items-center justify-between shadow-lg ${
-              isDarkMode 
-                ? 'bg-gradient-to-br from-primary/30 to-emerald-900/30 border-primary/20' 
-                : 'bg-gradient-to-br from-primary/10 to-emerald-50 border-primary/25'
-            }`}>
+            <div className={`mt-6 p-5 rounded-2xl border flex items-center justify-between shadow-lg bg-gradient-to-br from-primary/10 to-emerald-50 border-primary/25`}>
               <div>
-                <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${isDarkMode ? 'text-primary' : 'text-primary'}`}>
+                <p className={`text-xs font-bold uppercase tracking-wider mb-1 text-primary`}>
                   Precio Final del Servicio
                 </p>
                 <div className="flex items-baseline gap-2">
-                  <span className={`text-3xl font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                  <span className={`text-3xl font-black tracking-tight text-gray-900`}>
                     ${finalPriceWithTax.toFixed(2)}
                   </span>
-                  <span className={`text-xs font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  <span className={`text-xs font-medium text-gray-500`}>
                     (Inc. IVA)
                   </span>
                 </div>
               </div>
-              <div className={`text-right text-xs font-medium space-y-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              <div className={`text-right text-xs font-medium space-y-1 text-gray-500`}>
                 <p>Subtotal: ${calculatedSalePrice.toFixed(2)}</p>
                 <p>IVA ({formData.taxRate}%): ${(finalPriceWithTax - calculatedSalePrice).toFixed(2)}</p>
-                <p className={isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}>
+                <p className="text-emerald-600">
                   Margen Neto: ${(calculatedSalePrice - formData.baseCost).toFixed(2)}
                 </p>
               </div>
@@ -324,11 +300,7 @@ export default function ServiceCreationForm({
               type="button"
               onClick={onClose}
               disabled={loading}
-              className={`px-6 py-2.5 rounded-xl font-bold transition-all text-sm ${
-                isDarkMode 
-                  ? 'bg-white/5 hover:bg-white/10 text-white' 
-                  : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-              }`}
+              className={`px-6 py-2.5 rounded-xl font-bold transition-all text-sm bg-gray-100 hover:bg-gray-200 text-gray-700`}
             >
               Cancelar
             </button>
