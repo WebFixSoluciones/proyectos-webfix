@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { LifeBuoy, CheckCircle2, MessageSquare, Loader2, ArrowRight } from 'lucide-react';
 import { doc, setDoc } from 'firebase/firestore';
 
-export default function SupportModule({ isDarkMode, showToast, db, appId }) {
+export default function SupportModule({ showToast, db, appId }) {
   const [formData, setFormData] = useState({
     nombreContacto: '',
     telefonoContacto: '',
@@ -87,25 +87,17 @@ export default function SupportModule({ isDarkMode, showToast, db, appId }) {
     });
   };
 
-  const inputClass = `w-full px-3.5 py-2 text-xs rounded-[10px] border outline-none transition-all focus:ring-1 focus:ring-primary/25 ${
-    isDarkMode 
-      ? 'bg-[#151722]/80 border-white/10 text-white focus:border-primary/50' 
-      : 'bg-white border-slate-200 text-black focus:border-primary'
-  }`;
+  const inputClass = "w-full px-3.5 py-2 text-xs rounded-[10px] border outline-none transition-all focus:ring-1 focus:ring-primary/25 bg-white border-slate-200 text-black focus:border-primary";
 
   return (
     <div className="space-y-6">
       {/* Banner de Soporte */}
-      <div className={`p-6 rounded-[10px] border relative overflow-hidden ${
-        isDarkMode 
-          ? 'bg-gradient-to-r from-primary/10 via-slate-900 to-slate-900 border-white/5' 
-          : 'bg-gradient-to-r from-primary-light via-white to-white border-slate-200 shadow-sm'
-      }`}>
+      <div className="p-6 rounded-[10px] border relative overflow-hidden bg-gradient-to-r from-primary-light via-white to-white border-slate-200 shadow-sm">
         <div className="max-w-2xl space-y-2 relative z-10">
           <span className="text-[9px] font-black uppercase tracking-widest text-primary bg-primary/10 px-2 py-0.5 rounded-full">
             Soporte Técnico
           </span>
-          <h2 className={`text-xl font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+          <h2 className="text-xl font-black tracking-tight text-slate-900">
             ¿Cómo podemos ayudarte hoy?
           </h2>
           <p className="text-xs text-gray-500 leading-relaxed">
@@ -117,16 +109,14 @@ export default function SupportModule({ isDarkMode, showToast, db, appId }) {
 
       {/* Flujo de ticket exitoso */}
       {successTicket ? (
-        <div className={`p-8 rounded-[10px] border text-center max-w-xl mx-auto space-y-6 animate-in fade-in zoom-in-95 duration-300 ${
-          isDarkMode ? 'bg-[#121420] border-white/5' : 'bg-white border-slate-200 shadow-lg'
-        }`}>
+        <div className="p-8 rounded-[10px] border text-center max-w-xl mx-auto space-y-6 animate-in fade-in zoom-in-95 duration-300 bg-white border-slate-200 shadow-lg">
           <div className="flex justify-center">
             <div className="p-3 rounded-full bg-emerald-500/10 text-emerald-500">
               <CheckCircle2 size={48} />
             </div>
           </div>
           <div className="space-y-2">
-            <h3 className={`text-base font-extrabold uppercase tracking-wider ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+            <h3 className="text-base font-extrabold uppercase tracking-wider text-slate-900">
               ¡Ticket Registrado con Éxito!
             </h3>
             <p className="text-xs text-gray-500">
@@ -134,9 +124,7 @@ export default function SupportModule({ isDarkMode, showToast, db, appId }) {
             </p>
           </div>
           
-          <div className={`p-4 rounded-[10px] text-left text-xs space-y-1.5 ${
-            isDarkMode ? 'bg-[#151722]/80 border border-white/5 text-gray-400' : 'bg-slate-50 border border-slate-100 text-slate-600'
-          }`}>
+          <div className="p-4 rounded-[10px] text-left text-xs space-y-1.5 bg-slate-50 border border-slate-100 text-slate-600">
             <p><span className="font-bold">Módulo afectado:</span> {successTicket.module}</p>
             <p><span className="font-bold">Prioridad:</span> {successTicket.priority}</p>
             <p><span className="font-bold">Contacto:</span> {successTicket.clientName} ({successTicket.clientPhone})</p>
@@ -153,11 +141,7 @@ export default function SupportModule({ isDarkMode, showToast, db, appId }) {
             </button>
             <button 
               onClick={handleResetForm} 
-              className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-[10px] text-xs font-bold transition-all border ${
-                isDarkMode 
-                  ? 'bg-[#151722] hover:bg-white/5 text-gray-300 border-white/10' 
-                  : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
-              }`}
+              className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-[10px] text-xs font-bold transition-all border bg-white hover:bg-slate-50 text-slate-700 border-slate-200"
             >
               Nuevo Reporte
             </button>
@@ -165,9 +149,7 @@ export default function SupportModule({ isDarkMode, showToast, db, appId }) {
         </div>
       ) : (
         /* Formulario */
-        <div className={`p-6 rounded-[10px] border max-w-2xl mx-auto ${
-          isDarkMode ? 'bg-[#121420] border-white/5' : 'bg-white border-slate-200 shadow-sm'
-        }`}>
+        <div className="p-6 rounded-[10px] border max-w-2xl mx-auto bg-white border-slate-200 shadow-sm">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Nombre de contacto */}
@@ -232,7 +214,7 @@ export default function SupportModule({ isDarkMode, showToast, db, appId }) {
                   className={inputClass}
                 >
                   {modulosERP.map((mod, idx) => (
-                    <option key={idx} value={mod} className={isDarkMode ? 'bg-slate-900 text-white' : 'bg-white text-black'}>
+                    <option key={idx} value={mod} className="bg-white text-black">
                       {mod}
                     </option>
                   ))}
@@ -251,7 +233,7 @@ export default function SupportModule({ isDarkMode, showToast, db, appId }) {
                   className={inputClass}
                 >
                   {prioridades.map((pri, idx) => (
-                    <option key={idx} value={pri} className={isDarkMode ? 'bg-slate-900 text-white' : 'bg-white text-black'}>
+                    <option key={idx} value={pri} className="bg-white text-black">
                       {pri}
                     </option>
                   ))}

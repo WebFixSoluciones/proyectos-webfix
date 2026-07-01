@@ -4,7 +4,7 @@ import {
   FileText, Shield, Percent, AlertCircle, RefreshCw 
 } from 'lucide-react';
 
-export default function ReportsView({ transactions, isDarkMode, showToast }) {
+export default function ReportsView({ transactions, showToast }) {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth().toString());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
   const [activeTab, setActiveTab] = useState('resumen'); // 'resumen', 'iva', 'retenciones', 'ats'
@@ -232,23 +232,15 @@ export default function ReportsView({ transactions, isDarkMode, showToast }) {
     showToast('Archivo ATS descargado con éxito', 'success');
   };
 
-  const cardClass = `p-6 rounded-3xl border backdrop-blur-xl transition-all ${
-    isDarkMode 
-      ? 'bg-[#151517] border-white/5 text-white' 
-      : 'bg-white border-gray-200 text-gray-900 shadow-sm'
-  }`;
+  const cardClass = 'p-6 rounded-3xl border backdrop-blur-xl transition-all bg-white border-gray-200 text-gray-900 shadow-sm';
 
-  const inputClass = `px-3 py-2.5 rounded-xl text-xs border outline-none ${
-    isDarkMode 
-      ? 'bg-black/25 border-white/10 text-white' 
-      : 'bg-white border-gray-200 text-gray-900'
-  }`;
+  const inputClass = 'px-3 py-2.5 rounded-xl text-xs border outline-none bg-white border-gray-200 text-gray-900';
 
   return (
     <div className="animate-in slide-in-from-bottom-4 duration-500 space-y-6">
       
       {/* SECCIÓN FILTROS Y NAVEGACIÓN */}
-      <div className={`p-5 rounded-3xl border flex flex-col md:flex-row items-center justify-between gap-4 ${isDarkMode ? 'bg-[#121214] border-white/5' : 'bg-white border-gray-250 shadow-sm'}`}>
+      <div className="p-5 rounded-3xl border flex flex-col md:flex-row items-center justify-between gap-4 bg-white border-gray-250 shadow-sm">
         <div className="flex items-center gap-3">
           <div>
             <label className="block text-[9px] font-bold uppercase mb-1 text-gray-500">Periodo Fiscal</label>
@@ -266,7 +258,7 @@ export default function ReportsView({ transactions, isDarkMode, showToast }) {
             </div>
           </div>
 
-          <div className="flex items-end self-end h-[38px] p-0.5 rounded-xl border border-gray-250/65 dark:border-white/5 bg-gray-100/50 dark:bg-black/30">
+          <div className="flex items-end self-end h-[38px] p-0.5 rounded-xl border border-gray-250/65 bg-gray-100/50">
             {[
               { id: 'resumen', label: 'Resumen', icon: PieChart },
               { id: 'iva', label: 'IVA', icon: Percent },
@@ -281,8 +273,8 @@ export default function ReportsView({ transactions, isDarkMode, showToast }) {
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all ${
                     isActive 
-                      ? isDarkMode ? 'bg-white/10 text-white' : 'bg-white text-gray-950 shadow-sm'
-                      : isDarkMode ? 'text-gray-450 hover:text-white' : 'text-gray-600 hover:text-gray-900'
+                      ? 'bg-white text-gray-950 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
                   <Icon size={12} />
@@ -312,7 +304,7 @@ export default function ReportsView({ transactions, isDarkMode, showToast }) {
             
             {/* VENTAS */}
             <div className={cardClass}>
-              <div className="flex items-center gap-2 mb-6 pb-4 border-b border-gray-200 dark:border-white/5">
+              <div className="flex items-center gap-2 mb-6 pb-4 border-b border-gray-200">
                 <TrendingUp size={18} className="text-emerald-500" />
                 <h3 className="text-sm font-bold uppercase tracking-wider">Ventas e Ingresos</h3>
               </div>
@@ -333,7 +325,7 @@ export default function ReportsView({ transactions, isDarkMode, showToast }) {
                   <span>Retenciones de IVA Recibidas:</span>
                   <span>-${retIvaVentas.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between border-t border-dashed dark:border-white/10 pt-3 text-sm font-bold">
+                <div className="flex justify-between border-t border-dashed pt-3 text-sm font-bold">
                   <span>Total Cobrado Neto:</span>
                   <span className="text-emerald-500">${totalVentas.toFixed(2)}</span>
                 </div>
@@ -342,7 +334,7 @@ export default function ReportsView({ transactions, isDarkMode, showToast }) {
 
             {/* COMPRAS */}
             <div className={cardClass}>
-              <div className="flex items-center gap-2 mb-6 pb-4 border-b border-gray-200 dark:border-white/5">
+              <div className="flex items-center gap-2 mb-6 pb-4 border-b border-gray-200">
                 <TrendingDown size={18} className="text-red-500" />
                 <h3 className="text-sm font-bold uppercase tracking-wider">Compras y Egresos</h3>
               </div>
@@ -363,7 +355,7 @@ export default function ReportsView({ transactions, isDarkMode, showToast }) {
                   <span>Retenciones de IVA Emitidas:</span>
                   <span>-${retIvaCompras.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between border-t border-dashed dark:border-white/10 pt-3 text-sm font-bold">
+                <div className="flex justify-between border-t border-dashed pt-3 text-sm font-bold">
                   <span>Total Pagado Neto:</span>
                   <span className="text-red-500">${totalCompras.toFixed(2)}</span>
                 </div>
@@ -372,9 +364,7 @@ export default function ReportsView({ transactions, isDarkMode, showToast }) {
 
           </div>
 
-          <div className={`p-5 rounded-2xl border flex items-center gap-3.5 ${
-            isDarkMode ? 'bg-primary/10 border-primary/20 text-primary' : 'bg-primary-light border-primary/25 text-primary font-semibold'
-          }`}>
+          <div className="p-5 rounded-2xl border flex items-center gap-3.5 bg-primary-light border-primary/25 text-primary font-semibold">
             <AlertCircle size={20} className="shrink-0" />
             <div className="text-xs leading-normal">
               Resumen del Mes Fiscal: Has facturado en ventas un total bruto de <strong>${(baseVentas + ivaVentas).toFixed(2)}</strong> y en compras un total de <strong>${(baseCompras + ivaCompras).toFixed(2)}</strong>. Tu saldo operativo neto antes de retenciones tributarias es de <strong>${(totalVentas - totalCompras).toFixed(2)}</strong>.
@@ -386,40 +376,34 @@ export default function ReportsView({ transactions, isDarkMode, showToast }) {
       {/* 2. CONCILIACIÓN DE IVA */}
       {activeTab === 'iva' && (
         <div className={cardClass}>
-          <div className="flex items-center gap-2 mb-6 pb-4 border-b border-gray-200 dark:border-white/5">
+          <div className="flex items-center gap-2 mb-6 pb-4 border-b border-gray-200">
             <Percent size={18} className="text-primary" />
             <h3 className="text-sm font-bold uppercase tracking-wider">Conciliación Mensual de IVA (SRI)</h3>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            <div className={`p-4 rounded-2xl border ${isDarkMode ? 'bg-black/10 border-white/5' : 'bg-gray-50 border-gray-200'}`}>
+            <div className="p-4 rounded-2xl border bg-gray-50 border-gray-200">
               <p className="text-[9px] uppercase text-gray-500 font-bold">Total IVA Ventas (Cobrado)</p>
               <p className="text-xl font-black mt-1">${ivaVentas.toFixed(2)}</p>
             </div>
-            <div className={`p-4 rounded-2xl border ${isDarkMode ? 'bg-black/10 border-white/5' : 'bg-gray-50 border-gray-200'}`}>
+            <div className="p-4 rounded-2xl border bg-gray-50 border-gray-200">
               <p className="text-[9px] uppercase text-gray-500 font-bold">Total IVA Compras (Crédito)</p>
               <p className="text-xl font-black mt-1">${ivaCompras.toFixed(2)}</p>
             </div>
             <div className={`p-4 rounded-2xl border ${
               (ivaVentas - ivaCompras) >= 0 
-                ? (isDarkMode ? 'bg-red-500/10 border-red-500/15 text-red-400' : 'bg-red-50 border-red-200 text-red-700')
-                : (isDarkMode ? 'bg-emerald-500/10 border-emerald-500/15 text-emerald-400' : 'bg-emerald-50 border-emerald-200 text-emerald-700')
+                ? 'bg-red-50 border-red-200 text-red-700'
+                : 'bg-emerald-50 border-emerald-200 text-emerald-700'
             }`}>
               <p className="text-[9px] uppercase font-bold">IVA a Pagar / Crédito Tributario</p>
               <p className="text-xl font-black mt-1">${(ivaVentas - ivaCompras).toFixed(2)}</p>
             </div>
           </div>
 
-          <div className={`rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm ${
-            isDarkMode ? 'border-white/5 bg-black/30' : 'border-slate-200/80 bg-white'
-          }`}>
+          <div className="rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm border-slate-200/80 bg-white">
             <div className="overflow-x-auto custom-scrollbar">
               <table className="w-full text-left text-xs whitespace-nowrap">
-                <thead className={`text-[10px] uppercase font-bold tracking-wider ${
-                  isDarkMode 
-                    ? 'bg-black/35 text-slate-400 border-b border-white/5' 
-                    : 'bg-slate-50 text-slate-600 border-b border-slate-100'
-                }`}>
+                <thead className="text-[10px] uppercase font-bold tracking-wider bg-slate-50 text-slate-600 border-b border-slate-100">
                   <tr>
                     <th className="px-6 py-3.5">Tarifa / Porcentaje</th>
                     <th className="px-6 py-3.5 text-right">Base Ventas</th>
@@ -428,26 +412,26 @@ export default function ReportsView({ transactions, isDarkMode, showToast }) {
                     <th className="px-6 py-3.5 text-right">IVA Compras</th>
                   </tr>
                 </thead>
-                <tbody className={`divide-y ${isDarkMode ? 'divide-white/5' : 'divide-slate-100'}`}>
-                  <tr className={`transition-colors ${isDarkMode ? 'hover:bg-white/[0.015]' : 'hover:bg-slate-50/40'}`}>
-                    <td className="px-6 py-3.5 font-semibold text-black dark:text-white">Tarifa 15% (General)</td>
-                    <td className="px-6 py-3.5 text-right font-mono text-black dark:text-white">${ivaVentasBreakdown.iva15Base.toFixed(2)}</td>
+                <tbody className="divide-y divide-slate-100">
+                  <tr className="transition-colors hover:bg-slate-50/40">
+                    <td className="px-6 py-3.5 font-semibold text-black">Tarifa 15% (General)</td>
+                    <td className="px-6 py-3.5 text-right font-mono text-black">${ivaVentasBreakdown.iva15Base.toFixed(2)}</td>
                     <td className="px-6 py-3.5 text-right font-mono text-primary">${ivaVentasBreakdown.iva15Val.toFixed(2)}</td>
-                    <td className="px-6 py-3.5 text-right font-mono text-black dark:text-white">${ivaComprasBreakdown.iva15Base.toFixed(2)}</td>
+                    <td className="px-6 py-3.5 text-right font-mono text-black">${ivaComprasBreakdown.iva15Base.toFixed(2)}</td>
                     <td className="px-6 py-3.5 text-right font-mono text-primary">${ivaComprasBreakdown.iva15Val.toFixed(2)}</td>
                   </tr>
-                  <tr className={`transition-colors ${isDarkMode ? 'hover:bg-white/[0.015]' : 'hover:bg-slate-50/40'}`}>
-                    <td className="px-6 py-3.5 font-semibold text-black dark:text-white">Tarifa 12% (Otros/Anterior)</td>
-                    <td className="px-6 py-3.5 text-right font-mono text-black dark:text-white">${ivaVentasBreakdown.iva12Base.toFixed(2)}</td>
+                  <tr className="transition-colors hover:bg-slate-50/40">
+                    <td className="px-6 py-3.5 font-semibold text-black">Tarifa 12% (Otros/Anterior)</td>
+                    <td className="px-6 py-3.5 text-right font-mono text-black">${ivaVentasBreakdown.iva12Base.toFixed(2)}</td>
                     <td className="px-6 py-3.5 text-right font-mono text-primary">${ivaVentasBreakdown.iva12Val.toFixed(2)}</td>
-                    <td className="px-6 py-3.5 text-right font-mono text-black dark:text-white">${ivaComprasBreakdown.iva12Base.toFixed(2)}</td>
+                    <td className="px-6 py-3.5 text-right font-mono text-black">${ivaComprasBreakdown.iva12Base.toFixed(2)}</td>
                     <td className="px-6 py-3.5 text-right font-mono text-primary">${ivaComprasBreakdown.iva12Val.toFixed(2)}</td>
                   </tr>
-                  <tr className={`transition-colors ${isDarkMode ? 'hover:bg-white/[0.015]' : 'hover:bg-slate-50/40'}`}>
-                    <td className="px-6 py-3.5 font-semibold text-black dark:text-white">Tarifa 0% (Exentos)</td>
-                    <td className="px-6 py-3.5 text-right font-mono text-black dark:text-white">${ivaVentasBreakdown.iva0Base.toFixed(2)}</td>
+                  <tr className="transition-colors hover:bg-slate-50/40">
+                    <td className="px-6 py-3.5 font-semibold text-black">Tarifa 0% (Exentos)</td>
+                    <td className="px-6 py-3.5 text-right font-mono text-black">${ivaVentasBreakdown.iva0Base.toFixed(2)}</td>
                     <td className="px-6 py-3.5 text-right font-mono text-gray-400 font-medium">$0.00</td>
-                    <td className="px-6 py-3.5 text-right font-mono text-black dark:text-white">${ivaComprasBreakdown.iva0Base.toFixed(2)}</td>
+                    <td className="px-6 py-3.5 text-right font-mono text-black">${ivaComprasBreakdown.iva0Base.toFixed(2)}</td>
                     <td className="px-6 py-3.5 text-right font-mono text-gray-400 font-medium">$0.00</td>
                   </tr>
                 </tbody>
@@ -463,7 +447,7 @@ export default function ReportsView({ transactions, isDarkMode, showToast }) {
           
           {/* RETENCIONES EMITIDAS (COMPRAS) */}
           <div className={cardClass}>
-            <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-200 dark:border-white/5">
+            <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
               <div className="flex items-center gap-2">
                 <Shield size={18} className="text-red-500" />
                 <h3 className="text-sm font-bold uppercase tracking-wider">Retenciones Emitidas (Gastos/Compras)</h3>
@@ -471,16 +455,10 @@ export default function ReportsView({ transactions, isDarkMode, showToast }) {
               <span className="text-xs font-bold text-red-500">${totalRetsEmitidasVal.toFixed(2)}</span>
             </div>
 
-            <div className={`rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm ${
-              isDarkMode ? 'border-white/5 bg-black/30' : 'border-slate-200/80 bg-white'
-            }`}>
+            <div className="rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm border-slate-200/80 bg-white">
               <div className="overflow-x-auto max-h-[300px] overflow-y-auto custom-scrollbar">
                 <table className="w-full text-left text-xs whitespace-nowrap">
-                  <thead className={`text-[10px] uppercase font-bold tracking-wider ${
-                    isDarkMode 
-                      ? 'bg-black/35 text-slate-400 border-b border-white/5' 
-                      : 'bg-slate-50 text-slate-600 border-b border-slate-100'
-                  }`}>
+                  <thead className="text-[10px] uppercase font-bold tracking-wider bg-slate-50 text-slate-600 border-b border-slate-100">
                     <tr>
                       <th className="px-6 py-3.5">Fecha</th>
                       <th className="px-6 py-3.5">Tipo</th>
@@ -489,13 +467,13 @@ export default function ReportsView({ transactions, isDarkMode, showToast }) {
                       <th className="px-6 py-3.5 text-right">Retenido</th>
                     </tr>
                   </thead>
-                  <tbody className={`divide-y ${isDarkMode ? 'divide-white/5' : 'divide-slate-100'}`}>
+                  <tbody className="divide-y divide-slate-100">
                     {retsEmitidas.map((r, i) => (
-                      <tr key={i} className={`transition-colors ${isDarkMode ? 'hover:bg-white/[0.015]' : 'hover:bg-slate-50/40'}`}>
+                      <tr key={i} className="transition-colors hover:bg-slate-50/40">
                         <td className="px-6 py-3.5 text-gray-400 font-medium">{r.fecha}</td>
-                        <td className="px-6 py-3.5 font-bold text-black dark:text-white">{r.impuesto}</td>
-                        <td className="px-6 py-3.5 font-mono text-[10px] text-gray-550 dark:text-gray-450 font-bold">{r.codigo}</td>
-                        <td className="px-6 py-3.5 text-right font-mono text-black dark:text-white">${r.base.toFixed(2)}</td>
+                        <td className="px-6 py-3.5 font-bold text-black">{r.impuesto}</td>
+                        <td className="px-6 py-3.5 font-mono text-[10px] text-gray-550 font-bold">{r.codigo}</td>
+                        <td className="px-6 py-3.5 text-right font-mono text-black">${r.base.toFixed(2)}</td>
                         <td className="px-6 py-3.5 text-right font-mono font-bold text-red-500">${r.valor.toFixed(2)}</td>
                       </tr>
                     ))}
@@ -512,7 +490,7 @@ export default function ReportsView({ transactions, isDarkMode, showToast }) {
 
           {/* RETENCIONES RECIBIDAS (VENTAS) */}
           <div className={cardClass}>
-            <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-200 dark:border-white/5">
+            <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
               <div className="flex items-center gap-2">
                 <Shield size={18} className="text-emerald-500" />
                 <h3 className="text-sm font-bold uppercase tracking-wider">Retenciones Recibidas (Ventas/Ingresos)</h3>
@@ -520,16 +498,10 @@ export default function ReportsView({ transactions, isDarkMode, showToast }) {
               <span className="text-xs font-bold text-emerald-500">${totalRetsRecibidasVal.toFixed(2)}</span>
             </div>
 
-            <div className={`rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm ${
-              isDarkMode ? 'border-white/5 bg-black/30' : 'border-slate-200/80 bg-white'
-            }`}>
+            <div className="rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm border-slate-200/80 bg-white">
               <div className="overflow-x-auto max-h-[300px] overflow-y-auto custom-scrollbar">
                 <table className="w-full text-left text-xs whitespace-nowrap">
-                  <thead className={`text-[10px] uppercase font-bold tracking-wider ${
-                    isDarkMode 
-                      ? 'bg-black/35 text-slate-400 border-b border-white/5' 
-                      : 'bg-slate-50 text-slate-600 border-b border-slate-100'
-                  }`}>
+                  <thead className="text-[10px] uppercase font-bold tracking-wider bg-slate-50 text-slate-600 border-b border-slate-100">
                     <tr>
                       <th className="px-6 py-3.5">Fecha</th>
                       <th className="px-6 py-3.5">Factura</th>
@@ -538,13 +510,13 @@ export default function ReportsView({ transactions, isDarkMode, showToast }) {
                       <th className="px-6 py-3.5 text-right">Valor</th>
                     </tr>
                   </thead>
-                  <tbody className={`divide-y ${isDarkMode ? 'divide-white/5' : 'divide-slate-100'}`}>
+                  <tbody className="divide-y divide-slate-100">
                     {retsRecibidas.map((r, i) => (
-                      <tr key={i} className={`transition-colors ${isDarkMode ? 'hover:bg-white/[0.015]' : 'hover:bg-slate-50/40'}`}>
+                      <tr key={i} className="transition-colors hover:bg-slate-50/40">
                         <td className="px-6 py-3.5 text-gray-400 font-medium">{r.fecha}</td>
                         <td className="px-6 py-3.5 font-mono text-[10px] font-bold">{r.comprobante}</td>
-                        <td className="px-6 py-3.5 font-bold text-black dark:text-white">{r.impuesto}</td>
-                        <td className="px-6 py-3.5 text-right font-mono text-black dark:text-white">${r.base.toFixed(2)}</td>
+                        <td className="px-6 py-3.5 font-bold text-black">{r.impuesto}</td>
+                        <td className="px-6 py-3.5 text-right font-mono text-black">${r.base.toFixed(2)}</td>
                         <td className="px-6 py-3.5 text-right font-mono font-bold text-emerald-500">${r.valor.toFixed(2)}</td>
                       </tr>
                     ))}
@@ -565,7 +537,7 @@ export default function ReportsView({ transactions, isDarkMode, showToast }) {
       {/* 4. PRE-ATS EXPORTADOR */}
       {activeTab === 'ats' && (
         <div className={cardClass}>
-          <div className="flex items-center gap-2 mb-6 pb-4 border-b border-gray-200 dark:border-white/5">
+          <div className="flex items-center gap-2 mb-6 pb-4 border-b border-gray-200">
             <FileText size={18} className="text-purple-500" />
             <h3 className="text-sm font-bold uppercase tracking-wider">Generador del Anexo Transaccional Simplificado (ATS)</h3>
           </div>
@@ -576,7 +548,7 @@ export default function ReportsView({ transactions, isDarkMode, showToast }) {
               Este módulo compila todas las facturas y retenciones ingresadas en el mes para pre-validar las transacciones y generar el archivo exportador.
             </p>
             
-            <div className={`p-4 rounded-2xl border grid grid-cols-2 md:grid-cols-4 gap-4 ${isDarkMode ? 'bg-black/10 border-white/5' : 'bg-gray-50 border-gray-200'}`}>
+            <div className="p-4 rounded-2xl border grid grid-cols-2 md:grid-cols-4 gap-4 bg-gray-50 border-gray-200">
               <div>
                 <p className="text-[9px] uppercase text-gray-500 font-black">Registros Compilados</p>
                 <p className="text-base font-bold">{filteredTx.length} transacciones</p>

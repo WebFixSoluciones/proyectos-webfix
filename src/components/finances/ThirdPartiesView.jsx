@@ -3,7 +3,7 @@ import { Plus, Users, Search, Trash2, Edit2, Sparkles, RefreshCw, MapPin, Phone 
 import { doc, setDoc, deleteDoc } from 'firebase/firestore';
 import { consultarRucSri } from '../../services/sriService';
 
-export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, db, appId, forcedType }) {
+export default function ThirdPartiesView({ thirdParties, showToast, db, appId, forcedType }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterIdType, setFilterIdType] = useState('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -139,11 +139,7 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
     }
   };
 
-  const inputClass = `w-full text-xs px-3.5 py-3 rounded-xl outline-none transition-all border ${
-    isDarkMode 
-      ? 'glass-input-dark' 
-      : 'glass-input-light'
-  }`;
+  const inputClass = 'w-full text-xs px-3.5 py-3 rounded-xl outline-none transition-all border glass-input-light';
 
   return (
     <div className="animate-in slide-in-from-bottom-4 duration-500">
@@ -159,12 +155,8 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
         </div>
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
-          <div className={`flex items-center gap-2 px-3.5 py-2 rounded-[10px] border w-full sm:w-64 transition-all focus-within:ring-1 focus-within:ring-primary/25 ${
-            isDarkMode 
-              ? 'bg-[#151722]/80 border-white/10 focus-within:border-primary/50' 
-              : 'bg-white border-slate-200 focus-within:border-primary'
-          }`}>
-            <Search size={14} className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
+          <div className="flex items-center gap-2 px-3.5 py-2 rounded-[10px] border w-full sm:w-64 transition-all focus-within:ring-1 focus-within:ring-primary/25 bg-white border-slate-200 focus-within:border-primary">
+            <Search size={14} className="text-gray-400" />
             <input 
               type="text" 
               placeholder={`Buscar por nombre, RUC o dirección...`} 
@@ -177,11 +169,7 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
           <select 
             value={filterIdType} 
             onChange={e => setFilterIdType(e.target.value)} 
-            className={`px-3 py-2 rounded-[10px] border text-xs font-medium outline-none transition-all cursor-pointer ${
-              isDarkMode 
-                ? 'bg-[#151722]/80 border-white/10 text-gray-300 focus:border-primary/50' 
-                : 'bg-white border-slate-200 text-slate-700 focus:border-primary'
-            }`}
+            className="px-3 py-2 rounded-[10px] border text-xs font-medium outline-none transition-all cursor-pointer bg-white border-slate-200 text-slate-700 focus:border-primary"
           >
             <option value="all" className="text-black">Identificación: Todos</option>
             <option value="ruc" className="text-black">RUC</option>
@@ -193,18 +181,10 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
         </div>
       </div>
 
-      <div className={`rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm ${
-        isDarkMode 
-          ? 'border-white/5 bg-[#0f111a]/85 shadow-lg shadow-black/40' 
-          : 'border-slate-200/80 bg-white'
-      }`}>
+      <div className="rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm border-slate-200/80 bg-white">
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left text-xs whitespace-nowrap">
-            <thead className={`text-[10px] uppercase font-bold tracking-wider ${
-              isDarkMode 
-                ? 'bg-black/35 text-slate-400 border-b border-white/5' 
-                : 'bg-slate-50 text-slate-600 border-b border-slate-100'
-            }`}>
+            <thead className="text-[10px] uppercase font-bold tracking-wider bg-slate-50 text-slate-600 border-b border-slate-100">
               <tr>
                 <th className="px-6 py-3.5">Razón Social / Nombres</th>
                 <th className="px-6 py-3.5">Identificación</th>
@@ -214,7 +194,7 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
                 <th className="px-6 py-3.5 text-right">Acciones</th>
               </tr>
             </thead>
-            <tbody className={`divide-y ${isDarkMode ? 'divide-white/5' : 'divide-slate-100'}`}>
+            <tbody className="divide-y divide-slate-100">
               {filtered.map(tp => {
                 const initials = tp.name ? tp.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'C';
                 const colors = [
@@ -229,24 +209,24 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
                 const colorClass = colors[charCodeSum % colors.length];
 
                 return (
-                  <tr key={tp.id} className={`transition-colors ${isDarkMode ? 'hover:bg-white/[0.015]' : 'hover:bg-slate-50/40'}`}>
+                  <tr key={tp.id} className="transition-colors hover:bg-slate-50/40">
                     <td className="px-6 py-3.5">
                       <div className="flex items-center gap-3">
                         <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${colorClass} flex items-center justify-center text-[10px] font-bold text-white shadow-sm`}>
                           {initials}
                         </div>
                         <div>
-                          <p className={`font-bold text-xs ${isDarkMode ? 'text-white' : 'text-black'}`}>{tp.name}</p>
+                          <p className="font-bold text-xs text-black">{tp.name}</p>
 
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-3.5 font-mono text-xs">
                       <span className="text-[9px] text-gray-500 font-bold block uppercase opacity-85">{tp.tipoIdentificacion || 'ruc'}</span>
-                      <span className={isDarkMode ? 'text-gray-300' : 'text-black font-semibold'}>{tp.ruc}</span>
+                      <span className="text-black font-semibold">{tp.ruc}</span>
                     </td>
-                    <td className={`px-6 py-3.5 text-xs font-bold ${isDarkMode ? 'text-gray-300' : 'text-black'}`}>{tp.telefono || '-'}</td>
-                    <td className={`px-6 py-3.5 text-xs max-w-[220px] truncate ${isDarkMode ? 'text-gray-400' : 'text-black font-semibold'}`} title={tp.direccion}>
+                    <td className="px-6 py-3.5 text-xs font-bold text-black">{tp.telefono || '-'}</td>
+                    <td className="px-6 py-3.5 text-xs max-w-[220px] truncate text-black font-semibold" title={tp.direccion}>
                        {tp.direccion || '-'}
                        {tp.ciudad && <span className="block text-[10px] text-gray-500 font-bold uppercase mt-0.5">{tp.ciudad}</span>}
                      </td>
@@ -285,14 +265,14 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
       {/* MODAL CREAR/EDITAR */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-md animate-in fade-in duration-200">
-          <div className={`w-full max-w-lg p-6 sm:p-8 rounded-[2rem] shadow-2xl transition-all duration-300 border ${isDarkMode ? 'glass-panel-dark text-white' : 'glass-panel-light text-gray-900'}`}>
+          <div className="w-full max-w-lg p-6 sm:p-8 rounded-[2rem] shadow-2xl transition-all duration-300 border glass-panel-light text-gray-900">
             <div className="flex justify-between items-center mb-6 pb-2 border-b border-white/5">
               <h2 className="text-base font-bold font-display uppercase tracking-wider">
                 {formData.id ? 'Editar' : 'Nuevo'} {forcedType === 'cliente' ? 'Cliente' : forcedType === 'proveedor' ? 'Proveedor' : 'Contacto'}
               </h2>
               <button 
                 onClick={() => setIsModalOpen(false)} 
-                className="btn-icon text-gray-450 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                className="btn-icon text-gray-450 hover:text-gray-900"
               >
                 <Plus size={16} className="rotate-45" />
               </button>
@@ -301,7 +281,7 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
             <form onSubmit={handleSave} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Tipo Identificación</label>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 text-gray-600">Tipo Identificación</label>
                   <select value={formData.tipoIdentificacion || 'ruc'} onChange={e => setFormData({...formData, tipoIdentificacion: e.target.value})} className={`${inputClass} cursor-pointer`}>
                     <option value="ruc" className="text-black">RUC (13 dígitos)</option>
                     <option value="cedula" className="text-black">Cédula de Identidad (10 dígitos)</option>
@@ -310,7 +290,7 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
                   </select>
                 </div>
                 <div>
-                  <label className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Identificación</label>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 text-gray-600">Identificación</label>
                   <div className="flex gap-2">
                     <input 
                       type="text" 
@@ -324,11 +304,7 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
                       type="button"
                       disabled={isQueryingSri}
                       onClick={querySRI}
-                      className={`btn-icon shrink-0 ${
-                        isDarkMode 
-                          ? 'bg-purple-600/20 text-purple-400 hover:bg-purple-500/30' 
-                          : 'bg-purple-50 text-purple-800 hover:bg-purple-100 border border-purple-200'
-                      }`}
+                      className="btn-icon shrink-0 bg-purple-50 text-purple-800 hover:bg-purple-100 border border-purple-200"
                       title="Consultar base del SRI"
                     >
                       {isQueryingSri ? <RefreshCw size={13} className="animate-spin" /> : <Sparkles size={13} />}
@@ -338,34 +314,34 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
               </div>
 
               <div>
-                <label className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Razón Social / Nombres Completos</label>
+                <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 text-gray-600">Razón Social / Nombres Completos</label>
                 <input type="text" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className={inputClass} placeholder="Ej. Juan Pérez o WEBFIX S.A." />
               </div>
 
               <div>
-                <label className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Teléfono Contacto</label>
+                <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 text-gray-600">Teléfono Contacto</label>
                 <input type="text" value={formData.telefono || ''} onChange={e => setFormData({...formData, telefono: e.target.value})} className={inputClass} placeholder="Ej. 0998765432 o 022987654" />
               </div>
 
               <div className="grid grid-cols-3 gap-4 font-mono">
                  <div className="col-span-2 font-sans">
-                   <label className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Dirección Matriz / Domicilio</label>
+                   <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 text-gray-600">Dirección Matriz / Domicilio</label>
                    <input type="text" value={formData.direccion || ''} onChange={e => setFormData({...formData, direccion: e.target.value})} className={inputClass} placeholder="Av. de los Shyris y Holanda, Quito" />
                  </div>
                  <div className="font-sans">
-                   <label className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Ciudad</label>
+                   <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 text-gray-600">Ciudad</label>
                    <input type="text" value={formData.ciudad || ''} onChange={e => setFormData({...formData, ciudad: e.target.value})} className={inputClass} placeholder="Ej. Quito" />
                  </div>
                </div>
 
               <div>
-                <label className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Correo Electrónico (Notificación SRI)</label>
+                <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 text-gray-600">Correo Electrónico (Notificación SRI)</label>
                 <input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className={inputClass} placeholder="correo@ejemplo.com" />
               </div>
 
               {!forcedType && (
                 <div>
-                  <label className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Tipo de Relación</label>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 text-gray-600">Tipo de Relación</label>
                   <select value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})} className={`${inputClass} cursor-pointer`}>
                     <option value="cliente" className="text-black">Cliente</option>
                     <option value="proveedor" className="text-black">Proveedor</option>
@@ -392,7 +368,6 @@ export default function ThirdPartiesView({ thirdParties, isDarkMode, showToast, 
           </div>
         </div>
       )}
-
     </div>
   );
 }

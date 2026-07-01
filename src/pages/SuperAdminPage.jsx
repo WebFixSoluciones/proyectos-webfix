@@ -19,8 +19,6 @@ import {
   DollarSign,
   Menu,
   LayoutDashboard,
-  Sun,
-  Moon,
   ChevronLeft,
   Plus,
   ShieldAlert,
@@ -34,7 +32,6 @@ import { db, auth, firebaseConfig } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function SuperAdminPage({ showToast }) {
-  const isDarkMode = false;
   const navigate = useNavigate();
   const { currentUser, logout, role } = useAuth();
   
@@ -577,7 +574,7 @@ export default function SuperAdminPage({ showToast }) {
   ];
 
   return (
-    <div className={`flex h-screen overflow-hidden font-sans ${isDarkMode ? 'bg-[#08080a] text-gray-100' : 'bg-[#f4f4f9] text-gray-800'}`}>
+    <div className={`flex h-screen overflow-hidden font-sans ${'bg-[#f4f4f9] text-gray-800'}`}>
       
       {/* Sidebar Overlay on Mobile */}
       {isSidebarOpen && (
@@ -591,10 +588,10 @@ export default function SuperAdminPage({ showToast }) {
       <aside 
         className={`flex flex-col border-r shrink-0 transition-all duration-300 z-50 backdrop-blur-3xl absolute md:relative h-full ${
           isSidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0 w-0 hidden md:flex md:w-16'
-        } ${isDarkMode ? 'bg-[#0f0f11]/95 border-white/5' : 'bg-white/95 border-primary/10'}`}
+        } ${'bg-white/95 border-primary/10'}`}
       >
         {/* Header Logo */}
-        <div className={`h-16 flex items-center ${isSidebarOpen ? 'justify-between px-5' : 'justify-center'} border-b ${isDarkMode ? 'border-white/5' : 'border-black/5'} shrink-0 overflow-hidden`}>
+        <div className={`h-16 flex items-center ${isSidebarOpen ? 'justify-between px-5' : 'justify-center'} border-b ${'border-black/5'} shrink-0 overflow-hidden`}>
           {isSidebarOpen ? (
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-[10px] bg-primary flex items-center justify-center">
@@ -625,7 +622,7 @@ export default function SuperAdminPage({ showToast }) {
                 className={`w-full flex items-center ${isSidebarOpen ? 'justify-between px-3' : 'justify-center'} py-2.5 rounded-lg text-xs transition-all ${
                   isActive 
                     ? 'bg-[#1C40F2] text-white font-bold' 
-                    : (isDarkMode ? 'text-gray-400 hover:bg-white/5 hover:text-white' : 'text-gray-600 hover:bg-slate-100 hover:text-black')
+                    : ('text-gray-600 hover:bg-slate-100 hover:text-black')
                 }`}
                 title={link.label}
               >
@@ -642,13 +639,13 @@ export default function SuperAdminPage({ showToast }) {
         </div>
 
         {/* Footer Settings Area */}
-        <div className={`p-4 border-t ${isDarkMode ? 'border-white/5' : 'border-black/5'} space-y-2 shrink-0`}>
+        <div className={`p-4 border-t ${'border-black/5'} space-y-2 shrink-0`}>
 
           {/* Go to ERP */}
           <button
             onClick={() => navigate('/app')}
             className={`w-full flex items-center ${isSidebarOpen ? 'px-3 gap-3' : 'justify-center'} py-2 rounded-lg text-xs transition-colors ${
-              isDarkMode ? 'text-gray-400 hover:bg-white/5 hover:text-white' : 'text-gray-600 hover:bg-slate-100 hover:text-black'
+              'text-gray-600 hover:bg-slate-100 hover:text-black'
             }`}
           >
             <Building size={15} className="text-gray-400" />
@@ -670,11 +667,11 @@ export default function SuperAdminPage({ showToast }) {
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         
         {/* HEADER */}
-        <header className={`h-16 flex items-center justify-between px-6 border-b shrink-0 ${isDarkMode ? 'bg-[#0f0f11]/90 border-white/5' : 'bg-white/95 border-black/5'}`}>
+        <header className={`h-16 flex items-center justify-between px-6 border-b shrink-0 ${'bg-white/95 border-black/5'}`}>
           <div className="flex items-center gap-4">
             <button 
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-white/10 text-gray-400' : 'hover:bg-white/60 text-gray-600'}`}
+              className={`p-1.5 rounded-lg transition-colors ${'hover:bg-white/60 text-gray-600'}`}
               title="Alternar Menú"
             >
               <Menu size={18} />
@@ -698,7 +695,7 @@ export default function SuperAdminPage({ showToast }) {
             <div className="space-y-8">
               {/* Stats Widgets */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-[#0f0f11]/50 border-white/5' : 'bg-white border-black/5'}`}>
+                <div className={`p-6 rounded-2xl border ${'bg-white border-black/5'}`}>
                   <div className="flex items-center justify-between mb-4">
                     <span className="text-xs font-bold text-gray-500">Empresas Activas</span>
                     <Building className="text-blue-500" size={18} />
@@ -707,7 +704,7 @@ export default function SuperAdminPage({ showToast }) {
                   <span className="text-[10px] text-gray-500">De {tenants.length} registradas</span>
                 </div>
 
-                <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-[#0f0f11]/50 border-white/5' : 'bg-white border-black/5'}`}>
+                <div className={`p-6 rounded-2xl border ${'bg-white border-black/5'}`}>
                   <div className="flex items-center justify-between mb-4">
                     <span className="text-xs font-bold text-gray-500">Cobros Pendientes</span>
                     <CreditCard className="text-orange-500" size={18} />
@@ -716,7 +713,7 @@ export default function SuperAdminPage({ showToast }) {
                   <span className="text-[10px] text-gray-500">Por transferencia bancaria</span>
                 </div>
 
-                <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-[#0f0f11]/50 border-white/5' : 'bg-white border-black/5'}`}>
+                <div className={`p-6 rounded-2xl border ${'bg-white border-black/5'}`}>
                   <div className="flex items-center justify-between mb-4">
                     <span className="text-xs font-bold text-gray-500">MRR Estimado</span>
                     <DollarSign className="text-emerald-500" size={18} />
@@ -725,7 +722,7 @@ export default function SuperAdminPage({ showToast }) {
                   <span className="text-[10px] text-gray-500">Suscripciones activas</span>
                 </div>
 
-                <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-[#0f0f11]/50 border-white/5' : 'bg-white border-black/5'}`}>
+                <div className={`p-6 rounded-2xl border ${'bg-white border-black/5'}`}>
                   <div className="flex items-center justify-between mb-4">
                     <span className="text-xs font-bold text-gray-500">Estado del Sistema</span>
                     <Activity className="text-indigo-500" size={18} />
@@ -738,7 +735,7 @@ export default function SuperAdminPage({ showToast }) {
               {/* Dashboard details */}
               <div className="grid lg:grid-cols-2 gap-6">
                 {/* Recientes */}
-                <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-[#0f0f11]/30 border-white/5' : 'bg-white border-slate-200'} space-y-4`}>
+                <div className={`p-6 rounded-2xl border ${'bg-white border-slate-200'} space-y-4`}>
                   <h3 className="text-xs font-black uppercase tracking-wider text-gray-500">Últimos Clientes Registrados</h3>
                   <div className="divide-y divide-slate-200/50 dark:divide-white/5">
                     {tenants.slice(0, 5).map((t, idx) => (
@@ -758,7 +755,7 @@ export default function SuperAdminPage({ showToast }) {
                 </div>
 
                 {/* Cobros pendientes rápidos */}
-                <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-[#0f0f11]/30 border-white/5' : 'bg-white border-slate-200'} space-y-4`}>
+                <div className={`p-6 rounded-2xl border ${'bg-white border-slate-200'} space-y-4`}>
                   <h3 className="text-xs font-black uppercase tracking-wider text-gray-500">Transferencias en Espera</h3>
                   {pendingTransfers.length === 0 ? (
                     <p className="text-xs text-gray-500 italic py-4">No hay transferencias pendientes de verificación.</p>
@@ -794,7 +791,7 @@ export default function SuperAdminPage({ showToast }) {
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
                         placeholder="Buscar empresa por Razón Social o ID..."
-                        className={`w-full pl-10 pr-4 py-2.5 text-xs rounded-xl outline-none border ${isDarkMode ? 'bg-[#0f0f11]/60 border-white/5 text-white focus:border-indigo-500' : 'bg-white border-slate-200 text-black'}`}
+                        className={`w-full pl-10 pr-4 py-2.5 text-xs rounded-xl outline-none border ${'bg-white border-slate-200 text-black'}`}
                       />
                     </div>
                     
@@ -806,10 +803,10 @@ export default function SuperAdminPage({ showToast }) {
                     </button>
                   </div>
 
-                  <div className={`overflow-x-auto rounded-2xl border ${isDarkMode ? 'bg-[#0f0f11]/30 border-white/5' : 'bg-white border-slate-200'}`}>
+                  <div className={`overflow-x-auto rounded-2xl border ${'bg-white border-slate-200'}`}>
                     <table className="w-full text-left border-collapse">
                       <thead>
-                        <tr className={`border-b text-[10px] font-bold uppercase tracking-wider text-gray-500 ${isDarkMode ? 'border-white/5 bg-white/2' : 'border-slate-100 bg-slate-50'}`}>
+                        <tr className={`border-b text-[10px] font-bold uppercase tracking-wider text-gray-500 ${'border-slate-100 bg-slate-50'}`}>
                           <th className="px-6 py-4">Empresa</th>
                           <th className="px-6 py-4">Inquilino ID</th>
                           <th className="px-6 py-4">Plan</th>
@@ -868,7 +865,7 @@ export default function SuperAdminPage({ showToast }) {
                     <button 
                       onClick={() => { setViewMode('list'); setSelectedTenantDetails(null); }}
                       className={`px-3 py-1.5 rounded-lg text-xs font-semibold border flex items-center gap-1.5 ${
-                        isDarkMode ? 'border-white/10 hover:bg-white/5 text-white' : 'border-slate-200 hover:bg-slate-50 text-slate-700'
+                        'border-slate-200 hover:bg-slate-50 text-slate-700'
                       }`}
                     >
                       <ChevronLeft size={14} /> Volver al Listado
@@ -882,7 +879,7 @@ export default function SuperAdminPage({ showToast }) {
                   <div className="grid lg:grid-cols-12 gap-8 items-start">
                     
                     {/* Left Column: Edit subscription form */}
-                    <div className={`lg:col-span-5 p-6 rounded-2xl border ${isDarkMode ? 'bg-[#0f0f11]/50 border-white/5' : 'bg-white border-slate-200'} space-y-4`}>
+                    <div className={`lg:col-span-5 p-6 rounded-2xl border ${'bg-white border-slate-200'} space-y-4`}>
                       <h3 className="text-xs font-black uppercase tracking-wider text-primary">Configuración de Suscripción</h3>
                       
                       <form onSubmit={handleUpdateSubscription} className="space-y-4 text-xs">
@@ -891,7 +888,7 @@ export default function SuperAdminPage({ showToast }) {
                           <select 
                             value={selectedTenantDetails.planId || 'starter'} 
                             onChange={e => setSelectedTenantDetails({ ...selectedTenantDetails, planId: e.target.value })}
-                            className={`w-full p-2.5 rounded-lg border outline-none ${isDarkMode ? 'bg-[#151722] border-white/10' : 'bg-white border-slate-300'}`}
+                            className={`w-full p-2.5 rounded-lg border outline-none ${'bg-white border-slate-300'}`}
                           >
                             <option value="starter">Starter</option>
                             <option value="professional">Profesional</option>
@@ -904,7 +901,7 @@ export default function SuperAdminPage({ showToast }) {
                           <select 
                             value={selectedTenantDetails.planStatus || 'trial'} 
                             onChange={e => setSelectedTenantDetails({ ...selectedTenantDetails, planStatus: e.target.value })}
-                            className={`w-full p-2.5 rounded-lg border outline-none ${isDarkMode ? 'bg-[#151722] border-white/10' : 'bg-white border-slate-300'}`}
+                            className={`w-full p-2.5 rounded-lg border outline-none ${'bg-white border-slate-300'}`}
                           >
                             <option value="trial">Prueba (Trial)</option>
                             <option value="active">Activo</option>
@@ -918,7 +915,7 @@ export default function SuperAdminPage({ showToast }) {
                             type="date" 
                             value={selectedTenantDetails.expiresAt ? new Date(selectedTenantDetails.expiresAt).toISOString().split('T')[0] : ''}
                             onChange={e => setSelectedTenantDetails({ ...selectedTenantDetails, expiresAt: e.target.value })}
-                            className={`w-full p-2.5 rounded-lg border outline-none ${isDarkMode ? 'bg-[#151722] border-white/10' : 'bg-white border-slate-300'}`}
+                            className={`w-full p-2.5 rounded-lg border outline-none ${'bg-white border-slate-300'}`}
                           />
                         </div>
 
@@ -944,7 +941,7 @@ export default function SuperAdminPage({ showToast }) {
                     <div className="lg:col-span-7 space-y-6">
                       
                       {/* Consumption stats */}
-                      <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-[#0f0f11]/30 border-white/5' : 'bg-white border-slate-200'} space-y-4`}>
+                      <div className={`p-6 rounded-2xl border ${'bg-white border-slate-200'} space-y-4`}>
                         <h3 className="text-xs font-black uppercase tracking-wider text-gray-500">Métricas de Consumo ERP</h3>
                         
                         {loadingTenantDetails ? (
@@ -997,7 +994,7 @@ export default function SuperAdminPage({ showToast }) {
                       </div>
 
                       {/* Accounts table ("Cuentas de cada cliente") */}
-                      <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-[#0f0f11]/30 border-white/5' : 'bg-white border-slate-200'} space-y-4`}>
+                      <div className={`p-6 rounded-2xl border ${'bg-white border-slate-200'} space-y-4`}>
                         <h3 className="text-xs font-black uppercase tracking-wider text-gray-500">Cuentas de Usuarios Registradas</h3>
                         
                         {loadingTenantDetails ? (
@@ -1042,7 +1039,7 @@ export default function SuperAdminPage({ showToast }) {
                   </div>
 
                   {/* GOD MODE SECTION (Bottom full width) */}
-                  <div className={`mt-8 p-6 rounded-2xl border ${isDarkMode ? 'bg-[#1a0505]/80 border-red-500/30' : 'bg-red-50/80 border-red-200'} space-y-6`}>
+                  <div className={`mt-8 p-6 rounded-2xl border ${'bg-red-50/80 border-red-200'} space-y-6`}>
                     <div className="flex items-center gap-3">
                       <div className="p-2 rounded-lg bg-red-500/10 text-red-500">
                         <ShieldAlert size={24} />
@@ -1073,7 +1070,7 @@ export default function SuperAdminPage({ showToast }) {
                       </button>
                     </div>
 
-                    <div className={`p-5 rounded-xl border ${isDarkMode ? 'bg-black/40 border-white/10' : 'bg-white/60 border-slate-200'}`}>
+                    <div className={`p-5 rounded-xl border ${'bg-white/60 border-slate-200'}`}>
                       <div className="flex flex-col sm:flex-row gap-4 items-center justify-between mb-4">
                         <h4 className="text-xs font-bold uppercase text-gray-600 dark:text-gray-300">Explorador de Datos Crudos</h4>
                         <div className="flex items-center gap-2">
@@ -1081,7 +1078,7 @@ export default function SuperAdminPage({ showToast }) {
                           <select 
                             value={godModeCollection}
                             onChange={(e) => setGodModeCollection(e.target.value)}
-                            className={`p-1.5 text-xs font-mono rounded-lg border outline-none ${isDarkMode ? 'bg-[#151722] border-white/10 text-white' : 'bg-white border-slate-300 text-black'}`}
+                            className={`p-1.5 text-xs font-mono rounded-lg border outline-none ${'bg-white border-slate-300 text-black'}`}
                           >
                             <option value="finances_transactions">finances_transactions</option>
                             <option value="finances_third_parties">finances_third_parties</option>
@@ -1151,7 +1148,7 @@ export default function SuperAdminPage({ showToast }) {
                     <button 
                       onClick={() => setViewMode('list')}
                       className={`px-3 py-1.5 rounded-lg text-xs font-semibold border flex items-center gap-1.5 ${
-                        isDarkMode ? 'border-white/10 hover:bg-white/5 text-white' : 'border-slate-200 hover:bg-slate-50 text-slate-700'
+                        'border-slate-200 hover:bg-slate-50 text-slate-700'
                       }`}
                     >
                       <ChevronLeft size={14} /> Volver al Listado
@@ -1159,7 +1156,7 @@ export default function SuperAdminPage({ showToast }) {
                     <h2 className="text-base font-black text-black dark:text-white">Agregar Nueva Empresa (Creación Manual)</h2>
                   </div>
 
-                  <div className={`max-w-2xl p-6 rounded-2xl border ${isDarkMode ? 'bg-[#0f0f11]/50 border-white/5' : 'bg-white border-slate-200'}`}>
+                  <div className={`max-w-2xl p-6 rounded-2xl border ${'bg-white border-slate-200'}`}>
                     <form onSubmit={handleCreateTenant} className="space-y-4 text-xs text-left">
                       
                       <div className="grid grid-cols-2 gap-4">
@@ -1171,7 +1168,7 @@ export default function SuperAdminPage({ showToast }) {
                             placeholder="Ej. WebFix Soluciones Cia. Ltda."
                             value={newTenantForm.companyName}
                             onChange={e => setNewTenantForm({ ...newTenantForm, companyName: e.target.value })}
-                            className={`w-full p-2.5 rounded-lg border outline-none ${isDarkMode ? 'bg-[#151722] border-white/10 text-white' : 'bg-white border-slate-350 text-black'}`}
+                            className={`w-full p-2.5 rounded-lg border outline-none ${'bg-white border-slate-350 text-black'}`}
                           />
                         </div>
                         <div>
@@ -1182,7 +1179,7 @@ export default function SuperAdminPage({ showToast }) {
                             placeholder="Ej. org_webfix or 1792945281001"
                             value={newTenantForm.tenantId}
                             onChange={e => setNewTenantForm({ ...newTenantForm, tenantId: e.target.value })}
-                            className={`w-full p-2.5 rounded-lg border outline-none ${isDarkMode ? 'bg-[#151722] border-white/10 text-white' : 'bg-white border-slate-350 text-black'}`}
+                            className={`w-full p-2.5 rounded-lg border outline-none ${'bg-white border-slate-350 text-black'}`}
                           />
                         </div>
                       </div>
@@ -1196,7 +1193,7 @@ export default function SuperAdminPage({ showToast }) {
                             placeholder="Ej. cliente@empresa.com"
                             value={newTenantForm.email}
                             onChange={e => setNewTenantForm({ ...newTenantForm, email: e.target.value })}
-                            className={`w-full p-2.5 rounded-lg border outline-none ${isDarkMode ? 'bg-[#151722] border-white/10 text-white' : 'bg-white border-slate-350 text-black'}`}
+                            className={`w-full p-2.5 rounded-lg border outline-none ${'bg-white border-slate-350 text-black'}`}
                           />
                         </div>
                         <div>
@@ -1207,7 +1204,7 @@ export default function SuperAdminPage({ showToast }) {
                             placeholder="Ej. ContraseñaTemporal"
                             value={newTenantForm.initialPassword}
                             onChange={e => setNewTenantForm({ ...newTenantForm, initialPassword: e.target.value })}
-                            className={`w-full p-2.5 rounded-lg border outline-none font-mono ${isDarkMode ? 'bg-[#151722] border-white/10 text-white' : 'bg-white border-slate-350 text-black'}`}
+                            className={`w-full p-2.5 rounded-lg border outline-none font-mono ${'bg-white border-slate-350 text-black'}`}
                           />
                         </div>
                       </div>
@@ -1218,7 +1215,7 @@ export default function SuperAdminPage({ showToast }) {
                           <select 
                             value={newTenantForm.planId}
                             onChange={e => setNewTenantForm({ ...newTenantForm, planId: e.target.value })}
-                            className={`w-full p-2.5 rounded-lg border outline-none ${isDarkMode ? 'bg-[#151722] border-white/10 text-white' : 'bg-white border-slate-300 text-black'}`}
+                            className={`w-full p-2.5 rounded-lg border outline-none ${'bg-white border-slate-300 text-black'}`}
                           >
                             <option value="starter">Starter</option>
                             <option value="professional">Profesional</option>
@@ -1230,7 +1227,7 @@ export default function SuperAdminPage({ showToast }) {
                           <select 
                             value={newTenantForm.billingPeriod}
                             onChange={e => setNewTenantForm({ ...newTenantForm, billingPeriod: e.target.value })}
-                            className={`w-full p-2.5 rounded-lg border outline-none ${isDarkMode ? 'bg-[#151722] border-white/10 text-white' : 'bg-white border-slate-300 text-black'}`}
+                            className={`w-full p-2.5 rounded-lg border outline-none ${'bg-white border-slate-300 text-black'}`}
                           >
                             <option value="monthly">Mensual</option>
                             <option value="yearly">Anual</option>
@@ -1241,7 +1238,7 @@ export default function SuperAdminPage({ showToast }) {
                           <select 
                             value={newTenantForm.planStatus}
                             onChange={e => setNewTenantForm({ ...newTenantForm, planStatus: e.target.value })}
-                            className={`w-full p-2.5 rounded-lg border outline-none ${isDarkMode ? 'bg-[#151722] border-white/10 text-white' : 'bg-white border-slate-300 text-black'}`}
+                            className={`w-full p-2.5 rounded-lg border outline-none ${'bg-white border-slate-300 text-black'}`}
                           >
                             <option value="trial">Prueba (14 días)</option>
                             <option value="active">Activo</option>
@@ -1290,10 +1287,10 @@ export default function SuperAdminPage({ showToast }) {
           {/* TAB 2: TRANSFERS APPROVAL */}
           {!loading && activeTab === 'transfers' && (
             <div className="space-y-6">
-              <div className={`overflow-x-auto rounded-2xl border ${isDarkMode ? 'bg-[#0f0f11]/30 border-white/5' : 'bg-white border-slate-200'}`}>
+              <div className={`overflow-x-auto rounded-2xl border ${'bg-white border-slate-200'}`}>
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className={`border-b text-[10px] font-bold uppercase tracking-wider text-gray-500 ${isDarkMode ? 'border-white/5 bg-white/2' : 'border-slate-100 bg-slate-50'}`}>
+                    <tr className={`border-b text-[10px] font-bold uppercase tracking-wider text-gray-500 ${'border-slate-100 bg-slate-50'}`}>
                       <th className="px-6 py-4">Empresa (Tenant)</th>
                       <th className="px-6 py-4">Plan solicitado</th>
                       <th className="px-6 py-4">Monto</th>
@@ -1370,7 +1367,7 @@ export default function SuperAdminPage({ showToast }) {
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {plans.map((plan) => (
-                  <div key={plan.id} className={`p-6 rounded-2xl border flex flex-col justify-between ${isDarkMode ? 'bg-[#0f0f11]/50 border-white/5' : 'bg-white border-slate-200'}`}>
+                  <div key={plan.id} className={`p-6 rounded-2xl border flex flex-col justify-between ${'bg-white border-slate-200'}`}>
                     <div>
                       <h4 className="text-sm font-bold mb-3">{plan.name}</h4>
                       <div className="space-y-3.5 text-[11px] text-gray-500">
@@ -1419,7 +1416,7 @@ export default function SuperAdminPage({ showToast }) {
       {/* EDIT PLAN CONFIG MODAL */}
       {editingPlan && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className={`w-full max-w-lg p-6 rounded-2xl border shadow-xl ${isDarkMode ? 'bg-[#0f0f11] border-white/10 text-white' : 'bg-white border-slate-200 text-black'}`}>
+          <div className={`w-full max-w-lg p-6 rounded-2xl border shadow-xl ${'bg-white border-slate-200 text-black'}`}>
             <div className="flex justify-between items-center mb-6">
               <h4 className="text-sm font-bold">Personalizar: Plan {editingPlan.name}</h4>
               <button onClick={() => setEditingPlan(null)} className="text-gray-400 hover:text-white"><X size={16}/></button>
@@ -1432,7 +1429,7 @@ export default function SuperAdminPage({ showToast }) {
                     type="number" 
                     value={editingPlan.priceMonthly} 
                     onChange={e => setEditingPlan({ ...editingPlan, priceMonthly: Number(e.target.value) })}
-                    className={`w-full p-2.5 rounded-lg border outline-none ${isDarkMode ? 'bg-[#151722] border-white/10' : 'bg-white border-slate-300'}`}
+                    className={`w-full p-2.5 rounded-lg border outline-none ${'bg-white border-slate-300'}`}
                   />
                 </div>
                 <div>
@@ -1441,7 +1438,7 @@ export default function SuperAdminPage({ showToast }) {
                     type="number" 
                     value={editingPlan.priceYearly} 
                     onChange={e => setEditingPlan({ ...editingPlan, priceYearly: Number(e.target.value) })}
-                    className={`w-full p-2.5 rounded-lg border outline-none ${isDarkMode ? 'bg-[#151722] border-white/10' : 'bg-white border-slate-300'}`}
+                    className={`w-full p-2.5 rounded-lg border outline-none ${'bg-white border-slate-300'}`}
                   />
                 </div>
               </div>
@@ -1453,7 +1450,7 @@ export default function SuperAdminPage({ showToast }) {
                     type="number" 
                     value={editingPlan.maxUsers} 
                     onChange={e => setEditingPlan({ ...editingPlan, maxUsers: Number(e.target.value) })}
-                    className={`w-full p-2.5 rounded-lg border outline-none ${isDarkMode ? 'bg-[#151722] border-white/10' : 'bg-white border-slate-300'}`}
+                    className={`w-full p-2.5 rounded-lg border outline-none ${'bg-white border-slate-300'}`}
                   />
                 </div>
                 <div>
@@ -1462,7 +1459,7 @@ export default function SuperAdminPage({ showToast }) {
                     type="number" 
                     value={editingPlan.maxProducts} 
                     onChange={e => setEditingPlan({ ...editingPlan, maxProducts: Number(e.target.value) })}
-                    className={`w-full p-2.5 rounded-lg border outline-none ${isDarkMode ? 'bg-[#151722] border-white/10' : 'bg-white border-slate-300'}`}
+                    className={`w-full p-2.5 rounded-lg border outline-none ${'bg-white border-slate-300'}`}
                   />
                 </div>
               </div>

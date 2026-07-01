@@ -27,7 +27,7 @@ function sanitizeData(obj) {
   return obj;
 }
 
-export default function PosView({ products, thirdParties, transactions = [], isDarkMode, showToast, db, appId, onCheckout, onClose, isPreventaOnly }) {
+export default function PosView({ products, thirdParties, transactions = [], showToast, db, appId, onCheckout, onClose, isPreventaOnly }) {
   // Configuración de visualización del POS (persistente en localStorage)
   const [posConfig, setPosConfig] = useState(() => {
     const saved = localStorage.getItem(`pos_config_${appId}`);
@@ -936,8 +936,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
   });
 
   const inputClass = `w-full text-xs px-3 py-2 rounded-xl outline-none border ${
-    isDarkMode ? 'bg-black/40 border-white/10 text-white focus:border-primary/50' : 'bg-white border-gray-300 text-gray-900 focus:border-primary focus:ring-1 focus:ring-primary/40'
-  }`;
+    'bg-white border-gray-300 text-gray-900 focus:border-primary focus:ring-1 focus:ring-primary/40'}`;
 
   if (!isPreventaOnly) {
     if (sessionLoading) {
@@ -951,34 +950,34 @@ export default function PosView({ products, thirdParties, transactions = [], isD
     // PANTALLA 1: APERTURA DE CAJA
     if (!activeSession) {
       return createPortal(
-        <div className={`fixed inset-0 z-[100] ${isDarkMode ? 'bg-[#08080a] text-white' : 'bg-[#f3f8ff] text-[#000000]'} flex items-center justify-center p-4 backdrop-blur-xl transition-colors duration-300`}>
+        <div className={`fixed inset-0 z-[100] bg-[#f3f8ff] text-[#000000] flex items-center justify-center p-4 backdrop-blur-xl transition-colors duration-300`}>
           {/* Decorative background blobs */}
-          <div className={`absolute top-[-10%] left-[-5%] w-[30rem] h-[30rem] rounded-full mix-blend-screen filter blur-[100px] opacity-20 pointer-events-none ${isDarkMode ? 'bg-emerald-900' : 'bg-emerald-300'}`}></div>
-          <div className={`absolute bottom-[-10%] right-[-5%] w-[30rem] h-[30rem] rounded-full mix-blend-screen filter blur-[100px] opacity-20 pointer-events-none ${isDarkMode ? 'bg-orange-900' : 'bg-orange-300'}`}></div>
+          <div className={`absolute top-[-10%] left-[-5%] w-[30rem] h-[30rem] rounded-full mix-blend-screen filter blur-[100px] opacity-20 pointer-events-none bg-emerald-300`}></div>
+          <div className={`absolute bottom-[-10%] right-[-5%] w-[30rem] h-[30rem] rounded-full mix-blend-screen filter blur-[100px] opacity-20 pointer-events-none bg-orange-300`}></div>
 
-          <div className={`w-full max-w-md p-8 rounded-[2.5rem] border shadow-[0_20px_50px_rgba(0,0,0,0.3)] space-y-6 transition-all duration-300 ${isDarkMode ? 'glass-panel-dark text-white' : 'bg-white text-[#000000] border-primary/15'}`}>
+          <div className={`w-full max-w-md p-8 rounded-[2.5rem] border shadow-[0_20px_50px_rgba(0,0,0,0.3)] space-y-6 transition-all duration-300 bg-white text-[#000000] border-primary/15`}>
             <div className="text-center space-y-2">
-              <div className={`mx-auto w-14 h-14 rounded-2xl flex items-center justify-center border animate-pulse-glow ${isDarkMode ? 'bg-gradient-to-br from-emerald-500/20 to-teal-500/20 text-emerald-400 border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.2)]' : 'bg-emerald-50 text-emerald-600 border-emerald-250 shadow-sm'}`}>
+              <div className={`mx-auto w-14 h-14 rounded-2xl flex items-center justify-center border animate-pulse-glow bg-emerald-50 text-emerald-600 border-emerald-250 shadow-sm`}>
                 <DollarSign size={26} />
               </div>
-              <h2 className={`text-xl font-bold font-display tracking-tight ${isDarkMode ? 'text-white' : 'text-black'}`}>Apertura de Caja POS</h2>
-              <p className={`text-xs font-medium ${isDarkMode ? 'text-gray-400' : 'text-black font-semibold'}`}>Es necesario ingresar el fondo inicial para habilitar la caja registradora.</p>
+              <h2 className={`text-xl font-bold font-display tracking-tight text-black`}>Apertura de Caja POS</h2>
+              <p className={`text-xs font-medium text-black font-semibold`}>Es necesario ingresar el fondo inicial para habilitar la caja registradora.</p>
             </div>
 
             <form onSubmit={handleOpenSession} className="space-y-4">
               <div>
-                <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Responsable / Cajero</label>
-                <input type="text" required value={openingForm.responsible} onChange={e => setOpeningForm({...openingForm, responsible: e.target.value})} className={`w-full text-sm px-3.5 py-3 rounded-xl outline-none transition-all border ${isDarkMode ? 'glass-input-dark' : 'glass-input-light'}`} />
+                <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 text-black`}>Responsable / Cajero</label>
+                <input type="text" required value={openingForm.responsible} onChange={e => setOpeningForm({...openingForm, responsible: e.target.value})} className={`w-full text-sm px-3.5 py-3 rounded-xl outline-none transition-all border glass-input-light`} />
               </div>
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Sucursal</label>
-                  <input type="text" required value={openingForm.branch} onChange={e => setOpeningForm({...openingForm, branch: e.target.value})} className={`w-full text-sm px-3.5 py-3 rounded-xl outline-none transition-all border ${isDarkMode ? 'glass-input-dark' : 'glass-input-light'}`} />
+                  <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 text-black`}>Sucursal</label>
+                  <input type="text" required value={openingForm.branch} onChange={e => setOpeningForm({...openingForm, branch: e.target.value})} className={`w-full text-sm px-3.5 py-3 rounded-xl outline-none transition-all border glass-input-light`} />
                 </div>
                 <div>
-                  <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Turno</label>
-                  <select value={openingForm.shift} onChange={e => setOpeningForm({...openingForm, shift: e.target.value})} className={`w-full text-sm px-3.5 py-3 rounded-xl outline-none transition-all border cursor-pointer ${isDarkMode ? 'glass-input-dark' : 'glass-input-light'}`}>
+                  <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 text-black`}>Turno</label>
+                  <select value={openingForm.shift} onChange={e => setOpeningForm({...openingForm, shift: e.target.value})} className={`w-full text-sm px-3.5 py-3 rounded-xl outline-none transition-all border cursor-pointer glass-input-light`}>
                     <option value="Mañana" className="text-black bg-white">Mañana</option>
                     <option value="Tarde" className="text-black bg-white">Tarde</option>
                     <option value="Noche" className="text-black bg-white">Noche</option>
@@ -987,13 +986,13 @@ export default function PosView({ products, thirdParties, transactions = [], isD
               </div>
 
               <div>
-                <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Fondo Inicial ($ USD)</label>
-                <input type="number" required step="0.01" value={openingForm.initialAmount} onChange={e => setOpeningForm({...openingForm, initialAmount: e.target.value})} className={`w-full text-sm px-3.5 py-3 rounded-xl outline-none transition-all border ${isDarkMode ? 'glass-input-dark' : 'glass-input-light'}`} />
+                <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 text-black`}>Fondo Inicial ($ USD)</label>
+                <input type="number" required step="0.01" value={openingForm.initialAmount} onChange={e => setOpeningForm({...openingForm, initialAmount: e.target.value})} className={`w-full text-sm px-3.5 py-3 rounded-xl outline-none transition-all border glass-input-light`} />
               </div>
 
               <div>
-                <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Observaciones de Entrada</label>
-                <textarea value={openingForm.notes} onChange={e => setOpeningForm({...openingForm, notes: e.target.value})} className={`w-full text-sm px-3.5 py-3 rounded-2xl outline-none transition-all border min-h-[70px] resize-none ${isDarkMode ? 'glass-input-dark' : 'glass-input-light'}`} placeholder="Sin novedades..." />
+                <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 text-black`}>Observaciones de Entrada</label>
+                <textarea value={openingForm.notes} onChange={e => setOpeningForm({...openingForm, notes: e.target.value})} className={`w-full text-sm px-3.5 py-3 rounded-2xl outline-none transition-all border min-h-[70px] resize-none glass-input-light`} placeholder="Sin novedades..." />
               </div>
 
               <button type="submit" className="btn-primary w-full mt-4">
@@ -1009,10 +1008,10 @@ export default function PosView({ products, thirdParties, transactions = [], isD
 
   // PANTALLA 2: POS PRINCIPAL EN PANTALLA COMPLETA
   return createPortal(
-    <div className={`fixed inset-0 z-[100] ${isDarkMode ? 'bg-[#0c0c0e] text-white' : 'bg-[#f3f8ff] text-[#000000]'} flex flex-col overflow-hidden animate-in fade-in duration-300`}>
+    <div className={`fixed inset-0 z-[100] bg-[#f3f8ff] text-[#000000] flex flex-col overflow-hidden animate-in fade-in duration-300`}>
       
       {/* TOP HEADER POS */}
-      <div className={`h-16 px-6 border-b flex items-center justify-between shrink-0 ${isDarkMode ? 'bg-[#121214]/80 border-white/5 text-white' : 'bg-white border-primary/15 text-[#000000] shadow-sm'} backdrop-blur-md`}>
+      <div className={`h-16 px-6 border-b flex items-center justify-between shrink-0 bg-white border-primary/15 text-[#000000] shadow-sm backdrop-blur-md`}>
         <div className="flex items-center gap-3">
           <div className="relative p-2 rounded-xl bg-orange-500/10 text-orange-500 border border-orange-500/10">
             <ShoppingCart size={18} />
@@ -1023,15 +1022,15 @@ export default function PosView({ products, thirdParties, transactions = [], isD
             )}
           </div>
           <div>
-            <h1 className={`text-sm font-black uppercase tracking-wider ${isDarkMode ? 'text-white' : 'text-black'}`}>
+            <h1 className={`text-sm font-black uppercase tracking-wider text-black`}>
               {isPreventaOnly ? 'Generación de Preventa' : `Caja POS: ${activeSession?.branch}`}
             </h1>
             {isPreventaOnly ? (
-              <p className={`text-xs mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-650 font-semibold'}`}>
+              <p className={`text-xs mt-1 text-gray-650 font-semibold`}>
                 Módulo para registro de preventas y pedidos rápidos
               </p>
             ) : (
-              <p className={`text-xs mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-605 font-medium'}`}>Sesión: <span className="font-bold text-gray-850 dark:text-gray-200">{activeSession?.responsible}</span> ({activeSession?.shift}) | Fondo: <span className="font-bold text-gray-850 dark:text-gray-200">${Number(activeSession?.initialAmount || 0).toFixed(2)}</span></p>
+              <p className={`text-xs mt-1 text-gray-605 font-medium`}>Sesión: <span className="font-bold text-gray-850 dark:text-gray-200">{activeSession?.responsible}</span> ({activeSession?.shift}) | Fondo: <span className="font-bold text-gray-850 dark:text-gray-200">${Number(activeSession?.initialAmount || 0).toFixed(2)}</span></p>
             )}
           </div>
         </div>
@@ -1044,7 +1043,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
           )}
           <button 
             onClick={() => setIsShortcutsOpen(true)} 
-            className={`btn-icon ${isDarkMode ? 'hover:bg-white/10 text-gray-400' : 'hover:bg-primary/10 text-primary border border-primary/25 bg-white'}`}
+            className={`btn-icon hover:bg-primary/10 text-primary border border-primary/25 bg-white`}
             title="Ver Atajos de Teclado (Guía Visual)"
           >
             <Keyboard size={16} />
@@ -1052,7 +1051,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
           {!isPreventaOnly && (
             <button 
               onClick={() => setIsHistoryOpen(true)} 
-              className={`btn-icon ${isDarkMode ? 'hover:bg-white/10 text-gray-400' : 'hover:bg-primary/10 text-primary border border-primary/25 bg-white'}`}
+              className={`btn-icon hover:bg-primary/10 text-primary border border-primary/25 bg-white`}
               title="Ver Ventas Emitidas en esta Sesión"
             >
               <History size={16} />
@@ -1060,7 +1059,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
           )}
           <button 
             onClick={() => setIsConfigOpen(true)} 
-            className={`btn-icon ${isDarkMode ? 'hover:bg-white/10 text-gray-400' : 'hover:bg-primary/10 text-primary border border-primary/25 bg-white'}`}
+            className={`btn-icon hover:bg-primary/10 text-primary border border-primary/25 bg-white`}
             title="Configuración Visual del POS"
           >
             <Settings size={16} />
@@ -1083,7 +1082,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                 window.location.reload();
               }
             }} 
-            className={`btn-icon ${isDarkMode ? 'hover:bg-white/10 text-gray-400' : 'hover:bg-primary/10 text-primary border border-primary/25 bg-white'}`} 
+            className={`btn-icon hover:bg-primary/10 text-primary border border-primary/25 bg-white`} 
             title="Volver al ERP / Cerrar POS"
           >
             <LogOut size={16} />
@@ -1098,7 +1097,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
         <div className={`flex-1 flex overflow-hidden min-h-0 ${posConfig.cartPosition === 'left' ? 'flex-row-reverse' : ''}`}>
         
         {/* LADO IZQUIERDO: SELECCIÓN Y FILTRO DE PRODUCTOS */}
-        <div className={`flex-1 flex flex-col pt-[7px] px-6 pb-6 min-w-0 border-r ${isDarkMode ? 'border-white/5 bg-[#0f0f11]/60' : 'border-primary/15 bg-white'}`}>
+        <div className={`flex-1 flex flex-col pt-[7px] px-6 pb-6 min-w-0 border-r border-primary/15 bg-white`}>
           
           {/* BARRA DE BÚSQUEDA Y FILTROS */}
           <div className="space-y-3.5 mb-6">
@@ -1106,8 +1105,8 @@ export default function PosView({ products, thirdParties, transactions = [], isD
               <div className="space-y-3">
                 {/* Search Box */}
                 <div className="flex gap-2.5 items-center">
-                  <div className={`flex-1 flex items-center gap-2 px-4 h-11 rounded-xl border transition-all ${isDarkMode ? 'border-white/5 bg-black/45' : 'border-primary/20 bg-primary-light'}`}>
-                    <Search size={14} className={isDarkMode ? 'text-gray-500' : 'text-primary'} />
+                  <div className={`flex-1 flex items-center gap-2 px-4 h-11 rounded-xl border transition-all border-primary/20 bg-primary-light`}>
+                    <Search size={14} className={'text-primary'} />
                     <input 
                       type="text" 
                       id="pos-search-input"
@@ -1115,12 +1114,12 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                       value={searchTerm}
                       onChange={e => setSearchTerm(e.target.value)}
                       onKeyDown={handleSearchKeyDown}
-                      className={`bg-transparent border-none outline-none text-sm w-full focus:ring-0 ${isDarkMode ? 'text-white placeholder-gray-500' : 'text-black placeholder-gray-400 font-bold'}`}
+                      className={`bg-transparent border-none outline-none text-sm w-full focus:ring-0 text-black placeholder-gray-400 font-bold`}
                     />
                     <button 
                       type="button" 
                       onClick={startVoiceSearch} 
-                      className={`btn-icon ${isListening ? 'text-red-500 animate-pulse bg-red-500/10' : (isDarkMode ? 'text-gray-400 hover:text-white' : 'text-primary hover:bg-primary-light')}`}
+                      className={`btn-icon ${isListening ? 'text-red-500 animate-pulse bg-red-500/10' : ('text-primary hover:bg-primary-light')}`}
                       title="Buscar por dictado de voz"
                     >
                       <Mic size={14} />
@@ -1152,7 +1151,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                     className={`px-4 py-2 rounded-[var(--radius-button)] text-xs font-bold uppercase transition-all whitespace-nowrap shrink-0 border ${
                       filterCategory === 'all'
                         ? 'bg-primary border-primary text-white'
-                        : (isDarkMode ? 'bg-black/40 border-white/5 text-gray-455 hover:text-white' : 'bg-primary-light border-primary/15 text-black hover:bg-primary/10')
+                        : ('bg-primary-light border-primary/15 text-black hover:bg-primary/10')
                     }`}
                   >
                     Todos
@@ -1164,7 +1163,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                       className={`px-4 py-2 rounded-[var(--radius-button)] text-xs font-bold uppercase transition-all whitespace-nowrap shrink-0 border ${
                         filterCategory === cat
                           ? 'bg-primary border-primary text-white'
-                          : (isDarkMode ? 'bg-black/40 border-white/5 text-gray-455 hover:text-white' : 'bg-primary-light border-primary/15 text-black hover:bg-primary/10')
+                          : ('bg-primary-light border-primary/15 text-black hover:bg-primary/10')
                       }`}
                     >
                       {cat}
@@ -1176,8 +1175,8 @@ export default function PosView({ products, thirdParties, transactions = [], isD
               <div className="space-y-3">
                 {/* Search Box */}
                 <div className="flex gap-2.5 items-center">
-                  <div className={`flex-1 flex items-center gap-2 px-4 h-11 rounded-xl border transition-all ${isDarkMode ? 'border-white/5 bg-black/45' : 'border-primary/20 bg-primary-light'}`}>
-                    <Search size={14} className={isDarkMode ? 'text-gray-500' : 'text-primary'} />
+                  <div className={`flex-1 flex items-center gap-2 px-4 h-11 rounded-xl border transition-all border-primary/20 bg-primary-light`}>
+                    <Search size={14} className={'text-primary'} />
                     <input 
                       type="text" 
                       id="pos-search-input"
@@ -1185,12 +1184,12 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                       value={searchTerm}
                       onChange={e => setSearchTerm(e.target.value)}
                       onKeyDown={handleSearchKeyDown}
-                      className={`bg-transparent border-none outline-none text-sm w-full focus:ring-0 ${isDarkMode ? 'text-white placeholder-gray-500' : 'text-black placeholder-gray-400 font-bold'}`}
+                      className={`bg-transparent border-none outline-none text-sm w-full focus:ring-0 text-black placeholder-gray-400 font-bold`}
                     />
                     <button 
                       type="button" 
                       onClick={startVoiceSearch} 
-                      className={`btn-icon ${isListening ? 'text-red-500 animate-pulse bg-red-500/10' : (isDarkMode ? 'text-gray-400 hover:text-white' : 'text-primary hover:bg-primary-light')}`}
+                      className={`btn-icon ${isListening ? 'text-red-500 animate-pulse bg-red-500/10' : ('text-primary hover:bg-primary-light')}`}
                       title="Buscar por dictado de voz"
                     >
                       <Mic size={14} />
@@ -1219,33 +1218,33 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                   <div>
                     
-                    <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} className={`w-full text-xs font-bold px-2.5 py-2 rounded-xl border outline-none ${isDarkMode ? 'bg-black/40 border-white/5 text-white' : 'bg-white border-primary/15 text-black'}`}>
-                      <option value="all" className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>Categorías (Todos)</option>
-                      {categories.filter(c => c !== 'all').map(c => <option key={c} value={c} className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>{c}</option>)}
+                    <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} className={`w-full text-xs font-bold px-2.5 py-2 rounded-xl border outline-none bg-white border-primary/15 text-black`}>
+                      <option value="all" className={'text-black bg-white'}>Categorías (Todos)</option>
+                      {categories.filter(c => c !== 'all').map(c => <option key={c} value={c} className={'text-black bg-white'}>{c}</option>)}
                     </select>
                   </div>
 
                   <div>
                     
-                    <select value={filterBrand} onChange={e => setFilterBrand(e.target.value)} className={`w-full text-xs font-bold px-2.5 py-2 rounded-xl border outline-none ${isDarkMode ? 'bg-black/40 border-white/5 text-white' : 'bg-white border-primary/15 text-black'}`}>
-                      <option value="all" className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>Marcas (Todos)</option>
-                      {brands.filter(b => b !== 'all').map(b => <option key={b} value={b} className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>{b}</option>)}
+                    <select value={filterBrand} onChange={e => setFilterBrand(e.target.value)} className={`w-full text-xs font-bold px-2.5 py-2 rounded-xl border outline-none bg-white border-primary/15 text-black`}>
+                      <option value="all" className={'text-black bg-white'}>Marcas (Todos)</option>
+                      {brands.filter(b => b !== 'all').map(b => <option key={b} value={b} className={'text-black bg-white'}>{b}</option>)}
                     </select>
                   </div>
 
                   <div>
                     
-                    <select value={filterWarehouse} onChange={e => setFilterWarehouse(e.target.value)} className={`w-full text-xs font-bold px-2.5 py-2 rounded-xl border outline-none ${isDarkMode ? 'bg-black/40 border-white/5 text-white' : 'bg-white border-primary/15 text-black'}`}>
-                      <option value="all" className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>Bodegas (Todos)</option>
-                      {warehouses.filter(w => w !== 'all').map(w => <option key={w} value={w} className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>{w}</option>)}
+                    <select value={filterWarehouse} onChange={e => setFilterWarehouse(e.target.value)} className={`w-full text-xs font-bold px-2.5 py-2 rounded-xl border outline-none bg-white border-primary/15 text-black`}>
+                      <option value="all" className={'text-black bg-white'}>Bodegas (Todos)</option>
+                      {warehouses.filter(w => w !== 'all').map(w => <option key={w} value={w} className={'text-black bg-white'}>{w}</option>)}
                     </select>
                   </div>
 
                   <div>
                     
-                    <select value={filterStock} onChange={e => setFilterStock(e.target.value)} className={`w-full text-xs font-bold px-2.5 py-2 rounded-xl border outline-none ${isDarkMode ? 'bg-black/40 border-white/5 text-white' : 'bg-white border-primary/15 text-black'}`}>
-                      <option value="all" className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>Inventario completo</option>
-                      <option value="instock" className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>Solo disponibles (Con Stock)</option>
+                    <select value={filterStock} onChange={e => setFilterStock(e.target.value)} className={`w-full text-xs font-bold px-2.5 py-2 rounded-xl border outline-none bg-white border-primary/15 text-black`}>
+                      <option value="all" className={'text-black bg-white'}>Inventario completo</option>
+                      <option value="instock" className={'text-black bg-white'}>Solo disponibles (Con Stock)</option>
                     </select>
                   </div>
                 </div>
@@ -1266,14 +1265,14 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                     className={`p-3 border rounded-2xl flex items-center justify-between gap-4 transition-all cursor-pointer select-none group relative overflow-hidden ${
                       isOutOfStock 
                         ? 'opacity-40 cursor-not-allowed bg-white/[0.005]' 
-                        : (isDarkMode ? 'border-white/5 hover:border-primary/30 hover:bg-white/[0.02] bg-white/[0.01]' : 'border-primary/15 hover:border-primary/40 hover:bg-primary/5 bg-primary/5')
+                        : ('border-primary/15 hover:border-primary/40 hover:bg-primary/5 bg-primary/5')
                     }`}
                   >
                     <div className="flex-1 min-w-0 flex items-center gap-3">
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
                         p.type === 'producto' 
-                          ? (isDarkMode ? 'bg-primary/10 border-primary/20 text-primary' : 'bg-primary-light border-primary/25 text-primary') 
-                          : (isDarkMode ? 'bg-purple-500/10 border-purple-500/20 text-purple-400' : 'bg-purple-50 border-purple-200 text-purple-650')
+                          ? ('bg-primary-light border-primary/25 text-primary') 
+                          : ('bg-purple-50 border-purple-200 text-purple-650')
                       }`}>
                         <ShoppingCart size={16} />
                       </div>
@@ -1282,7 +1281,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                           <span className="font-mono text-[10px] text-gray-500 shrink-0">{p.sku}</span>
                           <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase shrink-0 ${p.type === 'producto' ? 'bg-primary/10 text-primary' : 'bg-purple-500/10 text-purple-400'}`}>{p.type}</span>
                         </div>
-                        <h4 className={`text-sm sm:text-base font-bold leading-snug truncate ${isDarkMode ? 'text-white' : 'text-black'}`}>{p.name}</h4>
+                        <h4 className={`text-sm sm:text-base font-bold leading-snug truncate text-black`}>{p.name}</h4>
                         <p className="text-xs text-gray-500 truncate">{p.marca || 'Sin Marca'} | {p.categoria || 'General'}</p>
                       </div>
                     </div>
@@ -1300,14 +1299,14 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                           <span className={`text-xs font-bold px-2 py-0.5 rounded border shrink-0 ${
                             isCritical 
                               ? 'bg-red-500/10 border-red-500 text-red-500 animate-pulse font-black shadow-sm' 
-                              : (isDarkMode ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-emerald-50 border-emerald-250 text-emerald-700')
+                              : ('bg-emerald-50 border-emerald-250 text-emerald-700')
                           }`}>
                             {p.bodega || 'Central'}: {p.stock}
                           </span>
                         );
                       })()}
                       <div className="text-right shrink-0">
-                        <span className={`text-base font-black block ${isDarkMode ? 'text-white' : 'text-black'}`}>${Number(p.price).toFixed(2)}</span>
+                        <span className={`text-base font-black block text-black`}>${Number(p.price).toFixed(2)}</span>
                       </div>
                       <button
                         type="button"
@@ -1343,9 +1342,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                     className={`p-3.5 border rounded-2xl flex flex-col justify-between transition-all cursor-pointer select-none group relative overflow-hidden ${
                       isOutOfStock 
                         ? 'opacity-40 cursor-not-allowed bg-white/[0.005] border-white/5' 
-                        : (isDarkMode 
-                            ? 'border-white/5 hover:border-primary/30 hover:bg-white/[0.02] bg-white/[0.01] hover:-translate-y-0.5' 
-                            : 'border-primary/15 hover:border-primary/40 hover:bg-primary/5 bg-primary/5 hover:-translate-y-0.5')
+                        : ('border-primary/15 hover:border-primary/40 hover:bg-primary/5 bg-primary/5 hover:-translate-y-0.5')
                     }`}
                   >
                     <div className="space-y-1">
@@ -1353,12 +1350,12 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                         <span className="font-mono text-[10px] text-gray-500 truncate">{p.sku}</span>
                         <span className={`px-1.5 py-0.5 rounded text-[11px] font-bold uppercase ${p.type === 'producto' ? 'bg-primary/10 text-primary' : 'bg-purple-500/10 text-purple-400'}`}>{p.type}</span>
                       </div>
-                      <h4 className={`text-xs sm:text-[13px] font-bold leading-snug line-clamp-2 ${isDarkMode ? 'text-white' : 'text-black'}`}>{p.name}</h4>
+                      <h4 className={`text-xs sm:text-[13px] font-bold leading-snug line-clamp-2 text-black`}>{p.name}</h4>
                       <p className="text-xs text-gray-500 truncate">{p.marca || 'Sin Marca'} | {p.categoria || 'General'}</p>
                     </div>
 
-                    <div className={`flex justify-between items-center mt-3 pt-3 border-t ${isDarkMode ? 'border-white/5' : 'border-primary/15'}`}>
-                      <span className={`text-sm font-black ${isDarkMode ? 'text-white' : 'text-black'}`}>${Number(p.price).toFixed(2)}</span>
+                    <div className={`flex justify-between items-center mt-3 pt-3 border-t border-primary/15`}>
+                      <span className={`text-sm font-black text-black`}>${Number(p.price).toFixed(2)}</span>
                       {posConfig.showStock && p.type === 'producto' && (() => {
                         if (p.inventoryType === 'VIRTUAL') {
                           return (
@@ -1371,7 +1368,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                           <span className={`text-xs font-bold px-2 py-0.5 rounded border ${
                             isCritical 
                               ? 'bg-red-500/10 border-red-500 text-red-500 animate-pulse font-black shadow-sm' 
-                              : (isDarkMode ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-emerald-50 border-emerald-250 text-emerald-700')
+                              : ('bg-emerald-50 border-emerald-250 text-emerald-700')
                           }`}>
                             {p.bodega || 'Central'}: {p.stock}
                           </span>
@@ -1393,8 +1390,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
           {/* LEYENDA DE STOCK AL PIE DEL CATÁLOGO */}
           {posConfig.showStock && (
             <div className={`mt-4 pt-3 border-t flex items-center gap-4 text-xs uppercase font-extrabold tracking-wider shrink-0 ${
-              isDarkMode ? 'border-white/5 text-gray-500' : 'border-primary/15 text-primary'
-            }`}>
+              'border-primary/15 text-primary'}`}>
               <span className="flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.5)]"></span>
                 En Stock
@@ -1412,18 +1408,17 @@ export default function PosView({ products, thirdParties, transactions = [], isD
         </div>
 
         {/* LADO DERECHO: DETALLE DEL PEDIDO (CHECKOUT FIJO) */}
-        <div className={`w-[32rem] lg:w-[38rem] flex flex-col shrink-0 border-l ${isDarkMode ? 'border-white/5 bg-[#121214]/65' : 'bg-white border-primary/15'}`}>
+        <div className={`w-[32rem] lg:w-[38rem] flex flex-col shrink-0 border-l bg-white border-primary/15`}>
 
 
           
           {/* CLIENTE BÚSQUEDA Y FICHA */}
-          <div className={`pt-[7px] px-3 pb-3 border-b flex flex-col gap-2 shrink-0 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-primary/15 bg-primary/5'}`}>
+          <div className={`pt-[7px] px-3 pb-3 border-b flex flex-col gap-2 shrink-0 border-primary/15 bg-primary/5`}>
             <div className="flex items-center gap-2">
               {/* Buscador de Cliente */}
               <div className={`flex-1 flex items-center gap-2 px-4 h-11 rounded-xl border transition-all ${
-                isDarkMode ? 'border-white/5 bg-black/45' : 'border-primary/20 bg-primary/5'
-              }`}>
-                <Search size={13} className={isDarkMode ? 'text-gray-500' : 'text-primary'} />
+                'border-primary/20 bg-primary/5'}`}>
+                <Search size={13} className={'text-primary'} />
                 <input 
                   type="text"
                   placeholder="Buscar Cliente..."
@@ -1434,8 +1429,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   }}
                   onFocus={() => setIsClientDropdownOpen(true)}
                   className={`bg-transparent border-none outline-none text-sm w-full focus:ring-0 ${
-                    isDarkMode ? 'text-white placeholder-gray-500' : 'text-black placeholder-gray-400 font-bold'
-                  }`}
+                    'text-black placeholder-gray-400 font-bold'}`}
                 />
                 {clientSearchTerm && (
                   <button 
@@ -1471,8 +1465,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
             <div className="relative">
               {isClientDropdownOpen && clientSearchTerm && (
                 <div className={`absolute left-0 right-0 top-0 max-h-48 overflow-y-auto z-50 rounded-xl border shadow-xl ${
-                  isDarkMode ? 'bg-[#151518] border-white/10 text-white' : 'bg-white border-primary/20 text-black shadow-lg'
-                } custom-scrollbar`}>
+                  'bg-white border-primary/20 text-black shadow-lg'} custom-scrollbar`}>
                   <div 
                     onClick={() => {
                       setSelectedClientId('');
@@ -1480,8 +1473,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                       setIsClientDropdownOpen(false);
                     }}
                     className={`px-3 py-2 text-xs font-bold cursor-pointer transition-colors border-b ${
-                      isDarkMode ? 'hover:bg-white/5 border-white/5' : 'hover:bg-primary-light border-primary/10'
-                    }`}
+                      'hover:bg-primary-light border-primary/10'}`}
                   >
                     Consumidor Final (9999999999999)
                   </div>
@@ -1499,8 +1491,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                           setIsClientDropdownOpen(false);
                         }}
                         className={`px-3 py-2 text-xs font-semibold cursor-pointer transition-colors ${
-                          isDarkMode ? 'hover:bg-white/5' : 'hover:bg-primary-light'
-                        }`}
+                          'hover:bg-primary-light'}`}
                       >
                         <div className="font-bold text-xs">{tp.name}</div>
                         <div className="text-[10px] text-gray-500 font-mono">CI/RUC: {tp.ruc}</div>
@@ -1518,29 +1509,28 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                 const client = getSelectedClient();
                 return (
                   <div className={`py-1.5 transition-all text-[13px] font-light ${
-                    isDarkMode ? 'text-gray-300' : 'text-black'
-                  }`}>
+                    'text-black'}`}>
                     <div className="flex justify-between items-start gap-3">
                       <div className="flex-1 min-w-0 space-y-1">
                         {/* Nombre y RUC */}
                         <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                          <span className={`font-light text-[13px] uppercase ${isDarkMode ? 'text-white' : 'text-black'}`}>{client.name}</span>
-                          <span className={`text-[13px] font-light font-mono ${isDarkMode ? 'text-white' : 'text-black'}`}>({client.ruc})</span>
+                          <span className={`font-light text-[13px] uppercase text-black`}>{client.name}</span>
+                          <span className={`text-[13px] font-light font-mono text-black`}>({client.ruc})</span>
                         </div>
                         {/* Teléfono y Correo en la misma línea con alto contraste */}
                         {(client.telefono || client.email) && (
                           <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[13px] font-light pt-0.5">
                             {client.telefono && (
                               <span className="flex items-center gap-1 shrink-0">
-                                <Phone size={11} className={`${isDarkMode ? 'text-white' : 'text-black'} shrink-0`} />
-                                <span className={isDarkMode ? 'text-white' : 'text-black'}>{client.telefono}</span>
+                                <Phone size={11} className={`text-black shrink-0`} />
+                                <span className={'text-black'}>{client.telefono}</span>
                               </span>
                             )}
-                            {client.telefono && client.email && <span className={`opacity-40 ${isDarkMode ? 'text-white' : 'text-black'}`}>|</span>}
+                            {client.telefono && client.email && <span className={`opacity-40 text-black`}>|</span>}
                             {client.email && (
                               <span className="flex items-center gap-1 shrink-0">
-                                <Mail size={11} className={`${isDarkMode ? 'text-white' : 'text-black'} shrink-0`} />
-                                <span className={isDarkMode ? 'text-white' : 'text-black'}>{client.email}</span>
+                                <Mail size={11} className={`text-black shrink-0`} />
+                                <span className={'text-black'}>{client.email}</span>
                               </span>
                             )}
                           </div>
@@ -1566,7 +1556,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                               setIsQuickAddOpen(true);
                             }
                           }} 
-                          className={`btn-icon ${isDarkMode ? 'hover:bg-primary/20 text-primary' : 'hover:bg-primary/10 text-primary border border-primary/25 bg-white'}`}
+                          className={`btn-icon hover:bg-primary/10 text-primary border border-primary/25 bg-white`}
                           title="Editar Cliente"
                         >
                           <Edit3 size={12} />
@@ -1574,7 +1564,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                         <button 
                           type="button"
                           onClick={() => setSelectedClientId('')} 
-                          className={`btn-icon ${isDarkMode ? 'hover:bg-red-500/20 text-red-500' : 'hover:bg-red-50 text-red-650 border border-red-200 bg-white'}`}
+                          className={`btn-icon hover:bg-red-50 text-red-650 border border-red-200 bg-white`}
                           title="Quitar Cliente"
                         >
                           <X size={12} />
@@ -1587,18 +1577,16 @@ export default function PosView({ products, thirdParties, transactions = [], isD
             ) : (
               /* Consumidor Final Compacto */
               <div className={`py-1.5 flex items-center gap-1.5 text-[13px] font-light ${
-                isDarkMode ? 'text-gray-300' : 'text-black'
-              }`}>
-                <User size={11} className={`${isDarkMode ? 'text-white' : 'text-black'} shrink-0`} />
-                <span className={`uppercase ${isDarkMode ? 'text-white' : 'text-black'}`}>Consumidor Final</span>
-                <span className={`font-mono ${isDarkMode ? 'text-white' : 'text-black'}`}>(9999999999999)</span>
+                'text-black'}`}>
+                <User size={11} className={`text-black shrink-0`} />
+                <span className={`uppercase text-black`}>Consumidor Final</span>
+                <span className={`font-mono text-black`}>(9999999999999)</span>
               </div>
             )}
           </div>
           {/* CABECERA DETALLE DEL PEDIDO */}
           <div className={`px-4 py-2.5 border-b flex justify-between items-center shrink-0 ${
-            isDarkMode ? 'border-white/5 text-gray-400 bg-black/10' : 'border-primary/15 text-gray-550 bg-primary/5'
-          }`}>
+            'border-primary/15 text-gray-550 bg-primary/5'}`}>
             <span className="text-[11px] font-extrabold uppercase tracking-wider">Detalle del Pedido</span>
             <span className="text-xs font-bold">
               Items (<span className="text-primary dark:text-primary font-extrabold">{cart.reduce((acc, it) => acc + it.quantity, 0)}</span>)
@@ -1611,29 +1599,28 @@ export default function PosView({ products, thirdParties, transactions = [], isD
               const prod = products.find(p => p.id === item.productId);
               const imageUrl = prod?.imageUrl || prod?.image || null;
               return (
-                <div key={idx} className={`p-2.5 rounded-xl border flex items-center justify-between gap-3 ${isDarkMode ? 'bg-black/20 border-white/5' : 'bg-white border-primary/15 shadow-sm'}`}>
+                <div key={idx} className={`p-2.5 rounded-xl border flex items-center justify-between gap-3 bg-white border-primary/15 shadow-sm`}>
                   {/* Imagen del Producto */}
                   {imageUrl ? (
                     <img src={imageUrl} className="w-10 h-10 rounded-lg object-cover shrink-0 border border-gray-100 dark:border-white/10" alt={item.name} />
                   ) : (
                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-xs uppercase shrink-0 border ${
-                      isDarkMode ? 'bg-primary/25 border-primary/40 text-primary' : 'bg-primary-light border-primary/15 text-primary'
-                    }`}>
+                      'bg-primary-light border-primary/15 text-primary'}`}>
                       {item.name.slice(0, 2).toUpperCase()}
                     </div>
                   )}
 
                   {/* Nombre y Precio */}
                   <div className="flex-1 min-w-0">
-                    <h4 className={`text-xs font-bold truncate ${isDarkMode ? 'text-white' : 'text-black'}`}>{item.name}</h4>
-                    <p className={`text-xs font-extrabold mt-0.5 ${isDarkMode ? 'text-gray-400' : 'text-primary'}`}>${Number(item.price).toFixed(2)}</p>
+                    <h4 className={`text-xs font-bold truncate text-black`}>{item.name}</h4>
+                    <p className={`text-xs font-extrabold mt-0.5 text-primary`}>${Number(item.price).toFixed(2)}</p>
                   </div>
 
                   {/* Botón de Eliminar */}
                   <button 
                     type="button" 
                     onClick={() => removeFromCart(item.productId)} 
-                    className={`btn-icon shrink-0 ${isDarkMode ? 'hover:bg-red-500/20 text-red-500' : 'hover:bg-red-50 text-red-650 border border-red-200 bg-white'}`}
+                    className={`btn-icon shrink-0 hover:bg-red-50 text-red-650 border border-red-200 bg-white`}
                     title="Eliminar ítem"
                   >
                     <Trash2 size={13} />
@@ -1654,28 +1641,27 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                       setCart(cart.map(i => i.productId === item.productId ? { ...i, quantity: val } : i));
                     }}
                     className={`w-14 h-8 text-center text-xs font-bold rounded-lg border outline-none ${
-                      isDarkMode ? 'bg-black/40 border-white/10 text-white focus:border-primary' : 'bg-white border-gray-300 text-black focus:border-primary'
-                    }`}
+                      'bg-white border-gray-300 text-black focus:border-primary'}`}
                   />
 
                   {/* Botón Más (+) */}
                   <button 
                     type="button" 
                     onClick={() => updateQuantity(item.productId, 1)} 
-                    className={`btn-icon shrink-0 ${isDarkMode ? 'hover:bg-primary/20 text-primary' : 'hover:bg-primary/10 text-primary border border-primary/25 bg-white'}`}
+                    className={`btn-icon shrink-0 hover:bg-primary/10 text-primary border border-primary/25 bg-white`}
                   >
                     <Plus size={13} />
                   </button>
 
                   {/* Precio Total */}
-                  <span className={`font-bold text-xs text-right min-w-[55px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                  <span className={`font-bold text-xs text-right min-w-[55px] text-black`}>
                     ${(item.price * item.quantity).toFixed(2)}
                   </span>
 
                   {/* Botón de opciones (tres puntos) */}
                   <button 
                     type="button" 
-                    className={`btn-icon shrink-0 ${isDarkMode ? 'hover:bg-white/10 text-gray-400' : 'hover:bg-gray-250 text-gray-655 border bg-white'}`}
+                    className={`btn-icon shrink-0 hover:bg-gray-250 text-gray-655 border bg-white`}
                   >
                     <MoreHorizontal size={13} />
                   </button>
@@ -1691,12 +1677,12 @@ export default function PosView({ products, thirdParties, transactions = [], isD
           </div>
 
           {/* ACCIONES Y TOTALES */}
-          <div className={`p-4 border-t space-y-4 shrink-0 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-primary/15 bg-primary/5'}`}>
+          <div className={`p-4 border-t space-y-4 shrink-0 border-primary/15 bg-primary/5`}>
             {/* DESCUENTO CARD */}
             {isDiscountOpen ? (
-              <div className={`p-3 rounded-xl border space-y-2 ${isDarkMode ? 'border-white/5 bg-black/20' : 'border-primary/15 bg-white shadow-sm'}`}>
+              <div className={`p-3 rounded-xl border space-y-2 border-primary/15 bg-white shadow-sm`}>
                 <div className="flex justify-between items-center">
-                  <span className={`text-xs font-bold ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>DESCUENTO GENERAL</span>
+                  <span className={`text-xs font-bold text-black`}>DESCUENTO GENERAL</span>
                   <button 
                     type="button"
                     onClick={() => { setIsDiscountOpen(false); setDiscountValue(0); }} 
@@ -1706,11 +1692,11 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   </button>
                 </div>
                 <div className="flex gap-1">
-                  <select value={discountType} onChange={e => setDiscountType(e.target.value)} className={`text-sm px-2 py-1.5 rounded-lg border outline-none ${isDarkMode ? 'bg-black border-white/10 text-white' : 'bg-white border-primary/20 text-black'}`}>
+                  <select value={discountType} onChange={e => setDiscountType(e.target.value)} className={`text-sm px-2 py-1.5 rounded-lg border outline-none bg-white border-primary/20 text-black`}>
                     <option value="percent">% Porcentaje</option>
                     <option value="fixed">$ Fijo (USD)</option>
                   </select>
-                  <input type="number" value={discountValue} onChange={e => setDiscountValue(e.target.value)} className={`w-full text-xs px-2 py-1.5 rounded-lg border outline-none ${isDarkMode ? 'bg-black border-white/10 text-white' : 'bg-white border-primary/20 text-black'}`} placeholder="0" />
+                  <input type="number" value={discountValue} onChange={e => setDiscountValue(e.target.value)} className={`w-full text-xs px-2 py-1.5 rounded-lg border outline-none bg-white border-primary/20 text-black`} placeholder="0" />
                 </div>
               </div>
             ) : (
@@ -1728,7 +1714,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
             )}
 
             <div className="space-y-2 text-sm md:text-base">
-              <div className={`flex justify-between ${isDarkMode ? 'text-gray-450' : 'text-black font-semibold'}`}>
+              <div className={`flex justify-between text-black font-semibold`}>
                 <span>Subtotal Neto</span>
                 <span>${getSubtotal().toFixed(2)}</span>
               </div>
@@ -1738,13 +1724,13 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   <span>-${getDiscountAmount().toFixed(2)}</span>
                 </div>
               )}
-              <div className={`flex justify-between ${isDarkMode ? 'text-gray-450' : 'text-black font-semibold'}`}>
+              <div className={`flex justify-between text-black font-semibold`}>
                 <span>Impuestos</span>
                 <span>${getIva().toFixed(2)}</span>
               </div>
-              <div className={`flex justify-between font-black text-base md:text-lg pt-2.5 border-t ${isDarkMode ? 'border-white/5 text-white' : 'border-primary/15 text-black'}`}>
+              <div className={`flex justify-between font-black text-base md:text-lg pt-2.5 border-t border-primary/15 text-black`}>
                 <span>TOTAL NETO</span>
-                <span className={isDarkMode ? 'text-white' : 'text-primary'}>${getTotal().toFixed(2)}</span>
+                <span className={'text-primary'}>${getTotal().toFixed(2)}</span>
               </div>
             </div>
 
@@ -1797,11 +1783,10 @@ export default function PosView({ products, thirdParties, transactions = [], isD
           />
           {/* Drawer Panel */}
           <div className={`fixed top-0 right-0 h-full w-80 z-[130] flex flex-col shadow-2xl border-l animate-in slide-in-from-right duration-300 ${
-            isDarkMode ? 'bg-[#0f0f11] border-white/10 text-white shadow-black/80' : 'bg-[#f3f8ff] border-primary/15 text-[#000000] shadow-primary/20'
-          }`}>
-            <div className={`p-4 border-b flex items-center justify-between shrink-0 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-primary/15 bg-primary-light'}`}>
+            'bg-[#f3f8ff] border-primary/15 text-[#000000] shadow-primary/20'}`}>
+            <div className={`p-4 border-b flex items-center justify-between shrink-0 border-primary/15 bg-primary-light`}>
               <div className="flex items-center gap-2">
-                <Settings size={16} className={isDarkMode ? 'text-primary' : 'text-[#000000]'} />
+                <Settings size={16} className={'text-[#000000]'} />
                 <h3 className="text-xs font-black uppercase tracking-wider">Gestión del POS</h3>
               </div>
               <button 
@@ -1819,14 +1804,14 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   <button
                     type="button"
                     onClick={() => setPosConfig(prev => ({ ...prev, viewType: 'grid' }))}
-                    className={`py-2.5 rounded-[var(--radius-button)] text-xs font-bold border transition-all ${posConfig.viewType === 'grid' ? 'bg-primary border-primary text-white' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-450 hover:text-white' : 'bg-white border-primary/15 text-[#000000] hover:bg-primary-light')}`}
+                    className={`py-2.5 rounded-[var(--radius-button)] text-xs font-bold border transition-all ${posConfig.viewType === 'grid' ? 'bg-primary border-primary text-white' : ('bg-white border-primary/15 text-[#000000] hover:bg-primary-light')}`}
                   >
                     Grid
                   </button>
                   <button
                     type="button"
                     onClick={() => setPosConfig(prev => ({ ...prev, viewType: 'list' }))}
-                    className={`py-2.5 rounded-[var(--radius-button)] text-xs font-bold border transition-all ${posConfig.viewType === 'list' ? 'bg-primary border-primary text-white' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-450 hover:text-white' : 'bg-white border-primary/15 text-[#000000] hover:bg-primary-light')}`}
+                    className={`py-2.5 rounded-[var(--radius-button)] text-xs font-bold border transition-all ${posConfig.viewType === 'list' ? 'bg-primary border-primary text-white' : ('bg-white border-primary/15 text-[#000000] hover:bg-primary-light')}`}
                   >
                     Lista
                   </button>
@@ -1839,14 +1824,14 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   <button
                     type="button"
                     onClick={() => setPosConfig(prev => ({ ...prev, showCarousel: false }))}
-                    className={`py-2.5 rounded-[var(--radius-button)] text-xs font-bold border transition-all ${!posConfig.showCarousel ? 'bg-primary border-primary text-white' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-450 hover:text-white' : 'bg-white border-primary/15 text-[#000000] hover:bg-primary-light')}`}
+                    className={`py-2.5 rounded-[var(--radius-button)] text-xs font-bold border transition-all ${!posConfig.showCarousel ? 'bg-primary border-primary text-white' : ('bg-white border-primary/15 text-[#000000] hover:bg-primary-light')}`}
                   >
                     Normales
                   </button>
                   <button
                     type="button"
                     onClick={() => setPosConfig(prev => ({ ...prev, showCarousel: true }))}
-                    className={`py-2.5 rounded-[var(--radius-button)] text-xs font-bold border transition-all ${posConfig.showCarousel ? 'bg-primary border-primary text-white' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-455 hover:text-white' : 'bg-white border-primary/15 text-[#000000] hover:bg-primary-light')}`}
+                    className={`py-2.5 rounded-[var(--radius-button)] text-xs font-bold border transition-all ${posConfig.showCarousel ? 'bg-primary border-primary text-white' : ('bg-white border-primary/15 text-[#000000] hover:bg-primary-light')}`}
                   >
                     Carrusel
                   </button>
@@ -1859,14 +1844,14 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   <button
                     type="button"
                     onClick={() => setPosConfig(prev => ({ ...prev, cartPosition: 'left' }))}
-                    className={`py-2.5 rounded-[var(--radius-button)] text-xs font-bold border transition-all ${posConfig.cartPosition === 'left' ? 'bg-primary border-primary text-white' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-450 hover:text-white' : 'bg-white border-primary/15 text-[#000000] hover:bg-primary-light')}`}
+                    className={`py-2.5 rounded-[var(--radius-button)] text-xs font-bold border transition-all ${posConfig.cartPosition === 'left' ? 'bg-primary border-primary text-white' : ('bg-white border-primary/15 text-[#000000] hover:bg-primary-light')}`}
                   >
                     Izquierda
                   </button>
                   <button
                     type="button"
                     onClick={() => setPosConfig(prev => ({ ...prev, cartPosition: 'right' }))}
-                    className={`py-2.5 rounded-[var(--radius-button)] text-xs font-bold border transition-all ${posConfig.cartPosition === 'right' ? 'bg-primary border-primary text-white' : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-450 hover:text-white' : 'bg-white border-primary/15 text-[#000000] hover:bg-primary-light')}`}
+                    className={`py-2.5 rounded-[var(--radius-button)] text-xs font-bold border transition-all ${posConfig.cartPosition === 'right' ? 'bg-primary border-primary text-white' : ('bg-white border-primary/15 text-[#000000] hover:bg-primary-light')}`}
                   >
                     Derecha
                   </button>
@@ -1881,7 +1866,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   className={`w-full py-3 px-4 rounded-[var(--radius-button)] text-xs font-bold border transition-all flex items-center justify-between ${
                     posConfig.barcodeMode
                       ? 'bg-primary border-primary text-white'
-                      : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-455 hover:text-white' : 'bg-primary-light border-primary/15 text-[#000000] hover:bg-primary-light')
+                      : ('bg-primary-light border-primary/15 text-[#000000] hover:bg-primary-light')
                   }`}
                 >
                   <span className="flex items-center gap-1.5">
@@ -1899,7 +1884,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   className={`w-full py-3 px-4 rounded-[var(--radius-button)] text-xs font-bold border transition-all flex items-center justify-between ${
                     posConfig.expressCheckout
                       ? 'bg-emerald-600 border-emerald-600 text-white'
-                      : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-455 hover:text-white' : 'bg-primary-light border-primary/15 text-[#000000] hover:bg-primary-light')
+                      : ('bg-primary-light border-primary/15 text-[#000000] hover:bg-primary-light')
                   }`}
                 >
                   <span className="flex items-center gap-1.5">
@@ -1917,7 +1902,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   className={`w-full py-3 px-4 rounded-[var(--radius-button)] text-[11px] font-bold border transition-all flex items-center justify-between ${
                     posConfig.showStock
                       ? 'bg-primary border-primary text-white'
-                      : (isDarkMode ? 'bg-black/20 border-white/5 text-gray-455 hover:text-white' : 'bg-primary-light border-primary/15 text-[#000000] hover:bg-primary-light')
+                      : ('bg-primary-light border-primary/15 text-[#000000] hover:bg-primary-light')
                   }`}
                 >
                   <span className="flex items-center gap-1.5">
@@ -1935,71 +1920,69 @@ export default function PosView({ products, thirdParties, transactions = [], isD
       {isClosingOpen && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
           <div className={`w-full max-w-md p-6 rounded-3xl border shadow-2xl transition-all duration-300 ${
-            isDarkMode ? 'bg-[#141416] border-white/10 text-white shadow-black/50' : 'bg-white border-primary/15 text-black shadow-primary/10'
-          }`}>
+            'bg-white border-primary/15 text-black shadow-primary/10'}`}>
             <h3 className="text-sm font-black mb-4 flex items-center gap-2 text-red-500">
               <ShieldAlert size={16} /> Arqueo y Cierre de Caja
             </h3>
-            <p className={`text-xs mb-4 leading-normal ${isDarkMode ? 'text-gray-500' : 'text-gray-900 font-bold'}`}>
+            <p className={`text-xs mb-4 leading-normal text-gray-900 font-bold`}>
               Verifica los montos acumulados por ventas en esta sesión y digita los valores reales contados.
             </p>
 
             <form onSubmit={handleCloseSession} className="space-y-4">
               <div className="space-y-2 text-xs">
                 <div className={`grid grid-cols-2 gap-2 font-bold border-b pb-2 text-xs uppercase ${
-                  isDarkMode ? 'text-gray-500 border-white/5' : 'text-black border-primary/10'
-                }`}>
+                  'text-black border-primary/10'}`}>
                   <span>Método de Pago</span>
                   <span className="text-right">Físico / Real</span>
                 </div>
                 
                 <div className="flex justify-between items-center">
                   <div>
-                    <p className={`font-bold ${isDarkMode ? 'text-white' : 'text-black'}`}>Efectivo en Caja</p>
-                    <p className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-900 font-bold'}`}>
+                    <p className={`font-bold text-black`}>Efectivo en Caja</p>
+                    <p className={`text-xs text-gray-900 font-bold`}>
                       Esperado: ${(Number(activeSession.initialAmount || 0) + sessionTxs.filter(t => t.paymentMethod === 'efectivo' && t.sriStatus !== 'anulado').reduce((acc, t) => acc + Number(t.total || 0), 0)).toFixed(2)} (inc. Fondo)
                     </p>
                   </div>
-                  <input type="number" step="0.01" value={closingForm.efectivoReal} onChange={e => setClosingForm({...closingForm, efectivoReal: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} w-24 text-right px-2 py-1.5 rounded-lg border`} />
+                  <input type="number" step="0.01" value={closingForm.efectivoReal} onChange={e => setClosingForm({...closingForm, efectivoReal: e.target.value})} className={`glass-input-light w-24 text-right px-2 py-1.5 rounded-lg border`} />
                 </div>
 
                 <div className="flex justify-between items-center">
                   <div>
-                    <p className={`font-bold ${isDarkMode ? 'text-white' : 'text-black'}`}>Tarjeta Débito/Crédito</p>
-                    <p className={`text-[9px] ${isDarkMode ? 'text-gray-500' : 'text-gray-900 font-bold'}`}>
+                    <p className={`font-bold text-black`}>Tarjeta Débito/Crédito</p>
+                    <p className={`text-[9px] text-gray-900 font-bold`}>
                       Esperado: ${sessionTxs.filter(t => t.paymentMethod === 'tarjeta').reduce((acc, t) => acc + Number(t.total || 0), 0).toFixed(2)}
                     </p>
                   </div>
-                  <input type="number" step="0.01" value={closingForm.tarjetaReal} onChange={e => setClosingForm({...closingForm, tarjetaReal: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} w-24 text-right px-2 py-1.5 rounded-lg border`} />
+                  <input type="number" step="0.01" value={closingForm.tarjetaReal} onChange={e => setClosingForm({...closingForm, tarjetaReal: e.target.value})} className={`glass-input-light w-24 text-right px-2 py-1.5 rounded-lg border`} />
                 </div>
 
                 <div className="flex justify-between items-center">
                   <div>
-                    <p className={`font-bold ${isDarkMode ? 'text-white' : 'text-black'}`}>Transferencias</p>
-                    <p className={`text-[9px] ${isDarkMode ? 'text-gray-500' : 'text-gray-900 font-bold'}`}>
+                    <p className={`font-bold text-black`}>Transferencias</p>
+                    <p className={`text-[9px] text-gray-900 font-bold`}>
                       Esperado: ${sessionTxs.filter(t => t.paymentMethod === 'transferencia').reduce((acc, t) => acc + Number(t.total || 0), 0).toFixed(2)}
                     </p>
                   </div>
-                  <input type="number" step="0.01" value={closingForm.transferenciaReal} onChange={e => setClosingForm({...closingForm, transferenciaReal: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} w-24 text-right px-2 py-1.5 rounded-lg border`} />
+                  <input type="number" step="0.01" value={closingForm.transferenciaReal} onChange={e => setClosingForm({...closingForm, transferenciaReal: e.target.value})} className={`glass-input-light w-24 text-right px-2 py-1.5 rounded-lg border`} />
                 </div>
 
                 <div className="flex justify-between items-center">
                   <div>
-                    <p className={`font-bold ${isDarkMode ? 'text-white' : 'text-black'}`}>Cruce de Cuentas</p>
-                    <p className={`text-[9px] ${isDarkMode ? 'text-gray-500' : 'text-gray-900 font-bold'}`}>
+                    <p className={`font-bold text-black`}>Cruce de Cuentas</p>
+                    <p className={`text-[9px] text-gray-900 font-bold`}>
                       Esperado: ${sessionTxs.filter(t => t.paymentMethod === 'cruce_cuentas').reduce((acc, t) => acc + Number(t.total || 0), 0).toFixed(2)}
                     </p>
                   </div>
-                  <input type="number" step="0.01" value={closingForm.cruceReal} onChange={e => setClosingForm({...closingForm, cruceReal: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} w-24 text-right px-2 py-1.5 rounded-lg border`} />
+                  <input type="number" step="0.01" value={closingForm.cruceReal} onChange={e => setClosingForm({...closingForm, cruceReal: e.target.value})} className={`glass-input-light w-24 text-right px-2 py-1.5 rounded-lg border`} />
                 </div>
               </div>
 
               <div>
-                <label className={`block text-xs font-bold uppercase mb-1.5 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Observaciones Arqueo</label>
-                <textarea value={closingForm.notes} onChange={e => setClosingForm({...closingForm, notes: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} min-h-[50px] w-full px-2.5 py-2 rounded-xl border`} placeholder="Escribe discrepancias si las hay..." />
+                <label className={`block text-xs font-bold uppercase mb-1.5 text-black`}>Observaciones Arqueo</label>
+                <textarea value={closingForm.notes} onChange={e => setClosingForm({...closingForm, notes: e.target.value})} className={`glass-input-light min-h-[50px] w-full px-2.5 py-2 rounded-xl border`} placeholder="Escribe discrepancias si las hay..." />
               </div>
 
-              <div className={`flex justify-end gap-2.5 mt-6 pt-3 border-t ${isDarkMode ? 'border-white/5' : 'border-primary/15'}`}>
+              <div className={`flex justify-end gap-2.5 mt-6 pt-3 border-t border-primary/15`}>
                 <button type="button" onClick={() => setIsClosingOpen(false)} className="btn-secondary">Cancelar</button>
                 <button type="submit" className="btn-danger">Confirmar y Cerrar Caja</button>
               </div>
@@ -2011,14 +1994,12 @@ export default function PosView({ products, thirdParties, transactions = [], isD
       {/* CHECKOUT WIZARD MODAL (FULLSCREEN PASOS) */}
       {isCheckoutOpen && (
         <div className={`fixed inset-0 z-[110] flex flex-col overflow-hidden animate-in fade-in duration-200 ${
-          isDarkMode ? 'bg-[#0c0c0e] text-white' : 'bg-[#f3f8ff] text-[#000000]'
-        }`}>
+          'bg-[#f3f8ff] text-[#000000]'}`}>
           <div className="flex-1 flex flex-col overflow-hidden max-h-screen transition-all duration-300">
             
             {/* WIZARD PROGRESS HEADER */}
             <div className={`px-6 py-4.5 border-b flex items-center justify-between shrink-0 ${
-              isDarkMode ? 'border-white/5 bg-black/20 text-white' : 'border-primary/15 bg-primary-light text-black'
-            }`}>
+              'border-primary/15 bg-primary-light text-black'}`}>
               <div className="max-w-4xl mx-auto w-full flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <ShoppingCart size={16} className="text-primary" />
@@ -2030,11 +2011,11 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   </div>
                 ) : (
                   <div className="flex items-center gap-1.5 text-xs font-black">
-                    <span className={checkoutStep === 1 ? 'text-primary' : (isDarkMode ? 'text-gray-400' : 'text-gray-500')}>1. Cliente</span>
-                    <ChevronRight size={11} className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
-                    <span className={checkoutStep === 2 ? 'text-primary' : (isDarkMode ? 'text-gray-400' : 'text-gray-500')}>2. Métodos de Pago</span>
-                    <ChevronRight size={11} className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
-                    <span className={checkoutStep === 3 ? 'text-primary' : (isDarkMode ? 'text-gray-400' : 'text-gray-500')}>3. Emisión</span>
+                    <span className={checkoutStep === 1 ? 'text-primary' : ('text-gray-500')}>1. Cliente</span>
+                    <ChevronRight size={11} className={'text-gray-400'} />
+                    <span className={checkoutStep === 2 ? 'text-primary' : ('text-gray-500')}>2. Métodos de Pago</span>
+                    <ChevronRight size={11} className={'text-gray-400'} />
+                    <span className={checkoutStep === 3 ? 'text-primary' : ('text-gray-500')}>3. Emisión</span>
                   </div>
                 )}
                 <button onClick={() => setIsCheckoutOpen(false)} className="btn-icon"><X size={17}/></button>
@@ -2050,20 +2031,19 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   {/* COLUMNA IZQUIERDA: CLIENTE Y DETALLE */}
                   <div className="space-y-4">
                     {/* CLIENTE */}
-                    <div className={`p-4 rounded-2xl border space-y-3 ${isDarkMode ? 'bg-black/20 border-white/5' : 'bg-primary/5 border-primary/15'}`}>
-                      <h4 className={`text-sm md:text-base font-bold uppercase tracking-wider ${isDarkMode ? 'text-white' : 'text-black'}`}>Cliente de la Venta</h4>
+                    <div className={`p-4 rounded-2xl border space-y-3 bg-primary/5 border-primary/15`}>
+                      <h4 className={`text-sm md:text-base font-bold uppercase tracking-wider text-black`}>Cliente de la Venta</h4>
                       <div className="flex items-center gap-2">
                         <div className="flex-1">
                           <select 
                             value={selectedClientId} 
                             onChange={e => setSelectedClientId(e.target.value)} 
                             className={`w-full text-sm md:text-base font-semibold px-3 py-2.5 outline-none rounded-xl border ${
-                              isDarkMode ? 'border-white/10 bg-black text-white' : 'border-primary/20 bg-white text-black'
-                            }`}
+                              'border-primary/20 bg-white text-black'}`}
                           >
-                            <option value="" className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>Consumidor Final (9999999999999)</option>
+                            <option value="" className={'text-black bg-white'}>Consumidor Final (9999999999999)</option>
                             {thirdParties.filter(tp => tp.type !== 'proveedor' && tp.type !== 'empleado').map(tp => (
-                              <option key={tp.id} value={tp.id} className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>{tp.name} - RUC: {String(tp.ruc)}</option>
+                              <option key={tp.id} value={tp.id} className={'text-black bg-white'}>{tp.name} - RUC: {String(tp.ruc)}</option>
                             ))}
                           </select>
                         </div>
@@ -2084,23 +2064,21 @@ export default function PosView({ products, thirdParties, transactions = [], isD
 
                     {/* DATOS CLIENTE */}
                     <div className={`p-4 rounded-2xl border space-y-2 text-xs md:text-sm ${
-                      isDarkMode ? 'border-white/5 bg-black/10 text-gray-300' : 'border-primary/15 bg-primary/5 text-black'
-                    }`}>
-                      <p className={`font-bold ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Datos Facturación del Receptor:</p>
+                      'border-primary/15 bg-primary/5 text-black'}`}>
+                      <p className={`font-bold text-black`}>Datos Facturación del Receptor:</p>
                       <div className="grid grid-cols-2 gap-2 text-sm md:text-base pt-1">
-                        <p><span className={`font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-primary'}`}>Razón Social:</span> {getSelectedClient().name}</p>
-                        <p><span className={`font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-primary'}`}>Identificación:</span> {getSelectedClient().ruc}</p>
-                        <p><span className={`font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-primary'}`}>Teléfono:</span> {getSelectedClient().telefono || '-'}</p>
-                        <p><span className={`font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-primary'}`}>Email:</span> {getSelectedClient().email || '-'}</p>
-                        <p className="col-span-2"><span className={`font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-primary'}`}>Dirección:</span> {getSelectedClient().direccion || '-'}</p>
+                        <p><span className={`font-bold uppercase text-primary`}>Razón Social:</span> {getSelectedClient().name}</p>
+                        <p><span className={`font-bold uppercase text-primary`}>Identificación:</span> {getSelectedClient().ruc}</p>
+                        <p><span className={`font-bold uppercase text-primary`}>Teléfono:</span> {getSelectedClient().telefono || '-'}</p>
+                        <p><span className={`font-bold uppercase text-primary`}>Email:</span> {getSelectedClient().email || '-'}</p>
+                        <p className="col-span-2"><span className={`font-bold uppercase text-primary`}>Dirección:</span> {getSelectedClient().direccion || '-'}</p>
                       </div>
                     </div>
 
                     {/* PREVISUALIZACION DETALLE */}
                     <div className={`p-4 rounded-2xl border space-y-3 text-xs md:text-sm ${
-                      isDarkMode ? 'border-white/5 bg-black/10 text-gray-300' : 'border-primary/15 bg-primary/5 text-black'
-                    }`}>
-                      <h4 className={`text-sm md:text-base font-bold uppercase tracking-wider ${isDarkMode ? 'text-white' : 'text-black'}`}>Ítems a Facturar</h4>
+                      'border-primary/15 bg-primary/5 text-black'}`}>
+                      <h4 className={`text-sm md:text-base font-bold uppercase tracking-wider text-black`}>Ítems a Facturar</h4>
                       <div className="max-h-[140px] overflow-y-auto space-y-1.5 pr-1 custom-scrollbar text-xs md:text-sm">
                         {cart.map((item, idx) => (
                           <div key={idx} className="flex justify-between">
@@ -2109,10 +2087,10 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                           </div>
                         ))}
                       </div>
-                      <div className={`border-t pt-2.5 mt-2 flex justify-between font-black text-xs md:text-sm ${isDarkMode ? 'border-white/5 text-white' : 'border-primary/15 text-black'}`}>
+                      <div className={`border-t pt-2.5 mt-2 flex justify-between font-black text-xs md:text-sm border-primary/15 text-black`}>
                         <span>Subtotal: ${(getSubtotal() + getIva()).toFixed(2)}</span>
                         {getDiscountAmount() > 0 && <span className="text-red-500 font-bold">Desc: -${getDiscountAmount().toFixed(2)}</span>}
-                        <span className={isDarkMode ? 'text-emerald-400' : 'text-primary'}>TOTAL: ${totalToPay.toFixed(2)}</span>
+                        <span className={'text-primary'}>TOTAL: ${totalToPay.toFixed(2)}</span>
                       </div>
                     </div>
                   </div>
@@ -2120,14 +2098,13 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   {/* COLUMNA DERECHA: METODOS DE PAGO Y VUELTO */}
                   <div className="space-y-4">
                     <div className={`p-4 rounded-2xl border flex justify-between items-center ${
-                      isDarkMode ? 'bg-primary/10 border-primary/20 text-primary' : 'bg-primary-light border-primary/25 text-primary shadow-sm'
-                    }`}>
+                      'bg-primary-light border-primary/25 text-primary shadow-sm'}`}>
                       <span className="text-sm font-bold">TOTAL A COBRAR:</span>
                       <span className="text-2xl font-black">${totalToPay.toFixed(2)}</span>
                     </div>
 
                     <div className="space-y-3">
-                      <h4 className={`text-xs font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Medios de Pago (Admite Combinados)</h4>
+                      <h4 className={`text-xs font-bold uppercase tracking-wider text-black`}>Medios de Pago (Admite Combinados)</h4>
                       
                       <div className="grid grid-cols-4 gap-2 mb-3">
                         {[
@@ -2160,14 +2137,10 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                               className={`flex flex-col items-center justify-center p-2 rounded-[var(--radius-button)] border transition-all gap-1 ${
                                 isSelected 
                                   ? 'bg-primary border-primary text-white'
-                                  : isDarkMode 
-                                    ? 'border-white/10 bg-white/5 text-gray-400 hover:bg-white/10'
-                                    : 'border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100'
-                              }`}
+                                  : 'border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100'}`}
                             >
                               <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors ${
-                                isSelected ? 'bg-white text-primary' : isDarkMode ? 'bg-primary/20 text-primary' : 'bg-primary text-white'
-                              }`}>
+                                isSelected ? 'bg-white text-primary' : 'bg-primary text-white'}`}>
                                 <m.icon size={12} />
                               </div>
                               <span className="text-[9px] font-bold uppercase tracking-wide">{m.label}</span>
@@ -2179,12 +2152,12 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {/* Efectivo */}
                         {activePayments.efectivo && (
-                          <div className={`p-3 rounded-xl border space-y-1.5 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-primary/15 bg-primary/5'}`}>
+                          <div className={`p-3 rounded-xl border space-y-1.5 border-primary/15 bg-primary/5`}>
                             <div className="flex justify-between items-center mb-0.5">
                               <span className="text-xs font-bold block">Efectivo ($)</span>
-                              <span className={`text-[9px] font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-gray-400'}`}>Monto Recibido</span>
+                              <span className={`text-[9px] font-bold uppercase text-gray-400`}>Monto Recibido</span>
                             </div>
-                            <input type="number" step="0.01" value={payments.efectivo || ''} onChange={e => setPayments({...payments, efectivo: e.target.value})} className={isDarkMode ? 'glass-input-dark px-3 py-2 w-full text-sm font-semibold rounded-lg border' : 'glass-input-light px-3 py-2 w-full text-sm font-semibold rounded-lg border'} placeholder="0.00" />
+                            <input type="number" step="0.01" value={payments.efectivo || ''} onChange={e => setPayments({...payments, efectivo: e.target.value})} className={'glass-input-light px-3 py-2 w-full text-sm font-semibold rounded-lg border'} placeholder="0.00" />
                             <div className="flex gap-1.5 mt-1.5 flex-wrap">
                               {[10, 20, 50].map(val => (
                                 <button
@@ -2195,8 +2168,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                                     setPayments({ ...payments, efectivo: (current + val).toFixed(2) });
                                   }}
                                   className={`px-1.5 py-0.5 text-xs font-bold rounded-[var(--radius-button)] border transition-colors ${
-                                    isDarkMode ? 'border-white/10 bg-white/5 text-white hover:bg-white/10' : 'border-primary/15 bg-white text-primary hover:bg-primary-light'
-                                  }`}
+                                    'border-primary/15 bg-white text-primary hover:bg-primary-light'}`}
                                 >
                                   +{val}
                                 </button>
@@ -2208,8 +2180,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                                   setPayments({ ...payments, efectivo: pending.toFixed(2) });
                                 }}
                                 className={`px-1.5 py-0.5 text-xs font-bold rounded-[var(--radius-button)] border transition-colors ${
-                                  isDarkMode ? 'border-primary/20 bg-primary/20 text-primary hover:bg-primary/30' : 'border-primary/25 bg-primary-light text-primary hover:bg-primary/10'
-                                }`}
+                                  'border-primary/25 bg-primary-light text-primary hover:bg-primary/10'}`}
                               >
                                 Exacto
                               </button>
@@ -2219,46 +2190,46 @@ export default function PosView({ products, thirdParties, transactions = [], isD
 
                         {/* Tarjeta */}
                         {activePayments.tarjeta && (
-                          <div className={`p-3 rounded-xl border space-y-1.5 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-primary/15 bg-primary/5'}`}>
+                          <div className={`p-3 rounded-xl border space-y-1.5 border-primary/15 bg-primary/5`}>
                             <div className="flex justify-between items-center mb-0.5">
                               <span className="text-xs font-bold block">Tarjeta ($)</span>
-                              <span className={`text-[9px] font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-gray-400'}`}>Monto Tarjeta</span>
+                              <span className={`text-[9px] font-bold uppercase text-gray-400`}>Monto Tarjeta</span>
                             </div>
-                            <input type="number" step="0.01" value={payments.tarjeta || ''} onChange={e => setPayments({...payments, tarjeta: e.target.value})} className={isDarkMode ? 'glass-input-dark px-2 py-1.5 w-full text-xs rounded-lg border' : 'glass-input-light px-2 py-1.5 w-full text-xs rounded-lg border'} placeholder="0.00" />
-                            <input type="text" value={payments.tarjetaRef} onChange={e => setPayments({...payments, tarjetaRef: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} px-2 py-1 w-full text-xs rounded-lg border`} placeholder="Ref/Aut" />
+                            <input type="number" step="0.01" value={payments.tarjeta || ''} onChange={e => setPayments({...payments, tarjeta: e.target.value})} className={'glass-input-light px-2 py-1.5 w-full text-xs rounded-lg border'} placeholder="0.00" />
+                            <input type="text" value={payments.tarjetaRef} onChange={e => setPayments({...payments, tarjetaRef: e.target.value})} className={`glass-input-light px-2 py-1 w-full text-xs rounded-lg border`} placeholder="Ref/Aut" />
                           </div>
                         )}
 
                         {/* Transferencia */}
                         {activePayments.transferencia && (
-                          <div className={`p-3 rounded-xl border space-y-1.5 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-primary/15 bg-primary/5'}`}>
+                          <div className={`p-3 rounded-xl border space-y-1.5 border-primary/15 bg-primary/5`}>
                             <div className="flex justify-between items-center mb-0.5">
                               <span className="text-xs font-bold block">Transferencia ($)</span>
-                              <span className={`text-[9px] font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-gray-400'}`}>Monto Transferido</span>
+                              <span className={`text-[9px] font-bold uppercase text-gray-400`}>Monto Transferido</span>
                             </div>
-                            <input type="number" step="0.01" value={payments.transferencia || ''} onChange={e => setPayments({...payments, transferencia: e.target.value})} className={isDarkMode ? 'glass-input-dark px-2 py-1.5 w-full text-xs rounded-lg border' : 'glass-input-light px-2 py-1.5 w-full text-xs rounded-lg border'} placeholder="0.00" />
-                            <input type="text" value={payments.transferenciaRef} onChange={e => setPayments({...payments, transferenciaRef: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} px-2 py-1 w-full text-xs rounded-lg border`} placeholder="Nro Ref" />
+                            <input type="number" step="0.01" value={payments.transferencia || ''} onChange={e => setPayments({...payments, transferencia: e.target.value})} className={'glass-input-light px-2 py-1.5 w-full text-xs rounded-lg border'} placeholder="0.00" />
+                            <input type="text" value={payments.transferenciaRef} onChange={e => setPayments({...payments, transferenciaRef: e.target.value})} className={`glass-input-light px-2 py-1 w-full text-xs rounded-lg border`} placeholder="Nro Ref" />
                           </div>
                         )}
 
                         {/* Cruce de Cuentas */}
                         {activePayments.cruce_cuentas && (
-                          <div className={`p-3 rounded-xl border space-y-1.5 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-primary/15 bg-primary/5'}`}>
+                          <div className={`p-3 rounded-xl border space-y-1.5 border-primary/15 bg-primary/5`}>
                             <div className="flex justify-between items-center mb-0.5">
                               <span className="text-xs font-bold block">Cruce Cuentas ($)</span>
-                              <span className={`text-[9px] font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-gray-400'}`}>Monto Crédito</span>
+                              <span className={`text-[9px] font-bold uppercase text-gray-400`}>Monto Crédito</span>
                             </div>
-                            <input type="number" step="0.01" value={payments.cruce_cuentas || ''} onChange={e => setPayments({...payments, cruce_cuentas: e.target.value})} className={isDarkMode ? 'glass-input-dark px-2 py-1.5 w-full text-xs rounded-lg border' : 'glass-input-light px-2 py-1.5 w-full text-xs rounded-lg border'} placeholder="0.00" />
-                            <input type="text" value={payments.cruceRef} onChange={e => setPayments({...payments, cruceRef: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} px-2 py-1 w-full text-[9px] rounded-lg border`} placeholder="Nro Doc" />
+                            <input type="number" step="0.01" value={payments.cruce_cuentas || ''} onChange={e => setPayments({...payments, cruce_cuentas: e.target.value})} className={'glass-input-light px-2 py-1.5 w-full text-xs rounded-lg border'} placeholder="0.00" />
+                            <input type="text" value={payments.cruceRef} onChange={e => setPayments({...payments, cruceRef: e.target.value})} className={`glass-input-light px-2 py-1 w-full text-[9px] rounded-lg border`} placeholder="Nro Doc" />
                           </div>
                         )}
                       </div>
                     </div>
 
-                    <div className={`p-4 rounded-xl space-y-1 text-sm font-mono border ${isDarkMode ? 'bg-black/20 border-white/5 text-gray-300' : 'bg-primary/5 border-primary/15 text-black'}`}>
+                    <div className={`p-4 rounded-xl space-y-1 text-sm font-mono border bg-primary/5 border-primary/15 text-black`}>
                       <div className="flex justify-between">
                         <span>Total Pagado:</span>
-                        <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-black'}`}>${paidTotal.toFixed(2)}</span>
+                        <span className={`font-bold text-black`}>${paidTotal.toFixed(2)}</span>
                       </div>
                       {remainingDue > 0 ? (
                         <div className="flex justify-between text-yellow-500 font-bold animate-pulse">
@@ -2266,7 +2237,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                           <span>${remainingDue.toFixed(2)}</span>
                         </div>
                       ) : (
-                        <div className={`flex justify-between font-bold border-t pt-1 ${isDarkMode ? 'text-emerald-400 border-white/5' : 'text-emerald-650 border-primary/15'}`}>
+                        <div className={`flex justify-between font-bold border-t pt-1 text-emerald-650 border-primary/15`}>
                           <span>Cambio / Vuelto:</span>
                           <span>${changeDue.toFixed(2)}</span>
                         </div>
@@ -2279,20 +2250,19 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   {/* PASO 1: CLIENTE */}
                   {checkoutStep === 1 && (
                     <div className="space-y-4 animate-in slide-in-from-right-4 duration-300 text-xs md:text-sm">
-                      <div className={`p-4 rounded-2xl border space-y-3 ${isDarkMode ? 'bg-black/20 border-white/5' : 'bg-primary/5 border-primary/15'}`}>
-                        <h4 className={`text-xs md:text-sm font-bold uppercase tracking-wider ${isDarkMode ? 'text-white' : 'text-black'}`}>Cliente de la Venta</h4>
+                      <div className={`p-4 rounded-2xl border space-y-3 bg-primary/5 border-primary/15`}>
+                        <h4 className={`text-xs md:text-sm font-bold uppercase tracking-wider text-black`}>Cliente de la Venta</h4>
                         <div className="flex items-center gap-2">
                           <div className="flex-1">
                             <select 
                               value={selectedClientId} 
                               onChange={e => setSelectedClientId(e.target.value)} 
                               className={`w-full text-xs md:text-sm font-semibold px-3 py-2.5 outline-none rounded-xl border ${
-                                isDarkMode ? 'border-white/10 bg-black text-white' : 'border-primary/20 bg-white text-black'
-                              }`}
+                                'border-primary/20 bg-white text-black'}`}
                             >
-                              <option value="" className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>Consumidor Final (9999999999999)</option>
+                              <option value="" className={'text-black bg-white'}>Consumidor Final (9999999999999)</option>
                               {thirdParties.filter(tp => tp.type !== 'proveedor' && tp.type !== 'empleado').map(tp => (
-                                <option key={tp.id} value={tp.id} className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>{tp.name} - RUC: {String(tp.ruc)}</option>
+                                <option key={tp.id} value={tp.id} className={'text-black bg-white'}>{tp.name} - RUC: {String(tp.ruc)}</option>
                               ))}
                             </select>
                           </div>
@@ -2311,8 +2281,8 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                         </div>
                       </div>
 
-                      <div className={`p-4 rounded-2xl border space-y-3 ${isDarkMode ? 'bg-black/20 border-white/5' : 'bg-primary/5 border-primary/15'}`}>
-                        <h4 className={`text-xs md:text-sm font-bold uppercase tracking-wider ${isDarkMode ? 'text-white' : 'text-black'}`}>Tipo de Documento a Emitir</h4>
+                      <div className={`p-4 rounded-2xl border space-y-3 bg-primary/5 border-primary/15`}>
+                        <h4 className={`text-xs md:text-sm font-bold uppercase tracking-wider text-black`}>Tipo de Documento a Emitir</h4>
                         {sriConfig?.rucActivo === false && (
                           <div className="p-3 bg-amber-500/10 border border-amber-500/25 text-amber-500 rounded-xl flex items-center gap-2 text-xs font-semibold">
                             <ShieldAlert size={16} className="shrink-0" />
@@ -2329,26 +2299,24 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                             setPosDocType(e.target.value);
                           }} 
                           className={`w-full text-xs md:text-sm font-semibold px-3 py-2.5 outline-none rounded-xl border ${
-                            isDarkMode ? 'border-white/10 bg-black text-white' : 'border-primary/20 bg-white text-black'
-                          }`}
+                            'border-primary/20 bg-white text-black'}`}
                         >
-                          <option value="factura" disabled={sriConfig?.rucActivo === false} className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>
+                          <option value="factura" disabled={sriConfig?.rucActivo === false} className={'text-black bg-white'}>
                             Factura Electrónica {sriConfig?.rucActivo === false ? '(Bloqueado - RUC Inactivo)' : ''}
                           </option>
-                          <option value="nota_venta" className={isDarkMode ? 'text-white bg-gray-900' : 'text-black bg-white'}>Recibo (Nota de Venta)</option>
+                          <option value="nota_venta" className={'text-black bg-white'}>Recibo (Nota de Venta)</option>
                         </select>
                       </div>
 
                       <div className={`p-4 rounded-2xl border space-y-2 text-xs md:text-sm ${
-                        isDarkMode ? 'border-white/5 bg-black/10 text-gray-300' : 'border-primary/15 bg-primary/5 text-black'
-                      }`}>
-                        <p className={`font-bold ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Datos Facturación del Receptor:</p>
+                        'border-primary/15 bg-primary/5 text-black'}`}>
+                        <p className={`font-bold text-black`}>Datos Facturación del Receptor:</p>
                         <div className="grid grid-cols-2 gap-3 text-xs md:text-sm pt-1">
-                          <p><span className={`font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-primary'}`}>Razón Social:</span> {getSelectedClient().name}</p>
-                          <p><span className={`font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-primary'}`}>Identificación:</span> {getSelectedClient().ruc}</p>
-                          <p><span className={`font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-primary'}`}>Teléfono:</span> {getSelectedClient().telefono || '-'}</p>
-                          <p><span className={`font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-primary'}`}>Email:</span> {getSelectedClient().email || '-'}</p>
-                          <p className="col-span-2"><span className={`font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-primary'}`}>Dirección:</span> {getSelectedClient().direccion || '-'}</p>
+                          <p><span className={`font-bold uppercase text-primary`}>Razón Social:</span> {getSelectedClient().name}</p>
+                          <p><span className={`font-bold uppercase text-primary`}>Identificación:</span> {getSelectedClient().ruc}</p>
+                          <p><span className={`font-bold uppercase text-primary`}>Teléfono:</span> {getSelectedClient().telefono || '-'}</p>
+                          <p><span className={`font-bold uppercase text-primary`}>Email:</span> {getSelectedClient().email || '-'}</p>
+                          <p className="col-span-2"><span className={`font-bold uppercase text-primary`}>Dirección:</span> {getSelectedClient().direccion || '-'}</p>
                         </div>
                       </div>
                     </div>
@@ -2358,14 +2326,13 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   {checkoutStep === 2 && (
                     <div className="space-y-4 animate-in slide-in-from-right-4 duration-300 text-xs md:text-sm">
                       <div className={`p-4.5 rounded-2xl border flex justify-between items-center ${
-                        isDarkMode ? 'bg-primary/10 border-primary/20 text-primary' : 'bg-primary-light border-primary/25 text-primary shadow-sm'
-                      }`}>
+                        'bg-primary-light border-primary/25 text-primary shadow-sm'}`}>
                         <span className="text-sm md:text-base font-black">TOTAL A PAGAR:</span>
                         <span className="text-xl font-black">${totalToPay.toFixed(2)}</span>
                       </div>
 
                       <div className="space-y-3">
-                        <h4 className={`text-xs md:text-sm font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Medios de Pago (Admite combinados)</h4>
+                        <h4 className={`text-xs md:text-sm font-bold uppercase tracking-wider text-black`}>Medios de Pago (Admite combinados)</h4>
                         
                         <div className="grid grid-cols-4 gap-2.5 mb-5">
                           {[
@@ -2398,14 +2365,10 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                                 className={`flex flex-col items-center justify-center p-3 rounded-[var(--radius-button)] border transition-all gap-1.5 ${
                                   isSelected 
                                     ? 'bg-primary border-primary text-white'
-                                    : isDarkMode 
-                                      ? 'border-white/10 bg-white/5 text-gray-400 hover:bg-white/10'
-                                      : 'border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100'
-                                }`}
+                                    : 'border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100'}`}
                               >
                                 <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
-                                  isSelected ? 'bg-white text-primary' : isDarkMode ? 'bg-primary/20 text-primary' : 'bg-primary text-white'
-                                }`}>
+                                  isSelected ? 'bg-white text-primary' : 'bg-primary text-white'}`}>
                                   <m.icon size={14} />
                                 </div>
                                 <span className="text-[9px] font-bold uppercase tracking-wide">{m.label}</span>
@@ -2417,15 +2380,15 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           {/* Efectivo */}
                           {activePayments.efectivo && (
-                            <div className={`p-4 rounded-xl border space-y-2 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-primary/15 bg-primary/5'}`}>
+                            <div className={`p-4 rounded-xl border space-y-2 border-primary/15 bg-primary/5`}>
                               <div className="flex justify-between items-center mb-1">
                                 <div className="flex items-center gap-2">
                                   <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center"><DollarSign size={12} /></div>
-                                  <span className={`text-xs md:text-sm font-bold block ${isDarkMode ? 'text-white' : 'text-black'}`}>Efectivo ($)</span>
+                                  <span className={`text-xs md:text-sm font-bold block text-black`}>Efectivo ($)</span>
                                 </div>
-                                <span className={`text-[10px] font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-gray-400'}`}>Monto Recibido</span>
+                                <span className={`text-[10px] font-bold uppercase text-gray-400`}>Monto Recibido</span>
                               </div>
-                              <input type="number" step="0.01" value={payments.efectivo || ''} onChange={e => setPayments({...payments, efectivo: e.target.value})} className={isDarkMode ? 'glass-input-dark px-3.5 py-3 w-full text-base font-bold rounded-xl outline-none border' : 'glass-input-light px-3.5 py-3 w-full text-base font-bold rounded-xl outline-none border'} placeholder="0.00" />
+                              <input type="number" step="0.01" value={payments.efectivo || ''} onChange={e => setPayments({...payments, efectivo: e.target.value})} className={'glass-input-light px-3.5 py-3 w-full text-base font-bold rounded-xl outline-none border'} placeholder="0.00" />
                               <div className="flex flex-wrap gap-1.5 mt-2">
                                 {[5, 10, 20, 50, 100].map(val => (
                                   <button
@@ -2436,8 +2399,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                                       setPayments({ ...payments, efectivo: (current + val).toFixed(2) });
                                     }}
                                     className={`px-2.5 py-1 text-xs md:text-sm font-bold rounded-[var(--radius-button)] border transition-colors ${
-                                      isDarkMode ? 'border-white/10 bg-white/5 hover:bg-white/10 text-white' : 'border-primary/15 bg-white hover:bg-primary-light text-primary hover:bg-primary/10'
-                                    }`}
+                                      'border-primary/15 bg-white hover:bg-primary-light text-primary hover:bg-primary/10'}`}
                                   >
                                     +{val}
                                   </button>
@@ -2449,8 +2411,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                                     setPayments({ ...payments, efectivo: pending.toFixed(2) });
                                   }}
                                   className={`px-2.5 py-1 text-xs md:text-sm font-bold rounded-[var(--radius-button)] border transition-colors ${
-                                    isDarkMode ? 'border-primary/20 bg-primary/20 hover:bg-primary/30 text-primary' : 'border-primary/25 bg-primary-light hover:bg-primary/10 text-primary'
-                                  }`}
+                                    'border-primary/25 bg-primary-light hover:bg-primary/10 text-primary'}`}
                                 >
                                   Exacto
                                 </button>
@@ -2460,55 +2421,55 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                           
                           {/* Tarjeta */}
                           {activePayments.tarjeta && (
-                            <div className={`p-4 rounded-xl border space-y-2 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-primary/15 bg-primary/5'}`}>
+                            <div className={`p-4 rounded-xl border space-y-2 border-primary/15 bg-primary/5`}>
                               <div className="flex justify-between items-center mb-1">
                                 <div className="flex items-center gap-2">
                                   <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center"><CreditCard size={12} /></div>
-                                  <span className={`text-xs md:text-sm font-bold block ${isDarkMode ? 'text-white' : 'text-black'}`}>Tarjeta (Crédito/Débito) ($)</span>
+                                  <span className={`text-xs md:text-sm font-bold block text-black`}>Tarjeta (Crédito/Débito) ($)</span>
                                 </div>
-                                <span className={`text-[10px] font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-gray-400'}`}>Monto Tarjeta</span>
+                                <span className={`text-[10px] font-bold uppercase text-gray-400`}>Monto Tarjeta</span>
                               </div>
-                              <input type="number" step="0.01" value={payments.tarjeta || ''} onChange={e => setPayments({...payments, tarjeta: e.target.value})} className={isDarkMode ? 'glass-input-dark px-3 py-2.5 w-full text-sm font-bold rounded-xl outline-none border' : 'glass-input-light px-3 py-2.5 w-full text-sm font-bold rounded-xl outline-none border'} placeholder="0.00" />
-                              <input type="text" value={payments.tarjetaRef} onChange={e => setPayments({...payments, tarjetaRef: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} px-3 py-2 w-full text-sm mt-1.5 rounded-xl border`} placeholder="Ref / Autorización" />
+                              <input type="number" step="0.01" value={payments.tarjeta || ''} onChange={e => setPayments({...payments, tarjeta: e.target.value})} className={'glass-input-light px-3 py-2.5 w-full text-sm font-bold rounded-xl outline-none border'} placeholder="0.00" />
+                              <input type="text" value={payments.tarjetaRef} onChange={e => setPayments({...payments, tarjetaRef: e.target.value})} className={`glass-input-light px-3 py-2 w-full text-sm mt-1.5 rounded-xl border`} placeholder="Ref / Autorización" />
                             </div>
                           )}
 
                           {/* Transferencia */}
                           {activePayments.transferencia && (
-                            <div className={`p-4 rounded-xl border space-y-2 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-primary/15 bg-primary/5'}`}>
+                            <div className={`p-4 rounded-xl border space-y-2 border-primary/15 bg-primary/5`}>
                               <div className="flex justify-between items-center mb-1">
                                 <div className="flex items-center gap-2">
                                   <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center"><RefreshCw size={12} /></div>
-                                  <span className={`text-xs md:text-sm font-bold block ${isDarkMode ? 'text-white' : 'text-black'}`}>Transferencia Bancaria ($)</span>
+                                  <span className={`text-xs md:text-sm font-bold block text-black`}>Transferencia Bancaria ($)</span>
                                 </div>
-                                <span className={`text-[10px] font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-gray-400'}`}>Monto Transferido</span>
+                                <span className={`text-[10px] font-bold uppercase text-gray-400`}>Monto Transferido</span>
                               </div>
-                              <input type="number" step="0.01" value={payments.transferencia || ''} onChange={e => setPayments({...payments, transferencia: e.target.value})} className={isDarkMode ? 'glass-input-dark px-3 py-2.5 w-full text-sm font-bold rounded-xl outline-none border' : 'glass-input-light px-3 py-2.5 w-full text-sm font-bold rounded-xl outline-none border'} placeholder="0.00" />
-                              <input type="text" value={payments.transferenciaRef} onChange={e => setPayments({...payments, transferenciaRef: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} px-3 py-2 w-full text-xs mt-1.5 rounded-xl border`} placeholder="Nro Referencia / Comprobante" />
+                              <input type="number" step="0.01" value={payments.transferencia || ''} onChange={e => setPayments({...payments, transferencia: e.target.value})} className={'glass-input-light px-3 py-2.5 w-full text-sm font-bold rounded-xl outline-none border'} placeholder="0.00" />
+                              <input type="text" value={payments.transferenciaRef} onChange={e => setPayments({...payments, transferenciaRef: e.target.value})} className={`glass-input-light px-3 py-2 w-full text-xs mt-1.5 rounded-xl border`} placeholder="Nro Referencia / Comprobante" />
                             </div>
                           )}
 
                           {/* Cruce de Cuentas */}
                           {activePayments.cruce_cuentas && (
-                            <div className={`p-4 rounded-xl border space-y-2 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-primary/15 bg-primary/5'}`}>
+                            <div className={`p-4 rounded-xl border space-y-2 border-primary/15 bg-primary/5`}>
                               <div className="flex justify-between items-center mb-1">
                                 <div className="flex items-center gap-2">
                                   <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center"><User size={12} /></div>
-                                  <span className={`text-xs md:text-sm font-bold block ${isDarkMode ? 'text-white' : 'text-black'}`}>Cruce de Cuentas ($)</span>
+                                  <span className={`text-xs md:text-sm font-bold block text-black`}>Cruce de Cuentas ($)</span>
                                 </div>
-                                <span className={`text-[10px] font-bold uppercase ${isDarkMode ? 'text-gray-550' : 'text-gray-400'}`}>Monto Crédito</span>
+                                <span className={`text-[10px] font-bold uppercase text-gray-400`}>Monto Crédito</span>
                               </div>
-                              <input type="number" step="0.01" value={payments.cruce_cuentas || ''} onChange={e => setPayments({...payments, cruce_cuentas: e.target.value})} className={isDarkMode ? 'glass-input-dark px-3 py-2.5 w-full text-sm font-bold rounded-xl outline-none border' : 'glass-input-light px-3 py-2.5 w-full text-sm font-bold rounded-xl outline-none border'} placeholder="0.00" />
-                              <input type="text" value={payments.cruceRef} onChange={e => setPayments({...payments, cruceRef: e.target.value})} className={`${isDarkMode ? 'glass-input-dark' : 'glass-input-light'} px-3 py-2 w-full text-xs mt-1.5 rounded-xl border`} placeholder="Nro de Documento Relacionado" />
+                              <input type="number" step="0.01" value={payments.cruce_cuentas || ''} onChange={e => setPayments({...payments, cruce_cuentas: e.target.value})} className={'glass-input-light px-3 py-2.5 w-full text-sm font-bold rounded-xl outline-none border'} placeholder="0.00" />
+                              <input type="text" value={payments.cruceRef} onChange={e => setPayments({...payments, cruceRef: e.target.value})} className={`glass-input-light px-3 py-2 w-full text-xs mt-1.5 rounded-xl border`} placeholder="Nro de Documento Relacionado" />
                             </div>
                           )}
                         </div>
                       </div>
 
-                      <div className={`p-4 rounded-xl space-y-2.5 text-xs md:text-sm font-mono border ${isDarkMode ? 'bg-black/20 border-white/5 text-gray-300' : 'bg-primary/5 border-primary/15 text-black'}`}>
+                      <div className={`p-4 rounded-xl space-y-2.5 text-xs md:text-sm font-mono border bg-primary/5 border-primary/15 text-black`}>
                         <div className="flex justify-between">
                           <span>Total Pagado:</span>
-                          <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-black'}`}>${paidTotal.toFixed(2)}</span>
+                          <span className={`font-bold text-black`}>${paidTotal.toFixed(2)}</span>
                         </div>
                         {remainingDue > 0 ? (
                           <div className="flex justify-between text-yellow-500 font-bold">
@@ -2516,7 +2477,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                             <span>${remainingDue.toFixed(2)}</span>
                           </div>
                         ) : (
-                          <div className={`flex justify-between font-bold border-t pt-1 ${isDarkMode ? 'text-emerald-400 border-white/5' : 'text-emerald-650 border-primary/15'}`}>
+                          <div className={`flex justify-between font-bold border-t pt-1 text-emerald-650 border-primary/15`}>
                             <span>Cambio / Vuelto en Efectivo:</span>
                             <span>${changeDue.toFixed(2)}</span>
                           </div>
@@ -2528,43 +2489,43 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   {/* PASO 3: CONFIRMACIÓN Y EMISION */}
                   {checkoutStep === 3 && (
                     <div className="space-y-4 animate-in slide-in-from-right-4 duration-300 text-xs">
-                      <div className={`p-5 rounded-2xl border space-y-3 ${isDarkMode ? 'bg-black border-white/5 text-gray-400' : 'bg-white border-primary/20 text-black shadow-inner'}`}>
-                        <h4 className={`text-sm font-black text-center uppercase tracking-widest border-b pb-2 ${isDarkMode ? 'text-white border-white/5' : 'text-black border-primary/15'}`}>PREVISUALIZACIÓN DE FACTURA (RIDE)</h4>
+                      <div className={`p-5 rounded-2xl border space-y-3 bg-white border-primary/20 text-black shadow-inner`}>
+                        <h4 className={`text-sm font-black text-center uppercase tracking-widest border-b pb-2 text-black border-primary/15`}>PREVISUALIZACIÓN DE FACTURA (RIDE)</h4>
                         
                         <div className="grid grid-cols-2 gap-4 text-xs leading-normal">
                           <div>
-                            <p className={`font-bold uppercase ${isDarkMode ? 'text-white' : 'text-primary'}`}>RECEPTOR</p>
-                            <p className={isDarkMode ? 'text-gray-400' : 'text-black font-medium'}><span className="font-bold">Razon Social:</span> {getSelectedClient().name}</p>
-                            <p className={isDarkMode ? 'text-gray-400' : 'text-black font-medium'}><span className="font-bold">RUC/CI:</span> {getSelectedClient().ruc}</p>
-                            <p className={isDarkMode ? 'text-gray-400' : 'text-black font-medium'}><span className="font-bold">Correo:</span> {getSelectedClient().email}</p>
-                            <p className={isDarkMode ? 'text-gray-400' : 'text-black font-medium'}><span className="font-bold">Dirección:</span> {getSelectedClient().direccion}</p>
+                            <p className={`font-bold uppercase text-primary`}>RECEPTOR</p>
+                            <p className={'text-black font-medium'}><span className="font-bold">Razon Social:</span> {getSelectedClient().name}</p>
+                            <p className={'text-black font-medium'}><span className="font-bold">RUC/CI:</span> {getSelectedClient().ruc}</p>
+                            <p className={'text-black font-medium'}><span className="font-bold">Correo:</span> {getSelectedClient().email}</p>
+                            <p className={'text-black font-medium'}><span className="font-bold">Dirección:</span> {getSelectedClient().direccion}</p>
                           </div>
                           <div className="text-right">
-                            <p className={`font-bold uppercase ${isDarkMode ? 'text-white' : 'text-primary'}`}>COMPROBANTE</p>
-                            <p className={isDarkMode ? 'text-gray-400' : 'text-black font-medium'}>Establecimiento: {activeSession.branch}</p>
-                            <p className={isDarkMode ? 'text-gray-400' : 'text-black font-medium'}>Fecha: {getEcuadorDateString().split('-').reverse().join('/')}</p>
-                            <p className={isDarkMode ? 'text-gray-400' : 'text-black font-medium'}>Ambiente SRI: PRUEBAS (Offline)</p>
+                            <p className={`font-bold uppercase text-primary`}>COMPROBANTE</p>
+                            <p className={'text-black font-medium'}>Establecimiento: {activeSession.branch}</p>
+                            <p className={'text-black font-medium'}>Fecha: {getEcuadorDateString().split('-').reverse().join('/')}</p>
+                            <p className={'text-black font-medium'}>Ambiente SRI: PRUEBAS (Offline)</p>
                           </div>
                         </div>
 
-                        <div className={`border-t pt-3 ${isDarkMode ? 'border-white/5' : 'border-primary/15'}`}>
-                          <p className={`font-bold text-[10px] uppercase mb-1.5 ${isDarkMode ? 'text-white' : 'text-primary'}`}>Ítems Detallados</p>
+                        <div className={`border-t pt-3 border-primary/15`}>
+                          <p className={`font-bold text-[10px] uppercase mb-1.5 text-primary`}>Ítems Detallados</p>
                           <div className="space-y-1 text-[10px]">
                             {cart.map((item, idx) => (
                               <div key={idx} className="flex justify-between">
-                                <span className={isDarkMode ? 'text-gray-400' : 'text-black font-semibold'}>{item.quantity}x {item.name}</span>
-                                <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-black'}`}>${(item.price * item.quantity).toFixed(2)}</span>
+                                <span className={'text-black font-semibold'}>{item.quantity}x {item.name}</span>
+                                <span className={`font-bold text-black`}>${(item.price * item.quantity).toFixed(2)}</span>
                               </div>
                             ))}
                           </div>
                         </div>
 
-                        <div className={`border-t pt-3 flex justify-between font-bold text-sm ${isDarkMode ? 'border-white/5 text-white' : 'border-primary/15 text-black'}`}>
+                        <div className={`border-t pt-3 flex justify-between font-bold text-sm border-primary/15 text-black`}>
                           <span>Total Neto Cobrado:</span>
-                          <span className={isDarkMode ? 'text-white' : 'text-primary'}>${totalToPay.toFixed(2)}</span>
+                          <span className={'text-primary'}>${totalToPay.toFixed(2)}</span>
                         </div>
 
-                        <div className={`text-xs border-t pt-2 ${isDarkMode ? 'text-gray-500 border-white/5' : 'text-black border-primary/15 font-semibold'}`}>
+                        <div className={`text-xs border-t pt-2 text-black border-primary/15 font-semibold`}>
                           <p>Métodos Registrados: Efectivo: ${Number(payments.efectivo).toFixed(2)} | Tarjeta: ${Number(payments.tarjeta).toFixed(2)} | Transf: ${Number(payments.transferencia).toFixed(2)} | Cruce: ${Number(payments.cruce_cuentas).toFixed(2)}</p>
                           <p className="mt-0.5">Vuelto entregado: ${changeDue.toFixed(2)}</p>
                         </div>
@@ -2579,8 +2540,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
 
             {/* WIZARD ACTIONS BAR */}
             <div className={`px-6 py-4 border-t shrink-0 ${
-              isDarkMode ? 'border-white/5 bg-black/20' : 'border-primary/15 bg-primary-light'
-            }`}>
+              'border-primary/15 bg-primary-light'}`}>
               <div className="max-w-4xl mx-auto w-full flex justify-between">
               {posConfig.expressCheckout ? (
                 <>
@@ -2647,20 +2607,18 @@ export default function PosView({ products, thirdParties, transactions = [], isD
       {isQuickAddOpen && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
           <div className={`w-full max-w-md p-6 rounded-3xl border shadow-2xl transition-all duration-300 ${
-            isDarkMode ? 'bg-[#151517] border-white/10 text-white shadow-black/80' : 'bg-white border-primary/15 text-black shadow-primary/10'
-          }`}>
+            'bg-white border-primary/15 text-black shadow-primary/10'}`}>
             <h3 className="text-base font-black mb-4">Registro Rápido de Cliente (SRI)</h3>
             
             <form onSubmit={handleQuickClientSave} className="space-y-3.5">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className={`block text-[9px] font-bold uppercase mb-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Identificación</label>
+                  <label className={`block text-[9px] font-bold uppercase mb-1 text-black`}>Identificación</label>
                   <select 
                     value={quickAddFormData.tipoIdentificacion} 
                     onChange={e => setQuickAddFormData({...quickAddFormData, tipoIdentificacion: e.target.value})} 
                     className={`w-full text-sm px-3 py-2.5 rounded-xl outline-none border ${
-                      isDarkMode ? 'bg-black border-white/10 text-white' : 'bg-white border-primary/15 text-black'
-                    }`}
+                      'bg-white border-primary/15 text-black'}`}
                   >
                     <option value="ruc" className="text-black bg-white">RUC</option>
                     <option value="cedula" className="text-black bg-white">Cédula</option>
@@ -2668,7 +2626,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   </select>
                 </div>
                 <div>
-                  <label className={`block text-[9px] font-bold uppercase mb-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Número</label>
+                  <label className={`block text-[9px] font-bold uppercase mb-1 text-black`}>Número</label>
                   <div className="flex gap-1.5">
                     <input 
                       type="text" 
@@ -2676,8 +2634,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                       value={quickAddFormData.ruc} 
                       onChange={e => setQuickAddFormData({...quickAddFormData, ruc: e.target.value})} 
                       className={`w-full text-sm px-3 py-2.5 rounded-xl outline-none border ${
-                        isDarkMode ? 'bg-black border-white/10 text-white focus:border-primary/50' : 'bg-white border-primary/15 text-black focus:border-primary'
-                      }`}
+                        'bg-white border-primary/15 text-black focus:border-primary'}`}
                       placeholder="1790000000001" 
                     />
                     <button
@@ -2693,69 +2650,64 @@ export default function PosView({ products, thirdParties, transactions = [], isD
               </div>
 
               <div>
-                <label className={`block text-[9px] font-bold uppercase mb-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Razón Social / Nombre Completo</label>
+                <label className={`block text-[9px] font-bold uppercase mb-1 text-black`}>Razón Social / Nombre Completo</label>
                 <input 
                   type="text" 
                   required 
                   value={quickAddFormData.name} 
                   onChange={e => setQuickAddFormData({...quickAddFormData, name: e.target.value})} 
                   className={`w-full text-xs px-2.5 py-2.5 rounded-xl outline-none border ${
-                    isDarkMode ? 'bg-black border-white/10 text-white focus:border-primary/50' : 'bg-white border-primary/15 text-black focus:border-primary'
-                  }`} 
+                    'bg-white border-primary/15 text-black focus:border-primary'}`} 
                 />
               </div>
 
               <div>
-                <label className={`block text-[9px] font-bold uppercase mb-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Teléfono</label>
+                <label className={`block text-[9px] font-bold uppercase mb-1 text-black`}>Teléfono</label>
                 <input 
                   type="text" 
                   value={quickAddFormData.telefono || ''} 
                   onChange={e => setQuickAddFormData({...quickAddFormData, telefono: e.target.value})} 
                   className={`w-full text-xs px-2.5 py-2.5 rounded-xl outline-none border ${
-                    isDarkMode ? 'bg-black border-white/10 text-white focus:border-primary/50' : 'bg-white border-primary/15 text-black focus:border-primary'
-                  }`} 
+                    'bg-white border-primary/15 text-black focus:border-primary'}`} 
                 />
               </div>
 
               <div className="grid grid-cols-3 gap-3">
                 <div className="col-span-2">
-                  <label className={`block text-[9px] font-bold uppercase mb-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Dirección Domicilio</label>
+                  <label className={`block text-[9px] font-bold uppercase mb-1 text-black`}>Dirección Domicilio</label>
                   <input 
                     type="text" 
                     value={quickAddFormData.direccion || ''} 
                     onChange={e => setQuickAddFormData({...quickAddFormData, direccion: e.target.value})} 
                     className={`w-full text-xs px-2.5 py-2.5 rounded-xl outline-none border ${
-                      isDarkMode ? 'bg-black border-white/10 text-white focus:border-primary/50' : 'bg-white border-primary/15 text-black focus:border-primary'
-                    }`} 
+                      'bg-white border-primary/15 text-black focus:border-primary'}`} 
                   />
                 </div>
                 <div>
-                  <label className={`block text-[9px] font-bold uppercase mb-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Ciudad</label>
+                  <label className={`block text-[9px] font-bold uppercase mb-1 text-black`}>Ciudad</label>
                   <input 
                     type="text" 
                     value={quickAddFormData.ciudad || ''} 
                     onChange={e => setQuickAddFormData({...quickAddFormData, ciudad: e.target.value})} 
                     className={`w-full text-xs px-2.5 py-2.5 rounded-xl outline-none border ${
-                      isDarkMode ? 'bg-black border-white/10 text-white focus:border-primary/50' : 'bg-white border-primary/15 text-black focus:border-primary'
-                    }`} 
+                      'bg-white border-primary/15 text-black focus:border-primary'}`} 
                     placeholder="Ej. Quito"
                   />
                 </div>
               </div>
 
               <div>
-                <label className={`block text-[9px] font-bold uppercase mb-1 ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>Correo Notificación</label>
+                <label className={`block text-[9px] font-bold uppercase mb-1 text-black`}>Correo Notificación</label>
                 <input 
                   type="email" 
                   value={quickAddFormData.email || ''} 
                   onChange={e => setQuickAddFormData({...quickAddFormData, email: e.target.value})} 
                   className={`w-full text-xs px-2.5 py-2.5 rounded-xl outline-none border ${
-                    isDarkMode ? 'bg-black border-white/10 text-white focus:border-primary/50' : 'bg-white border-primary/15 text-black focus:border-primary'
-                  }`} 
+                    'bg-white border-primary/15 text-black focus:border-primary'}`} 
                 />
               </div>
 
-              <div className={`flex justify-end gap-2.5 mt-6 pt-4 border-t ${isDarkMode ? 'border-white/5' : 'border-primary/15'}`}>
+              <div className={`flex justify-end gap-2.5 mt-6 pt-4 border-t border-primary/15`}>
                 <button type="button" onClick={() => setIsQuickAddOpen(false)} className="btn-secondary">Cancelar</button>
                 <button type="submit" className="btn-primary">Guardar y Seleccionar</button>
               </div>
@@ -2768,8 +2720,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
       {isShortcutsOpen && (
         <div className="fixed inset-0 z-[160] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-250">
           <div className={`w-full max-w-md p-6 rounded-3xl border shadow-2xl transition-all duration-300 ${
-            isDarkMode ? 'bg-[#151517] border-white/10 text-white shadow-black/80' : 'bg-white border-primary/15 text-black shadow-primary/10'
-          }`}>
+            'bg-white border-primary/15 text-black shadow-primary/10'}`}>
             <div className="flex justify-between items-center mb-4 pb-2 border-b border-white/5">
               <h3 className="text-sm font-black uppercase tracking-wider flex items-center gap-2">
                 <Keyboard size={16} className="text-primary" /> Guía de Atajos de Teclado
@@ -2789,9 +2740,9 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                   { key: 'Ctrl + Enter', desc: 'Cobrar directamente desde el detalle de la venta' },
                   { key: 'Escape', desc: 'Cerrar cualquier ventana flotante o modal abierto' }
                 ].map((item, idx) => (
-                  <div key={idx} className={`flex items-center justify-between p-2.5 rounded-xl border ${isDarkMode ? 'bg-black/20 border-white/5 text-gray-300' : 'bg-primary/5 border-primary/15 text-black font-semibold'}`}>
+                  <div key={idx} className={`flex items-center justify-between p-2.5 rounded-xl border bg-primary/5 border-primary/15 text-black font-semibold`}>
                     <span className="text-[11px] font-medium">{item.desc}</span>
-                    <kbd className={`px-2 py-1 rounded text-[10px] font-mono font-bold shadow ${isDarkMode ? 'bg-white/10 text-white border border-white/10' : 'bg-white text-black border border-primary/25'}`}>
+                    <kbd className={`px-2 py-1 rounded text-[10px] font-mono font-bold shadow bg-white text-black border border-primary/25`}>
                       {item.key}
                     </kbd>
                   </div>
@@ -2818,10 +2769,9 @@ export default function PosView({ products, thirdParties, transactions = [], isD
           <div className="absolute inset-0" onClick={() => setIsHistoryOpen(false)}></div>
           
           <div className={`relative w-full max-w-md h-full flex flex-col shadow-2xl animate-in slide-in-from-right duration-350 ${
-            isDarkMode ? 'bg-[#0f0f11] border-l border-white/5 text-white' : 'bg-[#fcfcff] border-l border-primary/15 text-black'
-          }`}>
+            'bg-[#fcfcff] border-l border-primary/15 text-black'}`}>
             {/* Header */}
-            <div className={`p-4 border-b flex items-center justify-between shrink-0 ${isDarkMode ? 'border-white/5 bg-black/20' : 'border-primary/15 bg-primary-light'}`}>
+            <div className={`p-4 border-b flex items-center justify-between shrink-0 border-primary/15 bg-primary-light`}>
               <div className="flex items-center gap-2">
                 <History size={16} className="text-primary" />
                 <div>
@@ -2859,19 +2809,19 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                       className={`p-3.5 rounded-2xl border flex flex-col justify-between gap-3 transition-all ${
                         isAnulado
                           ? 'opacity-65 border-red-500/20 bg-red-500/5'
-                          : (isDarkMode ? 'bg-black/25 border-white/5 hover:bg-black/35' : 'bg-white border-primary/15 shadow-sm hover:shadow')
+                          : ('bg-white border-primary/15 shadow-sm hover:shadow')
                       }`}
                     >
                       <div className="flex justify-between items-start">
                         <div className="min-w-0 flex-1">
                           <p className="font-mono text-[9px] text-gray-500 truncate">{tx.id}</p>
-                          <h4 className={`text-sm font-black truncate ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                          <h4 className={`text-sm font-black truncate text-black`}>
                             {matchedClient.name}
                           </h4>
                           <p className="text-[9px] text-gray-500">RUC/CI: {matchedClient.ruc} | Fecha: {tx.date}</p>
                         </div>
                         <div className="text-right shrink-0">
-                          <span className={`text-sm font-black block ${isAnulado ? 'text-red-500 line-through' : (isDarkMode ? 'text-white' : 'text-primary')}`}>
+                          <span className={`text-sm font-black block ${isAnulado ? 'text-red-500 line-through' : ('text-primary')}`}>
                             ${Number(tx.total || 0).toFixed(2)}
                           </span>
                           <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-bold uppercase mt-1 ${
@@ -2886,7 +2836,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                         </div>
                       </div>
 
-                      <div className={`p-2 rounded-xl text-xs leading-relaxed font-mono ${isDarkMode ? 'bg-black/40 text-gray-400' : 'bg-primary-light text-gray-700'}`}>
+                      <div className={`p-2 rounded-xl text-xs leading-relaxed font-mono bg-primary-light text-gray-700`}>
                         <div className="flex justify-between">
                           <span>Pago: <span className="font-bold uppercase">{tx.paymentMethod}</span></span>
                           <span>Base: ${Number(tx.baseImponible || 0).toFixed(2)}</span>
@@ -2911,8 +2861,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                               target="_blank" 
                               rel="noreferrer" 
                               className={`btn-icon ${
-                                isDarkMode ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/25' : 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border'
-                              }`} 
+                                'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border'}`} 
                               title="Descargar PDF RIDE"
                             >
                               <FileText size={12} />
@@ -2920,8 +2869,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                           ) : (
                             <span 
                               className={`btn-icon opacity-40 cursor-not-allowed flex items-center justify-center ${
-                                isDarkMode ? 'border-white/5 bg-white/5 text-gray-500' : 'border-gray-250 bg-gray-100 text-gray-400'
-                              }`} 
+                                'border-gray-250 bg-gray-100 text-gray-400'}`} 
                               title="PDF no disponible"
                             >
                               <FileText size={12} />
@@ -2934,8 +2882,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                               target="_blank" 
                               rel="noreferrer" 
                               className={`btn-icon ${
-                                isDarkMode ? 'border-primary/20 bg-primary/10 text-primary hover:bg-primary/25' : 'border-primary/25 bg-primary-light text-primary hover:bg-primary/10 border'
-                              }`} 
+                                'border-primary/25 bg-primary-light text-primary hover:bg-primary/10 border'}`} 
                               title="Descargar XML SRI"
                             >
                               <Download size={12} />
@@ -2960,7 +2907,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
             </div>
             
             {/* Footer */}
-            <div className={`p-4 border-t flex justify-end shrink-0 ${isDarkMode ? 'border-white/5 bg-black/10' : 'border-primary/15 bg-primary/5'}`}>
+            <div className={`p-4 border-t flex justify-end shrink-0 border-primary/15 bg-primary/5`}>
               <button 
                 type="button" 
                 onClick={() => setIsHistoryOpen(false)}

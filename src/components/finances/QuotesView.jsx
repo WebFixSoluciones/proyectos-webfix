@@ -4,7 +4,7 @@ import { collection, onSnapshot, doc, getDoc, setDoc, deleteDoc } from 'firebase
 import { getEcuadorDateString } from '../../services/sriService';
 import RidePreviewModal from './RidePreviewModal';
 
-export default function QuotesView({ products, thirdParties, isDarkMode, showToast, db, appId, onPromoteToInvoice }) {
+export default function QuotesView({ products, thirdParties,  showToast, db, appId, onPromoteToInvoice }) {
   const [quotes, setQuotes] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -230,10 +230,7 @@ export default function QuotesView({ products, thirdParties, isDarkMode, showToa
   });
 
   const inputClass = `w-full text-xs px-3 py-2.5 rounded-xl outline-none transition-all border ${
-    isDarkMode 
-      ? 'bg-black/25 border-white/10 text-white focus:border-primary/50' 
-      : 'bg-white border-gray-300 text-gray-900 focus:border-primary focus:ring-1 focus:ring-primary/35'
-  }`;
+    'bg-white border-gray-300 text-gray-900 focus:border-primary focus:ring-1 focus:ring-primary/35'}`;
 
   return (
     <div className="space-y-6">
@@ -273,11 +270,8 @@ export default function QuotesView({ products, thirdParties, isDarkMode, showToa
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
           <div className={`flex items-center gap-2 px-3.5 py-2 rounded-[10px] border w-full sm:w-64 transition-all focus-within:ring-1 focus-within:ring-primary/25 ${
-            isDarkMode 
-              ? 'bg-[#151722]/80 border-white/10 focus-within:border-primary/50' 
-              : 'bg-white border-slate-200 focus-within:border-primary'
-          }`}>
-            <Search size={14} className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
+            'bg-white border-slate-200 focus-within:border-primary'}`}>
+            <Search size={14} className={'text-gray-400'} />
             <input 
               type="text" 
               placeholder="Buscar por número o cliente..." 
@@ -292,10 +286,7 @@ export default function QuotesView({ products, thirdParties, isDarkMode, showToa
             value={filterStatus} 
             onChange={e => setFilterStatus(e.target.value)} 
             className={`px-3 py-2 rounded-[10px] border text-xs font-medium outline-none transition-all cursor-pointer ${
-              isDarkMode 
-                ? 'bg-[#151722]/80 border-white/10 text-gray-300 focus:border-primary/50' 
-                : 'bg-white border-slate-200 text-slate-700 focus:border-primary'
-            }`}
+              'bg-white border-slate-200 text-slate-700 focus:border-primary'}`}
           >
             <option value="all" className="text-black">Todos los estados</option>
             <option value="borrador" className="text-black">Borrador</option>
@@ -308,10 +299,7 @@ export default function QuotesView({ products, thirdParties, isDarkMode, showToa
 
       {/* TABLA COTIZACIONES */}
       <div className={`rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm ${
-        isDarkMode 
-          ? 'border-white/5 bg-[#0f111a]/85 shadow-lg shadow-black/40' 
-          : 'border-slate-200/80 bg-white'
-      }`}>
+        'border-slate-200/80 bg-white'}`}>
         {loading ? (
           <div className="flex justify-center items-center py-12">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
@@ -320,10 +308,7 @@ export default function QuotesView({ products, thirdParties, isDarkMode, showToa
           <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-left text-xs whitespace-nowrap">
               <thead className={`text-[10px] uppercase font-bold tracking-wider ${
-                isDarkMode 
-                  ? 'bg-black/35 text-slate-400 border-b border-white/5' 
-                  : 'bg-slate-50 text-slate-600 border-b border-slate-100'
-              }`}>
+                'bg-slate-50 text-slate-600 border-b border-slate-100'}`}>
                 <tr>
                   <th className="px-6 py-3.5">Cotización</th>
                   <th className="px-6 py-3.5">Fecha</th>
@@ -335,19 +320,19 @@ export default function QuotesView({ products, thirdParties, isDarkMode, showToa
                   <th className="px-6 py-3.5 text-right">Acciones</th>
                 </tr>
               </thead>
-              <tbody className={`divide-y ${isDarkMode ? 'divide-white/5' : 'divide-slate-100'}`}>
+              <tbody className={`divide-y divide-slate-100`}>
                 {filtered.map(q => {
                   const client = thirdParties.find(tp => tp.id === q.thirdPartyId);
                   return (
-                    <tr key={q.id} className={`transition-colors ${isDarkMode ? 'hover:bg-white/[0.015]' : 'hover:bg-slate-50/40'}`}>
-                      <td className={`px-6 py-3.5 font-mono text-[10px] ${isDarkMode ? '' : 'text-black font-semibold'}`}>{q.quoteNumber}</td>
+                    <tr key={q.id} className={`transition-colors hover:bg-slate-50/40`}>
+                      <td className={`px-6 py-3.5 font-mono text-[10px] text-black font-semibold`}>{q.quoteNumber}</td>
                       <td className="px-6 py-3.5">{q.date}</td>
                       <td className="px-6 py-3.5">{q.validUntil || '-'}</td>
-                      <td className={`px-6 py-3.5 font-bold truncate max-w-[200px] ${isDarkMode ? '' : 'text-black'}`} title={client?.name}>
+                      <td className={`px-6 py-3.5 font-bold truncate max-w-[200px] text-black`} title={client?.name}>
                         {client?.name || 'Desconocido'}
                       </td>
                       <td className="px-6 py-3.5 text-right font-medium">{q.items?.length || 0}</td>
-                      <td className={`px-6 py-3.5 text-right font-black ${isDarkMode ? '' : 'text-black'}`}>${Number(q.total || 0).toFixed(2)}</td>
+                      <td className={`px-6 py-3.5 text-right font-black text-black`}>${Number(q.total || 0).toFixed(2)}</td>
                       <td className="px-6 py-3.5">{getStatusBadge(q.status)}</td>
                       <td className="px-6 py-3.5 text-right">
                         <div className="flex items-center justify-end gap-1.5">
@@ -400,26 +385,26 @@ export default function QuotesView({ products, thirdParties, isDarkMode, showToa
       {/* MODAL CREAR / EDITAR COTIZACIÓN */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in">
-          <div className={`w-full max-w-3xl p-6 rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh] custom-scrollbar ${isDarkMode ? 'bg-[#151517] border border-white/10' : 'bg-white border border-gray-300'}`}>
+          <div className={`w-full max-w-3xl p-6 rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh] custom-scrollbar bg-white border border-gray-300`}>
             <h2 className="text-base font-bold mb-4">{formData.id ? 'Editar' : 'Crear'} Cotización</h2>
             
             <form onSubmit={handleSave} className="space-y-4">
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className={`block text-xs font-semibold mb-1 uppercase ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Número</label>
+                  <label className={`block text-xs font-semibold mb-1 uppercase text-gray-700`}>Número</label>
                   <input type="text" readOnly value={formData.quoteNumber} className={`${inputClass} opacity-60 font-mono`} />
                 </div>
                 <div>
-                  <label className={`block text-xs font-semibold mb-1 uppercase ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Fecha Emisión</label>
+                  <label className={`block text-xs font-semibold mb-1 uppercase text-gray-700`}>Fecha Emisión</label>
                   <input type="date" required value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} className={inputClass} />
                 </div>
                 <div>
-                  <label className={`block text-xs font-semibold mb-1 uppercase ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Fecha Vencimiento</label>
+                  <label className={`block text-xs font-semibold mb-1 uppercase text-gray-700`}>Fecha Vencimiento</label>
                   <input type="date" required value={formData.validUntil} onChange={e => setFormData({...formData, validUntil: e.target.value})} className={inputClass} />
                 </div>
                 <div className="md:col-span-3">
-                  <label className={`block text-xs font-semibold mb-1 uppercase ${isDarkMode ? 'text-gray-500' : 'text-gray-700'}`}>Cliente / Tercero</label>
+                  <label className={`block text-xs font-semibold mb-1 uppercase text-gray-700`}>Cliente / Tercero</label>
                   <select required value={formData.thirdPartyId} onChange={e => setFormData({...formData, thirdPartyId: e.target.value})} className={inputClass}>
                     <option value="" disabled className="text-gray-400">Selecciona un cliente...</option>
                     {thirdParties.map(tp => (
@@ -483,7 +468,7 @@ export default function QuotesView({ products, thirdParties, isDarkMode, showToa
                         ${((parseFloat(item.price) || 0) * (parseInt(item.quantity) || 1)).toFixed(2)}
                       </div>
 
-                      <button type="button" onClick={() => handleRemoveItem(index)} className={`btn-icon ${isDarkMode ? 'hover:bg-red-500/20 text-red-500' : 'hover:bg-red-50 text-red-650 border border-red-200 bg-white'}`}>
+                      <button type="button" onClick={() => handleRemoveItem(index)} className={`btn-icon hover:bg-red-50 text-red-650 border border-red-200 bg-white`}>
                         <Trash2 size={13} />
                       </button>
                     </div>
@@ -495,12 +480,12 @@ export default function QuotesView({ products, thirdParties, isDarkMode, showToa
               </div>
 
               {/* TOTALES */}
-              <div className={`p-4 rounded-xl flex justify-between items-center ${isDarkMode ? 'bg-primary/10 text-primary border border-primary/10' : 'bg-primary-light text-primary border border-primary/40'}`}>
+              <div className={`p-4 rounded-xl flex justify-between items-center bg-primary-light text-primary border border-primary/40`}>
                 <div className="text-[10px] leading-relaxed">
                   <p>Subtotal Neto: ${formData.subtotal}</p>
                   <p>IVA Estimado: ${formData.ivaValor}</p>
                 </div>
-                <p className={`text-xl font-black ${isDarkMode ? 'text-white' : 'text-gray-950'}`}>Total: ${formData.total}</p>
+                <p className={`text-xl font-black text-gray-950`}>Total: ${formData.total}</p>
               </div>
 
               <div className="flex justify-end gap-3 pt-4 border-t border-white/5">
@@ -518,7 +503,6 @@ export default function QuotesView({ products, thirdParties, isDarkMode, showToa
           tx={selectedQuoteTx} 
           onClose={() => setSelectedQuoteTx(null)} 
           thirdParties={thirdParties} 
-          isDarkMode={isDarkMode} 
           db={db} 
           appId={appId} 
         />

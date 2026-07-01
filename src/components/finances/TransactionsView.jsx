@@ -6,7 +6,7 @@ import { analizarComprobanteConGemini, parsearXMLComprobante } from '../../servi
 import { getEcuadorDateString, getEcuadorDateTimeString } from '../../services/sriService';
 import RidePreviewModal from './RidePreviewModal';
 
-export default function TransactionsView({ transactions, thirdParties, isDarkMode, showToast, db, storage, appId, onOpenForm, forcedDocType, forcedType, isPreventaTab = false }) {
+export default function TransactionsView({ transactions, thirdParties, showToast, db, storage, appId, onOpenForm, forcedDocType, forcedType, isPreventaTab = false }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState(forcedType || 'all');
   const [filterDocType, setFilterDocType] = useState(forcedDocType || 'all'); // Filtro por Tipo de Comprobante SRI
@@ -234,29 +234,17 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
     switch(status) {
       case 'autorizado': 
         if (documentType === 'nota_venta') {
-          return isDarkMode 
-            ? <span className={`${baseClass} bg-emerald-500/20 text-emerald-400 border-emerald-500/20`}><CheckCircle2 size={10}/> Registrado</span>
-            : <span className={`${baseClass} bg-emerald-100 text-emerald-800 border-emerald-300`}><CheckCircle2 size={10}/> Registrado</span>;
+          return <span className={`${baseClass} bg-emerald-100 text-emerald-800 border-emerald-300`}><CheckCircle2 size={10}/> Registrado</span>;
         }
-        return isDarkMode 
-          ? <span className={`${baseClass} bg-emerald-500/20 text-emerald-400 border-emerald-500/20`}><CheckCircle2 size={10}/> Autorizado</span>
-          : <span className={`${baseClass} bg-emerald-100 text-emerald-800 border-emerald-300`}><CheckCircle2 size={10}/> Autorizado</span>;
+        return <span className={`${baseClass} bg-emerald-100 text-emerald-800 border-emerald-300`}><CheckCircle2 size={10}/> Autorizado</span>;
       case 'pendiente': 
-        return isDarkMode 
-          ? <span className={`${baseClass} bg-yellow-500/20 text-yellow-400 border-yellow-500/20`}><AlertCircle size={10}/> Pendiente</span>
-          : <span className={`${baseClass} bg-yellow-100 text-yellow-800 border-yellow-300`}><AlertCircle size={10}/> Pendiente</span>;
+        return <span className={`${baseClass} bg-yellow-100 text-yellow-800 border-yellow-300`}><AlertCircle size={10}/> Pendiente</span>;
       case 'anulado': 
-        return isDarkMode 
-          ? <span className={`${baseClass} bg-red-500/20 text-red-400 border-red-500/20`}>Anulado</span>
-          : <span className={`${baseClass} bg-red-100 text-red-800 border-red-300`}>Anulado</span>;
+        return <span className={`${baseClass} bg-red-100 text-red-800 border-red-300`}>Anulado</span>;
       case 'rechazado': 
-        return isDarkMode 
-          ? <span className={`${baseClass} bg-red-500/20 text-red-400 border-red-500/20`}><AlertTriangle size={10}/> Rechazado</span>
-          : <span className={`${baseClass} bg-red-100 text-red-800 border-red-300`}><AlertTriangle size={10}/> Rechazado</span>;
+        return <span className={`${baseClass} bg-red-100 text-red-800 border-red-300`}><AlertTriangle size={10}/> Rechazado</span>;
       default: 
-        return isDarkMode 
-          ? <span className="text-[10px] px-2 py-0.5 rounded-md bg-gray-550/20 text-gray-400 border border-white/5 font-bold uppercase">{status || 'Borrador'}</span>
-          : <span className="text-[10px] px-2 py-0.5 rounded-md bg-gray-150 text-gray-700 border border-gray-300 font-bold uppercase">{status || 'Borrador'}</span>;
+        return <span className="text-[10px] px-2 py-0.5 rounded-md bg-gray-150 text-gray-700 border border-gray-300 font-bold uppercase">{status || 'Borrador'}</span>;
     }
   };
 
@@ -366,7 +354,7 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
           className={`relative border-2 border-dashed rounded-3xl p-6 flex flex-col items-center justify-center transition-all cursor-pointer overflow-hidden ${
             isDragging 
               ? 'border-purple-500 bg-purple-500/5 shadow-2xl scale-[1.01]' 
-              : (isDarkMode ? 'border-white/10 hover:border-white/20 bg-white/[0.01]' : 'border-gray-355 hover:border-gray-400 bg-white')
+              : 'border-gray-355 hover:border-gray-400 bg-white'
           }`}
         >
           <input 
@@ -384,12 +372,12 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center text-center space-y-2">
-              <div className={`p-3 rounded-2xl ${isDarkMode ? 'bg-purple-500/10 text-purple-400' : 'bg-purple-100 text-purple-800'}`}>
+              <div className="p-3 rounded-2xl bg-purple-100 text-purple-800">
                 <Sparkles size={24} />
               </div>
               <div>
                 <p className="text-xs font-bold text-gray-900">Captura Inteligente IA / Carga XML</p>
-                <p className={`text-[10px] mt-1 max-w-md leading-normal ${isDarkMode ? 'text-gray-500' : 'text-gray-700 font-medium'}`}>
+                <p className="text-[10px] mt-1 max-w-md leading-normal text-gray-700 font-medium">
                   Arrastra tu factura (PDF, XML, Imagen) aquí. Gemini la clasificará y auto-completará los campos del formulario de forma instantánea.
                 </p>
               </div>
@@ -400,7 +388,7 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
 
       {/* TABS DE TIPO DE DOCUMENTO SRI */}
       {!forcedDocType && !isPreventaTab && (
-        <div className={`flex p-1 gap-1 rounded-2xl border overflow-x-auto custom-scrollbar whitespace-nowrap ${isDarkMode ? 'bg-black/30 border-white/10' : 'bg-gray-100/70 border-gray-200 shadow-inner'}`}>
+        <div className="flex p-1 gap-1 rounded-2xl border overflow-x-auto custom-scrollbar whitespace-nowrap bg-gray-100/70 border-gray-200 shadow-inner">
           {docTypeTabs.map(tab => {
             const isActive = filterDocType === tab.id;
             return (
@@ -409,8 +397,8 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
                 onClick={() => setFilterDocType(tab.id)}
                 className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
                   isActive 
-                    ? isDarkMode ? 'bg-white/15 text-white shadow-sm' : 'bg-white text-gray-900 border border-gray-300/40 shadow-sm'
-                    : isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-white text-gray-900 border border-gray-300/40 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 {tab.label}
@@ -486,12 +474,8 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
         </div>
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
-          <div className={`flex items-center gap-2 px-3.5 py-2 rounded-[10px] border w-full sm:w-64 transition-all focus-within:ring-1 focus-within:ring-primary/25 ${
-            isDarkMode 
-              ? 'bg-[#151722]/80 border-white/10 focus-within:border-primary/50' 
-              : 'bg-white border-slate-200 focus-within:border-primary'
-          }`}>
-            <Search size={14} className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
+          <div className="flex items-center gap-2 px-3.5 py-2 rounded-[10px] border w-full sm:w-64 transition-all focus-within:ring-1 focus-within:ring-primary/25 bg-white border-slate-200 focus-within:border-primary">
+            <Search size={14} className="text-gray-400" />
             <input 
               type="text" 
               placeholder="Buscar documento o tercero..." 
@@ -505,11 +489,7 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
             <select 
               value={filterType} 
               onChange={e => setFilterType(e.target.value)} 
-              className={`px-3 py-2 rounded-[10px] border text-xs font-medium outline-none transition-all cursor-pointer ${
-                isDarkMode 
-                  ? 'bg-[#151722]/80 border-white/10 text-gray-300 focus:border-primary/50' 
-                  : 'bg-white border-slate-200 text-slate-700 focus:border-primary'
-              }`}
+              className="px-3 py-2 rounded-[10px] border text-xs font-medium outline-none transition-all cursor-pointer bg-white border-slate-200 text-slate-700 focus:border-primary"
             >
               <option value="all" className="text-black">Todos los tipos</option>
               <option value="ingreso" className="text-black">Ingresos (Ventas)</option>
@@ -520,11 +500,7 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
           <select 
             value={filterMonth} 
             onChange={e => setFilterMonth(e.target.value)} 
-            className={`px-3 py-2 rounded-[10px] border text-xs font-medium outline-none transition-all cursor-pointer ${
-              isDarkMode 
-                ? 'bg-[#151722]/80 border-white/10 text-gray-300 focus:border-primary/50' 
-                : 'bg-white border-slate-200 text-slate-700 focus:border-primary'
-            }`}
+            className="px-3 py-2 rounded-[10px] border text-xs font-medium outline-none transition-all cursor-pointer bg-white border-slate-200 text-slate-700 focus:border-primary"
           >
             <option value="all" className="text-black">Mes: Todos</option>
             {['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'].map((m, i) => (
@@ -535,11 +511,7 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
           <select 
             value={filterYear} 
             onChange={e => setFilterYear(e.target.value)} 
-            className={`px-3 py-2 rounded-[10px] border text-xs font-medium outline-none transition-all cursor-pointer ${
-              isDarkMode 
-                ? 'bg-[#151722]/80 border-white/10 text-gray-300 focus:border-primary/50' 
-                : 'bg-white border-slate-200 text-slate-700 focus:border-primary'
-            }`}
+            className="px-3 py-2 rounded-[10px] border text-xs font-medium outline-none transition-all cursor-pointer bg-white border-slate-200 text-slate-700 focus:border-primary"
           >
             <option value="all" className="text-black">Año: Todos</option>
             {[2023, 2024, 2025, 2026, 2027].map(y => (
@@ -550,18 +522,10 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
       </div>
 
       {/* TABLA DE COMPROBANTES */}
-      <div className={`rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm ${
-        isDarkMode 
-          ? 'border-white/5 bg-[#0f111a]/85 shadow-lg shadow-black/40' 
-          : 'border-slate-200/80 bg-white'
-      }`}>
+      <div className="rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm border-slate-200/80 bg-white">
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left text-xs whitespace-nowrap">
-            <thead className={`text-[10px] uppercase font-bold tracking-wider ${
-              isDarkMode 
-                ? 'bg-black/35 text-slate-400 border-b border-white/5' 
-                : 'bg-slate-50 text-slate-600 border-b border-slate-100'
-            }`}>
+            <thead className="text-[10px] uppercase font-bold tracking-wider bg-slate-50 text-slate-600 border-b border-slate-100">
               <tr>
                 <th className="px-6 py-3.5">Fecha</th>
                 <th className="px-6 py-3.5">Tipo</th>
@@ -574,27 +538,27 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
                 <th className="px-6 py-3.5 text-right">Acciones</th>
               </tr>
             </thead>
-            <tbody className={`divide-y ${isDarkMode ? 'divide-white/5' : 'divide-slate-100'}`}>
+            <tbody className="divide-y divide-slate-100">
               {filtered.map(tx => (
-                <tr key={tx.id} className={`transition-colors ${isDarkMode ? 'hover:bg-white/[0.015]' : 'hover:bg-slate-50/40'}`}>
-                  <td className={`px-6 py-3.5 ${isDarkMode ? '' : 'text-black font-semibold'}`}>{tx.date}</td>
+                <tr key={tx.id} className="transition-colors hover:bg-slate-50/40">
+                  <td className="px-6 py-3.5 text-black font-semibold">{tx.date}</td>
                   <td className="px-6 py-3.5">
-                    <span className={`px-2 py-0.5 rounded-[10px] text-[9px] font-bold uppercase tracking-wider ${tx.type === 'ingreso' ? (isDarkMode ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-100 text-emerald-850 border border-emerald-300') : (isDarkMode ? 'bg-red-500/20 text-red-400' : 'bg-red-100 text-red-850 border border-red-300')}`}>
+                    <span className={`px-2 py-0.5 rounded-[10px] text-[9px] font-bold uppercase tracking-wider ${tx.type === 'ingreso' ? 'bg-emerald-100 text-emerald-850 border border-emerald-300' : 'bg-red-100 text-red-850 border border-red-300'}`}>
                       {tx.type}
                     </span>
                   </td>
-                  <td className={`px-6 py-3.5 font-mono text-[10px] ${isDarkMode ? '' : 'text-black font-semibold'}`}>{tx.documentNumber || '-'}</td>
-                  <td className={`px-6 py-3.5 font-bold truncate max-w-[200px] ${isDarkMode ? '' : 'text-black'}`} title={thirdParties.find(tp => tp.id === tx.thirdPartyId)?.name}>
+                  <td className="px-6 py-3.5 font-mono text-[10px] text-black font-semibold">{tx.documentNumber || '-'}</td>
+                  <td className="px-6 py-3.5 font-bold truncate max-w-[200px] text-black" title={thirdParties.find(tp => tp.id === tx.thirdPartyId)?.name}>
                     {thirdParties.find(tp => tp.id === tx.thirdPartyId)?.name || 'Desconocido'}
                   </td>
-                  <td className={`px-6 py-3.5 font-extrabold ${isDarkMode ? '' : 'text-black font-black'}`}>${Number(tx.total || 0).toFixed(2)}</td>
+                  <td className="px-6 py-3.5 font-extrabold text-black font-black">${Number(tx.total || 0).toFixed(2)}</td>
                   <td className="px-6 py-3.5">{getStatusBadge(tx.sriStatus, tx.documentType)}</td>
                   {isPreventaTab && (
                     <td className="px-6 py-3.5">
                       {tx.deliveryStatus === 'entregado' ? (
                         <span 
                           onClick={() => handleToggleDelivery(tx.id, tx.deliveryStatus)}
-                          className="px-2.5 py-1 rounded-[10px] text-[9px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/30 flex items-center gap-1.5 w-fit cursor-pointer hover:opacity-85 transition-all"
+                          className="px-2.5 py-1 rounded-[10px] text-[9px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1.5 w-fit cursor-pointer hover:opacity-85 transition-all"
                         >
                           <Truck size={11} /> Entregado
                         </span>
@@ -624,7 +588,7 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
                         </a>
                       ) : (
                         <span 
-                          className="btn-icon bg-gray-200 dark:bg-white/10 text-gray-400 dark:text-gray-500 opacity-60 cursor-not-allowed"
+                          className="btn-icon bg-gray-200 text-gray-400 opacity-60 cursor-not-allowed"
                           title="XML no disponible"
                         >
                           <FileText size={13}/>
@@ -643,7 +607,7 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
                         </a>
                       ) : (
                         <span 
-                          className="btn-icon bg-gray-200 dark:bg-white/10 text-gray-400 dark:text-gray-500 opacity-60 cursor-not-allowed"
+                          className="btn-icon bg-gray-200 text-gray-400 opacity-60 cursor-not-allowed"
                           title="PDF no disponible"
                         >
                           <FileText size={13}/>
@@ -696,7 +660,6 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
           tx={selectedRideTx} 
           onClose={() => setSelectedRideTx(null)} 
           thirdParties={thirdParties} 
-          isDarkMode={isDarkMode} 
           db={db} 
           appId={appId} 
         />
@@ -704,14 +667,10 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
 
       {emailModalTx && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className={`w-full max-w-md rounded-3xl border p-6 space-y-4 shadow-2xl transition-all scale-100 ${
-            isDarkMode 
-              ? 'bg-[#121420] border-white/10 text-white' 
-              : 'bg-white border-slate-200 text-slate-900 shadow-slate-300'
-          }`}>
+          <div className="w-full max-w-md rounded-3xl border p-6 space-y-4 shadow-2xl transition-all scale-100 bg-white border-slate-200 text-slate-900 shadow-slate-300">
             {/* Header */}
             <div className="flex items-center gap-3 pb-2 border-b border-gray-500/10">
-              <div className={`p-2 rounded-[10px] ${isDarkMode ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-650'}`}>
+              <div className="p-2 rounded-[10px] bg-blue-100 text-blue-650">
                 <Mail size={18} />
               </div>
               <div>
@@ -737,11 +696,7 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
                   value={emailTarget} 
                   onChange={e => setEmailTarget(e.target.value)} 
                   placeholder="ejemplo@cliente.com"
-                  className={`w-full px-3.5 py-2.5 text-xs rounded-[10px] border outline-none transition-all focus:ring-1 focus:ring-primary/25 ${
-                    isDarkMode 
-                      ? 'bg-[#151722]/85 border-white/10 text-white focus:border-primary/50' 
-                      : 'bg-slate-50 border-slate-200 text-black focus:border-primary'
-                  }`}
+                  className="w-full px-3.5 py-2.5 text-xs rounded-[10px] border outline-none transition-all focus:ring-1 focus:ring-primary/25 bg-slate-50 border-slate-200 text-black focus:border-primary"
                   disabled={isSendingEmail}
                 />
               </div>
@@ -753,11 +708,7 @@ export default function TransactionsView({ transactions, thirdParties, isDarkMod
                 type="button" 
                 onClick={() => setEmailModalTx(null)}
                 disabled={isSendingEmail}
-                className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-[10px] border transition-colors ${
-                  isDarkMode 
-                    ? 'border-white/10 hover:bg-white/5 text-gray-300' 
-                    : 'border-slate-200 hover:bg-slate-50 text-slate-600'
-                }`}
+                className="px-4 py-2 text-xs font-black uppercase tracking-wider rounded-[10px] border transition-colors border-slate-200 hover:bg-slate-50 text-slate-600"
               >
                 Cancelar
               </button>

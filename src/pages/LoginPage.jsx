@@ -1,15 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Lock, Eye, EyeOff, RefreshCw, Sun, Moon } from 'lucide-react';
+import { User, Lock, Eye, EyeOff, RefreshCw } from 'lucide-react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebase';
 
-export default function LoginPage({ 
-  isDarkMode, 
-  setIsDarkMode, 
-  showToast, 
-  companyProfile 
-}) {
+export default function LoginPage({ showToast, companyProfile }) {
   const navigate = useNavigate();
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
   const [loginError, setLoginError] = useState('');
@@ -44,46 +39,27 @@ export default function LoginPage({
   };
 
   return (
-    <div className={`flex items-center justify-center min-h-screen w-full font-sans overflow-hidden transition-colors duration-500 relative z-0 ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>
+    <div className="flex items-center justify-center min-h-screen w-full font-sans overflow-hidden transition-colors duration-500 relative z-0 text-gray-800">
       
       {/* BASE BACKGROUND SOLID COLOR */}
-      <div className={`absolute inset-0 -z-20 transition-colors duration-500 ${isDarkMode ? 'bg-[#020204]' : 'bg-[#fafafa]'}`} />
+      <div className="absolute inset-0 -z-20 transition-colors duration-500 bg-[#fafafa]" />
 
       {/* GLOBAL BACKGROUND BLOBS (Minimalismo Líquido Puro) */}
-      <div className={`absolute top-[-10%] left-[-5%] w-[40rem] h-[40rem] rounded-full filter blur-[130px] pointer-events-none -z-10 transition-all duration-500 animate-liquid-1 ${isDarkMode ? 'mix-blend-screen bg-purple-950/20 opacity-30' : 'mix-blend-multiply bg-purple-200/45 opacity-50'}`}></div>
-      <div className={`absolute top-[20%] right-[-10%] w-[35rem] h-[35rem] rounded-full filter blur-[120px] pointer-events-none -z-10 transition-all duration-500 animate-liquid-2 ${isDarkMode ? 'mix-blend-screen bg-primary/20 opacity-25' : 'mix-blend-multiply bg-blue-100/45 opacity-55'}`}></div>
-      <div className={`absolute bottom-[-10%] left-[10%] w-[38rem] h-[38rem] rounded-full filter blur-[140px] pointer-events-none -z-10 transition-all duration-500 animate-liquid-3 ${isDarkMode ? 'mix-blend-screen bg-rose-950/20 opacity-20' : 'mix-blend-multiply bg-rose-100/40 opacity-45'}`}></div>
+      <div className="absolute top-[-10%] left-[-5%] w-[40rem] h-[40rem] rounded-full filter blur-[130px] pointer-events-none -z-10 transition-all duration-500 animate-liquid-1 mix-blend-multiply bg-purple-200/45 opacity-50"></div>
+      <div className="absolute top-[20%] right-[-10%] w-[35rem] h-[35rem] rounded-full filter blur-[120px] pointer-events-none -z-10 transition-all duration-500 animate-liquid-2 mix-blend-multiply bg-blue-100/45 opacity-55"></div>
+      <div className="absolute bottom-[-10%] left-[10%] w-[38rem] h-[38rem] rounded-full filter blur-[140px] pointer-events-none -z-10 transition-all duration-500 animate-liquid-3 mix-blend-multiply bg-rose-100/40 opacity-45"></div>
       
       {/* HOUDINI RING PARTICLES (Google Antigravity Particles Effect) */}
       <div className="absolute inset-0 pointer-events-none -z-10 ring-particles-bg-1 animate-ring-particles-1 opacity-70" />
       <div className="absolute inset-0 pointer-events-none -z-10 ring-particles-bg-2 animate-ring-particles-2 opacity-70" />
       
-      {/* Theme Toggle flotante en la esquina */}
-      <div className="absolute top-6 right-6 z-20">
-        <button 
-          onClick={() => setIsDarkMode(!isDarkMode)} 
-          className={`p-2.5 rounded-xl transition-all active:scale-95 border backdrop-blur-md shadow-sm flex items-center justify-center ${
-            isDarkMode 
-              ? 'bg-white/5 border-white/10 hover:bg-white/10 text-amber-400 hover:text-amber-300' 
-              : 'bg-white border-slate-200/80 hover:bg-slate-50 text-indigo-600 hover:text-indigo-700'
-          }`} 
-          title={isDarkMode ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
-        >
-          {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
-        </button>
-      </div>
-
       {/* Card Centrado (Estilo Profesional Alineado a la Izquierda) */}
       <div className="w-full max-w-[420px] mx-4 relative group select-none">
         {/* Subtle Backglow */}
         <div className="absolute inset-0 rounded-[10px] bg-gradient-to-tr from-[#1C40F2]/10 to-[#a855f7]/10 blur-xl opacity-60 pointer-events-none"></div>
         
         {/* La tarjeta principal */}
-        <div className={`w-full p-8 sm:p-10 rounded-[10px] flex flex-col border transition-all duration-500 relative z-10 ${
-          isDarkMode 
-            ? 'bg-[#0f111a]/95 border-white/5 shadow-2xl shadow-black/60' 
-            : 'bg-white/95 border-slate-200/60 shadow-xl shadow-slate-100/60'
-        }`}>
+        <div className="w-full p-8 sm:p-10 rounded-[10px] flex flex-col border transition-all duration-500 relative z-10 bg-white/95 border-slate-200/60 shadow-xl shadow-slate-100/60">
           
           {/* Header de la Empresa o Web Fix */}
           <div className="text-left mb-8 select-none">
@@ -96,34 +72,30 @@ export default function LoginPage({
                     <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
                   </svg>
                 </div>
-                <span className={`text-2xl font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                <span className="text-2xl font-black tracking-tight text-black">
                   Web Fix
                 </span>
               </div>
             )}
-            <span className={`text-[18px] font-medium leading-none block ${isDarkMode ? 'text-gray-200' : 'text-black'}`}>
+            <span className="text-[18px] font-medium leading-none block text-black">
               Iniciar sesión
             </span>
           </div>
           
           <form onSubmit={handleLogin} className="space-y-5 text-left">
             <div>
-              <label className={`block text-[12px] font-normal mb-1.5 ${isDarkMode ? 'text-white' : 'text-black'}`}>
+              <label className="block text-[12px] font-normal mb-1.5 text-black">
                 Correo Electrónico
               </label>
               <div className="relative">
-                <div className={`absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors text-black">
                   <User size={16} />
                 </div>
                 <input 
                   type="email" 
                   value={loginForm.email}
                   onChange={(e) => setLoginForm({...loginForm, email: e.target.value})}
-                  className={`w-full text-xs font-medium tracking-wide pl-11 pr-3.5 py-3.5 rounded-[10px] outline-none transition-all border ${
-                    isDarkMode 
-                      ? 'bg-[#151722] border-white/10 text-white focus:border-[#1C40F2] focus:ring-2 focus:ring-[#1C40F2]/20' 
-                      : 'bg-[#f8fafc] border-slate-300 text-black focus:border-[#1C40F2] focus:ring-2 focus:ring-[#1C40F2]/20 focus:bg-white'
-                  }`} 
+                  className="w-full text-xs font-medium tracking-wide pl-11 pr-3.5 py-3.5 rounded-[10px] outline-none transition-all border bg-[#f8fafc] border-slate-300 text-black focus:border-[#1C40F2] focus:ring-2 focus:ring-[#1C40F2]/20 focus:bg-white" 
                   placeholder="correo@ejemplo.com" 
                   required
                 />
@@ -131,22 +103,18 @@ export default function LoginPage({
             </div>
  
             <div>
-              <label className={`block text-[12px] font-normal mb-1.5 ${isDarkMode ? 'text-white' : 'text-black'}`}>
+              <label className="block text-[12px] font-normal mb-1.5 text-black">
                 Contraseña
               </label>
               <div className="relative">
-                <div className={`absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors text-black">
                   <Lock size={16} />
                 </div>
                 <input 
                   type={showPassword ? "text" : "password"}
                   value={loginForm.password}
                   onChange={(e) => setLoginForm({...loginForm, password: e.target.value})}
-                  className={`w-full text-xs font-medium tracking-wide pl-11 pr-10 py-3.5 rounded-[10px] outline-none transition-all border ${
-                    isDarkMode 
-                      ? 'bg-[#151722] border-white/10 text-white focus:border-[#1C40F2] focus:ring-2 focus:ring-[#1C40F2]/20' 
-                      : 'bg-[#f8fafc] border-slate-300 text-black focus:border-[#1C40F2] focus:ring-2 focus:ring-[#1C40F2]/20 focus:bg-white'
-                  }`} 
+                  className="w-full text-xs font-medium tracking-wide pl-11 pr-10 py-3.5 rounded-[10px] outline-none transition-all border bg-[#f8fafc] border-slate-300 text-black focus:border-[#1C40F2] focus:ring-2 focus:ring-[#1C40F2]/20 focus:bg-white" 
                   placeholder="••••••••••••" 
                   required
                 />
@@ -172,9 +140,7 @@ export default function LoginPage({
             </div>
  
             {loginError && (
-              <div className={`p-3 rounded-[10px] text-xs font-semibold tracking-wide flex items-center justify-center text-center animate-in fade-in duration-300 border ${
-                isDarkMode ? 'bg-red-500/10 text-red-400 border-red-500/25' : 'bg-red-50 text-red-650 border-red-100'
-              }`}>
+              <div className="p-3 rounded-[10px] text-xs font-semibold tracking-wide flex items-center justify-center text-center animate-in fade-in duration-300 border bg-red-50 text-red-650 border-red-100">
                 {loginError}
               </div>
             )}
@@ -198,7 +164,7 @@ export default function LoginPage({
  
           {/* Footer con Registro */}
           <div className="mt-6 text-center">
-            <p style={{ fontSize: '12px', color: isDarkMode ? '#e2e8f0' : '#000000' }} className="font-normal select-none">
+            <p style={{ fontSize: '12px', color: '#000000' }} className="font-normal select-none">
               ¿No tienes una cuenta?{' '}
               <span 
                 onClick={() => navigate('/register')}
@@ -213,7 +179,7 @@ export default function LoginPage({
 
       {/* Derechos Reservados como Pie de Página */}
       <div className="absolute bottom-6 left-0 right-0 text-center z-10 pointer-events-none">
-        <p style={{ fontSize: '12px', color: isDarkMode ? 'rgba(255, 255, 255, 0.4)' : '#000000' }} className="font-normal select-none pointer-events-auto">
+        <p style={{ fontSize: '12px', color: '#000000' }} className="font-normal select-none pointer-events-auto">
           © WebFix 2026. Todos los derechos reservados
         </p>
       </div>

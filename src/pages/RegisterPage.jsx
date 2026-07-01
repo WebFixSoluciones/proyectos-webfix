@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Mail, Lock, User, Building, ArrowRight, RefreshCw, Sun, Moon } from 'lucide-react';
+import { Mail, Lock, User, Building, ArrowRight, RefreshCw } from 'lucide-react';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { auth, db, setTenantId } from '../firebase';
 
-export default function RegisterPage({ isDarkMode, setIsDarkMode, showToast }) {
+export default function RegisterPage({ showToast }) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const planParam = searchParams.get('plan') || 'starter';
@@ -133,45 +133,27 @@ export default function RegisterPage({ isDarkMode, setIsDarkMode, showToast }) {
   };
 
   return (
-    <div className={`flex items-center justify-center min-h-screen w-full font-sans overflow-hidden transition-colors duration-500 relative z-0 ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>
+    <div className="flex items-center justify-center min-h-screen w-full font-sans overflow-hidden transition-colors duration-500 relative z-0 text-gray-800">
       
       {/* BASE BACKGROUND SOLID COLOR */}
-      <div className={`absolute inset-0 -z-20 transition-colors duration-500 ${isDarkMode ? 'bg-[#020204]' : 'bg-[#fafafa]'}`} />
+      <div className="absolute inset-0 -z-20 transition-colors duration-500 bg-[#fafafa]" />
 
       {/* GLOBAL BACKGROUND BLOBS (Minimalismo Líquido Puro) */}
-      <div className={`absolute top-[-10%] left-[-5%] w-[40rem] h-[40rem] rounded-full filter blur-[130px] pointer-events-none -z-10 transition-all duration-500 animate-liquid-1 ${isDarkMode ? 'mix-blend-screen bg-purple-950/20 opacity-30' : 'mix-blend-multiply bg-purple-200/45 opacity-50'}`}></div>
-      <div className={`absolute top-[20%] right-[-10%] w-[35rem] h-[35rem] rounded-full filter blur-[120px] pointer-events-none -z-10 transition-all duration-500 animate-liquid-2 ${isDarkMode ? 'mix-blend-screen bg-primary/20 opacity-25' : 'mix-blend-multiply bg-blue-100/45 opacity-55'}`}></div>
-      <div className={`absolute bottom-[-10%] left-[10%] w-[38rem] h-[38rem] rounded-full filter blur-[140px] pointer-events-none -z-10 transition-all duration-500 animate-liquid-3 ${isDarkMode ? 'mix-blend-screen bg-rose-950/20 opacity-20' : 'mix-blend-multiply bg-rose-100/40 opacity-45'}`}></div>
+      <div className="absolute top-[-10%] left-[-5%] w-[40rem] h-[40rem] rounded-full filter blur-[130px] pointer-events-none -z-10 transition-all duration-500 animate-liquid-1 mix-blend-multiply bg-purple-200/45 opacity-50"></div>
+      <div className="absolute top-[20%] right-[-10%] w-[35rem] h-[35rem] rounded-full filter blur-[120px] pointer-events-none -z-10 transition-all duration-500 animate-liquid-2 mix-blend-multiply bg-blue-100/45 opacity-55"></div>
+      <div className="absolute bottom-[-10%] left-[10%] w-[38rem] h-[38rem] rounded-full filter blur-[140px] pointer-events-none -z-10 transition-all duration-500 animate-liquid-3 mix-blend-multiply bg-rose-100/40 opacity-45"></div>
       
       {/* HOUDINI RING PARTICLES */}
       <div className="absolute inset-0 pointer-events-none -z-10 ring-particles-bg-1 animate-ring-particles-1 opacity-70" />
       <div className="absolute inset-0 pointer-events-none -z-10 ring-particles-bg-2 animate-ring-particles-2 opacity-70" />
       
-      {/* Theme Toggle flotante en la esquina */}
-      <div className="absolute top-6 right-6 z-20">
-        <button 
-          onClick={() => setIsDarkMode(!isDarkMode)} 
-          className={`p-2.5 rounded-xl transition-all active:scale-95 border backdrop-blur-md shadow-sm flex items-center justify-center ${
-            isDarkMode 
-              ? 'bg-white/5 border-white/10 hover:bg-white/10 text-amber-400 hover:text-amber-300' 
-              : 'bg-white border-slate-200/80 hover:bg-slate-50 text-indigo-600 hover:text-indigo-700'
-          }`}
-        >
-          {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
-        </button>
-      </div>
-
       {/* Card Centrado */}
       <div className="w-full max-w-[440px] mx-4 relative group select-none">
         {/* Subtle Backglow */}
         <div className="absolute inset-0 rounded-[10px] bg-gradient-to-tr from-[#1C40F2]/10 to-[#a855f7]/10 blur-xl opacity-60 pointer-events-none"></div>
         
         {/* La tarjeta principal */}
-        <div className={`w-full p-8 sm:p-10 rounded-[10px] flex flex-col border transition-all duration-500 relative z-10 ${
-          isDarkMode 
-            ? 'bg-[#0f111a]/95 border-white/5 shadow-2xl shadow-black/60' 
-            : 'bg-white/95 border-slate-200/60 shadow-xl shadow-slate-100/60'
-        }`}>
+        <div className="w-full p-8 sm:p-10 rounded-[10px] flex flex-col border transition-all duration-500 relative z-10 bg-white/95 border-slate-200/60 shadow-xl shadow-slate-100/60">
           
           {/* Header */}
           <div className="text-left mb-6 select-none">
@@ -181,11 +163,11 @@ export default function RegisterPage({ isDarkMode, setIsDarkMode, showToast }) {
                   <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
                 </svg>
               </div>
-              <span className={`text-2xl font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-black'}`}>
+              <span className="text-2xl font-black tracking-tight text-black">
                 Web Fix ERP
               </span>
             </div>
-            <span className={`text-[18px] font-medium leading-none block ${isDarkMode ? 'text-gray-200' : 'text-black'}`}>
+            <span className="text-[18px] font-medium leading-none block text-black">
               Crear cuenta de empresa
             </span>
             <span className="text-[10px] font-black uppercase text-indigo-500 mt-2 block tracking-wider">
@@ -195,22 +177,18 @@ export default function RegisterPage({ isDarkMode, setIsDarkMode, showToast }) {
           
           <form onSubmit={handleRegister} className="space-y-4 text-left">
             <div>
-              <label className={`block text-[11px] font-normal mb-1 ${isDarkMode ? 'text-white' : 'text-black'}`}>
+              <label className="block text-[11px] font-normal mb-1 text-black">
                 Nombre del Administrador
               </label>
               <div className="relative">
-                <div className={`absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors text-black">
                   <User size={15} />
                 </div>
                 <input 
                   type="text" 
                   value={registerForm.name}
                   onChange={(e) => setRegisterForm({...registerForm, name: e.target.value})}
-                  className={`w-full text-xs font-medium tracking-wide pl-11 pr-3.5 py-3 rounded-[10px] outline-none transition-all border ${
-                    isDarkMode 
-                      ? 'bg-[#151722] border-white/10 text-white focus:border-[#1C40F2] focus:ring-2' 
-                      : 'bg-[#f8fafc] border-slate-300 text-black focus:border-[#1C40F2] focus:bg-white'
-                  }`} 
+                  className="w-full text-xs font-medium tracking-wide pl-11 pr-3.5 py-3 rounded-[10px] outline-none transition-all border bg-[#f8fafc] border-slate-300 text-black focus:border-[#1C40F2] focus:bg-white" 
                   placeholder="Tu Nombre" 
                   required
                 />
@@ -218,22 +196,18 @@ export default function RegisterPage({ isDarkMode, setIsDarkMode, showToast }) {
             </div>
 
             <div>
-              <label className={`block text-[11px] font-normal mb-1 ${isDarkMode ? 'text-white' : 'text-black'}`}>
+              <label className="block text-[11px] font-normal mb-1 text-black">
                 Razón Social / Nombre Comercial
               </label>
               <div className="relative">
-                <div className={`absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors text-black">
                   <Building size={15} />
                 </div>
                 <input 
                   type="text" 
                   value={registerForm.companyName}
                   onChange={(e) => setRegisterForm({...registerForm, companyName: e.target.value})}
-                  className={`w-full text-xs font-medium tracking-wide pl-11 pr-3.5 py-3 rounded-[10px] outline-none transition-all border ${
-                    isDarkMode 
-                      ? 'bg-[#151722] border-white/10 text-white focus:border-[#1C40F2] focus:ring-2' 
-                      : 'bg-[#f8fafc] border-slate-300 text-black focus:border-[#1C40F2] focus:bg-white'
-                  }`} 
+                  className="w-full text-xs font-medium tracking-wide pl-11 pr-3.5 py-3 rounded-[10px] outline-none transition-all border bg-[#f8fafc] border-slate-300 text-black focus:border-[#1C40F2] focus:bg-white" 
                   placeholder="Ej. Mi Negocio S.A.S" 
                   required
                 />
@@ -241,22 +215,18 @@ export default function RegisterPage({ isDarkMode, setIsDarkMode, showToast }) {
             </div>
 
             <div>
-              <label className={`block text-[11px] font-normal mb-1 ${isDarkMode ? 'text-white' : 'text-black'}`}>
+              <label className="block text-[11px] font-normal mb-1 text-black">
                 Correo Corporativo
               </label>
               <div className="relative">
-                <div className={`absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors text-black">
                   <Mail size={15} />
                 </div>
                 <input 
                   type="email" 
                   value={registerForm.email}
                   onChange={(e) => setRegisterForm({...registerForm, email: e.target.value})}
-                  className={`w-full text-xs font-medium tracking-wide pl-11 pr-3.5 py-3 rounded-[10px] outline-none transition-all border ${
-                    isDarkMode 
-                      ? 'bg-[#151722] border-white/10 text-white focus:border-[#1C40F2] focus:ring-2' 
-                      : 'bg-[#f8fafc] border-slate-300 text-black focus:border-[#1C40F2] focus:bg-white'
-                  }`} 
+                  className="w-full text-xs font-medium tracking-wide pl-11 pr-3.5 py-3 rounded-[10px] outline-none transition-all border bg-[#f8fafc] border-slate-300 text-black focus:border-[#1C40F2] focus:bg-white" 
                   placeholder="correo@empresa.com" 
                   required
                 />
@@ -264,22 +234,18 @@ export default function RegisterPage({ isDarkMode, setIsDarkMode, showToast }) {
             </div>
 
             <div>
-              <label className={`block text-[11px] font-normal mb-1 ${isDarkMode ? 'text-white' : 'text-black'}`}>
+              <label className="block text-[11px] font-normal mb-1 text-black">
                 Contraseña
               </label>
               <div className="relative">
-                <div className={`absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors ${isDarkMode ? 'text-gray-400' : 'text-black'}`}>
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors text-black">
                   <Lock size={15} />
                 </div>
                 <input 
                   type="password" 
                   value={registerForm.password}
                   onChange={(e) => setRegisterForm({...registerForm, password: e.target.value})}
-                  className={`w-full text-xs font-medium tracking-wide pl-11 pr-3.5 py-3 rounded-[10px] outline-none transition-all border ${
-                    isDarkMode 
-                      ? 'bg-[#151722] border-white/10 text-white focus:border-[#1C40F2] focus:ring-2' 
-                      : 'bg-[#f8fafc] border-slate-300 text-black focus:border-[#1C40F2] focus:bg-white'
-                  }`} 
+                  className="w-full text-xs font-medium tracking-wide pl-11 pr-3.5 py-3 rounded-[10px] outline-none transition-all border bg-[#f8fafc] border-slate-300 text-black focus:border-[#1C40F2] focus:bg-white" 
                   placeholder="Mínimo 6 caracteres" 
                   minLength={6}
                   required
@@ -288,9 +254,7 @@ export default function RegisterPage({ isDarkMode, setIsDarkMode, showToast }) {
             </div>
  
             {registerError && (
-              <div className={`p-3 rounded-[10px] text-xs font-semibold text-center border ${
-                isDarkMode ? 'bg-red-500/10 text-red-400 border-red-500/25' : 'bg-red-50 text-red-750 border-red-100'
-              }`}>
+              <div className="p-3 rounded-[10px] text-xs font-semibold text-center border bg-red-50 text-red-750 border-red-100">
                 {registerError}
               </div>
             )}
@@ -314,7 +278,7 @@ export default function RegisterPage({ isDarkMode, setIsDarkMode, showToast }) {
  
           {/* Footer */}
           <div className="mt-6 text-center">
-            <p style={{ fontSize: '12px', color: isDarkMode ? '#e2e8f0' : '#000000' }} className="font-normal select-none">
+            <p style={{ fontSize: '12px', color: '#000000' }} className="font-normal select-none">
               ¿Ya tienes cuenta?{' '}
               <span 
                 onClick={() => navigate('/login')}
@@ -329,7 +293,7 @@ export default function RegisterPage({ isDarkMode, setIsDarkMode, showToast }) {
 
       {/* Derechos Reservados */}
       <div className="absolute bottom-6 left-0 right-0 text-center z-10 pointer-events-none">
-        <p style={{ fontSize: '12px', color: isDarkMode ? 'rgba(255, 255, 255, 0.4)' : '#000000' }} className="font-normal select-none pointer-events-auto">
+        <p style={{ fontSize: '12px', color: '#000000' }} className="font-normal select-none pointer-events-auto">
           © WebFix 2026. Todos los derechos reservados
         </p>
       </div>

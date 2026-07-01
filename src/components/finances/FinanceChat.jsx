@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Sparkles, Send, Bot, User, X, AlertCircle } from 'lucide-react';
 import { chatearConAsistenteContable } from '../../services/geminiService';
 
-export default function FinanceChat({ transactions, thirdParties, isDarkMode, onClose }) {
+export default function FinanceChat({ transactions, thirdParties, onClose }) {
   const [messages, setMessages] = useState([
     { role: 'model', text: '¡Hola! Soy tu asistente contable inteligente. ¿En qué puedo ayudarte hoy? Puedo analizar tus comprobantes, darte resúmenes de impuestos o clasificar gastos.' }
   ]);
@@ -48,9 +48,9 @@ export default function FinanceChat({ transactions, thirdParties, isDarkMode, on
   };
 
   return (
-    <div className={`flex flex-col h-full rounded-2xl border shadow-xl overflow-hidden backdrop-blur-xl ${isDarkMode ? 'bg-[#151517] border-white/10' : 'bg-white border-gray-200'}`}>
+    <div className="flex flex-col h-full rounded-2xl border shadow-xl overflow-hidden backdrop-blur-xl bg-white border-gray-200">
       {/* HEADER CHAT */}
-      <div className={`px-4 py-3 flex items-center justify-between border-b ${isDarkMode ? 'border-white/10 bg-black/40' : 'border-gray-100 bg-gray-50/50'}`}>
+      <div className="px-4 py-3 flex items-center justify-between border-b border-gray-100 bg-gray-50/50">
         <div className="flex items-center gap-2">
           <div className="p-1.5 rounded-lg bg-purple-500/20 text-purple-400">
             <Sparkles size={16} />
@@ -74,7 +74,7 @@ export default function FinanceChat({ transactions, thirdParties, isDarkMode, on
             <div className={`p-2 rounded-xl shrink-0 flex items-center justify-center h-7 w-7 ${msg.role === 'user' ? 'bg-primary text-white' : 'bg-purple-600/20 text-purple-400'}`}>
               {msg.role === 'user' ? <User size={12} /> : <Bot size={12} />}
             </div>
-            <div className={`p-3 rounded-2xl leading-relaxed whitespace-pre-line ${msg.role === 'user' ? 'bg-primary text-white rounded-tr-none' : (isDarkMode ? 'bg-white/5 text-gray-200' : 'bg-gray-100 text-gray-800') + ' rounded-tl-none'}`}>
+            <div className={`p-3 rounded-2xl leading-relaxed whitespace-pre-line ${msg.role === 'user' ? 'bg-primary text-white rounded-tr-none' : 'bg-gray-100 text-gray-800 rounded-tl-none'}`}>
               {msg.text}
             </div>
           </div>
@@ -85,7 +85,7 @@ export default function FinanceChat({ transactions, thirdParties, isDarkMode, on
             <div className="p-2 rounded-xl bg-purple-600/20 text-purple-400 shrink-0 flex items-center justify-center h-7 w-7">
               <Bot size={12} />
             </div>
-            <div className={`p-3 rounded-2xl rounded-tl-none flex items-center gap-1.5 ${isDarkMode ? 'bg-white/5 text-gray-400' : 'bg-gray-100 text-gray-500'}`}>
+            <div className="p-3 rounded-2xl rounded-tl-none flex items-center gap-1.5 bg-gray-100 text-gray-500">
               <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '0ms' }}></span>
               <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '150ms' }}></span>
               <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '300ms' }}></span>
@@ -94,7 +94,7 @@ export default function FinanceChat({ transactions, thirdParties, isDarkMode, on
         )}
 
         {error && (
-          <div className={`p-3 rounded-xl border flex gap-2 text-xs items-start ${isDarkMode ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-red-50 border-red-200 text-red-700'}`}>
+          <div className="p-3 rounded-xl border flex gap-2 text-xs items-start bg-red-50 border-red-200 text-red-700">
             <AlertCircle size={14} className="shrink-0 mt-0.5" />
             <div>
               <p className="font-semibold">Error al chatear</p>
@@ -105,13 +105,13 @@ export default function FinanceChat({ transactions, thirdParties, isDarkMode, on
       </div>
 
       {/* INPUT CHAT */}
-      <form onSubmit={handleSend} className={`p-3 border-t flex gap-2 items-center ${isDarkMode ? 'border-white/10 bg-black/20' : 'border-gray-100 bg-white'}`}>
+      <form onSubmit={handleSend} className="p-3 border-t flex gap-2 items-center border-gray-100 bg-white">
         <input 
           type="text" 
           value={input} 
           onChange={e => setInput(e.target.value)} 
           placeholder="Pregúntame algo sobre tus finanzas..."
-          className={`flex-1 text-xs px-3 py-2 rounded-xl border outline-none transition-all ${isDarkMode ? 'bg-black/40 border-white/10 text-white focus:border-primary/50' : 'bg-gray-50 border-gray-200 text-gray-900 focus:border-primary/50'}`}
+          className="flex-1 text-xs px-3 py-2 rounded-xl border outline-none transition-all bg-gray-50 border-gray-200 text-gray-900 focus:border-primary/50"
         />
         <button 
           type="submit" 

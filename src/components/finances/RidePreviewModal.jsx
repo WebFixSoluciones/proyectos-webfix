@@ -46,7 +46,7 @@ function numeroALetras(num) {
   return `SON: ${enteroStr} CON ${decimales}/100 DÓLARES`;
 }
 
-export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode, db, appId, initialFormat = 'ride' }) {
+export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId, initialFormat = 'ride' }) {
   const [companyConfig, setCompanyConfig] = useState(null);
   const [viewFormat, setViewFormat] = useState(initialFormat);
 
@@ -400,30 +400,26 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
         }
       `}} />
 
-      <div className={`w-full max-w-4xl h-[90vh] flex flex-col rounded-3xl overflow-hidden shadow-2xl border print-modal-content ${
-        isDarkMode ? 'bg-[#121214] border-white/10' : 'bg-gray-50 border-gray-300'
-      }`}>
+      <div className="w-full max-w-4xl h-[90vh] flex flex-col rounded-3xl overflow-hidden shadow-2xl border print-modal-content bg-gray-50 border-gray-300">
         
         {/* Barra de Acciones del Modal */}
-        <div className={`px-6 py-3 border-b flex items-center justify-between no-print shrink-0 ${
-          isDarkMode ? 'bg-[#18181b] border-white/5' : 'bg-gray-100 border-gray-250'
-        }`}>
+        <div className="px-6 py-3 border-b flex items-center justify-between no-print shrink-0 bg-gray-100 border-gray-250">
           <div className="flex items-center gap-2">
             <FileText size={16} className="text-primary" />
-            <h3 className={`text-xs font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-800">
               Vista Previa: {getDocTypeLabel()}
             </h3>
           </div>
           
           <div className="flex items-center gap-3">
             {/* Selector de formato */}
-            <div className={`flex p-0.5 rounded-lg border ${isDarkMode ? 'bg-black/30 border-white/10' : 'bg-white border-gray-300'}`}>
+            <div className="flex p-0.5 rounded-lg border bg-white border-gray-300">
               <button 
                 onClick={() => setViewFormat('ride')}
                 className={`px-3 py-1 rounded text-[10px] font-bold transition-all ${
                   viewFormat === 'ride' 
                     ? 'bg-primary text-white shadow-sm' 
-                    : (isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900')
+                    : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 RIDE Oficial (A4)
@@ -433,7 +429,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, isDarkMode
                 className={`px-3 py-1 rounded text-[10px] font-bold transition-all ${
                   viewFormat === 'ticket' 
                     ? 'bg-primary text-white shadow-sm' 
-                    : (isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900')
+                    : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 Ticket POS (80mm)
