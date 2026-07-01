@@ -508,7 +508,7 @@ export default function ProductCreationForm({
     }
   };
 
-  const inputClass = `w-full px-3 py-2 rounded-xl outline-none transition-all border text-xs bg-white/50 border-gray-200 text-gray-800 focus:border-primary focus:bg-white shadow-inner`;
+  const inputClass = `w-full pl-3 pr-3 py-2 rounded-xl outline-none transition-all border text-xs bg-white/50 border-gray-200 text-gray-800 focus:border-primary focus:bg-white shadow-inner`;
 
   const labelClass = `block text-[10px] font-bold mb-1 uppercase tracking-wider text-gray-500`;
 
