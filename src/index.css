@@ -55,8 +55,8 @@
   --color-gray-550: #697386;
   --color-gray-705: #425466;
   --color-gray-850: #0A2540;
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-mono: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-sans: 'Inter', sans-serif;
+  --font-mono: 'Inter', sans-serif;
 }
 
 html, body, #root {
@@ -69,11 +69,11 @@ html, body, #root {
 }
 
 body, .font-sans, input, textarea, select, button, .font-mono, kbd, code, pre {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  font-family: 'Inter', sans-serif !important;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  font-family: 'Inter', sans-serif !important;
   letter-spacing: -0.02em;
 }
 
