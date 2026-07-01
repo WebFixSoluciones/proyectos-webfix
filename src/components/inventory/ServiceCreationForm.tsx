@@ -152,7 +152,8 @@ export default function ServiceCreationForm({
                     value={formData.sku}
                     onChange={handleInputChange}
                     placeholder="Ej. SERV-001"
-                    className={`${inputClass} pl-10`}
+                    className={`${inputClass}`}
+                    style={{ paddingLeft: '36px' }}
                   />
                 </div>
               </div>
@@ -168,7 +169,8 @@ export default function ServiceCreationForm({
                     value={formData.name}
                     onChange={handleInputChange}
                     placeholder="Ej. Consultoría TI - Por Hora"
-                    className={`${inputClass} pl-10`}
+                    className={`${inputClass}`}
+                    style={{ paddingLeft: '36px' }}
                   />
                 </div>
               </div>
@@ -181,7 +183,8 @@ export default function ServiceCreationForm({
                     name="categoryId"
                     value={formData.categoryId}
                     onChange={handleInputChange}
-                    className={`${inputClass} pl-10`}
+                    className={`${inputClass}`}
+                    style={{ paddingLeft: '36px' }}
                   >
                     <option value="">Sin Categoría</option>
                     {categories.map(cat => (
@@ -201,7 +204,8 @@ export default function ServiceCreationForm({
                     onChange={handleInputChange}
                     placeholder="Detalles adicionales del servicio prestado..."
                     rows={3}
-                    className={`${inputClass} pl-10 resize-none`}
+                    className={`${inputClass} resize-none`}
+                    style={{ paddingLeft: '36px' }}
                   />
                 </div>
               </div>
@@ -229,7 +233,8 @@ export default function ServiceCreationForm({
                     required
                     value={formData.baseCost}
                     onChange={handleInputChange}
-                    className={`${inputClass} pl-10`}
+                    className={`${inputClass}`}
+                    style={{ paddingLeft: '36px' }}
                   />
                 </div>
               </div>
@@ -246,7 +251,8 @@ export default function ServiceCreationForm({
                     required
                     value={formData.marginPercentage}
                     onChange={handleInputChange}
-                    className={`${inputClass} pl-10`}
+                    className={`${inputClass}`}
+                    style={{ paddingLeft: '36px' }}
                   />
                 </div>
               </div>
@@ -263,7 +269,8 @@ export default function ServiceCreationForm({
                     required
                     value={formData.taxRate}
                     onChange={handleInputChange}
-                    className={`${inputClass} pl-10`}
+                    className={`${inputClass}`}
+                    style={{ paddingLeft: '36px' }}
                   />
                 </div>
               </div>

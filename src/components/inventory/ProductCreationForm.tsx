@@ -621,7 +621,8 @@ export default function ProductCreationForm({
                     value={formData.sku}
                     onChange={handleInputChange}
                     placeholder="Ej. PROD-001 o Código de Barras"
-                    className={`${inputClass} pl-9`}
+                    className={`${inputClass}`}
+                    style={{ paddingLeft: '36px' }}
                   />
                 </div>
               </div>
@@ -637,7 +638,8 @@ export default function ProductCreationForm({
                     value={formData.name}
                     onChange={handleInputChange}
                     placeholder="Ej. Martillo de Acero 16oz"
-                    className={`${inputClass} pl-9`}
+                    className={`${inputClass}`}
+                    style={{ paddingLeft: '36px' }}
                   />
                 </div>
               </div>
@@ -652,7 +654,8 @@ export default function ProductCreationForm({
                       name="categoryId"
                       value={formData.categoryId}
                       onChange={handleInputChange}
-                      className={`${inputClass} pl-9`}
+                      className={`${inputClass}`}
+                      style={{ paddingLeft: '36px' }}
                     >
                       <option value="">Sin Categoría</option>
                       {categories.map(cat => (
@@ -681,7 +684,8 @@ export default function ProductCreationForm({
                       name="brandId"
                       value={formData.brandId}
                       onChange={handleInputChange}
-                      className={`${inputClass} pl-9`}
+                      className={`${inputClass}`}
+                      style={{ paddingLeft: '36px' }}
                     >
                       <option value="">Sin Marca</option>
                       {brands.map(brand => (
@@ -712,7 +716,8 @@ export default function ProductCreationForm({
                   onChange={handleInputChange}
                   placeholder="Detalles adicionales del producto..."
                   rows={2}
-                  className={`${inputClass} pl-9 resize-none`}
+                  className={`${inputClass} resize-none`}
+                  style={{ paddingLeft: '36px' }}
                 />
               </div>
             </div>
@@ -754,7 +759,8 @@ export default function ProductCreationForm({
                   type="text"
                   readOnly
                   value={formData.priceWithoutTax.toFixed(2)}
-                  className={`${inputClass} pl-9 pr-8 bg-gray-100/50 dark:bg-black/40 font-mono`}
+                  className={`${inputClass} pr-8 bg-gray-100/50 dark:bg-black/40 font-mono`}
+                  style={{ paddingLeft: '36px' }}
                 />
                 <button
                   type="button"
@@ -779,7 +785,8 @@ export default function ProductCreationForm({
                   type="text"
                   readOnly
                   value={formData.ivaCalculated.toFixed(2)}
-                  className={`${inputClass} pl-9 bg-gray-100/50 dark:bg-black/40 font-mono text-gray-500`}
+                  className={`${inputClass} bg-gray-100/50 dark:bg-black/40 font-mono text-gray-500`}
+                  style={{ paddingLeft: '36px' }}
                 />
               </div>
             </div>
@@ -801,7 +808,8 @@ export default function ProductCreationForm({
                     handlePriceIncludedChange(val, formData.taxRate);
                   }}
                   placeholder="0.00"
-                  className={`${inputClass} pl-9 font-mono font-bold text-emerald-500`}
+                  className={`${inputClass} font-mono font-bold text-emerald-500`}
+                  style={{ paddingLeft: '36px' }}
                 />
               </div>
             </div>
@@ -1003,7 +1011,8 @@ export default function ProductCreationForm({
                 value={formData.baseCost || ''}
                 onChange={handleInputChange}
                 placeholder="0.00"
-                className={`${inputClass} pl-9 font-mono`}
+                className={`${inputClass} font-mono`}
+                style={{ paddingLeft: '36px' }}
               />
             </div>
             {formData.baseCost > 0 && (
@@ -1515,7 +1524,8 @@ export default function ProductCreationForm({
                     value={manualPriceInput}
                     onChange={(e) => setManualPriceInput(e.target.value)}
                     placeholder="0.00"
-                    className={`${inputClass} pl-9 font-mono`}
+                    className={`${inputClass} font-mono`}
+                    style={{ paddingLeft: '36px' }}
                   />
                 </div>
               </div>
