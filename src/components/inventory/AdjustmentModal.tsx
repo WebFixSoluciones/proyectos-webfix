@@ -6,7 +6,6 @@ import { kardexRepository } from '../../modules/inventory/repositories/KardexRep
 import { Product } from '../../modules/inventory/domain/schemas/product.schema';
 
 interface AdjustmentModalProps {
-  isDarkMode: boolean;
   onClose: () => void;
   onSuccess: () => void;
 }
@@ -17,7 +16,7 @@ const BRANCHES = [
   { id: 'sucursal-norte-uuid', name: 'Sucursal Norte' }
 ];
 
-export default function AdjustmentModal({ isDarkMode, onClose, onSuccess }: AdjustmentModalProps) {
+export default function AdjustmentModal({ onClose, onSuccess }: AdjustmentModalProps) {
   const [adjustmentType, setAdjustmentType] = useState<'MANUAL' | 'ZERO_INVENTORY'>('MANUAL');
   const [branchId, setBranchId] = useState(BRANCHES[0].id);
   const [reason, setReason] = useState('');
@@ -129,38 +128,28 @@ export default function AdjustmentModal({ isDarkMode, onClose, onSuccess }: Adju
     }
   };
 
-  const inputClass = `w-full px-3 py-2.5 rounded-xl outline-none transition-all border text-sm ${
-    isDarkMode 
-      ? 'bg-black/30 border-white/10 text-white focus:border-red-500 shadow-inner' 
-      : 'bg-white border-gray-200 text-gray-800 focus:border-red-500 shadow-inner'
-  }`;
+  const inputClass = `w-full px-3 py-2.5 rounded-xl outline-none transition-all border text-sm bg-white border-[#E6EBF1] text-[#0A2540] focus:border-red-500 shadow-inner`;
 
-  const labelClass = `block text-xs font-semibold mb-1.5 uppercase tracking-wider ${
-    isDarkMode ? 'text-gray-400' : 'text-gray-500'
-  }`;
+  const labelClass = `block text-xs font-semibold mb-1.5 uppercase tracking-wider text-[#697386]`;
 
   const isZeroInventoryConfUnlocked = doubleConfirmationText === 'CONFIRMAR ZERO INVENTARIO';
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 backdrop-blur-xl bg-black/40 animate-in fade-in duration-300">
       <div 
-        className={`w-full max-w-2xl max-h-[90vh] flex flex-col rounded-3xl shadow-2xl border overflow-hidden ${
-          isDarkMode ? 'bg-gray-900/95 border-white/10' : 'bg-white/95 border-white/40'
-        }`}
+        className={`w-full max-w-2xl max-h-[90vh] flex flex-col rounded-3xl shadow-2xl border overflow-hidden bg-white/95 border-white/40`}
       >
         {/* Header */}
-        <div className={`modal-header-std modal-header-std-dark ${
-          isDarkMode ? 'border-white/10 bg-gray-900/80' : 'border-gray-100 bg-white/80'
-        }`}>
+        <div className={`modal-header-std modal-header-std-dark border-gray-100 bg-white/80`}>
           <div className="flex items-center gap-2.5">
-            <div className={`p-2 rounded-lg ${isDarkMode ? 'bg-red-500/20 text-red-400' : 'bg-red-100 text-red-600'}`}>
+            <div className="p-2 rounded-lg bg-red-100 text-red-600">
               <RefreshCw size={20} />
             </div>
             <div>
-              <h2 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+              <h2 className="text-lg font-bold text-[#0A2540]">
                 Ajuste de Inventario
               </h2>
-              <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              <p className="text-xs text-[#697386]">
                 Realiza ajustes de stock o vacía inventarios en lote
               </p>
             </div>

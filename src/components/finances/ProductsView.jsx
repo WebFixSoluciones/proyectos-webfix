@@ -6,18 +6,16 @@ import {
   Edit2,
   Package,
   AlertTriangle,
-  CheckCircle2,
-} from "lucide-react";
+  CheckCircle2} from "lucide-react";
 import {
   collection,
   onSnapshot,
   doc,
   setDoc,
   deleteDoc,
-  getDoc,
-} from "firebase/firestore";
+  getDoc} from "firebase/firestore";
 
-export default function ProductsView({ isDarkMode, showToast, db, appId }) {
+export default function ProductsView({ showToast, db, appId }) {
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
@@ -38,8 +36,7 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
     marca: "",
     categoria: "",
     bodega: "Bodega Central",
-    codigoBarras: "",
-  });
+    codigoBarras: ""});
 
   // Cargar configuraciones del emisor para obtener las bodegas
   useEffect(() => {
@@ -102,8 +99,7 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
         categoria: formData.categoria || "",
         bodega: formData.bodega || "Bodega Central",
         codigoBarras: formData.codigoBarras || "",
-        updatedAt: new Date().toISOString(),
-      };
+        updatedAt: new Date().toISOString()};
 
       await setDoc(
         doc(
@@ -166,8 +162,7 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
       marca: "",
       categoria: "",
       bodega: "Bodega Central",
-      codigoBarras: "",
-    });
+      codigoBarras: ""});
   };
 
   const filtered = products.filter((p) => {
@@ -179,7 +174,7 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
   });
 
   const inputClass = `w-full text-xs px-3.5 py-3 rounded-xl outline-none transition-all border ${
-    isDarkMode ? "glass-input-dark" : "glass-input-light"
+     ? "glass-input-dark" : "glass-input-light"
   }`;
 
   return (
@@ -201,14 +196,12 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
           <div
             className={`flex items-center gap-2 px-3.5 py-2 rounded-[10px] border w-full sm:w-80 transition-all focus-within:ring-1 focus-within:ring-primary/25 ${
-              isDarkMode 
-                ? "bg-[#151722]/80 border-white/10 focus-within:border-primary/50" 
-                : "bg-white border-slate-200 focus-within:border-primary"
+              "bg-white border-[#E6EBF1] focus-within:border-primary"
             }`}
           >
             <Search
               size={14}
-              className={isDarkMode ? "text-gray-500" : "text-gray-400"}
+              className={ ? "text-[#697386]" : "text-[#697386]"}
             />
             <input
               type="text"
@@ -222,14 +215,12 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
             className={`px-3 py-2 rounded-[10px] border text-xs font-medium outline-none transition-all cursor-pointer ${
-              isDarkMode 
-                ? "bg-[#151722]/80 border-white/10 text-gray-300 focus:border-primary/50" 
-                : "bg-white border-slate-200 text-slate-700 focus:border-primary"
+              "bg-white border-[#E6EBF1] text-[#425466] focus:border-primary"
             }`}
           >
-            <option value="all" className="text-black">Todos los tipos</option>
-            <option value="producto" className="text-black">Productos físicos</option>
-            <option value="servicio" className="text-black">Servicios / Horas</option>
+            <option value="all" className="text-[#0A2540]">Todos los tipos</option>
+            <option value="producto" className="text-[#0A2540]">Productos físicos</option>
+            <option value="servicio" className="text-[#0A2540]">Servicios / Horas</option>
           </select>
         </div>
       </div>
@@ -237,9 +228,7 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
       {/* TABLA CATÁLOGO */}
       <div
         className={`rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm ${
-          isDarkMode 
-            ? "border-white/5 bg-[#0f111a]/85 shadow-lg shadow-black/40" 
-            : "border-slate-200/80 bg-white"
+          "border-[#E6EBF1]/80 bg-white"
         }`}
       >
         {loading ? (
@@ -251,9 +240,7 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
             <table className="w-full text-left text-xs whitespace-nowrap">
               <thead
                 className={`text-[10px] uppercase font-bold tracking-wider ${
-                  isDarkMode 
-                    ? "bg-black/35 text-slate-400 border-b border-white/5" 
-                    : "bg-slate-50 text-slate-600 border-b border-slate-100"
+                  "bg-[#F6F9FC] text-[#425466] border-b border-[#E6EBF1]"
                 }`}
               >
                 <tr>
@@ -268,7 +255,7 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
                 </tr>
               </thead>
               <tbody
-                className={`divide-y ${isDarkMode ? "divide-white/5" : "divide-slate-100"}`}
+                className={`divide-y ${ ? "divide-white/5" : "divide-[#E6EBF1]"}`}
               >
                 {filtered.map((p) => {
                   const isLow = p.type === "producto" && p.stock <= p.minStock;
@@ -277,37 +264,37 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
                   return (
                     <tr
                       key={p.id}
-                      className={`transition-colors ${isDarkMode ? "hover:bg-white/[0.015]" : "hover:bg-slate-50/40"}`}
+                      className={`transition-colors ${ ? "hover:bg-white/[0.015]" : "hover:bg-[#F6F9FC]/40"}`}
                     >
                       <td
-                        className={`px-6 py-3.5 font-mono text-[10px] font-bold ${isDarkMode ? "text-gray-300" : "text-[#000000]"}`}
+                        className={`px-6 py-3.5 font-mono text-[10px] font-bold ${ ? "text-[#697386]" : "text-[#000000]"}`}
                       >
                         {p.sku}
                       </td>
                       <td className="px-6 py-3.5">
                         <div
-                          className={`font-bold text-xs ${isDarkMode ? "text-white" : "text-[#000000]"}`}
+                          className={`font-bold text-xs ${ ? "text-white" : "text-[#000000]"}`}
                         >
                           {p.name}
                         </div>
                         <div className="flex flex-wrap gap-1 mt-1 text-[9px] font-bold uppercase tracking-wider">
                           {p.marca && (
                             <span
-                              className={`px-1.5 py-0.5 rounded-[10px] ${isDarkMode ? "bg-white/5 text-gray-400" : "bg-primary-light text-black border border-primary/10"}`}
+                              className={`px-1.5 py-0.5 rounded-[10px] ${ ? "bg-white/5 text-[#697386]" : "bg-primary-light text-[#0A2540] border border-primary/10"}`}
                             >
                               Marca: {p.marca}
                             </span>
                           )}
                           {p.categoria && (
                             <span
-                              className={`px-1.5 py-0.5 rounded-[10px] ${isDarkMode ? "bg-white/5 text-gray-400" : "bg-primary-light text-black border border-primary/10"}`}
+                              className={`px-1.5 py-0.5 rounded-[10px] ${ ? "bg-white/5 text-[#697386]" : "bg-primary-light text-[#0A2540] border border-primary/10"}`}
                             >
                               Cat: {p.categoria}
                             </span>
                           )}
                           {p.bodega && (
                             <span
-                              className={`px-1.5 py-0.5 rounded-[10px] ${isDarkMode ? "bg-primary/10 text-primary border border-primary/10" : "bg-primary/10 text-primary border border-primary/25"}`}
+                              className={`px-1.5 py-0.5 rounded-[10px] ${ ? "bg-primary/10 text-primary border border-primary/10" : "bg-primary/10 text-primary border border-primary/25"}`}
                             >
                               Bodega: {p.bodega}
                             </span>
@@ -315,7 +302,7 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
                         </div>
                         {p.description && (
                           <p
-                            className={`text-[9px] font-bold truncate mt-1 max-w-[220px] ${isDarkMode ? "text-gray-505" : "text-gray-500"}`}
+                            className={`text-[9px] font-bold truncate mt-1 max-w-[220px] ${ ? "text-[#697386]" : "text-[#697386]"}`}
                             title={p.description}
                           >
                             {p.description}
@@ -326,35 +313,31 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
                         <span
                           className={`px-2 py-0.5 rounded-[10px] text-[9px] font-bold uppercase border ${
                             p.type === "producto"
-                              ? isDarkMode
-                                ? "bg-primary/10 text-primary border-primary/20"
-                                : "bg-primary-light text-primary border-primary/25"
-                              : isDarkMode
-                                ? "bg-purple-500/10 text-purple-400 border-purple-500/20"
-                                : "bg-purple-50 text-purple-700 border-purple-200"
+                              "bg-primary-light text-primary border-primary/25"
+                              "bg-purple-50 text-purple-700 border-purple-200"
                           }`}
                         >
                           {p.type}
                         </span>
                       </td>
                       <td
-                        className={`px-6 py-3.5 text-right font-bold ${isDarkMode ? "text-gray-300" : "text-[#000000]"}`}
+                        className={`px-6 py-3.5 text-right font-bold ${ ? "text-[#697386]" : "text-[#000000]"}`}
                       >
                         ${Number(p.cost || 0).toFixed(2)}
                       </td>
                       <td
-                        className={`px-6 py-3.5 text-right font-black ${isDarkMode ? "text-white" : "text-primary"}`}
+                        className={`px-6 py-3.5 text-right font-black ${ ? "text-white" : "text-primary"}`}
                       >
                         ${Number(p.price || 0).toFixed(2)}
                       </td>
                       <td
-                        className={`px-6 py-3.5 font-bold ${isDarkMode ? "text-gray-400" : "text-[#000000]"}`}
+                        className={`px-6 py-3.5 font-bold ${ ? "text-[#697386]" : "text-[#000000]"}`}
                       >
                         {p.ivaCategory}%
                       </td>
                       <td className="px-6 py-3.5 text-center">
                         {p.type === "servicio" ? (
-                          <span className="text-gray-500 italic font-medium">
+                          <span className="text-[#697386] italic font-medium">
                             N/A
                           </span>
                         ) : isOut ? (
@@ -405,7 +388,7 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
                   <tr>
                     <td
                       colSpan="8"
-                      className="px-6 py-12 text-center text-gray-500 italic"
+                      className="px-6 py-12 text-center text-[#697386] italic"
                     >
                       No se encontraron productos o servicios en el catálogo.
                     </td>
@@ -421,7 +404,7 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-md animate-in fade-in duration-200">
           <div
-            className={`w-full max-w-lg p-6 sm:p-8 rounded-[2rem] shadow-2xl transition-all duration-300 border ${isDarkMode ? "glass-panel-dark text-white" : "bg-[#f3f8ff] border-primary/15 text-[#000000]"}`}
+            className={`w-full max-w-lg p-6 sm:p-8 rounded-[2rem] shadow-2xl transition-all duration-300 border ${ ? "glass-panel-dark text-white" : "bg-[#f3f8ff] border-primary/15 text-[#000000]"}`}
           >
             <div className="flex justify-between items-center mb-6 pb-2 border-b border-white/5">
               <h2 className="text-base font-bold font-display uppercase tracking-wider">
@@ -429,7 +412,7 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
               </h2>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="btn-icon text-gray-450 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                className="btn-icon text-gray-450 hover:text-[#0A2540] dark:text-[#697386] dark:hover:text-white"
               >
                 <Plus size={16} className="rotate-45" />
               </button>
@@ -439,7 +422,7 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
                   <label
-                    className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}
+                    className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-[#697386]" : "text-[#425466]"}`}
                   >
                     Nombre del Ítem
                   </label>
@@ -457,7 +440,7 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
 
                 <div>
                   <label
-                    className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}
+                    className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-[#697386]" : "text-[#425466]"}`}
                   >
                     Código SKU
                   </label>
@@ -475,7 +458,7 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
 
                 <div>
                   <label
-                    className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}
+                    className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-[#697386]" : "text-[#425466]"}`}
                   >
                     Tipo de Ítem
                   </label>
@@ -486,10 +469,10 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
                     }
                     className={`${inputClass} cursor-pointer`}
                   >
-                    <option value="producto" className="text-black">
+                    <option value="producto" className="text-[#0A2540]">
                       Producto Físico
                     </option>
-                    <option value="servicio" className="text-black">
+                    <option value="servicio" className="text-[#0A2540]">
                       Servicio / Horas
                     </option>
                   </select>
@@ -497,7 +480,7 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
 
                 <div className="col-span-2">
                   <label
-                    className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}
+                    className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-[#697386]" : "text-[#425466]"}`}
                   >
                     Descripción
                   </label>
@@ -513,7 +496,7 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
 
                 <div>
                   <label
-                    className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}
+                    className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-[#697386]" : "text-[#425466]"}`}
                   >
                     Costo Adquisición ($)
                   </label>
@@ -531,7 +514,7 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
 
                 <div>
                   <label
-                    className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}
+                    className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-[#697386]" : "text-[#425466]"}`}
                   >
                     Precio Venta (P.V.P $)
                   </label>
@@ -549,7 +532,7 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
 
                 <div>
                   <label
-                    className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}
+                    className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-[#697386]" : "text-[#425466]"}`}
                   >
                     Tarifa IVA
                   </label>
@@ -560,13 +543,13 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
                     }
                     className={inputClass}
                   >
-                    <option value="15" className="text-black">
+                    <option value="15" className="text-[#0A2540]">
                       15% IVA (Ecuador)
                     </option>
-                    <option value="12" className="text-black">
+                    <option value="12" className="text-[#0A2540]">
                       12% IVA
                     </option>
-                    <option value="0" className="text-black">
+                    <option value="0" className="text-[#0A2540]">
                       0% IVA
                     </option>
                   </select>
@@ -574,7 +557,7 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
 
                 <div>
                   <label
-                    className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}
+                    className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-[#697386]" : "text-[#425466]"}`}
                   >
                     Marca
                   </label>
@@ -590,7 +573,7 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
                 </div>
                 <div>
                   <label
-                    className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}
+                    className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-[#697386]" : "text-[#425466]"}`}
                   >
                     Categoría
                   </label>
@@ -606,7 +589,7 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
                 </div>
                 <div>
                   <label
-                    className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}
+                    className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-[#697386]" : "text-[#425466]"}`}
                   >
                     Bodega / Ubicación
                   </label>
@@ -619,7 +602,7 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
                       className={inputClass}
                     >
                       {settings.bodegas.map(wh => (
-                        <option key={wh} value={wh} className="text-black">{wh}</option>
+                        <option key={wh} value={wh} className="text-[#0A2540]">{wh}</option>
                       ))}
                     </select>
                   ) : (
@@ -636,7 +619,7 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
                 </div>
                 <div className="col-span-2">
                   <label
-                    className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}
+                    className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-[#697386]" : "text-[#425466]"}`}
                   >
                     Código de Barras
                   </label>
@@ -655,7 +638,7 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
                   <>
                     <div>
                       <label
-                        className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}
+                        className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-[#697386]" : "text-[#425466]"}`}
                       >
                         Stock Inicial
                       </label>
@@ -671,7 +654,7 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
                     </div>
                     <div>
                       <label
-                        className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}
+                        className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-[#697386]" : "text-[#425466]"}`}
                       >
                         Stock Mínimo (Alerta)
                       </label>

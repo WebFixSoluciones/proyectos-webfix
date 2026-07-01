@@ -4,7 +4,7 @@ import { doc, setDoc, deleteDoc } from 'firebase/firestore';
 import { analizarTextoFacturaConGemini } from '../../services/geminiService';
 import { getEcuadorDateString } from '../../services/sriService';
 
-export default function ComprasGastosView({ transactions = [], isDarkMode, showToast, db, appId }) {
+export default function ComprasGastosView({ transactions = [], showToast, db, appId }) {
   const [pastedText, setPastedText] = useState('');
   const [analyzing, setAnalyzing] = useState(false);
   const [parsedData, setParsedData] = useState(null);
@@ -111,11 +111,7 @@ Gracias por su compra`;
 
   const currentExpenses = transactions.filter(t => t.type === 'egreso' && t.id.includes('gasto'));
 
-  const inputClass = `w-full text-xs px-3 py-2 rounded-xl outline-none transition-all border ${
-    isDarkMode 
-      ? 'bg-black/25 border-white/10 text-white focus:border-primary/50' 
-      : 'bg-white border-gray-300 text-gray-900 focus:border-primary focus:ring-1 focus:ring-primary/35'
-  }`;
+  const inputClass = 'w-full text-xs px-3 py-2 rounded-xl outline-none transition-all border bg-white border-[#E6EBF1] text-[#0A2540] focus:border-primary focus:ring-1 focus:ring-primary/35';
 
   return (
     <div className="space-y-6">
@@ -124,15 +120,13 @@ Gracias por su compra`;
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         {/* ENTRADA DE TEXTO */}
-        <div className={`p-6 rounded-3xl border space-y-4 ${
-          isDarkMode ? 'surface-card border-white/5' : 'bg-white border-gray-200'
-        }`}>
+        <div className="p-6 rounded-3xl border space-y-4 bg-white border-[#E6EBF1]">
           <div>
             <h3 className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
               <Sparkles size={16} className="text-amber-500 animate-pulse" />
               <span>Categorizador de Gastos con Inteligencia Artificial</span>
             </h3>
-            <p className="text-[10px] text-gray-500 mt-1">Pegue el texto copiado de un correo de facturación o el texto extraído de un ticket y Gemini identificará los montos, proveedor y tipo de gasto contable.</p>
+            <p className="text-[10px] text-[#697386] mt-1">Pegue el texto copiado de un correo de facturación o el texto extraído de un ticket y Gemini identificará los montos, proveedor y tipo de gasto contable.</p>
           </div>
 
           <div className="flex gap-2 text-[10px] font-bold">
@@ -157,11 +151,7 @@ Gracias por su compra`;
             onChange={e => setPastedText(e.target.value)}
             placeholder="Pegue aquí el texto de su factura..."
             rows={8}
-            className={`w-full text-xs p-4 rounded-2xl outline-none border transition-all ${
-              isDarkMode 
-                ? 'bg-black/30 border-white/5 text-gray-300 focus:border-primary/50' 
-                : 'bg-gray-50 border-gray-200 text-gray-900 focus:bg-white focus:border-primary'
-            }`}
+            className="w-full text-xs p-4 rounded-2xl outline-none border transition-all bg-[#F6F9FC] border-[#E6EBF1] text-[#0A2540] focus:bg-white focus:border-primary"
           />
 
           <button
@@ -175,9 +165,7 @@ Gracias por su compra`;
         </div>
 
         {/* RESULTADO DEL ANÁLISIS */}
-        <div className={`p-6 rounded-3xl border flex flex-col justify-between ${
-          isDarkMode ? 'surface-card border-white/5' : 'bg-white border-gray-200'
-        }`}>
+        <div className="p-6 rounded-3xl border flex flex-col justify-between bg-white border-[#E6EBF1]">
           {parsedData ? (
             <form onSubmit={handleSaveGasto} className="space-y-4 h-full flex flex-col justify-between">
               <div>

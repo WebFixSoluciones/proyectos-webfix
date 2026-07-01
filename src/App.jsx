@@ -1978,15 +1978,9 @@ export default function App() {
       <Route path="/superadmin" element={<SuperAdminPage showToast={showToast} />} />
       <Route path="/public/ride" element={<PublicRideView />} />
       <Route path="/app/*" element={
-        <div className={`flex h-screen w-full font-sans overflow-hidden transition-colors duration-500 relative z-0 ${isDarkMode ? 'bg-[#08080a] text-gray-100' : 'bg-[#f4f4f9] text-gray-800'}`}>
-      
-      {/* GLOBAL BACKGROUND BLOBS (Glassmorphism Core) */}
-      <div className={`absolute top-[-10%] left-[-5%] w-[40rem] h-[40rem] rounded-full mix-blend-screen filter blur-[120px] opacity-40 pointer-events-none -z-10 ${isDarkMode ? 'bg-purple-900' : 'bg-purple-300'}`}></div>
-      <div className={`absolute top-[20%] right-[-10%] w-[35rem] h-[35rem] rounded-full mix-blend-screen filter blur-[100px] opacity-30 pointer-events-none -z-10 ${isDarkMode ? 'bg-primary' : 'bg-primary'}`}></div>
-      <div className={`absolute bottom-[-10%] left-[20%] w-[40rem] h-[40rem] rounded-full mix-blend-screen filter blur-[120px] opacity-30 pointer-events-none -z-10 ${isDarkMode ? 'bg-emerald-900' : 'bg-emerald-300'}`}></div>
+        <div className="flex h-screen w-full font-sans overflow-hidden relative z-0 bg-[#F6F9FC] text-[#0A2540]">
 
       <Sidebar
-        isDarkMode={isDarkMode}
         isSidebarOpen={isSidebarOpen}
         setIsSidebarOpen={setIsSidebarOpen}
         activePageId={activePageId}
@@ -2017,61 +2011,44 @@ export default function App() {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col h-full overflow-hidden relative z-10 md:z-[60]">
         
-        {/* Floating Topbar */}
-        <div className={`mt-0 mx-0 mb-3 rounded-none flex flex-col md:flex-row md:items-center px-4 py-2.5 justify-between gap-4 shrink-0 border-b border-t-0 border-x-0 ${isDarkMode ? 'bg-[#151517] border-white/5 shadow-sm' : 'bg-white border-slate-200 shadow-sm'}`}>
+        {/* Topbar Stripe */}
+        <div className="flex flex-col md:flex-row md:items-center px-5 py-2.5 justify-between gap-4 shrink-0 bg-white border-b border-[#E6EBF1]">
           <div className="flex items-center gap-3">
-            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-white/10 text-gray-400' : 'hover:bg-white/60 text-gray-600'}`}><Menu size={18} /></button>
-            <div className={`p-2 rounded-xl border ${isDarkMode ? 'bg-primary/25 text-primary border-primary/20 shadow-sm' : 'bg-primary/10 text-primary border border-primary/15 shadow-sm'}`}>
-              <IconRenderer name={headerDetails.icon} size={16} />
+            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-1.5 rounded-md transition-colors hover:bg-[#F6F9FC] text-[#697386]"><Menu size={18} /></button>
+            <div className="p-1.5 rounded-md bg-[color-mix(in_srgb,var(--primary-color)_8%,transparent)] text-[var(--primary-color)]">
+              <IconRenderer name={headerDetails.icon} size={15} />
             </div>
             <div className="flex flex-col">
-              <h1 className={`text-sm md:text-base font-extrabold tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{headerDetails.title}</h1>
-              <p className={`text-[9px] md:text-[10px] font-medium hidden sm:inline-block ${isDarkMode ? 'text-gray-400' : 'text-gray-550'}`}>{headerDetails.desc}</p>
+              <h1 className="text-[15px] font-semibold tracking-tight text-[#0A2540]">{headerDetails.title}</h1>
+              <p className="text-[11px] font-medium hidden sm:inline-block text-[#697386]">{headerDetails.desc}</p>
             </div>
           </div>
-          <div className="flex items-center gap-1.5 md:gap-2 flex-wrap">
-            
-            {/* BOTÓN RÁPIDO POS */}
+          <div className="flex items-center gap-2 flex-wrap">
             {activeModules.ventas && (
               <button 
-                onClick={() => {
-                  setVentasInitialSubTab(`pos_${Date.now()}`);
-                  setActivePageId('ventas');
-                }} 
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all shadow-sm shrink-0 border ${
-                  isDarkMode 
-                    ? 'bg-orange-500/15 border-orange-500/30 text-orange-400 hover:bg-orange-500/25' 
-                    : 'bg-orange-50 border border-orange-200 text-orange-950 hover:bg-orange-100'
-                }`}
-                title="Abrir Punto de Venta (POS)"
-              >
-                <Calculator size={14} className={isDarkMode ? 'text-orange-400' : 'text-orange-600'} />
+                onClick={() => { setVentasInitialSubTab(`pos_${Date.now()}`); setActivePageId('ventas'); }} 
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium transition-all shrink-0 border border-[#E6EBF1] bg-[#FFF8E5] text-[#8B5A0B] hover:bg-[#FFF1CC]"
+                title="Abrir Punto de Venta (POS)">
+                <Calculator size={14} />
                 <span className="hidden sm:inline">Punto de venta</span>
               </button>
             )}
-
-            {/* BOTÓN ASISTENTE AI GLOBAL */}
             <button 
               onClick={() => setIsGlobalChatOpen(!isGlobalChatOpen)} 
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all border shrink-0 ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium transition-all border shrink-0 ${
                 isGlobalChatOpen 
-                  ? 'bg-purple-650 border-purple-650 text-white shadow-md' 
-                  : (isDarkMode ? 'bg-purple-500/15 border-purple-500/30 text-purple-400 hover:bg-purple-500/25' : 'bg-purple-50 border-purple-200 text-purple-950 hover:bg-purple-100')
+                  ? 'bg-[var(--primary-color)] border-[var(--primary-color)] text-white' 
+                  : 'bg-white border-[#E6EBF1] text-[#425466] hover:bg-[#F6F9FC]'
               }`}
-              title="Abrir Asistente AI"
-            >
-              <Sparkles size={14} className={isGlobalChatOpen ? 'text-white' : 'text-purple-600 dark:text-purple-450'} />
+              title="Abrir Asistente AI">
+              <Sparkles size={14} />
               <span className="hidden sm:inline">Asistente AI</span>
             </button>
-
-            <button onClick={() => setActivePageId('general_settings')} className={`p-2 rounded-xl transition-colors ${isDarkMode ? 'hover:bg-white/10 text-gray-400' : 'hover:bg-[#f3f8ff] text-black'}`} title="Ajustes"><Settings size={16} /></button>
-
-            
-            {/* Eliminar Proyecto desde el Header */}
+            <button onClick={() => setActivePageId('general_settings')} className="p-2 rounded-md transition-colors hover:bg-[#F6F9FC] text-[#697386]" title="Ajustes"><Settings size={16} /></button>
             {(activePage.type === 'project' || activePage.type === 'doc') ? (
-              <button onClick={(e) => deletePage(activePageId, e)} className={`p-2 rounded-xl transition-colors ${isDarkMode ? 'hover:bg-red-500/20 text-gray-400 hover:text-red-400' : 'hover:bg-red-50 text-red-700 hover:text-red-700'}`} title="Eliminar"><Trash2 size={16} /></button>
+              <button onClick={(e) => deletePage(activePageId, e)} className="p-2 rounded-md transition-colors hover:bg-[#FFF0F0] text-[#697386] hover:text-[#CD2B31]" title="Eliminar"><Trash2 size={16} /></button>
             ) : (
-              <div className="w-8"></div> /* Spacer para mantener alineación */
+              <div className="w-8"></div>
             )}
           </div>
         </div>
