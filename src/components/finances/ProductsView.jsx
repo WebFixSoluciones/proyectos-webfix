@@ -290,7 +290,7 @@ export default function ProductsView({ isDarkMode, showToast, db, appId }) {
                         >
                           {p.name}
                         </div>
-                        <div className="flex flex-wrap gap-1 mt-1 text-[8px] font-bold uppercase tracking-wider">
+                        <div className="flex flex-wrap gap-1 mt-1 text-[9px] font-bold uppercase tracking-wider">
                           {p.marca && (
                             <span
                               className={`px-1.5 py-0.5 rounded-[10px] ${isDarkMode ? "bg-white/5 text-gray-400" : "bg-primary-light text-black border border-primary/10"}`}

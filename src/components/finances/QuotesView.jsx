@@ -211,13 +211,13 @@ export default function QuotesView({ products, thirdParties, isDarkMode, showToa
   const getStatusBadge = (status) => {
     switch (status) {
       case 'facturado': 
-        return <span className="text-[9px] px-2 py-0.5 rounded-[10px] bg-emerald-500/20 text-emerald-500 font-bold uppercase">Facturado</span>;
+        return <span className="badge-status bg-emerald-500/20 text-emerald-500 font-bold uppercase">Facturado</span>;
       case 'enviado': 
-        return <span className="text-[9px] px-2 py-0.5 rounded-[10px] bg-primary/20 text-primary font-bold uppercase">Enviado</span>;
+        return <span className="badge-status bg-primary/20 text-primary font-bold uppercase">Enviado</span>;
       case 'vencido': 
-        return <span className="text-[9px] px-2 py-0.5 rounded-[10px] bg-red-500/20 text-red-500 font-bold uppercase">Vencido</span>;
+        return <span className="badge-status bg-red-500/20 text-red-500 font-bold uppercase">Vencido</span>;
       default: 
-        return <span className="text-[9px] px-2 py-0.5 rounded-[10px] bg-gray-550/20 text-gray-550 font-bold uppercase">Borrador</span>;
+        return <span className="badge-status bg-gray-550/20 text-gray-550 font-bold uppercase">Borrador</span>;
     }
   };
 

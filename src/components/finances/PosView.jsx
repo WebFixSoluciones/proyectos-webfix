@@ -2170,7 +2170,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                               }`}>
                                 <m.icon size={12} />
                               </div>
-                              <span className="text-[8px] font-bold uppercase tracking-wide">{m.label}</span>
+                              <span className="text-[9px] font-bold uppercase tracking-wide">{m.label}</span>
                             </button>
                           );
                         })}
@@ -2894,7 +2894,7 @@ export default function PosView({ products, thirdParties, transactions = [], isD
                         {tx.items && tx.items.length > 0 && (
                           <div className="border-t border-white/5 mt-1 pt-1 max-h-16 overflow-y-auto custom-scrollbar">
                             {tx.items.map((it, idx) => (
-                              <div key={idx} className="flex justify-between text-[8px] text-gray-500">
+                              <div key={idx} className="flex justify-between text-[9px] text-gray-500">
                                 <span className="truncate max-w-[150px]">{it.quantity}x {it.name}</span>
                                 <span>${(it.price * it.quantity).toFixed(2)}</span>
                               </div>

@@ -133,7 +133,7 @@ export default function AccountsReceivablePayable({ type = 'cxc', transactions =
       
       {/* TARJETAS DE MÉTRICAS */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div className={`p-5 rounded-3xl border shadow-sm ${isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'}`}>
+        <div className={`p-5 rounded-3xl border shadow-sm ${isDarkMode ? 'surface-card border-white/5' : 'bg-white border-gray-200'}`}>
           <div className="flex items-center justify-between mb-2">
             <span className="text-[10px] font-black uppercase text-gray-500 tracking-wider">
               {isCxC ? 'Total Cuentas por Cobrar' : 'Total Cuentas por Pagar'}
@@ -146,7 +146,7 @@ export default function AccountsReceivablePayable({ type = 'cxc', transactions =
           <p className="text-[9px] text-gray-400 mt-1">Suma del saldo neto pendiente en {filteredTxs.length} documentos</p>
         </div>
 
-        <div className={`p-5 rounded-3xl border shadow-sm ${isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'}`}>
+        <div className={`p-5 rounded-3xl border shadow-sm ${isDarkMode ? 'surface-card border-white/5' : 'bg-white border-gray-200'}`}>
           <div className="flex items-center justify-between mb-2">
             <span className="text-[10px] font-black uppercase text-gray-500 tracking-wider">Monto Total Facturado</span>
             <div className="p-1.5 rounded-lg bg-primary/10 text-primary">
@@ -157,7 +157,7 @@ export default function AccountsReceivablePayable({ type = 'cxc', transactions =
           <p className="text-[9px] text-gray-400 mt-1">Valor histórico total de los comprobantes pendientes</p>
         </div>
 
-        <div className={`p-5 rounded-3xl border shadow-sm ${isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'}`}>
+        <div className={`p-5 rounded-3xl border shadow-sm ${isDarkMode ? 'surface-card border-white/5' : 'bg-white border-gray-200'}`}>
           <div className="flex items-center justify-between mb-2">
             <span className="text-[10px] font-black uppercase text-gray-500 tracking-wider">
               {isCxC ? 'Clientes Deudores' : 'Proveedores Acreedores'}

@@ -443,7 +443,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1.5">Sucursal *</label>
+                  <label className="label-field label-field-dark">Sucursal *</label>
                   <select 
                     value={formData.branch}
                     onChange={e => setFormData(prev => ({ ...prev, branch: e.target.value }))}
@@ -458,7 +458,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
                 </div>
                 
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1.5">Bodega de Destino *</label>
+                  <label className="label-field label-field-dark">Bodega de Destino *</label>
                   <select 
                     value={formData.bodega}
                     onChange={e => setFormData(prev => ({ ...prev, bodega: e.target.value }))}
@@ -482,7 +482,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1.5">Tipo de Documento *</label>
+                  <label className="label-field label-field-dark">Tipo de Documento *</label>
                   <select 
                     value={formData.documentType}
                     onChange={e => setFormData(prev => ({ ...prev, documentType: e.target.value }))}
@@ -497,7 +497,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1.5">Fecha de Emisión *</label>
+                  <label className="label-field label-field-dark">Fecha de Emisión *</label>
                   <input 
                     type="date"
                     value={formData.date}
@@ -511,7 +511,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1.5 flex items-center gap-1.5">
+                  <label className="label-field label-field-dark flex items-center gap-1.5">
                     Clave de Acceso (49 dígitos) *
                     <span className="cursor-help text-gray-400" title="Al ingresar la clave de acceso de 49 dígitos del SRI, se auto-completan la fecha, número de documento y RUC del proveedor"><HelpCircle size={10} /></span>
                   </label>
@@ -534,7 +534,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1.5">Número de Comprobante *</label>
+                    <label className="label-field label-field-dark">Número de Comprobante *</label>
                     <input 
                       type="text"
                       value={formData.documentNumber}
@@ -547,7 +547,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1.5">Documento de Soporte / Serie</label>
+                    <label className="label-field label-field-dark">Documento de Soporte / Serie</label>
                     <input 
                       type="text"
                       value={formData.docSustento}
@@ -570,7 +570,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1.5">Proveedor *</label>
+                  <label className="label-field label-field-dark">Proveedor *</label>
                   <div className="flex gap-2">
                     <select
                       value={formData.thirdPartyId}
@@ -598,7 +598,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1.5">Referencia Interna</label>
+                    <label className="label-field label-field-dark">Referencia Interna</label>
                     <input 
                       type="text"
                       value={formData.reference}
@@ -611,7 +611,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties, products = [],
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1.5">Descripción general / Nota</label>
+                    <label className="label-field label-field-dark">Descripción general / Nota</label>
                     <input 
                       type="text"
                       value={formData.description}

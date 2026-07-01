@@ -116,7 +116,7 @@ export default function ServiceCreationForm({
       } custom-scrollbar`}
     >
       {/* Header */}
-      <div className={`sticky top-0 z-10 px-6 py-4 border-b backdrop-blur-md flex items-center justify-between ${
+      <div className={`modal-header-std modal-header-std-dark ${
         isDarkMode ? 'border-white/10 bg-gray-900/80' : 'border-gray-100 bg-white/80'
       }`}>
         <div className="flex items-center gap-3">

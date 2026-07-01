@@ -146,7 +146,7 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-[10px] font-bold uppercase mb-1 text-gray-500">Ambiente de Trabajo SRI</label>
+                <label className="label-field label-field-dark">Ambiente de Trabajo SRI</label>
                 <div className="grid grid-cols-2 gap-2 mt-1">
                   <button 
                     type="button" 
@@ -166,7 +166,7 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold uppercase mb-1 text-gray-500">Google Gemini API Key</label>
+                <label className="label-field label-field-dark">Google Gemini API Key</label>
                 <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border mt-1 ${isDarkMode ? 'bg-black/20 border-white/10' : 'bg-white border-gray-200'}`}>
                   <Key size={14} className="text-gray-500" />
                   <input 
@@ -188,7 +188,7 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-white/10">
               <div>
-                <label className="block text-[10px] font-bold uppercase mb-1 text-gray-500">Establecimiento (Estab.)</label>
+                <label className="label-field label-field-dark">Establecimiento (Estab.)</label>
                 <input
                   type="text"
                   maxLength={3}
@@ -200,7 +200,7 @@ export default function FinanceSettings({ isDarkMode, showToast, db, storage, ap
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase mb-1 text-gray-500">Punto de Emisión (Pto. Emi.)</label>
+                <label className="label-field label-field-dark">Punto de Emisión (Pto. Emi.)</label>
                 <input
                   type="text"
                   maxLength={3}

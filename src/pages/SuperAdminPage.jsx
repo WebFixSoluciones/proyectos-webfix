@@ -747,7 +747,7 @@ export default function SuperAdminPage({ showToast }) {
                           <p className="font-bold">{t.companyName || 'Empresa'}</p>
                           <p className="text-[10px] text-gray-400 font-mono">{t.id}</p>
                         </div>
-                        <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase ${
+                        <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${
                           t.planStatus === 'active' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'
                         }`}>
                           {t.planId}
@@ -1025,7 +1025,7 @@ export default function SuperAdminPage({ showToast }) {
                                       {user.role || 'Colaborador'}
                                     </td>
                                     <td className="px-4 py-3">
-                                      <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold ${user.active !== false ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
+                                      <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${user.active !== false ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
                                         {user.active !== false ? 'Activo' : 'Inactivo'}
                                       </span>
                                     </td>

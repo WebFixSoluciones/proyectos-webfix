@@ -15,7 +15,7 @@ export default function LandingPricing() {
     {
       id: 'starter',
       name: 'Starter',
-      price: billingPeriod === 'monthly' ? 29 : 23,
+      price: billingPeriod === 'monthly' ? 29 : Math.round(29 * 0.8),
       features: [
         "Facturación Electrónica ILIMITADA",
         "Dashboard de Ventas e Ingresos",
@@ -30,7 +30,7 @@ export default function LandingPricing() {
     {
       id: 'professional',
       name: 'Profesional',
-      price: billingPeriod === 'monthly' ? 79 : 63,
+      price: billingPeriod === 'monthly' ? 79 : Math.round(79 * 0.8),
       features: [
         "Todo lo de Starter",
         "Módulo de Inventario (Kárdex)",
@@ -45,7 +45,7 @@ export default function LandingPricing() {
     {
       id: 'enterprise',
       name: 'Enterprise',
-      price: billingPeriod === 'monthly' ? 149 : 119,
+      price: billingPeriod === 'monthly' ? 149 : Math.round(149 * 0.8),
       features: [
         "Todo lo de Profesional",
         "Contabilidad Completa Avanzada",
@@ -97,7 +97,7 @@ export default function LandingPricing() {
             onClick={() => setBillingPeriod('yearly')}
             className={`px-4 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer border-none ${billingPeriod === 'yearly' ? 'bg-primary text-white' : 'text-gray-500 hover:text-gray-700 bg-transparent'}`}
           >
-            Anual <span className="px-1.5 py-0.5 rounded bg-emerald-500 text-white text-[8px] font-black tracking-widest">-20%</span>
+            Anual <span className="px-1.5 py-0.5 rounded bg-emerald-500 text-white text-[9px] font-black tracking-widest">-20%</span>
           </button>
         </div>
       </div>

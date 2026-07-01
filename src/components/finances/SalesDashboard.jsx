@@ -148,7 +148,7 @@ export default function SalesDashboard({ transactions, thirdParties, products, i
             </div>
           </div>
           <div className="shrink-0 flex items-center gap-2">
-            <span className={`text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded border ${
+            <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded border ${
               activeSession 
                 ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' 
                 : 'bg-orange-500/10 border-orange-500/30 text-orange-400'

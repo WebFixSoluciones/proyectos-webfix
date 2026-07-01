@@ -125,7 +125,7 @@ Gracias por su compra`;
         
         {/* ENTRADA DE TEXTO */}
         <div className={`p-6 rounded-3xl border space-y-4 ${
-          isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'
+          isDarkMode ? 'surface-card border-white/5' : 'bg-white border-gray-200'
         }`}>
           <div>
             <h3 className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
@@ -176,7 +176,7 @@ Gracias por su compra`;
 
         {/* RESULTADO DEL ANÁLISIS */}
         <div className={`p-6 rounded-3xl border flex flex-col justify-between ${
-          isDarkMode ? 'bg-[#151517] border-white/5' : 'bg-white border-gray-200'
+          isDarkMode ? 'surface-card border-white/5' : 'bg-white border-gray-200'
         }`}>
           {parsedData ? (
             <form onSubmit={handleSaveGasto} className="space-y-4 h-full flex flex-col justify-between">
@@ -190,7 +190,7 @@ Gracias por su compra`;
 
                 <div className="grid grid-cols-2 gap-3 text-xs">
                   <div className="col-span-2">
-                    <label className="block text-[9px] font-bold uppercase text-gray-500 mb-1">Razón Social Proveedor</label>
+                    <label className="label-field label-field-dark">Razón Social Proveedor</label>
                     <input
                       type="text"
                       required
@@ -200,7 +200,7 @@ Gracias por su compra`;
                     />
                   </div>
                   <div>
-                    <label className="block text-[9px] font-bold uppercase text-gray-500 mb-1">RUC Proveedor</label>
+                    <label className="label-field label-field-dark">RUC Proveedor</label>
                     <input
                       type="text"
                       required
@@ -210,7 +210,7 @@ Gracias por su compra`;
                     />
                   </div>
                   <div>
-                    <label className="block text-[9px] font-bold uppercase text-gray-500 mb-1">Nro de Documento</label>
+                    <label className="label-field label-field-dark">Nro de Documento</label>
                     <input
                       type="text"
                       required
@@ -220,7 +220,7 @@ Gracias por su compra`;
                     />
                   </div>
                   <div>
-                    <label className="block text-[9px] font-bold uppercase text-gray-500 mb-1">Fecha Emisión</label>
+                    <label className="label-field label-field-dark">Fecha Emisión</label>
                     <input
                       type="date"
                       required
@@ -230,7 +230,7 @@ Gracias por su compra`;
                     />
                   </div>
                   <div>
-                    <label className="block text-[9px] font-bold uppercase text-gray-500 mb-1">Categoría Gasto</label>
+                    <label className="label-field label-field-dark">Categoría Gasto</label>
                     <select
                       value={parsedData.category || ''}
                       onChange={e => setParsedData({ ...parsedData, category: e.target.value })}
@@ -244,7 +244,7 @@ Gracias por su compra`;
                     </select>
                   </div>
                   <div>
-                    <label className="block text-[9px] font-bold uppercase text-gray-500 mb-1">Base Imponible ($)</label>
+                    <label className="label-field label-field-dark">Base Imponible ($)</label>
                     <input
                       type="number"
                       step="0.01"
@@ -255,7 +255,7 @@ Gracias por su compra`;
                     />
                   </div>
                   <div>
-                    <label className="block text-[9px] font-bold uppercase text-gray-500 mb-1">IVA Cobrado ($)</label>
+                    <label className="label-field label-field-dark">IVA Cobrado ($)</label>
                     <input
                       type="number"
                       step="0.01"

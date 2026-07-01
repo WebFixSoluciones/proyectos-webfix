@@ -184,17 +184,17 @@ export default function LandingHome() {
             </div>
             <div className="grid grid-cols-2 gap-3 mb-4">
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 text-left">
-                <span className="block text-[8px] font-bold text-slate-400 uppercase">Ingresos</span>
+                <span className="block text-[9px] font-bold text-slate-400 uppercase">Ingresos</span>
                 <span className="text-sm font-black text-emerald-600">+$2,450.00</span>
               </div>
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 text-left">
-                <span className="block text-[8px] font-bold text-slate-400 uppercase">Egresos</span>
+                <span className="block text-[9px] font-bold text-slate-400 uppercase">Egresos</span>
                 <span className="text-sm font-black text-rose-500">-$1,120.00</span>
               </div>
             </div>
             <div className="p-3 rounded-xl bg-primary/5 border border-primary/10 flex justify-between items-center">
               <div>
-                <span className="block text-[8px] font-bold text-primary uppercase">Saldo Real Neto</span>
+                <span className="block text-[9px] font-bold text-primary uppercase">Saldo Real Neto</span>
                 <h4 className="text-base font-black text-primary">$1,330.00</h4>
               </div>
               <TrendingUp size={20} className="text-primary animate-pulse" />
@@ -298,7 +298,7 @@ export default function LandingHome() {
                 <CheckCircle size={18} />
               </div>
               <div>
-                <span className="block text-[8px] font-black text-slate-400 uppercase">Conexión SRI</span>
+                <span className="block text-[9px] font-black text-slate-400 uppercase">Conexión SRI</span>
                 <span className="text-xs font-black text-slate-800">100% Autorizadas</span>
                 <p className="text-[9px] font-semibold text-emerald-600 mt-1 flex items-center gap-1">
                   <span className="w-1 h-1 bg-emerald-500 rounded-full animate-ping"></span> Activa y firme
@@ -481,7 +481,7 @@ export default function LandingHome() {
           <div className="p-8 bg-slate-950 rounded-3xl text-left border border-slate-900 shadow-2xl relative select-none">
             <div className="absolute top-3 right-3 flex items-center gap-1">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-              <span className="text-[7px] font-black text-slate-500 uppercase tracking-widest">Servidor Activo</span>
+              <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Servidor Activo</span>
             </div>
             <h4 className="text-xs font-bold text-slate-400 mb-4 uppercase tracking-widest">Prueba de Rendimiento</h4>
             <div className="space-y-3">

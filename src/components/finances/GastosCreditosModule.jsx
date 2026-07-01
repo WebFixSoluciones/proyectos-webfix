@@ -353,7 +353,7 @@ export default function GastosCreditosModule({ isDarkMode, showToast, transactio
                             <span className="p-2.5 rounded-xl bg-white/5 border border-white/5">
                               {getIcon(liab.type)}
                             </span>
-                            <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full ${
+                            <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${
                               liab.saldoPendiente > 0 ? 'bg-red-500/10 text-red-400' : 'bg-emerald-500/10 text-emerald-450'
                             }`}>
                               {liab.saldoPendiente > 0 ? 'Con saldo' : 'Liquidado'}
@@ -470,7 +470,7 @@ export default function GastosCreditosModule({ isDarkMode, showToast, transactio
                                   {contact?.name || 'Proveedor Externo (S/N)'}
                                 </td>
                                 <td className="px-6 py-3.5">
-                                  <span className="px-2 py-0.5 rounded-[10px] bg-white/5 border border-white/5 text-[9px] font-semibold text-gray-500 dark:text-gray-400 capitalize">
+                                  <span className="badge-status-sm text-[9px] font-semibold">
                                     {String(tx.category || 'gastos').replace('_', ' ')}
                                   </span>
                                 </td>
@@ -526,7 +526,7 @@ export default function GastosCreditosModule({ isDarkMode, showToast, transactio
               </div>
 
               <div>
-                <label className="block text-[9px] font-bold uppercase text-gray-500 mb-1.5">Monto a Pagar ($)</label>
+                <label className="label-field label-field-dark">Monto a Pagar ($)</label>
                 <input
                   type="number"
                   step="0.01"
@@ -541,7 +541,7 @@ export default function GastosCreditosModule({ isDarkMode, showToast, transactio
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[9px] font-bold uppercase text-gray-500 mb-1.5">Forma de Pago</label>
+                  <label className="label-field label-field-dark">Forma de Pago</label>
                   <select
                     value={paymentMethod}
                     onChange={e => setPaymentMethod(e.target.value)}
@@ -553,7 +553,7 @@ export default function GastosCreditosModule({ isDarkMode, showToast, transactio
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[9px] font-bold uppercase text-gray-500 mb-1.5 font-mono">Nro de Referencia / Comprobante</label>
+                  <label className="label-field label-field-dark font-mono">Nro de Referencia / Comprobante</label>
                   <input
                     type="text"
                     value={paymentRef}
@@ -595,7 +595,7 @@ export default function GastosCreditosModule({ isDarkMode, showToast, transactio
 
             <form onSubmit={handleAddLiability} className="space-y-4">
               <div>
-                <label className="block text-[9px] font-bold uppercase text-gray-500 mb-1.5">Tipo de Obligación</label>
+                <label className="label-field label-field-dark">Tipo de Obligación</label>
                 <select
                   value={newLiability.type}
                   onChange={e => setNewLiability({ ...newLiability, type: e.target.value })}
@@ -608,7 +608,7 @@ export default function GastosCreditosModule({ isDarkMode, showToast, transactio
               </div>
 
               <div>
-                <label className="block text-[9px] font-bold uppercase text-gray-500 mb-1.5">Entidad / Acreedor</label>
+                <label className="label-field label-field-dark">Entidad / Acreedor</label>
                 <input
                   type="text"
                   required
@@ -621,7 +621,7 @@ export default function GastosCreditosModule({ isDarkMode, showToast, transactio
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[9px] font-bold uppercase text-gray-500 mb-1.5">Monto Inicial / Línea</label>
+                  <label className="label-field label-field-dark">Monto Inicial / Línea</label>
                   <input
                     type="number"
                     step="0.01"
@@ -633,7 +633,7 @@ export default function GastosCreditosModule({ isDarkMode, showToast, transactio
                   />
                 </div>
                 <div>
-                  <label className="block text-[9px] font-bold uppercase text-gray-500 mb-1.5">Cuota Mensual Est.</label>
+                  <label className="label-field label-field-dark">Cuota Mensual Est.</label>
                   <input
                     type="number"
                     step="0.01"
@@ -648,7 +648,7 @@ export default function GastosCreditosModule({ isDarkMode, showToast, transactio
               {newLiability.type === 'prestamo' && (
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[9px] font-bold uppercase text-gray-500 mb-1.5">Tasa Interés Anual (%)</label>
+                    <label className="label-field label-field-dark">Tasa Interés Anual (%)</label>
                     <input
                       type="number"
                       step="0.01"
@@ -659,7 +659,7 @@ export default function GastosCreditosModule({ isDarkMode, showToast, transactio
                     />
                   </div>
                   <div>
-                    <label className="block text-[9px] font-bold uppercase text-gray-500 mb-1.5 font-mono">Plazo (Meses)</label>
+                    <label className="label-field label-field-dark font-mono">Plazo (Meses)</label>
                     <input
                       type="number"
                       value={newLiability.plazoMeses}
@@ -674,7 +674,7 @@ export default function GastosCreditosModule({ isDarkMode, showToast, transactio
               {newLiability.type === 'tarjeta_credito' && (
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[9px] font-bold uppercase text-gray-500 mb-1.5 font-mono">Día de Corte</label>
+                    <label className="label-field label-field-dark font-mono">Día de Corte</label>
                     <input
                       type="text"
                       value={newLiability.fechaCorte}
@@ -684,7 +684,7 @@ export default function GastosCreditosModule({ isDarkMode, showToast, transactio
                     />
                   </div>
                   <div>
-                    <label className="block text-[9px] font-bold uppercase text-gray-500 mb-1.5 font-mono">Día de Pago</label>
+                    <label className="label-field label-field-dark font-mono">Día de Pago</label>
                     <input
                       type="text"
                       value={newLiability.fechaPago}
@@ -697,7 +697,7 @@ export default function GastosCreditosModule({ isDarkMode, showToast, transactio
               )}
 
               <div>
-                <label className="block text-[9px] font-bold uppercase text-gray-500 mb-1.5">Próxima Fecha de Pago</label>
+                <label className="label-field label-field-dark">Próxima Fecha de Pago</label>
                 <input
                   type="date"
                   value={newLiability.nextPaymentDate}

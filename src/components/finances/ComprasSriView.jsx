@@ -252,7 +252,7 @@ export default function ComprasSriView({ transactions = [], isDarkMode, showToas
                     <td className="px-6 py-3.5 text-right font-mono">${bill.ivaValor.toFixed(2)}</td>
                     <td className="px-6 py-3.5 text-right font-bold text-red-500">${bill.total.toFixed(2)}</td>
                     <td className="px-6 py-3.5 text-center">
-                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-[10px] text-[9px] font-bold ${
+                      <span className={`inline-flex items-center gap-1 badge-status-sm ${
                         isImported 
                           ? 'bg-emerald-500/10 text-emerald-450' 
                           : 'bg-amber-500/10 text-amber-450'

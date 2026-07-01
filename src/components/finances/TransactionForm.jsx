@@ -1633,7 +1633,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               >
                 <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black transition-all ${
                   currentStep === step.id
-                    ? 'bg-[#1C40F2] text-white'
+                    ? 'bg-primary text-white'
                     : 'bg-slate-200 dark:bg-white/10 text-slate-600 dark:text-slate-400'
                 }`}>
                   {step.id}
@@ -1756,7 +1756,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     onClick={() => setMobileTab(tab.id)}
                     className={`flex-1 flex flex-col items-center justify-center py-[5px] px-[2px] rounded-[var(--radius-button)] transition-all ${
                       isActive 
-                        ? 'bg-[#1C40F2] text-white font-black'
+                        ? 'bg-primary text-white font-black'
                         : isDarkMode ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-slate-650 hover:text-black hover:bg-slate-200'
                     }`}
                   >
@@ -2495,7 +2495,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                             !isClientSelected
                               ? 'opacity-40 cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400 dark:border-white/5 dark:bg-white/5'
                               : isSelected 
-                                ? 'bg-[#1C40F2] border-[#1C40F2] text-white'
+                                ? 'bg-primary border-[#1C40F2] text-white'
                                 : isDarkMode 
                                   ? 'border-white/10 bg-white/5 text-gray-400 hover:bg-white/10'
                                   : 'border-gray-200 bg-gray-50 text-black hover:bg-gray-100'
@@ -2507,8 +2507,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                               : isSelected 
                                 ? 'bg-white text-[#1C40F2]' 
                                 : isDarkMode 
-                                  ? 'bg-[#1C40F2]/20 text-[#1C40F2]' 
-                                  : 'bg-[#1C40F2] text-white'
+                                  ? 'bg-primary/20 text-[#1C40F2]' 
+                                  : 'bg-primary text-white'
                           }`}>
                             <m.icon size={18} />
                           </div>

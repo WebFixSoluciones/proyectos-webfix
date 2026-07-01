@@ -161,15 +161,15 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
     }
   };
 
-  const cardClass = `p-5 rounded-2xl border transition-all duration-300 ${
+  const cardClass = `p-5 rounded-2xl border transition-all duration-300 surface-card ${
     isDarkMode 
-      ? 'bg-[#151517] border-white/5 hover:border-white/10 hover:shadow-[0_8px_30px_rgb(0,0,0,0.2)]' 
-      : 'bg-white border-gray-300/80 hover:border-gray-400 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] text-gray-900'
+      ? 'border-white/5 hover:border-white/10 hover:shadow-[0_8px_30px_rgb(0,0,0,0.2)]' 
+      : 'border-gray-300/80 hover:border-gray-400 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] text-gray-900'
   }`;
 
   const currentGlassPanel = isDarkMode 
-    ? 'backdrop-blur-xl bg-white/[0.03] border border-white/[0.08]' 
-    : 'bg-white border border-gray-250 shadow-sm';
+    ? 'surface-card border border-white/[0.08]' 
+    : 'surface-card border border-gray-250 shadow-sm';
 
   const getColorClass = (colorId) => {
     const color = COLUMN_COLORS.find(c => c.id === colorId) || COLUMN_COLORS[0];
@@ -269,7 +269,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
           {/* Item 1: POS */}
           <button 
             onClick={() => { setVentasInitialSubTab && setVentasInitialSubTab('pos'); setActivePageId('ventas'); }}
-            className={`flex flex-col items-center justify-center p-4 rounded-2xl text-center transition-all duration-300 hover-lift ${isDarkMode ? 'bg-[#151517] hover:bg-[#18181b]' : 'bg-white shadow-sm hover:shadow-md'}`}
+            className={`flex flex-col items-center justify-center p-4 rounded-2xl text-center transition-all duration-300 hover-lift ${isDarkMode ? 'surface-card' : 'bg-white shadow-sm hover:shadow-md'}`}
           >
             <div className="p-3 rounded-xl mb-2.5 bg-primary/10 text-primary">
               <ShoppingCart size={20} />
@@ -280,7 +280,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
           {/* Item 2: Facturas SRI */}
           <button 
             onClick={() => { setVentasInitialSubTab && setVentasInitialSubTab('resumen_ventas'); setActivePageId('ventas'); }}
-            className={`flex flex-col items-center justify-center p-4 rounded-2xl text-center transition-all duration-300 hover-lift ${isDarkMode ? 'bg-[#151517] hover:bg-[#18181b]' : 'bg-white shadow-sm hover:shadow-md'}`}
+            className={`flex flex-col items-center justify-center p-4 rounded-2xl text-center transition-all duration-300 hover-lift ${isDarkMode ? 'surface-card' : 'bg-white shadow-sm hover:shadow-md'}`}
           >
             <div className="p-3 rounded-xl mb-2.5 bg-primary/10 text-primary">
               <FileText size={20} />
@@ -291,7 +291,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
           {/* Item 3: Inventario */}
           <button 
             onClick={() => setActivePageId('inventario')}
-            className={`flex flex-col items-center justify-center p-4 rounded-2xl text-center transition-all duration-300 hover-lift ${isDarkMode ? 'bg-[#151517] hover:bg-[#18181b]' : 'bg-white shadow-sm hover:shadow-md'}`}
+            className={`flex flex-col items-center justify-center p-4 rounded-2xl text-center transition-all duration-300 hover-lift ${isDarkMode ? 'surface-card' : 'bg-white shadow-sm hover:shadow-md'}`}
           >
             <div className="p-3 rounded-xl mb-2.5 bg-primary/10 text-primary">
               <Package size={20} />
@@ -302,7 +302,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
           {/* Item 4: Personas */}
           <button 
             onClick={() => setActivePageId('personas')}
-            className={`flex flex-col items-center justify-center p-4 rounded-2xl text-center transition-all duration-300 hover-lift ${isDarkMode ? 'bg-[#151517] hover:bg-[#18181b]' : 'bg-white shadow-sm hover:shadow-md'}`}
+            className={`flex flex-col items-center justify-center p-4 rounded-2xl text-center transition-all duration-300 hover-lift ${isDarkMode ? 'surface-card' : 'bg-white shadow-sm hover:shadow-md'}`}
           >
             <div className="p-3 rounded-xl mb-2.5 bg-primary/10 text-primary">
               <Users size={20} />
@@ -313,7 +313,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
           {/* Item 5: Calendario */}
           <button 
             onClick={() => setActivePageId('calendar')}
-            className={`flex flex-col items-center justify-center p-4 rounded-2xl text-center transition-all duration-300 hover-lift ${isDarkMode ? 'bg-[#151517] hover:bg-[#18181b]' : 'bg-white shadow-sm hover:shadow-md'}`}
+            className={`flex flex-col items-center justify-center p-4 rounded-2xl text-center transition-all duration-300 hover-lift ${isDarkMode ? 'surface-card' : 'bg-white shadow-sm hover:shadow-md'}`}
           >
             <div className="p-3 rounded-xl mb-2.5 bg-primary/10 text-primary">
               <CalendarDays size={20} />
@@ -324,7 +324,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, isDarkMode,
           {/* Item 6: Ajustes */}
           <button 
             onClick={() => setActivePageId('general_settings')}
-            className={`flex flex-col items-center justify-center p-4 rounded-2xl text-center transition-all duration-300 hover-lift ${isDarkMode ? 'bg-[#151517] hover:bg-[#18181b]' : 'bg-white shadow-sm hover:shadow-md'}`}
+            className={`flex flex-col items-center justify-center p-4 rounded-2xl text-center transition-all duration-300 hover-lift ${isDarkMode ? 'surface-card' : 'bg-white shadow-sm hover:shadow-md'}`}
           >
             <div className="p-3 rounded-xl mb-2.5 bg-primary/10 text-primary">
               <Settings size={20} />

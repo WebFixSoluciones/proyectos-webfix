@@ -350,7 +350,7 @@ export default function BillingPortal({ isDarkMode, showToast, initialSubTab }) 
                       <td className="py-3.5 font-mono">{tx.referenceNumber}</td>
                       <td className="py-3.5 font-bold text-emerald-500">${tx.amount}</td>
                       <td className="py-3.5">
-                        <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase ${
+                        <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${
                           tx.status === 'approved' ? 'bg-emerald-500/15 text-emerald-500' :
                           tx.status === 'pending' ? 'bg-orange-500/15 text-orange-500 animate-pulse' :
                           'bg-red-500/15 text-red-500'

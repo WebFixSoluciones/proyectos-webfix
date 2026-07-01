@@ -21,7 +21,7 @@ export default function LandingLayout() {
   };
 
   return (
-    <div className="h-screen w-screen overflow-y-auto overflow-x-hidden bg-[#F8FAFC] text-[#0F172A] font-sans scroll-smooth custom-scrollbar light-scrollbar flex flex-col justify-between relative">
+    <div className="min-h-screen w-full overflow-y-auto overflow-x-hidden bg-[#F8FAFC] text-[#0F172A] font-sans scroll-smooth custom-scrollbar light-scrollbar flex flex-col justify-between relative">
       
       {/* NAVBAR */}
       <header className="sticky top-0 z-50 backdrop-blur-lg border-b bg-[#F8FAFC]/90 border-slate-200/80 shrink-0 transition-all duration-300">

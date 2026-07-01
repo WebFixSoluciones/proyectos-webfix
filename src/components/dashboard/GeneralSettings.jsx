@@ -1111,7 +1111,7 @@ export default function GeneralSettings({
                   {/* RUC CON BUSCADOR SRI */}
                   <div className="flex gap-2 items-end">
                     <div className="flex-1">
-                      <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500 flex items-center gap-1">
+                      <label className="label-field label-field-dark flex items-center gap-1">
                         <Lock size={10} className="text-gray-400" /> RUC Emisor (13 dígitos)
                       </label>
                       <input 
@@ -1140,7 +1140,7 @@ export default function GeneralSettings({
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500 flex items-center gap-1">
+                      <label className="label-field label-field-dark flex items-center gap-1">
                         <Lock size={10} className="text-gray-400" /> Razón Social (Bloqueado)
                       </label>
                       <input 
@@ -1153,7 +1153,7 @@ export default function GeneralSettings({
                       />
                     </div>
                     <div>
-                      <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500 flex items-center gap-1">
+                      <label className="label-field label-field-dark flex items-center gap-1">
                         <Lock size={10} className="text-gray-400" /> Nombre Comercial (Bloqueado)
                       </label>
                       <input 
@@ -1167,7 +1167,7 @@ export default function GeneralSettings({
                     </div>
 
                     <div className="sm:col-span-2">
-                      <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500 flex items-center gap-1">
+                      <label className="label-field label-field-dark flex items-center gap-1">
                         <Lock size={10} className="text-gray-400" /> Dirección Matriz (Bloqueado)
                       </label>
                       <input 
@@ -1207,7 +1207,7 @@ export default function GeneralSettings({
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">Teléfono Corporativo</label>
+                      <label className="label-field label-field-dark">Teléfono Corporativo</label>
                       <input 
                         type="text" 
                         value={companyProfile.telefono} 
@@ -1217,7 +1217,7 @@ export default function GeneralSettings({
                       />
                     </div>
                     <div>
-                      <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">Correo Electrónico de Contacto</label>
+                      <label className="label-field label-field-dark">Correo Electrónico de Contacto</label>
                       <input 
                         type="email" 
                         value={companyProfile.email} 
@@ -1227,7 +1227,7 @@ export default function GeneralSettings({
                       />
                     </div>
                     <div className="sm:col-span-2">
-                      <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">Sitio Web Corporativo</label>
+                      <label className="label-field label-field-dark">Sitio Web Corporativo</label>
                       <input 
                         type="text" 
                         value={companyProfile.web} 
@@ -1250,7 +1250,7 @@ export default function GeneralSettings({
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="sm:col-span-2">
-                      <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">Servidor SMTP (Host)</label>
+                      <label className="label-field label-field-dark">Servidor SMTP (Host)</label>
                       <input 
                         type="text" 
                         value={companyProfile.smtpHost || ''} 
@@ -1260,7 +1260,7 @@ export default function GeneralSettings({
                       />
                     </div>
                     <div>
-                      <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">Puerto SMTP</label>
+                      <label className="label-field label-field-dark">Puerto SMTP</label>
                       <input 
                         type="text" 
                         value={companyProfile.smtpPort || ''} 
@@ -1280,7 +1280,7 @@ export default function GeneralSettings({
                       <label htmlFor="smtpSecure" className="text-[10px] font-bold uppercase text-gray-500 cursor-pointer">Usar Conexión Segura (SSL/TLS)</label>
                     </div>
                     <div>
-                      <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">Usuario / Correo SMTP</label>
+                      <label className="label-field label-field-dark">Usuario / Correo SMTP</label>
                       <input 
                         type="email" 
                         value={companyProfile.smtpUser || ''} 
@@ -1290,7 +1290,7 @@ export default function GeneralSettings({
                       />
                     </div>
                     <div>
-                      <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">Contraseña SMTP</label>
+                      <label className="label-field label-field-dark">Contraseña SMTP</label>
                       <input 
                         type="password" 
                         value={companyProfile.smtpPass || ''} 
@@ -1320,7 +1320,7 @@ export default function GeneralSettings({
                     </div>
 
                     <div>
-                      <label className="block text-[8px] font-bold uppercase mb-1 text-gray-500">Tipo de Contribuyente</label>
+                      <label className="label-field label-field-dark">Tipo de Contribuyente</label>
                       <select 
                         value={companyProfile.contribuyenteTipo} 
                         onChange={e => setCompanyProfile({...companyProfile, contribuyenteTipo: e.target.value, rucRegimen: e.target.value.replace('_', ' ').toUpperCase()})} 
@@ -1522,7 +1522,7 @@ export default function GeneralSettings({
                             </p>
                             <p className="text-[10px] text-gray-500 mt-0.5">{branch.direccion}</p>
                           </div>
-                          <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded ${
+                          <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded ${
                             branch.activa 
                               ? 'bg-emerald-500/10 text-emerald-450 border border-emerald-500/20' 
                               : 'bg-red-500/10 text-red-450 border border-red-500/20'
@@ -1647,7 +1647,7 @@ export default function GeneralSettings({
 
             <div className="space-y-4">
               <div>
-                <label className="block text-[9px] font-bold uppercase mb-2 text-gray-500">Color Primario del Sistema (Hexadecimal)</label>
+                <label className="label-field label-field-dark">Color Primario del Sistema (Hexadecimal)</label>
                 <div className="flex items-center gap-3">
                   <div className="relative w-12 h-12 rounded-xl overflow-hidden border border-gray-300 dark:border-white/10 shrink-0">
                     <input 
@@ -1676,7 +1676,7 @@ export default function GeneralSettings({
 
               {/* Sugerencias Rápidas */}
               <div>
-                <label className="block text-[8px] font-bold uppercase mb-2 text-gray-500">Colores Recomendados</label>
+                <label className="label-field label-field-dark">Colores Recomendados</label>
                 <div className="flex flex-wrap gap-2">
                   {[
                     { name: 'Azul WebFix', hex: '#4F46E5' },
@@ -1911,7 +1911,7 @@ export default function GeneralSettings({
             </div>
 
             <div>
-              <label className="block text-[9px] font-bold uppercase mb-2 text-gray-500">Google Client ID (OAuth 2.0)</label>
+              <label className="label-field label-field-dark">Google Client ID (OAuth 2.0)</label>
               <input 
                 type="text" 
                 value={googleClientId} 
@@ -1952,7 +1952,7 @@ export default function GeneralSettings({
 
             <div className="space-y-4">
               <div>
-                <label className="block text-[9px] font-bold uppercase mb-2 text-gray-500">Clave de API de Gemini (Google AI Studio)</label>
+                <label className="label-field label-field-dark">Clave de API de Gemini (Google AI Studio)</label>
                 <div className="flex gap-2">
                   <div className="relative flex-1">
                     <input 
@@ -2036,7 +2036,7 @@ export default function GeneralSettings({
                     </div>
                     <div>
                       <p className="text-xs font-bold">{user.name}</p>
-                      <p className="text-[9px] text-gray-500">{user.job} — <span className="font-semibold uppercase tracking-wider text-[8px]">{user.role}</span></p>
+                      <p className="text-[9px] text-gray-500">{user.job} — <span className="font-semibold uppercase tracking-wider text-[9px]">{user.role}</span></p>
                       {user.email && <p className="text-[9px] font-mono text-gray-400 truncate max-w-[160px]">{user.email}</p>}
                     </div>
                   </div>
@@ -2057,7 +2057,7 @@ export default function GeneralSettings({
               <h4 className="text-xs font-black uppercase tracking-wider text-gray-500">Registrar Nuevo Colaborador</h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                  <label className="block text-[8px] font-bold uppercase mb-1 text-gray-500">Nombre Completo</label>
+                  <label className="label-field label-field-dark">Nombre Completo</label>
                   <input 
                     type="text" 
                     required 
@@ -2068,7 +2068,7 @@ export default function GeneralSettings({
                   />
                 </div>
                 <div>
-                  <label className="block text-[8px] font-bold uppercase mb-1 text-gray-500">Correo Electrónico</label>
+                  <label className="label-field label-field-dark">Correo Electrónico</label>
                   <input 
                     type="email" 
                     value={newUser.email} 
@@ -2078,7 +2078,7 @@ export default function GeneralSettings({
                   />
                 </div>
                 <div>
-                  <label className="block text-[8px] font-bold uppercase mb-1 text-gray-500">Cargo / Ocupación</label>
+                  <label className="label-field label-field-dark">Cargo / Ocupación</label>
                   <input 
                     type="text" 
                     value={newUser.job} 
@@ -2088,7 +2088,7 @@ export default function GeneralSettings({
                   />
                 </div>
                 <div>
-                  <label className="block text-[8px] font-bold uppercase mb-1 text-gray-500">Rol de Acceso</label>
+                  <label className="label-field label-field-dark">Rol de Acceso</label>
                   <select 
                     value={newUser.role} 
                     onChange={e => setNewUser({...newUser, role: e.target.value})} 
