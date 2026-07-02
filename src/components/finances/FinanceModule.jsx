@@ -352,10 +352,10 @@ export default function FinanceModule({
                 (editingTx?.documentType === 'factura' || editingTx?.documentType === 'nota_venta' || editingTx?.documentType === 'liquidacion' || !editingTx?.documentType) ? (
                   <PurchaseForm 
                     tx={editingTx} 
-                    onClose={() => setIsModalOpen(false)} 
+                    onClose={() => { setIsModalOpen(false); setPurchaseMethod(null); }} 
                     thirdParties={thirdParties} 
                     products={products}
-                    
+                    purchaseMethod={editingTx?.purchaseMethod || purchaseMethod}
                     showToast={showToast} 
                     db={db} 
                     appId={appId} 
