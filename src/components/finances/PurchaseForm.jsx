@@ -119,8 +119,8 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
       unit: newProduct.unit || 'unidad', createdAt: new Date().toISOString()
     };
     try {
-      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_products', prodId), prod);
-      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'inventory_products', prodId), prod);
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'inventory_products', prodId), { ...prod, baseCost: Number(newProduct.cost) || 0 });
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_products', prodId), { ...prod, cost: Number(newProduct.cost) || 0, baseCost: Number(newProduct.cost) || 0 });
       showToast?.('Producto creado y agregado a la compra', 'success');
       handleAddProduct(prod);
       setShowCreateProduct(false);

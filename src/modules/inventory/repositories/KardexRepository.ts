@@ -8,7 +8,12 @@ export class KardexRepository {
   }
 
   /**
-   * Obtiene la última transacción de un producto en una sucursal específica para conocer su saldo actual.
+   * Obtiene la ultima transaccion de un producto en una sucursal especifica para conocer su saldo actual.
+   * 
+   * REQUIERE INDICE COMPUESTO en Firestore:
+   * Coleccion: inventory_kardex
+   * Campos: productId (Asc), branchId (Asc), date (Desc)
+   * Crear en: Firebase Console > Firestore > Indexes > Composite
    */
   async getLastBalance(productId: string, branchId: string): Promise<KardexTransaction | null> {
     const q = query(
