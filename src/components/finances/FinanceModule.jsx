@@ -18,7 +18,6 @@ import TransactionForm from './TransactionForm';
 import PurchaseForm from './PurchaseForm';
 import AccountsReceivablePayable from './AccountsReceivablePayable';
 import SalesDashboard from './SalesDashboard';
-import ComprasSriView from './ComprasSriView';
 import ComprasGastosView from './ComprasGastosView';
 import GastosCreditosModule from './GastosCreditosModule';
 
@@ -87,6 +86,8 @@ export default function FinanceModule({
   // Estados centralizados para el modal de Facturación / SRI
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTx, setEditingTx] = useState(null);
+  const [purchaseMethod, setPurchaseMethod] = useState(null);
+  const [showPurchaseMethodSelect, setShowPurchaseMethodSelect] = useState(false);
 
   const isFormActive = isModalOpen && (
     (editingTx?.type === 'ingreso') || 
@@ -96,7 +97,18 @@ export default function FinanceModule({
 
   // Abrir modal de factura prellenada (desde POS o Cotizaciones)
   const handleOpenFormModal = (prefilledData = null) => {
+    if (mode === 'compras' && !prefilledData) {
+      setShowPurchaseMethodSelect(true);
+      return;
+    }
     setEditingTx(prefilledData);
+    setIsModalOpen(true);
+  };
+
+  const handleConfirmPurchaseMethod = (method) => {
+    setPurchaseMethod(method);
+    setShowPurchaseMethodSelect(false);
+    setEditingTx({ type: 'egreso', purchaseMethod: method });
     setIsModalOpen(true);
   };
 
@@ -175,16 +187,15 @@ export default function FinanceModule({
         { id: 'sri_docs', label: 'Documentos SRI', icon: FileText },
         { id: 'cxc', label: 'Cuentas por Cobrar', icon: ArrowDownCircle },
         { id: 'cxp', label: 'Cuentas por Pagar', icon: ArrowUpCircle },
-        { id: 'gastos_creditos_sub', label: 'Gastos y Créditos', icon: CreditCard },
+        { id: 'gastos_creditos_sub', label: 'Gastos y Creditos', icon: CreditCard },
+        { id: 'gastos_ia', label: 'Gastos con IA', icon: Sparkles },
         { id: 'reports', label: 'Reportes', icon: Download },
       ];
     }
     if (mode === 'compras') {
       return [
         { id: 'compras_resumen', label: 'Historial de Compras', icon: ShoppingBag },
-        { id: 'compras_sri', label: 'Comprobantes SRI', icon: Download },
-        { id: 'compras_gastos', label: 'Gastos con IA', icon: Sparkles },
-        { id: 'compras_nc', label: 'Notas de Crédito', icon: FileText },
+        { id: 'compras_nc', label: 'Notas de Credito', icon: FileText },
         { id: 'compras_retencion', label: 'Retenciones Emitidas', icon: Percent }
       ];
     }
@@ -331,6 +342,9 @@ export default function FinanceModule({
               {activeTab === 'gastos_creditos_sub' && (
                 <GastosCreditosModule showToast={showToast} transactions={transactions} thirdParties={thirdParties} db={db} appId={appId} />
               )}
+              {activeTab === 'gastos_ia' && (
+                <ComprasGastosView transactions={transactions} showToast={showToast} db={db} appId={appId} />
+              )}
 
               {/* SECCIÓN COMPRAS */}
               {activeTab === 'compras_resumen' && (
@@ -362,14 +376,6 @@ export default function FinanceModule({
                 )
               )}
 
-              {activeTab === 'compras_sri' && (
-                <ComprasSriView transactions={transactions} showToast={showToast} db={db} appId={appId} />
-              )}
-
-              {activeTab === 'compras_gastos' && (
-                <ComprasGastosView transactions={transactions} showToast={showToast} db={db} appId={appId} />
-              )}
-
               {activeTab === 'compras_nc' && (
                 <TransactionsView transactions={transactions} thirdParties={thirdParties} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} forcedDocType="nota_credito" forcedType="egreso" />
               )}
@@ -398,6 +404,57 @@ export default function FinanceModule({
           storage={storage} 
           appId={appId} 
         />
+      )}
+
+      {/* Modal: Seleccion de Metodo de Compra */}
+      {showPurchaseMethodSelect && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setShowPurchaseMethodSelect(false)}>
+          <div className="w-full max-w-lg bg-white rounded-lg shadow-xl border border-[#E6EBF1]" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 py-3 border-b border-[#E6EBF1]">
+              <h3 className="text-[14px] font-semibold text-black">Registrar Compra</h3>
+              <button onClick={() => setShowPurchaseMethodSelect(false)} className="btn-icon text-gray-500"><X size={16} /></button>
+            </div>
+            <div className="p-5 space-y-4">
+              <p className="text-[12px] text-[#333333]">Selecciona el metodo para registrar la compra:</p>
+              
+              {/* Con Inventario */}
+              <button onClick={() => handleConfirmPurchaseMethod('con_inventario')} className="w-full p-4 rounded-md border border-[#E6EBF1] text-left hover:bg-[#F6F9FC] transition-all group">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 rounded-md bg-[color-mix(in_srgb,var(--primary-color)_10%,transparent)] text-[var(--primary-color)] shrink-0">
+                    <Package size={20} />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-[13px] font-semibold text-black">Con Movimiento de Inventario</h4>
+                    <p className="text-[11px] text-[#333333] mt-1">Registra productos, cantidades y costos. Actualiza el stock y calcula el promedio ponderado en el kardex automaticamente.</p>
+                    <div className="flex gap-3 mt-2">
+                      <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-[#EBF0FF] text-[#1E3A8A]">Manual</span>
+                      <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-[#EBF0FF] text-[#1E3A8A]">Importar XML</span>
+                    </div>
+                  </div>
+                  <ArrowRight size={16} className="text-[#E6EBF1] group-hover:text-[var(--primary-color)] transition-colors shrink-0 self-center" />
+                </div>
+              </button>
+
+              {/* Sin Inventario */}
+              <button onClick={() => handleConfirmPurchaseMethod('sin_inventario')} className="w-full p-4 rounded-md border border-[#E6EBF1] text-left hover:bg-[#F6F9FC] transition-all group">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 rounded-md bg-[#F6F9FC] text-[#333333] shrink-0">
+                    <FileText size={20} />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-[13px] font-semibold text-black">Sin Movimiento de Inventario</h4>
+                    <p className="text-[11px] text-[#333333] mt-1">Registro contable unicamente. Para gastos, servicios, o compras que no requieren actualizar el stock.</p>
+                    <div className="flex gap-3 mt-2">
+                      <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-[#F2F4F7] text-[#333333]">Manual</span>
+                      <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-[#F2F4F7] text-[#333333]">Importar XML</span>
+                    </div>
+                  </div>
+                  <ArrowRight size={16} className="text-[#E6EBF1] group-hover:text-[var(--primary-color)] transition-colors shrink-0 self-center" />
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
