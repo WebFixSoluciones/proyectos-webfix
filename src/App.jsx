@@ -2006,15 +2006,23 @@ export default function App() {
       <div className="flex-1 flex flex-col h-full overflow-hidden relative z-10 md:z-[60]">
         
         {/* Topbar Stripe */}
-        <div className="flex flex-col md:flex-row md:items-center px-5 py-2.5 justify-between gap-4 shrink-0 bg-white border-b border-[#E6EBF1]">
-          <div className="flex items-center gap-3">
-            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-1.5 rounded-md transition-colors hover:bg-[#F6F9FC] text-[#697386]"><Menu size={18} /></button>
-            <div className="p-1.5 rounded-md bg-[color-mix(in_srgb,var(--primary-color)_8%,transparent)] text-[var(--primary-color)]">
-              <IconRenderer name={headerDetails.icon} size={15} />
-            </div>
-            <div className="flex flex-col">
-              <h1 className="text-[15px] font-semibold tracking-tight text-[#0A2540]">{headerDetails.title}</h1>
-              <p className="text-[11px] font-medium hidden sm:inline-block text-[#697386]">{headerDetails.desc}</p>
+        <div className="flex flex-col md:flex-row md:items-center px-6 py-3 justify-between gap-4 shrink-0 bg-white border-b border-[#E6EBF1] min-h-[56px]">
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
+              className="flex items-center justify-center p-1.5 rounded-lg transition-colors hover:bg-[#F6F9FC] text-[#697386] active:scale-95"
+            >
+              <Menu size={18} />
+            </button>
+            <div className="h-4 w-px bg-[#E6EBF1] self-center"></div>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center p-2 rounded-lg bg-[color-mix(in_srgb,var(--primary-color)_8%,transparent)] text-[var(--primary-color)]">
+                <IconRenderer name={headerDetails.icon} size={15} />
+              </div>
+              <div className="flex flex-col">
+                <h1 className="text-[14px] font-semibold tracking-tight text-[#0A2540] leading-none">{headerDetails.title}</h1>
+                <p className="text-[11px] font-medium hidden sm:inline-block text-[#697386] mt-1 leading-none">{headerDetails.desc}</p>
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
