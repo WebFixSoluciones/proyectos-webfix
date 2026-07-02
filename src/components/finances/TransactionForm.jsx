@@ -867,28 +867,33 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       ? `Venta ${transaction.documentType === 'nota_venta' ? 'Nota de Venta' : 'Factura'} ${transaction.documentNumber || transaction.id}`
       : `Compra/Gasto ${transaction.documentType || ''} ${transaction.documentNumber || transaction.id}`;
 
+    const updatedItems = [];
     for (const item of items) {
-      if (!item.productId) continue;
+      if (!item.productId) { updatedItems.push(item); continue; }
       
       try {
         if (isIngreso) {
+          // Read current average cost BEFORE kardex (will be the exit cost)
           const prodRef = doc(db, 'artifacts', appId, 'public', 'data', 'inventory_products', item.productId);
           const prodSnap = await getDoc(prodRef);
-          let currentCost = 0;
+          let currentAvgCost = 0;
           if (prodSnap.exists()) {
-            currentCost = Number(prodSnap.data().baseCost) || 0;
+            currentAvgCost = Number(prodSnap.data().baseCost) || 0;
           }
 
           await registrarMovimientoKardex(db, appId, {
             productId: item.productId,
             type: 'salida',
             quantity: Number(item.quantity) || 0,
-            cost: currentCost,
+            cost: 0, // Kardex resolves average cost internally for exits
             price: Number(item.price) || 0,
             concept,
             referenceId: transaction.id,
             bodega: transaction.bodega || "Bodega Central"
           });
+          
+          // Store the cost used for this sale (for accurate reversal later)
+          updatedItems.push({ ...item, kardexCost: currentAvgCost });
         } else {
           await registrarMovimientoKardex(db, appId, {
             productId: item.productId,
@@ -900,14 +905,17 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
             referenceId: transaction.id,
             bodega: transaction.bodega || "Bodega Central"
           });
+          updatedItems.push(item);
         }
       } catch (err) {
         console.error("Error al registrar movimiento de inventario para item:", item, err);
+        updatedItems.push(item);
       }
     }
 
+    // Save kardex costs to transaction for accurate reversals
     const txRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', transaction.id);
-    await setDoc(txRef, { inventarioRegistrado: true }, { merge: true });
+    await setDoc(txRef, { inventarioRegistrado: true, items: updatedItems }, { merge: true });
   };
 
   const reversarInventarioTransaccion = async (transaction) => {
@@ -917,30 +925,27 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     if (items.length === 0) return;
 
     const isIngreso = transaction.type === 'ingreso';
-    const concept = `Anulación de ${isIngreso ? 'Venta' : 'Compra/Gasto'} ${transaction.documentType || ''} ${transaction.documentNumber || transaction.id}`;
+    const concept = `Anulacion de ${isIngreso ? 'Venta' : 'Compra/Gasto'} ${transaction.documentType || ''} ${transaction.documentNumber || transaction.id}`;
 
+    const updatedItems = [];
     for (const item of items) {
-      if (!item.productId) continue;
+      if (!item.productId) { updatedItems.push(item); continue; }
 
       try {
         if (isIngreso) {
-          const prodRef = doc(db, 'artifacts', appId, 'public', 'data', 'inventory_products', item.productId);
-          const prodSnap = await getDoc(prodRef);
-          let currentCost = 0;
-          if (prodSnap.exists()) {
-            currentCost = Number(prodSnap.data().baseCost) || 0;
-          }
-
+          // Use the ORIGINAL kardexCost stored during registration, NOT current average
+          const originalCost = Number(item.kardexCost) || Number(item.price) || 0;
           await registrarMovimientoKardex(db, appId, {
             productId: item.productId,
             type: 'entrada',
             quantity: Number(item.quantity) || 0,
-            cost: currentCost,
+            cost: originalCost,
             price: 0,
             concept,
             referenceId: transaction.id,
             bodega: transaction.bodega || "Bodega Central"
           });
+          updatedItems.push({ ...item, kardexCost: 0 });
         } else {
           await registrarMovimientoKardex(db, appId, {
             productId: item.productId,
@@ -952,14 +957,16 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
             referenceId: transaction.id,
             bodega: transaction.bodega || "Bodega Central"
           });
+          updatedItems.push(item);
         }
       } catch (err) {
         console.error("Error al reversar movimiento de inventario para item:", item, err);
+        updatedItems.push(item);
       }
     }
 
     const txRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', transaction.id);
-    await setDoc(txRef, { inventarioRegistrado: false }, { merge: true });
+    await setDoc(txRef, { inventarioRegistrado: false, items: updatedItems }, { merge: true });
   };
 
   const handleSave = (options = {}) => {

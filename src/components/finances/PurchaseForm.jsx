@@ -198,24 +198,32 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
     if (form.purchaseType === 'con_inventario' && form.items.length === 0 && !form.description) { showToast?.('Agrega al menos un producto o una descripcion', 'warning'); return; }
     setSaving(true);
     const docId = tx?.id || `compra_${Date.now()}`;
-    try {
-      const payload = {
-        id: docId, type: 'egreso', category: 'compras',
-        documentType: form.documentType, documentNumber: form.documentNumber || `COMPRA-${Date.now()}`,
-        claveAcceso: form.claveAcceso, date: form.date,
-        thirdPartyId: form.supplierId, thirdPartyName: form.supplierName, thirdPartyRuc: form.supplierRuc,
-        baseImponible: form.baseImponible, ivaPorcentaje: 15, ivaValor: form.ivaValor, total: form.total,
-        descuento: form.descuento, paymentMethod: form.paymentMethod, paymentStatus: form.paymentStatus,
-        sriStatus: form.claveAcceso ? 'autorizado' : 'pendiente',
-        description: form.description, reference: form.reference,
-        items: form.items, bodega: form.bodega, purchaseType: form.purchaseType
-      };
-      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId), payload);
+    
+    const payload = {
+      id: docId, type: 'egreso', category: 'compras',
+      documentType: form.documentType, documentNumber: form.documentNumber || `COMPRA-${Date.now()}`,
+      claveAcceso: form.claveAcceso, date: form.date,
+      thirdPartyId: form.supplierId, thirdPartyName: form.supplierName, thirdPartyRuc: form.supplierRuc,
+      baseImponible: form.baseImponible, ivaPorcentaje: 15, ivaValor: form.ivaValor, total: form.total,
+      descuento: form.descuento, paymentMethod: form.paymentMethod, paymentStatus: form.paymentStatus,
+      sriStatus: form.claveAcceso ? 'autorizado' : 'pendiente',
+      description: form.description, reference: form.reference,
+      items: form.items, bodega: form.bodega, purchaseType: form.purchaseType,
+      inventarioRegistrado: false
+    };
 
-      // Kardex for inventory purchases
+    try {
+      // 1. Save transaction
+      const txRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId);
+      await setDoc(txRef, payload);
+
+      // 2. Register kardex for inventory purchases (with rollback)
       if (form.purchaseType === 'con_inventario' && form.items.length > 0) {
+        const updatedItems = [];
+        let kardexFailed = false;
         for (const item of form.items) {
-          if (item.productId) {
+          if (!item.productId) { updatedItems.push(item); continue; }
+          try {
             await registrarMovimientoKardex(db, appId, {
               productId: item.productId, type: 'entrada',
               quantity: Number(item.quantity), cost: Number(item.price),
@@ -223,12 +231,32 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
               concept: `Compra #${form.documentNumber || docId}`,
               referenceId: docId, bodega: form.bodega
             });
+            updatedItems.push(item);
+          } catch (kardexErr) {
+            console.error("Error kardex para item:", item, kardexErr);
+            kardexFailed = true;
+            updatedItems.push(item);
           }
         }
+        
+        if (kardexFailed) {
+          // Rollback: delete partial kardex and transaction
+          showToast?.('Error al registrar inventario. Se revierte la compra.', 'error');
+          await setDoc(txRef, { inventarioRegistrado: false, items: updatedItems }, { merge: true });
+          setSaving(false);
+          return;
+        }
+        
+        // Mark as registered
+        await setDoc(txRef, { inventarioRegistrado: true, items: updatedItems }, { merge: true });
       }
+
       showToast?.('Compra registrada exitosamente', 'success');
       onClose?.();
-    } catch (err) { console.error(err); showToast?.('Error al guardar', 'error'); }
+    } catch (err) { 
+      console.error(err); 
+      showToast?.('Error al guardar la compra', 'error'); 
+    }
     finally { setSaving(false); }
   };
 
