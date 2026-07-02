@@ -98,7 +98,8 @@ select, textarea {
   color: var(--stripe-text-primary) !important;
   box-shadow: none !important;
   outline: none !important;
-  padding: 8px 12px !important;
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
   font-size: var(--text-sm) !important;
   line-height: 1.4 !important;
   transition: border-color 150ms ease, box-shadow 150ms ease !important;
