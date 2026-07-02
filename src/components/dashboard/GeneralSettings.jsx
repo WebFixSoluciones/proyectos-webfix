@@ -1061,7 +1061,7 @@ export default function GeneralSettings({
       </div>
 
       {/* CONTENIDO DE PESTAÑA */}
-      <div className={`flex-1 p-6 rounded-3xl border shadow-sm bg-white border-gray-200 text-gray-700`}>
+      <div className={`flex-1 p-4 sm:p-6 rounded-3xl border shadow-sm bg-white border-gray-200 text-gray-700`}>
         
         {/* PESTAÑA: PERFIL EMPRESA */}
         {activeSubTab === 'profile' && (

@@ -19,7 +19,7 @@ export default function Sidebar({
 }) {
   const closeMobile = () => { if(window.innerWidth < 768) setIsSidebarOpen(false); };
 
-  const navBase = "group flex items-center gap-3 w-full px-3 py-2 rounded-md transition-all text-[13px] font-medium";
+  const navBase = "group flex items-center gap-3 w-full px-3 py-2.5 rounded-md transition-all text-[13px] font-medium";
   const navActive = "bg-[color-mix(in_srgb,var(--primary-color)_8%,transparent)] text-[var(--primary-color)]";
   const navInactive = "text-[#1a1a1a] hover:bg-[#F6F9FC] hover:text-black";
   const navBtnClass = (isActive) => `${navBase} ${isActive ? navActive : navInactive}`;
@@ -35,9 +35,9 @@ export default function Sidebar({
 
   return (
     <>
-      {isSidebarOpen && <div className="fixed inset-0 bg-black/20 z-40 md:hidden transition-opacity duration-200" onClick={() => setIsSidebarOpen(false)} />}
+      {isSidebarOpen && <div className="fixed inset-0 bg-black/40 z-40 md:hidden transition-opacity duration-200" onClick={() => setIsSidebarOpen(false)} />}
       
-      <div className={`flex flex-col border-r border-[#E6EBF1] bg-white transition-all duration-300 z-50 absolute md:relative h-full ${isSidebarOpen ? 'translate-x-0 w-60' : '-translate-x-full md:translate-x-0 w-0 hidden md:flex md:w-16'}`}>
+      <div className={`flex flex-col border-r border-[#E6EBF1] bg-white transition-all duration-300 z-50 absolute md:relative h-full ${isSidebarOpen ? 'translate-x-0 w-[80vw] max-w-60' : '-translate-x-full md:translate-x-0 w-0 hidden md:flex md:w-16'}`}>
         
         <div className={`h-14 flex items-center ${isSidebarOpen ? 'justify-between px-4' : 'justify-center'} border-b border-[#E6EBF1] shrink-0 overflow-hidden`}>
           {isSidebarOpen ? (

@@ -238,7 +238,7 @@ export default function ProductsView({ showToast, db, appId }) {
                   <th className="px-6 py-3.5">SKU / Código</th>
                   <th className="px-6 py-3.5">Nombre</th>
                   <th className="px-6 py-3.5">Tipo</th>
-                  <th className="px-6 py-3.5 text-right">Costo</th>
+                  <th className="px-6 py-3.5 text-right hidden sm:table-cell">Costo</th>
                   <th className="px-6 py-3.5 text-right">P.V.P</th>
                   <th className="px-6 py-3.5">IVA</th>
                   <th className="px-6 py-3.5 text-center">Stock</th>
@@ -312,7 +312,7 @@ export default function ProductsView({ showToast, db, appId }) {
                         </span>
                       </td>
                       <td
-                        className={`px-6 py-3.5 text-right font-bold ${ ? "text-[#697386]" : "text-[#000000]"}`}
+                        className={`px-6 py-3.5 text-right font-bold hidden sm:table-cell ${ ? "text-[#697386]" : "text-[#000000]"}`}
                       >
                         ${Number(p.cost || 0).toFixed(2)}
                       </td>

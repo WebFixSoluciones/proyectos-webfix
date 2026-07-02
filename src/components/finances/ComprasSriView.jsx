@@ -369,8 +369,8 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
                     <th className="text-[11px] font-semibold text-black">Fecha</th>
                     <th className="text-[11px] font-semibold text-black">Proveedor</th>
                     <th className="text-[11px] font-semibold text-black">Nro Doc</th>
-                    <th className="text-[11px] font-semibold text-black text-right">Base</th>
-                    <th className="text-[11px] font-semibold text-black text-right">IVA</th>
+                    <th className="text-[11px] font-semibold text-black text-right hidden sm:table-cell">Base</th>
+                    <th className="text-[11px] font-semibold text-black text-right hidden sm:table-cell">IVA</th>
                     <th className="text-[11px] font-semibold text-black text-right">Total</th>
                     <th className="text-[11px] font-semibold text-black">Estado</th>
                     <th className="text-[11px] font-semibold text-black text-center">Acciones</th>
@@ -394,8 +394,8 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
                           <div className="text-[10px] text-[#333333]">{bill.ruc}</div>
                         </td>
                         <td className="text-[12px] font-mono text-black">{bill.documentNumber}</td>
-                        <td className="text-[12px] text-right font-mono text-black">${(bill.baseImponible || 0).toFixed(2)}</td>
-                        <td className="text-[12px] text-right font-mono text-black">${(bill.ivaValor || 0).toFixed(2)}</td>
+                        <td className="text-[12px] text-right font-mono text-black hidden sm:table-cell">${(bill.baseImponible || 0).toFixed(2)}</td>
+                        <td className="text-[12px] text-right font-mono text-black hidden sm:table-cell">${(bill.ivaValor || 0).toFixed(2)}</td>
                         <td className="text-[12px] text-right font-bold text-black">${(bill.total || 0).toFixed(2)}</td>
                         <td>
                           <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold ${imported ? 'bg-[#E6FAF0] text-[#0E6245]' : 'bg-[#FFF8E5] text-[#8B5A0B]'}`}>

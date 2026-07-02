@@ -1097,7 +1097,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
         <div className={`flex-1 flex overflow-hidden min-h-0 ${posConfig.cartPosition === 'left' ? 'flex-row-reverse' : ''}`}>
         
         {/* LADO IZQUIERDO: SELECCIÓN Y FILTRO DE PRODUCTOS */}
-        <div className={`flex-1 flex flex-col pt-[7px] px-6 pb-6 min-w-0 border-r border-primary/15 bg-white`}>
+        <div className={`flex-1 flex flex-col pt-[7px] px-3 sm:px-4 lg:px-6 pb-6 min-w-0 border-r border-primary/15 bg-white`}>
           
           {/* BARRA DE BÚSQUEDA Y FILTROS */}
           <div className="space-y-3.5 mb-6">
@@ -1408,7 +1408,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
         </div>
 
         {/* LADO DERECHO: DETALLE DEL PEDIDO (CHECKOUT FIJO) */}
-        <div className={`w-[32rem] lg:w-[38rem] flex flex-col shrink-0 border-l bg-white border-primary/15`}>
+        <div className={`w-full lg:w-[32rem] xl:w-[38rem] flex flex-col shrink-0 border-l bg-white border-primary/15`}>
 
 
           
@@ -2106,7 +2106,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                     <div className="space-y-3">
                       <h4 className={`text-xs font-bold uppercase tracking-wider text-black`}>Medios de Pago (Admite Combinados)</h4>
                       
-                      <div className="grid grid-cols-4 gap-2 mb-3">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
                         {[
                           { id: 'efectivo', label: 'Efectivo', icon: DollarSign, key: 'efectivo' },
                           { id: 'transferencia', label: 'Transf.', icon: RefreshCw, key: 'transferencia' },
@@ -2334,7 +2334,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                       <div className="space-y-3">
                         <h4 className={`text-xs md:text-sm font-bold uppercase tracking-wider text-black`}>Medios de Pago (Admite combinados)</h4>
                         
-                        <div className="grid grid-cols-4 gap-2.5 mb-5">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-5">
                           {[
                             { id: 'efectivo', label: 'Efectivo', icon: DollarSign, key: 'efectivo' },
                             { id: 'transferencia', label: 'Transf.', icon: RefreshCw, key: 'transferencia' },

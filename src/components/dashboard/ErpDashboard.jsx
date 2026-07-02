@@ -412,7 +412,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, setActivePa
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
         
         {/* PANEL IZQUIERDO: PROYECTOS Y TAREAS (Col Span 7) */}
-        <div className={`${currentGlassPanel} xl:col-span-7 p-6 rounded-2xl`}>
+        <div className={`${currentGlassPanel} xl:col-span-7 p-4 sm:p-6 rounded-2xl`}>
           <div className="flex items-center justify-between mb-5">
             <h3 className={`text-base font-bold flex items-center gap-2 text-gray-800`}>
               <Briefcase size={18} className="text-primary" />
@@ -527,7 +527,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, setActivePa
         </div>
 
         {/* PANEL DERECHO: FACTURACIÓN Y TRIBUTACIÓN SRI (Col Span 5) */}
-        <div className={`${currentGlassPanel} xl:col-span-5 p-6 rounded-2xl flex flex-col justify-between`}>
+        <div className={`${currentGlassPanel} xl:col-span-5 p-4 sm:p-6 rounded-2xl flex flex-col justify-between`}>
           <div>
             <div className="flex items-center justify-between mb-5">
               <h3 className={`text-base font-bold flex items-center gap-2 text-gray-850`}>
@@ -602,7 +602,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, setActivePa
       </div>
 
       {/* SECCIÓN: AI ERP ADVISOR (DIAGNÓSTICO ESTRATÉGICO CON GEMINI) */}
-      <div className={`p-6 rounded-3xl relative overflow-hidden border bg-gradient-to-br from-[#f6f2fc] via-white to-white border-purple-200 shadow-md`}>
+      <div className={`p-4 sm:p-6 rounded-3xl relative overflow-hidden border bg-gradient-to-br from-[#f6f2fc] via-white to-white border-purple-200 shadow-md`}>
         <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/10 rounded-full blur-[60px] pointer-events-none -z-10"></div>
         <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-primary/5 rounded-full blur-[40px] pointer-events-none -z-10"></div>
 

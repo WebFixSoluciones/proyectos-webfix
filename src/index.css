@@ -85,8 +85,9 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-@media screen and (max-width: 768px) {
-  input, select, textarea { font-size: 16px !important; }
+@media screen and (max-width: 640px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
+  select, textarea { font-size: 16px; }
 }
 
 /* INPUTS - Stripe style */
@@ -134,7 +135,7 @@ label { font-size: var(--text-sm); font-weight: var(--font-weight-medium); color
   padding: 8px 16px !important;
   font-size: var(--text-sm) !important;
   font-weight: var(--font-weight-medium) !important;
-  height: 34px !important;
+  min-height: 40px !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -153,7 +154,7 @@ label { font-size: var(--text-sm); font-weight: var(--font-weight-medium); color
   padding: 8px 16px !important;
   font-size: var(--text-sm) !important;
   font-weight: var(--font-weight-medium) !important;
-  height: 34px !important;
+  min-height: 40px !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -172,7 +173,7 @@ label { font-size: var(--text-sm); font-weight: var(--font-weight-medium); color
   padding: 8px 16px !important;
   font-size: var(--text-sm) !important;
   font-weight: var(--font-weight-medium) !important;
-  height: 34px !important;
+  min-height: 40px !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -183,7 +184,7 @@ label { font-size: var(--text-sm); font-weight: var(--font-weight-medium); color
 .btn-danger:hover, .btn-destructive:hover { background: #FFF5F5 !important; border-color: #CD2B31 !important; }
 
 .btn-icon {
-  width: 32px !important; height: 32px !important;
+  width: 36px !important; height: 36px !important;
   border-radius: var(--radius-button) !important;
   display: inline-flex !important;
   align-items: center !important; justify-content: center !important;
@@ -306,4 +307,10 @@ textarea:focus-visible, [role="button"]:focus-visible, [tabindex]:focus-visible 
 /* BORDER RADIUS OVERRIDE */
 [class*="rounded-"]:not(.rounded-full):not(.landing-card):not(.landing-button-primary):not(.landing-button-secondary) {
   border-radius: var(--radius-card) !important;
+}
+
+/* MOBILE COMPACT MODE */
+@media screen and (max-width: 640px) {
+  .btn-icon { width: 40px !important; height: 40px !important; }
+  table td .btn-icon { width: 36px !important; height: 36px !important; }
 }

@@ -210,7 +210,7 @@ export default function AccountsReceivablePayable({ type = 'cxc', transactions =
                 <th className="px-6 py-3.5">Comprobante</th>
                 <th className="px-6 py-3.5">Contacto</th>
                 <th className="px-6 py-3.5 text-right">Total Documento</th>
-                <th className="px-6 py-3.5 text-right">Abonado</th>
+                <th className="px-6 py-3.5 text-right hidden sm:table-cell">Abonado</th>
                 <th className="px-6 py-3.5 text-right">Pendiente</th>
                 <th className="px-6 py-3.5 text-center">Acciones</th>
               </tr>
@@ -235,7 +235,7 @@ export default function AccountsReceivablePayable({ type = 'cxc', transactions =
                       </div>
                     </td>
                     <td className={`px-6 py-3.5 text-right font-semibold text-black`}>total.toFixed(2)</td>
-                    <td className="px-6 py-3.5 text-right text-emerald-700 dark:text-emerald-400 font-bold">paid.toFixed(2)</td>
+                    <td className="px-6 py-3.5 text-right text-emerald-700 dark:text-emerald-400 font-bold hidden sm:table-cell">paid.toFixed(2)</td>
                     <td className="px-6 py-3.5 text-right text-red-700 dark:text-red-400 font-black">pending.toFixed(2)</td>
                     <td className="px-6 py-3.5 text-center">
                       <div className="flex justify-center gap-1.5">

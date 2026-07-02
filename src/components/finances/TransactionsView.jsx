@@ -534,7 +534,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                 <th className="px-6 py-3.5">Total</th>
                 <th className="px-6 py-3.5">Estado SRI</th>
                 {isPreventaTab && <th className="px-6 py-3.5">Despacho</th>}
-                <th className="px-6 py-3.5">Archivos</th>
+                <th className="px-6 py-3.5 hidden sm:table-cell">Archivos</th>
                 <th className="px-6 py-3.5 text-right">Acciones</th>
               </tr>
             </thead>
@@ -574,7 +574,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                       )}
                     </td>
                   )}
-                  <td className="px-6 py-3.5">
+                  <td className="px-6 py-3.5 hidden sm:table-cell">
                     <div className="flex gap-1.5">
                       {tx.xmlUrl ? (
                         <a 

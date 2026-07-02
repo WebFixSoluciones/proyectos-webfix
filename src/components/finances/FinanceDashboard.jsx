@@ -61,7 +61,7 @@ export default function FinanceDashboard({ transactions, thirdParties, db, appId
     else certStatus = 'ok';
   }
 
-  const cardClass = 'p-6 rounded-2xl border backdrop-blur-xl transition-all shadow-sm bg-white border-primary/10 hover:border-primary/25/50 shadow-[0_4px_20px_rgba(0,0,0,0.03)]';
+  const cardClass = 'p-4 sm:p-6 rounded-2xl border backdrop-blur-xl transition-all shadow-sm bg-white border-primary/10 hover:border-primary/25/50 shadow-[0_4px_20px_rgba(0,0,0,0.03)]';
 
   return (
     <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">

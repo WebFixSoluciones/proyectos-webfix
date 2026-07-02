@@ -186,7 +186,7 @@ export default function ThirdPartiesView({ thirdParties, showToast, db, appId, f
               <tr>
                 <th className="px-6 py-3.5">Razón Social / Nombres</th>
                 <th className="px-6 py-3.5">Identificación</th>
-                <th className="px-6 py-3.5">Teléfono</th>
+                <th className="px-6 py-3.5 hidden sm:table-cell">Teléfono</th>
                 <th className="px-6 py-3.5">Dirección Domicilio</th>
                 <th className="px-6 py-3.5">Correo Notificación</th>
                 <th className="px-6 py-3.5 text-right">Acciones</th>
@@ -223,7 +223,7 @@ export default function ThirdPartiesView({ thirdParties, showToast, db, appId, f
                       <span className="text-[9px] text-gray-500 font-bold block uppercase opacity-85">{tp.tipoIdentificacion || 'ruc'}</span>
                       <span className="text-black font-semibold">{tp.ruc}</span>
                     </td>
-                    <td className="px-6 py-3.5 text-xs font-bold text-black">{tp.telefono || '-'}</td>
+                    <td className="px-6 py-3.5 text-xs font-bold text-black hidden sm:table-cell">{tp.telefono || '-'}</td>
                     <td className="px-6 py-3.5 text-xs max-w-[220px] truncate text-black font-semibold" title={tp.direccion}>
                        {tp.direccion || '-'}
                        {tp.ciudad && <span className="block text-[10px] text-gray-500 font-bold uppercase mt-0.5">{tp.ciudad}</span>}
