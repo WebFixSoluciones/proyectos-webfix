@@ -4,7 +4,7 @@ import {
   ShoppingBag, DollarSign, ChevronRight, ChevronLeft,
   CheckCircle2, Sparkles, UserPlus, Building, ArrowRight, Percent
 } from 'lucide-react';
-import { doc, setDoc, getDoc, getDocs, collection } from 'firebase/firestore';
+import { doc, setDoc, getDoc, getDocs, collection, deleteDoc } from 'firebase/firestore';
 import { registrarMovimientoKardex } from '../../services/inventoryService';
 import { getEcuadorDateString } from '../../services/sriService';
 
@@ -240,9 +240,9 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
         }
         
         if (kardexFailed) {
-          // Rollback: delete partial kardex and transaction
+          // Rollback: attempt to delete the orphaned transaction
+          try { await deleteDoc(txRef); } catch (e) { /* ignore */ }
           showToast?.('Error al registrar inventario. Se revierte la compra.', 'error');
-          await setDoc(txRef, { inventarioRegistrado: false, items: updatedItems }, { merge: true });
           setSaving(false);
           return;
         }

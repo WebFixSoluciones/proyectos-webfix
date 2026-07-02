@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
   DollarSign, PieChart, Users, FileText, Download, Settings, Sparkles, ShoppingCart, Package, Bookmark,
-  ArrowDownCircle, ArrowUpCircle, TrendingUp, Calculator, Building, Percent, CreditCard, ShoppingBag
+  ArrowDownCircle, ArrowUpCircle, TrendingUp, Calculator, Building, Percent, CreditCard, ShoppingBag,
+  X, ArrowRight
 } from 'lucide-react';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { getEcuadorDateString } from '../../services/sriService';
@@ -97,8 +98,10 @@ export default function FinanceModule({
 
   // Abrir modal de factura prellenada (desde POS o Cotizaciones)
   const handleOpenFormModal = (prefilledData = null) => {
-    if (mode === 'compras' && !prefilledData) {
+    // In compras mode, show method selector for NEW purchases (no existing id)
+    if (mode === 'compras' && (!prefilledData || !prefilledData.id)) {
       setShowPurchaseMethodSelect(true);
+      setEditingTx(prefilledData);
       return;
     }
     setEditingTx(prefilledData);
@@ -108,7 +111,7 @@ export default function FinanceModule({
   const handleConfirmPurchaseMethod = (method) => {
     setPurchaseMethod(method);
     setShowPurchaseMethodSelect(false);
-    setEditingTx({ type: 'egreso', purchaseMethod: method });
+    setEditingTx(prev => ({ ...(prev || {}), type: 'egreso', purchaseMethod: method }));
     setIsModalOpen(true);
   };
 
