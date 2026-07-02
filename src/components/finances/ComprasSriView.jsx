@@ -17,7 +17,8 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
-  const [filterDateRange, setFilterDateRange] = useState('all');
+  const [filterDateFrom, setFilterDateFrom] = useState('');
+  const [filterDateTo, setFilterDateTo] = useState('');
   const [selectedRide, setSelectedRide] = useState(null);
   const [viewingXml, setViewingXml] = useState(null);
   const [importModal, setImportModal] = useState(null);
@@ -95,15 +96,8 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
     if (filterType !== 'all' && b.tipoComprobante !== filterType) return false;
     if (filterStatus === 'importado' && !isBillImported(b)) return false;
     if (filterStatus === 'nuevo' && isBillImported(b)) return false;
-    if (filterDateRange !== 'all') {
-      const billDate = new Date(b.date);
-      const now = new Date();
-      const monthsAgo = new Date();
-      if (filterDateRange === '1month') monthsAgo.setMonth(now.getMonth() - 1);
-      else if (filterDateRange === '3months') monthsAgo.setMonth(now.getMonth() - 3);
-      else if (filterDateRange === '1year') monthsAgo.setFullYear(now.getFullYear() - 1);
-      if (billDate < monthsAgo) return false;
-    }
+    if (filterDateFrom && b.date < filterDateFrom) return false;
+    if (filterDateTo && b.date > filterDateTo) return false;
     return true;
   });
 
@@ -125,7 +119,8 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
   const handleExtractSri = async () => {
     setLoading(true);
     try {
-      const today = getEcuadorDateString();
+      const today = filterDateTo || getEcuadorDateString();
+      const fromDate = filterDateFrom || today;
       const extracted = [
         { tipoComprobante: 'factura', ruc: '1790016919001', razonSocial: 'CORPORACION FAVORITA C.A.', documentNumber: '001-002-000123456', baseImponible: 125.40, ivaValor: 18.81, total: 144.21, claveAcceso: `${today.replace(/-/g,'')}0117900169190010010020001234561234567819`, description: 'Compra de insumos y suministros de oficina' },
         { tipoComprobante: 'factura', ruc: '1791256123001', razonSocial: 'IMPORTADORA INDUSTRIAL AGRICOLA S.A.', documentNumber: '001-001-000987654', baseImponible: 450.00, ivaValor: 67.50, total: 517.50, claveAcceso: `${today.replace(/-/g,'')}0117912561230010010010009876541234567816`, description: 'Materiales de construccion y ferreteria' },
@@ -517,9 +512,11 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
             <select value={filterType} onChange={e => setFilterType(e.target.value)} className="text-[11px] font-medium px-2 py-1.5 rounded-md border border-[#E6EBF1] bg-white text-black">
               <option value="all">Todos los tipos</option><option value="factura">Facturas</option><option value="nota_credito">Notas de Credito</option><option value="retencion">Retenciones</option>
             </select>
-            <select value={filterDateRange} onChange={e => setFilterDateRange(e.target.value)} className="text-[11px] font-medium px-2 py-1.5 rounded-md border border-[#E6EBF1] bg-white text-black">
-              <option value="all">Todas las fechas</option><option value="1month">Ultimo mes</option><option value="3months">Ultimos 3 meses</option><option value="1year">Ultimo ano</option>
-            </select>
+            <div className="flex items-center gap-1.5">
+              <input type="date" value={filterDateFrom} onChange={e => setFilterDateFrom(e.target.value)} className="text-[11px] px-2 py-1.5 rounded-md border border-[#E6EBF1] bg-white text-black w-[130px]" placeholder="Desde" />
+              <span className="text-[11px] text-[#333333]">a</span>
+              <input type="date" value={filterDateTo} onChange={e => setFilterDateTo(e.target.value)} className="text-[11px] px-2 py-1.5 rounded-md border border-[#E6EBF1] bg-white text-black w-[130px]" placeholder="Hasta" />
+            </div>
             {sriBills.length > 0 && (
               <button onClick={handleClearBuzon} disabled={loading} className="flex items-center gap-1 px-2.5 py-1.5 rounded-md text-[11px] font-medium bg-white border border-[#E6EBF1] text-[#CD2B31] hover:bg-[#FFF0F0] transition-all">
                 <Trash2 size={12} /> Limpiar Buzon
@@ -869,7 +866,9 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
               </div>
               <div className="text-left bg-[#F6F9FC] p-3 rounded-md text-[11px] text-[#333333]">
                 <p className="font-semibold text-black mb-1">Se extraeran:</p>
-                <p>Facturas, Notas de Credito y Retenciones recibidas para el RUC <strong>{companyRuc}</strong>. Los comprobantes que ya existan en el buzon no se duplicaran.</p>
+                <p>Facturas, Notas de Credito y Retenciones recibidas para el RUC <strong>{companyRuc}</strong>.</p>
+                {filterDateFrom && <p className="mt-1">Periodo: <strong>{filterDateFrom}</strong> al <strong>{filterDateTo || 'hoy'}</strong></p>}
+                <p className="mt-1">Los comprobantes ya existentes no se duplicaran.</p>
               </div>
               <div className="flex gap-2">
                 <button onClick={() => setConfirmFetch(false)} className="flex-1 btn-secondary">Cancelar</button>
