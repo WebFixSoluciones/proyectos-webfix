@@ -96,24 +96,95 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
     return true;
   });
 
-  // Fetch SRI bills (mock for now, ready for real API)
+  // Fetch SRI bills - refresh from Firestore, no mock data
   const handleFetchSriBills = async () => {
     if (!companyRuc) { showToast?.('Configura tu RUC en Ajustes primero', 'warning'); return; }
     setLoading(true);
     try {
-      const mockBills = [
-        { id: `sri_${Date.now()}_1`, tipoComprobante: 'factura', ruc: '1790016919001', razonSocial: 'CORPORACION FAVORITA C.A. (Supermaxi)', documentNumber: '001-002-000123456', date: getEcuadorDateString(), baseImponible: 125.40, ivaValor: 18.81, total: 144.21, claveAcceso: `${getEcuadorDateString().replace(/-/g,'')}0117900169190010010020001234561234567819`, category: 'compras', description: 'Compra de insumos y suministros', receiverRuc: companyRuc, xmlContent: '<factura>...</factura>' },
-        { id: `sri_${Date.now()}_2`, tipoComprobante: 'factura', ruc: '1791256123001', razonSocial: 'IMPORTADORA INDUSTRIAL AGRICOLA S.A.', documentNumber: '001-001-000987654', date: getEcuadorDateString(), baseImponible: 450.00, ivaValor: 67.50, total: 517.50, claveAcceso: `${getEcuadorDateString().replace(/-/g,'')}0117912561230010010010009876541234567816`, category: 'compras', description: 'Materiales de construccion', receiverRuc: companyRuc, xmlContent: '<factura>...</factura>' },
-        { id: `sri_${Date.now()}_3`, tipoComprobante: 'nota_credito', ruc: '1790016919001', razonSocial: 'CORPORACION FAVORITA C.A. (Supermaxi)', documentNumber: '001-002-000123460', date: getEcuadorDateString(), baseImponible: -25.00, ivaValor: -3.75, total: -28.75, claveAcceso: `${getEcuadorDateString().replace(/-/g,'')}0117900169190010010020001234601234567813`, category: 'compras', description: 'Nota de Credito por devolucion', receiverRuc: companyRuc, xmlContent: '<notaCredito>...</notaCredito>' }
-      ];
-      for (const bill of mockBills) {
-        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_sri_compras', bill.id), bill);
-        const exists = sriBills.find(b => b.claveAcceso === bill.claveAcceso);
-        if (!exists) setSriBills(prev => [bill, ...prev]);
+      const sriColRef = collection(db, 'artifacts', appId, 'public', 'data', 'finances_sri_compras');
+      const sriSnap = await getDocs(sriColRef);
+      const list = [];
+      sriSnap.forEach(docSnap => {
+        const data = docSnap.data();
+        if (data.receiverRuc === companyRuc) list.push(data);
+      });
+      list.sort((a, b) => b.date.localeCompare(a.date));
+      setSriBills(list);
+      
+      if (list.length === 0) {
+        showToast?.('No hay comprobantes sincronizados. Usa el boton "Subir XML" para cargar tus facturas electronicas.', 'info');
+      } else {
+        showToast?.(`${list.length} comprobantes cargados del buzon SRI`, 'success');
       }
-      showToast?.(`${mockBills.length} comprobantes sincronizados del SRI`, 'success');
     } catch (err) { console.error(err); showToast?.('Error al consultar SRI', 'error'); }
     finally { setLoading(false); }
+  };
+
+  // Upload XML comprobante to SRI buzon
+  const handleXmlUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !companyRuc) return;
+    setLoading(true);
+    try {
+      const text = await file.text();
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(text, "text/xml");
+      
+      const infoTrib = xmlDoc.getElementsByTagName("infoTributaria")?.[0];
+      if (!infoTrib) { showToast?.('XML invalido: falta infoTributaria', 'error'); setLoading(false); return; }
+
+      const claveAcceso = infoTrib.getElementsByTagName("claveAcceso")?.[0]?.textContent || '';
+      const ruc = infoTrib.getElementsByTagName("ruc")?.[0]?.textContent || '';
+      const razonSocial = infoTrib.getElementsByTagName("razonSocial")?.[0]?.textContent || '';
+      const estab = infoTrib.getElementsByTagName("estab")?.[0]?.textContent || '';
+      const ptoEmi = infoTrib.getElementsByTagName("ptoEmi")?.[0]?.textContent || '';
+      const secuencial = infoTrib.getElementsByTagName("secuencial")?.[0]?.textContent || '';
+      const documentNumber = `${estab}-${ptoEmi}-${secuencial}`;
+      
+      const infoFact = xmlDoc.getElementsByTagName("infoFactura")?.[0];
+      const infoNC = xmlDoc.getElementsByTagName("infoNotaCredito")?.[0];
+      const infoRet = xmlDoc.getElementsByTagName("infoCompRetencion")?.[0];
+      const infoDoc = infoFact || infoNC || infoRet;
+
+      let tipoComprobante = 'factura';
+      if (infoNC) tipoComprobante = 'nota_credito';
+      else if (infoRet) tipoComprobante = 'retencion';
+
+      const date = infoDoc?.getElementsByTagName("fechaEmision")?.[0]?.textContent || getEcuadorDateString();
+      const totalConImpuesto = infoDoc?.getElementsByTagName("importeTotal")?.[0];
+      const totalSinImpuesto = infoDoc?.getElementsByTagName("totalSinImpuestos")?.[0];
+      const total = Number(totalConImpuesto?.textContent || 0);
+      const baseImponible = Number(totalSinImpuesto?.textContent || total / 1.15);
+      const ivaValor = total - baseImponible;
+
+      // Check for duplicates
+      const existing = sriBills.find(b => b.claveAcceso === claveAcceso);
+      if (existing) { showToast?.('Este comprobante ya esta en el buzon', 'warning'); setLoading(false); return; }
+
+      const billId = `sri_xml_${claveAcceso || Date.now()}`;
+      const bill = {
+        id: billId, tipoComprobante, ruc, razonSocial, documentNumber,
+        date, baseImponible, ivaValor, total, claveAcceso,
+        category: 'compras', description: `Compra ${tipoComprobante} ${documentNumber}`,
+        receiverRuc: companyRuc, xmlContent: text
+      };
+
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_sri_compras', billId), bill);
+      
+      // Refresh list
+      const sriColRef = collection(db, 'artifacts', appId, 'public', 'data', 'finances_sri_compras');
+      const sriSnap = await getDocs(sriColRef);
+      const list = [];
+      sriSnap.forEach(docSnap => {
+        const data = docSnap.data();
+        if (data.receiverRuc === companyRuc) list.push(data);
+      });
+      list.sort((a, b) => b.date.localeCompare(a.date));
+      setSriBills(list);
+      
+      showToast?.(`${razonSocial} - ${documentNumber} cargado al buzon`, 'success');
+    } catch (err) { console.error(err); showToast?.('Error al procesar XML', 'error'); }
+    finally { setLoading(false); e.target.value = ''; }
   };
 
   // View PDF/RIDE
@@ -346,6 +417,11 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
               <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
               <span>{loading ? 'Consultando...' : 'Consultar SRI'}</span>
             </button>
+            <label className="flex items-center gap-1.5 px-3 py-2 rounded-md text-[12px] font-medium bg-white border border-[#E6EBF1] text-black hover:bg-[#F6F9FC] cursor-pointer transition-all">
+              <Upload size={14} />
+              <span>Subir XML</span>
+              <input type="file" accept=".xml" onChange={handleXmlUpload} className="hidden" />
+            </label>
             <div className="relative flex-1 min-w-[200px] max-w-xs">
               <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#333333]" />
               <input value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Buscar..." className={`${inputClass} pl-8`} />
@@ -378,7 +454,9 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
                 </thead>
                 <tbody>
                   {filteredBills.length === 0 ? (
-                    <tr><td colSpan={9} className="text-center py-8 text-[#333333] text-[12px]">No hay comprobantes. Haz clic en "Consultar SRI".</td></tr>
+                    <tr><td colSpan={9} className="text-center py-8 text-[#333333] text-[12px]">
+                      {loading ? 'Cargando comprobantes...' : 'No hay comprobantes en el buzon. Sube tus archivos XML de facturas electronicas o consulta el SRI.'}
+                    </td></tr>
                   ) : filteredBills.map(bill => {
                     const imported = isBillImported(bill);
                     return (
