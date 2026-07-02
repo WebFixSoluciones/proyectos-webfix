@@ -182,7 +182,7 @@ export default function FinanceModule({
     if (mode === 'compras') {
       return [
         { id: 'compras_resumen', label: 'Historial de Compras', icon: ShoppingBag },
-        { id: 'compras_sri', label: 'Facturas Recibidas (SRI)', icon: Download },
+        { id: 'compras_sri', label: 'Comprobantes SRI', icon: Download },
         { id: 'compras_gastos', label: 'Gastos con IA', icon: Sparkles },
         { id: 'compras_nc', label: 'Notas de Crédito', icon: FileText },
         { id: 'compras_retencion', label: 'Retenciones Emitidas', icon: Percent }
