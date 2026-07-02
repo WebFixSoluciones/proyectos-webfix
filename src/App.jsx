@@ -2006,7 +2006,7 @@ export default function App() {
       <div className="flex-1 flex flex-col h-full overflow-hidden relative z-10 md:z-[60]">
         
         {/* Topbar Stripe */}
-        <div className="flex flex-col md:flex-row md:items-center px-6 py-3 justify-between gap-4 shrink-0 bg-white border-b border-[#E6EBF1] min-h-[56px]">
+        <div className="flex items-center px-6 justify-between gap-4 shrink-0 bg-white border-b border-[#E6EBF1] h-14">
           <div className="flex items-center gap-4">
             <button 
               onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
