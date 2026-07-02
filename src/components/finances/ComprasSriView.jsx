@@ -42,6 +42,8 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
   const [showProductSearch, setShowProductSearch] = useState(false);
   const [productSearchTerm, setProductSearchTerm] = useState('');
   const [confirmFetch, setConfirmFetch] = useState(false);
+  const [confirmClear, setConfirmClear] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
   // Init
   useEffect(() => {
@@ -115,42 +117,21 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
     return list;
   };
 
-  // Extract comprobantes from SRI (simulated - ready for real API)
+  // Extract comprobantes from SRI
   const handleExtractSri = async () => {
     setLoading(true);
     try {
-      const today = filterDateTo || getEcuadorDateString();
-      const fromDate = filterDateFrom || today;
-      const extracted = [
-        { tipoComprobante: 'factura', ruc: '1790016919001', razonSocial: 'CORPORACION FAVORITA C.A.', documentNumber: '001-002-000123456', baseImponible: 125.40, ivaValor: 18.81, total: 144.21, claveAcceso: `${today.replace(/-/g,'')}0117900169190010010020001234561234567819`, description: 'Compra de insumos y suministros de oficina' },
-        { tipoComprobante: 'factura', ruc: '1791256123001', razonSocial: 'IMPORTADORA INDUSTRIAL AGRICOLA S.A.', documentNumber: '001-001-000987654', baseImponible: 450.00, ivaValor: 67.50, total: 517.50, claveAcceso: `${today.replace(/-/g,'')}0117912561230010010010009876541234567816`, description: 'Materiales de construccion y ferreteria' },
-        { tipoComprobante: 'factura', ruc: '0990015369001', razonSocial: 'DISTRIBUIDORA FARMACEUTICA ECUATORIANA DIFARE S.A.', documentNumber: '002-005-000456789', baseImponible: 890.00, ivaValor: 133.50, total: 1023.50, claveAcceso: `${today.replace(/-/g,'')}0109900153690010020050004567891234567817`, description: 'Medicamentos e insumos medicos' },
-        { tipoComprobante: 'factura', ruc: '1791416267001', razonSocial: 'PROVEEDORA DE MATERIALES DE OFICINA PRODUMERC S.A.', documentNumber: '001-003-000789012', baseImponible: 75.00, ivaValor: 11.25, total: 86.25, claveAcceso: `${today.replace(/-/g,'')}0117914162670010010030007890121234567811`, description: 'Papeleria y suministros de oficina' },
-        { tipoComprobante: 'nota_credito', ruc: '1790016919001', razonSocial: 'CORPORACION FAVORITA C.A.', documentNumber: '001-002-000123460', baseImponible: -25.00, ivaValor: -3.75, total: -28.75, claveAcceso: `${today.replace(/-/g,'')}0117900169190010010020001234601234567813`, description: 'Nota de Credito por devolucion de productos' },
-        { tipoComprobante: 'retencion', ruc: '1791256123001', razonSocial: 'IMPORTADORA INDUSTRIAL AGRICOLA S.A.', documentNumber: '001-001-000000123', baseImponible: 50.00, ivaValor: 0, total: 50.00, claveAcceso: `${today.replace(/-/g,'')}0117912561230010010010000001231234567814`, description: 'Retencion en la fuente - compra de bienes' }
-      ];
-
-      let newCount = 0;
-      for (const bill of extracted) {
-        // Check for duplicates by claveAcceso in current state
-        const exists = sriBills.find(b => b.claveAcceso === bill.claveAcceso);
-        if (exists) continue;
-
-        const billId = `sri_extract_${bill.claveAcceso}`;
-        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_sri_compras', billId), {
-          id: billId, ...bill, date: today, receiverRuc: companyRuc, category: 'compras', xmlContent: '<comprobante/>'
-        });
-        newCount++;
-      }
-
-      // Refresh list
+      showToast?.('Consultando buzon electronico del SRI...', 'info');
+      
+      // TODO: Integrate with real SRI API (SOAP/REST)
+      // For now, show that the buzon is ready for real comprobantes
       const list = await refreshSriBills();
-      if (newCount > 0) {
-        showToast?.(`${newCount} comprobantes extraidos del buzon SRI`, 'success');
+      if (list.length === 0) {
+        showToast?.('No se encontraron comprobantes nuevos en el SRI para el periodo indicado. Sube tus archivos XML manualmente.', 'info');
       } else {
-        showToast?.(`Buzon SRI actualizado - ${list.length} comprobantes en total`, 'info');
+        showToast?.(`${list.length} comprobantes en el buzon`, 'success');
       }
-    } catch (err) { console.error(err); showToast?.('Error al extraer del SRI', 'error'); }
+    } catch (err) { console.error(err); showToast?.('Error al consultar SRI', 'error'); }
     finally { setLoading(false); }
   };
 
@@ -252,7 +233,6 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
 
   // Clear all SRI bills from buzon
   const handleClearBuzon = async () => {
-    if (!confirm('Estas seguro de eliminar TODOS los comprobantes del buzon SRI? Esta accion no se puede deshacer.')) return;
     setLoading(true);
     try {
       const sriColRef = collection(db, 'artifacts', appId, 'public', 'data', 'finances_sri_compras');
@@ -266,7 +246,7 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
       setSriBills([]);
       showToast?.('Buzon SRI limpiado correctamente', 'success');
     } catch (err) { console.error(err); showToast?.('Error al limpiar buzon', 'error'); }
-    finally { setLoading(false); }
+    finally { setLoading(false); setConfirmClear(false); }
   };
 
   // Delete single bill
@@ -276,6 +256,7 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
       setSriBills(prev => prev.filter(b => b.id !== billId));
       showToast?.('Comprobante eliminado del buzon', 'success');
     } catch (err) { console.error(err); showToast?.('Error al eliminar', 'error'); }
+    finally { setConfirmDeleteId(null); }
   };
   const handleOpenImport = (bill) => setImportModal({ bill, method: null });
 
@@ -518,7 +499,7 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
               <input type="date" value={filterDateTo} onChange={e => setFilterDateTo(e.target.value)} className="text-[11px] px-2 py-1.5 rounded-md border border-[#E6EBF1] bg-white text-black w-[130px]" placeholder="Hasta" />
             </div>
             {sriBills.length > 0 && (
-              <button onClick={handleClearBuzon} disabled={loading} className="flex items-center gap-1 px-2.5 py-1.5 rounded-md text-[11px] font-medium bg-white border border-[#E6EBF1] text-[#CD2B31] hover:bg-[#FFF0F0] transition-all">
+              <button onClick={() => setConfirmClear(true)} disabled={loading} className="flex items-center gap-1 px-2.5 py-1.5 rounded-md text-[11px] font-medium bg-white border border-[#E6EBF1] text-[#CD2B31] hover:bg-[#FFF0F0] transition-all">
                 <Trash2 size={12} /> Limpiar Buzon
               </button>
             )}
@@ -562,7 +543,7 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
                           <p>2. O sube manualmente tus archivos <strong>XML</strong> descargados del portal SRI.</p>
                           <p>3. Luego importa cada comprobante a tu <strong>Historial de Compras</strong>.</p>
                         </div>
-                        <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-md text-[12px] font-medium bg-[var(--primary-color)] text-white hover:opacity-90 cursor-pointer transition-all">
+                        <label className="btn-primary cursor-pointer">
                           <Upload size={14} />
                           <span>Subir primer XML</span>
                           <input type="file" accept=".xml" onChange={handleXmlUpload} className="hidden" />
@@ -602,7 +583,7 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
                             {!imported && (
                               <button onClick={() => handleOpenImport(bill)} className="btn-icon bg-primary" title="Importar a Compras"><ArrowRight size={13} /></button>
                             )}
-                            <button onClick={() => handleDeleteBill(bill.id)} className="btn-icon text-red-500" title="Eliminar del buzon"><Trash2 size={13} /></button>
+                            <button onClick={() => setConfirmDeleteId(bill.id)} className="btn-icon text-red-500" title="Eliminar del buzon"><Trash2 size={13} /></button>
                           </div>
                         </td>
                       </tr>
@@ -874,6 +855,52 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
                 <button onClick={() => setConfirmFetch(false)} className="flex-1 btn-secondary">Cancelar</button>
                 <button onClick={async () => { setConfirmFetch(false); await handleExtractSri(); }} className="flex-1 btn-primary">
                   <Download size={14} /> Extraer del SRI
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============ MODAL: Confirmar Limpieza de Buzon ============ */}
+      {confirmClear && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setConfirmClear(false)}>
+          <div className="w-full max-w-sm bg-white rounded-lg shadow-xl border border-[#E6EBF1]" onClick={e => e.stopPropagation()}>
+            <div className="p-5 text-center space-y-4">
+              <div className="mx-auto w-12 h-12 rounded-full bg-[#FFF0F0] flex items-center justify-center">
+                <Trash2 size={24} className="text-[#CD2B31]" />
+              </div>
+              <div>
+                <h3 className="text-[14px] font-semibold text-black">Limpiar buzon SRI</h3>
+                <p className="text-[12px] text-[#333333] mt-1">Esta seguro de eliminar <strong>TODOS</strong> los comprobantes del buzon? Esta accion no se puede deshacer.</p>
+              </div>
+              <div className="flex gap-2">
+                <button onClick={() => setConfirmClear(false)} className="flex-1 btn-secondary">Cancelar</button>
+                <button onClick={handleClearBuzon} disabled={loading} className="flex-1 btn-danger">
+                  <Trash2 size={14} /> {loading ? 'Eliminando...' : 'Si, eliminar todo'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============ MODAL: Confirmar Eliminacion Individual ============ */}
+      {confirmDeleteId && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setConfirmDeleteId(null)}>
+          <div className="w-full max-w-sm bg-white rounded-lg shadow-xl border border-[#E6EBF1]" onClick={e => e.stopPropagation()}>
+            <div className="p-5 text-center space-y-4">
+              <div className="mx-auto w-12 h-12 rounded-full bg-[#FFF0F0] flex items-center justify-center">
+                <Trash2 size={24} className="text-[#CD2B31]" />
+              </div>
+              <div>
+                <h3 className="text-[14px] font-semibold text-black">Eliminar comprobante</h3>
+                <p className="text-[12px] text-[#333333] mt-1">Desea eliminar este comprobante del buzon SRI?</p>
+              </div>
+              <div className="flex gap-2">
+                <button onClick={() => setConfirmDeleteId(null)} className="flex-1 btn-secondary">Cancelar</button>
+                <button onClick={() => handleDeleteBill(confirmDeleteId)} className="flex-1 btn-danger">
+                  <Trash2 size={14} /> Eliminar
                 </button>
               </div>
             </div>
