@@ -90,8 +90,14 @@ body {
 }
 
 /* INPUTS - Stripe style */
-input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
-select, textarea {
+.border-none, .border-0 {
+  border: none !important;
+  border-width: 0 !important;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not(.border-none):not(.border-0),
+select:not(.border-none):not(.border-0),
+textarea:not(.border-none):not(.border-0) {
   border: 1px solid var(--stripe-border) !important;
   border-radius: var(--radius-input) !important;
   background-color: #FFFFFF !important;

@@ -269,8 +269,7 @@ export default function QuotesView({ products, thirdParties,  showToast, db, app
         </div>
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
-          <div className={`flex items-center gap-2 px-3.5 py-2 rounded-[10px] border w-full sm:w-64 transition-all focus-within:ring-1 focus-within:ring-primary/25 ${
-            'bg-white border-slate-200 focus-within:border-primary'}`}>
+          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border-none w-full sm:w-64 transition-all focus-within:ring-1 focus-within:ring-primary/25 bg-[#f8fafc] hover:bg-[#f1f5f9] focus-within:bg-[#f1f5f9]">
             <Search size={14} className={'text-gray-400'} />
             <input 
               type="text" 
@@ -285,8 +284,7 @@ export default function QuotesView({ products, thirdParties,  showToast, db, app
           <select 
             value={filterStatus} 
             onChange={e => setFilterStatus(e.target.value)} 
-            className={`px-3 py-2 rounded-[10px] border text-xs font-medium outline-none transition-all cursor-pointer ${
-              'bg-white border-slate-200 text-slate-700 focus:border-primary'}`}
+            className="px-3 py-1.5 rounded-xl border-none text-xs font-medium outline-none transition-all cursor-pointer bg-[#f8fafc] hover:bg-[#f1f5f9] text-slate-700 focus:ring-1 focus:ring-primary/25"
           >
             <option value="all" className="text-black">Todos los estados</option>
             <option value="borrador" className="text-black">Borrador</option>

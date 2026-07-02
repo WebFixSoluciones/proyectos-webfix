@@ -194,15 +194,8 @@ export default function ProductsView({ showToast, db, appId }) {
         </div>
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
-          <div
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-[10px] border w-full sm:w-80 transition-all focus-within:ring-1 focus-within:ring-primary/25 ${
-              "bg-white border-[#E6EBF1] focus-within:border-primary"
-            }`}
-          >
-            <Search
-              size={14}
-              className={ ? "text-[#697386]" : "text-[#697386]"}
-            />
+          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border-none w-full sm:w-80 transition-all focus-within:ring-1 focus-within:ring-primary/25 bg-[#f8fafc] hover:bg-[#f1f5f9] focus-within:bg-[#f1f5f9]">
+            <Search size={14} className="text-[#697386]" />
             <input
               type="text"
               placeholder="Buscar por nombre o SKU..."
@@ -214,10 +207,10 @@ export default function ProductsView({ showToast, db, appId }) {
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="px-2.5 py-1.5 rounded-md border text-[11px] font-medium outline-none transition-all cursor-pointer bg-white border-[#E6EBF1] text-black focus:border-primary"
+            className="px-3 py-1.5 rounded-xl border-none text-xs font-medium outline-none transition-all cursor-pointer bg-[#f8fafc] hover:bg-[#f1f5f9] text-slate-700 focus:ring-1 focus:ring-primary/25"
           >
             <option value="all">Todos los tipos</option>
-            <option value="producto">Productos fisicos</option>
+            <option value="producto">Productos físicos</option>
             <option value="servicio">Servicios / Horas</option>
           </select>
         </div>
