@@ -17,6 +17,7 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [filterDateRange, setFilterDateRange] = useState('all');
   const [selectedRide, setSelectedRide] = useState(null);
   const [viewingXml, setViewingXml] = useState(null);
   const [importModal, setImportModal] = useState(null);
@@ -93,6 +94,15 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
     if (filterType !== 'all' && b.tipoComprobante !== filterType) return false;
     if (filterStatus === 'importado' && !isBillImported(b)) return false;
     if (filterStatus === 'nuevo' && isBillImported(b)) return false;
+    if (filterDateRange !== 'all') {
+      const billDate = new Date(b.date);
+      const now = new Date();
+      const monthsAgo = new Date();
+      if (filterDateRange === '1month') monthsAgo.setMonth(now.getMonth() - 1);
+      else if (filterDateRange === '3months') monthsAgo.setMonth(now.getMonth() - 3);
+      else if (filterDateRange === '1year') monthsAgo.setFullYear(now.getFullYear() - 1);
+      if (billDate < monthsAgo) return false;
+    }
     return true;
   });
 
@@ -197,7 +207,33 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
     URL.revokeObjectURL(url);
   };
 
-  // Open import modal
+  // Clear all SRI bills from buzon
+  const handleClearBuzon = async () => {
+    if (!confirm('Estas seguro de eliminar TODOS los comprobantes del buzon SRI? Esta accion no se puede deshacer.')) return;
+    setLoading(true);
+    try {
+      const sriColRef = collection(db, 'artifacts', appId, 'public', 'data', 'finances_sri_compras');
+      const sriSnap = await getDocs(sriColRef);
+      const deletePromises = [];
+      sriSnap.forEach(docSnap => {
+        const data = docSnap.data();
+        if (data.receiverRuc === companyRuc) deletePromises.push(deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_sri_compras', docSnap.id)));
+      });
+      await Promise.all(deletePromises);
+      setSriBills([]);
+      showToast?.('Buzon SRI limpiado correctamente', 'success');
+    } catch (err) { console.error(err); showToast?.('Error al limpiar buzon', 'error'); }
+    finally { setLoading(false); }
+  };
+
+  // Delete single bill
+  const handleDeleteBill = async (billId) => {
+    try {
+      await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_sri_compras', billId));
+      setSriBills(prev => prev.filter(b => b.id !== billId));
+      showToast?.('Comprobante eliminado del buzon', 'success');
+    } catch (err) { console.error(err); showToast?.('Error al eliminar', 'error'); }
+  };
   const handleOpenImport = (bill) => setImportModal({ bill, method: null });
 
   // Execute import with kardex
@@ -428,12 +464,29 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
               {searchTerm && <button onClick={() => setSearchTerm('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black"><X size={12} /></button>}
             </div>
             <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="text-[11px] font-medium px-2 py-1.5 rounded-md border border-[#E6EBF1] bg-white text-black">
-              <option value="all">Todos</option><option value="nuevo">Nuevos</option><option value="importado">Importados</option>
+              <option value="all">Todos ({sriBills.length})</option><option value="nuevo">Pendientes ({sriBills.filter(b => !isBillImported(b)).length})</option><option value="importado">Ya en Compras ({sriBills.filter(b => isBillImported(b)).length})</option>
             </select>
             <select value={filterType} onChange={e => setFilterType(e.target.value)} className="text-[11px] font-medium px-2 py-1.5 rounded-md border border-[#E6EBF1] bg-white text-black">
               <option value="all">Todos los tipos</option><option value="factura">Facturas</option><option value="nota_credito">Notas de Credito</option><option value="retencion">Retenciones</option>
             </select>
+            <select value={filterDateRange} onChange={e => setFilterDateRange(e.target.value)} className="text-[11px] font-medium px-2 py-1.5 rounded-md border border-[#E6EBF1] bg-white text-black">
+              <option value="all">Todas las fechas</option><option value="1month">Ultimo mes</option><option value="3months">Ultimos 3 meses</option><option value="1year">Ultimo ano</option>
+            </select>
+            {sriBills.length > 0 && (
+              <button onClick={handleClearBuzon} disabled={loading} className="flex items-center gap-1 px-2.5 py-1.5 rounded-md text-[11px] font-medium bg-white border border-[#E6EBF1] text-[#CD2B31] hover:bg-[#FFF0F0] transition-all">
+                <Trash2 size={12} /> Limpiar Buzon
+              </button>
+            )}
           </div>
+
+          {/* Summary bar */}
+          {sriBills.length > 0 && (
+            <div className="flex items-center gap-4 text-[11px] text-[#333333] flex-wrap">
+              <span><strong className="text-black">{filteredBills.length}</strong> de <strong className="text-black">{sriBills.length}</strong> comprobantes</span>
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#E6FAF0] border border-[#A3E8CC]"></span> {sriBills.filter(b => isBillImported(b)).length} ya en compras</span>
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#FFF8E5] border border-[#FDD98A]"></span> {sriBills.filter(b => !isBillImported(b)).length} pendientes</span>
+            </div>
+          )}
 
           {/* SRI Table */}
           <div className="rounded-md border border-[#E6EBF1] overflow-hidden bg-white">
@@ -460,9 +513,9 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
                   ) : filteredBills.map(bill => {
                     const imported = isBillImported(bill);
                     return (
-                      <tr key={bill.id} className={imported ? 'bg-[#FAFBFD]' : ''}>
+                      <tr key={bill.id} className={`${imported ? 'bg-[#F0FAF4]' : ''} hover:bg-[#F6F9FC]`}>
                         <td className="text-[12px]">
-                          <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold ${bill.tipoComprobante === 'nota_credito' ? 'bg-[#FFF0F0] text-[#9B1C1C]' : 'bg-[#EBF0FF] text-[#1E3A8A]'}`}>
+                          <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold ${bill.tipoComprobante === 'nota_credito' ? 'bg-[#FFF0F0] text-[#9B1C1C]' : bill.tipoComprobante === 'retencion' ? 'bg-[#FFF8E5] text-[#8B5A0B]' : 'bg-[#EBF0FF] text-[#1E3A8A]'}`}>
                             {bill.tipoComprobante === 'nota_credito' ? 'NC' : bill.tipoComprobante === 'retencion' ? 'RET' : 'FAC'}
                           </span>
                         </td>
@@ -476,9 +529,9 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
                         <td className="text-[12px] text-right font-mono text-black hidden sm:table-cell">${(bill.ivaValor || 0).toFixed(2)}</td>
                         <td className="text-[12px] text-right font-bold text-black">${(bill.total || 0).toFixed(2)}</td>
                         <td>
-                          <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold ${imported ? 'bg-[#E6FAF0] text-[#0E6245]' : 'bg-[#FFF8E5] text-[#8B5A0B]'}`}>
+                          <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold ${imported ? 'bg-[#E6FAF0] text-[#0E6245] border border-[#A3E8CC]' : 'bg-[#FFF8E5] text-[#8B5A0B] border border-[#FDD98A]'}`}>
                             {imported ? <CheckCircle2 size={10} /> : <AlertTriangle size={10} />}
-                            {imported ? 'Importado' : 'Nuevo'}
+                            {imported ? 'Ya en Compras' : 'Pendiente'}
                           </span>
                         </td>
                         <td>
@@ -488,6 +541,7 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
                             {!imported && (
                               <button onClick={() => handleOpenImport(bill)} className="btn-icon bg-primary" title="Importar a Compras"><ArrowRight size={13} /></button>
                             )}
+                            <button onClick={() => handleDeleteBill(bill.id)} className="btn-icon text-red-500" title="Eliminar del buzon"><Trash2 size={13} /></button>
                           </div>
                         </td>
                       </tr>
