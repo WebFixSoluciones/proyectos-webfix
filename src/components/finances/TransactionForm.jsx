@@ -3546,6 +3546,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   className={inputClass}
                 >
                   <option value={15}>15% IVA</option>
+                  <option value={12}>12% IVA</option>
                   <option value={5}>5% IVA</option>
                   <option value={0}>0% IVA</option>
                 </select>

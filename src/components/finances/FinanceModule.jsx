@@ -276,8 +276,9 @@ export default function FinanceModule({
     if (mode === 'compras') {
       return [
         { id: 'compras_resumen', label: 'Historial de Compras', icon: ShoppingBag },
-        { id: 'compras_nc', label: 'Notas de Credito', icon: FileText },
-        { id: 'compras_retencion', label: 'Retenciones Emitidas', icon: Percent }
+        { id: 'compras_nc', label: 'NC Recibidas', icon: FileText },
+        { id: 'compras_nd', label: 'ND Recibidas', icon: FileText },
+        { id: 'compras_retencion', label: 'Retenciones de Compras', icon: Percent }
       ];
     }
     return [];
@@ -460,7 +461,9 @@ export default function FinanceModule({
               {activeTab === 'compras_nc' && (
                 <TransactionsView transactions={transactions} thirdParties={thirdParties} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} forcedDocType="nota_credito" forcedType="egreso" />
               )}
-
+              {activeTab === 'compras_nd' && (
+                <TransactionsView transactions={transactions} thirdParties={thirdParties} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} forcedDocType="nota_debito" forcedType="egreso" />
+              )}
               {activeTab === 'compras_retencion' && (
                 <TransactionsView transactions={transactions} thirdParties={thirdParties} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} forcedDocType="retencion" forcedType="egreso" />
               )}

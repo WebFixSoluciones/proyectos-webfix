@@ -49,11 +49,19 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
     })();
   }, [db, appId]);
 
-  // Recalculate totals
+  // Recalculate totals with per-product IVA
   const recalcTotals = (items) => {
-    const base = items.reduce((s, i) => s + (Number(i.quantity) * Number(i.price) - Number(i.discount || 0)), 0);
-    const iva = base * 0.15;
-    return { baseImponible: base, ivaValor: iva, total: base + iva };
+    let iva5 = 0, iva12 = 0, iva15 = 0;
+    const base = items.reduce((s, i) => {
+      const subtotal = Number(i.quantity) * Number(i.price) - Number(i.discount || 0);
+      const ivaRate = Number(i.ivaCategory) || 15;
+      if (ivaRate === 5) iva5 += subtotal * 0.05;
+      else if (ivaRate === 12) iva12 += subtotal * 0.12;
+      else if (ivaRate === 15 || ivaRate !== 0) iva15 += subtotal * 0.15;
+      return s + subtotal;
+    }, 0);
+    const ivaValor = iva5 + iva12 + iva15;
+    return { baseImponible: base, ivaValor, iva5, iva12, iva15, total: base + ivaValor };
   };
 
   // Calculate cost impact for a product
@@ -78,7 +86,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
 
   // Add product to list
   const handleAddProduct = (prod) => {
-    const item = { productId: prod.id, name: prod.name, sku: prod.sku || '', quantity: 1, price: Number(prod.cost || prod.baseCost) || 0, discount: 0, subtotal: Number(prod.cost || prod.baseCost) || 0 };
+    const item = { productId: prod.id, name: prod.name, sku: prod.sku || '', quantity: 1, price: Number(prod.cost || prod.baseCost) || 0, discount: 0, subtotal: Number(prod.cost || prod.baseCost) || 0, ivaCategory: Number(prod.ivaPorcentaje || prod.taxRate || prod.ivaCategory) || 15 };
     const items = [...form.items, item];
     setForm(prev => ({ ...prev, items, ...recalcTotals(items) }));
     setShowProductResults(false);
@@ -178,7 +186,8 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
         const matched = products.find(p => p.sku && desc.includes(p.sku)) || products.find(p => desc.toLowerCase().includes(p.name?.toLowerCase()));
         items.push({
           productId: matched?.id || '', name: matched?.name || desc, sku: matched?.sku || '',
-          quantity: cant, price: precio, discount: 0, subtotal: cant * precio
+          quantity: cant, price: precio, discount: 0, subtotal: cant * precio,
+          ivaCategory: Number(matched?.ivaPorcentaje || matched?.taxRate || matched?.ivaCategory) || 15
         });
       }
 
@@ -204,7 +213,8 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
       documentType: form.documentType, documentNumber: form.documentNumber || `COMPRA-${Date.now()}`,
       claveAcceso: form.claveAcceso, date: form.date,
       thirdPartyId: form.supplierId, thirdPartyName: form.supplierName, thirdPartyRuc: form.supplierRuc,
-      baseImponible: form.baseImponible, ivaPorcentaje: 15, ivaValor: form.ivaValor, total: form.total,
+        baseImponible: form.baseImponible, ivaPorcentaje: 15, ivaValor: form.ivaValor, total: form.total,
+        iva5: form.iva5 || 0, iva12: form.iva12 || 0, iva15: form.iva15 || 0,
       descuento: form.descuento, paymentMethod: form.paymentMethod, paymentStatus: form.paymentStatus,
       sriStatus: form.claveAcceso ? 'autorizado' : 'pendiente',
       description: form.description, reference: form.reference,
@@ -521,10 +531,12 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
 
               {/* Summary */}
               {form.items.length > 0 && (
-                <div className="flex justify-end gap-6 text-[12px] pt-2 border-t border-[#E6EBF1]">
+                <div className="flex justify-end gap-4 text-[11px] pt-2 border-t border-[#E6EBF1] flex-wrap">
                   <div>Base: <span className="font-bold text-black">${form.baseImponible.toFixed(2)}</span></div>
-                  <div>IVA 15%: <span className="font-bold text-black">${form.ivaValor.toFixed(2)}</span></div>
-                  <div>Total: <span className="font-bold text-[15px] text-black">${form.total.toFixed(2)}</span></div>
+                  {form.iva5 > 0 && <div>IVA 5%: <span className="font-bold text-black">${form.iva5.toFixed(2)}</span></div>}
+                  {form.iva12 > 0 && <div>IVA 12%: <span className="font-bold text-black">${form.iva12.toFixed(2)}</span></div>}
+                  {form.iva15 > 0 && <div>IVA 15%: <span className="font-bold text-black">${form.iva15.toFixed(2)}</span></div>}
+                  <div>Total: <span className="font-bold text-[14px] text-black">${form.total.toFixed(2)}</span></div>
                 </div>
               )}
             </div>
@@ -560,7 +572,9 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
                     </div>
                     <div className="border-t border-[#E6EBF1] pt-2 space-y-0.5">
                       <div className="flex justify-between"><span>Base imponible:</span><span className="font-mono font-bold">${form.baseImponible.toFixed(2)}</span></div>
-                      <div className="flex justify-between"><span>IVA 15%:</span><span className="font-mono font-bold">${form.ivaValor.toFixed(2)}</span></div>
+                      {form.iva5 > 0 && <div className="flex justify-between"><span>IVA 5%:</span><span className="font-mono font-bold text-[#8B5A0B]">${form.iva5.toFixed(2)}</span></div>}
+                      {form.iva12 > 0 && <div className="flex justify-between"><span>IVA 12%:</span><span className="font-mono font-bold text-[#1E3A8A]">${form.iva12.toFixed(2)}</span></div>}
+                      {form.iva15 > 0 && <div className="flex justify-between"><span>IVA 15%:</span><span className="font-mono font-bold">${form.iva15.toFixed(2)}</span></div>}
                       <div className="flex justify-between text-[14px] pt-1"><span className="font-semibold">TOTAL:</span><span className="font-bold">${form.total.toFixed(2)}</span></div>
                     </div>
                   </>

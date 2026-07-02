@@ -99,7 +99,7 @@ export default function Sidebar({
               </button>
               {isSidebarOpen && expandedSidebarMenu === 'compras' && (
                 <div className={menuBorderClass}>
-                  {[{ id: 'compras_resumen', label: 'Historial de Compras' },{ id: 'compras_nc', label: 'Notas de Credito' },{ id: 'compras_retencion', label: 'Retenciones Emitidas' }].map(sub => {
+                  {[{ id: 'compras_resumen', label: 'Historial de Compras' },{ id: 'compras_nc', label: 'Notas de Credito Recibidas' },{ id: 'compras_nd', label: 'Notas de Debito Recibidas' },{ id: 'compras_retencion', label: 'Retenciones de Compras' }].map(sub => {
                     const isActive = activePageId === 'compras' && comprasInitialSubTab === sub.id;
                     return <button key={sub.id} onClick={() => { setComprasInitialSubTab(sub.id); setActivePageId('compras'); closeMobile(); }} className={subItemClass(isActive)}>{sub.label}</button>;
                   })}

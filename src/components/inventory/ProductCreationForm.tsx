@@ -746,7 +746,9 @@ export default function ProductCreationForm({
                 className={inputClass}
               >
                 <option value="15">IVA 15% (General)</option>
-                <option value="0">IVA 0% (RIMPE/Básico)</option>
+                <option value="12">IVA 12%</option>
+                <option value="5">IVA 5% (Materiales Construccion)</option>
+                <option value="0">IVA 0% (Exento)</option>
               </select>
             </div>
 

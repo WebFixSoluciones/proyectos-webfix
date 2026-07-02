@@ -440,7 +440,7 @@ export function generarNotaCreditoXML(emisorConfig, ncData, terceroData, items =
       <impuestos>
         <impuesto>
           <codigo>2</codigo>
-          <codigoPorcentaje>${item.ivaCategory === 15 ? '4' : '2'}</codigoPorcentaje>
+          <codigoPorcentaje>${codigoPorcentajeIva(item.ivaCategory)}</codigoPorcentaje>
           <tarifa>${item.ivaCategory}</tarifa>
           <baseImponible>${lineSub.toFixed(2)}</baseImponible>
           <valor>${lineIva.toFixed(2)}</valor>
@@ -527,7 +527,7 @@ export function generarLiquidacionXML(emisorConfig, liqData, terceroData, items 
       <impuestos>
         <impuesto>
           <codigo>2</codigo>
-          <codigoPorcentaje>${item.ivaCategory === 15 ? '4' : '2'}</codigoPorcentaje>
+          <codigoPorcentaje>${codigoPorcentajeIva(item.ivaCategory)}</codigoPorcentaje>
           <tarifa>${item.ivaCategory}</tarifa>
           <baseImponible>${lineSub.toFixed(2)}</baseImponible>
           <valor>${lineIva.toFixed(2)}</valor>

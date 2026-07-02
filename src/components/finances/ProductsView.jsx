@@ -534,15 +534,10 @@ export default function ProductsView({ showToast, db, appId }) {
                     }
                     className={inputClass}
                   >
-                    <option value="15" className="text-[#0A2540]">
-                      15% IVA (Ecuador)
-                    </option>
-                    <option value="12" className="text-[#0A2540]">
-                      12% IVA
-                    </option>
-                    <option value="0" className="text-[#0A2540]">
-                      0% IVA
-                    </option>
+                    <option value="15">15% IVA (General)</option>
+                    <option value="12">12% IVA</option>
+                    <option value="5">5% IVA (Mat. Construccion)</option>
+                    <option value="0">0% IVA (Exento)</option>
                   </select>
                 </div>
 
