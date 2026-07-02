@@ -506,10 +506,26 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredBills.length === 0 ? (
-                    <tr><td colSpan={9} className="text-center py-8 text-[#333333] text-[12px]">
-                      {loading ? 'Cargando comprobantes...' : 'No hay comprobantes en el buzon. Sube tus archivos XML de facturas electronicas o consulta el SRI.'}
+                  {filteredBills.length === 0 && !loading ? (
+                    <tr><td colSpan={9} className="text-center py-10">
+                      <div className="max-w-sm mx-auto space-y-3">
+                        <Download size={32} className="mx-auto text-[#E6EBF1]" />
+                        <p className="text-[13px] font-semibold text-black">Buzon SRI vacio</p>
+                        <p className="text-[11px] text-[#333333]">No tienes comprobantes electronicos sincronizados. Para empezar:</p>
+                        <div className="text-left space-y-1.5 text-[11px] text-[#333333]">
+                          <p>1. Descarga los archivos <strong>XML</strong> de tus facturas electronicas recibidas desde el portal del SRI.</p>
+                          <p>2. Usa el boton <strong>"Subir XML"</strong> para cargarlos al buzon.</p>
+                          <p>3. Luego podras <strong>importarlos</strong> a tu Historial de Compras con o sin movimiento de inventario.</p>
+                        </div>
+                        <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-md text-[12px] font-medium bg-[var(--primary-color)] text-white hover:opacity-90 cursor-pointer transition-all">
+                          <Upload size={14} />
+                          <span>Subir primer XML</span>
+                          <input type="file" accept=".xml" onChange={handleXmlUpload} className="hidden" />
+                        </label>
+                      </div>
                     </td></tr>
+                  ) : loading ? (
+                    <tr><td colSpan={9} className="text-center py-10 text-[#333333] text-[12px]">Cargando comprobantes...</td></tr>
                   ) : filteredBills.map(bill => {
                     const imported = isBillImported(bill);
                     return (
