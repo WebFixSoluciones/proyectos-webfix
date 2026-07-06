@@ -1466,25 +1466,41 @@ export default function SuperAdminPage({ showToast }) {
 
               <div>
                 <label className="block font-bold mb-2">Módulos Habilitados</label>
-                <div className="grid grid-cols-3 gap-2 p-3 rounded-xl border border-white/5 bg-white/2">
-                  {['dashboard', 'ventas', 'finances', 'inventario', 'personas', 'calendar', 'contabilidad'].map((mod) => {
-                    const isChecked = editingPlan.modules.includes(mod);
-                    return (
-                      <label key={mod} className="flex items-center gap-2 cursor-pointer p-1 rounded hover:bg-white/5 uppercase font-bold text-[10px] tracking-wide">
-                        <input 
-                          type="checkbox" 
-                          checked={isChecked}
-                          onChange={() => {
-                            const newModules = isChecked 
-                              ? editingPlan.modules.filter(m => m !== mod)
-                              : [...editingPlan.modules, mod];
-                            setEditingPlan({ ...editingPlan, modules: newModules });
-                          }}
-                        />
-                        {mod}
-                      </label>
-                    );
-                  })}
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 p-3 rounded-xl border border-white/5 bg-white/2">
+                  {(() => {
+                    const moduleLabels = {
+                      dashboard: 'Dashboard',
+                      ventas: 'Ventas',
+                      finances: 'Finanzas/Ingresos',
+                      compras: 'Compras',
+                      gastos_creditos: 'Gastos y Créditos',
+                      inventario: 'Inventario',
+                      personas: 'Personas (Contactos)',
+                      calendar: 'Calendario',
+                      team: 'Equipo',
+                      proyectos_general: 'Proyectos',
+                      contabilidad: 'Contabilidad SRI'
+                    };
+                    return Object.keys(moduleLabels).map((mod) => {
+                      const isChecked = editingPlan.modules?.includes(mod) || false;
+                      return (
+                        <label key={mod} className="flex items-center gap-2 cursor-pointer p-1.5 rounded hover:bg-white/5 font-semibold text-xs tracking-wide">
+                          <input 
+                            type="checkbox" 
+                            checked={isChecked}
+                            onChange={() => {
+                              const currentModules = editingPlan.modules || [];
+                              const newModules = isChecked 
+                                ? currentModules.filter(m => m !== mod)
+                                : [...currentModules, mod];
+                              setEditingPlan({ ...editingPlan, modules: newModules });
+                            }}
+                          />
+                          {moduleLabels[mod]}
+                        </label>
+                      );
+                    });
+                  })()}
                 </div>
               </div>
 

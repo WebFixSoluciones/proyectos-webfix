@@ -438,17 +438,21 @@ export default function App() {
     if (!planId) return;
     const currentPlan = plansList.find(p => p.id === planId) || PLANS[planId];
     if (currentPlan && currentPlan.modules) {
+      const isProfessional = currentPlan.id === 'professional';
+      const isEnterprise = currentPlan.id === 'enterprise';
+      const isStarter = currentPlan.id === 'starter';
+
       const newModules = {
         dashboard: currentPlan.modules.includes('dashboard'),
         ventas: currentPlan.modules.includes('ventas'),
-        finances: currentPlan.modules.includes('finances') || currentPlan.modules.includes('contabilidad') || currentPlan.modules.includes('enterprise'),
-        compras: currentPlan.modules.includes('compras') || currentPlan.modules.includes('contabilidad') || currentPlan.modules.includes('enterprise'),
-        gastos_creditos: currentPlan.modules.includes('gastos_creditos') || currentPlan.modules.includes('contabilidad') || currentPlan.modules.includes('enterprise'),
-        inventario: currentPlan.modules.includes('inventario') || currentPlan.modules.includes('professional') || currentPlan.modules.includes('enterprise'),
-        personas: currentPlan.modules.includes('personas') || currentPlan.modules.includes('starter') || currentPlan.modules.includes('professional') || currentPlan.modules.includes('enterprise'),
-        calendar: currentPlan.modules.includes('calendar') || currentPlan.modules.includes('professional') || currentPlan.modules.includes('enterprise'),
-        team: currentPlan.modules.includes('team') || currentPlan.modules.includes('professional') || currentPlan.modules.includes('enterprise'),
-        proyectos_general: currentPlan.modules.includes('proyectos_general') || currentPlan.modules.includes('professional') || currentPlan.modules.includes('enterprise')
+        finances: currentPlan.modules.includes('finances') || currentPlan.modules.includes('contabilidad') || isEnterprise,
+        compras: currentPlan.modules.includes('compras') || currentPlan.modules.includes('contabilidad') || isEnterprise,
+        gastos_creditos: currentPlan.modules.includes('gastos_creditos') || currentPlan.modules.includes('contabilidad') || isEnterprise,
+        inventario: currentPlan.modules.includes('inventario') || isProfessional || isEnterprise,
+        personas: currentPlan.modules.includes('personas') || isStarter || isProfessional || isEnterprise,
+        calendar: currentPlan.modules.includes('calendar') || isProfessional || isEnterprise,
+        team: currentPlan.modules.includes('team') || isProfessional || isEnterprise,
+        proyectos_general: currentPlan.modules.includes('proyectos_general') || isProfessional || isEnterprise
       };
       setActiveModules(newModules);
     }
