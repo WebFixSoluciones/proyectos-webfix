@@ -1,37 +1,72 @@
 :root {
-  --primary-color: #635BFF;
-  --color-primary: var(--primary-color);
-  --color-primary-hover: color-mix(in srgb, var(--primary-color) 88%, #000000);
-  --color-primary-light: color-mix(in srgb, var(--primary-color) 8%, transparent);
-  --color-primary-text: #FFFFFF;
+  /* Primary */
+  --primary: #2563EB;
+  --primary-hover: #1D4ED8;
+  --primary-light: #EFF6FF;
+  --primary-muted: #DBEAFE;
 
-  --stripe-text-primary: #000000;
-  --stripe-text-secondary: #1a1a1a;
-  --stripe-text-tertiary: #333333;
-  --stripe-border: #E6EBF1;
-  --stripe-border-light: #F2F4F7;
-  --stripe-bg: #F6F9FC;
-  --stripe-surface: #FFFFFF;
+  /* Surfaces */
+  --surface-bg: #F8FAFC;
+  --surface-card: #FFFFFF;
+  --surface-sidebar: #F1F5F9;
 
-  --radius-card: 8px;
-  --radius-button: 6px;
-  --radius-input: 6px;
-  --radius-badge: 4px;
+  /* Borders */
+  --border-default: #E2E8F0;
+  --border-strong: #CBD5E1;
+
+  /* Text */
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #94A3B8;
+
+  /* Semantic */
+  --success: #16A34A;
+  --success-light: #F0FDF4;
+  --warning: #D97706;
+  --warning-light: #FFFBEB;
+  --error: #DC2626;
+  --error-light: #FEF2F2;
+  --info: #2563EB;
+  --info-light: #EFF6FF;
+
+  /* Status badges */
+  --status-authorized-bg: var(--success-light);
+  --status-authorized-text: var(--success);
+  --status-authorized-border: #BBF7D0;
+  --status-registered-bg: var(--info-light);
+  --status-registered-text: var(--primary);
+  --status-registered-border: var(--primary-muted);
+  --status-pending-bg: var(--warning-light);
+  --status-pending-text: var(--warning);
+  --status-pending-border: #FDE68A;
+  --status-rejected-bg: var(--error-light);
+  --status-rejected-text: var(--error);
+  --status-rejected-border: #FECACA;
+  --status-draft-bg: var(--surface-sidebar);
+  --status-draft-text: var(--text-secondary);
+  --status-draft-border: var(--border-default);
+  --status-cancelled-bg: var(--surface-sidebar);
+  --status-cancelled-text: var(--text-muted);
+  --status-cancelled-border: var(--border-default);
+
+  /* Border radius */
   --radius-sm: 4px;
   --radius-md: 6px;
+  --radius-lg: 6px;
 
+  /* Typography */
   --text-xs: 11px;
   --text-sm: 12px;
   --text-base: 13px;
   --text-md: 14px;
-  --text-lg: 15px;
+  --text-lg: 16px;
   --text-xl: 18px;
-
   --font-weight-normal: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
 
+  /* Spacing */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -40,26 +75,21 @@
   --space-6: 24px;
   --space-8: 32px;
 
-  --shadow-card: 0 1px 3px 0 rgba(10, 37, 64, 0.06), 0 1px 2px 0 rgba(10, 37, 64, 0.03);
-  --shadow-modal: 0 8px 32px rgba(10, 37, 64, 0.12), 0 2px 8px rgba(10, 37, 64, 0.06);
-  --shadow-dropdown: 0 4px 16px rgba(10, 37, 64, 0.08);
-
-  --status-authorized-bg: #E6FAF0;
-  --status-authorized-text: #0E6245;
-  --status-authorized-border: #A3E8CC;
-  --status-registered-bg: #EBF0FF;
-  --status-registered-text: #1E3A8A;
-  --status-registered-border: #B8C9FF;
-  --status-pending-bg: #FFF8E5;
-  --status-pending-text: #8B5A0B;
-  --status-pending-border: #FDD98A;
-  --status-rejected-bg: #FFF0F0;
-  --status-rejected-text: #9B1C1C;
-  --status-rejected-border: #F8B4B4;
-  --status-draft-bg: #F6F9FC;
-  --status-draft-text: #425466;
-  --status-draft-border: #E6EBF1;
-  --status-cancelled-bg: #F3F4F6;
-  --status-cancelled-text: #697386;
-  --status-cancelled-border: #D1D5DB;
+  /* Legacy aliases (consumed by existing utility classes until fully migrated) */
+  --primary-color: var(--primary);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-light: var(--primary-light);
+  --color-primary-text: #FFFFFF;
+  --stripe-text-primary: var(--text-primary);
+  --stripe-text-secondary: var(--text-secondary);
+  --stripe-text-tertiary: var(--text-secondary);
+  --stripe-border: var(--border-default);
+  --stripe-border-light: var(--border-default);
+  --stripe-bg: var(--surface-bg);
+  --stripe-surface: var(--surface-card);
+  --radius-card: var(--radius-lg);
+  --radius-button: var(--radius-md);
+  --radius-input: var(--radius-md);
+  --radius-badge: var(--radius-sm);
 }
