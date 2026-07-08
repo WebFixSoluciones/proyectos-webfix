@@ -313,7 +313,7 @@ export default function BillingPortal({ showToast, initialSubTab }) {
           <h2 className="text-xl font-extrabold tracking-tight">Suscripción y Facturación</h2>
           <p className="text-xs text-gray-500 font-medium">Administra los módulos de tu negocio y realiza tus pagos.</p>
         </div>
-        <div className={`p-4 rounded-xl border flex items-center gap-3 bg-white border-slate-200`}>
+        <div className={`p-4 rounded-card border flex items-center gap-3 bg-white border-slate-200`}>
           <div className="p-2 bg-primary/10 rounded-lg text-primary">
             <Building size={18} />
           </div>
@@ -326,7 +326,7 @@ export default function BillingPortal({ showToast, initialSubTab }) {
 
       {/* Grid: Plan Selector & Payment Form */}
       {activeCategory === 'historial' ? (
-        <div className={`p-6 rounded-2xl border bg-white border-slate-200 shadow-sm`}>
+        <div className={`p-6 rounded-2xl border bg-white border-slate-200`}>
           <h3 className="text-xs font-bold uppercase tracking-wider mb-4">Historial de Transacciones</h3>
           <div className="overflow-x-auto text-[11px]">
             <table className="w-full text-left">
@@ -371,7 +371,7 @@ export default function BillingPortal({ showToast, initialSubTab }) {
           
           {/* Left Col: Plan Selector */}
           <div className="lg:col-span-2 space-y-6">
-            <div className={`p-6 rounded-2xl border bg-white border-slate-200 shadow-sm`}>
+            <div className={`p-6 rounded-2xl border bg-white border-slate-200`}>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                 <div>
                   <h3 className="text-xs font-bold uppercase tracking-wider text-primary">
@@ -383,16 +383,16 @@ export default function BillingPortal({ showToast, initialSubTab }) {
                 </div>
                 
                 {/* Billing Cycle Toggle */}
-                <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-xl text-[10px] font-bold self-start sm:self-center">
+                <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-card text-[10px] font-bold self-start sm:self-center">
                   <button 
                     onClick={() => setBillingPeriod('monthly')}
-                    className={`px-3 py-1.5 rounded-lg ${billingPeriod === 'monthly' ? 'bg-white dark:bg-white/10 text-primary dark:text-white shadow-sm' : 'text-gray-500'}`}
+                    className={`px-3 py-1.5 rounded-lg ${billingPeriod === 'monthly' ? 'bg-white dark:bg-white/10 text-primary dark:text-white' : 'text-gray-500'}`}
                   >
                     Mensual
                   </button>
                   <button 
                     onClick={() => setBillingPeriod('yearly')}
-                    className={`px-3 py-1.5 rounded-lg ${billingPeriod === 'yearly' ? 'bg-white dark:bg-white/10 text-primary dark:text-white shadow-sm' : 'text-gray-500'}`}
+                    className={`px-3 py-1.5 rounded-lg ${billingPeriod === 'yearly' ? 'bg-white dark:bg-white/10 text-primary dark:text-white' : 'text-gray-500'}`}
                   >
                     Anual
                   </button>
@@ -406,9 +406,9 @@ export default function BillingPortal({ showToast, initialSubTab }) {
                     <div 
                       key={plan.id}
                       onClick={() => setSelectedPlanId(plan.id)}
-                      className={`p-5 rounded-xl border cursor-pointer transition-all flex flex-col justify-between ${
+                      className={`p-5 rounded-card border cursor-pointer transition-all flex flex-col justify-between ${
                         isSelected 
-                          ? 'border-[#1C40F2] bg-[#1C40F2]/5 dark:bg-[#1C40F2]/10 ring-1 ring-[#1C40F2]/30 shadow-sm' 
+                          ? 'border-primary bg-primary/5 dark:bg-primary/10 ring-1 ring-primary/30' 
                           : 'border-slate-200 bg-slate-50 hover:bg-slate-100/50'
                       }`}
                     >
@@ -437,7 +437,7 @@ export default function BillingPortal({ showToast, initialSubTab }) {
 
           {/* Right Col: Checkout & Payment details */}
           <div className="space-y-6">
-            <div className={`p-6 rounded-2xl border bg-white border-slate-200 shadow-sm`}>
+            <div className={`p-6 rounded-2xl border bg-white border-slate-200`}>
               <h3 className="text-xs font-bold uppercase tracking-wider mb-4">Resumen del Pago</h3>
               
               <div className="space-y-3.5 text-xs font-medium mb-6">
@@ -453,25 +453,25 @@ export default function BillingPortal({ showToast, initialSubTab }) {
                 </div>
                 <div className="flex justify-between text-base font-black border-t dark:border-white/5 pt-3">
                   <span>Total a Pagar:</span>
-                  <span className="text-[#1C40F2] dark:text-white">
+                  <span className="text-primary dark:text-white">
                     ${billingPeriod === 'yearly' ? getPrice(getSelectedPlanConfig()) * 12 : getPrice(getSelectedPlanConfig())}
                   </span>
                 </div>
               </div>
 
               {/* Payment Method Selector */}
-              <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-white/5 rounded-xl text-[10px] font-bold mb-6">
+              <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-white/5 rounded-card text-[10px] font-bold mb-6">
                 <button 
                   type="button"
                   onClick={() => setPaymentMethod('card')}
-                  className={`py-2 rounded-lg transition-all ${paymentMethod === 'card' ? 'bg-white dark:bg-white/10 text-primary dark:text-white shadow-sm' : 'text-gray-500'}`}
+                  className={`py-2 rounded-lg transition-all ${paymentMethod === 'card' ? 'bg-white dark:bg-white/10 text-primary dark:text-white' : 'text-gray-500'}`}
                 >
                   Tarjeta (PayPhone)
                 </button>
                 <button 
                   type="button"
                   onClick={() => setPaymentMethod('transfer')}
-                  className={`py-2 rounded-lg transition-all ${paymentMethod === 'transfer' ? 'bg-white dark:bg-white/10 text-primary dark:text-white shadow-sm' : 'text-gray-500'}`}
+                  className={`py-2 rounded-lg transition-all ${paymentMethod === 'transfer' ? 'bg-white dark:bg-white/10 text-primary dark:text-white' : 'text-gray-500'}`}
                 >
                   Transferencia
                 </button>
@@ -484,7 +484,7 @@ export default function BillingPortal({ showToast, initialSubTab }) {
                   <button 
                     onClick={handlePayPhoneCheckout}
                     disabled={isProcessing}
-                    className="w-full flex items-center justify-center gap-2 py-4 rounded-xl text-xs font-bold tracking-wider uppercase bg-[#ff6b00] hover:bg-[#e05e00] text-white transition-all shadow-md active:scale-98"
+                    className="w-full flex items-center justify-center gap-2 py-4 rounded-card text-xs font-bold tracking-wider uppercase bg-warning hover:bg-warning text-white transition-all active:scale-98"
                   >
                     Pagar con PayPhone
                   </button>
@@ -494,7 +494,7 @@ export default function BillingPortal({ showToast, initialSubTab }) {
               {/* BANK TRANSFER: UPLOAD FORM */}
               {paymentMethod === 'transfer' && (
                 <form onSubmit={handleSubmitTransfer} className="space-y-4 text-xs font-medium text-left">
-                  <div className="p-3 bg-blue-500/5 rounded-xl border border-blue-500/10 text-[10px] text-gray-500 leading-relaxed mb-4">
+                  <div className="p-3 bg-blue-500/5 rounded-card border border-blue-500/10 text-[10px] text-gray-500 leading-relaxed mb-4">
                     <strong>Cuentas Bancarias WebFix:</strong><br />
                     Banco Pichincha - Cta. Corriente: 2201928472<br />
                     A nombre de WebFix Soluciones S.A.S (RUC: 1792847382001)
@@ -538,7 +538,7 @@ export default function BillingPortal({ showToast, initialSubTab }) {
                   <button 
                     type="submit"
                     disabled={isProcessing}
-                    className="w-full py-4 rounded-xl text-xs font-bold tracking-wider uppercase bg-[#1C40F2] hover:bg-[#1633c1] text-white transition-all shadow-md active:scale-98"
+                    className="w-full py-4 rounded-card text-xs font-bold tracking-wider uppercase bg-primary hover:bg-primary-hover text-white transition-all active:scale-98"
                   >
                     {isProcessing ? "Registrando..." : "Reportar Transferencia"}
                   </button>
@@ -556,11 +556,11 @@ export default function BillingPortal({ showToast, initialSubTab }) {
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className={`w-full max-w-sm p-6 rounded-2xl border shadow-2xl relative text-center bg-white border-slate-200 text-black`}>
             <div className="flex justify-between items-center mb-6">
-              <span className="text-xs font-black uppercase text-[#ff6b00] tracking-wider">Pasarela PayPhone (Sandbox)</span>
+              <span className="text-xs font-black uppercase text-warning tracking-wider">Pasarela PayPhone (Sandbox)</span>
               <button onClick={() => setShowPayPhoneSim(false)} className="text-gray-400 hover:text-white">✕</button>
             </div>
             
-            <div className="p-4 rounded-xl bg-slate-500/5 mb-6 text-xs text-left space-y-2">
+            <div className="p-4 rounded-card bg-slate-500/5 mb-6 text-xs text-left space-y-2">
               <div className="flex justify-between">
                 <span>Empresa receptora:</span>
                 <strong>WebFix Soluciones S.A.S</strong>
@@ -596,7 +596,7 @@ export default function BillingPortal({ showToast, initialSubTab }) {
               <button 
                 type="submit"
                 disabled={isProcessing}
-                className="w-full mt-6 py-4 rounded-xl text-xs font-bold tracking-wider uppercase bg-[#ff6b00] hover:bg-[#e05e00] text-white transition-all shadow-md flex items-center justify-center gap-2"
+                className="w-full mt-6 py-4 rounded-card text-xs font-bold tracking-wider uppercase bg-warning hover:bg-warning text-white transition-all flex items-center justify-center gap-2"
               >
                 {isProcessing ? <RefreshCw size={14} className="animate-spin" /> : "Confirmar y Autorizar Pago"}
               </button>
