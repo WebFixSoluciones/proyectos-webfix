@@ -1465,7 +1465,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
             <div className="relative">
               {isClientDropdownOpen && clientSearchTerm && (
                 <div className={`absolute left-0 right-0 top-0 max-h-48 overflow-y-auto z-50 rounded-xl border ${
-                  'bg-white border-primary/20 text-black shadow-lg'} custom-scrollbar`}>
+                  'bg-white border-primary/20 text-black'} custom-scrollbar`}>
                   <div 
                     onClick={() => {
                       setSelectedClientId('');
@@ -1783,7 +1783,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
           />
           {/* Drawer Panel */}
           <div className={`fixed top-0 right-0 h-full w-80 z-[130] flex flex-col border-l animate-in slide-in-from-right duration-300 ${
-            'bg-surface-card border-primary/15 text-text-secondary shadow-primary/20'}`}>
+            'bg-surface-card border-primary/15 text-text-secondary'}`}>
             <div className={`p-4 border-b flex items-center justify-between shrink-0 border-primary/15 bg-primary-light`}>
               <div className="flex items-center gap-2">
                 <Settings size={16} className={'text-text-secondary'} />
@@ -1920,7 +1920,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
       {isClosingOpen && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/85 animate-in fade-in duration-200">
           <div className={`w-full max-w-md p-6 rounded-card border transition-all duration-300 ${
-            'bg-white border-primary/15 text-black shadow-primary/10'}`}>
+            'bg-white border-primary/15 text-black'}`}>
             <h3 className="text-sm font-black mb-4 flex items-center gap-2 text-red-500">
               <ShieldAlert size={16} /> Arqueo y Cierre de Caja
             </h3>
@@ -2489,7 +2489,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                   {/* PASO 3: CONFIRMACIÓN Y EMISION */}
                   {checkoutStep === 3 && (
                     <div className="space-y-4 animate-in slide-in-from-right-4 duration-300 text-xs">
-                      <div className={`p-5 rounded-card border space-y-3 bg-white border-primary/20 text-black shadow-inner`}>
+                      <div className={`p-5 rounded-card border space-y-3 bg-white border-primary/20 text-black`}>
                         <h4 className={`text-sm font-black text-center uppercase tracking-widest border-b pb-2 text-black border-primary/15`}>PREVISUALIZACIÓN DE FACTURA (RIDE)</h4>
                         
                         <div className="grid grid-cols-2 gap-4 text-xs leading-normal">
@@ -2607,7 +2607,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
       {isQuickAddOpen && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/85 animate-in fade-in duration-200">
           <div className={`w-full max-w-md p-6 rounded-card border transition-all duration-300 ${
-            'bg-white border-primary/15 text-black shadow-primary/10'}`}>
+            'bg-white border-primary/15 text-black'}`}>
             <h3 className="text-base font-black mb-4">Registro Rápido de Cliente (SRI)</h3>
             
             <form onSubmit={handleQuickClientSave} className="space-y-3.5">
@@ -2720,7 +2720,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
       {isShortcutsOpen && (
         <div className="fixed inset-0 z-[160] flex items-center justify-center p-4 bg-black/80 animate-in fade-in duration-250">
           <div className={`w-full max-w-md p-6 rounded-card border transition-all duration-300 ${
-            'bg-white border-primary/15 text-black shadow-primary/10'}`}>
+            'bg-white border-primary/15 text-black'}`}>
             <div className="flex justify-between items-center mb-4 pb-2 border-b border-white/5">
               <h3 className="text-sm font-black uppercase tracking-wider flex items-center gap-2">
                 <Keyboard size={16} className="text-primary" /> Guía de Atajos de Teclado

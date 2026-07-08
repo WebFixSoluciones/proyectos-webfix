@@ -1446,7 +1446,7 @@ export default function GeneralSettings({
  <Award size={13} /> Ingresar Firma
  </button>
  {!companyProfile.ruc && (
- <p className="text-[9px] text-gray-500 italic">Debe ingresar y configurar su RUC primero.</p>
+ <p className="text-xs text-gray-500 italic">Debe ingresar y configurar su RUC primero.</p>
  )}
  </div>
  )}
@@ -1466,7 +1466,7 @@ export default function GeneralSettings({
  <button
  type="button"
  onClick={handleRemoveLogo}
- className="text-[9px] text-red-500 hover:text-red-700 hover:underline font-bold mt-1.5 flex items-center justify-center gap-1 m-auto"
+ className="text-xs text-red-500 hover:text-red-700 hover:underline font-bold mt-1.5 flex items-center justify-center gap-1 m-auto"
  >
  <Trash2 size={10} /> Eliminar Logotipo
  </button>
@@ -1481,7 +1481,7 @@ export default function GeneralSettings({
  {isUploadingLogo ?'Subiendo imagen...' :'Subir Logotipo\n(PNG, JPG, SVG)'}
  </span>
  </label>
- <p className="text-[9px] text-gray-500 mt-2.5 text-center leading-relaxed">
+ <p className="text-xs text-gray-500 mt-2.5 text-center leading-relaxed">
  Este logotipo se insertará en el encabezado de todas las Facturas, Notas de Crédito, Guías de Remisión y Cotizaciones.
  </p>
  </div>
@@ -1504,7 +1504,7 @@ export default function GeneralSettings({
  </p>
  <p className="text-xs text-gray-500 mt-0.5">{branch.direccion}</p>
  </div>
- <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded ${
+ <span className={`text-xs font-black uppercase px-1.5 py-0.5 rounded ${
  branch.activa 
  ?'bg-emerald-500/10 text-emerald-450 border border-emerald-500/20' 
  :'bg-red-500/10 text-red-450 border border-red-500/20'
@@ -1515,7 +1515,7 @@ export default function GeneralSettings({
 
  {/* Checkboxes de bodegas asociadas a esta sucursal */}
  <div className="pt-2 border-t border-gray-200 dark:border-white/5 space-y-1">
- <p className="text-[9px] font-bold uppercase tracking-wider text-gray-500">Bodegas Asignadas:</p>
+ <p className="text-xs font-bold uppercase tracking-wider text-gray-500">Bodegas Asignadas:</p>
  <div className="flex flex-wrap gap-x-3 gap-y-1">
  {companyProfile.customBodegas || companyProfile.bodegas ? (companyProfile.bodegas.map(whName => {
  const isAssoc = branch.bodegas && branch.bodegas.includes(whName);
@@ -1708,7 +1708,7 @@ export default function GeneralSettings({
  <div className="space-y-2">
  <div className="flex items-center justify-between">
  <span className="p-2 rounded-xl bg-primary/10 text-primary"><LayoutDashboard size={18} /></span>
- <span className="text-[9px] px-2 py-0.5 rounded bg-primary/15 text-primary font-bold uppercase">Núcleo</span>
+ <span className="text-xs px-2 py-0.5 rounded bg-primary/15 text-primary font-bold uppercase">Núcleo</span>
  </div>
  <h4 className="text-xs font-bold font-sans">Proyectos y Tableros</h4>
  <p className="text-xs text-gray-500 leading-normal">Mi Espacio, control de tareas Kanban, priorización de sprints y bitácoras.</p>
@@ -1733,7 +1733,7 @@ export default function GeneralSettings({
  </div>
  <div className="flex justify-between items-center mt-6 border-t border-white/5 pt-3">
  <span className="text-xs text-gray-400 font-bold">Estado</span>
- <span className={`text-[9px] font-black uppercase ${activeModules.ventas ?'text-emerald-400' :'text-gray-500'}`}>
+ <span className={`text-xs font-black uppercase ${activeModules.ventas ?'text-emerald-400' :'text-gray-500'}`}>
  {activeModules.ventas ?'Activado' :'Desactivado'}
  </span>
  </div>
@@ -1753,7 +1753,7 @@ export default function GeneralSettings({
  </div>
  <div className="flex justify-between items-center mt-6 border-t border-white/5 pt-3">
  <span className="text-xs text-gray-400 font-bold">Estado</span>
- <span className={`text-[9px] font-black uppercase ${activeModules.finances ?'text-emerald-400' :'text-gray-500'}`}>
+ <span className={`text-xs font-black uppercase ${activeModules.finances ?'text-emerald-400' :'text-gray-500'}`}>
  {activeModules.finances ?'Activado' :'Desactivado'}
  </span>
  </div>
@@ -1773,7 +1773,7 @@ export default function GeneralSettings({
  </div>
  <div className="flex justify-between items-center mt-6 border-t border-white/5 pt-3">
  <span className="text-xs text-gray-400 font-bold">Estado</span>
- <span className={`text-[9px] font-black uppercase ${activeModules.inventario ?'text-emerald-400' :'text-gray-500'}`}>
+ <span className={`text-xs font-black uppercase ${activeModules.inventario ?'text-emerald-400' :'text-gray-500'}`}>
  {activeModules.inventario ?'Activado' :'Desactivado'}
  </span>
  </div>
@@ -1793,7 +1793,7 @@ export default function GeneralSettings({
  </div>
  <div className="flex justify-between items-center mt-6 border-t border-white/5 pt-3">
  <span className="text-xs text-gray-400 font-bold">Estado</span>
- <span className={`text-[9px] font-black uppercase ${activeModules.personas ?'text-emerald-400' :'text-gray-500'}`}>
+ <span className={`text-xs font-black uppercase ${activeModules.personas ?'text-emerald-400' :'text-gray-500'}`}>
  {activeModules.personas ?'Activado' :'Desactivado'}
  </span>
  </div>
@@ -1813,7 +1813,7 @@ export default function GeneralSettings({
  </div>
  <div className="flex justify-between items-center mt-6 border-t border-white/5 pt-3">
  <span className="text-xs text-gray-400 font-bold">Estado</span>
- <span className={`text-[9px] font-black uppercase ${activeModules.calendar ?'text-emerald-400' :'text-gray-500'}`}>
+ <span className={`text-xs font-black uppercase ${activeModules.calendar ?'text-emerald-400' :'text-gray-500'}`}>
  {activeModules.calendar ?'Activado' :'Desactivado'}
  </span>
  </div>
@@ -1833,7 +1833,7 @@ export default function GeneralSettings({
  </div>
  <div className="flex justify-between items-center mt-6 border-t border-white/5 pt-3">
  <span className="text-xs text-gray-400 font-bold">Estado</span>
- <span className={`text-[9px] font-black uppercase ${activeModules.team ?'text-emerald-400' :'text-gray-500'}`}>
+ <span className={`text-xs font-black uppercase ${activeModules.team ?'text-emerald-400' :'text-gray-500'}`}>
  {activeModules.team ?'Activado' :'Desactivado'}
  </span>
  </div>
@@ -1853,7 +1853,7 @@ export default function GeneralSettings({
  </div>
  <div className="flex justify-between items-center mt-6 border-t border-white/5 pt-3">
  <span className="text-xs text-gray-400 font-bold">Estado</span>
- <span className={`text-[9px] font-black uppercase ${activeModules.compras ?'text-emerald-400' :'text-gray-500'}`}>
+ <span className={`text-xs font-black uppercase ${activeModules.compras ?'text-emerald-400' :'text-gray-500'}`}>
  {activeModules.compras ?'Activado' :'Desactivado'}
  </span>
  </div>
@@ -1873,7 +1873,7 @@ export default function GeneralSettings({
  </div>
  <div className="flex justify-between items-center mt-6 border-t border-white/5 pt-3">
  <span className="text-xs text-gray-400 font-bold">Estado</span>
- <span className={`text-[9px] font-black uppercase ${activeModules.gastos_creditos ?'text-emerald-400' :'text-gray-500'}`}>
+ <span className={`text-xs font-black uppercase ${activeModules.gastos_creditos ?'text-emerald-400' :'text-gray-500'}`}>
  {activeModules.gastos_creditos ?'Activado' :'Desactivado'}
  </span>
  </div>
@@ -1902,7 +1902,7 @@ export default function GeneralSettings({
  </div>
  
  <div className={`p-4 rounded-card border text-xs leading-normal space-y-2 bg-primary-light border-primary/20 text-primary`}>
- <p className="font-bold uppercase tracking-wider text-[9px]">Instrucciones de Vinculación:</p>
+ <p className="font-bold uppercase tracking-wider text-xs">Instrucciones de Vinculación:</p>
  <ol className="list-decimal pl-4 space-y-1.5">
  <li>Ingresa a la consola de <a href="https://console.cloud.google.com" target="_blank" rel="noreferrer" className="underline font-bold">Google Cloud</a>.</li>
  <li>Crea un proyecto y habilita la API de <strong>Google Calendar</strong>.</li>
@@ -1978,7 +1978,7 @@ export default function GeneralSettings({
  </div>
 
  <div className={`p-4 rounded-card border text-xs leading-normal space-y-1.5 bg-purple-50 border-purple-200 text-purple-900`}>
- <p className="font-bold text-[9px] uppercase tracking-wider">¿Cómo obtener una clave de API gratuita?</p>
+ <p className="font-bold text-xs uppercase tracking-wider">¿Cómo obtener una clave de API gratuita?</p>
  <p>Puedes generar tu clave de API de Gemini ingresando a <a href="https://aistudio.google.com/" target="_blank" rel="noreferrer" className="underline font-bold">Google AI Studio</a> con tu cuenta de correo corporativo o personal de Google. Generar la clave toma 1 minuto y te dará acceso inmediato al asesor de Inteligencia Artificial.</p>
  </div>
 
@@ -2008,8 +2008,8 @@ export default function GeneralSettings({
  </div>
  <div>
  <p className="text-xs font-bold">{user.name}</p>
- <p className="text-[9px] text-gray-500">{user.job} — <span className="font-semibold uppercase tracking-wider text-[9px]">{user.role}</span></p>
- {user.email && <p className="text-[9px] font-mono text-gray-400 truncate max-w-[160px]">{user.email}</p>}
+ <p className="text-xs text-gray-500">{user.job} — <span className="font-semibold uppercase tracking-wider text-xs">{user.role}</span></p>
+ {user.email && <p className="text-xs font-mono text-gray-400 truncate max-w-[160px]">{user.email}</p>}
  </div>
  </div>
  <button 
@@ -2105,7 +2105,7 @@ export default function GeneralSettings({
  <div className={`p-4 rounded-card border text-xs flex gap-3 items-start bg-yellow-50 border-yellow-200 text-yellow-950 font-medium`}>
  <AlertTriangle size={16} className="shrink-0 mt-0.5" />
  <div>
- <p className="font-bold uppercase tracking-wider text-[9px] mb-1">Precaución contable:</p>
+ <p className="font-bold uppercase tracking-wider text-xs mb-1">Precaución contable:</p>
  <p>Las copias de seguridad contienen información fiscal sensible. Almacena tus respaldos en servidores seguros o unidades cifradas conforme al régimen de protección de datos.</p>
  </div>
  </div>
@@ -2125,7 +2125,7 @@ export default function GeneralSettings({
  <Award size={18} className="text-purple-400" />
  <div>
  <h3 className="text-sm font-black uppercase tracking-wider text-purple-400">Firma Electrónica</h3>
- <p className="text-[9px] text-gray-500">Cargar archivo de firma digital (.p12 / .pfx)</p>
+ <p className="text-xs text-gray-500">Cargar archivo de firma digital (.p12 / .pfx)</p>
  </div>
  </div>
  <button 
@@ -2153,9 +2153,9 @@ export default function GeneralSettings({
  <div className="truncate pr-2">
  <p className="text-xs font-black truncate">{tempFirma.certificadoNombre}</p>
  {certValidation.sujeto && <p className="text-xs font-bold mt-1.5 text-gray-400">Sujeto: <span className="font-extrabold text-gray-200">{certValidation.sujeto}</span></p>}
- {certValidation.emisor && <p className="text-[9px] opacity-80 mt-0.5">Emisor: {certValidation.emisor}</p>}
- {certValidation.vence && <p className="text-[9px] opacity-80 mt-0.5 font-mono">Expira: {certValidation.vence}</p>}
- {certValidation.ruc && <p className="text-[9px] opacity-85 mt-0.5 font-bold">RUC Firma: {certValidation.ruc}</p>}
+ {certValidation.emisor && <p className="text-xs opacity-80 mt-0.5">Emisor: {certValidation.emisor}</p>}
+ {certValidation.vence && <p className="text-xs opacity-80 mt-0.5 font-mono">Expira: {certValidation.vence}</p>}
+ {certValidation.ruc && <p className="text-xs opacity-85 mt-0.5 font-bold">RUC Firma: {certValidation.ruc}</p>}
  </div>
  <button 
  type="button" 

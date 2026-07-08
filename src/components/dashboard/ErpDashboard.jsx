@@ -245,7 +245,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, setActivePa
  </div>
  <button 
  onClick={() => setActivePageId('general_settings')} 
- className={`px-3.5 py-1.5 rounded-xl transition-all font-black uppercase text-[9px] tracking-wider self-start sm:self-auto ${
+ className={`px-3.5 py-1.5 rounded-xl transition-all font-black uppercase text-xs tracking-wider self-start sm:self-auto ${
  certStatus ==='expired'
  ?'bg-red-650 hover:bg-red-500 text-white'
  :'bg-orange-650 hover:bg-orange-500 text-white dark:bg-orange-600 dark:hover:bg-orange-500'
@@ -342,7 +342,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, setActivePa
  <p className={`text-xl font-black tracking-tight mt-0.5 text-emerald-600`}>
  ${totalSales.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
  </p>
- <div className="flex items-center gap-1.5 mt-0.5 text-[9px] text-gray-500">
+ <div className="flex items-center gap-1.5 mt-0.5 text-xs text-gray-500">
  <span>Por cobrar:</span>
  <span className={`font-bold text-emerald-700`}>
  ${outstandingCollections.toFixed(2)}
@@ -361,7 +361,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, setActivePa
  <p className={`text-xl font-black tracking-tight mt-0.5 text-red-650`}>
  ${totalExpenses.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
  </p>
- <div className="flex items-center gap-1.5 mt-0.5 text-[9px] text-gray-500">
+ <div className="flex items-center gap-1.5 mt-0.5 text-xs text-gray-500">
  <span>Balance neto:</span>
  <span className={`font-bold ${(totalSales - totalExpenses) >= 0 ?'text-gray-800' :'text-red-500'}`}>
  ${(totalSales - totalExpenses).toFixed(2)}
@@ -378,7 +378,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, setActivePa
  <div className="min-w-0 flex-1">
  <span className={`text-xs font-bold uppercase tracking-wider block text-gray-600`}>Inventario</span>
  <p className="text-xl font-black tracking-tight mt-0.5">{products.length} Items</p>
- <div className="flex items-center gap-1 mt-0.5 text-[9px]">
+ <div className="flex items-center gap-1 mt-0.5 text-xs">
  <span className="text-gray-500">Crítico:</span>
  <span className={`font-bold flex items-center gap-1 ${lowStockCount > 0 ?'text-red-500 animate-pulse' :'text-gray-700'}`}>
  {lowStockCount > 0 && <AlertCircle size={9} />}
@@ -396,7 +396,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, setActivePa
  <div className="min-w-0 flex-1">
  <span className={`text-xs font-bold uppercase tracking-wider block text-gray-600`}>Proyectos</span>
  <p className="text-xl font-black tracking-tight mt-0.5">{projectsList.length} Activos</p>
- <div className="flex items-center gap-1.5 mt-0.5 text-[9px] text-gray-500">
+ <div className="flex items-center gap-1.5 mt-0.5 text-xs text-gray-500">
  <span>Tareas:</span>
  <span className="font-bold text-purple-500">
  {allTasksGlobal.filter(t => t.status !=='done').length} activas
@@ -579,7 +579,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, setActivePa
  <ShieldAlert size={16} className="mt-0.5" />
  <div className="space-y-0.5">
  <p className={`text-xs font-bold text-gray-900`}>Firma Electrónica Autorizada</p>
- <p className="text-[9px] leading-normal opacity-85">
+ <p className="text-xs leading-normal opacity-85">
  {certStatus ==='none' &&'No se ha detectado ninguna firma p12 activa. Cárgala en Configuración para validar comprobantes.'}
  {certStatus ==='expired' &&'Tu firma electrónica cargada está expirada. Reemplázala inmediatamente.'}
  {certStatus ==='warning' &&`Tu firma digital cargada expira en menos de 30 días (${certDaysLeft} días). Renuévala.`}

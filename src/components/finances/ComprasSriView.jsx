@@ -624,7 +624,7 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
                   <div className="relative">
                     <input value={manualForm.supplierName} onFocus={() => setShowSupplierSearch(true)} onBlur={() => setTimeout(() => setShowSupplierSearch(false), 200)} onChange={e => { setManualForm(prev => ({ ...prev, supplierName: e.target.value })); setSupplierSearch(e.target.value); setShowSupplierSearch(true); }} placeholder="Buscar o escribir proveedor..." className={inputClass} />
                     {showSupplierSearch && filteredSuppliers.length > 0 && (
-                      <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-border-default rounded-md shadow-lg max-h-40 overflow-y-auto">
+                      <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-border-default rounded-md max-h-40 overflow-y-auto">
                         {filteredSuppliers.map(t => (
                           <button key={t.id} type="button" onMouseDown={() => { setManualForm(prev => ({ ...prev, supplierId: t.id, supplierName: t.name, supplierRuc: t.ruc || '' })); setShowSupplierSearch(false); setSupplierSearch(''); }} className="w-full text-left px-3 py-2 text-sm hover:bg-surface-bg text-black">
                             <div className="font-medium">{t.name}</div>
@@ -695,7 +695,7 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
                     <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-primary" />
                     <input autoFocus value={productSearchTerm} onChange={e => setProductSearchTerm(e.target.value)} placeholder="Buscar producto por nombre o SKU..." className={`${inputClass} pl-8`} />
                     {productSearchTerm && filteredProducts.length > 0 && (
-                      <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-border-default rounded-md shadow-lg max-h-52 overflow-y-auto">
+                      <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-border-default rounded-md max-h-52 overflow-y-auto">
                         {filteredProducts.map(p => (
                           <button key={p.id} onClick={() => handleManualAddItem(p)} className="w-full text-left px-3 py-2 text-sm hover:bg-surface-bg text-black flex justify-between items-center">
                             <div><span className="font-medium">{p.name}</span><span className="text-xs text-text-primary ml-2">{p.sku}</span></div>
