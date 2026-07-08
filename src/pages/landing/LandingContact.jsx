@@ -50,7 +50,7 @@ export default function LandingContact() {
                 <Mail size={16} />
               </div>
               <div>
-                <p className="text-gray-400 text-[10px] uppercase font-bold tracking-wider">Correo Electrónico</p>
+                <p className="text-gray-400 text-xs uppercase font-bold tracking-wider">Correo Electrónico</p>
                 <p className="text-black">soporte@webfixsoluciones.net</p>
               </div>
             </div>
@@ -60,7 +60,7 @@ export default function LandingContact() {
                 <Phone size={16} />
               </div>
               <div>
-                <p className="text-gray-400 text-[10px] uppercase font-bold tracking-wider">Teléfono / WhatsApp</p>
+                <p className="text-gray-400 text-xs uppercase font-bold tracking-wider">Teléfono / WhatsApp</p>
                 <p className="text-black">+593 99 999 9999</p>
               </div>
             </div>
@@ -70,7 +70,7 @@ export default function LandingContact() {
                 <MapPin size={16} />
               </div>
               <div>
-                <p className="text-gray-400 text-[10px] uppercase font-bold tracking-wider">Oficina Principal</p>
+                <p className="text-gray-400 text-xs uppercase font-bold tracking-wider">Oficina Principal</p>
                 <p className="text-black">Quito, Ecuador</p>
               </div>
             </div>
@@ -78,7 +78,7 @@ export default function LandingContact() {
         </div>
 
         {/* Contact Form */}
-        <div className={`md:col-span-7 p-6 rounded-2xl border bg-white border-[#CAD1F4] relative overflow-hidden`}>
+        <div className={`md:col-span-7 p-6 rounded-card border bg-white border-border-default relative overflow-hidden`}>
           {submitted ? (
             <div className="py-12 text-center space-y-4">
               <div className="w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-600 flex items-center justify-center mx-auto">
@@ -88,7 +88,7 @@ export default function LandingContact() {
               <p className="text-xs text-gray-500 font-medium">Hemos recibido tus datos. Un asesor comercial te contactará en menos de 2 horas laborables.</p>
               <button 
                 onClick={() => setSubmitted(false)}
-                className="mt-4 px-4 py-2 bg-primary hover:bg-[#1633c1] text-white text-xs font-bold rounded-lg border-none cursor-pointer"
+                className="mt-4 px-4 py-2 bg-primary hover:bg-surface-card text-white text-xs font-bold rounded-lg border-none cursor-pointer"
               >
                 Enviar otro mensaje
               </button>
@@ -104,7 +104,7 @@ export default function LandingContact() {
                     placeholder="Ej. Juan Pérez"
                     value={form.name}
                     onChange={e => setForm({ ...form, name: e.target.value })}
-                    className="w-full p-2.5 rounded-lg border border-[#CAD1F4] bg-white outline-none text-black"
+                    className="w-full p-2.5 rounded-lg border border-border-default bg-white outline-none text-black"
                   />
                 </div>
                 <div>
@@ -115,7 +115,7 @@ export default function LandingContact() {
                     placeholder="Ej. juan@empresa.com"
                     value={form.email}
                     onChange={e => setForm({ ...form, email: e.target.value })}
-                    className="w-full p-2.5 rounded-lg border border-[#CAD1F4] bg-white outline-none text-black"
+                    className="w-full p-2.5 rounded-lg border border-border-default bg-white outline-none text-black"
                   />
                 </div>
               </div>
@@ -128,7 +128,7 @@ export default function LandingContact() {
                     placeholder="Ej. 0991234567"
                     value={form.phone}
                     onChange={e => setForm({ ...form, phone: e.target.value })}
-                    className="w-full p-2.5 rounded-lg border border-[#CAD1F4] bg-white outline-none text-black"
+                    className="w-full p-2.5 rounded-lg border border-border-default bg-white outline-none text-black"
                   />
                 </div>
                 <div>
@@ -138,7 +138,7 @@ export default function LandingContact() {
                     placeholder="Ej. Importadora S.A."
                     value={form.company}
                     onChange={e => setForm({ ...form, company: e.target.value })}
-                    className="w-full p-2.5 rounded-lg border border-[#CAD1F4] bg-white outline-none text-black"
+                    className="w-full p-2.5 rounded-lg border border-border-default bg-white outline-none text-black"
                   />
                 </div>
               </div>
@@ -151,14 +151,14 @@ export default function LandingContact() {
                   placeholder="Detalla tu consulta aquí..."
                   value={form.message}
                   onChange={e => setForm({ ...form, message: e.target.value })}
-                  className="w-full p-2.5 rounded-lg border border-[#CAD1F4] bg-white outline-none text-black resize-none font-sans"
+                  className="w-full p-2.5 rounded-lg border border-border-default bg-white outline-none text-black resize-none font-sans"
                 />
               </div>
 
               <button 
                 type="submit" 
                 disabled={loading}
-                className="w-full py-3 bg-primary hover:bg-[#1633c1] text-white text-xs font-bold rounded-xl uppercase tracking-wider transition-colors border-none cursor-pointer"
+                className="w-full py-3 bg-primary hover:bg-surface-card text-white text-xs font-bold rounded-xl uppercase tracking-wider transition-colors border-none cursor-pointer"
               >
                 {loading ? 'Enviando...' : 'Enviar Consulta'}
               </button>

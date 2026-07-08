@@ -237,7 +237,7 @@ export default function QuotesView({ products, thirdParties,  showToast, db, app
       
       {/* ALERTA DE BLOQUEO POR CONFIGURACIÓN DE EMPRESA */}
       {isBlocked && (
-        <div className="p-5 rounded-2xl border border-dashed border-red-500/30 bg-red-500/10 text-red-500 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-in slide-in-from-top-2 duration-300">
+        <div className="p-5 rounded-card border border-dashed border-red-500/30 bg-red-500/10 text-red-500 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-in slide-in-from-top-2 duration-300">
           <div className="flex items-start gap-3">
             <AlertCircle size={20} className="shrink-0 mt-0.5" />
             <div className="text-xs">
@@ -245,7 +245,7 @@ export default function QuotesView({ products, thirdParties,  showToast, db, app
               <p className="opacity-90 mt-0.5">Normativa Comercial: No se pueden emitir proformas sin configurar la Razón Social, RUC y el **Logo Corporativo** de la empresa.</p>
             </div>
           </div>
-          <span className="text-[9px] px-2.5 py-1 rounded bg-red-500 text-white font-black uppercase tracking-wider shrink-0">Configuración Requerida</span>
+          <span className="text-xs px-2.5 py-1 rounded bg-red-500 text-white font-black uppercase tracking-wider shrink-0">Configuración Requerida</span>
         </div>
       )}
 
@@ -269,7 +269,7 @@ export default function QuotesView({ products, thirdParties,  showToast, db, app
         </div>
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
-          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border-none w-full sm:w-64 transition-all focus-within:ring-1 focus-within:ring-primary/25 bg-[#f8fafc] hover:bg-[#f1f5f9] focus-within:bg-[#f1f5f9]">
+          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border-none w-full sm:w-64 transition-all focus-within:ring-1 focus-within:ring-primary/25 bg-surface-bg hover:bg-surface-card focus-within:bg-surface-card">
             <Search size={14} className={'text-gray-400'} />
             <input 
               type="text" 
@@ -284,7 +284,7 @@ export default function QuotesView({ products, thirdParties,  showToast, db, app
           <select 
             value={filterStatus} 
             onChange={e => setFilterStatus(e.target.value)} 
-            className="px-3 py-1.5 rounded-xl border-none text-xs font-medium outline-none transition-all cursor-pointer bg-[#f8fafc] hover:bg-[#f1f5f9] text-slate-700 focus:ring-1 focus:ring-primary/25"
+            className="px-3 py-1.5 rounded-xl border-none text-xs font-medium outline-none transition-all cursor-pointer bg-surface-bg hover:bg-surface-card text-slate-700 focus:ring-1 focus:ring-primary/25"
           >
             <option value="all" className="text-black">Todos los estados</option>
             <option value="borrador" className="text-black">Borrador</option>
@@ -296,7 +296,7 @@ export default function QuotesView({ products, thirdParties,  showToast, db, app
       </div>
 
       {/* TABLA COTIZACIONES */}
-      <div className={`rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm ${
+      <div className={`rounded-card border overflow-hidden transition-all ${
         'border-slate-200/80 bg-white'}`}>
         {loading ? (
           <div className="flex justify-center items-center py-12">
@@ -305,7 +305,7 @@ export default function QuotesView({ products, thirdParties,  showToast, db, app
         ) : (
           <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-left text-xs whitespace-nowrap">
-              <thead className={`text-[10px] uppercase font-bold tracking-wider ${
+              <thead className={`text-xs uppercase font-bold tracking-wider ${
                 'bg-slate-50 text-slate-600 border-b border-slate-100'}`}>
                 <tr>
                   <th className="px-6 py-3.5">Cotización</th>
@@ -323,7 +323,7 @@ export default function QuotesView({ products, thirdParties,  showToast, db, app
                   const client = thirdParties.find(tp => tp.id === q.thirdPartyId);
                   return (
                     <tr key={q.id} className={`transition-colors hover:bg-slate-50/40`}>
-                      <td className={`px-6 py-3.5 font-mono text-[10px] text-black font-semibold`}>{q.quoteNumber}</td>
+                      <td className={`px-6 py-3.5 font-mono text-xs text-black font-semibold`}>{q.quoteNumber}</td>
                       <td className="px-6 py-3.5">{q.date}</td>
                       <td className="px-6 py-3.5">{q.validUntil || '-'}</td>
                       <td className={`px-6 py-3.5 font-bold truncate max-w-[200px] text-black`} title={client?.name}>
@@ -382,8 +382,8 @@ export default function QuotesView({ products, thirdParties,  showToast, db, app
 
       {/* MODAL CREAR / EDITAR COTIZACIÓN */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in">
-          <div className={`w-full max-w-3xl p-6 rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh] custom-scrollbar bg-white border border-gray-300`}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 animate-in fade-in">
+          <div className={`w-full max-w-3xl p-6 rounded-card overflow-y-auto max-h-[90vh] custom-scrollbar bg-white border border-gray-300`}>
             <h2 className="text-base font-bold mb-4">{formData.id ? 'Editar' : 'Crear'} Cotización</h2>
             
             <form onSubmit={handleSave} className="space-y-4">
@@ -416,7 +416,7 @@ export default function QuotesView({ products, thirdParties,  showToast, db, app
               <div className="space-y-3">
                 <div className="flex justify-between items-center border-b border-white/5 pb-2">
                   <h4 className="text-xs font-bold text-gray-400 uppercase">Detalle de Productos / Servicios</h4>
-                  <button type="button" onClick={handleAddItem} className="btn-secondary h-8 px-3 text-[11px] uppercase flex items-center gap-1">
+                  <button type="button" onClick={handleAddItem} className="btn-secondary h-8 px-3 text-xs uppercase flex items-center gap-1">
                     <Plus size={10} /> Agregar Ítem
                   </button>
                 </div>
@@ -472,14 +472,14 @@ export default function QuotesView({ products, thirdParties,  showToast, db, app
                     </div>
                   ))}
                   {formData.items.length === 0 && (
-                    <p className="text-center text-[10px] text-gray-500 italic py-4">No has agregado ningún producto a la cotización.</p>
+                    <p className="text-center text-xs text-gray-500 italic py-4">No has agregado ningún producto a la cotización.</p>
                   )}
                 </div>
               </div>
 
               {/* TOTALES */}
               <div className={`p-4 rounded-xl flex justify-between items-center bg-primary-light text-primary border border-primary/40`}>
-                <div className="text-[10px] leading-relaxed">
+                <div className="text-xs leading-relaxed">
                   <p>Subtotal Neto: ${formData.subtotal}</p>
                   <p>IVA Estimado: ${formData.ivaValor}</p>
                 </div>

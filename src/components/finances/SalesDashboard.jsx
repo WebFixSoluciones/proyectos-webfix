@@ -108,18 +108,18 @@ export default function SalesDashboard({ transactions, thirdParties, products, d
   const maxProductQty = topProducts.length > 0 ? Math.max(...topProducts.map(p => p.quantity)) : 1;
 
   // Clases CSS premium
-  const cardClass = `p-5 rounded-2xl border backdrop-blur-xl transition-all shadow-sm ${
-    'bg-white border-[#E6EBF1] hover:border-gray-400/80 shadow-[0_2px_12px_rgba(0,0,0,0.02)]'
+  const cardClass = `p-5 rounded-card border transition-all ${
+    'bg-white border-border-default hover:border-gray-400/80'
   }`;
 
-  const progressBgClass = 'bg-[#F6F9FC]';
+  const progressBgClass = 'bg-surface-bg';
 
   return (
     <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
       
       {/* SECCION ALERTA DE SESIÓN DE CAJA */}
       {!sessionLoading && (
-        <div className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all ${
+        <div className={`p-4 rounded-card border flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all ${
           activeSession 
             ? ('bg-emerald-50 border-emerald-300 text-emerald-950')
             : ('bg-orange-50 border-orange-300 text-orange-950')
@@ -138,7 +138,7 @@ export default function SalesDashboard({ transactions, thirdParties, products, d
                   ? `Caja POS Abierta - Sucursal: ${activeSession.branch}` 
                   : "Caja POS Cerrada o Inactiva"}
               </p>
-              <p className={`text-[10px] mt-0.5 ${'text-[#425466]'}`}>
+              <p className={`text-xs mt-0.5 ${'text-text-secondary'}`}>
                 {activeSession 
                   ? `Responsable: ${activeSession.responsible} | Turno: ${activeSession.shift} | Fondo: $${activeSession.initialAmount.toFixed(2)}`
                   : "Es necesario abrir la caja registradora en el Punto de Venta (POS) para poder realizar ventas físicas."}
@@ -146,7 +146,7 @@ export default function SalesDashboard({ transactions, thirdParties, products, d
             </div>
           </div>
           <div className="shrink-0 flex items-center gap-2">
-            <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded border ${
+            <span className={`text-xs font-black uppercase tracking-wider px-2 py-0.5 rounded border ${
               activeSession 
                 ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' 
                 : 'bg-orange-500/10 border-orange-500/30 text-orange-400'
@@ -163,58 +163,58 @@ export default function SalesDashboard({ transactions, thirdParties, products, d
         {/* VENTAS DE HOY */}
         <div className={cardClass}>
           <div className="flex items-center justify-between mb-3">
-            <span className={`text-[10px] font-bold uppercase tracking-wider ${'text-[#425466]'}`}>Ventas de Hoy</span>
+            <span className={`text-xs font-bold uppercase tracking-wider ${'text-text-secondary'}`}>Ventas de Hoy</span>
             <div className={`p-1.5 rounded-lg ${'bg-primary/10 text-primary'}`}>
               <ShoppingCart size={14} />
             </div>
           </div>
           <p className="text-2xl font-black">${todaySalesTotal.toFixed(2)}</p>
-          <div className="flex items-center gap-1 mt-1 text-[9px]">
+          <div className="flex items-center gap-1 mt-1 text-xs">
             <span className="font-bold text-emerald-500 flex items-center"><ArrowUpRight size={10} /> {todaySalesCount}</span>
-            <span className={'text-[#425466] font-semibold'}>transacciones concretadas</span>
+            <span className={'text-text-secondary font-semibold'}>transacciones concretadas</span>
           </div>
         </div>
 
         {/* VENTAS DEL MES */}
         <div className={cardClass}>
           <div className="flex items-center justify-between mb-3">
-            <span className={`text-[10px] font-bold uppercase tracking-wider ${'text-[#425466]'}`}>Ventas del Mes</span>
+            <span className={`text-xs font-bold uppercase tracking-wider ${'text-text-secondary'}`}>Ventas del Mes</span>
             <div className={`p-1.5 rounded-lg ${'bg-emerald-100 text-emerald-800'}`}>
               <TrendingUp size={14} />
             </div>
           </div>
           <p className="text-2xl font-black text-emerald-500">${monthlySalesTotal.toFixed(2)}</p>
-          <div className="flex items-center gap-1 mt-1 text-[9px]">
+          <div className="flex items-center gap-1 mt-1 text-xs">
             <span className="font-bold text-emerald-500 flex items-center"><ArrowUpRight size={10} /> {monthlySalesCount}</span>
-            <span className={'text-[#425466] font-semibold'}>facturas de venta</span>
+            <span className={'text-text-secondary font-semibold'}>facturas de venta</span>
           </div>
         </div>
 
         {/* TICKET PROMEDIO */}
         <div className={cardClass}>
           <div className="flex items-center justify-between mb-3">
-            <span className={`text-[10px] font-bold uppercase tracking-wider ${'text-[#425466]'}`}>Ticket Promedio</span>
+            <span className={`text-xs font-bold uppercase tracking-wider ${'text-text-secondary'}`}>Ticket Promedio</span>
             <div className={`p-1.5 rounded-lg ${'bg-purple-100 text-purple-800'}`}>
               <DollarSign size={14} />
             </div>
           </div>
           <p className="text-2xl font-black">${averageTicket.toFixed(2)}</p>
-          <div className="flex items-center gap-1 mt-1 text-[9px]">
-            <span className={'text-[#425466] font-semibold'}>Valor medio por compra</span>
+          <div className="flex items-center gap-1 mt-1 text-xs">
+            <span className={'text-text-secondary font-semibold'}>Valor medio por compra</span>
           </div>
         </div>
 
         {/* UNIDADES VENDIDAS */}
         <div className={cardClass}>
           <div className="flex items-center justify-between mb-3">
-            <span className={`text-[10px] font-bold uppercase tracking-wider ${'text-[#425466]'}`}>Artículos Vendidos</span>
+            <span className={`text-xs font-bold uppercase tracking-wider ${'text-text-secondary'}`}>Artículos Vendidos</span>
             <div className={`p-1.5 rounded-lg ${'bg-orange-100 text-orange-800'}`}>
               <Package size={14} />
             </div>
           </div>
           <p className="text-2xl font-black">{totalItemsSold} ud.</p>
-          <div className="flex items-center gap-1 mt-1 text-[9px]">
-            <span className={'text-[#425466] font-semibold'}>Productos y servicios entregados</span>
+          <div className="flex items-center gap-1 mt-1 text-xs">
+            <span className={'text-text-secondary font-semibold'}>Productos y servicios entregados</span>
           </div>
         </div>
 
@@ -241,8 +241,8 @@ export default function SalesDashboard({ transactions, thirdParties, products, d
               const pct = (value / totalPaymentSum) * 100;
               return (
                 <div key={m.key} className="space-y-1">
-                  <div className="flex justify-between items-center text-[10px]">
-                    <span className={`font-bold ${'text-[#425466]'}`}>{m.label}</span>
+                  <div className="flex justify-between items-center text-xs">
+                    <span className={`font-bold ${'text-text-secondary'}`}>{m.label}</span>
                     <span className="font-bold text-white">${value.toFixed(2)} ({pct.toFixed(0)}%)</span>
                   </div>
                   <div className={`w-full h-2 rounded-full overflow-hidden ${progressBgClass}`}>
@@ -266,16 +266,16 @@ export default function SalesDashboard({ transactions, thirdParties, products, d
               const pct = (p.quantity / maxProductQty) * 100;
               return (
                 <div key={idx} className="flex items-center gap-3">
-                  <span className={`w-5 h-5 rounded-lg flex items-center justify-center text-[10px] font-black shrink-0 ${
+                  <span className={`w-5 h-5 rounded-lg flex items-center justify-center text-xs font-black shrink-0 ${
                     idx === 0 
                       ? 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/20' 
-                      : ('bg-[#F6F9FC] text-[#425466]')
+                      : ('bg-surface-bg text-text-secondary')
                   }`}>
                     {idx + 1}
                   </span>
                   
                   <div className="flex-1 min-w-0 space-y-1">
-                    <div className="flex justify-between items-center text-[10px] gap-2">
+                    <div className="flex justify-between items-center text-xs gap-2">
                       <span className="font-bold truncate text-white block">{p.name}</span>
                       <span className="font-bold shrink-0">{p.quantity} uds. | ${p.total.toFixed(2)}</span>
                     </div>
@@ -288,9 +288,9 @@ export default function SalesDashboard({ transactions, thirdParties, products, d
             })}
             
             {topProducts.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-10 text-[#697386]">
+              <div className="flex flex-col items-center justify-center py-10 text-text-muted">
                 <Package size={28} className="opacity-20 mb-1" />
-                <p className="text-[10px] italic">No hay datos de ventas registradas en el mes.</p>
+                <p className="text-xs italic">No hay datos de ventas registradas en el mes.</p>
               </div>
             )}
           </div>

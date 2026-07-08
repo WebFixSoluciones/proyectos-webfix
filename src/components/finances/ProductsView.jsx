@@ -194,8 +194,8 @@ export default function ProductsView({ showToast, db, appId }) {
         </div>
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
-          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border-none w-full sm:w-80 transition-all focus-within:ring-1 focus-within:ring-primary/25 bg-[#f8fafc] hover:bg-[#f1f5f9] focus-within:bg-[#f1f5f9]">
-            <Search size={14} className="text-[#697386]" />
+          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border-none w-full sm:w-80 transition-all focus-within:ring-1 focus-within:ring-primary/25 bg-surface-bg hover:bg-surface-card focus-within:bg-surface-card">
+            <Search size={14} className="text-text-muted" />
             <input
               type="text"
               placeholder="Buscar por nombre o SKU..."
@@ -207,7 +207,7 @@ export default function ProductsView({ showToast, db, appId }) {
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="px-3 py-1.5 rounded-xl border-none text-xs font-medium outline-none transition-all cursor-pointer bg-[#f8fafc] hover:bg-[#f1f5f9] text-slate-700 focus:ring-1 focus:ring-primary/25"
+            className="px-3 py-1.5 rounded-xl border-none text-xs font-medium outline-none transition-all cursor-pointer bg-surface-bg hover:bg-surface-card text-slate-700 focus:ring-1 focus:ring-primary/25"
           >
             <option value="all">Todos los tipos</option>
             <option value="producto">Productos físicos</option>
@@ -218,8 +218,8 @@ export default function ProductsView({ showToast, db, appId }) {
 
       {/* TABLA CATÁLOGO */}
       <div
-        className={`rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm ${
-          "border-[#E6EBF1]/80 bg-white"
+        className={`rounded-card border overflow-hidden transition-all ${
+          "border-border-default/80 bg-white"
         }`}
       >
         {loading ? (
@@ -230,8 +230,8 @@ export default function ProductsView({ showToast, db, appId }) {
           <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-left text-xs whitespace-nowrap">
               <thead
-                className={`text-[10px] uppercase font-bold tracking-wider ${
-                  "bg-[#F6F9FC] text-[#425466] border-b border-[#E6EBF1]"
+                className={`text-xs uppercase font-bold tracking-wider ${
+                  "bg-surface-bg text-text-secondary border-b border-border-default"
                 }`}
               >
                 <tr>
@@ -255,37 +255,37 @@ export default function ProductsView({ showToast, db, appId }) {
                   return (
                     <tr
                       key={p.id}
-                      className={`transition-colors ${ ? "hover:bg-white/[0.015]" : "hover:bg-[#F6F9FC]/40"}`}
+                      className={`transition-colors ${ ? "hover:bg-white/[0.015]" : "hover:bg-surface-bg/40"}`}
                     >
                       <td
-                        className={`px-6 py-3.5 font-mono text-[10px] font-bold ${ ? "text-[#697386]" : "text-[#000000]"}`}
+                        className={`px-6 py-3.5 font-mono text-xs font-bold ${ ? "text-text-muted" : "text-text-secondary"}`}
                       >
                         {p.sku}
                       </td>
                       <td className="px-6 py-3.5">
                         <div
-                          className={`font-bold text-xs ${ ? "text-white" : "text-[#000000]"}`}
+                          className={`font-bold text-xs ${ ? "text-white" : "text-text-secondary"}`}
                         >
                           {p.name}
                         </div>
-                        <div className="flex flex-wrap gap-1 mt-1 text-[9px] font-bold uppercase tracking-wider">
+                        <div className="flex flex-wrap gap-1 mt-1 text-xs font-bold uppercase tracking-wider">
                           {p.marca && (
                             <span
-                              className={`px-1.5 py-0.5 rounded-[10px] ${ ? "bg-white/5 text-[#697386]" : "bg-primary-light text-[#0A2540] border border-primary/10"}`}
+                              className={`px-1.5 py-0.5 rounded-card ${ ? "bg-white/5 text-text-muted" : "bg-primary-light text-text-primary border border-primary/10"}`}
                             >
                               Marca: {p.marca}
                             </span>
                           )}
                           {p.categoria && (
                             <span
-                              className={`px-1.5 py-0.5 rounded-[10px] ${ ? "bg-white/5 text-[#697386]" : "bg-primary-light text-[#0A2540] border border-primary/10"}`}
+                              className={`px-1.5 py-0.5 rounded-card ${ ? "bg-white/5 text-text-muted" : "bg-primary-light text-text-primary border border-primary/10"}`}
                             >
                               Cat: {p.categoria}
                             </span>
                           )}
                           {p.bodega && (
                             <span
-                              className={`px-1.5 py-0.5 rounded-[10px] ${ ? "bg-primary/10 text-primary border border-primary/10" : "bg-primary/10 text-primary border border-primary/25"}`}
+                              className={`px-1.5 py-0.5 rounded-card ${ ? "bg-primary/10 text-primary border border-primary/10" : "bg-primary/10 text-primary border border-primary/25"}`}
                             >
                               Bodega: {p.bodega}
                             </span>
@@ -293,7 +293,7 @@ export default function ProductsView({ showToast, db, appId }) {
                         </div>
                         {p.description && (
                           <p
-                            className={`text-[9px] font-bold truncate mt-1 max-w-[220px] ${ ? "text-[#697386]" : "text-[#697386]"}`}
+                            className={`text-xs font-bold truncate mt-1 max-w-[220px] ${ ? "text-text-muted" : "text-text-muted"}`}
                             title={p.description}
                           >
                             {p.description}
@@ -302,7 +302,7 @@ export default function ProductsView({ showToast, db, appId }) {
                       </td>
                       <td className="px-6 py-3.5">
                         <span
-                          className={`px-2 py-0.5 rounded-[10px] text-[9px] font-bold uppercase border ${
+                          className={`px-2 py-0.5 rounded-card text-xs font-bold uppercase border ${
                             p.type === "producto"
                               "bg-primary-light text-primary border-primary/25"
                               "bg-purple-50 text-purple-700 border-purple-200"
@@ -312,7 +312,7 @@ export default function ProductsView({ showToast, db, appId }) {
                         </span>
                       </td>
                       <td
-                        className={`px-6 py-3.5 text-right font-bold hidden sm:table-cell ${ ? "text-[#697386]" : "text-[#000000]"}`}
+                        className={`px-6 py-3.5 text-right font-bold hidden sm:table-cell ${ ? "text-text-muted" : "text-text-secondary"}`}
                       >
                         ${Number(p.cost || 0).toFixed(2)}
                       </td>
@@ -322,30 +322,30 @@ export default function ProductsView({ showToast, db, appId }) {
                         ${Number(p.price || 0).toFixed(2)}
                       </td>
                       <td
-                        className={`px-6 py-3.5 font-bold ${ ? "text-[#697386]" : "text-[#000000]"}`}
+                        className={`px-6 py-3.5 font-bold ${ ? "text-text-muted" : "text-text-secondary"}`}
                       >
                         {p.ivaCategory}%
                       </td>
                       <td className="px-6 py-3.5 text-center">
                         {p.type === "servicio" ? (
-                          <span className="text-[#697386] italic font-medium">
+                          <span className="text-text-muted italic font-medium">
                             N/A
                           </span>
                         ) : isOut ? (
                           <span
-                            className={`px-2 py-1 rounded-[10px] text-[9px] font-bold uppercase border flex items-center justify-center gap-1 mx-auto max-w-[90px] bg-red-500/10 border-red-500/20 text-red-400 animate-pulse`}
+                            className={`px-2 py-1 rounded-card text-xs font-bold uppercase border flex items-center justify-center gap-1 mx-auto max-w-[90px] bg-red-500/10 border-red-500/20 text-red-400 animate-pulse`}
                           >
                             <AlertTriangle size={10} /> Sin Stock
                           </span>
                         ) : isLow ? (
                           <span
-                            className={`px-2 py-1 rounded-[10px] text-[9px] font-bold uppercase border flex items-center justify-center gap-1 mx-auto max-w-[90px] bg-orange-500/10 border-orange-500/20 text-orange-400`}
+                            className={`px-2 py-1 rounded-card text-xs font-bold uppercase border flex items-center justify-center gap-1 mx-auto max-w-[90px] bg-orange-500/10 border-orange-500/20 text-orange-400`}
                           >
                             <AlertTriangle size={10} /> {p.stock} (Bajo)
                           </span>
                         ) : (
                           <span
-                            className={`px-2.5 py-1 rounded-[10px] text-[9px] font-bold uppercase border flex items-center justify-center gap-1 mx-auto max-w-[70px] bg-emerald-500/10 border-emerald-500/20 text-emerald-450`}
+                            className={`px-2.5 py-1 rounded-card text-xs font-bold uppercase border flex items-center justify-center gap-1 mx-auto max-w-[70px] bg-emerald-500/10 border-emerald-500/20 text-emerald-450`}
                           >
                             {p.stock}
                           </span>
@@ -379,7 +379,7 @@ export default function ProductsView({ showToast, db, appId }) {
                   <tr>
                     <td
                       colSpan="8"
-                      className="px-6 py-12 text-center text-[#697386] italic"
+                      className="px-6 py-12 text-center text-text-muted italic"
                     >
                       No se encontraron productos o servicios en el catálogo.
                     </td>
@@ -393,9 +393,9 @@ export default function ProductsView({ showToast, db, appId }) {
 
       {/* MODAL CREAR / EDITAR */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-md animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 animate-in fade-in duration-200">
           <div
-            className={`w-full max-w-lg p-6 sm:p-8 rounded-[2rem] shadow-2xl transition-all duration-300 border ${ ? "glass-panel-dark text-white" : "bg-[#f3f8ff] border-primary/15 text-[#000000]"}`}
+            className={`w-full max-w-lg p-6 sm:p-8 rounded-[2rem] transition-all duration-300 border ${ ? "glass-panel-dark text-white" : "bg-surface-card border-primary/15 text-text-secondary"}`}
           >
             <div className="flex justify-between items-center mb-6 pb-2 border-b border-white/5">
               <h2 className="text-base font-bold font-display uppercase tracking-wider">
@@ -403,7 +403,7 @@ export default function ProductsView({ showToast, db, appId }) {
               </h2>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="btn-icon text-gray-450 hover:text-[#0A2540] dark:text-[#697386] dark:hover:text-white"
+                className="btn-icon text-gray-450 hover:text-text-primary dark:text-text-muted dark:hover:text-white"
               >
                 <Plus size={16} className="rotate-45" />
               </button>
@@ -413,7 +413,7 @@ export default function ProductsView({ showToast, db, appId }) {
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
                   <label
-                    className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-[#697386]" : "text-[#425466]"}`}
+                    className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-text-muted" : "text-text-secondary"}`}
                   >
                     Nombre del Ítem
                   </label>
@@ -431,7 +431,7 @@ export default function ProductsView({ showToast, db, appId }) {
 
                 <div>
                   <label
-                    className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-[#697386]" : "text-[#425466]"}`}
+                    className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-text-muted" : "text-text-secondary"}`}
                   >
                     Código SKU
                   </label>
@@ -449,7 +449,7 @@ export default function ProductsView({ showToast, db, appId }) {
 
                 <div>
                   <label
-                    className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-[#697386]" : "text-[#425466]"}`}
+                    className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-text-muted" : "text-text-secondary"}`}
                   >
                     Tipo de Ítem
                   </label>
@@ -460,10 +460,10 @@ export default function ProductsView({ showToast, db, appId }) {
                     }
                     className={`${inputClass} cursor-pointer`}
                   >
-                    <option value="producto" className="text-[#0A2540]">
+                    <option value="producto" className="text-text-primary">
                       Producto Físico
                     </option>
-                    <option value="servicio" className="text-[#0A2540]">
+                    <option value="servicio" className="text-text-primary">
                       Servicio / Horas
                     </option>
                   </select>
@@ -471,7 +471,7 @@ export default function ProductsView({ showToast, db, appId }) {
 
                 <div className="col-span-2">
                   <label
-                    className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-[#697386]" : "text-[#425466]"}`}
+                    className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-text-muted" : "text-text-secondary"}`}
                   >
                     Descripción
                   </label>
@@ -480,14 +480,14 @@ export default function ProductsView({ showToast, db, appId }) {
                     onChange={(e) =>
                       setFormData({ ...formData, description: e.target.value })
                     }
-                    className={`${inputClass} min-h-[70px] resize-none rounded-2xl`}
+                    className={`${inputClass} min-h-[70px] resize-none rounded-card`}
                     placeholder="Especificaciones, modelo o detalles..."
                   />
                 </div>
 
                 <div>
                   <label
-                    className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-[#697386]" : "text-[#425466]"}`}
+                    className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-text-muted" : "text-text-secondary"}`}
                   >
                     Costo Adquisición ($)
                   </label>
@@ -505,7 +505,7 @@ export default function ProductsView({ showToast, db, appId }) {
 
                 <div>
                   <label
-                    className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-[#697386]" : "text-[#425466]"}`}
+                    className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-text-muted" : "text-text-secondary"}`}
                   >
                     Precio Venta (P.V.P $)
                   </label>
@@ -523,7 +523,7 @@ export default function ProductsView({ showToast, db, appId }) {
 
                 <div>
                   <label
-                    className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-[#697386]" : "text-[#425466]"}`}
+                    className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-text-muted" : "text-text-secondary"}`}
                   >
                     Tarifa IVA
                   </label>
@@ -543,7 +543,7 @@ export default function ProductsView({ showToast, db, appId }) {
 
                 <div>
                   <label
-                    className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-[#697386]" : "text-[#425466]"}`}
+                    className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-text-muted" : "text-text-secondary"}`}
                   >
                     Marca
                   </label>
@@ -559,7 +559,7 @@ export default function ProductsView({ showToast, db, appId }) {
                 </div>
                 <div>
                   <label
-                    className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-[#697386]" : "text-[#425466]"}`}
+                    className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-text-muted" : "text-text-secondary"}`}
                   >
                     Categoría
                   </label>
@@ -575,7 +575,7 @@ export default function ProductsView({ showToast, db, appId }) {
                 </div>
                 <div>
                   <label
-                    className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-[#697386]" : "text-[#425466]"}`}
+                    className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-text-muted" : "text-text-secondary"}`}
                   >
                     Bodega / Ubicación
                   </label>
@@ -588,7 +588,7 @@ export default function ProductsView({ showToast, db, appId }) {
                       className={inputClass}
                     >
                       {settings.bodegas.map(wh => (
-                        <option key={wh} value={wh} className="text-[#0A2540]">{wh}</option>
+                        <option key={wh} value={wh} className="text-text-primary">{wh}</option>
                       ))}
                     </select>
                   ) : (
@@ -605,7 +605,7 @@ export default function ProductsView({ showToast, db, appId }) {
                 </div>
                 <div className="col-span-2">
                   <label
-                    className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-[#697386]" : "text-[#425466]"}`}
+                    className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-text-muted" : "text-text-secondary"}`}
                   >
                     Código de Barras
                   </label>
@@ -624,7 +624,7 @@ export default function ProductsView({ showToast, db, appId }) {
                   <>
                     <div>
                       <label
-                        className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-[#697386]" : "text-[#425466]"}`}
+                        className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-text-muted" : "text-text-secondary"}`}
                       >
                         Stock Inicial
                       </label>
@@ -640,7 +640,7 @@ export default function ProductsView({ showToast, db, appId }) {
                     </div>
                     <div>
                       <label
-                        className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-[#697386]" : "text-[#425466]"}`}
+                        className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-text-muted" : "text-text-secondary"}`}
                       >
                         Stock Mínimo (Alerta)
                       </label>

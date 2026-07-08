@@ -240,43 +240,43 @@ export default function GastosCreditosModule({ showToast, transactions = [], thi
                 <div className="space-y-6">
                   {/* Tarjetas métricas */}
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                    <div className="p-5 rounded-3xl border shadow-sm bg-white border-gray-200">
+                    <div className="p-5 rounded-card border bg-white border-gray-200">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-[10px] font-black uppercase text-gray-500 tracking-wider">Total Endeudamiento</span>
+                        <span className="text-xs font-black uppercase text-gray-500 tracking-wider">Total Endeudamiento</span>
                         <div className="p-1.5 rounded-lg bg-red-500/10 text-red-500">
                           <ArrowUpCircle size={16} />
                         </div>
                       </div>
                       <p className="text-2xl font-black text-red-500">${totalPasivos.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                      <p className="text-[9px] text-gray-400 mt-1">Saldo pendiente acumulado de todas las obligaciones</p>
+                      <p className="text-xs text-gray-400 mt-1">Saldo pendiente acumulado de todas las obligaciones</p>
                     </div>
 
-                    <div className="p-5 rounded-3xl border shadow-sm bg-white border-gray-200">
+                    <div className="p-5 rounded-card border bg-white border-gray-200">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-[10px] font-black uppercase text-gray-500 tracking-wider">Pago de Cuotas Mensual</span>
+                        <span className="text-xs font-black uppercase text-gray-500 tracking-wider">Pago de Cuotas Mensual</span>
                         <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-500">
                           <DollarSign size={16} />
                         </div>
                       </div>
                       <p className="text-2xl font-black text-emerald-500">${totalCuotasMes.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                      <p className="text-[9px] text-gray-400 mt-1">Suma del pago mensual programado de cuotas</p>
+                      <p className="text-xs text-gray-400 mt-1">Suma del pago mensual programado de cuotas</p>
                     </div>
 
-                    <div className="p-5 rounded-3xl border shadow-sm bg-white border-gray-200">
+                    <div className="p-5 rounded-card border bg-white border-gray-200">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-[10px] font-black uppercase text-gray-500 tracking-wider">Total Gastos ERP</span>
+                        <span className="text-xs font-black uppercase text-gray-500 tracking-wider">Total Gastos ERP</span>
                         <div className="p-1.5 rounded-lg bg-pink-500/10 text-pink-500">
                           <History size={16} />
                         </div>
                       </div>
                       <p className="text-2xl font-black">${totalExpensesAllTime.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                      <p className="text-[9px] text-gray-400 mt-1">Egresos totales registrados en contabilidad general</p>
+                      <p className="text-xs text-gray-400 mt-1">Egresos totales registrados en contabilidad general</p>
                     </div>
                   </div>
 
                   {/* Resumen por tipo de pasivo */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="p-6 rounded-3xl border bg-white border-gray-200">
+                    <div className="p-6 rounded-card border bg-white border-gray-200">
                       <h3 className="text-xs font-bold uppercase tracking-wider mb-4">Composición de Deuda Financiera</h3>
                       <div className="space-y-4">
                         <div className="flex justify-between items-center text-xs">
@@ -300,10 +300,10 @@ export default function GastosCreditosModule({ showToast, transactions = [], thi
                       </div>
                     </div>
 
-                    <div className="p-6 rounded-3xl border flex flex-col justify-between bg-white border-gray-200">
+                    <div className="p-6 rounded-card border flex flex-col justify-between bg-white border-gray-200">
                       <div>
                         <h3 className="text-xs font-bold uppercase tracking-wider mb-2">Salud Crediticia del Negocio</h3>
-                        <p className="text-[10px] text-gray-500 leading-normal">
+                        <p className="text-xs text-gray-500 leading-normal">
                           Llevar un control ordenado de sus deudas le permite evitar mora, planificar flujos de efectivo futuros y deducir los gastos de interés comercial según la normativa ecuatoriana.
                         </p>
                       </div>
@@ -341,13 +341,13 @@ export default function GastosCreditosModule({ showToast, transactions = [], thi
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {liabilities.map(liab => (
-                      <div key={liab.id} className="p-5 rounded-3xl border shadow-sm relative flex flex-col justify-between bg-white border-gray-200">
+                      <div key={liab.id} className="p-5 rounded-card border relative flex flex-col justify-between bg-white border-gray-200">
                         <div>
                           <div className="flex justify-between items-start mb-3">
                             <span className="p-2.5 rounded-xl bg-white/5 border border-white/5">
                               {getIcon(liab.type)}
                             </span>
-                            <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${
+                            <span className={`text-xs font-black uppercase px-2 py-0.5 rounded-full ${
                               liab.saldoPendiente > 0 ? 'bg-red-500/10 text-red-400' : 'bg-emerald-500/10 text-emerald-450'
                             }`}>
                               {liab.saldoPendiente > 0 ? 'Con saldo' : 'Liquidado'}
@@ -355,7 +355,7 @@ export default function GastosCreditosModule({ showToast, transactions = [], thi
                           </div>
 
                           <h4 className="font-bold text-sm text-black dark:text-white mb-0.5">{liab.entity}</h4>
-                          <p className="text-[10px] text-gray-500 mb-4">{getTypeName(liab.type)}</p>
+                          <p className="text-xs text-gray-500 mb-4">{getTypeName(liab.type)}</p>
 
                           <div className="space-y-2 border-t border-white/5 pt-3 text-xs">
                             <div className="flex justify-between">
@@ -425,10 +425,10 @@ export default function GastosCreditosModule({ showToast, transactions = [], thi
                     </div>
                   </div>
 
-                  <div className="rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm border-slate-200/80 bg-white">
+                  <div className="rounded-card border overflow-hidden transition-all border-slate-200/80 bg-white">
                     <div className="overflow-x-auto custom-scrollbar">
                       <table className="w-full text-left text-xs whitespace-nowrap">
-                        <thead className="text-[10px] uppercase font-bold tracking-wider bg-slate-50 text-slate-600 border-b border-slate-100">
+                        <thead className="text-xs uppercase font-bold tracking-wider bg-slate-50 text-slate-600 border-b border-slate-100">
                           <tr>
                             <th className="px-6 py-3.5">Fecha</th>
                             <th className="px-6 py-3.5">Descripción / Comprobante</th>
@@ -449,14 +449,14 @@ export default function GastosCreditosModule({ showToast, transactions = [], thi
                                 <td className="px-6 py-3.5">
                                   <div>
                                     <p className="font-bold text-black dark:text-white line-clamp-1">{tx.description || 'Sin descripción'}</p>
-                                    <p className="text-[9px] text-gray-500 font-mono mt-0.5">{tx.documentNumber || `Sec: ${tx.secuencial || 'N/A'}`}</p>
+                                    <p className="text-xs text-gray-500 font-mono mt-0.5">{tx.documentNumber || `Sec: ${tx.secuencial || 'N/A'}`}</p>
                                   </div>
                                 </td>
                                 <td className="px-6 py-3.5 font-semibold text-black dark:text-white">
                                   {contact?.name || 'Proveedor Externo (S/N)'}
                                 </td>
                                 <td className="px-6 py-3.5">
-                                  <span className="badge-status-sm text-[9px] font-semibold">
+                                  <span className="badge-status-sm text-xs font-semibold">
                                     {String(tx.category || 'gastos').replace('_', ' ')}
                                   </span>
                                 </td>
@@ -488,15 +488,15 @@ export default function GastosCreditosModule({ showToast, transactions = [], thi
 
       {/* MODAL: REGISTRAR PAGO DE CUOTA */}
       {selectedLiability && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-md p-6 rounded-3xl shadow-2xl bg-white border border-gray-200">
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/85 animate-in fade-in">
+          <div className="w-full max-w-md p-6 rounded-card bg-white border border-gray-200">
             <div className="flex justify-between items-center mb-4 border-b pb-2 border-white/5">
               <h3 className="text-sm font-black">Registrar Pago de Cuota / Abono</h3>
               <button onClick={() => setSelectedLiability(null)} className="btn-icon text-gray-400 hover:text-white"><X size={16} /></button>
             </div>
 
             <form onSubmit={handleRecordPayment} className="space-y-4">
-              <div className="p-3.5 rounded-2xl bg-black/15 border border-white/5 text-xs space-y-2">
+              <div className="p-3.5 rounded-card bg-black/15 border border-white/5 text-xs space-y-2">
                 <div className="flex justify-between">
                   <span className="text-gray-400">Entidad:</span>
                   <span className="font-bold">{selectedLiability.entity}</span>
@@ -572,8 +572,8 @@ export default function GastosCreditosModule({ showToast, transactions = [], thi
 
       {/* MODAL: AGREGAR PASIVO */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-md p-6 rounded-3xl shadow-2xl bg-white border border-gray-200">
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/85 animate-in fade-in">
+          <div className="w-full max-w-md p-6 rounded-card bg-white border border-gray-200">
             <div className="flex justify-between items-center mb-4 border-b pb-2 border-white/5">
               <h3 className="text-sm font-black">Registrar Nuevo Pasivo</h3>
               <button onClick={() => setIsAddModalOpen(false)} className="btn-icon text-gray-400 hover:text-white"><X size={16} /></button>

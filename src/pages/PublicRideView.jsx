@@ -105,7 +105,7 @@ export default function PublicRideView() {
     return (
       <div className="min-h-screen w-full flex flex-col items-center justify-center bg-slate-900 text-white font-sans">
         <RefreshCw className="animate-spin text-primary mb-4" size={40} />
-        <p className="text-[12px] font-bold uppercase tracking-wider text-slate-400">Cargando Comprobante RIDE...</p>
+        <p className="text-sm font-bold uppercase tracking-wider text-slate-400">Cargando Comprobante RIDE...</p>
       </div>
     );
   }
@@ -113,13 +113,13 @@ export default function PublicRideView() {
   if (error || !tx) {
     return (
       <div className="min-h-screen w-full flex flex-col items-center justify-center bg-slate-900 text-white font-sans px-4">
-        <div className="max-w-md w-full bg-slate-800 border border-slate-700 rounded-2xl p-6 text-center shadow-xl space-y-4">
+        <div className="max-w-md w-full bg-slate-800 border border-slate-700 rounded-card p-6 text-center space-y-4">
           <div className="w-12 h-12 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mx-auto">
             <AlertCircle size={24} />
           </div>
           <h2 className="text-lg font-black uppercase text-red-400">Error de Consulta</h2>
           <p className="text-slate-300 text-xs leading-relaxed">{error || 'Comprobante no disponible.'}</p>
-          <div className="text-[10px] font-mono text-slate-500 break-all select-all">
+          <div className="text-xs font-mono text-slate-500 break-all select-all">
             Clave: {claveAcceso || 'No proporcionada'}
           </div>
         </div>
@@ -370,20 +370,20 @@ export default function PublicRideView() {
       `}} />
 
       {/* Top action bar */}
-      <div className="sticky top-0 z-50 bg-slate-950/80 backdrop-blur-md border-b border-slate-800/80 px-4 py-3 flex items-center justify-between shadow-lg print:hidden">
+      <div className="sticky top-0 z-50 bg-slate-950/80 border-b border-slate-800/80 px-4 py-3 flex items-center justify-between shadow-lg print:hidden">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-[#1C40F2]/20 flex items-center justify-center text-[#1C40F2] border border-[#1C40F2]/30">
+          <div className="w-8 h-8 rounded-lg bg-surface-card/20 flex items-center justify-center text-text-secondary border border-border-default/30">
             <FileText size={16} />
           </div>
           <div>
             <h1 className="text-xs font-black uppercase tracking-wider text-slate-200">Visor RIDE Oficial</h1>
-            <p className="text-[9px] text-slate-400 font-mono select-all mt-0.5">{claveAcceso}</p>
+            <p className="text-xs text-slate-400 font-mono select-all mt-0.5">{claveAcceso}</p>
           </div>
         </div>
 
         <button
           onClick={handlePrint}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] uppercase shadow-sm transition-transform hover:-translate-y-0.5"
+          className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase transition-transform hover:-translate-y-0.5"
         >
           <Printer size={12} /> Imprimir / PDF
         </button>
@@ -392,10 +392,10 @@ export default function PublicRideView() {
       {/* RIDE Content Sheet */}
       <div className="flex-1 overflow-y-auto p-4 md:p-8 flex justify-center bg-slate-900 print:p-0 print:bg-white">
         <div id="print-area-wrapper" className="w-full max-w-3xl">
-          <div className="w-full mx-auto p-5 bg-white border border-gray-300 text-black shadow-2xl text-[9.5px] font-sans leading-snug print:shadow-none print:border-none print:p-0">
+          <div className="w-full mx-auto p-5 bg-white border border-gray-300 text-black text-[9.5px] font-sans leading-snug print:shadow-none print:border-none print:p-0">
             
             {/* Cabecera Principal Compacta */}
-            <div className="border border-gray-300 grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-300 print:grid-cols-2 print:divide-x print:divide-y-0 text-[8.5px] text-black">
+            <div className="border border-gray-300 grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-300 print:grid-cols-2 print:divide-x print:divide-y-0 text-xs text-black">
               
               {/* Columna Izquierda: Datos del Emisor */}
               <div className="p-3 flex items-start gap-3 min-w-0">
@@ -405,8 +405,8 @@ export default function PublicRideView() {
                   <div className="h-10 w-20 bg-gray-200 border border-gray-300 rounded flex items-center justify-center font-bold text-[8px] text-gray-600 tracking-wider shrink-0">LOGOTIPO</div>
                 )}
                 <div className="space-y-0.5 min-w-0 flex-1">
-                  <h2 className="font-extrabold text-[10px] uppercase leading-tight text-black truncate">{emisor.razonSocial}</h2>
-                  {emisor.nombreComercial && <p className="font-bold text-[9px] text-black truncate">{emisor.nombreComercial}</p>}
+                  <h2 className="font-extrabold text-xs uppercase leading-tight text-black truncate">{emisor.razonSocial}</h2>
+                  {emisor.nombreComercial && <p className="font-bold text-xs text-black truncate">{emisor.nombreComercial}</p>}
                   <p><span className="font-bold">RUC:</span> {emisor.ruc}</p>
                   {emisor.contribuyenteEspecial && (
                     <p><span className="font-bold">Contribuyente Especial Resolución Nro.</span> {emisor.especialResolucion || '3257'}</p>
@@ -453,7 +453,7 @@ export default function PublicRideView() {
                   </div>
                 )}
                 <div className="border-t border-gray-250 pt-1.5 mt-auto">
-                  <h2 className="font-extrabold text-[11px] tracking-wide text-black uppercase leading-none">
+                  <h2 className="font-extrabold text-xs tracking-wide text-black uppercase leading-none">
                     {getDocTypeLabel()} {docNumFormatted}
                   </h2>
                 </div>

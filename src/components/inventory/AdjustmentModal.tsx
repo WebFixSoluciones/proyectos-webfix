@@ -128,16 +128,16 @@ export default function AdjustmentModal({ onClose, onSuccess }: AdjustmentModalP
     }
   };
 
-  const inputClass = `w-full px-3 py-2.5 rounded-xl outline-none transition-all border text-sm bg-white border-[#E6EBF1] text-[#0A2540] focus:border-red-500 shadow-inner`;
+  const inputClass = `w-full px-3 py-2.5 rounded-xl outline-none transition-all border text-sm bg-white border-border-default text-text-primary focus:border-red-500 shadow-inner`;
 
-  const labelClass = `block text-xs font-semibold mb-1.5 uppercase tracking-wider text-[#697386]`;
+  const labelClass = `block text-xs font-semibold mb-1.5 uppercase tracking-wider text-text-muted`;
 
   const isZeroInventoryConfUnlocked = doubleConfirmationText === 'CONFIRMAR ZERO INVENTARIO';
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 backdrop-blur-xl bg-black/40 animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-black/40 animate-in fade-in duration-300">
       <div 
-        className={`w-full max-w-2xl max-h-[90vh] flex flex-col rounded-3xl shadow-2xl border overflow-hidden bg-white/95 border-white/40`}
+        className={`w-full max-w-2xl max-h-[90vh] flex flex-col rounded-card border overflow-hidden bg-white/95 border-white/40`}
       >
         {/* Header */}
         <div className={`modal-header-std modal-header-std-dark border-gray-100 bg-white/80`}>
@@ -146,10 +146,10 @@ export default function AdjustmentModal({ onClose, onSuccess }: AdjustmentModalP
               <RefreshCw size={20} />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-[#0A2540]">
+              <h2 className="text-lg font-bold text-text-primary">
                 Ajuste de Inventario
               </h2>
-              <p className="text-xs text-[#697386]">
+              <p className="text-xs text-text-muted">
                 Realiza ajustes de stock o vacía inventarios en lote
               </p>
             </div>
@@ -188,7 +188,7 @@ export default function AdjustmentModal({ onClose, onSuccess }: AdjustmentModalP
               onClick={() => { setAdjustmentType('ZERO_INVENTORY'); setError(null); }}
               className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all border ${
                 adjustmentType === 'ZERO_INVENTORY'
-                  ? 'bg-red-600 text-white border-red-600 shadow-md shadow-red-950/20'
+                  ? 'bg-red-600 text-white border-red-600 shadow-red-950/20'
                   : 'bg-transparent text-gray-400 border-transparent hover:bg-white/5'
               }`}
             >
@@ -267,7 +267,7 @@ export default function AdjustmentModal({ onClose, onSuccess }: AdjustmentModalP
               </div>
             </div>
           ) : (
-            <div className={`p-4 rounded-2xl border bg-red-950/20 border-red-500/20 space-y-4 animate-in fade-in duration-300`}>
+            <div className={`p-4 rounded-card border bg-red-950/20 border-red-500/20 space-y-4 animate-in fade-in duration-300`}>
               <div className="flex gap-2.5 text-red-400">
                 <AlertTriangle className="shrink-0" />
                 <div>
@@ -320,8 +320,8 @@ export default function AdjustmentModal({ onClose, onSuccess }: AdjustmentModalP
               disabled={loading || (adjustmentType === 'ZERO_INVENTORY' && !isZeroInventoryConfUnlocked)}
               className={`px-8 py-2.5 rounded-xl font-bold transition-all text-sm text-white flex items-center gap-2 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none ${
                 adjustmentType === 'ZERO_INVENTORY'
-                  ? 'bg-red-600 hover:bg-red-500 shadow-[0_0_20px_rgba(220,38,38,0.4)]'
-                  : 'bg-primary hover:bg-primary shadow-[0_0_20px_rgba(37,99,235,0.4)]'
+                  ? 'bg-red-600 hover:bg-red-500'
+                  : 'bg-primary hover:bg-primary'
               }`}
             >
               {loading ? "Aplicando..." : "Aplicar Ajuste"}

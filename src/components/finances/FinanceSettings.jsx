@@ -136,7 +136,7 @@ export default function FinanceSettings({  showToast, db, storage, appId }) {
         <div className="md:col-span-2 space-y-6">
           
           {/* CONFIGURACIÓN AMBIENTE Y GEMINI */}
-          <div className={`p-6 rounded-2xl border space-y-4 bg-white border-gray-200`}>
+          <div className={`p-6 rounded-card border space-y-4 bg-white border-gray-200`}>
             <div className="flex items-center gap-2 mb-2 pb-3 border-b border-white/10">
               <Sparkles size={18} className="text-purple-500" />
               <h3 className="text-base font-bold">Integraciones y Entornos</h3>
@@ -180,7 +180,7 @@ export default function FinanceSettings({  showToast, db, storage, appId }) {
                 </div>
               </div>
             </div>
-            <p className="text-[9px] text-gray-500 leading-relaxed">
+            <p className="text-xs text-gray-500 leading-relaxed">
               El ambiente determina a qué servidor del SRI se envían las facturas. La clave de Gemini habilita la categorización inteligente de facturas y OCR de compras.
             </p>
 
@@ -213,17 +213,17 @@ export default function FinanceSettings({  showToast, db, storage, appId }) {
           </div>
 
           {/* VINCULACIÓN SRI ECUADOR */}
-          <div className={`p-6 rounded-2xl border bg-white border-gray-200`}>
+          <div className={`p-6 rounded-card border bg-white border-gray-200`}>
             <div className="flex items-center gap-2 mb-4 pb-2 border-b border-white/10">
               <ExternalLink size={18} className="text-primary" />
               <h3 className="text-base font-bold">Guía de Vinculación con el SRI (Ecuador)</h3>
             </div>
             
             <div className="space-y-4 text-xs leading-normal">
-              <p className="text-gray-400 text-[10px]">
+              <p className="text-gray-400 text-xs">
                 Siga estos pasos para enlazar su ERP con el Servicio de Rentas Internas:
               </p>
-              <ol className="list-decimal pl-4 text-gray-400 space-y-1.5 text-[10px]">
+              <ol className="list-decimal pl-4 text-gray-400 space-y-1.5 text-xs">
                 <li>
                   Ingrese a <a href="https://srienlinea.sri.gob.ec" target="_blank" rel="noreferrer" className="text-primary hover:underline font-bold inline-flex items-center gap-0.5">SRI en Línea <ExternalLink size={8} /></a> con su RUC y clave.
                 </li>
@@ -235,7 +235,7 @@ export default function FinanceSettings({  showToast, db, storage, appId }) {
                 </li>
               </ol>
 
-              <div className={`p-3.5 rounded-xl border text-[9px] ${
+              <div className={`p-3.5 rounded-xl border text-xs ${
                 sriConfig.ambiente === '2'
                   ? ('bg-emerald-50 border-emerald-250 text-emerald-800')
                   : ('bg-amber-50 border-amber-250 text-amber-800')
@@ -254,19 +254,19 @@ export default function FinanceSettings({  showToast, db, storage, appId }) {
         {/* COLUMNA DERECHA: DATOS COMERCIALES */}
         <div className="space-y-6">
           
-          <div className={`p-6 rounded-2xl border bg-white border-gray-200`}>
+          <div className={`p-6 rounded-card border bg-white border-gray-200`}>
             <div className="flex items-center gap-2 mb-4 pb-2 border-b border-white/10">
               <Settings size={18} className="text-primary" />
               <h3 className="text-base font-bold">Formatos de Impresión</h3>
             </div>
 
             <div className="space-y-4">
-              <p className="text-[10px] text-gray-500 leading-relaxed">
+              <p className="text-xs text-gray-500 leading-relaxed">
                 Los datos del logo, correo y teléfono que se imprimen en los documentos se configuran en <span className="font-bold">Perfil de Empresa</span>.
               </p>
 
               <div>
-                <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-500">Plantilla de Cotización</label>
+                <label className="block text-xs font-bold uppercase mb-1.5 text-gray-500">Plantilla de Cotización</label>
                 <select
                   value={sriConfig.cotizacionFormActivo || sriConfig.cotizacionFormatoActivo || 'basico'}
                   onChange={e => setSriConfig({...sriConfig, cotizacionFormatoActivo: e.target.value, cotizacionFormActivo: e.target.value})}
@@ -280,18 +280,18 @@ export default function FinanceSettings({  showToast, db, storage, appId }) {
           </div>
 
           {/* SECUENCIALES DE COMPROBANTES */}
-          <div className={`p-6 rounded-2xl border bg-white border-gray-200`}>
+          <div className={`p-6 rounded-card border bg-white border-gray-200`}>
             <div className="flex items-center gap-2 mb-4 pb-2 border-b border-white/10">
               <Settings size={18} className="text-purple-500" />
               <h3 className="text-base font-bold">Secuenciales de Facturación (SRI)</h3>
             </div>
-            <p className="text-[10px] text-gray-500 mb-4 leading-relaxed">
+            <p className="text-xs text-gray-500 mb-4 leading-relaxed">
               Configure el número secuencial para cada tipo de comprobante. El sistema lo incrementará automáticamente tras cada emisión autorizada por el SRI.
             </p>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-505">Próximo Secuencial de Factura</label>
+                <label className="block text-xs font-bold uppercase mb-1.5 text-gray-505">Próximo Secuencial de Factura</label>
                 <input 
                   type="number" 
                   min="1"
@@ -303,7 +303,7 @@ export default function FinanceSettings({  showToast, db, storage, appId }) {
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-505">Próximo Secuencial de Retención</label>
+                <label className="block text-xs font-bold uppercase mb-1.5 text-gray-505">Próximo Secuencial de Retención</label>
                 <input 
                   type="number" 
                   min="1"
@@ -315,7 +315,7 @@ export default function FinanceSettings({  showToast, db, storage, appId }) {
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-505">Próximo Secuencial de Nota de Crédito</label>
+                <label className="block text-xs font-bold uppercase mb-1.5 text-gray-505">Próximo Secuencial de Nota de Crédito</label>
                 <input 
                   type="number" 
                   min="1"
@@ -327,7 +327,7 @@ export default function FinanceSettings({  showToast, db, storage, appId }) {
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-500">Próximo Secuencial de Liquidación de Compra</label>
+                <label className="block text-xs font-bold uppercase mb-1.5 text-gray-500">Próximo Secuencial de Liquidación de Compra</label>
                 <input 
                   type="number" 
                   min="1"
@@ -339,7 +339,7 @@ export default function FinanceSettings({  showToast, db, storage, appId }) {
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-500">Próximo Secuencial de Guía de Remisión</label>
+                <label className="block text-xs font-bold uppercase mb-1.5 text-gray-500">Próximo Secuencial de Guía de Remisión</label>
                 <input
                   type="number"
                   min="1"
@@ -351,7 +351,7 @@ export default function FinanceSettings({  showToast, db, storage, appId }) {
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold uppercase mb-1.5 text-gray-500">Próximo Secuencial de Nota de Venta / Recibo</label>
+                <label className="block text-xs font-bold uppercase mb-1.5 text-gray-500">Próximo Secuencial de Nota de Venta / Recibo</label>
                 <input 
                   type="number" 
                   min="1"

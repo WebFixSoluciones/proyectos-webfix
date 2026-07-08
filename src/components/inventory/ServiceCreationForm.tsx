@@ -99,7 +99,7 @@ export default function ServiceCreationForm({
 
   const formJSX = (
     <div 
-      className={isInline ? `w-full rounded-3xl border shadow-xl bg-white border-gray-200 text-gray-900` : `relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl border bg-white/95 border-white/40 custom-scrollbar`}
+      className={isInline ? `w-full rounded-card border bg-white border-gray-200 text-gray-900` : `relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-card border bg-white/95 border-white/40 custom-scrollbar`}
     >
       {/* Header */}
       <div className={`modal-header-std modal-header-std-dark border-gray-100 bg-white/80`}>
@@ -277,7 +277,7 @@ export default function ServiceCreationForm({
             </div>
 
             {/* Resumen de Pricing Card */}
-            <div className={`mt-6 p-5 rounded-2xl border flex items-center justify-between shadow-lg bg-gradient-to-br from-primary/10 to-emerald-50 border-primary/25`}>
+            <div className={`mt-6 p-5 rounded-card border flex items-center justify-between shadow-lg bg-gradient-to-br from-primary/10 to-emerald-50 border-primary/25`}>
               <div>
                 <p className={`text-xs font-bold uppercase tracking-wider mb-1 text-primary`}>
                   Precio Final del Servicio
@@ -314,7 +314,7 @@ export default function ServiceCreationForm({
             <button
               type="submit"
               disabled={loading}
-              className="px-8 py-2.5 rounded-xl font-bold transition-all text-sm bg-primary hover:bg-primary text-white shadow-[0_0_20px_rgba(79,70,229,0.4)] flex items-center gap-2 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+              className="px-8 py-2.5 rounded-xl font-bold transition-all text-sm bg-primary hover:bg-primary text-white flex items-center gap-2 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
             >
               {loading ? (
                 <>
@@ -338,7 +338,7 @@ export default function ServiceCreationForm({
     }
 
     return (
-      <div className={`fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 backdrop-blur-xl bg-black/40 animate-in fade-in duration-300`}>
+      <div className={`fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-black/40 animate-in fade-in duration-300`}>
         {formJSX}
       </div>
     );

@@ -13,7 +13,7 @@ export default function LandingAbout() {
       </div>
 
       {/* Corporate Philosophy */}
-      <div className="grid md:grid-cols-2 gap-8 items-center pt-8 border-t border-[#CAD1F4]">
+      <div className="grid md:grid-cols-2 gap-8 items-center pt-8 border-t border-border-default">
         <div>
           <h2 className="text-xl font-black mb-4">Nuestra Misión</h2>
           <p className="text-xs text-gray-650 leading-relaxed mb-4 font-medium">
@@ -23,7 +23,7 @@ export default function LandingAbout() {
             WebFix ERP provee una plataforma multi-bodega, con facturación automática y simulación de flujos de caja en tiempo real, accesible desde cualquier dispositivo y respaldada por servidores de nube avanzados.
           </p>
         </div>
-        <div className="p-6 rounded-2xl bg-white border border-[#CAD1F4] space-y-4">
+        <div className="p-6 rounded-card bg-white border border-border-default space-y-4">
           <h3 className="text-xs font-black uppercase tracking-wider text-primary">Nuestros Valores</h3>
           <ul className="space-y-3 text-xs text-gray-750 font-semibold">
             <li className="flex gap-2">
@@ -47,14 +47,14 @@ export default function LandingAbout() {
       </div>
 
       {/* Security and Infrastructure details */}
-      <div className="p-6 rounded-2xl bg-white border border-[#CAD1F4] space-y-4 pt-8">
+      <div className="p-6 rounded-card bg-white border border-border-default space-y-4 pt-8">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
             <Shield size={20} />
           </div>
           <div>
             <h3 className="text-sm font-black uppercase tracking-wider">Infraestructura Segura y Alta Disponibilidad</h3>
-            <p className="text-[10px] text-gray-500">Respaldado por tecnología Firebase Google Cloud</p>
+            <p className="text-xs text-gray-500">Respaldado por tecnología Firebase Google Cloud</p>
           </div>
         </div>
         <p className="text-xs text-gray-650 leading-relaxed font-medium">

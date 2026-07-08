@@ -48,7 +48,7 @@ export default function FinanceChat({ transactions, thirdParties, onClose }) {
   };
 
   return (
-    <div className="flex flex-col h-full rounded-2xl border shadow-xl overflow-hidden backdrop-blur-xl bg-white border-gray-200">
+    <div className="flex flex-col h-full rounded-card border overflow-hidden bg-white border-gray-200">
       {/* HEADER CHAT */}
       <div className="px-4 py-3 flex items-center justify-between border-b border-gray-100 bg-gray-50/50">
         <div className="flex items-center gap-2">
@@ -57,7 +57,7 @@ export default function FinanceChat({ transactions, thirdParties, onClose }) {
           </div>
           <div>
             <h4 className="text-xs font-bold">Asistente Contable AI</h4>
-            <p className="text-[9px] text-gray-500">Respuestas basadas en tu base contable</p>
+            <p className="text-xs text-gray-500">Respuestas basadas en tu base contable</p>
           </div>
         </div>
         {onClose && (
@@ -74,7 +74,7 @@ export default function FinanceChat({ transactions, thirdParties, onClose }) {
             <div className={`p-2 rounded-xl shrink-0 flex items-center justify-center h-7 w-7 ${msg.role === 'user' ? 'bg-primary text-white' : 'bg-purple-600/20 text-purple-400'}`}>
               {msg.role === 'user' ? <User size={12} /> : <Bot size={12} />}
             </div>
-            <div className={`p-3 rounded-2xl leading-relaxed whitespace-pre-line ${msg.role === 'user' ? 'bg-primary text-white rounded-tr-none' : 'bg-gray-100 text-gray-800 rounded-tl-none'}`}>
+            <div className={`p-3 rounded-card leading-relaxed whitespace-pre-line ${msg.role === 'user' ? 'bg-primary text-white rounded-tr-none' : 'bg-gray-100 text-gray-800 rounded-tl-none'}`}>
               {msg.text}
             </div>
           </div>
@@ -85,7 +85,7 @@ export default function FinanceChat({ transactions, thirdParties, onClose }) {
             <div className="p-2 rounded-xl bg-purple-600/20 text-purple-400 shrink-0 flex items-center justify-center h-7 w-7">
               <Bot size={12} />
             </div>
-            <div className="p-3 rounded-2xl rounded-tl-none flex items-center gap-1.5 bg-gray-100 text-gray-500">
+            <div className="p-3 rounded-card rounded-tl-none flex items-center gap-1.5 bg-gray-100 text-gray-500">
               <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '0ms' }}></span>
               <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '150ms' }}></span>
               <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '300ms' }}></span>
@@ -98,7 +98,7 @@ export default function FinanceChat({ transactions, thirdParties, onClose }) {
             <AlertCircle size={14} className="shrink-0 mt-0.5" />
             <div>
               <p className="font-semibold">Error al chatear</p>
-              <p className="text-[10px] opacity-90 mt-0.5">{error}</p>
+              <p className="text-xs opacity-90 mt-0.5">{error}</p>
             </div>
           </div>
         )}

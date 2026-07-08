@@ -1523,9 +1523,9 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   };
 
   const inputClass = `w-full text-xs px-[10px] py-[6px] rounded-input outline-none transition-all ${
-    'bg-[#f8fafc] text-black placeholder:text-gray-400 focus:bg-[#f1f5f9] focus:ring-1 focus:ring-primary/20 disabled:bg-gray-50 disabled:text-gray-500'}`;
+    'bg-surface-bg text-black placeholder:text-gray-400 focus:bg-surface-card focus:ring-1 focus:ring-primary/20 disabled:bg-gray-50 disabled:text-gray-500'}`;
 
-  const labelClass = `block text-[10px] font-bold uppercase mb-[4px] ${
+  const labelClass = `block text-xs font-bold uppercase mb-[4px] ${
     'text-black'}`;
 
   const cardClass = `p-[12px] rounded-card ${
@@ -1591,7 +1591,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       `}</style>
       
       {/* TOP HEADER */}
-      <div className={`sticky top-0 z-20 flex items-center justify-between px-[8px] py-[5px] border-b backdrop-blur-md border-gray-200 bg-white/95`}>
+      <div className={`sticky top-0 z-20 flex items-center justify-between px-[8px] py-[5px] border-b border-gray-200 bg-white/95`}>
         <div className="flex items-center gap-[5px]">
           {!isInline && (
             <div className={`p-[5px] rounded-card ${formData.type === 'ingreso' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
@@ -1607,7 +1607,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
             <h2 className="text-xs font-black uppercase tracking-wider text-black dark:text-white sm:hidden">
               {formData.type === 'ingreso' ? 'Ventas' : 'Compras'}
             </h2>
-            {formData.claveAcceso && <p className="text-[9px] font-mono text-black dark:text-white/60 mt-[1px]">Clave SRI: {formData.claveAcceso}</p>}
+            {formData.claveAcceso && <p className="text-xs font-mono text-black dark:text-white/60 mt-[1px]">Clave SRI: {formData.claveAcceso}</p>}
           </div>
         </div>
 
@@ -1632,15 +1632,15 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   currentStep === step.id ? 'opacity-100' : 'opacity-60 hover:opacity-100'
                 }`}
               >
-                <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black transition-all ${
+                <span className={`w-4 h-4 rounded-full flex items-center justify-center text-xs font-black transition-all ${
                   currentStep === step.id
                     ? 'bg-primary text-white'
                     : 'bg-slate-200 dark:bg-white/10 text-slate-600 dark:text-slate-400'
                 }`}>
                   {step.id}
                 </span>
-                <span className={`hidden sm:inline text-[9px] font-extrabold uppercase ${
-                  currentStep === step.id ? 'text-[#1C40F2]' : 'text-slate-500 dark:text-slate-400'
+                <span className={`hidden sm:inline text-xs font-extrabold uppercase ${
+                  currentStep === step.id ? 'text-text-secondary' : 'text-slate-500 dark:text-slate-400'
                 }`}>
                   {step.name}
                 </span>
@@ -1664,7 +1664,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       {isAuthorized && (
         <div className="m-[5px] mb-0 p-[5px] rounded-card border border-dashed bg-emerald-500/10 border-emerald-500/20 text-emerald-400 flex items-center gap-[3px]">
           <CheckCircle2 size={16} className="shrink-0" />
-          <div className="text-[10px]">
+          <div className="text-xs">
             <p className="font-bold text-black dark:text-white">
               {formData.documentType === 'nota_venta' ? 'Comprobante de Venta Guardado' : 'Comprobante Autorizado por el SRI'}
             </p>
@@ -1680,7 +1680,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       {isAnulado && (
         <div className="m-[5px] mb-0 p-[5px] rounded-card border border-dashed bg-red-500/10 border-red-500/20 text-red-400 flex items-center gap-[3px]">
           <ShieldAlert size={16} className="shrink-0" />
-          <div className="text-[10px]">
+          <div className="text-xs">
             <p className="font-bold text-black dark:text-white">Comprobante Anulado</p>
             <p className="opacity-80 text-black dark:text-white font-normal">
               {formData.documentType === 'nota_venta'
@@ -1707,14 +1707,14 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   label: 'Cliente', 
                   icon: User,
                   badge: formData.thirdPartyId ? (
-                    <span className="text-[9px] font-extrabold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 dark:bg-emerald-500/20 px-2 py-0.5 rounded-full">Listo</span>
+                    <span className="text-xs font-extrabold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 dark:bg-emerald-500/20 px-2 py-0.5 rounded-full">Listo</span>
                   ) : (
-                    <span className="text-[9px] font-extrabold text-amber-600 dark:text-amber-400 bg-amber-500/10 dark:bg-amber-500/20 px-2 py-0.5 rounded-full">Pendiente</span>
+                    <span className="text-xs font-extrabold text-amber-600 dark:text-amber-400 bg-amber-500/10 dark:bg-amber-500/20 px-2 py-0.5 rounded-full">Pendiente</span>
                   ),
                   activeBadge: formData.thirdPartyId ? (
-                    <span className="text-[9px] font-extrabold text-[#1C40F2] bg-white px-2 py-0.5 rounded-full">Listo</span>
+                    <span className="text-xs font-extrabold text-text-secondary bg-white px-2 py-0.5 rounded-full">Listo</span>
                   ) : (
-                    <span className="text-[9px] font-extrabold text-[#1C40F2] bg-white px-2 py-0.5 rounded-full">Pendiente</span>
+                    <span className="text-xs font-extrabold text-text-secondary bg-white px-2 py-0.5 rounded-full">Pendiente</span>
                   )
                 },
                 { 
@@ -1722,12 +1722,12 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   label: 'Carrito', 
                   icon: Layers,
                   badge: (
-                    <span className="text-[9px] font-extrabold text-slate-650 dark:text-slate-350 bg-slate-200 dark:bg-white/10 px-2 py-0.5 rounded-full">
+                    <span className="text-xs font-extrabold text-slate-650 dark:text-slate-350 bg-slate-200 dark:bg-white/10 px-2 py-0.5 rounded-full">
                       {formData.items?.length || 0}
                     </span>
                   ),
                   activeBadge: (
-                    <span className="text-[9px] font-extrabold text-[#1C40F2] bg-white px-2 py-0.5 rounded-full">
+                    <span className="text-xs font-extrabold text-text-secondary bg-white px-2 py-0.5 rounded-full">
                       {formData.items?.length || 0}
                     </span>
                   )
@@ -1737,12 +1737,12 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   label: 'Pago', 
                   icon: CreditCard,
                   badge: (
-                    <span className="text-[9px] font-extrabold text-emerald-650 dark:text-emerald-400 bg-emerald-500/10 dark:bg-emerald-500/20 px-2 py-0.5 rounded-full">
+                    <span className="text-xs font-extrabold text-emerald-650 dark:text-emerald-400 bg-emerald-500/10 dark:bg-emerald-500/20 px-2 py-0.5 rounded-full">
                       ${Number(formData.total).toFixed(2)}
                     </span>
                   ),
                   activeBadge: (
-                    <span className="text-[9px] font-extrabold text-[#1C40F2] bg-white px-2 py-0.5 rounded-full">
+                    <span className="text-xs font-extrabold text-text-secondary bg-white px-2 py-0.5 rounded-full">
                       ${Number(formData.total).toFixed(2)}
                     </span>
                   )
@@ -1762,7 +1762,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   >
                     <div className="flex items-center gap-[3px] mb-[2px]">
                       <IconComponent size={11} className="shrink-0" />
-                      <span className="text-[10px] font-bold uppercase tracking-wider">{tab.label}</span>
+                      <span className="text-xs font-bold uppercase tracking-wider">{tab.label}</span>
                     </div>
                     {isActive ? tab.activeBadge : tab.badge}
                   </button>
@@ -1777,10 +1777,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 {/* Card 1: Client and location details */}
                 <div className={`${cardClass} ${mobileTab === 'cliente' ? 'block' : 'hidden lg:block'}`}>
                 <div className="flex items-center gap-[6px] mb-[10px]">
-                  <div className="text-[#1C40F2]">
+                  <div className="text-text-secondary">
                     <User size={14} />
                   </div>
-                  <h4 style={{ color: '#000000'}} className="text-[11px] font-bold uppercase">
+                  <h4 style={{ color: '#000000'}} className="text-xs font-bold uppercase">
                     Datos del Cliente y Emisión
                   </h4>
                 </div>
@@ -1805,7 +1805,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     )}
                     
                     {clientSearchTerm.trim() !== '' && (
-                      <div className={`absolute z-30 w-full rounded-card border shadow-xl max-h-60 overflow-y-auto mt-1 ${
+                      <div className={`absolute z-30 w-full rounded-card border max-h-60 overflow-y-auto mt-1 ${
                         'bg-white border-gray-300 text-black'}`}>
                         {filteredClients.slice(0, 10).map(tp => (
                           <button
@@ -1819,7 +1819,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                               'border-gray-100 hover:bg-primary-light text-black'}`}
                           >
                             <span className="font-bold">{tp.name}</span>
-                            <span className="text-[10px] font-mono opacity-80">RUC/CI: {tp.ruc} | Tel: {tp.telefono || 'S/N'}</span>
+                            <span className="text-xs font-mono opacity-80">RUC/CI: {tp.ruc} | Tel: {tp.telefono || 'S/N'}</span>
                           </button>
                         ))}
                         {filteredClients.length === 0 && (
@@ -1851,24 +1851,24 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
                 {/* Client detail card (extremely compact) */}
                 {matchedTercero ? (
-                  <div className={`grid grid-cols-1 sm:grid-cols-3 gap-[10px] p-[8px] rounded-[8px] bg-gray-50 border border-gray-150 mb-[8px] text-[11px]`}>
+                  <div className={`grid grid-cols-1 sm:grid-cols-3 gap-[10px] p-[8px] rounded-card bg-gray-50 border border-gray-150 mb-[8px] text-xs`}>
                     <div>
-                      <p className={`uppercase text-[9px] font-bold text-[#000000]/60`}>Razón Social</p>
-                      <p style={{ color: '#000000'}} className="font-semibold truncate uppercase text-[11px]">{matchedTercero.name}</p>
+                      <p className={`uppercase text-xs font-bold text-text-secondary/60`}>Razón Social</p>
+                      <p style={{ color: '#000000'}} className="font-semibold truncate uppercase text-xs">{matchedTercero.name}</p>
                     </div>
                     <div>
-                      <p className={`uppercase text-[9px] font-bold text-[#000000]/60`}>RUC / CI</p>
-                      <p style={{ color: '#000000'}} className="font-semibold text-[11px]">{matchedTercero.ruc}</p>
+                      <p className={`uppercase text-xs font-bold text-text-secondary/60`}>RUC / CI</p>
+                      <p style={{ color: '#000000'}} className="font-semibold text-xs">{matchedTercero.ruc}</p>
                     </div>
                     <div>
-                      <p className={`uppercase text-[9px] font-bold text-[#000000]/60`}>Teléfono / Correo</p>
-                      <p style={{ color: '#000000'}} className="font-semibold truncate uppercase text-[11px]">
+                      <p className={`uppercase text-xs font-bold text-text-secondary/60`}>Teléfono / Correo</p>
+                      <p style={{ color: '#000000'}} className="font-semibold truncate uppercase text-xs">
                         {matchedTercero.telefono || 'S/N'} {matchedTercero.email ? `| ${matchedTercero.email}` : ''}
                       </p>
                     </div>
                   </div>
                 ) : (
-                  <div className={`p-[8px] flex items-center justify-center gap-1.5 rounded-[8px] border border-dashed border-red-200 bg-red-50 text-red-600 mb-[8px] text-[11px] font-semibold`}>
+                  <div className={`p-[8px] flex items-center justify-center gap-1.5 rounded-card border border-dashed border-red-200 bg-red-50 text-red-600 mb-[8px] text-xs font-semibold`}>
                     <AlertTriangle size={12} className="shrink-0" />
                     <span>Selecciona un cliente para habilitar la facturación.</span>
                   </div>
@@ -2054,10 +2054,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 <div className={cardClass}>
                   <div className="flex justify-between items-center mb-[10px]">
                     <div className="flex items-center gap-[6px]">
-                      <div className="text-[#1C40F2]">
+                      <div className="text-text-secondary">
                         <Layers size={14} />
                       </div>
-                      <h3 style={{ color: '#000000'}} className="text-[11px] font-bold uppercase">Desglose de Retenciones</h3>
+                      <h3 style={{ color: '#000000'}} className="text-xs font-bold uppercase">Desglose de Retenciones</h3>
                     </div>
                     {isEditable && (
                       <button type="button" onClick={handleAddRetencion} className="btn-secondary h-8 px-3 text-xs flex items-center gap-[4px]">
@@ -2067,7 +2067,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   </div>
                   <div className="space-y-[8px] max-h-[50vh] overflow-y-auto pr-1">
                     {(formData.retenciones || []).map((ret, index) => (
-                      <div key={index} className={`p-[8px] rounded-[8px] border space-y-[8px] relative bg-gray-50 border-gray-150`}>
+                      <div key={index} className={`p-[8px] rounded-card border space-y-[8px] relative bg-gray-50 border-gray-150`}>
                         {isEditable && (
                           <button type="button" onClick={() => handleRemoveRetencion(index)} className="absolute top-2 right-2 btn-icon text-red-500 hover:bg-red-500/10">
                             <Trash2 size={12} />
@@ -2102,7 +2102,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                           </div>
                           <div>
                             <label className={labelClass}>Valor Retenido</label>
-                            <div style={{ color: '#000000'}} className={`px-[10px] py-[6px] rounded-[8px] border text-center font-bold text-xs bg-gray-50 border-gray-150`}>
+                            <div style={{ color: '#000000'}} className={`px-[10px] py-[6px] rounded-card border text-center font-bold text-xs bg-gray-50 border-gray-150`}>
                               ${Number(ret.valorRetenido || 0).toFixed(2)}
                             </div>
                           </div>
@@ -2153,7 +2153,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       
                       {/* Search Results dropdown */}
                       {productSearchTerm.trim() !== '' && (
-                        <div className={`absolute z-30 w-full rounded-card border shadow-xl max-h-60 overflow-y-auto mt-1 ${
+                        <div className={`absolute z-30 w-full rounded-card border max-h-60 overflow-y-auto mt-1 ${
                           'bg-white border-gray-300'}`}>
                           {products.filter(p => 
                             p.name?.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
@@ -2169,7 +2169,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                             >
                               <div>
                                 <p style={{ color: '#000000'}} className="font-bold">{p.name}</p>
-                                <p style={{ color: '#000000'}} className="text-[10px] font-mono">
+                                <p style={{ color: '#000000'}} className="text-xs font-mono">
                                   {p.sku ? `SKU: ${p.sku}` : ''} {p.codigoBarras ? ` | EAN: ${p.codigoBarras}` : ''}
                                 </p>
                               </div>
@@ -2218,17 +2218,17 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   {/* Actions: discount, clear cart */}
                   <div className="flex items-center gap-[8px] mb-[8px] flex-wrap">
                     {/* General Discount */}
-                    <div className={`flex items-center gap-[4px] rounded-[8px] border px-[8px] py-[4px] flex-1 min-w-[150px] ${
+                    <div className={`flex items-center gap-[4px] rounded-card border px-[8px] py-[4px] flex-1 min-w-[150px] ${
                       'bg-gray-50 border-gray-200'}`}>
                       <Tag size={10} className="text-primary shrink-0" />
-                      <span style={{ color: '#000000'}} className="text-[11px] font-bold uppercase shrink-0">Dto:</span>
+                      <span style={{ color: '#000000'}} className="text-xs font-bold uppercase shrink-0">Dto:</span>
                       <select
                         disabled={!isEditable}
                         value={generalDiscountType}
                         onChange={e => {
                           setGeneralDiscountType(e.target.value);
                         }}
-                        className={`text-[11px] font-bold border-0 bg-transparent outline-none text-black`}
+                        className={`text-xs font-bold border-0 bg-transparent outline-none text-black`}
                       >
                         <option value="percent">%</option>
                         <option value="fixed">$</option>
@@ -2242,7 +2242,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         onChange={e => {
                           setGeneralDiscountValue(e.target.value);
                         }}
-                        className={`w-12 text-[13px] font-bold bg-transparent outline-none text-center text-black`}
+                        className={`w-12 text-base font-bold bg-transparent outline-none text-center text-black`}
                         placeholder="0"
                       />
                     </div>
@@ -2264,7 +2264,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   <div className="overflow-x-auto">
                     {(formData.items || []).length > 0 ? (
                       <table className="w-full text-left text-xs whitespace-nowrap">
-                        <thead className={`text-[11px] uppercase font-bold ${
+                        <thead className={`text-xs uppercase font-bold ${
                           'bg-gray-50 text-black border-b border-gray-150'}`}>
                           <tr>
                             <th className="px-[8px] py-[6px]">Producto / Servicio</th>
@@ -2281,14 +2281,14 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                             const lineDiscount = Math.min(lineBase, parseFloat(item.itemDiscount) || 0);
                             const subtotalLine = Math.max(0, lineBase - lineDiscount);
                             return (
-                              <tr key={index} style={{ color: '#000000'}} className="font-medium text-[13px]">
+                              <tr key={index} style={{ color: '#000000'}} className="font-medium text-base">
                                 <td className="px-[8px] py-[6px]">
                                   {item.productId ? (
                                     <div>
-                                      <div className="font-bold text-[12px] truncate max-w-[250px]" title={item.name}>
+                                      <div className="font-bold text-sm truncate max-w-[250px]" title={item.name}>
                                         {item.name}
                                       </div>
-                                      <span className="text-[10px] font-mono opacity-80">
+                                      <span className="text-xs font-mono opacity-80">
                                         {item.sku ? `SKU: ${item.sku}` : ''}
                                       </span>
                                     </div>
@@ -2297,7 +2297,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                                       disabled={!isEditable}
                                       value={item.productId} 
                                       onChange={(e) => handleItemChange(index, 'productId', e.target.value)} 
-                                      className={`text-[13px] px-[8px] py-[4px] rounded-[8px] border bg-white border-gray-200 text-black`}
+                                      className={`text-base px-[8px] py-[4px] rounded-card border bg-white border-gray-200 text-black`}
                                     >
                                       <option value="" disabled>Seleccionar...</option>
                                       {products.map(p => (
@@ -2308,12 +2308,12 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                                 </td>
                                 
                                 <td className="px-[8px] py-[6px] text-center">
-                                  <div className={`inline-flex items-center gap-[4px] border rounded-[8px] p-[3px] border-gray-200 bg-white`}>
+                                  <div className={`inline-flex items-center gap-[4px] border rounded-card p-[3px] border-gray-200 bg-white`}>
                                     <button type="button" disabled={!isEditable} onClick={() => {
                                       const q = parseInt(item.quantity) || 1;
                                       if (q > 1) handleItemChange(index, 'quantity', q - 1);
                                     }} className={`w-5 h-5 rounded-[var(--radius-button)] flex items-center justify-center font-bold text-xs bg-gray-100 hover:bg-gray-200 text-black`}>-</button>
-                                    <input disabled={!isEditable} type="number" value={item.quantity} min="1" onChange={(e) => handleItemChange(index, 'quantity', Math.max(1, parseInt(e.target.value) || 1))} className={`w-8 text-center text-[11px] font-bold bg-transparent outline-none border-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none text-black`} />
+                                    <input disabled={!isEditable} type="number" value={item.quantity} min="1" onChange={(e) => handleItemChange(index, 'quantity', Math.max(1, parseInt(e.target.value) || 1))} className={`w-8 text-center text-xs font-bold bg-transparent outline-none border-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none text-black`} />
                                     <button type="button" disabled={!isEditable} onClick={() => {
                                       handleItemChange(index, 'quantity', (parseInt(item.quantity) || 1) + 1);
                                     }} className={`w-5 h-5 rounded-[var(--radius-button)] flex items-center justify-center font-bold text-xs bg-gray-100 hover:bg-gray-200 text-black`}>+</button>
@@ -2322,28 +2322,28 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
                                 <td className="px-[8px] py-[6px] text-right">
                                   <div className="relative inline-block w-20">
-                                    <span className="absolute left-[5px] top-1/2 -translate-y-1/2 text-[11px] font-bold opacity-80">$</span>
-                                    <input disabled={!isEditable} type="number" step="0.01" required value={item.price} onChange={(e) => handleItemChange(index, 'price', e.target.value)} className={`w-full text-[11px] pl-[12px] pr-[2px] py-[4px] rounded-[6px] border outline-none text-right font-bold bg-white border-gray-200 text-black`} />
+                                    <span className="absolute left-[5px] top-1/2 -translate-y-1/2 text-xs font-bold opacity-80">$</span>
+                                    <input disabled={!isEditable} type="number" step="0.01" required value={item.price} onChange={(e) => handleItemChange(index, 'price', e.target.value)} className={`w-full text-xs pl-[12px] pr-[2px] py-[4px] rounded-[6px] border outline-none text-right font-bold bg-white border-gray-200 text-black`} />
                                   </div>
                                 </td>
 
                                 {isEditable && (
                                   <td className="px-[8px] py-[6px] text-right hidden sm:table-cell">
                                     <div className="relative inline-block w-20">
-                                      <span className="absolute left-[5px] top-1/2 -translate-y-1/2 text-[11px] font-bold text-orange-500">-$</span>
+                                      <span className="absolute left-[5px] top-1/2 -translate-y-1/2 text-xs font-bold text-orange-500">-$</span>
                                       <input
                                         type="number"
                                         min="0"
                                         step="0.01"
                                         value={item.itemDiscount || ''}
                                         onChange={(e) => handleItemChange(index, 'itemDiscount', e.target.value)}
-                                        className={`w-full text-[11px] pl-[14px] pr-[2px] py-[4px] rounded-[6px] border outline-none text-right font-bold bg-orange-50 border-orange-200 text-orange-700`}
+                                        className={`w-full text-xs pl-[14px] pr-[2px] py-[4px] rounded-[6px] border outline-none text-right font-bold bg-orange-50 border-orange-200 text-orange-700`}
                                       />
                                     </div>
                                   </td>
                                 )}
 
-                                <td className="px-[8px] py-[6px] text-right font-mono font-bold text-[13px]">
+                                <td className="px-[8px] py-[6px] text-right font-mono font-bold text-base">
                                   ${subtotalLine.toFixed(2)}
                                 </td>
 
@@ -2360,7 +2360,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         </tbody>
                       </table>
                     ) : (
-                      <div style={{ color: '#000000'}} className="py-8 text-center text-xs italic rounded-[8px] border border-dashed border-gray-300">
+                      <div style={{ color: '#000000'}} className="py-8 text-center text-xs italic rounded-card border border-dashed border-gray-300">
                         No hay productos en el carrito. Utiliza el buscador.
                       </div>
                     )}
@@ -2375,13 +2375,13 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               {/* Totales Card */}
               <div className={cardClass}>
                 <div className="flex items-center gap-[6px] mb-[10px]">
-                  <div className="text-[#1C40F2]">
+                  <div className="text-text-secondary">
                     <Calculator size={14} />
                   </div>
-                  <h3 style={{ color: '#000000'}} className="text-[11px] font-bold uppercase">Resumen e Impuestos</h3>
+                  <h3 style={{ color: '#000000'}} className="text-xs font-bold uppercase">Resumen e Impuestos</h3>
                 </div>
 
-                <div className={`p-[10px] rounded-[8px] border text-[13px] space-y-[6px] bg-gray-50 border-gray-150 text-black`}>
+                <div className={`p-[10px] rounded-card border text-base space-y-[6px] bg-gray-50 border-gray-150 text-black`}>
                   <div className="flex justify-between">
                     <span className="font-semibold">Subtotal bruto:</span>
                     <span className="font-bold">
@@ -2438,7 +2438,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   )}
 
                   <div className="flex justify-between items-center pt-[8px] border-t font-bold border-gray-150 dark:border-white/10">
-                    <span style={{ color: '#000000'}} className="font-bold text-[13px]">TOTAL:</span>
+                    <span style={{ color: '#000000'}} className="font-bold text-base">TOTAL:</span>
                     <span style={{ color: '#1C40F2' }} className="font-black text-2xl">${Number(formData.total).toFixed(2)}</span>
                   </div>
                 </div>
@@ -2448,10 +2448,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               {formData.documentType !== 'retencion' && (
                 <div className={cardClass}>
                   <div className="flex items-center gap-[6px] mb-[10px]">
-                    <div className="text-[#1C40F2]">
+                    <div className="text-text-secondary">
                       <CreditCard size={14} />
                     </div>
-                    <h3 style={{ color: '#000000'}} className="text-[11px] font-bold uppercase">Medios de Pago</h3>
+                    <h3 style={{ color: '#000000'}} className="text-xs font-bold uppercase">Medios de Pago</h3>
                   </div>
 
                   <div className="grid grid-cols-4 gap-[8px] mb-[10px]">
@@ -2491,18 +2491,18 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                             !isClientSelected
                               ? 'opacity-40 cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400 dark:border-white/5 dark:bg-white/5'
                               : isSelected 
-                                ? 'bg-primary border-[#1C40F2] text-white'
+                                ? 'bg-primary border-border-default text-white'
                                 : 'border-gray-200 bg-gray-50 text-black hover:bg-gray-100'}`}
                         >
                           <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
                             !isClientSelected
                               ? 'bg-gray-300 text-gray-500 dark:bg-white/10 dark:text-gray-500'
                               : isSelected 
-                                ? 'bg-white text-[#1C40F2]' 
+                                ? 'bg-white text-text-secondary' 
                                 : 'bg-primary text-white'}`}>
                             <m.icon size={18} />
                           </div>
-                          <span className="text-[11px] font-bold uppercase">{m.label}</span>
+                          <span className="text-xs font-bold uppercase">{m.label}</span>
                         </button>
                       );
                     })}
@@ -2511,10 +2511,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   {/* Input Fields for Active Payments (very compact) */}
                   <div className="space-y-[8px]">
                     {activePayments.efectivo && (
-                      <div className={`p-[8px] rounded-[8px] border bg-gray-50 border-gray-150`}>
-                        <div className="flex justify-between items-center mb-[4px] text-[11px]">
+                      <div className={`p-[8px] rounded-card border bg-gray-50 border-gray-150`}>
+                        <div className="flex justify-between items-center mb-[4px] text-xs">
                           <span style={{ color: '#000000'}} className="font-bold uppercase">Efectivo</span>
-                          <span style={{ color: '#404040'}} className="text-[10px] uppercase">Recibido</span>
+                          <span style={{ color: '#404040'}} className="text-xs uppercase">Recibido</span>
                         </div>
                         <div className="relative">
                           <span className="absolute left-[8px] top-1/2 -translate-y-1/2 text-xs font-bold text-black opacity-60">$</span>
@@ -2524,10 +2524,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     )}
 
                     {activePayments.transferencia && (
-                      <div className={`p-[8px] rounded-[8px] border bg-gray-50 border-gray-150`}>
-                        <div className="flex justify-between items-center mb-[4px] text-[11px]">
+                      <div className={`p-[8px] rounded-card border bg-gray-50 border-gray-150`}>
+                        <div className="flex justify-between items-center mb-[4px] text-xs">
                           <span style={{ color: '#000000'}} className="font-bold uppercase">Transferencia</span>
-                          <span style={{ color: '#404040'}} className="text-[10px] uppercase">Monto</span>
+                          <span style={{ color: '#404040'}} className="text-xs uppercase">Monto</span>
                         </div>
                         <div className="space-y-[6px]">
                           <div className="relative">
@@ -2540,10 +2540,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     )}
 
                     {activePayments.tarjeta && (
-                      <div className={`p-[8px] rounded-[8px] border bg-gray-50 border-gray-150`}>
-                        <div className="flex justify-between items-center mb-[4px] text-[11px]">
+                      <div className={`p-[8px] rounded-card border bg-gray-50 border-gray-150`}>
+                        <div className="flex justify-between items-center mb-[4px] text-xs">
                           <span style={{ color: '#000000'}} className="font-bold uppercase">Tarjeta</span>
-                          <span style={{ color: '#404040'}} className="text-[10px] uppercase">Monto</span>
+                          <span style={{ color: '#404040'}} className="text-xs uppercase">Monto</span>
                         </div>
                         <div className="space-y-[6px]">
                           <div className="relative">
@@ -2556,17 +2556,17 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     )}
 
                     {activePayments.cruce_cuentas && (
-                      <div className={`p-[8px] rounded-[8px] border bg-gray-50 border-gray-150`}>
-                        <div className="flex justify-between items-center mb-[4px] text-[11px]">
+                      <div className={`p-[8px] rounded-card border bg-gray-50 border-gray-150`}>
+                        <div className="flex justify-between items-center mb-[4px] text-xs">
                           <span style={{ color: '#000000'}} className="font-bold uppercase">Crédito / CxC</span>
-                          <span style={{ color: '#404040'}} className="text-[10px] uppercase">Monto</span>
+                          <span style={{ color: '#404040'}} className="text-xs uppercase">Monto</span>
                         </div>
                         <div className="space-y-[6px]">
                           <div className="relative">
                             <span className="absolute left-[8px] top-1/2 -translate-y-1/2 text-xs font-bold text-black opacity-60">$</span>
                             <input disabled={!isEditable} type="number" step="0.01" value={payments.cruce_cuentas || ''} onChange={e => setPayments(prev => ({ ...prev, cruce_cuentas: e.target.value }))} className={`${inputClass} font-bold`} style={{ paddingLeft: '24px' }} placeholder="0.00" />
                           </div>
-                          <button type="button" onClick={() => setIsCreditModalOpen(true)} className={`w-full py-[5px] rounded-[var(--radius-button)] border text-[10px] font-bold uppercase bg-amber-50/55 border-amber-200 text-amber-900 hover:bg-amber-100`}>
+                          <button type="button" onClick={() => setIsCreditModalOpen(true)} className={`w-full py-[5px] rounded-[var(--radius-button)] border text-xs font-bold uppercase bg-amber-50/55 border-amber-200 text-amber-900 hover:bg-amber-100`}>
                             Configurar Plazo de Crédito
                           </button>
                         </div>
@@ -2581,18 +2581,18 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     const cambio = Math.max(0, sum - totalNum);
                     return (
                       <div className="mt-[8px] grid grid-cols-2 gap-[8px]">
-                        <div className={`p-[8px] rounded-[8px] text-center border ${
+                        <div className={`p-[8px] rounded-card text-center border ${
                           sum >= totalNum - 0.01 
                             ? 'bg-emerald-50 border-emerald-200 text-emerald-900 font-bold'
                             : 'bg-red-50 border-red-200 text-red-900 font-bold'}`}>
-                          <span style={{ color: '#404040'}} className="text-[9px] font-bold uppercase block">Cambio / Vuelto</span>
+                          <span style={{ color: '#404040'}} className="text-xs font-bold uppercase block">Cambio / Vuelto</span>
                           <span className="text-base font-black">${cambio.toFixed(2)}</span>
                         </div>
-                        <div className={`p-[8px] rounded-[8px] text-center border flex items-center justify-center text-[11px] font-semibold ${
+                        <div className={`p-[8px] rounded-card text-center border flex items-center justify-center text-xs font-semibold ${
                           'bg-gray-50 border-gray-200 text-black'}`}>
                           <div>
-                            <p style={{ color: '#404040'}} className="text-[9px] font-bold uppercase">Cubierto</p>
-                            <p className="text-[13px] font-black">${sum.toFixed(2)} / ${totalNum.toFixed(2)}</p>
+                            <p style={{ color: '#404040'}} className="text-xs font-bold uppercase">Cubierto</p>
+                            <p className="text-base font-black">${sum.toFixed(2)} / ${totalNum.toFixed(2)}</p>
                           </div>
                         </div>
                       </div>
@@ -2605,7 +2605,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     const sum = (Number(payments.efectivo) || 0) + (Number(payments.transferencia) || 0) + (Number(payments.tarjeta) || 0) + (Number(payments.cruce_cuentas) || 0);
                     if (sum === 0 && totalNum > 0) {
                       return (
-                        <div className={`mt-[6px] p-[8px] rounded-[8px] text-[10px] font-bold flex items-center gap-[4px] border bg-red-50 border-red-200 text-red-755`}>
+                        <div className={`mt-[6px] p-[8px] rounded-card text-xs font-bold flex items-center gap-[4px] border bg-red-50 border-red-200 text-red-755`}>
                           <AlertTriangle size={12} className="shrink-0 text-red-500" />
                           <span>Falta seleccionar forma de pago.</span>
                         </div>
@@ -2613,7 +2613,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     }
                     if (sum < totalNum - 0.01) {
                       return (
-                        <div className={`mt-[6px] p-[8px] rounded-[8px] text-[10px] font-bold flex items-center gap-[4px] border bg-amber-50 border-amber-200 text-amber-850`}>
+                        <div className={`mt-[6px] p-[8px] rounded-card text-xs font-bold flex items-center gap-[4px] border bg-amber-50 border-amber-200 text-amber-850`}>
                           <AlertTriangle size={12} className="shrink-0 text-amber-500" />
                           <span>Pago incompleto: Falta ${ (totalNum - sum).toFixed(2) }.</span>
                         </div>
@@ -2627,10 +2627,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               {/* Sequential & Final Actions Card */}
               <div className={cardClass}>
                 <div className="flex items-center gap-[6px] mb-[10px]">
-                  <div className="text-[#1C40F2]">
+                  <div className="text-text-secondary">
                     <Tag size={14} />
                   </div>
-                  <h3 style={{ color: '#000000'}} className="text-[11px] font-bold uppercase">
+                  <h3 style={{ color: '#000000'}} className="text-xs font-bold uppercase">
                     Emisión de Comprobante
                   </h3>
                 </div>
@@ -2692,7 +2692,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       )}
                     </>
                   ) : (
-                    <div style={{ color: '#15803d'}} className={`p-[6px] flex items-center justify-center gap-1.5 rounded-[8px] text-xs font-bold border ${
+                    <div style={{ color: '#15803d'}} className={`p-[6px] flex items-center justify-center gap-1.5 rounded-card text-xs font-bold border ${
                       'border-emerald-300 bg-emerald-50'}`}>
                       <CheckCircle2 size={12} className="shrink-0" />
                       <span>Autorizado / registrado con éxito.</span>
@@ -2703,7 +2703,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
               {/* SRI Live Console */}
               {(isEmitting || sriLogs.length > 0) && (
-                <div className="p-[4px] rounded-[8px] bg-black border border-white/10 text-white font-mono text-[9px] space-y-[2px] max-h-[120px] overflow-y-auto">
+                <div className="p-[4px] rounded-card bg-black border border-white/10 text-white font-mono text-xs space-y-[2px] max-h-[120px] overflow-y-auto">
                   <div className="flex items-center gap-[3px] border-b border-white/10 pb-[2px] text-gray-400">
                     <Terminal size={10} />
                     <span>Consola SRI (Ecuador)</span>
@@ -2738,21 +2738,21 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   </div>
                 </div>
                 <div>
-                  <h3 style={{ color: '#000000'}} className="text-[13px] font-bold uppercase">
+                  <h3 style={{ color: '#000000'}} className="text-base font-bold uppercase">
                     {formData.documentType === 'nota_venta'
                       ? (formData.sriStatus === 'anulado' ? '¡Nota de Venta Anulada!' : '¡Venta Registrada Exitosamente!')
                       : formData.sriStatus === 'autorizado' 
                         ? '¡Comprobante Autorizado por el SRI!' 
                         : '¡Transacción Guardada con Éxito!'}
                   </h3>
-                  <p style={{ color: '#000000'}} className="text-[11px] font-normal">
+                  <p style={{ color: '#000000'}} className="text-xs font-normal">
                     El documento ha sido guardado e ingresado en los registros financieros de forma satisfactoria.
                   </p>
                 </div>
 
                 {formData.claveAcceso && (
-                  <div className={`p-[8px] rounded-card border text-left font-mono text-[10px] break-all bg-gray-50 border-gray-150 text-black`}>
-                    <span style={{ color: '#16a34a'}} className="font-bold uppercase text-[9px] block mb-[4px]">Clave de Acceso SRI:</span>
+                  <div className={`p-[8px] rounded-card border text-left font-mono text-xs break-all bg-gray-50 border-gray-150 text-black`}>
+                    <span style={{ color: '#16a34a'}} className="font-bold uppercase text-xs block mb-[4px]">Clave de Acceso SRI:</span>
                     {formData.claveAcceso}
                   </div>
                 )}
@@ -2761,10 +2761,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               {/* Botones de Impresión */}
               <div className={cardClass}>
                 <div className="flex items-center gap-[6px] mb-[10px]">
-                  <div className="text-[#1C40F2]">
+                  <div className="text-text-secondary">
                     <Download size={12} />
                   </div>
-                  <h4 style={{ color: '#000000'}} className="text-[11px] font-bold uppercase">Opciones de Impresión / Descarga</h4>
+                  <h4 style={{ color: '#000000'}} className="text-xs font-bold uppercase">Opciones de Impresión / Descarga</h4>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-[8px]">
@@ -2826,17 +2826,17 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
             {/* Right Column (col-span-12 lg:col-span-5): Vista Previa del Documento */}
             <div className="col-span-12 lg:col-span-5">
               <div className={`${cardClass} space-y-[8px]`}>
-                <h4 style={{ color: '#000000'}} className="text-[11px] font-bold uppercase">Vista Previa del Comprobante</h4>
+                <h4 style={{ color: '#000000'}} className="text-xs font-bold uppercase">Vista Previa del Comprobante</h4>
 
-                <div className={`p-[10px] rounded-card border text-[11px] space-y-[8px] bg-white text-black border-gray-200 shadow-inner font-mono max-h-[60vh] overflow-y-auto`}>
+                <div className={`p-[10px] rounded-card border text-xs space-y-[8px] bg-white text-black border-gray-200 shadow-inner font-mono max-h-[60vh] overflow-y-auto`}>
                   <div className="text-center border-b pb-[8px] border-gray-200">
                     <p className="font-bold text-xs uppercase">{sriConfig.nombreComercial || 'WEBFIX ERP'}</p>
-                    <p className="text-[9px] font-bold">{sriConfig.razonSocial}</p>
+                    <p className="text-xs font-bold">{sriConfig.razonSocial}</p>
                     <p className="text-[8px] text-black mt-[2px]">{sriConfig.direccionMatriz}</p>
-                    <p className="text-[9px] font-bold mt-[4px]">RUC: {sriConfig.ruc}</p>
+                    <p className="text-xs font-bold mt-[4px]">RUC: {sriConfig.ruc}</p>
                   </div>
 
-                  <div className="space-y-[4px] border-b pb-[8px] border-gray-200 text-[10px]">
+                  <div className="space-y-[4px] border-b pb-[8px] border-gray-200 text-xs">
                     <p className="font-bold uppercase text-center border bg-gray-100 py-[2px] text-black">
                       {formData.documentType === 'nota_venta' ? 'NOTA DE VENTA' : 'FACTURA ELECTRÓNICA'}
                     </p>
@@ -2852,7 +2852,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     </p>
                   </div>
 
-                  <div className="space-y-[4px] border-b pb-[8px] border-gray-200 text-[10px] text-black">
+                  <div className="space-y-[4px] border-b pb-[8px] border-gray-200 text-xs text-black">
                     <p><b>Cliente:</b> {matchedTercero?.name || 'CONSUMIDOR FINAL'}</p>
                     <p><b>RUC/CI:</b> {matchedTercero?.ruc || '9999999999999'}</p>
                     <p><b>Dirección:</b> {matchedTercero?.direccion || 'S/N'}</p>
@@ -2860,7 +2860,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
                   {/* Detalle items */}
                   {formData.documentType !== 'retencion' && (
-                    <div className="border-b pb-[8px] border-gray-200 text-[10px] text-black">
+                    <div className="border-b pb-[8px] border-gray-200 text-xs text-black">
                       <table className="w-full text-left">
                         <thead>
                           <tr className="border-b border-gray-200 font-bold">
@@ -2872,7 +2872,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         </thead>
                         <tbody>
                           {(formData.items || []).map((item, idx) => (
-                            <tr key={idx} className="text-[10px] text-black font-normal">
+                            <tr key={idx} className="text-xs text-black font-normal">
                               <td className="py-[2px] align-top">{item.quantity}</td>
                               <td className="py-[2px] pr-[5px]">{item.name}</td>
                               <td className="py-[2px] text-right align-top">${Number(item.price).toFixed(2)}</td>
@@ -2885,7 +2885,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   )}
 
                   {/* Totales */}
-                  <div className="space-y-[2px] text-[10px] text-right text-black">
+                  <div className="space-y-[2px] text-xs text-right text-black">
                     <p>Subtotal: ${Number(formData.baseImponible).toFixed(2)}</p>
                     {formData.documentType !== 'retencion' && (
                       <p>IVA ({formData.ivaPorcentaje}%): ${Number(formData.ivaValor).toFixed(2)}</p>
@@ -2896,7 +2896,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   </div>
 
                   {/* Pagos desglosados */}
-                  <div className="border-t border-dashed border-gray-200 pt-[6px] text-[9px] space-y-[2px] text-black">
+                  <div className="border-t border-dashed border-gray-200 pt-[6px] text-xs space-y-[2px] text-black">
                     <p className="font-bold uppercase text-[8px] text-black">Forma de Pago:</p>
                     {Number(payments.efectivo) > 0 && <p>Efectivo: ${Number(payments.efectivo).toFixed(2)}</p>}
                     {Number(payments.transferencia) > 0 && <p>Transferencia: ${Number(payments.transferencia).toFixed(2)}</p>}
@@ -2913,7 +2913,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
       {/* FOOTER WIZARD BAR */}
       {!isInline && (
-        <div className={`sticky bottom-0 z-20 px-[12px] py-[10px] border-t backdrop-blur-md flex justify-between items-center ${
+        <div className={`sticky bottom-0 z-20 px-[12px] py-[10px] border-t flex justify-between items-center ${
           'border-gray-250 bg-white/95'}`}>
           {/* Mobile Navigation Buttons (Step 1) */}
           {currentStep === 1 && (
@@ -2932,7 +2932,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 <div className="w-[60px]" />
               )}
 
-              <span className={`text-[11px] font-bold uppercase text-black`}>
+              <span className={`text-xs font-bold uppercase text-black`}>
                 {mobileTab === 'cliente' ? '1. Cliente' : mobileTab === 'carrito' ? '2. Carrito' : '3. Pago'}
               </span>
 
@@ -2966,7 +2966,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               <span>Atrás</span>
             </button>
 
-            <span className={`text-[11px] font-bold uppercase text-black`}>
+            <span className={`text-xs font-bold uppercase text-black`}>
               Paso {currentStep} de 2
             </span>
 
@@ -3006,7 +3006,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 <span>Atrás</span>
               </button>
               
-              <span className={`text-[11px] font-bold uppercase text-black`}>
+              <span className={`text-xs font-bold uppercase text-black`}>
                 Paso 2 de 2
               </span>
 
@@ -3024,25 +3024,25 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
       {/* MODAL SEGUIMIENTO DE CRÉDITO / CXC */}
       {isCreditModalOpen && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-[10px] bg-black/85 backdrop-blur-sm animate-in fade-in">
-          <div className={`w-full max-w-md p-[20px] rounded-card shadow-2xl border ${
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-[10px] bg-black/85 animate-in fade-in">
+          <div className={`w-full max-w-md p-[20px] rounded-card border ${
             'bg-white border border-gray-150 text-black'}`}>
             <div className="flex justify-between items-center mb-[12px] border-b pb-[8px] dark:border-white/5">
-              <h3 className="text-[13px] font-bold flex items-center gap-[4px] text-black dark:text-white uppercase">
-                <User className="text-[#1C40F2]" size={14} />
+              <h3 className="text-base font-bold flex items-center gap-[4px] text-black dark:text-white uppercase">
+                <User className="text-text-secondary" size={14} />
                 Seguimiento de Cuenta por Cobrar
               </h3>
               <button 
                 type="button" 
                 onClick={() => setIsCreditModalOpen(false)}
-                className="p-[4px] rounded-[8px] hover:bg-white/10"
+                className="p-[4px] rounded-card hover:bg-white/10"
               >
                 <X size={12} />
               </button>
             </div>
 
             <div className="space-y-[10px]">
-              <div className={`p-[10px] rounded-card border text-[11px] space-y-[4px] ${
+              <div className={`p-[10px] rounded-card border text-xs space-y-[4px] ${
                 'bg-gray-50 border-gray-150 text-black'}`}>
                 <div className="flex justify-between">
                   <span className={'text-black/70'}>Cliente:</span>
@@ -3056,7 +3056,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   <span>Deuda Pendiente Actual:</span>
                   <span className="font-bold">${clientDebt.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-[#1C40F2] border-t border-dashed border-gray-150 dark:border-white/5 pt-[4px]">
+                <div className="flex justify-between text-text-secondary border-t border-dashed border-gray-150 dark:border-white/5 pt-[4px]">
                   <span>Monto Venta Actual:</span>
                   <span className="font-bold">${Number(formData.total).toFixed(2)}</span>
                 </div>
@@ -3082,7 +3082,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 const available = limit - clientDebt - totalVenta;
                 if (available < 0) {
                   return (
-                    <div className="p-[8px] rounded-card bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-450 text-[10px] leading-normal flex items-start gap-[4px]">
+                    <div className="p-[8px] rounded-card bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-450 text-xs leading-normal flex items-start gap-[4px]">
                       <AlertTriangle size={12} className="shrink-0 mt-[1px]" />
                       <div>
                         <p className="font-bold">Límite de Crédito Superado</p>
@@ -3096,7 +3096,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
               <div className="space-y-[8px]">
                 <div>
-                  <label className="block text-[10px] font-bold uppercase mb-[4px] text-black dark:text-white/60">Fecha de Vencimiento de la Deuda</label>
+                  <label className="block text-xs font-bold uppercase mb-[4px] text-black dark:text-white/60">Fecha de Vencimiento de la Deuda</label>
                   <input 
                     type="date" 
                     value={creditDueDate} 
@@ -3105,7 +3105,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold uppercase mb-[4px] text-black dark:text-white/60">Observaciones / Comentario de Crédito</label>
+                  <label className="block text-xs font-bold uppercase mb-[4px] text-black dark:text-white/60">Observaciones / Comentario de Crédito</label>
                   <textarea 
                     rows={3}
                     value={creditObservations} 
@@ -3142,16 +3142,16 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
       {/* MODAL CREAR CONTACTO RAPIDO */}
       {isQuickAddOpen && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-[10px] bg-black/85 backdrop-blur-sm animate-in fade-in">
-          <div className={`w-full max-w-md p-[20px] rounded-card shadow-2xl border bg-white border border-gray-150 text-black`}>
-            <h3 style={{ color: '#000000'}} className="text-[13px] font-bold mb-[12px] border-b pb-[8px] dark:border-white/5 uppercase">
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-[10px] bg-black/85 animate-in fade-in">
+          <div className={`w-full max-w-md p-[20px] rounded-card border bg-white border border-gray-150 text-black`}>
+            <h3 style={{ color: '#000000'}} className="text-base font-bold mb-[12px] border-b pb-[8px] dark:border-white/5 uppercase">
               Nuevo {formData.type === 'ingreso' ? 'Cliente' : 'Proveedor'} (Rápido)
             </h3>
             
             <form onSubmit={handleQuickAddSave} className="space-y-[10px]">
               <div className="grid grid-cols-2 gap-[8px]">
                 <div>
-                  <label className="block text-[10px] font-bold uppercase mb-[4px] text-black dark:text-white/60">Identificación</label>
+                  <label className="block text-xs font-bold uppercase mb-[4px] text-black dark:text-white/60">Identificación</label>
                   <select 
                     value={quickAddFormData.tipoIdentificacion || 'ruc'} 
                     onChange={e => setQuickAddFormData({...quickAddFormData, tipoIdentificacion: e.target.value})} 
@@ -3163,7 +3163,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold uppercase mb-[4px] text-black dark:text-white/60">Número</label>
+                  <label className="block text-xs font-bold uppercase mb-[4px] text-black dark:text-white/60">Número</label>
                   <div className="flex gap-[8px]">
                     <input 
                       type="text" 
@@ -3187,7 +3187,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold uppercase mb-[4px] text-black dark:text-white/60">Razón Social / Nombres</label>
+                <label className="block text-xs font-bold uppercase mb-[4px] text-black dark:text-white/60">Razón Social / Nombres</label>
                 <input 
                   type="text" 
                   required 
@@ -3199,7 +3199,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold uppercase mb-[4px] text-black dark:text-white/60">Teléfono</label>
+                <label className="block text-xs font-bold uppercase mb-[4px] text-black dark:text-white/60">Teléfono</label>
                 <input 
                   type="text" 
                   value={quickAddFormData.telefono || ''} 
@@ -3211,7 +3211,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
               <div className="grid grid-cols-2 gap-[8px]">
                 <div>
-                  <label className="block text-[10px] font-bold uppercase mb-[4px] text-black dark:text-white/60">Dirección</label>
+                  <label className="block text-xs font-bold uppercase mb-[4px] text-black dark:text-white/60">Dirección</label>
                   <input 
                     type="text" 
                     value={quickAddFormData.direccion || ''} 
@@ -3221,7 +3221,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold uppercase mb-[4px] text-black dark:text-white/60">Ciudad</label>
+                  <label className="block text-xs font-bold uppercase mb-[4px] text-black dark:text-white/60">Ciudad</label>
                   <input 
                     type="text" 
                     value={quickAddFormData.ciudad || ''} 
@@ -3233,7 +3233,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold uppercase mb-[4px] text-black dark:text-white/60">Correo Electrónico</label>
+                <label className="block text-xs font-bold uppercase mb-[4px] text-black dark:text-white/60">Correo Electrónico</label>
                 <input 
                   type="email" 
                   value={quickAddFormData.email || ''} 
@@ -3265,16 +3265,16 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
       {/* CUSTOM CONFIRMATION DIALOG MODAL */}
       {confirmDialog && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-[10px] bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className={`w-full max-w-md p-[20px] rounded-card shadow-2xl border transition-all ${
-            'bg-white border-gray-150 text-black shadow-xl'}`}>
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-[10px] bg-black/80 animate-in fade-in duration-200">
+          <div className={`w-full max-w-md p-[20px] rounded-card border transition-all ${
+            'bg-white border-gray-150 text-black'}`}>
             <div className="flex items-center gap-[8px] mb-[10px]">
-              <div className={`p-[8px] rounded-[8px] shrink-0 ${
+              <div className={`p-[8px] rounded-card shrink-0 ${
                 confirmDialog.type === 'danger'
                   ? 'bg-red-500/10 text-red-500'
                   : confirmDialog.type === 'warning'
                     ? 'bg-amber-500/10 text-amber-500'
-                    : 'bg-primary/10 text-[#1C40F2]'
+                    : 'bg-primary/10 text-text-secondary'
               }`}>
                 {confirmDialog.type === 'danger' ? (
                   <ShieldAlert size={16} />
@@ -3285,10 +3285,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 )}
               </div>
               <div>
-                <h3 style={{ color: '#000000'}} className="text-[13px] font-bold uppercase">
+                <h3 style={{ color: '#000000'}} className="text-base font-bold uppercase">
                   {confirmDialog.title}
                 </h3>
-                <p className="text-[9px] mt-[2px] font-bold uppercase text-black dark:text-white/60">
+                <p className="text-xs mt-[2px] font-bold uppercase text-black dark:text-white/60">
                   Acción de Seguridad Requerida
                 </p>
               </div>
@@ -3323,19 +3323,19 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
       {/* POPUP BÚSQUEDA AVANZADA DE PRODUCTOS */}
       {isAdvancedSearchOpen && (
-        <div className="fixed inset-0 z-[160] flex items-center justify-center p-[10px] bg-black/85 backdrop-blur-sm animate-in fade-in">
-          <div className={`w-full max-w-2xl p-[20px] rounded-card shadow-2xl border flex flex-col max-h-[85vh] ${
+        <div className="fixed inset-0 z-[160] flex items-center justify-center p-[10px] bg-black/85 animate-in fade-in">
+          <div className={`w-full max-w-2xl p-[20px] rounded-card border flex flex-col max-h-[85vh] ${
             'bg-white border border-gray-150 text-black'}`}>
             {/* Header */}
             <div className="flex justify-between items-center mb-[12px] border-b pb-[8px] dark:border-white/5 border-gray-150">
-              <h3 className="text-[13px] font-bold flex items-center gap-[4px] text-black dark:text-white uppercase">
-                <Search className="text-[#1C40F2]" size={14} />
+              <h3 className="text-base font-bold flex items-center gap-[4px] text-black dark:text-white uppercase">
+                <Search className="text-text-secondary" size={14} />
                 Búsqueda Avanzada de Productos
               </h3>
               <button 
                 type="button" 
                 onClick={() => setIsAdvancedSearchOpen(false)}
-                className="p-[4px] rounded-[8px] hover:bg-white/10"
+                className="p-[4px] rounded-card hover:bg-white/10"
               >
                 <X size={12} />
               </button>
@@ -3391,7 +3391,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
                 if (filtered.length === 0) {
                   return (
-                    <div style={{ color: '#000000'}} className="py-8 text-center text-xs italic rounded-[8px] border border-dashed border-gray-150">
+                    <div style={{ color: '#000000'}} className="py-8 text-center text-xs italic rounded-card border border-dashed border-gray-150">
                       No se encontraron productos coincidentes.
                     </div>
                   );
@@ -3404,19 +3404,19 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   return (
                     <div 
                       key={p.id} 
-                      className={`p-[8px] rounded-[8px] border flex justify-between items-center transition-all ${
+                      className={`p-[8px] rounded-card border flex justify-between items-center transition-all ${
                         'bg-gray-50 border-gray-150 text-black'}`}
                     >
                       <div>
                         <div className="flex items-center gap-[6px]">
                           <p className="font-bold text-xs">{p.name}</p>
                           {p.category && (
-                            <span className="px-[5px] py-[2px] rounded-[4px] text-[9px] font-bold bg-gray-200 text-gray-800 dark:bg-white/10 dark:text-gray-300 uppercase">
+                            <span className="px-[5px] py-[2px] rounded-[4px] text-xs font-bold bg-gray-200 text-gray-800 dark:bg-white/10 dark:text-gray-300 uppercase">
                               {p.category}
                             </span>
                           )}
                         </div>
-                        <p className="text-[10px] font-mono opacity-85">
+                        <p className="text-xs font-mono opacity-85">
                           {p.sku ? `SKU: ${p.sku}` : ''} {p.codigoBarras ? ` | Barra: ${p.codigoBarras}` : ''}
                           {p.stock !== undefined ? ` | Stock: ${p.stock}` : ''}
                         </p>
@@ -3425,7 +3425,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       <div className="flex items-center gap-[8px] shrink-0">
                         <span style={{ color: '#1C40F2' }} className="font-black text-xs mr-[4px]">${Number(p.price).toFixed(2)}</span>
                         {isAlreadyInCart && (
-                          <span className="text-[10px] font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-[6px] py-[3px] rounded-[6px]">
+                          <span className="text-xs font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-[6px] py-[3px] rounded-[6px]">
                             En Carrito ({cartQty})
                           </span>
                         )}
@@ -3459,16 +3459,16 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
       {/* MODAL CREAR PRODUCTO RAPIDO */}
       {isQuickAddProductOpen && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-[10px] bg-black/85 backdrop-blur-sm animate-in fade-in">
-          <div className={`w-full max-w-md p-[20px] rounded-card shadow-2xl border ${
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-[10px] bg-black/85 animate-in fade-in">
+          <div className={`w-full max-w-md p-[20px] rounded-card border ${
             'bg-white border border-gray-150 text-black'}`}>
-            <h3 style={{ color: '#000000'}} className="text-[13px] font-bold mb-[12px] border-b pb-[8px] dark:border-white/5 uppercase">
+            <h3 style={{ color: '#000000'}} className="text-base font-bold mb-[12px] border-b pb-[8px] dark:border-white/5 uppercase">
               Nuevo Producto (Rápido)
             </h3>
             
             <form onSubmit={handleQuickAddProductSave} className="space-y-[10px]">
               <div>
-                <label className="block text-[10px] font-bold uppercase mb-[4px] text-black dark:text-white/60">Nombre del Producto / Servicio</label>
+                <label className="block text-xs font-bold uppercase mb-[4px] text-black dark:text-white/60">Nombre del Producto / Servicio</label>
                 <input 
                   type="text" 
                   required 
@@ -3481,7 +3481,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
               <div className="grid grid-cols-2 gap-[8px]">
                 <div>
-                  <label className="block text-[10px] font-bold uppercase mb-[4px] text-black dark:text-white/60">SKU / Código</label>
+                  <label className="block text-xs font-bold uppercase mb-[4px] text-black dark:text-white/60">SKU / Código</label>
                   <input 
                     type="text" 
                     value={quickAddProductFormData.sku} 
@@ -3491,7 +3491,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold uppercase mb-[4px] text-black dark:text-white/60">Código de Barras</label>
+                  <label className="block text-xs font-bold uppercase mb-[4px] text-black dark:text-white/60">Código de Barras</label>
                   <input 
                     type="text" 
                     value={quickAddProductFormData.codigoBarras} 
@@ -3504,7 +3504,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
               <div className="grid grid-cols-3 gap-[8px]">
                 <div>
-                  <label className="block text-[10px] font-bold uppercase mb-[4px] text-black dark:text-white/60">P. Venta ($)</label>
+                  <label className="block text-xs font-bold uppercase mb-[4px] text-black dark:text-white/60">P. Venta ($)</label>
                   <input 
                     type="number" 
                     step="0.0001"
@@ -3516,7 +3516,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold uppercase mb-[4px] text-black dark:text-white/60">Costo ($)</label>
+                  <label className="block text-xs font-bold uppercase mb-[4px] text-black dark:text-white/60">Costo ($)</label>
                   <input 
                     type="number" 
                     step="0.0001" 
@@ -3527,7 +3527,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold uppercase mb-[4px] text-black dark:text-white/60">Stock Inicial</label>
+                  <label className="block text-xs font-bold uppercase mb-[4px] text-black dark:text-white/60">Stock Inicial</label>
                   <input 
                     type="number" 
                     value={quickAddProductFormData.stock} 
@@ -3539,7 +3539,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold uppercase mb-[4px] text-black dark:text-white/60">Categoría IVA</label>
+                <label className="block text-xs font-bold uppercase mb-[4px] text-black dark:text-white/60">Categoría IVA</label>
                 <select 
                   value={quickAddProductFormData.ivaCategory} 
                   onChange={e => setQuickAddProductFormData({...quickAddProductFormData, ivaCategory: Number(e.target.value)})} 

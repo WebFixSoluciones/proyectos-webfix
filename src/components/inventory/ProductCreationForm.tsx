@@ -510,13 +510,13 @@ export default function ProductCreationForm({
 
   const inputClass = `w-full pl-3 pr-3 py-2 rounded-xl outline-none transition-all border text-xs bg-white/50 border-gray-200 text-gray-800 focus:border-primary focus:bg-white shadow-inner`;
 
-  const labelClass = `block text-[10px] font-bold mb-1 uppercase tracking-wider text-gray-500`;
+  const labelClass = `block text-xs font-bold mb-1 uppercase tracking-wider text-gray-500`;
 
   const iconContainerClass = `absolute left-3 top-1/2 -translate-y-1/2 text-gray-400`;
 
   const formJSX = (
     <div 
-      className={isInline ? `w-full rounded-3xl border shadow-xl bg-white border-gray-200 text-gray-900` : `relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl border bg-white/95 border-white/40 custom-scrollbar`}
+      className={isInline ? `w-full rounded-card border bg-white border-gray-200 text-gray-900` : `relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-card border bg-white/95 border-white/40 custom-scrollbar`}
     >
       {/* Header */}
       <div className={`modal-header-std modal-header-std-dark border-gray-100 bg-white/80`}>
@@ -532,7 +532,7 @@ export default function ProductCreationForm({
                 formData.type === 'COMBO' ? 'Combo' : 'Estándar'
               }
             </h2>
-            <p className={`text-[10px] text-gray-500`}>
+            <p className={`text-xs text-gray-500`}>
               {productToEdit?.id ? 'Edita los detalles del producto seleccionado' : 'Registra un nuevo artículo en tu inventario'}
             </p>
           </div>
@@ -558,10 +558,10 @@ export default function ProductCreationForm({
 
         {formStep === 'product_details' ? (
           <>
-        <div className={`p-4 rounded-2xl border flex items-center justify-between shadow-sm bg-gray-50 border-gray-150`}>
+        <div className={`p-4 rounded-card border flex items-center justify-between bg-gray-50 border-gray-150`}>
           <div>
             <span className="block text-xs font-bold">Mostrar en Ventas</span>
-            <span className={`block text-[10px] text-gray-500`}>
+            <span className={`block text-xs text-gray-500`}>
               Selecciona esta opción si deseas mostrar el producto en el módulo de ventas y POS.
             </span>
           </div>
@@ -593,7 +593,7 @@ export default function ProductCreationForm({
                     <button
                       type="button"
                       onClick={() => setFormData(prev => ({ ...prev, imageUrl: '' }))}
-                      className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-red-500 font-bold text-[10px]"
+                      className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-red-500 font-bold text-xs"
                     >
                       Quitar
                     </button>
@@ -601,7 +601,7 @@ export default function ProductCreationForm({
                 ) : (
                   <label className={`w-20 h-20 rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all hover:border-primary/50 hover:bg-primary/5 border-gray-300 bg-gray-50`}>
                     <Image size={18} className="text-gray-400 mb-1" />
-                    <span className="text-[9px] text-gray-500 font-bold">Añadir</span>
+                    <span className="text-xs text-gray-500 font-bold">Añadir</span>
                     <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
                   </label>
                 )}
@@ -826,28 +826,28 @@ export default function ProductCreationForm({
           
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             {/* Precio Base Display */}
-            <div className={`p-4 rounded-2xl border bg-gray-50 border-gray-150`}>
-              <span className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Precio Base</span>
+            <div className={`p-4 rounded-card border bg-gray-50 border-gray-150`}>
+              <span className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Precio Base</span>
               <div className="space-y-2">
                 <div>
-                  <span className="block text-[9px] text-gray-400">Sin impuestos</span>
+                  <span className="block text-xs text-gray-400">Sin impuestos</span>
                   <span className="block text-xs font-bold font-mono">${formData.priceWithoutTax.toFixed(2)}</span>
                 </div>
                 <div>
-                  <span className="block text-[9px] text-gray-400">Incl. impuestos</span>
+                  <span className="block text-xs text-gray-400">Incl. impuestos</span>
                   <span className="block text-xs font-bold font-mono text-emerald-500">${priceIncludedTaxInput.toFixed(2)}</span>
                 </div>
               </div>
             </div>
 
             {/* Precio A */}
-            <div className={`p-4 rounded-2xl border transition-all ${
+            <div className={`p-4 rounded-card border transition-all ${
               hasPriceA 
-                ? 'bg-white border-primary/30 shadow-md'
+                ? 'bg-white border-primary/30'
                 : 'bg-slate-100/50 border-slate-200 opacity-60'
             }`}>
               <div className="flex items-center justify-between mb-2">
-                <span className="block text-[10px] font-bold uppercase tracking-wider">Precio A</span>
+                <span className="block text-xs font-bold uppercase tracking-wider">Precio A</span>
                 <input 
                   type="checkbox" 
                   checked={hasPriceA} 
@@ -863,7 +863,7 @@ export default function ProductCreationForm({
               {hasPriceA ? (
                 <div className="space-y-2">
                   <div>
-                    <label className="block text-[9px] text-gray-400">Incl. impuestos ($)</label>
+                    <label className="block text-xs text-gray-400">Incl. impuestos ($)</label>
                     <input
                       type="number"
                       min="0"
@@ -882,7 +882,7 @@ export default function ProductCreationForm({
                     />
                   </div>
                   <div>
-                    <span className="block text-[9px] text-gray-400">Sin impuestos</span>
+                    <span className="block text-xs text-gray-400">Sin impuestos</span>
                     <span className="block text-xs font-bold font-mono">${(formData.priceASinImpuesto || 0).toFixed(2)}</span>
                   </div>
                 </div>
@@ -892,13 +892,13 @@ export default function ProductCreationForm({
             </div>
 
             {/* Precio B */}
-            <div className={`p-4 rounded-2xl border transition-all ${
+            <div className={`p-4 rounded-card border transition-all ${
               hasPriceB 
-                ? 'bg-white border-primary/30 shadow-md'
+                ? 'bg-white border-primary/30'
                 : 'bg-slate-100/50 border-slate-200 opacity-60'
             }`}>
               <div className="flex items-center justify-between mb-2">
-                <span className="block text-[10px] font-bold uppercase tracking-wider">Precio B</span>
+                <span className="block text-xs font-bold uppercase tracking-wider">Precio B</span>
                 <input 
                   type="checkbox" 
                   checked={hasPriceB} 
@@ -914,7 +914,7 @@ export default function ProductCreationForm({
               {hasPriceB ? (
                 <div className="space-y-2">
                   <div>
-                    <label className="block text-[9px] text-gray-400">Incl. impuestos ($)</label>
+                    <label className="block text-xs text-gray-400">Incl. impuestos ($)</label>
                     <input
                       type="number"
                       min="0"
@@ -933,7 +933,7 @@ export default function ProductCreationForm({
                     />
                   </div>
                   <div>
-                    <span className="block text-[9px] text-gray-400">Sin impuestos</span>
+                    <span className="block text-xs text-gray-400">Sin impuestos</span>
                     <span className="block text-xs font-bold font-mono">${(formData.priceBSinImpuesto || 0).toFixed(2)}</span>
                   </div>
                 </div>
@@ -943,13 +943,13 @@ export default function ProductCreationForm({
             </div>
 
             {/* Precio C */}
-            <div className={`p-4 rounded-2xl border transition-all ${
+            <div className={`p-4 rounded-card border transition-all ${
               hasPriceC 
-                ? 'bg-white border-primary/30 shadow-md'
+                ? 'bg-white border-primary/30'
                 : 'bg-slate-100/50 border-slate-200 opacity-60'
             }`}>
               <div className="flex items-center justify-between mb-2">
-                <span className="block text-[10px] font-bold uppercase tracking-wider">Precio C</span>
+                <span className="block text-xs font-bold uppercase tracking-wider">Precio C</span>
                 <input 
                   type="checkbox" 
                   checked={hasPriceC} 
@@ -965,7 +965,7 @@ export default function ProductCreationForm({
               {hasPriceC ? (
                 <div className="space-y-2">
                   <div>
-                    <label className="block text-[9px] text-gray-400">Incl. impuestos ($)</label>
+                    <label className="block text-xs text-gray-400">Incl. impuestos ($)</label>
                     <input
                       type="number"
                       min="0"
@@ -984,7 +984,7 @@ export default function ProductCreationForm({
                     />
                   </div>
                   <div>
-                    <span className="block text-[9px] text-gray-400">Sin impuestos</span>
+                    <span className="block text-xs text-gray-400">Sin impuestos</span>
                     <span className="block text-xs font-bold font-mono">${(formData.priceCSinImpuesto || 0).toFixed(2)}</span>
                   </div>
                 </div>
@@ -1000,7 +1000,7 @@ export default function ProductCreationForm({
           {/* Costo Base */}
           <div className="space-y-3">
             <label className={labelClass}>Costo Base de Adquisición ($)</label>
-            <p className={`text-[10px] text-gray-500`}>
+            <p className={`text-xs text-gray-500`}>
               ¿Cuánto te costó adquirir o producir este artículo? (Para calcular ganancia real)
             </p>
             <div className="relative">
@@ -1018,7 +1018,7 @@ export default function ProductCreationForm({
               />
             </div>
             {formData.baseCost > 0 && (
-              <span className="text-[10px] text-emerald-500 font-bold block">
+              <span className="text-xs text-emerald-500 font-bold block">
                 Margen de ganancia calculado: {formData.marginPercentage.toFixed(1)}%
               </span>
             )}
@@ -1027,16 +1027,16 @@ export default function ProductCreationForm({
           {/* Manejo de Inventario */}
           <div className="space-y-3">
             <label className={labelClass}>Manejo de Inventario</label>
-            <p className={`text-[10px] text-gray-500`}>
+            <p className={`text-xs text-gray-500`}>
               Selecciona cómo deseas manejar el inventario de este producto
             </p>
             <div className="grid grid-cols-2 gap-4">
               <button
                 type="button"
                 onClick={() => setFormData(prev => ({ ...prev, inventoryType: 'PHYSICAL' }))}
-                className={`p-3 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1.5 ${
+                className={`p-3 rounded-card border text-center transition-all flex flex-col items-center justify-center gap-1.5 ${
                   formData.inventoryType === 'PHYSICAL'
-                    ? 'border-primary bg-primary/5 text-primary shadow-sm'
+                    ? 'border-primary bg-primary/5 text-primary'
                     : 'border-slate-200 bg-slate-50 text-gray-500 hover:bg-slate-100'
                 }`}
               >
@@ -1047,9 +1047,9 @@ export default function ProductCreationForm({
               <button
                 type="button"
                 onClick={() => setFormData(prev => ({ ...prev, inventoryType: 'VIRTUAL' }))}
-                className={`p-3 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1.5 ${
+                className={`p-3 rounded-card border text-center transition-all flex flex-col items-center justify-center gap-1.5 ${
                   formData.inventoryType === 'VIRTUAL'
-                    ? 'border-primary bg-primary/5 text-primary shadow-sm'
+                    ? 'border-primary bg-primary/5 text-primary'
                     : 'border-slate-200 bg-slate-50 text-gray-500 hover:bg-slate-100'
                 }`}
               >
@@ -1073,7 +1073,7 @@ export default function ProductCreationForm({
           <button
             type="submit"
             disabled={loading}
-            className="px-8 py-2 rounded-xl font-bold transition-all text-xs bg-primary hover:bg-primary text-white shadow-[0_0_15px_rgba(37,99,235,0.3)] flex items-center gap-2 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+            className="px-8 py-2 rounded-xl font-bold transition-all text-xs bg-primary hover:bg-primary text-white flex items-center gap-2 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
           >
             {loading ? (
               <>
@@ -1091,7 +1091,7 @@ export default function ProductCreationForm({
           </>
         ) : (
           <div className="space-y-6">
-            <div className={`p-4.5 rounded-2xl border bg-primary/5 border-primary/15 text-primary-dark text-xs flex items-center gap-3`}>
+            <div className={`p-4.5 rounded-card border bg-primary/5 border-primary/15 text-primary-dark text-xs flex items-center gap-3`}>
               <Box size={22} className="shrink-0 animate-bounce" />
               <div>
                 <p className="font-extrabold uppercase tracking-wide">Paso 2: Inicialización de Stock y Límites</p>
@@ -1115,7 +1115,7 @@ export default function ProductCreationForm({
                     onChange={(e) => setStockMinimo(parseInt(e.target.value) || 0)}
                     className={inputClass}
                   />
-                  <p className="text-[10px] text-gray-500 mt-1">Nivel crítico para alertas de reabastecimiento.</p>
+                  <p className="text-xs text-gray-500 mt-1">Nivel crítico para alertas de reabastecimiento.</p>
                 </div>
 
                 <div className="relative group">
@@ -1128,7 +1128,7 @@ export default function ProductCreationForm({
                     onChange={(e) => setStockMaximo(parseInt(e.target.value) || 0)}
                     className={inputClass}
                   />
-                  <p className="text-[10px] text-gray-500 mt-1">Capacidad máxima ideal para almacenamiento.</p>
+                  <p className="text-xs text-gray-500 mt-1">Capacidad máxima ideal para almacenamiento.</p>
                 </div>
               </div>
             </div>
@@ -1143,46 +1143,46 @@ export default function ProductCreationForm({
                 <button
                   type="button"
                   onClick={() => setInitStockType('none')}
-                  className={`p-3 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1 ${
+                  className={`p-3 rounded-card border text-center transition-all flex flex-col items-center justify-center gap-1 ${
                     initStockType === 'none'
-                      ? 'border-primary bg-primary/5 text-primary shadow-sm'
+                      ? 'border-primary bg-primary/5 text-primary'
                       : 'border-slate-200 bg-slate-50 text-gray-550 hover:bg-slate-100'
                   }`}
                 >
                   <span className="text-xs font-bold">Sin Stock Inicial</span>
-                  <span className="text-[9px] opacity-70">Empezar con 0 unidades</span>
+                  <span className="text-xs opacity-70">Empezar con 0 unidades</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setInitStockType('existing_purchase')}
-                  className={`p-3 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1 ${
+                  className={`p-3 rounded-card border text-center transition-all flex flex-col items-center justify-center gap-1 ${
                     initStockType === 'existing_purchase'
-                      ? 'border-primary bg-primary/5 text-primary shadow-sm'
+                      ? 'border-primary bg-primary/5 text-primary'
                       : 'border-slate-200 bg-slate-50 text-gray-555 hover:bg-slate-100'
                   }`}
                 >
                   <span className="text-xs font-bold">Asociar Compra Existente</span>
-                  <span className="text-[9px] opacity-70">Seleccionar factura previa</span>
+                  <span className="text-xs opacity-70">Seleccionar factura previa</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setInitStockType('new_purchase')}
-                  className={`p-3 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1 ${
+                  className={`p-3 rounded-card border text-center transition-all flex flex-col items-center justify-center gap-1 ${
                     initStockType === 'new_purchase'
-                      ? 'border-primary bg-primary/5 text-primary shadow-sm'
+                      ? 'border-primary bg-primary/5 text-primary'
                       : 'border-slate-200 bg-slate-50 text-gray-555 hover:bg-slate-100'
                   }`}
                 >
                   <span className="text-xs font-bold">Crear Compra Inline</span>
-                  <span className="text-[9px] opacity-70">Ingresar factura nueva</span>
+                  <span className="text-xs opacity-70">Ingresar factura nueva</span>
                 </button>
               </div>
 
               {/* ASOCIAR A COMPRA EXISTENTE */}
               {initStockType === 'existing_purchase' && (
-                <div className={`p-4.5 rounded-2xl border space-y-4 bg-slate-50 border-slate-200`}>
+                <div className={`p-4.5 rounded-card border space-y-4 bg-slate-50 border-slate-200`}>
                   <div>
                     <label className={labelClass}>Seleccionar Factura de Compra *</label>
                     <select
@@ -1233,7 +1233,7 @@ export default function ProductCreationForm({
 
               {/* CREAR COMPRA INLINE */}
               {initStockType === 'new_purchase' && (
-                <div className={`p-4.5 rounded-2xl border space-y-4 bg-slate-50 border-slate-200`}>
+                <div className={`p-4.5 rounded-card border space-y-4 bg-slate-50 border-slate-200`}>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Proveedor Selector con botón + */}
                     <div>
@@ -1337,7 +1337,7 @@ export default function ProductCreationForm({
                   </div>
 
                   {/* Cálculos Resumen Compra */}
-                  <div className={`p-3 rounded-xl border text-[10px] space-y-1.5 bg-white border-slate-200`}>
+                  <div className={`p-3 rounded-xl border text-xs space-y-1.5 bg-white border-slate-200`}>
                     <div className="flex justify-between">
                       <span>Subtotal:</span>
                       <span className="font-bold font-mono">
@@ -1376,7 +1376,7 @@ export default function ProductCreationForm({
               <button
                 type="submit"
                 disabled={loading}
-                className="px-8 py-2 rounded-xl font-bold transition-all text-xs bg-emerald-500 hover:bg-emerald-600 text-white shadow-[0_0_15px_rgba(16,185,129,0.3)] flex items-center gap-2 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+                className="px-8 py-2 rounded-xl font-bold transition-all text-xs bg-emerald-500 hover:bg-emerald-600 text-white flex items-center gap-2 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
               >
                 {loading ? (
                   <>
@@ -1397,8 +1397,8 @@ export default function ProductCreationForm({
 
       {/* POPUP MODAL: AGREGAR CATEGORÍA */}
       {showCategoryPopup && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 backdrop-blur-xl bg-black/55 animate-in fade-in duration-200">
-          <form onSubmit={handleAddCategory} className={`w-full max-w-sm p-6 rounded-3xl border shadow-2xl bg-white border-slate-200 text-slate-900`}>
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/55 animate-in fade-in duration-200">
+          <form onSubmit={handleAddCategory} className={`w-full max-w-sm p-6 rounded-card border bg-white border-slate-200 text-slate-900`}>
             <h3 className="text-sm font-bold flex items-center gap-2 mb-4">
               <FolderPlus className="text-primary" size={18} />
               Agregar Nueva Categoría
@@ -1406,7 +1406,7 @@ export default function ProductCreationForm({
             
             <div className="space-y-4">
               <div>
-                <label className="block text-[9px] font-bold uppercase mb-1">Nombre de la Categoría *</label>
+                <label className="block text-xs font-bold uppercase mb-1">Nombre de la Categoría *</label>
                 <input 
                   type="text" 
                   required
@@ -1418,7 +1418,7 @@ export default function ProductCreationForm({
               </div>
 
               <div>
-                <label className="block text-[9px] font-bold uppercase mb-1">Descripción</label>
+                <label className="block text-xs font-bold uppercase mb-1">Descripción</label>
                 <textarea 
                   value={newCategoryDesc}
                   onChange={(e) => setNewCategoryDesc(e.target.value)}
@@ -1432,13 +1432,13 @@ export default function ProductCreationForm({
                 <button 
                   type="button" 
                   onClick={() => setShowCategoryPopup(false)}
-                  className={`px-4 py-1.5 rounded-xl text-[10px] font-bold bg-gray-100 hover:bg-gray-200 text-gray-700`}
+                  className={`px-4 py-1.5 rounded-xl text-xs font-bold bg-gray-100 hover:bg-gray-200 text-gray-700`}
                 >
                   Cancelar
                 </button>
                 <button 
                   type="submit"
-                  className="px-4 py-1.5 rounded-xl text-[10px] font-bold bg-primary hover:bg-primary text-white"
+                  className="px-4 py-1.5 rounded-xl text-xs font-bold bg-primary hover:bg-primary text-white"
                 >
                   Guardar Categoría
                 </button>
@@ -1450,8 +1450,8 @@ export default function ProductCreationForm({
 
       {/* POPUP MODAL: AGREGAR MARCA */}
       {showBrandPopup && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 backdrop-blur-xl bg-black/55 animate-in fade-in duration-200">
-          <form onSubmit={handleAddBrand} className={`w-full max-w-sm p-6 rounded-3xl border shadow-2xl bg-white border-slate-200 text-slate-900`}>
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/55 animate-in fade-in duration-200">
+          <form onSubmit={handleAddBrand} className={`w-full max-w-sm p-6 rounded-card border bg-white border-slate-200 text-slate-900`}>
             <h3 className="text-sm font-bold flex items-center gap-2 mb-4">
               <Plus className="text-primary" size={18} />
               Agregar Nueva Marca
@@ -1459,7 +1459,7 @@ export default function ProductCreationForm({
             
             <div className="space-y-4">
               <div>
-                <label className="block text-[9px] font-bold uppercase mb-1">Nombre de la Marca *</label>
+                <label className="block text-xs font-bold uppercase mb-1">Nombre de la Marca *</label>
                 <input 
                   type="text" 
                   required
@@ -1471,7 +1471,7 @@ export default function ProductCreationForm({
               </div>
 
               <div>
-                <label className="block text-[9px] font-bold uppercase mb-1">Fabricante / Proveedor</label>
+                <label className="block text-xs font-bold uppercase mb-1">Fabricante / Proveedor</label>
                 <input 
                   type="text" 
                   value={newBrandMfr}
@@ -1485,13 +1485,13 @@ export default function ProductCreationForm({
                 <button 
                   type="button" 
                   onClick={() => setShowBrandPopup(false)}
-                  className={`px-4 py-1.5 rounded-xl text-[10px] font-bold bg-gray-100 hover:bg-gray-200 text-gray-700`}
+                  className={`px-4 py-1.5 rounded-xl text-xs font-bold bg-gray-100 hover:bg-gray-200 text-gray-700`}
                 >
                   Cancelar
                 </button>
                 <button 
                   type="submit"
-                  className="px-4 py-1.5 rounded-xl text-[10px] font-bold bg-primary hover:bg-primary text-white"
+                  className="px-4 py-1.5 rounded-xl text-xs font-bold bg-primary hover:bg-primary text-white"
                 >
                   Guardar Marca
                 </button>
@@ -1503,19 +1503,19 @@ export default function ProductCreationForm({
 
       {/* POPUP MODAL: CALCULADOR DE PRECIOS SIN IMPUESTO */}
       {showPriceWithoutTaxPopup && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 backdrop-blur-xl bg-black/55 animate-in fade-in duration-200">
-          <div className={`w-full max-w-sm p-6 rounded-3xl border shadow-2xl bg-white border-slate-200 text-slate-900`}>
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/55 animate-in fade-in duration-200">
+          <div className={`w-full max-w-sm p-6 rounded-card border bg-white border-slate-200 text-slate-900`}>
             <h3 className="text-sm font-bold flex items-center gap-2 mb-3">
               <DollarSign className="text-primary" size={18} />
               Calculador de Precio Sin Impuesto
             </h3>
-            <p className={`text-[10px] mb-4 text-gray-500`}>
+            <p className={`text-xs mb-4 text-gray-500`}>
               Ingresa el precio subtotal sin impuestos y calcularemos el valor final automáticamente.
             </p>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-[9px] font-bold uppercase mb-1">Ingresar Precio Sin Impuesto ($)</label>
+                <label className="block text-xs font-bold uppercase mb-1">Ingresar Precio Sin Impuesto ($)</label>
                 <div className="relative">
                   <div className={iconContainerClass}><DollarSign size={14} /></div>
                   <input 
@@ -1533,7 +1533,7 @@ export default function ProductCreationForm({
               </div>
 
               {/* Muestra cálculo rápido */}
-              <div className={`p-3 rounded-xl border text-[10px] space-y-1.5 bg-slate-50 border-slate-200`}>
+              <div className={`p-3 rounded-xl border text-xs space-y-1.5 bg-slate-50 border-slate-200`}>
                 <div className="flex justify-between">
                   <span>Impuesto Aplicado:</span>
                   <span className="font-bold">{formData.taxRate}%</span>
@@ -1556,14 +1556,14 @@ export default function ProductCreationForm({
                 <button 
                   type="button" 
                   onClick={() => setShowPriceWithoutTaxPopup(false)}
-                  className={`px-4 py-1.5 rounded-xl text-[10px] font-bold bg-gray-100 hover:bg-gray-200 text-gray-700`}
+                  className={`px-4 py-1.5 rounded-xl text-xs font-bold bg-gray-100 hover:bg-gray-200 text-gray-700`}
                 >
                   Cancelar
                 </button>
                 <button 
                   type="button"
                   onClick={handleApplyManualPrice}
-                  className="px-4 py-1.5 rounded-xl text-[10px] font-bold bg-primary hover:bg-primary text-white"
+                  className="px-4 py-1.5 rounded-xl text-xs font-bold bg-primary hover:bg-primary text-white"
                 >
                   Aplicar Precio
                 </button>
@@ -1575,8 +1575,8 @@ export default function ProductCreationForm({
       
       {/* POPUP MODAL: AGREGAR PROVEEDOR IN-SITU */}
       {showNewSupplierPopup && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 backdrop-blur-xl bg-black/55 animate-in fade-in duration-200">
-          <form onSubmit={handleAddNewSupplier} className={`w-full max-w-sm p-6 rounded-3xl border shadow-2xl space-y-4 bg-white border-slate-200 text-slate-900`}>
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/55 animate-in fade-in duration-200">
+          <form onSubmit={handleAddNewSupplier} className={`w-full max-w-sm p-6 rounded-card border space-y-4 bg-white border-slate-200 text-slate-900`}>
             <h3 className="text-sm font-bold flex items-center gap-2">
               <Plus className="text-primary" size={18} />
               Agregar Nuevo Proveedor
@@ -1584,7 +1584,7 @@ export default function ProductCreationForm({
             
             <div className="space-y-3">
               <div>
-                <label className="block text-[9px] font-bold uppercase mb-1">Razón Social / Nombre *</label>
+                <label className="block text-xs font-bold uppercase mb-1">Razón Social / Nombre *</label>
                 <input 
                   type="text" 
                   required
@@ -1596,7 +1596,7 @@ export default function ProductCreationForm({
               </div>
 
               <div>
-                <label className="block text-[9px] font-bold uppercase mb-1">RUC / Cédula *</label>
+                <label className="block text-xs font-bold uppercase mb-1">RUC / Cédula *</label>
                 <input 
                   type="text" 
                   required
@@ -1608,7 +1608,7 @@ export default function ProductCreationForm({
               </div>
 
               <div>
-                <label className="block text-[9px] font-bold uppercase mb-1">Teléfono</label>
+                <label className="block text-xs font-bold uppercase mb-1">Teléfono</label>
                 <input 
                   type="text" 
                   value={newSupplierPhone}
@@ -1619,7 +1619,7 @@ export default function ProductCreationForm({
               </div>
 
               <div>
-                <label className="block text-[9px] font-bold uppercase mb-1">Email</label>
+                <label className="block text-xs font-bold uppercase mb-1">Email</label>
                 <input 
                   type="email" 
                   value={newSupplierEmail}
@@ -1633,13 +1633,13 @@ export default function ProductCreationForm({
                 <button 
                   type="button" 
                   onClick={() => setShowNewSupplierPopup(false)}
-                  className={`px-4 py-1.5 rounded-xl text-[10px] font-bold bg-gray-100 hover:bg-gray-200 text-gray-700`}
+                  className={`px-4 py-1.5 rounded-xl text-xs font-bold bg-gray-100 hover:bg-gray-200 text-gray-700`}
                 >
                   Cancelar
                 </button>
                 <button 
                   type="submit"
-                  className="px-4 py-1.5 rounded-xl text-[10px] font-bold bg-primary hover:bg-primary text-white"
+                  className="px-4 py-1.5 rounded-xl text-xs font-bold bg-primary hover:bg-primary text-white"
                 >
                   Guardar Proveedor
                 </button>
@@ -1656,7 +1656,7 @@ export default function ProductCreationForm({
   }
 
   return (
-    <div className={`fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 backdrop-blur-xl bg-black/40 animate-in fade-in duration-300`}>
+    <div className={`fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-black/40 animate-in fade-in duration-300`}>
       {formJSX}
     </div>
   );

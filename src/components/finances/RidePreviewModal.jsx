@@ -273,7 +273,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
   );
 
   return (
-    <div className="fixed inset-0 z-[120] bg-black/80 backdrop-blur-md flex items-start justify-center p-4 overflow-y-auto animate-in fade-in print-modal-backdrop print:items-start print:overflow-visible">
+    <div className="fixed inset-0 z-[120] bg-black/80 flex items-start justify-center p-4 overflow-y-auto animate-in fade-in print-modal-backdrop print:items-start print:overflow-visible">
       
       {/* Estilos temporales para imprimir solamente el comprobante */}
       <style dangerouslySetInnerHTML={{__html: `
@@ -400,7 +400,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
         }
       `}} />
 
-      <div className="w-full max-w-4xl h-[90vh] flex flex-col rounded-3xl overflow-hidden shadow-2xl border print-modal-content bg-gray-50 border-gray-300">
+      <div className="w-full max-w-4xl h-[90vh] flex flex-col rounded-card overflow-hidden border print-modal-content bg-gray-50 border-gray-300">
         
         {/* Barra de Acciones del Modal */}
         <div className="px-6 py-3 border-b flex items-center justify-between no-print shrink-0 bg-gray-100 border-gray-250">
@@ -416,9 +416,9 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
             <div className="flex p-0.5 rounded-lg border bg-white border-gray-300">
               <button 
                 onClick={() => setViewFormat('ride')}
-                className={`px-3 py-1 rounded text-[10px] font-bold transition-all ${
+                className={`px-3 py-1 rounded text-xs font-bold transition-all ${
                   viewFormat === 'ride' 
-                    ? 'bg-primary text-white shadow-sm' 
+                    ? 'bg-primary text-white' 
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
@@ -426,9 +426,9 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
               </button>
               <button 
                 onClick={() => setViewFormat('ticket')}
-                className={`px-3 py-1 rounded text-[10px] font-bold transition-all ${
+                className={`px-3 py-1 rounded text-xs font-bold transition-all ${
                   viewFormat === 'ticket' 
-                    ? 'bg-primary text-white shadow-sm' 
+                    ? 'bg-primary text-white' 
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
@@ -438,7 +438,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
 
             <button 
               onClick={handlePrint}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10px] uppercase shadow-sm transition-transform hover:-translate-y-0.5"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase transition-transform hover:-translate-y-0.5"
             >
               <Printer size={12} /> Imprimir / PDF
             </button>
@@ -456,10 +456,10 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
             
             {/* FORMATO 1: RIDE OFICIAL A4 */}
             {viewFormat === 'ride' && (
-              <div className="w-full max-w-3xl mx-auto p-5 bg-white border border-gray-300 text-black shadow-lg text-[8.5px] font-sans leading-tight print:shadow-none print:border-none print:p-0">
+              <div className="w-full max-w-3xl mx-auto p-5 bg-white border border-gray-300 text-black shadow-lg text-xs font-sans leading-tight print:shadow-none print:border-none print:p-0">
                 
                 {/* Cabecera Principal Compacta */}
-                <div className="border border-gray-300 grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-300 print:grid-cols-2 print:divide-x print:divide-y-0 text-[8.5px] text-black">
+                <div className="border border-gray-300 grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-300 print:grid-cols-2 print:divide-x print:divide-y-0 text-xs text-black">
                   
                   {/* Columna Izquierda: Datos del Emisor */}
                   <div className="p-3 flex items-start gap-3 min-w-0">
@@ -469,8 +469,8 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
                       <div className="h-10 w-20 bg-gray-200 border border-gray-300 rounded flex items-center justify-center font-bold text-[8px] text-gray-600 tracking-wider shrink-0">LOGOTIPO</div>
                     )}
                     <div className="space-y-0.5 min-w-0 flex-1">
-                      <h2 className="font-extrabold text-[10px] uppercase leading-tight text-black truncate">{emisor.razonSocial}</h2>
-                      {emisor.nombreComercial && <p className="font-bold text-[9px] text-black truncate">{emisor.nombreComercial}</p>}
+                      <h2 className="font-extrabold text-xs uppercase leading-tight text-black truncate">{emisor.razonSocial}</h2>
+                      {emisor.nombreComercial && <p className="font-bold text-xs text-black truncate">{emisor.nombreComercial}</p>}
                       <p><span className="font-bold">RUC:</span> {emisor.ruc}</p>
                       {emisor.contribuyenteEspecial && (
                         <p><span className="font-bold">Contribuyente Especial Resolución Nro.</span> {emisor.especialResolucion || '3257'}</p>
@@ -517,7 +517,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
                       </div>
                     )}
                     <div className="border-t border-gray-250 pt-1.5 mt-auto">
-                      <h2 className="font-extrabold text-[11px] tracking-wide text-black uppercase leading-none">
+                      <h2 className="font-extrabold text-xs tracking-wide text-black uppercase leading-none">
                         {getDocTypeLabel()} {docNumFormatted}
                       </h2>
                     </div>
@@ -770,9 +770,9 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
 
             {/* FORMATO 2: TICKET POS TERMICO 80MM */}
             {viewFormat === 'ticket' && (
-              <div className="w-[300px] mx-auto p-4 bg-white border border-gray-400 text-black text-[9px] font-mono leading-tight shadow-md print:shadow-none print:border-none print:p-0">
+              <div className="w-[300px] mx-auto p-4 bg-white border border-gray-400 text-black text-xs font-mono leading-tight print:shadow-none print:border-none print:p-0">
                 <div className="text-center space-y-1">
-                  <h2 className="font-bold text-[12px] uppercase">{emisor.nombreComercial}</h2>
+                  <h2 className="font-bold text-sm uppercase">{emisor.nombreComercial}</h2>
                   <p className="text-[8px]">{emisor.razonSocial}</p>
                   <p>RUC: {emisor.ruc}</p>
                   <p>Matriz: {emisor.direccionMatriz.slice(0, 40)}...</p>
@@ -845,7 +845,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
                     <span>IVA (15%):</span>
                     <span>${Number(tx.ivaValor).toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between text-[10px] border-t border-black pt-1">
+                  <div className="flex justify-between text-xs border-t border-black pt-1">
                     <span>TOTAL A PAGAR:</span>
                     <span>${Number(tx.total).toFixed(2)}</span>
                   </div>
@@ -854,7 +854,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
                 <div className="border-t border-black border-dashed my-2"></div>
 
                 {/* Pago */}
-                <div className="space-y-0.5 text-[8.5px]">
+                <div className="space-y-0.5 text-xs">
                   <p><span className="font-bold">Pago:</span> {tx.paymentMethod.toUpperCase()}</p>
                   {tx.paymentsBreakdown && (
                     <p>Efectivo: ${Number(tx.paymentsBreakdown.efectivo || 0).toFixed(2)} | Tarj: ${Number(tx.paymentsBreakdown.tarjeta || 0).toFixed(2)}</p>

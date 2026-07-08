@@ -61,7 +61,7 @@ export default function FinanceDashboard({ transactions, thirdParties, db, appId
     else certStatus = 'ok';
   }
 
-  const cardClass = 'p-4 sm:p-6 rounded-2xl border backdrop-blur-xl transition-all shadow-sm bg-white border-primary/10 hover:border-primary/25/50 shadow-[0_4px_20px_rgba(0,0,0,0.03)]';
+  const cardClass = 'p-4 sm:p-6 rounded-card border transition-all bg-white border-primary/10 hover:border-primary/25/50';
 
   return (
     <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
@@ -83,14 +83,14 @@ export default function FinanceDashboard({ transactions, thirdParties, db, appId
                 {certStatus === 'warning' && `La Firma Electrónica expira pronto (en ${certDaysLeft} días)`}
                 {certStatus === 'none' && "Falta cargar Firma Electrónica (.p12) en Configuración"}
               </p>
-              <p className="text-[10px] opacity-90 text-black">
+              <p className="text-xs opacity-90 text-black">
                 {certStatus === 'none'
                   ? "Para poder emitir XML autorizados por el SRI, sube tu certificado digital en la pestaña de Configuración."
                   : "Por favor renueva o verifica tu certificado de firma para evitar rechazos en las facturas."}
               </p>
             </div>
           </div>
-          <div className="px-3 py-1 rounded-lg text-[10px] font-bold border uppercase shrink-0 border-primary/40 bg-primary/10 text-primary">
+          <div className="px-3 py-1 rounded-lg text-xs font-bold border uppercase shrink-0 border-primary/40 bg-primary/10 text-primary">
             {certStatus === 'none' ? 'Incompleto' : certStatus === 'expired' ? 'Expirado' : 'Urgente'}
           </div>
         </div>
@@ -102,31 +102,31 @@ export default function FinanceDashboard({ transactions, thirdParties, db, appId
         {/* INGRESOS */}
         <div className={cardClass}>
           <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-black font-extrabold">Ventas (Mes)</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-black font-extrabold">Ventas (Mes)</span>
             <div className="p-1.5 rounded-lg bg-emerald-100 text-emerald-700">
               <TrendingUp size={16} />
             </div>
           </div>
           <p className="text-2xl font-black text-emerald-600">${totalIncome.toFixed(2)}</p>
-          <p className="text-[9px] mt-1 text-black">IVA Cobrado: ${ivaVentas.toFixed(2)}</p>
+          <p className="text-xs mt-1 text-black">IVA Cobrado: ${ivaVentas.toFixed(2)}</p>
         </div>
 
         {/* EGRESOS */}
         <div className={cardClass}>
           <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-black font-extrabold">Gastos (Mes)</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-black font-extrabold">Gastos (Mes)</span>
             <div className="p-1.5 rounded-lg bg-red-100 text-red-700">
               <TrendingDown size={16} />
             </div>
           </div>
           <p className="text-2xl font-black text-red-600">${totalExpense.toFixed(2)}</p>
-          <p className="text-[9px] mt-1 text-black">IVA Pagado: ${ivaCompras.toFixed(2)}</p>
+          <p className="text-xs mt-1 text-black">IVA Pagado: ${ivaCompras.toFixed(2)}</p>
         </div>
 
         {/* MARGEN */}
         <div className={cardClass}>
           <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-black font-extrabold">Flujo Neto</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-black font-extrabold">Flujo Neto</span>
             <div className="p-1.5 rounded-lg bg-primary/10 text-primary">
               <DollarSign size={16} />
             </div>
@@ -134,13 +134,13 @@ export default function FinanceDashboard({ transactions, thirdParties, db, appId
           <p className={`text-2xl font-black ${netMargin >= 0 ? 'text-black' : 'text-red-600'}`}>
             ${netMargin.toFixed(2)}
           </p>
-          <p className="text-[9px] mt-1 text-black">Rendimiento mensual</p>
+          <p className="text-xs mt-1 text-black">Rendimiento mensual</p>
         </div>
 
         {/* BALANCE IVA */}
         <div className={cardClass}>
           <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-black font-extrabold">IVA por Declarar</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-black font-extrabold">IVA por Declarar</span>
             <div className="p-1.5 rounded-lg bg-purple-100 text-purple-700">
               <Award size={16} />
             </div>
@@ -148,7 +148,7 @@ export default function FinanceDashboard({ transactions, thirdParties, db, appId
           <p className={`text-2xl font-black ${ivaEstimado >= 0 ? 'text-purple-700' : 'text-primary'}`}>
             ${Math.abs(ivaEstimado).toFixed(2)}
           </p>
-          <p className="text-[9px] mt-1 text-black">
+          <p className="text-xs mt-1 text-black">
             {ivaEstimado >= 0 ? "A pagar al SRI" : "Saldo a favor (Crédito)"}
           </p>
         </div>
@@ -176,7 +176,7 @@ export default function FinanceDashboard({ transactions, thirdParties, db, appId
               const pct = transactions.length > 0 ? (count / transactions.length) * 100 : 0;
               return (
                 <div key={item.key}>
-                  <div className="flex justify-between items-center text-[10px] font-bold uppercase mb-1 text-black font-bold">
+                  <div className="flex justify-between items-center text-xs font-bold uppercase mb-1 text-black font-bold">
                     <span>{item.label}</span>
                     <span>{count} ({pct.toFixed(0)}%)</span>
                   </div>
@@ -201,10 +201,10 @@ export default function FinanceDashboard({ transactions, thirdParties, db, appId
               {pendingPayments.map(tx => {
                 const thirdParty = thirdParties.find(tp => tp.id === tx.thirdPartyId);
                 return (
-                  <div key={tx.id} className="p-3 rounded-xl border flex justify-between items-center bg-[#f3f8ff] border-primary/15/60 shadow-sm">
+                  <div key={tx.id} className="p-3 rounded-xl border flex justify-between items-center bg-surface-card border-primary/15/60">
                     <div className="truncate pr-2">
-                      <p className="text-[10px] font-bold truncate text-black">{thirdParty?.name || 'Desconocido'}</p>
-                      <p className="text-[9px] mt-0.5 text-black">{tx.documentNumber || 'Factura S/N'} - {tx.date}</p>
+                      <p className="text-xs font-bold truncate text-black">{thirdParty?.name || 'Desconocido'}</p>
+                      <p className="text-xs mt-0.5 text-black">{tx.documentNumber || 'Factura S/N'} - {tx.date}</p>
                     </div>
                     <span className={`text-xs font-bold shrink-0 ${tx.type === 'ingreso' ? 'text-emerald-600' : 'text-red-600'}`}>
                       ${Number(tx.total || 0).toFixed(2)}

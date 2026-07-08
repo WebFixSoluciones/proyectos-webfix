@@ -21,10 +21,10 @@ export default function LandingLayout() {
   };
 
   return (
-    <div className="min-h-screen w-full overflow-y-auto overflow-x-hidden bg-[#F8FAFC] text-[#0F172A] font-sans scroll-smooth custom-scrollbar light-scrollbar flex flex-col justify-between relative">
+    <div className="min-h-screen w-full overflow-y-auto overflow-x-hidden bg-surface-bg text-text-secondary font-sans scroll-smooth custom-scrollbar light-scrollbar flex flex-col justify-between relative">
       
       {/* NAVBAR */}
-      <header className="sticky top-0 z-50 backdrop-blur-lg border-b bg-[#F8FAFC]/90 border-slate-200/80 shrink-0 transition-all duration-300">
+      <header className="sticky top-0 z-50 border-b bg-surface-bg/90 border-slate-200/80 shrink-0 transition-all duration-300">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           
           {/* Logo */}
@@ -34,13 +34,13 @@ export default function LandingLayout() {
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
               </svg>
             </div>
-            <span className="text-lg font-black tracking-tight text-[#0F172A] transition-colors duration-200 group-hover:text-primary">
+            <span className="text-lg font-black tracking-tight text-text-secondary transition-colors duration-200 group-hover:text-primary">
               WebFix <span className="text-primary/80 font-medium text-sm">ERP</span>
             </span>
           </Link>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center gap-8 text-[11px] font-black uppercase tracking-wider">
+          <nav className="hidden md:flex items-center gap-8 text-xs font-black uppercase tracking-wider">
             {navLinks.map(link => {
               const isActive = location.pathname === link.path;
               return (
@@ -69,7 +69,7 @@ export default function LandingLayout() {
             </button>
             <button 
               onClick={() => navigate('/register')} 
-              className="landing-button-primary px-5 py-2.5 text-xs font-bold text-white bg-primary hover:bg-[#1633c1] cursor-pointer"
+              className="landing-button-primary px-5 py-2.5 text-xs font-bold text-white bg-primary hover:bg-surface-card cursor-pointer"
             >
               Registrarse
             </button>
@@ -137,16 +137,16 @@ export default function LandingLayout() {
                     <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
                   </svg>
                 </div>
-                <span className="font-black text-[#0F172A] tracking-tight">WebFix ERP</span>
+                <span className="font-black text-text-secondary tracking-tight">WebFix ERP</span>
               </div>
-              <p className="text-[11px] text-slate-400 leading-relaxed max-w-[200px]">
+              <p className="text-xs text-slate-400 leading-relaxed max-w-[200px]">
                 Plataforma de facturación electrónica y control financiero para emprendedores ecuatorianos en cumplimiento con el SRI.
               </p>
             </div>
             {/* Quick Links */}
             <div>
               <h4 className="text-xs font-black uppercase text-slate-800 tracking-wider mb-4">Explorar</h4>
-              <div className="flex flex-col gap-2.5 text-[11px] font-semibold">
+              <div className="flex flex-col gap-2.5 text-xs font-semibold">
                 <Link to="/" className="text-slate-500 hover:text-primary decoration-none">Inicio</Link>
                 <Link to="/soluciones" className="text-slate-500 hover:text-primary decoration-none">Módulos</Link>
                 <Link to="/precios" className="text-slate-500 hover:text-primary decoration-none">Planes y Precios</Link>
@@ -155,7 +155,7 @@ export default function LandingLayout() {
             {/* Legals */}
             <div>
               <h4 className="text-xs font-black uppercase text-slate-800 tracking-wider mb-4">Soporte y Normas</h4>
-              <div className="flex flex-col gap-2.5 text-[11px] font-semibold">
+              <div className="flex flex-col gap-2.5 text-xs font-semibold">
                 <a href="https://srienlinea.sri.gob.ec" target="_blank" rel="noopener noreferrer" className="text-slate-500 hover:text-primary decoration-none">SRI del Ecuador</a>
                 <Link to="/contacto" className="text-slate-500 hover:text-primary decoration-none">Contacto y Soporte</Link>
                 <Link to="/nosotros" className="text-slate-500 hover:text-primary decoration-none">Sobre Nosotros</Link>
@@ -164,15 +164,15 @@ export default function LandingLayout() {
             {/* Tech Specs */}
             <div>
               <h4 className="text-xs font-black uppercase text-slate-800 tracking-wider mb-4">Tecnología</h4>
-              <p className="text-[11px] text-slate-400 leading-relaxed">
+              <p className="text-xs text-slate-400 leading-relaxed">
                 Infraestructura en la nube segura con firmas electrónicas en formato digital p12. 100% libre de instalaciones físicas.
               </p>
             </div>
           </div>
           
           <div className="border-t border-slate-100 pt-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs font-semibold">
-            <p className="text-[10px] text-slate-400">© 2026 WebFix. Todos los derechos reservados. Diseñado para emprendedores ecuatorianos.</p>
-            <div className="flex gap-4 text-[10px] text-slate-400">
+            <p className="text-xs text-slate-400">© 2026 WebFix. Todos los derechos reservados. Diseñado para emprendedores ecuatorianos.</p>
+            <div className="flex gap-4 text-xs text-slate-400">
               <a href="#terminos" className="hover:text-primary decoration-none">Términos y condiciones</a>
               <span>•</span>
               <a href="#privacidad" className="hover:text-primary decoration-none">Política de privacidad</a>

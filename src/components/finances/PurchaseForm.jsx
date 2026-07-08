@@ -271,9 +271,9 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
   };
 
   // Helpers
-  const inputClass = "w-full text-[12px] px-3 py-2 rounded-md border outline-none bg-white border-[#E6EBF1] text-black focus:border-[var(--primary-color)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--primary-color)_15%,transparent)] transition-all";
-  const labelClass = "block text-[11px] font-semibold mb-1.5 text-black";
-  const btnBase = "flex items-center gap-2 px-4 py-2.5 rounded-md text-[12px] font-medium transition-all";
+  const inputClass = "w-full text-sm px-3 py-2 rounded-md border outline-none bg-white border-border-default text-black focus:border-[var(--primary-color)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--primary-color)_15%,transparent)] transition-all";
+  const labelClass = "block text-xs font-semibold mb-1.5 text-black";
+  const btnBase = "flex items-center gap-2 px-4 py-2.5 rounded-md text-sm font-medium transition-all";
 
   const filteredSuppliers = thirdParties.filter(t =>
     supplierSearch ? (t.name?.toLowerCase().includes(supplierSearch.toLowerCase()) || t.ruc?.includes(supplierSearch)) : true
@@ -284,17 +284,17 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
   ).slice(0, 8);
 
   return (
-    <div className="fixed inset-0 z-[150] flex items-center justify-center p-2 sm:p-4 bg-black/50 backdrop-blur-sm" onClick={onClose}>
-      <div className="w-full max-w-2xl max-h-[95vh] bg-white rounded-lg shadow-2xl border border-[#E6EBF1] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 z-[150] flex items-center justify-center p-2 sm:p-4 bg-black/50" onClick={onClose}>
+      <div className="w-full max-w-2xl max-h-[95vh] bg-white rounded-lg border border-border-default flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
         
         {/* Header + Stepper */}
-        <div className="shrink-0 px-5 py-3 border-b border-[#E6EBF1] space-y-3">
+        <div className="shrink-0 px-5 py-3 border-b border-border-default space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-1.5 rounded-md bg-[color-mix(in_srgb,var(--primary-color)_10%,transparent)] text-[var(--primary-color)]">
                 <ShoppingBag size={16} />
               </div>
-              <h2 className="text-[14px] font-semibold text-black">
+              <h2 className="text-md font-semibold text-black">
                 {tx?.id ? 'Editar Compra' : 'Nueva Compra'}
               </h2>
             </div>
@@ -304,15 +304,15 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
           <div className="flex items-center gap-1.5">
             {[1, 2, 3].filter(s => s <= maxStep).map(s => (
               <React.Fragment key={s}>
-                <div className={`flex items-center gap-1.5 ${step >= s ? 'text-[var(--primary-color)]' : 'text-[#E6EBF1]'}`}>
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${step === s ? 'bg-[var(--primary-color)] text-white' : step > s ? 'bg-[var(--primary-color)] text-white' : 'bg-[#E6EBF1] text-[#333333]'}`}>
+                <div className={`flex items-center gap-1.5 ${step >= s ? 'text-[var(--primary-color)]' : 'text-text-secondary'}`}>
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${step === s ? 'bg-[var(--primary-color)] text-white' : step > s ? 'bg-[var(--primary-color)] text-white' : 'bg-surface-card text-text-primary'}`}>
                     {step > s ? <CheckCircle2 size={12} /> : s}
                   </div>
-                  <span className="text-[11px] font-medium hidden sm:inline">
+                  <span className="text-xs font-medium hidden sm:inline">
                     {s === 1 ? 'Datos' : s === 2 ? 'Productos' : 'Confirmar'}
                   </span>
                 </div>
-                {s < maxStep && <div className={`flex-1 h-0.5 rounded ${step > s ? 'bg-[var(--primary-color)]' : 'bg-[#E6EBF1]'}`} />}
+                {s < maxStep && <div className={`flex-1 h-0.5 rounded ${step > s ? 'bg-[var(--primary-color)]' : 'bg-surface-card'}`} />}
               </React.Fragment>
             ))}
           </div>
@@ -329,16 +329,16 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
                 <label className={labelClass}>Tipo de compra</label>
                 <div className="flex gap-2">
                   <button type="button" onClick={() => setForm(prev => ({ ...prev, purchaseType: 'con_inventario' }))}
-                    className={`flex-1 p-3 rounded-md border text-left transition-all ${form.purchaseType === 'con_inventario' ? 'border-[var(--primary-color)] bg-[color-mix(in_srgb,var(--primary-color)_6%,transparent)]' : 'border-[#E6EBF1] hover:bg-[#F6F9FC]'}`}>
+                    className={`flex-1 p-3 rounded-md border text-left transition-all ${form.purchaseType === 'con_inventario' ? 'border-[var(--primary-color)] bg-[color-mix(in_srgb,var(--primary-color)_6%,transparent)]' : 'border-border-default hover:bg-surface-bg'}`}>
                     <Package size={16} className="text-[var(--primary-color)] mb-1" />
-                    <div className="text-[12px] font-semibold text-black">Con Inventario</div>
-                    <div className="text-[10px] text-[#333333]">Controla stock y costos</div>
+                    <div className="text-sm font-semibold text-black">Con Inventario</div>
+                    <div className="text-xs text-text-primary">Controla stock y costos</div>
                   </button>
                   <button type="button" onClick={() => setForm(prev => ({ ...prev, purchaseType: 'sin_inventario' }))}
-                    className={`flex-1 p-3 rounded-md border text-left transition-all ${form.purchaseType === 'sin_inventario' ? 'border-[var(--primary-color)] bg-[color-mix(in_srgb,var(--primary-color)_6%,transparent)]' : 'border-[#E6EBF1] hover:bg-[#F6F9FC]'}`}>
-                    <FileText size={16} className="text-[#333333] mb-1" />
-                    <div className="text-[12px] font-semibold text-black">Sin Inventario</div>
-                    <div className="text-[10px] text-[#333333]">Solo registro contable</div>
+                    className={`flex-1 p-3 rounded-md border text-left transition-all ${form.purchaseType === 'sin_inventario' ? 'border-[var(--primary-color)] bg-[color-mix(in_srgb,var(--primary-color)_6%,transparent)]' : 'border-border-default hover:bg-surface-bg'}`}>
+                    <FileText size={16} className="text-text-primary mb-1" />
+                    <div className="text-sm font-semibold text-black">Sin Inventario</div>
+                    <div className="text-xs text-text-primary">Solo registro contable</div>
                   </button>
                 </div>
               </div>
@@ -353,7 +353,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
                     { id: 'liquidacion', label: 'Liq. Compras' }
                   ].map(dt => (
                     <button key={dt.id} type="button" onClick={() => setForm(prev => ({ ...prev, documentType: dt.id }))}
-                      className={`flex-1 py-2 rounded-md border text-[11px] font-medium transition-all ${form.documentType === dt.id ? 'border-[var(--primary-color)] bg-[color-mix(in_srgb,var(--primary-color)_8%,transparent)] text-[var(--primary-color)]' : 'border-[#E6EBF1] text-[#333333] hover:bg-[#F6F9FC]'}`}>
+                      className={`flex-1 py-2 rounded-md border text-xs font-medium transition-all ${form.documentType === dt.id ? 'border-[var(--primary-color)] bg-[color-mix(in_srgb,var(--primary-color)_8%,transparent)] text-[var(--primary-color)]' : 'border-border-default text-text-primary hover:bg-surface-bg'}`}>
                       {dt.label}
                     </button>
                   ))}
@@ -361,14 +361,14 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
               </div>
 
               {/* XML Import */}
-              <div className="p-3 rounded-md bg-[#F6F9FC] border border-dashed border-[#E6EBF1]">
+              <div className="p-3 rounded-md bg-surface-bg border border-dashed border-border-default">
                 <label className="flex items-center gap-3 cursor-pointer">
                   <div className="p-2 rounded-md bg-[color-mix(in_srgb,var(--primary-color)_10%,transparent)] text-[var(--primary-color)] shrink-0">
                     <Upload size={16} />
                   </div>
                   <div className="flex-1">
-                    <div className="text-[12px] font-semibold text-black">Importar XML del SRI</div>
-                    <div className="text-[10px] text-[#333333]">Carga la factura electronica y completa los datos automaticamente</div>
+                    <div className="text-sm font-semibold text-black">Importar XML del SRI</div>
+                    <div className="text-xs text-text-primary">Carga la factura electronica y completa los datos automaticamente</div>
                   </div>
                   <input type="file" accept=".xml" onChange={handleXmlUpload} className="hidden" />
                 </label>
@@ -378,34 +378,34 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
               <div>
                 <label className={labelClass}>Proveedor</label>
                 <div className="relative">
-                  <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#333333]" />
+                  <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-primary" />
                   <input value={form.supplierName || supplierSearch} onChange={e => { setSupplierSearch(e.target.value); setForm(prev => ({ ...prev, supplierName: e.target.value })); setShowSupplierResults(true); }} 
                     onFocus={() => setShowSupplierResults(true)} onBlur={() => setTimeout(() => setShowSupplierResults(false), 200)}
                     placeholder="Buscar proveedor..." className={`${inputClass} pl-8`} />
                   {showSupplierResults && filteredSuppliers.length > 0 && (
-                    <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-[#E6EBF1] rounded-md shadow-lg max-h-44 overflow-y-auto">
+                    <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-border-default rounded-md shadow-lg max-h-44 overflow-y-auto">
                       {filteredSuppliers.map(t => (
                         <button key={t.id} type="button" onMouseDown={() => { setForm(prev => ({ ...prev, supplierId: t.id, supplierName: t.name, supplierRuc: t.ruc || '' })); setShowSupplierResults(false); setSupplierSearch(''); }}
-                          className="w-full text-left px-3 py-2 text-[12px] hover:bg-[#F6F9FC] text-black">
+                          className="w-full text-left px-3 py-2 text-sm hover:bg-surface-bg text-black">
                           <div className="font-medium">{t.name}</div>
-                          {t.ruc && <div className="text-[10px] text-[#333333]">{t.ruc}</div>}
+                          {t.ruc && <div className="text-xs text-text-primary">{t.ruc}</div>}
                         </button>
                       ))}
                     </div>
                   )}
                 </div>
-                <button type="button" onClick={() => setQuickAddSupplier(!quickAddSupplier)} className="flex items-center gap-1 text-[11px] text-[var(--primary-color)] mt-1.5 font-medium">
+                <button type="button" onClick={() => setQuickAddSupplier(!quickAddSupplier)} className="flex items-center gap-1 text-xs text-[var(--primary-color)] mt-1.5 font-medium">
                   <UserPlus size={12} /> {quickAddSupplier ? 'Cancelar' : 'Crear nuevo proveedor'}
                 </button>
                 {quickAddSupplier && (
-                  <div className="mt-2 p-3 rounded-md border border-[#E6EBF1] space-y-2">
+                  <div className="mt-2 p-3 rounded-md border border-border-default space-y-2">
                     <div className="grid grid-cols-2 gap-2">
                       <input value={newSupplier.ruc} onChange={e => setNewSupplier(prev => ({ ...prev, ruc: e.target.value }))} placeholder="RUC *" className={inputClass} />
                       <input value={newSupplier.name} onChange={e => setNewSupplier(prev => ({ ...prev, name: e.target.value }))} placeholder="Nombre *" className={inputClass} />
                       <input value={newSupplier.email} onChange={e => setNewSupplier(prev => ({ ...prev, email: e.target.value }))} placeholder="Email" className={inputClass} />
                       <input value={newSupplier.phone} onChange={e => setNewSupplier(prev => ({ ...prev, phone: e.target.value }))} placeholder="Telefono" className={inputClass} />
                     </div>
-                    <button type="button" onClick={handleQuickAddSupplier} className="btn-primary text-[11px]">Crear Proveedor</button>
+                    <button type="button" onClick={handleQuickAddSupplier} className="btn-primary text-xs">Crear Proveedor</button>
                   </div>
                 )}
               </div>
@@ -439,29 +439,29 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
             <div className="space-y-4">
               {/* Product search */}
               <div className="relative">
-                <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#333333]" />
+                <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-primary" />
                 <input value={productSearch} onChange={e => { setProductSearch(e.target.value); setShowProductResults(true); }}
                   onFocus={() => setShowProductResults(true)} onBlur={() => setTimeout(() => setShowProductResults(false), 200)}
                   placeholder="Buscar producto por nombre o SKU..." className={`${inputClass} pl-8`} />
                 {showProductResults && filteredProducts.length > 0 && (
-                  <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-[#E6EBF1] rounded-md shadow-lg max-h-52 overflow-y-auto">
+                  <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-border-default rounded-md shadow-lg max-h-52 overflow-y-auto">
                     {filteredProducts.map(p => (
                       <button key={p.id} type="button" onMouseDown={() => handleAddProduct(p)}
-                        className="w-full text-left px-3 py-2 text-[12px] hover:bg-[#F6F9FC] text-black flex justify-between items-center">
-                        <div><span className="font-medium">{p.name}</span><span className="text-[10px] text-[#333333] ml-2">{p.sku}</span></div>
-                        <span className="text-[11px] font-mono text-[#333333]">${(p.cost || p.baseCost || 0).toFixed(2)}</span>
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-surface-bg text-black flex justify-between items-center">
+                        <div><span className="font-medium">{p.name}</span><span className="text-xs text-text-primary ml-2">{p.sku}</span></div>
+                        <span className="text-xs font-mono text-text-primary">${(p.cost || p.baseCost || 0).toFixed(2)}</span>
                       </button>
                     ))}
                   </div>
                 )}
               </div>
-              <button type="button" onClick={() => setShowCreateProduct(true)} className="flex items-center gap-1 text-[11px] text-[var(--primary-color)] font-medium">
+              <button type="button" onClick={() => setShowCreateProduct(true)} className="flex items-center gap-1 text-xs text-[var(--primary-color)] font-medium">
                 <Plus size={12} /> El producto no existe? Crear nuevo
               </button>
 
               {/* Create product modal */}
               {showCreateProduct && (
-                <div className="p-3 rounded-md border border-[#E6EBF1] bg-[#F6F9FC] space-y-2">
+                <div className="p-3 rounded-md border border-border-default bg-surface-bg space-y-2">
                   <div className="grid grid-cols-2 gap-2">
                     <input value={newProduct.name} onChange={e => setNewProduct(p => ({ ...p, name: e.target.value }))} placeholder="Nombre *" className={inputClass} />
                     <input value={newProduct.sku} onChange={e => setNewProduct(p => ({ ...p, sku: e.target.value }))} placeholder="SKU" className={inputClass} />
@@ -471,54 +471,54 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
                     <input value={newProduct.unit} onChange={e => setNewProduct(p => ({ ...p, unit: e.target.value }))} placeholder="Unidad" className={inputClass} />
                   </div>
                   <div className="flex gap-2">
-                    <button type="button" onClick={() => setShowCreateProduct(false)} className="btn-secondary text-[11px] flex-1">Cancelar</button>
-                    <button type="button" onClick={handleCreateProduct} className="btn-primary text-[11px] flex-1">Crear y Agregar</button>
+                    <button type="button" onClick={() => setShowCreateProduct(false)} className="btn-secondary text-xs flex-1">Cancelar</button>
+                    <button type="button" onClick={handleCreateProduct} className="btn-primary text-xs flex-1">Crear y Agregar</button>
                   </div>
                 </div>
               )}
 
               {/* Items table */}
               {form.items.length > 0 && (
-                <div className="overflow-x-auto rounded-md border border-[#E6EBF1]">
+                <div className="overflow-x-auto rounded-md border border-border-default">
                   <table className="w-full text-left">
                     <thead>
                       <tr>
-                        <th className="text-[10px] font-semibold text-black px-3 py-2">Producto</th>
-                        <th className="text-[10px] font-semibold text-black px-1 py-2 w-14 text-center">Cant</th>
-                        <th className="text-[10px] font-semibold text-black px-1 py-2 w-20 text-right">Costo U.</th>
-                        <th className="text-[10px] font-semibold text-black px-1 py-2 w-16 text-right">Desc</th>
-                        <th className="text-[10px] font-semibold text-black px-1 py-2 w-20 text-right">Subtotal</th>
-                        <th className="text-[10px] font-semibold text-black px-1 py-2 w-8"></th>
+                        <th className="text-xs font-semibold text-black px-3 py-2">Producto</th>
+                        <th className="text-xs font-semibold text-black px-1 py-2 w-14 text-center">Cant</th>
+                        <th className="text-xs font-semibold text-black px-1 py-2 w-20 text-right">Costo U.</th>
+                        <th className="text-xs font-semibold text-black px-1 py-2 w-16 text-right">Desc</th>
+                        <th className="text-xs font-semibold text-black px-1 py-2 w-20 text-right">Subtotal</th>
+                        <th className="text-xs font-semibold text-black px-1 py-2 w-8"></th>
                       </tr>
                     </thead>
                     <tbody>
                       {form.items.map((item, idx) => (
-                        <tr key={idx} className="border-t border-[#E6EBF1]">
+                        <tr key={idx} className="border-t border-border-default">
                           <td className="px-3 py-1.5">
-                            <div className="text-[12px] font-medium text-black">{item.name}</div>
-                            {item.sku && <div className="text-[9px] text-[#333333]">{item.sku}</div>}
+                            <div className="text-sm font-medium text-black">{item.name}</div>
+                            {item.sku && <div className="text-xs text-text-primary">{item.sku}</div>}
                             {costImpacts[item.productId] && !costImpacts[item.productId].isNew && (
-                              <div className={`text-[9px] mt-0.5 font-medium ${costImpacts[item.productId].delta > 0 ? 'text-[#8B5A0B]' : 'text-[#0E6245]'}`}>
+                              <div className={`text-xs mt-0.5 font-medium ${costImpacts[item.productId].delta > 0 ? 'text-text-secondary' : 'text-text-secondary'}`}>
                                 Costo actual: ${costImpacts[item.productId].currentCost.toFixed(2)} → Promedio: ${costImpacts[item.productId].newAvg.toFixed(2)} ({costImpacts[item.productId].delta > 0 ? '+' : ''}{costImpacts[item.productId].delta.toFixed(1)}%)
                               </div>
                             )}
                             {costImpacts[item.productId]?.isNew && (
-                              <div className="text-[9px] mt-0.5 text-[#1E3A8A] font-medium">Nuevo producto - costo inicial: ${costImpacts[item.productId].newAvg.toFixed(2)}</div>
+                              <div className="text-xs mt-0.5 text-text-secondary font-medium">Nuevo producto - costo inicial: ${costImpacts[item.productId].newAvg.toFixed(2)}</div>
                             )}
                           </td>
                           <td className="px-1 py-1.5">
                             <input type="number" min="1" value={item.quantity} onChange={e => handleItemChange(idx, 'quantity', e.target.value)}
-                              className="w-14 text-center text-[12px] px-1 py-1 rounded border border-[#E6EBF1] text-black" />
+                              className="w-14 text-center text-sm px-1 py-1 rounded border border-border-default text-black" />
                           </td>
                           <td className="px-1 py-1.5">
                             <input type="number" min="0" step="0.01" value={item.price} onChange={e => handleItemChange(idx, 'price', e.target.value)}
-                              className="w-18 text-right text-[12px] px-1 py-1 rounded border border-[#E6EBF1] text-black" />
+                              className="w-18 text-right text-sm px-1 py-1 rounded border border-border-default text-black" />
                           </td>
                           <td className="px-1 py-1.5">
                             <input type="number" min="0" step="0.01" value={item.discount} onChange={e => handleItemChange(idx, 'discount', e.target.value)}
-                              className="w-14 text-right text-[12px] px-1 py-1 rounded border border-[#E6EBF1] text-black" />
+                              className="w-14 text-right text-sm px-1 py-1 rounded border border-border-default text-black" />
                           </td>
-                          <td className="px-1 py-1.5 text-right font-mono text-[12px] font-bold text-black">${(item.subtotal || 0).toFixed(2)}</td>
+                          <td className="px-1 py-1.5 text-right font-mono text-sm font-bold text-black">${(item.subtotal || 0).toFixed(2)}</td>
                           <td className="px-1 py-1.5 text-center">
                             <button type="button" onClick={() => handleRemoveItem(idx)} className="btn-icon text-red-500"><X size={12} /></button>
                           </td>
@@ -531,12 +531,12 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
 
               {/* Summary */}
               {form.items.length > 0 && (
-                <div className="flex justify-end gap-4 text-[11px] pt-2 border-t border-[#E6EBF1] flex-wrap">
+                <div className="flex justify-end gap-4 text-xs pt-2 border-t border-border-default flex-wrap">
                   <div>Base: <span className="font-bold text-black">${form.baseImponible.toFixed(2)}</span></div>
                   {form.iva5 > 0 && <div>IVA 5%: <span className="font-bold text-black">${form.iva5.toFixed(2)}</span></div>}
                   {form.iva12 > 0 && <div>IVA 12%: <span className="font-bold text-black">${form.iva12.toFixed(2)}</span></div>}
                   {form.iva15 > 0 && <div>IVA 15%: <span className="font-bold text-black">${form.iva15.toFixed(2)}</span></div>}
-                  <div>Total: <span className="font-bold text-[14px] text-black">${form.total.toFixed(2)}</span></div>
+                  <div>Total: <span className="font-bold text-md text-black">${form.total.toFixed(2)}</span></div>
                 </div>
               )}
             </div>
@@ -545,43 +545,43 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
           {/* ===== STEP 2/3: CONFIRMACION ===== */}
           {(step === maxStep) && (
             <div className="space-y-4">
-              <div className="p-4 rounded-md border border-[#E6EBF1] bg-white space-y-2 text-[12px]">
-                <h3 className="font-semibold text-black text-[13px] mb-2">Resumen de la compra</h3>
+              <div className="p-4 rounded-md border border-border-default bg-white space-y-2 text-sm">
+                <h3 className="font-semibold text-black text-base mb-2">Resumen de la compra</h3>
                 
                 <div className="grid grid-cols-2 gap-1">
-                  <div className="text-[#333333]">Tipo:</div>
+                  <div className="text-text-primary">Tipo:</div>
                   <div className="font-medium text-black">{form.purchaseType === 'con_inventario' ? 'Con movimiento de inventario' : 'Sin movimiento de inventario'}</div>
-                  <div className="text-[#333333]">Documento:</div>
+                  <div className="text-text-primary">Documento:</div>
                   <div className="font-medium text-black">{form.documentType === 'factura' ? 'Factura SRI' : form.documentType === 'nota_venta' ? 'Recibo / Nota Venta' : 'Liq. Compras'}</div>
-                  {form.supplierName && <><div className="text-[#333333]">Proveedor:</div><div className="font-medium text-black">{form.supplierName} {form.supplierRuc && `(${form.supplierRuc})`}</div></>}
-                  {form.documentNumber && <><div className="text-[#333333]">Nro Doc:</div><div className="font-medium text-black">{form.documentNumber}</div></>}
-                  <div className="text-[#333333]">Fecha:</div><div className="font-medium text-black">{form.date}</div>
-                  <div className="text-[#333333]">Bodega:</div><div className="font-medium text-black">{form.bodega}</div>
+                  {form.supplierName && <><div className="text-text-primary">Proveedor:</div><div className="font-medium text-black">{form.supplierName} {form.supplierRuc && `(${form.supplierRuc})`}</div></>}
+                  {form.documentNumber && <><div className="text-text-primary">Nro Doc:</div><div className="font-medium text-black">{form.documentNumber}</div></>}
+                  <div className="text-text-primary">Fecha:</div><div className="font-medium text-black">{form.date}</div>
+                  <div className="text-text-primary">Bodega:</div><div className="font-medium text-black">{form.bodega}</div>
                 </div>
 
                 {form.purchaseType === 'con_inventario' && form.items.length > 0 && (
                   <>
-                    <div className="border-t border-[#E6EBF1] pt-2 mt-2">
-                      <div className="font-semibold text-black text-[11px] mb-1">Productos ({form.items.length})</div>
+                    <div className="border-t border-border-default pt-2 mt-2">
+                      <div className="font-semibold text-black text-xs mb-1">Productos ({form.items.length})</div>
                       {form.items.map((item, i) => (
-                        <div key={i} className="flex justify-between text-[11px]">
+                        <div key={i} className="flex justify-between text-xs">
                           <span>{item.quantity}x {item.name}</span>
                           <span className="font-mono">${(item.subtotal || 0).toFixed(2)}</span>
                         </div>
                       ))}
                     </div>
-                    <div className="border-t border-[#E6EBF1] pt-2 space-y-0.5">
+                    <div className="border-t border-border-default pt-2 space-y-0.5">
                       <div className="flex justify-between"><span>Base imponible:</span><span className="font-mono font-bold">${form.baseImponible.toFixed(2)}</span></div>
-                      {form.iva5 > 0 && <div className="flex justify-between"><span>IVA 5%:</span><span className="font-mono font-bold text-[#8B5A0B]">${form.iva5.toFixed(2)}</span></div>}
-                      {form.iva12 > 0 && <div className="flex justify-between"><span>IVA 12%:</span><span className="font-mono font-bold text-[#1E3A8A]">${form.iva12.toFixed(2)}</span></div>}
+                      {form.iva5 > 0 && <div className="flex justify-between"><span>IVA 5%:</span><span className="font-mono font-bold text-text-secondary">${form.iva5.toFixed(2)}</span></div>}
+                      {form.iva12 > 0 && <div className="flex justify-between"><span>IVA 12%:</span><span className="font-mono font-bold text-text-secondary">${form.iva12.toFixed(2)}</span></div>}
                       {form.iva15 > 0 && <div className="flex justify-between"><span>IVA 15%:</span><span className="font-mono font-bold">${form.iva15.toFixed(2)}</span></div>}
-                      <div className="flex justify-between text-[14px] pt-1"><span className="font-semibold">TOTAL:</span><span className="font-bold">${form.total.toFixed(2)}</span></div>
+                      <div className="flex justify-between text-md pt-1"><span className="font-semibold">TOTAL:</span><span className="font-bold">${form.total.toFixed(2)}</span></div>
                     </div>
                   </>
                 )}
 
                 {form.purchaseType === 'sin_inventario' && (
-                  <div className="border-t border-[#E6EBF1] pt-2">
+                  <div className="border-t border-border-default pt-2">
                     <div className={labelClass}>Descripcion / Concepto del gasto</div>
                     <textarea value={form.description} onChange={e => setForm(prev => ({ ...prev, description: e.target.value }))} rows={2}
                       className={inputClass} placeholder="Ej: Pago de servicio de internet, compra de suministros..." />
@@ -625,7 +625,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
         </div>
 
         {/* Footer buttons */}
-        <div className="shrink-0 px-5 py-3 border-t border-[#E6EBF1] flex justify-between">
+        <div className="shrink-0 px-5 py-3 border-t border-border-default flex justify-between">
           <div>
             {step > 1 && (
               <button type="button" onClick={() => setStep(step - 1)} className="btn-secondary"><ChevronLeft size={14} /> Anterior</button>

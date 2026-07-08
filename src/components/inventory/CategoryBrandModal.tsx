@@ -120,9 +120,9 @@ export default function CategoryBrandModal({ onClose, onChanged }: CategoryBrand
   const labelClass = `block text-xs font-semibold mb-1 uppercase tracking-wider text-gray-500`;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 backdrop-blur-xl bg-black/40 animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-black/40 animate-in fade-in duration-300">
       <div 
-        className={`w-full max-w-4xl h-[80vh] flex flex-col rounded-3xl shadow-2xl border overflow-hidden bg-white/95 border-white/40`}
+        className={`w-full max-w-4xl h-[80vh] flex flex-col rounded-card border overflow-hidden bg-white/95 border-white/40`}
       >
         {/* Header */}
         <div className={`modal-header-std modal-header-std-dark border-gray-100 bg-white/80`}>

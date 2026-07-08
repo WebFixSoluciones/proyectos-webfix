@@ -111,7 +111,7 @@ Gracias por su compra`;
 
   const currentExpenses = transactions.filter(t => t.type === 'egreso' && t.id.includes('gasto'));
 
-  const inputClass = 'w-full text-xs px-3 py-2 rounded-xl outline-none transition-all border bg-white border-[#E6EBF1] text-[#0A2540] focus:border-primary focus:ring-1 focus:ring-primary/35';
+  const inputClass = 'w-full text-xs px-3 py-2 rounded-xl outline-none transition-all border bg-white border-border-default text-text-primary focus:border-primary focus:ring-1 focus:ring-primary/35';
 
   return (
     <div className="space-y-6">
@@ -120,16 +120,16 @@ Gracias por su compra`;
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         {/* ENTRADA DE TEXTO */}
-        <div className="p-6 rounded-3xl border space-y-4 bg-white border-[#E6EBF1]">
+        <div className="p-6 rounded-card border space-y-4 bg-white border-border-default">
           <div>
             <h3 className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
               <Sparkles size={16} className="text-amber-500 animate-pulse" />
               <span>Categorizador de Gastos con Inteligencia Artificial</span>
             </h3>
-            <p className="text-[10px] text-[#697386] mt-1">Pegue el texto copiado de un correo de facturación o el texto extraído de un ticket y Gemini identificará los montos, proveedor y tipo de gasto contable.</p>
+            <p className="text-xs text-text-muted mt-1">Pegue el texto copiado de un correo de facturación o el texto extraído de un ticket y Gemini identificará los montos, proveedor y tipo de gasto contable.</p>
           </div>
 
-          <div className="flex gap-2 text-[10px] font-bold">
+          <div className="flex gap-2 text-xs font-bold">
             <button
               onClick={() => setPastedText(MOCK_CNT_TEXT)}
               className="px-3 py-1 rounded-lg bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 transition-all flex items-center gap-1"
@@ -151,7 +151,7 @@ Gracias por su compra`;
             onChange={e => setPastedText(e.target.value)}
             placeholder="Pegue aquí el texto de su factura..."
             rows={8}
-            className="w-full text-xs p-4 rounded-2xl outline-none border transition-all bg-[#F6F9FC] border-[#E6EBF1] text-[#0A2540] focus:bg-white focus:border-primary"
+            className="w-full text-xs p-4 rounded-card outline-none border transition-all bg-surface-bg border-border-default text-text-primary focus:bg-white focus:border-primary"
           />
 
           <button
@@ -165,7 +165,7 @@ Gracias por su compra`;
         </div>
 
         {/* RESULTADO DEL ANÁLISIS */}
-        <div className="p-6 rounded-3xl border flex flex-col justify-between bg-white border-[#E6EBF1]">
+        <div className="p-6 rounded-card border flex flex-col justify-between bg-white border-border-default">
           {parsedData ? (
             <form onSubmit={handleSaveGasto} className="space-y-4 h-full flex flex-col justify-between">
               <div>
@@ -272,7 +272,7 @@ Gracias por su compra`;
             <div className="h-full flex flex-col items-center justify-center text-center p-6 text-gray-500">
               <Sparkles size={32} className="text-gray-400 mb-2 animate-bounce" />
               <p className="text-xs font-semibold">Esperando análisis...</p>
-              <p className="text-[10px] text-gray-600 mt-1">Pegue los datos en el recuadro de la izquierda y presione "Analizar Gasto con IA".</p>
+              <p className="text-xs text-gray-600 mt-1">Pegue los datos en el recuadro de la izquierda y presione "Analizar Gasto con IA".</p>
             </div>
           )}
         </div>
@@ -280,13 +280,13 @@ Gracias por su compra`;
       </div>
 
       {/* HISTORIAL RECIENTE GASTOS IA */}
-      <div className="rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm border-slate-200/80 bg-white">
+      <div className="rounded-card border overflow-hidden transition-all border-slate-200/80 bg-white">
         <div className="p-6 pb-2 border-b border-dashed border-white/5">
           <h3 className="text-xs font-bold uppercase tracking-wider text-black">Últimos Gastos Registrados con IA</h3>
         </div>
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left text-xs whitespace-nowrap">
-            <thead className="text-[10px] uppercase font-bold tracking-wider bg-slate-50 text-slate-600 border-b border-slate-100">
+            <thead className="text-xs uppercase font-bold tracking-wider bg-slate-50 text-slate-600 border-b border-slate-100">
               <tr>
                 <th className="px-6 py-3.5">Fecha</th>
                 <th className="px-6 py-3.5">Proveedor / RUC</th>
@@ -303,7 +303,7 @@ Gracias por su compra`;
                 <tr key={tx.id} className="transition-colors hover:bg-slate-50/40">
                   <td className="px-6 py-3.5 text-gray-400 font-medium">{tx.date}</td>
                   <td className="px-6 py-3.5 font-semibold text-black">{tx.description}</td>
-                  <td className="px-6 py-3.5 font-mono text-[10px]">{tx.documentNumber}</td>
+                  <td className="px-6 py-3.5 font-mono text-xs">{tx.documentNumber}</td>
                   <td className="px-6 py-3.5 capitalize text-gray-500 font-medium">{String(tx.category || '').replace('_', ' ')}</td>
                   <td className="px-6 py-3.5 text-right font-mono">${(Number(tx.baseImponible) || 0).toFixed(2)}</td>
                   <td className="px-6 py-3.5 text-right font-mono">${(Number(tx.ivaValor) || 0).toFixed(2)}</td>

@@ -574,19 +574,19 @@ export default function SuperAdminPage({ showToast }) {
   ];
 
   return (
-    <div className={`flex h-screen overflow-hidden font-sans ${'bg-[#f4f4f9] text-gray-800'}`}>
+    <div className={`flex h-screen overflow-hidden font-sans ${'bg-surface-card text-gray-800'}`}>
       
       {/* Sidebar Overlay on Mobile */}
       {isSidebarOpen && (
         <div 
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 md:hidden transition-opacity duration-300" 
+          className="fixed inset-0 bg-black/40 z-40 md:hidden transition-opacity duration-300" 
           onClick={() => setIsSidebarOpen(false)} 
         />
       )}
 
       {/* COLLAPSIBLE SIDEBAR */}
       <aside 
-        className={`flex flex-col border-r shrink-0 transition-all duration-300 z-50 backdrop-blur-3xl absolute md:relative h-full ${
+        className={`flex flex-col border-r shrink-0 transition-all duration-300 z-50 absolute md:relative h-full ${
           isSidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0 w-0 hidden md:flex md:w-16'
         } ${'bg-white/95 border-primary/10'}`}
       >
@@ -594,13 +594,13 @@ export default function SuperAdminPage({ showToast }) {
         <div className={`h-16 flex items-center ${isSidebarOpen ? 'justify-between px-5' : 'justify-center'} border-b ${'border-black/5'} shrink-0 overflow-hidden`}>
           {isSidebarOpen ? (
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-[10px] bg-primary flex items-center justify-center">
+              <div className="w-8 h-8 rounded-card bg-primary flex items-center justify-center">
                 <Settings size={16} className="text-white" />
               </div>
               <span className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Master Admin</span>
             </div>
           ) : (
-            <div className="w-8 h-8 rounded-[10px] bg-primary flex items-center justify-center">
+            <div className="w-8 h-8 rounded-card bg-primary flex items-center justify-center">
               <Settings size={16} className="text-white" />
             </div>
           )}
@@ -621,7 +621,7 @@ export default function SuperAdminPage({ showToast }) {
                 }}
                 className={`w-full flex items-center ${isSidebarOpen ? 'justify-between px-3' : 'justify-center'} py-2.5 rounded-lg text-xs transition-all ${
                   isActive 
-                    ? 'bg-[#1C40F2] text-white font-bold' 
+                    ? 'bg-surface-card text-white font-bold' 
                     : ('text-gray-600 hover:bg-slate-100 hover:text-black')
                 }`}
                 title={link.label}
@@ -631,7 +631,7 @@ export default function SuperAdminPage({ showToast }) {
                   {isSidebarOpen && <span>{link.label}</span>}
                 </div>
                 {isSidebarOpen && link.count > 0 && (
-                  <span className="px-1.5 py-0.5 rounded-full bg-red-500 text-white text-[9px] font-black">{link.count}</span>
+                  <span className="px-1.5 py-0.5 rounded-full bg-red-500 text-white text-xs font-black">{link.count}</span>
                 )}
               </button>
             );
@@ -676,11 +676,11 @@ export default function SuperAdminPage({ showToast }) {
             >
               <Menu size={18} />
             </button>
-            <span className="text-xs font-black uppercase tracking-widest text-[#1C40F2]">Consola SaaS Master Admin</span>
+            <span className="text-xs font-black uppercase tracking-widest text-text-secondary">Consola SaaS Master Admin</span>
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[10px] font-black uppercase">
+            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-xs font-black uppercase">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
               Sistemas OK
             </div>
@@ -695,56 +695,56 @@ export default function SuperAdminPage({ showToast }) {
             <div className="space-y-8">
               {/* Stats Widgets */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className={`p-6 rounded-2xl border ${'bg-white border-black/5'}`}>
+                <div className={`p-6 rounded-card border ${'bg-white border-black/5'}`}>
                   <div className="flex items-center justify-between mb-4">
                     <span className="text-xs font-bold text-gray-500">Empresas Activas</span>
                     <Building className="text-blue-500" size={18} />
                   </div>
                   <div className="text-2xl font-black">{activeTenantsCount}</div>
-                  <span className="text-[10px] text-gray-500">De {tenants.length} registradas</span>
+                  <span className="text-xs text-gray-500">De {tenants.length} registradas</span>
                 </div>
 
-                <div className={`p-6 rounded-2xl border ${'bg-white border-black/5'}`}>
+                <div className={`p-6 rounded-card border ${'bg-white border-black/5'}`}>
                   <div className="flex items-center justify-between mb-4">
                     <span className="text-xs font-bold text-gray-500">Cobros Pendientes</span>
                     <CreditCard className="text-orange-500" size={18} />
                   </div>
                   <div className="text-2xl font-black text-orange-500">{pendingTransfers.length}</div>
-                  <span className="text-[10px] text-gray-500">Por transferencia bancaria</span>
+                  <span className="text-xs text-gray-500">Por transferencia bancaria</span>
                 </div>
 
-                <div className={`p-6 rounded-2xl border ${'bg-white border-black/5'}`}>
+                <div className={`p-6 rounded-card border ${'bg-white border-black/5'}`}>
                   <div className="flex items-center justify-between mb-4">
                     <span className="text-xs font-bold text-gray-500">MRR Estimado</span>
                     <DollarSign className="text-emerald-500" size={18} />
                   </div>
                   <div className="text-2xl font-black text-emerald-500">${mrr.toFixed(2)}</div>
-                  <span className="text-[10px] text-gray-500">Suscripciones activas</span>
+                  <span className="text-xs text-gray-500">Suscripciones activas</span>
                 </div>
 
-                <div className={`p-6 rounded-2xl border ${'bg-white border-black/5'}`}>
+                <div className={`p-6 rounded-card border ${'bg-white border-black/5'}`}>
                   <div className="flex items-center justify-between mb-4">
                     <span className="text-xs font-bold text-gray-500">Estado del Sistema</span>
                     <Activity className="text-indigo-500" size={18} />
                   </div>
                   <div className="text-2xl font-black">Online</div>
-                  <span className="text-[10px] text-gray-500">Servidores operativos</span>
+                  <span className="text-xs text-gray-500">Servidores operativos</span>
                 </div>
               </div>
 
               {/* Dashboard details */}
               <div className="grid lg:grid-cols-2 gap-6">
                 {/* Recientes */}
-                <div className={`p-6 rounded-2xl border ${'bg-white border-slate-200'} space-y-4`}>
+                <div className={`p-6 rounded-card border ${'bg-white border-slate-200'} space-y-4`}>
                   <h3 className="text-xs font-black uppercase tracking-wider text-gray-500">Últimos Clientes Registrados</h3>
                   <div className="divide-y divide-slate-200/50 dark:divide-white/5">
                     {tenants.slice(0, 5).map((t, idx) => (
                       <div key={idx} className="py-3 flex justify-between items-center text-xs">
                         <div>
                           <p className="font-bold">{t.companyName || 'Empresa'}</p>
-                          <p className="text-[10px] text-gray-400 font-mono">{t.id}</p>
+                          <p className="text-xs text-gray-400 font-mono">{t.id}</p>
                         </div>
-                        <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${
+                        <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase ${
                           t.planStatus === 'active' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'
                         }`}>
                           {t.planId}
@@ -755,7 +755,7 @@ export default function SuperAdminPage({ showToast }) {
                 </div>
 
                 {/* Cobros pendientes rápidos */}
-                <div className={`p-6 rounded-2xl border ${'bg-white border-slate-200'} space-y-4`}>
+                <div className={`p-6 rounded-card border ${'bg-white border-slate-200'} space-y-4`}>
                   <h3 className="text-xs font-black uppercase tracking-wider text-gray-500">Transferencias en Espera</h3>
                   {pendingTransfers.length === 0 ? (
                     <p className="text-xs text-gray-500 italic py-4">No hay transferencias pendientes de verificación.</p>
@@ -765,7 +765,7 @@ export default function SuperAdminPage({ showToast }) {
                         <div key={idx} className="py-3 flex justify-between items-center text-xs">
                           <div>
                             <p className="font-bold">{tr.companyName}</p>
-                            <p className="text-[10px] text-gray-400 font-mono">Ref: {tr.referenceNumber}</p>
+                            <p className="text-xs text-gray-400 font-mono">Ref: {tr.referenceNumber}</p>
                           </div>
                           <span className="font-black text-emerald-500 font-mono">${tr.amount}</span>
                         </div>
@@ -797,16 +797,16 @@ export default function SuperAdminPage({ showToast }) {
                     
                     <button 
                       onClick={() => setViewMode('create')}
-                      className="px-4 py-2.5 bg-primary hover:bg-[#1633c1] text-white text-xs font-bold rounded-lg flex items-center gap-1.5 transition-colors self-end sm:self-auto"
+                      className="px-4 py-2.5 bg-primary hover:bg-surface-card text-white text-xs font-bold rounded-lg flex items-center gap-1.5 transition-colors self-end sm:self-auto"
                     >
                       <Plus size={14} /> Agregar Empresa
                     </button>
                   </div>
 
-                  <div className={`overflow-x-auto rounded-2xl border ${'bg-white border-slate-200'}`}>
+                  <div className={`overflow-x-auto rounded-card border ${'bg-white border-slate-200'}`}>
                     <table className="w-full text-left border-collapse">
                       <thead>
-                        <tr className={`border-b text-[10px] font-bold uppercase tracking-wider text-gray-500 ${'border-slate-100 bg-slate-50'}`}>
+                        <tr className={`border-b text-xs font-bold uppercase tracking-wider text-gray-500 ${'border-slate-100 bg-slate-50'}`}>
                           <th className="px-6 py-4">Empresa</th>
                           <th className="px-6 py-4">Inquilino ID</th>
                           <th className="px-6 py-4">Plan</th>
@@ -827,7 +827,7 @@ export default function SuperAdminPage({ showToast }) {
                               <td className="px-6 py-4 font-mono text-gray-500">{tenant.id}</td>
                               <td className="px-6 py-4 capitalize">{tenant.planId} ({tenant.billingPeriod || 'mensual'})</td>
                               <td className="px-6 py-4">
-                                <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase ${
+                                <span className={`px-2.5 py-1 rounded-full text-xs font-black uppercase ${
                                   tenant.planStatus === 'active' ? 'bg-emerald-500/15 text-emerald-500' :
                                   tenant.planStatus === 'trial' ? 'bg-blue-500/15 text-blue-500' :
                                   tenant.planStatus === 'pending_approval' ? 'bg-orange-500/15 text-orange-500 animate-pulse' :
@@ -842,7 +842,7 @@ export default function SuperAdminPage({ showToast }) {
                               <td className="px-6 py-4 text-right">
                                 <button 
                                   onClick={() => handleSelectTenant(tenant)} 
-                                  className="p-1.5 rounded-lg bg-[#1C40F2]/10 text-primary dark:text-white hover:bg-[#1C40F2] hover:text-white transition-colors"
+                                  className="p-1.5 rounded-lg bg-surface-card/10 text-primary dark:text-white hover:bg-surface-card hover:text-white transition-colors"
                                   title="Ver Detalles y Editar"
                                 >
                                   <Edit3 size={14} />
@@ -872,14 +872,14 @@ export default function SuperAdminPage({ showToast }) {
                     </button>
                     <div>
                       <h2 className="text-base font-black text-black dark:text-white">Empresa: {selectedTenantDetails.companyName}</h2>
-                      <p className="text-[10px] font-mono text-gray-500">Inquilino ID: {selectedTenantDetails.id}</p>
+                      <p className="text-xs font-mono text-gray-500">Inquilino ID: {selectedTenantDetails.id}</p>
                     </div>
                   </div>
 
                   <div className="grid lg:grid-cols-12 gap-8 items-start">
                     
                     {/* Left Column: Edit subscription form */}
-                    <div className={`lg:col-span-5 p-6 rounded-2xl border ${'bg-white border-slate-200'} space-y-4`}>
+                    <div className={`lg:col-span-5 p-6 rounded-card border ${'bg-white border-slate-200'} space-y-4`}>
                       <h3 className="text-xs font-black uppercase tracking-wider text-primary">Configuración de Suscripción</h3>
                       
                       <form onSubmit={handleUpdateSubscription} className="space-y-4 text-xs">
@@ -929,7 +929,7 @@ export default function SuperAdminPage({ showToast }) {
                           </button>
                           <button 
                             type="submit" 
-                            className="px-4 py-2.5 rounded-lg bg-primary hover:bg-[#1633c1] text-white font-bold transition-colors"
+                            className="px-4 py-2.5 rounded-lg bg-primary hover:bg-surface-card text-white font-bold transition-colors"
                           >
                             Guardar Cambios
                           </button>
@@ -941,7 +941,7 @@ export default function SuperAdminPage({ showToast }) {
                     <div className="lg:col-span-7 space-y-6">
                       
                       {/* Consumption stats */}
-                      <div className={`p-6 rounded-2xl border ${'bg-white border-slate-200'} space-y-4`}>
+                      <div className={`p-6 rounded-card border ${'bg-white border-slate-200'} space-y-4`}>
                         <h3 className="text-xs font-black uppercase tracking-wider text-gray-500">Métricas de Consumo ERP</h3>
                         
                         {loadingTenantDetails ? (
@@ -994,7 +994,7 @@ export default function SuperAdminPage({ showToast }) {
                       </div>
 
                       {/* Accounts table ("Cuentas de cada cliente") */}
-                      <div className={`p-6 rounded-2xl border ${'bg-white border-slate-200'} space-y-4`}>
+                      <div className={`p-6 rounded-card border ${'bg-white border-slate-200'} space-y-4`}>
                         <h3 className="text-xs font-black uppercase tracking-wider text-gray-500">Cuentas de Usuarios Registradas</h3>
                         
                         {loadingTenantDetails ? (
@@ -1005,7 +1005,7 @@ export default function SuperAdminPage({ showToast }) {
                           <div className="border border-slate-200/50 dark:border-white/5 rounded-xl overflow-hidden text-xs">
                             <table className="w-full text-left border-collapse">
                               <thead>
-                                <tr className="bg-slate-100 dark:bg-white/5 border-b border-slate-200/50 dark:border-white/5 text-[9px] font-bold uppercase tracking-wider text-gray-500">
+                                <tr className="bg-slate-100 dark:bg-white/5 border-b border-slate-200/50 dark:border-white/5 text-xs font-bold uppercase tracking-wider text-gray-500">
                                   <th className="px-4 py-3">Nombre / Email</th>
                                   <th className="px-4 py-3">Rol</th>
                                   <th className="px-4 py-3">Acceso</th>
@@ -1016,13 +1016,13 @@ export default function SuperAdminPage({ showToast }) {
                                   <tr key={idx} className="hover:bg-slate-500/5 transition-colors">
                                     <td className="px-4 py-3">
                                       <div className="font-bold">{user.name}</div>
-                                      <div className="text-[10px] text-gray-400 font-mono">{user.email}</div>
+                                      <div className="text-xs text-gray-400 font-mono">{user.email}</div>
                                     </td>
                                     <td className="px-4 py-3 capitalize font-semibold text-gray-700 dark:text-gray-300">
                                       {user.role || 'Colaborador'}
                                     </td>
                                     <td className="px-4 py-3">
-                                      <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${user.active !== false ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
+                                      <span className={`px-1.5 py-0.5 rounded text-xs font-bold ${user.active !== false ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
                                         {user.active !== false ? 'Activo' : 'Inactivo'}
                                       </span>
                                     </td>
@@ -1039,14 +1039,14 @@ export default function SuperAdminPage({ showToast }) {
                   </div>
 
                   {/* GOD MODE SECTION (Bottom full width) */}
-                  <div className={`mt-8 p-6 rounded-2xl border ${'bg-red-50/80 border-red-200'} space-y-6`}>
+                  <div className={`mt-8 p-6 rounded-card border ${'bg-red-50/80 border-red-200'} space-y-6`}>
                     <div className="flex items-center gap-3">
                       <div className="p-2 rounded-lg bg-red-500/10 text-red-500">
                         <ShieldAlert size={24} />
                       </div>
                       <div>
                         <h3 className="text-sm font-black uppercase tracking-wider text-red-500">God Mode: Herramientas Avanzadas y Mitigación</h3>
-                        <p className="text-[10px] text-gray-500 dark:text-gray-400">Peligro: Estas herramientas modifican directamente la base de datos saltándose las reglas del ERP.</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Peligro: Estas herramientas modifican directamente la base de datos saltándose las reglas del ERP.</p>
                       </div>
                     </div>
 
@@ -1074,7 +1074,7 @@ export default function SuperAdminPage({ showToast }) {
                       <div className="flex flex-col sm:flex-row gap-4 items-center justify-between mb-4">
                         <h4 className="text-xs font-bold uppercase text-gray-600 dark:text-gray-300">Explorador de Datos Crudos</h4>
                         <div className="flex items-center gap-2">
-                          <label className="text-[10px] font-bold text-gray-500 uppercase">Colección:</label>
+                          <label className="text-xs font-bold text-gray-500 uppercase">Colección:</label>
                           <select 
                             value={godModeCollection}
                             onChange={(e) => setGodModeCollection(e.target.value)}
@@ -1098,7 +1098,7 @@ export default function SuperAdminPage({ showToast }) {
                       ) : (
                         <div className="overflow-x-auto rounded-lg border border-slate-200/50 dark:border-white/5">
                           <table className="w-full text-left text-xs whitespace-nowrap">
-                            <thead className={`bg-slate-100 dark:bg-white/5 border-b border-slate-200/50 dark:border-white/5 text-[9px] font-bold uppercase tracking-wider text-gray-500`}>
+                            <thead className={`bg-slate-100 dark:bg-white/5 border-b border-slate-200/50 dark:border-white/5 text-xs font-bold uppercase tracking-wider text-gray-500`}>
                               <tr>
                                 <th className="px-4 py-3">ID Documento</th>
                                 <th className="px-4 py-3">Datos Clave (JSON Extract)</th>
@@ -1111,16 +1111,16 @@ export default function SuperAdminPage({ showToast }) {
                               ) : (
                                 godModeData.map(docData => (
                                   <tr key={docData.id} className="hover:bg-red-500/10 transition-colors">
-                                    <td className="px-4 py-3 font-mono text-[10px] text-gray-600 dark:text-gray-300 font-bold">{docData.id}</td>
+                                    <td className="px-4 py-3 font-mono text-xs text-gray-600 dark:text-gray-300 font-bold">{docData.id}</td>
                                     <td className="px-4 py-3">
-                                      <div className="max-w-xl truncate font-mono text-[9px] text-gray-500 bg-black/5 dark:bg-white/5 p-1 rounded">
+                                      <div className="max-w-xl truncate font-mono text-xs text-gray-500 bg-black/5 dark:bg-white/5 p-1 rounded">
                                         {JSON.stringify(docData).substring(0, 150)}...
                                       </div>
                                     </td>
                                     <td className="px-4 py-3 text-right">
                                       <button 
                                         onClick={() => handleDeleteGodModeDoc(docData.id)}
-                                        className="px-2.5 py-1.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded text-[9px] font-black uppercase transition-colors"
+                                        className="px-2.5 py-1.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded text-xs font-black uppercase transition-colors"
                                       >
                                         Forzar Borrado
                                       </button>
@@ -1131,7 +1131,7 @@ export default function SuperAdminPage({ showToast }) {
                             </tbody>
                           </table>
                           {godModeData.length === 150 && (
-                            <div className="p-2 text-center text-[9px] text-amber-500 font-bold bg-amber-500/10 border-t border-amber-500/20">Mostrando solo los 150 registros más recientes.</div>
+                            <div className="p-2 text-center text-xs text-amber-500 font-bold bg-amber-500/10 border-t border-amber-500/20">Mostrando solo los 150 registros más recientes.</div>
                           )}
                         </div>
                       )}
@@ -1156,7 +1156,7 @@ export default function SuperAdminPage({ showToast }) {
                     <h2 className="text-base font-black text-black dark:text-white">Agregar Nueva Empresa (Creación Manual)</h2>
                   </div>
 
-                  <div className={`max-w-2xl p-6 rounded-2xl border ${'bg-white border-slate-200'}`}>
+                  <div className={`max-w-2xl p-6 rounded-card border ${'bg-white border-slate-200'}`}>
                     <form onSubmit={handleCreateTenant} className="space-y-4 text-xs text-left">
                       
                       <div className="grid grid-cols-2 gap-4">
@@ -1247,7 +1247,7 @@ export default function SuperAdminPage({ showToast }) {
                         </div>
                       </div>
 
-                      <div className="p-3.5 rounded-xl border border-[#CAD1F4] dark:border-white/5 bg-slate-50 dark:bg-white/2 flex items-center gap-3">
+                      <div className="p-3.5 rounded-xl border border-border-default dark:border-white/5 bg-slate-50 dark:bg-white/2 flex items-center gap-3">
                         <input 
                           type="checkbox" 
                           id="sendResetEmail"
@@ -1271,7 +1271,7 @@ export default function SuperAdminPage({ showToast }) {
                         <button 
                           type="submit" 
                           disabled={isCreatingTenant}
-                          className="px-5 py-2.5 rounded-lg bg-primary hover:bg-[#1633c1] text-white font-bold flex items-center gap-2"
+                          className="px-5 py-2.5 rounded-lg bg-primary hover:bg-surface-card text-white font-bold flex items-center gap-2"
                         >
                           {isCreatingTenant ? 'Creando Empresa...' : 'Crear Inquilino y Enviar Correo'}
                         </button>
@@ -1287,10 +1287,10 @@ export default function SuperAdminPage({ showToast }) {
           {/* TAB 2: TRANSFERS APPROVAL */}
           {!loading && activeTab === 'transfers' && (
             <div className="space-y-6">
-              <div className={`overflow-x-auto rounded-2xl border ${'bg-white border-slate-200'}`}>
+              <div className={`overflow-x-auto rounded-card border ${'bg-white border-slate-200'}`}>
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className={`border-b text-[10px] font-bold uppercase tracking-wider text-gray-500 ${'border-slate-100 bg-slate-50'}`}>
+                    <tr className={`border-b text-xs font-bold uppercase tracking-wider text-gray-500 ${'border-slate-100 bg-slate-50'}`}>
                       <th className="px-6 py-4">Empresa (Tenant)</th>
                       <th className="px-6 py-4">Plan solicitado</th>
                       <th className="px-6 py-4">Monto</th>
@@ -1309,13 +1309,13 @@ export default function SuperAdminPage({ showToast }) {
                         <tr key={transfer.id} className="hover:bg-slate-100/10 dark:hover:bg-white/2 transition-colors">
                           <td className="px-6 py-4">
                             <div className="font-bold">{transfer.companyName || 'Empresa'}</div>
-                            <div className="text-[10px] font-mono text-gray-500">{transfer.tenantId}</div>
+                            <div className="text-xs font-mono text-gray-500">{transfer.tenantId}</div>
                           </td>
                           <td className="px-6 py-4 capitalize">{transfer.planId} ({transfer.billingPeriod})</td>
                           <td className="px-6 py-4 font-bold text-emerald-500">${transfer.amount || '0.00'}</td>
                           <td className="px-6 py-4 font-mono">{transfer.referenceNumber}</td>
                           <td className="px-6 py-4">
-                            <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase ${
+                            <span className={`px-2.5 py-1 rounded-full text-xs font-black uppercase ${
                               transfer.status === 'approved' ? 'bg-emerald-500/15 text-emerald-500' :
                               transfer.status === 'pending' ? 'bg-orange-500/15 text-orange-500 animate-pulse' :
                               'bg-red-500/15 text-red-500'
@@ -1344,7 +1344,7 @@ export default function SuperAdminPage({ showToast }) {
                                   </button>
                                 </>
                               ) : (
-                                <span className="text-[10px] text-gray-500">Procesado</span>
+                                <span className="text-xs text-gray-500">Procesado</span>
                               )}
                             </div>
                           </td>
@@ -1362,15 +1362,15 @@ export default function SuperAdminPage({ showToast }) {
             <div className="space-y-6">
               <div className="text-left max-w-md">
                 <h3 className="text-sm font-extrabold mb-1">Personalización Dinámica de Planes</h3>
-                <p className="text-[11px] text-gray-500 leading-normal">Edita los precios, límites y módulos activos para cada plan. Los cambios se guardan en la base de datos Firestore y se propagan instantáneamente a todos los clientes del SaaS.</p>
+                <p className="text-xs text-gray-500 leading-normal">Edita los precios, límites y módulos activos para cada plan. Los cambios se guardan en la base de datos Firestore y se propagan instantáneamente a todos los clientes del SaaS.</p>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {plans.map((plan) => (
-                  <div key={plan.id} className={`p-6 rounded-2xl border flex flex-col justify-between ${'bg-white border-slate-200'}`}>
+                  <div key={plan.id} className={`p-6 rounded-card border flex flex-col justify-between ${'bg-white border-slate-200'}`}>
                     <div>
                       <h4 className="text-sm font-bold mb-3">{plan.name}</h4>
-                      <div className="space-y-3.5 text-[11px] text-gray-500">
+                      <div className="space-y-3.5 text-xs text-gray-500">
                         <div className="flex justify-between">
                           <span>Precio Mensual:</span>
                           <strong className="text-gray-900 dark:text-white">${plan.priceMonthly}/mes</strong>
@@ -1391,7 +1391,7 @@ export default function SuperAdminPage({ showToast }) {
                           <span className="block mb-1">Módulos Habilitados:</span>
                           <div className="flex flex-wrap gap-1.5">
                             {plan.modules.map(mod => (
-                              <span key={mod} className="px-2 py-0.5 rounded bg-slate-100 dark:bg-white/5 text-[9px] font-bold text-[#1C40F2] uppercase">{mod}</span>
+                              <span key={mod} className="px-2 py-0.5 rounded bg-slate-100 dark:bg-white/5 text-xs font-bold text-text-secondary uppercase">{mod}</span>
                             ))}
                           </div>
                         </div>
@@ -1400,7 +1400,7 @@ export default function SuperAdminPage({ showToast }) {
 
                     <button 
                       onClick={() => setEditingPlan(plan)}
-                      className="w-full mt-6 py-2.5 text-xs font-bold border border-[#1C40F2] text-[#1C40F2] hover:bg-[#1C40F2] hover:text-white rounded-xl transition-all"
+                      className="w-full mt-6 py-2.5 text-xs font-bold border border-border-default text-text-secondary hover:bg-surface-card hover:text-white rounded-xl transition-all"
                     >
                       Personalizar Plan
                     </button>
@@ -1415,8 +1415,8 @@ export default function SuperAdminPage({ showToast }) {
 
       {/* EDIT PLAN CONFIG MODAL */}
       {editingPlan && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className={`w-full max-w-lg p-6 rounded-2xl border shadow-xl ${'bg-white border-slate-200 text-black'}`}>
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+          <div className={`w-full max-w-lg p-6 rounded-card border ${'bg-white border-slate-200 text-black'}`}>
             <div className="flex justify-between items-center mb-6">
               <h4 className="text-sm font-bold">Personalizar: Plan {editingPlan.name}</h4>
               <button onClick={() => setEditingPlan(null)} className="text-gray-400 hover:text-white"><X size={16}/></button>
@@ -1506,7 +1506,7 @@ export default function SuperAdminPage({ showToast }) {
 
               <div className="flex gap-3 justify-end pt-4">
                 <button type="button" onClick={() => setEditingPlan(null)} className="px-4 py-2.5 rounded-xl border border-white/10 hover:bg-white/5 font-semibold">Cancelar</button>
-                <button type="submit" className="px-4 py-2.5 rounded-xl bg-[#1C40F2] text-white font-bold">Guardar Cambios</button>
+                <button type="submit" className="px-4 py-2.5 rounded-xl bg-surface-card text-white font-bold">Guardar Cambios</button>
               </div>
             </form>
           </div>

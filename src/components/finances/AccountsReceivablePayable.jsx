@@ -131,9 +131,9 @@ export default function AccountsReceivablePayable({ type = 'cxc', transactions =
       
       {/* TARJETAS DE MÉTRICAS */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div className={`p-5 rounded-3xl border shadow-sm bg-white border-gray-200`}>
+        <div className={`p-5 rounded-card border bg-white border-gray-200`}>
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-black uppercase text-gray-500 tracking-wider">
+            <span className="text-xs font-black uppercase text-gray-500 tracking-wider">
               {isCxC ? 'Total Cuentas por Cobrar' : 'Total Cuentas por Pagar'}
             </span>
             <div className={`p-1.5 rounded-lg ${isCxC ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
@@ -141,23 +141,23 @@ export default function AccountsReceivablePayable({ type = 'cxc', transactions =
             </div>
           </div>
           <p className="text-2xl font-black">${totalBalance.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-          <p className="text-[9px] text-gray-400 mt-1">Suma del saldo neto pendiente en {filteredTxs.length} documentos</p>
+          <p className="text-xs text-gray-400 mt-1">Suma del saldo neto pendiente en {filteredTxs.length} documentos</p>
         </div>
 
-        <div className={`p-5 rounded-3xl border shadow-sm bg-white border-gray-200`}>
+        <div className={`p-5 rounded-card border bg-white border-gray-200`}>
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-black uppercase text-gray-500 tracking-wider">Monto Total Facturado</span>
+            <span className="text-xs font-black uppercase text-gray-500 tracking-wider">Monto Total Facturado</span>
             <div className="p-1.5 rounded-lg bg-primary/10 text-primary">
               <FileText size={16} />
             </div>
           </div>
           <p className="text-2xl font-black">${totalOriginal.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-          <p className="text-[9px] text-gray-400 mt-1">Valor histórico total de los comprobantes pendientes</p>
+          <p className="text-xs text-gray-400 mt-1">Valor histórico total de los comprobantes pendientes</p>
         </div>
 
-        <div className={`p-5 rounded-3xl border shadow-sm bg-white border-gray-200`}>
+        <div className={`p-5 rounded-card border bg-white border-gray-200`}>
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-black uppercase text-gray-500 tracking-wider">
+            <span className="text-xs font-black uppercase text-gray-500 tracking-wider">
               {isCxC ? 'Clientes Deudores' : 'Proveedores Acreedores'}
             </span>
             <div className="p-1.5 rounded-lg bg-purple-500/10 text-purple-500">
@@ -165,7 +165,7 @@ export default function AccountsReceivablePayable({ type = 'cxc', transactions =
             </div>
           </div>
           <p className="text-2xl font-black">{distinctContactsCount}</p>
-          <p className="text-[9px] text-gray-400 mt-1">Contactos únicos con saldos pendientes</p>
+          <p className="text-xs text-gray-400 mt-1">Contactos únicos con saldos pendientes</p>
         </div>
       </div>
 
@@ -183,7 +183,7 @@ export default function AccountsReceivablePayable({ type = 'cxc', transactions =
         </div>
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
-          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border-none w-full sm:w-64 transition-all focus-within:ring-1 focus-within:ring-primary/25 bg-[#f8fafc] hover:bg-[#f1f5f9] focus-within:bg-[#f1f5f9]">
+          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border-none w-full sm:w-64 transition-all focus-within:ring-1 focus-within:ring-primary/25 bg-surface-bg hover:bg-surface-card focus-within:bg-surface-card">
             <Search size={14} className={'text-gray-400'} />
             <input 
               type="text" 
@@ -197,12 +197,12 @@ export default function AccountsReceivablePayable({ type = 'cxc', transactions =
       </div>
 
       {/* TABLA DE CUENTAS */}
-      <div className={`rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm ${
+      <div className={`rounded-card border overflow-hidden transition-all ${
         'border-slate-200/80 bg-white'
       }`}>
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left text-xs whitespace-nowrap">
-            <thead className={`text-[10px] uppercase font-bold tracking-wider ${
+            <thead className={`text-xs uppercase font-bold tracking-wider ${
               'bg-slate-50 text-slate-600 border-b border-slate-100'
             }`}>
               <tr>
@@ -225,13 +225,13 @@ export default function AccountsReceivablePayable({ type = 'cxc', transactions =
                 return (
                   <tr key={tx.id} className={`transition-colors hover:bg-slate-50/40`}>
                     <td className={`px-6 py-3.5 font-medium text-black font-semibold`}>{tx.date}</td>
-                    <td className="px-6 py-3.5 font-mono text-[10px]">
+                    <td className="px-6 py-3.5 font-mono text-xs">
                       {tx.documentNumber || `Sec: ${tx.secuencial || 'N/A'}`}
                     </td>
                     <td className="px-6 py-3.5">
                       <div>
                         <p className={`font-bold text-black font-semibold`}>{contact?.name || 'Desconocido'}</p>
-                        <p className="text-[9px] text-gray-500 font-mono">{contact?.ruc}</p>
+                        <p className="text-xs text-gray-500 font-mono">{contact?.ruc}</p>
                       </div>
                     </td>
                     <td className={`px-6 py-3.5 text-right font-semibold text-black`}>total.toFixed(2)</td>
@@ -288,8 +288,8 @@ export default function AccountsReceivablePayable({ type = 'cxc', transactions =
 
       {/* MODAL REGISTRAR ABONO / VER HISTORIAL */}
       {selectedTx && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-in fade-in">
-          <div className={`w-full max-w-md p-6 rounded-3xl shadow-2xl bg-white border border-gray-200`}>
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/85 animate-in fade-in">
+          <div className={`w-full max-w-md p-6 rounded-card bg-white border border-gray-200`}>
             <div className="flex justify-between items-center mb-4 border-b pb-2 border-white/5">
               <h3 className="text-sm font-black">
                 {isHistoryOpen ? 'Historial de Abonos / Pagos' : `Registrar ${isCxC ? 'Abono de Cliente' : 'Pago a Proveedor'}`}
@@ -305,14 +305,14 @@ export default function AccountsReceivablePayable({ type = 'cxc', transactions =
                   <p><span className="text-gray-400">Saldo Pendiente:</span> <span className="font-bold text-red-500">${(Number(selectedTx.total) - (Number(selectedTx.paidAmount) || 0)).toFixed(2)}</span></p>
                 </div>
 
-                <div className="max-h-[250px] overflow-y-auto custom-scrollbar border border-white/5 rounded-2xl divide-y divide-white/5">
+                <div className="max-h-[250px] overflow-y-auto custom-scrollbar border border-white/5 rounded-card divide-y divide-white/5">
                   {selectedTx.paymentsHistory?.map((pay, index) => (
-                    <div key={pay.id || index} className="p-3 text-[11px] flex justify-between items-center">
+                    <div key={pay.id || index} className="p-3 text-xs flex justify-between items-center">
                       <div>
                         <p className="font-bold capitalize text-emerald-500">Number(pay.amount).toFixed(2) — {pay.method}</p>
-                        {pay.reference && <p className="text-[9px] text-gray-400 font-mono mt-0.5">Ref: {pay.reference}</p>}
+                        {pay.reference && <p className="text-xs text-gray-400 font-mono mt-0.5">Ref: {pay.reference}</p>}
                       </div>
-                      <span className="text-[9px] text-gray-500">{pay.date}</span>
+                      <span className="text-xs text-gray-500">{pay.date}</span>
                     </div>
                   ))}
                 </div>
@@ -328,7 +328,7 @@ export default function AccountsReceivablePayable({ type = 'cxc', transactions =
               </div>
             ) : (
               <form onSubmit={handleRecordPayment} className="space-y-4">
-                <div className="p-3.5 rounded-2xl bg-black/15 border border-white/5 text-xs space-y-2">
+                <div className="p-3.5 rounded-card bg-black/15 border border-white/5 text-xs space-y-2">
                   <div className="flex justify-between">
                     <span className="text-gray-400">Total Factura:</span>
                     <span className="font-semibold">Number(selectedTx.total).toFixed(2)</span>
@@ -344,7 +344,7 @@ export default function AccountsReceivablePayable({ type = 'cxc', transactions =
                 </div>
 
                 <div>
-                  <label className="block text-[9px] font-bold uppercase text-gray-500 mb-1.5">Monto del Abono ($)</label>
+                  <label className="block text-xs font-bold uppercase text-gray-500 mb-1.5">Monto del Abono ($)</label>
                   <input
                     type="number"
                     step="0.01"
@@ -359,7 +359,7 @@ export default function AccountsReceivablePayable({ type = 'cxc', transactions =
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[9px] font-bold uppercase text-gray-500 mb-1.5">Forma de Cobro</label>
+                    <label className="block text-xs font-bold uppercase text-gray-500 mb-1.5">Forma de Cobro</label>
                     <select
                       value={paymentMethod}
                       onChange={e => setPaymentMethod(e.target.value)}
@@ -372,7 +372,7 @@ export default function AccountsReceivablePayable({ type = 'cxc', transactions =
                     </select>
                   </div>
                   <div>
-                    <label className="block text-[9px] font-bold uppercase text-gray-500 mb-1.5">Referencia</label>
+                    <label className="block text-xs font-bold uppercase text-gray-500 mb-1.5">Referencia</label>
                     <input
                       type="text"
                       value={paymentRef}

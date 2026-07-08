@@ -97,37 +97,37 @@ export default function LandingHome() {
     switch (activeTab) {
       case 'sri':
         return (
-          <div className="w-full max-w-sm bg-white border border-slate-200/80 rounded-2xl p-5 text-left font-sans select-none shadow-sm animate-in fade-in duration-300">
+          <div className="w-full max-w-sm bg-white border border-slate-200/80 rounded-card p-5 text-left font-sans select-none animate-in fade-in duration-300">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
-              <span className="text-[10px] font-black tracking-wider uppercase text-slate-400">Comprobantes SRI</span>
-              <span className="text-[10px] font-black bg-emerald-500/10 text-emerald-600 px-2 py-0.5 rounded border border-emerald-500/20 flex items-center gap-1">
+              <span className="text-xs font-black tracking-wider uppercase text-slate-400">Comprobantes SRI</span>
+              <span className="text-xs font-black bg-emerald-500/10 text-emerald-600 px-2 py-0.5 rounded border border-emerald-500/20 flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> SRI ONLINE
               </span>
             </div>
             <div className="space-y-3">
               <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100/80">
                 <div>
-                  <p className="text-[11px] font-black text-slate-800">FAC-001-002-000008452</p>
-                  <p className="text-[10px] font-medium text-slate-500">Juan Pérez • $120.00</p>
+                  <p className="text-xs font-black text-slate-800">FAC-001-002-000008452</p>
+                  <p className="text-xs font-medium text-slate-500">Juan Pérez • $120.00</p>
                 </div>
-                <span className="text-[9px] font-bold px-2 py-1 bg-emerald-500 text-white rounded-lg">Autorizado</span>
+                <span className="text-xs font-bold px-2 py-1 bg-emerald-500 text-white rounded-lg">Autorizado</span>
               </div>
               <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100/80">
                 <div>
-                  <p className="text-[11px] font-black text-slate-800">FAC-001-002-000008451</p>
-                  <p className="text-[10px] font-medium text-slate-500">María Cárdenas • $45.50</p>
+                  <p className="text-xs font-black text-slate-800">FAC-001-002-000008451</p>
+                  <p className="text-xs font-medium text-slate-500">María Cárdenas • $45.50</p>
                 </div>
-                <span className="text-[9px] font-bold px-2 py-1 bg-emerald-500 text-white rounded-lg">Autorizado</span>
+                <span className="text-xs font-bold px-2 py-1 bg-emerald-500 text-white rounded-lg">Autorizado</span>
               </div>
               <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100/80">
                 <div>
-                  <p className="text-[11px] font-black text-slate-800">RET-001-001-000001201</p>
-                  <p className="text-[10px] font-medium text-slate-500">Proveedor S.A. • Retención</p>
+                  <p className="text-xs font-black text-slate-800">RET-001-001-000001201</p>
+                  <p className="text-xs font-medium text-slate-500">Proveedor S.A. • Retención</p>
                 </div>
-                <span className="text-[9px] font-bold px-2 py-1 bg-emerald-500 text-white rounded-lg">Autorizado</span>
+                <span className="text-xs font-bold px-2 py-1 bg-emerald-500 text-white rounded-lg">Autorizado</span>
               </div>
             </div>
-            <div className="mt-4 border-t border-slate-100 pt-3 flex items-center justify-between text-[10px] font-semibold text-slate-400">
+            <div className="mt-4 border-t border-slate-100 pt-3 flex items-center justify-between text-xs font-semibold text-slate-400">
               <span>Firma electrónica activa (.p12)</span>
               <span className="text-primary hover:underline cursor-pointer">Nueva Factura +</span>
             </div>
@@ -135,14 +135,14 @@ export default function LandingHome() {
         );
       case 'gastos':
         return (
-          <div className="w-full max-w-sm bg-white border border-slate-200/80 rounded-2xl p-5 text-left font-sans select-none shadow-sm animate-in fade-in duration-300">
+          <div className="w-full max-w-sm bg-white border border-slate-200/80 rounded-card p-5 text-left font-sans select-none animate-in fade-in duration-300">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
-              <span className="text-[10px] font-black tracking-wider uppercase text-slate-400">Distribución de Gastos</span>
-              <span className="text-[10px] font-black text-rose-500 bg-rose-500/10 px-2.5 py-0.5 rounded border border-rose-500/20">-$1,120.00 este mes</span>
+              <span className="text-xs font-black tracking-wider uppercase text-slate-400">Distribución de Gastos</span>
+              <span className="text-xs font-black text-rose-500 bg-rose-500/10 px-2.5 py-0.5 rounded border border-rose-500/20">-$1,120.00 este mes</span>
             </div>
             <div className="space-y-4">
               <div>
-                <div className="flex justify-between text-[11px] font-bold mb-1 text-slate-800">
+                <div className="flex justify-between text-xs font-bold mb-1 text-slate-800">
                   <span>Mercadería / Inventario</span>
                   <span>$750.00 (67%)</span>
                 </div>
@@ -151,7 +151,7 @@ export default function LandingHome() {
                 </div>
               </div>
               <div>
-                <div className="flex justify-between text-[11px] font-bold mb-1 text-slate-800">
+                <div className="flex justify-between text-xs font-bold mb-1 text-slate-800">
                   <span>Servicios / Alquiler</span>
                   <span>$220.00 (20%)</span>
                 </div>
@@ -160,7 +160,7 @@ export default function LandingHome() {
                 </div>
               </div>
               <div>
-                <div className="flex justify-between text-[11px] font-bold mb-1 text-slate-800">
+                <div className="flex justify-between text-xs font-bold mb-1 text-slate-800">
                   <span>Publicidad Digital</span>
                   <span>$150.00 (13%)</span>
                 </div>
@@ -169,7 +169,7 @@ export default function LandingHome() {
                 </div>
               </div>
             </div>
-            <div className="mt-4 border-t border-slate-100 pt-3 flex items-center justify-between text-[10px] font-semibold">
+            <div className="mt-4 border-t border-slate-100 pt-3 flex items-center justify-between text-xs font-semibold">
               <span className="text-slate-400">Declaración sugerida IVA</span>
               <span className="text-purple-600 hover:underline cursor-pointer">Registrar Gasto +</span>
             </div>
@@ -177,24 +177,24 @@ export default function LandingHome() {
         );
       case 'caja':
         return (
-          <div className="w-full max-w-sm bg-white border border-slate-200/80 rounded-2xl p-5 text-left font-sans select-none shadow-sm animate-in fade-in duration-300">
+          <div className="w-full max-w-sm bg-white border border-slate-200/80 rounded-card p-5 text-left font-sans select-none animate-in fade-in duration-300">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
-              <span className="text-[10px] font-black tracking-wider uppercase text-slate-400">Resumen de Caja Diario</span>
-              <span className="text-[10px] font-bold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded">Utilidad Positiva</span>
+              <span className="text-xs font-black tracking-wider uppercase text-slate-400">Resumen de Caja Diario</span>
+              <span className="text-xs font-bold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded">Utilidad Positiva</span>
             </div>
             <div className="grid grid-cols-2 gap-3 mb-4">
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 text-left">
-                <span className="block text-[9px] font-bold text-slate-400 uppercase">Ingresos</span>
+                <span className="block text-xs font-bold text-slate-400 uppercase">Ingresos</span>
                 <span className="text-sm font-black text-emerald-600">+$2,450.00</span>
               </div>
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 text-left">
-                <span className="block text-[9px] font-bold text-slate-400 uppercase">Egresos</span>
+                <span className="block text-xs font-bold text-slate-400 uppercase">Egresos</span>
                 <span className="text-sm font-black text-rose-500">-$1,120.00</span>
               </div>
             </div>
             <div className="p-3 rounded-xl bg-primary/5 border border-primary/10 flex justify-between items-center">
               <div>
-                <span className="block text-[9px] font-bold text-primary uppercase">Saldo Real Neto</span>
+                <span className="block text-xs font-bold text-primary uppercase">Saldo Real Neto</span>
                 <h4 className="text-base font-black text-primary">$1,330.00</h4>
               </div>
               <TrendingUp size={20} className="text-primary animate-pulse" />
@@ -203,10 +203,10 @@ export default function LandingHome() {
         );
       case 'pos':
         return (
-          <div className="w-full max-w-sm bg-white border border-slate-200/80 rounded-2xl p-5 text-left font-sans select-none shadow-sm animate-in fade-in duration-300">
+          <div className="w-full max-w-sm bg-white border border-slate-200/80 rounded-card p-5 text-left font-sans select-none animate-in fade-in duration-300">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
-              <span className="text-[10px] font-black tracking-wider uppercase text-slate-400">Punto de Venta (Caja Abierta)</span>
-              <span className="text-[10px] font-bold text-primary uppercase tracking-wide">Terminal 01</span>
+              <span className="text-xs font-black tracking-wider uppercase text-slate-400">Punto de Venta (Caja Abierta)</span>
+              <span className="text-xs font-bold text-primary uppercase tracking-wide">Terminal 01</span>
             </div>
             <div className="space-y-2.5 mb-4">
               <div className="flex justify-between text-xs font-semibold text-slate-800">
@@ -219,11 +219,11 @@ export default function LandingHome() {
               </div>
             </div>
             <div className="border-t border-slate-100 pt-3 mb-4 space-y-1">
-              <div className="flex justify-between text-[10px] font-semibold text-slate-400">
+              <div className="flex justify-between text-xs font-semibold text-slate-400">
                 <span>Subtotal 15%</span>
                 <span>$282.61</span>
               </div>
-              <div className="flex justify-between text-[10px] font-semibold text-slate-400">
+              <div className="flex justify-between text-xs font-semibold text-slate-400">
                 <span>IVA (15%)</span>
                 <span>$42.39</span>
               </div>
@@ -252,7 +252,7 @@ export default function LandingHome() {
         <div className="absolute top-[20%] right-[-10%] w-[35rem] h-[35rem] rounded-full mix-blend-screen filter blur-[120px] opacity-25 pointer-events-none -z-10 bg-emerald-400 animate-liquid-2"></div>
 
         <div>
-          <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full text-[10px] font-extrabold tracking-wider uppercase bg-primary/10 text-primary border border-primary/20 mb-8 select-none">
+          <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full text-xs font-extrabold tracking-wider uppercase bg-primary/10 text-primary border border-primary/20 mb-8 select-none">
             <Sparkles size={12} className="animate-spin-slow" /> Control Financiero y SRI Especializado
           </div>
           <h1 className="text-4xl sm:text-5xl lg:text-[54px] font-extrabold tracking-tight leading-[1.1] mb-6 text-slate-900">
@@ -265,7 +265,7 @@ export default function LandingHome() {
           <div className="flex flex-wrap gap-4 items-center">
             <button 
               onClick={() => navigate('/register')}
-              className="landing-button-primary px-8 py-4 text-xs font-extrabold uppercase tracking-wider text-white bg-primary hover:bg-[#1633c1] flex items-center justify-center gap-2 border-none cursor-pointer"
+              className="landing-button-primary px-8 py-4 text-xs font-extrabold uppercase tracking-wider text-white bg-primary hover:bg-surface-card flex items-center justify-center gap-2 border-none cursor-pointer"
             >
               Comenzar gratis 14 días <ArrowRight size={14} />
             </button>
@@ -277,7 +277,7 @@ export default function LandingHome() {
             </button>
           </div>
 
-          <div className="mt-8 flex items-center gap-6 text-[10px] font-extrabold tracking-wider text-slate-400 uppercase">
+          <div className="mt-8 flex items-center gap-6 text-xs font-extrabold tracking-wider text-slate-400 uppercase">
             <span className="flex items-center gap-1.5"><Check size={14} className="text-primary" /> Sin Tarjeta de Crédito</span>
             <span className="flex items-center gap-1.5"><Check size={14} className="text-primary" /> Firma .p12 Integrada</span>
             <span className="flex items-center gap-1.5"><Check size={14} className="text-primary" /> SRI Ilimitado</span>
@@ -286,21 +286,21 @@ export default function LandingHome() {
 
         {/* Hero Interactive Image Container */}
         <div className="relative w-full max-w-xl mx-auto flex items-center justify-center">
-          <div className="landing-card border border-slate-200 bg-white p-4 overflow-hidden shadow-2xl relative w-full flex items-center justify-center">
+          <div className="landing-card border border-slate-200 bg-white p-4 overflow-hidden relative w-full flex items-center justify-center">
             <img 
               src={heroBilling} 
               alt="WebFix Dashboard Mockup" 
               className="w-full h-auto object-cover rounded-xl animate-in fade-in zoom-in duration-500"
             />
             {/* Pulsing floating card */}
-            <div className="landing-card absolute bottom-6 left-6 bg-white/95 backdrop-blur-md border border-slate-200 p-4 shadow-xl max-w-[200px] flex items-start gap-3 select-none hover:-translate-y-1 transition-transform">
+            <div className="landing-card absolute bottom-6 left-6 bg-white/95 border border-slate-200 p-4 max-w-[200px] flex items-start gap-3 select-none hover:-translate-y-1 transition-transform">
               <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5 border border-emerald-500/25">
                 <CheckCircle size={18} />
               </div>
               <div>
-                <span className="block text-[9px] font-black text-slate-400 uppercase">Conexión SRI</span>
+                <span className="block text-xs font-black text-slate-400 uppercase">Conexión SRI</span>
                 <span className="text-xs font-black text-slate-800">100% Autorizadas</span>
-                <p className="text-[9px] font-semibold text-emerald-600 mt-1 flex items-center gap-1">
+                <p className="text-xs font-semibold text-emerald-600 mt-1 flex items-center gap-1">
                   <span className="w-1 h-1 bg-emerald-500 rounded-full animate-ping"></span> Activa y firme
                 </p>
               </div>
@@ -312,7 +312,7 @@ export default function LandingHome() {
       {/* TRUST TICKER / LOGOS */}
       <section className="border-y border-slate-200/80 bg-slate-50 py-10 overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 text-center">
-          <p className="text-[9px] font-extrabold tracking-widest text-slate-400 uppercase mb-6">Emprendedores y Negocios en Ecuador confían en WebFix</p>
+          <p className="text-xs font-extrabold tracking-widest text-slate-400 uppercase mb-6">Emprendedores y Negocios en Ecuador confían en WebFix</p>
           <div className="flex flex-wrap justify-center items-center gap-10 md:gap-16 opacity-50 grayscale hover:grayscale-0 transition-all">
             <span className="text-sm font-black tracking-tight text-slate-700">TripAdvisor Ecuador</span>
             <span className="text-sm font-black tracking-tight text-slate-700">Peluquerías VIP</span>
@@ -327,7 +327,7 @@ export default function LandingHome() {
       <section className="py-20 lg:py-28 bg-white border-b border-slate-100">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center max-w-xl mx-auto mb-16">
-            <span className="text-[10px] font-black tracking-wider uppercase text-primary bg-primary/10 border border-primary/20 px-3 py-1 rounded-full mb-4 inline-block select-none">Interactividad</span>
+            <span className="text-xs font-black tracking-wider uppercase text-primary bg-primary/10 border border-primary/20 px-3 py-1 rounded-full mb-4 inline-block select-none">Interactividad</span>
             <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 mb-4">Todo lo que necesitas, nada de lo que te sobra</h2>
             <p className="text-sm text-slate-500 font-semibold">Interactúa con nuestro simulador para ver cómo WebFix automatiza tu negocio en segundos.</p>
           </div>
@@ -341,8 +341,8 @@ export default function LandingHome() {
                   <div 
                     key={tab.id}
                     onClick={() => handleTabClick(tab.id)}
-                    className={`stream-step text-left p-5 rounded-2xl cursor-pointer hover:bg-slate-50 transition-all ${
-                      isActive ? 'active shadow-sm border-l-4' : 'border-l-4 border-l-transparent'
+                    className={`stream-step text-left p-5 rounded-card cursor-pointer hover:bg-slate-50 transition-all ${
+                      isActive ? 'active border-l-4' : 'border-l-4 border-l-transparent'
                     }`}
                   >
                     <h3 className={`text-sm font-black transition-colors ${isActive ? 'text-primary' : 'text-slate-700'}`}>
@@ -363,7 +363,7 @@ export default function LandingHome() {
             </div>
 
             {/* Right Simulation Column */}
-            <div className="lg:col-span-3 flex items-center justify-center p-8 bg-[#F4F6FC]/60 border border-slate-200/80 rounded-3xl min-h-[380px] relative">
+            <div className="lg:col-span-3 flex items-center justify-center p-8 bg-surface-card/60 border border-slate-200/80 rounded-card min-h-[380px] relative">
               <div className="absolute inset-0 bg-[linear-gradient(to_right,#e5e7eb_1px,transparent_1px),linear-gradient(to_bottom,#e5e7eb_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-30"></div>
               
               <div className="relative z-10 w-full flex justify-center">
@@ -371,7 +371,7 @@ export default function LandingHome() {
               </div>
 
               {/* Dynamic Description Box beneath simulation for better UX */}
-              <div className="absolute bottom-4 left-6 right-6 hidden md:block text-left bg-white/60 backdrop-blur-md px-4 py-2.5 rounded-xl border border-slate-100 text-[10px] font-semibold text-slate-500">
+              <div className="absolute bottom-4 left-6 right-6 hidden md:block text-left bg-white/60 px-4 py-2.5 rounded-xl border border-slate-100 text-xs font-semibold text-slate-500">
                 <span className="font-extrabold text-slate-800 uppercase block mb-0.5">Enfoque Emprendedor:</span>
                 {tabsList.find(t => t.id === activeTab)?.desc}
               </div>
@@ -379,9 +379,9 @@ export default function LandingHome() {
           </div>
           
           {/* Detail Block below the Carousel */}
-          <div className="mt-16 bg-primary/5 rounded-3xl p-8 border border-primary/10 grid md:grid-cols-2 gap-8 items-center max-w-5xl mx-auto text-left">
+          <div className="mt-16 bg-primary/5 rounded-card p-8 border border-primary/10 grid md:grid-cols-2 gap-8 items-center max-w-5xl mx-auto text-left">
             <div>
-              <h4 className="text-lg font-black text-[#0F172A] mb-3">
+              <h4 className="text-lg font-black text-text-secondary mb-3">
                 ¿Cómo ayuda esto a tu declaración tributaria?
               </h4>
               <p className="text-xs text-slate-600 leading-relaxed font-semibold">
@@ -391,7 +391,7 @@ export default function LandingHome() {
             <div className="flex flex-col gap-3 justify-center md:items-end">
               <button 
                 onClick={() => navigate('/register')}
-                className="landing-button-primary px-6 py-3.5 bg-primary hover:bg-[#1633c1] text-white text-xs font-black uppercase tracking-wider w-fit border-none cursor-pointer"
+                className="landing-button-primary px-6 py-3.5 bg-primary hover:bg-surface-card text-white text-xs font-black uppercase tracking-wider w-fit border-none cursor-pointer"
               >
                 Prueba Facturación Ilimitada
               </button>
@@ -405,7 +405,7 @@ export default function LandingHome() {
       <section className="py-20 lg:py-28 bg-slate-50 border-b border-slate-200/50">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center max-w-xl mx-auto mb-16">
-            <span className="text-[10px] font-black tracking-wider uppercase text-primary bg-primary/10 border border-primary/20 px-3 py-1 rounded-full mb-4 inline-block select-none">Beneficios Clave</span>
+            <span className="text-xs font-black tracking-wider uppercase text-primary bg-primary/10 border border-primary/20 px-3 py-1 rounded-full mb-4 inline-block select-none">Beneficios Clave</span>
             <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 mb-4">Diseñado para Emprendedores, no para contadores</h2>
             <p className="text-sm text-slate-500 font-semibold">Administra el dinero y cumple con la ley sin lidiar con tecnicismos financieros incomprensibles.</p>
           </div>
@@ -413,7 +413,7 @@ export default function LandingHome() {
           <div className="grid md:grid-cols-3 gap-8 text-left">
             
             <div className="landing-card p-8 bg-white border border-slate-200/80">
-              <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-6 border border-primary/20">
+              <div className="w-12 h-12 rounded-card bg-primary/10 text-primary flex items-center justify-center mb-6 border border-primary/20">
                 <FileSpreadsheet size={24} />
               </div>
               <h3 className="text-base font-black text-slate-900 mb-3">Control de Gastos Simple</h3>
@@ -423,7 +423,7 @@ export default function LandingHome() {
             </div>
 
             <div className="landing-card p-8 bg-white border border-slate-200/80">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center mb-6 border border-emerald-500/20">
+              <div className="w-12 h-12 rounded-card bg-emerald-500/10 text-emerald-600 flex items-center justify-center mb-6 border border-emerald-500/20">
                 <CheckCircle size={24} />
               </div>
               <h3 className="text-base font-black text-slate-900 mb-3">SRI 100% Autorizado</h3>
@@ -433,7 +433,7 @@ export default function LandingHome() {
             </div>
 
             <div className="landing-card p-8 bg-white border border-slate-200/80">
-              <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-600 flex items-center justify-center mb-6 border border-indigo-500/20">
+              <div className="w-12 h-12 rounded-card bg-indigo-500/10 text-indigo-600 flex items-center justify-center mb-6 border border-indigo-500/20">
                 <ShieldCheck size={24} />
               </div>
               <h3 className="text-base font-black text-slate-900 mb-3">Firma Electrónica Segura</h3>
@@ -450,7 +450,7 @@ export default function LandingHome() {
       <section className="py-20 bg-white">
         <div className="max-w-5xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center text-left">
           <div>
-            <span className="text-[10px] font-black tracking-wider uppercase text-primary bg-primary/10 border border-primary/20 px-3 py-1 rounded-full mb-4 inline-block select-none">Velocidad</span>
+            <span className="text-xs font-black tracking-wider uppercase text-primary bg-primary/10 border border-primary/20 px-3 py-1 rounded-full mb-4 inline-block select-none">Velocidad</span>
             <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 mb-4">
               Carga en 1 segundo y funciona en cualquier pantalla
             </h2>
@@ -478,15 +478,15 @@ export default function LandingHome() {
               </div>
             </div>
           </div>
-          <div className="p-8 bg-slate-950 rounded-3xl text-left border border-slate-900 shadow-2xl relative select-none">
+          <div className="p-8 bg-slate-950 rounded-card text-left border border-slate-900 relative select-none">
             <div className="absolute top-3 right-3 flex items-center gap-1">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-              <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Servidor Activo</span>
+              <span className="text-xs font-black text-slate-500 uppercase tracking-widest">Servidor Activo</span>
             </div>
             <h4 className="text-xs font-bold text-slate-400 mb-4 uppercase tracking-widest">Prueba de Rendimiento</h4>
             <div className="space-y-3">
               <div>
-                <div className="flex justify-between text-[10px] text-white font-bold mb-1">
+                <div className="flex justify-between text-xs text-white font-bold mb-1">
                   <span>WebFix ERP</span>
                   <span className="text-emerald-400">99% (Excelente)</span>
                 </div>
@@ -495,7 +495,7 @@ export default function LandingHome() {
                 </div>
               </div>
               <div>
-                <div className="flex justify-between text-[10px] text-slate-400 font-bold mb-1">
+                <div className="flex justify-between text-xs text-slate-400 font-bold mb-1">
                   <span>Otros Sistemas Contables</span>
                   <span className="text-rose-400">42% (Lento)</span>
                 </div>
@@ -504,7 +504,7 @@ export default function LandingHome() {
                 </div>
               </div>
             </div>
-            <div className="mt-6 text-[9px] text-slate-500 font-medium leading-relaxed border-t border-slate-900 pt-4">
+            <div className="mt-6 text-xs text-slate-500 font-medium leading-relaxed border-t border-slate-900 pt-4">
               Medición basada en Core Web Vitals de Google para dispositivos con conexiones 3G/4G móviles promedio en Ecuador.
             </div>
           </div>
@@ -515,7 +515,7 @@ export default function LandingHome() {
       <section className="bg-slate-900 text-white py-16 lg:py-24 relative overflow-hidden text-center">
         <div className="absolute bottom-0 right-0 w-[30rem] h-[30rem] rounded-full mix-blend-screen filter blur-[150px] opacity-10 bg-primary pointer-events-none"></div>
         <div className="max-w-4xl mx-auto px-6 relative z-10">
-          <span className="text-[10px] font-black tracking-wider uppercase text-primary bg-primary/10 border border-primary/20 px-3 py-1.5 rounded-full mb-6 inline-block select-none">Prueba Gratis</span>
+          <span className="text-xs font-black tracking-wider uppercase text-primary bg-primary/10 border border-primary/20 px-3 py-1.5 rounded-full mb-6 inline-block select-none">Prueba Gratis</span>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white mb-6">
             Comienza a facturar y controlar tu negocio hoy
           </h2>
@@ -525,7 +525,7 @@ export default function LandingHome() {
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
             <button 
               onClick={() => navigate('/register')}
-              className="landing-button-primary w-full sm:w-auto px-8 py-4 text-xs font-black uppercase tracking-wider text-white bg-primary hover:bg-[#1633c1] border-none cursor-pointer"
+              className="landing-button-primary w-full sm:w-auto px-8 py-4 text-xs font-black uppercase tracking-wider text-white bg-primary hover:bg-surface-card border-none cursor-pointer"
             >
               Iniciar Prueba Gratuita
             </button>

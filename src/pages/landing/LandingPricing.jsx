@@ -86,7 +86,7 @@ export default function LandingPricing() {
         <p className="text-sm text-gray-650 max-w-md mx-auto mb-8 font-medium">Todos nuestros planes incluyen facturación del SRI ilimitada. La diferencia radica en la potencia y alcance de tus herramientas.</p>
         
         {/* Toggle Billing Period */}
-        <div className="inline-flex items-center gap-1.5 p-1 rounded-xl bg-white border border-[#CAD1F4] select-none">
+        <div className="inline-flex items-center gap-1.5 p-1 rounded-xl bg-white border border-border-default select-none">
           <button 
             onClick={() => setBillingPeriod('monthly')}
             className={`px-4 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer border-none ${billingPeriod === 'monthly' ? 'bg-primary text-white' : 'text-gray-500 hover:text-gray-700 bg-transparent'}`}
@@ -97,7 +97,7 @@ export default function LandingPricing() {
             onClick={() => setBillingPeriod('yearly')}
             className={`px-4 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer border-none ${billingPeriod === 'yearly' ? 'bg-primary text-white' : 'text-gray-500 hover:text-gray-700 bg-transparent'}`}
           >
-            Anual <span className="px-1.5 py-0.5 rounded bg-emerald-500 text-white text-[9px] font-black tracking-widest">-20%</span>
+            Anual <span className="px-1.5 py-0.5 rounded bg-emerald-500 text-white text-xs font-black tracking-widest">-20%</span>
           </button>
         </div>
       </div>
@@ -105,13 +105,13 @@ export default function LandingPricing() {
       {/* Pricing Cards Grid */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch max-w-5xl mx-auto mb-20">
         {plans.map((plan, idx) => (
-          <div key={idx} className={`p-8 rounded-3xl border flex flex-col justify-between bg-white transition-all duration-300 relative ${
+          <div key={idx} className={`p-8 rounded-card border flex flex-col justify-between bg-white transition-all duration-300 relative ${
             plan.recommended 
               ? 'border-primary' 
-              : 'border-[#CAD1F4]'
+              : 'border-border-default'
           }`}>
             {plan.recommended && (
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 px-4 py-1.5 rounded-full text-[9px] font-black tracking-wider uppercase bg-primary text-white">
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 px-4 py-1.5 rounded-full text-xs font-black tracking-wider uppercase bg-primary text-white">
                 MÁS RECOMENDADO
               </div>
             )}
@@ -126,7 +126,7 @@ export default function LandingPricing() {
               
               <hr className="border-t border-slate-100 mb-6" />
               
-              <ul className="space-y-3.5 mb-8 text-[11px] font-semibold text-gray-700 text-left">
+              <ul className="space-y-3.5 mb-8 text-xs font-semibold text-gray-700 text-left">
                 {plan.features.map((feat, fIdx) => (
                   <li key={fIdx} className="flex items-start gap-2.5">
                     <Check size={12} className="text-primary stroke-[3.5] shrink-0 mt-0.5" />
@@ -140,7 +140,7 @@ export default function LandingPricing() {
               onClick={() => navigate(`/register?plan=${plan.id}&period=${billingPeriod}`)}
               className={`w-full py-4 text-xs font-bold tracking-wider uppercase rounded-xl transition-all cursor-pointer border-none ${
                 plan.recommended 
-                  ? 'bg-primary hover:bg-[#1633c1] text-white' 
+                  ? 'bg-primary hover:bg-surface-card text-white' 
                   : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
               }`}
             >
@@ -153,10 +153,10 @@ export default function LandingPricing() {
       {/* DETAILED COMPARATIVE TABLE */}
       <div className="max-w-4xl mx-auto mb-20 text-left">
         <h2 className="text-xl font-black mb-6 text-center">Tabla Comparativa de Módulos</h2>
-        <div className="border border-[#CAD1F4] rounded-2xl bg-white overflow-hidden text-xs font-medium">
+        <div className="border border-border-default rounded-card bg-white overflow-hidden text-xs font-medium">
           <table className="w-full border-collapse">
             <thead>
-              <tr className="bg-slate-550/5 border-b border-[#CAD1F4] text-gray-650 font-bold uppercase tracking-wider text-[10px]">
+              <tr className="bg-slate-550/5 border-b border-border-default text-gray-650 font-bold uppercase tracking-wider text-xs">
                 <th className="px-6 py-4">Módulo / Límite</th>
                 <th className="px-6 py-4 text-center">Starter</th>
                 <th className="px-6 py-4 text-center">Profesional</th>
@@ -206,11 +206,11 @@ export default function LandingPricing() {
       </div>
 
       {/* FAQS SECTION */}
-      <div className="max-w-3xl mx-auto text-center border-t border-[#CAD1F4] pt-16">
+      <div className="max-w-3xl mx-auto text-center border-t border-border-default pt-16">
         <h2 className="text-2xl font-black mb-10 text-black">Preguntas Frecuentes</h2>
         <div className="space-y-4">
           {faqs.map((faq, idx) => (
-            <div key={idx} className="rounded-2xl border bg-white border-[#CAD1F4] text-left">
+            <div key={idx} className="rounded-card border bg-white border-border-default text-left">
               <button 
                 onClick={() => toggleFaq(idx)}
                 className="w-full px-6 py-4 flex items-center justify-between font-bold text-xs sm:text-sm text-left text-black outline-none cursor-pointer bg-transparent border-none"
@@ -219,7 +219,7 @@ export default function LandingPricing() {
                 {activeFaq === idx ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
               </button>
               {activeFaq === idx && (
-                <div className="px-6 pb-5 pt-1 text-[11px] sm:text-xs leading-relaxed text-gray-600 border-t border-slate-100">
+                <div className="px-6 pb-5 pt-1 text-xs sm:text-xs leading-relaxed text-gray-600 border-t border-slate-100">
                   {faq.a}
                 </div>
               )}

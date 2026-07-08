@@ -136,9 +136,9 @@ export default function TransferModal({ onClose, onSuccess }: TransferModalProps
   const labelClass = `block text-xs font-semibold mb-1.5 uppercase tracking-wider text-gray-500`;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 backdrop-blur-xl bg-black/40 animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-black/40 animate-in fade-in duration-300">
       <div 
-        className={`w-full max-w-4xl max-h-[90vh] flex flex-col rounded-3xl shadow-2xl border overflow-hidden bg-white/95 border-white/40`}
+        className={`w-full max-w-4xl max-h-[90vh] flex flex-col rounded-card border overflow-hidden bg-white/95 border-white/40`}
       >
         {/* Header */}
         <div className={`modal-header-std modal-header-std-dark border-gray-100 bg-white/80`}>
@@ -234,7 +234,7 @@ export default function TransferModal({ onClose, onSuccess }: TransferModalProps
           <div className="w-full h-px bg-gradient-to-r from-transparent via-gray-500/20 to-transparent"></div>
 
           {/* Add Item Form */}
-          <div className={`p-5 rounded-2xl border bg-gray-50 border-gray-100`}>
+          <div className={`p-5 rounded-card border bg-gray-50 border-gray-100`}>
             <h3 className={`text-xs font-bold mb-4 uppercase tracking-wider text-purple-600`}>
               Agregar Productos al Envío
             </h3>
@@ -278,9 +278,9 @@ export default function TransferModal({ onClose, onSuccess }: TransferModalProps
           {/* Items Table */}
           <div className="space-y-2">
             <label className={labelClass}>Ítems a Enviar ({items.length})</label>
-            <div className={`rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm border-slate-200/80 bg-white`}>
+            <div className={`rounded-card border overflow-hidden transition-all border-slate-200/80 bg-white`}>
               <table className="w-full text-left text-xs whitespace-nowrap">
-                <thead className={`text-[10px] uppercase font-bold tracking-wider bg-slate-50 text-slate-600 border-b border-slate-100`}>
+                <thead className={`text-xs uppercase font-bold tracking-wider bg-slate-50 text-slate-600 border-b border-slate-100`}>
                   <tr>
                     <th className="px-6 py-3.5">Producto</th>
                     <th className="px-6 py-3.5">Costo Base ($)</th>
@@ -311,7 +311,7 @@ export default function TransferModal({ onClose, onSuccess }: TransferModalProps
                             <button
                               type="button"
                               onClick={() => handleRemoveItem(index)}
-                              className="p-1.5 rounded-[10px] text-red-500 hover:bg-red-500/10 transition-all border border-red-500/10 bg-white shadow-sm"
+                              className="p-1.5 rounded-card text-red-500 hover:bg-red-500/10 transition-all border border-red-500/10 bg-white"
                             >
                               <Trash2 size={13} />
                             </button>
@@ -338,7 +338,7 @@ export default function TransferModal({ onClose, onSuccess }: TransferModalProps
             <button
               type="submit"
               disabled={loading}
-              className="px-8 py-2.5 rounded-xl font-bold transition-all text-sm bg-purple-600 hover:bg-purple-500 text-white shadow-[0_0_20px_rgba(147,51,234,0.4)] flex items-center gap-2 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+              className="px-8 py-2.5 rounded-xl font-bold transition-all text-sm bg-purple-600 hover:bg-purple-500 text-white flex items-center gap-2 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
             >
               {loading ? "Procesando..." : "Completar Transferencia"}
             </button>

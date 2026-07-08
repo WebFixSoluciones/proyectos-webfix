@@ -1,7 +1,7 @@
 // Constantes de datos y paletas del espacio de trabajo (Kanban, usuarios, páginas demo).
 
 export const COLUMN_COLORS = [
-  { id: 'gray', badge: 'bg-gray-200/60 text-gray-700 dark:bg-white/[0.08] dark:text-gray-300', bgDark: 'bg-[#1a1a1a]/40 border-white/[0.08]', bgLight: 'bg-gray-100/40 border-gray-200/80', dot: 'bg-gray-400' },
+  { id: 'gray', badge: 'bg-gray-200/60 text-gray-700 dark:bg-white/[0.08] dark:text-gray-300', bgDark: 'bg-text-primary/40 border-border-default', bgLight: 'bg-gray-100/40 border-gray-200/80', dot: 'bg-gray-400' },
   { id: 'blue', badge: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300', bgDark: 'bg-blue-900/10 border-blue-500/20', bgLight: 'bg-blue-50/70 border-blue-200/80', dot: 'bg-blue-500' },
   { id: 'green', badge: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300', bgDark: 'bg-green-900/10 border-green-500/20', bgLight: 'bg-green-50/70 border-green-200/80', dot: 'bg-green-500' },
   { id: 'yellow', badge: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300', bgDark: 'bg-yellow-900/10 border-yellow-500/20', bgLight: 'bg-yellow-50/70 border-yellow-200/80', dot: 'bg-yellow-500' },

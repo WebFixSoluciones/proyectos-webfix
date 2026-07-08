@@ -230,7 +230,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
   };
 
   const getStatusBadge = (status, documentType) => {
-    const baseClass = "flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-md font-bold uppercase border";
+    const baseClass = "flex items-center gap-1 text-xs px-2 py-0.5 rounded-md font-bold uppercase border";
     switch(status) {
       case 'autorizado': 
         if (documentType === 'nota_venta') {
@@ -244,7 +244,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
       case 'rechazado': 
         return <span className={`${baseClass} bg-red-100 text-red-800 border-red-300`}><AlertTriangle size={10}/> Rechazado</span>;
       default: 
-        return <span className="text-[10px] px-2 py-0.5 rounded-md bg-gray-150 text-gray-700 border border-gray-300 font-bold uppercase">{status || 'Borrador'}</span>;
+        return <span className="text-xs px-2 py-0.5 rounded-md bg-gray-150 text-gray-700 border border-gray-300 font-bold uppercase">{status || 'Borrador'}</span>;
     }
   };
 
@@ -351,9 +351,9 @@ export default function TransactionsView({ transactions, thirdParties, showToast
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
-          className={`relative border-2 border-dashed rounded-3xl p-6 flex flex-col items-center justify-center transition-all cursor-pointer overflow-hidden ${
+          className={`relative border-2 border-dashed rounded-card p-6 flex flex-col items-center justify-center transition-all cursor-pointer overflow-hidden ${
             isDragging 
-              ? 'border-purple-500 bg-purple-500/5 shadow-2xl scale-[1.01]' 
+              ? 'border-purple-500 bg-purple-500/5 scale-[1.01]' 
               : 'border-gray-355 hover:border-gray-400 bg-white'
           }`}
         >
@@ -372,12 +372,12 @@ export default function TransactionsView({ transactions, thirdParties, showToast
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center text-center space-y-2">
-              <div className="p-3 rounded-2xl bg-purple-100 text-purple-800">
+              <div className="p-3 rounded-card bg-purple-100 text-purple-800">
                 <Sparkles size={24} />
               </div>
               <div>
                 <p className="text-xs font-bold text-gray-900">Captura Inteligente IA / Carga XML</p>
-                <p className="text-[10px] mt-1 max-w-md leading-normal text-gray-700 font-medium">
+                <p className="text-xs mt-1 max-w-md leading-normal text-gray-700 font-medium">
                   Arrastra tu factura (PDF, XML, Imagen) aquí. Gemini la clasificará y auto-completará los campos del formulario de forma instantánea.
                 </p>
               </div>
@@ -388,7 +388,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
 
       {/* TABS DE TIPO DE DOCUMENTO SRI */}
       {!forcedDocType && !isPreventaTab && (
-        <div className="flex p-1 gap-1 rounded-2xl border overflow-x-auto custom-scrollbar whitespace-nowrap bg-gray-100/70 border-gray-200 shadow-inner">
+        <div className="flex p-1 gap-1 rounded-card border overflow-x-auto custom-scrollbar whitespace-nowrap bg-gray-100/70 border-gray-200 shadow-inner">
           {docTypeTabs.map(tab => {
             const isActive = filterDocType === tab.id;
             return (
@@ -397,7 +397,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                 onClick={() => setFilterDocType(tab.id)}
                 className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
                   isActive 
-                    ? 'bg-white text-gray-900 border border-gray-300/40 shadow-sm'
+                    ? 'bg-white text-gray-900 border border-gray-300/40'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
@@ -474,7 +474,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
         </div>
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
-          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border-none w-full sm:w-64 transition-all focus-within:ring-1 focus-within:ring-primary/25 bg-[#f8fafc] hover:bg-[#f1f5f9] focus-within:bg-[#f1f5f9]">
+          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border-none w-full sm:w-64 transition-all focus-within:ring-1 focus-within:ring-primary/25 bg-surface-bg hover:bg-surface-card focus-within:bg-surface-card">
             <Search size={14} className="text-gray-400" />
             <input 
               type="text" 
@@ -489,7 +489,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
             <select 
               value={filterType} 
               onChange={e => setFilterType(e.target.value)} 
-              className="px-3 py-1.5 rounded-xl border-none text-xs font-medium outline-none transition-all cursor-pointer bg-[#f8fafc] hover:bg-[#f1f5f9] text-slate-700 focus:ring-1 focus:ring-primary/25"
+              className="px-3 py-1.5 rounded-xl border-none text-xs font-medium outline-none transition-all cursor-pointer bg-surface-bg hover:bg-surface-card text-slate-700 focus:ring-1 focus:ring-primary/25"
             >
               <option value="all" className="text-black">Todos los tipos</option>
               <option value="ingreso" className="text-black">Ingresos (Ventas)</option>
@@ -500,7 +500,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
           <select 
             value={filterMonth} 
             onChange={e => setFilterMonth(e.target.value)} 
-            className="px-3 py-1.5 rounded-xl border-none text-xs font-medium outline-none transition-all cursor-pointer bg-[#f8fafc] hover:bg-[#f1f5f9] text-slate-700 focus:ring-1 focus:ring-primary/25"
+            className="px-3 py-1.5 rounded-xl border-none text-xs font-medium outline-none transition-all cursor-pointer bg-surface-bg hover:bg-surface-card text-slate-700 focus:ring-1 focus:ring-primary/25"
           >
             <option value="all" className="text-black">Mes: Todos</option>
             {['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'].map((m, i) => (
@@ -511,7 +511,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
           <select 
             value={filterYear} 
             onChange={e => setFilterYear(e.target.value)} 
-            className="px-3 py-1.5 rounded-xl border-none text-xs font-medium outline-none transition-all cursor-pointer bg-[#f8fafc] hover:bg-[#f1f5f9] text-slate-700 focus:ring-1 focus:ring-primary/25"
+            className="px-3 py-1.5 rounded-xl border-none text-xs font-medium outline-none transition-all cursor-pointer bg-surface-bg hover:bg-surface-card text-slate-700 focus:ring-1 focus:ring-primary/25"
           >
             <option value="all" className="text-black">Año: Todos</option>
             {[2023, 2024, 2025, 2026, 2027].map(y => (
@@ -522,10 +522,10 @@ export default function TransactionsView({ transactions, thirdParties, showToast
       </div>
 
       {/* TABLA DE COMPROBANTES */}
-      <div className="rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm border-slate-200/80 bg-white">
+      <div className="rounded-card border overflow-hidden transition-all border-slate-200/80 bg-white">
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left text-xs whitespace-nowrap">
-            <thead className="text-[10px] uppercase font-bold tracking-wider bg-slate-50 text-slate-600 border-b border-slate-100">
+            <thead className="text-xs uppercase font-bold tracking-wider bg-slate-50 text-slate-600 border-b border-slate-100">
               <tr>
                 <th className="px-6 py-3.5">Fecha</th>
                 <th className="px-6 py-3.5">Tipo</th>
@@ -543,11 +543,11 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                 <tr key={tx.id} className="transition-colors hover:bg-slate-50/40">
                   <td className="px-6 py-3.5 text-black font-semibold">{tx.date}</td>
                   <td className="px-6 py-3.5">
-                    <span className={`px-2 py-0.5 rounded-[10px] text-[9px] font-bold uppercase tracking-wider ${tx.type === 'ingreso' ? 'bg-emerald-100 text-emerald-850 border border-emerald-300' : 'bg-red-100 text-red-850 border border-red-300'}`}>
+                    <span className={`px-2 py-0.5 rounded-card text-xs font-bold uppercase tracking-wider ${tx.type === 'ingreso' ? 'bg-emerald-100 text-emerald-850 border border-emerald-300' : 'bg-red-100 text-red-850 border border-red-300'}`}>
                       {tx.type}
                     </span>
                   </td>
-                  <td className="px-6 py-3.5 font-mono text-[10px] text-black font-semibold">{tx.documentNumber || '-'}</td>
+                  <td className="px-6 py-3.5 font-mono text-xs text-black font-semibold">{tx.documentNumber || '-'}</td>
                   <td className="px-6 py-3.5 font-bold truncate max-w-[200px] text-black" title={thirdParties.find(tp => tp.id === tx.thirdPartyId)?.name}>
                     {thirdParties.find(tp => tp.id === tx.thirdPartyId)?.name || 'Desconocido'}
                   </td>
@@ -558,7 +558,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                       {tx.deliveryStatus === 'entregado' ? (
                         <span 
                           onClick={() => handleToggleDelivery(tx.id, tx.deliveryStatus)}
-                          className="px-2.5 py-1 rounded-[10px] text-[9px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1.5 w-fit cursor-pointer hover:opacity-85 transition-all"
+                          className="px-2.5 py-1 rounded-card text-xs font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1.5 w-fit cursor-pointer hover:opacity-85 transition-all"
                         >
                           <Truck size={11} /> Entregado
                         </span>
@@ -666,16 +666,16 @@ export default function TransactionsView({ transactions, thirdParties, showToast
       )}
 
       {emailModalTx && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="w-full max-w-md rounded-3xl border p-6 space-y-4 shadow-2xl transition-all scale-100 bg-white border-slate-200 text-slate-900 shadow-slate-300">
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+          <div className="w-full max-w-md rounded-card border p-6 space-y-4 transition-all scale-100 bg-white border-slate-200 text-slate-900 shadow-slate-300">
             {/* Header */}
             <div className="flex items-center gap-3 pb-2 border-b border-gray-500/10">
-              <div className="p-2 rounded-[10px] bg-blue-100 text-blue-650">
+              <div className="p-2 rounded-card bg-blue-100 text-blue-650">
                 <Mail size={18} />
               </div>
               <div>
                 <h3 className="text-sm font-black uppercase tracking-wider">Reenviar Comprobante</h3>
-                <p className="text-[10px] text-gray-500 font-medium leading-none mt-1">
+                <p className="text-xs text-gray-500 font-medium leading-none mt-1">
                   Documento N°: {emailModalTx.documentNumber || '-'}
                 </p>
               </div>
@@ -688,7 +688,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
               </p>
 
               <div>
-                <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">
+                <label className="block text-xs font-bold uppercase mb-1.5 text-gray-500">
                   Correo Electrónico de Destino
                 </label>
                 <input 
@@ -696,7 +696,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                   value={emailTarget} 
                   onChange={e => setEmailTarget(e.target.value)} 
                   placeholder="ejemplo@cliente.com"
-                  className="w-full px-3.5 py-2.5 text-xs rounded-[10px] border outline-none transition-all focus:ring-1 focus:ring-primary/25 bg-slate-50 border-slate-200 text-black focus:border-primary"
+                  className="w-full px-3.5 py-2.5 text-xs rounded-card border outline-none transition-all focus:ring-1 focus:ring-primary/25 bg-slate-50 border-slate-200 text-black focus:border-primary"
                   disabled={isSendingEmail}
                 />
               </div>
@@ -708,7 +708,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                 type="button" 
                 onClick={() => setEmailModalTx(null)}
                 disabled={isSendingEmail}
-                className="px-4 py-2 text-xs font-black uppercase tracking-wider rounded-[10px] border transition-colors border-slate-200 hover:bg-slate-50 text-slate-600"
+                className="px-4 py-2 text-xs font-black uppercase tracking-wider rounded-card border transition-colors border-slate-200 hover:bg-slate-50 text-slate-600"
               >
                 Cancelar
               </button>
@@ -717,7 +717,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                 type="button" 
                 onClick={handleSendEmail}
                 disabled={isSendingEmail}
-                className="px-4 py-2 text-xs font-black uppercase tracking-wider rounded-[10px] bg-primary hover:bg-primary-hover text-white flex items-center gap-1.5 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                className="px-4 py-2 text-xs font-black uppercase tracking-wider rounded-card bg-primary hover:bg-primary-hover text-white flex items-center gap-1.5 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {isSendingEmail ? (
                   <>

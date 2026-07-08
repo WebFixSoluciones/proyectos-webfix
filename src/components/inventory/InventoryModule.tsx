@@ -266,7 +266,7 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
                   <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
                     <button 
                       onClick={() => setShowProductTypeSelector(true)}
-                      className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-[10px] text-xs font-bold transition-all hover-lift shadow-md bg-primary text-white hover:bg-primary/95`}
+                      className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-card text-xs font-bold transition-all hover-lift bg-primary text-white hover:bg-primary/95`}
                     >
                       <Plus size={15} /> Nuevo Producto
                     </button>
@@ -276,13 +276,13 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
                         setEditingProduct(null);
                         scrollToForm();
                       }}
-                      className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-[10px] text-xs font-bold transition-all hover-lift shadow-md bg-indigo-600 text-white hover:bg-indigo-550`}
+                      className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-card text-xs font-bold transition-all hover-lift bg-indigo-600 text-white hover:bg-indigo-550`}
                     >
                       <Briefcase size={15} /> Nuevo Servicio
                     </button>
                     <button 
                       onClick={() => setIsCatBrandOpen(true)}
-                      className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-[10px] text-xs font-bold transition-all border shadow-sm ${
+                      className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-card text-xs font-bold transition-all border ${
                         'bg-gray-50 border-gray-300 text-gray-700 hover:bg-gray-100'
                       }`}
                     >
@@ -291,7 +291,7 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
                   </div>
 
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
-                    <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border-none w-full sm:w-64 transition-all focus-within:ring-1 focus-within:ring-primary/25 bg-[#f8fafc] hover:bg-[#f1f5f9] focus-within:bg-[#f1f5f9]">
+                    <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border-none w-full sm:w-64 transition-all focus-within:ring-1 focus-within:ring-primary/25 bg-surface-bg hover:bg-surface-card focus-within:bg-surface-card">
                       <Search size={14} className={'text-gray-400'} />
                       <input
                         type="text"
@@ -305,7 +305,7 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
                     <select
                       value={selectedCategory}
                       onChange={(e) => setSelectedCategory(e.target.value)}
-                      className="px-3 py-1.5 rounded-xl border-none text-xs font-medium outline-none transition-all cursor-pointer bg-[#f8fafc] hover:bg-[#f1f5f9] text-slate-700 focus:ring-1 focus:ring-primary/25"
+                      className="px-3 py-1.5 rounded-xl border-none text-xs font-medium outline-none transition-all cursor-pointer bg-surface-bg hover:bg-surface-card text-slate-700 focus:ring-1 focus:ring-primary/25"
                     >
                       <option value="" className="text-black">Todas las Categorías</option>
                       {categories.map(c => (
@@ -316,7 +316,7 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
                     <select
                       value={selectedType}
                       onChange={(e) => setSelectedType(e.target.value)}
-                      className="px-3 py-1.5 rounded-xl border-none text-xs font-medium outline-none transition-all cursor-pointer bg-[#f8fafc] hover:bg-[#f1f5f9] text-slate-700 focus:ring-1 focus:ring-primary/25"
+                      className="px-3 py-1.5 rounded-xl border-none text-xs font-medium outline-none transition-all cursor-pointer bg-surface-bg hover:bg-surface-card text-slate-700 focus:ring-1 focus:ring-primary/25"
                     >
                       <option value="" className="text-black">Todos los Tipos</option>
                       <option value="STANDARD" className="text-black">Estándar</option>
@@ -328,12 +328,12 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
                 </div>
                 
                 {/* Products Table */}
-                <div className={`rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm ${
+                <div className={`rounded-card border overflow-hidden transition-all ${
                   'border-slate-200/80 bg-white'
                 }`}>
                   <div className="overflow-x-auto custom-scrollbar">
                     <table className="w-full text-left text-xs whitespace-nowrap">
-                      <thead className={`text-[10px] uppercase font-bold tracking-wider ${
+                      <thead className={`text-xs uppercase font-bold tracking-wider ${
                         'bg-slate-50 text-slate-600 border-b border-slate-100'
                       }`}>
                         <tr>
@@ -364,16 +364,16 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
                             
                             return (
                               <tr key={p.id} className={`transition-colors ${'hover:bg-slate-50/40'}`}>
-                                <td className={`px-6 py-3.5 font-mono text-[10px] font-bold ${'text-black font-semibold'}`}>{p.sku}</td>
+                                <td className={`px-6 py-3.5 font-mono text-xs font-bold ${'text-black font-semibold'}`}>{p.sku}</td>
                                 <td className="px-6 py-3.5">
                                   <span className={`font-semibold ${'text-gray-900 font-bold'}`}>{p.name}</span>
-                                  {p.description && <p className="text-[10px] text-gray-500 mt-0.5">{p.description}</p>}
+                                  {p.description && <p className="text-xs text-gray-500 mt-0.5">{p.description}</p>}
                                 </td>
                                 <td className="px-6 py-3.5">
-                                  {p.type === 'STANDARD' && <span className="px-2 py-0.5 rounded-[10px] text-[10px] font-bold bg-primary/10 text-primary border border-primary/20">Estándar</span>}
-                                  {p.type === 'COMBO' && <span className="px-2 py-0.5 rounded-[10px] text-[10px] font-bold bg-purple-500/10 text-purple-400 border border-purple-500/20">Combo</span>}
-                                  {p.type === 'SUBPRODUCT' && <span className="px-2 py-0.5 rounded-[10px] text-[10px] font-bold bg-primary/10 text-primary border border-primary/20">Subproducto</span>}
-                                  {p.type === 'SERVICE' && <span className="px-2 py-0.5 rounded-[10px] text-[10px] font-bold bg-pink-500/10 text-pink-400 border border-pink-500/20">Servicio</span>}
+                                  {p.type === 'STANDARD' && <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-primary/10 text-primary border border-primary/20">Estándar</span>}
+                                  {p.type === 'COMBO' && <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-purple-500/10 text-purple-400 border border-purple-500/20">Combo</span>}
+                                  {p.type === 'SUBPRODUCT' && <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-primary/10 text-primary border border-primary/20">Subproducto</span>}
+                                  {p.type === 'SERVICE' && <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-pink-500/10 text-pink-400 border border-pink-500/20">Servicio</span>}
                                 </td>
                                 <td className="px-6 py-3.5 text-gray-500 font-medium">{getCategoryName(p.categoryId)}</td>
                                 <td className="px-6 py-3.5 font-semibold">${p.baseCost.toFixed(2)}</td>
@@ -402,14 +402,14 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
                                           scrollToForm();
                                         }
                                       }}
-                                      className="p-1.5 rounded-[10px] text-primary hover:bg-primary/10 transition-all border border-primary/10 bg-white dark:bg-transparent shadow-sm"
+                                      className="p-1.5 rounded-card text-primary hover:bg-primary/10 transition-all border border-primary/10 bg-white dark:bg-transparent"
                                       title="Editar"
                                     >
                                       <Edit2 size={13} />
                                     </button>
                                     <button
                                       onClick={() => p.id && handleDeleteProduct(p.id)}
-                                      className="p-1.5 rounded-[10px] text-red-500 hover:bg-red-500/10 transition-all border border-red-500/10 bg-white dark:bg-transparent shadow-sm"
+                                      className="p-1.5 rounded-card text-red-500 hover:bg-red-500/10 transition-all border border-red-500/10 bg-white dark:bg-transparent"
                                       title="Eliminar"
                                     >
                                       <Trash2 size={13} />
@@ -478,7 +478,7 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* Categorías Column */}
-              <div className={`p-6 rounded-3xl border ${'bg-white border-gray-200'}`}>
+              <div className={`p-6 rounded-card border ${'bg-white border-gray-200'}`}>
                 <h3 className={`text-sm font-bold flex items-center gap-2 mb-4 uppercase tracking-wider ${'text-primary'}`}>
                   <Layers size={16} /> Categorías ({categories.length})
                 </h3>
@@ -487,7 +487,7 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
                     <div key={cat.id} className={`p-3 rounded-xl border flex items-center justify-between ${'bg-gray-50 border-gray-100'}`}>
                       <div>
                         <span className={`font-semibold ${'text-gray-800'}`}>{cat.name}</span>
-                        {cat.description && <p className="text-[10px] text-gray-500">{cat.description}</p>}
+                        {cat.description && <p className="text-xs text-gray-500">{cat.description}</p>}
                       </div>
                     </div>
                   ))}
@@ -495,7 +495,7 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
               </div>
 
               {/* Marcas Column */}
-              <div className={`p-6 rounded-3xl border ${'bg-white border-gray-200'}`}>
+              <div className={`p-6 rounded-card border ${'bg-white border-gray-200'}`}>
                 <h3 className={`text-sm font-bold flex items-center gap-2 mb-4 uppercase tracking-wider ${'text-purple-600'}`}>
                   <Award size={16} /> Marcas ({brands.length})
                 </h3>
@@ -504,7 +504,7 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
                     <div key={b.id} className={`p-3 rounded-xl border flex items-center justify-between ${'bg-gray-50 border-gray-100'}`}>
                       <div>
                         <span className={`font-semibold ${'text-gray-800'}`}>{b.name}</span>
-                        {b.manufacturer && <p className="text-[10px] text-gray-500">{b.manufacturer}</p>}
+                        {b.manufacturer && <p className="text-xs text-gray-500">{b.manufacturer}</p>}
                       </div>
                     </div>
                   ))}
@@ -520,13 +520,13 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
 
 
             {/* Selector de Producto */}
-            <div className={`p-5 rounded-[10px] border grid grid-cols-1 md:grid-cols-2 gap-4 ${'bg-gray-50 border-gray-150'}`}>
+            <div className={`p-5 rounded-card border grid grid-cols-1 md:grid-cols-2 gap-4 ${'bg-gray-50 border-gray-150'}`}>
               <div>
                 <label className="block text-xs font-semibold mb-1 uppercase tracking-wider text-gray-500">Seleccionar Producto Físico</label>
                 <select
                   value={kardexProductId}
                   onChange={(e) => setKardexProductId(e.target.value)}
-                  className={`w-full px-3 py-2 rounded-[10px] outline-none border text-xs cursor-pointer ${
+                  className={`w-full px-3 py-2 rounded-card outline-none border text-xs cursor-pointer ${
                     'bg-white border-gray-200 text-gray-800'
                   }`}
                 >
@@ -542,7 +542,7 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
                 <select
                   value={kardexBranchId}
                   onChange={(e) => setKardexBranchId(e.target.value)}
-                  className={`w-full px-3 py-2 rounded-[10px] outline-none border text-xs cursor-pointer ${
+                  className={`w-full px-3 py-2 rounded-card outline-none border text-xs cursor-pointer ${
                     'bg-white border-gray-200 text-gray-800'
                   }`}
                 >
@@ -558,7 +558,7 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
                 {/* Summary Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {/* Stock Actual Card */}
-                  <div className={`p-5 rounded-[10px] border ${'bg-emerald-50 border-emerald-200 shadow-sm'}`}>
+                  <div className={`p-5 rounded-card border ${'bg-emerald-50 border-emerald-200'}`}>
                     <span className="block text-xs font-bold uppercase tracking-wider text-emerald-500 mb-1">Saldo Actual</span>
                     <div className="flex items-baseline gap-2">
                       <span className={`text-2xl font-black ${'text-gray-900'}`}>
@@ -569,7 +569,7 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
                   </div>
 
                   {/* Costo Promedio Card */}
-                  <div className={`p-5 rounded-[10px] border ${'bg-primary-light border-primary/25 shadow-sm'}`}>
+                  <div className={`p-5 rounded-card border ${'bg-primary-light border-primary/25'}`}>
                     <span className="block text-xs font-bold uppercase tracking-wider text-primary mb-1">Costo Promedio Ponderado</span>
                     <div className="flex items-baseline gap-2">
                       <span className={`text-2xl font-black ${'text-gray-900'}`}>
@@ -579,7 +579,7 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
                   </div>
 
                   {/* Valorización Card */}
-                  <div className={`p-5 rounded-[10px] border ${'bg-purple-50 border-purple-205 shadow-sm'}`}>
+                  <div className={`p-5 rounded-card border ${'bg-purple-50 border-purple-205'}`}>
                     <span className="block text-xs font-bold uppercase tracking-wider text-purple-500 mb-1">Valor Total del Inventario</span>
                     <div className="flex items-baseline gap-2">
                       <span className={`text-2xl font-black ${'text-gray-900'}`}>
@@ -590,12 +590,12 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
                 </div>
 
                 {/* Kardex Transactions Table */}
-                <div className={`rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm ${
+                <div className={`rounded-card border overflow-hidden transition-all ${
                   'border-slate-200/80 bg-white'
                 }`}>
                   <div className="overflow-x-auto custom-scrollbar">
                     <table className="w-full text-left text-xs whitespace-nowrap">
-                      <thead className={`text-[10px] uppercase font-bold tracking-wider ${
+                      <thead className={`text-xs uppercase font-bold tracking-wider ${
                         'bg-slate-50 text-slate-600 border-b border-slate-100'
                       }`}>
                         <tr>
@@ -621,16 +621,16 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
                               <tr key={tx.id} className={`transition-colors ${'hover:bg-slate-50/40'}`}>
                                 <td className="px-6 py-3.5 text-gray-500 font-medium">{new Date(tx.date as any).toLocaleString('es-ES')}</td>
                                 <td className="px-6 py-3.5">
-                                  {tx.type === 'PURCHASE_RECEIPT' && <span className="px-2 py-0.5 rounded-[10px] text-[10px] font-bold bg-green-500/10 text-green-400">Ingreso / Compra</span>}
-                                  {tx.type === 'CUSTOMER_RETURN' && <span className="px-2 py-0.5 rounded-[10px] text-[10px] font-bold bg-emerald-500/10 text-emerald-400">Devolución Cliente</span>}
-                                  {tx.type === 'POSITIVE_ADJUSTMENT' && <span className="px-2 py-0.5 rounded-[10px] text-[10px] font-bold bg-teal-500/10 text-teal-400">Ajuste Positivo</span>}
-                                  {tx.type === 'SALE' && <span className="px-2 py-0.5 rounded-[10px] text-[10px] font-bold bg-red-500/10 text-red-400">Egreso / Venta</span>}
-                                  {tx.type === 'TRANSFER_OUT' && <span className="px-2 py-0.5 rounded-[10px] text-[10px] font-bold bg-purple-500/10 text-purple-400">Salida por Traslado</span>}
-                                  {tx.type === 'NEGATIVE_ADJUSTMENT' && <span className="px-2 py-0.5 rounded-[10px] text-[10px] font-bold bg-yellow-500/10 text-yellow-400">Ajuste Negativo</span>}
-                                  {tx.type === 'SHRINKAGE' && <span className="px-2 py-0.5 rounded-[10px] text-[10px] font-bold bg-orange-500/10 text-orange-400">Mermas / Pérdida</span>}
-                                  {tx.type === 'MASSIVE_ZERO' && <span className="px-2 py-0.5 rounded-[10px] text-[10px] font-bold bg-red-650/20 text-red-500 border border-red-500/10">Cero Inventario</span>}
+                                  {tx.type === 'PURCHASE_RECEIPT' && <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-green-500/10 text-green-400">Ingreso / Compra</span>}
+                                  {tx.type === 'CUSTOMER_RETURN' && <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-emerald-500/10 text-emerald-400">Devolución Cliente</span>}
+                                  {tx.type === 'POSITIVE_ADJUSTMENT' && <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-teal-500/10 text-teal-400">Ajuste Positivo</span>}
+                                  {tx.type === 'SALE' && <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-red-500/10 text-red-400">Egreso / Venta</span>}
+                                  {tx.type === 'TRANSFER_OUT' && <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-purple-500/10 text-purple-400">Salida por Traslado</span>}
+                                  {tx.type === 'NEGATIVE_ADJUSTMENT' && <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-yellow-500/10 text-yellow-400">Ajuste Negativo</span>}
+                                  {tx.type === 'SHRINKAGE' && <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-orange-500/10 text-orange-400">Mermas / Pérdida</span>}
+                                  {tx.type === 'MASSIVE_ZERO' && <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-red-650/20 text-red-500 border border-red-500/10">Cero Inventario</span>}
                                 </td>
-                                <td className="px-6 py-3.5 font-mono text-[10px] text-gray-500 font-bold">{tx.referenceId}</td>
+                                <td className="px-6 py-3.5 font-mono text-xs text-gray-500 font-bold">{tx.referenceId}</td>
                                 <td className={`px-6 py-3.5 font-bold ${isEntry ? 'text-emerald-500' : 'text-red-500'}`}>
                                   {isEntry ? `+${tx.quantity}` : tx.quantity}
                                 </td>
@@ -648,7 +648,7 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
                 </div>
               </div>
             ) : (
-              <div className={`rounded-3xl border flex flex-col items-center justify-center p-8 text-center ${'bg-white/50 border-gray-200'}`}>
+              <div className={`rounded-card border flex flex-col items-center justify-center p-8 text-center ${'bg-white/50 border-gray-200'}`}>
                 <Database size={32} className={`mb-4 ${'text-emerald-600'}`} />
                 <p className={'text-gray-500'}>Selecciona un producto físico para ver su Kardex de transacciones.</p>
               </div>
@@ -664,19 +664,19 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
               <div>
                 <button 
                   onClick={() => setIsTransferOpen(true)}
-                  className={`w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-[10px] text-xs font-bold transition-all shadow-md bg-purple-600 hover:bg-purple-550 text-white`}
+                  className={`w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-card text-xs font-bold transition-all bg-purple-600 hover:bg-purple-550 text-white`}
                 >
                   <PlusCircle size={15} /> Nueva Transferencia
                 </button>
               </div>
             </div>
 
-            <div className={`rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm ${
+            <div className={`rounded-card border overflow-hidden transition-all ${
               'border-slate-200/80 bg-white'
             }`}>
               <div className="overflow-x-auto custom-scrollbar">
                 <table className="w-full text-left text-xs whitespace-nowrap">
-                  <thead className={`text-[10px] uppercase font-bold tracking-wider ${
+                  <thead className={`text-xs uppercase font-bold tracking-wider ${
                     'bg-slate-50 text-slate-600 border-b border-slate-100'
                   }`}>
                     <tr>
@@ -704,9 +704,9 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
                             <td className="px-6 py-3.5 text-gray-500 font-medium">{new Date(tr.createdAt).toLocaleString('es-ES')}</td>
                             <td className="px-6 py-3.5">
                               {tr.type === 'INTERNAL' ? (
-                                <span className="px-2 py-0.5 rounded-[10px] text-[10px] font-bold bg-primary/10 text-primary border border-primary/20">Interna</span>
+                                <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-primary/10 text-primary border border-primary/20">Interna</span>
                               ) : (
-                                <span className="px-2 py-0.5 rounded-[10px] text-[10px] font-bold bg-orange-500/10 text-orange-400 border border-orange-550/10">Externa</span>
+                                <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-orange-500/10 text-orange-400 border border-orange-550/10">Externa</span>
                               )}
                             </td>
                             <td className="px-6 py-3.5 font-semibold">{fromName}</td>
@@ -715,7 +715,7 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
                             <td className="px-6 py-3.5 font-mono">${(tr.transferCost ?? 0).toFixed(2)}</td>
                             <td className="px-6 py-3.5 text-gray-400 font-medium">{tr.createdBy}</td>
                             <td className="px-6 py-3.5 text-center">
-                              <span className="px-2 py-0.5 rounded-[10px] text-[10px] font-bold bg-green-500/10 text-green-400 flex items-center justify-center gap-1 w-24 mx-auto border border-green-500/10">
+                              <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-green-500/10 text-green-400 flex items-center justify-center gap-1 w-24 mx-auto border border-green-500/10">
                                 <CheckCircle size={10} /> Completado
                               </span>
                             </td>
@@ -736,18 +736,18 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
             <div className="flex justify-end items-center mb-6">
               <button 
                 onClick={() => setIsAdjustmentOpen(true)}
-                className={`w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-[10px] text-xs font-bold transition-all shadow-md bg-red-600 hover:bg-red-550 text-white`}
+                className={`w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-card text-xs font-bold transition-all bg-red-600 hover:bg-red-550 text-white`}
               >
                 <RefreshCw size={15} /> Nuevo Ajuste
               </button>
             </div>
 
-            <div className={`rounded-[10px] border overflow-hidden backdrop-blur-xl transition-all shadow-sm ${
+            <div className={`rounded-card border overflow-hidden transition-all ${
               'border-slate-200/80 bg-white'
             }`}>
               <div className="overflow-x-auto custom-scrollbar">
                 <table className="w-full text-left text-xs whitespace-nowrap">
-                  <thead className={`text-[10px] uppercase font-bold tracking-wider ${
+                  <thead className={`text-xs uppercase font-bold tracking-wider ${
                     'bg-slate-50 text-slate-600 border-b border-slate-100'
                   }`}>
                     <tr>
@@ -774,11 +774,11 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
                             <td className="px-6 py-3.5 text-gray-500 font-medium">{new Date(ad.createdAt).toLocaleString('es-ES')}</td>
                             <td className="px-6 py-3.5">
                               {isZero ? (
-                                <span className="px-2 py-0.5 rounded-[10px] text-[10px] font-bold bg-red-600/20 text-red-500 flex items-center gap-1 border border-red-500/20">
+                                <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-red-600/20 text-red-500 flex items-center gap-1 border border-red-500/20">
                                   <ShieldAlert size={10} /> Cero Inventario
                                 </span>
                               ) : (
-                                <span className="px-2 py-0.5 rounded-[10px] text-[10px] font-bold bg-primary/10 text-primary border border-primary/20">Manual</span>
+                                <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-primary/10 text-primary border border-primary/20">Manual</span>
                               )}
                             </td>
                             <td className="px-6 py-3.5 font-semibold">{branchName}</td>
@@ -786,7 +786,7 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
                             <td className="px-6 py-3.5 font-bold">{ad.items?.length ?? 0} items</td>
                             <td className="px-6 py-3.5 text-gray-400 font-medium">{ad.confirmedBy}</td>
                             <td className="px-6 py-3.5 text-center">
-                              <span className="px-2 py-0.5 rounded-[10px] text-[10px] font-bold bg-green-500/10 text-green-400 flex items-center justify-center gap-1 w-24 mx-auto border border-green-500/10">
+                              <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-green-500/10 text-green-400 flex items-center justify-center gap-1 w-24 mx-auto border border-green-500/10">
                                 <CheckCircle size={10} /> Aplicado
                               </span>
                             </td>
@@ -804,8 +804,8 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
 
       {/* --- MODAL DIALOGS --- */}
       {showProductTypeSelector && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-xl bg-black/40 animate-in fade-in duration-300">
-          <div className={`w-full max-w-md p-6 rounded-3xl border shadow-2xl transition-all ${
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 animate-in fade-in duration-300">
+          <div className={`w-full max-w-md p-6 rounded-card border transition-all ${
             'bg-white border-slate-200 text-slate-900'
           }`}>
             <div className="flex items-center justify-between mb-5">
@@ -835,7 +835,7 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
                   setShowProductTypeSelector(false);
                   scrollToForm();
                 }}
-                className={`w-full p-4 rounded-2xl border text-left transition-all flex items-start gap-3.5 group ${
+                className={`w-full p-4 rounded-card border text-left transition-all flex items-start gap-3.5 group ${
                   'border-slate-100 bg-slate-50 hover:bg-primary/5 hover:border-primary/30'
                 }`}
               >
@@ -844,7 +844,7 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
                 </div>
                 <div>
                   <span className="block text-xs font-bold">Producto Estándar</span>
-                  <span className={`block text-[10px] mt-0.5 ${'text-gray-500'}`}>
+                  <span className={`block text-xs mt-0.5 ${'text-gray-500'}`}>
                     Productos individuales sin variantes ni agrupaciones.
                   </span>
                 </div>
@@ -857,7 +857,7 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
                   setShowProductTypeSelector(false);
                   scrollToForm();
                 }}
-                className={`w-full p-4 rounded-2xl border text-left transition-all flex items-start gap-3.5 group ${
+                className={`w-full p-4 rounded-card border text-left transition-all flex items-start gap-3.5 group ${
                   'border-slate-100 bg-slate-50 hover:bg-primary/5 hover:border-primary/30'
                 }`}
               >
@@ -866,7 +866,7 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
                 </div>
                 <div>
                   <span className="block text-xs font-bold">Subproducto / Variante</span>
-                  <span className={`block text-[10px] mt-0.5 ${'text-gray-500'}`}>
+                  <span className={`block text-xs mt-0.5 ${'text-gray-500'}`}>
                     Mismo artículo con variaciones (talla, color o dimensiones).
                   </span>
                 </div>
@@ -879,7 +879,7 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
                   setShowProductTypeSelector(false);
                   scrollToForm();
                 }}
-                className={`w-full p-4 rounded-2xl border text-left transition-all flex items-start gap-3.5 group ${
+                className={`w-full p-4 rounded-card border text-left transition-all flex items-start gap-3.5 group ${
                   'border-slate-100 bg-slate-50 hover:bg-purple-500/5 hover:border-purple-500/30'
                 }`}
               >
@@ -888,7 +888,7 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
                 </div>
                 <div>
                   <span className="block text-xs font-bold">Combo / Kit</span>
-                  <span className={`block text-[10px] mt-0.5 ${'text-gray-500'}`}>
+                  <span className={`block text-xs mt-0.5 ${'text-gray-500'}`}>
                     Paquete que agrupa múltiples productos estándar o servicios.
                   </span>
                 </div>

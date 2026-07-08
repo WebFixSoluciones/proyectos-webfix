@@ -950,14 +950,14 @@ export default function PosView({ products, thirdParties, transactions = [], sho
     // PANTALLA 1: APERTURA DE CAJA
     if (!activeSession) {
       return createPortal(
-        <div className={`fixed inset-0 z-[100] bg-[#f3f8ff] text-[#000000] flex items-center justify-center p-4 backdrop-blur-xl transition-colors duration-300`}>
+        <div className={`fixed inset-0 z-[100] bg-surface-card text-text-secondary flex items-center justify-center p-4 transition-colors duration-300`}>
           {/* Decorative background blobs */}
           <div className={`absolute top-[-10%] left-[-5%] w-[30rem] h-[30rem] rounded-full mix-blend-screen filter blur-[100px] opacity-20 pointer-events-none bg-emerald-300`}></div>
           <div className={`absolute bottom-[-10%] right-[-5%] w-[30rem] h-[30rem] rounded-full mix-blend-screen filter blur-[100px] opacity-20 pointer-events-none bg-orange-300`}></div>
 
-          <div className={`w-full max-w-md p-8 rounded-[2.5rem] border shadow-[0_20px_50px_rgba(0,0,0,0.3)] space-y-6 transition-all duration-300 bg-white text-[#000000] border-primary/15`}>
+          <div className={`w-full max-w-md p-8 rounded-[2.5rem] border space-y-6 transition-all duration-300 bg-white text-text-secondary border-primary/15`}>
             <div className="text-center space-y-2">
-              <div className={`mx-auto w-14 h-14 rounded-2xl flex items-center justify-center border animate-pulse-glow bg-emerald-50 text-emerald-600 border-emerald-250 shadow-sm`}>
+              <div className={`mx-auto w-14 h-14 rounded-card flex items-center justify-center border animate-pulse-glow bg-emerald-50 text-emerald-600 border-emerald-250`}>
                 <DollarSign size={26} />
               </div>
               <h2 className={`text-xl font-bold font-display tracking-tight text-black`}>Apertura de Caja POS</h2>
@@ -992,7 +992,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
 
               <div>
                 <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 text-black`}>Observaciones de Entrada</label>
-                <textarea value={openingForm.notes} onChange={e => setOpeningForm({...openingForm, notes: e.target.value})} className={`w-full text-sm px-3.5 py-3 rounded-2xl outline-none transition-all border min-h-[70px] resize-none glass-input-light`} placeholder="Sin novedades..." />
+                <textarea value={openingForm.notes} onChange={e => setOpeningForm({...openingForm, notes: e.target.value})} className={`w-full text-sm px-3.5 py-3 rounded-card outline-none transition-all border min-h-[70px] resize-none glass-input-light`} placeholder="Sin novedades..." />
               </div>
 
               <button type="submit" className="btn-primary w-full mt-4">
@@ -1008,15 +1008,15 @@ export default function PosView({ products, thirdParties, transactions = [], sho
 
   // PANTALLA 2: POS PRINCIPAL EN PANTALLA COMPLETA
   return createPortal(
-    <div className={`fixed inset-0 z-[100] bg-[#f3f8ff] text-[#000000] flex flex-col overflow-hidden animate-in fade-in duration-300`}>
+    <div className={`fixed inset-0 z-[100] bg-surface-card text-text-secondary flex flex-col overflow-hidden animate-in fade-in duration-300`}>
       
       {/* TOP HEADER POS */}
-      <div className={`h-16 px-6 border-b flex items-center justify-between shrink-0 bg-white border-primary/15 text-[#000000] shadow-sm backdrop-blur-md`}>
+      <div className={`h-16 px-6 border-b flex items-center justify-between shrink-0 bg-white border-primary/15 text-text-secondary`}>
         <div className="flex items-center gap-3">
           <div className="relative p-2 rounded-xl bg-orange-500/10 text-orange-500 border border-orange-500/10">
             <ShoppingCart size={18} />
             {cart.length > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 flex h-4.5 w-4.5 items-center justify-center rounded-full bg-red-500 text-[9px] font-black text-white animate-bounce">
+              <span className="absolute -top-1.5 -right-1.5 flex h-4.5 w-4.5 items-center justify-center rounded-full bg-red-500 text-xs font-black text-white animate-bounce">
                 {cart.reduce((acc, it) => acc + it.quantity, 0)}
               </span>
             )}
@@ -1067,7 +1067,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
           {!isPreventaOnly && (
             <button 
               onClick={handleOpenCloseModal} 
-              className="btn-secondary text-[11px]"
+              className="btn-secondary text-xs"
               title="Arqueo / Cerrar Caja"
             >
               <DollarSign size={13} />
@@ -1218,7 +1218,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                   <div>
                     
-                    <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} className="w-full text-[11px] font-medium px-2 py-1 rounded-md border outline-none bg-white border-[#E6EBF1] text-black">
+                    <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} className="w-full text-xs font-medium px-2 py-1 rounded-md border outline-none bg-white border-border-default text-black">
                       <option value="all" className={'text-black bg-white'}>Categorías (Todos)</option>
                       {categories.filter(c => c !== 'all').map(c => <option key={c} value={c} className={'text-black bg-white'}>{c}</option>)}
                     </select>
@@ -1226,7 +1226,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
 
                   <div>
                     
-                    <select value={filterBrand} onChange={e => setFilterBrand(e.target.value)} className="w-full text-[11px] font-medium px-2 py-1 rounded-md border outline-none bg-white border-[#E6EBF1] text-black">
+                    <select value={filterBrand} onChange={e => setFilterBrand(e.target.value)} className="w-full text-xs font-medium px-2 py-1 rounded-md border outline-none bg-white border-border-default text-black">
                       <option value="all" className={'text-black bg-white'}>Marcas (Todos)</option>
                       {brands.filter(b => b !== 'all').map(b => <option key={b} value={b} className={'text-black bg-white'}>{b}</option>)}
                     </select>
@@ -1234,7 +1234,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
 
                   <div>
                     
-                    <select value={filterWarehouse} onChange={e => setFilterWarehouse(e.target.value)} className="w-full text-[11px] font-medium px-2 py-1 rounded-md border outline-none bg-white border-[#E6EBF1] text-black">
+                    <select value={filterWarehouse} onChange={e => setFilterWarehouse(e.target.value)} className="w-full text-xs font-medium px-2 py-1 rounded-md border outline-none bg-white border-border-default text-black">
                       <option value="all" className={'text-black bg-white'}>Bodegas (Todos)</option>
                       {warehouses.filter(w => w !== 'all').map(w => <option key={w} value={w} className={'text-black bg-white'}>{w}</option>)}
                     </select>
@@ -1242,7 +1242,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
 
                   <div>
                     
-                    <select value={filterStock} onChange={e => setFilterStock(e.target.value)} className="w-full text-[11px] font-medium px-2 py-1 rounded-md border outline-none bg-white border-[#E6EBF1] text-black">
+                    <select value={filterStock} onChange={e => setFilterStock(e.target.value)} className="w-full text-xs font-medium px-2 py-1 rounded-md border outline-none bg-white border-border-default text-black">
                       <option value="all" className={'text-black bg-white'}>Inventario completo</option>
                       <option value="instock" className={'text-black bg-white'}>Solo disponibles (Con Stock)</option>
                     </select>
@@ -1262,7 +1262,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                   <div 
                     key={p.id}
                     onClick={() => !isOutOfStock && addToCart(p)}
-                    className={`p-3 border rounded-2xl flex items-center justify-between gap-4 transition-all cursor-pointer select-none group relative overflow-hidden ${
+                    className={`p-3 border rounded-card flex items-center justify-between gap-4 transition-all cursor-pointer select-none group relative overflow-hidden ${
                       isOutOfStock 
                         ? 'opacity-40 cursor-not-allowed bg-white/[0.005]' 
                         : ('border-primary/15 hover:border-primary/40 hover:bg-primary/5 bg-primary/5')
@@ -1278,8 +1278,8 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-mono text-[10px] text-gray-500 shrink-0">{p.sku}</span>
-                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase shrink-0 ${p.type === 'producto' ? 'bg-primary/10 text-primary' : 'bg-purple-500/10 text-purple-400'}`}>{p.type}</span>
+                          <span className="font-mono text-xs text-gray-500 shrink-0">{p.sku}</span>
+                          <span className={`px-1.5 py-0.5 rounded text-xs font-bold uppercase shrink-0 ${p.type === 'producto' ? 'bg-primary/10 text-primary' : 'bg-purple-500/10 text-purple-400'}`}>{p.type}</span>
                         </div>
                         <h4 className={`text-sm sm:text-base font-bold leading-snug truncate text-black`}>{p.name}</h4>
                         <p className="text-xs text-gray-500 truncate">{p.marca || 'Sin Marca'} | {p.categoria || 'General'}</p>
@@ -1290,7 +1290,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                       {posConfig.showStock && p.type === 'producto' && (() => {
                         if (p.inventoryType === 'VIRTUAL') {
                           return (
-                            <span className="text-[10px] text-gray-400 italic">Virtual (N/A)</span>
+                            <span className="text-xs text-gray-400 italic">Virtual (N/A)</span>
                           );
                         }
                         const minStk = p.minStock !== undefined ? Number(p.minStock) : 2;
@@ -1298,7 +1298,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                         return (
                           <span className={`text-xs font-bold px-2 py-0.5 rounded border shrink-0 ${
                             isCritical 
-                              ? 'bg-red-500/10 border-red-500 text-red-500 animate-pulse font-black shadow-sm' 
+                              ? 'bg-red-500/10 border-red-500 text-red-500 animate-pulse font-black' 
                               : ('bg-emerald-50 border-emerald-250 text-emerald-700')
                           }`}>
                             {p.bodega || 'Central'}: {p.stock}
@@ -1339,7 +1339,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                   <div 
                     key={p.id}
                     onClick={() => !isOutOfStock && addToCart(p)}
-                    className={`p-3.5 border rounded-2xl flex flex-col justify-between transition-all cursor-pointer select-none group relative overflow-hidden ${
+                    className={`p-3.5 border rounded-card flex flex-col justify-between transition-all cursor-pointer select-none group relative overflow-hidden ${
                       isOutOfStock 
                         ? 'opacity-40 cursor-not-allowed bg-white/[0.005] border-white/5' 
                         : ('border-primary/15 hover:border-primary/40 hover:bg-primary/5 bg-primary/5 hover:-translate-y-0.5')
@@ -1347,10 +1347,10 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                   >
                     <div className="space-y-1">
                       <div className="flex justify-between items-center gap-1">
-                        <span className="font-mono text-[10px] text-gray-500 truncate">{p.sku}</span>
-                        <span className={`px-1.5 py-0.5 rounded text-[11px] font-bold uppercase ${p.type === 'producto' ? 'bg-primary/10 text-primary' : 'bg-purple-500/10 text-purple-400'}`}>{p.type}</span>
+                        <span className="font-mono text-xs text-gray-500 truncate">{p.sku}</span>
+                        <span className={`px-1.5 py-0.5 rounded text-xs font-bold uppercase ${p.type === 'producto' ? 'bg-primary/10 text-primary' : 'bg-purple-500/10 text-purple-400'}`}>{p.type}</span>
                       </div>
-                      <h4 className={`text-xs sm:text-[13px] font-bold leading-snug line-clamp-2 text-black`}>{p.name}</h4>
+                      <h4 className={`text-xs sm:text-base font-bold leading-snug line-clamp-2 text-black`}>{p.name}</h4>
                       <p className="text-xs text-gray-500 truncate">{p.marca || 'Sin Marca'} | {p.categoria || 'General'}</p>
                     </div>
 
@@ -1359,7 +1359,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                       {posConfig.showStock && p.type === 'producto' && (() => {
                         if (p.inventoryType === 'VIRTUAL') {
                           return (
-                            <span className="text-[10px] text-gray-400 italic">Virtual (N/A)</span>
+                            <span className="text-xs text-gray-400 italic">Virtual (N/A)</span>
                           );
                         }
                         const minStk = p.minStock !== undefined ? Number(p.minStock) : 2;
@@ -1367,7 +1367,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                         return (
                           <span className={`text-xs font-bold px-2 py-0.5 rounded border ${
                             isCritical 
-                              ? 'bg-red-500/10 border-red-500 text-red-500 animate-pulse font-black shadow-sm' 
+                              ? 'bg-red-500/10 border-red-500 text-red-500 animate-pulse font-black' 
                               : ('bg-emerald-50 border-emerald-250 text-emerald-700')
                           }`}>
                             {p.bodega || 'Central'}: {p.stock}
@@ -1392,15 +1392,15 @@ export default function PosView({ products, thirdParties, transactions = [], sho
             <div className={`mt-4 pt-3 border-t flex items-center gap-4 text-xs uppercase font-extrabold tracking-wider shrink-0 ${
               'border-primary/15 text-primary'}`}>
               <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.5)]"></span>
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
                 En Stock
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_6px_rgba(239,68,68,0.6)]"></span>
+                <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
                 Bajo Stock
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-primary shadow-[0_0_6px_rgba(59,130,246,0.5)]"></span>
+                <span className="w-2.5 h-2.5 rounded-full bg-primary"></span>
                 Sin Stock / Servicio
               </span>
             </div>
@@ -1464,7 +1464,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
             {/* Autocompletado */}
             <div className="relative">
               {isClientDropdownOpen && clientSearchTerm && (
-                <div className={`absolute left-0 right-0 top-0 max-h-48 overflow-y-auto z-50 rounded-xl border shadow-xl ${
+                <div className={`absolute left-0 right-0 top-0 max-h-48 overflow-y-auto z-50 rounded-xl border ${
                   'bg-white border-primary/20 text-black shadow-lg'} custom-scrollbar`}>
                   <div 
                     onClick={() => {
@@ -1494,7 +1494,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                           'hover:bg-primary-light'}`}
                       >
                         <div className="font-bold text-xs">{tp.name}</div>
-                        <div className="text-[10px] text-gray-500 font-mono">CI/RUC: {tp.ruc}</div>
+                        <div className="text-xs text-gray-500 font-mono">CI/RUC: {tp.ruc}</div>
                       </div>
                     ))
                   }
@@ -1508,18 +1508,18 @@ export default function PosView({ products, thirdParties, transactions = [], sho
               (() => {
                 const client = getSelectedClient();
                 return (
-                  <div className={`py-1.5 transition-all text-[13px] font-light ${
+                  <div className={`py-1.5 transition-all text-base font-light ${
                     'text-black'}`}>
                     <div className="flex justify-between items-start gap-3">
                       <div className="flex-1 min-w-0 space-y-1">
                         {/* Nombre y RUC */}
                         <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                          <span className={`font-light text-[13px] uppercase text-black`}>{client.name}</span>
-                          <span className={`text-[13px] font-light font-mono text-black`}>({client.ruc})</span>
+                          <span className={`font-light text-base uppercase text-black`}>{client.name}</span>
+                          <span className={`text-base font-light font-mono text-black`}>({client.ruc})</span>
                         </div>
                         {/* Teléfono y Correo en la misma línea con alto contraste */}
                         {(client.telefono || client.email) && (
-                          <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[13px] font-light pt-0.5">
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-base font-light pt-0.5">
                             {client.telefono && (
                               <span className="flex items-center gap-1 shrink-0">
                                 <Phone size={11} className={`text-black shrink-0`} />
@@ -1576,7 +1576,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
               })()
             ) : (
               /* Consumidor Final Compacto */
-              <div className={`py-1.5 flex items-center gap-1.5 text-[13px] font-light ${
+              <div className={`py-1.5 flex items-center gap-1.5 text-base font-light ${
                 'text-black'}`}>
                 <User size={11} className={`text-black shrink-0`} />
                 <span className={`uppercase text-black`}>Consumidor Final</span>
@@ -1587,7 +1587,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
           {/* CABECERA DETALLE DEL PEDIDO */}
           <div className={`px-4 py-2.5 border-b flex justify-between items-center shrink-0 ${
             'border-primary/15 text-gray-550 bg-primary/5'}`}>
-            <span className="text-[11px] font-extrabold uppercase tracking-wider">Detalle del Pedido</span>
+            <span className="text-xs font-extrabold uppercase tracking-wider">Detalle del Pedido</span>
             <span className="text-xs font-bold">
               Items (<span className="text-primary dark:text-primary font-extrabold">{cart.reduce((acc, it) => acc + it.quantity, 0)}</span>)
             </span>
@@ -1599,7 +1599,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
               const prod = products.find(p => p.id === item.productId);
               const imageUrl = prod?.imageUrl || prod?.image || null;
               return (
-                <div key={idx} className={`p-2.5 rounded-xl border flex items-center justify-between gap-3 bg-white border-primary/15 shadow-sm`}>
+                <div key={idx} className={`p-2.5 rounded-xl border flex items-center justify-between gap-3 bg-white border-primary/15`}>
                   {/* Imagen del Producto */}
                   {imageUrl ? (
                     <img src={imageUrl} className="w-10 h-10 rounded-lg object-cover shrink-0 border border-gray-100 dark:border-white/10" alt={item.name} />
@@ -1680,7 +1680,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
           <div className={`p-4 border-t space-y-4 shrink-0 border-primary/15 bg-primary/5`}>
             {/* DESCUENTO CARD */}
             {isDiscountOpen ? (
-              <div className={`p-3 rounded-xl border space-y-2 border-primary/15 bg-white shadow-sm`}>
+              <div className={`p-3 rounded-xl border space-y-2 border-primary/15 bg-white`}>
                 <div className="flex justify-between items-center">
                   <span className={`text-xs font-bold text-black`}>DESCUENTO GENERAL</span>
                   <button 
@@ -1778,15 +1778,15 @@ export default function PosView({ products, thirdParties, transactions = [], sho
         <>
           {/* Backdrop */}
           <div 
-            className="fixed inset-0 z-[120] bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+            className="fixed inset-0 z-[120] bg-black/60 animate-in fade-in duration-200"
             onClick={() => setIsConfigOpen(false)}
           />
           {/* Drawer Panel */}
-          <div className={`fixed top-0 right-0 h-full w-80 z-[130] flex flex-col shadow-2xl border-l animate-in slide-in-from-right duration-300 ${
-            'bg-[#f3f8ff] border-primary/15 text-[#000000] shadow-primary/20'}`}>
+          <div className={`fixed top-0 right-0 h-full w-80 z-[130] flex flex-col border-l animate-in slide-in-from-right duration-300 ${
+            'bg-surface-card border-primary/15 text-text-secondary shadow-primary/20'}`}>
             <div className={`p-4 border-b flex items-center justify-between shrink-0 border-primary/15 bg-primary-light`}>
               <div className="flex items-center gap-2">
-                <Settings size={16} className={'text-[#000000]'} />
+                <Settings size={16} className={'text-text-secondary'} />
                 <h3 className="text-xs font-black uppercase tracking-wider">Gestión del POS</h3>
               </div>
               <button 
@@ -1804,14 +1804,14 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                   <button
                     type="button"
                     onClick={() => setPosConfig(prev => ({ ...prev, viewType: 'grid' }))}
-                    className={`py-2.5 rounded-[var(--radius-button)] text-xs font-bold border transition-all ${posConfig.viewType === 'grid' ? 'bg-primary border-primary text-white' : ('bg-white border-primary/15 text-[#000000] hover:bg-primary-light')}`}
+                    className={`py-2.5 rounded-[var(--radius-button)] text-xs font-bold border transition-all ${posConfig.viewType === 'grid' ? 'bg-primary border-primary text-white' : ('bg-white border-primary/15 text-text-secondary hover:bg-primary-light')}`}
                   >
                     Grid
                   </button>
                   <button
                     type="button"
                     onClick={() => setPosConfig(prev => ({ ...prev, viewType: 'list' }))}
-                    className={`py-2.5 rounded-[var(--radius-button)] text-xs font-bold border transition-all ${posConfig.viewType === 'list' ? 'bg-primary border-primary text-white' : ('bg-white border-primary/15 text-[#000000] hover:bg-primary-light')}`}
+                    className={`py-2.5 rounded-[var(--radius-button)] text-xs font-bold border transition-all ${posConfig.viewType === 'list' ? 'bg-primary border-primary text-white' : ('bg-white border-primary/15 text-text-secondary hover:bg-primary-light')}`}
                   >
                     Lista
                   </button>
@@ -1819,19 +1819,19 @@ export default function PosView({ products, thirdParties, transactions = [], sho
               </div>
               
               <div className="space-y-2">
-                <label className="block text-[10px] font-black uppercase tracking-wider text-gray-500">Filtros de Búsqueda</label>
+                <label className="block text-xs font-black uppercase tracking-wider text-gray-500">Filtros de Búsqueda</label>
                 <div className="grid grid-cols-2 gap-2.5">
                   <button
                     type="button"
                     onClick={() => setPosConfig(prev => ({ ...prev, showCarousel: false }))}
-                    className={`py-2.5 rounded-[var(--radius-button)] text-xs font-bold border transition-all ${!posConfig.showCarousel ? 'bg-primary border-primary text-white' : ('bg-white border-primary/15 text-[#000000] hover:bg-primary-light')}`}
+                    className={`py-2.5 rounded-[var(--radius-button)] text-xs font-bold border transition-all ${!posConfig.showCarousel ? 'bg-primary border-primary text-white' : ('bg-white border-primary/15 text-text-secondary hover:bg-primary-light')}`}
                   >
                     Normales
                   </button>
                   <button
                     type="button"
                     onClick={() => setPosConfig(prev => ({ ...prev, showCarousel: true }))}
-                    className={`py-2.5 rounded-[var(--radius-button)] text-xs font-bold border transition-all ${posConfig.showCarousel ? 'bg-primary border-primary text-white' : ('bg-white border-primary/15 text-[#000000] hover:bg-primary-light')}`}
+                    className={`py-2.5 rounded-[var(--radius-button)] text-xs font-bold border transition-all ${posConfig.showCarousel ? 'bg-primary border-primary text-white' : ('bg-white border-primary/15 text-text-secondary hover:bg-primary-light')}`}
                   >
                     Carrusel
                   </button>
@@ -1839,19 +1839,19 @@ export default function PosView({ products, thirdParties, transactions = [], sho
               </div>
               
               <div className="space-y-2">
-                <label className="block text-[10px] font-black uppercase tracking-wider text-gray-500">Posición Detalle</label>
+                <label className="block text-xs font-black uppercase tracking-wider text-gray-500">Posición Detalle</label>
                 <div className="grid grid-cols-2 gap-2.5">
                   <button
                     type="button"
                     onClick={() => setPosConfig(prev => ({ ...prev, cartPosition: 'left' }))}
-                    className={`py-2.5 rounded-[var(--radius-button)] text-xs font-bold border transition-all ${posConfig.cartPosition === 'left' ? 'bg-primary border-primary text-white' : ('bg-white border-primary/15 text-[#000000] hover:bg-primary-light')}`}
+                    className={`py-2.5 rounded-[var(--radius-button)] text-xs font-bold border transition-all ${posConfig.cartPosition === 'left' ? 'bg-primary border-primary text-white' : ('bg-white border-primary/15 text-text-secondary hover:bg-primary-light')}`}
                   >
                     Izquierda
                   </button>
                   <button
                     type="button"
                     onClick={() => setPosConfig(prev => ({ ...prev, cartPosition: 'right' }))}
-                    className={`py-2.5 rounded-[var(--radius-button)] text-xs font-bold border transition-all ${posConfig.cartPosition === 'right' ? 'bg-primary border-primary text-white' : ('bg-white border-primary/15 text-[#000000] hover:bg-primary-light')}`}
+                    className={`py-2.5 rounded-[var(--radius-button)] text-xs font-bold border transition-all ${posConfig.cartPosition === 'right' ? 'bg-primary border-primary text-white' : ('bg-white border-primary/15 text-text-secondary hover:bg-primary-light')}`}
                   >
                     Derecha
                   </button>
@@ -1859,14 +1859,14 @@ export default function PosView({ products, thirdParties, transactions = [], sho
               </div>
               
               <div className="space-y-2 pt-2 border-t border-white/5">
-                <label className="block text-[10px] font-black uppercase tracking-wider text-gray-500">Buscador y Lector</label>
+                <label className="block text-xs font-black uppercase tracking-wider text-gray-500">Buscador y Lector</label>
                 <button
                   type="button"
                   onClick={() => setPosConfig(prev => ({ ...prev, barcodeMode: !prev.barcodeMode }))}
                   className={`w-full py-3 px-4 rounded-[var(--radius-button)] text-xs font-bold border transition-all flex items-center justify-between ${
                     posConfig.barcodeMode
                       ? 'bg-primary border-primary text-white'
-                      : ('bg-primary-light border-primary/15 text-[#000000] hover:bg-primary-light')
+                      : ('bg-primary-light border-primary/15 text-text-secondary hover:bg-primary-light')
                   }`}
                 >
                   <span className="flex items-center gap-1.5">
@@ -1877,38 +1877,38 @@ export default function PosView({ products, thirdParties, transactions = [], sho
               </div>
               
               <div className="space-y-2">
-                <label className="block text-[10px] font-black uppercase tracking-wider text-gray-500">Checkout Exprés</label>
+                <label className="block text-xs font-black uppercase tracking-wider text-gray-500">Checkout Exprés</label>
                 <button
                   type="button"
                   onClick={() => setPosConfig(prev => ({ ...prev, expressCheckout: !prev.expressCheckout }))}
                   className={`w-full py-3 px-4 rounded-[var(--radius-button)] text-xs font-bold border transition-all flex items-center justify-between ${
                     posConfig.expressCheckout
                       ? 'bg-emerald-600 border-emerald-600 text-white'
-                      : ('bg-primary-light border-primary/15 text-[#000000] hover:bg-primary-light')
+                      : ('bg-primary-light border-primary/15 text-text-secondary hover:bg-primary-light')
                   }`}
                 >
                   <span className="flex items-center gap-1.5">
                     <Zap size={14} /> Checkout 1-Paso
                   </span>
-                  <span className="text-[10px] font-extrabold">{posConfig.expressCheckout ? 'ACTIVO' : 'INACTIVO'}</span>
+                  <span className="text-xs font-extrabold">{posConfig.expressCheckout ? 'ACTIVO' : 'INACTIVO'}</span>
                 </button>
               </div>
               
               <div className="space-y-2">
-                <label className="block text-[10px] font-black uppercase tracking-wider text-gray-500">Privacidad Stock</label>
+                <label className="block text-xs font-black uppercase tracking-wider text-gray-500">Privacidad Stock</label>
                 <button
                   type="button"
                   onClick={() => setPosConfig(prev => ({ ...prev, showStock: !prev.showStock }))}
-                  className={`w-full py-3 px-4 rounded-[var(--radius-button)] text-[11px] font-bold border transition-all flex items-center justify-between ${
+                  className={`w-full py-3 px-4 rounded-[var(--radius-button)] text-xs font-bold border transition-all flex items-center justify-between ${
                     posConfig.showStock
                       ? 'bg-primary border-primary text-white'
-                      : ('bg-primary-light border-primary/15 text-[#000000] hover:bg-primary-light')
+                      : ('bg-primary-light border-primary/15 text-text-secondary hover:bg-primary-light')
                   }`}
                 >
                   <span className="flex items-center gap-1.5">
                     <Eye size={14} /> Mostrar Stock
                   </span>
-                  <span className="text-[10px] font-extrabold">{posConfig.showStock ? 'ACTIVO' : 'INACTIVO'}</span>
+                  <span className="text-xs font-extrabold">{posConfig.showStock ? 'ACTIVO' : 'INACTIVO'}</span>
                 </button>
               </div>
             </div>
@@ -1918,8 +1918,8 @@ export default function PosView({ products, thirdParties, transactions = [], sho
 
       {/* APERTURA Y CIERRE DE CAJA DIALOG */}
       {isClosingOpen && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
-          <div className={`w-full max-w-md p-6 rounded-3xl border shadow-2xl transition-all duration-300 ${
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/85 animate-in fade-in duration-200">
+          <div className={`w-full max-w-md p-6 rounded-card border transition-all duration-300 ${
             'bg-white border-primary/15 text-black shadow-primary/10'}`}>
             <h3 className="text-sm font-black mb-4 flex items-center gap-2 text-red-500">
               <ShieldAlert size={16} /> Arqueo y Cierre de Caja
@@ -1949,7 +1949,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                 <div className="flex justify-between items-center">
                   <div>
                     <p className={`font-bold text-black`}>Tarjeta Débito/Crédito</p>
-                    <p className={`text-[9px] text-gray-900 font-bold`}>
+                    <p className={`text-xs text-gray-900 font-bold`}>
                       Esperado: ${sessionTxs.filter(t => t.paymentMethod === 'tarjeta').reduce((acc, t) => acc + Number(t.total || 0), 0).toFixed(2)}
                     </p>
                   </div>
@@ -1959,7 +1959,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                 <div className="flex justify-between items-center">
                   <div>
                     <p className={`font-bold text-black`}>Transferencias</p>
-                    <p className={`text-[9px] text-gray-900 font-bold`}>
+                    <p className={`text-xs text-gray-900 font-bold`}>
                       Esperado: ${sessionTxs.filter(t => t.paymentMethod === 'transferencia').reduce((acc, t) => acc + Number(t.total || 0), 0).toFixed(2)}
                     </p>
                   </div>
@@ -1969,7 +1969,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                 <div className="flex justify-between items-center">
                   <div>
                     <p className={`font-bold text-black`}>Cruce de Cuentas</p>
-                    <p className={`text-[9px] text-gray-900 font-bold`}>
+                    <p className={`text-xs text-gray-900 font-bold`}>
                       Esperado: ${sessionTxs.filter(t => t.paymentMethod === 'cruce_cuentas').reduce((acc, t) => acc + Number(t.total || 0), 0).toFixed(2)}
                     </p>
                   </div>
@@ -1994,7 +1994,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
       {/* CHECKOUT WIZARD MODAL (FULLSCREEN PASOS) */}
       {isCheckoutOpen && (
         <div className={`fixed inset-0 z-[110] flex flex-col overflow-hidden animate-in fade-in duration-200 ${
-          'bg-[#f3f8ff] text-[#000000]'}`}>
+          'bg-surface-card text-text-secondary'}`}>
           <div className="flex-1 flex flex-col overflow-hidden max-h-screen transition-all duration-300">
             
             {/* WIZARD PROGRESS HEADER */}
@@ -2031,7 +2031,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                   {/* COLUMNA IZQUIERDA: CLIENTE Y DETALLE */}
                   <div className="space-y-4">
                     {/* CLIENTE */}
-                    <div className={`p-4 rounded-2xl border space-y-3 bg-primary/5 border-primary/15`}>
+                    <div className={`p-4 rounded-card border space-y-3 bg-primary/5 border-primary/15`}>
                       <h4 className={`text-sm md:text-base font-bold uppercase tracking-wider text-black`}>Cliente de la Venta</h4>
                       <div className="flex items-center gap-2">
                         <div className="flex-1">
@@ -2063,7 +2063,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                     </div>
 
                     {/* DATOS CLIENTE */}
-                    <div className={`p-4 rounded-2xl border space-y-2 text-xs md:text-sm ${
+                    <div className={`p-4 rounded-card border space-y-2 text-xs md:text-sm ${
                       'border-primary/15 bg-primary/5 text-black'}`}>
                       <p className={`font-bold text-black`}>Datos Facturación del Receptor:</p>
                       <div className="grid grid-cols-2 gap-2 text-sm md:text-base pt-1">
@@ -2076,7 +2076,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                     </div>
 
                     {/* PREVISUALIZACION DETALLE */}
-                    <div className={`p-4 rounded-2xl border space-y-3 text-xs md:text-sm ${
+                    <div className={`p-4 rounded-card border space-y-3 text-xs md:text-sm ${
                       'border-primary/15 bg-primary/5 text-black'}`}>
                       <h4 className={`text-sm md:text-base font-bold uppercase tracking-wider text-black`}>Ítems a Facturar</h4>
                       <div className="max-h-[140px] overflow-y-auto space-y-1.5 pr-1 custom-scrollbar text-xs md:text-sm">
@@ -2097,8 +2097,8 @@ export default function PosView({ products, thirdParties, transactions = [], sho
 
                   {/* COLUMNA DERECHA: METODOS DE PAGO Y VUELTO */}
                   <div className="space-y-4">
-                    <div className={`p-4 rounded-2xl border flex justify-between items-center ${
-                      'bg-primary-light border-primary/25 text-primary shadow-sm'}`}>
+                    <div className={`p-4 rounded-card border flex justify-between items-center ${
+                      'bg-primary-light border-primary/25 text-primary'}`}>
                       <span className="text-sm font-bold">TOTAL A COBRAR:</span>
                       <span className="text-2xl font-black">${totalToPay.toFixed(2)}</span>
                     </div>
@@ -2143,7 +2143,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                                 isSelected ? 'bg-white text-primary' : 'bg-primary text-white'}`}>
                                 <m.icon size={12} />
                               </div>
-                              <span className="text-[9px] font-bold uppercase tracking-wide">{m.label}</span>
+                              <span className="text-xs font-bold uppercase tracking-wide">{m.label}</span>
                             </button>
                           );
                         })}
@@ -2155,7 +2155,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                           <div className={`p-3 rounded-xl border space-y-1.5 border-primary/15 bg-primary/5`}>
                             <div className="flex justify-between items-center mb-0.5">
                               <span className="text-xs font-bold block">Efectivo ($)</span>
-                              <span className={`text-[9px] font-bold uppercase text-gray-400`}>Monto Recibido</span>
+                              <span className={`text-xs font-bold uppercase text-gray-400`}>Monto Recibido</span>
                             </div>
                             <input type="number" step="0.01" value={payments.efectivo || ''} onChange={e => setPayments({...payments, efectivo: e.target.value})} className={'glass-input-light px-3 py-2 w-full text-sm font-semibold rounded-lg border'} placeholder="0.00" />
                             <div className="flex gap-1.5 mt-1.5 flex-wrap">
@@ -2193,7 +2193,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                           <div className={`p-3 rounded-xl border space-y-1.5 border-primary/15 bg-primary/5`}>
                             <div className="flex justify-between items-center mb-0.5">
                               <span className="text-xs font-bold block">Tarjeta ($)</span>
-                              <span className={`text-[9px] font-bold uppercase text-gray-400`}>Monto Tarjeta</span>
+                              <span className={`text-xs font-bold uppercase text-gray-400`}>Monto Tarjeta</span>
                             </div>
                             <input type="number" step="0.01" value={payments.tarjeta || ''} onChange={e => setPayments({...payments, tarjeta: e.target.value})} className={'glass-input-light px-2 py-1.5 w-full text-xs rounded-lg border'} placeholder="0.00" />
                             <input type="text" value={payments.tarjetaRef} onChange={e => setPayments({...payments, tarjetaRef: e.target.value})} className={`glass-input-light px-2 py-1 w-full text-xs rounded-lg border`} placeholder="Ref/Aut" />
@@ -2205,7 +2205,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                           <div className={`p-3 rounded-xl border space-y-1.5 border-primary/15 bg-primary/5`}>
                             <div className="flex justify-between items-center mb-0.5">
                               <span className="text-xs font-bold block">Transferencia ($)</span>
-                              <span className={`text-[9px] font-bold uppercase text-gray-400`}>Monto Transferido</span>
+                              <span className={`text-xs font-bold uppercase text-gray-400`}>Monto Transferido</span>
                             </div>
                             <input type="number" step="0.01" value={payments.transferencia || ''} onChange={e => setPayments({...payments, transferencia: e.target.value})} className={'glass-input-light px-2 py-1.5 w-full text-xs rounded-lg border'} placeholder="0.00" />
                             <input type="text" value={payments.transferenciaRef} onChange={e => setPayments({...payments, transferenciaRef: e.target.value})} className={`glass-input-light px-2 py-1 w-full text-xs rounded-lg border`} placeholder="Nro Ref" />
@@ -2217,10 +2217,10 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                           <div className={`p-3 rounded-xl border space-y-1.5 border-primary/15 bg-primary/5`}>
                             <div className="flex justify-between items-center mb-0.5">
                               <span className="text-xs font-bold block">Cruce Cuentas ($)</span>
-                              <span className={`text-[9px] font-bold uppercase text-gray-400`}>Monto Crédito</span>
+                              <span className={`text-xs font-bold uppercase text-gray-400`}>Monto Crédito</span>
                             </div>
                             <input type="number" step="0.01" value={payments.cruce_cuentas || ''} onChange={e => setPayments({...payments, cruce_cuentas: e.target.value})} className={'glass-input-light px-2 py-1.5 w-full text-xs rounded-lg border'} placeholder="0.00" />
-                            <input type="text" value={payments.cruceRef} onChange={e => setPayments({...payments, cruceRef: e.target.value})} className={`glass-input-light px-2 py-1 w-full text-[9px] rounded-lg border`} placeholder="Nro Doc" />
+                            <input type="text" value={payments.cruceRef} onChange={e => setPayments({...payments, cruceRef: e.target.value})} className={`glass-input-light px-2 py-1 w-full text-xs rounded-lg border`} placeholder="Nro Doc" />
                           </div>
                         )}
                       </div>
@@ -2250,7 +2250,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                   {/* PASO 1: CLIENTE */}
                   {checkoutStep === 1 && (
                     <div className="space-y-4 animate-in slide-in-from-right-4 duration-300 text-xs md:text-sm">
-                      <div className={`p-4 rounded-2xl border space-y-3 bg-primary/5 border-primary/15`}>
+                      <div className={`p-4 rounded-card border space-y-3 bg-primary/5 border-primary/15`}>
                         <h4 className={`text-xs md:text-sm font-bold uppercase tracking-wider text-black`}>Cliente de la Venta</h4>
                         <div className="flex items-center gap-2">
                           <div className="flex-1">
@@ -2281,7 +2281,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                         </div>
                       </div>
 
-                      <div className={`p-4 rounded-2xl border space-y-3 bg-primary/5 border-primary/15`}>
+                      <div className={`p-4 rounded-card border space-y-3 bg-primary/5 border-primary/15`}>
                         <h4 className={`text-xs md:text-sm font-bold uppercase tracking-wider text-black`}>Tipo de Documento a Emitir</h4>
                         {sriConfig?.rucActivo === false && (
                           <div className="p-3 bg-amber-500/10 border border-amber-500/25 text-amber-500 rounded-xl flex items-center gap-2 text-xs font-semibold">
@@ -2308,7 +2308,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                         </select>
                       </div>
 
-                      <div className={`p-4 rounded-2xl border space-y-2 text-xs md:text-sm ${
+                      <div className={`p-4 rounded-card border space-y-2 text-xs md:text-sm ${
                         'border-primary/15 bg-primary/5 text-black'}`}>
                         <p className={`font-bold text-black`}>Datos Facturación del Receptor:</p>
                         <div className="grid grid-cols-2 gap-3 text-xs md:text-sm pt-1">
@@ -2325,8 +2325,8 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                   {/* PASO 2: METODOS DE PAGO */}
                   {checkoutStep === 2 && (
                     <div className="space-y-4 animate-in slide-in-from-right-4 duration-300 text-xs md:text-sm">
-                      <div className={`p-4.5 rounded-2xl border flex justify-between items-center ${
-                        'bg-primary-light border-primary/25 text-primary shadow-sm'}`}>
+                      <div className={`p-4.5 rounded-card border flex justify-between items-center ${
+                        'bg-primary-light border-primary/25 text-primary'}`}>
                         <span className="text-sm md:text-base font-black">TOTAL A PAGAR:</span>
                         <span className="text-xl font-black">${totalToPay.toFixed(2)}</span>
                       </div>
@@ -2371,7 +2371,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                                   isSelected ? 'bg-white text-primary' : 'bg-primary text-white'}`}>
                                   <m.icon size={14} />
                                 </div>
-                                <span className="text-[9px] font-bold uppercase tracking-wide">{m.label}</span>
+                                <span className="text-xs font-bold uppercase tracking-wide">{m.label}</span>
                               </button>
                             );
                           })}
@@ -2386,7 +2386,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                                   <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center"><DollarSign size={12} /></div>
                                   <span className={`text-xs md:text-sm font-bold block text-black`}>Efectivo ($)</span>
                                 </div>
-                                <span className={`text-[10px] font-bold uppercase text-gray-400`}>Monto Recibido</span>
+                                <span className={`text-xs font-bold uppercase text-gray-400`}>Monto Recibido</span>
                               </div>
                               <input type="number" step="0.01" value={payments.efectivo || ''} onChange={e => setPayments({...payments, efectivo: e.target.value})} className={'glass-input-light px-3.5 py-3 w-full text-base font-bold rounded-xl outline-none border'} placeholder="0.00" />
                               <div className="flex flex-wrap gap-1.5 mt-2">
@@ -2427,7 +2427,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                                   <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center"><CreditCard size={12} /></div>
                                   <span className={`text-xs md:text-sm font-bold block text-black`}>Tarjeta (Crédito/Débito) ($)</span>
                                 </div>
-                                <span className={`text-[10px] font-bold uppercase text-gray-400`}>Monto Tarjeta</span>
+                                <span className={`text-xs font-bold uppercase text-gray-400`}>Monto Tarjeta</span>
                               </div>
                               <input type="number" step="0.01" value={payments.tarjeta || ''} onChange={e => setPayments({...payments, tarjeta: e.target.value})} className={'glass-input-light px-3 py-2.5 w-full text-sm font-bold rounded-xl outline-none border'} placeholder="0.00" />
                               <input type="text" value={payments.tarjetaRef} onChange={e => setPayments({...payments, tarjetaRef: e.target.value})} className={`glass-input-light px-3 py-2 w-full text-sm mt-1.5 rounded-xl border`} placeholder="Ref / Autorización" />
@@ -2442,7 +2442,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                                   <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center"><RefreshCw size={12} /></div>
                                   <span className={`text-xs md:text-sm font-bold block text-black`}>Transferencia Bancaria ($)</span>
                                 </div>
-                                <span className={`text-[10px] font-bold uppercase text-gray-400`}>Monto Transferido</span>
+                                <span className={`text-xs font-bold uppercase text-gray-400`}>Monto Transferido</span>
                               </div>
                               <input type="number" step="0.01" value={payments.transferencia || ''} onChange={e => setPayments({...payments, transferencia: e.target.value})} className={'glass-input-light px-3 py-2.5 w-full text-sm font-bold rounded-xl outline-none border'} placeholder="0.00" />
                               <input type="text" value={payments.transferenciaRef} onChange={e => setPayments({...payments, transferenciaRef: e.target.value})} className={`glass-input-light px-3 py-2 w-full text-xs mt-1.5 rounded-xl border`} placeholder="Nro Referencia / Comprobante" />
@@ -2457,7 +2457,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                                   <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center"><User size={12} /></div>
                                   <span className={`text-xs md:text-sm font-bold block text-black`}>Cruce de Cuentas ($)</span>
                                 </div>
-                                <span className={`text-[10px] font-bold uppercase text-gray-400`}>Monto Crédito</span>
+                                <span className={`text-xs font-bold uppercase text-gray-400`}>Monto Crédito</span>
                               </div>
                               <input type="number" step="0.01" value={payments.cruce_cuentas || ''} onChange={e => setPayments({...payments, cruce_cuentas: e.target.value})} className={'glass-input-light px-3 py-2.5 w-full text-sm font-bold rounded-xl outline-none border'} placeholder="0.00" />
                               <input type="text" value={payments.cruceRef} onChange={e => setPayments({...payments, cruceRef: e.target.value})} className={`glass-input-light px-3 py-2 w-full text-xs mt-1.5 rounded-xl border`} placeholder="Nro de Documento Relacionado" />
@@ -2489,7 +2489,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                   {/* PASO 3: CONFIRMACIÓN Y EMISION */}
                   {checkoutStep === 3 && (
                     <div className="space-y-4 animate-in slide-in-from-right-4 duration-300 text-xs">
-                      <div className={`p-5 rounded-2xl border space-y-3 bg-white border-primary/20 text-black shadow-inner`}>
+                      <div className={`p-5 rounded-card border space-y-3 bg-white border-primary/20 text-black shadow-inner`}>
                         <h4 className={`text-sm font-black text-center uppercase tracking-widest border-b pb-2 text-black border-primary/15`}>PREVISUALIZACIÓN DE FACTURA (RIDE)</h4>
                         
                         <div className="grid grid-cols-2 gap-4 text-xs leading-normal">
@@ -2509,8 +2509,8 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                         </div>
 
                         <div className={`border-t pt-3 border-primary/15`}>
-                          <p className={`font-bold text-[10px] uppercase mb-1.5 text-primary`}>Ítems Detallados</p>
-                          <div className="space-y-1 text-[10px]">
+                          <p className={`font-bold text-xs uppercase mb-1.5 text-primary`}>Ítems Detallados</p>
+                          <div className="space-y-1 text-xs">
                             {cart.map((item, idx) => (
                               <div key={idx} className="flex justify-between">
                                 <span className={'text-black font-semibold'}>{item.quantity}x {item.name}</span>
@@ -2605,15 +2605,15 @@ export default function PosView({ products, thirdParties, transactions = [], sho
 
       {/* QUICK CLIENT ADD MODAL IN POS */}
       {isQuickAddOpen && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
-          <div className={`w-full max-w-md p-6 rounded-3xl border shadow-2xl transition-all duration-300 ${
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/85 animate-in fade-in duration-200">
+          <div className={`w-full max-w-md p-6 rounded-card border transition-all duration-300 ${
             'bg-white border-primary/15 text-black shadow-primary/10'}`}>
             <h3 className="text-base font-black mb-4">Registro Rápido de Cliente (SRI)</h3>
             
             <form onSubmit={handleQuickClientSave} className="space-y-3.5">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className={`block text-[9px] font-bold uppercase mb-1 text-black`}>Identificación</label>
+                  <label className={`block text-xs font-bold uppercase mb-1 text-black`}>Identificación</label>
                   <select 
                     value={quickAddFormData.tipoIdentificacion} 
                     onChange={e => setQuickAddFormData({...quickAddFormData, tipoIdentificacion: e.target.value})} 
@@ -2626,7 +2626,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                   </select>
                 </div>
                 <div>
-                  <label className={`block text-[9px] font-bold uppercase mb-1 text-black`}>Número</label>
+                  <label className={`block text-xs font-bold uppercase mb-1 text-black`}>Número</label>
                   <div className="flex gap-1.5">
                     <input 
                       type="text" 
@@ -2650,7 +2650,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
               </div>
 
               <div>
-                <label className={`block text-[9px] font-bold uppercase mb-1 text-black`}>Razón Social / Nombre Completo</label>
+                <label className={`block text-xs font-bold uppercase mb-1 text-black`}>Razón Social / Nombre Completo</label>
                 <input 
                   type="text" 
                   required 
@@ -2662,7 +2662,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
               </div>
 
               <div>
-                <label className={`block text-[9px] font-bold uppercase mb-1 text-black`}>Teléfono</label>
+                <label className={`block text-xs font-bold uppercase mb-1 text-black`}>Teléfono</label>
                 <input 
                   type="text" 
                   value={quickAddFormData.telefono || ''} 
@@ -2674,7 +2674,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
 
               <div className="grid grid-cols-3 gap-3">
                 <div className="col-span-2">
-                  <label className={`block text-[9px] font-bold uppercase mb-1 text-black`}>Dirección Domicilio</label>
+                  <label className={`block text-xs font-bold uppercase mb-1 text-black`}>Dirección Domicilio</label>
                   <input 
                     type="text" 
                     value={quickAddFormData.direccion || ''} 
@@ -2684,7 +2684,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                   />
                 </div>
                 <div>
-                  <label className={`block text-[9px] font-bold uppercase mb-1 text-black`}>Ciudad</label>
+                  <label className={`block text-xs font-bold uppercase mb-1 text-black`}>Ciudad</label>
                   <input 
                     type="text" 
                     value={quickAddFormData.ciudad || ''} 
@@ -2697,7 +2697,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
               </div>
 
               <div>
-                <label className={`block text-[9px] font-bold uppercase mb-1 text-black`}>Correo Notificación</label>
+                <label className={`block text-xs font-bold uppercase mb-1 text-black`}>Correo Notificación</label>
                 <input 
                   type="email" 
                   value={quickAddFormData.email || ''} 
@@ -2718,8 +2718,8 @@ export default function PosView({ products, thirdParties, transactions = [], sho
 
       {/* MODAL DE ATAJOS DE TECLADO (GUIDE) */}
       {isShortcutsOpen && (
-        <div className="fixed inset-0 z-[160] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-250">
-          <div className={`w-full max-w-md p-6 rounded-3xl border shadow-2xl transition-all duration-300 ${
+        <div className="fixed inset-0 z-[160] flex items-center justify-center p-4 bg-black/80 animate-in fade-in duration-250">
+          <div className={`w-full max-w-md p-6 rounded-card border transition-all duration-300 ${
             'bg-white border-primary/15 text-black shadow-primary/10'}`}>
             <div className="flex justify-between items-center mb-4 pb-2 border-b border-white/5">
               <h3 className="text-sm font-black uppercase tracking-wider flex items-center gap-2">
@@ -2729,7 +2729,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
             </div>
             
             <div className="space-y-3.5 text-xs">
-              <p className="text-[10px] text-gray-400">Usa estos atajos rápidos para agilizar el proceso de facturación en caja:</p>
+              <p className="text-xs text-gray-400">Usa estos atajos rápidos para agilizar el proceso de facturación en caja:</p>
               
               <div className="space-y-2">
                 {[
@@ -2741,8 +2741,8 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                   { key: 'Escape', desc: 'Cerrar cualquier ventana flotante o modal abierto' }
                 ].map((item, idx) => (
                   <div key={idx} className={`flex items-center justify-between p-2.5 rounded-xl border bg-primary/5 border-primary/15 text-black font-semibold`}>
-                    <span className="text-[11px] font-medium">{item.desc}</span>
-                    <kbd className={`px-2 py-1 rounded text-[10px] font-mono font-bold shadow bg-white text-black border border-primary/25`}>
+                    <span className="text-xs font-medium">{item.desc}</span>
+                    <kbd className={`px-2 py-1 rounded text-xs font-mono font-bold shadow bg-white text-black border border-primary/25`}>
                       {item.key}
                     </kbd>
                   </div>
@@ -2768,15 +2768,15 @@ export default function PosView({ products, thirdParties, transactions = [], sho
         <div className="fixed inset-0 z-[140] flex justify-end bg-black/75 backdrop-blur-xs animate-in fade-in duration-200">
           <div className="absolute inset-0" onClick={() => setIsHistoryOpen(false)}></div>
           
-          <div className={`relative w-full max-w-md h-full flex flex-col shadow-2xl animate-in slide-in-from-right duration-350 ${
-            'bg-[#fcfcff] border-l border-primary/15 text-black'}`}>
+          <div className={`relative w-full max-w-md h-full flex flex-col animate-in slide-in-from-right duration-350 ${
+            'bg-surface-card border-l border-primary/15 text-black'}`}>
             {/* Header */}
             <div className={`p-4 border-b flex items-center justify-between shrink-0 border-primary/15 bg-primary-light`}>
               <div className="flex items-center gap-2">
                 <History size={16} className="text-primary" />
                 <div>
                   <h3 className="text-xs font-black uppercase tracking-wider">Historial de Ventas</h3>
-                  <p className="text-[9px] text-gray-500">Sesión de caja activa</p>
+                  <p className="text-xs text-gray-500">Sesión de caja activa</p>
                 </div>
               </div>
               <button 
@@ -2806,25 +2806,25 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                   return (
                     <div 
                       key={tx.id} 
-                      className={`p-3.5 rounded-2xl border flex flex-col justify-between gap-3 transition-all ${
+                      className={`p-3.5 rounded-card border flex flex-col justify-between gap-3 transition-all ${
                         isAnulado
                           ? 'opacity-65 border-red-500/20 bg-red-500/5'
-                          : ('bg-white border-primary/15 shadow-sm hover:shadow')
+                          : ('bg-white border-primary/15 hover:shadow')
                       }`}
                     >
                       <div className="flex justify-between items-start">
                         <div className="min-w-0 flex-1">
-                          <p className="font-mono text-[9px] text-gray-500 truncate">{tx.id}</p>
+                          <p className="font-mono text-xs text-gray-500 truncate">{tx.id}</p>
                           <h4 className={`text-sm font-black truncate text-black`}>
                             {matchedClient.name}
                           </h4>
-                          <p className="text-[9px] text-gray-500">RUC/CI: {matchedClient.ruc} | Fecha: {tx.date}</p>
+                          <p className="text-xs text-gray-500">RUC/CI: {matchedClient.ruc} | Fecha: {tx.date}</p>
                         </div>
                         <div className="text-right shrink-0">
                           <span className={`text-sm font-black block ${isAnulado ? 'text-red-500 line-through' : ('text-primary')}`}>
                             ${Number(tx.total || 0).toFixed(2)}
                           </span>
-                          <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-bold uppercase mt-1 ${
+                          <span className={`inline-block px-1.5 py-0.5 rounded text-xs font-bold uppercase mt-1 ${
                             isAnulado 
                               ? 'bg-red-500/20 text-red-405' 
                               : (tx.sriStatus === 'autorizado' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-yellow-500/20 text-yellow-400')
@@ -2844,7 +2844,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                         {tx.items && tx.items.length > 0 && (
                           <div className="border-t border-white/5 mt-1 pt-1 max-h-16 overflow-y-auto custom-scrollbar">
                             {tx.items.map((it, idx) => (
-                              <div key={idx} className="flex justify-between text-[9px] text-gray-500">
+                              <div key={idx} className="flex justify-between text-xs text-gray-500">
                                 <span className="truncate max-w-[150px]">{it.quantity}x {it.name}</span>
                                 <span>${(it.price * it.quantity).toFixed(2)}</span>
                               </div>

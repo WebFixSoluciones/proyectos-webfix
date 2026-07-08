@@ -294,7 +294,7 @@ export default function FinanceModule({
       {/* SUB-SUB-NAVEGACIÓN SI ACTIVE TAB TIENE SUB-TABS (ej: sri_docs en contabilidad) */}
       {activeTab === 'sri_docs' && mode === 'contabilidad' && (
         <div className="flex items-center gap-2 px-8 py-2 border-b shrink-0 border-primary/10 bg-primary-light/50">
-          <span className="text-[9px] font-black uppercase tracking-wider text-primary">Tipo Doc:</span>
+          <span className="text-xs font-black uppercase tracking-wider text-primary">Tipo Doc:</span>
           <div className="flex gap-1.5 overflow-x-auto whitespace-nowrap scrollbar-none">
             {[
               { id: 'nota_credito', label: 'Notas de Crédito' },
@@ -308,7 +308,7 @@ export default function FinanceModule({
                 onClick={() => setSubTabSri(sub.id)}
                 className={`px-3 py-1 rounded-lg text-xs font-bold transition-all border ${
                   subTabSri === sub.id
-                    ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+                    ? 'bg-emerald-600 text-white border-emerald-600'
                     : 'border-transparent text-black hover:text-black hover:bg-black/5'
                 }`}
               >
@@ -492,69 +492,69 @@ export default function FinanceModule({
 
       {/* Modal: Seleccion de Metodo de Compra */}
       {showPurchaseMethodSelect && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setShowPurchaseMethodSelect(false)}>
-          <div className="w-full max-w-lg bg-white rounded-lg shadow-xl border border-[#E6EBF1]" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-5 py-3 border-b border-[#E6EBF1]">
-              <h3 className="text-[14px] font-semibold text-black">Registrar Compra</h3>
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50" onClick={() => setShowPurchaseMethodSelect(false)}>
+          <div className="w-full max-w-lg bg-white rounded-lg border border-border-default" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 py-3 border-b border-border-default">
+              <h3 className="text-md font-semibold text-black">Registrar Compra</h3>
               <button onClick={() => setShowPurchaseMethodSelect(false)} className="btn-icon text-gray-500"><X size={16} /></button>
             </div>
             <div className="p-5 space-y-3">
-              <p className="text-[12px] text-[#333333]">Selecciona el metodo para registrar la compra:</p>
+              <p className="text-sm text-text-primary">Selecciona el metodo para registrar la compra:</p>
               
               {/* Con Inventario + Manual */}
-              <button onClick={() => handleConfirmPurchaseMethod('con_inventario')} className="w-full p-4 rounded-md border border-[#E6EBF1] text-left hover:bg-[#F6F9FC] transition-all group">
+              <button onClick={() => handleConfirmPurchaseMethod('con_inventario')} className="w-full p-4 rounded-md border border-border-default text-left hover:bg-surface-bg transition-all group">
                 <div className="flex items-start gap-3">
                   <div className="p-2 rounded-md bg-[color-mix(in_srgb,var(--primary-color)_10%,transparent)] text-[var(--primary-color)] shrink-0">
                     <Package size={20} />
                   </div>
                   <div className="flex-1">
-                    <h4 className="text-[13px] font-semibold text-black">Con Inventario - Manual</h4>
-                    <p className="text-[11px] text-[#333333] mt-1">Ingresa proveedor, productos, cantidades y costos manualmente. Actualiza stock y kardex.</p>
+                    <h4 className="text-base font-semibold text-black">Con Inventario - Manual</h4>
+                    <p className="text-xs text-text-primary mt-1">Ingresa proveedor, productos, cantidades y costos manualmente. Actualiza stock y kardex.</p>
                   </div>
-                  <ArrowRight size={16} className="text-[#E6EBF1] group-hover:text-[var(--primary-color)] transition-colors shrink-0 self-center" />
+                  <ArrowRight size={16} className="text-text-secondary group-hover:text-[var(--primary-color)] transition-colors shrink-0 self-center" />
                 </div>
               </button>
 
               {/* Con Inventario + XML */}
-              <label className="w-full p-4 rounded-md border border-[#E6EBF1] text-left hover:bg-[#F6F9FC] transition-all group cursor-pointer block">
+              <label className="w-full p-4 rounded-md border border-border-default text-left hover:bg-surface-bg transition-all group cursor-pointer block">
                 <div className="flex items-start gap-3">
                   <div className="p-2 rounded-md bg-[color-mix(in_srgb,var(--primary-color)_10%,transparent)] text-[var(--primary-color)] shrink-0">
                     <Upload size={20} />
                   </div>
                   <div className="flex-1">
-                    <h4 className="text-[13px] font-semibold text-black">Con Inventario - Importar XML</h4>
-                    <p className="text-[11px] text-[#333333] mt-1">Sube el archivo XML de la factura electronica. El sistema procesa proveedor, productos y costos automaticamente.</p>
+                    <h4 className="text-base font-semibold text-black">Con Inventario - Importar XML</h4>
+                    <p className="text-xs text-text-primary mt-1">Sube el archivo XML de la factura electronica. El sistema procesa proveedor, productos y costos automaticamente.</p>
                   </div>
-                  <ArrowRight size={16} className="text-[#E6EBF1] group-hover:text-[var(--primary-color)] transition-colors shrink-0 self-center" />
+                  <ArrowRight size={16} className="text-text-secondary group-hover:text-[var(--primary-color)] transition-colors shrink-0 self-center" />
                 </div>
                 <input type="file" accept=".xml" onChange={(e) => handleAutoXmlPurchase(e, 'con_inventario')} className="hidden" />
               </label>
 
               {/* Sin Inventario + Manual */}
-              <button onClick={() => handleConfirmPurchaseMethod('sin_inventario')} className="w-full p-4 rounded-md border border-[#E6EBF1] text-left hover:bg-[#F6F9FC] transition-all group">
+              <button onClick={() => handleConfirmPurchaseMethod('sin_inventario')} className="w-full p-4 rounded-md border border-border-default text-left hover:bg-surface-bg transition-all group">
                 <div className="flex items-start gap-3">
-                  <div className="p-2 rounded-md bg-[#F6F9FC] text-[#333333] shrink-0">
+                  <div className="p-2 rounded-md bg-surface-bg text-text-primary shrink-0">
                     <FileText size={20} />
                   </div>
                   <div className="flex-1">
-                    <h4 className="text-[13px] font-semibold text-black">Sin Inventario - Manual</h4>
-                    <p className="text-[11px] text-[#333333] mt-1">Solo registro contable. Para gastos, servicios o compras sin movimiento de stock.</p>
+                    <h4 className="text-base font-semibold text-black">Sin Inventario - Manual</h4>
+                    <p className="text-xs text-text-primary mt-1">Solo registro contable. Para gastos, servicios o compras sin movimiento de stock.</p>
                   </div>
-                  <ArrowRight size={16} className="text-[#E6EBF1] group-hover:text-[var(--primary-color)] transition-colors shrink-0 self-center" />
+                  <ArrowRight size={16} className="text-text-secondary group-hover:text-[var(--primary-color)] transition-colors shrink-0 self-center" />
                 </div>
               </button>
 
               {/* Sin Inventario + XML */}
-              <label className="w-full p-4 rounded-md border border-[#E6EBF1] text-left hover:bg-[#F6F9FC] transition-all group cursor-pointer block">
+              <label className="w-full p-4 rounded-md border border-border-default text-left hover:bg-surface-bg transition-all group cursor-pointer block">
                 <div className="flex items-start gap-3">
-                  <div className="p-2 rounded-md bg-[#F6F9FC] text-[#333333] shrink-0">
+                  <div className="p-2 rounded-md bg-surface-bg text-text-primary shrink-0">
                     <Upload size={20} />
                   </div>
                   <div className="flex-1">
-                    <h4 className="text-[13px] font-semibold text-black">Sin Inventario - Importar XML</h4>
-                    <p className="text-[11px] text-[#333333] mt-1">Sube el XML de la factura. Se registra solo como gasto contable, sin afectar inventario.</p>
+                    <h4 className="text-base font-semibold text-black">Sin Inventario - Importar XML</h4>
+                    <p className="text-xs text-text-primary mt-1">Sube el XML de la factura. Se registra solo como gasto contable, sin afectar inventario.</p>
                   </div>
-                  <ArrowRight size={16} className="text-[#E6EBF1] group-hover:text-[var(--primary-color)] transition-colors shrink-0 self-center" />
+                  <ArrowRight size={16} className="text-text-secondary group-hover:text-[var(--primary-color)] transition-colors shrink-0 self-center" />
                 </div>
                 <input type="file" accept=".xml" onChange={(e) => handleAutoXmlPurchase(e, 'sin_inventario')} className="hidden" />
               </label>
