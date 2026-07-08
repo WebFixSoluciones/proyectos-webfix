@@ -130,7 +130,7 @@ export default function HiringServicesModule({ showToast, db, appId }) {
  {/* Banner de Presentación */}
  <div className={`p-6 rounded-btn border relative overflow-hidden bg-gradient-to-r from-primary-light via-white to-white border-slate-200`}>
  <div className="max-w-2xl space-y-2 relative z-10">
- <span className="text-[9px] font-black uppercase tracking-widest text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+ <span className="text-xs font-black uppercase tracking-widest text-primary bg-primary/10 px-2 py-0.5 rounded-full">
  Servicios Web Fix
  </span>
  <h2 className={`text-xl font-black tracking-tight text-slate-900`}>
@@ -153,7 +153,7 @@ export default function HiringServicesModule({ showToast, db, appId }) {
  <div className={`p-2.5 rounded-btn bg-slate-50`}>
  {service.icon}
  </div>
- <span className={`text-[8.5px] font-black uppercase tracking-wider px-2 py-0.5 rounded-card ${
+ <span className={`text-xs font-black uppercase tracking-wider px-2 py-0.5 rounded-card ${
  service.id ==='diseno_web' 
  ?'bg-blue-500/10 text-blue-500' 
  : service.id ==='correos_corporativos' 
@@ -181,10 +181,10 @@ export default function HiringServicesModule({ showToast, db, appId }) {
 
  {/* Características */}
  <div className="space-y-2 pt-2 border-t border-gray-500/5">
- <span className="text-[9px] text-gray-500 font-bold uppercase block tracking-wider">¿Qué incluye?</span>
+ <span className="text-xs text-gray-500 font-bold uppercase block tracking-wider">¿Qué incluye?</span>
  <ul className="space-y-2">
  {service.features.map((feat, idx) => (
- <li key={idx} className="flex items-start gap-2 text-[10.5px] text-gray-400">
+ <li key={idx} className="flex items-start gap-2 text-xs text-gray-400">
  <CheckCircle2 size={12} className="text-primary mt-0.5 shrink-0" />
  <span>{feat}</span>
  </li>

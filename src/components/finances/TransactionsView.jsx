@@ -388,7 +388,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
 
       {/* TABS DE TIPO DE DOCUMENTO SRI */}
       {!forcedDocType && !isPreventaTab && (
-        <div className="flex p-1 gap-1 rounded-card border overflow-x-auto custom-scrollbar whitespace-nowrap bg-gray-100/70 border-gray-200 shadow-inner">
+        <div className="flex p-1 gap-1 rounded-card border overflow-x-auto custom-scrollbar whitespace-nowrap bg-gray-100/70 border-gray-200">
           {docTypeTabs.map(tab => {
             const isActive = filterDocType === tab.id;
             return (
@@ -667,7 +667,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
 
       {emailModalTx && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-          <div className="w-full max-w-md rounded-card border p-6 space-y-4 transition-all scale-100 bg-white border-slate-200 text-slate-900 shadow-slate-300">
+          <div className="w-full max-w-md rounded-card border p-6 space-y-4 transition-all scale-100 bg-white border-slate-200 text-slate-900">
             {/* Header */}
             <div className="flex items-center gap-3 pb-2 border-b border-gray-500/10">
               <div className="p-2 rounded-card bg-blue-100 text-blue-650">
@@ -683,7 +683,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
 
             {/* Content / Form */}
             <div className="space-y-4 py-2">
-              <p className="text-[10.5px] leading-relaxed text-gray-400">
+              <p className="text-xs leading-relaxed text-gray-400">
                 Confirma o edita el correo electrónico del cliente para realizar el envío de los archivos reglamentarios (XML y visualización del RIDE).
               </p>
 

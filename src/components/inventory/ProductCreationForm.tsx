@@ -508,7 +508,7 @@ export default function ProductCreationForm({
     }
   };
 
-  const inputClass = `w-full pl-3 pr-3 py-2 rounded-xl outline-none transition-all border text-xs bg-white/50 border-gray-200 text-gray-800 focus:border-primary focus:bg-white shadow-inner`;
+  const inputClass = `w-full pl-3 pr-3 py-2 rounded-xl outline-none transition-all border text-xs bg-white/50 border-gray-200 text-gray-800 focus:border-primary focus:bg-white`;
 
   const labelClass = `block text-xs font-bold mb-1 uppercase tracking-wider text-gray-500`;
 
@@ -521,7 +521,7 @@ export default function ProductCreationForm({
       {/* Header */}
       <div className={`modal-header-std modal-header-std-dark border-gray-100 bg-white/80`}>
         <div className="flex items-center gap-3">
-          <div className={`p-2 rounded-xl shadow-inner bg-primary/10 text-primary`}>
+          <div className={`p-2 rounded-xl bg-primary/10 text-primary`}>
             <Package size={20} />
           </div>
           <div>
@@ -588,7 +588,7 @@ export default function ProductCreationForm({
               <label className={labelClass}>Imagen del Producto</label>
               <div className="mt-1 flex items-center justify-center">
                 {formData.imageUrl ? (
-                  <div className="relative w-20 h-20 rounded-xl overflow-hidden border border-white/10 group shadow-inner">
+                  <div className="relative w-20 h-20 rounded-xl overflow-hidden border border-white/10 group">
                     <img src={formData.imageUrl} className="w-full h-full object-cover" alt="Vista previa" />
                     <button
                       type="button"

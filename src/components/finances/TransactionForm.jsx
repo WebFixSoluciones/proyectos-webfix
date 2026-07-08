@@ -2828,7 +2828,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               <div className={`${cardClass} space-y-[8px]`}>
                 <h4 style={{ color: '#000000'}} className="text-xs font-bold uppercase">Vista Previa del Comprobante</h4>
 
-                <div className={`p-[10px] rounded-card border text-xs space-y-[8px] bg-white text-black border-gray-200 shadow-inner font-mono max-h-[60vh] overflow-y-auto`}>
+                <div className={`p-[10px] rounded-card border text-xs space-y-[8px] bg-white text-black border-gray-200 font-mono max-h-[60vh] overflow-y-auto`}>
                   <div className="text-center border-b pb-[8px] border-gray-200">
                     <p className="font-bold text-xs uppercase">{sriConfig.nombreComercial || 'WEBFIX ERP'}</p>
                     <p className="text-xs font-bold">{sriConfig.razonSocial}</p>

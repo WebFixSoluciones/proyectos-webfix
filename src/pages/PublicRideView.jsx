@@ -303,7 +303,7 @@ export default function PublicRideView() {
           <div key={idx} className="bg-black" style={{ width: `${w}px`, backgroundColor: '#000000', height: '100%' }}></div>
         ))}
       </div>
-      <span className="text-[7px] font-mono tracking-[0.1em] text-black text-center mt-0.5">{claveAcceso}</span>
+      <span className="text-xs font-mono tracking-[0.1em] text-black text-center mt-0.5">{claveAcceso}</span>
     </div>
   );
 
@@ -370,7 +370,7 @@ export default function PublicRideView() {
       `}} />
 
       {/* Top action bar */}
-      <div className="sticky top-0 z-50 bg-slate-950/80 border-b border-slate-800/80 px-4 py-3 flex items-center justify-between shadow-lg print:hidden">
+      <div className="sticky top-0 z-50 bg-slate-950/80 border-b border-slate-800/80 px-4 py-3 flex items-center justify-between print:hidden">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-surface-card/20 flex items-center justify-center text-text-secondary border border-border-default/30">
             <FileText size={16} />
@@ -392,7 +392,7 @@ export default function PublicRideView() {
       {/* RIDE Content Sheet */}
       <div className="flex-1 overflow-y-auto p-4 md:p-8 flex justify-center bg-slate-900 print:p-0 print:bg-white">
         <div id="print-area-wrapper" className="w-full max-w-3xl">
-          <div className="w-full mx-auto p-5 bg-white border border-gray-300 text-black text-[9.5px] font-sans leading-snug print:shadow-none print:border-none print:p-0">
+          <div className="w-full mx-auto p-5 bg-white border border-gray-300 text-black text-xs font-sans leading-snug print:shadow-none print:border-none print:p-0">
             
             {/* Cabecera Principal Compacta */}
             <div className="border border-gray-300 grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-300 print:grid-cols-2 print:divide-x print:divide-y-0 text-xs text-black">

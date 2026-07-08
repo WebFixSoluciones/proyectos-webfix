@@ -268,7 +268,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
           <div key={idx} className="bg-black" style={{ width: `${w}px`, backgroundColor: '#000000', height: '100%' }}></div>
         ))}
       </div>
-      <span className="text-[7px] font-mono tracking-[0.1em] text-black text-center mt-0.5">{claveAcceso}</span>
+      <span className="text-xs font-mono tracking-[0.1em] text-black text-center mt-0.5">{claveAcceso}</span>
     </div>
   );
 
@@ -884,7 +884,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
                           <div key={idx} className="bg-black" style={{ width: `${w}px`, backgroundColor: '#000000', height: '100%' }}></div>
                         ))}
                       </div>
-                      <p className="font-mono text-[7px] break-all">{claveAcceso.slice(0, 30)}...</p>
+                      <p className="font-mono text-xs break-all">{claveAcceso.slice(0, 30)}...</p>
                     </>
                   )}
                 </div>

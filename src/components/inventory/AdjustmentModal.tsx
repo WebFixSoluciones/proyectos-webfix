@@ -128,7 +128,7 @@ export default function AdjustmentModal({ onClose, onSuccess }: AdjustmentModalP
     }
   };
 
-  const inputClass = `w-full px-3 py-2.5 rounded-xl outline-none transition-all border text-sm bg-white border-border-default text-text-primary focus:border-red-500 shadow-inner`;
+  const inputClass = `w-full px-3 py-2.5 rounded-xl outline-none transition-all border text-sm bg-white border-border-default text-text-primary focus:border-red-500`;
 
   const labelClass = `block text-xs font-semibold mb-1.5 uppercase tracking-wider text-text-muted`;
 
@@ -188,7 +188,7 @@ export default function AdjustmentModal({ onClose, onSuccess }: AdjustmentModalP
               onClick={() => { setAdjustmentType('ZERO_INVENTORY'); setError(null); }}
               className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all border ${
                 adjustmentType === 'ZERO_INVENTORY'
-                  ? 'bg-red-600 text-white border-red-600 shadow-red-950/20'
+                  ? 'bg-red-600 text-white border-red-600'
                   : 'bg-transparent text-gray-400 border-transparent hover:bg-white/5'
               }`}
             >

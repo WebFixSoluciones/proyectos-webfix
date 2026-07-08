@@ -2203,7 +2203,7 @@ export default function GeneralSettings({
  <Award size={24} className="text-gray-500" />
  <span className="text-xs font-semibold">Seleccionar Firma (.p12 / .pfx)</span>
  </label>
- <p className="text-[9.5px] text-gray-500 leading-relaxed text-center">
+ <p className="text-xs text-gray-500 leading-relaxed text-center">
  Su archivo de firma electrónica se almacena de forma segura en la base de datos para realizar la firma en el servidor al emitir comprobantes autorizados por el SRI.
  </p>
  </div>

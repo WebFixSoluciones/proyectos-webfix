@@ -131,7 +131,7 @@ export default function TransferModal({ onClose, onSuccess }: TransferModalProps
     }
   };
 
-  const inputClass = `w-full px-3 py-2.5 rounded-xl outline-none transition-all border text-sm bg-white border-gray-200 text-gray-800 focus:border-purple-500 shadow-inner`;
+  const inputClass = `w-full px-3 py-2.5 rounded-xl outline-none transition-all border text-sm bg-white border-gray-200 text-gray-800 focus:border-purple-500`;
 
   const labelClass = `block text-xs font-semibold mb-1.5 uppercase tracking-wider text-gray-500`;
 

@@ -456,7 +456,7 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
     <div className="space-y-4">
       {/* Header + Tabs */}
       <div className="flex items-center gap-4 flex-wrap">
-        <h2 className="text-[15px] font-semibold text-black">Comprobantes SRI</h2>
+        <h2 className="text-md font-semibold text-black">Comprobantes SRI</h2>
         <div className="flex rounded-md border border-border-default overflow-hidden">
           <button onClick={() => setActiveSection('sri')} className={`px-4 py-1.5 text-sm font-medium transition-all ${activeSection === 'sri' ? 'bg-[var(--primary-color)] text-white' : 'bg-white text-black hover:bg-surface-bg'}`}>Buzon SRI</button>
           <button onClick={() => setActiveSection('manual')} className={`px-4 py-1.5 text-sm font-medium transition-all ${activeSection === 'manual' ? 'bg-[var(--primary-color)] text-white' : 'bg-white text-black hover:bg-surface-bg'}`}>Registro Manual</button>
@@ -740,7 +740,7 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
                 <div className="flex justify-end gap-6 pt-3 border-t border-border-default text-sm">
                   <div>Base Imponible: <span className="font-bold text-black">${manualForm.baseImponible.toFixed(2)}</span></div>
                   <div>IVA 15%: <span className="font-bold text-black">${manualForm.ivaValor.toFixed(2)}</span></div>
-                  <div>Total: <span className="font-bold text-[15px] text-black">${manualForm.total.toFixed(2)}</span></div>
+                  <div>Total: <span className="font-bold text-md text-black">${manualForm.total.toFixed(2)}</span></div>
                 </div>
               </div>
             )}
@@ -793,7 +793,7 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
               <div className="border-t border-border-default pt-2 mt-2 space-y-1">
                 <div className="flex justify-between"><span>Base Imponible:</span><span className="font-mono font-bold">${(selectedRide.baseImponible || 0).toFixed(2)}</span></div>
                 <div className="flex justify-between"><span>IVA 15%:</span><span className="font-mono font-bold">${(selectedRide.ivaValor || 0).toFixed(2)}</span></div>
-                <div className="flex justify-between text-[15px] border-t border-border-default pt-1"><span className="font-semibold">TOTAL:</span><span className="font-bold">${(selectedRide.total || 0).toFixed(2)}</span></div>
+                <div className="flex justify-between text-md border-t border-border-default pt-1"><span className="font-semibold">TOTAL:</span><span className="font-bold">${(selectedRide.total || 0).toFixed(2)}</span></div>
               </div>
               <div className="pt-2"><span className="text-text-primary">Clave de Acceso:</span> <span className="font-mono text-xs break-all">{selectedRide.claveAcceso}</span></div>
               <div className="pt-3 flex gap-2">

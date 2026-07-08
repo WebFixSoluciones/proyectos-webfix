@@ -115,7 +115,7 @@ export default function CategoryBrandModal({ onClose, onChanged }: CategoryBrand
     }
   };
 
-  const inputClass = `w-full px-3 py-2 rounded-xl outline-none transition-all border text-sm bg-white border-gray-200 text-gray-800 focus:border-primary shadow-inner`;
+  const inputClass = `w-full px-3 py-2 rounded-xl outline-none transition-all border text-sm bg-white border-gray-200 text-gray-800 focus:border-primary`;
 
   const labelClass = `block text-xs font-semibold mb-1 uppercase tracking-wider text-gray-500`;
 

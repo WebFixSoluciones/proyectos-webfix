@@ -94,7 +94,7 @@ export default function SupportModule({ showToast, db, appId }) {
  {/* Banner de Soporte */}
  <div className="p-6 rounded-btn border relative overflow-hidden bg-gradient-to-r from-primary-light via-white to-white border-slate-200">
  <div className="max-w-2xl space-y-2 relative z-10">
- <span className="text-[9px] font-black uppercase tracking-widest text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+ <span className="text-xs font-black uppercase tracking-widest text-primary bg-primary/10 px-2 py-0.5 rounded-full">
  Soporte Técnico
  </span>
  <h2 className="text-xl font-black tracking-tight text-slate-900">

@@ -326,12 +326,12 @@ export default function BillingPortal({ showToast, initialSubTab }) {
 
       {/* Grid: Plan Selector & Payment Form */}
       {activeCategory === 'historial' ? (
-        <div className={`p-6 rounded-2xl border bg-white border-slate-200`}>
+        <div className={`p-6 rounded-card border bg-white border-slate-200`}>
           <h3 className="text-xs font-bold uppercase tracking-wider mb-4">Historial de Transacciones</h3>
           <div className="overflow-x-auto text-[11px]">
             <table className="w-full text-left">
               <thead>
-                <tr className="border-b dark:border-white/5 text-gray-500 font-bold uppercase text-[9px]">
+                <tr className="border-b dark:border-white/5 text-gray-500 font-bold uppercase text-xs">
                   <th className="py-2">Fecha</th>
                   <th className="py-2">Referencia</th>
                   <th className="py-2">Monto</th>
@@ -350,7 +350,7 @@ export default function BillingPortal({ showToast, initialSubTab }) {
                       <td className="py-3.5 font-mono">{tx.referenceNumber}</td>
                       <td className="py-3.5 font-bold text-emerald-500">${tx.amount}</td>
                       <td className="py-3.5">
-                        <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${
+                        <span className={`px-2 py-0.5 rounded text-xs font-black uppercase ${
                           tx.status === 'approved' ? 'bg-emerald-500/15 text-emerald-500' :
                           tx.status === 'pending' ? 'bg-orange-500/15 text-orange-500 animate-pulse' :
                           'bg-red-500/15 text-red-500'
@@ -371,7 +371,7 @@ export default function BillingPortal({ showToast, initialSubTab }) {
           
           {/* Left Col: Plan Selector */}
           <div className="lg:col-span-2 space-y-6">
-            <div className={`p-6 rounded-2xl border bg-white border-slate-200`}>
+            <div className={`p-6 rounded-card border bg-white border-slate-200`}>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                 <div>
                   <h3 className="text-xs font-bold uppercase tracking-wider text-primary">
@@ -419,7 +419,7 @@ export default function BillingPortal({ showToast, initialSubTab }) {
                           <span className="text-2xl font-black">{getPrice(plan)}</span>
                           <span className="text-[10px] text-gray-500">/mes</span>
                         </div>
-                        <ul className="space-y-2 text-[9px] text-gray-500 font-medium">
+                        <ul className="space-y-2 text-xs text-gray-500 font-medium">
                           {plan.features.map((feat, idx) => (
                             <li key={idx} className="flex items-start gap-1.5 leading-normal">
                               <Check size={10} className="text-emerald-500 shrink-0 mt-0.5" />
@@ -437,7 +437,7 @@ export default function BillingPortal({ showToast, initialSubTab }) {
 
           {/* Right Col: Checkout & Payment details */}
           <div className="space-y-6">
-            <div className={`p-6 rounded-2xl border bg-white border-slate-200`}>
+            <div className={`p-6 rounded-card border bg-white border-slate-200`}>
               <h3 className="text-xs font-bold uppercase tracking-wider mb-4">Resumen del Pago</h3>
               
               <div className="space-y-3.5 text-xs font-medium mb-6">
@@ -554,7 +554,7 @@ export default function BillingPortal({ showToast, initialSubTab }) {
       {/* PAYPHONE SIMULATION MODAL */}
       {showPayPhoneSim && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className={`w-full max-w-sm p-6 rounded-2xl border shadow-2xl relative text-center bg-white border-slate-200 text-black`}>
+          <div className={`w-full max-w-sm p-6 rounded-card border relative text-center bg-white border-slate-200 text-black`}>
             <div className="flex justify-between items-center mb-6">
               <span className="text-xs font-black uppercase text-warning tracking-wider">Pasarela PayPhone (Sandbox)</span>
               <button onClick={() => setShowPayPhoneSim(false)} className="text-gray-400 hover:text-white">✕</button>
