@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Plus, Search, Trash2, Edit2, FileText, CheckCircle2, AlertCircle, UploadCloud, Sparkles, AlertTriangle, Eye, Mail, Loader2, Truck, Clock } from 'lucide-react';
+import { Plus, Search, Trash2, Edit2, FileText, CheckCircle2, AlertCircle, UploadCloud, Sparkles, AlertTriangle, Eye, Mail, Loader2, Truck, Clock, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { doc, deleteDoc, setDoc, getDoc } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { analizarComprobanteConGemini, parsearXMLComprobante } from '../../services/geminiService';
@@ -32,6 +32,41 @@ export default function TransactionsView({ transactions, thirdParties, showToast
   const [emailModalTx, setEmailModalTx] = useState(null);
   const [emailTarget, setEmailTarget] = useState('');
   const [isSendingEmail, setIsSendingEmail] = useState(false);
+
+  // Sorting State
+  const [sortField, setSortField] = useState('date');
+  const [sortDirection, setSortDirection] = useState('desc');
+
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const renderSortIcon = (field) => {
+    if (sortField !== field) {
+      return <ArrowUpDown size={11} className="inline ml-1 text-slate-400 opacity-60" />;
+    }
+    return sortDirection === 'asc' 
+      ? <ArrowUp size={11} className="inline ml-1 text-primary" />
+      : <ArrowDown size={11} className="inline ml-1 text-primary" />;
+  };
+
+  const getDocumentTypeLabel = (docType, type) => {
+    let label = '';
+    if (docType === 'factura') label = 'Factura de Venta';
+    else if (docType === 'nota_venta') label = 'Nota de Venta';
+    else if (docType === 'nota_credito') label = 'Nota de Crédito';
+    else if (docType === 'retencion') label = 'Retención';
+    else if (docType === 'liquidacion') label = 'Liquidación';
+    else label = 'Comprobante';
+
+    const direction = type === 'ingreso' ? 'Ingreso' : 'Egreso';
+    return `${label} - ${direction}`;
+  };
   
   const handleToggleDelivery = async (txId, currentStatus) => {
     if (!db || !appId) return;
@@ -80,6 +115,24 @@ export default function TransactionsView({ transactions, thirdParties, showToast
     }
 
     return matchesSearch && matchesType && matchesDocType && matchesMonth && matchesYear;
+  });
+
+  const sortedFiltered = [...filtered].sort((a, b) => {
+    let comparison = 0;
+    if (sortField === 'date') {
+      const dateA = new Date(`${a.date || '1970-01-01'}T${a.time || '00:00:00'}`);
+      const dateB = new Date(`${b.date || '1970-01-01'}T${b.time || '00:00:00'}`);
+      comparison = dateA - dateB;
+    } else if (sortField === 'documentNumber') {
+      comparison = (a.documentNumber || '').localeCompare(b.documentNumber || '');
+    } else if (sortField === 'total') {
+      comparison = Number(a.total || 0) - Number(b.total || 0);
+    } else if (sortField === 'thirdParty') {
+      const nameA = thirdParties.find(tp => tp.id === a.thirdPartyId)?.name || '';
+      const nameB = thirdParties.find(tp => tp.id === b.thirdPartyId)?.name || '';
+      comparison = nameA.localeCompare(nameB);
+    }
+    return sortDirection === 'asc' ? comparison : -comparison;
   });
 
   // Procesar archivo (PDF, Imagen o XML) para captura inteligente
@@ -218,10 +271,14 @@ export default function TransactionsView({ transactions, thirdParties, showToast
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (tx) => {
+    if (tx.documentType === 'factura' || (tx.sriStatus === 'autorizado' && tx.documentType !== 'nota_venta')) {
+      alert("No se puede eliminar un comprobante electrónico (Factura / Retención / Nota de Crédito). Para anular la validez de este documento, se recomienda generar una Nota de Crédito o realizar la anulación directamente desde su cuenta del SRI.");
+      return;
+    }
     if (window.confirm('¿Seguro que deseas eliminar esta transacción permanentemente?')) {
       try {
-        await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', id));
+        await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', tx.id));
         showToast('Transacción eliminada', 'success');
       } catch(e) {
         showToast('Error al eliminar', 'error');
@@ -525,13 +582,28 @@ export default function TransactionsView({ transactions, thirdParties, showToast
       <div className="rounded-card border overflow-hidden transition-all border-slate-200/80 bg-white">
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left text-xs whitespace-nowrap">
-            <thead className="text-xs uppercase font-bold tracking-wider bg-slate-50 text-slate-600 border-b border-slate-100">
+            <thead className="text-xs uppercase font-bold tracking-wider bg-slate-50 text-slate-600 border-b border-slate-100 select-none">
               <tr>
-                <th className="px-6 py-3.5">Fecha</th>
-                <th className="px-6 py-3.5">Tipo</th>
-                <th className="px-6 py-3.5">Documento</th>
-                <th className="px-6 py-3.5">Tercero</th>
-                <th className="px-6 py-3.5">Total</th>
+                <th className="px-6 py-3.5 cursor-pointer hover:bg-slate-100/70" onClick={() => handleSort('date')}>
+                  <div className="flex items-center gap-0.5">
+                    Fecha {renderSortIcon('date')}
+                  </div>
+                </th>
+                <th className="px-6 py-3.5 cursor-pointer hover:bg-slate-100/70" onClick={() => handleSort('documentNumber')}>
+                  <div className="flex items-center gap-0.5">
+                    Documento {renderSortIcon('documentNumber')}
+                  </div>
+                </th>
+                <th className="px-6 py-3.5 cursor-pointer hover:bg-slate-100/70" onClick={() => handleSort('thirdParty')}>
+                  <div className="flex items-center gap-0.5">
+                    Tercero {renderSortIcon('thirdParty')}
+                  </div>
+                </th>
+                <th className="px-6 py-3.5 cursor-pointer hover:bg-slate-100/70" onClick={() => handleSort('total')}>
+                  <div className="flex items-center gap-0.5">
+                    Total {renderSortIcon('total')}
+                  </div>
+                </th>
                 <th className="px-6 py-3.5">Estado SRI</th>
                 {isPreventaTab && <th className="px-6 py-3.5">Despacho</th>}
                 <th className="px-6 py-3.5 hidden sm:table-cell">Archivos</th>
@@ -539,20 +611,29 @@ export default function TransactionsView({ transactions, thirdParties, showToast
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filtered.map(tx => (
+              {sortedFiltered.map(tx => (
                 <tr key={tx.id} className="transition-colors hover:bg-slate-50/40">
-                  <td className="px-6 py-3.5 text-black font-semibold">{tx.date}</td>
-                  <td className="px-6 py-3.5">
-                    <span className={`px-2 py-0.5 rounded-card text-xs font-bold uppercase tracking-wider ${tx.type === 'ingreso' ? 'bg-emerald-100 text-emerald-850 border border-emerald-300' : 'bg-red-100 text-red-850 border border-red-300'}`}>
-                      {tx.type}
-                    </span>
+                  <td className="px-6 py-2.5">
+                    <div className="text-black font-semibold text-xs leading-none">{tx.date}</div>
+                    {tx.time && (
+                      <div className="text-[10px] text-slate-500 font-medium leading-none mt-1.5">
+                        {tx.time.substring(0, 5)}
+                      </div>
+                    )}
                   </td>
-                  <td className="px-6 py-3.5 font-mono text-xs text-black font-semibold">{tx.documentNumber || '-'}</td>
-                  <td className="px-6 py-3.5 font-bold truncate max-w-[200px] text-black" title={thirdParties.find(tp => tp.id === tx.thirdPartyId)?.name}>
+                  <td className="px-6 py-2.5">
+                    <div className="text-[10px] text-slate-500 font-semibold leading-none mb-1">
+                      {getDocumentTypeLabel(tx.documentType, tx.type)}
+                    </div>
+                    <div className="font-mono text-xs text-black font-bold tracking-wider">
+                      {tx.documentNumber || '-'}
+                    </div>
+                  </td>
+                  <td className="px-6 py-2.5 font-bold truncate max-w-[200px] text-black" title={thirdParties.find(tp => tp.id === tx.thirdPartyId)?.name}>
                     {thirdParties.find(tp => tp.id === tx.thirdPartyId)?.name || 'Desconocido'}
                   </td>
-                  <td className="px-6 py-3.5 font-extrabold text-black font-black">${Number(tx.total || 0).toFixed(2)}</td>
-                  <td className="px-6 py-3.5">{getStatusBadge(tx.sriStatus, tx.documentType)}</td>
+                  <td className="px-6 py-2.5 font-extrabold text-black font-black">${Number(tx.total || 0).toFixed(2)}</td>
+                  <td className="px-6 py-2.5">{getStatusBadge(tx.sriStatus, tx.documentType)}</td>
                   {isPreventaTab && (
                     <td className="px-6 py-3.5">
                       {tx.deliveryStatus === 'entregado' ? (
@@ -640,14 +721,21 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                   <td className="px-6 py-3.5 text-right">
                     <div className="flex items-center justify-end gap-1.5">
                        <button type="button" onClick={() => onOpenForm(tx)} className="btn-icon bg-primary text-white hover:bg-primary-hover" title="Editar"><Edit2 size={13}/></button>
-                       <button type="button" onClick={() => handleDelete(tx.id)} className="btn-icon bg-red-600 text-white hover:bg-red-700" title="Eliminar"><Trash2 size={13}/></button>
+                       <button 
+                         type="button" 
+                         onClick={() => handleDelete(tx)} 
+                         className={`btn-icon ${(tx.documentType === 'factura' || (tx.sriStatus === 'autorizado' && tx.documentType !== 'nota_venta')) ? 'bg-gray-150 text-gray-400 cursor-not-allowed border-gray-200' : 'bg-red-600 text-white hover:bg-red-700'}`} 
+                         title={(tx.documentType === 'factura' || (tx.sriStatus === 'autorizado' && tx.documentType !== 'nota_venta')) ? "Comprobantes electrónicos no pueden ser eliminados" : "Eliminar"}
+                       >
+                         <Trash2 size={13}/>
+                       </button>
                     </div>
                   </td>
                 </tr>
               ))}
-              {filtered.length === 0 && (
+              {sortedFiltered.length === 0 && (
                 <tr>
-                  <td colSpan={isPreventaTab ? 9 : 8} className="px-6 py-8 text-center text-gray-500 italic">No se encontraron comprobantes.</td>
+                  <td colSpan={isPreventaTab ? 8 : 7} className="px-6 py-8 text-center text-gray-500 italic">No se encontraron comprobantes.</td>
                 </tr>
               )}
             </tbody>
