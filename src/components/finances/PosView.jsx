@@ -1148,7 +1148,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                 <div className="flex items-center gap-2 overflow-x-auto py-2.5 custom-scrollbar scrollbar-none">
                   <button
                     onClick={() => setFilterCategory('all')}
-                    className={`px-4 py-2 rounded-[var(--radius-button)] text-xs font-bold uppercase transition-all whitespace-nowrap shrink-0 border ${
+                    className={`px-4 py-2 rounded-btn text-xs font-bold uppercase transition-all whitespace-nowrap shrink-0 border ${
                       filterCategory === 'all'
                         ? 'bg-primary border-primary text-white'
                         : ('bg-primary-light border-primary/15 text-black hover:bg-primary/10')
@@ -1160,7 +1160,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                     <button
                       key={cat}
                       onClick={() => setFilterCategory(cat)}
-                      className={`px-4 py-2 rounded-[var(--radius-button)] text-xs font-bold uppercase transition-all whitespace-nowrap shrink-0 border ${
+                      className={`px-4 py-2 rounded-btn text-xs font-bold uppercase transition-all whitespace-nowrap shrink-0 border ${
                         filterCategory === cat
                           ? 'bg-primary border-primary text-white'
                           : ('bg-primary-light border-primary/15 text-black hover:bg-primary/10')
@@ -1804,14 +1804,14 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                   <button
                     type="button"
                     onClick={() => setPosConfig(prev => ({ ...prev, viewType: 'grid' }))}
-                    className={`py-2.5 rounded-[var(--radius-button)] text-xs font-bold border transition-all ${posConfig.viewType === 'grid' ? 'bg-primary border-primary text-white' : ('bg-white border-primary/15 text-text-secondary hover:bg-primary-light')}`}
+                    className={`py-2.5 rounded-btn text-xs font-bold border transition-all ${posConfig.viewType === 'grid' ? 'bg-primary border-primary text-white' : ('bg-white border-primary/15 text-text-secondary hover:bg-primary-light')}`}
                   >
                     Grid
                   </button>
                   <button
                     type="button"
                     onClick={() => setPosConfig(prev => ({ ...prev, viewType: 'list' }))}
-                    className={`py-2.5 rounded-[var(--radius-button)] text-xs font-bold border transition-all ${posConfig.viewType === 'list' ? 'bg-primary border-primary text-white' : ('bg-white border-primary/15 text-text-secondary hover:bg-primary-light')}`}
+                    className={`py-2.5 rounded-btn text-xs font-bold border transition-all ${posConfig.viewType === 'list' ? 'bg-primary border-primary text-white' : ('bg-white border-primary/15 text-text-secondary hover:bg-primary-light')}`}
                   >
                     Lista
                   </button>
@@ -1824,14 +1824,14 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                   <button
                     type="button"
                     onClick={() => setPosConfig(prev => ({ ...prev, showCarousel: false }))}
-                    className={`py-2.5 rounded-[var(--radius-button)] text-xs font-bold border transition-all ${!posConfig.showCarousel ? 'bg-primary border-primary text-white' : ('bg-white border-primary/15 text-text-secondary hover:bg-primary-light')}`}
+                    className={`py-2.5 rounded-btn text-xs font-bold border transition-all ${!posConfig.showCarousel ? 'bg-primary border-primary text-white' : ('bg-white border-primary/15 text-text-secondary hover:bg-primary-light')}`}
                   >
                     Normales
                   </button>
                   <button
                     type="button"
                     onClick={() => setPosConfig(prev => ({ ...prev, showCarousel: true }))}
-                    className={`py-2.5 rounded-[var(--radius-button)] text-xs font-bold border transition-all ${posConfig.showCarousel ? 'bg-primary border-primary text-white' : ('bg-white border-primary/15 text-text-secondary hover:bg-primary-light')}`}
+                    className={`py-2.5 rounded-btn text-xs font-bold border transition-all ${posConfig.showCarousel ? 'bg-primary border-primary text-white' : ('bg-white border-primary/15 text-text-secondary hover:bg-primary-light')}`}
                   >
                     Carrusel
                   </button>
@@ -1844,14 +1844,14 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                   <button
                     type="button"
                     onClick={() => setPosConfig(prev => ({ ...prev, cartPosition: 'left' }))}
-                    className={`py-2.5 rounded-[var(--radius-button)] text-xs font-bold border transition-all ${posConfig.cartPosition === 'left' ? 'bg-primary border-primary text-white' : ('bg-white border-primary/15 text-text-secondary hover:bg-primary-light')}`}
+                    className={`py-2.5 rounded-btn text-xs font-bold border transition-all ${posConfig.cartPosition === 'left' ? 'bg-primary border-primary text-white' : ('bg-white border-primary/15 text-text-secondary hover:bg-primary-light')}`}
                   >
                     Izquierda
                   </button>
                   <button
                     type="button"
                     onClick={() => setPosConfig(prev => ({ ...prev, cartPosition: 'right' }))}
-                    className={`py-2.5 rounded-[var(--radius-button)] text-xs font-bold border transition-all ${posConfig.cartPosition === 'right' ? 'bg-primary border-primary text-white' : ('bg-white border-primary/15 text-text-secondary hover:bg-primary-light')}`}
+                    className={`py-2.5 rounded-btn text-xs font-bold border transition-all ${posConfig.cartPosition === 'right' ? 'bg-primary border-primary text-white' : ('bg-white border-primary/15 text-text-secondary hover:bg-primary-light')}`}
                   >
                     Derecha
                   </button>
@@ -1863,7 +1863,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                 <button
                   type="button"
                   onClick={() => setPosConfig(prev => ({ ...prev, barcodeMode: !prev.barcodeMode }))}
-                  className={`w-full py-3 px-4 rounded-[var(--radius-button)] text-xs font-bold border transition-all flex items-center justify-between ${
+                  className={`w-full py-3 px-4 rounded-btn text-xs font-bold border transition-all flex items-center justify-between ${
                     posConfig.barcodeMode
                       ? 'bg-primary border-primary text-white'
                       : ('bg-primary-light border-primary/15 text-text-secondary hover:bg-primary-light')
@@ -1881,7 +1881,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                 <button
                   type="button"
                   onClick={() => setPosConfig(prev => ({ ...prev, expressCheckout: !prev.expressCheckout }))}
-                  className={`w-full py-3 px-4 rounded-[var(--radius-button)] text-xs font-bold border transition-all flex items-center justify-between ${
+                  className={`w-full py-3 px-4 rounded-btn text-xs font-bold border transition-all flex items-center justify-between ${
                     posConfig.expressCheckout
                       ? 'bg-emerald-600 border-emerald-600 text-white'
                       : ('bg-primary-light border-primary/15 text-text-secondary hover:bg-primary-light')
@@ -1899,7 +1899,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                 <button
                   type="button"
                   onClick={() => setPosConfig(prev => ({ ...prev, showStock: !prev.showStock }))}
-                  className={`w-full py-3 px-4 rounded-[var(--radius-button)] text-xs font-bold border transition-all flex items-center justify-between ${
+                  className={`w-full py-3 px-4 rounded-btn text-xs font-bold border transition-all flex items-center justify-between ${
                     posConfig.showStock
                       ? 'bg-primary border-primary text-white'
                       : ('bg-primary-light border-primary/15 text-text-secondary hover:bg-primary-light')
@@ -2134,7 +2134,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                                   return updated;
                                 });
                               }}
-                              className={`flex flex-col items-center justify-center p-2 rounded-[var(--radius-button)] border transition-all gap-1 ${
+                              className={`flex flex-col items-center justify-center p-2 rounded-btn border transition-all gap-1 ${
                                 isSelected 
                                   ? 'bg-primary border-primary text-white'
                                   : 'border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100'}`}
@@ -2167,7 +2167,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                                     const current = Number(payments.efectivo) || 0;
                                     setPayments({ ...payments, efectivo: (current + val).toFixed(2) });
                                   }}
-                                  className={`px-1.5 py-0.5 text-xs font-bold rounded-[var(--radius-button)] border transition-colors ${
+                                  className={`px-1.5 py-0.5 text-xs font-bold rounded-btn border transition-colors ${
                                     'border-primary/15 bg-white text-primary hover:bg-primary-light'}`}
                                 >
                                   +{val}
@@ -2179,7 +2179,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                                   const pending = Math.max(0, totalToPay - (Number(payments.tarjeta) || 0) - (Number(payments.transferencia) || 0) - (Number(payments.cruce_cuentas) || 0));
                                   setPayments({ ...payments, efectivo: pending.toFixed(2) });
                                 }}
-                                className={`px-1.5 py-0.5 text-xs font-bold rounded-[var(--radius-button)] border transition-colors ${
+                                className={`px-1.5 py-0.5 text-xs font-bold rounded-btn border transition-colors ${
                                   'border-primary/25 bg-primary-light text-primary hover:bg-primary/10'}`}
                               >
                                 Exacto
@@ -2362,7 +2362,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                                     return updated;
                                   });
                                 }}
-                                className={`flex flex-col items-center justify-center p-3 rounded-[var(--radius-button)] border transition-all gap-1.5 ${
+                                className={`flex flex-col items-center justify-center p-3 rounded-btn border transition-all gap-1.5 ${
                                   isSelected 
                                     ? 'bg-primary border-primary text-white'
                                     : 'border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100'}`}
@@ -2398,7 +2398,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                                       const current = Number(payments.efectivo) || 0;
                                       setPayments({ ...payments, efectivo: (current + val).toFixed(2) });
                                     }}
-                                    className={`px-2.5 py-1 text-xs md:text-sm font-bold rounded-[var(--radius-button)] border transition-colors ${
+                                    className={`px-2.5 py-1 text-xs md:text-sm font-bold rounded-btn border transition-colors ${
                                       'border-primary/15 bg-white hover:bg-primary-light text-primary hover:bg-primary/10'}`}
                                   >
                                     +{val}
@@ -2410,7 +2410,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                                     const pending = Math.max(0, totalToPay - (Number(payments.tarjeta) || 0) - (Number(payments.transferencia) || 0) - (Number(payments.cruce_cuentas) || 0));
                                     setPayments({ ...payments, efectivo: pending.toFixed(2) });
                                   }}
-                                  className={`px-2.5 py-1 text-xs md:text-sm font-bold rounded-[var(--radius-button)] border transition-colors ${
+                                  className={`px-2.5 py-1 text-xs md:text-sm font-bold rounded-btn border transition-colors ${
                                     'border-primary/25 bg-primary-light hover:bg-primary/10 text-primary'}`}
                                 >
                                   Exacto

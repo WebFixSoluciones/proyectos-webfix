@@ -246,7 +246,7 @@ export default function AccountsReceivablePayable({ type = 'cxc', transactions =
                             setPaymentAmount(pending.toFixed(2));
                             setIsHistoryOpen(false);
                           }}
-                          className={`h-[34px] px-3.5 rounded-[var(--radius-button)] text-xs font-semibold flex items-center justify-center gap-1.5 transition-all text-white ${
+                          className={`h-[34px] px-3.5 rounded-btn text-xs font-semibold flex items-center justify-center gap-1.5 transition-all text-white ${
                             isCxC 
                               ? 'bg-emerald-600 hover:bg-emerald-700' 
                               : 'bg-red-600 hover:bg-red-700'
@@ -393,7 +393,7 @@ export default function AccountsReceivablePayable({ type = 'cxc', transactions =
                   </button>
                   <button
                     type="submit"
-                    className={`h-[34px] px-4 rounded-[var(--radius-button)] text-xs font-semibold flex items-center justify-center gap-1.5 transition-all text-white border-none ${
+                    className={`h-[34px] px-4 rounded-btn text-xs font-semibold flex items-center justify-center gap-1.5 transition-all text-white border-none ${
                       isCxC ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-red-600 hover:bg-red-700'
                     }`}
                   >

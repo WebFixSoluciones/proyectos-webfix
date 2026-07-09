@@ -310,7 +310,7 @@ export default function GastosCreditosModule({ showToast, transactions = [], thi
                       <div className="mt-4 pt-4 border-t border-dashed border-white/5 flex gap-2">
                         <button
                           onClick={() => setActiveTab('pasivos')}
-                          className="h-[34px] px-4 rounded-[var(--radius-button)] bg-pink-600 hover:bg-pink-500 text-white font-semibold text-xs transition-all border-none"
+                          className="h-[34px] px-4 rounded-btn bg-pink-600 hover:bg-pink-500 text-white font-semibold text-xs transition-all border-none"
                         >
                           Ver Mis Créditos
                         </button>
@@ -333,7 +333,7 @@ export default function GastosCreditosModule({ showToast, transactions = [], thi
                     <h3 className="text-xs font-bold uppercase tracking-wider">Obligaciones Comerciales y Bancarias</h3>
                     <button
                       onClick={() => setIsAddModalOpen(true)}
-                      className="h-[34px] px-4 rounded-[var(--radius-button)] bg-pink-600 hover:bg-pink-500 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition-all border-none"
+                      className="h-[34px] px-4 rounded-btn bg-pink-600 hover:bg-pink-500 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition-all border-none"
                     >
                       <Plus size={14} /> Registrar Nuevo Pasivo
                     </button>
@@ -386,7 +386,7 @@ export default function GastosCreditosModule({ showToast, transactions = [], thi
                               setPaymentAmount(liab.cuotaMensual || '');
                             }}
                             disabled={liab.saldoPendiente <= 0}
-                            className={`flex-1 h-[34px] rounded-[var(--radius-button)] text-xs font-semibold text-center transition-all border-none ${
+                            className={`flex-1 h-[34px] rounded-btn text-xs font-semibold text-center transition-all border-none ${
                               liab.saldoPendiente > 0 
                                 ? 'bg-pink-600 hover:bg-pink-500 text-white' 
                                 : 'bg-gray-500/20 text-gray-400 dark:text-gray-500 cursor-not-allowed'
@@ -560,7 +560,7 @@ export default function GastosCreditosModule({ showToast, transactions = [], thi
                 </button>
                 <button
                   type="submit"
-                  className="h-[34px] px-4 rounded-[var(--radius-button)] text-xs font-semibold flex items-center justify-center gap-1.5 transition-all text-white border-none bg-pink-600 hover:bg-pink-500"
+                  className="h-[34px] px-4 rounded-btn text-xs font-semibold flex items-center justify-center gap-1.5 transition-all text-white border-none bg-pink-600 hover:bg-pink-500"
                 >
                   Confirmar Pago
                 </button>
@@ -702,7 +702,7 @@ export default function GastosCreditosModule({ showToast, transactions = [], thi
                 </button>
                 <button
                   type="submit"
-                  className="h-[34px] px-4 rounded-[var(--radius-button)] text-xs font-semibold flex items-center justify-center gap-1.5 transition-all text-white border-none bg-pink-600 hover:bg-pink-500"
+                  className="h-[34px] px-4 rounded-btn text-xs font-semibold flex items-center justify-center gap-1.5 transition-all text-white border-none bg-pink-600 hover:bg-pink-500"
                 >
                   Registrar Deuda
                 </button>

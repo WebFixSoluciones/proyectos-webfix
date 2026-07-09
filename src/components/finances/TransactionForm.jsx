@@ -1755,7 +1755,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     key={tab.id}
                     type="button"
                     onClick={() => setMobileTab(tab.id)}
-                    className={`flex-1 flex flex-col items-center justify-center py-[5px] px-[2px] rounded-[var(--radius-button)] transition-all ${
+                    className={`flex-1 flex flex-col items-center justify-center py-[5px] px-[2px] rounded-btn transition-all ${
                       isActive 
                         ? 'bg-primary text-white font-black'
                         : 'text-slate-650 hover:text-black hover:bg-slate-200'}`}
@@ -2312,11 +2312,11 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                                     <button type="button" disabled={!isEditable} onClick={() => {
                                       const q = parseInt(item.quantity) || 1;
                                       if (q > 1) handleItemChange(index, 'quantity', q - 1);
-                                    }} className={`w-5 h-5 rounded-[var(--radius-button)] flex items-center justify-center font-bold text-xs bg-gray-100 hover:bg-gray-200 text-black`}>-</button>
+                                    }} className={`w-5 h-5 rounded-btn flex items-center justify-center font-bold text-xs bg-gray-100 hover:bg-gray-200 text-black`}>-</button>
                                     <input disabled={!isEditable} type="number" value={item.quantity} min="1" onChange={(e) => handleItemChange(index, 'quantity', Math.max(1, parseInt(e.target.value) || 1))} className={`w-8 text-center text-xs font-bold bg-transparent outline-none border-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none text-black`} />
                                     <button type="button" disabled={!isEditable} onClick={() => {
                                       handleItemChange(index, 'quantity', (parseInt(item.quantity) || 1) + 1);
-                                    }} className={`w-5 h-5 rounded-[var(--radius-button)] flex items-center justify-center font-bold text-xs bg-gray-100 hover:bg-gray-200 text-black`}>+</button>
+                                    }} className={`w-5 h-5 rounded-btn flex items-center justify-center font-bold text-xs bg-gray-100 hover:bg-gray-200 text-black`}>+</button>
                                   </div>
                                 </td>
 
@@ -2487,7 +2487,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                               return updated;
                             });
                           }}
-                          className={`flex flex-col items-center justify-center p-[8px] rounded-[var(--radius-button)] border transition-all gap-[6px] ${
+                          className={`flex flex-col items-center justify-center p-[8px] rounded-btn border transition-all gap-[6px] ${
                             !isClientSelected
                               ? 'opacity-40 cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400 dark:border-white/5 dark:bg-white/5'
                               : isSelected 
@@ -2566,7 +2566,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                             <span className="absolute left-[8px] top-1/2 -translate-y-1/2 text-xs font-bold text-black opacity-60">$</span>
                             <input disabled={!isEditable} type="number" step="0.01" value={payments.cruce_cuentas || ''} onChange={e => setPayments(prev => ({ ...prev, cruce_cuentas: e.target.value }))} className={`${inputClass} font-bold`} style={{ paddingLeft: '24px' }} placeholder="0.00" />
                           </div>
-                          <button type="button" onClick={() => setIsCreditModalOpen(true)} className={`w-full py-[5px] rounded-[var(--radius-button)] border text-xs font-bold uppercase bg-amber-50/55 border-amber-200 text-amber-900 hover:bg-amber-100`}>
+                          <button type="button" onClick={() => setIsCreditModalOpen(true)} className={`w-full py-[5px] rounded-btn border text-xs font-bold uppercase bg-amber-50/55 border-amber-200 text-amber-900 hover:bg-amber-100`}>
                             Configurar Plazo de Crédito
                           </button>
                         </div>

@@ -157,7 +157,7 @@ Gracias por su compra`;
           <button
             onClick={handleAnalyzeText}
             disabled={analyzing || !pastedText.trim()}
-            className="w-full h-[34px] rounded-[var(--radius-button)] bg-pink-600 hover:bg-pink-500 text-white font-semibold text-xs flex justify-center items-center gap-2 transition-all disabled:opacity-50 border-none"
+            className="w-full h-[34px] rounded-btn bg-pink-600 hover:bg-pink-500 text-white font-semibold text-xs flex justify-center items-center gap-2 transition-all disabled:opacity-50 border-none"
           >
             {analyzing ? <RefreshCw size={14} className="animate-spin" /> : <Sparkles size={14} />}
             <span>{analyzing ? 'Analizando Gasto con Gemini...' : 'Analizar Gasto con IA'}</span>
@@ -262,7 +262,7 @@ Gracias por su compra`;
 
               <button
                 type="submit"
-                className="w-full h-[34px] rounded-[var(--radius-button)] bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex justify-center items-center gap-1.5 transition-all border-none"
+                className="w-full h-[34px] rounded-btn bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex justify-center items-center gap-1.5 transition-all border-none"
               >
                 <Save size={14} />
                 <span>Confirmar y Registrar Gasto</span>
