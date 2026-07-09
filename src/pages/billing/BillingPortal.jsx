@@ -553,7 +553,7 @@ export default function BillingPortal({ showToast, initialSubTab }) {
 
       {/* PAYPHONE SIMULATION MODAL */}
       {showPayPhoneSim && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
           <div className={`w-full max-w-sm p-6 rounded-card border relative text-center bg-white border-slate-200 text-black`}>
             <div className="flex justify-between items-center mb-6">
               <span className="text-xs font-black uppercase text-warning tracking-wider">Pasarela PayPhone (Sandbox)</span>

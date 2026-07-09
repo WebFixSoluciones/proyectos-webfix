@@ -128,7 +128,7 @@ export default function AdjustmentModal({ onClose, onSuccess }: AdjustmentModalP
     }
   };
 
-  const inputClass = `w-full px-3 py-2.5 rounded-xl outline-none transition-all border text-sm bg-white border-border-default text-text-primary focus:border-red-500`;
+  const inputClass = `w-full px-3 py-2.5 rounded-card outline-none transition-all border text-sm bg-white border-border-default text-text-primary focus:border-red-500`;
 
   const labelClass = `block text-xs font-semibold mb-1.5 uppercase tracking-wider text-text-muted`;
 
@@ -156,7 +156,7 @@ export default function AdjustmentModal({ onClose, onSuccess }: AdjustmentModalP
           </div>
           <button 
             onClick={onClose}
-            className={`p-1.5 rounded-xl transition-all hover:scale-105 bg-gray-100 text-gray-500 hover:text-gray-900`}
+            className={`p-1.5 rounded-card transition-all hover:scale-105 bg-gray-100 text-gray-500 hover:text-gray-900`}
           >
             <X size={18} />
           </button>
@@ -165,7 +165,7 @@ export default function AdjustmentModal({ onClose, onSuccess }: AdjustmentModalP
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-5 custom-scrollbar">
           {error && (
-            <div className={`p-4 rounded-xl border text-sm font-medium bg-red-50 border-red-200 text-red-600`}>
+            <div className={`p-4 rounded-card border text-sm font-medium bg-red-50 border-red-200 text-red-600`}>
               {error}
             </div>
           )}
@@ -175,7 +175,7 @@ export default function AdjustmentModal({ onClose, onSuccess }: AdjustmentModalP
             <button
               type="button"
               onClick={() => { setAdjustmentType('MANUAL'); setError(null); }}
-              className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all border ${
+              className={`flex-1 py-2 rounded-card text-xs font-bold transition-all border ${
                 adjustmentType === 'MANUAL'
                   ? 'bg-red-600/20 text-red-400 border-red-500/30'
                   : 'bg-transparent text-gray-400 border-transparent hover:bg-white/5'
@@ -186,7 +186,7 @@ export default function AdjustmentModal({ onClose, onSuccess }: AdjustmentModalP
             <button
               type="button"
               onClick={() => { setAdjustmentType('ZERO_INVENTORY'); setError(null); }}
-              className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all border ${
+              className={`flex-1 py-2 rounded-card text-xs font-bold transition-all border ${
                 adjustmentType === 'ZERO_INVENTORY'
                   ? 'bg-red-600 text-white border-red-600'
                   : 'bg-transparent text-gray-400 border-transparent hover:bg-white/5'
@@ -287,7 +287,7 @@ export default function AdjustmentModal({ onClose, onSuccess }: AdjustmentModalP
                   placeholder="Escribe exactamente la frase..."
                   value={doubleConfirmationText}
                   onChange={(e) => setDoubleConfirmationText(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-xl bg-black/40 text-sm border-red-500/30 text-white focus:border-red-500 outline-none"
+                  className="w-full px-3 py-2 border rounded-card bg-black/40 text-sm border-red-500/30 text-white focus:border-red-500 outline-none"
                 />
               </div>
             </div>
@@ -311,14 +311,14 @@ export default function AdjustmentModal({ onClose, onSuccess }: AdjustmentModalP
               type="button"
               onClick={onClose}
               disabled={loading}
-              className={`px-6 py-2.5 rounded-xl font-bold transition-all text-sm bg-gray-100 hover:bg-gray-200 text-gray-700`}
+              className={`px-6 py-2.5 rounded-card font-bold transition-all text-sm bg-gray-100 hover:bg-gray-200 text-gray-700`}
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={loading || (adjustmentType === 'ZERO_INVENTORY' && !isZeroInventoryConfUnlocked)}
-              className={`px-8 py-2.5 rounded-xl font-bold transition-all text-sm text-white flex items-center gap-2 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none ${
+              className={`px-8 py-2.5 rounded-card font-bold transition-all text-sm text-white flex items-center gap-2 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none ${
                 adjustmentType === 'ZERO_INVENTORY'
                   ? 'bg-red-600 hover:bg-red-500'
                   : 'bg-primary hover:bg-primary'

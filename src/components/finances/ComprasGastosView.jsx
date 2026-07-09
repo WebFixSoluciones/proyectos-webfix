@@ -111,7 +111,7 @@ Gracias por su compra`;
 
   const currentExpenses = transactions.filter(t => t.type === 'egreso' && t.id.includes('gasto'));
 
-  const inputClass = 'w-full text-xs px-3 py-2 rounded-xl outline-none transition-all border bg-white border-border-default text-text-primary focus:border-primary focus:ring-1 focus:ring-primary/35';
+  const inputClass = 'w-full text-xs px-3 py-2 rounded-card outline-none transition-all border bg-white border-border-default text-text-primary focus:border-primary focus:ring-1 focus:ring-primary/35';
 
   return (
     <div className="space-y-6">

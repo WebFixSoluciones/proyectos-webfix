@@ -438,7 +438,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
 
             <button 
               onClick={handlePrint}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase transition-transform hover:-translate-y-0.5"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-card bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase transition-transform hover:-translate-y-0.5"
             >
               <Printer size={12} /> Imprimir / PDF
             </button>

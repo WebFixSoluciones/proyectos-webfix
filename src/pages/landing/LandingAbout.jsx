@@ -49,7 +49,7 @@ export default function LandingAbout() {
       {/* Security and Infrastructure details */}
       <div className="p-6 rounded-card bg-white border border-border-default space-y-4 pt-8">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+          <div className="w-10 h-10 rounded-card bg-primary/10 text-primary flex items-center justify-center">
             <Shield size={20} />
           </div>
           <div>

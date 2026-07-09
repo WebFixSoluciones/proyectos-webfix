@@ -115,7 +115,7 @@ export default function CategoryBrandModal({ onClose, onChanged }: CategoryBrand
     }
   };
 
-  const inputClass = `w-full px-3 py-2 rounded-xl outline-none transition-all border text-sm bg-white border-gray-200 text-gray-800 focus:border-primary`;
+  const inputClass = `w-full px-3 py-2 rounded-card outline-none transition-all border text-sm bg-white border-gray-200 text-gray-800 focus:border-primary`;
 
   const labelClass = `block text-xs font-semibold mb-1 uppercase tracking-wider text-gray-500`;
 
@@ -134,7 +134,7 @@ export default function CategoryBrandModal({ onClose, onChanged }: CategoryBrand
           </div>
           <button 
             onClick={onClose}
-            className={`p-1.5 rounded-xl transition-all hover:scale-105 bg-gray-100 text-gray-500 hover:text-gray-900`}
+            className={`p-1.5 rounded-card transition-all hover:scale-105 bg-gray-100 text-gray-500 hover:text-gray-900`}
           >
             <X size={18} />
           </button>
@@ -144,7 +144,7 @@ export default function CategoryBrandModal({ onClose, onChanged }: CategoryBrand
         <div className={`flex border-b shrink-0 px-6 py-2 gap-2 border-primary/5 bg-primary/5`}>
           <button
             onClick={() => setActiveTab('categories')}
-            className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 ${
+            className={`px-4 py-1.5 rounded-card text-xs font-bold transition-all border flex items-center gap-1.5 ${
               activeTab === 'categories'
                 ? 'bg-primary text-white border-primary'
                 : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -155,7 +155,7 @@ export default function CategoryBrandModal({ onClose, onChanged }: CategoryBrand
           </button>
           <button
             onClick={() => setActiveTab('brands')}
-            className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 ${
+            className={`px-4 py-1.5 rounded-card text-xs font-bold transition-all border flex items-center gap-1.5 ${
               activeTab === 'brands'
                 ? 'bg-primary text-white border-primary'
                 : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -169,7 +169,7 @@ export default function CategoryBrandModal({ onClose, onChanged }: CategoryBrand
         {/* Content Area */}
         <div className="flex-1 flex overflow-hidden min-h-0">
           {error && (
-            <div className="absolute top-16 left-6 right-6 z-20 flex items-center gap-2 p-3 text-xs bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl">
+            <div className="absolute top-16 left-6 right-6 z-20 flex items-center gap-2 p-3 text-xs bg-red-500/10 border border-red-500/20 text-red-400 rounded-card">
               <AlertCircle size={14} />
               <span>{error}</span>
             </div>
@@ -209,7 +209,7 @@ export default function CategoryBrandModal({ onClose, onChanged }: CategoryBrand
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-2 rounded-xl text-sm font-bold bg-primary hover:bg-primary text-white flex items-center justify-center gap-2 transition-all"
+                  className="w-full py-2 rounded-card text-sm font-bold bg-primary hover:bg-primary text-white flex items-center justify-center gap-2 transition-all"
                 >
                   <Save size={16} />
                   Guardar Categoría
@@ -231,7 +231,7 @@ export default function CategoryBrandModal({ onClose, onChanged }: CategoryBrand
                     categories.map(cat => (
                       <div 
                         key={cat.id} 
-                        className={`p-4 rounded-xl border flex items-center justify-between transition-all bg-gray-50 border-gray-100 hover:border-gray-200`}
+                        className={`p-4 rounded-card border flex items-center justify-between transition-all bg-gray-50 border-gray-100 hover:border-gray-200`}
                       >
                         <div>
                           <h4 className={`text-sm font-bold text-gray-800`}>{cat.name}</h4>
@@ -241,7 +241,7 @@ export default function CategoryBrandModal({ onClose, onChanged }: CategoryBrand
                         </div>
                         <button
                           onClick={() => cat.id && handleDeleteCategory(cat.id)}
-                          className={`p-2 rounded-xl text-red-500 hover:bg-red-500/10 transition-all`}
+                          className={`p-2 rounded-card text-red-500 hover:bg-red-500/10 transition-all`}
                         >
                           <Trash2 size={16} />
                         </button>
@@ -285,7 +285,7 @@ export default function CategoryBrandModal({ onClose, onChanged }: CategoryBrand
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-2 rounded-xl text-sm font-bold bg-primary hover:bg-primary text-white flex items-center justify-center gap-2 transition-all"
+                  className="w-full py-2 rounded-card text-sm font-bold bg-primary hover:bg-primary text-white flex items-center justify-center gap-2 transition-all"
                 >
                   <Save size={16} />
                   Guardar Marca
@@ -307,7 +307,7 @@ export default function CategoryBrandModal({ onClose, onChanged }: CategoryBrand
                     brands.map(brand => (
                       <div 
                         key={brand.id} 
-                        className={`p-4 rounded-xl border flex items-center justify-between transition-all bg-gray-50 border-gray-100 hover:border-gray-200`}
+                        className={`p-4 rounded-card border flex items-center justify-between transition-all bg-gray-50 border-gray-100 hover:border-gray-200`}
                       >
                         <div>
                           <h4 className={`text-sm font-bold text-gray-800`}>{brand.name}</h4>
@@ -317,7 +317,7 @@ export default function CategoryBrandModal({ onClose, onChanged }: CategoryBrand
                         </div>
                         <button
                           onClick={() => brand.id && handleDeleteBrand(brand.id)}
-                          className={`p-2 rounded-xl text-red-500 hover:bg-red-500/10 transition-all`}
+                          className={`p-2 rounded-card text-red-500 hover:bg-red-500/10 transition-all`}
                         >
                           <Trash2 size={16} />
                         </button>

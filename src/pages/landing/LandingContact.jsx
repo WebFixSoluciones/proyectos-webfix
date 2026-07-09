@@ -158,7 +158,7 @@ export default function LandingContact() {
               <button 
                 type="submit" 
                 disabled={loading}
-                className="w-full py-3 bg-primary hover:bg-surface-card text-white text-xs font-bold rounded-xl uppercase tracking-wider transition-colors border-none cursor-pointer"
+                className="w-full py-3 bg-primary hover:bg-surface-card text-white text-xs font-bold rounded-card uppercase tracking-wider transition-colors border-none cursor-pointer"
               >
                 {loading ? 'Enviando...' : 'Enviar Consulta'}
               </button>

@@ -245,7 +245,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, setActivePa
  </div>
  <button 
  onClick={() => setActivePageId('general_settings')} 
- className={`px-3.5 py-1.5 rounded-xl transition-all font-black uppercase text-xs tracking-wider self-start sm:self-auto ${
+ className={`px-3.5 py-1.5 rounded-card transition-all font-black uppercase text-xs tracking-wider self-start sm:self-auto ${
  certStatus ==='expired'
  ?'bg-red-650 hover:bg-red-500 text-white'
  :'bg-orange-650 hover:bg-orange-500 text-white dark:bg-orange-600 dark:hover:bg-orange-500'
@@ -265,7 +265,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, setActivePa
  onClick={() => { setVentasInitialSubTab && setVentasInitialSubTab('pos'); setActivePageId('ventas'); }}
  className={`flex flex-col items-center justify-center p-4 rounded-card text-center transition-all duration-300 hover-lift bg-white`}
  >
- <div className="p-3 rounded-xl mb-2.5 bg-primary/10 text-primary">
+ <div className="p-3 rounded-card mb-2.5 bg-primary/10 text-primary">
  <ShoppingCart size={20} />
  </div>
  <span className="text-xs font-black">Punto de Venta</span>
@@ -276,7 +276,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, setActivePa
  onClick={() => { setVentasInitialSubTab && setVentasInitialSubTab('resumen_ventas'); setActivePageId('ventas'); }}
  className={`flex flex-col items-center justify-center p-4 rounded-card text-center transition-all duration-300 hover-lift bg-white`}
  >
- <div className="p-3 rounded-xl mb-2.5 bg-primary/10 text-primary">
+ <div className="p-3 rounded-card mb-2.5 bg-primary/10 text-primary">
  <FileText size={20} />
  </div>
  <span className="text-xs font-black">Facturación</span>
@@ -287,7 +287,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, setActivePa
  onClick={() => setActivePageId('inventario')}
  className={`flex flex-col items-center justify-center p-4 rounded-card text-center transition-all duration-300 hover-lift bg-white`}
  >
- <div className="p-3 rounded-xl mb-2.5 bg-primary/10 text-primary">
+ <div className="p-3 rounded-card mb-2.5 bg-primary/10 text-primary">
  <Package size={20} />
  </div>
  <span className="text-xs font-black">Inventario</span>
@@ -298,7 +298,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, setActivePa
  onClick={() => setActivePageId('personas')}
  className={`flex flex-col items-center justify-center p-4 rounded-card text-center transition-all duration-300 hover-lift bg-white`}
  >
- <div className="p-3 rounded-xl mb-2.5 bg-primary/10 text-primary">
+ <div className="p-3 rounded-card mb-2.5 bg-primary/10 text-primary">
  <Users size={20} />
  </div>
  <span className="text-xs font-black">Clientes / Prov</span>
@@ -309,7 +309,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, setActivePa
  onClick={() => setActivePageId('calendar')}
  className={`flex flex-col items-center justify-center p-4 rounded-card text-center transition-all duration-300 hover-lift bg-white`}
  >
- <div className="p-3 rounded-xl mb-2.5 bg-primary/10 text-primary">
+ <div className="p-3 rounded-card mb-2.5 bg-primary/10 text-primary">
  <CalendarDays size={20} />
  </div>
  <span className="text-xs font-black">Calendario</span>
@@ -320,7 +320,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, setActivePa
  onClick={() => setActivePageId('general_settings')}
  className={`flex flex-col items-center justify-center p-4 rounded-card text-center transition-all duration-300 hover-lift bg-white`}
  >
- <div className="p-3 rounded-xl mb-2.5 bg-primary/10 text-primary">
+ <div className="p-3 rounded-card mb-2.5 bg-primary/10 text-primary">
  <Settings size={20} />
  </div>
  <span className="text-xs font-black">Ajustes</span>
@@ -435,7 +435,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, setActivePa
  <div 
  key={project.id} 
  onClick={() => setActivePageId(project.id)}
- className={`p-3.5 rounded-xl border cursor-pointer hover:scale-[1.01] transition-all group bg-white border-gray-250 hover:bg-gray-50`}
+ className={`p-3.5 rounded-card border cursor-pointer hover:scale-[1.01] transition-all group bg-white border-gray-250 hover:bg-gray-50`}
  >
  <div className="flex items-center justify-between mb-2">
  <div className="flex items-center gap-2 font-bold text-xs group-hover:underline">
@@ -566,7 +566,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, setActivePa
  </div>
 
  {/* DETALLE CERTIFICADO FIRMA */}
- <div className={`mt-6 p-4 rounded-xl border ${
+ <div className={`mt-6 p-4 rounded-card border ${
  certStatus ==='none' 
  ?'bg-primary/5 border-primary/10 text-gray-500'
  : certStatus ==='expired' 
@@ -608,7 +608,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, setActivePa
 
  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-5">
  <div className="flex items-center gap-3">
- <div className="p-2 rounded-xl bg-purple-600/20 text-purple-400 border border-purple-500/30">
+ <div className="p-2 rounded-card bg-purple-600/20 text-purple-400 border border-purple-500/30">
  <Sparkles size={20} />
  </div>
  <div>
@@ -624,7 +624,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, setActivePa
  <button
  onClick={runAiAdvisor}
  disabled={isGeneratingReport}
- className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 disabled:opacity-50 bg-purple-600 text-white hover:bg-purple-700`}
+ className={`flex items-center gap-1.5 px-4 py-2 rounded-card text-xs font-bold transition-all active:scale-95 disabled:opacity-50 bg-purple-600 text-white hover:bg-purple-700`}
  >
  {isGeneratingReport ? <RefreshCw size={13} className="animate-spin" /> : <Sparkles size={13} />}
  {aiReport ?'Recargar Diagnóstico con IA' :'Generar Diagnóstico Estratégico'}
@@ -639,7 +639,7 @@ export default function ErpDashboard({ projectsList, allTasksGlobal, setActivePa
  <p className="text-xs text-gray-500 mt-1">Gemini está procesando stock de inventario, liquidez SRI y tareas pendientes.</p>
  </div>
  ) : aiError ? (
- <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs">
+ <div className="p-4 rounded-card bg-red-500/10 border border-red-500/20 text-red-400 text-xs">
  <strong>Error:</strong> {aiError}
  </div>
  ) : aiReport ? (

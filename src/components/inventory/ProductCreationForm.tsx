@@ -508,7 +508,7 @@ export default function ProductCreationForm({
     }
   };
 
-  const inputClass = `w-full pl-3 pr-3 py-2 rounded-xl outline-none transition-all border text-xs bg-white/50 border-gray-200 text-gray-800 focus:border-primary focus:bg-white`;
+  const inputClass = `w-full pl-3 pr-3 py-2 rounded-card outline-none transition-all border text-xs bg-white/50 border-gray-200 text-gray-800 focus:border-primary focus:bg-white`;
 
   const labelClass = `block text-xs font-bold mb-1 uppercase tracking-wider text-gray-500`;
 
@@ -521,7 +521,7 @@ export default function ProductCreationForm({
       {/* Header */}
       <div className={`modal-header-std modal-header-std-dark border-gray-100 bg-white/80`}>
         <div className="flex items-center gap-3">
-          <div className={`p-2 rounded-xl bg-primary/10 text-primary`}>
+          <div className={`p-2 rounded-card bg-primary/10 text-primary`}>
             <Package size={20} />
           </div>
           <div>
@@ -541,7 +541,7 @@ export default function ProductCreationForm({
         <button 
           onClick={onClose}
           type="button"
-          className={`p-2 rounded-xl transition-all hover:scale-105 bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-900`}
+          className={`p-2 rounded-card transition-all hover:scale-105 bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-900`}
         >
           <X size={18} />
         </button>
@@ -550,7 +550,7 @@ export default function ProductCreationForm({
       {/* Content */}
       <form onSubmit={formStep === 'product_details' ? handleSubmit : handleStep2Submit} className="p-5 sm:p-6 space-y-6">
         {error && (
-          <div className={`flex items-center gap-3 p-4 rounded-xl border bg-red-50 border-red-200 text-red-600`}>
+          <div className={`flex items-center gap-3 p-4 rounded-card border bg-red-50 border-red-200 text-red-600`}>
             <AlertCircle size={18} className="shrink-0" />
             <p className="text-xs font-medium">{error}</p>
           </div>
@@ -588,7 +588,7 @@ export default function ProductCreationForm({
               <label className={labelClass}>Imagen del Producto</label>
               <div className="mt-1 flex items-center justify-center">
                 {formData.imageUrl ? (
-                  <div className="relative w-20 h-20 rounded-xl overflow-hidden border border-white/10 group">
+                  <div className="relative w-20 h-20 rounded-card overflow-hidden border border-white/10 group">
                     <img src={formData.imageUrl} className="w-full h-full object-cover" alt="Vista previa" />
                     <button
                       type="button"
@@ -599,7 +599,7 @@ export default function ProductCreationForm({
                     </button>
                   </div>
                 ) : (
-                  <label className={`w-20 h-20 rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all hover:border-primary/50 hover:bg-primary/5 border-gray-300 bg-gray-50`}>
+                  <label className={`w-20 h-20 rounded-card border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all hover:border-primary/50 hover:bg-primary/5 border-gray-300 bg-gray-50`}>
                     <Image size={18} className="text-gray-400 mb-1" />
                     <span className="text-xs text-gray-500 font-bold">Añadir</span>
                     <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
@@ -666,7 +666,7 @@ export default function ProductCreationForm({
                   <button
                     type="button"
                     onClick={() => setShowCategoryPopup(true)}
-                    className={`p-2 rounded-xl transition-all border bg-gray-50 border-gray-300 hover:bg-gray-100 text-primary`}
+                    className={`p-2 rounded-card transition-all border bg-gray-50 border-gray-300 hover:bg-gray-100 text-primary`}
                     title="Agregar Categoría"
                   >
                     <FolderPlus size={16} />
@@ -696,7 +696,7 @@ export default function ProductCreationForm({
                   <button
                     type="button"
                     onClick={() => setShowBrandPopup(true)}
-                    className={`p-2 rounded-xl transition-all border bg-gray-50 border-gray-300 hover:bg-gray-100 text-primary`}
+                    className={`p-2 rounded-card transition-all border bg-gray-50 border-gray-300 hover:bg-gray-100 text-primary`}
                     title="Agregar Marca"
                   >
                     <Plus size={16} />
@@ -1066,14 +1066,14 @@ export default function ProductCreationForm({
             type="button"
             onClick={onClose}
             disabled={loading}
-            className={`px-6 py-2 rounded-xl font-bold transition-all text-xs bg-gray-100 hover:bg-gray-200 text-gray-700`}
+            className={`px-6 py-2 rounded-card font-bold transition-all text-xs bg-gray-100 hover:bg-gray-200 text-gray-700`}
           >
             Cancelar
           </button>
           <button
             type="submit"
             disabled={loading}
-            className="px-8 py-2 rounded-xl font-bold transition-all text-xs bg-primary hover:bg-primary text-white flex items-center gap-2 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+            className="px-8 py-2 rounded-card font-bold transition-all text-xs bg-primary hover:bg-primary text-white flex items-center gap-2 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
           >
             {loading ? (
               <>
@@ -1253,7 +1253,7 @@ export default function ProductCreationForm({
                         <button
                           type="button"
                           onClick={() => setShowNewSupplierPopup(true)}
-                          className={`p-2 rounded-xl transition-all border bg-gray-50 border-gray-300 hover:bg-gray-100 text-primary`}
+                          className={`p-2 rounded-card transition-all border bg-gray-50 border-gray-300 hover:bg-gray-100 text-primary`}
                           title="Agregar Proveedor"
                         >
                           <Plus size={16} />
@@ -1337,7 +1337,7 @@ export default function ProductCreationForm({
                   </div>
 
                   {/* Cálculos Resumen Compra */}
-                  <div className={`p-3 rounded-xl border text-xs space-y-1.5 bg-white border-slate-200`}>
+                  <div className={`p-3 rounded-card border text-xs space-y-1.5 bg-white border-slate-200`}>
                     <div className="flex justify-between">
                       <span>Subtotal:</span>
                       <span className="font-bold font-mono">
@@ -1369,14 +1369,14 @@ export default function ProductCreationForm({
                 type="button"
                 onClick={() => setFormStep('product_details')}
                 disabled={loading}
-                className={`px-6 py-2 rounded-xl font-bold transition-all text-xs bg-gray-100 hover:bg-gray-200 text-gray-700`}
+                className={`px-6 py-2 rounded-card font-bold transition-all text-xs bg-gray-100 hover:bg-gray-200 text-gray-700`}
               >
                 Volver a Paso 1
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="px-8 py-2 rounded-xl font-bold transition-all text-xs bg-emerald-500 hover:bg-emerald-600 text-white flex items-center gap-2 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+                className="px-8 py-2 rounded-card font-bold transition-all text-xs bg-emerald-500 hover:bg-emerald-600 text-white flex items-center gap-2 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
               >
                 {loading ? (
                   <>
@@ -1432,13 +1432,13 @@ export default function ProductCreationForm({
                 <button 
                   type="button" 
                   onClick={() => setShowCategoryPopup(false)}
-                  className={`px-4 py-1.5 rounded-xl text-xs font-bold bg-gray-100 hover:bg-gray-200 text-gray-700`}
+                  className={`px-4 py-1.5 rounded-card text-xs font-bold bg-gray-100 hover:bg-gray-200 text-gray-700`}
                 >
                   Cancelar
                 </button>
                 <button 
                   type="submit"
-                  className="px-4 py-1.5 rounded-xl text-xs font-bold bg-primary hover:bg-primary text-white"
+                  className="px-4 py-1.5 rounded-card text-xs font-bold bg-primary hover:bg-primary text-white"
                 >
                   Guardar Categoría
                 </button>
@@ -1485,13 +1485,13 @@ export default function ProductCreationForm({
                 <button 
                   type="button" 
                   onClick={() => setShowBrandPopup(false)}
-                  className={`px-4 py-1.5 rounded-xl text-xs font-bold bg-gray-100 hover:bg-gray-200 text-gray-700`}
+                  className={`px-4 py-1.5 rounded-card text-xs font-bold bg-gray-100 hover:bg-gray-200 text-gray-700`}
                 >
                   Cancelar
                 </button>
                 <button 
                   type="submit"
-                  className="px-4 py-1.5 rounded-xl text-xs font-bold bg-primary hover:bg-primary text-white"
+                  className="px-4 py-1.5 rounded-card text-xs font-bold bg-primary hover:bg-primary text-white"
                 >
                   Guardar Marca
                 </button>
@@ -1533,7 +1533,7 @@ export default function ProductCreationForm({
               </div>
 
               {/* Muestra cálculo rápido */}
-              <div className={`p-3 rounded-xl border text-xs space-y-1.5 bg-slate-50 border-slate-200`}>
+              <div className={`p-3 rounded-card border text-xs space-y-1.5 bg-slate-50 border-slate-200`}>
                 <div className="flex justify-between">
                   <span>Impuesto Aplicado:</span>
                   <span className="font-bold">{formData.taxRate}%</span>
@@ -1556,14 +1556,14 @@ export default function ProductCreationForm({
                 <button 
                   type="button" 
                   onClick={() => setShowPriceWithoutTaxPopup(false)}
-                  className={`px-4 py-1.5 rounded-xl text-xs font-bold bg-gray-100 hover:bg-gray-200 text-gray-700`}
+                  className={`px-4 py-1.5 rounded-card text-xs font-bold bg-gray-100 hover:bg-gray-200 text-gray-700`}
                 >
                   Cancelar
                 </button>
                 <button 
                   type="button"
                   onClick={handleApplyManualPrice}
-                  className="px-4 py-1.5 rounded-xl text-xs font-bold bg-primary hover:bg-primary text-white"
+                  className="px-4 py-1.5 rounded-card text-xs font-bold bg-primary hover:bg-primary text-white"
                 >
                   Aplicar Precio
                 </button>
@@ -1633,13 +1633,13 @@ export default function ProductCreationForm({
                 <button 
                   type="button" 
                   onClick={() => setShowNewSupplierPopup(false)}
-                  className={`px-4 py-1.5 rounded-xl text-xs font-bold bg-gray-100 hover:bg-gray-200 text-gray-700`}
+                  className={`px-4 py-1.5 rounded-card text-xs font-bold bg-gray-100 hover:bg-gray-200 text-gray-700`}
                 >
                   Cancelar
                 </button>
                 <button 
                   type="submit"
-                  className="px-4 py-1.5 rounded-xl text-xs font-bold bg-primary hover:bg-primary text-white"
+                  className="px-4 py-1.5 rounded-card text-xs font-bold bg-primary hover:bg-primary text-white"
                 >
                   Guardar Proveedor
                 </button>

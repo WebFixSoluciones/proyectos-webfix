@@ -935,7 +935,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
     return matchesSearch && matchesBrand && matchesCategory && matchesWarehouse && matchesStock;
   });
 
-  const inputClass = `w-full text-xs px-3 py-2 rounded-xl outline-none border ${
+  const inputClass = `w-full text-xs px-3 py-2 rounded-card outline-none border ${
     'bg-white border-gray-300 text-gray-900 focus:border-primary focus:ring-1 focus:ring-primary/40'}`;
 
   if (!isPreventaOnly) {
@@ -955,7 +955,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
           <div className={`absolute top-[-10%] left-[-5%] w-[30rem] h-[30rem] rounded-full mix-blend-screen filter blur-[100px] opacity-20 pointer-events-none bg-emerald-300`}></div>
           <div className={`absolute bottom-[-10%] right-[-5%] w-[30rem] h-[30rem] rounded-full mix-blend-screen filter blur-[100px] opacity-20 pointer-events-none bg-orange-300`}></div>
 
-          <div className={`w-full max-w-md p-8 rounded-[2.5rem] border space-y-6 transition-all duration-300 bg-white text-text-secondary border-primary/15`}>
+          <div className={`w-full max-w-md p-8 rounded-card border space-y-6 transition-all duration-300 bg-white text-text-secondary border-primary/15`}>
             <div className="text-center space-y-2">
               <div className={`mx-auto w-14 h-14 rounded-card flex items-center justify-center border animate-pulse-glow bg-emerald-50 text-emerald-600 border-emerald-250`}>
                 <DollarSign size={26} />
@@ -967,17 +967,17 @@ export default function PosView({ products, thirdParties, transactions = [], sho
             <form onSubmit={handleOpenSession} className="space-y-4">
               <div>
                 <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 text-black`}>Responsable / Cajero</label>
-                <input type="text" required value={openingForm.responsible} onChange={e => setOpeningForm({...openingForm, responsible: e.target.value})} className={`w-full text-sm px-3.5 py-3 rounded-xl outline-none transition-all border glass-input-light`} />
+                <input type="text" required value={openingForm.responsible} onChange={e => setOpeningForm({...openingForm, responsible: e.target.value})} className={`w-full text-sm px-3.5 py-3 rounded-card outline-none transition-all border glass-input-light`} />
               </div>
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 text-black`}>Sucursal</label>
-                  <input type="text" required value={openingForm.branch} onChange={e => setOpeningForm({...openingForm, branch: e.target.value})} className={`w-full text-sm px-3.5 py-3 rounded-xl outline-none transition-all border glass-input-light`} />
+                  <input type="text" required value={openingForm.branch} onChange={e => setOpeningForm({...openingForm, branch: e.target.value})} className={`w-full text-sm px-3.5 py-3 rounded-card outline-none transition-all border glass-input-light`} />
                 </div>
                 <div>
                   <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 text-black`}>Turno</label>
-                  <select value={openingForm.shift} onChange={e => setOpeningForm({...openingForm, shift: e.target.value})} className={`w-full text-sm px-3.5 py-3 rounded-xl outline-none transition-all border cursor-pointer glass-input-light`}>
+                  <select value={openingForm.shift} onChange={e => setOpeningForm({...openingForm, shift: e.target.value})} className={`w-full text-sm px-3.5 py-3 rounded-card outline-none transition-all border cursor-pointer glass-input-light`}>
                     <option value="Mañana" className="text-black bg-white">Mañana</option>
                     <option value="Tarde" className="text-black bg-white">Tarde</option>
                     <option value="Noche" className="text-black bg-white">Noche</option>
@@ -987,7 +987,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
 
               <div>
                 <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 text-black`}>Fondo Inicial ($ USD)</label>
-                <input type="number" required step="0.01" value={openingForm.initialAmount} onChange={e => setOpeningForm({...openingForm, initialAmount: e.target.value})} className={`w-full text-sm px-3.5 py-3 rounded-xl outline-none transition-all border glass-input-light`} />
+                <input type="number" required step="0.01" value={openingForm.initialAmount} onChange={e => setOpeningForm({...openingForm, initialAmount: e.target.value})} className={`w-full text-sm px-3.5 py-3 rounded-card outline-none transition-all border glass-input-light`} />
               </div>
 
               <div>
@@ -1013,7 +1013,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
       {/* TOP HEADER POS */}
       <div className={`h-16 px-6 border-b flex items-center justify-between shrink-0 bg-white border-primary/15 text-text-secondary`}>
         <div className="flex items-center gap-3">
-          <div className="relative p-2 rounded-xl bg-orange-500/10 text-orange-500 border border-orange-500/10">
+          <div className="relative p-2 rounded-card bg-orange-500/10 text-orange-500 border border-orange-500/10">
             <ShoppingCart size={18} />
             {cart.length > 0 && (
               <span className="absolute -top-1.5 -right-1.5 flex h-4.5 w-4.5 items-center justify-center rounded-full bg-red-500 text-xs font-black text-white animate-bounce">
@@ -1105,7 +1105,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
               <div className="space-y-3">
                 {/* Search Box */}
                 <div className="flex gap-2.5 items-center">
-                  <div className={`flex-1 flex items-center gap-2 px-4 h-11 rounded-xl border transition-all border-primary/20 bg-primary-light`}>
+                  <div className={`flex-1 flex items-center gap-2 px-4 h-11 rounded-card border transition-all border-primary/20 bg-primary-light`}>
                     <Search size={14} className={'text-primary'} />
                     <input 
                       type="text" 
@@ -1175,7 +1175,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
               <div className="space-y-3">
                 {/* Search Box */}
                 <div className="flex gap-2.5 items-center">
-                  <div className={`flex-1 flex items-center gap-2 px-4 h-11 rounded-xl border transition-all border-primary/20 bg-primary-light`}>
+                  <div className={`flex-1 flex items-center gap-2 px-4 h-11 rounded-card border transition-all border-primary/20 bg-primary-light`}>
                     <Search size={14} className={'text-primary'} />
                     <input 
                       type="text" 
@@ -1269,7 +1269,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                     }`}
                   >
                     <div className="flex-1 min-w-0 flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
+                      <div className={`w-10 h-10 rounded-card flex items-center justify-center shrink-0 border ${
                         p.type === 'producto' 
                           ? ('bg-primary-light border-primary/25 text-primary') 
                           : ('bg-purple-50 border-purple-200 text-purple-650')
@@ -1416,7 +1416,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
           <div className={`pt-[7px] px-3 pb-3 border-b flex flex-col gap-2 shrink-0 border-primary/15 bg-primary/5`}>
             <div className="flex items-center gap-2">
               {/* Buscador de Cliente */}
-              <div className={`flex-1 flex items-center gap-2 px-4 h-11 rounded-xl border transition-all ${
+              <div className={`flex-1 flex items-center gap-2 px-4 h-11 rounded-card border transition-all ${
                 'border-primary/20 bg-primary/5'}`}>
                 <Search size={13} className={'text-primary'} />
                 <input 
@@ -1464,7 +1464,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
             {/* Autocompletado */}
             <div className="relative">
               {isClientDropdownOpen && clientSearchTerm && (
-                <div className={`absolute left-0 right-0 top-0 max-h-48 overflow-y-auto z-50 rounded-xl border ${
+                <div className={`absolute left-0 right-0 top-0 max-h-48 overflow-y-auto z-50 rounded-card border ${
                   'bg-white border-primary/20 text-black'} custom-scrollbar`}>
                   <div 
                     onClick={() => {
@@ -1599,7 +1599,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
               const prod = products.find(p => p.id === item.productId);
               const imageUrl = prod?.imageUrl || prod?.image || null;
               return (
-                <div key={idx} className={`p-2.5 rounded-xl border flex items-center justify-between gap-3 bg-white border-primary/15`}>
+                <div key={idx} className={`p-2.5 rounded-card border flex items-center justify-between gap-3 bg-white border-primary/15`}>
                   {/* Imagen del Producto */}
                   {imageUrl ? (
                     <img src={imageUrl} className="w-10 h-10 rounded-lg object-cover shrink-0 border border-gray-100 dark:border-white/10" alt={item.name} />
@@ -1680,7 +1680,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
           <div className={`p-4 border-t space-y-4 shrink-0 border-primary/15 bg-primary/5`}>
             {/* DESCUENTO CARD */}
             {isDiscountOpen ? (
-              <div className={`p-3 rounded-xl border space-y-2 border-primary/15 bg-white`}>
+              <div className={`p-3 rounded-card border space-y-2 border-primary/15 bg-white`}>
                 <div className="flex justify-between items-center">
                   <span className={`text-xs font-bold text-black`}>DESCUENTO GENERAL</span>
                   <button 
@@ -1979,7 +1979,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
 
               <div>
                 <label className={`block text-xs font-bold uppercase mb-1.5 text-black`}>Observaciones Arqueo</label>
-                <textarea value={closingForm.notes} onChange={e => setClosingForm({...closingForm, notes: e.target.value})} className={`glass-input-light min-h-[50px] w-full px-2.5 py-2 rounded-xl border`} placeholder="Escribe discrepancias si las hay..." />
+                <textarea value={closingForm.notes} onChange={e => setClosingForm({...closingForm, notes: e.target.value})} className={`glass-input-light min-h-[50px] w-full px-2.5 py-2 rounded-card border`} placeholder="Escribe discrepancias si las hay..." />
               </div>
 
               <div className={`flex justify-end gap-2.5 mt-6 pt-3 border-t border-primary/15`}>
@@ -2038,7 +2038,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                           <select 
                             value={selectedClientId} 
                             onChange={e => setSelectedClientId(e.target.value)} 
-                            className={`w-full text-sm md:text-base font-semibold px-3 py-2.5 outline-none rounded-xl border ${
+                            className={`w-full text-sm md:text-base font-semibold px-3 py-2.5 outline-none rounded-card border ${
                               'border-primary/20 bg-white text-black'}`}
                           >
                             <option value="" className={'text-black bg-white'}>Consumidor Final (9999999999999)</option>
@@ -2152,7 +2152,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {/* Efectivo */}
                         {activePayments.efectivo && (
-                          <div className={`p-3 rounded-xl border space-y-1.5 border-primary/15 bg-primary/5`}>
+                          <div className={`p-3 rounded-card border space-y-1.5 border-primary/15 bg-primary/5`}>
                             <div className="flex justify-between items-center mb-0.5">
                               <span className="text-xs font-bold block">Efectivo ($)</span>
                               <span className={`text-xs font-bold uppercase text-gray-400`}>Monto Recibido</span>
@@ -2190,7 +2190,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
 
                         {/* Tarjeta */}
                         {activePayments.tarjeta && (
-                          <div className={`p-3 rounded-xl border space-y-1.5 border-primary/15 bg-primary/5`}>
+                          <div className={`p-3 rounded-card border space-y-1.5 border-primary/15 bg-primary/5`}>
                             <div className="flex justify-between items-center mb-0.5">
                               <span className="text-xs font-bold block">Tarjeta ($)</span>
                               <span className={`text-xs font-bold uppercase text-gray-400`}>Monto Tarjeta</span>
@@ -2202,7 +2202,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
 
                         {/* Transferencia */}
                         {activePayments.transferencia && (
-                          <div className={`p-3 rounded-xl border space-y-1.5 border-primary/15 bg-primary/5`}>
+                          <div className={`p-3 rounded-card border space-y-1.5 border-primary/15 bg-primary/5`}>
                             <div className="flex justify-between items-center mb-0.5">
                               <span className="text-xs font-bold block">Transferencia ($)</span>
                               <span className={`text-xs font-bold uppercase text-gray-400`}>Monto Transferido</span>
@@ -2214,7 +2214,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
 
                         {/* Cruce de Cuentas */}
                         {activePayments.cruce_cuentas && (
-                          <div className={`p-3 rounded-xl border space-y-1.5 border-primary/15 bg-primary/5`}>
+                          <div className={`p-3 rounded-card border space-y-1.5 border-primary/15 bg-primary/5`}>
                             <div className="flex justify-between items-center mb-0.5">
                               <span className="text-xs font-bold block">Cruce Cuentas ($)</span>
                               <span className={`text-xs font-bold uppercase text-gray-400`}>Monto Crédito</span>
@@ -2226,7 +2226,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                       </div>
                     </div>
 
-                    <div className={`p-4 rounded-xl space-y-1 text-sm font-mono border bg-primary/5 border-primary/15 text-black`}>
+                    <div className={`p-4 rounded-card space-y-1 text-sm font-mono border bg-primary/5 border-primary/15 text-black`}>
                       <div className="flex justify-between">
                         <span>Total Pagado:</span>
                         <span className={`font-bold text-black`}>${paidTotal.toFixed(2)}</span>
@@ -2257,7 +2257,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                             <select 
                               value={selectedClientId} 
                               onChange={e => setSelectedClientId(e.target.value)} 
-                              className={`w-full text-xs md:text-sm font-semibold px-3 py-2.5 outline-none rounded-xl border ${
+                              className={`w-full text-xs md:text-sm font-semibold px-3 py-2.5 outline-none rounded-card border ${
                                 'border-primary/20 bg-white text-black'}`}
                             >
                               <option value="" className={'text-black bg-white'}>Consumidor Final (9999999999999)</option>
@@ -2284,7 +2284,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                       <div className={`p-4 rounded-card border space-y-3 bg-primary/5 border-primary/15`}>
                         <h4 className={`text-xs md:text-sm font-bold uppercase tracking-wider text-black`}>Tipo de Documento a Emitir</h4>
                         {sriConfig?.rucActivo === false && (
-                          <div className="p-3 bg-amber-500/10 border border-amber-500/25 text-amber-500 rounded-xl flex items-center gap-2 text-xs font-semibold">
+                          <div className="p-3 bg-amber-500/10 border border-amber-500/25 text-amber-500 rounded-card flex items-center gap-2 text-xs font-semibold">
                             <ShieldAlert size={16} className="shrink-0" />
                             <span>Facturación electrónica deshabilitada (RUC inactivo). Solo se permiten Recibos.</span>
                           </div>
@@ -2298,7 +2298,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                             }
                             setPosDocType(e.target.value);
                           }} 
-                          className={`w-full text-xs md:text-sm font-semibold px-3 py-2.5 outline-none rounded-xl border ${
+                          className={`w-full text-xs md:text-sm font-semibold px-3 py-2.5 outline-none rounded-card border ${
                             'border-primary/20 bg-white text-black'}`}
                         >
                           <option value="factura" disabled={sriConfig?.rucActivo === false} className={'text-black bg-white'}>
@@ -2380,7 +2380,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           {/* Efectivo */}
                           {activePayments.efectivo && (
-                            <div className={`p-4 rounded-xl border space-y-2 border-primary/15 bg-primary/5`}>
+                            <div className={`p-4 rounded-card border space-y-2 border-primary/15 bg-primary/5`}>
                               <div className="flex justify-between items-center mb-1">
                                 <div className="flex items-center gap-2">
                                   <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center"><DollarSign size={12} /></div>
@@ -2388,7 +2388,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                                 </div>
                                 <span className={`text-xs font-bold uppercase text-gray-400`}>Monto Recibido</span>
                               </div>
-                              <input type="number" step="0.01" value={payments.efectivo || ''} onChange={e => setPayments({...payments, efectivo: e.target.value})} className={'glass-input-light px-3.5 py-3 w-full text-base font-bold rounded-xl outline-none border'} placeholder="0.00" />
+                              <input type="number" step="0.01" value={payments.efectivo || ''} onChange={e => setPayments({...payments, efectivo: e.target.value})} className={'glass-input-light px-3.5 py-3 w-full text-base font-bold rounded-card outline-none border'} placeholder="0.00" />
                               <div className="flex flex-wrap gap-1.5 mt-2">
                                 {[5, 10, 20, 50, 100].map(val => (
                                   <button
@@ -2421,7 +2421,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                           
                           {/* Tarjeta */}
                           {activePayments.tarjeta && (
-                            <div className={`p-4 rounded-xl border space-y-2 border-primary/15 bg-primary/5`}>
+                            <div className={`p-4 rounded-card border space-y-2 border-primary/15 bg-primary/5`}>
                               <div className="flex justify-between items-center mb-1">
                                 <div className="flex items-center gap-2">
                                   <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center"><CreditCard size={12} /></div>
@@ -2429,14 +2429,14 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                                 </div>
                                 <span className={`text-xs font-bold uppercase text-gray-400`}>Monto Tarjeta</span>
                               </div>
-                              <input type="number" step="0.01" value={payments.tarjeta || ''} onChange={e => setPayments({...payments, tarjeta: e.target.value})} className={'glass-input-light px-3 py-2.5 w-full text-sm font-bold rounded-xl outline-none border'} placeholder="0.00" />
-                              <input type="text" value={payments.tarjetaRef} onChange={e => setPayments({...payments, tarjetaRef: e.target.value})} className={`glass-input-light px-3 py-2 w-full text-sm mt-1.5 rounded-xl border`} placeholder="Ref / Autorización" />
+                              <input type="number" step="0.01" value={payments.tarjeta || ''} onChange={e => setPayments({...payments, tarjeta: e.target.value})} className={'glass-input-light px-3 py-2.5 w-full text-sm font-bold rounded-card outline-none border'} placeholder="0.00" />
+                              <input type="text" value={payments.tarjetaRef} onChange={e => setPayments({...payments, tarjetaRef: e.target.value})} className={`glass-input-light px-3 py-2 w-full text-sm mt-1.5 rounded-card border`} placeholder="Ref / Autorización" />
                             </div>
                           )}
 
                           {/* Transferencia */}
                           {activePayments.transferencia && (
-                            <div className={`p-4 rounded-xl border space-y-2 border-primary/15 bg-primary/5`}>
+                            <div className={`p-4 rounded-card border space-y-2 border-primary/15 bg-primary/5`}>
                               <div className="flex justify-between items-center mb-1">
                                 <div className="flex items-center gap-2">
                                   <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center"><RefreshCw size={12} /></div>
@@ -2444,14 +2444,14 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                                 </div>
                                 <span className={`text-xs font-bold uppercase text-gray-400`}>Monto Transferido</span>
                               </div>
-                              <input type="number" step="0.01" value={payments.transferencia || ''} onChange={e => setPayments({...payments, transferencia: e.target.value})} className={'glass-input-light px-3 py-2.5 w-full text-sm font-bold rounded-xl outline-none border'} placeholder="0.00" />
-                              <input type="text" value={payments.transferenciaRef} onChange={e => setPayments({...payments, transferenciaRef: e.target.value})} className={`glass-input-light px-3 py-2 w-full text-xs mt-1.5 rounded-xl border`} placeholder="Nro Referencia / Comprobante" />
+                              <input type="number" step="0.01" value={payments.transferencia || ''} onChange={e => setPayments({...payments, transferencia: e.target.value})} className={'glass-input-light px-3 py-2.5 w-full text-sm font-bold rounded-card outline-none border'} placeholder="0.00" />
+                              <input type="text" value={payments.transferenciaRef} onChange={e => setPayments({...payments, transferenciaRef: e.target.value})} className={`glass-input-light px-3 py-2 w-full text-xs mt-1.5 rounded-card border`} placeholder="Nro Referencia / Comprobante" />
                             </div>
                           )}
 
                           {/* Cruce de Cuentas */}
                           {activePayments.cruce_cuentas && (
-                            <div className={`p-4 rounded-xl border space-y-2 border-primary/15 bg-primary/5`}>
+                            <div className={`p-4 rounded-card border space-y-2 border-primary/15 bg-primary/5`}>
                               <div className="flex justify-between items-center mb-1">
                                 <div className="flex items-center gap-2">
                                   <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center"><User size={12} /></div>
@@ -2459,14 +2459,14 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                                 </div>
                                 <span className={`text-xs font-bold uppercase text-gray-400`}>Monto Crédito</span>
                               </div>
-                              <input type="number" step="0.01" value={payments.cruce_cuentas || ''} onChange={e => setPayments({...payments, cruce_cuentas: e.target.value})} className={'glass-input-light px-3 py-2.5 w-full text-sm font-bold rounded-xl outline-none border'} placeholder="0.00" />
-                              <input type="text" value={payments.cruceRef} onChange={e => setPayments({...payments, cruceRef: e.target.value})} className={`glass-input-light px-3 py-2 w-full text-xs mt-1.5 rounded-xl border`} placeholder="Nro de Documento Relacionado" />
+                              <input type="number" step="0.01" value={payments.cruce_cuentas || ''} onChange={e => setPayments({...payments, cruce_cuentas: e.target.value})} className={'glass-input-light px-3 py-2.5 w-full text-sm font-bold rounded-card outline-none border'} placeholder="0.00" />
+                              <input type="text" value={payments.cruceRef} onChange={e => setPayments({...payments, cruceRef: e.target.value})} className={`glass-input-light px-3 py-2 w-full text-xs mt-1.5 rounded-card border`} placeholder="Nro de Documento Relacionado" />
                             </div>
                           )}
                         </div>
                       </div>
 
-                      <div className={`p-4 rounded-xl space-y-2.5 text-xs md:text-sm font-mono border bg-primary/5 border-primary/15 text-black`}>
+                      <div className={`p-4 rounded-card space-y-2.5 text-xs md:text-sm font-mono border bg-primary/5 border-primary/15 text-black`}>
                         <div className="flex justify-between">
                           <span>Total Pagado:</span>
                           <span className={`font-bold text-black`}>${paidTotal.toFixed(2)}</span>
@@ -2617,7 +2617,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                   <select 
                     value={quickAddFormData.tipoIdentificacion} 
                     onChange={e => setQuickAddFormData({...quickAddFormData, tipoIdentificacion: e.target.value})} 
-                    className={`w-full text-sm px-3 py-2.5 rounded-xl outline-none border ${
+                    className={`w-full text-sm px-3 py-2.5 rounded-card outline-none border ${
                       'bg-white border-primary/15 text-black'}`}
                   >
                     <option value="ruc" className="text-black bg-white">RUC</option>
@@ -2633,7 +2633,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                       required 
                       value={quickAddFormData.ruc} 
                       onChange={e => setQuickAddFormData({...quickAddFormData, ruc: e.target.value})} 
-                      className={`w-full text-sm px-3 py-2.5 rounded-xl outline-none border ${
+                      className={`w-full text-sm px-3 py-2.5 rounded-card outline-none border ${
                         'bg-white border-primary/15 text-black focus:border-primary'}`}
                       placeholder="1790000000001" 
                     />
@@ -2656,7 +2656,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                   required 
                   value={quickAddFormData.name} 
                   onChange={e => setQuickAddFormData({...quickAddFormData, name: e.target.value})} 
-                  className={`w-full text-xs px-2.5 py-2.5 rounded-xl outline-none border ${
+                  className={`w-full text-xs px-2.5 py-2.5 rounded-card outline-none border ${
                     'bg-white border-primary/15 text-black focus:border-primary'}`} 
                 />
               </div>
@@ -2667,7 +2667,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                   type="text" 
                   value={quickAddFormData.telefono || ''} 
                   onChange={e => setQuickAddFormData({...quickAddFormData, telefono: e.target.value})} 
-                  className={`w-full text-xs px-2.5 py-2.5 rounded-xl outline-none border ${
+                  className={`w-full text-xs px-2.5 py-2.5 rounded-card outline-none border ${
                     'bg-white border-primary/15 text-black focus:border-primary'}`} 
                 />
               </div>
@@ -2679,7 +2679,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                     type="text" 
                     value={quickAddFormData.direccion || ''} 
                     onChange={e => setQuickAddFormData({...quickAddFormData, direccion: e.target.value})} 
-                    className={`w-full text-xs px-2.5 py-2.5 rounded-xl outline-none border ${
+                    className={`w-full text-xs px-2.5 py-2.5 rounded-card outline-none border ${
                       'bg-white border-primary/15 text-black focus:border-primary'}`} 
                   />
                 </div>
@@ -2689,7 +2689,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                     type="text" 
                     value={quickAddFormData.ciudad || ''} 
                     onChange={e => setQuickAddFormData({...quickAddFormData, ciudad: e.target.value})} 
-                    className={`w-full text-xs px-2.5 py-2.5 rounded-xl outline-none border ${
+                    className={`w-full text-xs px-2.5 py-2.5 rounded-card outline-none border ${
                       'bg-white border-primary/15 text-black focus:border-primary'}`} 
                     placeholder="Ej. Quito"
                   />
@@ -2702,7 +2702,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                   type="email" 
                   value={quickAddFormData.email || ''} 
                   onChange={e => setQuickAddFormData({...quickAddFormData, email: e.target.value})} 
-                  className={`w-full text-xs px-2.5 py-2.5 rounded-xl outline-none border ${
+                  className={`w-full text-xs px-2.5 py-2.5 rounded-card outline-none border ${
                     'bg-white border-primary/15 text-black focus:border-primary'}`} 
                 />
               </div>
@@ -2740,7 +2740,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                   { key: 'Ctrl + Enter', desc: 'Cobrar directamente desde el detalle de la venta' },
                   { key: 'Escape', desc: 'Cerrar cualquier ventana flotante o modal abierto' }
                 ].map((item, idx) => (
-                  <div key={idx} className={`flex items-center justify-between p-2.5 rounded-xl border bg-primary/5 border-primary/15 text-black font-semibold`}>
+                  <div key={idx} className={`flex items-center justify-between p-2.5 rounded-card border bg-primary/5 border-primary/15 text-black font-semibold`}>
                     <span className="text-xs font-medium">{item.desc}</span>
                     <kbd className={`px-2 py-1 rounded text-xs font-mono font-bold shadow bg-white text-black border border-primary/25`}>
                       {item.key}
@@ -2765,7 +2765,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
 
       {/* DRAWER DESLIZABLE: HISTORIAL DE VENTAS DE LA SESIÓN */}
       {isHistoryOpen && (
-        <div className="fixed inset-0 z-[140] flex justify-end bg-black/75 backdrop-blur-xs animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[140] flex justify-end bg-black/75 animate-in fade-in duration-200">
           <div className="absolute inset-0" onClick={() => setIsHistoryOpen(false)}></div>
           
           <div className={`relative w-full max-w-md h-full flex flex-col animate-in slide-in-from-right duration-350 ${
@@ -2836,7 +2836,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                         </div>
                       </div>
 
-                      <div className={`p-2 rounded-xl text-xs leading-relaxed font-mono bg-primary-light text-gray-700`}>
+                      <div className={`p-2 rounded-card text-xs leading-relaxed font-mono bg-primary-light text-gray-700`}>
                         <div className="flex justify-between">
                           <span>Pago: <span className="font-bold uppercase">{tx.paymentMethod}</span></span>
                           <span>Base: ${Number(tx.baseImponible || 0).toFixed(2)}</span>

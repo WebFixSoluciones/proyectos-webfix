@@ -68,7 +68,7 @@ export default function FinanceDashboard({ transactions, thirdParties, db, appId
       
       {/* SECCION ALERTA FIRMA ELECTRONICA */}
       {certStatus !== 'ok' && (
-        <div className={`p-4 rounded-xl border flex items-center justify-between gap-4 ${
+        <div className={`p-4 rounded-card border flex items-center justify-between gap-4 ${
           certStatus === 'expired'
             ? 'bg-red-500/10 border-red-500/20 text-red-400'
             : certStatus === 'warning'
@@ -201,7 +201,7 @@ export default function FinanceDashboard({ transactions, thirdParties, db, appId
               {pendingPayments.map(tx => {
                 const thirdParty = thirdParties.find(tp => tp.id === tx.thirdPartyId);
                 return (
-                  <div key={tx.id} className="p-3 rounded-xl border flex justify-between items-center bg-surface-card border-primary/15/60">
+                  <div key={tx.id} className="p-3 rounded-card border flex justify-between items-center bg-surface-card border-primary/15/60">
                     <div className="truncate pr-2">
                       <p className="text-xs font-bold truncate text-black">{thirdParty?.name || 'Desconocido'}</p>
                       <p className="text-xs mt-0.5 text-black">{tx.documentNumber || 'Factura S/N'} - {tx.date}</p>

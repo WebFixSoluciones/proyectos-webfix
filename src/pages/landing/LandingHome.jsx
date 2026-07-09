@@ -105,21 +105,21 @@ export default function LandingHome() {
               </span>
             </div>
             <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100/80">
+              <div className="flex items-center justify-between p-3 rounded-card bg-slate-50 border border-slate-100/80">
                 <div>
                   <p className="text-xs font-black text-slate-800">FAC-001-002-000008452</p>
                   <p className="text-xs font-medium text-slate-500">Juan Pérez • $120.00</p>
                 </div>
                 <span className="text-xs font-bold px-2 py-1 bg-emerald-500 text-white rounded-lg">Autorizado</span>
               </div>
-              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100/80">
+              <div className="flex items-center justify-between p-3 rounded-card bg-slate-50 border border-slate-100/80">
                 <div>
                   <p className="text-xs font-black text-slate-800">FAC-001-002-000008451</p>
                   <p className="text-xs font-medium text-slate-500">María Cárdenas • $45.50</p>
                 </div>
                 <span className="text-xs font-bold px-2 py-1 bg-emerald-500 text-white rounded-lg">Autorizado</span>
               </div>
-              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100/80">
+              <div className="flex items-center justify-between p-3 rounded-card bg-slate-50 border border-slate-100/80">
                 <div>
                   <p className="text-xs font-black text-slate-800">RET-001-001-000001201</p>
                   <p className="text-xs font-medium text-slate-500">Proveedor S.A. • Retención</p>
@@ -183,16 +183,16 @@ export default function LandingHome() {
               <span className="text-xs font-bold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded">Utilidad Positiva</span>
             </div>
             <div className="grid grid-cols-2 gap-3 mb-4">
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 text-left">
+              <div className="p-3 rounded-card bg-slate-50 border border-slate-100 text-left">
                 <span className="block text-xs font-bold text-slate-400 uppercase">Ingresos</span>
                 <span className="text-sm font-black text-emerald-600">+$2,450.00</span>
               </div>
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 text-left">
+              <div className="p-3 rounded-card bg-slate-50 border border-slate-100 text-left">
                 <span className="block text-xs font-bold text-slate-400 uppercase">Egresos</span>
                 <span className="text-sm font-black text-rose-500">-$1,120.00</span>
               </div>
             </div>
-            <div className="p-3 rounded-xl bg-primary/5 border border-primary/10 flex justify-between items-center">
+            <div className="p-3 rounded-card bg-primary/5 border border-primary/10 flex justify-between items-center">
               <div>
                 <span className="block text-xs font-bold text-primary uppercase">Saldo Real Neto</span>
                 <h4 className="text-base font-black text-primary">$1,330.00</h4>
@@ -232,7 +232,7 @@ export default function LandingHome() {
                 <span>$325.00</span>
               </div>
             </div>
-            <button className="w-full py-3 bg-primary text-white text-xs font-bold rounded-xl uppercase tracking-wider transition-colors hover:bg-primary/95 flex items-center justify-center gap-1.5 border-none cursor-pointer">
+            <button className="w-full py-3 bg-primary text-white text-xs font-bold rounded-card uppercase tracking-wider transition-colors hover:bg-primary/95 flex items-center justify-center gap-1.5 border-none cursor-pointer">
               <DollarSign size={14} /> Registrar Venta y SRI
             </button>
           </div>
@@ -290,7 +290,7 @@ export default function LandingHome() {
             <img 
               src={heroBilling} 
               alt="WebFix Dashboard Mockup" 
-              className="w-full h-auto object-cover rounded-xl animate-in fade-in zoom-in duration-500"
+              className="w-full h-auto object-cover rounded-card animate-in fade-in zoom-in duration-500"
             />
             {/* Pulsing floating card */}
             <div className="landing-card absolute bottom-6 left-6 bg-white/95 border border-slate-200 p-4 max-w-[200px] flex items-start gap-3 select-none hover:-translate-y-1 transition-transform">
@@ -371,7 +371,7 @@ export default function LandingHome() {
               </div>
 
               {/* Dynamic Description Box beneath simulation for better UX */}
-              <div className="absolute bottom-4 left-6 right-6 hidden md:block text-left bg-white/60 px-4 py-2.5 rounded-xl border border-slate-100 text-xs font-semibold text-slate-500">
+              <div className="absolute bottom-4 left-6 right-6 hidden md:block text-left bg-white/60 px-4 py-2.5 rounded-card border border-slate-100 text-xs font-semibold text-slate-500">
                 <span className="font-extrabold text-slate-800 uppercase block mb-0.5">Enfoque Emprendedor:</span>
                 {tabsList.find(t => t.id === activeTab)?.desc}
               </div>

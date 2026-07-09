@@ -118,7 +118,7 @@ export default function FinanceSettings({  showToast, db, storage, appId }) {
     }
   };
 
-  const inputClass = `w-full text-xs px-3 py-2.5 rounded-xl outline-none transition-all border ${
+  const inputClass = `w-full text-xs px-3 py-2.5 rounded-card outline-none transition-all border ${
     'bg-white border-gray-200 text-gray-900 focus:border-primary/50'
   }`;
 
@@ -149,14 +149,14 @@ export default function FinanceSettings({  showToast, db, storage, appId }) {
                   <button 
                     type="button" 
                     onClick={() => setSriConfig({...sriConfig, ambiente: '1'})} 
-                    className={`py-2.5 text-xs font-bold rounded-xl border transition-all ${sriConfig.ambiente === '1' ? 'bg-primary text-white border-primary' : ('bg-gray-100 text-gray-600 border-gray-200')}`}
+                    className={`py-2.5 text-xs font-bold rounded-card border transition-all ${sriConfig.ambiente === '1' ? 'bg-primary text-white border-primary' : ('bg-gray-100 text-gray-600 border-gray-200')}`}
                   >
                     PRUEBAS
                   </button>
                   <button 
                     type="button" 
                     onClick={() => setSriConfig({...sriConfig, ambiente: '2'})} 
-                    className={`py-2.5 text-xs font-bold rounded-xl border transition-all ${sriConfig.ambiente === '2' ? 'bg-emerald-600 text-white border-emerald-600' : ('bg-gray-100 text-gray-600 border-gray-200')}`}
+                    className={`py-2.5 text-xs font-bold rounded-card border transition-all ${sriConfig.ambiente === '2' ? 'bg-emerald-600 text-white border-emerald-600' : ('bg-gray-100 text-gray-600 border-gray-200')}`}
                   >
                     PRODUCCIÓN
                   </button>
@@ -165,7 +165,7 @@ export default function FinanceSettings({  showToast, db, storage, appId }) {
 
               <div>
                 <label className="label-field label-field-dark">Google Gemini API Key</label>
-                <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border mt-1 bg-white border-gray-200`}>
+                <div className={`flex items-center gap-2 px-3 py-2 rounded-card border mt-1 bg-white border-gray-200`}>
                   <Key size={14} className="text-gray-500" />
                   <input 
                     type={showKey ? "text" : "password"} 
@@ -235,7 +235,7 @@ export default function FinanceSettings({  showToast, db, storage, appId }) {
                 </li>
               </ol>
 
-              <div className={`p-3.5 rounded-xl border text-xs ${
+              <div className={`p-3.5 rounded-card border text-xs ${
                 sriConfig.ambiente === '2'
                   ? ('bg-emerald-50 border-emerald-250 text-emerald-800')
                   : ('bg-amber-50 border-amber-250 text-amber-800')

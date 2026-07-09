@@ -71,7 +71,7 @@ export default function FinanceChat({ transactions, thirdParties, onClose }) {
       <div ref={chatContainerRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3 custom-scrollbar text-xs">
         {messages.map((msg, i) => (
           <div key={i} className={`flex gap-2 max-w-[85%] ${msg.role === 'user' ? 'ml-auto flex-row-reverse' : ''}`}>
-            <div className={`p-2 rounded-xl shrink-0 flex items-center justify-center h-7 w-7 ${msg.role === 'user' ? 'bg-primary text-white' : 'bg-purple-600/20 text-purple-400'}`}>
+            <div className={`p-2 rounded-card shrink-0 flex items-center justify-center h-7 w-7 ${msg.role === 'user' ? 'bg-primary text-white' : 'bg-purple-600/20 text-purple-400'}`}>
               {msg.role === 'user' ? <User size={12} /> : <Bot size={12} />}
             </div>
             <div className={`p-3 rounded-card leading-relaxed whitespace-pre-line ${msg.role === 'user' ? 'bg-primary text-white rounded-tr-none' : 'bg-gray-100 text-gray-800 rounded-tl-none'}`}>
@@ -82,7 +82,7 @@ export default function FinanceChat({ transactions, thirdParties, onClose }) {
 
         {isLoading && (
           <div className="flex gap-2 max-w-[80%]">
-            <div className="p-2 rounded-xl bg-purple-600/20 text-purple-400 shrink-0 flex items-center justify-center h-7 w-7">
+            <div className="p-2 rounded-card bg-purple-600/20 text-purple-400 shrink-0 flex items-center justify-center h-7 w-7">
               <Bot size={12} />
             </div>
             <div className="p-3 rounded-card rounded-tl-none flex items-center gap-1.5 bg-gray-100 text-gray-500">
@@ -94,7 +94,7 @@ export default function FinanceChat({ transactions, thirdParties, onClose }) {
         )}
 
         {error && (
-          <div className="p-3 rounded-xl border flex gap-2 text-xs items-start bg-red-50 border-red-200 text-red-700">
+          <div className="p-3 rounded-card border flex gap-2 text-xs items-start bg-red-50 border-red-200 text-red-700">
             <AlertCircle size={14} className="shrink-0 mt-0.5" />
             <div>
               <p className="font-semibold">Error al chatear</p>
@@ -111,7 +111,7 @@ export default function FinanceChat({ transactions, thirdParties, onClose }) {
           value={input} 
           onChange={e => setInput(e.target.value)} 
           placeholder="Pregúntame algo sobre tus finanzas..."
-          className="flex-1 text-xs px-3 py-2 rounded-xl border outline-none transition-all bg-gray-50 border-gray-200 text-gray-900 focus:border-primary/50"
+          className="flex-1 text-xs px-3 py-2 rounded-card border outline-none transition-all bg-gray-50 border-gray-200 text-gray-900 focus:border-primary/50"
         />
         <button 
           type="submit" 

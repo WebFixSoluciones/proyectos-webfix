@@ -125,7 +125,7 @@ export default function SalesDashboard({ transactions, thirdParties, products, d
             : ('bg-orange-50 border-orange-300 text-orange-950')
         }`}>
           <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-xl shrink-0 ${
+            <div className={`p-2 rounded-card shrink-0 ${
               activeSession 
                 ? ('bg-emerald-200 text-emerald-800')
                 : ('bg-orange-200 text-orange-800')

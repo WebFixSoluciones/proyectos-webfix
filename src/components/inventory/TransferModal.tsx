@@ -131,7 +131,7 @@ export default function TransferModal({ onClose, onSuccess }: TransferModalProps
     }
   };
 
-  const inputClass = `w-full px-3 py-2.5 rounded-xl outline-none transition-all border text-sm bg-white border-gray-200 text-gray-800 focus:border-purple-500`;
+  const inputClass = `w-full px-3 py-2.5 rounded-card outline-none transition-all border text-sm bg-white border-gray-200 text-gray-800 focus:border-purple-500`;
 
   const labelClass = `block text-xs font-semibold mb-1.5 uppercase tracking-wider text-gray-500`;
 
@@ -157,7 +157,7 @@ export default function TransferModal({ onClose, onSuccess }: TransferModalProps
           </div>
           <button 
             onClick={onClose}
-            className={`p-1.5 rounded-xl transition-all hover:scale-105 bg-gray-100 text-gray-500 hover:text-gray-900`}
+            className={`p-1.5 rounded-card transition-all hover:scale-105 bg-gray-100 text-gray-500 hover:text-gray-900`}
           >
             <X size={18} />
           </button>
@@ -166,7 +166,7 @@ export default function TransferModal({ onClose, onSuccess }: TransferModalProps
         {/* Content */}
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
           {error && (
-            <div className={`p-4 rounded-xl border text-sm font-medium bg-red-50 border-red-200 text-red-600`}>
+            <div className={`p-4 rounded-card border text-sm font-medium bg-red-50 border-red-200 text-red-600`}>
               {error}
             </div>
           )}
@@ -224,7 +224,7 @@ export default function TransferModal({ onClose, onSuccess }: TransferModalProps
                 step="0.01"
                 value={transferCost}
                 onChange={(e) => setTransferCost(parseFloat(e.target.value) || 0)}
-                className="w-1/3 px-3 py-2 rounded-xl outline-none border text-sm bg-black/5 dark:bg-black/20"
+                className="w-1/3 px-3 py-2 rounded-card outline-none border text-sm bg-black/5 dark:bg-black/20"
                 placeholder="0.00"
               />
               <p className="text-xs text-gray-500 mt-1">Este costo se prorrateará entre los costos unitarios de entrada de los ítems en destino.</p>
@@ -266,7 +266,7 @@ export default function TransferModal({ onClose, onSuccess }: TransferModalProps
                   <button
                     type="button"
                     onClick={handleAddItem}
-                    className="px-4 rounded-xl bg-purple-600 text-white font-bold hover:bg-purple-500 transition-all flex items-center gap-1.5 shrink-0 text-sm"
+                    className="px-4 rounded-card bg-purple-600 text-white font-bold hover:bg-purple-500 transition-all flex items-center gap-1.5 shrink-0 text-sm"
                   >
                     <Plus size={16} /> Añadir
                   </button>
@@ -331,14 +331,14 @@ export default function TransferModal({ onClose, onSuccess }: TransferModalProps
               type="button"
               onClick={onClose}
               disabled={loading}
-              className={`px-6 py-2.5 rounded-xl font-bold transition-all text-sm bg-gray-100 hover:bg-gray-200 text-gray-700`}
+              className={`px-6 py-2.5 rounded-card font-bold transition-all text-sm bg-gray-100 hover:bg-gray-200 text-gray-700`}
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-8 py-2.5 rounded-xl font-bold transition-all text-sm bg-purple-600 hover:bg-purple-500 text-white flex items-center gap-2 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+              className="px-8 py-2.5 rounded-card font-bold transition-all text-sm bg-purple-600 hover:bg-purple-500 text-white flex items-center gap-2 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
             >
               {loading ? "Procesando..." : "Completar Transferencia"}
             </button>

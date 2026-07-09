@@ -229,7 +229,7 @@ export default function QuotesView({ products, thirdParties,  showToast, db, app
     return matchesSearch && matchesStatus;
   });
 
-  const inputClass = `w-full text-xs px-3 py-2.5 rounded-xl outline-none transition-all border ${
+  const inputClass = `w-full text-xs px-3 py-2.5 rounded-card outline-none transition-all border ${
     'bg-white border-gray-300 text-gray-900 focus:border-primary focus:ring-1 focus:ring-primary/35'}`;
 
   return (
@@ -269,7 +269,7 @@ export default function QuotesView({ products, thirdParties,  showToast, db, app
         </div>
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
-          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border-none w-full sm:w-64 transition-all focus-within:ring-1 focus-within:ring-primary/25 bg-surface-bg hover:bg-surface-card focus-within:bg-surface-card">
+          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-card border-none w-full sm:w-64 transition-all focus-within:ring-1 focus-within:ring-primary/25 bg-surface-bg hover:bg-surface-card focus-within:bg-surface-card">
             <Search size={14} className={'text-gray-400'} />
             <input 
               type="text" 
@@ -284,7 +284,7 @@ export default function QuotesView({ products, thirdParties,  showToast, db, app
           <select 
             value={filterStatus} 
             onChange={e => setFilterStatus(e.target.value)} 
-            className="px-3 py-1.5 rounded-xl border-none text-xs font-medium outline-none transition-all cursor-pointer bg-surface-bg hover:bg-surface-card text-slate-700 focus:ring-1 focus:ring-primary/25"
+            className="px-3 py-1.5 rounded-card border-none text-xs font-medium outline-none transition-all cursor-pointer bg-surface-bg hover:bg-surface-card text-slate-700 focus:ring-1 focus:ring-primary/25"
           >
             <option value="all" className="text-black">Todos los estados</option>
             <option value="borrador" className="text-black">Borrador</option>
@@ -423,7 +423,7 @@ export default function QuotesView({ products, thirdParties,  showToast, db, app
 
                 <div className="space-y-2">
                   {formData.items.map((item, index) => (
-                    <div key={index} className="flex flex-col sm:flex-row items-center gap-2 bg-black/10 p-3 rounded-xl border border-white/5">
+                    <div key={index} className="flex flex-col sm:flex-row items-center gap-2 bg-black/10 p-3 rounded-card border border-white/5">
                       <div className="flex-1 w-full">
                         <select 
                           required 
@@ -478,7 +478,7 @@ export default function QuotesView({ products, thirdParties,  showToast, db, app
               </div>
 
               {/* TOTALES */}
-              <div className={`p-4 rounded-xl flex justify-between items-center bg-primary-light text-primary border border-primary/40`}>
+              <div className={`p-4 rounded-card flex justify-between items-center bg-primary-light text-primary border border-primary/40`}>
                 <div className="text-xs leading-relaxed">
                   <p>Subtotal Neto: ${formData.subtotal}</p>
                   <p>IVA Estimado: ${formData.ivaValor}</p>

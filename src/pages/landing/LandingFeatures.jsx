@@ -82,21 +82,21 @@ export default function LandingFeatures() {
             <span className="text-xs font-black bg-emerald-500/10 text-emerald-600 px-2 py-0.5 rounded border border-emerald-500/20">SRI Conectado</span>
           </div>
           <div className="space-y-3">
-            <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-100">
+            <div className="flex items-center justify-between p-2 rounded-card bg-slate-50 border border-slate-100">
               <div>
                 <p className="text-xs font-bold text-black">FAC-001-002-000004521</p>
                 <p className="text-xs text-gray-500">Juan Pérez • $434.00</p>
               </div>
               <span className="text-xs font-bold px-2 py-1 bg-green-500 text-white rounded-lg">Autorizado</span>
             </div>
-            <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-100">
+            <div className="flex items-center justify-between p-2 rounded-card bg-slate-50 border border-slate-100">
               <div>
                 <p className="text-xs font-bold text-black">FAC-001-002-000004520</p>
                 <p className="text-xs text-gray-500">María López • $120.50</p>
               </div>
               <span className="text-xs font-bold px-2 py-1 bg-green-500 text-white rounded-lg">Autorizado</span>
             </div>
-            <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-100">
+            <div className="flex items-center justify-between p-2 rounded-card bg-slate-50 border border-slate-100">
               <div>
                 <p className="text-xs font-bold text-black">RET-001-001-000001092</p>
                 <p className="text-xs text-gray-500">Proveedor S.A. • Retención</p>
@@ -226,7 +226,7 @@ export default function LandingFeatures() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 border transition-all cursor-pointer ${
+              className={`px-4 py-2.5 rounded-card text-xs font-bold flex items-center gap-2 border transition-all cursor-pointer ${
                 isActive 
                   ? 'bg-primary border-primary text-white' 
                   : 'bg-white border-border-default text-black hover:bg-slate-50'
@@ -261,7 +261,7 @@ export default function LandingFeatures() {
           
           <button 
             onClick={() => navigate(`/register?plan=professional`)} 
-            className="w-fit px-6 py-3 bg-primary hover:bg-surface-card text-white text-xs font-bold rounded-xl uppercase tracking-wider transition-all flex items-center gap-2 border-none cursor-pointer"
+            className="w-fit px-6 py-3 bg-primary hover:bg-surface-card text-white text-xs font-bold rounded-card uppercase tracking-wider transition-all flex items-center gap-2 border-none cursor-pointer"
           >
             Habilitar Módulo <ArrowRight size={14} />
           </button>

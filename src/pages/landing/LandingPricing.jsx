@@ -86,7 +86,7 @@ export default function LandingPricing() {
         <p className="text-sm text-gray-650 max-w-md mx-auto mb-8 font-medium">Todos nuestros planes incluyen facturación del SRI ilimitada. La diferencia radica en la potencia y alcance de tus herramientas.</p>
         
         {/* Toggle Billing Period */}
-        <div className="inline-flex items-center gap-1.5 p-1 rounded-xl bg-white border border-border-default select-none">
+        <div className="inline-flex items-center gap-1.5 p-1 rounded-card bg-white border border-border-default select-none">
           <button 
             onClick={() => setBillingPeriod('monthly')}
             className={`px-4 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer border-none ${billingPeriod === 'monthly' ? 'bg-primary text-white' : 'text-gray-500 hover:text-gray-700 bg-transparent'}`}
@@ -138,7 +138,7 @@ export default function LandingPricing() {
 
             <button 
               onClick={() => navigate(`/register?plan=${plan.id}&period=${billingPeriod}`)}
-              className={`w-full py-4 text-xs font-bold tracking-wider uppercase rounded-xl transition-all cursor-pointer border-none ${
+              className={`w-full py-4 text-xs font-bold tracking-wider uppercase rounded-card transition-all cursor-pointer border-none ${
                 plan.recommended 
                   ? 'bg-primary hover:bg-surface-card text-white' 
                   : 'bg-slate-100 hover:bg-slate-200 text-slate-700'

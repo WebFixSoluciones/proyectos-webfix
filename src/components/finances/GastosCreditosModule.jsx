@@ -219,7 +219,7 @@ export default function GastosCreditosModule({ showToast, transactions = [], thi
     }
   };
 
-  const inputClass = `w-full text-xs px-3 py-2.5 outline-none rounded-xl border transition-all bg-white border-gray-300 text-gray-900 focus:border-primary`;
+  const inputClass = `w-full text-xs px-3 py-2.5 outline-none rounded-card border transition-all bg-white border-gray-300 text-gray-900 focus:border-primary`;
 
   return (
     <div className="flex flex-col h-full w-full animate-in fade-in duration-500 overflow-hidden">
@@ -344,7 +344,7 @@ export default function GastosCreditosModule({ showToast, transactions = [], thi
                       <div key={liab.id} className="p-5 rounded-card border relative flex flex-col justify-between bg-white border-gray-200">
                         <div>
                           <div className="flex justify-between items-start mb-3">
-                            <span className="p-2.5 rounded-xl bg-white/5 border border-white/5">
+                            <span className="p-2.5 rounded-card bg-white/5 border border-white/5">
                               {getIcon(liab.type)}
                             </span>
                             <span className={`text-xs font-black uppercase px-2 py-0.5 rounded-full ${

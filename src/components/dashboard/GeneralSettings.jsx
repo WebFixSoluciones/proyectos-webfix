@@ -1022,7 +1022,7 @@ export default function GeneralSettings({
  }
  };
 
- const inputClass =`w-full text-xs px-3 py-2.5 rounded-xl outline-none transition-all border bg-white border-gray-300 text-gray-900 focus:border-primary focus:ring-1 focus:ring-primary/35 font-medium`;
+ const inputClass =`w-full text-xs px-3 py-2.5 rounded-card outline-none transition-all border bg-white border-gray-300 text-gray-900 focus:border-primary focus:ring-1 focus:ring-primary/35 font-medium`;
 
  const tabs = [
  { id:'profile', label:'Perfil de Empresa', icon: Building },
@@ -1073,7 +1073,7 @@ export default function GeneralSettings({
 
  {/* ALERTA RUC INACTIVO */}
  {!companyProfile.rucActivo && (
- <div className="p-3.5 rounded-xl border border-red-500/20 bg-red-500/5 text-red-500 dark:text-red-400 text-xs flex items-center gap-2 animate-pulse">
+ <div className="p-3.5 rounded-card border border-red-500/20 bg-red-500/5 text-red-500 dark:text-red-400 text-xs flex items-center gap-2 animate-pulse">
  <AlertTriangle size={16} className="shrink-0" />
  <span className="font-bold">Facturación Electrónica Deshabilitada: El RUC de la empresa está suspendido o inactivo. El sistema solo emitirá recibos contables.</span>
  </div>
@@ -1081,7 +1081,7 @@ export default function GeneralSettings({
 
  {/* ALERTA FIRMA INCOMPATIBLE */}
  {companyProfile.certificadoCargado && !isFirmaMatch() && (
- <div className="p-3.5 rounded-xl border border-red-500/20 bg-red-500/5 text-red-500 dark:text-red-400 text-xs flex items-center gap-2">
+ <div className="p-3.5 rounded-card border border-red-500/20 bg-red-500/5 text-red-500 dark:text-red-400 text-xs flex items-center gap-2">
  <AlertTriangle size={16} className="shrink-0" />
  <span className="font-bold">Error de Validación: La firma electrónica activa pertenece al RUC {companyProfile.certificadoRuc} ({getPersonaTipoStr(companyProfile.certificadoRuc)}), el cual no coincide con el RUC de la empresa ({companyProfile.ruc}). Por favor, ingrese una firma que coincida o elimine la firma actual.</span>
  </div>
@@ -1117,7 +1117,7 @@ export default function GeneralSettings({
  type="button"
  onClick={handleSRIExtraction}
  disabled={isExtractingSRI}
- className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all border flex items-center gap-1.5 shrink-0 bg-primary hover:bg-primary text-white`}
+ className={`px-4 py-2.5 rounded-card text-xs font-black transition-all border flex items-center gap-1.5 shrink-0 bg-primary hover:bg-primary text-white`}
  >
  {isExtractingSRI && <RefreshCw size={12} className="animate-spin" />}
  {isExtractingSRI ?'Consultando...' :'Configurar Empresa'}
@@ -1168,7 +1168,7 @@ export default function GeneralSettings({
 
  {/* ESTADO DEL RUC */}
  {companyProfile.ruc && companyProfile.ruc.length === 13 && (
- <div className={`sm:col-span-2 p-3 rounded-xl flex items-center justify-between text-xs border ${
+ <div className={`sm:col-span-2 p-3 rounded-card flex items-center justify-between text-xs border ${
  companyProfile.rucActivo
  ?'bg-emerald-500/5 border-emerald-500/15 text-emerald-600 dark:text-emerald-400'
  :'bg-red-500/5 border-red-500/15 text-red-500 dark:text-red-400'
@@ -1408,7 +1408,7 @@ export default function GeneralSettings({
  </div>
 
  {/* Advertencia / Info detallada */}
- <p className={`text-xs p-2.5 rounded-xl border leading-relaxed ${
+ <p className={`text-xs p-2.5 rounded-card border leading-relaxed ${
  !isFirmaMatch()
  ?'bg-red-500/10 border-red-500/20 text-red-500 dark:text-red-400'
  :'bg-emerald-100/50 border-emerald-200 text-emerald-800'
@@ -1422,7 +1422,7 @@ export default function GeneralSettings({
  <button
  type="button"
  onClick={() => setIsFirmaOpen(true)}
- className="px-3.5 py-1.5 rounded-xl text-xs font-bold border border-purple-500/30 hover:bg-purple-500/10 text-purple-400 transition-colors"
+ className="px-3.5 py-1.5 rounded-card text-xs font-bold border border-purple-500/30 hover:bg-purple-500/10 text-purple-400 transition-colors"
  >
  Actualizar Firma
  </button>
@@ -1437,7 +1437,7 @@ export default function GeneralSettings({
  type="button"
  onClick={() => setIsFirmaOpen(true)}
  disabled={!companyProfile.ruc}
- className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-black transition-all ${
+ className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-card text-xs font-black transition-all ${
  companyProfile.ruc
  ?'bg-purple-600 hover:bg-purple-500 text-white'
  :'bg-gray-500/10 border border-white/5 text-gray-500 cursor-not-allowed'
@@ -1496,7 +1496,7 @@ export default function GeneralSettings({
 
  <div className="space-y-3 max-h-[180px] overflow-y-auto pr-1">
  {companyProfile.sucursales && companyProfile.sucursales.map(branch => (
- <div key={branch.codigo} className={`p-3 rounded-xl border space-y-2 bg-white border-gray-200 opacity-85`}>
+ <div key={branch.codigo} className={`p-3 rounded-card border space-y-2 bg-white border-gray-200 opacity-85`}>
  <div className="flex justify-between items-start">
  <div>
  <p className="text-xs font-black flex items-center gap-1 text-gray-700 dark:text-gray-200">
@@ -1549,7 +1549,7 @@ export default function GeneralSettings({
 
  <div className={`flex flex-wrap gap-2 min-h-[60px] p-3 rounded-card border border-dashed border-gray-300 bg-white align-middle`}>
  {companyProfile.bodegas.map(wh => (
- <div key={wh} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-white text-gray-800 border border-gray-200`}>
+ <div key={wh} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-card text-xs font-bold bg-white text-gray-800 border border-gray-200`}>
  <span>{wh}</span>
  {wh !=='Bodega Central' && (
  <button 
@@ -1576,7 +1576,7 @@ export default function GeneralSettings({
  <button 
  type="button" 
  onClick={handleAddWarehouse}
- className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs shrink-0 transition-transform active:scale-95"
+ className="px-4 py-2.5 rounded-card bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs shrink-0 transition-transform active:scale-95"
  >
  Agregar Bodega
  </button>
@@ -1592,12 +1592,12 @@ export default function GeneralSettings({
  {(!companyProfile.certificadoCargado || isFirmaMatch()) ? (
  <button 
  type="submit" 
- className="flex items-center gap-1.5 px-6 py-2.5 rounded-xl text-xs font-black bg-primary hover:bg-primary-hover text-white transition-transform hover:-translate-y-0.5 active:scale-95 animate-in fade-in duration-200"
+ className="flex items-center gap-1.5 px-6 py-2.5 rounded-card text-xs font-black bg-primary hover:bg-primary-hover text-white transition-transform hover:-translate-y-0.5 active:scale-95 animate-in fade-in duration-200"
  >
  <Save size={14} /> Guardar Empresa
  </button>
  ) : (
- <div className="text-xs text-red-500 font-bold bg-red-500/10 border border-red-500/25 px-4 py-2.5 rounded-xl flex items-center gap-2">
+ <div className="text-xs text-red-500 font-bold bg-red-500/10 border border-red-500/25 px-4 py-2.5 rounded-card flex items-center gap-2">
  <AlertTriangle size={14} className="shrink-0" />
  <span>Firma no coincide con RUC/Razón Social. Corrija para habilitar Guardar Empresa.</span>
  </div>
@@ -1629,7 +1629,7 @@ export default function GeneralSettings({
  <div>
  <label className="label-field label-field-dark">Color Primario del Sistema (Hexadecimal)</label>
  <div className="flex items-center gap-3">
- <div className="relative w-12 h-12 rounded-xl overflow-hidden border border-gray-300 dark:border-white/10 shrink-0">
+ <div className="relative w-12 h-12 rounded-card overflow-hidden border border-gray-300 dark:border-white/10 shrink-0">
  <input 
  type="color" 
  value={primaryColor ||'#4F46E5'} 
@@ -1671,7 +1671,7 @@ export default function GeneralSettings({
  key={preset.hex}
  type="button"
  onClick={() => setPrimaryColor(preset.hex)}
- className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all hover:scale-105"
+ className="flex items-center gap-1.5 px-3 py-1.5 rounded-card border text-xs font-bold transition-all hover:scale-105"
  style={{
  borderColor: primaryColor === preset.hex ? primaryColor :'rgba(0,0,0,0.08)',
  backgroundColor: primaryColor === preset.hex ?'color-mix(in srgb,' + preset.hex +' 10%, transparent)' :'transparent',
@@ -1687,7 +1687,7 @@ export default function GeneralSettings({
  </div>
 
  <div className="flex justify-end pt-4 border-t border-white/5">
- <button type="submit" className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-black bg-primary hover:bg-primary-hover text-white transition-transform hover:-translate-y-0.5">
+ <button type="submit" className="flex items-center gap-1.5 px-5 py-2.5 rounded-card text-xs font-black bg-primary hover:bg-primary-hover text-white transition-transform hover:-translate-y-0.5">
  <Save size={14} /> Guardar Apariencia
  </button>
  </div>
@@ -1707,7 +1707,7 @@ export default function GeneralSettings({
  <div className={`p-4 rounded-card border flex flex-col justify-between bg-gray-50 border-gray-200`}>
  <div className="space-y-2">
  <div className="flex items-center justify-between">
- <span className="p-2 rounded-xl bg-primary/10 text-primary"><LayoutDashboard size={18} /></span>
+ <span className="p-2 rounded-card bg-primary/10 text-primary"><LayoutDashboard size={18} /></span>
  <span className="text-xs px-2 py-0.5 rounded bg-primary/15 text-primary font-bold uppercase">Núcleo</span>
  </div>
  <h4 className="text-xs font-bold font-sans">Proyectos y Tableros</h4>
@@ -1723,7 +1723,7 @@ export default function GeneralSettings({
  <div className={`p-4 rounded-card border flex flex-col justify-between bg-gray-50 border-gray-200`}>
  <div className="space-y-2">
  <div className="flex items-center justify-between">
- <span className="p-2 rounded-xl bg-orange-500/10 text-orange-500"><ShoppingCart size={18} /></span>
+ <span className="p-2 rounded-card bg-orange-500/10 text-orange-500"><ShoppingCart size={18} /></span>
  <button type="button" onClick={() => handleToggleModule('ventas')}>
  {activeModules.ventas ? <ToggleRight size={28} className="text-emerald-500" /> : <ToggleLeft size={28} className="text-gray-500" />}
  </button>
@@ -1743,7 +1743,7 @@ export default function GeneralSettings({
  <div className={`p-4 rounded-card border flex flex-col justify-between bg-gray-50 border-gray-200`}>
  <div className="space-y-2">
  <div className="flex items-center justify-between">
- <span className="p-2 rounded-xl bg-emerald-500/10 text-emerald-500"><DollarSign size={18} /></span>
+ <span className="p-2 rounded-card bg-emerald-500/10 text-emerald-500"><DollarSign size={18} /></span>
  <button type="button" onClick={() => handleToggleModule('finances')}>
  {activeModules.finances ? <ToggleRight size={28} className="text-emerald-500" /> : <ToggleLeft size={28} className="text-gray-500" />}
  </button>
@@ -1763,7 +1763,7 @@ export default function GeneralSettings({
  <div className={`p-4 rounded-card border flex flex-col justify-between bg-gray-50 border-gray-200`}>
  <div className="space-y-2">
  <div className="flex items-center justify-between">
- <span className="p-2 rounded-xl bg-sky-500/10 text-sky-500"><Package size={18} /></span>
+ <span className="p-2 rounded-card bg-sky-500/10 text-sky-500"><Package size={18} /></span>
  <button type="button" onClick={() => handleToggleModule('inventario')}>
  {activeModules.inventario ? <ToggleRight size={28} className="text-emerald-500" /> : <ToggleLeft size={28} className="text-gray-500" />}
  </button>
@@ -1783,7 +1783,7 @@ export default function GeneralSettings({
  <div className={`p-4 rounded-card border flex flex-col justify-between bg-gray-50 border-gray-200`}>
  <div className="space-y-2">
  <div className="flex items-center justify-between">
- <span className="p-2 rounded-xl bg-teal-500/10 text-teal-500"><Users size={18} /></span>
+ <span className="p-2 rounded-card bg-teal-500/10 text-teal-500"><Users size={18} /></span>
  <button type="button" onClick={() => handleToggleModule('personas')}>
  {activeModules.personas ? <ToggleRight size={28} className="text-emerald-500" /> : <ToggleLeft size={28} className="text-gray-500" />}
  </button>
@@ -1803,7 +1803,7 @@ export default function GeneralSettings({
  <div className={`p-4 rounded-card border flex flex-col justify-between bg-gray-50 border-gray-200`}>
  <div className="space-y-2">
  <div className="flex items-center justify-between">
- <span className="p-2 rounded-xl bg-purple-500/10 text-purple-500"><Calendar size={18} /></span>
+ <span className="p-2 rounded-card bg-purple-500/10 text-purple-500"><Calendar size={18} /></span>
  <button type="button" onClick={() => handleToggleModule('calendar')}>
  {activeModules.calendar ? <ToggleRight size={28} className="text-emerald-500" /> : <ToggleLeft size={28} className="text-gray-500" />}
  </button>
@@ -1823,7 +1823,7 @@ export default function GeneralSettings({
  <div className={`p-4 rounded-card border flex flex-col justify-between bg-gray-50 border-gray-200`}>
  <div className="space-y-2">
  <div className="flex items-center justify-between">
- <span className="p-2 rounded-xl bg-yellow-500/10 text-yellow-500"><Users size={18} /></span>
+ <span className="p-2 rounded-card bg-yellow-500/10 text-yellow-500"><Users size={18} /></span>
  <button type="button" onClick={() => handleToggleModule('team')}>
  {activeModules.team ? <ToggleRight size={28} className="text-emerald-500" /> : <ToggleLeft size={28} className="text-gray-500" />}
  </button>
@@ -1843,7 +1843,7 @@ export default function GeneralSettings({
  <div className={`p-4 rounded-card border flex flex-col justify-between bg-gray-50 border-gray-200`}>
  <div className="space-y-2">
  <div className="flex items-center justify-between">
- <span className="p-2 rounded-xl bg-orange-500/10 text-orange-500"><ShoppingCart size={18} /></span>
+ <span className="p-2 rounded-card bg-orange-500/10 text-orange-500"><ShoppingCart size={18} /></span>
  <button type="button" onClick={() => handleToggleModule('compras')}>
  {activeModules.compras ? <ToggleRight size={28} className="text-emerald-500" /> : <ToggleLeft size={28} className="text-gray-500" />}
  </button>
@@ -1863,7 +1863,7 @@ export default function GeneralSettings({
  <div className={`p-4 rounded-card border flex flex-col justify-between bg-gray-50 border-gray-200`}>
  <div className="space-y-2">
  <div className="flex items-center justify-between">
- <span className="p-2 rounded-xl bg-pink-500/10 text-pink-500"><CreditCard size={18} /></span>
+ <span className="p-2 rounded-card bg-pink-500/10 text-pink-500"><CreditCard size={18} /></span>
  <button type="button" onClick={() => handleToggleModule('gastos_creditos')}>
  {activeModules.gastos_creditos ? <ToggleRight size={28} className="text-emerald-500" /> : <ToggleLeft size={28} className="text-gray-500" />}
  </button>
@@ -1913,7 +1913,7 @@ export default function GeneralSettings({
  </div>
 
  <div className="flex justify-end pt-4 border-t border-white/5">
- <button type="submit" className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-black bg-primary hover:bg-primary-hover text-white transition-transform hover:-translate-y-0.5">
+ <button type="submit" className="flex items-center gap-1.5 px-5 py-2.5 rounded-card text-xs font-black bg-primary hover:bg-primary-hover text-white transition-transform hover:-translate-y-0.5">
  <Save size={14} /> Guardar Conexión Google
  </button>
  </div>
@@ -1952,7 +1952,7 @@ export default function GeneralSettings({
  type="button"
  onClick={handleTestGeminiKey}
  disabled={testingKey}
- className={`px-4 rounded-xl text-xs font-bold transition-all border shrink-0 ${
+ className={`px-4 rounded-card text-xs font-bold transition-all border shrink-0 ${
  testingKey 
  ?'bg-gray-500/10 text-gray-400 border-gray-500/20 cursor-not-allowed'
  :'bg-purple-50 hover:bg-purple-100 border-purple-200 text-purple-800'
@@ -1964,7 +1964,7 @@ export default function GeneralSettings({
  </div>
 
  {testResult && (
- <div className={`p-3 rounded-xl border text-xs leading-relaxed font-semibold transition-all duration-300 ${
+ <div className={`p-3 rounded-card border text-xs leading-relaxed font-semibold transition-all duration-300 ${
  testResult.success 
  ?'bg-emerald-50 border-emerald-250 text-emerald-850'
  :'bg-red-50 border-red-200 text-red-850'
@@ -1983,7 +1983,7 @@ export default function GeneralSettings({
  </div>
 
  <div className="flex justify-end pt-4 border-t border-white/5">
- <button type="submit" className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-black bg-primary hover:bg-primary-hover text-white transition-transform hover:-translate-y-0.5">
+ <button type="submit" className="flex items-center gap-1.5 px-5 py-2.5 rounded-card text-xs font-black bg-primary hover:bg-primary-hover text-white transition-transform hover:-translate-y-0.5">
  <Save size={14} /> Guardar Clave Gemini
  </button>
  </div>
@@ -2072,7 +2072,7 @@ export default function GeneralSettings({
  </div>
 
  <div className="flex justify-end pt-2">
- <button type="submit" className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-black bg-emerald-600 hover:bg-emerald-500 text-white">
+ <button type="submit" className="flex items-center gap-1.5 px-4 py-2 rounded-card text-xs font-black bg-emerald-600 hover:bg-emerald-500 text-white">
  <Plus size={14} /> Registrar Usuario
  </button>
  </div>
@@ -2142,7 +2142,7 @@ export default function GeneralSettings({
  
  {tempFirma.certificadoCargado ? (
  <div className="space-y-3.5">
- <div className={`p-4 rounded-xl border space-y-2.5 transition-all duration-300 ${
+ <div className={`p-4 rounded-card border space-y-2.5 transition-all duration-300 ${
  certValidation.tipo ==='success' 
  ?'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
  : certValidation.tipo ==='warning'
@@ -2189,7 +2189,7 @@ export default function GeneralSettings({
  <button 
  type="button" 
  onClick={() => verifySignatureDetails(tempFirma.certificadoBase64, tempFirma.certificadoClave, companyProfile.ruc ||'')}
- className="px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all border bg-primary/10 hover:bg-primary/20 border-primary/30 text-primary active:scale-95"
+ className="px-3.5 py-2.5 rounded-card text-xs font-bold transition-all border bg-primary/10 hover:bg-primary/20 border-primary/30 text-primary active:scale-95"
  >
  Verificar
  </button>
@@ -2216,14 +2216,14 @@ export default function GeneralSettings({
  <button 
  type="button" 
  onClick={() => setIsFirmaOpen(false)}
- className="px-4 py-2 rounded-xl text-xs font-bold bg-white/5 hover:bg-white/10 text-gray-300 transition-colors"
+ className="px-4 py-2 rounded-card text-xs font-bold bg-white/5 hover:bg-white/10 text-gray-300 transition-colors"
  >
  Cancelar
  </button>
  <button 
  type="button" 
  onClick={handleSaveFirma}
- className="px-4.5 py-2 rounded-xl text-xs font-black bg-purple-600 hover:bg-purple-500 text-white shadow transition-transform active:scale-95"
+ className="px-4.5 py-2 rounded-card text-xs font-black bg-purple-600 hover:bg-purple-500 text-white shadow transition-transform active:scale-95"
  >
  Guardar Firma
  </button>

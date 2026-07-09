@@ -29,7 +29,7 @@ export default function LandingLayout() {
           
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 cursor-pointer decoration-none group">
-            <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center transition-transform duration-300 group-hover:scale-105 group-hover:rotate-3">
+            <div className="w-9 h-9 rounded-card bg-primary flex items-center justify-center transition-transform duration-300 group-hover:scale-105 group-hover:rotate-3">
               <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
               </svg>
@@ -78,7 +78,7 @@ export default function LandingLayout() {
           {/* Mobile Menu Toggle */}
           <button 
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="p-2 rounded-xl border border-slate-200 bg-white text-slate-700 md:hidden cursor-pointer hover:bg-slate-50 transition-colors"
+            className="p-2 rounded-card border border-slate-200 bg-white text-slate-700 md:hidden cursor-pointer hover:bg-slate-50 transition-colors"
           >
             {isMobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
@@ -106,13 +106,13 @@ export default function LandingLayout() {
           <div className="flex flex-col gap-3 pt-2">
             <button 
               onClick={() => { setIsMobileMenuOpen(false); navigate('/login'); }}
-              className="w-full py-3.5 text-xs font-bold border border-slate-200 rounded-xl text-center bg-white text-slate-800"
+              className="w-full py-3.5 text-xs font-bold border border-slate-200 rounded-card text-center bg-white text-slate-800"
             >
               Entrar al ERP
             </button>
             <button 
               onClick={() => { setIsMobileMenuOpen(false); navigate('/register'); }}
-              className="w-full py-3.5 text-xs font-bold bg-primary text-white rounded-xl text-center"
+              className="w-full py-3.5 text-xs font-bold bg-primary text-white rounded-card text-center"
             >
               Registrar Negocio
             </button>

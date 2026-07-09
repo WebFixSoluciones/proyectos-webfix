@@ -234,7 +234,7 @@ export default function ReportsView({ transactions, showToast }) {
 
   const cardClass = 'p-6 rounded-card border transition-all bg-white border-gray-200 text-gray-900';
 
-  const inputClass = 'px-3 py-2.5 rounded-xl text-xs border outline-none bg-white border-gray-200 text-gray-900';
+  const inputClass = 'px-3 py-2.5 rounded-card text-xs border outline-none bg-white border-gray-200 text-gray-900';
 
   return (
     <div className="animate-in slide-in-from-bottom-4 duration-500 space-y-6">
@@ -258,7 +258,7 @@ export default function ReportsView({ transactions, showToast }) {
             </div>
           </div>
 
-          <div className="flex items-end self-end h-[38px] p-0.5 rounded-xl border border-gray-250/65 bg-gray-100/50">
+          <div className="flex items-end self-end h-[38px] p-0.5 rounded-card border border-gray-250/65 bg-gray-100/50">
             {[
               { id: 'resumen', label: 'Resumen', icon: PieChart },
               { id: 'iva', label: 'IVA', icon: Percent },
@@ -286,10 +286,10 @@ export default function ReportsView({ transactions, showToast }) {
         </div>
 
         <div className="flex gap-2">
-          <button onClick={handleExportCSV} className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-500 transition-transform hover:-translate-y-0.5">
+          <button onClick={handleExportCSV} className="flex items-center gap-1.5 px-4 py-2.5 rounded-card text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-500 transition-transform hover:-translate-y-0.5">
             <FileSpreadsheet size={14} /> Exportar CSV
           </button>
-          <button onClick={handleDownloadATS} className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold bg-purple-600 text-white hover:bg-purple-500 transition-transform hover:-translate-y-0.5">
+          <button onClick={handleDownloadATS} className="flex items-center gap-1.5 px-4 py-2.5 rounded-card text-xs font-bold bg-purple-600 text-white hover:bg-purple-500 transition-transform hover:-translate-y-0.5">
             <Download size={14} /> Descargar ATS JSON
           </button>
         </div>
@@ -570,7 +570,7 @@ export default function ReportsView({ transactions, showToast }) {
             </div>
 
             <div className="pt-4 flex gap-3">
-              <button onClick={handleDownloadATS} className="flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-bold bg-purple-600 text-white hover:bg-purple-500 transition-transform hover:-translate-y-0.5">
+              <button onClick={handleDownloadATS} className="flex items-center gap-2 px-5 py-3 rounded-card text-xs font-bold bg-purple-600 text-white hover:bg-purple-500 transition-transform hover:-translate-y-0.5">
                 <Download size={14} /> Descargar Archivo ATS para SRI (JSON)
               </button>
             </div>

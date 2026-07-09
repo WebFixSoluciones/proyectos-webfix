@@ -173,7 +173,7 @@ export default function ProductsView({ showToast, db, appId }) {
     return matchesSearch && matchesType;
   });
 
-  const inputClass = `w-full text-xs px-3.5 py-3 rounded-xl outline-none transition-all border ${
+  const inputClass = `w-full text-xs px-3.5 py-3 rounded-card outline-none transition-all border ${
      ? "glass-input-dark" : "glass-input-light"
   }`;
 
@@ -194,7 +194,7 @@ export default function ProductsView({ showToast, db, appId }) {
         </div>
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
-          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border-none w-full sm:w-80 transition-all focus-within:ring-1 focus-within:ring-primary/25 bg-surface-bg hover:bg-surface-card focus-within:bg-surface-card">
+          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-card border-none w-full sm:w-80 transition-all focus-within:ring-1 focus-within:ring-primary/25 bg-surface-bg hover:bg-surface-card focus-within:bg-surface-card">
             <Search size={14} className="text-text-muted" />
             <input
               type="text"
@@ -207,7 +207,7 @@ export default function ProductsView({ showToast, db, appId }) {
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="px-3 py-1.5 rounded-xl border-none text-xs font-medium outline-none transition-all cursor-pointer bg-surface-bg hover:bg-surface-card text-slate-700 focus:ring-1 focus:ring-primary/25"
+            className="px-3 py-1.5 rounded-card border-none text-xs font-medium outline-none transition-all cursor-pointer bg-surface-bg hover:bg-surface-card text-slate-700 focus:ring-1 focus:ring-primary/25"
           >
             <option value="all">Todos los tipos</option>
             <option value="producto">Productos físicos</option>
@@ -395,7 +395,7 @@ export default function ProductsView({ showToast, db, appId }) {
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 animate-in fade-in duration-200">
           <div
-            className={`w-full max-w-lg p-6 sm:p-8 rounded-[2rem] transition-all duration-300 border ${ ? "glass-panel-dark text-white" : "bg-surface-card border-primary/15 text-text-secondary"}`}
+            className={`w-full max-w-lg p-6 sm:p-8 rounded-card transition-all duration-300 border ${ ? "glass-panel-dark text-white" : "bg-surface-card border-primary/15 text-text-secondary"}`}
           >
             <div className="flex justify-between items-center mb-6 pb-2 border-b border-white/5">
               <h2 className="text-base font-bold font-display uppercase tracking-wider">

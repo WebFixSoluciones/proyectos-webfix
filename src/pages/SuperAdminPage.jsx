@@ -791,7 +791,7 @@ export default function SuperAdminPage({ showToast }) {
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
                         placeholder="Buscar empresa por Razón Social o ID..."
-                        className={`w-full pl-10 pr-4 py-2.5 text-xs rounded-xl outline-none border ${'bg-white border-slate-200 text-black'}`}
+                        className={`w-full pl-10 pr-4 py-2.5 text-xs rounded-card outline-none border ${'bg-white border-slate-200 text-black'}`}
                       />
                     </div>
                     
@@ -1002,7 +1002,7 @@ export default function SuperAdminPage({ showToast }) {
                         ) : tenantUsers.length === 0 ? (
                           <p className="text-xs text-gray-500 italic">No hay cuentas de usuario asociadas.</p>
                         ) : (
-                          <div className="border border-slate-200/50 dark:border-white/5 rounded-xl overflow-hidden text-xs">
+                          <div className="border border-slate-200/50 dark:border-white/5 rounded-card overflow-hidden text-xs">
                             <table className="w-full text-left border-collapse">
                               <thead>
                                 <tr className="bg-slate-100 dark:bg-white/5 border-b border-slate-200/50 dark:border-white/5 text-xs font-bold uppercase tracking-wider text-gray-500">
@@ -1070,7 +1070,7 @@ export default function SuperAdminPage({ showToast }) {
                       </button>
                     </div>
 
-                    <div className={`p-5 rounded-xl border ${'bg-white/60 border-slate-200'}`}>
+                    <div className={`p-5 rounded-card border ${'bg-white/60 border-slate-200'}`}>
                       <div className="flex flex-col sm:flex-row gap-4 items-center justify-between mb-4">
                         <h4 className="text-xs font-bold uppercase text-gray-600 dark:text-gray-300">Explorador de Datos Crudos</h4>
                         <div className="flex items-center gap-2">
@@ -1247,7 +1247,7 @@ export default function SuperAdminPage({ showToast }) {
                         </div>
                       </div>
 
-                      <div className="p-3.5 rounded-xl border border-border-default dark:border-white/5 bg-slate-50 dark:bg-white/2 flex items-center gap-3">
+                      <div className="p-3.5 rounded-card border border-border-default dark:border-white/5 bg-slate-50 dark:bg-white/2 flex items-center gap-3">
                         <input 
                           type="checkbox" 
                           id="sendResetEmail"
@@ -1400,7 +1400,7 @@ export default function SuperAdminPage({ showToast }) {
 
                     <button 
                       onClick={() => setEditingPlan(plan)}
-                      className="w-full mt-6 py-2.5 text-xs font-bold border border-border-default text-text-secondary hover:bg-surface-card hover:text-white rounded-xl transition-all"
+                      className="w-full mt-6 py-2.5 text-xs font-bold border border-border-default text-text-secondary hover:bg-surface-card hover:text-white rounded-card transition-all"
                     >
                       Personalizar Plan
                     </button>
@@ -1466,7 +1466,7 @@ export default function SuperAdminPage({ showToast }) {
 
               <div>
                 <label className="block font-bold mb-2">Módulos Habilitados</label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 p-3 rounded-xl border border-white/5 bg-white/2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 p-3 rounded-card border border-white/5 bg-white/2">
                   {(() => {
                     const moduleLabels = {
                       dashboard: 'Dashboard',
@@ -1505,8 +1505,8 @@ export default function SuperAdminPage({ showToast }) {
               </div>
 
               <div className="flex gap-3 justify-end pt-4">
-                <button type="button" onClick={() => setEditingPlan(null)} className="px-4 py-2.5 rounded-xl border border-white/10 hover:bg-white/5 font-semibold">Cancelar</button>
-                <button type="submit" className="px-4 py-2.5 rounded-xl bg-surface-card text-white font-bold">Guardar Cambios</button>
+                <button type="button" onClick={() => setEditingPlan(null)} className="px-4 py-2.5 rounded-card border border-white/10 hover:bg-white/5 font-semibold">Cancelar</button>
+                <button type="submit" className="px-4 py-2.5 rounded-card bg-surface-card text-white font-bold">Guardar Cambios</button>
               </div>
             </form>
           </div>

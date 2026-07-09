@@ -122,7 +122,7 @@ export default function AccountsReceivablePayable({ type = 'cxc', transactions =
     document.body.removeChild(link);
   };
 
-  const inputClass = `w-full text-xs px-3 py-2 rounded-xl outline-none transition-all border ${
+  const inputClass = `w-full text-xs px-3 py-2 rounded-card outline-none transition-all border ${
     'bg-white border-gray-300 text-gray-900 focus:border-primary focus:ring-1 focus:ring-primary/35'
   }`;
 
@@ -183,7 +183,7 @@ export default function AccountsReceivablePayable({ type = 'cxc', transactions =
         </div>
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
-          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border-none w-full sm:w-64 transition-all focus-within:ring-1 focus-within:ring-primary/25 bg-surface-bg hover:bg-surface-card focus-within:bg-surface-card">
+          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-card border-none w-full sm:w-64 transition-all focus-within:ring-1 focus-within:ring-primary/25 bg-surface-bg hover:bg-surface-card focus-within:bg-surface-card">
             <Search size={14} className={'text-gray-400'} />
             <input 
               type="text" 

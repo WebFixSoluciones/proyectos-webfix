@@ -291,7 +291,7 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
                   </div>
 
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
-                    <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border-none w-full sm:w-64 transition-all focus-within:ring-1 focus-within:ring-primary/25 bg-surface-bg hover:bg-surface-card focus-within:bg-surface-card">
+                    <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-card border-none w-full sm:w-64 transition-all focus-within:ring-1 focus-within:ring-primary/25 bg-surface-bg hover:bg-surface-card focus-within:bg-surface-card">
                       <Search size={14} className={'text-gray-400'} />
                       <input
                         type="text"
@@ -305,7 +305,7 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
                     <select
                       value={selectedCategory}
                       onChange={(e) => setSelectedCategory(e.target.value)}
-                      className="px-3 py-1.5 rounded-xl border-none text-xs font-medium outline-none transition-all cursor-pointer bg-surface-bg hover:bg-surface-card text-slate-700 focus:ring-1 focus:ring-primary/25"
+                      className="px-3 py-1.5 rounded-card border-none text-xs font-medium outline-none transition-all cursor-pointer bg-surface-bg hover:bg-surface-card text-slate-700 focus:ring-1 focus:ring-primary/25"
                     >
                       <option value="" className="text-black">Todas las Categorías</option>
                       {categories.map(c => (
@@ -316,7 +316,7 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
                     <select
                       value={selectedType}
                       onChange={(e) => setSelectedType(e.target.value)}
-                      className="px-3 py-1.5 rounded-xl border-none text-xs font-medium outline-none transition-all cursor-pointer bg-surface-bg hover:bg-surface-card text-slate-700 focus:ring-1 focus:ring-primary/25"
+                      className="px-3 py-1.5 rounded-card border-none text-xs font-medium outline-none transition-all cursor-pointer bg-surface-bg hover:bg-surface-card text-slate-700 focus:ring-1 focus:ring-primary/25"
                     >
                       <option value="" className="text-black">Todos los Tipos</option>
                       <option value="STANDARD" className="text-black">Estándar</option>
@@ -470,7 +470,7 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
             <div className="flex justify-end items-center mb-6">
               <button 
                 onClick={() => setIsCatBrandOpen(true)}
-                className="px-4 py-2 rounded-xl font-bold text-xs bg-primary hover:bg-primary text-white flex items-center gap-1.5"
+                className="px-4 py-2 rounded-card font-bold text-xs bg-primary hover:bg-primary text-white flex items-center gap-1.5"
               >
                 <SlidersHorizontal size={14} /> Configurar Categorías/Marcas
               </button>
@@ -484,7 +484,7 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
                 </h3>
                 <div className="space-y-3">
                   {categories.map(cat => (
-                    <div key={cat.id} className={`p-3 rounded-xl border flex items-center justify-between ${'bg-gray-50 border-gray-100'}`}>
+                    <div key={cat.id} className={`p-3 rounded-card border flex items-center justify-between ${'bg-gray-50 border-gray-100'}`}>
                       <div>
                         <span className={`font-semibold ${'text-gray-800'}`}>{cat.name}</span>
                         {cat.description && <p className="text-xs text-gray-500">{cat.description}</p>}
@@ -501,7 +501,7 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
                 </h3>
                 <div className="space-y-3">
                   {brands.map(b => (
-                    <div key={b.id} className={`p-3 rounded-xl border flex items-center justify-between ${'bg-gray-50 border-gray-100'}`}>
+                    <div key={b.id} className={`p-3 rounded-card border flex items-center justify-between ${'bg-gray-50 border-gray-100'}`}>
                       <div>
                         <span className={`font-semibold ${'text-gray-800'}`}>{b.name}</span>
                         {b.manufacturer && <p className="text-xs text-gray-500">{b.manufacturer}</p>}
@@ -839,7 +839,7 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
                   'border-slate-100 bg-slate-50 hover:bg-primary/5 hover:border-primary/30'
                 }`}
               >
-                <div className={`p-2.5 rounded-xl bg-primary/10 text-primary group-hover:scale-110 transition-transform`}>
+                <div className={`p-2.5 rounded-card bg-primary/10 text-primary group-hover:scale-110 transition-transform`}>
                   <Package size={16} />
                 </div>
                 <div>
@@ -861,7 +861,7 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
                   'border-slate-100 bg-slate-50 hover:bg-primary/5 hover:border-primary/30'
                 }`}
               >
-                <div className={`p-2.5 rounded-xl bg-primary/10 text-primary group-hover:scale-110 transition-transform`}>
+                <div className={`p-2.5 rounded-card bg-primary/10 text-primary group-hover:scale-110 transition-transform`}>
                   <Layers size={16} />
                 </div>
                 <div>
@@ -883,7 +883,7 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
                   'border-slate-100 bg-slate-50 hover:bg-purple-500/5 hover:border-purple-500/30'
                 }`}
               >
-                <div className={`p-2.5 rounded-xl bg-purple-500/10 text-purple-400 group-hover:scale-110 transition-transform`}>
+                <div className={`p-2.5 rounded-card bg-purple-500/10 text-purple-400 group-hover:scale-110 transition-transform`}>
                   <Box size={16} />
                 </div>
                 <div>

@@ -2323,7 +2323,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                                 <td className="px-[8px] py-[6px] text-right">
                                   <div className="relative inline-block w-20">
                                     <span className="absolute left-[5px] top-1/2 -translate-y-1/2 text-xs font-bold opacity-80">$</span>
-                                    <input disabled={!isEditable} type="number" step="0.01" required value={item.price} onChange={(e) => handleItemChange(index, 'price', e.target.value)} className={`w-full text-xs pl-[12px] pr-[2px] py-[4px] rounded-[6px] border outline-none text-right font-bold bg-white border-gray-200 text-black`} />
+                                    <input disabled={!isEditable} type="number" step="0.01" required value={item.price} onChange={(e) => handleItemChange(index, 'price', e.target.value)} className={`w-full text-xs pl-[12px] pr-[2px] py-[4px] rounded-card border outline-none text-right font-bold bg-white border-gray-200 text-black`} />
                                   </div>
                                 </td>
 
@@ -2337,7 +2337,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                                         step="0.01"
                                         value={item.itemDiscount || ''}
                                         onChange={(e) => handleItemChange(index, 'itemDiscount', e.target.value)}
-                                        className={`w-full text-xs pl-[14px] pr-[2px] py-[4px] rounded-[6px] border outline-none text-right font-bold bg-orange-50 border-orange-200 text-orange-700`}
+                                        className={`w-full text-xs pl-[14px] pr-[2px] py-[4px] rounded-card border outline-none text-right font-bold bg-orange-50 border-orange-200 text-orange-700`}
                                       />
                                     </div>
                                   </td>
@@ -3411,7 +3411,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         <div className="flex items-center gap-[6px]">
                           <p className="font-bold text-xs">{p.name}</p>
                           {p.category && (
-                            <span className="px-[5px] py-[2px] rounded-[4px] text-xs font-bold bg-gray-200 text-gray-800 dark:bg-white/10 dark:text-gray-300 uppercase">
+                            <span className="px-[5px] py-[2px] rounded-badge text-xs font-bold bg-gray-200 text-gray-800 dark:bg-white/10 dark:text-gray-300 uppercase">
                               {p.category}
                             </span>
                           )}
@@ -3425,7 +3425,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       <div className="flex items-center gap-[8px] shrink-0">
                         <span style={{ color: '#1C40F2' }} className="font-black text-xs mr-[4px]">${Number(p.price).toFixed(2)}</span>
                         {isAlreadyInCart && (
-                          <span className="text-xs font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-[6px] py-[3px] rounded-[6px]">
+                          <span className="text-xs font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-[6px] py-[3px] rounded-card">
                             En Carrito ({cartQty})
                           </span>
                         )}

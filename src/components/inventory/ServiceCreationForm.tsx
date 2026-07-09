@@ -91,7 +91,7 @@ export default function ServiceCreationForm({
     }
   };
 
-  const inputClass = `w-full pl-4 pr-4 py-2 rounded-xl outline-none transition-all border bg-white/50 border-gray-200 text-gray-800 focus:border-primary focus:bg-white`;
+  const inputClass = `w-full pl-4 pr-4 py-2 rounded-card outline-none transition-all border bg-white/50 border-gray-200 text-gray-800 focus:border-primary focus:bg-white`;
 
   const labelClass = `block text-xs font-semibold mb-1.5 uppercase tracking-wider text-gray-500`;
 
@@ -104,7 +104,7 @@ export default function ServiceCreationForm({
       {/* Header */}
       <div className={`modal-header-std modal-header-std-dark border-gray-100 bg-white/80`}>
         <div className="flex items-center gap-3">
-          <div className={`p-2 rounded-xl bg-primary/10 text-primary`}>
+          <div className={`p-2 rounded-card bg-primary/10 text-primary`}>
             <Briefcase size={20} />
           </div>
           <div>
@@ -118,7 +118,7 @@ export default function ServiceCreationForm({
         </div>
           <button 
             onClick={onClose}
-            className={`p-2 rounded-xl transition-all hover:scale-105 bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-900`}
+            className={`p-2 rounded-card transition-all hover:scale-105 bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-900`}
           >
             <X size={18} />
           </button>
@@ -128,7 +128,7 @@ export default function ServiceCreationForm({
         <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-5">
           
           {error && (
-            <div className={`flex items-center gap-3 p-4 rounded-xl border bg-red-50 border-red-200 text-red-600`}>
+            <div className={`flex items-center gap-3 p-4 rounded-card border bg-red-50 border-red-200 text-red-600`}>
               <AlertCircle size={20} className="shrink-0" />
               <p className="text-sm font-medium">{error}</p>
             </div>
@@ -307,14 +307,14 @@ export default function ServiceCreationForm({
               type="button"
               onClick={onClose}
               disabled={loading}
-              className={`px-6 py-2.5 rounded-xl font-bold transition-all text-sm bg-gray-100 hover:bg-gray-200 text-gray-700`}
+              className={`px-6 py-2.5 rounded-card font-bold transition-all text-sm bg-gray-100 hover:bg-gray-200 text-gray-700`}
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-8 py-2.5 rounded-xl font-bold transition-all text-sm bg-primary hover:bg-primary text-white flex items-center gap-2 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+              className="px-8 py-2.5 rounded-card font-bold transition-all text-sm bg-primary hover:bg-primary text-white flex items-center gap-2 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
             >
               {loading ? (
                 <>
