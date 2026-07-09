@@ -501,6 +501,7 @@ export default function App() {
   const [primaryColor, setPrimaryColor] = useState('#4F46E5');
 
   useEffect(() => {
+    document.documentElement.style.setProperty('--primary', primaryColor);
     document.documentElement.style.setProperty('--primary-color', primaryColor);
   }, [primaryColor]);
 
@@ -820,6 +821,7 @@ export default function App() {
           }
           if (data.primaryColor !== undefined) {
             setPrimaryColor(data.primaryColor);
+            document.documentElement.style.setProperty('--primary', data.primaryColor);
             document.documentElement.style.setProperty('--primary-color', data.primaryColor);
           }
         }

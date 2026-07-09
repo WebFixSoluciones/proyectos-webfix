@@ -1,9 +1,9 @@
 :root {
   /* Primary */
   --primary: #2563EB;
-  --primary-hover: #1D4ED8;
-  --primary-light: #EFF6FF;
-  --primary-muted: #DBEAFE;
+  --primary-hover: color-mix(in srgb, var(--primary) 85%, #000000);
+  --primary-light: color-mix(in srgb, var(--primary) 8%, #ffffff);
+  --primary-muted: color-mix(in srgb, var(--primary) 15%, #ffffff);
 
   /* Surfaces */
   --surface-bg: #F8FAFC;
