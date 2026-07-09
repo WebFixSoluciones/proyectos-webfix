@@ -402,7 +402,7 @@ export default function PublicRideView() {
                 {emisor.logoUrl ? (
                   <img src={emisor.logoUrl} alt="Logo" className="max-h-12 max-w-[100px] object-contain print:max-h-10 shrink-0" />
                 ) : (
-                  <div className="h-10 w-20 bg-gray-200 border border-gray-300 rounded flex items-center justify-center font-bold text-[8px] text-gray-600 tracking-wider shrink-0">LOGOTIPO</div>
+                  <div className="h-10 w-20 bg-gray-200 border border-gray-300 rounded flex items-center justify-center font-bold text-xs text-gray-600 tracking-wider shrink-0">LOGOTIPO</div>
                 )}
                 <div className="space-y-0.5 min-w-0 flex-1">
                   <h2 className="font-extrabold text-xs uppercase leading-tight text-black truncate">{emisor.razonSocial}</h2>
@@ -422,7 +422,7 @@ export default function PublicRideView() {
                   <p><span className="font-bold">Teléfono:</span> {emisor.telefonoContacto || emisor.telefono || 'N/D'}</p>
                   <p className="uppercase"><span className="font-bold">Ciudad:</span> {emisorCiudad} - ECUADOR</p>
                   {emisor.contribuyenteRimpe && emisor.contribuyenteRimpe !== 'general' && (
-                    <p className="mt-0.5"><span className="font-bold uppercase border border-black border-dashed px-1 py-0.2 text-[7.5px]">Régimen Rimpe: {emisor.contribuyenteRimpe.replace('_', ' ')}</span></p>
+                    <p className="mt-0.5"><span className="font-bold uppercase border border-black border-dashed px-1 py-0.2 text-xs">Régimen Rimpe: {emisor.contribuyenteRimpe.replace('_', ' ')}</span></p>
                   )}
                 </div>
               </div>
@@ -438,12 +438,12 @@ export default function PublicRideView() {
                   </div>
                 ) : (
                   <div className="space-y-0.5">
-                    <div className="flex justify-between items-center text-[8px]">
+                    <div className="flex justify-between items-center text-xs">
                       <p><span className="font-bold">Ambiente:</span> {emisor.ambiente === '2' ? 'PRODUCCIÓN' : 'PRUEBAS'}</p>
                       <p><span className="font-bold">Emisión:</span> NORMAL</p>
                     </div>
                     <p className="mt-1"><span className="font-bold">Clave Acceso/ No. Autorización:</span></p>
-                    <p className="font-mono text-[7.5px] break-all tracking-wide leading-none">{claveAcceso}</p>
+                    <p className="font-mono text-xs break-all tracking-wide leading-none">{claveAcceso}</p>
                     <p className="mt-1"><span className="font-bold">FECHA Y HORA DE AUTORIZACIÓN:</span> {tx.fechaAutorizacion || (tx.date.split('-').reverse().join('/') + ' ' + (tx.time || '12:00:00'))}</p>
                     
                     {/* Código de barras */}
@@ -461,7 +461,7 @@ export default function PublicRideView() {
             </div>
 
             {/* Datos del Receptor Compactos (Detalle de Cliente) */}
-            <div className="mt-3 border border-gray-300 text-[8px] text-black">
+            <div className="mt-3 border border-gray-300 text-xs text-black">
               {/* Fila 1 */}
               <div className="grid grid-cols-12">
                 <div className="col-span-10 py-[2px] px-1.5 truncate">
@@ -525,8 +525,8 @@ export default function PublicRideView() {
 
             {/* Detalle de Artículos */}
             <div className="mt-3 border border-gray-300 overflow-hidden" style={{ borderRadius: '0px' }}>
-              <table className="w-full text-left text-[8px] text-black">
-                <thead className="bg-gray-100 font-bold uppercase text-[8px] border-b border-gray-300 text-black">
+              <table className="w-full text-left text-xs text-black">
+                <thead className="bg-gray-100 font-bold uppercase text-xs border-b border-gray-300 text-black">
                   <tr>
                     <th className="px-2 py-1 border-r border-gray-300 w-8 text-center">ITEM</th>
                     <th className="px-2 py-1 border-r border-gray-300 w-16">CODIGO</th>
@@ -572,13 +572,13 @@ export default function PublicRideView() {
             </div>
 
             {/* Formas de Pago e Información Adicional y Totales */}
-            <div className="mt-3 grid grid-cols-1 md:grid-cols-5 gap-3 items-start print-grid-5 text-[8px] text-black">
+            <div className="mt-3 grid grid-cols-1 md:grid-cols-5 gap-3 items-start print-grid-5 text-xs text-black">
               
               {/* Columna Izquierda: Información Adicional y Pagos */}
               <div className="md:col-span-3 space-y-2">
                 <div className="p-2 border border-gray-300 space-y-1">
                   <p className="font-bold border-b border-gray-200 pb-0.5 uppercase mb-1">Información Adicional</p>
-                  <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 mt-1 text-[8px]">
+                  <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 mt-1 text-xs">
                     <p><span className="font-bold">Asesor:</span> {tx.createdBy || 'ADMINISTRADOR'}</p>
                     <p><span className="font-bold">Tipo Orden:</span> ZVTA</p>
                     <p><span className="font-bold">Condición de Pago:</span> {tx.paymentMethod === 'credito' ? 'Crédito' : 'Contado'}</p>
@@ -595,7 +595,7 @@ export default function PublicRideView() {
                   </div>
                   
                   {/* Tabla de desglose de pagos */}
-                  <table className="w-full text-left text-[8px] border border-gray-300 mt-2">
+                  <table className="w-full text-left text-xs border border-gray-300 mt-2">
                     <thead className="bg-gray-100 font-bold border-b border-gray-300">
                       <tr>
                         <th className="px-2 py-0.5 border-r border-gray-300">Forma Pago</th>
@@ -617,14 +617,14 @@ export default function PublicRideView() {
                   </table>
                 </div>
                 
-                <p className="text-[8px] uppercase font-bold text-gray-700 bg-gray-100 p-1.5 rounded border border-gray-300 text-center tracking-wide leading-none">
+                <p className="text-xs uppercase font-bold text-gray-700 bg-gray-100 p-1.5 rounded border border-gray-300 text-center tracking-wide leading-none">
                   Son: {numeroALetras(tx.total)}
                 </p>
               </div>
 
               {/* Columna Derecha: Totales Factura */}
               <div className="md:col-span-2 border border-gray-300 overflow-hidden">
-                <table className="w-full text-right text-[8px] text-black">
+                <table className="w-full text-right text-xs text-black">
                   <tbody className="divide-y divide-gray-200 font-medium">
                     <tr>
                       <td className="px-2 py-[2px] bg-gray-50 border-r border-gray-300 text-left">Subtotal 15%</td>
@@ -674,7 +674,7 @@ export default function PublicRideView() {
                       <td className="px-2 py-[2px] bg-gray-50 border-r border-gray-300 text-left">Propina</td>
                       <td className="px-2 py-[2px] font-bold">${Number(tx.propinaValor || 0).toFixed(2)}</td>
                     </tr>
-                    <tr className="bg-gray-100 font-extrabold text-[8px] border-y border-gray-300">
+                    <tr className="bg-gray-100 font-extrabold text-xs border-y border-gray-300">
                       <td className="px-2 py-1 border-r border-gray-300 text-left">Valor Total</td>
                       <td className="px-2 py-1 text-black font-black">${Number(taxDetails.total || 0).toFixed(2)}</td>
                     </tr>
@@ -693,7 +693,7 @@ export default function PublicRideView() {
             </div>
 
             {/* Texto de Compromiso / Letra de Pagaré */}
-            <div className="mt-3 p-3 border border-gray-300 text-[7.2px] leading-relaxed text-black text-justify font-sans">
+            <div className="mt-3 p-3 border border-gray-300 text-xs leading-relaxed text-black text-justify font-sans">
               HE RECIBIDO LOS ARTÍCULOS O SERVICIOS DETALLADOS EN ESTA FACTURA, POR EL VALOR INDICADO EN EL "TOTAL".
               DEBO Y PAGARÉ A <span className="font-bold">{emisor.razonSocial}</span> INCONDICIONALMENTE Y SIN PROTESTO EL VALOR ADEUDADO. EN CASO DE MORA ME
               SUJETO A PAGAR EL INTERÉS MÁXIMO PREVISTO EN LA LEY Y A SER DEMANDADO EN JUICIO O VERBAL SUMARIO A ELECCIÓN DEL ACTOR,

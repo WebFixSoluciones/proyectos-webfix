@@ -234,13 +234,13 @@ export default function HiringServicesModule({ showToast, db, appId }) {
  {/* Modal Body */}
  {!successRequest ? (
  <form onSubmit={handleSubmit} className="space-y-4">
- <p className="text-[10.5px] leading-relaxed text-gray-400">
+ <p className="text-xs leading-relaxed text-gray-400">
  Ingresa tus datos de contacto. Uno de nuestros asesores de **Web Fix** se comunicará contigo en menos de 24 horas para enviarte una propuesta detallada.
  </p>
 
  <div className="space-y-3">
  <div>
- <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">
+ <label className="block text-xs font-bold uppercase mb-1.5 text-gray-500">
  Nombre de Contacto *
  </label>
  <input 
@@ -257,7 +257,7 @@ export default function HiringServicesModule({ showToast, db, appId }) {
 
  <div className="grid grid-cols-2 gap-3">
  <div>
- <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">
+ <label className="block text-xs font-bold uppercase mb-1.5 text-gray-500">
  Teléfono / Celular *
  </label>
  <input 
@@ -272,7 +272,7 @@ export default function HiringServicesModule({ showToast, db, appId }) {
  />
  </div>
  <div>
- <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">
+ <label className="block text-xs font-bold uppercase mb-1.5 text-gray-500">
  Correo de Contacto *
  </label>
  <input 
@@ -289,7 +289,7 @@ export default function HiringServicesModule({ showToast, db, appId }) {
  </div>
 
  <div>
- <label className="block text-[9px] font-bold uppercase mb-1.5 text-gray-500">
+ <label className="block text-xs font-bold uppercase mb-1.5 text-gray-500">
  Mensaje o Requerimientos Adicionales
  </label>
  <textarea 

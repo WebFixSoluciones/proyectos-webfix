@@ -318,7 +318,7 @@ export default function BillingPortal({ showToast, initialSubTab }) {
             <Building size={18} />
           </div>
           <div>
-            <div className="text-[10px] uppercase font-bold text-gray-500">Plan Actual</div>
+            <div className="text-xs uppercase font-bold text-gray-500">Plan Actual</div>
             <div className="text-xs font-bold capitalize">{activePlan} — {planStatus === 'trial' ? `Prueba (${getDaysRemaining()} días)` : 'Suscripción Activa'}</div>
           </div>
         </div>
@@ -328,7 +328,7 @@ export default function BillingPortal({ showToast, initialSubTab }) {
       {activeCategory === 'historial' ? (
         <div className={`p-6 rounded-card border bg-white border-slate-200`}>
           <h3 className="text-xs font-bold uppercase tracking-wider mb-4">Historial de Transacciones</h3>
-          <div className="overflow-x-auto text-[11px]">
+          <div className="overflow-x-auto text-xs">
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b dark:border-white/5 text-gray-500 font-bold uppercase text-xs">
@@ -377,13 +377,13 @@ export default function BillingPortal({ showToast, initialSubTab }) {
                   <h3 className="text-xs font-bold uppercase tracking-wider text-primary">
                     {PRODUCTS_CATALOG[activeCategory]?.title}
                   </h3>
-                  <p className="text-[10px] text-gray-500 mt-0.5 font-medium">
+                  <p className="text-xs text-gray-500 mt-0.5 font-medium">
                     {PRODUCTS_CATALOG[activeCategory]?.desc}
                   </p>
                 </div>
                 
                 {/* Billing Cycle Toggle */}
-                <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-card text-[10px] font-bold self-start sm:self-center">
+                <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-card text-xs font-bold self-start sm:self-center">
                   <button 
                     onClick={() => setBillingPeriod('monthly')}
                     className={`px-3 py-1.5 rounded-lg ${billingPeriod === 'monthly' ? 'bg-white dark:bg-white/10 text-primary dark:text-white' : 'text-gray-500'}`}
@@ -417,7 +417,7 @@ export default function BillingPortal({ showToast, initialSubTab }) {
                         <div className="flex items-baseline gap-0.5 mb-4">
                           <span className="text-lg font-black">$</span>
                           <span className="text-2xl font-black">{getPrice(plan)}</span>
-                          <span className="text-[10px] text-gray-500">/mes</span>
+                          <span className="text-xs text-gray-500">/mes</span>
                         </div>
                         <ul className="space-y-2 text-xs text-gray-500 font-medium">
                           {plan.features.map((feat, idx) => (
@@ -460,7 +460,7 @@ export default function BillingPortal({ showToast, initialSubTab }) {
               </div>
 
               {/* Payment Method Selector */}
-              <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-white/5 rounded-card text-[10px] font-bold mb-6">
+              <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-white/5 rounded-card text-xs font-bold mb-6">
                 <button 
                   type="button"
                   onClick={() => setPaymentMethod('card')}
@@ -480,7 +480,7 @@ export default function BillingPortal({ showToast, initialSubTab }) {
               {/* CARD PAYMENT: PAYPHONE BUTTON */}
               {paymentMethod === 'card' && (
                 <div className="space-y-4">
-                  <p className="text-[10px] text-gray-500 leading-normal">Los pagos con tarjeta se acreditan de manera automática. Aceptamos Visa, MasterCard y todas las tarjetas nacionales.</p>
+                  <p className="text-xs text-gray-500 leading-normal">Los pagos con tarjeta se acreditan de manera automática. Aceptamos Visa, MasterCard y todas las tarjetas nacionales.</p>
                   <button 
                     onClick={handlePayPhoneCheckout}
                     disabled={isProcessing}
@@ -494,7 +494,7 @@ export default function BillingPortal({ showToast, initialSubTab }) {
               {/* BANK TRANSFER: UPLOAD FORM */}
               {paymentMethod === 'transfer' && (
                 <form onSubmit={handleSubmitTransfer} className="space-y-4 text-xs font-medium text-left">
-                  <div className="p-3 bg-blue-500/5 rounded-card border border-blue-500/10 text-[10px] text-gray-500 leading-relaxed mb-4">
+                  <div className="p-3 bg-blue-500/5 rounded-card border border-blue-500/10 text-xs text-gray-500 leading-relaxed mb-4">
                     <strong>Cuentas Bancarias WebFix:</strong><br />
                     Banco Pichincha - Cta. Corriente: 2201928472<br />
                     A nombre de WebFix Soluciones S.A.S (RUC: 1792847382001)

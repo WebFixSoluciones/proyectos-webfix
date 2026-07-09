@@ -2832,7 +2832,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   <div className="text-center border-b pb-[8px] border-gray-200">
                     <p className="font-bold text-xs uppercase">{sriConfig.nombreComercial || 'WEBFIX ERP'}</p>
                     <p className="text-xs font-bold">{sriConfig.razonSocial}</p>
-                    <p className="text-[8px] text-black mt-[2px]">{sriConfig.direccionMatriz}</p>
+                    <p className="text-xs text-black mt-[2px]">{sriConfig.direccionMatriz}</p>
                     <p className="text-xs font-bold mt-[4px]">RUC: {sriConfig.ruc}</p>
                   </div>
 
@@ -2897,7 +2897,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
                   {/* Pagos desglosados */}
                   <div className="border-t border-dashed border-gray-200 pt-[6px] text-xs space-y-[2px] text-black">
-                    <p className="font-bold uppercase text-[8px] text-black">Forma de Pago:</p>
+                    <p className="font-bold uppercase text-xs text-black">Forma de Pago:</p>
                     {Number(payments.efectivo) > 0 && <p>Efectivo: ${Number(payments.efectivo).toFixed(2)}</p>}
                     {Number(payments.transferencia) > 0 && <p>Transferencia: ${Number(payments.transferencia).toFixed(2)}</p>}
                     {Number(payments.tarjeta) > 0 && <p>Tarjeta: ${Number(payments.tarjeta).toFixed(2)}</p>}
