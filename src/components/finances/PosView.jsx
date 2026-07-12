@@ -349,6 +349,23 @@ export default function PosView({ products, thirdParties, transactions = [], sho
     }
   }, [posConfig.barcodeMode, isCheckoutOpen, isQuickAddOpen, isClosingOpen]);
 
+  // Auto close dropdowns when clicking outside
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (!e.target.closest('.doc-type-selector-container')) {
+        setIsDocTypeDropdownOpen(false);
+      }
+      if (!e.target.closest('.options-gear-container')) {
+        setIsOptionsDropdownOpen(false);
+      }
+      if (!e.target.closest('.client-search-container')) {
+        setIsClientDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, []);
+
   // Atajos de teclado del POS
   useEffect(() => {
     const handleGlobalShortcuts = (e) => {
@@ -1086,7 +1103,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
           </div>
 
           {/* Cliente, Nombre, RUC */}
-          <div className="w-[45%] max-w-[360px] relative">
+          <div className="w-[45%] max-w-[360px] relative client-search-container">
             {selectedClientId ? (
               <div className="flex items-center justify-between px-3.5 h-10 rounded-card bg-white border-none shadow-sm text-black">
                 <div className="flex items-center gap-2 min-w-0">
@@ -1192,7 +1209,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
           </button>
 
           {/* Botón de Selección de Factura, Nota de Venta o Cotización */}
-          <div className="relative">
+          <div className="relative doc-type-selector-container">
             <button
               type="button"
               onClick={() => setIsDocTypeDropdownOpen(!isDocTypeDropdownOpen)}
@@ -1248,7 +1265,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
           </span>
           
           {/* Dropdown del Gear (Settings) */}
-          <div className="relative">
+          <div className="relative options-gear-container">
             <button 
               type="button"
               onClick={() => setIsOptionsDropdownOpen(!isOptionsDropdownOpen)} 

@@ -77,6 +77,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   const [currentStep, setCurrentStep] = useState(1);
   const [printTx, setPrintTx] = useState(null);
   const [printFormat, setPrintFormat] = useState('ride');
+  const [isInitializedFromPOS, setIsInitializedFromPOS] = useState(false);
   
   const [formData, setFormData] = useState({
     id: '',
@@ -399,6 +400,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       // Si el documento ya fue autorizado o anulado, ir directo al paso 2 (vista de sólo lectura)
       if (tx.sriStatus === 'autorizado' || tx.sriStatus === 'anulado') {
         setCurrentStep(2);
+      }
+
+      if (tx.isPOS) {
+        setIsInitializedFromPOS(true);
       }
     }
   }, [tx]);
@@ -1443,6 +1448,18 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     element.click();
     document.body.removeChild(element);
   };
+
+  // Auto-emisión/Guardado directo para transacciones iniciadas desde el POS
+  useEffect(() => {
+    if (isInitializedFromPOS && currentStep === 1) {
+      setCurrentStep(2);
+      if (formData.documentType === 'factura') {
+        executeEmitirSRI();
+      } else {
+        executeSave({ isFinalizingNotaVenta: formData.documentType === 'nota_venta' });
+      }
+    }
+  }, [isInitializedFromPOS]);
 
   const isAuthorized = formData.sriStatus === 'autorizado';
   const isAnulado = formData.sriStatus === 'anulado';
