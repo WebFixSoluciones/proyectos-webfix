@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Search, ShoppingCart, Plus, Minus, Trash2, User, Sparkles, CheckCircle2, DollarSign, CreditCard, X, ShieldAlert, Award, Layers, Tag, Bookmark, RefreshCw, LogOut, ArrowRight, ArrowLeft, ChevronRight, Settings, Barcode, Zap, Eye, Mic, Keyboard, History, Download, FileText, Unlock, UserPlus, Edit3, Phone, Mail, MoreHorizontal, ChevronDown, Sliders, Box } from 'lucide-react';
+import { Search, ShoppingCart, Plus, Minus, Trash2, User, Sparkles, CheckCircle2, DollarSign, CreditCard, X, ShieldAlert, Award, Layers, Tag, Bookmark, RefreshCw, LogOut, ArrowRight, ArrowLeft, ChevronRight, Settings, Barcode, Zap, Eye, Mic, Keyboard, History, Download, FileText, Unlock, UserPlus, Edit3, Phone, Mail, MoreHorizontal, ChevronDown, Sliders, Box, SlidersHorizontal, LayoutGrid, List } from 'lucide-react';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, onSnapshot } from 'firebase/firestore';
 import { consultarRucSri, getEcuadorDateString } from '../../services/sriService';
 import { registrarMovimientoKardex } from '../../services/inventoryService';
@@ -84,6 +84,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterWarehouse, setFilterWarehouse] = useState('all');
   const [filterStock, setFilterStock] = useState('all'); // 'all', 'instock'
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 
   // Descuentos
   const [discountType, setDiscountType] = useState('percent'); // 'percent' o 'fixed'
@@ -991,6 +992,37 @@ export default function PosView({ products, thirdParties, transactions = [], sho
     }
   };
 
+  // Categorías más usadas ordenadas por conteo
+  const categoriesWithCount = React.useMemo(() => {
+    const counts = {};
+    products.forEach(p => {
+      if (p.categoria) {
+        counts[p.categoria] = (counts[p.categoria] || 0) + 1;
+      }
+    });
+    return Object.keys(counts)
+      .map(cat => ({ name: cat, count: counts[cat] }))
+      .sort((a, b) => b.count - a.count);
+  }, [products]);
+
+  // Productos más vendidos basados en transacciones
+  const bestSellers = React.useMemo(() => {
+    const counts = {};
+    transactions.forEach(t => {
+      if (t.items && Array.isArray(t.items)) {
+        t.items.forEach(item => {
+          const id = item.productId || item.id;
+          if (id) {
+            counts[id] = (counts[id] || 0) + (item.quantity || 1);
+          }
+        });
+      }
+    });
+    return products
+      .map(p => ({ ...p, salesCount: counts[p.id] || 0 }))
+      .sort((a, b) => b.salesCount - a.salesCount);
+  }, [products, transactions]);
+
   // Filtrado de Productos (Izquierda)
   const filteredProducts = products.filter(p => {
     const matchesSearch = (p.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -1678,77 +1710,85 @@ export default function PosView({ products, thirdParties, transactions = [], sho
         {/* LADO IZQUIERDO: SELECCIÓN Y FILTRO DE PRODUCTOS */}
         <div className={`flex-1 flex flex-col pt-[7px] px-3 sm:px-4 lg:px-6 pb-6 min-w-0 border-r border-primary/15 bg-white`}>
           
-          {/* BARRA DE BÚSQUEDA Y FILTROS */}
-          <div className="space-y-3.5 mb-6">
-            {posConfig.showCarousel ? (
-              <div className="space-y-3">
+          {/* BARRA DE FILTROS SUPER MINIMALISTA (SIN SOMBRAS) */}
+          <div className="flex items-center justify-between gap-4 py-2 mb-4 select-none bg-white border-b border-slate-100 shrink-0">
+            {/* Left: Filter Icon + Ver Todos + Total Count */}
+            <div className="flex items-center gap-2 shrink-0">
+              <button 
+                type="button"
+                onClick={() => {
+                  setFilterCategory('all');
+                  setFilterBrand('all');
+                  setFilterWarehouse('all');
+                  setIsSearchModalOpen(true);
+                }}
+                className="flex items-center gap-2 text-black hover:opacity-80 active:scale-95 transition-transform"
+              >
+                <SlidersHorizontal size={18} className="text-primary font-bold" />
+                <span className="font-extrabold text-sm text-slate-800 tracking-tight">Ver Todos</span>
+                <span className="bg-primary text-white text-[11px] font-black px-2 py-0.5 rounded-full select-none">
+                  {products.length}
+                </span>
+              </button>
+            </div>
 
-                {/* Horizontal Category Carousel */}
-                <div className="flex items-center gap-2 overflow-x-auto py-2.5 custom-scrollbar scrollbar-none">
+            {/* Middle: Horizontal Category List (Scrollable, Minimalist) */}
+            <div className="flex-1 flex items-center gap-3 overflow-x-auto py-1 scrollbar-none custom-scrollbar select-none">
+              {categoriesWithCount.map(cat => {
+                const isSelected = filterCategory === cat.name;
+                return (
                   <button
-                    onClick={() => setFilterCategory('all')}
-                    className={`px-4 py-2 rounded-btn text-xs font-bold uppercase transition-all whitespace-nowrap shrink-0 border ${
-                      filterCategory === 'all'
-                        ? 'bg-primary border-primary text-white'
-                        : ('bg-primary-light border-primary/15 text-black hover:bg-primary/10')
+                    key={cat.name}
+                    type="button"
+                    onClick={() => setFilterCategory(cat.name)}
+                    className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all whitespace-nowrap ${
+                      isSelected 
+                        ? 'text-primary bg-primary/10' 
+                        : 'text-slate-600 bg-[#f0f3ff] hover:bg-primary/5'
                     }`}
                   >
-                    Todos
+                    <span>{cat.name}</span>
+                    <span className={`text-[10px] font-black px-1.5 py-0.2 rounded-full ${
+                      isSelected ? 'bg-primary text-white' : 'bg-white text-primary'
+                    }`}>
+                      {cat.count}
+                    </span>
                   </button>
-                  {categories.filter(c => c !== 'all').map(cat => (
-                    <button
-                      key={cat}
-                      onClick={() => setFilterCategory(cat)}
-                      className={`px-4 py-2 rounded-btn text-xs font-bold uppercase transition-all whitespace-nowrap shrink-0 border ${
-                        filterCategory === cat
-                          ? 'bg-primary border-primary text-white'
-                          : ('bg-primary-light border-primary/15 text-black hover:bg-primary/10')
-                      }`}
-                    >
-                      {cat}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-3">
+                );
+              })}
+            </div>
 
-                {/* Dropdowns */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                  <div>
-                    
-                    <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} className="w-full text-xs font-medium px-2 py-1 rounded-md border outline-none bg-white border-[#CDD1EA] text-black">
-                      <option value="all" className={'text-black bg-white'}>Categorías (Todos)</option>
-                      {categories.filter(c => c !== 'all').map(c => <option key={c} value={c} className={'text-black bg-white'}>{c}</option>)}
-                    </select>
-                  </div>
-
-                  <div>
-                    
-                    <select value={filterBrand} onChange={e => setFilterBrand(e.target.value)} className="w-full text-xs font-medium px-2 py-1 rounded-md border outline-none bg-white border-[#CDD1EA] text-black">
-                      <option value="all" className={'text-black bg-white'}>Marcas (Todos)</option>
-                      {brands.filter(b => b !== 'all').map(b => <option key={b} value={b} className={'text-black bg-white'}>{b}</option>)}
-                    </select>
-                  </div>
-
-                  <div>
-                    
-                    <select value={filterWarehouse} onChange={e => setFilterWarehouse(e.target.value)} className="w-full text-xs font-medium px-2 py-1 rounded-md border outline-none bg-white border-[#CDD1EA] text-black">
-                      <option value="all" className={'text-black bg-white'}>Bodegas (Todos)</option>
-                      {warehouses.filter(w => w !== 'all').map(w => <option key={w} value={w} className={'text-black bg-white'}>{w}</option>)}
-                    </select>
-                  </div>
-
-                  <div>
-                    
-                    <select value={filterStock} onChange={e => setFilterStock(e.target.value)} className="w-full text-xs font-medium px-2 py-1 rounded-md border outline-none bg-white border-[#CDD1EA] text-black">
-                      <option value="all" className={'text-black bg-white'}>Inventario completo</option>
-                      <option value="instock" className={'text-black bg-white'}>Solo disponibles (Con Stock)</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-            )}
+            {/* Right: Grid & List Switcher */}
+            <div className="flex items-center gap-1.5 shrink-0 border-l border-slate-100 pl-3">
+              <button
+                type="button"
+                onClick={() => {
+                  const newConfig = { ...posConfig, viewType: 'grid' };
+                  setPosConfig(newConfig);
+                  localStorage.setItem(`pos_config_${appId}`, JSON.stringify(newConfig));
+                }}
+                className={`p-1.5 rounded transition-colors ${
+                  posConfig.viewType === 'grid' ? 'text-primary' : 'text-slate-400 hover:text-slate-600'
+                }`}
+                title="Vista Cuadrícula"
+              >
+                <LayoutGrid size={20} />
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const newConfig = { ...posConfig, viewType: 'list' };
+                  setPosConfig(newConfig);
+                  localStorage.setItem(`pos_config_${appId}`, JSON.stringify(newConfig));
+                }}
+                className={`p-1.5 rounded transition-colors ${
+                  posConfig.viewType === 'list' ? 'text-primary' : 'text-slate-400 hover:text-slate-600'
+                }`}
+                title="Vista Vista"
+              >
+                <List size={20} />
+              </button>
+            </div>
           </div>
 
           {/* GRID O LISTA DE PRODUCTOS */}
@@ -3306,6 +3346,309 @@ export default function PosView({ products, thirdParties, transactions = [], sho
           </div>
         </div>
       )}
+
+      {/* MODAL: BUSCADOR PROFESIONAL DE PRODUCTOS NAVEGABLE PARA PANTALLAS TÁCTILES */}
+      {isSearchModalOpen && (() => {
+        // Estado local del buscador dentro del modal
+        const [modalSearch, setModalSearch] = useState('');
+        const [modalCat, setModalCat] = useState('all');
+        const [modalBrand, setModalBrand] = useState('all');
+        const [modalWh, setModalWh] = useState('all');
+        const [modalTab, setModalTab] = useState('all'); // 'all' | 'best_sellers'
+
+        // Filtrar productos para el modal
+        const modalFilteredProducts = products.filter(p => {
+          // Búsqueda por texto
+          const matchesSearch = !modalSearch || 
+            (p.name || '').toLowerCase().includes(modalSearch.toLowerCase()) || 
+            (p.sku || '').toLowerCase().includes(modalSearch.toLowerCase()) || 
+            (p.codigoBarras || '').includes(modalSearch);
+          
+          // Categoría, Marca, Bodega
+          const matchesCategory = modalCat === 'all' || p.categoria === modalCat;
+          const matchesBrand = modalBrand === 'all' || p.marca === modalBrand;
+          const matchesWarehouse = modalWh === 'all' || p.bodega === modalWh;
+          
+          // Filtro rápido de más vendidos
+          let matchesTab = true;
+          if (modalTab === 'best_sellers') {
+            const bs = bestSellers.find(item => item.id === p.id);
+            matchesTab = bs && bs.salesCount > 0;
+          }
+
+          return matchesSearch && matchesCategory && matchesBrand && matchesWarehouse && matchesTab;
+        });
+
+        // Ordenar en caso de ser "más vendidos"
+        const finalModalProducts = modalTab === 'best_sellers' 
+          ? [...modalFilteredProducts].sort((a, b) => {
+              const countA = bestSellers.find(x => x.id === a.id)?.salesCount || 0;
+              const countB = bestSellers.find(x => x.id === b.id)?.salesCount || 0;
+              return countB - countA;
+            })
+          : modalFilteredProducts;
+
+        return (
+          <div className="fixed inset-0 z-[150] flex items-center justify-center bg-slate-900/30 backdrop-blur-xs select-none p-4">
+            <div className="absolute inset-0" onClick={() => setIsSearchModalOpen(false)}></div>
+            
+            <div className="relative w-full max-w-4xl h-[85vh] max-h-[640px] bg-white rounded-2xl border border-[#CDD1EA] flex flex-col overflow-hidden shadow-none">
+              
+              {/* HEADER DEL MODAL: Título y Buscador */}
+              <div className="p-4 border-b border-slate-100 flex items-center justify-between gap-4 bg-slate-50 shrink-0">
+                <div className="flex items-center gap-2 shrink-0">
+                  <SlidersHorizontal size={18} className="text-primary" />
+                  <span className="font-extrabold text-sm text-slate-800 uppercase tracking-wider">Buscador Profesional</span>
+                </div>
+
+                {/* Input Buscador */}
+                <div className="flex-1 max-w-md relative">
+                  <div className="flex items-center gap-2 px-3 h-10 rounded-xl bg-white border border-[#CDD1EA] transition-all">
+                    <Search size={16} className="text-primary shrink-0" />
+                    <input 
+                      type="text" 
+                      placeholder="Buscar por nombre, SKU o código..." 
+                      value={modalSearch}
+                      onChange={e => setModalSearch(e.target.value)}
+                      className="bg-transparent border-none outline-none text-sm w-full focus:ring-0 text-black placeholder-gray-400 font-bold focus-visible:outline-none focus:outline-none"
+                      autoFocus
+                    />
+                    {modalSearch && (
+                      <button 
+                        type="button"
+                        onClick={() => setModalSearch('')}
+                        className="text-gray-400 hover:text-gray-600 p-0.5 rounded-full"
+                      >
+                        <X size={14} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Botón de Cerrar */}
+                <button 
+                  type="button"
+                  onClick={() => setIsSearchModalOpen(false)} 
+                  className="p-2 text-slate-500 hover:text-slate-800 transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* CUERPO DEL MODAL: Sidebar Izquierda + Resultados Derecha */}
+              <div className="flex flex-1 overflow-hidden min-h-0">
+                
+                {/* SIDEBAR DE FILTROS */}
+                <div className="w-[200px] border-r border-slate-150 bg-slate-50/50 overflow-y-auto p-3 flex flex-col gap-4 custom-scrollbar">
+                  
+                  {/* Filtro Rápido */}
+                  <div className="space-y-1">
+                    <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-wider px-2">Filtros Rápidos</h4>
+                    <button
+                      type="button"
+                      onClick={() => { setModalTab('all'); }}
+                      className={`w-full text-left px-2 py-1.5 rounded-lg text-xs font-semibold ${
+                        modalTab === 'all' ? 'bg-primary/10 text-primary' : 'text-slate-700 hover:bg-slate-100'
+                      }`}
+                    >
+                      Todos los Productos
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setModalTab('best_sellers'); }}
+                      className={`w-full text-left px-2 py-1.5 rounded-lg text-xs font-semibold ${
+                        modalTab === 'best_sellers' ? 'bg-primary/10 text-primary' : 'text-slate-700 hover:bg-slate-100'
+                      }`}
+                    >
+                      Más Vendidos
+                    </button>
+                  </div>
+
+                  {/* Categorías */}
+                  <div className="space-y-1">
+                    <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-wider px-2">Categorías</h4>
+                    <button
+                      type="button"
+                      onClick={() => setModalCat('all')}
+                      className={`w-full text-left px-2 py-1.5 rounded-lg text-xs font-semibold ${
+                        modalCat === 'all' ? 'bg-primary/10 text-primary' : 'text-slate-700 hover:bg-slate-100'
+                      }`}
+                    >
+                      Todas ({products.length})
+                    </button>
+                    {categoriesWithCount.map(cat => (
+                      <button
+                        key={cat.name}
+                        type="button"
+                        onClick={() => setModalCat(cat.name)}
+                        className={`w-full text-left px-2 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-between ${
+                          modalCat === cat.name ? 'bg-primary/10 text-primary' : 'text-slate-700 hover:bg-slate-100'
+                        }`}
+                      >
+                        <span className="truncate pr-1">{cat.name}</span>
+                        <span className="text-[10px] font-bold text-slate-400 shrink-0">{cat.count}</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Marcas */}
+                  <div className="space-y-1">
+                    <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-wider px-2">Marcas</h4>
+                    <button
+                      type="button"
+                      onClick={() => setModalBrand('all')}
+                      className={`w-full text-left px-2 py-1.5 rounded-lg text-xs font-semibold ${
+                        modalBrand === 'all' ? 'bg-primary/10 text-primary' : 'text-slate-700 hover:bg-slate-100'
+                      }`}
+                    >
+                      Todas
+                    </button>
+                    {brands.filter(b => b !== 'all').map(brand => (
+                      <button
+                        key={brand}
+                        type="button"
+                        onClick={() => setModalBrand(brand)}
+                        className={`w-full text-left px-2 py-1.5 rounded-lg text-xs font-semibold ${
+                          modalBrand === brand ? 'bg-primary/10 text-primary' : 'text-slate-700 hover:bg-slate-100'
+                        }`}
+                      >
+                        {brand}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Bodegas */}
+                  <div className="space-y-1">
+                    <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-wider px-2">Bodegas</h4>
+                    <button
+                      type="button"
+                      onClick={() => setModalWh('all')}
+                      className={`w-full text-left px-2 py-1.5 rounded-lg text-xs font-semibold ${
+                        modalWh === 'all' ? 'bg-primary/10 text-primary' : 'text-slate-700 hover:bg-slate-100'
+                      }`}
+                    >
+                      Todas
+                    </button>
+                    {warehouses.filter(w => w !== 'all').map(wh => (
+                      <button
+                        key={wh}
+                        type="button"
+                        onClick={() => setModalWh(wh)}
+                        className={`w-full text-left px-2 py-1.5 rounded-lg text-xs font-semibold ${
+                          modalWh === wh ? 'bg-primary/10 text-primary' : 'text-slate-700 hover:bg-slate-100'
+                        }`}
+                      >
+                        {wh}
+                      </button>
+                    ))}
+                  </div>
+
+                </div>
+
+                {/* RESULTADOS DE BÚSQUEDA */}
+                <div className="flex-1 p-4 overflow-y-auto bg-white custom-scrollbar select-none">
+                  {finalModalProducts.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+                      <Box size={40} className="opacity-30 mb-2" />
+                      <p className="text-xs italic">No se encontraron productos.</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                      {finalModalProducts.map(p => {
+                        const isOutOfStock = p.type === 'producto' && p.inventoryType !== 'VIRTUAL' && p.stock <= 0;
+                        const minStk = p.minStock !== undefined ? Number(p.minStock) : 2;
+                        const isLowStock = p.type === 'producto' && p.inventoryType !== 'VIRTUAL' && p.stock <= minStk && p.stock > 0;
+                        
+                        const cartItem = cart.find(item => item.productId === p.id);
+                        const quantityInCart = cartItem ? cartItem.quantity : 0;
+                        
+                        let stockDotColor = 'bg-emerald-500';
+                        if (isOutOfStock) stockDotColor = 'bg-red-500';
+                        else if (isLowStock) stockDotColor = 'bg-amber-500';
+
+                        const imgUrl = getProductImageUrl(p);
+                        const isImgPlaceholder = imgUrl === '/product.svg';
+
+                        return (
+                          <div
+                            key={p.id}
+                            onClick={() => {
+                              if (!isOutOfStock) {
+                                addToCart(p);
+                                if (navigator.vibrate) navigator.vibrate(10);
+                              }
+                            }}
+                            className={`p-2 border border-[#CDD1EA] rounded-xl flex flex-col justify-between transition-all cursor-pointer relative ${
+                              isOutOfStock 
+                                ? 'cursor-not-allowed bg-slate-50/50' 
+                                : 'hover:border-primary bg-white active:scale-98'
+                            }`}
+                            style={{ height: '150px' }}
+                          >
+                            {quantityInCart > 0 && (
+                              <div className="absolute top-1 right-1 bg-primary text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-none z-20">
+                                {quantityInCart}
+                              </div>
+                            )}
+
+                            {/* Top row: Image & SKU Badge */}
+                            <div className="w-full h-[75px] rounded-lg overflow-hidden relative bg-slate-50 flex items-center justify-center shrink-0">
+                              <div className={`w-full h-full ${isOutOfStock ? 'opacity-40' : ''}`}>
+                                {isImgPlaceholder ? (
+                                  <div className="w-full h-full bg-[#f1f5f9] flex items-center justify-center text-slate-400">
+                                    <Box size={32} strokeWidth={1} />
+                                  </div>
+                                ) : (
+                                  <img src={imgUrl} className="w-full h-full object-cover" alt={p.name} />
+                                )}
+                              </div>
+
+                              {/* SKU Badge */}
+                              <div className="absolute top-0 left-0 px-2 py-0.5 rounded-tl-lg rounded-br-lg bg-slate-100/95 flex items-center gap-1 z-10">
+                                <span className={`w-1.5 h-1.5 rounded-full ${stockDotColor}`}></span>
+                                <span className="font-mono text-[8px] text-slate-600 truncate max-w-[60px]">{p.sku}</span>
+                              </div>
+
+                              {/* Sin Stock text overlay */}
+                              {isOutOfStock && (
+                                <div className="absolute inset-0 flex items-center justify-center z-15 pointer-events-none">
+                                  <span className="text-[10px] font-black text-blue-600 tracking-wider">SIN STOCK</span>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Bottom row: Info & Price */}
+                            <div className="mt-1 flex flex-col justify-between flex-1">
+                              <h5 className={`text-[10px] font-bold leading-tight line-clamp-2 text-left ${
+                                isOutOfStock ? 'text-slate-400' : 'text-slate-700'
+                              }`}>
+                                {p.name}
+                              </h5>
+                              <div className="flex items-center justify-between gap-1 mt-0.5">
+                                <span className="text-[9px] text-slate-400 font-medium font-mono truncate max-w-[60px]">
+                                  {p.inventoryType === 'VIRTUAL' ? 'Virtual' : `Stock: ${p.stock}`}
+                                </span>
+                                <span className={`text-xs font-black font-mono ${
+                                  isOutOfStock ? 'text-red-500' : 'text-primary'
+                                }`}>
+                                  ${Number(p.price).toFixed(2)}
+                                </span>
+                              </div>
+                            </div>
+
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+        );
+      })()}
 
     </div>,
     document.body
