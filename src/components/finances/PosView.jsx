@@ -29,8 +29,8 @@ function sanitizeData(obj) {
 
 const getProductImageUrl = (p) => {
   const url = p?.imageUrl || p?.image || '';
-  if (!url || url.trim() === '' || url === 'https://placehold.co/' || url === 'https://placehold.co') {
-    return 'https://placehold.co/600x600/png?text=Sin+Imagen';
+  if (!url || url.trim() === '' || url === 'https://placehold.co/' || url === 'https://placehold.co' || url.includes('placehold.co')) {
+    return 'https://placehold.net/product.svg';
   }
   return url;
 };
@@ -1771,7 +1771,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                         className="w-10 h-10 rounded-lg object-cover shrink-0 border border-slate-200" 
                         alt={p.name} 
                         onError={(e) => {
-                          e.target.src = 'https://placehold.co/600x600/png?text=Sin+Imagen';
+                          e.target.src = 'https://placehold.net/product.svg';
                         }}
                       />
                       <div className="min-w-0 flex-1">
@@ -1849,7 +1849,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                         className="w-10 h-10 rounded-lg object-cover shrink-0 border border-slate-200" 
                         alt={p.name} 
                         onError={(e) => {
-                          e.target.src = 'https://placehold.co/600x600/png?text=Sin+Imagen';
+                          e.target.src = 'https://placehold.net/product.svg';
                         }}
                       />
                       <div className="space-y-0.5 min-w-0 flex-1">
@@ -1941,7 +1941,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                     className="w-10 h-10 rounded-lg object-cover shrink-0 border border-slate-100" 
                     alt={item.name} 
                     onError={(e) => {
-                      e.target.src = 'https://placehold.co/600x600/png?text=Sin+Imagen';
+                      e.target.src = 'https://placehold.net/product.svg';
                     }}
                   />
 
