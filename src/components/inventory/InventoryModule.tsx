@@ -211,7 +211,7 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
   }
 
   const handleDeleteProduct = async (id: string) => {
-    if (!confirm("¿Está seguro de eliminar este producto/servicio?")) return;
+    if (!await confirm("¿Está seguro de eliminar este producto/servicio?")) return;
     try {
       await productRepository.delete(id);
       await loadCatalogData();

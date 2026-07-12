@@ -907,7 +907,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
   };
 
   const handleVoidTransaction = async (tx) => {
-    if (!window.confirm(`¿Estás seguro de que deseas ANULAR este comprobante (${tx.id})? Esto restaurará el stock de los productos.`)) {
+    if (!await window.confirm(`¿Estás seguro de que deseas ANULAR este comprobante (${tx.id})? Esto restaurará el stock de los productos.`)) {
       return;
     }
     try {
@@ -1488,8 +1488,8 @@ export default function PosView({ products, thirdParties, transactions = [], sho
 
                 <button
                   type="button"
-                  onClick={() => {
-                    if (window.confirm("¿Seguro que deseas abandonar la venta actual? Se vaciará el carrito y se reiniciará el POS.")) {
+                  onClick={async () => {
+                    if (await window.confirm("¿Seguro que deseas abandonar la venta actual? Se vaciará el carrito y se reiniciará el POS.")) {
                       setCart([]);
                       setSelectedClientId('');
                       setPosDocType('factura');

@@ -1005,22 +1005,22 @@ export default function GeneralSettings({
  };
 
  const handleDeleteUser = async (userId) => {
- if (localUsers.length <= 1) {
- showToast("Debe haber al menos un usuario administrador en el espacio","error");
- return;
- }
- if (window.confirm("¿Seguro que deseas remover este usuario?")) {
- const updatedUsers = localUsers.filter(u => u.id !== userId);
- try {
- const docRef = doc(db,'artifacts', appId,'public','data','meta','info');
- await setDoc(docRef, { users: updatedUsers }, { merge: true });
- setLocalUsers(updatedUsers);
- showToast("Usuario removido del espacio","success");
- } catch (err) {
- showToast("Error al remover usuario","error");
- }
- }
- };
+    if (localUsers.length <= 1) {
+      showToast("Debe haber al menos un usuario administrador en el espacio","error");
+      return;
+    }
+    if (await window.confirm("¿Seguro que deseas remover este usuario?")) {
+      const updatedUsers = localUsers.filter(u => u.id !== userId);
+      try {
+        const docRef = doc(db,'artifacts', appId,'public','data','meta','info');
+        await setDoc(docRef, { users: updatedUsers }, { merge: true });
+        setLocalUsers(updatedUsers);
+        showToast("Usuario removido del espacio","success");
+      } catch (err) {
+        showToast("Error al remover usuario","error");
+      }
+    }
+  };
 
  const inputClass =`w-full text-xs px-3 py-2.5 rounded-card outline-none transition-all border bg-white border-gray-300 text-gray-900 focus:border-primary focus:ring-1 focus:ring-primary/35 font-medium`;
 

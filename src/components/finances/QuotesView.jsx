@@ -167,7 +167,7 @@ export default function QuotesView({ products, thirdParties,  showToast, db, app
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("¿Seguro que deseas eliminar esta cotización?")) {
+    if (await window.confirm("¿Seguro que deseas eliminar esta cotización?")) {
       try {
         await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_quotes', id));
         showToast("Cotización eliminada", "success");

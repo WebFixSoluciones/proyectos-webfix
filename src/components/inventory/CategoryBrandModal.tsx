@@ -88,7 +88,7 @@ export default function CategoryBrandModal({ onClose, onChanged }: CategoryBrand
   };
 
   const handleDeleteCategory = async (id: string) => {
-    if (!confirm("¿Está seguro de eliminar esta categoría?")) return;
+    if (!await confirm("¿Está seguro de eliminar esta categoría?")) return;
     setLoading(true);
     try {
       await categoryBrandRepository.deleteCategory(id);
@@ -102,7 +102,7 @@ export default function CategoryBrandModal({ onClose, onChanged }: CategoryBrand
   };
 
   const handleDeleteBrand = async (id: string) => {
-    if (!confirm("¿Está seguro de eliminar esta marca?")) return;
+    if (!await confirm("¿Está seguro de eliminar esta marca?")) return;
     setLoading(true);
     try {
       await categoryBrandRepository.deleteBrand(id);

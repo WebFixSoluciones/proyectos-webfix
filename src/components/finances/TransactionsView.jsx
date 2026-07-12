@@ -276,7 +276,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
       alert("No se puede eliminar un comprobante electrónico (Factura / Retención / Nota de Crédito). Para anular la validez de este documento, se recomienda generar una Nota de Crédito o realizar la anulación directamente desde su cuenta del SRI.");
       return;
     }
-    if (window.confirm('¿Seguro que deseas eliminar esta transacción permanentemente?')) {
+    if (await window.confirm('¿Seguro que deseas eliminar esta transacción permanentemente?')) {
       try {
         await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', tx.id));
         showToast('Transacción eliminada', 'success');

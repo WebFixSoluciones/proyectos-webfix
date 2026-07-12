@@ -61,7 +61,8 @@ import {
   Building,
   Calculator,
   CloudOff,
-  LifeBuoy
+  LifeBuoy,
+  AlertCircle
 } from 'lucide-react';
 
 import {
@@ -595,6 +596,31 @@ export default function App() {
 
   // --- SISTEMA DE TOASTS MINIMALISTAS ---
   const [toasts, setToasts] = useState([]);
+  const [globalConfirmDialog, setGlobalConfirmDialog] = useState(null);
+
+  useEffect(() => {
+    // Sobrescribir confirm nativo para usar nuestro modal personalizado
+    window.confirm = (message) => {
+      return new Promise((resolve) => {
+        setGlobalConfirmDialog({
+          message,
+          onConfirm: () => {
+            setGlobalConfirmDialog(null);
+            resolve(true);
+          },
+          onCancel: () => {
+            setGlobalConfirmDialog(null);
+            resolve(false);
+          }
+        });
+      });
+    };
+
+    // Sobrescribir alert nativo para usar showToast
+    window.alert = (message) => {
+      showToast(message, 'error');
+    };
+  }, []);
 
   const showToast = (message, type = 'success') => {
     const id = Date.now() + Math.random();
@@ -2988,6 +3014,37 @@ export default function App() {
           </div>
         ))}
       </div>
+
+      {/* Confirmación Global Personalizada */}
+      {globalConfirmDialog && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl border border-slate-100 max-w-sm w-full overflow-hidden p-6 animate-in zoom-in-95 duration-200">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-12 h-12 rounded-full bg-amber-50 border border-amber-100 flex items-center justify-center shrink-0 mb-4 animate-bounce">
+                <AlertCircle className="text-amber-500" size={24} />
+              </div>
+              <h3 className="text-base font-black text-slate-900 leading-tight">¿Estás seguro?</h3>
+              <p className="text-xs font-semibold text-slate-500 mt-2.5 leading-relaxed whitespace-pre-wrap">{globalConfirmDialog.message}</p>
+            </div>
+            <div className="flex items-center gap-3 mt-6 pt-4 border-t border-slate-100">
+              <button 
+                type="button"
+                onClick={globalConfirmDialog.onCancel}
+                className="flex-1 py-2.5 rounded-xl text-xs font-bold border border-slate-200 text-slate-650 hover:bg-slate-50 transition-all active:scale-95"
+              >
+                Cancelar
+              </button>
+              <button 
+                type="button"
+                onClick={globalConfirmDialog.onConfirm}
+                className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-primary text-white hover:bg-primary-hover shadow-sm transition-all active:scale-95"
+              >
+                Aceptar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
         </div>
       } />

@@ -129,7 +129,7 @@ export default function ThirdPartiesView({ thirdParties, showToast, db, appId, f
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('¿Seguro que deseas eliminar este registro?')) {
+    if (await window.confirm('¿Seguro que deseas eliminar este registro?')) {
       try {
         await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_third_parties', id));
         showToast('Registro eliminado', 'success');

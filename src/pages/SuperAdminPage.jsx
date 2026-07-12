@@ -346,7 +346,7 @@ export default function SuperAdminPage({ showToast }) {
   }, [viewMode, selectedTenantDetails, godModeCollection]);
 
   const handleDeleteGodModeDoc = async (docId) => {
-    if (!window.confirm(`PELIGRO (God Mode): Estás a punto de borrar permanentemente el documento ${docId}. Esta acción saltará todas las reglas del ERP y no se puede deshacer. ¿Continuar?`)) {
+    if (!await window.confirm(`PELIGRO (God Mode): Estás a punto de borrar permanentemente el documento ${docId}. Esta acción saltará todas las reglas del ERP y no se puede deshacer. ¿Continuar?`)) {
       return;
     }
     try {

@@ -178,7 +178,7 @@ export default function GastosCreditosModule({ showToast, transactions = [], thi
 
   // Eliminar pasivo
   const handleDeleteLiability = async (id) => {
-    if (!window.confirm("¿Está seguro de eliminar este pasivo financiero? No se borrarán los pagos registrados en la contabilidad.")) {
+    if (!await window.confirm("¿Está seguro de eliminar este pasivo financiero? No se borrarán los pagos registrados en la contabilidad.")) {
       return;
     }
     try {

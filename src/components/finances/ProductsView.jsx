@@ -124,7 +124,7 @@ export default function ProductsView({ showToast, db, appId }) {
 
   const handleDelete = async (id) => {
     if (
-      window.confirm(
+      await window.confirm(
         "¿Seguro que deseas eliminar este producto/servicio de forma permanente?",
       )
     ) {

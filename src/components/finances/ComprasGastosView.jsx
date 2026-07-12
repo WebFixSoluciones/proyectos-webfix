@@ -97,7 +97,7 @@ Gracias por su compra`;
 
   // Eliminar gasto de la contabilidad (los egresos ingresados)
   const handleDeleteGasto = async (id) => {
-    if (!window.confirm("¿Está seguro de eliminar este gasto de la contabilidad?")) {
+    if (!await window.confirm("¿Está seguro de eliminar este gasto de la contabilidad?")) {
       return;
     }
     try {
