@@ -1055,15 +1055,15 @@ export default function PosView({ products, thirdParties, transactions = [], sho
     <div className="fixed inset-0 z-[100] bg-surface-card text-text-secondary flex flex-col overflow-hidden animate-in fade-in duration-300">
       
       {/* TOP HEADER POS */}
-      <div className="h-14 px-4 border-b flex items-center justify-between shrink-0 bg-white border-primary/15 text-text-secondary gap-4">
+      <div className="h-16 px-4 border-b flex items-center justify-between shrink-0 bg-[#f8fafc]/90 backdrop-blur-md border-primary/15 text-text-secondary gap-4">
         
         {/* BUSCADORES Y SELECT DE COMPROBANTE (Parte Izquierda/Centro) */}
-        <div className="flex-1 flex items-center gap-2 max-w-[75%]">
+        <div className="flex-1 flex items-center gap-2.5 max-w-[75%]">
           
           {/* Buscar Producto, Código */}
           <div className="w-[45%] max-w-[360px] relative">
-            <div className="flex items-center gap-2 px-3 h-9 rounded-card border transition-all border-primary/20 bg-primary-light">
-              <Search size={13} className="text-primary shrink-0" />
+            <div className="flex items-center gap-2 px-3.5 h-10 rounded-card bg-white border-none shadow-sm transition-all">
+              <Search size={16} className="text-primary shrink-0" />
               <input 
                 type="text" 
                 id="pos-search-input"
@@ -1071,15 +1071,15 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
                 onKeyDown={handleSearchKeyDown}
-                className="bg-transparent border-none outline-none text-xs w-full focus:ring-0 text-black placeholder-gray-400 font-bold"
+                className="bg-transparent border-none outline-none text-sm w-full focus:ring-0 text-black placeholder-gray-400 font-bold"
               />
               {searchTerm && (
                 <button 
                   type="button"
                   onClick={() => setSearchTerm('')}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-gray-500 hover:text-gray-750 p-0.5 rounded-full"
                 >
-                  <X size={12} />
+                  <X size={14} />
                 </button>
               )}
             </div>
@@ -1088,13 +1088,13 @@ export default function PosView({ products, thirdParties, transactions = [], sho
           {/* Cliente, Nombre, RUC */}
           <div className="w-[45%] max-w-[360px] relative">
             {selectedClientId ? (
-              <div className="flex items-center justify-between px-3 h-9 rounded-card border border-primary/20 bg-primary/5 text-black">
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <User size={13} className="text-primary shrink-0" />
-                  <span className="text-xs font-bold truncate max-w-[160px] uppercase">
+              <div className="flex items-center justify-between px-3.5 h-10 rounded-card bg-white border-none shadow-sm text-black">
+                <div className="flex items-center gap-2 min-w-0">
+                  <User size={16} className="text-primary shrink-0" />
+                  <span className="text-sm font-bold truncate max-w-[160px] uppercase">
                     {getSelectedClient().name}
                   </span>
-                  <span className="text-[10px] text-gray-500 font-mono">
+                  <span className="text-xs text-gray-500 font-mono">
                     ({getSelectedClient().ruc})
                   </span>
                 </div>
@@ -1107,12 +1107,12 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                   className="text-gray-500 hover:text-red-500 p-0.5 rounded-full transition-colors"
                   title="Quitar Cliente"
                 >
-                  <X size={13} />
+                  <X size={15} />
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-2 px-3 h-9 rounded-card border transition-all border-primary/20 bg-primary-light">
-                <Search size={13} className="text-primary shrink-0" />
+              <div className="flex items-center gap-2 px-3.5 h-10 rounded-card bg-white border-none shadow-sm transition-all">
+                <Search size={16} className="text-primary shrink-0" />
                 <input 
                   type="text"
                   placeholder="Cliente, Nombre, RUC"
@@ -1122,7 +1122,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                     setIsClientDropdownOpen(true);
                   }}
                   onFocus={() => setIsClientDropdownOpen(true)}
-                  className="bg-transparent border-none outline-none text-xs w-full focus:ring-0 text-black placeholder-gray-400 font-bold"
+                  className="bg-transparent border-none outline-none text-sm w-full focus:ring-0 text-black placeholder-gray-400 font-bold"
                 />
                 {clientSearchTerm && (
                   <button 
@@ -1131,9 +1131,9 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                       setClientSearchTerm('');
                       setIsClientDropdownOpen(false);
                     }}
-                    className="text-gray-500 hover:text-gray-700"
+                    className="text-gray-500 hover:text-gray-750 p-0.5 rounded-full"
                   >
-                    <X size={12} />
+                    <X size={14} />
                   </button>
                 )}
               </div>
@@ -1185,10 +1185,10 @@ export default function PosView({ products, thirdParties, transactions = [], sho
               });
               setIsQuickAddOpen(true);
             }} 
-            className="w-9 h-9 rounded-card flex items-center justify-center bg-primary text-white hover:bg-primary-hover shrink-0"
+            className="w-10 h-10 rounded-card flex items-center justify-center bg-primary text-white hover:bg-primary-hover shrink-0 transition-all"
             title="Crear Nuevo Cliente"
           >
-            <UserPlus size={14} />
+            <UserPlus size={16} />
           </button>
 
           {/* Botón de Selección de Factura, Nota de Venta o Cotización */}
@@ -1196,23 +1196,23 @@ export default function PosView({ products, thirdParties, transactions = [], sho
             <button
               type="button"
               onClick={() => setIsDocTypeDropdownOpen(!isDocTypeDropdownOpen)}
-              className="px-3 h-9 rounded-card flex items-center gap-1.5 bg-primary text-white hover:bg-primary-hover font-bold text-xs shrink-0 select-none"
+              className="px-4 h-10 rounded-card flex items-center gap-1.5 bg-primary text-white hover:bg-primary-hover font-bold text-sm shrink-0 select-none transition-all"
             >
               <span>
                 {posDocType === 'factura' ? 'Factura Electrónica' : posDocType === 'nota_venta' ? 'Nota de Venta' : 'Cotización'}
               </span>
-              <ChevronDown size={12} />
+              <ChevronDown size={14} />
             </button>
             
             {isDocTypeDropdownOpen && (
-              <div className="absolute left-0 mt-1.5 w-44 rounded-card border bg-white border-primary/20 text-black shadow-lg z-50">
+              <div className="absolute left-0 mt-1.5 w-48 rounded-card border bg-white border-primary/20 text-black shadow-lg z-50 py-1">
                 <button
                   type="button"
                   onClick={() => {
                     setPosDocType('factura');
                     setIsDocTypeDropdownOpen(false);
                   }}
-                  className={`w-full text-left px-3 py-2 text-xs font-bold hover:bg-primary/5 ${posDocType === 'factura' ? 'text-primary' : 'text-gray-750'}`}
+                  className={`w-full text-left px-4 py-2.5 text-sm font-bold hover:bg-primary/5 ${posDocType === 'factura' ? 'text-primary' : 'text-gray-750'}`}
                 >
                   Factura Electrónica
                 </button>
@@ -1222,7 +1222,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                     setPosDocType('nota_venta');
                     setIsDocTypeDropdownOpen(false);
                   }}
-                  className={`w-full text-left px-3 py-2 text-xs font-bold hover:bg-primary/5 ${posDocType === 'nota_venta' ? 'text-primary' : 'text-gray-750'}`}
+                  className={`w-full text-left px-4 py-2.5 text-sm font-bold hover:bg-primary/5 ${posDocType === 'nota_venta' ? 'text-primary' : 'text-gray-750'}`}
                 >
                   Nota de Venta
                 </button>
@@ -1232,7 +1232,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                     setPosDocType('cotizacion');
                     setIsDocTypeDropdownOpen(false);
                   }}
-                  className={`w-full text-left px-3 py-2 text-xs font-bold hover:bg-primary/5 ${posDocType === 'cotizacion' ? 'text-primary' : 'text-gray-750'}`}
+                  className={`w-full text-left px-4 py-2.5 text-sm font-bold hover:bg-primary/5 ${posDocType === 'cotizacion' ? 'text-primary' : 'text-gray-750'}`}
                 >
                   Cotización
                 </button>
@@ -1243,7 +1243,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
 
         {/* INFO LOCAL Y BOTONES DE AJUSTE (Parte Derecha) */}
         <div className="flex items-center gap-3 shrink-0">
-          <span className="text-[10px] font-bold text-gray-400 tracking-wider uppercase">
+          <span className="text-xs font-extrabold text-gray-500 tracking-wider uppercase">
             {activeSession?.branch || 'MATRIZ QUITO'} : Fondo ${Number(activeSession?.initialAmount || 100).toFixed(0)}
           </span>
           
@@ -1252,12 +1252,12 @@ export default function PosView({ products, thirdParties, transactions = [], sho
             <button 
               type="button"
               onClick={() => setIsOptionsDropdownOpen(!isOptionsDropdownOpen)} 
-              className={`w-9 h-9 rounded-card flex items-center justify-center border transition-all ${
+              className={`w-10 h-10 rounded-card flex items-center justify-center border transition-all ${
                 isOptionsDropdownOpen ? 'bg-primary/10 border-primary text-primary' : 'border-primary/25 text-primary hover:bg-primary/5 bg-white'
               }`}
               title="Opciones de Caja y POS"
             >
-              <Settings size={15} />
+              <Settings size={18} />
             </button>
             
             {isOptionsDropdownOpen && (
@@ -1337,10 +1337,10 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                 window.location.reload();
               }
             }} 
-            className="w-9 h-9 rounded-card flex items-center justify-center border border-primary/25 text-primary hover:bg-primary/5 bg-white" 
+            className="w-10 h-10 rounded-card flex items-center justify-center border border-primary/25 text-primary hover:bg-primary/5 bg-white" 
             title="Volver al ERP / Cerrar POS"
           >
-            <LogOut size={15} />
+            <LogOut size={18} />
           </button>
         </div>
       </div>
@@ -1925,7 +1925,6 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                   <div className="flex-1 min-w-0">
                     <h4 className="text-xs font-bold truncate text-black" title={item.name}>{item.name}</h4>
                     <p className="text-[10px] text-gray-500 font-mono">{prod?.sku || 'SKU N/A'}</p>
-                    <p className="text-[10px] font-bold text-primary mt-0.5">${Number(item.price).toFixed(2)} c/u</p>
                   </div>
 
                   {/* Selector de Cantidad */}
