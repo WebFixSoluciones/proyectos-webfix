@@ -1111,8 +1111,24 @@ export default function PosView({ products, thirdParties, transactions = [], sho
   return createPortal(
     <div className="fixed inset-0 z-[100] bg-surface-card text-text-secondary flex flex-col overflow-hidden animate-in fade-in duration-300">
       
+      {/* CSS Reset para eliminar bordes de foco del buscador en cualquier navegador */}
+      <style>{`
+        #pos-search-input:focus,
+        #pos-search-input:focus-visible,
+        #pos-search-input:active,
+        .client-search-container input:focus,
+        .client-search-container input:focus-visible {
+          outline: none !important;
+          border: none !important;
+          box-shadow: none !important;
+        }
+      `}</style>
+      
       {/* TOP HEADER POS */}
-      <div className="h-16 px-4 border-b flex items-center justify-between shrink-0 bg-[#f8fafc]/90 backdrop-blur-md border-primary/15 text-text-secondary gap-4 relative z-30">
+      <div 
+        className="h-16 px-4 flex items-center justify-between shrink-0 text-text-secondary gap-4 relative z-30"
+        style={{ backgroundColor: 'color-mix(in srgb, var(--primary) 10%, transparent)' }}
+      >
         
         {/* BUSCADORES Y SELECT DE COMPROBANTE (Parte Izquierda/Centro) */}
         <div className="flex-1 flex items-center gap-2.5 max-w-[75%]">
@@ -1129,7 +1145,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                 onChange={e => setSearchTerm(e.target.value)}
                 onKeyDown={handleSearchKeyDown}
                 className="bg-transparent border-none outline-none text-sm w-full focus:ring-0 text-black placeholder-gray-400 font-bold focus-visible:outline-none focus:outline-none"
-                style={{ outline: 'none', boxShadow: 'none' }}
+                style={{ outline: 'none', border: 'none', boxShadow: 'none' }}
               />
               {searchTerm && (
                 <button 
@@ -1708,10 +1724,10 @@ export default function PosView({ products, thirdParties, transactions = [], sho
           <div className={`flex-1 flex overflow-hidden min-h-0 ${posConfig.cartPosition === 'left' ? 'flex-row-reverse' : ''}`}>
         
         {/* LADO IZQUIERDO: SELECCIÓN Y FILTRO DE PRODUCTOS */}
-        <div className={`flex-1 flex flex-col pt-[7px] px-3 sm:px-4 lg:px-6 pb-6 min-w-0 border-r border-primary/15 bg-white`}>
+        <div className={`flex-1 flex flex-col pt-[7px] px-3 sm:px-4 lg:px-6 pb-6 min-w-0 bg-white`}>
           
           {/* BARRA DE FILTROS SUPER MINIMALISTA (SIN SOMBRAS) */}
-          <div className="flex items-center justify-between gap-4 py-2 mb-4 select-none bg-white border-b border-slate-100 shrink-0">
+          <div className="flex items-center justify-between gap-4 py-2 mb-4 select-none bg-white shrink-0">
             {/* Left: Filter Icon + Ver Todos + Total Count */}
             <div className="flex items-center gap-2 shrink-0">
               <button 
@@ -2014,7 +2030,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
         </div>
 
         {/* LADO DERECHO: DETALLE DEL PEDIDO (CHECKOUT FIJO) */}
-        <div className={`w-full lg:w-[32rem] xl:w-[38rem] flex flex-col shrink-0 border-l bg-white border-primary/15`}>
+        <div className={`w-full lg:w-[32rem] xl:w-[38rem] flex flex-col shrink-0 border-l bg-white border-slate-100`}>
 
 
           
