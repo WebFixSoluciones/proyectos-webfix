@@ -1269,13 +1269,14 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                     }`}
                   >
                     <div className="flex-1 min-w-0 flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-card flex items-center justify-center shrink-0 border ${
-                        p.type === 'producto' 
-                          ? ('bg-primary-light border-primary/25 text-primary') 
-                          : ('bg-purple-50 border-purple-200 text-purple-650')
-                      }`}>
-                        <ShoppingCart size={16} />
-                      </div>
+                      <img 
+                        src={p.imageUrl || p.image || 'https://placehold.co/600x600/png?text=Sin+Imagen'} 
+                        className="w-10 h-10 rounded-lg object-cover shrink-0 border border-slate-200" 
+                        alt={p.name} 
+                        onError={(e) => {
+                          e.target.src = 'https://placehold.co/600x600/png?text=Sin+Imagen';
+                        }}
+                      />
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
                           <span className="font-mono text-xs text-gray-500 shrink-0">{p.sku}</span>
@@ -1345,13 +1346,23 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                         : ('border-primary/15 hover:border-primary/40 hover:bg-primary/5 bg-primary/5 hover:-translate-y-0.5')
                     }`}
                   >
-                    <div className="space-y-1">
-                      <div className="flex justify-between items-center gap-1">
-                        <span className="font-mono text-xs text-gray-500 truncate">{p.sku}</span>
-                        <span className={`px-1.5 py-0.5 rounded text-xs font-bold uppercase ${p.type === 'producto' ? 'bg-primary/10 text-primary' : 'bg-purple-500/10 text-purple-400'}`}>{p.type}</span>
+                    <div className="flex gap-3 items-start min-w-0">
+                      <img 
+                        src={p.imageUrl || p.image || 'https://placehold.co/600x600/png?text=Sin+Imagen'} 
+                        className="w-12 h-12 rounded-lg object-cover shrink-0 border border-slate-200" 
+                        alt={p.name} 
+                        onError={(e) => {
+                          e.target.src = 'https://placehold.co/600x600/png?text=Sin+Imagen';
+                        }}
+                      />
+                      <div className="space-y-1 min-w-0 flex-1">
+                        <div className="flex justify-between items-center gap-1">
+                          <span className="font-mono text-[10px] text-gray-500 truncate">{p.sku}</span>
+                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase shrink-0 ${p.type === 'producto' ? 'bg-primary/10 text-primary' : 'bg-purple-500/10 text-purple-400'}`}>{p.type}</span>
+                        </div>
+                        <h4 className={`text-xs sm:text-sm font-bold leading-snug line-clamp-2 text-black`} title={p.name}>{p.name}</h4>
+                        <p className="text-[10px] text-gray-500 truncate">{p.marca || 'Sin Marca'} | {p.categoria || 'General'}</p>
                       </div>
-                      <h4 className={`text-xs sm:text-base font-bold leading-snug line-clamp-2 text-black`}>{p.name}</h4>
-                      <p className="text-xs text-gray-500 truncate">{p.marca || 'Sin Marca'} | {p.categoria || 'General'}</p>
                     </div>
 
                     <div className={`flex justify-between items-center mt-3 pt-3 border-t border-primary/15`}>

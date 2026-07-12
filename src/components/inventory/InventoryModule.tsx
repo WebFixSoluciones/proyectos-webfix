@@ -365,9 +365,21 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
                             return (
                               <tr key={p.id} className={`transition-colors ${'hover:bg-slate-50/40'}`}>
                                 <td className={`px-6 py-3.5 font-mono text-xs font-bold ${'text-black font-semibold'}`}>{p.sku}</td>
-                                <td className="px-6 py-3.5">
-                                  <span className={`font-semibold ${'text-gray-900 font-bold'}`}>{p.name}</span>
-                                  {p.description && <p className="text-xs text-gray-500 mt-0.5">{p.description}</p>}
+                                <td className="px-6 py-2.5">
+                                  <div className="flex items-center gap-3">
+                                    <img 
+                                      src={p.imageUrl || 'https://placehold.co/600x600/png?text=Sin+Imagen'} 
+                                      className="w-8 h-8 rounded object-cover border border-slate-200" 
+                                      alt={p.name}
+                                      onError={(e) => {
+                                        e.currentTarget.src = 'https://placehold.co/600x600/png?text=Sin+Imagen';
+                                      }}
+                                    />
+                                    <div className="min-w-0">
+                                      <span className={`font-semibold block truncate max-w-[220px] ${'text-gray-900 font-bold'}`}>{p.name}</span>
+                                      {p.description && <p className="text-[10px] text-gray-500 truncate max-w-[220px] mt-0.5">{p.description}</p>}
+                                    </div>
+                                  </div>
                                 </td>
                                 <td className="px-6 py-3.5">
                                   {p.type === 'STANDARD' && <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-primary/10 text-primary border border-primary/20">Estándar</span>}
