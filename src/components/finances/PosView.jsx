@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Search, ShoppingCart, Plus, Minus, Trash2, User, Sparkles, CheckCircle2, DollarSign, CreditCard, X, ShieldAlert, Award, Layers, Tag, Bookmark, RefreshCw, LogOut, ArrowRight, ArrowLeft, ChevronRight, Settings, Barcode, Zap, Eye, Mic, Keyboard, History, Download, FileText, Unlock, UserPlus, Edit3, Phone, Mail, MoreHorizontal, ChevronDown, Sliders, Box, SlidersHorizontal, LayoutGrid, List } from 'lucide-react';
+import { Search, ShoppingCart, Plus, Minus, Trash2, User, Sparkles, CheckCircle2, DollarSign, CreditCard, X, ShieldAlert, Award, Layers, Tag, Bookmark, RefreshCw, LogOut, ArrowRight, ArrowLeft, ChevronRight, Settings, Barcode, Zap, Eye, Mic, Keyboard, History, Download, FileText, Unlock, UserPlus, Edit3, Phone, Mail, MoreHorizontal, ChevronDown, Sliders, Box, SlidersHorizontal, LayoutGrid, List, Scan } from 'lucide-react';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, onSnapshot } from 'firebase/firestore';
 import { consultarRucSri, getEcuadorDateString } from '../../services/sriService';
 import { registrarMovimientoKardex } from '../../services/inventoryService';
@@ -85,6 +85,13 @@ export default function PosView({ products, thirdParties, transactions = [], sho
   const [filterWarehouse, setFilterWarehouse] = useState('all');
   const [filterStock, setFilterStock] = useState('all'); // 'all', 'instock'
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+
+  // Estados Locales para el Buscador Modal (Declarados al nivel superior del componente)
+  const [modalSearch, setModalSearch] = useState('');
+  const [modalCat, setModalCat] = useState('all');
+  const [modalBrand, setModalBrand] = useState('all');
+  const [modalWh, setModalWh] = useState('all');
+  const [modalTab, setModalTab] = useState('all'); // 'all' | 'best_sellers'
 
   // Descuentos
   const [discountType, setDiscountType] = useState('percent'); // 'percent' o 'fixed'
@@ -1126,25 +1133,24 @@ export default function PosView({ products, thirdParties, transactions = [], sho
       
       {/* TOP HEADER POS */}
       <div 
-        className="h-16 px-4 flex items-center justify-between shrink-0 text-text-secondary gap-4 relative z-30"
+        className="h-auto md:h-16 py-3 md:py-0 px-4 flex flex-col md:flex-row items-center justify-between shrink-0 text-text-secondary gap-4 relative z-30"
         style={{ backgroundColor: 'color-mix(in srgb, var(--primary) 10%, transparent)' }}
       >
         
-        {/* BUSCADORES Y SELECT DE COMPROBANTE (Parte Izquierda/Centro) */}
-        <div className="flex-1 flex items-center gap-2.5 max-w-[75%]">
-          
+        {/* Left Area: matches products catalog width */}
+        <div className="flex-1 flex items-center gap-2.5 w-full md:w-auto">
           {/* Buscar Producto, Código */}
-          <div className="w-[45%] max-w-[360px] relative">
+          <div className="flex-1 max-w-[420px] relative">
             <div className="flex items-center gap-2 px-3.5 h-10 rounded-card bg-white border-none shadow-sm transition-all">
-              <Search size={16} className="text-primary shrink-0" />
+              <Scan size={16} className="text-primary shrink-0" />
               <input 
                 type="text" 
                 id="pos-search-input"
-                placeholder="Buscar Producto, Código" 
+                placeholder="Producto, Nombre, Código" 
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
                 onKeyDown={handleSearchKeyDown}
-                className="bg-transparent border-none outline-none text-sm w-full focus:ring-0 text-black placeholder-gray-400 font-bold focus-visible:outline-none focus:outline-none"
+                className="bg-transparent border-none outline-none text-sm w-full focus:ring-0 text-black placeholder-gray-400 font-semibold focus-visible:outline-none focus:outline-none"
                 style={{ outline: 'none', border: 'none', boxShadow: 'none' }}
               />
               {searchTerm && (
@@ -1160,15 +1166,15 @@ export default function PosView({ products, thirdParties, transactions = [], sho
           </div>
 
           {/* Cliente, Nombre, RUC */}
-          <div className="w-[45%] max-w-[360px] relative client-search-container">
+          <div className="flex-1 max-w-[320px] relative client-search-container">
             {selectedClientId ? (
               <div className="flex items-center justify-between px-3.5 h-10 rounded-card bg-white border-none shadow-sm text-black">
                 <div className="flex items-center gap-2 min-w-0">
                   <User size={16} className="text-primary shrink-0" />
-                  <span className="text-sm font-bold truncate max-w-[160px] uppercase">
+                  <span className="text-sm font-semibold truncate max-w-[160px] uppercase">
                     {getSelectedClient().name}
                   </span>
-                  <span className="text-xs text-gray-500 font-mono">
+                  <span className="text-xs text-gray-550 font-mono">
                     ({getSelectedClient().ruc})
                   </span>
                 </div>
@@ -1196,8 +1202,8 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                     setIsClientDropdownOpen(true);
                   }}
                   onFocus={() => setIsClientDropdownOpen(true)}
-                  className="bg-transparent border-none outline-none text-sm w-full focus:ring-0 text-black placeholder-gray-400 font-bold focus-visible:outline-none focus:outline-none"
-                  style={{ outline: 'none', boxShadow: 'none' }}
+                  className="bg-transparent border-none outline-none text-sm w-full focus:ring-0 text-black placeholder-gray-400 font-semibold focus-visible:outline-none focus:outline-none"
+                  style={{ outline: 'none', border: 'none', boxShadow: 'none' }}
                 />
                 {clientSearchTerm && (
                   <button 
@@ -1260,18 +1266,21 @@ export default function PosView({ products, thirdParties, transactions = [], sho
               });
               setIsQuickAddOpen(true);
             }} 
-            className="w-10 h-10 rounded-card flex items-center justify-center bg-primary text-white hover:bg-primary-hover shrink-0 transition-all"
+            className="w-10 h-10 rounded-card flex items-center justify-center bg-primary text-white hover:bg-primary-hover shrink-0 transition-all cursor-pointer"
             title="Crear Nuevo Cliente"
           >
             <UserPlus size={16} />
           </button>
+        </div>
 
+        {/* Right Area: matches checkout panel width */}
+        <div className="w-full lg:w-[32rem] xl:w-[38rem] flex items-center justify-between shrink-0 gap-3">
           {/* Botón de Selección de Factura, Nota de Venta o Cotización */}
           <div className="relative doc-type-selector-container">
             <button
               type="button"
               onClick={() => setIsDocTypeDropdownOpen(!isDocTypeDropdownOpen)}
-              className="px-4 h-10 rounded-card flex items-center gap-1.5 bg-primary text-white hover:bg-primary-hover font-bold text-sm shrink-0 select-none transition-all"
+              className="px-4 h-10 rounded-card flex items-center gap-1.5 bg-primary text-white hover:bg-primary-hover font-bold text-sm shrink-0 select-none transition-all cursor-pointer"
             >
               <span>
                 {posDocType === 'factura' ? 'Factura Electrónica' : posDocType === 'nota_venta' ? 'Nota de Venta' : 'Cotización'}
@@ -1314,109 +1323,114 @@ export default function PosView({ products, thirdParties, transactions = [], sho
               </div>
             )}
           </div>
-        </div>
 
-        {/* INFO LOCAL Y BOTONES DE AJUSTE (Parte Derecha) */}
-        <div className="flex items-center gap-3 shrink-0">
-          <span className="text-xs font-extrabold text-gray-500 tracking-wider uppercase">
-            {activeSession?.branch || 'MATRIZ QUITO'} : Fondo ${Number(activeSession?.initialAmount || 100).toFixed(0)}
-          </span>
-          
-          {/* Dropdown del Gear (Settings) */}
-          <div className="relative options-gear-container">
-            <button 
-              type="button"
-              onClick={() => setIsOptionsDropdownOpen(!isOptionsDropdownOpen)} 
-              className={`w-10 h-10 rounded-card flex items-center justify-center border transition-all ${
-                isOptionsDropdownOpen ? 'bg-primary/10 border-primary text-primary' : 'border-primary/25 text-primary hover:bg-primary/5 bg-white'
-              }`}
-              title="Opciones de Caja y POS"
-            >
-              <Settings size={18} />
-            </button>
+          {/* INFO LOCAL Y BOTONES DE AJUSTE */}
+          <div className="flex items-center gap-3">
+            <div className="text-xs tracking-wide select-none">
+              <span className="font-extrabold text-slate-800 uppercase">
+                {activeSession?.branch || 'MATRIZ QUITO'} : 
+              </span>
+              <span className="font-semibold text-slate-400">
+                {' '}Fondo ${Number(activeSession?.initialAmount || 100).toFixed(0)}
+              </span>
+            </div>
             
-            {isOptionsDropdownOpen && (
-              <div className="absolute right-0 mt-1.5 w-52 rounded-card border bg-white border-primary/20 text-black shadow-lg z-50 py-1">
-                {hasSuspendedSale && (
+            {/* Dropdown del Gear (Settings) */}
+            <div className="relative options-gear-container">
+              <button 
+                type="button"
+                onClick={() => setIsOptionsDropdownOpen(!isOptionsDropdownOpen)} 
+                className={`w-10 h-10 rounded-card flex items-center justify-center border transition-all cursor-pointer ${
+                  isOptionsDropdownOpen ? 'bg-primary/10 border-primary text-primary' : 'border-primary/25 text-primary hover:bg-primary/5 bg-white'
+                }`}
+                title="Opciones de Caja y POS"
+              >
+                <Settings size={18} />
+              </button>
+              
+              {isOptionsDropdownOpen && (
+                <div className="absolute right-0 mt-1.5 w-52 rounded-card border bg-white border-primary/20 text-black shadow-lg z-50 py-1">
+                  {hasSuspendedSale && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        resumeSale();
+                        setIsOptionsDropdownOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-2 text-xs font-bold text-emerald-600 hover:bg-emerald-50 flex items-center gap-2"
+                    >
+                      <ShoppingCart size={13} />
+                      <span>Recuperar Venta</span>
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={() => {
-                      resumeSale();
-                      setIsOptionsDropdownOpen(false);
-                    }}
-                    className="w-full text-left px-3 py-2 text-xs font-bold text-emerald-600 hover:bg-emerald-50 flex items-center gap-2"
-                  >
-                    <ShoppingCart size={13} />
-                    <span>Recuperar Venta</span>
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsShortcutsOpen(true);
-                    setIsOptionsDropdownOpen(false);
-                  }}
-                  className="w-full text-left px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-primary/5 flex items-center gap-2"
-                >
-                  <Keyboard size={13} />
-                  <span>Ver Atajos de Teclado (F2)</span>
-                </button>
-                {!isPreventaOnly && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsHistoryOpen(true);
-                      setIsOptionsDropdownOpen(false);
-                    }}
-                    className="w-full text-left px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-primary/5 flex items-center gap-2"
-                  >
-                    <History size={13} />
-                    <span>Historial de Ventas</span>
-                  </button>
-                )}
-                {!isPreventaOnly && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      handleOpenCloseModal();
+                      setIsShortcutsOpen(true);
                       setIsOptionsDropdownOpen(false);
                     }}
                     className="w-full text-left px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-primary/5 flex items-center gap-2"
                   >
-                    <DollarSign size={13} />
-                    <span>Arqueo / Cerrar Caja</span>
+                    <Keyboard size={13} />
+                    <span>Ver Atajos de Teclado (F2)</span>
                   </button>
-                )}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsConfigOpen(true);
-                    setIsOptionsDropdownOpen(false);
-                  }}
-                  className="w-full text-left px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-primary/5 flex items-center gap-2"
-                >
-                  <Sliders size={13} />
-                  <span>Personalización del POS</span>
-                </button>
-              </div>
-            )}
-          </div>
+                  {!isPreventaOnly && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsHistoryOpen(true);
+                        setIsOptionsDropdownOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-primary/5 flex items-center gap-2"
+                    >
+                      <History size={13} />
+                      <span>Historial de Ventas</span>
+                    </button>
+                  )}
+                  {!isPreventaOnly && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleOpenCloseModal();
+                        setIsOptionsDropdownOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-primary/5 flex items-center gap-2"
+                    >
+                      <DollarSign size={13} />
+                      <span>Arqueo / Cerrar Caja</span>
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsConfigOpen(true);
+                      setIsOptionsDropdownOpen(false);
+                    }}
+                    className="w-full text-left px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-primary/5 flex items-center gap-2"
+                  >
+                    <Sliders size={13} />
+                    <span>Personalización del POS</span>
+                  </button>
+                </div>
+              )}
+            </div>
 
-          {/* Botón Salir */}
-          <button 
-            type="button"
-            onClick={() => {
-              if (onClose) {
-                onClose();
-              } else {
-                window.location.reload();
-              }
-            }} 
-            className="w-10 h-10 rounded-card flex items-center justify-center border border-primary/25 text-primary hover:bg-primary/5 bg-white" 
-            title="Volver al ERP / Cerrar POS"
-          >
-            <LogOut size={18} />
-          </button>
+            {/* Botón Salir */}
+            <button 
+              type="button" 
+              onClick={() => {
+                if (onClose) {
+                  onClose();
+                } else {
+                  window.location.reload();
+                }
+              }} 
+              className="w-10 h-10 rounded-card flex items-center justify-center border border-primary/25 text-primary hover:bg-primary/5 bg-white transition-all cursor-pointer" 
+              title="Volver al ERP / Cerrar POS"
+            >
+              <LogOut size={18} />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -3386,12 +3400,6 @@ export default function PosView({ products, thirdParties, transactions = [], sho
 
       {/* MODAL: BUSCADOR PROFESIONAL DE PRODUCTOS NAVEGABLE PARA PANTALLAS TÁCTILES */}
       {isSearchModalOpen && (() => {
-        // Estado local del buscador dentro del modal
-        const [modalSearch, setModalSearch] = useState('');
-        const [modalCat, setModalCat] = useState('all');
-        const [modalBrand, setModalBrand] = useState('all');
-        const [modalWh, setModalWh] = useState('all');
-        const [modalTab, setModalTab] = useState('all'); // 'all' | 'best_sellers'
 
         // Filtrar productos para el modal
         const modalFilteredProducts = products.filter(p => {
@@ -3427,7 +3435,14 @@ export default function PosView({ products, thirdParties, transactions = [], sho
 
         return (
           <div className="fixed inset-0 z-[150] flex items-center justify-center bg-slate-900/30 backdrop-blur-xs select-none p-4">
-            <div className="absolute inset-0" onClick={() => setIsSearchModalOpen(false)}></div>
+            <div className="absolute inset-0" onClick={() => {
+              setIsSearchModalOpen(false);
+              setModalSearch('');
+              setModalCat('all');
+              setModalBrand('all');
+              setModalWh('all');
+              setModalTab('all');
+            }}></div>
             
             <div className="relative w-full max-w-4xl h-[85vh] max-h-[640px] bg-white rounded-2xl border border-[#CDD1EA] flex flex-col overflow-hidden shadow-none">
               
@@ -3437,7 +3452,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                   <SlidersHorizontal size={18} className="text-primary" />
                   <span className="font-extrabold text-sm text-slate-800 uppercase tracking-wider">Buscador Profesional</span>
                 </div>
-
+ 
                 {/* Input Buscador */}
                 <div className="flex-1 max-w-md relative">
                   <div className="flex items-center gap-2 px-3 h-10 rounded-xl bg-white border border-[#CDD1EA] transition-all">
@@ -3461,12 +3476,19 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                     )}
                   </div>
                 </div>
-
+ 
                 {/* Botón de Cerrar */}
                 <button 
                   type="button"
-                  onClick={() => setIsSearchModalOpen(false)} 
-                  className="p-2 text-slate-500 hover:text-slate-800 transition-colors"
+                  onClick={() => {
+                    setIsSearchModalOpen(false);
+                    setModalSearch('');
+                    setModalCat('all');
+                    setModalBrand('all');
+                    setModalWh('all');
+                    setModalTab('all');
+                  }} 
+                  className="p-2 text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
                 >
                   <X size={20} />
                 </button>
