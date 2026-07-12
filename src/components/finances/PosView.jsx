@@ -2074,15 +2074,15 @@ export default function PosView({ products, thirdParties, transactions = [], sho
           </div>
 
           {/* LISTA CARRITO POS */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto px-4 py-2 divide-y divide-slate-100 custom-scrollbar bg-white">
             {cart.map((item, idx) => {
               const prod = products.find(p => p.id === item.productId);
               return (
-                <div key={idx} className="p-2.5 rounded-card border flex items-center justify-between gap-3 bg-white border-primary/15">
+                <div key={idx} className="py-2.5 flex items-center justify-between gap-3 bg-white">
                   {/* Imagen o iniciales */}
                   <img 
                     src={getProductImageUrl(prod)} 
-                    className="w-10 h-10 rounded-lg object-cover shrink-0 border border-slate-100" 
+                    className="w-8 h-8 rounded-lg object-cover shrink-0 border border-slate-100" 
                     alt={item.name} 
                     onError={(e) => {
                       e.target.src = '/product.svg';
@@ -2092,7 +2092,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                   {/* Nombre, SKU y precio unitario */}
                   <div className="flex-1 min-w-0">
                     <h4 className="text-xs font-bold truncate text-black" title={item.name}>{item.name}</h4>
-                    <p className="text-[10px] text-gray-500 font-mono">{prod?.sku || 'SKU N/A'}</p>
+                    <p className="text-[9px] text-gray-500 font-mono">{prod?.sku || 'SKU N/A'}</p>
                   </div>
 
                   {/* Selector de Cantidad */}
@@ -2139,7 +2139,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                     <button 
                       type="button" 
                       onClick={() => removeFromCart(item.productId)} 
-                      className="text-red-550 hover:text-red-705 p-1 hover:bg-red-50 rounded-md transition-all"
+                      className="bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white p-1.5 rounded-lg transition-colors flex items-center justify-center shrink-0 cursor-pointer"
                       title="Eliminar del carrito"
                     >
                       <Trash2 size={13} />
