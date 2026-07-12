@@ -1833,55 +1833,82 @@ export default function PosView({ products, thirdParties, transactions = [], sho
             <div className={`flex-1 overflow-y-auto grid ${getGridColsClass()} gap-3 p-1 content-start custom-scrollbar`}>
               {filteredProducts.map(p => {
                 const isOutOfStock = p.type === 'producto' && p.inventoryType !== 'VIRTUAL' && p.stock <= 0;
+                const minStk = p.minStock !== undefined ? Number(p.minStock) : 2;
+                const isLowStock = p.type === 'producto' && p.inventoryType !== 'VIRTUAL' && p.stock <= minStk && p.stock > 0;
+                
+                const cartItem = cart.find(item => item.productId === p.id);
+                const quantityInCart = cartItem ? cartItem.quantity : 0;
+                
+                // Determinar el color del punto de stock (verde por defecto para servicios/virtuales)
+                let stockDotColor = 'bg-emerald-500';
+                if (isOutOfStock) stockDotColor = 'bg-red-500';
+                else if (isLowStock) stockDotColor = 'bg-amber-500';
+
                 return (
                   <div 
                     key={p.id}
                     onClick={() => !isOutOfStock && addToCart(p)}
-                    className={`p-3 border rounded-card flex flex-col justify-between transition-all cursor-pointer select-none group relative overflow-hidden h-[125px] shrink-0 ${
+                    className={`p-3 border rounded-2xl bg-white flex flex-col justify-between transition-all cursor-pointer select-none group relative shadow-sm hover:shadow-md hover:border-primary/30 h-[210px] shrink-0 ${
                       isOutOfStock 
-                        ? 'opacity-40 cursor-not-allowed bg-white/[0.005] border-white/5' 
-                        : ('border-primary/15 hover:border-primary/40 hover:bg-primary/5 bg-primary/5 hover:-translate-y-0.5')
+                        ? 'opacity-65 cursor-not-allowed border-slate-200' 
+                        : 'border-slate-150 hover:-translate-y-0.5'
                     }`}
                   >
-                    <div className="flex gap-2.5 items-start min-w-0">
+                    {/* Botón flotante superior derecho (más o cantidad) */}
+                    <div 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!isOutOfStock) addToCart(p);
+                      }}
+                      className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-primary hover:bg-primary-hover text-white flex items-center justify-center shadow-lg transition-transform active:scale-90 select-none z-10 font-bold"
+                    >
+                      {quantityInCart > 0 ? (
+                        <span className="text-xs">{quantityInCart}</span>
+                      ) : (
+                        <Plus size={14} />
+                      )}
+                    </div>
+
+                    {/* Contenedor de Imagen y Badge de SKU */}
+                    <div className="w-full h-[120px] rounded-xl bg-slate-50 flex items-center justify-center relative overflow-hidden shrink-0 border border-slate-100">
                       <img 
                         src={getProductImageUrl(p)} 
-                        className="w-10 h-10 rounded-lg object-cover shrink-0 border border-slate-200" 
+                        className="w-full h-full object-contain p-2" 
                         alt={p.name} 
                         onError={(e) => {
                           e.target.src = '/product.svg';
                         }}
                       />
-                      <div className="space-y-0.5 min-w-0 flex-1">
-                        <div className="flex justify-between items-center gap-1">
-                          <span className="font-mono text-[9px] text-gray-500 truncate">{p.sku}</span>
-                          <span className={`px-1 rounded text-[8px] font-bold uppercase shrink-0 ${p.type === 'producto' ? 'bg-primary/10 text-primary' : 'bg-purple-500/10 text-purple-400'}`}>{p.type === 'producto' ? 'Prod' : 'Serv'}</span>
-                        </div>
-                        <h4 className={`text-xs font-bold leading-tight line-clamp-2 text-black`} title={p.name}>{p.name}</h4>
-                        <p className="text-[9px] text-gray-400 truncate">{p.marca || 'Sin Marca'} | {p.categoria || 'General'}</p>
+                      
+                      {/* Badge de SKU y stock dot */}
+                      <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-white/95 backdrop-blur-sm border border-slate-100 flex items-center gap-1.5 shadow-sm z-10">
+                        <span className={`w-1.5 h-1.5 rounded-full ${stockDotColor}`}></span>
+                        <span className="font-mono text-[9px] font-bold text-slate-650 truncate max-w-[80px]">
+                          {p.sku || 'N/A'}
+                        </span>
                       </div>
+
+                      {/* Texto de Sin Stock */}
+                      {isOutOfStock && (
+                        <div className="absolute bottom-2 inset-x-0 flex justify-center">
+                          <span className="text-[10px] font-black text-blue-600 bg-white/90 px-2 py-0.5 rounded-md shadow-sm tracking-wider uppercase">
+                            SIN STOCK
+                          </span>
+                        </div>
+                      )}
                     </div>
 
-                    <div className={`flex justify-between items-center mt-2 pt-2 border-t border-primary/15 shrink-0`}>
-                      <span className={`text-xs font-black text-black`}>${Number(p.price).toFixed(2)}</span>
-                      {posConfig.showStock && p.type === 'producto' && (() => {
-                        if (p.inventoryType === 'VIRTUAL') {
-                          return (
-                            <span className="text-[9px] text-gray-400 italic">Virtual (N/A)</span>
-                          );
-                        }
-                        const minStk = p.minStock !== undefined ? Number(p.minStock) : 2;
-                        const isCritical = p.stock <= minStk;
-                        return (
-                          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${
-                            isCritical 
-                              ? 'bg-red-500/10 border-red-500 text-red-500 font-black' 
-                              : 'bg-emerald-50 border-emerald-250 text-emerald-700'
-                          }`}>
-                            {p.stock} u.
-                          </span>
-                        );
-                      })()}
+                    {/* Información inferior (Nombre y Precio) */}
+                    <div className="mt-3 flex justify-between items-end gap-2 shrink-0">
+                      <h4 
+                        className={`text-xs font-semibold text-slate-850 leading-snug line-clamp-2 flex-1 select-none text-left`} 
+                        title={p.name}
+                      >
+                        {p.name}
+                      </h4>
+                      <span className={`text-sm font-black shrink-0 font-mono ${isOutOfStock ? 'text-red-500' : 'text-primary'}`}>
+                        ${Number(p.price).toFixed(2)}
+                      </span>
                     </div>
                   </div>
                 );
