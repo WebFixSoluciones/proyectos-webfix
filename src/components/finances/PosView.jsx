@@ -4,6 +4,7 @@ import { Search, ShoppingCart, Plus, Minus, Trash2, User, Sparkles, CheckCircle2
 import { doc, getDoc, setDoc, collection, query, where, getDocs, onSnapshot } from 'firebase/firestore';
 import { consultarRucSri, getEcuadorDateString } from '../../services/sriService';
 import { registrarMovimientoKardex } from '../../services/inventoryService';
+import { calculateTransactionTotals } from '../../services/discountCalcService';
 
 function sanitizeData(obj) {
   if (obj === null || obj === undefined) return null;
@@ -77,7 +78,7 @@ const BarcodeScannerIcon = ({ className = "text-primary shrink-0", size = 18 }) 
   </svg>
 );
 
-export default function PosView({ products, thirdParties, transactions = [], showToast, db, appId, onCheckout, onClose, isPreventaOnly }) {
+export default function PosView({ products, thirdParties, transactions = [], discounts = [], promotions = [], showToast, db, appId, onCheckout, onClose, isPreventaOnly }) {
   // Configuración de visualización del POS (persistente en localStorage)
   const [posConfig, setPosConfig] = useState(() => {
     const saved = localStorage.getItem(`pos_config_${appId}`);
@@ -139,6 +140,13 @@ export default function PosView({ products, thirdParties, transactions = [], sho
   const [discountType, setDiscountType] = useState('percent'); // 'percent' o 'fixed'
   const [discountValue, setDiscountValue] = useState(0);
   const [isDiscountOpen, setIsDiscountOpen] = useState(false);
+
+  // Unified Discounts & Promotions state
+  const [selectedGeneralDiscount, setSelectedGeneralDiscount] = useState(null);
+  const [selectedLineItemForDiscount, setSelectedLineItemForDiscount] = useState(null);
+  const [authDialog, setAuthDialog] = useState(null);
+  const [supervisorPassword, setSupervisorPassword] = useState('');
+  const [authError, setAuthError] = useState('');
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
   const [isListening, setIsListening] = useState(false);
@@ -190,24 +198,72 @@ export default function PosView({ products, thirdParties, transactions = [], sho
     tipoContribuyente: 'general'
   });
 
-  // Cómputo de Totales y Descuentos
-  const getSubtotal = () => cart.reduce((acc, item) => acc + ((Number(item.price) || 0) * (Number(item.quantity) || 0)), 0);
-  const getDiscountAmount = () => {
-    const sub = getSubtotal();
-    if (discountType === 'percent') {
-      return sub * (Number(discountValue || 0) / 100);
-    }
-    return Math.min(sub, Number(discountValue || 0));
-  };
-  const getSubtotalWithDiscount = () => Math.max(0, getSubtotal() - getDiscountAmount());
+  // Cómputo de Totales y Descuentos con Motor Unificado
+  const totalsResult = calculateTransactionTotals(cart, selectedGeneralDiscount);
+
+  const getSubtotal = () => totalsResult.subtotalBruto;
+  const getDiscountAmount = () => totalsResult.descuentoVenta; // general discount
+  const getSubtotalWithDiscount = () => totalsResult.subtotalGeneralNeto;
+  const getIva = () => totalsResult.ivaValor;
+  const getTotal = () => totalsResult.total;
   
-  const getIva = () => {
-    const sub = getSubtotal();
-    if (sub === 0) return 0;
-    const ratio = getSubtotalWithDiscount() / sub;
-    return cart.reduce((acc, item) => acc + ((Number(item.price) || 0) * (Number(item.quantity) || 0) * ratio * ((Number(item.ivaCategory !== undefined ? item.ivaCategory : 15)) / 100)), 0);
+  // Para desgloses separados
+  const productDiscountsTotal = totalsResult.descuentosProducto;
+
+  const getActiveDiscounts = (alcance) => {
+    const hoy = getEcuadorDateString();
+    return (discounts || []).filter(d => {
+      return d.activo && 
+             d.alcance === alcance && 
+             d.fecha_inicio <= hoy && 
+             d.fecha_fin >= hoy;
+    });
   };
-  const getTotal = () => getSubtotalWithDiscount() + getIva();
+
+  const getAvailableDiscountsForLineItem = (cartItem) => {
+    const hoy = getEcuadorDateString();
+    const prod = products.find(p => p.id === cartItem.productId);
+    
+    const activeProductDiscounts = (discounts || []).filter(d => {
+      return d.activo && 
+             d.alcance === 'PRODUCTO' && 
+             d.fecha_inicio <= hoy && 
+             d.fecha_fin >= hoy;
+    });
+
+    const activeLinePromotions = (promotions || []).filter(p => {
+      if (!p.activo || p.fecha_inicio > hoy || p.fecha_fin < hoy) return false;
+      
+      if (p.dias_validos && p.dias_validos.length > 0) {
+        const daysMap = { 0: 'DOM', 1: 'LUN', 2: 'MAR', 3: 'MIE', 4: 'JUE', 5: 'VIE', 6: 'SAB' };
+        const currentDay = daysMap[new Date().getDay()];
+        if (!p.dias_validos.includes(currentDay)) return false;
+      }
+
+      if (p.alcance_aplicacion === 'PRODUCTO_ESPECIFICO' && p.target_id === cartItem.productId) {
+        return true;
+      }
+      if (p.alcance_aplicacion === 'CATEGORIA' && prod && p.target_id === prod.categoria) {
+        return true;
+      }
+      return false;
+    });
+
+    const mappedPromos = activeLinePromotions.map(promo => {
+      const disc = discounts.find(d => d.id === promo.id_descuento);
+      if (!disc) return null;
+      return {
+        id: disc.id,
+        promotionId: promo.id,
+        nombre: `Promo: ${promo.nombre} (${disc.nombre})`,
+        tipo_valor: disc.tipo_valor,
+        valor: disc.valor,
+        requiere_autorizacion: disc.requiere_autorizacion
+      };
+    }).filter(Boolean);
+
+    return [...activeProductDiscounts, ...mappedPromos];
+  };
 
   // Sincronizar reactivamente los pagos según el método seleccionado en el sidebar
   useEffect(() => {
@@ -681,6 +737,10 @@ export default function PosView({ products, thirdParties, transactions = [], sho
       return;
     }
 
+    const priceVal = product.tax_mode === 'INCLUIDO' 
+      ? (Number(product.precio_con_iva) || Number(product.price) || 0)
+      : (Number(product.precio_sin_iva) || Number(product.price) || 0);
+
     const existing = cart.find(item => item.productId === product.id);
     if (existing) {
       if (product.type === 'producto' && product.inventoryType !== 'VIRTUAL' && existing.quantity >= product.stock) {
@@ -696,9 +756,15 @@ export default function PosView({ products, thirdParties, transactions = [], sho
       setCart([...cart, {
         productId: product.id,
         name: product.name,
-        price: Number(product.price) || 0,
+        price: priceVal,
         quantity: 1,
-        ivaCategory: product.ivaCategory !== undefined ? Number(product.ivaCategory) : 15
+        ivaCategory: product.ivaCategory !== undefined ? Number(product.ivaCategory) : 15,
+        tax_mode: product.tax_mode || 'EXCLUIDO',
+        tarifa_iva: product.tarifa_iva !== undefined ? Number(product.tarifa_iva) : 0.15,
+        id_descuento_aplicado: '',
+        id_promocion_aplicada: '',
+        discount_value: 0,
+        discount_type: 'PORCENTAJE'
       }]);
     }
   };
@@ -2149,6 +2215,13 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                   <div className="flex-1 min-w-0">
                     <h4 className="text-xs font-bold truncate text-black" title={item.name}>{item.name}</h4>
                     <p className="text-[9px] text-gray-500 font-mono">{prod?.sku || 'SKU N/A'}</p>
+                    {item.discount_value > 0 && (
+                      <div className="flex items-center gap-1 mt-0.5 animate-in fade-in duration-200">
+                        <span className="bg-red-50 text-red-500 font-bold text-[9px] px-1 py-0.5 rounded flex items-center gap-0.5">
+                          <Tag size={8} /> -{item.discount_type === 'PORCENTAJE' ? `${item.discount_value}%` : `$${item.discount_value}`}
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Selector de Cantidad */}
@@ -2187,11 +2260,26 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                     </button>
                   </div>
 
-                  {/* Subtotal e Ícono de Eliminar */}
+                  {/* Subtotal, Botón Descuento e Ícono de Eliminar */}
                   <div className="flex items-center gap-2.5 shrink-0">
                     <span className="font-bold text-xs text-right min-w-[55px] text-black">
-                      ${(item.price * item.quantity).toFixed(2)}
+                      {item.discount_value > 0 && (
+                        <span className="line-through text-gray-450 mr-1.5">${(item.price * item.quantity).toFixed(2)}</span>
+                      )}
+                      ${(totalsResult.detalleLineas?.[idx]?.subtotalLineaNeto || item.price * item.quantity).toFixed(2)}
                     </span>
+                    <button 
+                      type="button" 
+                      onClick={() => setSelectedLineItemForDiscount(item)} 
+                      className={`p-1 rounded-lg border transition-colors flex items-center justify-center shrink-0 cursor-pointer ${
+                        item.discount_value > 0
+                          ? 'bg-red-50 text-red-500 border-red-200 hover:bg-red-100'
+                          : 'bg-white text-slate-550 border-slate-200 hover:text-primary hover:border-primary'
+                      }`}
+                      title="Descuento del ítem"
+                    >
+                      <Percent size={11} />
+                    </button>
                     <button 
                       type="button" 
                       onClick={() => removeFromCart(item.productId)} 
@@ -2216,45 +2304,93 @@ export default function PosView({ products, thirdParties, transactions = [], sho
           <div className={`p-4 border-t space-y-4 shrink-0 border-slate-100 bg-primary/5`}>
             {/* DESCUENTO CARD */}
             {isDiscountOpen && (
-              <div className="p-3 rounded-card border space-y-2 border-slate-150 bg-white shadow-none">
+              <div className="p-3 rounded-card border space-y-2 border-slate-150 bg-white shadow-none animate-in slide-in-from-top-2 duration-200">
                 <div className="flex justify-between items-center">
-                  <span className="text-xs font-bold text-black uppercase tracking-wider">Descuento General</span>
+                  <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">Descuento General</span>
                   <button 
                     type="button"
-                    onClick={() => { setIsDiscountOpen(false); setDiscountValue(0); }} 
+                    onClick={() => { setIsDiscountOpen(false); setSelectedGeneralDiscount(null); }} 
                     className="p-1 text-gray-550 hover:text-black hover:bg-slate-50 rounded-md transition-colors"
                   >
                     <X size={12} />
                   </button>
                 </div>
-                <div className="flex gap-1">
-                  <select value={discountType} onChange={e => setDiscountType(e.target.value)} className="text-xs px-2 py-1.5 rounded-lg border outline-none bg-white border-[#CDD1EA] text-black">
-                    <option value="percent">% Porcentaje</option>
-                    <option value="fixed">$ Fijo (USD)</option>
+                <div className="space-y-2">
+                  <select 
+                    value={selectedGeneralDiscount?.id || ''} 
+                    onChange={e => {
+                      const discId = e.target.value;
+                      if (!discId) {
+                        setSelectedGeneralDiscount(null);
+                        return;
+                      }
+                      const disc = discounts.find(d => d.id === discId);
+                      if (disc) {
+                        if (disc.requiere_autorizacion) {
+                          setAuthDialog({
+                            discount: disc,
+                            onConfirm: () => {
+                              setSelectedGeneralDiscount(disc);
+                              showToast("Descuento autorizado y aplicado", "success");
+                            },
+                            onCancel: () => {
+                              setSelectedGeneralDiscount(null);
+                            }
+                          });
+                        } else {
+                          setSelectedGeneralDiscount(disc);
+                        }
+                      }
+                    }} 
+                    className="w-full text-xs px-2.5 py-2 rounded-xl border outline-none bg-white border-[#CDD1EA] text-black cursor-pointer font-semibold"
+                  >
+                    <option value="">-- Seleccionar Descuento General --</option>
+                    {getActiveDiscounts('VENTA').map(d => (
+                      <option key={d.id} value={d.id}>
+                        {d.nombre} ({d.tipo_valor === 'PORCENTAJE' ? `${d.valor}%` : `$${d.valor}`})
+                      </option>
+                    ))}
                   </select>
-                  <input type="number" value={discountValue} onChange={e => setDiscountValue(e.target.value)} className="w-full text-xs px-2 py-1.5 rounded-lg border outline-none bg-white border-[#CDD1EA] text-black" placeholder="0" />
+                  {selectedGeneralDiscount && (
+                    <div className="flex justify-between items-center text-[10px] text-slate-500 bg-indigo-50/50 p-2 rounded-lg border border-indigo-105">
+                      <span>Aplicado: <strong>{selectedGeneralDiscount.nombre}</strong></span>
+                      <button 
+                        type="button" 
+                        onClick={() => setSelectedGeneralDiscount(null)} 
+                        className="text-red-500 font-bold hover:text-red-755 cursor-pointer"
+                      >
+                        Quitar
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
 
-            <div className="space-y-2 text-sm md:text-base">
-              <div className={`flex justify-between text-black font-semibold`}>
-                <span>Subtotal Neto</span>
+            <div className="space-y-2 text-xs md:text-sm">
+              <div className={`flex justify-between text-slate-600 font-semibold`}>
+                <span>Subtotal Bruto</span>
                 <span>${getSubtotal().toFixed(2)}</span>
               </div>
+              {productDiscountsTotal > 0 && (
+                <div className="flex justify-between text-red-500 font-bold">
+                  <span>Descuentos por Producto</span>
+                  <span>-${productDiscountsTotal.toFixed(2)}</span>
+                </div>
+              )}
               {getDiscountAmount() > 0 && (
                 <div className="flex justify-between text-red-500 font-bold">
-                  <span>Descuento Aplicado</span>
+                  <span>Descuento General</span>
                   <span>-${getDiscountAmount().toFixed(2)}</span>
                 </div>
               )}
-              <div className={`flex justify-between text-black font-semibold`}>
-                <span>Impuestos</span>
+              <div className={`flex justify-between text-slate-600 font-semibold`}>
+                <span>Impuestos (IVA)</span>
                 <span>${getIva().toFixed(2)}</span>
               </div>
-              <div className={`flex justify-between font-black text-base md:text-lg pt-2.5 border-t border-primary/15 text-black`}>
-                <span>TOTAL NETO</span>
-                <span className={'text-primary'}>${getTotal().toFixed(2)}</span>
+              <div className={`flex justify-between font-black text-sm md:text-base pt-2.5 border-t border-primary/10 text-slate-800`}>
+                <span>TOTAL A PAGAR</span>
+                <span className={'text-primary text-base md:text-lg'}>${getTotal().toFixed(2)}</span>
               </div>
             </div>
 
@@ -3750,6 +3886,190 @@ export default function PosView({ products, thirdParties, transactions = [], sho
           </div>
         );
       })()}
+
+      {/* LINE ITEM DISCOUNT SELECTOR MODAL */}
+      {selectedLineItemForDiscount && (() => {
+        const available = getAvailableDiscountsForLineItem(selectedLineItemForDiscount);
+        return (
+          <div className="fixed inset-0 z-[250] flex items-center justify-center bg-slate-900/35 backdrop-blur-xs p-4">
+            <div className="bg-white rounded-2xl w-full max-w-md border border-[#CDD1EA] overflow-hidden flex flex-col shadow-lg animate-in fade-in zoom-in-95 duration-200">
+              <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                <div>
+                  <h3 className="text-xs font-extrabold text-slate-800 uppercase tracking-wider">
+                    Descuento / Promo de Ítem
+                  </h3>
+                  <p className="text-[10px] text-slate-500 font-bold mt-0.5">{selectedLineItemForDiscount.name}</p>
+                </div>
+                <button 
+                  onClick={() => setSelectedLineItemForDiscount(null)} 
+                  className="text-slate-400 hover:text-slate-700 cursor-pointer"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+              <div className="p-4 space-y-3 max-h-[300px] overflow-y-auto custom-scrollbar">
+                {/* Option 1: None */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCart(cart.map(i => i.productId === selectedLineItemForDiscount.productId ? {
+                      ...i,
+                      id_descuento_aplicado: '',
+                      id_promocion_aplicada: '',
+                      discount_value: 0,
+                      discount_type: 'PORCENTAJE'
+                    } : i));
+                    showToast("Descuento removido", "success");
+                    setSelectedLineItemForDiscount(null);
+                  }}
+                  className={`w-full text-left p-3 rounded-xl border flex justify-between items-center transition-all cursor-pointer ${
+                    !selectedLineItemForDiscount.id_descuento_aplicado
+                      ? 'bg-primary/5 border-primary text-primary font-bold'
+                      : 'bg-white border-slate-155 text-slate-650 hover:bg-slate-50'
+                  }`}
+                >
+                  <span className="text-xs font-semibold">Sin Descuento</span>
+                  <CheckCircle2 size={14} className={!selectedLineItemForDiscount.id_descuento_aplicado ? 'opacity-100' : 'opacity-0'} />
+                </button>
+
+                {/* Available Discounts/Promos */}
+                {available.length === 0 ? (
+                  <p className="text-xs text-slate-400 italic text-center py-4">No hay descuentos o promociones de producto vigentes hoy.</p>
+                ) : (
+                  available.map(d => {
+                    const isSelected = selectedLineItemForDiscount.id_descuento_aplicado === d.id && 
+                                       (d.promotionId ? selectedLineItemForDiscount.id_promocion_aplicada === d.promotionId : true);
+                    return (
+                      <button
+                        key={d.promotionId ? `${d.id}_${d.promotionId}` : d.id}
+                        type="button"
+                        onClick={() => {
+                          const apply = () => {
+                            setCart(cart.map(i => i.productId === selectedLineItemForDiscount.productId ? {
+                              ...i,
+                              id_descuento_aplicado: d.id,
+                              id_promocion_aplicada: d.promotionId || '',
+                              discount_value: d.valor,
+                              discount_type: d.tipo_valor
+                            } : i));
+                            showToast("Descuento aplicado al ítem", "success");
+                            setSelectedLineItemForDiscount(null);
+                          };
+                          
+                          if (d.requiere_autorizacion) {
+                            setAuthDialog({
+                              discount: d,
+                              onConfirm: apply,
+                              onCancel: () => {}
+                            });
+                          } else {
+                            apply();
+                          }
+                        }}
+                        className={`w-full text-left p-3 rounded-xl border flex justify-between items-center transition-all cursor-pointer ${
+                          isSelected
+                            ? 'bg-primary/5 border-primary text-primary font-bold'
+                            : 'bg-white border-slate-155 text-slate-650 hover:bg-slate-50'
+                        }`}
+                      >
+                        <div className="flex flex-col">
+                          <span className="text-xs font-bold uppercase">{d.nombre}</span>
+                          <span className="text-[10px] text-slate-400 mt-0.5">
+                            Valor: {d.tipo_valor === 'PORCENTAJE' ? `${d.valor}%` : `$${d.valor}`}
+                            {d.requiere_autorizacion && ' • [Clave Supervisor]'}
+                          </span>
+                        </div>
+                        <CheckCircle2 size={14} className={isSelected ? 'opacity-100' : 'opacity-0'} />
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* SUPERVISOR AUTHORIZATION MODAL */}
+      {authDialog && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm border border-[#CDD1EA] overflow-hidden flex flex-col shadow-xl animate-in zoom-in-95 duration-200">
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+              <span className="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1.5 text-red-500">
+                <ShieldAlert size={15} /> Autorización Requerida
+              </span>
+              <button 
+                onClick={() => { authDialog.onCancel?.(); setAuthDialog(null); }} 
+                className="text-slate-400 hover:text-slate-700 cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="p-5 space-y-4 text-xs font-semibold text-slate-700">
+              <p className="text-slate-550 leading-relaxed">
+                El descuento <strong>{authDialog.discount.nombre}</strong> requiere clave de autorización de supervisor para ser aplicado.
+              </p>
+              
+              <div>
+                <label className="block text-[10px] uppercase font-extrabold text-slate-500 mb-1.5">Clave de Supervisor</label>
+                <input
+                  type="password"
+                  required
+                  placeholder="Ingrese clave..."
+                  value={supervisorPassword}
+                  onChange={e => {
+                    setSupervisorPassword(e.target.value);
+                    setAuthError('');
+                  }}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      if (supervisorPassword === 'SUPERVISOR123') {
+                        authDialog.onConfirm();
+                        setAuthDialog(null);
+                        setSupervisorPassword('');
+                        setAuthError('');
+                      } else {
+                        setAuthError('Clave incorrecta. Solicite al supervisor.');
+                      }
+                    }
+                  }}
+                  className="w-full h-10 px-3 rounded-xl border border-slate-200 focus:outline-none focus:border-red-500 text-black font-semibold text-center tracking-widest text-sm"
+                  autoFocus
+                />
+                {authError && (
+                  <p className="text-red-500 font-bold text-[10px] mt-1.5 animate-pulse">{authError}</p>
+                )}
+              </div>
+
+              <div className="pt-3 flex justify-end gap-2 border-t border-slate-100">
+                <button 
+                  type="button" 
+                  onClick={() => { authDialog.onCancel?.(); setAuthDialog(null); }} 
+                  className="btn-secondary px-4 py-2 font-bold rounded-xl cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    if (supervisorPassword === 'SUPERVISOR123') {
+                      authDialog.onConfirm();
+                      setAuthDialog(null);
+                      setSupervisorPassword('');
+                      setAuthError('');
+                    } else {
+                      setAuthError('Clave incorrecta. Solicite al supervisor.');
+                    }
+                  }} 
+                  className="btn-primary bg-red-650 hover:bg-red-700 px-4 py-2 font-bold text-white rounded-xl cursor-pointer"
+                >
+                  Autorizar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>,
     document.body

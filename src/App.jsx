@@ -560,6 +560,8 @@ export default function App() {
   const [rawProducts, setRawProducts] = useState([]);
   const [globalCategories, setGlobalCategories] = useState([]);
   const [globalBrands, setGlobalBrands] = useState([]);
+  const [globalDiscounts, setGlobalDiscounts] = useState([]);
+  const [globalPromotions, setGlobalPromotions] = useState([]);
   const [isLoadingFinances, setIsLoadingFinances] = useState(true);
 
   // Mapear rawProducts de inventario a globalProducts financieros con soporte reactivo de categorias y marcas
@@ -567,6 +569,12 @@ export default function App() {
     const mapped = rawProducts.map(p => {
       const catName = globalCategories.find(c => c.id === p.categoryId)?.name || "";
       const brandName = globalBrands.find(b => b.id === p.brandId)?.name || "";
+      
+      const taxMode = p.tax_mode || 'EXCLUIDO';
+      const tarifaIva = p.tarifa_iva !== undefined ? Number(p.tarifa_iva) : (Number(p.taxRate || 15) / 100);
+      const precioSinIva = p.precio_sin_iva !== undefined ? Number(p.precio_sin_iva) : Number(p.priceASinImpuesto || p.salePrice || 0);
+      const precioConIva = p.precio_con_iva !== undefined ? Number(p.precio_con_iva) : Number(p.priceA || p.salePrice || 0);
+
       return {
         ...p,
         price: Number(p.salePrice) || 0,
@@ -578,7 +586,11 @@ export default function App() {
         categoria: catName,
         marca: brandName,
         bodega: "Bodega Central",
-        codigoBarras: ""
+        codigoBarras: p.codigoBarras || "",
+        tax_mode: taxMode,
+        tarifa_iva: tarifaIva,
+        precio_sin_iva: precioSinIva,
+        precio_con_iva: precioConIva
       };
     });
     setGlobalProducts(mapped);
@@ -907,6 +919,24 @@ export default function App() {
         console.error("Error subscribing to global brands:", err);
       });
 
+      // 9. Escuchar Descuentos
+      const discCol = collection(db, 'artifacts', appId, 'public', 'data', 'finances_discounts');
+      const unsubDisc = onSnapshot(discCol, (snap) => {
+        const discData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        setGlobalDiscounts(discData);
+      }, (err) => {
+        console.error("Error subscribing to global discounts:", err);
+      });
+
+      // 10. Escuchar Promociones
+      const promoCol = collection(db, 'artifacts', appId, 'public', 'data', 'finances_promotions');
+      const unsubPromo = onSnapshot(promoCol, (snap) => {
+        const promoData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        setGlobalPromotions(promoData);
+      }, (err) => {
+        console.error("Error subscribing to global promotions:", err);
+      });
+
       setIsCloudSynced(true);
 
       window.__unsubFirestore = () => { 
@@ -918,6 +948,8 @@ export default function App() {
         unsubProd(); 
         unsubCat();
         unsubBrand();
+        unsubDisc();
+        unsubPromo();
       };
     });
 
@@ -2134,16 +2166,16 @@ export default function App() {
 
                   {/* VISTAS FINANCIERAS MODULARES */}
                   {activePageId === 'finances' && (
-                    <FinanceModule mode="contabilidad" initialSubTab={contabilidadInitialSubTab} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} isLoading={isLoadingFinances} />
+                    <FinanceModule mode="contabilidad" initialSubTab={contabilidadInitialSubTab} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} discounts={globalDiscounts} promotions={globalPromotions} isLoading={isLoadingFinances} />
                   )}
               {activePageId === 'ventas' && (
-                <FinanceModule mode="ventas" initialSubTab={ventasInitialSubTab} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} isLoading={isLoadingFinances} />
+                <FinanceModule mode="ventas" initialSubTab={ventasInitialSubTab} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} discounts={globalDiscounts} promotions={globalPromotions} isLoading={isLoadingFinances} />
               )}
               {activePageId === 'inventario' && (
                 <InventoryModule initialSubTab={inventarioInitialSubTab} />
               )}
               {activePageId === 'compras' && (
-                <FinanceModule mode="compras" initialSubTab={comprasInitialSubTab} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} isLoading={isLoadingFinances} />
+                <FinanceModule mode="compras" initialSubTab={comprasInitialSubTab} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} discounts={globalDiscounts} promotions={globalPromotions} isLoading={isLoadingFinances} />
               )}
               {activePageId === 'gastos_creditos' && (
                 <GastosCreditosModule showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} db={db} appId={appId} initialSubTab={gastosInitialSubTab} />
@@ -2212,6 +2244,8 @@ export default function App() {
                           transactions={globalTransactions} 
                           thirdParties={globalThirdParties} 
                           products={globalProducts} 
+                          discounts={globalDiscounts}
+                          promotions={globalPromotions}
                           isLoading={isLoadingFinances} 
                         />
                       )}

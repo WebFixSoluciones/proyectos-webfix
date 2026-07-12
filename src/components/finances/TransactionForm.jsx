@@ -10,6 +10,7 @@ import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { validarIdentificacion, generarFacturaXML, simularTransmisionSRI, consultarRucSri, generarRetencionXML, generarNotaCreditoXML, generarLiquidacionXML, generarGuiaRemisionXML, getEcuadorDateString, getEcuadorTimeString, getEcuadorDateTimeString } from '../../services/sriService';
 import { firmarComprobanteXML } from '../../services/xadesSigner';
 import { registrarMovimientoKardex } from '../../services/inventoryService';
+import { calculateTransactionTotals } from '../../services/discountCalcService';
 import RidePreviewModal from './RidePreviewModal';
 
 const SRI_RENTA_CODES = [
@@ -52,7 +53,7 @@ function sanitizeFirestoreData(obj) {
   return obj;
 }
 
-export default function TransactionForm({ tx, onClose, thirdParties, products = [],  showToast, db, storage, appId, isInline = false }) {
+export default function TransactionForm({ tx, onClose, thirdParties, products = [], discounts = [], promotions = [], showToast, db, storage, appId, isInline = false }) {
   const [sriConfig, setSriConfig] = useState({
     ruc: '',
     razonSocial: '',
@@ -163,6 +164,68 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   // MiniPOS Discount
   const [generalDiscountType, setGeneralDiscountType] = useState('percent'); // 'percent' | 'fixed'
   const [generalDiscountValue, setGeneralDiscountValue] = useState(0);
+
+  // Unified Discounts & Promotions state
+  const [selectedGeneralDiscount, setSelectedGeneralDiscount] = useState(null);
+  const [selectedLineItemForDiscount, setSelectedLineItemForDiscount] = useState(null);
+  const [authDialog, setAuthDialog] = useState(null);
+  const [supervisorPassword, setSupervisorPassword] = useState('');
+  const [authError, setAuthError] = useState('');
+
+  const getActiveDiscounts = (alcance) => {
+    const hoy = getEcuadorDateString();
+    return (discounts || []).filter(d => {
+      return d.activo && 
+             d.alcance === alcance && 
+             d.fecha_inicio <= hoy && 
+             d.fecha_fin >= hoy;
+    });
+  };
+
+  const getAvailableDiscountsForLineItem = (item) => {
+    const hoy = getEcuadorDateString();
+    const prod = products.find(p => p.id === item.productId);
+    
+    const activeProductDiscounts = (discounts || []).filter(d => {
+      return d.activo && 
+             d.alcance === 'PRODUCTO' && 
+             d.fecha_inicio <= hoy && 
+             d.fecha_fin >= hoy;
+    });
+
+    const activeLinePromotions = (promotions || []).filter(p => {
+      if (!p.activo || p.fecha_inicio > hoy || p.fecha_fin < hoy) return false;
+      
+      if (p.dias_validos && p.dias_validos.length > 0) {
+        const daysMap = { 0: 'DOM', 1: 'LUN', 2: 'MAR', 3: 'MIE', 4: 'JUE', 5: 'VIE', 6: 'SAB' };
+        const currentDay = daysMap[new Date().getDay()];
+        if (!p.dias_validos.includes(currentDay)) return false;
+      }
+
+      if (p.alcance_aplicacion === 'PRODUCTO_ESPECIFICO' && p.target_id === item.productId) {
+        return true;
+      }
+      if (p.alcance_aplicacion === 'CATEGORIA' && prod && p.target_id === prod.categoria) {
+        return true;
+      }
+      return false;
+    });
+
+    const mappedPromos = activeLinePromotions.map(promo => {
+      const disc = discounts.find(d => d.id === promo.id_descuento);
+      if (!disc) return null;
+      return {
+        id: disc.id,
+        promotionId: promo.id,
+        nombre: `Promo: ${promo.nombre} (${disc.nombre})`,
+        tipo_valor: disc.tipo_valor,
+        valor: disc.valor,
+        requiere_autorizacion: disc.requiere_autorizacion
+      };
+    }).filter(Boolean);
+
+    return [...activeProductDiscounts, ...mappedPromos];
+  };
 
   const [confirmDialog, setConfirmDialog] = useState(null);
   const fileInputRef = useRef(null);
@@ -439,7 +502,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     loadClientDebt();
   }, [formData.thirdPartyId, db, appId]);
 
-  // Cálculo automático del total y desglose de items/retenciones
+  // Cálculo automático del total y desglose de items/retenciones con Motor Unificado
   useEffect(() => {
     if (formData.documentType === 'retencion') {
       const rets = formData.retenciones || [];
@@ -457,46 +520,29 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     const hasItems = formData.items && formData.items.length > 0;
     
     if (hasItems) {
-      let rawSubtotal = 0;
-      let itemDiscountTotal = 0;
-      let ivaVal = 0;
-      
-      formData.items.forEach(item => {
-        const price = parseFloat(item.price) || 0;
-        const qty = parseInt(item.quantity) || 1;
-        const lineSub = price * qty;
-        const lineDiscount = Math.min(lineSub, parseFloat(item.itemDiscount) || 0);
-        const lineBase = Math.max(0, lineSub - lineDiscount);
-        const lineIva = lineBase * ((parseInt(item.ivaCategory) || 15) / 100);
-        
-        rawSubtotal += lineSub;
-        itemDiscountTotal += lineDiscount;
-        ivaVal += lineIva;
-      });
+      // Normalizar items del carrito administrativo
+      const normalizedItems = (formData.items || []).map(item => ({
+        ...item,
+        price: Number(item.price) || 0,
+        quantity: Number(item.quantity) || 1,
+        tax_mode: item.tax_mode || 'EXCLUIDO',
+        tarifa_iva: item.tarifa_iva !== undefined ? Number(item.tarifa_iva) : 0.15,
+        id_descuento_aplicado: item.id_descuento_aplicado || '',
+        id_promocion_aplicada: item.id_promocion_aplicada || '',
+        discount_value: Number(item.discount_value) || Number(item.itemDiscount) || 0,
+        discount_type: item.discount_type || 'PORCENTAJE'
+      }));
 
-      const afterItemDiscount = Math.max(0, rawSubtotal - itemDiscountTotal);
-      const genDisc = generalDiscountType === 'percent'
-        ? afterItemDiscount * (Math.min(100, parseFloat(generalDiscountValue) || 0) / 100)
-        : Math.min(afterItemDiscount, parseFloat(generalDiscountValue) || 0);
+      const totals = calculateTransactionTotals(normalizedItems, selectedGeneralDiscount);
       
-      const baseImponibleVal = Math.max(0, afterItemDiscount - genDisc);
-      
-      let finalIvaVal = ivaVal;
-      if (afterItemDiscount > 0) {
-        const ratio = baseImponibleVal / afterItemDiscount;
-        finalIvaVal = ivaVal * ratio;
-      } else {
-        finalIvaVal = 0;
-      }
-
       const retFuente = Number(formData.retencionFuente) || 0;
       const retIva = Number(formData.retencionIva) || 0;
-      const totalVal = baseImponibleVal + finalIvaVal - retFuente - retIva;
+      const totalVal = totals.total - retFuente - retIva;
 
       setFormData(prev => ({
         ...prev,
-        baseImponible: baseImponibleVal.toFixed(2),
-        ivaValor: finalIvaVal.toFixed(2),
+        baseImponible: totals.subtotalGeneralNeto.toFixed(2),
+        ivaValor: totals.ivaValor.toFixed(2),
         total: totalVal.toFixed(2)
       }));
     } else {
@@ -524,8 +570,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     formData.items,
     formData.retenciones,
     formData.documentType,
-    generalDiscountType,
-    generalDiscountValue
+    selectedGeneralDiscount
   ]);
 
   // Métodos para el desglose de retenciones
@@ -602,7 +647,20 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       ...prev,
       items: [
         ...(prev.items || []),
-        { productId: '', name: '', price: 0, quantity: 1, ivaCategory: 15, itemDiscount: 0 }
+        { 
+          productId: '', 
+          name: '', 
+          price: 0, 
+          quantity: 1, 
+          ivaCategory: 15, 
+          tax_mode: 'EXCLUIDO',
+          tarifa_iva: 0.15,
+          id_descuento_aplicado: '',
+          id_promocion_aplicada: '',
+          discount_value: 0,
+          discount_type: 'PORCENTAJE',
+          itemDiscount: 0 
+        }
       ]
     }));
   };
@@ -616,7 +674,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
   const handleClearItems = () => {
     setFormData(prev => ({ ...prev, items: [], baseImponible: 0, ivaValor: 0, total: 0 }));
-    setGeneralDiscountValue(0);
+    setSelectedGeneralDiscount(null);
   };
 
   const handleItemChange = (index, field, value) => {
@@ -625,13 +683,22 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     if (field === 'productId') {
       const prod = products.find(p => p.id === value);
       if (prod) {
+        const priceVal = prod.tax_mode === 'INCLUIDO' 
+          ? (Number(prod.precio_con_iva) || Number(prod.price) || 0)
+          : (Number(prod.precio_sin_iva) || Number(prod.price) || 0);
         updatedItems[index] = {
           ...updatedItems[index],
           productId: value,
           name: prod.name,
-          price: prod.price,
-          ivaCategory: prod.ivaCategory,
-          itemDiscount: updatedItems[index].itemDiscount || 0
+          price: priceVal,
+          ivaCategory: prod.ivaCategory || 15,
+          tax_mode: prod.tax_mode || 'EXCLUIDO',
+          tarifa_iva: prod.tarifa_iva !== undefined ? Number(prod.tarifa_iva) : 0.15,
+          id_descuento_aplicado: '',
+          id_promocion_aplicada: '',
+          discount_value: 0,
+          discount_type: 'PORCENTAJE',
+          itemDiscount: 0
         };
       }
     } else {
@@ -648,6 +715,9 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       updatedItems = [...formData.items];
       updatedItems[existingIndex].quantity = (parseInt(updatedItems[existingIndex].quantity) || 0) + 1;
     } else {
+      const priceVal = product.tax_mode === 'INCLUIDO' 
+        ? (Number(product.precio_con_iva) || Number(product.price) || 0)
+        : (Number(product.precio_sin_iva) || Number(product.price) || 0);
       updatedItems = [
         ...(formData.items || []),
         { 
@@ -655,9 +725,15 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
           name: product.name, 
           sku: product.sku || '',
           codigoBarras: product.codigoBarras || '',
-          price: Number(product.price) || 0, 
+          price: priceVal, 
           quantity: 1, 
           ivaCategory: product.ivaCategory || 15,
+          tax_mode: product.tax_mode || 'EXCLUIDO',
+          tarifa_iva: product.tarifa_iva !== undefined ? Number(product.tarifa_iva) : 0.15,
+          id_descuento_aplicado: '',
+          id_promocion_aplicada: '',
+          discount_value: 0,
+          discount_type: 'PORCENTAJE',
           itemDiscount: 0
         }
       ];
@@ -1618,11 +1694,11 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
           <div>
             {/* Desktop / Tablet Header Title */}
             <h2 className="text-xs font-black uppercase tracking-wider text-black dark:text-white hidden sm:block">
-              {formData.type === 'ingreso' ? 'Asistente de Ventas' : 'Asistente de Compras'}
+              {formData.type === 'ingreso' ? 'Venta Administrativa' : 'Asistente de Compras'}
             </h2>
             {/* Mobile Header Title */}
             <h2 className="text-xs font-black uppercase tracking-wider text-black dark:text-white sm:hidden">
-              {formData.type === 'ingreso' ? 'Ventas' : 'Compras'}
+              {formData.type === 'ingreso' ? 'Venta Administrativa' : 'Compras'}
             </h2>
             {formData.claveAcceso && <p className="text-xs font-mono text-black dark:text-white/60 mt-[1px]">Clave SRI: {formData.claveAcceso}</p>}
           </div>
@@ -2235,33 +2311,45 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   {/* Actions: discount, clear cart */}
                   <div className="flex items-center gap-[8px] mb-[8px] flex-wrap">
                     {/* General Discount */}
-                    <div className={`flex items-center gap-[4px] rounded-card border px-[8px] py-[4px] flex-1 min-w-[150px] ${
-                      'bg-gray-50 border-gray-200'}`}>
+                    <div className="flex items-center gap-[4px] rounded-card border px-[8px] py-[4px] flex-1 min-w-[200px] bg-gray-50 border-gray-200">
                       <Tag size={10} className="text-primary shrink-0" />
-                      <span style={{ color: '#000000'}} className="text-xs font-bold uppercase shrink-0">Dto:</span>
+                      <span className="text-xs font-bold uppercase shrink-0 text-black mr-1">Descuento General:</span>
                       <select
                         disabled={!isEditable}
-                        value={generalDiscountType}
+                        value={selectedGeneralDiscount?.id || ''}
                         onChange={e => {
-                          setGeneralDiscountType(e.target.value);
+                          const discId = e.target.value;
+                          if (!discId) {
+                            setSelectedGeneralDiscount(null);
+                            return;
+                          }
+                          const disc = discounts.find(d => d.id === discId);
+                          if (disc) {
+                            if (disc.requiere_autorizacion) {
+                              setAuthDialog({
+                                discount: disc,
+                                onConfirm: () => {
+                                  setSelectedGeneralDiscount(disc);
+                                  showToast("Descuento autorizado y aplicado", "success");
+                                },
+                                onCancel: () => {
+                                  setSelectedGeneralDiscount(null);
+                                }
+                              });
+                            } else {
+                              setSelectedGeneralDiscount(disc);
+                            }
+                          }
                         }}
-                        className={`text-xs font-bold border-0 bg-transparent outline-none text-black`}
+                        className="text-xs font-bold border-0 bg-transparent outline-none text-black cursor-pointer w-full"
                       >
-                        <option value="percent">%</option>
-                        <option value="fixed">$</option>
+                        <option value="">-- Sin Descuento Venta --</option>
+                        {getActiveDiscounts('VENTA').map(d => (
+                          <option key={d.id} value={d.id}>
+                            {d.nombre} ({d.tipo_valor === 'PORCENTAJE' ? `${d.valor}%` : `$${d.valor}`})
+                          </option>
+                        ))}
                       </select>
-                      <input
-                        disabled={!isEditable}
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={generalDiscountValue}
-                        onChange={e => {
-                          setGeneralDiscountValue(e.target.value);
-                        }}
-                        className={`w-12 text-base font-bold bg-transparent outline-none text-center text-black`}
-                        placeholder="0"
-                      />
                     </div>
                     
                     {/* Clear Cart */}
@@ -2281,13 +2369,12 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   <div className="overflow-x-auto">
                     {(formData.items || []).length > 0 ? (
                       <table className="w-full text-left text-xs whitespace-nowrap">
-                        <thead className={`text-xs uppercase font-bold ${
-                          'bg-gray-50 text-black border-b border-gray-150'}`}>
+                        <thead className={`text-xs uppercase font-bold bg-gray-50 text-black border-b border-gray-150`}>
                           <tr>
                             <th className="px-[8px] py-[6px]">Producto / Servicio</th>
                             <th className="px-[8px] py-[6px] text-center w-20">Cant.</th>
                             <th className="px-[8px] py-[6px] text-right w-24">P. Unit.</th>
-                            {isEditable && <th className="px-[8px] py-[6px] text-right w-20 hidden sm:table-cell">Dto. ($)</th>}
+                            {isEditable && <th className="px-[8px] py-[6px] text-center w-24 hidden sm:table-cell">Dto.</th>}
                             <th className="px-[8px] py-[6px] text-right w-20">Subtotal</th>
                             {isEditable && <th className="px-[8px] py-[6px] text-center w-8"></th>}
                           </tr>
@@ -2295,7 +2382,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         <tbody className={`divide-y divide-gray-150`}>
                           {(formData.items || []).map((item, index) => {
                             const lineBase = (parseFloat(item.price) || 0) * (parseInt(item.quantity) || 1);
-                            const lineDiscount = Math.min(lineBase, parseFloat(item.itemDiscount) || 0);
+                            const discVal = Number(item.discount_value) || Number(item.itemDiscount) || 0;
+                            const lineDiscount = item.discount_type === 'PORCENTAJE' 
+                              ? lineBase * (discVal / 100) 
+                              : Math.min(lineBase, discVal);
                             const subtotalLine = Math.max(0, lineBase - lineDiscount);
                             return (
                               <tr key={index} style={{ color: '#000000'}} className="font-medium text-base">
@@ -2345,17 +2435,25 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                                 </td>
 
                                 {isEditable && (
-                                  <td className="px-[8px] py-[6px] text-right hidden sm:table-cell">
-                                    <div className="relative inline-block w-20">
-                                      <span className="absolute left-[5px] top-1/2 -translate-y-1/2 text-xs font-bold text-orange-500">-$</span>
-                                      <input
-                                        type="number"
-                                        min="0"
-                                        step="0.01"
-                                        value={item.itemDiscount || ''}
-                                        onChange={(e) => handleItemChange(index, 'itemDiscount', e.target.value)}
-                                        className={`w-full text-xs pl-[14px] pr-[2px] py-[4px] rounded-card border outline-none text-right font-bold bg-orange-50 border-orange-200 text-orange-700`}
-                                      />
+                                  <td className="px-[8px] py-[6px] text-center w-24 hidden sm:table-cell">
+                                    <div className="flex items-center justify-center gap-1.5">
+                                      <button
+                                        type="button"
+                                        onClick={() => setSelectedLineItemForDiscount({ ...item, cartIndex: index })}
+                                        className={`p-1.5 rounded-lg border transition-colors flex items-center justify-center cursor-pointer ${
+                                          discVal > 0
+                                            ? 'bg-red-50 text-red-500 border-red-200 hover:bg-red-100'
+                                            : 'bg-white text-slate-500 border-slate-200 hover:text-primary hover:border-primary'
+                                        }`}
+                                        title="Descuento del ítem"
+                                      >
+                                        <Percent size={12} />
+                                      </button>
+                                      {discVal > 0 && (
+                                        <span className="text-[10px] font-bold text-red-500">
+                                          -{item.discount_type === 'PORCENTAJE' ? `${discVal}%` : `$${discVal}`}
+                                        </span>
+                                      )}
                                     </div>
                                   </td>
                                 )}
@@ -3599,6 +3697,198 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
           appId={appId}
           initialFormat={printFormat}
         />
+      )}
+
+      {/* LINE ITEM DISCOUNT SELECTOR MODAL */}
+      {selectedLineItemForDiscount && (() => {
+        const available = getAvailableDiscountsForLineItem(selectedLineItemForDiscount);
+        return (
+          <div className="fixed inset-0 z-[250] flex items-center justify-center bg-slate-900/35 backdrop-blur-xs p-4">
+            <div className="bg-white rounded-2xl w-full max-w-md border border-[#CDD1EA] overflow-hidden flex flex-col shadow-lg animate-in fade-in zoom-in-95 duration-200">
+              <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                <div>
+                  <h3 className="text-xs font-extrabold text-slate-800 uppercase tracking-wider">
+                    Descuento / Promo de Ítem
+                  </h3>
+                  <p className="text-[10px] text-slate-500 font-bold mt-0.5">{selectedLineItemForDiscount.name}</p>
+                </div>
+                <button 
+                  onClick={() => setSelectedLineItemForDiscount(null)} 
+                  className="text-slate-400 hover:text-slate-700 cursor-pointer"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+              <div className="p-4 space-y-3 max-h-[300px] overflow-y-auto custom-scrollbar">
+                {/* Option 1: None */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const idx = selectedLineItemForDiscount.cartIndex;
+                    const updated = [...(formData.items || [])];
+                    updated[idx] = {
+                      ...updated[idx],
+                      id_descuento_aplicado: '',
+                      id_promocion_aplicada: '',
+                      discount_value: 0,
+                      discount_type: 'PORCENTAJE',
+                      itemDiscount: 0
+                    };
+                    setFormData(prev => ({ ...prev, items: updated }));
+                    showToast("Descuento removido", "success");
+                    setSelectedLineItemForDiscount(null);
+                  }}
+                  className={`w-full text-left p-3 rounded-xl border flex justify-between items-center transition-all cursor-pointer ${
+                    !selectedLineItemForDiscount.id_descuento_aplicado
+                      ? 'bg-primary/5 border-primary text-primary font-bold'
+                      : 'bg-white border-slate-155 text-slate-650 hover:bg-slate-50'
+                  }`}
+                >
+                  <span className="text-xs font-semibold">Sin Descuento</span>
+                  <CheckCircle2 size={14} className={!selectedLineItemForDiscount.id_descuento_aplicado ? 'opacity-100' : 'opacity-0'} />
+                </button>
+
+                {/* Available Discounts/Promos */}
+                {available.length === 0 ? (
+                  <p className="text-xs text-slate-400 italic text-center py-4">No hay descuentos o promociones de producto vigentes hoy.</p>
+                ) : (
+                  available.map(d => {
+                    const isSelected = selectedLineItemForDiscount.id_descuento_aplicado === d.id && 
+                                       (d.promotionId ? selectedLineItemForDiscount.id_promocion_aplicada === d.promotionId : true);
+                    return (
+                      <button
+                        key={d.promotionId ? `${d.id}_${d.promotionId}` : d.id}
+                        type="button"
+                        onClick={() => {
+                          const apply = () => {
+                            const idx = selectedLineItemForDiscount.cartIndex;
+                            const updated = [...(formData.items || [])];
+                            updated[idx] = {
+                              ...updated[idx],
+                              id_descuento_aplicado: d.id,
+                              id_promocion_aplicada: d.promotionId || '',
+                              discount_value: d.valor,
+                              discount_type: d.tipo_valor,
+                              itemDiscount: d.tipo_valor === 'PORCENTAJE' ? 0 : d.valor
+                            };
+                            setFormData(prev => ({ ...prev, items: updated }));
+                            showToast("Descuento aplicado al ítem", "success");
+                            setSelectedLineItemForDiscount(null);
+                          };
+                          
+                          if (d.requiere_autorizacion) {
+                            setAuthDialog({
+                              discount: d,
+                              onConfirm: apply,
+                              onCancel: () => {}
+                            });
+                          } else {
+                            apply();
+                          }
+                        }}
+                        className={`w-full text-left p-3 rounded-xl border flex justify-between items-center transition-all cursor-pointer ${
+                          isSelected
+                            ? 'bg-primary/5 border-primary text-primary font-bold'
+                            : 'bg-white border-slate-155 text-slate-650 hover:bg-slate-50'
+                        }`}
+                      >
+                        <div className="flex flex-col">
+                          <span className="text-xs font-bold uppercase">{d.nombre}</span>
+                          <span className="text-[10px] text-slate-400 mt-0.5">
+                            Valor: {d.tipo_valor === 'PORCENTAJE' ? `${d.valor}%` : `$${d.valor}`}
+                            {d.requiere_autorizacion && ' • [Clave Supervisor]'}
+                          </span>
+                        </div>
+                        <CheckCircle2 size={14} className={isSelected ? 'opacity-100' : 'opacity-0'} />
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* SUPERVISOR AUTHORIZATION MODAL */}
+      {authDialog && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm border border-[#CDD1EA] overflow-hidden flex flex-col shadow-xl animate-in zoom-in-95 duration-200">
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+              <span className="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1.5 text-red-500">
+                <ShieldAlert size={15} /> Autorización Requerida
+              </span>
+              <button 
+                onClick={() => { authDialog.onCancel?.(); setAuthDialog(null); }} 
+                className="text-slate-400 hover:text-slate-700 cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="p-5 space-y-4 text-xs font-semibold text-slate-700">
+              <p className="text-slate-550 leading-relaxed">
+                El descuento <strong>{authDialog.discount.nombre}</strong> requiere clave de autorización de supervisor para ser aplicado.
+              </p>
+              
+              <div>
+                <label className="block text-[10px] uppercase font-extrabold text-slate-500 mb-1.5">Clave de Supervisor</label>
+                <input
+                  type="password"
+                  required
+                  placeholder="Ingrese clave..."
+                  value={supervisorPassword}
+                  onChange={e => {
+                    setSupervisorPassword(e.target.value);
+                    setAuthError('');
+                  }}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      if (supervisorPassword === 'SUPERVISOR123') {
+                        authDialog.onConfirm();
+                        setAuthDialog(null);
+                        setSupervisorPassword('');
+                        setAuthError('');
+                      } else {
+                        setAuthError('Clave incorrecta. Solicite al supervisor.');
+                      }
+                    }
+                  }}
+                  className="w-full h-10 px-3 rounded-xl border border-slate-200 focus:outline-none focus:border-red-500 text-black font-semibold text-center tracking-widest text-sm"
+                  autoFocus
+                />
+                {authError && (
+                  <p className="text-red-500 font-bold text-[10px] mt-1.5 animate-pulse">{authError}</p>
+                )}
+              </div>
+
+              <div className="pt-3 flex justify-end gap-2 border-t border-slate-100">
+                <button 
+                  type="button" 
+                  onClick={() => { authDialog.onCancel?.(); setAuthDialog(null); }} 
+                  className="btn-secondary px-4 py-2 font-bold rounded-xl cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    if (supervisorPassword === 'SUPERVISOR123') {
+                      authDialog.onConfirm();
+                      setAuthDialog(null);
+                      setSupervisorPassword('');
+                      setAuthError('');
+                    } else {
+                      setAuthError('Clave incorrecta. Solicite al supervisor.');
+                    }
+                  }} 
+                  className="btn-primary bg-red-650 hover:bg-red-700 px-4 py-2 font-bold text-white rounded-xl cursor-pointer"
+                >
+                  Autorizar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
     </div>

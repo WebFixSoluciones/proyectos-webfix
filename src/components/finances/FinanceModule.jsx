@@ -22,6 +22,7 @@ import AccountsReceivablePayable from './AccountsReceivablePayable';
 import SalesDashboard from './SalesDashboard';
 import ComprasGastosView from './ComprasGastosView';
 import GastosCreditosModule from './GastosCreditosModule';
+import DiscountsPromotionsView from './DiscountsPromotionsView';
 
 export default function FinanceModule({ 
   mode = 'contabilidad', 
@@ -30,6 +31,8 @@ export default function FinanceModule({
   transactions = [],
   thirdParties = [],
   products = [],
+  discounts = [],
+  promotions = [],
   isLoading = false
 }) {
   const getInitialTab = (m) => {
@@ -337,7 +340,8 @@ export default function FinanceModule({
                     onClose={() => setIsModalOpen(false)} 
                     thirdParties={thirdParties} 
                     products={products}
-                    
+                    discounts={discounts}
+                    promotions={promotions}
                     showToast={showToast} 
                     db={db} 
                     storage={storage} 
@@ -354,7 +358,8 @@ export default function FinanceModule({
                         products={products} 
                         thirdParties={thirdParties} 
                         transactions={transactions}
-                        
+                        discounts={discounts}
+                        promotions={promotions}
                         showToast={showToast} 
                         db={db} 
                         appId={appId} 
@@ -368,7 +373,8 @@ export default function FinanceModule({
                         products={products} 
                         thirdParties={thirdParties} 
                         transactions={transactions}
-                        
+                        discounts={discounts}
+                        promotions={promotions}
                         showToast={showToast} 
                         db={db} 
                         appId={appId} 
@@ -389,6 +395,9 @@ export default function FinanceModule({
                     {subTabVentas === 'preventas' && (
                       <TransactionsView transactions={transactions} thirdParties={thirdParties} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} isPreventaTab={true} forcedType="ingreso" />
                     )}
+                    {subTabVentas === 'discounts' && (
+                      <DiscountsPromotionsView db={db} appId={appId} showToast={showToast} products={products} />
+                    )}
 
                     {/* Si el formulario es de POS, se abre como modal overlay sobre el POS */}
                     {isModalOpen && editingTx?.type === 'ingreso' && editingTx?.isPOS && (
@@ -404,6 +413,8 @@ export default function FinanceModule({
                         }} 
                         thirdParties={thirdParties} 
                         products={products}
+                        discounts={discounts}
+                        promotions={promotions}
                         showToast={showToast} 
                         db={db} 
                         storage={storage} 
@@ -503,7 +514,8 @@ export default function FinanceModule({
           onClose={() => setIsModalOpen(false)} 
           thirdParties={thirdParties} 
           products={products}
-          
+          discounts={discounts}
+          promotions={promotions}
           showToast={showToast} 
           db={db} 
           storage={storage} 

@@ -49,6 +49,11 @@ export default function ProductCreationForm({
     priceCSinImpuesto: productToEdit?.priceCSinImpuesto || 0,
     priceWithoutTax: productToEdit?.priceWithoutTax || 0,
     ivaCalculated: productToEdit?.ivaCalculated || 0,
+
+    tax_mode: productToEdit?.tax_mode || 'EXCLUIDO',
+    tarifa_iva: productToEdit?.tarifa_iva !== undefined ? productToEdit.tarifa_iva : (productToEdit?.taxRate !== undefined ? productToEdit.taxRate / 100 : 0.15),
+    precio_sin_iva: productToEdit?.precio_sin_iva || 0,
+    precio_con_iva: productToEdit?.precio_con_iva || 0
   });
 
   // Derived price display states for UI binding
@@ -67,6 +72,10 @@ export default function ProductCreationForm({
   const [showBrandPopup, setShowBrandPopup] = useState(false);
   const [newBrandName, setNewBrandName] = useState('');
   const [newBrandMfr, setNewBrandMfr] = useState('');
+
+  // Finances data fetching
+  const [financesSuppliers, setFinancesSuppliers] = useState<any[]>([]);
+  const [financesPurchases, setFinancesPurchases] = useState<any[]>([]);
 
   const [showPriceWithoutTaxPopup, setShowPriceWithoutTaxPopup] = useState(false);
   const [manualPriceInput, setManualPriceInput] = useState('');
@@ -156,42 +165,59 @@ export default function ProductCreationForm({
   // Initialize prices on edit
   useEffect(() => {
     if (productToEdit) {
-      // If editing, salePrice in database is the subtotal (price without tax)
-      const subtotal = productToEdit.priceWithoutTax || productToEdit.salePrice || 0;
-      const rate = productToEdit.taxRate !== undefined ? productToEdit.taxRate : 15;
-      const total = subtotal * (1 + rate / 100);
+      const taxMode = productToEdit.tax_mode || 'EXCLUIDO';
+      const tarifa = productToEdit.tarifa_iva !== undefined ? productToEdit.tarifa_iva : (productToEdit.taxRate !== undefined ? productToEdit.taxRate / 100 : 0.15);
+      const sinIva = productToEdit.precio_sin_iva !== undefined ? productToEdit.precio_sin_iva : (productToEdit.priceWithoutTax || productToEdit.salePrice || 0);
+      const conIva = productToEdit.precio_con_iva !== undefined ? productToEdit.precio_con_iva : (productToEdit.priceA || sinIva * (1 + tarifa));
       
-      setPriceIncludedTaxInput(parseFloat(total.toFixed(2)));
+      setPriceIncludedTaxInput(parseFloat(conIva.toFixed(2)));
       setFormData(prev => ({
         ...prev,
-        priceWithoutTax: parseFloat(subtotal.toFixed(2)),
-        ivaCalculated: parseFloat((total - subtotal).toFixed(2)),
-        salePrice: parseFloat(subtotal.toFixed(2))
+        tax_mode: taxMode,
+        tarifa_iva: tarifa,
+        precio_sin_iva: parseFloat(sinIva.toFixed(4)),
+        precio_con_iva: parseFloat(conIva.toFixed(4)),
+        salePrice: parseFloat(sinIva.toFixed(2)),
+        priceWithoutTax: parseFloat(sinIva.toFixed(2)),
+        ivaCalculated: parseFloat((conIva - sinIva).toFixed(2)),
+        priceA: parseFloat(conIva.toFixed(2)),
+        priceASinImpuesto: parseFloat(sinIva.toFixed(2)),
+        priceB: productToEdit.priceB || 0,
+        priceBSinImpuesto: productToEdit.priceBSinImpuesto || 0,
+        priceC: productToEdit.priceC || 0,
+        priceCSinImpuesto: productToEdit.priceCSinImpuesto || 0
       }));
     }
   }, [productToEdit]);
 
-  // Recalculate prices when pricing input or taxRate changes
-  const handlePriceIncludedChange = (val: number, taxRate: number) => {
-    let priceWithout = val;
-    let iva = 0;
-    if (taxRate > 0) {
-      priceWithout = val / (1 + taxRate / 100);
-      iva = val - priceWithout;
+  const syncPrices = (taxMode: 'EXCLUIDO' | 'INCLUIDO', tarifa: number, sinIva: number, conIva: number, baseCost: number) => {
+    let finalSin = sinIva;
+    let finalCon = conIva;
+    
+    if (taxMode === 'EXCLUIDO') {
+      finalCon = sinIva * (1 + tarifa);
+    } else {
+      finalSin = conIva / (1 + tarifa);
     }
     
-    // Calculate margin if baseCost exists
+    const iva = finalCon - finalSin;
+    
     let margin = formData.marginPercentage;
-    if (formData.baseCost > 0) {
-      margin = ((priceWithout - formData.baseCost) / formData.baseCost) * 100;
+    if (baseCost > 0) {
+      margin = ((finalSin - baseCost) / baseCost) * 100;
     }
-
+    
+    setPriceIncludedTaxInput(parseFloat(finalCon.toFixed(2)));
     setFormData(prev => ({
       ...prev,
-      salePrice: parseFloat(priceWithout.toFixed(2)), // in DB salePrice = subtotal
-      priceWithoutTax: parseFloat(priceWithout.toFixed(2)),
+      precio_sin_iva: parseFloat(finalSin.toFixed(4)),
+      precio_con_iva: parseFloat(finalCon.toFixed(4)),
+      salePrice: parseFloat(finalSin.toFixed(2)),
+      priceWithoutTax: parseFloat(finalSin.toFixed(2)),
       ivaCalculated: parseFloat(iva.toFixed(2)),
-      marginPercentage: parseFloat(margin.toFixed(2))
+      marginPercentage: parseFloat(margin.toFixed(2)),
+      priceA: parseFloat(finalCon.toFixed(2)),
+      priceASinImpuesto: parseFloat(finalSin.toFixed(2))
     }));
   };
 
@@ -207,7 +233,7 @@ export default function ProductCreationForm({
         const cost = val as number;
         let margin = prev.marginPercentage;
         if (cost > 0) {
-          margin = ((prev.priceWithoutTax - cost) / cost) * 100;
+          margin = ((prev.precio_sin_iva - cost) / cost) * 100;
         }
         updated.marginPercentage = parseFloat(margin.toFixed(2));
       }
@@ -731,63 +757,67 @@ export default function ProductCreationForm({
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
-            {/* Impuesto Selector */}
+            {/* Régimen de IVA */}
             <div className="md:col-span-3">
-              <label className={labelClass}>Impuesto IVA (SRI)</label>
+              <label className={labelClass}>Régimen de IVA</label>
               <select
-                name="taxRate"
-                value={formData.taxRate}
+                name="tax_mode"
+                value={formData.tax_mode}
                 onChange={(e) => {
-                  const rate = parseInt(e.target.value) || 0;
-                  setFormData(prev => ({ ...prev, taxRate: rate }));
-                  // Recalculate with current input price
-                  handlePriceIncludedChange(priceIncludedTaxInput, rate);
+                  const mode = e.target.value as 'EXCLUIDO' | 'INCLUIDO';
+                  setFormData(prev => ({ ...prev, tax_mode: mode }));
+                  syncPrices(mode, formData.tarifa_iva, formData.precio_sin_iva, formData.precio_con_iva, formData.baseCost);
                 }}
                 className={inputClass}
               >
-                <option value="15">IVA 15% (General)</option>
-                <option value="12">IVA 12%</option>
-                <option value="5">IVA 5% (Materiales Construccion)</option>
+                <option value="EXCLUIDO">Precio Excluye IVA (EXCLUIDO)</option>
+                <option value="INCLUIDO">Precio Incluye IVA (INCLUIDO)</option>
+              </select>
+            </div>
+
+            {/* Tarifa IVA Selector */}
+            <div className="md:col-span-3">
+              <label className={labelClass}>Tarifa IVA (SRI)</label>
+              <select
+                name="tarifa_iva"
+                value={formData.tarifa_iva}
+                onChange={(e) => {
+                  const tarifa = parseFloat(e.target.value) || 0;
+                  setFormData(prev => ({ ...prev, tarifa_iva: tarifa, taxRate: tarifa * 100 }));
+                  syncPrices(formData.tax_mode, tarifa, formData.precio_sin_iva, formData.precio_con_iva, formData.baseCost);
+                }}
+                className={inputClass}
+              >
+                <option value="0.15">IVA 15% (General)</option>
+                <option value="0.12">IVA 12%</option>
+                <option value="0.05">IVA 5% (Construcción)</option>
                 <option value="0">IVA 0% (Exento)</option>
               </select>
             </div>
 
             {/* Precio sin impuestos */}
             <div className="md:col-span-3">
-              <label className={labelClass}>Precio sin impuestos</label>
-              <div className="relative">
-                <div className={iconContainerClass}><DollarSign size={14} /></div>
-                <input
-                  type="text"
-                  readOnly
-                  value={formData.priceWithoutTax.toFixed(2)}
-                  className={`${inputClass} pr-8 bg-gray-100/50 dark:bg-black/40 font-mono`}
-                  style={{ paddingLeft: '36px' }}
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    setManualPriceInput(formData.priceWithoutTax.toString());
-                    setShowPriceWithoutTaxPopup(true);
-                  }}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-primary hover:text-primary-dark transition-all"
-                  title="Ingreso manual de precio sin impuesto"
-                >
-                  <Edit2 size={13} />
-                </button>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-bold text-gray-700 dark:text-gray-200">Precio sin IVA</label>
+                {formData.tax_mode === 'INCLUIDO' && (
+                  <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full font-semibold">Autocalculado</span>
+                )}
               </div>
-            </div>
-
-            {/* IVA Calculado */}
-            <div className="md:col-span-3">
-              <label className={labelClass}>IVA calculado</label>
               <div className="relative">
                 <div className={iconContainerClass}><DollarSign size={14} /></div>
                 <input
-                  type="text"
-                  readOnly
-                  value={formData.ivaCalculated.toFixed(2)}
-                  className={`${inputClass} bg-gray-100/50 dark:bg-black/40 font-mono text-gray-500`}
+                  type="number"
+                  min="0"
+                  step="0.0001"
+                  required
+                  disabled={formData.tax_mode === 'INCLUIDO'}
+                  value={formData.precio_sin_iva || ''}
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value) || 0;
+                    setFormData(prev => ({ ...prev, precio_sin_iva: val }));
+                    syncPrices('EXCLUIDO', formData.tarifa_iva, val, formData.precio_con_iva, formData.baseCost);
+                  }}
+                  className={`${inputClass} font-mono ${formData.tax_mode === 'INCLUIDO' ? 'bg-gray-50 border-gray-200 text-gray-400' : ''}`}
                   style={{ paddingLeft: '36px' }}
                 />
               </div>
@@ -795,7 +825,12 @@ export default function ProductCreationForm({
 
             {/* Precio incluido impuestos */}
             <div className="md:col-span-3">
-              <label className={labelClass}>Precio incluido impuestos *</label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-bold text-gray-700 dark:text-gray-200">Precio con IVA *</label>
+                {formData.tax_mode === 'EXCLUIDO' && (
+                  <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full font-semibold">Autocalculado</span>
+                )}
+              </div>
               <div className="relative">
                 <div className={iconContainerClass}><DollarSign size={14} /></div>
                 <input
@@ -803,18 +838,24 @@ export default function ProductCreationForm({
                   min="0"
                   step="0.01"
                   required
-                  value={priceIncludedTaxInput || ''}
+                  disabled={formData.tax_mode === 'EXCLUIDO'}
+                  value={formData.precio_con_iva || ''}
                   onChange={(e) => {
                     const val = parseFloat(e.target.value) || 0;
-                    setPriceIncludedTaxInput(val);
-                    handlePriceIncludedChange(val, formData.taxRate);
+                    setFormData(prev => ({ ...prev, precio_con_iva: val }));
+                    syncPrices('INCLUIDO', formData.tarifa_iva, formData.precio_sin_iva, val, formData.baseCost);
                   }}
                   placeholder="0.00"
-                  className={`${inputClass} font-mono font-bold text-emerald-500`}
+                  className={`${inputClass} font-mono font-bold text-emerald-600 ${formData.tax_mode === 'EXCLUIDO' ? 'bg-gray-50 border-gray-200 text-gray-400' : ''}`}
                   style={{ paddingLeft: '36px' }}
                 />
               </div>
             </div>
+          </div>
+          
+          <div className="text-[11px] text-slate-400 italic flex items-center gap-1">
+            <span>IVA Calculado:</span>
+            <span className="font-bold font-mono text-slate-600">${formData.ivaCalculated.toFixed(2)}</span>
           </div>
         </div>
 

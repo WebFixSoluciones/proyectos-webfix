@@ -521,7 +521,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                 ? 'Preventa'
                 : (forcedDocType 
                     ? (forcedDocType === 'ventas_resumen' 
-                        ? 'Venta' 
+                        ? 'Venta Administrativa' 
                         : (forcedDocType === 'compras_resumen'
                             ? 'Compra'
                             : (docTypeTabs.find(t => t.id === forcedDocType)?.label || forcedDocType))) 

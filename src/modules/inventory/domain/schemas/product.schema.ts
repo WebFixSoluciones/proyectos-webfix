@@ -26,6 +26,10 @@ export const ProductSchema = z.object({
   
   // SRI & Tax
   taxRate: z.number().default(15),
+  tax_mode: z.enum(['EXCLUIDO', 'INCLUIDO']).default('EXCLUIDO').optional(),
+  precio_sin_iva: z.number().optional(),
+  precio_con_iva: z.number().optional(),
+  tarifa_iva: z.number().default(0.15).optional(),
   
   stock: z.number().default(0),
   
