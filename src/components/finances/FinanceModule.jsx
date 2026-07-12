@@ -223,9 +223,8 @@ export default function FinanceModule({
 
   // Checkout desde Punto de Venta (POS)
   const handlePOSCheckout = (invoiceData) => {
-    handleOpenFormModal(invoiceData);
-    setActiveTab('ventas');
-    setSubTabVentas('resumen_ventas');
+    setEditingTx(invoiceData);
+    setIsModalOpen(true);
   };
 
   const getModuleHeader = () => {
@@ -332,7 +331,7 @@ export default function FinanceModule({
               
               {/* SECCIÓN VENTAS */}
               {activeTab === 'ventas' && (
-                isModalOpen && editingTx?.type === 'ingreso' ? (
+                isModalOpen && editingTx?.type === 'ingreso' && !editingTx?.isPOS ? (
                   <TransactionForm 
                     tx={editingTx} 
                     onClose={() => setIsModalOpen(false)} 
@@ -389,6 +388,28 @@ export default function FinanceModule({
                     )}
                     {subTabVentas === 'preventas' && (
                       <TransactionsView transactions={transactions} thirdParties={thirdParties} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} isPreventaTab={true} forcedType="ingreso" />
+                    )}
+
+                    {/* Si el formulario es de POS, se abre como modal overlay sobre el POS */}
+                    {isModalOpen && editingTx?.type === 'ingreso' && editingTx?.isPOS && (
+                      <TransactionForm 
+                        tx={editingTx} 
+                        onClose={() => {
+                          setIsModalOpen(false);
+                          // Sincronizar foco del input del POS después de cerrar el modal de impresión
+                          setTimeout(() => {
+                            const searchInput = document.getElementById('pos-search-input');
+                            if (searchInput) searchInput.focus();
+                          }, 350);
+                        }} 
+                        thirdParties={thirdParties} 
+                        products={products}
+                        showToast={showToast} 
+                        db={db} 
+                        storage={storage} 
+                        appId={appId} 
+                        isInline={false}
+                      />
                     )}
                   </>
                 )
