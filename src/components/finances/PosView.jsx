@@ -1853,7 +1853,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                   <div 
                     key={p.id}
                     onClick={() => !isOutOfStock && addToCart(p)}
-                    className={`p-[3px] border border-[#CDD1EA] rounded-2xl bg-white flex flex-col justify-between transition-all cursor-pointer select-none group relative shadow-sm hover:shadow-md hover:border-primary/45 h-[210px] shrink-0 ${
+                    className={`p-[3px] border border-[#CDD1EA] rounded-2xl bg-white flex flex-col justify-between transition-all cursor-pointer select-none group relative shadow-sm hover:shadow-md hover:border-primary/45 h-[190px] shrink-0 ${
                       isOutOfStock 
                         ? 'cursor-not-allowed' 
                         : 'hover:-translate-y-0.5'
@@ -1875,7 +1875,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                     </div>
 
                     {/* Contenedor de Imagen y Badge de SKU */}
-                    <div className="w-full h-[120px] rounded-xl bg-white flex items-center justify-center relative overflow-hidden shrink-0">
+                    <div className="w-full h-[138px] rounded-xl bg-white flex items-center justify-center relative overflow-hidden shrink-0">
                       <div className={`w-full h-full ${isOutOfStock ? 'opacity-40' : ''}`}>
                         {isPlaceholder ? (
                           <div className="w-full h-full bg-[#f1f5f9] flex items-center justify-center text-slate-400">
