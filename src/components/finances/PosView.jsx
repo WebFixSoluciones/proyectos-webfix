@@ -1741,16 +1741,19 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                     key={cat.name}
                     type="button"
                     onClick={() => setFilterCategory(cat.name)}
-                    className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all whitespace-nowrap ${
+                    className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all whitespace-nowrap bg-transparent ${
                       isSelected 
-                        ? 'text-primary bg-primary/10' 
-                        : 'text-slate-600 bg-[#f0f3ff] hover:bg-primary/5'
+                        ? 'text-primary font-bold' 
+                        : 'text-slate-600 hover:text-primary'
                     }`}
                   >
                     <span>{cat.name}</span>
-                    <span className={`text-[10px] font-black px-1.5 py-0.2 rounded-full ${
-                      isSelected ? 'bg-primary text-white' : 'bg-white text-primary'
-                    }`}>
+                    <span 
+                      className={`text-[10px] font-black px-1.5 py-0.5 rounded-full transition-colors ${
+                        isSelected ? 'bg-primary text-white' : 'text-primary'
+                      }`}
+                      style={!isSelected ? { backgroundColor: 'color-mix(in srgb, var(--primary) 10%, transparent)' } : {}}
+                    >
                       {cat.count}
                     </span>
                   </button>
