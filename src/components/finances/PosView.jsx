@@ -107,6 +107,11 @@ export default function PosView({ products, thirdParties, transactions = [], sho
     cruce_cuentas: false
   });
   const [isProcessing, setIsProcessing] = useState(false);
+  
+  // Estados para el cobro directo en una sola pantalla
+  const [posPaymentMethod, setPosPaymentMethod] = useState('efectivo'); 
+  const [receivedAmount, setReceivedAmount] = useState('');
+  const [paymentRefCode, setPaymentRefCode] = useState('');
 
   // Quick Client Creation Modal (inside POS Checkout)
   const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
@@ -140,6 +145,43 @@ export default function PosView({ products, thirdParties, transactions = [], sho
     return cart.reduce((acc, item) => acc + ((Number(item.price) || 0) * (Number(item.quantity) || 0) * ratio * ((Number(item.ivaCategory !== undefined ? item.ivaCategory : 15)) / 100)), 0);
   };
   const getTotal = () => getSubtotalWithDiscount() + getIva();
+
+  // Sincronizar reactivamente los pagos según el método seleccionado en el sidebar
+  useEffect(() => {
+    const total = getTotal();
+    if (posPaymentMethod === 'efectivo') {
+      const cashVal = Number(receivedAmount) || 0;
+      setPayments({
+        efectivo: cashVal,
+        transferencia: 0,
+        tarjeta: 0,
+        cruce_cuentas: 0,
+        transferenciaRef: '',
+        tarjetaRef: '',
+        cruceRef: ''
+      });
+    } else if (posPaymentMethod === 'transferencia') {
+      setPayments({
+        efectivo: 0,
+        transferencia: total,
+        tarjeta: 0,
+        cruce_cuentas: 0,
+        transferenciaRef: paymentRefCode,
+        tarjetaRef: '',
+        cruceRef: ''
+      });
+    } else if (posPaymentMethod === 'tarjeta') {
+      setPayments({
+        efectivo: 0,
+        transferencia: 0,
+        tarjeta: total,
+        cruce_cuentas: 0,
+        transferenciaRef: '',
+        tarjetaRef: paymentRefCode,
+        cruceRef: ''
+      });
+    }
+  }, [posPaymentMethod, receivedAmount, paymentRefCode, cart]);
 
   // checkout wizard calculations
   const totalToPay = getTotal();
@@ -195,13 +237,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
   }, [posConfig, appId]);
 
   const getGridColsClass = () => {
-    switch (posConfig.gridColumns) {
-      case 2: return 'grid-cols-1 sm:grid-cols-2';
-      case 3: return 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3';
-      case 5: return 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5';
-      case 4:
-      default: return 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4';
-    }
+    return 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5';
   };
 
   const handleSearchKeyDown = (e) => {
@@ -363,15 +399,15 @@ export default function PosView({ products, thirdParties, transactions = [], sho
       if (e.key === 'F12' || (e.ctrlKey && e.key === 'Enter')) {
         e.preventDefault();
         if (cart.length > 0) {
-          setPayments({
-            efectivo: 0, transferencia: 0, tarjeta: 0, cruce_cuentas: 0,
-            transferenciaRef: '', tarjetaRef: '', cruceRef: ''
-          });
-          setActivePayments({
-            efectivo: true, transferencia: false, tarjeta: false, cruce_cuentas: false
-          });
-          setCheckoutStep(1);
-          setIsCheckoutOpen(true);
+          // Validar que si es efectivo, haya pagado suficiente
+          if (posPaymentMethod === 'efectivo') {
+            const cashVal = Number(receivedAmount) || 0;
+            if (cashVal < getTotal()) {
+              showToast(`Por favor, cubre el total de la factura. Falta pagar $${(getTotal() - cashVal).toFixed(2)}`, "error");
+              return;
+            }
+          }
+          handleFinalCheckout();
         } else {
           showToast("El carrito está vacío", "error");
         }
@@ -1333,55 +1369,55 @@ export default function PosView({ products, thirdParties, transactions = [], sho
             </div>
           ) : (
             /* GRID LAYOUT */
-            <div className={`flex-1 overflow-y-auto grid ${getGridColsClass()} gap-3 p-1 custom-scrollbar`}>
+            <div className={`flex-1 overflow-y-auto grid ${getGridColsClass()} gap-3 p-1 content-start custom-scrollbar`}>
               {filteredProducts.map(p => {
                 const isOutOfStock = p.type === 'producto' && p.inventoryType !== 'VIRTUAL' && p.stock <= 0;
                 return (
                   <div 
                     key={p.id}
                     onClick={() => !isOutOfStock && addToCart(p)}
-                    className={`p-3.5 border rounded-card flex flex-col justify-between transition-all cursor-pointer select-none group relative overflow-hidden ${
+                    className={`p-3 border rounded-card flex flex-col justify-between transition-all cursor-pointer select-none group relative overflow-hidden h-[125px] shrink-0 ${
                       isOutOfStock 
                         ? 'opacity-40 cursor-not-allowed bg-white/[0.005] border-white/5' 
                         : ('border-primary/15 hover:border-primary/40 hover:bg-primary/5 bg-primary/5 hover:-translate-y-0.5')
                     }`}
                   >
-                    <div className="flex gap-3 items-start min-w-0">
+                    <div className="flex gap-2.5 items-start min-w-0">
                       <img 
                         src={p.imageUrl || p.image || 'https://placehold.co/600x600/png?text=Sin+Imagen'} 
-                        className="w-12 h-12 rounded-lg object-cover shrink-0 border border-slate-200" 
+                        className="w-10 h-10 rounded-lg object-cover shrink-0 border border-slate-200" 
                         alt={p.name} 
                         onError={(e) => {
                           e.target.src = 'https://placehold.co/600x600/png?text=Sin+Imagen';
                         }}
                       />
-                      <div className="space-y-1 min-w-0 flex-1">
+                      <div className="space-y-0.5 min-w-0 flex-1">
                         <div className="flex justify-between items-center gap-1">
-                          <span className="font-mono text-[10px] text-gray-500 truncate">{p.sku}</span>
-                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase shrink-0 ${p.type === 'producto' ? 'bg-primary/10 text-primary' : 'bg-purple-500/10 text-purple-400'}`}>{p.type}</span>
+                          <span className="font-mono text-[9px] text-gray-500 truncate">{p.sku}</span>
+                          <span className={`px-1 rounded text-[8px] font-bold uppercase shrink-0 ${p.type === 'producto' ? 'bg-primary/10 text-primary' : 'bg-purple-500/10 text-purple-400'}`}>{p.type === 'producto' ? 'Prod' : 'Serv'}</span>
                         </div>
-                        <h4 className={`text-xs sm:text-sm font-bold leading-snug line-clamp-2 text-black`} title={p.name}>{p.name}</h4>
-                        <p className="text-[10px] text-gray-500 truncate">{p.marca || 'Sin Marca'} | {p.categoria || 'General'}</p>
+                        <h4 className={`text-xs font-bold leading-tight line-clamp-2 text-black`} title={p.name}>{p.name}</h4>
+                        <p className="text-[9px] text-gray-400 truncate">{p.marca || 'Sin Marca'} | {p.categoria || 'General'}</p>
                       </div>
                     </div>
 
-                    <div className={`flex justify-between items-center mt-3 pt-3 border-t border-primary/15`}>
-                      <span className={`text-sm font-black text-black`}>${Number(p.price).toFixed(2)}</span>
+                    <div className={`flex justify-between items-center mt-2 pt-2 border-t border-primary/15 shrink-0`}>
+                      <span className={`text-xs font-black text-black`}>${Number(p.price).toFixed(2)}</span>
                       {posConfig.showStock && p.type === 'producto' && (() => {
                         if (p.inventoryType === 'VIRTUAL') {
                           return (
-                            <span className="text-xs text-gray-400 italic">Virtual (N/A)</span>
+                            <span className="text-[9px] text-gray-400 italic">Virtual (N/A)</span>
                           );
                         }
                         const minStk = p.minStock !== undefined ? Number(p.minStock) : 2;
                         const isCritical = p.stock <= minStk;
                         return (
-                          <span className={`text-xs font-bold px-2 py-0.5 rounded border ${
+                          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${
                             isCritical 
-                              ? 'bg-red-500/10 border-red-500 text-red-500 animate-pulse font-black' 
-                              : ('bg-emerald-50 border-emerald-250 text-emerald-700')
+                              ? 'bg-red-500/10 border-red-500 text-red-500 font-black' 
+                              : 'bg-emerald-50 border-emerald-250 text-emerald-700'
                           }`}>
-                            {p.bodega || 'Central'}: {p.stock}
+                            {p.stock} u.
                           </span>
                         );
                       })()}
@@ -1745,7 +1781,121 @@ export default function PosView({ products, thirdParties, transactions = [], sho
               </div>
             </div>
 
-            <div className="flex gap-2.5">
+            {cart.length > 0 && (
+              <div className="mt-3 pt-3 border-t border-primary/15 space-y-3">
+                {/* TIPO DE COMPROBANTE */}
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-wider text-gray-500 mb-1.5">Tipo de Comprobante</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setPosDocType('factura')}
+                      className={`py-1.5 rounded-lg text-xs font-bold border transition-all ${
+                        posDocType === 'factura' 
+                          ? 'bg-primary border-primary text-white font-black' 
+                          : 'bg-[#f8fafc] border-transparent text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      Factura
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPosDocType('nota_venta')}
+                      className={`py-1.5 rounded-lg text-xs font-bold border transition-all ${
+                        posDocType === 'nota_venta' 
+                          ? 'bg-primary border-primary text-white font-black' 
+                          : 'bg-[#f8fafc] border-transparent text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      Nota de Venta
+                    </button>
+                  </div>
+                </div>
+
+                {/* MÉTODO DE PAGO */}
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-wider text-gray-500 mb-1.5">Método de Pago</label>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {[
+                      { id: 'efectivo', label: 'Efectivo' },
+                      { id: 'transferencia', label: 'Transfer' },
+                      { id: 'tarjeta', label: 'Tarjeta' }
+                    ].map(method => (
+                      <button
+                        key={method.id}
+                        type="button"
+                        onClick={() => {
+                          setPosPaymentMethod(method.id);
+                          if (method.id !== 'efectivo') {
+                            setReceivedAmount('');
+                          }
+                        }}
+                        className={`py-1.5 rounded-lg text-xs font-bold border transition-all ${
+                          posPaymentMethod === method.id 
+                            ? 'bg-primary border-primary text-white font-black' 
+                            : 'bg-[#f8fafc] border-transparent text-gray-700 hover:bg-gray-100'
+                        }`}
+                      >
+                        {method.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* MONTO RECIBIDO Y CAMBIO (Solo Efectivo) */}
+                {posPaymentMethod === 'efectivo' && (
+                  <div className="space-y-2 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                    <div className="flex justify-between items-center">
+                      <label className="text-[10px] font-black uppercase tracking-wider text-gray-500">Monto Recibido</label>
+                      <button
+                        type="button"
+                        onClick={() => setReceivedAmount(getTotal().toFixed(2))}
+                        className="text-[10px] font-bold text-primary hover:underline"
+                      >
+                        Paga Exacto
+                      </button>
+                    </div>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-xs">$</span>
+                      <input
+                        type="number"
+                        step="any"
+                        placeholder="0.00"
+                        value={receivedAmount}
+                        onChange={e => setReceivedAmount(e.target.value)}
+                        className="w-full pl-6 pr-3 py-1.5 text-sm font-bold rounded-lg border-none outline-none bg-white focus:ring-1 focus:ring-primary/20 text-black placeholder-gray-400"
+                      />
+                    </div>
+                    
+                    {/* CAMBIO */}
+                    {Number(receivedAmount) > 0 && (
+                      <div className="flex justify-between items-center pt-1.5 border-t border-dashed border-slate-200">
+                        <span className="text-[10px] font-black uppercase text-gray-500">Cambio a entregar</span>
+                        <span className={`text-sm font-black ${Number(receivedAmount) >= getTotal() ? 'text-emerald-600' : 'text-red-500'}`}>
+                          ${Math.max(0, Number(receivedAmount) - getTotal()).toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* NRO REFERENCIA (Transferencia / Tarjeta) */}
+                {(posPaymentMethod === 'transferencia' || posPaymentMethod === 'tarjeta') && (
+                  <div className="space-y-1 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                    <label className="block text-[10px] font-black uppercase tracking-wider text-gray-500">Referencia / Lote / Banco</label>
+                    <input
+                      type="text"
+                      placeholder="Ej. #09281 o Pichincha"
+                      value={paymentRefCode}
+                      onChange={e => setPaymentRefCode(e.target.value)}
+                      className="w-full px-3 py-1.5 text-xs font-medium rounded-lg border-none outline-none bg-white focus:ring-1 focus:ring-primary/20 text-black placeholder-gray-400"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="flex gap-2.5 mt-4 pt-1">
               <button 
                 type="button" 
                 onClick={playCashRegisterSound}
@@ -1761,15 +1911,15 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                     showToast("Agrega productos al carrito", "error");
                     return;
                   }
-                  setPayments({
-                    efectivo: 0, transferencia: 0, tarjeta: 0, cruce_cuentas: 0,
-                    transferenciaRef: '', tarjetaRef: '', cruceRef: ''
-                  });
-                  setActivePayments({
-                    efectivo: true, transferencia: false, tarjeta: false, cruce_cuentas: false
-                  });
-                  setCheckoutStep(1);
-                  setIsCheckoutOpen(true);
+                  // Validar que si es efectivo, haya pagado suficiente
+                  if (posPaymentMethod === 'efectivo') {
+                    const cashVal = Number(receivedAmount) || 0;
+                    if (cashVal < getTotal()) {
+                      showToast(`Por favor, cubre el total de la factura. Falta pagar $${(getTotal() - cashVal).toFixed(2)}`, "error");
+                      return;
+                    }
+                  }
+                  handleFinalCheckout();
                 }}
                 className="btn-primary flex-[2] flex items-center justify-center gap-2"
               >
