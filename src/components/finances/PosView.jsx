@@ -2035,12 +2035,42 @@ export default function PosView({ products, thirdParties, transactions = [], sho
 
           
           {/* CABECERA DETALLE DEL PEDIDO */}
-          <div className={`px-4 py-2.5 border-b flex justify-between items-center shrink-0 ${
-            'border-primary/15 text-gray-550 bg-primary/5'}`}>
-            <span className="text-xs font-extrabold uppercase tracking-wider">Detalle del Pedido</span>
-            <span className="text-xs font-bold">
-              Items (<span className="text-primary dark:text-primary font-extrabold">{cart.reduce((acc, it) => acc + it.quantity, 0)}</span>)
-            </span>
+          <div className="px-4 py-2 border-b flex justify-between items-center shrink-0 bg-white border-slate-100 gap-2">
+            {/* Left: Items + count */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-bold text-slate-800">Items</span>
+              <span className="bg-[#f0f3ff] text-primary text-xs font-extrabold px-2 py-0.5 rounded-full select-none">
+                {cart.reduce((acc, it) => acc + it.quantity, 0)}
+              </span>
+            </div>
+
+            {/* Right: Descuento, Guardar Borrador, Vaciar */}
+            <div className="flex items-center gap-2">
+              <button 
+                type="button"
+                onClick={() => setIsDiscountOpen(prev => !prev)} 
+                className="flex items-center gap-1.5 px-3 py-1 h-8 rounded-lg bg-white border border-[#CDD1EA] text-slate-700 hover:text-primary hover:border-primary transition-colors text-xs font-bold select-none cursor-pointer"
+              >
+                <Tag size={12} className="text-primary" />
+                <span>Descuento</span>
+              </button>
+              <button 
+                type="button"
+                onClick={suspendSale} 
+                className="flex items-center gap-1.5 px-3 py-1 h-8 rounded-lg bg-white border border-[#CDD1EA] text-slate-700 hover:text-primary hover:border-primary transition-colors text-xs font-bold select-none cursor-pointer"
+              >
+                <Bookmark size={12} className="text-primary" />
+                <span>Guardar Borrador</span>
+              </button>
+              <button 
+                type="button"
+                onClick={() => setCart([])} 
+                className="flex items-center gap-1.5 px-3 py-1 h-8 rounded-lg bg-white border border-[#CDD1EA] text-red-500 hover:bg-red-50 hover:border-red-500 transition-colors text-xs font-bold select-none cursor-pointer"
+              >
+                <Trash2 size={12} className="text-red-500" />
+                <span>Vaciar</span>
+              </button>
+            </div>
           </div>
 
           {/* LISTA CARRITO POS */}
@@ -2127,39 +2157,27 @@ export default function PosView({ products, thirdParties, transactions = [], sho
           </div>
 
           {/* ACCIONES Y TOTALES */}
-          <div className={`p-4 border-t space-y-4 shrink-0 border-primary/15 bg-primary/5`}>
+          <div className={`p-4 border-t space-y-4 shrink-0 border-slate-100 bg-primary/5`}>
             {/* DESCUENTO CARD */}
-            {isDiscountOpen ? (
-              <div className={`p-3 rounded-card border space-y-2 border-primary/15 bg-white`}>
+            {isDiscountOpen && (
+              <div className="p-3 rounded-card border space-y-2 border-slate-150 bg-white shadow-none">
                 <div className="flex justify-between items-center">
-                  <span className={`text-xs font-bold text-black`}>DESCUENTO GENERAL</span>
+                  <span className="text-xs font-bold text-black uppercase tracking-wider">Descuento General</span>
                   <button 
                     type="button"
                     onClick={() => { setIsDiscountOpen(false); setDiscountValue(0); }} 
-                    className="btn-icon text-gray-500 hover:text-black dark:hover:text-white"
+                    className="p-1 text-gray-550 hover:text-black hover:bg-slate-50 rounded-md transition-colors"
                   >
-                    <X size={10} />
+                    <X size={12} />
                   </button>
                 </div>
                 <div className="flex gap-1">
-                  <select value={discountType} onChange={e => setDiscountType(e.target.value)} className={`text-sm px-2 py-1.5 rounded-lg border outline-none bg-white border-primary/20 text-black`}>
+                  <select value={discountType} onChange={e => setDiscountType(e.target.value)} className="text-xs px-2 py-1.5 rounded-lg border outline-none bg-white border-[#CDD1EA] text-black">
                     <option value="percent">% Porcentaje</option>
                     <option value="fixed">$ Fijo (USD)</option>
                   </select>
-                  <input type="number" value={discountValue} onChange={e => setDiscountValue(e.target.value)} className={`w-full text-xs px-2 py-1.5 rounded-lg border outline-none bg-white border-primary/20 text-black`} placeholder="0" />
+                  <input type="number" value={discountValue} onChange={e => setDiscountValue(e.target.value)} className="w-full text-xs px-2 py-1.5 rounded-lg border outline-none bg-white border-[#CDD1EA] text-black" placeholder="0" />
                 </div>
-              </div>
-            ) : (
-              <div className="flex gap-2">
-                <button onClick={() => setIsDiscountOpen(true)} className="btn-secondary flex-1">
-                  <Tag size={12} className="inline mr-1 text-primary" /> Descuento
-                </button>
-                <button onClick={suspendSale} className="btn-secondary flex-1">
-                  <Bookmark size={12} className="inline mr-1 text-primary" /> Suspender
-                </button>
-                <button onClick={() => setCart([])} className="btn-danger flex-1">
-                  <Trash2 size={12} className="inline mr-1 text-red-500" /> Vaciar
-                </button>
               </div>
             )}
 
