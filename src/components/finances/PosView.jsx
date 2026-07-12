@@ -1096,7 +1096,8 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
                 onKeyDown={handleSearchKeyDown}
-                className="bg-transparent border-none outline-none text-sm w-full focus:ring-0 text-black placeholder-gray-400 font-bold"
+                className="bg-transparent border-none outline-none text-sm w-full focus:ring-0 text-black placeholder-gray-400 font-bold focus-visible:outline-none focus:outline-none"
+                style={{ outline: 'none', boxShadow: 'none' }}
               />
               {searchTerm && (
                 <button 
@@ -1147,7 +1148,8 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                     setIsClientDropdownOpen(true);
                   }}
                   onFocus={() => setIsClientDropdownOpen(true)}
-                  className="bg-transparent border-none outline-none text-sm w-full focus:ring-0 text-black placeholder-gray-400 font-bold"
+                  className="bg-transparent border-none outline-none text-sm w-full focus:ring-0 text-black placeholder-gray-400 font-bold focus-visible:outline-none focus:outline-none"
+                  style={{ outline: 'none', boxShadow: 'none' }}
                 />
                 {clientSearchTerm && (
                   <button 
@@ -1375,10 +1377,10 @@ export default function PosView({ products, thirdParties, transactions = [], sho
         {showPaymentScreen ? (
           <div className="flex-1 flex flex-col lg:flex-row min-h-0 bg-slate-50 animate-in fade-in duration-300">
             {/* COLUMNA IZQUIERDA: RESUMEN DE COMPRA Y CLIENTE */}
-            <div className="w-full lg:w-[28rem] xl:w-[32rem] flex flex-col shrink-0 border-r border-slate-200 bg-white p-6 justify-between overflow-y-auto custom-scrollbar">
+            <div className="w-full lg:w-[28rem] xl:w-[32rem] flex flex-col shrink-0 border-r border-[#CDD1EA] bg-white p-6 justify-between overflow-y-auto custom-scrollbar">
               <div className="space-y-6">
                 {/* Cabecera / Regresar */}
-                <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+                <div className="flex items-center justify-between pb-4 border-b border-[#CDD1EA]">
                   <button
                     type="button"
                     onClick={() => setShowPaymentScreen(false)}
@@ -1413,7 +1415,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                   {(() => {
                     const client = getSelectedClient();
                     return (
-                      <div className="p-4 rounded-xl border border-slate-150 bg-slate-50/50 space-y-2 text-xs text-black">
+                      <div className="p-4 rounded-xl border border-[#CDD1EA] bg-slate-50/50 space-y-2 text-xs text-black">
                         <div>
                           <span className="font-bold text-gray-400 uppercase text-[9px] block">Razón Social / Nombre</span>
                           <span className="font-extrabold text-sm uppercase text-gray-900">{client.name}</span>
@@ -1449,7 +1451,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                       {cart.reduce((acc, it) => acc + it.quantity, 0)} Items
                     </span>
                   </div>
-                  <div className="max-h-48 overflow-y-auto border border-slate-100 rounded-xl divide-y divide-slate-100 custom-scrollbar">
+                  <div className="max-h-48 overflow-y-auto border border-[#CDD1EA] rounded-xl divide-y divide-[#CDD1EA] custom-scrollbar">
                     {cart.map((item, idx) => (
                       <div key={idx} className="p-3 flex justify-between items-center gap-3 bg-white text-xs">
                         <div className="min-w-0 flex-1">
@@ -1464,7 +1466,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
               </div>
 
               {/* Totales y Botón Abandonar */}
-              <div className="mt-6 pt-6 border-t border-slate-150 space-y-4">
+              <div className="mt-6 pt-6 border-t border-[#CDD1EA] space-y-4">
                 <div className="p-4 rounded-xl bg-slate-900 text-white space-y-2">
                   <div className="flex justify-between text-xs font-medium text-slate-400">
                     <span>Subtotal</span>
@@ -1480,7 +1482,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                     <span>IVA (15%)</span>
                     <span>${getIva().toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between items-end pt-2 border-t border-slate-800">
+                  <div className="flex justify-between items-end pt-2 border-t border-[#CDD1EA]">
                     <span className="text-xs font-extrabold uppercase text-slate-300">Total a Pagar</span>
                     <span className="text-2xl font-black text-white font-mono">${getTotal().toFixed(2)}</span>
                   </div>
@@ -1715,7 +1717,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                   <div>
                     
-                    <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} className="w-full text-xs font-medium px-2 py-1 rounded-md border outline-none bg-white border-border-default text-black">
+                    <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} className="w-full text-xs font-medium px-2 py-1 rounded-md border outline-none bg-white border-[#CDD1EA] text-black">
                       <option value="all" className={'text-black bg-white'}>Categorías (Todos)</option>
                       {categories.filter(c => c !== 'all').map(c => <option key={c} value={c} className={'text-black bg-white'}>{c}</option>)}
                     </select>
@@ -1723,7 +1725,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
 
                   <div>
                     
-                    <select value={filterBrand} onChange={e => setFilterBrand(e.target.value)} className="w-full text-xs font-medium px-2 py-1 rounded-md border outline-none bg-white border-border-default text-black">
+                    <select value={filterBrand} onChange={e => setFilterBrand(e.target.value)} className="w-full text-xs font-medium px-2 py-1 rounded-md border outline-none bg-white border-[#CDD1EA] text-black">
                       <option value="all" className={'text-black bg-white'}>Marcas (Todos)</option>
                       {brands.filter(b => b !== 'all').map(b => <option key={b} value={b} className={'text-black bg-white'}>{b}</option>)}
                     </select>
@@ -1731,7 +1733,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
 
                   <div>
                     
-                    <select value={filterWarehouse} onChange={e => setFilterWarehouse(e.target.value)} className="w-full text-xs font-medium px-2 py-1 rounded-md border outline-none bg-white border-border-default text-black">
+                    <select value={filterWarehouse} onChange={e => setFilterWarehouse(e.target.value)} className="w-full text-xs font-medium px-2 py-1 rounded-md border outline-none bg-white border-[#CDD1EA] text-black">
                       <option value="all" className={'text-black bg-white'}>Bodegas (Todos)</option>
                       {warehouses.filter(w => w !== 'all').map(w => <option key={w} value={w} className={'text-black bg-white'}>{w}</option>)}
                     </select>
@@ -1739,7 +1741,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
 
                   <div>
                     
-                    <select value={filterStock} onChange={e => setFilterStock(e.target.value)} className="w-full text-xs font-medium px-2 py-1 rounded-md border outline-none bg-white border-border-default text-black">
+                    <select value={filterStock} onChange={e => setFilterStock(e.target.value)} className="w-full text-xs font-medium px-2 py-1 rounded-md border outline-none bg-white border-[#CDD1EA] text-black">
                       <option value="all" className={'text-black bg-white'}>Inventario completo</option>
                       <option value="instock" className={'text-black bg-white'}>Solo disponibles (Con Stock)</option>
                     </select>
@@ -1830,7 +1832,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
             </div>
           ) : (
             /* GRID LAYOUT */
-            <div className={`flex-1 overflow-y-auto grid ${getGridColsClass()} gap-3 p-1 content-start custom-scrollbar`}>
+            <div className={`flex-1 overflow-y-auto grid ${getGridColsClass()} gap-3 p-3 pb-6 content-start custom-scrollbar`}>
               {filteredProducts.map(p => {
                 const isOutOfStock = p.type === 'producto' && p.inventoryType !== 'VIRTUAL' && p.stock <= 0;
                 const minStk = p.minStock !== undefined ? Number(p.minStock) : 2;
@@ -1848,10 +1850,10 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                   <div 
                     key={p.id}
                     onClick={() => !isOutOfStock && addToCart(p)}
-                    className={`p-3 border rounded-2xl bg-white flex flex-col justify-between transition-all cursor-pointer select-none group relative shadow-sm hover:shadow-md hover:border-primary/30 h-[210px] shrink-0 ${
+                    className={`p-3 border border-[#CDD1EA] rounded-2xl bg-white flex flex-col justify-between transition-all cursor-pointer select-none group relative shadow-sm hover:shadow-md hover:border-primary/45 h-[210px] shrink-0 ${
                       isOutOfStock 
-                        ? 'opacity-65 cursor-not-allowed border-slate-200' 
-                        : 'border-slate-150 hover:-translate-y-0.5'
+                        ? 'opacity-65 cursor-not-allowed' 
+                        : 'hover:-translate-y-0.5'
                     }`}
                   >
                     {/* Botón flotante superior derecho (más o cantidad) */}
@@ -1870,7 +1872,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                     </div>
 
                     {/* Contenedor de Imagen y Badge de SKU */}
-                    <div className="w-full h-[120px] rounded-xl bg-slate-50 flex items-center justify-center relative overflow-hidden shrink-0 border border-slate-100">
+                    <div className="w-full h-[120px] rounded-xl bg-slate-50 flex items-center justify-center relative overflow-hidden shrink-0 border border-[#CDD1EA]">
                       <img 
                         src={getProductImageUrl(p)} 
                         className="w-full h-full object-contain p-2" 
@@ -1880,10 +1882,21 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                         }}
                       />
                       
-                      {/* Badge de SKU y stock dot */}
-                      <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-white/95 backdrop-blur-sm border border-slate-100 flex items-center gap-1.5 shadow-sm z-10">
+                      {/* Badge de SKU y stock dot (pegado al borde radius izquierdo superior) */}
+                      <div 
+                        className="absolute top-0 left-0 px-2.5 py-1 rounded-tl-xl rounded-br-xl flex items-center gap-1.5 z-10"
+                        style={{
+                          backgroundColor: 'color-mix(in srgb, var(--primary) 10%, transparent)',
+                        }}
+                      >
                         <span className={`w-1.5 h-1.5 rounded-full ${stockDotColor}`}></span>
-                        <span className="font-mono text-[9px] font-bold text-slate-650 truncate max-w-[80px]">
+                        <span 
+                          className="font-mono text-[9px] truncate max-w-[80px]"
+                          style={{
+                            color: 'color-mix(in srgb, var(--primary) 70%, black)',
+                            fontWeight: 350
+                          }}
+                        >
                           {p.sku || 'N/A'}
                         </span>
                       </div>
