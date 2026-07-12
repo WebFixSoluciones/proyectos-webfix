@@ -27,6 +27,14 @@ function sanitizeData(obj) {
   return obj;
 }
 
+const getProductImageUrl = (p) => {
+  const url = p?.imageUrl || p?.image || '';
+  if (!url || url.trim() === '' || url === 'https://placehold.co/' || url === 'https://placehold.co') {
+    return 'https://placehold.co/600x600/png?text=Sin+Imagen';
+  }
+  return url;
+};
+
 export default function PosView({ products, thirdParties, transactions = [], showToast, db, appId, onCheckout, onClose, isPreventaOnly }) {
   // Configuración de visualización del POS (persistente en localStorage)
   const [posConfig, setPosConfig] = useState(() => {
@@ -1759,7 +1767,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                   >
                     <div className="flex-1 min-w-0 flex items-center gap-3">
                       <img 
-                        src={p.imageUrl || p.image || 'https://placehold.co/600x600/png?text=Sin+Imagen'} 
+                        src={getProductImageUrl(p)} 
                         className="w-10 h-10 rounded-lg object-cover shrink-0 border border-slate-200" 
                         alt={p.name} 
                         onError={(e) => {
@@ -1837,7 +1845,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                   >
                     <div className="flex gap-2.5 items-start min-w-0">
                       <img 
-                        src={p.imageUrl || p.image || 'https://placehold.co/600x600/png?text=Sin+Imagen'} 
+                        src={getProductImageUrl(p)} 
                         className="w-10 h-10 rounded-lg object-cover shrink-0 border border-slate-200" 
                         alt={p.name} 
                         onError={(e) => {
@@ -1925,12 +1933,11 @@ export default function PosView({ products, thirdParties, transactions = [], sho
           <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
             {cart.map((item, idx) => {
               const prod = products.find(p => p.id === item.productId);
-              const imageUrl = prod?.imageUrl || prod?.image || null;
               return (
                 <div key={idx} className="p-2.5 rounded-card border flex items-center justify-between gap-3 bg-white border-primary/15">
                   {/* Imagen o iniciales */}
                   <img 
-                    src={imageUrl || 'https://placehold.co/600x600/png?text=Sin+Imagen'} 
+                    src={getProductImageUrl(prod)} 
                     className="w-10 h-10 rounded-lg object-cover shrink-0 border border-slate-100" 
                     alt={item.name} 
                     onError={(e) => {
