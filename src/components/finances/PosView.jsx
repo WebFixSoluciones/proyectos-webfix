@@ -35,6 +35,48 @@ const getProductImageUrl = (p) => {
   return url;
 };
 
+const BarcodeScannerIcon = ({ className = "text-primary shrink-0", size = 18 }) => (
+  <svg 
+    width={size} 
+    height={size} 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    className={className}
+  >
+    {/* Corners */}
+    <path 
+      d="M 5,9 V 7 A 2,2 0 0,1 7,5 H 9" 
+      stroke="currentColor" 
+      strokeWidth="2.5" 
+      strokeLinecap="round" 
+    />
+    <path 
+      d="M 15,5 H 17 A 2,2 0 0,1 19,7 V 9" 
+      stroke="currentColor" 
+      strokeWidth="2.5" 
+      strokeLinecap="round" 
+    />
+    <path 
+      d="M 5,15 V 17 A 2,2 0 0,0 7,19 H 9" 
+      stroke="currentColor" 
+      strokeWidth="2.5" 
+      strokeLinecap="round" 
+    />
+    <path 
+      d="M 15,19 H 17 A 2,2 0 0,0 19,17 V 15" 
+      stroke="currentColor" 
+      strokeWidth="2.5" 
+      strokeLinecap="round" 
+    />
+    {/* Bars */}
+    <rect x="7.5" y="7" width="1.5" height="10" fill="currentColor" rx="0.3" />
+    <rect x="10" y="7" width="0.8" height="10" fill="currentColor" rx="0.2" />
+    <rect x="11.8" y="7" width="1.2" height="10" fill="currentColor" rx="0.3" />
+    <rect x="14" y="7" width="0.8" height="10" fill="currentColor" rx="0.2" />
+    <rect x="15.8" y="7" width="1.5" height="10" fill="currentColor" rx="0.3" />
+  </svg>
+);
+
 export default function PosView({ products, thirdParties, transactions = [], showToast, db, appId, onCheckout, onClose, isPreventaOnly }) {
   // Configuración de visualización del POS (persistente en localStorage)
   const [posConfig, setPosConfig] = useState(() => {
@@ -1138,11 +1180,11 @@ export default function PosView({ products, thirdParties, transactions = [], sho
       >
         
         {/* Left Area: matches products catalog width */}
-        <div className="flex-1 flex items-center gap-2.5 w-full md:w-auto">
+        <div className="flex-1 flex items-center gap-2.5 w-full">
           {/* Buscar Producto, Código */}
-          <div className="flex-1 max-w-[420px] relative">
-            <div className="flex items-center gap-2 px-3.5 h-10 rounded-card bg-white border-none shadow-sm transition-all">
-              <Scan size={16} className="text-primary shrink-0" />
+          <div className="flex-[1.4] relative">
+            <div className="flex items-center gap-2 px-3.5 h-10 rounded-card bg-white border-none shadow-sm transition-all w-full">
+              <BarcodeScannerIcon className="text-primary shrink-0" size={18} />
               <input 
                 type="text" 
                 id="pos-search-input"
@@ -1166,7 +1208,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
           </div>
 
           {/* Cliente, Nombre, RUC */}
-          <div className="flex-1 max-w-[320px] relative client-search-container">
+          <div className="flex-1 relative client-search-container">
             {selectedClientId ? (
               <div className="flex items-center justify-between px-3.5 h-10 rounded-card bg-white border-none shadow-sm text-black">
                 <div className="flex items-center gap-2 min-w-0">
