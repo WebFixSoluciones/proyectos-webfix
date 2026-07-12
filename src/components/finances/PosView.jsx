@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Search, ShoppingCart, Plus, Minus, Trash2, User, Sparkles, CheckCircle2, DollarSign, CreditCard, X, ShieldAlert, Award, Layers, Tag, Bookmark, RefreshCw, LogOut, ArrowRight, ArrowLeft, ChevronRight, Settings, Barcode, Zap, Eye, Mic, Keyboard, History, Download, FileText, Unlock, UserPlus, Edit3, Phone, Mail, MoreHorizontal, ChevronDown, Sliders } from 'lucide-react';
+import { Search, ShoppingCart, Plus, Minus, Trash2, User, Sparkles, CheckCircle2, DollarSign, CreditCard, X, ShieldAlert, Award, Layers, Tag, Bookmark, RefreshCw, LogOut, ArrowRight, ArrowLeft, ChevronRight, Settings, Barcode, Zap, Eye, Mic, Keyboard, History, Download, FileText, Unlock, UserPlus, Edit3, Phone, Mail, MoreHorizontal, ChevronDown, Sliders, Box } from 'lucide-react';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, onSnapshot } from 'firebase/firestore';
 import { consultarRucSri, getEcuadorDateString } from '../../services/sriService';
 import { registrarMovimientoKardex } from '../../services/inventoryService';
@@ -1846,13 +1846,16 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                 if (isOutOfStock) stockDotColor = 'bg-red-500';
                 else if (isLowStock) stockDotColor = 'bg-amber-500';
 
+                const imageUrl = getProductImageUrl(p);
+                const isPlaceholder = imageUrl === '/product.svg';
+
                 return (
                   <div 
                     key={p.id}
                     onClick={() => !isOutOfStock && addToCart(p)}
-                    className={`p-3 border border-[#CDD1EA] rounded-2xl bg-white flex flex-col justify-between transition-all cursor-pointer select-none group relative shadow-sm hover:shadow-md hover:border-primary/45 h-[210px] shrink-0 ${
+                    className={`p-[3px] border border-[#CDD1EA] rounded-2xl bg-white flex flex-col justify-between transition-all cursor-pointer select-none group relative shadow-sm hover:shadow-md hover:border-primary/45 h-[210px] shrink-0 ${
                       isOutOfStock 
-                        ? 'opacity-65 cursor-not-allowed' 
+                        ? 'cursor-not-allowed' 
                         : 'hover:-translate-y-0.5'
                     }`}
                   >
@@ -1872,15 +1875,23 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                     </div>
 
                     {/* Contenedor de Imagen y Badge de SKU */}
-                    <div className="w-full h-[120px] rounded-xl bg-slate-50 flex items-center justify-center relative overflow-hidden shrink-0 border border-[#CDD1EA]">
-                      <img 
-                        src={getProductImageUrl(p)} 
-                        className="w-full h-full object-contain p-2" 
-                        alt={p.name} 
-                        onError={(e) => {
-                          e.target.src = '/product.svg';
-                        }}
-                      />
+                    <div className="w-full h-[120px] rounded-xl bg-white flex items-center justify-center relative overflow-hidden shrink-0">
+                      <div className={`w-full h-full ${isOutOfStock ? 'opacity-40' : ''}`}>
+                        {isPlaceholder ? (
+                          <div className="w-full h-full bg-[#f1f5f9] flex items-center justify-center text-slate-400">
+                            <Box size={52} strokeWidth={1} className="text-slate-400" />
+                          </div>
+                        ) : (
+                          <img 
+                            src={imageUrl} 
+                            className="w-full h-full object-cover" 
+                            alt={p.name} 
+                            onError={(e) => {
+                              e.target.src = '/product.svg';
+                            }}
+                          />
+                        )}
+                      </div>
                       
                       {/* Badge de SKU y stock dot (pegado al borde radius izquierdo superior) */}
                       <div 
@@ -1901,10 +1912,10 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                         </span>
                       </div>
 
-                      {/* Texto de Sin Stock */}
+                      {/* Texto de Sin Stock (Centrado en azul, sin fondo) */}
                       {isOutOfStock && (
-                        <div className="absolute bottom-2 inset-x-0 flex justify-center">
-                          <span className="text-[10px] font-black text-blue-600 bg-white/90 px-2 py-0.5 rounded-md shadow-sm tracking-wider uppercase">
+                        <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
+                          <span className="text-[13px] font-black text-blue-600 tracking-widest uppercase">
                             SIN STOCK
                           </span>
                         </div>
@@ -1912,14 +1923,18 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                     </div>
 
                     {/* Información inferior (Nombre y Precio) */}
-                    <div className="mt-3 flex justify-between items-end gap-2 shrink-0">
+                    <div className="mt-1.5 px-2 pb-1.5 flex justify-between items-end gap-2 shrink-0">
                       <h4 
-                        className={`text-xs font-semibold text-slate-850 leading-snug line-clamp-2 flex-1 select-none text-left`} 
+                        className={`text-xs font-semibold leading-snug line-clamp-2 flex-1 select-none text-left ${
+                          isOutOfStock ? 'text-slate-400' : 'text-slate-800'
+                        }`} 
                         title={p.name}
                       >
                         {p.name}
                       </h4>
-                      <span className={`text-sm font-black shrink-0 font-mono ${isOutOfStock ? 'text-red-500' : 'text-primary'}`}>
+                      <span className={`text-base font-black shrink-0 font-mono ${
+                        isOutOfStock ? 'text-red-500' : 'text-primary'
+                      }`}>
                         ${Number(p.price).toFixed(2)}
                       </span>
                     </div>
