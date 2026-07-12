@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Search, ShoppingCart, Plus, Minus, Trash2, User, Sparkles, CheckCircle2, DollarSign, CreditCard, X, ShieldAlert, Award, Layers, Tag, Bookmark, RefreshCw, LogOut, ArrowRight, ArrowLeft, ChevronRight, Settings, Barcode, Zap, Eye, Mic, Keyboard, History, Download, FileText, Unlock, UserPlus, Edit3, Phone, Mail, MoreHorizontal } from 'lucide-react';
+import { Search, ShoppingCart, Plus, Minus, Trash2, User, Sparkles, CheckCircle2, DollarSign, CreditCard, X, ShieldAlert, Award, Layers, Tag, Bookmark, RefreshCw, LogOut, ArrowRight, ArrowLeft, ChevronRight, Settings, Barcode, Zap, Eye, Mic, Keyboard, History, Download, FileText, Unlock, UserPlus, Edit3, Phone, Mail, MoreHorizontal, ChevronDown, Sliders } from 'lucide-react';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, onSnapshot } from 'firebase/firestore';
 import { consultarRucSri, getEcuadorDateString } from '../../services/sriService';
 import { registrarMovimientoKardex } from '../../services/inventoryService';
@@ -112,6 +112,11 @@ export default function PosView({ products, thirdParties, transactions = [], sho
   const [posPaymentMethod, setPosPaymentMethod] = useState('efectivo'); 
   const [receivedAmount, setReceivedAmount] = useState('');
   const [paymentRefCode, setPaymentRefCode] = useState('');
+  
+  // Nuevos estados para flujo Inline Bsale y encabezado compacto
+  const [showPaymentScreen, setShowPaymentScreen] = useState(false);
+  const [isDocTypeDropdownOpen, setIsDocTypeDropdownOpen] = useState(false);
+  const [isOptionsDropdownOpen, setIsOptionsDropdownOpen] = useState(false);
 
   // Quick Client Creation Modal (inside POS Checkout)
   const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
@@ -358,32 +363,14 @@ export default function PosView({ products, thirdParties, transactions = [], sho
         setIsQuickAddOpen(false);
         setIsClosingOpen(false);
         setIsConfigOpen(false);
+        setIsOptionsDropdownOpen(false);
+        setIsDocTypeDropdownOpen(false);
       }
 
       if (e.key === 'F2') {
         e.preventDefault();
         const searchInput = document.getElementById('pos-search-input');
         if (searchInput) searchInput.focus();
-      }
-
-      if (isInputActive && e.key !== 'F2' && e.key !== 'F12' && e.key !== 'Escape') {
-        if (e.key === 'F12') {
-          e.preventDefault();
-          if (cart.length > 0) {
-            setPayments({
-              efectivo: 0, transferencia: 0, tarjeta: 0, cruce_cuentas: 0,
-              transferenciaRef: '', tarjetaRef: '', cruceRef: ''
-            });
-            setActivePayments({
-              efectivo: true, transferencia: false, tarjeta: false, cruce_cuentas: false
-            });
-            setCheckoutStep(1);
-            setIsCheckoutOpen(true);
-          } else {
-            showToast("El carrito está vacío", "error");
-          }
-        }
-        return;
       }
 
       if (e.key === 'F8') {
@@ -399,24 +386,35 @@ export default function PosView({ products, thirdParties, transactions = [], sho
       if (e.key === 'F12' || (e.ctrlKey && e.key === 'Enter')) {
         e.preventDefault();
         if (cart.length > 0) {
-          // Validar que si es efectivo, haya pagado suficiente
-          if (posPaymentMethod === 'efectivo') {
-            const cashVal = Number(receivedAmount) || 0;
-            if (cashVal < getTotal()) {
-              showToast(`Por favor, cubre el total de la factura. Falta pagar $${(getTotal() - cashVal).toFixed(2)}`, "error");
-              return;
+          if (!showPaymentScreen) {
+            setReceivedAmount('');
+            setPosPaymentMethod('efectivo');
+            setPaymentRefCode('');
+            setShowPaymentScreen(true);
+          } else {
+            if (posPaymentMethod === 'efectivo') {
+              const cashVal = Number(receivedAmount) || 0;
+              if (cashVal < getTotal()) {
+                showToast(`Por favor, cubre el total de la factura. Falta pagar $${(getTotal() - cashVal).toFixed(2)}`, "error");
+                return;
+              }
             }
+            handleFinalCheckout();
           }
-          handleFinalCheckout();
         } else {
           showToast("El carrito está vacío", "error");
         }
+        return;
+      }
+
+      if (isInputActive && e.key !== 'F2' && e.key !== 'F12' && e.key !== 'Escape') {
+        return;
       }
     };
 
     window.addEventListener('keydown', handleGlobalShortcuts);
     return () => window.removeEventListener('keydown', handleGlobalShortcuts);
-  }, [cart, totalToPay]);
+  }, [cart, totalToPay, showPaymentScreen, posPaymentMethod, receivedAmount]);
 
   // Auto consulta de SRI al rellenar cédula/RUC en agregar cliente
   useEffect(() => {
@@ -802,6 +800,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
       });
       setIsCheckoutOpen(false);
       setCheckoutStep(1);
+      setShowPaymentScreen(false);
       
       setTimeout(() => {
         const searchInput = document.getElementById('pos-search-input');
@@ -1053,73 +1052,284 @@ export default function PosView({ products, thirdParties, transactions = [], sho
 
   // PANTALLA 2: POS PRINCIPAL EN PANTALLA COMPLETA
   return createPortal(
-    <div className={`fixed inset-0 z-[100] bg-surface-card text-text-secondary flex flex-col overflow-hidden animate-in fade-in duration-300`}>
+    <div className="fixed inset-0 z-[100] bg-surface-card text-text-secondary flex flex-col overflow-hidden animate-in fade-in duration-300">
       
       {/* TOP HEADER POS */}
-      <div className={`h-16 px-6 border-b flex items-center justify-between shrink-0 bg-white border-primary/15 text-text-secondary`}>
-        <div className="flex items-center gap-3">
-          <div className="relative p-2 rounded-card bg-orange-500/10 text-orange-500 border border-orange-500/10">
-            <ShoppingCart size={18} />
-            {cart.length > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 flex h-4.5 w-4.5 items-center justify-center rounded-full bg-red-500 text-xs font-black text-white animate-bounce">
-                {cart.reduce((acc, it) => acc + it.quantity, 0)}
-              </span>
+      <div className="h-14 px-4 border-b flex items-center justify-between shrink-0 bg-white border-primary/15 text-text-secondary gap-4">
+        
+        {/* BUSCADORES Y SELECT DE COMPROBANTE (Parte Izquierda/Centro) */}
+        <div className="flex-1 flex items-center gap-2 max-w-[75%]">
+          
+          {/* Buscar Producto, Código */}
+          <div className="w-[45%] max-w-[360px] relative">
+            <div className="flex items-center gap-2 px-3 h-9 rounded-card border transition-all border-primary/20 bg-primary-light">
+              <Search size={13} className="text-primary shrink-0" />
+              <input 
+                type="text" 
+                id="pos-search-input"
+                placeholder="Buscar Producto, Código" 
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                onKeyDown={handleSearchKeyDown}
+                className="bg-transparent border-none outline-none text-xs w-full focus:ring-0 text-black placeholder-gray-400 font-bold"
+              />
+              {searchTerm && (
+                <button 
+                  type="button"
+                  onClick={() => setSearchTerm('')}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <X size={12} />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Cliente, Nombre, RUC */}
+          <div className="w-[45%] max-w-[360px] relative">
+            {selectedClientId ? (
+              <div className="flex items-center justify-between px-3 h-9 rounded-card border border-primary/20 bg-primary/5 text-black">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <User size={13} className="text-primary shrink-0" />
+                  <span className="text-xs font-bold truncate max-w-[160px] uppercase">
+                    {getSelectedClient().name}
+                  </span>
+                  <span className="text-[10px] text-gray-500 font-mono">
+                    ({getSelectedClient().ruc})
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedClientId('');
+                    setClientSearchTerm('');
+                  }}
+                  className="text-gray-500 hover:text-red-500 p-0.5 rounded-full transition-colors"
+                  title="Quitar Cliente"
+                >
+                  <X size={13} />
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 px-3 h-9 rounded-card border transition-all border-primary/20 bg-primary-light">
+                <Search size={13} className="text-primary shrink-0" />
+                <input 
+                  type="text"
+                  placeholder="Cliente, Nombre, RUC"
+                  value={clientSearchTerm}
+                  onChange={e => {
+                    setClientSearchTerm(e.target.value);
+                    setIsClientDropdownOpen(true);
+                  }}
+                  onFocus={() => setIsClientDropdownOpen(true)}
+                  className="bg-transparent border-none outline-none text-xs w-full focus:ring-0 text-black placeholder-gray-400 font-bold"
+                />
+                {clientSearchTerm && (
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      setClientSearchTerm('');
+                      setIsClientDropdownOpen(false);
+                    }}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    <X size={12} />
+                  </button>
+                )}
+              </div>
+            )}
+            
+            {/* Dropdown de Clientes */}
+            {isClientDropdownOpen && clientSearchTerm && (
+              <div className="absolute left-0 right-0 top-10 max-h-48 overflow-y-auto z-50 rounded-card border bg-white border-primary/20 text-black custom-scrollbar shadow-lg">
+                <div 
+                  onClick={() => {
+                    setSelectedClientId('');
+                    setClientSearchTerm('');
+                    setIsClientDropdownOpen(false);
+                  }}
+                  className="px-3 py-2 text-xs font-bold cursor-pointer transition-colors border-b hover:bg-primary-light border-primary/10"
+                >
+                  Consumidor Final (9999999999999)
+                </div>
+                {thirdParties
+                  .filter(tp => tp.type !== 'proveedor' && 
+                    (tp.name.toLowerCase().includes(clientSearchTerm.toLowerCase()) || 
+                     String(tp.ruc || '').includes(clientSearchTerm))
+                  )
+                  .map(tp => (
+                    <div 
+                      key={tp.id}
+                      onClick={() => {
+                        setSelectedClientId(tp.id);
+                        setClientSearchTerm('');
+                        setIsClientDropdownOpen(false);
+                      }}
+                      className="px-3 py-2 text-xs font-semibold cursor-pointer transition-colors hover:bg-primary-light"
+                    >
+                      <div className="font-bold text-xs">{tp.name}</div>
+                      <div className="text-xs text-gray-550 font-mono">CI/RUC: {tp.ruc}</div>
+                    </div>
+                  ))
+                }
+              </div>
             )}
           </div>
-          <div>
-            <h1 className={`text-sm font-black uppercase tracking-wider text-black`}>
-              {isPreventaOnly ? 'Generación de Preventa' : `Caja POS: ${activeSession?.branch}`}
-            </h1>
-            {isPreventaOnly ? (
-              <p className={`text-xs mt-1 text-gray-650 font-semibold`}>
-                Módulo para registro de preventas y pedidos rápidos
-              </p>
-            ) : (
-              <p className={`text-xs mt-1 text-gray-605 font-medium`}>Sesión: <span className="font-bold text-gray-850 dark:text-gray-200">{activeSession?.responsible}</span> ({activeSession?.shift}) | Fondo: <span className="font-bold text-gray-850 dark:text-gray-200">${Number(activeSession?.initialAmount || 0).toFixed(2)}</span></p>
+
+          {/* Botón Agregar Cliente */}
+          <button 
+            type="button"
+            onClick={() => {
+              setQuickAddFormData({
+                name: '', ruc: '', email: '', tipoIdentificacion: 'ruc', direccion: '', telefono: '', tipoContribuyente: 'general'
+              });
+              setIsQuickAddOpen(true);
+            }} 
+            className="w-9 h-9 rounded-card flex items-center justify-center bg-primary text-white hover:bg-primary-hover shrink-0"
+            title="Crear Nuevo Cliente"
+          >
+            <UserPlus size={14} />
+          </button>
+
+          {/* Botón de Selección de Factura, Nota de Venta o Cotización */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setIsDocTypeDropdownOpen(!isDocTypeDropdownOpen)}
+              className="px-3 h-9 rounded-card flex items-center gap-1.5 bg-primary text-white hover:bg-primary-hover font-bold text-xs shrink-0 select-none"
+            >
+              <span>
+                {posDocType === 'factura' ? 'Factura Electrónica' : posDocType === 'nota_venta' ? 'Nota de Venta' : 'Cotización'}
+              </span>
+              <ChevronDown size={12} />
+            </button>
+            
+            {isDocTypeDropdownOpen && (
+              <div className="absolute left-0 mt-1.5 w-44 rounded-card border bg-white border-primary/20 text-black shadow-lg z-50">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPosDocType('factura');
+                    setIsDocTypeDropdownOpen(false);
+                  }}
+                  className={`w-full text-left px-3 py-2 text-xs font-bold hover:bg-primary/5 ${posDocType === 'factura' ? 'text-primary' : 'text-gray-750'}`}
+                >
+                  Factura Electrónica
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPosDocType('nota_venta');
+                    setIsDocTypeDropdownOpen(false);
+                  }}
+                  className={`w-full text-left px-3 py-2 text-xs font-bold hover:bg-primary/5 ${posDocType === 'nota_venta' ? 'text-primary' : 'text-gray-750'}`}
+                >
+                  Nota de Venta
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPosDocType('cotizacion');
+                    setIsDocTypeDropdownOpen(false);
+                  }}
+                  className={`w-full text-left px-3 py-2 text-xs font-bold hover:bg-primary/5 ${posDocType === 'cotizacion' ? 'text-primary' : 'text-gray-750'}`}
+                >
+                  Cotización
+                </button>
+              </div>
             )}
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          {hasSuspendedSale && (
-            <button onClick={resumeSale} className="btn-secondary">
-              Recuperar Venta
-            </button>
-          )}
-          <button 
-            onClick={() => setIsShortcutsOpen(true)} 
-            className={`btn-icon hover:bg-primary/10 text-primary border border-primary/25 bg-white`}
-            title="Ver Atajos de Teclado (Guía Visual)"
-          >
-            <Keyboard size={16} />
-          </button>
-          {!isPreventaOnly && (
+        {/* INFO LOCAL Y BOTONES DE AJUSTE (Parte Derecha) */}
+        <div className="flex items-center gap-3 shrink-0">
+          <span className="text-[10px] font-bold text-gray-400 tracking-wider uppercase">
+            {activeSession?.branch || 'MATRIZ QUITO'} : Fondo ${Number(activeSession?.initialAmount || 100).toFixed(0)}
+          </span>
+          
+          {/* Dropdown del Gear (Settings) */}
+          <div className="relative">
             <button 
-              onClick={() => setIsHistoryOpen(true)} 
-              className={`btn-icon hover:bg-primary/10 text-primary border border-primary/25 bg-white`}
-              title="Ver Ventas Emitidas en esta Sesión"
+              type="button"
+              onClick={() => setIsOptionsDropdownOpen(!isOptionsDropdownOpen)} 
+              className={`w-9 h-9 rounded-card flex items-center justify-center border transition-all ${
+                isOptionsDropdownOpen ? 'bg-primary/10 border-primary text-primary' : 'border-primary/25 text-primary hover:bg-primary/5 bg-white'
+              }`}
+              title="Opciones de Caja y POS"
             >
-              <History size={16} />
+              <Settings size={15} />
             </button>
-          )}
+            
+            {isOptionsDropdownOpen && (
+              <div className="absolute right-0 mt-1.5 w-52 rounded-card border bg-white border-primary/20 text-black shadow-lg z-50 py-1">
+                {hasSuspendedSale && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      resumeSale();
+                      setIsOptionsDropdownOpen(false);
+                    }}
+                    className="w-full text-left px-3 py-2 text-xs font-bold text-emerald-600 hover:bg-emerald-50 flex items-center gap-2"
+                  >
+                    <ShoppingCart size={13} />
+                    <span>Recuperar Venta</span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsShortcutsOpen(true);
+                    setIsOptionsDropdownOpen(false);
+                  }}
+                  className="w-full text-left px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-primary/5 flex items-center gap-2"
+                >
+                  <Keyboard size={13} />
+                  <span>Ver Atajos de Teclado (F2)</span>
+                </button>
+                {!isPreventaOnly && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsHistoryOpen(true);
+                      setIsOptionsDropdownOpen(false);
+                    }}
+                    className="w-full text-left px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-primary/5 flex items-center gap-2"
+                  >
+                    <History size={13} />
+                    <span>Historial de Ventas</span>
+                  </button>
+                )}
+                {!isPreventaOnly && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleOpenCloseModal();
+                      setIsOptionsDropdownOpen(false);
+                    }}
+                    className="w-full text-left px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-primary/5 flex items-center gap-2"
+                  >
+                    <DollarSign size={13} />
+                    <span>Arqueo / Cerrar Caja</span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsConfigOpen(true);
+                    setIsOptionsDropdownOpen(false);
+                  }}
+                  className="w-full text-left px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-primary/5 flex items-center gap-2"
+                >
+                  <Sliders size={13} />
+                  <span>Personalización del POS</span>
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Botón Salir */}
           <button 
-            onClick={() => setIsConfigOpen(true)} 
-            className={`btn-icon hover:bg-primary/10 text-primary border border-primary/25 bg-white`}
-            title="Configuración Visual del POS"
-          >
-            <Settings size={16} />
-          </button>
-          {!isPreventaOnly && (
-            <button 
-              onClick={handleOpenCloseModal} 
-              className="btn-secondary text-xs"
-              title="Arqueo / Cerrar Caja"
-            >
-              <DollarSign size={13} />
-              <span>Arqueo</span>
-            </button>
-          )}
-          <button 
+            type="button"
             onClick={() => {
               if (onClose) {
                 onClose();
@@ -1127,19 +1337,316 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                 window.location.reload();
               }
             }} 
-            className={`btn-icon hover:bg-primary/10 text-primary border border-primary/25 bg-white`} 
+            className="w-9 h-9 rounded-card flex items-center justify-center border border-primary/25 text-primary hover:bg-primary/5 bg-white" 
             title="Volver al ERP / Cerrar POS"
           >
-            <LogOut size={16} />
+            <LogOut size={15} />
           </button>
         </div>
       </div>
 
       {/* POS WORKSPACE CONTAINER */}
       <div className="flex-1 flex overflow-hidden min-h-0">
-        
-        {/* POS MAIN AREA (PRODUCTS + CART) */}
-        <div className={`flex-1 flex overflow-hidden min-h-0 ${posConfig.cartPosition === 'left' ? 'flex-row-reverse' : ''}`}>
+        {showPaymentScreen ? (
+          <div className="flex-1 flex flex-col lg:flex-row min-h-0 bg-slate-50 animate-in fade-in duration-300">
+            {/* COLUMNA IZQUIERDA: RESUMEN DE COMPRA Y CLIENTE */}
+            <div className="w-full lg:w-[28rem] xl:w-[32rem] flex flex-col shrink-0 border-r border-slate-200 bg-white p-6 justify-between overflow-y-auto custom-scrollbar">
+              <div className="space-y-6">
+                {/* Cabecera / Regresar */}
+                <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => setShowPaymentScreen(false)}
+                    className="flex items-center gap-2 text-xs font-black uppercase text-primary hover:text-primary-hover transition-colors"
+                  >
+                    <ArrowLeft size={16} />
+                    <span>Modificar Carrito / Regresar</span>
+                  </button>
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider bg-slate-100 text-slate-650 px-2.5 py-1 rounded-full">
+                    Paso de Pago
+                  </span>
+                </div>
+
+                {/* Tipo de Documento Seleccionado */}
+                <div className="p-4 rounded-xl border border-primary/20 bg-primary/5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-primary text-white shrink-0">
+                      <FileText size={20} />
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-extrabold uppercase tracking-widest text-primary/70">Documento a Emitir</span>
+                      <h3 className="text-sm font-black text-black uppercase">
+                        {posDocType === 'factura' ? 'Factura Electrónica' : posDocType === 'nota_venta' ? 'Nota de Venta' : 'Cotización / Proforma'}
+                      </h3>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Datos del Cliente */}
+                <div className="space-y-3">
+                  <h4 className="text-xs font-black uppercase tracking-wider text-gray-500">Datos del Cliente</h4>
+                  {(() => {
+                    const client = getSelectedClient();
+                    return (
+                      <div className="p-4 rounded-xl border border-slate-150 bg-slate-50/50 space-y-2 text-xs text-black">
+                        <div>
+                          <span className="font-bold text-gray-400 uppercase text-[9px] block">Razón Social / Nombre</span>
+                          <span className="font-extrabold text-sm uppercase text-gray-900">{client.name}</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <span className="font-bold text-gray-400 uppercase text-[9px] block">RUC / Cédula</span>
+                            <span className="font-bold text-gray-800 font-mono">{client.ruc}</span>
+                          </div>
+                          <div>
+                            <span className="font-bold text-gray-400 uppercase text-[9px] block">Teléfono</span>
+                            <span className="font-bold text-gray-800">{client.telefono || 'N/A'}</span>
+                          </div>
+                        </div>
+                        <div>
+                          <span className="font-bold text-gray-400 uppercase text-[9px] block">Correo Electrónico</span>
+                          <span className="font-bold text-gray-800">{client.email || 'N/A'}</span>
+                        </div>
+                        <div>
+                          <span className="font-bold text-gray-400 uppercase text-[9px] block">Dirección</span>
+                          <span className="font-bold text-gray-800">{client.direccion || 'N/A'}</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+
+                {/* Resumen de Productos */}
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <h4 className="text-xs font-black uppercase tracking-wider text-gray-500">Productos en Venta</h4>
+                    <span className="text-xs font-bold text-gray-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                      {cart.reduce((acc, it) => acc + it.quantity, 0)} Items
+                    </span>
+                  </div>
+                  <div className="max-h-48 overflow-y-auto border border-slate-100 rounded-xl divide-y divide-slate-100 custom-scrollbar">
+                    {cart.map((item, idx) => (
+                      <div key={idx} className="p-3 flex justify-between items-center gap-3 bg-white text-xs">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-bold text-gray-800 truncate uppercase">{item.name}</p>
+                          <p className="text-[10px] text-gray-550 mt-0.5">{item.quantity} x ${Number(item.price).toFixed(2)}</p>
+                        </div>
+                        <span className="font-extrabold text-gray-900">${(item.price * item.quantity).toFixed(2)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Totales y Botón Abandonar */}
+              <div className="mt-6 pt-6 border-t border-slate-150 space-y-4">
+                <div className="p-4 rounded-xl bg-slate-900 text-white space-y-2">
+                  <div className="flex justify-between text-xs font-medium text-slate-400">
+                    <span>Subtotal</span>
+                    <span>${getSubtotal().toFixed(2)}</span>
+                  </div>
+                  {getDiscountAmount() > 0 && (
+                    <div className="flex justify-between text-xs font-medium text-red-400">
+                      <span>Descuento</span>
+                      <span>-${getDiscountAmount().toFixed(2)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-xs font-medium text-slate-400">
+                    <span>IVA (15%)</span>
+                    <span>${getIva().toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-end pt-2 border-t border-slate-800">
+                    <span className="text-xs font-extrabold uppercase text-slate-300">Total a Pagar</span>
+                    <span className="text-2xl font-black text-white font-mono">${getTotal().toFixed(2)}</span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (window.confirm("¿Seguro que deseas abandonar la venta actual? Se vaciará el carrito y se reiniciará el POS.")) {
+                      setCart([]);
+                      setSelectedClientId('');
+                      setPosDocType('factura');
+                      setPosPaymentMethod('efectivo');
+                      setReceivedAmount('');
+                      setPaymentRefCode('');
+                      setShowPaymentScreen(false);
+                      showToast("Venta abandonada", "info");
+                    }
+                  }}
+                  className="w-full py-2.5 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 font-bold text-xs uppercase flex items-center justify-center gap-1.5 transition-all"
+                >
+                  <Trash2 size={13} />
+                  <span>Abandonar Venta (Vaciar)</span>
+                </button>
+              </div>
+            </div>
+
+            {/* COLUMNA DERECHA: MÉTODOS DE PAGO Y CONFIRMACIÓN */}
+            <div className="flex-1 flex flex-col p-6 min-h-0 justify-between overflow-y-auto custom-scrollbar">
+              <div className="space-y-6 max-w-2xl mx-auto w-full">
+                <h3 className="text-sm font-black uppercase tracking-wider text-gray-650">Seleccionar Método de Pago</h3>
+                
+                {/* Tabs de Métodos de Pago */}
+                <div className="grid grid-cols-3 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPosPaymentMethod('efectivo');
+                      setReceivedAmount('');
+                    }}
+                    className={`p-4 rounded-xl border flex flex-col items-center gap-2 font-bold text-xs transition-all ${
+                      posPaymentMethod === 'efectivo'
+                        ? 'bg-primary text-white border-primary shadow-md shadow-primary/20'
+                        : 'bg-white border-slate-200 text-gray-700 hover:bg-slate-50'
+                    }`}
+                  >
+                    <DollarSign size={20} />
+                    <span>Efectivo</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPosPaymentMethod('transferencia');
+                      setReceivedAmount('');
+                    }}
+                    className={`p-4 rounded-xl border flex flex-col items-center gap-2 font-bold text-xs transition-all ${
+                      posPaymentMethod === 'transferencia'
+                        ? 'bg-primary text-white border-primary shadow-md shadow-primary/20'
+                        : 'bg-white border-slate-200 text-gray-700 hover:bg-slate-50'
+                    }`}
+                  >
+                    <RefreshCw size={20} />
+                    <span>Transferencia</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPosPaymentMethod('tarjeta');
+                      setReceivedAmount('');
+                    }}
+                    className={`p-4 rounded-xl border flex flex-col items-center gap-2 font-bold text-xs transition-all ${
+                      posPaymentMethod === 'tarjeta'
+                        ? 'bg-primary text-white border-primary shadow-md shadow-primary/20'
+                        : 'bg-white border-slate-200 text-gray-700 hover:bg-slate-50'
+                    }`}
+                  >
+                    <CreditCard size={20} />
+                    <span>Tarjeta</span>
+                  </button>
+                </div>
+
+                {/* Panel de Método de Pago Seleccionado */}
+                <div className="bg-white p-6 rounded-2xl border border-slate-200 space-y-6">
+                  {posPaymentMethod === 'efectivo' ? (
+                    <div className="space-y-6">
+                      <div className="flex flex-col gap-2">
+                        <label className="text-xs font-black uppercase text-gray-400">Dinero Recibido</label>
+                        <div className="relative">
+                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-black text-gray-400 font-mono">$</span>
+                          <input
+                            type="number"
+                            placeholder="0.00"
+                            value={receivedAmount}
+                            onChange={e => setReceivedAmount(e.target.value)}
+                            className="w-full pl-8 pr-4 py-3 rounded-xl border border-slate-200 text-xl font-black text-gray-900 bg-slate-50/50 outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-mono"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Billetes Rápidos */}
+                      <div className="space-y-2">
+                        <span className="text-[10px] font-extrabold uppercase text-gray-400 tracking-wider">Vuelto Rápido (Billetes)</span>
+                        <div className="grid grid-cols-4 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setReceivedAmount(Number(getTotal().toFixed(2)))}
+                            className="py-2.5 rounded-lg border border-slate-200 bg-slate-50 text-xs font-extrabold text-slate-800 hover:bg-slate-100 transition-colors uppercase"
+                          >
+                            Exacto
+                          </button>
+                          {[1, 5, 10, 20, 50, 100].map(bill => (
+                            <button
+                              type="button"
+                              key={bill}
+                              onClick={() => setReceivedAmount(bill)}
+                              className="py-2.5 rounded-lg border border-slate-200 bg-white text-xs font-extrabold text-gray-800 hover:bg-slate-50 transition-colors font-mono"
+                            >
+                              ${bill}.00
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Vuelto / Mensajes de Control */}
+                      {Number(receivedAmount) > 0 && (
+                        <div className="animate-in fade-in slide-in-from-top-1 duration-200">
+                          {changeDue > 0 ? (
+                            <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-800 flex justify-between items-center">
+                              <span className="text-xs font-black uppercase">Vuelto a Entregar:</span>
+                              <span className="text-2xl font-black font-mono text-emerald-600">${changeDue.toFixed(2)}</span>
+                            </div>
+                          ) : remainingDue > 0 ? (
+                            <div className="p-4 rounded-xl bg-red-50 border border-red-100 text-red-800 flex justify-between items-center">
+                              <span className="text-xs font-black uppercase">Faltante por Pagar:</span>
+                              <span className="text-lg font-black font-mono text-red-600">${remainingDue.toFixed(2)}</span>
+                            </div>
+                          ) : (
+                            <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 text-slate-800 flex justify-between items-center">
+                              <span className="text-xs font-black uppercase">Monto Exacto Entregado</span>
+                              <span className="text-lg font-black font-mono text-slate-600">$0.00</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    /* Transferencia o Tarjeta */
+                    <div className="space-y-4">
+                      <div className="flex flex-col gap-2">
+                        <label className="text-xs font-black uppercase text-gray-400">Referencia de Transacción / Voucher</label>
+                        <input
+                          type="text"
+                          placeholder="Ej: 982138912"
+                          value={paymentRefCode}
+                          onChange={e => setPaymentRefCode(e.target.value)}
+                          className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm font-bold text-gray-900 bg-slate-50/50 outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                        />
+                      </div>
+                      <p className="text-[10px] text-gray-400 italic">
+                        Nota: Al registrar este pago, el total de ${getTotal().toFixed(2)} se asignará automáticamente a {posPaymentMethod === 'transferencia' ? 'Transferencia Bancaria' : 'Tarjeta de Crédito/Débito'}.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Botón Finalizar Checkout */}
+              <div className="mt-8 max-w-2xl mx-auto w-full">
+                <button
+                  type="button"
+                  onClick={handleFinalCheckout}
+                  disabled={isProcessing}
+                  className="w-full py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-base uppercase flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <CheckCircle2 size={20} />
+                  <span>
+                    {isProcessing ? 'Procesando...' : 
+                      posDocType === 'factura' ? 'Emitir Factura Electrónica (F12)' :
+                      posDocType === 'nota_venta' ? 'Emitir Nota de Venta (F12)' :
+                      'Guardar Cotización (F12)'
+                    }
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* POS MAIN AREA (PRODUCTS + CART) */
+          <div className={`flex-1 flex overflow-hidden min-h-0 ${posConfig.cartPosition === 'left' ? 'flex-row-reverse' : ''}`}>
         
         {/* LADO IZQUIERDO: SELECCIÓN Y FILTRO DE PRODUCTOS */}
         <div className={`flex-1 flex flex-col pt-[7px] px-3 sm:px-4 lg:px-6 pb-6 min-w-0 border-r border-primary/15 bg-white`}>
@@ -1148,46 +1655,6 @@ export default function PosView({ products, thirdParties, transactions = [], sho
           <div className="space-y-3.5 mb-6">
             {posConfig.showCarousel ? (
               <div className="space-y-3">
-                {/* Search Box */}
-                <div className="flex gap-2.5 items-center">
-                  <div className={`flex-1 flex items-center gap-2 px-4 h-11 rounded-card border transition-all border-primary/20 bg-primary-light`}>
-                    <Search size={14} className={'text-primary'} />
-                    <input 
-                      type="text" 
-                      id="pos-search-input"
-                      placeholder="Buscar por Nombre, SKU o Código..." 
-                      value={searchTerm}
-                      onChange={e => setSearchTerm(e.target.value)}
-                      onKeyDown={handleSearchKeyDown}
-                      className={`bg-transparent border-none outline-none text-sm w-full focus:ring-0 text-black placeholder-gray-400 font-bold`}
-                    />
-                    <button 
-                      type="button" 
-                      onClick={startVoiceSearch} 
-                      className={`btn-icon ${isListening ? 'text-red-500 animate-pulse bg-red-500/10' : ('text-primary hover:bg-primary-light')}`}
-                      title="Buscar por dictado de voz"
-                    >
-                      <Mic size={14} />
-                    </button>
-                    {searchTerm && (
-                      <button 
-                        type="button"
-                        onClick={() => setSearchTerm('')}
-                        className="btn-icon text-gray-500 dark:text-gray-450 hover:text-gray-700 dark:hover:text-white"
-                      >
-                        <X size={12} />
-                      </button>
-                    )}
-                  </div>
-                  <button 
-                    type="button"
-                    onClick={handleCreateQuote}
-                    className="btn-secondary text-xs uppercase"
-                    title="Guardar como Cotización (Proforma)"
-                  >
-                    <FileText size={12} /> Cotizar
-                  </button>
-                </div>
 
                 {/* Horizontal Category Carousel */}
                 <div className="flex items-center gap-2 overflow-x-auto py-2.5 custom-scrollbar scrollbar-none">
@@ -1218,46 +1685,6 @@ export default function PosView({ products, thirdParties, transactions = [], sho
               </div>
             ) : (
               <div className="space-y-3">
-                {/* Search Box */}
-                <div className="flex gap-2.5 items-center">
-                  <div className={`flex-1 flex items-center gap-2 px-4 h-11 rounded-card border transition-all border-primary/20 bg-primary-light`}>
-                    <Search size={14} className={'text-primary'} />
-                    <input 
-                      type="text" 
-                      id="pos-search-input"
-                      placeholder="Buscar por Nombre, SKU o Código de Barras..." 
-                      value={searchTerm}
-                      onChange={e => setSearchTerm(e.target.value)}
-                      onKeyDown={handleSearchKeyDown}
-                      className={`bg-transparent border-none outline-none text-sm w-full focus:ring-0 text-black placeholder-gray-400 font-bold`}
-                    />
-                    <button 
-                      type="button" 
-                      onClick={startVoiceSearch} 
-                      className={`btn-icon ${isListening ? 'text-red-500 animate-pulse bg-red-500/10' : ('text-primary hover:bg-primary-light')}`}
-                      title="Buscar por dictado de voz"
-                    >
-                      <Mic size={14} />
-                    </button>
-                    {searchTerm && (
-                      <button 
-                        type="button"
-                        onClick={() => setSearchTerm('')}
-                        className="btn-icon text-gray-500 dark:text-gray-450 hover:text-gray-700 dark:hover:text-white"
-                      >
-                        <X size={12} />
-                      </button>
-                    )}
-                  </div>
-                  <button 
-                    type="button"
-                    onClick={handleCreateQuote}
-                    className="btn-secondary text-xs uppercase"
-                    title="Guardar como Cotización (Proforma)"
-                  >
-                    <FileText size={12} /> Cotizar
-                  </button>
-                </div>
 
                 {/* Dropdowns */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
@@ -1468,178 +1895,6 @@ export default function PosView({ products, thirdParties, transactions = [], sho
 
 
           
-          {/* CLIENTE BÚSQUEDA Y FICHA */}
-          <div className={`pt-[7px] px-3 pb-3 border-b flex flex-col gap-2 shrink-0 border-primary/15 bg-primary/5`}>
-            <div className="flex items-center gap-2">
-              {/* Buscador de Cliente */}
-              <div className={`flex-1 flex items-center gap-2 px-4 h-11 rounded-card border transition-all ${
-                'border-primary/20 bg-primary/5'}`}>
-                <Search size={13} className={'text-primary'} />
-                <input 
-                  type="text"
-                  placeholder="Buscar Cliente..."
-                  value={clientSearchTerm}
-                  onChange={e => {
-                    setClientSearchTerm(e.target.value);
-                    setIsClientDropdownOpen(true);
-                  }}
-                  onFocus={() => setIsClientDropdownOpen(true)}
-                  className={`bg-transparent border-none outline-none text-sm w-full focus:ring-0 ${
-                    'text-black placeholder-gray-400 font-bold'}`}
-                />
-                {clientSearchTerm && (
-                  <button 
-                    type="button"
-                    onClick={() => {
-                      setClientSearchTerm('');
-                      setIsClientDropdownOpen(false);
-                    }}
-                    className="btn-icon text-gray-500 hover:text-gray-750 dark:hover:text-white"
-                  >
-                    <X size={12} />
-                  </button>
-                )}
-              </div>
-              
-              {/* Botón de Agregar Cliente */}
-              <button 
-                type="button"
-                onClick={() => {
-                  setQuickAddFormData({
-                    name: '', ruc: '', email: '', tipoIdentificacion: 'ruc', direccion: '', telefono: '', tipoContribuyente: 'general'
-                  });
-                  setIsQuickAddOpen(true);
-                }} 
-                className="btn-icon bg-primary text-white hover:bg-primary-hover shrink-0"
-                title="Crear Nuevo Cliente"
-              >
-                <UserPlus size={14} />
-              </button>
-            </div>
-
-            {/* Autocompletado */}
-            <div className="relative">
-              {isClientDropdownOpen && clientSearchTerm && (
-                <div className={`absolute left-0 right-0 top-0 max-h-48 overflow-y-auto z-50 rounded-card border ${
-                  'bg-white border-primary/20 text-black'} custom-scrollbar`}>
-                  <div 
-                    onClick={() => {
-                      setSelectedClientId('');
-                      setClientSearchTerm('');
-                      setIsClientDropdownOpen(false);
-                    }}
-                    className={`px-3 py-2 text-xs font-bold cursor-pointer transition-colors border-b ${
-                      'hover:bg-primary-light border-primary/10'}`}
-                  >
-                    Consumidor Final (9999999999999)
-                  </div>
-                  {thirdParties
-                    .filter(tp => tp.type !== 'proveedor' && 
-                      (tp.name.toLowerCase().includes(clientSearchTerm.toLowerCase()) || 
-                       String(tp.ruc || '').includes(clientSearchTerm))
-                    )
-                    .map(tp => (
-                      <div 
-                        key={tp.id}
-                        onClick={() => {
-                          setSelectedClientId(tp.id);
-                          setClientSearchTerm('');
-                          setIsClientDropdownOpen(false);
-                        }}
-                        className={`px-3 py-2 text-xs font-semibold cursor-pointer transition-colors ${
-                          'hover:bg-primary-light'}`}
-                      >
-                        <div className="font-bold text-xs">{tp.name}</div>
-                        <div className="text-xs text-gray-500 font-mono">CI/RUC: {tp.ruc}</div>
-                      </div>
-                    ))
-                  }
-                </div>
-              )}
-            </div>
-
-            
-            {/* Ficha Cliente Compacta */}
-            {selectedClientId ? (
-              (() => {
-                const client = getSelectedClient();
-                return (
-                  <div className={`py-1.5 transition-all text-base font-light ${
-                    'text-black'}`}>
-                    <div className="flex justify-between items-start gap-3">
-                      <div className="flex-1 min-w-0 space-y-1">
-                        {/* Nombre y RUC */}
-                        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                          <span className={`font-light text-base uppercase text-black`}>{client.name}</span>
-                          <span className={`text-base font-light font-mono text-black`}>({client.ruc})</span>
-                        </div>
-                        {/* Teléfono y Correo en la misma línea con alto contraste */}
-                        {(client.telefono || client.email) && (
-                          <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-base font-light pt-0.5">
-                            {client.telefono && (
-                              <span className="flex items-center gap-1 shrink-0">
-                                <Phone size={11} className={`text-black shrink-0`} />
-                                <span className={'text-black'}>{client.telefono}</span>
-                              </span>
-                            )}
-                            {client.telefono && client.email && <span className={`opacity-40 text-black`}>|</span>}
-                            {client.email && (
-                              <span className="flex items-center gap-1 shrink-0">
-                                <Mail size={11} className={`text-black shrink-0`} />
-                                <span className={'text-black'}>{client.email}</span>
-                              </span>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                      
-                      {/* Acciones */}
-                      <div className="flex gap-1 shrink-0 mt-0.5">
-                        <button 
-                          type="button"
-                          onClick={() => {
-                            const found = thirdParties.find(tp => tp.id === selectedClientId);
-                            if (found) {
-                              setQuickAddFormData({
-                                name: found.name,
-                                ruc: found.ruc,
-                                email: found.email || '',
-                                tipoIdentificacion: found.tipoIdentificacion || 'ruc',
-                                direccion: found.direccion || '',
-                                telefono: found.telefono || '',
-                                tipoContribuyente: found.tipoContribuyente || 'general'
-                              });
-                              setIsQuickAddOpen(true);
-                            }
-                          }} 
-                          className={`btn-icon hover:bg-primary/10 text-primary border border-primary/25 bg-white`}
-                          title="Editar Cliente"
-                        >
-                          <Edit3 size={12} />
-                        </button>
-                        <button 
-                          type="button"
-                          onClick={() => setSelectedClientId('')} 
-                          className={`btn-icon hover:bg-red-50 text-red-650 border border-red-200 bg-white`}
-                          title="Quitar Cliente"
-                        >
-                          <X size={12} />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })()
-            ) : (
-              /* Consumidor Final Compacto */
-              <div className={`py-1.5 flex items-center gap-1.5 text-base font-light ${
-                'text-black'}`}>
-                <User size={11} className={`text-black shrink-0`} />
-                <span className={`uppercase text-black`}>Consumidor Final</span>
-                <span className={`font-mono text-black`}>(9999999999999)</span>
-              </div>
-            )}
-          </div>
           {/* CABECERA DETALLE DEL PEDIDO */}
           <div className={`px-4 py-2.5 border-b flex justify-between items-center shrink-0 ${
             'border-primary/15 text-gray-550 bg-primary/5'}`}>
@@ -1792,137 +2047,6 @@ export default function PosView({ products, thirdParties, transactions = [], sho
               </div>
             </div>
 
-            {cart.length > 0 && (
-              <div className="mt-3 pt-3 border-t border-primary/15 space-y-3">
-                {/* TIPO DE COMPROBANTE */}
-                <div>
-                  <label className="block text-[10px] font-black uppercase tracking-wider text-gray-500 mb-1.5">Tipo de Comprobante</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setPosDocType('factura')}
-                      className={`py-1.5 rounded-lg text-xs font-bold border transition-all ${
-                        posDocType === 'factura' 
-                          ? 'bg-primary border-primary text-white font-black' 
-                          : 'bg-[#f8fafc] border-transparent text-gray-700 hover:bg-gray-100'
-                      }`}
-                    >
-                      Factura
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPosDocType('nota_venta')}
-                      className={`py-1.5 rounded-lg text-xs font-bold border transition-all ${
-                        posDocType === 'nota_venta' 
-                          ? 'bg-primary border-primary text-white font-black' 
-                          : 'bg-[#f8fafc] border-transparent text-gray-700 hover:bg-gray-100'
-                      }`}
-                    >
-                      Nota de Venta
-                    </button>
-                  </div>
-                </div>
-
-                {/* MÉTODO DE PAGO */}
-                <div>
-                  <label className="block text-[10px] font-black uppercase tracking-wider text-gray-500 mb-1.5">Método de Pago</label>
-                  <div className="grid grid-cols-3 gap-1.5">
-                    {[
-                      { id: 'efectivo', label: 'Efectivo' },
-                      { id: 'transferencia', label: 'Transfer' },
-                      { id: 'tarjeta', label: 'Tarjeta' }
-                    ].map(method => (
-                      <button
-                        key={method.id}
-                        type="button"
-                        onClick={() => {
-                          setPosPaymentMethod(method.id);
-                          if (method.id !== 'efectivo') {
-                            setReceivedAmount('');
-                          }
-                        }}
-                        className={`py-1.5 rounded-lg text-xs font-bold border transition-all ${
-                          posPaymentMethod === method.id 
-                            ? 'bg-primary border-primary text-white font-black' 
-                            : 'bg-[#f8fafc] border-transparent text-gray-700 hover:bg-gray-100'
-                        }`}
-                      >
-                        {method.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* MONTO RECIBIDO Y CAMBIO (Solo Efectivo) */}
-                {posPaymentMethod === 'efectivo' && (
-                  <div className="space-y-2 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                    <div className="flex justify-between items-center">
-                      <label className="text-[10px] font-black uppercase tracking-wider text-gray-500">Monto Recibido</label>
-                      <button
-                        type="button"
-                        onClick={() => setReceivedAmount(getTotal().toFixed(2))}
-                        className="text-[10px] font-bold text-primary hover:underline"
-                      >
-                        Paga Exacto
-                      </button>
-                    </div>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-xs">$</span>
-                      <input
-                        type="number"
-                        step="any"
-                        placeholder="0.00"
-                        value={receivedAmount}
-                        onChange={e => setReceivedAmount(e.target.value)}
-                        className="w-full pl-6 pr-3 py-1.5 text-sm font-bold rounded-lg border-none outline-none bg-white focus:ring-1 focus:ring-primary/20 text-black placeholder-gray-400"
-                      />
-                    </div>
-                    
-                    {/* Billetes Rápidos */}
-                    <div className="flex flex-wrap gap-1.5 mt-1">
-                      {[5, 10, 20, 50, 100].map(bill => {
-                        if (bill < getTotal() && bill !== 20) return null;
-                        return (
-                          <button
-                            key={bill}
-                            type="button"
-                            onClick={() => setReceivedAmount(bill.toFixed(2))}
-                            className="px-2.5 py-1 text-[10px] font-bold bg-white border border-slate-200 hover:border-primary hover:bg-primary/5 text-gray-700 hover:text-primary rounded-lg transition-all"
-                          >
-                            ${bill}
-                          </button>
-                        );
-                      })}
-                    </div>
-                    
-                    {/* CAMBIO */}
-                    {Number(receivedAmount) > 0 && (
-                      <div className="flex justify-between items-center pt-1.5 border-t border-dashed border-slate-200">
-                        <span className="text-[10px] font-black uppercase text-gray-500">Cambio a entregar</span>
-                        <span className={`text-sm font-black ${Number(receivedAmount) >= getTotal() ? 'text-emerald-600' : 'text-red-500'}`}>
-                          ${Math.max(0, Number(receivedAmount) - getTotal()).toFixed(2)}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* NRO REFERENCIA (Transferencia / Tarjeta) */}
-                {(posPaymentMethod === 'transferencia' || posPaymentMethod === 'tarjeta') && (
-                  <div className="space-y-1 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                    <label className="block text-[10px] font-black uppercase tracking-wider text-gray-500">Referencia / Lote / Banco</label>
-                    <input
-                      type="text"
-                      placeholder="Ej. #09281 o Pichincha"
-                      value={paymentRefCode}
-                      onChange={e => setPaymentRefCode(e.target.value)}
-                      className="w-full px-3 py-1.5 text-xs font-medium rounded-lg border-none outline-none bg-white focus:ring-1 focus:ring-primary/20 text-black placeholder-gray-400"
-                    />
-                  </div>
-                )}
-              </div>
-            )}
-
             <div className="flex gap-2.5 mt-4 pt-1">
               <button 
                 type="button" 
@@ -1939,15 +2063,11 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                     showToast("Agrega productos al carrito", "error");
                     return;
                   }
-                  // Validar que si es efectivo, haya pagado suficiente
-                  if (posPaymentMethod === 'efectivo') {
-                    const cashVal = Number(receivedAmount) || 0;
-                    if (cashVal < getTotal()) {
-                      showToast(`Por favor, cubre el total de la factura. Falta pagar $${(getTotal() - cashVal).toFixed(2)}`, "error");
-                      return;
-                    }
-                  }
-                  handleFinalCheckout();
+                  // Entrar a la pantalla inline de Cobro e Impresión
+                  setReceivedAmount('');
+                  setPosPaymentMethod('efectivo');
+                  setPaymentRefCode('');
+                  setShowPaymentScreen(true);
                 }}
                 className="btn-primary flex-[2] flex items-center justify-center gap-2"
               >
@@ -1959,7 +2079,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
           </div>
 
         </div>
-
+        )}
       </div>
 
       {/* DRAWER DE CONFIGURACIÓN DEL POS */}
