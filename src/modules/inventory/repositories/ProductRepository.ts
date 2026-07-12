@@ -12,7 +12,7 @@ export class ProductRepository {
     // Si no tiene imagen, asignar imagen de placeholder automática (placehold.co)
     const imageUrl = productData.imageUrl && productData.imageUrl.trim() !== '' 
       ? productData.imageUrl 
-      : 'https://placehold.net/product.svg';
+      : '/product.svg';
 
     // Validar con Zod
     const validatedData = ProductSchema.parse({
@@ -84,7 +84,7 @@ export class ProductRepository {
     const docRef = doc(this.getCollectionRef(), id);
     const cleanedUpdates = { ...updates };
     if (cleanedUpdates.imageUrl !== undefined && (!cleanedUpdates.imageUrl || cleanedUpdates.imageUrl.trim() === '')) {
-      cleanedUpdates.imageUrl = 'https://placehold.net/product.svg';
+      cleanedUpdates.imageUrl = '/product.svg';
     }
 
     await updateDoc(docRef, {

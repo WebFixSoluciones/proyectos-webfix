@@ -29,8 +29,8 @@ function sanitizeData(obj) {
 
 const getProductImageUrl = (p) => {
   const url = p?.imageUrl || p?.image || '';
-  if (!url || url.trim() === '' || url === 'https://placehold.co/' || url === 'https://placehold.co' || url.includes('placehold.co')) {
-    return 'https://placehold.net/product.svg';
+  if (!url || url.trim() === '' || url.includes('placehold.co') || url.includes('placehold.net')) {
+    return '/product.svg';
   }
   return url;
 };
@@ -1080,7 +1080,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
     <div className="fixed inset-0 z-[100] bg-surface-card text-text-secondary flex flex-col overflow-hidden animate-in fade-in duration-300">
       
       {/* TOP HEADER POS */}
-      <div className="h-16 px-4 border-b flex items-center justify-between shrink-0 bg-[#f8fafc]/90 backdrop-blur-md border-primary/15 text-text-secondary gap-4">
+      <div className="h-16 px-4 border-b flex items-center justify-between shrink-0 bg-[#f8fafc]/90 backdrop-blur-md border-primary/15 text-text-secondary gap-4 relative z-30">
         
         {/* BUSCADORES Y SELECT DE COMPROBANTE (Parte Izquierda/Centro) */}
         <div className="flex-1 flex items-center gap-2.5 max-w-[75%]">
@@ -1771,7 +1771,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                         className="w-10 h-10 rounded-lg object-cover shrink-0 border border-slate-200" 
                         alt={p.name} 
                         onError={(e) => {
-                          e.target.src = 'https://placehold.net/product.svg';
+                          e.target.src = '/product.svg';
                         }}
                       />
                       <div className="min-w-0 flex-1">
@@ -1849,7 +1849,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                         className="w-10 h-10 rounded-lg object-cover shrink-0 border border-slate-200" 
                         alt={p.name} 
                         onError={(e) => {
-                          e.target.src = 'https://placehold.net/product.svg';
+                          e.target.src = '/product.svg';
                         }}
                       />
                       <div className="space-y-0.5 min-w-0 flex-1">
@@ -1941,7 +1941,7 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                     className="w-10 h-10 rounded-lg object-cover shrink-0 border border-slate-100" 
                     alt={item.name} 
                     onError={(e) => {
-                      e.target.src = 'https://placehold.net/product.svg';
+                      e.target.src = '/product.svg';
                     }}
                   />
 

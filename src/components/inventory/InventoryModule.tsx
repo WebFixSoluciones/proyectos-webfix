@@ -368,11 +368,11 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
                                 <td className="px-6 py-2.5">
                                   <div className="flex items-center gap-3">
                                     <img 
-                                      src={p.imageUrl && !p.imageUrl.includes('placehold.co') ? p.imageUrl : 'https://placehold.net/product.svg'} 
+                                      src={p.imageUrl && !p.imageUrl.includes('placehold.co') && !p.imageUrl.includes('placehold.net') ? p.imageUrl : '/product.svg'} 
                                       className="w-8 h-8 rounded object-cover border border-slate-200" 
                                       alt={p.name}
                                       onError={(e) => {
-                                        e.currentTarget.src = 'https://placehold.net/product.svg';
+                                        e.currentTarget.src = '/product.svg';
                                       }}
                                     />
                                     <div className="min-w-0">
