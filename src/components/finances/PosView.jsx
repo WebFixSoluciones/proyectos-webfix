@@ -782,6 +782,9 @@ export default function PosView({ products, thirdParties, transactions = [], sho
       setCart([]);
       setSelectedClientId('');
       setPosDocType('factura');
+      setPosPaymentMethod('efectivo');
+      setReceivedAmount('');
+      setPaymentRefCode('');
       setPayments({
         efectivo: 0,
         transferencia: 0,
@@ -799,6 +802,12 @@ export default function PosView({ products, thirdParties, transactions = [], sho
       });
       setIsCheckoutOpen(false);
       setCheckoutStep(1);
+      
+      setTimeout(() => {
+        const searchInput = document.getElementById('pos-search-input');
+        if (searchInput) searchInput.focus();
+      }, 350);
+
       showToast(isPreventaOnly ? "Preventa registrada con éxito" : "Venta POS completada y enviada a facturación SRI", "success");
     } catch (err) {
       console.error(err);
@@ -1646,72 +1655,74 @@ export default function PosView({ products, thirdParties, transactions = [], sho
               const prod = products.find(p => p.id === item.productId);
               const imageUrl = prod?.imageUrl || prod?.image || null;
               return (
-                <div key={idx} className={`p-2.5 rounded-card border flex items-center justify-between gap-3 bg-white border-primary/15`}>
-                  {/* Imagen del Producto */}
-                  {imageUrl ? (
-                    <img src={imageUrl} className="w-10 h-10 rounded-lg object-cover shrink-0 border border-gray-100 dark:border-white/10" alt={item.name} />
-                  ) : (
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-xs uppercase shrink-0 border ${
-                      'bg-primary-light border-primary/15 text-primary'}`}>
-                      {item.name.slice(0, 2).toUpperCase()}
-                    </div>
-                  )}
-
-                  {/* Nombre y Precio */}
-                  <div className="flex-1 min-w-0">
-                    <h4 className={`text-xs font-bold truncate text-black`}>{item.name}</h4>
-                    <p className={`text-xs font-extrabold mt-0.5 text-primary`}>${Number(item.price).toFixed(2)}</p>
-                  </div>
-
-                  {/* Botón de Eliminar */}
-                  <button 
-                    type="button" 
-                    onClick={() => removeFromCart(item.productId)} 
-                    className={`btn-icon shrink-0 hover:bg-red-50 text-red-650 border border-red-200 bg-white`}
-                    title="Eliminar ítem"
-                  >
-                    <Trash2 size={13} />
-                  </button>
-
-                  {/* Control de Cantidad (Input) */}
-                  <input 
-                    type="number" 
-                    min="1"
-                    value={item.quantity} 
-                    onChange={e => {
-                      const val = parseInt(e.target.value) || 1;
-                      const prod = products.find(p => p.id === item.productId);
-                      if (prod && prod.type === 'producto' && prod.inventoryType !== 'VIRTUAL' && val > prod.stock) {
-                        showToast("Excede stock disponible", "error");
-                        return;
-                      }
-                      setCart(cart.map(i => i.productId === item.productId ? { ...i, quantity: val } : i));
+                <div key={idx} className="p-2.5 rounded-card border flex items-center justify-between gap-3 bg-white border-primary/15">
+                  {/* Imagen o iniciales */}
+                  <img 
+                    src={imageUrl || 'https://placehold.co/600x600/png?text=Sin+Imagen'} 
+                    className="w-10 h-10 rounded-lg object-cover shrink-0 border border-slate-100" 
+                    alt={item.name} 
+                    onError={(e) => {
+                      e.target.src = 'https://placehold.co/600x600/png?text=Sin+Imagen';
                     }}
-                    className={`w-14 h-8 text-center text-xs font-bold rounded-lg border outline-none ${
-                      'bg-white border-gray-300 text-black focus:border-primary'}`}
                   />
 
-                  {/* Botón Más (+) */}
-                  <button 
-                    type="button" 
-                    onClick={() => updateQuantity(item.productId, 1)} 
-                    className={`btn-icon shrink-0 hover:bg-primary/10 text-primary border border-primary/25 bg-white`}
-                  >
-                    <Plus size={13} />
-                  </button>
+                  {/* Nombre, SKU y precio unitario */}
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-xs font-bold truncate text-black" title={item.name}>{item.name}</h4>
+                    <p className="text-[10px] text-gray-500 font-mono">{prod?.sku || 'SKU N/A'}</p>
+                    <p className="text-[10px] font-bold text-primary mt-0.5">${Number(item.price).toFixed(2)} c/u</p>
+                  </div>
 
-                  {/* Precio Total */}
-                  <span className={`font-bold text-xs text-right min-w-[55px] text-black`}>
-                    ${(item.price * item.quantity).toFixed(2)}
-                  </span>
+                  {/* Selector de Cantidad */}
+                  <div className="flex items-center bg-slate-50 border border-slate-100 rounded-lg p-0.5 shrink-0">
+                    <button 
+                      type="button" 
+                      onClick={() => updateQuantity(item.productId, -1)} 
+                      className="w-6 h-6 flex items-center justify-center text-gray-500 hover:bg-slate-200 rounded-md transition-colors"
+                      title="Disminuir cantidad"
+                    >
+                      <Minus size={11} />
+                    </button>
+                    
+                    <input 
+                      type="number" 
+                      min="1"
+                      value={item.quantity} 
+                      onChange={e => {
+                        const val = parseInt(e.target.value) || 1;
+                        if (prod && prod.type === 'producto' && prod.inventoryType !== 'VIRTUAL' && val > prod.stock) {
+                          showToast("Excede stock disponible", "error");
+                          return;
+                        }
+                        setCart(cart.map(i => i.productId === item.productId ? { ...i, quantity: val } : i));
+                      }}
+                      className="w-10 text-center text-xs font-bold bg-transparent border-none outline-none focus:ring-0 text-black p-0"
+                    />
 
-                  {/* Botón de opciones (tres puntos) */}
-                  <button 
-                    type="button" 
-                    className={`btn-icon shrink-0 hover:bg-gray-250 text-gray-655 border bg-white`}
-                  >
-                    <MoreHorizontal size={13} />
-                  </button>
+                    <button 
+                      type="button" 
+                      onClick={() => updateQuantity(item.productId, 1)} 
+                      className="w-6 h-6 flex items-center justify-center text-primary hover:bg-slate-200 rounded-md transition-colors"
+                      title="Aumentar cantidad"
+                    >
+                      <Plus size={11} />
+                    </button>
+                  </div>
+
+                  {/* Subtotal e Ícono de Eliminar */}
+                  <div className="flex items-center gap-2.5 shrink-0">
+                    <span className="font-bold text-xs text-right min-w-[55px] text-black">
+                      ${(item.price * item.quantity).toFixed(2)}
+                    </span>
+                    <button 
+                      type="button" 
+                      onClick={() => removeFromCart(item.productId)} 
+                      className="text-red-550 hover:text-red-705 p-1 hover:bg-red-50 rounded-md transition-all"
+                      title="Eliminar del carrito"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
                 </div>
               );
             })}
@@ -1865,6 +1876,23 @@ export default function PosView({ products, thirdParties, transactions = [], sho
                         onChange={e => setReceivedAmount(e.target.value)}
                         className="w-full pl-6 pr-3 py-1.5 text-sm font-bold rounded-lg border-none outline-none bg-white focus:ring-1 focus:ring-primary/20 text-black placeholder-gray-400"
                       />
+                    </div>
+                    
+                    {/* Billetes Rápidos */}
+                    <div className="flex flex-wrap gap-1.5 mt-1">
+                      {[5, 10, 20, 50, 100].map(bill => {
+                        if (bill < getTotal() && bill !== 20) return null;
+                        return (
+                          <button
+                            key={bill}
+                            type="button"
+                            onClick={() => setReceivedAmount(bill.toFixed(2))}
+                            className="px-2.5 py-1 text-[10px] font-bold bg-white border border-slate-200 hover:border-primary hover:bg-primary/5 text-gray-700 hover:text-primary rounded-lg transition-all"
+                          >
+                            ${bill}
+                          </button>
+                        );
+                      })}
                     </div>
                     
                     {/* CAMBIO */}
