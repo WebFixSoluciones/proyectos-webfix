@@ -2266,7 +2266,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                       {item.discount_value > 0 && (
                         <span className="line-through text-gray-450 mr-1.5">${(item.price * item.quantity).toFixed(2)}</span>
                       )}
-                      ${(totalsResult.detalleLineas?.[idx]?.subtotalLineaNeto || item.price * item.quantity).toFixed(2)}
+                      ${(totalsResult.items?.[idx]?.subtotal_neto_linea || item.price * item.quantity).toFixed(2)}
                     </span>
                     <button 
                       type="button" 
