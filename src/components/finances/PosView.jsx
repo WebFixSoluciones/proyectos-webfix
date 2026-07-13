@@ -517,6 +517,10 @@ export default function PosView({ products, thirdParties, transactions = [], dis
       if (e.key === 'F12' || (e.ctrlKey && e.key === 'Enter')) {
         e.preventDefault();
         if (cart.length > 0) {
+          if (!selectedClientId) {
+            showToast("Alerta: No se seleccionó ningún cliente", "error");
+            return;
+          }
           if (!showPaymentScreen) {
             setReceivedAmount('');
             setPosPaymentMethod('efectivo');
@@ -847,7 +851,11 @@ export default function PosView({ products, thirdParties, transactions = [], dis
   // Checkout Finalizado
   const handleFinalCheckout = async () => {
     if (cart.length === 0) {
-      showToast("El carrito está vacío", "error");
+      showToast("Alerta: El carrito está vacío", "error");
+      return;
+    }
+    if (!selectedClientId) {
+      showToast("Alerta: No se seleccionó ningún cliente", "error");
       return;
     }
     if (remainingDue > 0) {
@@ -2407,7 +2415,11 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                 type="button" 
                 onClick={() => {
                   if (cart.length === 0) {
-                    showToast("Agrega productos al carrito", "error");
+                    showToast("Alerta: El carrito está vacío", "error");
+                    return;
+                  }
+                  if (!selectedClientId) {
+                    showToast("Alerta: No se seleccionó ningún cliente", "error");
                     return;
                   }
                   // Entrar a la pantalla inline de Cobro e Impresión

@@ -16,13 +16,15 @@ interface ProductCreationFormProps {
   onSuccess: () => void;
   isInline?: boolean;
   productToEdit?: any;
+  showToast?: (message: string, type?: 'success' | 'error' | 'warning' | 'info') => void;
 }
 
 export default function ProductCreationForm({ 
   onClose, 
   onSuccess,
   isInline = false,
-  productToEdit = null
+  productToEdit = null,
+  showToast
 }: ProductCreationFormProps) {
   // Main form state
   const [formData, setFormData] = useState({
@@ -367,10 +369,15 @@ export default function ProductCreationForm({
       }
     } catch (err: any) {
       console.error("Error saving product:", err);
-      if (err.issues) {
-        setError(err.issues[0].message);
-      } else {
-        setError(err.message || 'Error al guardar el producto');
+      let errMsg = 'Error al guardar el producto';
+      if (err.issues && err.issues[0]) {
+        errMsg = err.issues[0].message;
+      } else if (err.message) {
+        errMsg = err.message;
+      }
+      setError(errMsg);
+      if (showToast) {
+        showToast(`Alerta de Validación: ${errMsg}`, 'error');
       }
     } finally {
       setLoading(false);

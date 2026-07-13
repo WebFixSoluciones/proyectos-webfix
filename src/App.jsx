@@ -2172,7 +2172,7 @@ export default function App() {
                 <FinanceModule mode="ventas" initialSubTab={ventasInitialSubTab} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} discounts={globalDiscounts} promotions={globalPromotions} isLoading={isLoadingFinances} />
               )}
               {activePageId === 'inventario' && (
-                <InventoryModule initialSubTab={inventarioInitialSubTab} />
+                <InventoryModule initialSubTab={inventarioInitialSubTab} showToast={showToast} />
               )}
               {activePageId === 'compras' && (
                 <FinanceModule mode="compras" initialSubTab={comprasInitialSubTab} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} discounts={globalDiscounts} promotions={globalPromotions} isLoading={isLoadingFinances} />

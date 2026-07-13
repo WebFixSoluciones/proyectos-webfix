@@ -23,6 +23,7 @@ import { db, appId } from '../../firebase';
 
 interface InventoryModuleProps {
   initialSubTab?: string;
+  showToast?: (message: string, type?: 'success' | 'error' | 'warning' | 'info') => void;
 }
 
 const BRANCHES = [
@@ -31,7 +32,7 @@ const BRANCHES = [
   { id: 'sucursal-norte-uuid', name: 'Sucursal Norte' }
 ];
 
-export default function InventoryModule({ initialSubTab }: InventoryModuleProps) {
+export default function InventoryModule({ initialSubTab, showToast }: InventoryModuleProps) {
   const [activeTab, setActiveTab] = useState('productos');
 
   useEffect(() => {
@@ -445,6 +446,7 @@ export default function InventoryModule({ initialSubTab }: InventoryModuleProps)
                     key={editingProduct?.id || editingProduct?.type || 'new-product'}
                     isInline={true}
                     productToEdit={editingProduct}
+                    showToast={showToast}
                     onClose={() => {
                       setInlineFormMode(null);
                       setEditingProduct(null);
