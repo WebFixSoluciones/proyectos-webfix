@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { 
   X, UploadCloud, Calculator, FileText, CheckCircle2, AlertTriangle, Sparkles, 
   Terminal, ShieldAlert, Download, Plus, Trash2, RefreshCw, ArrowLeft, ArrowRight, 
-  User, DollarSign, CreditCard, Layers, Search, Building, ChevronDown, UserPlus, Tag, Zap
+  User, DollarSign, CreditCard, Layers, Search, Building, ChevronDown, UserPlus, Tag, Zap, Percent
 } from 'lucide-react';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, runTransaction } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
