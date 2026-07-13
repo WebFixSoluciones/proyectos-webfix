@@ -163,6 +163,12 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
       alcance: 'PRODUCTO',
       fecha_inicio: new Date().toISOString().split('T')[0],
       fecha_fin: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      metodo: 'SIEMPRE',
+      cantidad_volumen: 1,
+      activo_24h: true,
+      hora_inicio: '00:00',
+      hora_fin: '23:59',
+      dias_semana: ['LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB', 'DOM'],
       requiere_autorizacion: false,
       activo: true
     });
@@ -178,6 +184,12 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
       alcance: disc.alcance,
       fecha_inicio: disc.fecha_inicio,
       fecha_fin: disc.fecha_fin,
+      metodo: disc.metodo || 'SIEMPRE',
+      cantidad_volumen: disc.cantidad_volumen !== undefined ? disc.cantidad_volumen : 1,
+      activo_24h: disc.activo_24h !== undefined ? disc.activo_24h : true,
+      hora_inicio: disc.hora_inicio || '00:00',
+      hora_fin: disc.hora_fin || '23:59',
+      dias_semana: disc.dias_semana || ['LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB', 'DOM'],
       requiere_autorizacion: disc.requiere_autorizacion,
       activo: disc.activo
     });
@@ -533,6 +545,39 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
                 </div>
               </div>
 
+              {/* Método de Aplicación y Cantidad Volumen */}
+              <div className="grid grid-cols-2 gap-4 border-t border-slate-100 pt-4">
+                <div>
+                  <label className="block text-[10px] uppercase font-extrabold text-slate-500 mb-1.5">Método de Aplicación</label>
+                  <select
+                    value={discountForm.metodo || 'SIEMPRE'}
+                    onChange={e => setDiscountForm(prev => ({ ...prev, metodo: e.target.value }))}
+                    className="w-full h-10 px-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-primary text-black cursor-pointer font-medium"
+                  >
+                    <option value="SIEMPRE">Siempre (Sin cantidad mínima)</option>
+                    <option value="POR_CADA">Por cada (Escalonado)</option>
+                    <option value="A_PARTIR_DE">A partir de (Volumen mínimo)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] uppercase font-extrabold text-slate-500 mb-1.5">
+                    {discountForm.metodo === 'POR_CADA' ? 'Cada X Unidades' : 'Cantidad Mínima'}
+                  </label>
+                  <input
+                    type="number"
+                    required={discountForm.metodo !== 'SIEMPRE'}
+                    disabled={discountForm.metodo === 'SIEMPRE'}
+                    min="1"
+                    placeholder={discountForm.metodo === 'SIEMPRE' ? "N/A" : "Ej. 5"}
+                    value={discountForm.metodo === 'SIEMPRE' ? '' : (discountForm.cantidad_volumen || '')}
+                    onChange={e => setDiscountForm(prev => ({ ...prev, cantidad_volumen: parseInt(e.target.value) || 1 }))}
+                    className={`w-full h-10 px-3 rounded-xl border border-slate-200 focus:outline-none focus:border-primary text-black font-medium font-mono ${
+                      discountForm.metodo === 'SIEMPRE' ? 'bg-slate-100 text-slate-400' : ''
+                    }`}
+                  />
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-4 border-t border-slate-100 pt-4">
                 {/* Fecha Inicio */}
                 <div>
@@ -556,6 +601,77 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
                     onChange={e => setDiscountForm(prev => ({ ...prev, fecha_fin: e.target.value }))}
                     className="w-full h-10 px-3 rounded-xl border border-slate-200 focus:outline-none focus:border-primary text-black font-medium"
                   />
+                </div>
+              </div>
+
+              {/* Disponibilidad Horaria y Días de la Semana */}
+              <div className="border-t border-slate-100 pt-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-slate-700">Disponibilidad Horaria</span>
+                  <label className="flex items-center gap-2 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={discountForm.activo_24h ?? true}
+                      onChange={e => setDiscountForm(prev => ({ ...prev, activo_24h: e.target.checked }))}
+                      className="rounded text-primary focus:ring-primary w-4 h-4 cursor-pointer"
+                    />
+                    <span className="text-[11px] font-bold text-slate-700">Activo las 24 horas</span>
+                  </label>
+                </div>
+
+                {!(discountForm.activo_24h ?? true) && (
+                  <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <div>
+                      <label className="block text-[10px] uppercase font-extrabold text-slate-500 mb-1.5">Hora Inicio</label>
+                      <input
+                        type="time"
+                        required
+                        value={discountForm.hora_inicio || '00:00'}
+                        onChange={e => setDiscountForm(prev => ({ ...prev, hora_inicio: e.target.value }))}
+                        className="w-full h-10 px-3 rounded-xl border border-slate-200 focus:outline-none focus:border-primary text-black font-medium"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] uppercase font-extrabold text-slate-500 mb-1.5">Hora Fin</label>
+                      <input
+                        type="time"
+                        required
+                        value={discountForm.hora_fin || '23:59'}
+                        onChange={e => setDiscountForm(prev => ({ ...prev, hora_fin: e.target.value }))}
+                        className="w-full h-10 px-3 rounded-xl border border-slate-200 focus:outline-none focus:border-primary text-black font-medium"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Días de la Semana */}
+                <div>
+                  <label className="block text-[10px] uppercase font-extrabold text-slate-500 mb-2">Días Activos de la Semana</label>
+                  <div className="flex flex-wrap gap-2">
+                    {['LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB', 'DOM'].map(day => {
+                      const list = discountForm.dias_semana || ['LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB', 'DOM'];
+                      const isChecked = list.includes(day);
+                      return (
+                        <button
+                          type="button"
+                          key={day}
+                          onClick={() => {
+                            const updated = isChecked
+                              ? list.filter(d => d !== day)
+                              : [...list, day];
+                            setDiscountForm(prev => ({ ...prev, dias_semana: updated }));
+                          }}
+                          className={`px-3 py-1.5 rounded-xl border text-[11px] font-bold transition-all cursor-pointer ${
+                            isChecked
+                              ? 'bg-primary/10 border-primary text-primary'
+                              : 'bg-white border-slate-200 text-slate-550 hover:bg-slate-50'
+                          }`}
+                        >
+                          {day}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
 

@@ -55,7 +55,8 @@ export default function ProductCreationForm({
     tax_mode: productToEdit?.tax_mode || 'EXCLUIDO',
     tarifa_iva: productToEdit?.tarifa_iva !== undefined ? productToEdit.tarifa_iva : (productToEdit?.taxRate !== undefined ? productToEdit.taxRate / 100 : 0.15),
     precio_sin_iva: productToEdit?.precio_sin_iva || 0,
-    precio_con_iva: productToEdit?.precio_con_iva || 0
+    precio_con_iva: productToEdit?.precio_con_iva || 0,
+    id_descuento_asociado: productToEdit?.id_descuento_asociado || ''
   });
 
   // Derived price display states for UI binding
@@ -85,6 +86,7 @@ export default function ProductCreationForm({
   // Catalog selectors lists
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
+  const [discounts, setDiscounts] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -124,18 +126,21 @@ export default function ProductCreationForm({
   const [newSupplierPhone, setNewSupplierPhone] = useState('');
   const [newSupplierEmail, setNewSupplierEmail] = useState('');
 
-  // Load categories and brands
+  // Load categories, brands and discounts
   useEffect(() => {
     async function loadData() {
       try {
-        const [cats, brs] = await Promise.all([
+        const [cats, brs, discsSnap] = await Promise.all([
           categoryBrandRepository.getCategories(),
-          categoryBrandRepository.getBrands()
+          categoryBrandRepository.getBrands(),
+          getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'finances_discounts'))
         ]);
         setCategories(cats.filter(c => c.status === 'ACTIVE'));
         setBrands(brs.filter(b => b.status === 'ACTIVE'));
+        const discsList = discsSnap.docs.map(doc => doc.data());
+        setDiscounts(discsList.filter((d: any) => d.activo !== false && d.alcance === 'PRODUCTO'));
       } catch (err) {
-        console.error("Error loading categories/brands:", err);
+        console.error("Error loading categories/brands/discounts:", err);
       }
     }
     loadData();
@@ -1104,6 +1109,72 @@ export default function ProductCreationForm({
                 <Layers size={20} />
                 <span className="text-xs font-bold">Virtual</span>
               </button>
+            </div>
+          </div>
+        </div>
+
+        {/* PESTAÑA / APARTADO DE PROMOCIONES Y DESCUENTOS */}
+        <div className="pt-4 border-t border-dashed border-white/10 space-y-4">
+          <div className="flex items-center gap-1.5 text-primary">
+            <Tag size={15} />
+            <h3 className="text-xs font-bold uppercase tracking-wider">Promociones y Descuentos</h3>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Selector de Descuento Individual */}
+            <div>
+              <label className={labelClass}>Asignar Descuento al Producto</label>
+              <select
+                name="id_descuento_asociado"
+                value={formData.id_descuento_asociado || ''}
+                onChange={handleInputChange}
+                className={inputClass}
+              >
+                <option value="">-- Sin Descuento Individual --</option>
+                {discounts.map(d => (
+                  <option key={d.id} value={d.id}>
+                    {d.nombre} ({d.tipo_valor === 'PORCENTAJE' ? `${d.valor}%` : `$${d.valor}`})
+                  </option>
+                ))}
+              </select>
+              <p className="text-[10px] text-gray-500 mt-1 font-semibold">
+                Este descuento se aplicará de forma automática en el POS y facturación para este producto.
+              </p>
+            </div>
+
+            {/* Heredado de Categoría */}
+            <div className="p-3.5 bg-slate-50 border border-slate-100 rounded-2xl flex flex-col justify-center">
+              <span className="text-[10px] font-extrabold uppercase text-slate-550 mb-1">
+                Descuento Heredado de Categoría
+              </span>
+              {(() => {
+                const activeCat = categories.find(c => c.id === formData.categoryId);
+                if (activeCat && activeCat.id_descuento_asociado) {
+                  const disc = discounts.find(d => d.id === activeCat.id_descuento_asociado);
+                  if (disc) {
+                    return (
+                      <div>
+                        <p className="text-xs font-bold text-red-500 uppercase flex items-center gap-1">
+                          <Tag size={12} /> {disc.nombre}
+                        </p>
+                        <p className="text-[10px] text-slate-500 mt-1 leading-normal font-semibold">
+                          Heredado automáticamente de la categoría <strong>{activeCat.name}</strong>.
+                          {formData.id_descuento_asociado && (
+                            <span className="text-orange-500 font-bold block mt-1">
+                              * Nota: El descuento individual del producto tiene prioridad sobre el de la categoría.
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                    );
+                  }
+                }
+                return (
+                  <p className="text-xs text-slate-400 italic">
+                    La categoría seleccionada no tiene descuentos asociados.
+                  </p>
+                );
+              })()}
             </div>
           </div>
         </div>

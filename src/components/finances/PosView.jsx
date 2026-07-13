@@ -95,6 +95,23 @@ export default function PosView({ products, thirdParties, transactions = [], dis
   });
 
   // Estados de Caja
+  const [dbCategories, setDbCategories] = useState([]);
+
+  useEffect(() => {
+    async function fetchDbCategories() {
+      try {
+        const { collection, getDocs } = await import('firebase/firestore');
+        const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_categories'));
+        setDbCategories(snap.docs.map(doc => doc.data()));
+      } catch (err) {
+        console.error("Error fetching categories in POS:", err);
+      }
+    }
+    if (db && appId) {
+      fetchDbCategories();
+    }
+  }, [db, appId]);
+
   const [activeSession, setActiveSession] = useState(null);
   const [sessionLoading, setSessionLoading] = useState(true);
   const [openingForm, setOpeningForm] = useState({
@@ -199,7 +216,24 @@ export default function PosView({ products, thirdParties, transactions = [], dis
   });
 
   // Cómputo de Totales y Descuentos con Motor Unificado
-  const totalsResult = calculateTransactionTotals(cart, selectedGeneralDiscount);
+  const cartWithDiscounts = cart.map(item => {
+    let disc = null;
+    if (item.id_descuento_asociado) {
+      disc = (discounts || []).find(d => d.id === item.id_descuento_asociado);
+    }
+    if (!disc && item.categoryId) {
+      const cat = dbCategories.find(c => c.id === item.categoryId);
+      if (cat && cat.id_descuento_asociado) {
+        disc = (discounts || []).find(d => d.id === cat.id_descuento_asociado);
+      }
+    }
+    return {
+      ...item,
+      descuento_objeto: disc
+    };
+  });
+
+  const totalsResult = calculateTransactionTotals(cartWithDiscounts, selectedGeneralDiscount);
 
   const getSubtotal = () => totalsResult.subtotalBruto;
   const getDiscountAmount = () => totalsResult.descuentoVenta; // general discount
@@ -765,6 +799,8 @@ export default function PosView({ products, thirdParties, transactions = [], dis
         ivaCategory: product.ivaCategory !== undefined ? Number(product.ivaCategory) : 15,
         tax_mode: product.tax_mode || 'EXCLUIDO',
         tarifa_iva: product.tarifa_iva !== undefined ? Number(product.tarifa_iva) : 0.15,
+        categoryId: product.categoryId || '',
+        id_descuento_asociado: product.id_descuento_asociado || '',
         id_descuento_aplicado: '',
         id_promocion_aplicada: '',
         discount_value: 0,

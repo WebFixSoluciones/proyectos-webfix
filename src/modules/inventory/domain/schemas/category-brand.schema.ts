@@ -7,6 +7,7 @@ export const CategorySchema = z.object({
   name: z.string().min(2, "El nombre de la categoría debe tener al menos 2 caracteres"),
   parentId: z.string().uuid().optional(), // Permite jerarquía (Padre/Hijo)
   description: z.string().optional(),
+  id_descuento_asociado: z.string().optional(),
   status: z.enum(['ACTIVE', 'INACTIVE']).default('ACTIVE'),
   createdAt: z.date().optional(),
   updatedAt: z.date().optional()

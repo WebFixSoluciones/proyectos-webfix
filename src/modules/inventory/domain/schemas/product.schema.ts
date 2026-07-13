@@ -49,6 +49,7 @@ export const ProductSchema = z.object({
   stockMaximo: z.number().nonnegative().optional().default(100),
   
   status: z.enum(['ACTIVE', 'INACTIVE']).default('ACTIVE'),
+  id_descuento_asociado: z.string().optional(),
   
   createdAt: z.date().optional(),
   updatedAt: z.date().optional()

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Tag, X, Plus, Trash2, FolderPlus, FolderOpen, Award, Save } from 'lucide-react';
+import { Tag, X, Plus, Trash2, FolderPlus, FolderOpen, Award, Save, Edit2 } from 'lucide-react';
 import { categoryBrandRepository } from '../../modules/inventory/repositories/CategoryBrandRepository';
 import { Category, Brand } from '../../modules/inventory/domain/schemas/category-brand.schema';
+import { collection, getDocs } from 'firebase/firestore';
+import { db, appId } from '../../firebase';
 
 interface CategoryBrandModalProps {
   onClose: () => void;
@@ -12,12 +14,15 @@ export default function CategoryBrandModal({ onClose, onChanged }: CategoryBrand
   const [activeTab, setActiveTab] = useState<'categories' | 'brands'>('categories');
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
+  const [discounts, setDiscounts] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Form states
   const [categoryName, setCategoryName] = useState('');
   const [categoryDesc, setCategoryDesc] = useState('');
+  const [selectedDiscountId, setSelectedDiscountId] = useState('');
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   
   const [brandName, setBrandName] = useState('');
   const [brandManufacturer, setBrandManufacturer] = useState('');
@@ -29,10 +34,13 @@ export default function CategoryBrandModal({ onClose, onChanged }: CategoryBrand
   async function loadData() {
     setLoading(true);
     try {
-      const [cats, brs] = await Promise.all([
+      const [cats, brs, discsSnap] = await Promise.all([
         categoryBrandRepository.getCategories(),
-        categoryBrandRepository.getBrands()
+        categoryBrandRepository.getBrands(),
+        getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'finances_discounts'))
       ]);
+      const discsList = discsSnap.docs.map(doc => doc.data());
+      setDiscounts(discsList.filter((d: any) => d.activo !== false));
       setCategories(cats);
       setBrands(brs);
     } catch (err: any) {
@@ -49,17 +57,28 @@ export default function CategoryBrandModal({ onClose, onChanged }: CategoryBrand
     setLoading(true);
     setError(null);
     try {
-      await categoryBrandRepository.createCategory({
-        name: categoryName.trim(),
-        description: categoryDesc.trim(),
-        status: 'ACTIVE'
-      });
+      if (editingCategory && editingCategory.id) {
+        await categoryBrandRepository.updateCategory(editingCategory.id, {
+          name: categoryName.trim(),
+          description: categoryDesc.trim(),
+          id_descuento_asociado: selectedDiscountId || ''
+        });
+      } else {
+        await categoryBrandRepository.createCategory({
+          name: categoryName.trim(),
+          description: categoryDesc.trim(),
+          id_descuento_asociado: selectedDiscountId || '',
+          status: 'ACTIVE'
+        });
+      }
       setCategoryName('');
       setCategoryDesc('');
+      setSelectedDiscountId('');
+      setEditingCategory(null);
       await loadData();
       onChanged();
     } catch (err: any) {
-      setError(err.message || "Error al crear la categoría");
+      setError(err.message || "Error al crear o actualizar la categoría");
     } finally {
       setLoading(false);
     }
@@ -180,7 +199,7 @@ export default function CategoryBrandModal({ onClose, onChanged }: CategoryBrand
               {/* Form Side */}
               <form onSubmit={handleCreateCategory} className="w-full md:w-1/3 p-6 space-y-4 shrink-0">
                 <h3 className={`text-xs font-bold flex items-center gap-1.5 uppercase tracking-wider text-primary`}>
-                  <FolderPlus size={14} /> Nueva Categoría
+                  <FolderPlus size={14} /> {editingCategory ? 'Editar Categoría' : 'Nueva Categoría'}
                 </h3>
                 
                 <div>
@@ -206,14 +225,46 @@ export default function CategoryBrandModal({ onClose, onChanged }: CategoryBrand
                   />
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full py-2 rounded-card text-sm font-bold bg-primary hover:bg-primary text-white flex items-center justify-center gap-2 transition-all"
-                >
-                  <Save size={16} />
-                  Guardar Categoría
-                </button>
+                <div>
+                  <label className={labelClass}>Descuento de la Categoría</label>
+                  <select
+                    value={selectedDiscountId}
+                    onChange={(e) => setSelectedDiscountId(e.target.value)}
+                    className={inputClass}
+                  >
+                    <option value="">-- Ninguno / Sin Descuento --</option>
+                    {discounts.map(d => (
+                      <option key={d.id} value={d.id}>
+                        {d.nombre} ({d.tipo_valor === 'PORCENTAJE' ? `${d.valor}%` : `$${d.valor}`})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex gap-2">
+                  {editingCategory && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingCategory(null);
+                        setCategoryName('');
+                        setCategoryDesc('');
+                        setSelectedDiscountId('');
+                      }}
+                      className="w-1/2 py-2 rounded-card text-sm font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all cursor-pointer"
+                    >
+                      Cancelar
+                    </button>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className={`${editingCategory ? 'w-1/2' : 'w-full'} py-2 rounded-card text-sm font-bold bg-primary hover:bg-primary text-white flex items-center justify-center gap-2 transition-all cursor-pointer`}
+                  >
+                    <Save size={16} />
+                    {editingCategory ? 'Actualizar' : 'Guardar Categoría'}
+                  </button>
+                </div>
               </form>
 
               {/* List Side */}
@@ -238,13 +289,36 @@ export default function CategoryBrandModal({ onClose, onChanged }: CategoryBrand
                           {cat.description && (
                             <p className={`text-xs mt-1 text-gray-500`}>{cat.description}</p>
                           )}
+                          {cat.id_descuento_asociado && (() => {
+                            const disc = discounts.find(d => d.id === cat.id_descuento_asociado);
+                            return disc ? (
+                              <span className="inline-block mt-1 px-2.5 py-0.5 bg-red-50 text-red-500 rounded-md text-[9px] font-bold uppercase">
+                                Descuento: {disc.nombre}
+                              </span>
+                            ) : null;
+                          })()}
                         </div>
-                        <button
-                          onClick={() => cat.id && handleDeleteCategory(cat.id)}
-                          className={`p-2 rounded-card text-red-500 hover:bg-red-500/10 transition-all`}
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            onClick={() => {
+                              setEditingCategory(cat);
+                              setCategoryName(cat.name);
+                              setCategoryDesc(cat.description || '');
+                              setSelectedDiscountId(cat.id_descuento_asociado || '');
+                            }}
+                            className={`p-2 rounded-card text-primary hover:bg-primary/10 transition-all cursor-pointer`}
+                            title="Editar Categoría"
+                          >
+                            <Edit2 size={16} />
+                          </button>
+                          <button
+                            onClick={() => cat.id && handleDeleteCategory(cat.id)}
+                            className={`p-2 rounded-card text-red-500 hover:bg-red-500/10 transition-all cursor-pointer`}
+                            title="Eliminar Categoría"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
                       </div>
                     ))
                   )}

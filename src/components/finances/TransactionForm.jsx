@@ -80,6 +80,23 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   const [printFormat, setPrintFormat] = useState('ride');
   const [isInitializedFromPOS, setIsInitializedFromPOS] = useState(false);
   
+  const [dbCategories, setDbCategories] = useState([]);
+
+  useEffect(() => {
+    async function fetchDbCategories() {
+      try {
+        const { collection, getDocs } = await import('firebase/firestore');
+        const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_categories'));
+        setDbCategories(snap.docs.map(doc => doc.data()));
+      } catch (err) {
+        console.error("Error fetching categories in TransactionForm:", err);
+      }
+    }
+    if (db && appId) {
+      fetchDbCategories();
+    }
+  }, [db, appId]);
+  
   const [formData, setFormData] = useState({
     id: '',
     type: 'ingreso',
@@ -521,17 +538,30 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     
     if (hasItems) {
       // Normalizar items del carrito administrativo
-      const normalizedItems = (formData.items || []).map(item => ({
-        ...item,
-        price: Number(item.price) || 0,
-        quantity: Number(item.quantity) || 1,
-        tax_mode: item.tax_mode || 'EXCLUIDO',
-        tarifa_iva: item.tarifa_iva !== undefined ? Number(item.tarifa_iva) : 0.15,
-        id_descuento_aplicado: item.id_descuento_aplicado || '',
-        id_promocion_aplicada: item.id_promocion_aplicada || '',
-        discount_value: Number(item.discount_value) || Number(item.itemDiscount) || 0,
-        discount_type: item.discount_type || 'PORCENTAJE'
-      }));
+      const normalizedItems = (formData.items || []).map(item => {
+        let disc = null;
+        if (item.id_descuento_asociado) {
+          disc = (discounts || []).find(d => d.id === item.id_descuento_asociado);
+        }
+        if (!disc && item.categoryId) {
+          const cat = dbCategories.find(c => c.id === item.categoryId);
+          if (cat && cat.id_descuento_asociado) {
+            disc = (discounts || []).find(d => d.id === cat.id_descuento_asociado);
+          }
+        }
+        return {
+          ...item,
+          price: Number(item.price) || 0,
+          quantity: Number(item.quantity) || 1,
+          tax_mode: item.tax_mode || 'EXCLUIDO',
+          tarifa_iva: item.tarifa_iva !== undefined ? Number(item.tarifa_iva) : 0.15,
+          id_descuento_aplicado: item.id_descuento_aplicado || '',
+          id_promocion_aplicada: item.id_promocion_aplicada || '',
+          discount_value: Number(item.discount_value) || Number(item.itemDiscount) || 0,
+          discount_type: item.discount_type || 'PORCENTAJE',
+          descuento_objeto: disc
+        };
+      });
 
       const totals = calculateTransactionTotals(normalizedItems, selectedGeneralDiscount);
       
@@ -694,6 +724,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
           ivaCategory: prod.ivaCategory || 15,
           tax_mode: prod.tax_mode || 'EXCLUIDO',
           tarifa_iva: prod.tarifa_iva !== undefined ? Number(prod.tarifa_iva) : 0.15,
+          categoryId: prod.categoryId || '',
+          id_descuento_asociado: prod.id_descuento_asociado || '',
           id_descuento_aplicado: '',
           id_promocion_aplicada: '',
           discount_value: 0,
@@ -730,6 +762,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
           ivaCategory: product.ivaCategory || 15,
           tax_mode: product.tax_mode || 'EXCLUIDO',
           tarifa_iva: product.tarifa_iva !== undefined ? Number(product.tarifa_iva) : 0.15,
+          categoryId: product.categoryId || '',
+          id_descuento_asociado: product.id_descuento_asociado || '',
           id_descuento_aplicado: '',
           id_promocion_aplicada: '',
           discount_value: 0,
