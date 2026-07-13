@@ -297,9 +297,9 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
                         {disc.alcance}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 font-medium text-slate-500">{disc.tipo_valor === 'PORCENTAJE' ? 'Porcentaje (%)' : 'Monto Fijo ($)'}</td>
+                    <td className="py-3.5 px-4 font-medium text-slate-500">{disc.tipo_valor === 'PORCENTAJE' ? 'Porcentaje (%)' : (disc.tipo_valor === 'SIN_IVA' ? 'Quitar IVA' : 'Monto Fijo ($)')}</td>
                     <td className="py-3.5 px-4 font-extrabold font-mono text-slate-700">
-                      {disc.tipo_valor === 'PORCENTAJE' ? `${disc.valor}%` : `$${disc.valor.toFixed(2)}`}
+                      {disc.tipo_valor === 'SIN_IVA' ? 'Sin IVA' : (disc.tipo_valor === 'PORCENTAJE' ? `${disc.valor}%` : `$${disc.valor.toFixed(2)}`)}
                     </td>
                     <td className="py-3.5 px-4 text-slate-500 font-medium">
                       <div className="flex items-center gap-1">
@@ -373,7 +373,7 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
                       <td className="py-3.5 px-4">
                         <span className="font-semibold text-primary">{linkedDisc?.nombre || 'Descuento no encontrado'}</span>
                         <span className="text-[10px] font-mono block text-slate-400">
-                          ({linkedDisc?.tipo_valor === 'PORCENTAJE' ? `${linkedDisc?.valor}%` : `$${linkedDisc?.valor || 0}`})
+                          ({linkedDisc?.tipo_valor === 'SIN_IVA' ? 'Sin IVA' : (linkedDisc?.tipo_valor === 'PORCENTAJE' ? `${linkedDisc?.valor}%` : `$${linkedDisc?.valor || 0}`)})
                         </span>
                       </td>
                       <td className="py-3.5 px-4">
@@ -483,11 +483,19 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
                   <label className="block text-[10px] uppercase font-extrabold text-slate-500 mb-1.5">Tipo de Valor</label>
                   <select
                     value={discountForm.tipo_valor}
-                    onChange={e => setDiscountForm(prev => ({ ...prev, tipo_valor: e.target.value }))}
+                    onChange={e => {
+                      const valType = e.target.value;
+                      setDiscountForm(prev => ({
+                        ...prev,
+                        tipo_valor: valType,
+                        valor: valType === 'SIN_IVA' ? 0 : prev.valor
+                      }));
+                    }}
                     className="w-full h-10 px-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-primary text-black cursor-pointer font-medium"
                   >
                     <option value="PORCENTAJE">Porcentaje (%)</option>
                     <option value="MONTO_FIJO">Monto Fijo ($)</option>
+                    <option value="SIN_IVA">Quitar IVA (Vender sin IVA)</option>
                   </select>
                 </div>
               </div>
@@ -498,13 +506,16 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
                   <label className="block text-[10px] uppercase font-extrabold text-slate-500 mb-1.5">Valor Descuento</label>
                   <input
                     type="number"
-                    required
+                    required={discountForm.tipo_valor !== 'SIN_IVA'}
+                    disabled={discountForm.tipo_valor === 'SIN_IVA'}
                     min="0"
                     step="0.01"
-                    placeholder="0.00"
-                    value={discountForm.valor || ''}
+                    placeholder={discountForm.tipo_valor === 'SIN_IVA' ? "Autocalculado" : "0.00"}
+                    value={discountForm.tipo_valor === 'SIN_IVA' ? '0' : (discountForm.valor || '')}
                     onChange={e => setDiscountForm(prev => ({ ...prev, valor: parseFloat(e.target.value) || 0 }))}
-                    className="w-full h-10 px-3 rounded-xl border border-slate-200 focus:outline-none focus:border-primary text-black font-medium font-mono"
+                    className={`w-full h-10 px-3 rounded-xl border border-slate-200 focus:outline-none focus:border-primary text-black font-medium font-mono ${
+                      discountForm.tipo_valor === 'SIN_IVA' ? 'bg-slate-100 text-slate-450' : ''
+                    }`}
                   />
                 </div>
 
@@ -594,7 +605,7 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
                     className="w-full h-10 px-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-primary text-black cursor-pointer font-medium"
                   >
                     {discounts.map(d => (
-                      <option key={d.id} value={d.id}>{d.nombre} ({d.tipo_valor === 'PORCENTAJE' ? `${d.valor}%` : `$${d.valor}`})</option>
+                      <option key={d.id} value={d.id}>{d.nombre} ({d.tipo_valor === 'SIN_IVA' ? 'Sin IVA' : (d.tipo_valor === 'PORCENTAJE' ? `${d.valor}%` : `$${d.valor}`)})</option>
                     ))}
                   </select>
                 </div>

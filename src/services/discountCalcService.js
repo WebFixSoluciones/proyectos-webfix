@@ -51,6 +51,8 @@ export function calculateTransactionTotals(items = [], generalDiscount = null) {
         descuentoLinea = subtotalBruto * (discVal / 100);
       } else if (item.discount_type === 'MONTO_FIJO') {
         descuentoLinea = discVal;
+      } else if (item.discount_type === 'SIN_IVA') {
+        descuentoLinea = subtotalBruto * (tarifaIva / (1 + tarifaIva));
       }
       descuentoLinea = Math.min(subtotalBruto, descuentoLinea);
     }
@@ -71,7 +73,7 @@ export function calculateTransactionTotals(items = [], generalDiscount = null) {
   // Paso 5 - subtotal_general_neto = suma(subtotal_neto_linea de todas las líneas)
   const subtotalGeneralNeto = processedItems.reduce((acc, item) => acc + item.subtotal_neto_linea, 0);
 
-  // Paso 6 - descuento_venta = calcular sobre subtotal_general_neto (% o monto fijo)
+  // Paso 6 - descuento_venta = calcular sobre subtotal_general_neto
   let montoDescuentoVenta = 0;
   if (generalDiscount && (generalDiscount.activo !== false)) {
     const val = Number(generalDiscount.valor) || 0;
@@ -79,6 +81,10 @@ export function calculateTransactionTotals(items = [], generalDiscount = null) {
       montoDescuentoVenta = subtotalGeneralNeto * (val / 100);
     } else if (generalDiscount.tipo_valor === 'MONTO_FIJO') {
       montoDescuentoVenta = val;
+    } else if (generalDiscount.tipo_valor === 'SIN_IVA') {
+      montoDescuentoVenta = processedItems.reduce((acc, item) => {
+        return acc + item.subtotal_neto_linea * (item.tarifa_iva / (1 + item.tarifa_iva));
+      }, 0);
     }
     montoDescuentoVenta = Math.min(subtotalGeneralNeto, montoDescuentoVenta);
   }
