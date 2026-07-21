@@ -89,6 +89,7 @@ import { doc, setDoc, onSnapshot, collection, updateDoc, deleteDoc, writeBatch, 
 
 import { auth, db, storage, appId } from './firebase';
 import { useAuth } from './contexts/AuthContext';
+import ErrorBoundary from './components/common/ErrorBoundary';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import LandingLayout from './pages/landing/LandingLayout';
 import LandingHome from './pages/landing/LandingHome';
@@ -2179,19 +2180,29 @@ export default function App() {
 
                   {/* VISTAS FINANCIERAS MODULARES */}
                   {activePageId === 'finances' && (
-                    <FinanceModule mode="contabilidad" initialSubTab={contabilidadInitialSubTab} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} discounts={globalDiscounts} promotions={globalPromotions} isLoading={isLoadingFinances} />
+                    <ErrorBoundary title="Error en el módulo de Contabilidad">
+                      <FinanceModule mode="contabilidad" initialSubTab={contabilidadInitialSubTab} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} discounts={globalDiscounts} promotions={globalPromotions} isLoading={isLoadingFinances} />
+                    </ErrorBoundary>
                   )}
               {activePageId === 'ventas' && (
-                <FinanceModule mode="ventas" initialSubTab={ventasInitialSubTab} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} discounts={globalDiscounts} promotions={globalPromotions} isLoading={isLoadingFinances} />
+                <ErrorBoundary title="Error en el módulo de Ventas">
+                  <FinanceModule mode="ventas" initialSubTab={ventasInitialSubTab} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} discounts={globalDiscounts} promotions={globalPromotions} isLoading={isLoadingFinances} />
+                </ErrorBoundary>
               )}
               {activePageId === 'inventario' && (
-                <InventoryModule initialSubTab={inventarioInitialSubTab} showToast={showToast} />
+                <ErrorBoundary title="Error en el módulo de Inventario">
+                  <InventoryModule initialSubTab={inventarioInitialSubTab} showToast={showToast} />
+                </ErrorBoundary>
               )}
               {activePageId === 'compras' && (
-                <FinanceModule mode="compras" initialSubTab={comprasInitialSubTab} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} discounts={globalDiscounts} promotions={globalPromotions} isLoading={isLoadingFinances} />
+                <ErrorBoundary title="Error en el módulo de Compras">
+                  <FinanceModule mode="compras" initialSubTab={comprasInitialSubTab} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} discounts={globalDiscounts} promotions={globalPromotions} isLoading={isLoadingFinances} />
+                </ErrorBoundary>
               )}
               {activePageId === 'gastos_creditos' && (
-                <GastosCreditosModule showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} db={db} appId={appId} initialSubTab={gastosInitialSubTab} />
+                <ErrorBoundary title="Error en el módulo de Gastos y Créditos">
+                  <GastosCreditosModule showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} db={db} appId={appId} initialSubTab={gastosInitialSubTab} />
+                </ErrorBoundary>
               )}
 
               {/* VISTA: CONFIGURACIÓN GENERAL */}

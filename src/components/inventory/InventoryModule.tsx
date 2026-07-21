@@ -440,9 +440,9 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
                                   {p.type === 'SERVICE' && <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-pink-500/10 text-pink-400 border border-pink-500/20">Servicio</span>}
                                 </td>
                                 <td className="px-6 py-3.5 text-gray-500 font-medium">{getCategoryName(p.categoryId)}</td>
-                                <td className="px-6 py-3.5 font-semibold">${p.baseCost.toFixed(2)}</td>
-                                <td className="px-6 py-3.5 font-bold text-emerald-500">${p.salePrice.toFixed(2)}</td>
-                                <td className="px-6 py-3.5 text-gray-500 font-medium">{p.taxRate}%</td>
+                                <td className="px-6 py-3.5 font-semibold">${(Number(p.baseCost ?? p.cost ?? 0)).toFixed(2)}</td>
+                                <td className="px-6 py-3.5 font-bold text-emerald-500">${(Number(p.salePrice ?? p.price ?? 0)).toFixed(2)}</td>
+                                <td className="px-6 py-3.5 text-gray-500 font-medium">{p.taxRate ?? 15}%</td>
                                 <td className="px-6 py-3.5 font-bold">
                                   {isService || p.inventoryType === 'VIRTUAL' ? (
                                     <span className="text-gray-400 italic font-medium">Virtual (N/A)</span>
@@ -699,10 +699,10 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
                                 <td className={`px-6 py-3.5 font-bold ${isEntry ? 'text-emerald-500' : 'text-red-500'}`}>
                                   {isEntry ? `+${tx.quantity}` : tx.quantity}
                                 </td>
-                                <td className="px-6 py-3.5 font-mono">${tx.unitCost.toFixed(2)}</td>
-                                <td className="px-6 py-3.5 font-mono">${tx.totalCost.toFixed(2)}</td>
-                                <td className="px-6 py-3.5 font-bold">{tx.balanceQuantity}</td>
-                                <td className="px-6 py-3.5 font-extrabold text-primary">${tx.balanceAverageCost.toFixed(2)}</td>
+                                <td className="px-6 py-3.5 font-mono">${(Number(tx.unitCost ?? 0)).toFixed(2)}</td>
+                                <td className="px-6 py-3.5 font-mono">${(Number(tx.totalCost ?? 0)).toFixed(2)}</td>
+                                <td className="px-6 py-3.5 font-bold">{tx.balanceQuantity ?? 0}</td>
+                                <td className="px-6 py-3.5 font-extrabold text-primary">${(Number(tx.balanceAverageCost ?? 0)).toFixed(2)}</td>
                               </tr>
                             );
                           })
