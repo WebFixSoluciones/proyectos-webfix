@@ -1,14 +1,14 @@
 import { collection, doc, setDoc, getDocs, updateDoc, deleteDoc } from 'firebase/firestore';
-import { db, appId } from '../../../firebase';
+import { db, getAppId } from '../../../firebase';
 import { Category, CategorySchema, Brand, BrandSchema } from '../domain/schemas/category-brand.schema';
 
 export class CategoryBrandRepository {
   private getCategoriesRef() {
-    return collection(db, 'artifacts', appId, 'public', 'data', 'inventory_categories');
+    return collection(db, 'artifacts', getAppId(), 'public', 'data', 'inventory_categories');
   }
 
   private getBrandsRef() {
-    return collection(db, 'artifacts', appId, 'public', 'data', 'inventory_brands');
+    return collection(db, 'artifacts', getAppId(), 'public', 'data', 'inventory_brands');
   }
 
   // --- CATEGORIES ---

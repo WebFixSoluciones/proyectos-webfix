@@ -1,11 +1,10 @@
 import { collection, doc, setDoc, getDoc, getDocs, updateDoc, deleteDoc, query, where } from 'firebase/firestore';
-import { db, appId } from '../../../firebase';
+import { db, getAppId } from '../../../firebase';
 import { Product, ProductSchema } from '../domain/schemas/product.schema';
 
 export class ProductRepository {
   private getCollectionRef() {
-    // Usar la misma estructura que App.jsx usa para otras colecciones
-    return collection(db, 'artifacts', appId, 'public', 'data', 'inventory_products');
+    return collection(db, 'artifacts', getAppId(), 'public', 'data', 'inventory_products');
   }
 
   async create(productData: Partial<Product>): Promise<Product> {
@@ -28,16 +27,16 @@ export class ProductRepository {
     
     // INTEGRACIÓN GLOBAL: Guardar también en la colección de finanzas para que el POS y Ventas puedan facturarlo
     try {
-      const financesProductRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_products', validatedData.id);
+      const financesProductRef = doc(db, 'artifacts', getAppId(), 'public', 'data', 'finances_products', validatedData.id);
       
       let categoryName = "";
       let brandName = "";
       if (validatedData.categoryId) {
-        const catSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'inventory_categories', validatedData.categoryId));
+        const catSnap = await getDoc(doc(db, 'artifacts', getAppId(), 'public', 'data', 'inventory_categories', validatedData.categoryId));
         if (catSnap.exists()) categoryName = catSnap.data().name || "";
       }
       if (validatedData.brandId) {
-        const brandSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'inventory_brands', validatedData.brandId));
+        const brandSnap = await getDoc(doc(db, 'artifacts', getAppId(), 'public', 'data', 'inventory_brands', validatedData.brandId));
         if (brandSnap.exists()) brandName = brandSnap.data().name || "";
       }
 
@@ -110,7 +109,7 @@ export class ProductRepository {
 
     // INTEGRACIÓN GLOBAL: Actualizar también en la colección de finanzas
     try {
-      const financesProductRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_products', id);
+      const financesProductRef = doc(db, 'artifacts', getAppId(), 'public', 'data', 'finances_products', id);
       
       const updateData: any = {};
       if (cleanedUpdates.name !== undefined) updateData.name = cleanedUpdates.name;
@@ -140,7 +139,7 @@ export class ProductRepository {
 
     // INTEGRACIÓN GLOBAL: Eliminar también de la colección de finanzas
     try {
-      const financesProductRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_products', id);
+      const financesProductRef = doc(db, 'artifacts', getAppId(), 'public', 'data', 'finances_products', id);
       await deleteDoc(financesProductRef);
     } catch (err) {
       console.error("Error deleting from finances_products:", err);

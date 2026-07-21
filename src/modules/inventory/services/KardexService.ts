@@ -2,7 +2,7 @@ import { kardexRepository, KardexRepository } from '../repositories/KardexReposi
 import { KardexTransaction, TransactionTypeEnum } from '../domain/schemas/kardex-transfer.schema';
 import { z } from 'zod';
 import { doc, updateDoc } from 'firebase/firestore';
-import { db, appId } from '../../../firebase';
+import { db, getAppId } from '../../../firebase';
 
 export class KardexService {
   constructor(private repo: KardexRepository = kardexRepository) {}
@@ -77,7 +77,7 @@ export class KardexService {
 
     // INTEGRACIÓN Y CENTRALIZACIÓN: Actualizar stock y costo en el documento del producto
     try {
-      const productRef = doc(db, 'artifacts', appId, 'public', 'data', 'inventory_products', productId);
+      const productRef = doc(db, 'artifacts', getAppId(), 'public', 'data', 'inventory_products', productId);
       await updateDoc(productRef, {
         stock: newBalanceQty,
         baseCost: newAverageCost,
@@ -85,7 +85,7 @@ export class KardexService {
       });
 
       // También mantener finances_products sincronizado como respaldo
-      const financesProductRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_products', productId);
+      const financesProductRef = doc(db, 'artifacts', getAppId(), 'public', 'data', 'finances_products', productId);
       await updateDoc(financesProductRef, {
         stock: newBalanceQty,
         cost: newAverageCost,

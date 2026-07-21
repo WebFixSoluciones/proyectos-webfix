@@ -25,3 +25,7 @@ export function setTenantId(newId) {
     appId = newId;
   }
 }
+
+export function getAppId() {
+  return appId || firebaseConfig.appId;
+}
