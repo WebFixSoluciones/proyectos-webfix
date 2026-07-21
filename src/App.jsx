@@ -2099,7 +2099,6 @@ export default function App() {
               </div>
               <div className="flex flex-col">
                 <h1 className="text-[14px] font-semibold tracking-tight text-[#0A2540] leading-none">{headerDetails.title}</h1>
-                <p className="text-[11px] font-medium hidden sm:inline-block text-[#697386] mt-1 leading-none">{headerDetails.desc}</p>
               </div>
             </div>
           </div>

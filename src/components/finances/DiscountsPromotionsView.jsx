@@ -238,7 +238,6 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-5">
         <div>
           <h2 className="text-xl font-extrabold text-slate-800 uppercase tracking-wide">Descuentos & Promociones</h2>
-          <p className="text-xs text-slate-500 mt-1">Configura descuentos a nivel de ítems o totales, y promociones con condiciones SRI.</p>
         </div>
         <div className="flex gap-2">
           {activeTab === 'discounts' ? (
