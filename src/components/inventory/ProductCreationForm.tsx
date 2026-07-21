@@ -342,8 +342,10 @@ export default function ProductCreationForm({
     setError(null);
 
     // Prepare payload
+    const cleanSku = (formData.sku || '').trim().toUpperCase();
     const payload = {
       ...formData,
+      sku: cleanSku,
       type: formData.type as any,
       priceA: hasPriceA ? formData.priceA : 0,
       priceASinImpuesto: hasPriceA ? formData.priceASinImpuesto : 0,
@@ -354,6 +356,15 @@ export default function ProductCreationForm({
     };
 
     try {
+      if (cleanSku) {
+        const existingWithSku = await productRepository.findBySku(cleanSku);
+        if (existingWithSku) {
+          if (!productToEdit || (productToEdit.id && existingWithSku.id !== productToEdit.id)) {
+            throw new Error(`El código SKU / referencia "${cleanSku}" ya está registrado por otro producto (${existingWithSku.name}). No se permiten duplicados.`);
+          }
+        }
+      }
+
       let savedProduct;
       if (productToEdit && productToEdit.id) {
         await productRepository.update(productToEdit.id, payload);

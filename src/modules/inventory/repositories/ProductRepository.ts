@@ -75,9 +75,25 @@ export class ProductRepository {
     return snap.data() as Product;
   }
 
+  async findBySku(sku: string): Promise<Product | null> {
+    if (!sku || !sku.trim()) return null;
+    const cleanSku = sku.trim().toUpperCase();
+    const q = query(this.getCollectionRef(), where('sku', '==', cleanSku));
+    const snap = await getDocs(q);
+    if (snap.empty) return null;
+    return snap.docs[0].data() as Product;
+  }
+
   async findAll(): Promise<Product[]> {
     const snap = await getDocs(this.getCollectionRef());
-    return snap.docs.map(doc => doc.data() as Product);
+    const productsMap = new Map<string, Product>();
+    for (const doc of snap.docs) {
+      const data = doc.data() as Product;
+      if (data && data.id && !productsMap.has(data.id)) {
+        productsMap.set(data.id, data);
+      }
+    }
+    return Array.from(productsMap.values());
   }
 
   async update(id: string, updates: Partial<Product>): Promise<void> {

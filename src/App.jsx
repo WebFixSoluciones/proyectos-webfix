@@ -566,7 +566,20 @@ export default function App() {
 
   // Mapear rawProducts de inventario a globalProducts financieros con soporte reactivo de categorias y marcas
   useEffect(() => {
-    const mapped = rawProducts.map(p => {
+    const seenIds = new Set();
+    const seenSkus = new Set();
+    const uniqueRaw = rawProducts.filter(p => {
+      if (!p || !p.id) return false;
+      const skuKey = p.sku ? p.sku.trim().toUpperCase() : '';
+      if (seenIds.has(p.id)) return false;
+      if (skuKey && seenSkus.has(skuKey)) return false;
+
+      seenIds.add(p.id);
+      if (skuKey) seenSkus.add(skuKey);
+      return true;
+    });
+
+    const mapped = uniqueRaw.map(p => {
       const catName = globalCategories.find(c => c.id === p.categoryId)?.name || "";
       const brandName = globalBrands.find(b => b.id === p.brandId)?.name || "";
       

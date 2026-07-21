@@ -269,8 +269,15 @@ export default function PosView({ products, thirdParties, transactions = [], dis
       if (!p.activo || p.fecha_inicio > hoy || p.fecha_fin < hoy) return false;
       
       if (p.dias_validos && p.dias_validos.length > 0) {
-        const daysMap = { 0: 'DOM', 1: 'LUN', 2: 'MAR', 3: 'MIE', 4: 'JUE', 5: 'VIE', 6: 'SAB' };
-        const currentDay = daysMap[new Date().getDay()];
+        const formatterDayPromo = new Intl.DateTimeFormat('es-EC', { weekday: 'short', timeZone: 'America/Guayaquil' });
+        let rawDayPromo = formatterDayPromo.format(new Date()).toUpperCase();
+        rawDayPromo = rawDayPromo.replace(/\./g, '').normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        const dayMapPromo = {
+          'LUN': 'LUN', 'MAR': 'MAR', 'MIE': 'MIE', 'JUE': 'JUE', 'VIE': 'VIE', 'SAB': 'SAB', 'DOM': 'DOM',
+          'LU': 'LUN', 'MA': 'MAR', 'MI': 'MIE', 'JU': 'JUE', 'VI': 'VIE', 'SA': 'SAB', 'DO': 'DOM',
+          'LUNES': 'LUN', 'MARTES': 'MAR', 'MIERCOLES': 'MIE', 'JUEVES': 'JUE', 'VIERNES': 'VIE', 'SABADO': 'SAB', 'DOMINGO': 'DOM'
+        };
+        const currentDay = dayMapPromo[rawDayPromo] || rawDayPromo;
         if (!p.dias_validos.includes(currentDay)) return false;
       }
 

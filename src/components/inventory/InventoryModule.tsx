@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Package, Plus, Search, Filter, Tag, BarChart3, 
   ArrowRightLeft, Settings, Database, RefreshCw, 
@@ -103,23 +103,54 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
         categoryBrandRepository.getBrands()
       ]);
       
-      setProducts(allProducts);
+      // Deduplicar productos por ID y por SKU
+      const uniqueMap = new Map<string, Product>();
+      const seenSkus = new Set<string>();
+      for (const prod of allProducts) {
+        if (!prod || !prod.id) continue;
+        const skuKey = prod.sku ? prod.sku.trim().toUpperCase() : '';
+        if (uniqueMap.has(prod.id)) continue;
+        if (skuKey && seenSkus.has(skuKey)) continue;
+
+        uniqueMap.set(prod.id, prod);
+        if (skuKey) seenSkus.add(skuKey);
+      }
+      const uniqueProducts = Array.from(uniqueMap.values());
+
+      setProducts(uniqueProducts);
       setCategories(allCats);
       setBrands(allBrands);
 
-      // Load stock quantities for physical products
+      // Carga instantánea de stock inicial desde prod.stock sin bloquear la UI
       const stockMap: Record<string, number> = {};
-      for (const prod of allProducts) {
-        if (prod.type === 'SERVICE') {
-          stockMap[prod.id || ''] = 0;
-          continue;
-        }
-        if (prod.id) {
-          const bal = await kardexRepository.getLastBalance(prod.id, BRANCHES[0].id);
-          stockMap[prod.id] = bal ? bal.balanceQuantity : 0;
-        }
+      for (const prod of uniqueProducts) {
+        stockMap[prod.id || ''] = prod.type === 'SERVICE' ? 0 : Number(prod.stock || 0);
       }
       setStocks(stockMap);
+
+      // Actualización en segundo plano desde Kardex en paralelo
+      Promise.all(
+        uniqueProducts.map(async (prod) => {
+          if (prod.type === 'SERVICE' || !prod.id) return null;
+          try {
+            const bal = await kardexRepository.getLastBalance(prod.id, BRANCHES[0].id);
+            return bal ? { id: prod.id, balance: bal.balanceQuantity } : null;
+          } catch {
+            return null;
+          }
+        })
+      ).then((results) => {
+        const bgStockMap: Record<string, number> = {};
+        for (const res of results) {
+          if (res && res.id) {
+            bgStockMap[res.id] = res.balance;
+          }
+        }
+        if (Object.keys(bgStockMap).length > 0) {
+          setStocks(prev => ({ ...prev, ...bgStockMap }));
+        }
+      }).catch(() => {});
+
     } catch (err) {
       console.error("Error loading inventory catalog:", err);
     } finally {
@@ -127,17 +158,30 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
     }
   }
 
-  // Reload stocks specifically
+  // Reload stocks specifically de forma paralela y no bloqueante
   async function reloadStocks() {
-    const stockMap: Record<string, number> = {};
-    for (const prod of products) {
-      if (prod.type === 'SERVICE') continue;
-      if (prod.id) {
-        const bal = await kardexRepository.getLastBalance(prod.id, BRANCHES[0].id);
-        stockMap[prod.id] = bal ? bal.balanceQuantity : 0;
+    try {
+      const results = await Promise.all(
+        products.map(async (prod) => {
+          if (prod.type === 'SERVICE' || !prod.id) return null;
+          try {
+            const bal = await kardexRepository.getLastBalance(prod.id, BRANCHES[0].id);
+            return bal ? { id: prod.id, balance: bal.balanceQuantity } : { id: prod.id, balance: prod.stock || 0 };
+          } catch {
+            return { id: prod.id, balance: prod.stock || 0 };
+          }
+        })
+      );
+      const stockMap: Record<string, number> = {};
+      for (const res of results) {
+        if (res && res.id) {
+          stockMap[res.id] = res.balance;
+        }
       }
+      setStocks(prev => ({ ...prev, ...stockMap }));
+    } catch (e) {
+      console.error("Error reloading stocks:", e);
     }
-    setStocks(stockMap);
   }
 
   // Load Kardex history when product or branch changes
@@ -222,13 +266,20 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
     }
   };
 
-  const filteredProducts = products.filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          p.sku.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory ? p.categoryId === selectedCategory : true;
-    const matchesType = selectedType ? p.type === selectedType : true;
-    return matchesSearch && matchesCategory && matchesType;
-  });
+  const filteredProducts = useMemo(() => {
+    const seenIds = new Set<string>();
+    return products.filter(p => {
+      if (!p || !p.id) return false;
+      if (seenIds.has(p.id)) return false;
+      seenIds.add(p.id);
+
+      const matchesSearch = (p.name || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
+                            (p.sku || '').toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCategory = selectedCategory ? p.categoryId === selectedCategory : true;
+      const matchesType = selectedType ? p.type === selectedType : true;
+      return matchesSearch && matchesCategory && matchesType;
+    });
+  }, [products, searchQuery, selectedCategory, selectedType]);
 
   const getCategoryName = (id?: string) => {
     return categories.find(c => c.id === id)?.name || 'Sin Categoría';

@@ -36,7 +36,8 @@ export function isDiscountScheduleActive(discount) {
   }
 
   // 3. Horarios específicos (Formato HH:MM de 24 horas)
-  if (discount.activo_24h === false && discount.hora_inicio && discount.hora_fin) {
+  if (discount.activo_24h === false) {
+    if (!discount.hora_inicio || !discount.hora_fin) return false;
     const formatterTime = new Intl.DateTimeFormat('sv-SE', {
       timeZone: 'America/Guayaquil',
       hour: '2-digit',

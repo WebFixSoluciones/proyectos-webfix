@@ -40,7 +40,7 @@ export default function CategoryBrandModal({ onClose, onChanged }: CategoryBrand
         getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'finances_discounts'))
       ]);
       const discsList = discsSnap.docs.map(doc => doc.data());
-      setDiscounts(discsList.filter((d: any) => d.activo !== false));
+      setDiscounts(discsList.filter((d: any) => d.activo !== false && d.alcance === 'PRODUCTO'));
       setCategories(cats);
       setBrands(brs);
     } catch (err: any) {
