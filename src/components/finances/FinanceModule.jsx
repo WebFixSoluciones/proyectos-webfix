@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { 
   DollarSign, PieChart, Users, FileText, Download, Sparkles, ShoppingCart, Package,
   ArrowUpCircle, Percent, CreditCard, ShoppingBag, TrendingUp,
-  X, ArrowRight, Upload, Building2, Landmark, Scan, BarChart3, BookOpen
+  X, ArrowRight, Upload, Building2, Landmark, Scan, BarChart3, BookOpen, Calculator
 } from 'lucide-react';
 import { doc, setDoc } from 'firebase/firestore';
 import { getEcuadorDateString } from '../../services/sriService';
@@ -29,6 +29,8 @@ import PrestamosView from './PrestamosView';
 import CapturaInteligenteView from './CapturaInteligenteView';
 import ResumenFinancieroView from './ResumenFinancieroView';
 import ContabilidadView from './ContabilidadView';
+import ImpuestosSriView from './ImpuestosSriView';
+import ReportesView from './ReportesView';
 
 export default function FinanceModule({ 
   mode = 'contabilidad', 
@@ -289,10 +291,12 @@ export default function FinanceModule({
         { id: 'tarjetas', label: 'Tarjetas y Créditos', icon: CreditCard },
         { id: 'prestamos', label: 'Préstamos', icon: Landmark },
         { id: 'contabilidad_tab', label: 'Contabilidad', icon: BookOpen },
+        { id: 'impuestos', label: 'Impuestos SRI', icon: Calculator },
         { id: 'captura', label: 'Captura IA', icon: Scan },
+        { id: 'reportes', label: 'Reportes', icon: BarChart3 },
         { id: 'gastos_creditos_sub', label: 'Gastos y Creditos', icon: CreditCard },
         { id: 'gastos_ia', label: 'Gastos con IA', icon: Sparkles },
-        { id: 'reports', label: 'Reportes', icon: Download },
+        { id: 'reports', label: 'SRI', icon: Download },
       ];
     }
     if (mode === 'compras') {
@@ -496,6 +500,14 @@ export default function FinanceModule({
               {/* SECCIÓN CONTABILIDAD (PLAN DE CUENTAS, CENTROS DE COSTO, LIBRO DIARIO) */}
               {activeTab === 'contabilidad_tab' && (
                 <ContabilidadView db={db} usuario={usuario} showToast={showToast} />
+              )}
+
+              {activeTab === 'impuestos' && (
+                <ImpuestosSriView db={db} usuario={usuario} showToast={showToast} />
+              )}
+
+              {activeTab === 'reportes' && (
+                <ReportesView db={db} usuario={usuario} showToast={showToast} />
               )}
 
               {activeTab === 'captura' && (
