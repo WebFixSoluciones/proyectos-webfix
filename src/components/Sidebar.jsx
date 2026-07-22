@@ -80,8 +80,25 @@ export default function Sidebar({
  {isSidebarOpen && expandedSidebarMenu ==='ventas' && (
  <div className={menuBorderClass}>
  {[{ id:'resumen_ventas', label:'Historial de Ventas' },{ id:'ventas_preventa', label:'Registrar Venta' },{ id:'pos', label:'Punto de Venta (POS)' },{ id:'preventas', label:'Preventas' },{ id:'quotes', label:'Cotizaciones' },{ id:'nota_credito', label:'Notas de Credito' },{ id:'retencion', label:'Retenciones de Venta' },{ id:'discounts', label:'Descuentos y Promos' }].map(sub => {
- const isActive = activePageId ==='ventas' && (sub.id ==='pos' ? (ventasInitialSubTab && ventasInitialSubTab.startsWith('pos')) : ventasInitialSubTab === sub.id);
- return <button key={sub.id} onClick={() => { setVentasInitialSubTab(sub.id); setActivePageId('ventas'); closeMobile(); }} className={subItemClass(isActive)}>{sub.label}</button>;
+ const isActive = activePageId ==='ventas' && (
+    sub.id ==='pos' ? (ventasInitialSubTab && String(ventasInitialSubTab).startsWith('pos')) : 
+    sub.id ==='ventas_preventa' ? (ventasInitialSubTab && String(ventasInitialSubTab).startsWith('ventas_preventa')) : 
+    ventasInitialSubTab === sub.id
+  );
+  return (
+    <button 
+      key={sub.id} 
+      onClick={() => { 
+        const targetId = sub.id === 'ventas_preventa' ? `ventas_preventa_${Date.now()}` : sub.id;
+        setVentasInitialSubTab(targetId); 
+        setActivePageId('ventas'); 
+        closeMobile(); 
+      }} 
+      className={subItemClass(isActive)}
+    >
+      {sub.label}
+    </button>
+  );
  })}
  </div>
  )}

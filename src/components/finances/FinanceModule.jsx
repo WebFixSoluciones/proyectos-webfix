@@ -63,14 +63,16 @@ export default function FinanceModule({
   useEffect(() => {
     if (initialSubTab) {
       if (mode === 'ventas') {
-        if (initialSubTab === 'ventas_preventa') {
-          setSubTabVentas('resumen_ventas');
+        const subStr = String(initialSubTab);
+        if (subStr.startsWith('ventas_preventa') || subStr === 'ventas_nueva') {
+          setSubTabVentas('ventas_preventa');
           setEditingTx(null);
           setIsModalOpen(true);
           setActiveTab('ventas');
         } else {
-          const targetSub = String(initialSubTab).startsWith('pos') ? 'pos' : initialSubTab;
+          const targetSub = subStr.startsWith('pos') ? 'pos' : subStr;
           setSubTabVentas(targetSub);
+          setIsModalOpen(false);
           setActiveTab('ventas');
         }
       } else if (mode === 'personas') {
