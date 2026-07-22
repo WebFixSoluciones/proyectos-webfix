@@ -1,6 +1,5 @@
-import React from'react';
 import { 
- LayoutDashboard, ShoppingCart,
+ LayoutDashboard, ShoppingCart, CreditCard,
  Package, DollarSign, Users, Briefcase, Settings,
  ChevronDown, LifeBuoy, Trash2, LogOut
 } from'lucide-react';
