@@ -1,6 +1,6 @@
 import React from'react';
 import { 
- LayoutDashboard, ShoppingCart, ShoppingBag, CreditCard, 
+ LayoutDashboard, ShoppingCart,
  Package, DollarSign, Users, Briefcase, Settings,
  ChevronDown, LifeBuoy, Trash2, LogOut
 } from'lucide-react';
@@ -9,8 +9,6 @@ export default function Sidebar({
  isSidebarOpen, setIsSidebarOpen, activePageId, setActivePageId,
  companyProfile, activeModules, expandedSidebarMenu, setExpandedSidebarMenu,
  ventasInitialSubTab, setVentasInitialSubTab,
- comprasInitialSubTab, setComprasInitialSubTab,
- gastosInitialSubTab, setGastosInitialSubTab,
  inventarioInitialSubTab, setInventarioInitialSubTab,
  contabilidadInitialSubTab, setContabilidadInitialSubTab,
  billingInitialSubTab, setBillingInitialSubTab,
@@ -105,46 +103,6 @@ export default function Sidebar({
  </div>
  )}
 
- {activeModules.compras && (
- <div className="space-y-0.5">
- <button onClick={() => { setExpandedSidebarMenu(expandedSidebarMenu ==='compras' ? null :'compras'); setComprasInitialSubTab('compras_resumen'); setActivePageId('compras'); }} className={navBtnClass(activePageId ==='compras')}>
- <div className="flex items-center gap-3 flex-1">
- <ShoppingBag size={16} className={iconClass(activePageId ==='compras')} />
- {isSidebarOpen && <span>Compras</span>}
- </div>
- {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu ==='compras' ?'rotate-180' :''} text-text-secondary`} />}
- </button>
- {isSidebarOpen && expandedSidebarMenu ==='compras' && (
- <div className={menuBorderClass}>
- {[{ id:'compras_resumen', label:'Historial de Compras' },{ id:'compras_nc', label:'Notas de Credito Recibidas' },{ id:'compras_nd', label:'Notas de Debito Recibidas' },{ id:'compras_retencion', label:'Retenciones de Compras' }].map(sub => {
- const isActive = activePageId ==='compras' && comprasInitialSubTab === sub.id;
- return <button key={sub.id} onClick={() => { setComprasInitialSubTab(sub.id); setActivePageId('compras'); closeMobile(); }} className={subItemClass(isActive)}>{sub.label}</button>;
- })}
- </div>
- )}
- </div>
- )}
-
- {activeModules.gastos_creditos && (
- <div className="space-y-0.5">
- <button onClick={() => { setExpandedSidebarMenu(expandedSidebarMenu ==='gastos_creditos' ? null :'gastos_creditos'); setGastosInitialSubTab('resumen'); setActivePageId('gastos_creditos'); }} className={navBtnClass(activePageId ==='gastos_creditos')}>
- <div className="flex items-center gap-3 flex-1">
- <CreditCard size={16} className={iconClass(activePageId ==='gastos_creditos')} />
- {isSidebarOpen && <span>Finanzas</span>}
- </div>
- {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu ==='gastos_creditos' ?'rotate-180' :''} text-text-secondary`} />}
- </button>
- {isSidebarOpen && expandedSidebarMenu ==='gastos_creditos' && (
- <div className={menuBorderClass}>
- {[{ id:'resumen', label:'Resumen Financiero' },{ id:'pasivos', label:'Pasivos y Financiamiento' },{ id:'historial_gastos', label:'Historial de Egresos' }].map(sub => {
- const isActive = activePageId ==='gastos_creditos' && gastosInitialSubTab === sub.id;
- return <button key={sub.id} onClick={() => { setGastosInitialSubTab(sub.id); setActivePageId('gastos_creditos'); closeMobile(); }} className={subItemClass(isActive)}>{sub.label}</button>;
- })}
- </div>
- )}
- </div>
- )}
-
  {activeModules.inventario && (
  <div className="space-y-0.5">
  <button onClick={() => { setExpandedSidebarMenu(expandedSidebarMenu ==='inventario' ? null :'inventario'); setInventarioInitialSubTab('productos'); setActivePageId('inventario'); }} className={navBtnClass(activePageId ==='inventario')}>
@@ -165,18 +123,18 @@ export default function Sidebar({
  </div>
  )}
 
- {activeModules.finances && (
+ {(activeModules.finances || activeModules.compras || activeModules.gastos_creditos) && (
  <div className="space-y-0.5">
  <button onClick={() => { setExpandedSidebarMenu(expandedSidebarMenu ==='finances' ? null :'finances'); setContabilidadInitialSubTab('dashboard'); setActivePageId('finances'); }} className={navBtnClass(activePageId ==='finances')}>
  <div className="flex items-center gap-3 flex-1">
  <DollarSign size={16} className={iconClass(activePageId ==='finances')} />
- {isSidebarOpen && <span>Contabilidad</span>}
+ {isSidebarOpen && <span>Control Financiero</span>}
  </div>
  {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu ==='finances' ?'rotate-180' :''} text-text-secondary`} />}
  </button>
  {isSidebarOpen && expandedSidebarMenu ==='finances' && (
  <div className={menuBorderClass}>
- {[{ id:'dashboard', label:'Resumen' },{ id:'sri_docs', label:'Documentos SRI' },{ id:'cxc', label:'Cuentas por Cobrar' },{ id:'cxp', label:'Cuentas por Pagar' },{ id:'gastos_ia', label:'Gastos con IA' },{ id:'gastos_creditos_sub', label:'Gastos y Creditos' },{ id:'reports', label:'Reportes Financieros' }].map(sub => {
+ {[{ id:'dashboard', label:'Resumen financiero' },{ id:'compras_resumen', label:'Compras y gastos' },{ id:'cxc', label:'Cuentas por cobrar' },{ id:'cxp', label:'Cuentas por pagar' },{ id:'gastos_creditos_sub', label:'Tarjetas y créditos' },{ id:'gastos_ia', label:'Captura inteligente' },{ id:'sri_docs', label:'Documentos SRI' },{ id:'compras_retencion', label:'Retenciones de compras' },{ id:'reports', label:'Reportes' }].map(sub => {
  const isActive = activePageId ==='finances' && contabilidadInitialSubTab === sub.id;
  return <button key={sub.id} onClick={() => { setContabilidadInitialSubTab(sub.id); setActivePageId('finances'); closeMobile(); }} className={subItemClass(isActive)}>{sub.label}</button>;
  })}

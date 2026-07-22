@@ -255,8 +255,8 @@ export default function FinanceModule({
       case 'contabilidad':
       default:
         return {
-          title: 'ERP Contabilidad y Tributación',
-          desc: 'Control de ingresos/egresos, reportes contables y documentos electrónicos autorizados',
+          title: 'Control Financiero',
+          desc: 'Ingresos, gastos, cartera, tarjetas, créditos, reportes y cumplimiento tributario',
           icon: DollarSign
         };
     }
@@ -539,28 +539,28 @@ export default function FinanceModule({
               {/* Con Inventario + Manual */}
               <button onClick={() => handleConfirmPurchaseMethod('con_inventario')} className="w-full p-4 rounded-md border border-border-default text-left hover:bg-surface-bg transition-all group">
                 <div className="flex items-start gap-3">
-                  <div className="p-2 rounded-md bg-[color-mix(in_srgb,var(--primary-color)_10%,transparent)] text-[var(--primary-color)] shrink-0">
+                  <div className="p-2 rounded-md bg-primary-light text-primary shrink-0">
                     <Package size={20} />
                   </div>
                   <div className="flex-1">
                     <h4 className="text-base font-semibold text-black">Con Inventario - Manual</h4>
                     <p className="text-xs text-text-primary mt-1">Ingresa proveedor, productos, cantidades y costos manualmente. Actualiza stock y kardex.</p>
                   </div>
-                  <ArrowRight size={16} className="text-text-secondary group-hover:text-[var(--primary-color)] transition-colors shrink-0 self-center" />
+                  <ArrowRight size={16} className="text-text-secondary group-hover:text-primary transition-colors shrink-0 self-center" />
                 </div>
               </button>
 
               {/* Con Inventario + XML */}
               <label className="w-full p-4 rounded-md border border-border-default text-left hover:bg-surface-bg transition-all group cursor-pointer block">
                 <div className="flex items-start gap-3">
-                  <div className="p-2 rounded-md bg-[color-mix(in_srgb,var(--primary-color)_10%,transparent)] text-[var(--primary-color)] shrink-0">
+                  <div className="p-2 rounded-md bg-primary-light text-primary shrink-0">
                     <Upload size={20} />
                   </div>
                   <div className="flex-1">
                     <h4 className="text-base font-semibold text-black">Con Inventario - Importar XML</h4>
                     <p className="text-xs text-text-primary mt-1">Sube el archivo XML de la factura electronica. El sistema procesa proveedor, productos y costos automaticamente.</p>
                   </div>
-                  <ArrowRight size={16} className="text-text-secondary group-hover:text-[var(--primary-color)] transition-colors shrink-0 self-center" />
+                  <ArrowRight size={16} className="text-text-secondary group-hover:text-primary transition-colors shrink-0 self-center" />
                 </div>
                 <input type="file" accept=".xml" onChange={(e) => handleAutoXmlPurchase(e, 'con_inventario')} className="hidden" />
               </label>
@@ -575,7 +575,7 @@ export default function FinanceModule({
                     <h4 className="text-base font-semibold text-black">Sin Inventario - Manual</h4>
                     <p className="text-xs text-text-primary mt-1">Solo registro contable. Para gastos, servicios o compras sin movimiento de stock.</p>
                   </div>
-                  <ArrowRight size={16} className="text-text-secondary group-hover:text-[var(--primary-color)] transition-colors shrink-0 self-center" />
+                  <ArrowRight size={16} className="text-text-secondary group-hover:text-primary transition-colors shrink-0 self-center" />
                 </div>
               </button>
 
@@ -589,7 +589,7 @@ export default function FinanceModule({
                     <h4 className="text-base font-semibold text-black">Sin Inventario - Importar XML</h4>
                     <p className="text-xs text-text-primary mt-1">Sube el XML de la factura. Se registra solo como gasto contable, sin afectar inventario.</p>
                   </div>
-                  <ArrowRight size={16} className="text-text-secondary group-hover:text-[var(--primary-color)] transition-colors shrink-0 self-center" />
+                  <ArrowRight size={16} className="text-text-secondary group-hover:text-primary transition-colors shrink-0 self-center" />
                 </div>
                 <input type="file" accept=".xml" onChange={(e) => handleAutoXmlPurchase(e, 'sin_inventario')} className="hidden" />
               </label>

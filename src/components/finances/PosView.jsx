@@ -1300,7 +1300,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
         <div className="flex-1 flex items-center gap-2.5 w-full">
           {/* Buscar Producto, Código */}
           <div className="flex-[1.4] relative">
-            <div className="flex items-center gap-2 px-3.5 h-10 rounded-card bg-white border-none shadow-sm transition-all w-full">
+            <div className="flex items-center gap-2 px-3.5 h-10 rounded-card bg-white border-none  transition-all w-full">
               <BarcodeScannerIcon className="text-primary shrink-0" size={18} />
               <input 
                 type="text" 
@@ -1327,7 +1327,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
           {/* Cliente, Nombre, RUC */}
           <div className="flex-1 relative client-search-container">
             {selectedClientId ? (
-              <div className="flex items-center justify-between px-3.5 h-10 rounded-card bg-white border-none shadow-sm text-black">
+              <div className="flex items-center justify-between px-3.5 h-10 rounded-card bg-white border-none  text-black">
                 <div className="flex items-center gap-2 min-w-0">
                   <User size={16} className="text-primary shrink-0" />
                   <span className="text-sm font-semibold truncate max-w-[160px] uppercase">
@@ -1350,7 +1350,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-2 px-3.5 h-10 rounded-card bg-white border-none shadow-sm transition-all">
+              <div className="flex items-center gap-2 px-3.5 h-10 rounded-card bg-white border-none  transition-all">
                 <Search size={16} className="text-primary shrink-0" />
                 <input 
                   type="text"
@@ -1381,7 +1381,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
             
             {/* Dropdown de Clientes */}
             {isClientDropdownOpen && clientSearchTerm && (
-              <div className="absolute left-0 right-0 top-10 max-h-48 overflow-y-auto z-50 rounded-card border bg-white border-primary/20 text-black custom-scrollbar shadow-lg">
+              <div className="absolute left-0 right-0 top-10 max-h-48 overflow-y-auto z-50 rounded-card border bg-white border-primary/20 text-black custom-scrollbar ">
                 <div 
                   onClick={() => {
                     setSelectedClientId('');
@@ -1448,7 +1448,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
             </button>
             
             {isDocTypeDropdownOpen && (
-              <div className="absolute left-0 mt-1.5 w-48 rounded-card border bg-white border-primary/20 text-black shadow-lg z-50 py-1">
+              <div className="absolute left-0 mt-1.5 w-48 rounded-card border bg-white border-primary/20 text-black  z-50 py-1">
                 <button
                   type="button"
                   onClick={() => {
@@ -1508,7 +1508,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
               </button>
               
               {isOptionsDropdownOpen && (
-                <div className="absolute right-0 mt-1.5 w-52 rounded-card border bg-white border-primary/20 text-black shadow-lg z-50 py-1">
+                <div className="absolute right-0 mt-1.5 w-52 rounded-card border bg-white border-primary/20 text-black  z-50 py-1">
                   {hasSuspendedSale && (
                     <button
                       type="button"
@@ -1598,10 +1598,10 @@ export default function PosView({ products, thirdParties, transactions = [], dis
         {showPaymentScreen ? (
           <div className="flex-1 flex flex-col lg:flex-row min-h-0 bg-slate-50 animate-in fade-in duration-300">
             {/* COLUMNA IZQUIERDA: RESUMEN DE COMPRA Y CLIENTE */}
-            <div className="w-full lg:w-[28rem] xl:w-[32rem] flex flex-col shrink-0 border-r border-[#CDD1EA] bg-white p-6 justify-between overflow-y-auto custom-scrollbar">
+            <div className="w-full lg:w-[28rem] xl:w-[32rem] flex flex-col shrink-0 border-r border-border-default bg-white p-6 justify-between overflow-y-auto custom-scrollbar">
               <div className="space-y-6">
                 {/* Cabecera / Regresar */}
-                <div className="flex items-center justify-between pb-4 border-b border-[#CDD1EA]">
+                <div className="flex items-center justify-between pb-4 border-b border-border-default">
                   <button
                     type="button"
                     onClick={() => setShowPaymentScreen(false)}
@@ -1610,7 +1610,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                     <ArrowLeft size={16} />
                     <span>Modificar Carrito / Regresar</span>
                   </button>
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider bg-slate-100 text-slate-650 px-2.5 py-1 rounded-full">
+                  <span className="text-xs font-extrabold uppercase tracking-wider bg-slate-100 text-slate-650 px-2.5 py-1 rounded-full">
                     Paso de Pago
                   </span>
                 </div>
@@ -1622,7 +1622,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                       <FileText size={20} />
                     </div>
                     <div>
-                      <span className="text-[10px] font-extrabold uppercase tracking-widest text-primary/70">Documento a Emitir</span>
+                      <span className="text-xs font-extrabold uppercase tracking-widest text-primary/70">Documento a Emitir</span>
                       <h3 className="text-sm font-black text-black uppercase">
                         {posDocType === 'factura' ? 'Factura Electrónica' : posDocType === 'nota_venta' ? 'Nota de Venta' : 'Cotización / Proforma'}
                       </h3>
@@ -1636,27 +1636,27 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                   {(() => {
                     const client = getSelectedClient();
                     return (
-                      <div className="p-4 rounded-xl border border-[#CDD1EA] bg-slate-50/50 space-y-2 text-xs text-black">
+                      <div className="p-4 rounded-xl border border-border-default bg-slate-50/50 space-y-2 text-xs text-black">
                         <div>
-                          <span className="font-bold text-gray-400 uppercase text-[9px] block">Razón Social / Nombre</span>
+                          <span className="font-bold text-gray-400 uppercase text-xs block">Razón Social / Nombre</span>
                           <span className="font-extrabold text-sm uppercase text-gray-900">{client.name}</span>
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                           <div>
-                            <span className="font-bold text-gray-400 uppercase text-[9px] block">RUC / Cédula</span>
+                            <span className="font-bold text-gray-400 uppercase text-xs block">RUC / Cédula</span>
                             <span className="font-bold text-gray-800 font-mono">{client.ruc}</span>
                           </div>
                           <div>
-                            <span className="font-bold text-gray-400 uppercase text-[9px] block">Teléfono</span>
+                            <span className="font-bold text-gray-400 uppercase text-xs block">Teléfono</span>
                             <span className="font-bold text-gray-800">{client.telefono || 'N/A'}</span>
                           </div>
                         </div>
                         <div>
-                          <span className="font-bold text-gray-400 uppercase text-[9px] block">Correo Electrónico</span>
+                          <span className="font-bold text-gray-400 uppercase text-xs block">Correo Electrónico</span>
                           <span className="font-bold text-gray-800">{client.email || 'N/A'}</span>
                         </div>
                         <div>
-                          <span className="font-bold text-gray-400 uppercase text-[9px] block">Dirección</span>
+                          <span className="font-bold text-gray-400 uppercase text-xs block">Dirección</span>
                           <span className="font-bold text-gray-800">{client.direccion || 'N/A'}</span>
                         </div>
                       </div>
@@ -1672,12 +1672,12 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                       {cart.reduce((acc, it) => acc + it.quantity, 0)} Items
                     </span>
                   </div>
-                  <div className="max-h-48 overflow-y-auto border border-[#CDD1EA] rounded-xl divide-y divide-[#CDD1EA] custom-scrollbar">
+                  <div className="max-h-48 overflow-y-auto border border-border-default rounded-xl divide-y divide-[#CDD1EA] custom-scrollbar">
                     {cart.map((item, idx) => (
                       <div key={idx} className="p-3 flex justify-between items-center gap-3 bg-white text-xs">
                         <div className="min-w-0 flex-1">
                           <p className="font-bold text-gray-800 truncate uppercase">{item.name}</p>
-                          <p className="text-[10px] text-gray-550 mt-0.5">{item.quantity} x ${Number(item.price).toFixed(2)}</p>
+                          <p className="text-xs text-gray-550 mt-0.5">{item.quantity} x ${Number(item.price).toFixed(2)}</p>
                         </div>
                         <span className="font-extrabold text-gray-900">${(item.price * item.quantity).toFixed(2)}</span>
                       </div>
@@ -1687,7 +1687,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
               </div>
 
               {/* Totales y Botón Abandonar */}
-              <div className="mt-6 pt-6 border-t border-[#CDD1EA] space-y-4">
+              <div className="mt-6 pt-6 border-t border-border-default space-y-4">
                 <div className="p-4 rounded-xl bg-slate-900 text-white space-y-2">
                   <div className="flex justify-between text-xs font-medium text-slate-400">
                     <span>Subtotal</span>
@@ -1703,7 +1703,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                     <span>IVA (15%)</span>
                     <span>${getIva().toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between items-end pt-2 border-t border-[#CDD1EA]">
+                  <div className="flex justify-between items-end pt-2 border-t border-border-default">
                     <span className="text-xs font-extrabold uppercase text-slate-300">Total a Pagar</span>
                     <span className="text-2xl font-black text-white font-mono">${getTotal().toFixed(2)}</span>
                   </div>
@@ -1746,7 +1746,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                     }}
                     className={`p-4 rounded-xl border flex flex-col items-center gap-2 font-bold text-xs transition-all ${
                       posPaymentMethod === 'efectivo'
-                        ? 'bg-primary text-white border-primary shadow-md shadow-primary/20'
+                        ? 'bg-primary text-white border-primary'
                         : 'bg-white border-slate-200 text-gray-700 hover:bg-slate-50'
                     }`}
                   >
@@ -1762,7 +1762,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                     }}
                     className={`p-4 rounded-xl border flex flex-col items-center gap-2 font-bold text-xs transition-all ${
                       posPaymentMethod === 'transferencia'
-                        ? 'bg-primary text-white border-primary shadow-md shadow-primary/20'
+                        ? 'bg-primary text-white border-primary'
                         : 'bg-white border-slate-200 text-gray-700 hover:bg-slate-50'
                     }`}
                   >
@@ -1778,7 +1778,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                     }}
                     className={`p-4 rounded-xl border flex flex-col items-center gap-2 font-bold text-xs transition-all ${
                       posPaymentMethod === 'tarjeta'
-                        ? 'bg-primary text-white border-primary shadow-md shadow-primary/20'
+                        ? 'bg-primary text-white border-primary'
                         : 'bg-white border-slate-200 text-gray-700 hover:bg-slate-50'
                     }`}
                   >
@@ -1807,7 +1807,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
 
                       {/* Billetes Rápidos */}
                       <div className="space-y-2">
-                        <span className="text-[10px] font-extrabold uppercase text-gray-400 tracking-wider">Vuelto Rápido (Billetes)</span>
+                        <span className="text-xs font-extrabold uppercase text-gray-400 tracking-wider">Vuelto Rápido (Billetes)</span>
                         <div className="grid grid-cols-4 gap-2">
                           <button
                             type="button"
@@ -1864,7 +1864,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                           className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm font-bold text-gray-900 bg-slate-50/50 outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                         />
                       </div>
-                      <p className="text-[10px] text-gray-400 italic">
+                      <p className="text-xs text-gray-400 italic">
                         Nota: Al registrar este pago, el total de ${getTotal().toFixed(2)} se asignará automáticamente a {posPaymentMethod === 'transferencia' ? 'Transferencia Bancaria' : 'Tarjeta de Crédito/Débito'}.
                       </p>
                     </div>
@@ -1878,7 +1878,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                   type="button"
                   onClick={handleFinalCheckout}
                   disabled={isProcessing}
-                  className="w-full py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-base uppercase flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-base uppercase flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <CheckCircle2 size={20} />
                   <span>
@@ -1915,7 +1915,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
               >
                 <SlidersHorizontal size={18} className="text-primary font-bold" />
                 <span className="font-extrabold text-sm text-slate-800 tracking-tight">Ver Todos</span>
-                <span className="bg-primary text-white text-[11px] font-black px-2 py-0.5 rounded-full select-none">
+                <span className="bg-primary text-white text-xs font-black px-2 py-0.5 rounded-full select-none">
                   {products.length}
                 </span>
               </button>
@@ -1938,7 +1938,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                   >
                     <span>{cat.name}</span>
                     <span 
-                      className={`text-[10px] font-black px-1.5 py-0.5 rounded-full transition-colors ${
+                      className={`text-xs font-black px-1.5 py-0.5 rounded-full transition-colors ${
                         isSelected ? 'bg-primary text-white' : 'text-primary'
                       }`}
                       style={!isSelected ? { backgroundColor: 'color-mix(in srgb, var(--primary) 10%, transparent)' } : {}}
@@ -2085,7 +2085,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                   <div 
                     key={p.id}
                     onClick={() => !isOutOfStock && addToCart(p)}
-                    className={`p-[3px] border border-[#CDD1EA] rounded-2xl bg-white flex flex-col transition-all cursor-pointer select-none group relative shadow-sm hover:shadow-md hover:border-primary/45 h-[190px] shrink-0 ${
+                    className={`p-[3px] border border-border-default rounded-2xl bg-white flex flex-col transition-all cursor-pointer select-none group relative  hover:border-primary/45 h-[190px] shrink-0 ${
                       isOutOfStock 
                         ? 'cursor-not-allowed' 
                         : 'hover:-translate-y-0.5'
@@ -2097,7 +2097,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                         e.stopPropagation();
                         if (!isOutOfStock) addToCart(p);
                       }}
-                      className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-primary hover:bg-primary-hover text-white flex items-center justify-center shadow-lg transition-transform active:scale-90 select-none z-10 font-bold"
+                      className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-primary hover:bg-primary-hover text-white flex items-center justify-center  transition-transform active:scale-90 select-none z-10 font-bold"
                     >
                       {quantityInCart > 0 ? (
                         <span className="text-xs">{quantityInCart}</span>
@@ -2110,7 +2110,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                     <div className="w-full flex-1 rounded-xl bg-white flex items-center justify-center relative overflow-hidden">
                       <div className={`w-full h-full ${isOutOfStock ? 'opacity-40' : ''}`}>
                         {isPlaceholder ? (
-                          <div className="w-full h-full bg-[#f1f5f9] flex items-center justify-center text-slate-400">
+                          <div className="w-full h-full bg-surface-sidebar flex items-center justify-center text-slate-400">
                             <Box size={52} strokeWidth={1} className="text-slate-400" />
                           </div>
                         ) : (
@@ -2134,7 +2134,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                       >
                         <span className={`w-1.5 h-1.5 rounded-full ${stockDotColor}`}></span>
                         <span 
-                          className="font-mono text-[9px] truncate max-w-[80px]"
+                          className="font-mono text-xs truncate max-w-[80px]"
                           style={{
                             color: 'color-mix(in srgb, var(--primary) 70%, black)',
                             fontWeight: 350
@@ -2147,7 +2147,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                       {/* Texto de Sin Stock (Centrado en azul, sin fondo) */}
                       {isOutOfStock && (
                         <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
-                          <span className="text-[13px] font-black text-blue-600 tracking-widest uppercase">
+                          <span className="text-base font-black text-blue-600 tracking-widest uppercase">
                             SIN STOCK
                           </span>
                         </div>
@@ -2212,7 +2212,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
             {/* Left: Items + count */}
             <div className="flex items-center gap-2">
               <span className="text-sm font-bold text-slate-800">Items</span>
-              <span className="bg-[#f0f3ff] text-primary text-xs font-extrabold px-2 py-0.5 rounded-full select-none">
+              <span className="bg-primary-light text-primary text-xs font-extrabold px-2 py-0.5 rounded-full select-none">
                 {cart.reduce((acc, it) => acc + it.quantity, 0)}
               </span>
             </div>
@@ -2222,7 +2222,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
               <button 
                 type="button"
                 onClick={() => setIsDiscountOpen(prev => !prev)} 
-                className="flex items-center gap-1.5 px-3 py-1 h-8 rounded-lg bg-white border border-[#CDD1EA] text-slate-700 hover:text-primary hover:border-primary transition-colors text-xs font-bold select-none cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1 h-8 rounded-lg bg-white border border-border-default text-slate-700 hover:text-primary hover:border-primary transition-colors text-xs font-bold select-none cursor-pointer"
               >
                 <Tag size={12} className="text-primary" />
                 <span>Descuento</span>
@@ -2230,7 +2230,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
               <button 
                 type="button"
                 onClick={suspendSale} 
-                className="flex items-center gap-1.5 px-3 py-1 h-8 rounded-lg bg-white border border-[#CDD1EA] text-slate-700 hover:text-primary hover:border-primary transition-colors text-xs font-bold select-none cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1 h-8 rounded-lg bg-white border border-border-default text-slate-700 hover:text-primary hover:border-primary transition-colors text-xs font-bold select-none cursor-pointer"
               >
                 <Bookmark size={12} className="text-primary" />
                 <span>Guardar Borrador</span>
@@ -2238,7 +2238,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
               <button 
                 type="button"
                 onClick={() => setCart([])} 
-                className="flex items-center gap-1.5 px-3 py-1 h-8 rounded-lg bg-white border border-[#CDD1EA] text-red-500 hover:bg-red-50 hover:border-red-500 transition-colors text-xs font-bold select-none cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1 h-8 rounded-lg bg-white border border-border-default text-red-500 hover:bg-red-50 hover:border-red-500 transition-colors text-xs font-bold select-none cursor-pointer"
               >
                 <Trash2 size={12} className="text-red-500" />
                 <span>Vaciar</span>
@@ -2265,10 +2265,10 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                   {/* Nombre, SKU y precio unitario */}
                   <div className="flex-1 min-w-0">
                     <h4 className="text-xs font-bold truncate text-black" title={item.name}>{item.name}</h4>
-                    <p className="text-[9px] text-gray-500 font-mono">{prod?.sku || 'SKU N/A'}</p>
+                    <p className="text-xs text-gray-500 font-mono">{prod?.sku || 'SKU N/A'}</p>
                     {item.discount_value > 0 && (
                       <div className="flex items-center gap-1 mt-0.5 animate-in fade-in duration-200">
-                        <span className="bg-red-50 text-red-500 font-bold text-[9px] px-1 py-0.5 rounded flex items-center gap-0.5">
+                        <span className="bg-red-50 text-red-500 font-bold text-xs px-1 py-0.5 rounded flex items-center gap-0.5">
                           <Tag size={8} /> -{item.discount_type === 'PORCENTAJE' ? `${item.discount_value}%` : `$${item.discount_value}`}
                         </span>
                       </div>
@@ -2355,7 +2355,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
           <div className={`p-4 border-t space-y-4 shrink-0 border-slate-100 bg-primary/5`}>
             {/* DESCUENTO CARD */}
             {isDiscountOpen && (
-              <div className="p-3 rounded-card border space-y-2 border-slate-150 bg-white shadow-none animate-in slide-in-from-top-2 duration-200">
+              <div className="p-3 rounded-card border space-y-2 border-slate-150 bg-white  animate-in slide-in-from-top-2 duration-200">
                 <div className="flex justify-between items-center">
                   <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">Descuento General</span>
                   <button 
@@ -2393,7 +2393,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                         }
                       }
                     }} 
-                    className="w-full text-xs px-2.5 py-2 rounded-xl border outline-none bg-white border-[#CDD1EA] text-black cursor-pointer font-semibold"
+                    className="w-full text-xs px-2.5 py-2 rounded-xl border outline-none bg-white border-border-default text-black cursor-pointer font-semibold"
                   >
                     <option value="">-- Seleccionar Descuento General --</option>
                     {getActiveDiscounts('VENTA').map(d => (
@@ -2403,7 +2403,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                     ))}
                   </select>
                   {selectedGeneralDiscount && (
-                    <div className="flex justify-between items-center text-[10px] text-slate-500 bg-indigo-50/50 p-2 rounded-lg border border-indigo-105">
+                    <div className="flex justify-between items-center text-xs text-slate-500 bg-indigo-50/50 p-2 rounded-lg border border-indigo-105">
                       <span>Aplicado: <strong>{selectedGeneralDiscount.nombre}</strong></span>
                       <button 
                         type="button" 
@@ -3667,7 +3667,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
           : modalFilteredProducts;
 
         return (
-          <div className="fixed inset-0 z-[150] flex items-center justify-center bg-slate-900/30 backdrop-blur-xs select-none p-4">
+          <div className="fixed inset-0 z-[150] flex items-center justify-center bg-slate-900/30  select-none p-4">
             <div className="absolute inset-0" onClick={() => {
               setIsSearchModalOpen(false);
               setModalSearch('');
@@ -3677,7 +3677,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
               setModalTab('all');
             }}></div>
             
-            <div className="relative w-full max-w-4xl h-[85vh] max-h-[640px] bg-white rounded-2xl border border-[#CDD1EA] flex flex-col overflow-hidden shadow-none">
+            <div className="relative w-full max-w-4xl h-[85vh] max-h-[640px] bg-white rounded-2xl border border-border-default flex flex-col overflow-hidden ">
               
               {/* HEADER DEL MODAL: Título y Buscador */}
               <div className="p-4 border-b border-slate-100 flex items-center justify-between gap-4 bg-slate-50 shrink-0">
@@ -3688,7 +3688,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
  
                 {/* Input Buscador */}
                 <div className="flex-1 max-w-md relative">
-                  <div className="flex items-center gap-2 px-3 h-10 rounded-xl bg-white border border-[#CDD1EA] transition-all">
+                  <div className="flex items-center gap-2 px-3 h-10 rounded-xl bg-white border border-border-default transition-all">
                     <Search size={16} className="text-primary shrink-0" />
                     <input 
                       type="text" 
@@ -3735,7 +3735,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                   
                   {/* Filtro Rápido */}
                   <div className="space-y-1">
-                    <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-wider px-2">Filtros Rápidos</h4>
+                    <h4 className="text-xs font-black uppercase text-slate-400 tracking-wider px-2">Filtros Rápidos</h4>
                     <button
                       type="button"
                       onClick={() => { setModalTab('all'); }}
@@ -3758,7 +3758,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
 
                   {/* Categorías */}
                   <div className="space-y-1">
-                    <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-wider px-2">Categorías</h4>
+                    <h4 className="text-xs font-black uppercase text-slate-400 tracking-wider px-2">Categorías</h4>
                     <button
                       type="button"
                       onClick={() => setModalCat('all')}
@@ -3778,14 +3778,14 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                         }`}
                       >
                         <span className="truncate pr-1">{cat.name}</span>
-                        <span className="text-[10px] font-bold text-slate-400 shrink-0">{cat.count}</span>
+                        <span className="text-xs font-bold text-slate-400 shrink-0">{cat.count}</span>
                       </button>
                     ))}
                   </div>
 
                   {/* Marcas */}
                   <div className="space-y-1">
-                    <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-wider px-2">Marcas</h4>
+                    <h4 className="text-xs font-black uppercase text-slate-400 tracking-wider px-2">Marcas</h4>
                     <button
                       type="button"
                       onClick={() => setModalBrand('all')}
@@ -3811,7 +3811,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
 
                   {/* Bodegas */}
                   <div className="space-y-1">
-                    <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-wider px-2">Bodegas</h4>
+                    <h4 className="text-xs font-black uppercase text-slate-400 tracking-wider px-2">Bodegas</h4>
                     <button
                       type="button"
                       onClick={() => setModalWh('all')}
@@ -3870,7 +3870,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                                 if (navigator.vibrate) navigator.vibrate(10);
                               }
                             }}
-                            className={`p-2 border border-[#CDD1EA] rounded-xl flex flex-col justify-between transition-all cursor-pointer relative ${
+                            className={`p-2 border border-border-default rounded-xl flex flex-col justify-between transition-all cursor-pointer relative ${
                               isOutOfStock 
                                 ? 'cursor-not-allowed bg-slate-50/50' 
                                 : 'hover:border-primary bg-white active:scale-98'
@@ -3878,7 +3878,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                             style={{ height: '150px' }}
                           >
                             {quantityInCart > 0 && (
-                              <div className="absolute top-1 right-1 bg-primary text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-none z-20">
+                              <div className="absolute top-1 right-1 bg-primary text-white text-xs font-black w-5 h-5 rounded-full flex items-center justify-center  z-20">
                                 {quantityInCart}
                               </div>
                             )}
@@ -3887,7 +3887,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                             <div className="w-full h-[75px] rounded-lg overflow-hidden relative bg-slate-50 flex items-center justify-center shrink-0">
                               <div className={`w-full h-full ${isOutOfStock ? 'opacity-40' : ''}`}>
                                 {isImgPlaceholder ? (
-                                  <div className="w-full h-full bg-[#f1f5f9] flex items-center justify-center text-slate-400">
+                                  <div className="w-full h-full bg-surface-sidebar flex items-center justify-center text-slate-400">
                                     <Box size={32} strokeWidth={1} />
                                   </div>
                                 ) : (
@@ -3898,26 +3898,26 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                               {/* SKU Badge */}
                               <div className="absolute top-0 left-0 px-2 py-0.5 rounded-tl-lg rounded-br-lg bg-slate-100/95 flex items-center gap-1 z-10">
                                 <span className={`w-1.5 h-1.5 rounded-full ${stockDotColor}`}></span>
-                                <span className="font-mono text-[8px] text-slate-600 truncate max-w-[60px]">{p.sku}</span>
+                                <span className="font-mono text-xs text-slate-600 truncate max-w-[60px]">{p.sku}</span>
                               </div>
 
                               {/* Sin Stock text overlay */}
                               {isOutOfStock && (
                                 <div className="absolute inset-0 flex items-center justify-center z-15 pointer-events-none">
-                                  <span className="text-[10px] font-black text-blue-600 tracking-wider">SIN STOCK</span>
+                                  <span className="text-xs font-black text-blue-600 tracking-wider">SIN STOCK</span>
                                 </div>
                               )}
                             </div>
 
                             {/* Bottom row: Info & Price */}
                             <div className="mt-1 flex flex-col justify-between flex-1">
-                              <h5 className={`text-[10px] font-bold leading-tight line-clamp-2 text-left ${
+                              <h5 className={`text-xs font-bold leading-tight line-clamp-2 text-left ${
                                 isOutOfStock ? 'text-slate-400' : 'text-slate-700'
                               }`}>
                                 {p.name}
                               </h5>
                               <div className="flex items-center justify-between gap-1 mt-0.5">
-                                <span className="text-[9px] text-slate-400 font-medium font-mono truncate max-w-[60px]">
+                                <span className="text-xs text-slate-400 font-medium font-mono truncate max-w-[60px]">
                                   {p.inventoryType === 'VIRTUAL' ? 'Virtual' : `Stock: ${p.stock}`}
                                 </span>
                                 <span className={`text-xs font-black font-mono ${
@@ -3946,14 +3946,14 @@ export default function PosView({ products, thirdParties, transactions = [], dis
       {selectedLineItemForDiscount && (() => {
         const available = getAvailableDiscountsForLineItem(selectedLineItemForDiscount);
         return (
-          <div className="fixed inset-0 z-[250] flex items-center justify-center bg-slate-900/35 backdrop-blur-xs p-4">
-            <div className="bg-white rounded-2xl w-full max-w-md border border-[#CDD1EA] overflow-hidden flex flex-col shadow-lg animate-in fade-in zoom-in-95 duration-200">
+          <div className="fixed inset-0 z-[250] flex items-center justify-center bg-slate-900/35  p-4">
+            <div className="bg-white rounded-2xl w-full max-w-md border border-border-default overflow-hidden flex flex-col  animate-in fade-in zoom-in-95 duration-200">
               <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
                 <div>
                   <h3 className="text-xs font-extrabold text-slate-800 uppercase tracking-wider">
                     Descuento / Promo de Ítem
                   </h3>
-                  <p className="text-[10px] text-slate-500 font-bold mt-0.5">{selectedLineItemForDiscount.name}</p>
+                  <p className="text-xs text-slate-500 font-bold mt-0.5">{selectedLineItemForDiscount.name}</p>
                 </div>
                 <button 
                   onClick={() => setSelectedLineItemForDiscount(null)} 
@@ -4029,7 +4029,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                       >
                         <div className="flex flex-col">
                           <span className="text-xs font-bold uppercase">{d.nombre}</span>
-                          <span className="text-[10px] text-slate-400 mt-0.5">
+                          <span className="text-xs text-slate-400 mt-0.5">
                             Valor: {d.tipo_valor === 'PORCENTAJE' ? `${d.valor}%` : `$${d.valor}`}
                             {d.requiere_autorizacion && ' • [Clave Supervisor]'}
                           </span>
@@ -4047,8 +4047,8 @@ export default function PosView({ products, thirdParties, transactions = [], dis
 
       {/* SUPERVISOR AUTHORIZATION MODAL */}
       {authDialog && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm border border-[#CDD1EA] overflow-hidden flex flex-col shadow-xl animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-slate-900/40  p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm border border-border-default overflow-hidden flex flex-col  animate-in zoom-in-95 duration-200">
             <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
               <span className="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1.5 text-red-500">
                 <ShieldAlert size={15} /> Autorización Requerida
@@ -4066,7 +4066,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
               </p>
               
               <div>
-                <label className="block text-[10px] uppercase font-extrabold text-slate-500 mb-1.5">Clave de Supervisor</label>
+                <label className="block text-xs uppercase font-extrabold text-slate-500 mb-1.5">Clave de Supervisor</label>
                 <input
                   type="password"
                   required
@@ -4092,7 +4092,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                   autoFocus
                 />
                 {authError && (
-                  <p className="text-red-500 font-bold text-[10px] mt-1.5 animate-pulse">{authError}</p>
+                  <p className="text-red-500 font-bold text-xs mt-1.5 animate-pulse">{authError}</p>
                 )}
               </div>
 

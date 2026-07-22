@@ -255,7 +255,7 @@ export default function LandingHome() {
           <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full text-xs font-extrabold tracking-wider uppercase bg-primary/10 text-primary border border-primary/20 mb-8 select-none">
             <Sparkles size={12} className="animate-spin-slow" /> Control Financiero y SRI Especializado
           </div>
-          <h1 className="text-4xl sm:text-5xl lg:text-[54px] font-extrabold tracking-tight leading-[1.1] mb-6 text-slate-900">
+          <h1 className="text-4xl sm:text-5xl lg:text-5xl font-extrabold tracking-tight leading-[1.1] mb-6 text-slate-900">
             La forma más fácil de facturar y controlar tu negocio
           </h1>
           <p className="text-base text-slate-650 max-w-lg mb-10 leading-relaxed font-medium">

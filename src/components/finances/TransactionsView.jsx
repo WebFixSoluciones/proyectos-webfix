@@ -616,13 +616,13 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                   <td className="px-6 py-2.5">
                     <div className="text-black font-semibold text-xs leading-none">{tx.date}</div>
                     {tx.time && (
-                      <div className="text-[10px] text-slate-500 font-medium leading-none mt-1.5">
+                      <div className="text-xs text-slate-500 font-medium leading-none mt-1.5">
                         {tx.time.substring(0, 5)}
                       </div>
                     )}
                   </td>
                   <td className="px-6 py-2.5">
-                    <div className="text-[10px] text-slate-500 font-semibold leading-none mb-1">
+                    <div className="text-xs text-slate-500 font-semibold leading-none mb-1">
                       {getDocumentTypeLabel(tx.documentType, tx.type)}
                     </div>
                     <div className="font-mono text-xs text-black font-bold tracking-wider">

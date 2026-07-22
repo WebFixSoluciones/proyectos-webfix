@@ -392,7 +392,7 @@ export default function PublicRideView() {
       {/* RIDE Content Sheet */}
       <div className="flex-1 overflow-y-auto p-4 md:p-8 flex justify-center bg-slate-900 print:p-0 print:bg-white">
         <div id="print-area-wrapper" className="w-full max-w-3xl">
-          <div className="w-full mx-auto p-5 bg-white border border-gray-300 text-black text-xs font-sans leading-snug print:shadow-none print:border-none print:p-0">
+          <div className="w-full mx-auto p-5 bg-white border border-gray-300 text-black text-xs font-sans leading-snug print: print:border-none print:p-0">
             
             {/* Cabecera Principal Compacta */}
             <div className="border border-gray-300 grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-300 print:grid-cols-2 print:divide-x print:divide-y-0 text-xs text-black">

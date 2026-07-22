@@ -161,8 +161,8 @@ const SortableTaskItem = ({
     <div 
       ref={setNodeRef} 
       style={style}
-      className={`group p-3 rounded-xl border relative bg-white border-slate-200/80 hover:border-slate-300 shadow-xs hover:shadow-sm ${
-        isDragging ? 'z-50 shadow-lg ring-2 ring-primary/40' : ''
+      className={`group p-3 rounded-xl border relative bg-white border-slate-200/80 hover:border-slate-300 ${
+        isDragging ? 'z-50  ring-2 ring-primary/40' : ''
       }`}
     >
       <div className="flex justify-between items-start mb-2">
@@ -185,7 +185,7 @@ const SortableTaskItem = ({
                 onKeyDown={(e) => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleInlineSave(task.id, editingTaskContent); setEditingTaskId(null); } }}
                 onClick={(e) => e.stopPropagation()}
                 onPointerDown={(e) => e.stopPropagation()}
-                className="w-full text-xs font-semibold leading-tight px-2 py-1 rounded-lg outline-none bg-white border border-primary text-slate-800 shadow-xs resize-none overflow-hidden"
+                className="w-full text-xs font-semibold leading-tight px-2 py-1 rounded-lg outline-none bg-white border border-primary text-slate-800  resize-none overflow-hidden"
                 rows={2}
               />
             ) : (
@@ -204,7 +204,7 @@ const SortableTaskItem = ({
         <button 
           onClick={() => setDrawerTask({ ...task, projectId: activePageId })}
           onPointerDown={(e) => e.stopPropagation()}
-          className="absolute top-2.5 right-2.5 opacity-0 group-hover:opacity-100 p-1.5 rounded-lg transition-all shrink-0 shadow-xs bg-white text-slate-600 hover:text-white hover:bg-primary border border-slate-200"
+          className="absolute top-2.5 right-2.5 opacity-0 group-hover:opacity-100 p-1.5 rounded-lg transition-all shrink-0  bg-white text-slate-600 hover:text-white hover:bg-primary border border-slate-200"
           title="Editar detalles completos"
         >
           <Pencil size={12} />
@@ -212,7 +212,7 @@ const SortableTaskItem = ({
       </div>
 
       {task.meetLink && (
-        <a href={task.meetLink} target="_blank" rel="noopener noreferrer" onPointerDown={(e) => e.stopPropagation()} className="inline-flex items-center gap-1.5 px-2 py-1 mb-2 ml-5 rounded-md text-[10px] font-bold transition-all shadow-xs bg-primary/10 text-primary hover:bg-primary/15 border border-primary/25">
+        <a href={task.meetLink} target="_blank" rel="noopener noreferrer" onPointerDown={(e) => e.stopPropagation()} className="inline-flex items-center gap-1.5 px-2 py-1 mb-2 ml-5 rounded-md text-xs font-bold transition-all  bg-primary/10 text-primary hover:bg-primary/15 border border-primary/25">
           <Video size={10} /> Unirse a Meet
         </a>
       )}
@@ -221,16 +221,16 @@ const SortableTaskItem = ({
         <div className="flex items-center gap-3">
           {task.notes && task.notes.length > 0 && (
             <div className="relative group/tooltip w-max">
-              <span className="inline-flex items-center gap-1 text-slate-400 text-[11px] font-medium hover:text-slate-600 transition-colors cursor-help">
+              <span className="inline-flex items-center gap-1 text-slate-400 text-xs font-medium hover:text-slate-600 transition-colors cursor-help">
                 <MessageSquare size={12} className="text-slate-400" />
-                <span className="text-[11px] font-semibold text-slate-600">{task.notes.length}</span>
+                <span className="text-xs font-semibold text-slate-600">{task.notes.length}</span>
               </span>
-              <div className="absolute bottom-full left-0 mb-2 w-64 p-3 rounded-xl shadow-lg opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all duration-200 z-50 border bg-white border-slate-200">
-                <h4 className="text-[10px] font-bold uppercase tracking-wider mb-2 pb-1.5 border-b text-slate-400 border-slate-100">Notas Históricas</h4>
+              <div className="absolute bottom-full left-0 mb-2 w-64 p-3 rounded-xl  opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all duration-200 z-50 border bg-white border-slate-200">
+                <h4 className="text-xs font-bold uppercase tracking-wider mb-2 pb-1.5 border-b text-slate-400 border-slate-100">Notas Históricas</h4>
                 <div className="space-y-3 max-h-40 overflow-y-auto pr-1 custom-scrollbar">
                   {task.notes.map(note => (
                     <div key={note.id} className="text-xs">
-                      <span className="block text-[9px] font-medium mb-0.5 text-primary">{note.date}</span>
+                      <span className="block text-xs font-medium mb-0.5 text-primary">{note.date}</span>
                       <p className="leading-relaxed font-medium text-slate-700">{note.text}</p>
                     </div>
                   ))}
@@ -239,7 +239,7 @@ const SortableTaskItem = ({
             </div>
           )}
           {task.subtasks && task.subtasks.length > 0 && (
-            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-slate-500">
+            <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500">
               <ListTodo size={11} className="text-slate-400" /> {task.subtasks.filter(s => s.completed).length}/{task.subtasks.length}
             </span>
           )}
@@ -248,7 +248,7 @@ const SortableTaskItem = ({
         {assignedUser && (
           <div 
             title={`Asignado a: ${assignedUser.name}`} 
-            className="px-1.5 py-0.5 rounded text-[10px] font-bold tracking-tight bg-slate-100 text-slate-600 border border-slate-200/90 shadow-2xs cursor-default uppercase"
+            className="px-1.5 py-0.5 rounded text-xs font-bold tracking-tight bg-slate-100 text-slate-600 border border-slate-200/90  cursor-default uppercase"
           >
             {assignedUser.initials}
           </div>
@@ -283,7 +283,7 @@ const SortableColumn = ({
     <div 
       ref={setNodeRef}
       style={style}
-      className={`snap-center shrink-0 w-[220px] rounded-2xl p-3 flex flex-col transition-all border shadow-sm ${getColumnBgClass(col.color)} ${isDragging ? 'z-40 shadow-2xl scale-105' : ''}`}
+      className={`snap-center shrink-0 w-[220px] rounded-2xl p-3 flex flex-col transition-all border  ${getColumnBgClass(col.color)} ${isDragging ? 'z-40  scale-105' : ''}`}
     >
       {/* HEADER COLUMNA */}
       <div className="flex items-center justify-between mb-3 group/col px-1">
@@ -300,7 +300,7 @@ const SortableColumn = ({
              onClick={(e) => { e.stopPropagation(); cycleColumnColor(col.id); }}
              onPointerDown={(e) => e.stopPropagation()}
              title="Cambiar color de distintivo"
-             className={`w-3 h-3 rounded-full transition-transform hover:scale-125 shadow-sm border border-black/10 ${COLUMN_COLORS.find(c => c.id === (col.color || 'gray'))?.dot || 'bg-slate-400'}`}
+             className={`w-3 h-3 rounded-full transition-transform hover:scale-125  border border-black/10 ${COLUMN_COLORS.find(c => c.id === (col.color || 'gray'))?.dot || 'bg-slate-400'}`}
           />
           
           {editingColumnId === col.id ? (
@@ -312,20 +312,20 @@ const SortableColumn = ({
               onBlur={saveColumnTitle}
               onKeyDown={(e) => { if(e.key === 'Enter') saveColumnTitle(); }}
               onPointerDown={(e) => e.stopPropagation()}
-              className={`font-extrabold text-xs px-2 py-0.5 rounded-md outline-none bg-white border border-primary w-28 text-slate-900 shadow-sm`}
+              className={`font-extrabold text-xs px-2 py-0.5 rounded-md outline-none bg-white border border-primary w-28 text-slate-900 `}
             />
           ) : (
             <button 
                onClick={(e) => { e.stopPropagation(); startEditingColumn(col); }}
                onPointerDown={(e) => e.stopPropagation()}
                title="Clic para editar nombre"
-               className={`px-2.5 py-1 rounded-lg transition-all truncate max-w-[130px] hover:scale-105 shadow-sm ${getColorClass(col.color)} cursor-text`}
+               className={`px-2.5 py-1 rounded-lg transition-all truncate max-w-[130px] hover:scale-105  ${getColorClass(col.color)} cursor-text`}
             >
               {col.title}
             </button>
           )}
           
-          <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full shadow-sm border bg-slate-200/90 text-slate-900 border-slate-300`}>
+          <span className={`text-xs font-extrabold px-2 py-0.5 rounded-full  border bg-slate-200/90 text-slate-900 border-slate-300`}>
             {activePageTasks.filter(t => t.status === col.id).length}
           </span>
         </div>
@@ -997,7 +997,7 @@ export default function App() {
   if (activePageId === 'dashboard') {
     activePage = { id: 'dashboard', title: 'Dashboard', icon: 'dashboard', type: 'dashboard' };
   } else if (activePageId === 'finances') {
-    activePage = { id: 'finances', title: 'Contabilidad', icon: 'finances', type: 'finances' };
+    activePage = { id: 'finances', title: 'Control Financiero', icon: 'finances', type: 'finances' };
   } else if (activePageId === 'compras') {
     activePage = { id: 'compras', title: 'Compras y Facturas Recibidas', icon: 'compras', type: 'compras' };
   } else if (activePageId === 'gastos_creditos') {
@@ -1043,14 +1043,17 @@ export default function App() {
         };
       case 'finances': {
         const subtabs = {
-          dashboard: { title: 'Contabilidad: Dashboard', desc: 'Balance, estado financiero y cumplimiento fiscal en tiempo real' },
-          sri: { title: 'Documentos Electrónicos SRI', desc: 'Historial y consulta de validez de comprobantes con el SRI' },
-          cobrables: { title: 'Cuentas por Cobrar', desc: 'Seguimiento de cartera y saldos pendientes de clientes' },
-          pagables: { title: 'Cuentas por Pagar', desc: 'Control de compromisos de pago y obligaciones con proveedores' },
-          gastos: { title: 'Gastos y Créditos', desc: 'Clasificación contable de egresos y líneas de crédito abiertas' },
-          reportes: { title: 'Reportes Contables', desc: 'Libro diario, estados de pérdidas y ganancias, y exportación fiscal' }
+          dashboard: { title: 'Control Financiero: Resumen', desc: 'Flujo de caja, saldos, cartera y cumplimiento fiscal en tiempo real' },
+          compras_resumen: { title: 'Compras y Gastos', desc: 'Registro de facturas, consumos y egresos del negocio' },
+          sri_docs: { title: 'Documentos Electrónicos SRI', desc: 'Historial y consulta de validez de comprobantes con el SRI' },
+          cxc: { title: 'Cuentas por Cobrar', desc: 'Seguimiento de cartera y saldos pendientes de clientes' },
+          cxp: { title: 'Cuentas por Pagar', desc: 'Control de compromisos de pago y obligaciones con proveedores' },
+          gastos_creditos_sub: { title: 'Tarjetas y Créditos', desc: 'Control de consumos, cuotas, deudas y líneas de crédito' },
+          gastos_ia: { title: 'Captura Inteligente', desc: 'Clasificación asistida de comprobantes y gastos desde archivos' },
+          compras_retencion: { title: 'Retenciones de Compras', desc: 'Gestión de retenciones aplicadas a proveedores' },
+          reports: { title: 'Reportes Financieros', desc: 'Informes de resultados, flujo de caja y análisis personalizado' }
         };
-        const current = subtabs[contabilidadInitialSubTab] || { title: 'ERP Contabilidad y Tributación', desc: 'Control de ingresos/egresos, reportes contables y documentos electrónicos autorizados' };
+        const current = subtabs[contabilidadInitialSubTab] || { title: 'Control Financiero', desc: 'Ingresos, gastos, cartera, tarjetas, créditos, reportes y cumplimiento tributario' };
         return { ...current, icon: 'finances' };
       }
       case 'ventas': {
@@ -2018,14 +2021,14 @@ export default function App() {
   // --- PANTALLA DE ERROR DE CONEXIÓN / SINCRONIZACIÓN ---
   if (dbSyncError) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen w-full bg-[#08080a] text-gray-100 font-sans p-6 z-[9999] relative overflow-hidden">
+      <div className="flex flex-col items-center justify-center min-h-screen w-full bg-text-primary text-gray-100 font-sans p-6 z-[9999] relative overflow-hidden">
         {/* Background decorative blobs */}
         <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-red-600/10 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-orange-600/10 rounded-full blur-3xl animate-pulse"></div>
 
-        <div className="w-full max-w-md p-8 rounded-[2.5rem] bg-[#1a1a1a]/80 border border-red-500/20 shadow-[0_20px_50px_rgba(239,68,68,0.15)] flex flex-col text-center backdrop-blur-md">
+        <div className="w-full max-w-md p-8 rounded-card bg-text-primary/80 border border-red-500/20  flex flex-col text-center ">
           <div className="flex justify-center mb-6">
-            <div className="p-4 rounded-2xl bg-red-500/10 text-red-500 border border-red-500/30 shadow-[0_0_30px_rgba(239,68,68,0.2)]">
+            <div className="p-4 rounded-2xl bg-red-500/10 text-red-500 border border-red-500/30 ">
               <CloudOff size={32} className="animate-bounce" />
             </div>
           </div>
@@ -2042,7 +2045,7 @@ export default function App() {
               setDbSyncError(false);
               window.location.reload();
             }}
-            className="w-full py-3.5 rounded-xl text-xs font-bold tracking-wider uppercase bg-red-600 hover:bg-red-500 text-white transition-all shadow-md shadow-red-950/20 hover:scale-[1.02] active:scale-[0.98]"
+            className="w-full py-3.5 rounded-xl text-xs font-bold tracking-wider uppercase bg-red-600 hover:bg-red-500 text-white transition-all hover:scale-[1.02] active:scale-[0.98]"
           >
             Reintentar Conexión
           </button>
@@ -2081,7 +2084,7 @@ export default function App() {
       <Route path="/superadmin" element={<SuperAdminPage showToast={showToast} />} />
       <Route path="/public/ride" element={<PublicRideView />} />
       <Route path="/app/*" element={
-        <div className="flex h-screen w-full font-sans overflow-hidden relative z-0 bg-[#F6F9FC] text-[#0A2540]">
+        <div className="flex h-screen w-full font-sans overflow-hidden relative z-0 bg-surface-bg text-text-primary">
 
       <Sidebar
         isSidebarOpen={isSidebarOpen}
@@ -2115,21 +2118,21 @@ export default function App() {
       <div className="flex-1 flex flex-col h-full overflow-hidden relative z-10 md:z-[60]">
         
         {/* Topbar Stripe */}
-        <div className="flex items-center px-6 justify-between gap-4 shrink-0 bg-white border-b border-[#E6EBF1] h-14">
+        <div className="flex items-center px-6 justify-between gap-4 shrink-0 bg-white border-b border-border-default h-14">
           <div className="flex items-center gap-4">
             <button 
               onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
-              className="flex items-center justify-center p-1.5 rounded-lg transition-colors hover:bg-[#F6F9FC] text-[#697386] active:scale-95"
+              className="flex items-center justify-center p-1.5 rounded-lg transition-colors hover:bg-surface-bg text-text-muted active:scale-95"
             >
               <Menu size={18} />
             </button>
-            <div className="h-4 w-px bg-[#E6EBF1] self-center"></div>
+            <div className="h-4 w-px bg-surface-sidebar self-center"></div>
             <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center p-2 rounded-lg bg-[color-mix(in_srgb,var(--primary-color)_8%,transparent)] text-[var(--primary-color)]">
+              <div className="flex items-center justify-center p-2 rounded-lg bg-primary-light text-primary">
                 <IconRenderer name={headerDetails.icon} size={15} />
               </div>
               <div className="flex flex-col">
-                <h1 className="text-[14px] font-semibold tracking-tight text-[#0A2540] leading-none">{headerDetails.title}</h1>
+                <h1 className="text-md font-semibold tracking-tight text-text-primary leading-none">{headerDetails.title}</h1>
               </div>
             </div>
           </div>
@@ -2137,7 +2140,7 @@ export default function App() {
             {activeModules.ventas && (
               <button 
                 onClick={() => { setVentasInitialSubTab(`pos_${Date.now()}`); setActivePageId('ventas'); }} 
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium transition-all shrink-0 border border-[#E6EBF1] bg-[#FFF8E5] text-[#8B5A0B] hover:bg-[#FFF1CC]"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all shrink-0 border border-border-default bg-warning-light text-warning hover:bg-warning-light"
                 title="Abrir Punto de Venta (POS)">
                 <Calculator size={14} />
                 <span className="hidden sm:inline">Punto de venta</span>
@@ -2145,18 +2148,18 @@ export default function App() {
             )}
             <button 
               onClick={() => setIsGlobalChatOpen(!isGlobalChatOpen)} 
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium transition-all border shrink-0 ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all border shrink-0 ${
                 isGlobalChatOpen 
                   ? 'bg-[var(--primary-color)] border-[var(--primary-color)] text-white' 
-                  : 'bg-white border-[#E6EBF1] text-[#425466] hover:bg-[#F6F9FC]'
+                  : 'bg-white border-border-default text-text-secondary hover:bg-surface-bg'
               }`}
               title="Abrir Asistente AI">
               <Sparkles size={14} />
               <span className="hidden sm:inline">Asistente AI</span>
             </button>
-            <button onClick={() => setActivePageId('general_settings')} className="p-2 rounded-md transition-colors hover:bg-[#F6F9FC] text-[#697386]" title="Ajustes"><Settings size={16} /></button>
+            <button onClick={() => setActivePageId('general_settings')} className="p-2 rounded-md transition-colors hover:bg-surface-bg text-text-muted" title="Ajustes"><Settings size={16} /></button>
             {(activePage.type === 'project' || activePage.type === 'doc') ? (
-              <button onClick={(e) => deletePage(activePageId, e)} className="p-2 rounded-md transition-colors hover:bg-[#FFF0F0] text-[#697386] hover:text-[#CD2B31]" title="Eliminar"><Trash2 size={16} /></button>
+              <button onClick={(e) => deletePage(activePageId, e)} className="p-2 rounded-md transition-colors hover:bg-error-light text-text-muted hover:text-error" title="Eliminar"><Trash2 size={16} /></button>
             ) : (
               <div className="w-8"></div>
             )}
@@ -2171,7 +2174,7 @@ export default function App() {
             <div className={(isPersonasActive || isProyectosActive) ? 'w-full h-full' : 'max-w-[1600px] w-full mx-auto'}>
               {planStatus === 'suspended' && activePageId !== 'billing' ? (
                 <div className="flex flex-col items-center justify-center p-12 text-center h-[70vh] w-full select-none animate-in fade-in duration-300">
-                  <div className="p-5 rounded-2xl bg-red-500/10 text-red-500 mb-6 border border-red-500/20 shadow-[0_0_30px_rgba(239,68,68,0.1)]">
+                  <div className="p-5 rounded-2xl bg-red-500/10 text-red-500 mb-6 border border-red-500/20 ">
                     <Lock size={36} />
                   </div>
                   <h2 className="text-lg font-black tracking-tight mb-2 text-red-500">Servicio Suspendido</h2>
@@ -2180,15 +2183,15 @@ export default function App() {
                   </p>
                   <button
                     onClick={() => setActivePageId('billing')}
-                    className="px-5 py-3 rounded-xl bg-[#1C40F2] text-white text-xs font-bold uppercase tracking-wider transition-all shadow-md shadow-blue-500/10 hover:scale-[1.02] active:scale-[0.98]"
+                    className="px-5 py-3 rounded-xl bg-primary text-white text-xs font-bold uppercase tracking-wider transition-all hover:scale-[1.02] active:scale-[0.98]"
                   >
                     Registrar Pago / Suscripción
                   </button>
                 </div>
               ) : isModuleLocked ? (
                 <div className="flex flex-col items-center justify-center p-12 text-center h-[70vh] w-full select-none animate-in fade-in duration-300">
-                  <div className="p-5 rounded-2xl bg-[#1C40F2]/10 text-primary mb-6 border border-[#1C40F2]/20 shadow-[0_0_30px_rgba(28,64,242,0.1)]">
-                    <Lock size={36} className="text-[#1C40F2]" />
+                  <div className="p-5 rounded-2xl bg-primary/10 text-primary mb-6 border border-primary/20 ">
+                    <Lock size={36} className="text-primary" />
                   </div>
                   <h2 className="text-lg font-black tracking-tight mb-2">Módulo Premium Reservado</h2>
                   <p className="text-xs font-semibold text-gray-500 max-w-sm mb-6 leading-relaxed">
@@ -2196,7 +2199,7 @@ export default function App() {
                   </p>
                   <button
                     onClick={() => setActivePageId('billing')}
-                    className="px-5 py-3 rounded-xl bg-[#1C40F2] text-white text-xs font-bold uppercase tracking-wider transition-all shadow-md shadow-blue-500/10 hover:scale-[1.02] active:scale-[0.98]"
+                    className="px-5 py-3 rounded-xl bg-primary text-white text-xs font-bold uppercase tracking-wider transition-all hover:scale-[1.02] active:scale-[0.98]"
                   >
                     Ver Planes y Precios
                   </button>
@@ -2306,7 +2309,7 @@ export default function App() {
                       {activePageId === 'team' && (
                         <div className="animate-in fade-in duration-500 px-8 py-6">
                           <div className="flex justify-end mb-6">
-                            <button onClick={openNewUserDrawer} className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-transform shadow-sm hover:-translate-y-0.5 ${'bg-primary text-white hover:bg-primary-hover'}`}>
+                            <button onClick={openNewUserDrawer} className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-transform  hover:-translate-y-0.5 ${'bg-primary text-white hover:bg-primary-hover'}`}>
                               <UserPlus size={16} /> Invitar Miembro
                             </button>
                           </div>
@@ -2315,7 +2318,7 @@ export default function App() {
                             {users.map(user => (
                               <div key={user.id} className={`p-5 rounded-2xl flex flex-col justify-between ${currentGlassPanel} hover:-translate-y-1 transition-transform duration-300`}>
                                 <div className="flex items-start gap-4 mb-4">
-                                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold text-white shadow-inner bg-gradient-to-br ${user.color}`}>
+                                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold text-white  bg-gradient-to-br ${user.color}`}>
                                     {user.initials}
                                   </div>
                                   <div>
@@ -2361,7 +2364,7 @@ export default function App() {
                                 <h3 className="text-lg font-bold">Listado de Proyectos</h3>
                                 <button 
                                   onClick={addProject} 
-                                  className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-transform shadow-sm hover:-translate-y-0.5 ${'bg-primary text-white hover:bg-primary-hover'}`}
+                                  className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-transform  hover:-translate-y-0.5 ${'bg-primary text-white hover:bg-primary-hover'}`}
                                 >
                                   <Plus size={14} /> Nuevo Proyecto
                                 </button>
@@ -2378,8 +2381,8 @@ export default function App() {
                                     <div 
                                       key={proj.id} 
                                       onClick={() => setActivePageId(proj.id)}
-                                      className={`p-5 rounded-2xl flex flex-col justify-between cursor-pointer border transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
-                                        'bg-white border-gray-150 hover:bg-[#fbfcfd] hover:border-gray-300 shadow-sm'
+                                      className={`p-5 rounded-2xl flex flex-col justify-between cursor-pointer border transition-all duration-300 hover:-translate-y-1 ${
+                                        'bg-white border-gray-150 hover:bg-surface-bg hover:border-gray-300 '
                                       }`}
                                     >
                                       <div>
@@ -2433,7 +2436,7 @@ export default function App() {
                                       {/* Pequeño botón de volver al listado de proyectos */}
                                       <button 
                                         onClick={() => setActivePageId('proyectos_general')}
-                                        className={`p-1.5 rounded-xl transition-all border shadow-sm ${
+                                        className={`p-1.5 rounded-xl transition-all border  ${
                                           'border-gray-200 hover:bg-black/5 text-black hover:text-black bg-white'
                                         }`}
                                         title="Volver a la lista de proyectos"
@@ -2459,7 +2462,7 @@ export default function App() {
                                         <select 
                                           value={activePage.leadId || ''} 
                                           onChange={(e) => updateActivePage({ leadId: e.target.value })} 
-                                          className={`px-2 py-0.5 text-[11px] font-semibold rounded-lg outline-none cursor-pointer transition-all border ${'bg-white/60 border-gray-200 text-gray-700 hover:bg-white'}`}
+                                          className={`px-2 py-0.5 text-xs font-semibold rounded-lg outline-none cursor-pointer transition-all border ${'bg-white/60 border-gray-200 text-gray-700 hover:bg-white'}`}
                                         >
                                           <option value="">Sin Asignar</option>
                                           {users.map(u => <option key={u.id} value={u.id} className="text-black">{u.name}</option>)}
@@ -2468,8 +2471,8 @@ export default function App() {
                                     </div>
                                     
                                     <div className={`flex p-1 rounded-lg ${'bg-black/5'}`}>
-                                      <button onClick={() => setCurrentProjectView('board')} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${currentProjectView === 'board' ? ('bg-white text-gray-950 shadow-sm') : ('text-gray-500 hover:text-gray-750')}`}>Tablero</button>
-                                      <button onClick={() => setCurrentProjectView('list')} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${currentProjectView === 'list' ? ('bg-white text-gray-900 shadow-sm') : ('text-gray-500 hover:text-gray-700')}`}>Lista</button>
+                                      <button onClick={() => setCurrentProjectView('board')} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${currentProjectView === 'board' ? ('bg-white text-gray-950 ') : ('text-gray-500 hover:text-gray-750')}`}>Tablero</button>
+                                      <button onClick={() => setCurrentProjectView('list')} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${currentProjectView === 'list' ? ('bg-white text-gray-900 ') : ('text-gray-500 hover:text-gray-700')}`}>Lista</button>
                                     </div>
                                   </div>
 
@@ -2530,11 +2533,11 @@ export default function App() {
                                             onChange={(e) => setNewColumnName(e.target.value)} 
                                             onKeyDown={(e) => e.key === 'Enter' && handleAddColumn()} 
                                             placeholder="Nueva columna..." 
-                                            className={`w-full text-xs px-2.5 py-2 rounded-lg outline-none transition-shadow shadow-inner ${currentGlassInput}`} 
+                                            className={`w-full text-xs px-2.5 py-2 rounded-lg outline-none transition-colors  ${currentGlassInput}`}
                                           />
                                           <button 
                                             onClick={handleAddColumn} 
-                                            className={`flex items-center justify-center gap-1.5 w-full py-2 rounded-lg transition-all text-xs font-bold shadow-sm ${'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}
+                                            className={`flex items-center justify-center gap-1.5 w-full py-2 rounded-lg transition-all text-xs font-bold  ${'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}
                                           >
                                             <Plus size={14} /> Crear Columna
                                           </button>
@@ -2546,7 +2549,7 @@ export default function App() {
                                       {(activePage.columns || DEFAULT_COLUMNS).map(col => {
                                         const colTasks = (activePage.tasks || []).filter(t => t.status === col.id).sort((a, b) => (a.order || 0) - (b.order || 0));
                                         return (
-                                          <div key={col.id} className={`p-5 rounded-2xl border shadow-sm ${'bg-white border-gray-150'}`}>
+                                          <div key={col.id} className={`p-5 rounded-2xl border  ${'bg-white border-gray-150'}`}>
                                             <div className="flex items-center justify-between mb-4">
                                               <span className={`text-xs font-bold px-2.5 py-1 rounded-lg ${getColumnColorClass(col.color)}`}>{col.title} ({colTasks.length})</span>
                                             </div>
@@ -2565,11 +2568,11 @@ export default function App() {
                                                         <span className={`text-sm font-medium ${'text-gray-700 group-hover:text-black'}`}>{task.content}</span>
                                                       </div>
                                                       <div className="flex items-center gap-4 md:w-1/2 md:justify-end ml-7 md:ml-0">
-                                                        {task.meetLink && <span className={`flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-md opacity-70 group-hover:opacity-100 transition-opacity ${'bg-primary/10 text-primary border border-primary/25'}`}><Video size={10} /> Videollamada</span>}
+                                                        {task.meetLink && <span className={`flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-md opacity-70 group-hover:opacity-100 transition-opacity ${'bg-primary/10 text-primary border border-primary/25'}`}><Video size={10} /> Videollamada</span>}
                                                         {assignedUser ? (
                                                           <div className={`flex items-center gap-2 opacity-70 group-hover:opacity-100 transition-opacity min-w-[120px] justify-end`}>
                                                             <span className={`text-xs font-semibold truncate ${'text-gray-600'}`}>{assignedUser.name}</span>
-                                                            <div className={`w-6 h-6 rounded-full flex shrink-0 items-center justify-center text-[10px] font-bold text-white shadow-inner bg-gradient-to-br ${assignedUser.color}`}>{assignedUser.initials}</div>
+                                                            <div className={`w-6 h-6 rounded-full flex shrink-0 items-center justify-center text-xs font-bold text-white  bg-gradient-to-br ${assignedUser.color}`}>{assignedUser.initials}</div>
                                                           </div>
                                                         ) : (
                                                           <div className={`min-w-[120px]`}></div>
@@ -2605,7 +2608,7 @@ export default function App() {
                                 <h3 className="text-lg font-bold">Listado de Páginas</h3>
                                 <button 
                                   onClick={addPage} 
-                                  className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-transform shadow-sm hover:-translate-y-0.5 ${'bg-primary text-white hover:bg-primary-hover'}`}
+                                  className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-transform  hover:-translate-y-0.5 ${'bg-primary text-white hover:bg-primary-hover'}`}
                                 >
                                   <Plus size={14} /> Nueva Página
                                 </button>
@@ -2616,8 +2619,8 @@ export default function App() {
                                   <div 
                                     key={docPage.id} 
                                     onClick={() => setActivePageId(docPage.id)}
-                                    className={`p-5 rounded-2xl flex flex-col justify-between cursor-pointer border transition-all duration-350 hover:-translate-y-1 hover:shadow-md ${
-                                      'bg-white border-gray-150 hover:bg-[#fbfcfd] hover:border-gray-300 shadow-sm'
+                                    className={`p-5 rounded-2xl flex flex-col justify-between cursor-pointer border transition-all duration-350 hover:-translate-y-1 ${
+                                      'bg-white border-gray-150 hover:bg-surface-bg hover:border-gray-300 '
                                     }`}
                                   >
                                     <div>
@@ -2669,20 +2672,20 @@ export default function App() {
                               <div className="max-w-4xl mx-auto px-6 md:px-12 lg:px-24 py-8">
                                 <div className="mb-8">
                                   <div className="group relative flex items-center gap-3">
-                                     <div className={`p-2.5 rounded-xl transition-colors backdrop-blur-md border ${'bg-white/60 border-gray-200 text-gray-700 shadow-sm'}`}>
+                                     <div className={`p-2.5 rounded-xl transition-colors  border ${'bg-white/60 border-gray-200 text-gray-700 '}`}>
                                        <IconRenderer name={activePage.icon} size={24} />
                                      </div>
                                      <input type="text" value={activePage.title} onChange={(e) => updateActivePage({ title: e.target.value })} placeholder="Título del documento" className={`w-full text-3xl font-bold border-none outline-none bg-transparent resize-none focus:ring-0 tracking-tight ${'text-gray-900 placeholder-gray-400'}`} />
                                   </div>
                                 </div>
 
-                                <div className={`flex flex-wrap gap-2 mb-6 p-2 rounded-xl animate-in fade-in duration-300 ${'bg-white/40 border border-white/40 backdrop-blur-md shadow-sm'}`}>
-                                  <span className={`flex items-center px-2 text-[10px] font-bold uppercase tracking-wider ${'text-purple-600'}`}>Herramientas IA</span>
+                                <div className={`flex flex-wrap gap-2 mb-6 p-2 rounded-xl animate-in fade-in duration-300 ${'bg-white/40 border border-white/40  '}`}>
+                                  <span className={`flex items-center px-2 text-xs font-bold uppercase tracking-wider ${'text-purple-600'}`}>Herramientas IA</span>
                                   <button onClick={() => handleAiAction('improve')} disabled={isGeneratingAI || !activePage.content.trim()} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>{isGeneratingAI ? <RefreshCw size={12} className="animate-spin" /> : <Wand2 size={12} />} Mejorar</button>
                                   <button onClick={() => handleAiAction('summarize')} disabled={isGeneratingAI || !activePage.content.trim()} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>{isGeneratingAI ? <RefreshCw size={12} className="animate-spin" /> : <Sparkles size={12} />} Resumir</button>
                                   <button onClick={() => handleAiAction('continue')} disabled={isGeneratingAI || !activePage.content.trim()} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>{isGeneratingAI ? <RefreshCw size={12} className="animate-spin" /> : <Sparkles size={12} />} Continuar</button>
                                 </div>
-                                <textarea ref={contentRef} value={activePage.content} onChange={(e) => updateActivePage({ content: e.target.value })} placeholder="Presiona '/' para comandos o empieza a escribir..." className={`w-full text-[13px] leading-tight border-none outline-none bg-transparent resize-none focus:ring-0 min-h-[300px] font-medium ${'text-gray-900 placeholder-gray-500'}`} />
+                                <textarea ref={contentRef} value={activePage.content} onChange={(e) => updateActivePage({ content: e.target.value })} placeholder="Presiona '/' para comandos o empieza a escribir..." className={`w-full text-base leading-tight border-none outline-none bg-transparent resize-none focus:ring-0 min-h-[300px] font-medium ${'text-gray-900 placeholder-gray-500'}`} />
                               </div>
                             </div>
                           )}
@@ -2700,16 +2703,16 @@ export default function App() {
                               </div>
                               
                               {!googleClientId ? (
-                                <button onClick={() => setActivePageId('general_settings')} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-transform shadow-sm hover:-translate-y-0.5 ${'bg-gray-900 text-white hover:bg-gray-800'}`}>
+                                <button onClick={() => setActivePageId('general_settings')} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-transform  hover:-translate-y-0.5 ${'bg-gray-900 text-white hover:bg-gray-800'}`}>
                                   <Settings size={16} /> Configurar Integración
                                 </button>
                               ) : !isGoogleConnected ? (
-                                <button onClick={handleConnectGoogle} disabled={isConnecting} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-transform shadow-sm hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:translate-y-0 ${'bg-primary text-white'}`}>
+                                <button onClick={handleConnectGoogle} disabled={isConnecting} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-transform  hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:translate-y-0 ${'bg-primary text-white'}`}>
                                   {isConnecting ? <RefreshCw className="animate-spin" size={16} /> : <LogIn size={16} />} {isConnecting ? 'Conectando...' : 'Conectar Google'}
                                 </button>
                               ) : (
                                 <div className="flex items-center gap-3">
-                                  <span className={`text-xs px-3 py-1.5 rounded-lg border flex items-center gap-1.5 font-semibold shadow-inner ${'bg-green-100/60 text-green-700 border-green-200'}`}><span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Sincronizado</span>
+                                  <span className={`text-xs px-3 py-1.5 rounded-lg border flex items-center gap-1.5 font-semibold  ${'bg-green-100/60 text-green-700 border-green-200'}`}><span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Sincronizado</span>
                                   <button onClick={handleDisconnectGoogle} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${'bg-black/5 text-gray-600 hover:text-red-650'}`}><LogOut size={14} /> Desconectar</button>
                                 </div>
                               )}
@@ -2720,27 +2723,27 @@ export default function App() {
                             <div className="space-y-5">
                               <div className={`flex items-center justify-between border-b pb-3 ${'border-gray-200'}`}>
                                 <h3 className="text-lg font-semibold">Próximos Eventos Reales (7 días)</h3>
-                                <button onClick={handleCreateInstantMeetUI} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all text-xs font-semibold shadow-sm ${'bg-primary/10 text-primary hover:bg-primary/15 border border-primary/25'}`}><Video size={14} /> Crear Meet Real</button>
+                                <button onClick={handleCreateInstantMeetUI} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all text-xs font-semibold  ${'bg-primary/10 text-primary hover:bg-primary/15 border border-primary/25'}`}><Video size={14} /> Crear Meet Real</button>
                               </div>
                               <div className="grid grid-cols-1 gap-3">
                                 {events.length > 0 ? events.map(event => (
                                   <div key={event.id} className={`group flex flex-col md:flex-row items-start md:items-center justify-between p-5 rounded-2xl transition-all hover:-translate-y-0.5 ${currentGlassPanel}`}>
                                     <div className="flex items-start gap-4">
-                                      <div className={`px-2.5 py-1 rounded-lg text-xs font-bold border backdrop-blur-md shadow-inner ${event.color} border-current/20`}>{event.date}</div>
+                                      <div className={`px-2.5 py-1 rounded-lg text-xs font-bold border   ${event.color} border-current/20`}>{event.date}</div>
                                       <div>
                                         <h4 className="text-base font-semibold mb-0.5 max-w-[250px] truncate">{event.title}</h4>
                                         <div className={`flex items-center gap-1.5 text-xs font-medium ${'text-gray-550'}`}><Clock size={14} />{event.time}</div>
                                       </div>
                                     </div>
                                     <div className="mt-4 md:mt-0 w-full md:w-auto flex flex-wrap gap-2 justify-start md:justify-end">
-                                      <button onClick={() => convertEventToTask(event)} className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all shadow-sm ${'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}`}>
+                                      <button onClick={() => convertEventToTask(event)} className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all  ${'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}`}>
                                           <CheckSquare size={14} /> Convertir en Tarea
                                       </button>
-                                      <button onClick={() => generateMeetingAgenda(event)} disabled={isGeneratingAI} className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all disabled:opacity-50 shadow-sm ${'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>
+                                      <button onClick={() => generateMeetingAgenda(event)} disabled={isGeneratingAI} className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all disabled:opacity-50  ${'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>
                                           {isGeneratingAI ? <RefreshCw className="animate-spin" size={14} /> : <Wand2 size={14} />} Agenda con IA
                                       </button>
                                       {event.meetLink && (
-                                        <a href={event.meetLink} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all shadow-sm ${'bg-primary/10 text-primary hover:bg-primary/15 border border-primary/25'}`}>
+                                        <a href={event.meetLink} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all  ${'bg-primary/10 text-primary hover:bg-primary/15 border border-primary/25'}`}>
                                           <Video size={14} /> Unirse a Meet
                                         </a>
                                       )}
@@ -2781,35 +2784,35 @@ export default function App() {
       </div> {/* Closes Main Content Area */}
 
       {/* Drawer Overlay (Task) */}
-      {drawerTask && <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[70] transition-opacity" onClick={() => setDrawerTask(null)} />}
+      {drawerTask && <div className="fixed inset-0 bg-black/40  z-[70] transition-opacity" onClick={() => setDrawerTask(null)} />}
 
       {/* Drawer (Task) */}
-      <div className={`fixed inset-y-0 right-0 z-[80] w-full sm:w-[400px] ${drawerTask ? 'shadow-[0_0_40px_rgba(0,0,0,0.5)] translate-x-0' : 'translate-x-full'} transform transition-transform duration-300 flex flex-col backdrop-blur-2xl ${'bg-white/90 border-l border-white/50'}`}>
+      <div className={`fixed inset-y-0 right-0 z-[80] w-full sm:w-[400px] ${drawerTask ? ' translate-x-0' : 'translate-x-full'} transform transition-transform duration-300 flex flex-col  ${'bg-white/90 border-l border-white/50'}`}>
         {drawerTask && (
           <>
             <div className={`flex items-center justify-between px-6 py-4 border-b shrink-0 ${'border-black/5'}`}>
               <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-xl shadow-inner ${'bg-primary/10 text-primary border border-white/50'}`}><Briefcase size={18} /></div>
+                <div className={`p-2 rounded-xl  ${'bg-primary/10 text-primary border border-white/50'}`}><Briefcase size={18} /></div>
                 <h2 className={`text-lg font-bold ${'text-gray-900'}`}>{drawerTask.id && globalTasks.some(t => t.id === drawerTask.id) ? 'Detalles de Tarea' : 'Crear Tarea'}</h2>
               </div>
               <div className="flex items-center gap-1">
                 {drawerTask.id && globalTasks.some(t => t.id === drawerTask.id) && (
-                  <button onClick={handleDeleteTaskFromDrawer} className={`p-2 rounded-lg transition-all shadow-sm ${'bg-red-50 hover:bg-red-100 text-red-500 border border-red-100'}`} title="Eliminar tarea">
+                  <button onClick={handleDeleteTaskFromDrawer} className={`p-2 rounded-lg transition-all  ${'bg-red-50 hover:bg-red-100 text-red-500 border border-red-100'}`} title="Eliminar tarea">
                     <Trash2 size={16} />
                   </button>
                 )}
-                <button onClick={() => setDrawerTask(null)} className={`p-2 rounded-lg transition-all shadow-sm ${'bg-white hover:bg-gray-100 text-gray-600 border border-gray-200'}`}><X size={16} /></button>
+                <button onClick={() => setDrawerTask(null)} className={`p-2 rounded-lg transition-all  ${'bg-white hover:bg-gray-100 text-gray-600 border border-gray-200'}`}><X size={16} /></button>
               </div>
             </div>
 
             <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6 custom-scrollbar">
-              <div className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-primary/10 to-purple-500/10 border border-primary/20 mb-2 shadow-inner">
+              <div className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-primary/10 to-purple-500/10 border border-primary/20 mb-2 ">
                 <div className="flex items-center gap-3">
                   <div className={`p-2 rounded-full ${isTimerRunning && activeTimerTaskId === drawerTask.id ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-primary/20 text-primary'}`}>
                     <Clock size={16} />
                   </div>
                   <div>
-                    <p className={`text-[10px] font-bold uppercase tracking-wider ${'text-gray-500'}`}>Tiempo Invertido</p>
+                    <p className={`text-xs font-bold uppercase tracking-wider ${'text-gray-500'}`}>Tiempo Invertido</p>
                     <p className={`text-sm font-semibold ${'text-gray-800'}`}>
                       {Math.floor(((drawerTask.timeSpent || 0) + (isTimerRunning && activeTimerTaskId === drawerTask.id ? elapsedTime : 0)) / 60)} min {((drawerTask.timeSpent || 0) + (isTimerRunning && activeTimerTaskId === drawerTask.id ? elapsedTime : 0)) % 60} seg
                     </p>
@@ -2817,7 +2820,7 @@ export default function App() {
                 </div>
                 <button 
                   onClick={toggleTimer}
-                  className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all shadow-sm ${isTimerRunning && activeTimerTaskId === drawerTask.id ? 'bg-red-500 hover:bg-red-600 text-white shadow-red-500/30' : 'bg-primary hover:bg-primary-hover text-white shadow-primary/30'}`}
+                  className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all  ${isTimerRunning && activeTimerTaskId === drawerTask.id ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-primary hover:bg-primary-hover text-white'}`}
                 >
                   {isTimerRunning && activeTimerTaskId === drawerTask.id ? 'Detener' : 'Iniciar'}
                 </button>
@@ -2825,14 +2828,14 @@ export default function App() {
 
               <div className="space-y-4">
                 <div>
-                  <label className={`block text-[10px] font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}>¿Qué hay que hacer?</label>
-                  <input type="text" value={drawerTask.content} onChange={(e) => setDrawerTask(prev => ({ ...prev, content: e.target.value }))} className={`w-full text-sm font-semibold px-3 py-2 rounded-xl outline-none transition-all shadow-inner ${currentGlassInput}`} placeholder="Ej. Implementar Auth con Firebase..." />
+                  <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}>¿Qué hay que hacer?</label>
+                  <input type="text" value={drawerTask.content} onChange={(e) => setDrawerTask(prev => ({ ...prev, content: e.target.value }))} className={`w-full text-sm font-semibold px-3 py-2 rounded-xl outline-none transition-all  ${currentGlassInput}`} placeholder="Ej. Implementar Auth con Firebase..." />
                 </div>
                 
                 {/* Nuevo Selector de Asignación */}
                 <div>
-                  <label className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}><UserCircle size={14} className={'text-emerald-500'}/> Asignado a</label>
-                  <select value={drawerTask.assigneeId || ''} onChange={(e) => setDrawerTask(prev => ({ ...prev, assigneeId: e.target.value }))} className={`w-full px-3 py-2 text-sm font-medium rounded-lg outline-none cursor-pointer transition-all shadow-inner ${currentGlassInput}`}>
+                  <label className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}><UserCircle size={14} className={'text-emerald-500'}/> Asignado a</label>
+                  <select value={drawerTask.assigneeId || ''} onChange={(e) => setDrawerTask(prev => ({ ...prev, assigneeId: e.target.value }))} className={`w-full px-3 py-2 text-sm font-medium rounded-lg outline-none cursor-pointer transition-all  ${currentGlassInput}`}>
                     <option value="" className="text-black">Sin asignar</option>
                     {users.map(u => <option key={u.id} value={u.id} className="text-black">{u.name} - {u.job}</option>)}
                   </select>
@@ -2840,14 +2843,14 @@ export default function App() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className={`block text-[10px] font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}>Proyecto Maestro</label>
-                    <select value={drawerTask.projectId || ''} onChange={(e) => setDrawerTask(prev => ({ ...prev, projectId: e.target.value }))} className={`w-full px-3 py-2 text-sm font-medium rounded-lg outline-none cursor-pointer transition-all shadow-inner ${currentGlassInput}`}>
+                    <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}>Proyecto Maestro</label>
+                    <select value={drawerTask.projectId || ''} onChange={(e) => setDrawerTask(prev => ({ ...prev, projectId: e.target.value }))} className={`w-full px-3 py-2 text-sm font-medium rounded-lg outline-none cursor-pointer transition-all  ${currentGlassInput}`}>
                       {projectsList.map(p => <option key={p.id} value={p.id} className="text-black">{p.title}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className={`block text-[10px] font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}>Fase actual</label>
-                    <select value={drawerTask.status} onChange={(e) => setDrawerTask(prev => ({ ...prev, status: e.target.value }))} className={`w-full px-3 py-2 text-sm font-medium rounded-lg outline-none cursor-pointer transition-all shadow-inner ${currentGlassInput}`}>
+                    <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}>Fase actual</label>
+                    <select value={drawerTask.status} onChange={(e) => setDrawerTask(prev => ({ ...prev, status: e.target.value }))} className={`w-full px-3 py-2 text-sm font-medium rounded-lg outline-none cursor-pointer transition-all  ${currentGlassInput}`}>
                       {((projectsList.find(p => p.id === drawerTask.projectId)?.columns) || DEFAULT_COLUMNS).map(c => <option key={c.id} value={c.id} className="text-black">{c.title}</option>)}
                     </select>
                   </div>
@@ -2855,7 +2858,7 @@ export default function App() {
 
                 {/* --- NUEVO: Integración Google Workspace en Drawer --- */}
                 <div className={`p-4 rounded-xl border ${'bg-primary-light border-primary/15'}`}>
-                  <label className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider mb-3 ${'text-primary'}`}>
+                  <label className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider mb-3 ${'text-primary'}`}>
                     <Calendar size={14} className={'text-primary'} /> Google Workspace (API Real)
                   </label>
                   {!isGoogleConnected ? (
@@ -2870,11 +2873,11 @@ export default function App() {
                            <div className="flex-1 px-3 py-2 text-xs rounded-lg truncate bg-black/10 border border-white/10 opacity-70">
                              {drawerTask.meetLink}
                            </div>
-                           <a href={drawerTask.meetLink} target="_blank" rel="noopener noreferrer" className={`px-3 py-2 rounded-lg text-xs font-bold transition-all shadow-sm shrink-0 ${'bg-primary text-white hover:bg-primary-hover'}`}>Entrar</a>
+                           <a href={drawerTask.meetLink} target="_blank" rel="noopener noreferrer" className={`px-3 py-2 rounded-lg text-xs font-bold transition-all  shrink-0 ${'bg-primary text-white hover:bg-primary-hover'}`}>Entrar</a>
                            <button onClick={() => setDrawerTask(p => ({...p, meetLink: ''}))} className="p-2 rounded-lg transition-colors bg-red-500/10 text-red-400 hover:bg-red-500/30 border border-red-500/20 shrink-0" title="Quitar enlace"><X size={14}/></button>
                          </div>
                        ) : (
-                         <button onClick={handleGenerateMeetForTask} className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all border shadow-sm ${'bg-white border-gray-200 text-primary hover:bg-gray-50'}`}>
+                         <button onClick={handleGenerateMeetForTask} className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all border  ${'bg-white border-gray-200 text-primary hover:bg-gray-50'}`}>
                             <Video size={14} /> Crear Evento y Generar Meet
                          </button>
                        )}
@@ -2884,30 +2887,30 @@ export default function App() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}><CalendarDays size={14} className={'text-primary'} /> Arranca el</label>
-                    <input type="date" value={drawerTask.startDate || ''} onChange={(e) => setDrawerTask(prev => ({ ...prev, startDate: e.target.value }))} className={`w-full px-3 py-2 text-xs font-medium rounded-lg outline-none transition-all shadow-inner ${''} ${currentGlassInput}`} />
+                    <label className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}><CalendarDays size={14} className={'text-primary'} /> Arranca el</label>
+                    <input type="date" value={drawerTask.startDate || ''} onChange={(e) => setDrawerTask(prev => ({ ...prev, startDate: e.target.value }))} className={`w-full px-3 py-2 text-xs font-medium rounded-lg outline-none transition-all  ${''} ${currentGlassInput}`} />
                   </div>
                   <div>
-                    <label className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}><CalendarDays size={14} className={'text-red-500'} /> Fecha Límite</label>
-                    <input type="date" value={drawerTask.dueDate || ''} onChange={(e) => setDrawerTask(prev => ({ ...prev, dueDate: e.target.value }))} className={`w-full px-3 py-2 text-xs font-medium rounded-lg outline-none transition-all shadow-inner ${''} ${currentGlassInput}`} />
+                    <label className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}><CalendarDays size={14} className={'text-red-500'} /> Fecha Límite</label>
+                    <input type="date" value={drawerTask.dueDate || ''} onChange={(e) => setDrawerTask(prev => ({ ...prev, dueDate: e.target.value }))} className={`w-full px-3 py-2 text-xs font-medium rounded-lg outline-none transition-all  ${''} ${currentGlassInput}`} />
                   </div>
                 </div>
                 <div>
-                  <label className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}><DollarSign size={14} className={'text-green-500'} /> Presupuesto Asignado (USD)</label>
-                  <input type="number" value={drawerTask.budget || ''} onChange={(e) => setDrawerTask(prev => ({ ...prev, budget: e.target.value }))} placeholder="Ej. 1200" className={`w-full px-3 py-2 text-sm font-medium rounded-lg outline-none transition-all shadow-inner ${currentGlassInput}`} />
+                  <label className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}><DollarSign size={14} className={'text-green-500'} /> Presupuesto Asignado (USD)</label>
+                  <input type="number" value={drawerTask.budget || ''} onChange={(e) => setDrawerTask(prev => ({ ...prev, budget: e.target.value }))} placeholder="Ej. 1200" className={`w-full px-3 py-2 text-sm font-medium rounded-lg outline-none transition-all  ${currentGlassInput}`} />
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider ${'text-gray-500'}`}><AlignLeft size={14} className={'text-purple-500'} /> Descripción</label>
+                    <label className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider ${'text-gray-500'}`}><AlignLeft size={14} className={'text-purple-500'} /> Descripción</label>
                     <button 
                       onClick={generateTaskPlan}
                       disabled={isGeneratingAI || !drawerTask.content}
-                      className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold transition-all shadow-sm disabled:opacity-50 hover:scale-105 ${'bg-gradient-to-r from-purple-100 to-indigo-100 text-purple-800 border border-purple-200'}`}
+                      className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold transition-all  disabled:opacity-50 hover:scale-105 ${'bg-gradient-to-r from-purple-100 to-indigo-100 text-purple-800 border border-purple-200'}`}
                     >
                       {isGeneratingAI ? <RefreshCw size={12} className="animate-spin" /> : <Sparkles size={12} />} ✨ Plan IA
                     </button>
                   </div>
-                  <textarea value={drawerTask.description || ''} onChange={(e) => setDrawerTask(prev => ({ ...prev, description: e.target.value }))} placeholder="Escribe enlaces importantes, notas de clientes..." rows={4} className={`w-full px-3 py-2 text-sm font-medium rounded-xl outline-none resize-none transition-all shadow-inner ${currentGlassInput}`} />
+                  <textarea value={drawerTask.description || ''} onChange={(e) => setDrawerTask(prev => ({ ...prev, description: e.target.value }))} placeholder="Escribe enlaces importantes, notas de clientes..." rows={4} className={`w-full px-3 py-2 text-sm font-medium rounded-xl outline-none resize-none transition-all  ${currentGlassInput}`} />
                 </div>
               </div>
 
@@ -2916,9 +2919,9 @@ export default function App() {
               {/* CHECKLIST / SUBTAREAS */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider ${'text-gray-500'}`}><ListTodo size={14} className={'text-primary'} /> Subtareas (Checklist)</label>
+                  <label className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider ${'text-gray-500'}`}><ListTodo size={14} className={'text-primary'} /> Subtareas (Checklist)</label>
                   {drawerTask.subtasks && drawerTask.subtasks.length > 0 && (
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${'bg-primary/10 text-primary'}`}>
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${'bg-primary/10 text-primary'}`}>
                       {drawerTask.subtasks.filter(s => s.completed).length} / {drawerTask.subtasks.length}
                     </span>
                   )}
@@ -2937,7 +2940,7 @@ export default function App() {
                 </div>
 
                 <div className="flex gap-2">
-                  <input type="text" value={newSubtaskText} onChange={(e) => setNewSubtaskText(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addSubtask()} placeholder="Agregar un paso o subtarea..." className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-lg outline-none transition-all shadow-inner ${currentGlassInput}`} />
+                  <input type="text" value={newSubtaskText} onChange={(e) => setNewSubtaskText(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addSubtask()} placeholder="Agregar un paso o subtarea..." className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-lg outline-none transition-all  ${currentGlassInput}`} />
                   <button onClick={addSubtask} disabled={!newSubtaskText.trim()} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-50 ${'bg-primary/10 text-primary hover:bg-primary/15'}`}><Plus size={14}/></button>
                 </div>
               </div>
@@ -2947,14 +2950,14 @@ export default function App() {
               <div>
                 <label className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider mb-3 ${'text-yellow-600'}`}><MessageSquare size={14} /> Historial de Avances</label>
                 <div className="flex items-start gap-2 mb-4">
-                  <textarea value={quickNoteText} onChange={(e) => setQuickNoteText(e.target.value)} placeholder="Agrega un update rápido..." rows={2} className={`flex-1 px-3 py-2 text-sm font-medium rounded-lg outline-none resize-none transition-all shadow-inner ${currentGlassInput}`} />
-                  <button onClick={addQuickNote} disabled={!quickNoteText.trim()} className={`px-3 py-2 rounded-lg transition-all font-semibold text-xs shadow-sm disabled:opacity-50 ${'bg-yellow-100 text-yellow-700 hover:bg-yellow-200 border border-yellow-200'}`}>Subir</button>
+                  <textarea value={quickNoteText} onChange={(e) => setQuickNoteText(e.target.value)} placeholder="Agrega un update rápido..." rows={2} className={`flex-1 px-3 py-2 text-sm font-medium rounded-lg outline-none resize-none transition-all  ${currentGlassInput}`} />
+                  <button onClick={addQuickNote} disabled={!quickNoteText.trim()} className={`px-3 py-2 rounded-lg transition-all font-semibold text-xs  disabled:opacity-50 ${'bg-yellow-100 text-yellow-700 hover:bg-yellow-200 border border-yellow-200'}`}>Subir</button>
                 </div>
                 <div className="space-y-3">
                   {drawerTask.notes && drawerTask.notes.length > 0 ? (
                     drawerTask.notes.map((note) => (
-                      <div key={note.id} className={`p-3 rounded-xl border shadow-sm backdrop-blur-md ${'bg-white/60 border-white/50'}`}>
-                        <div className={`flex items-center gap-1.5 mb-1.5 text-[10px] font-bold ${'text-yellow-600'}`}><Clock size={12} /> {note.date}</div>
+                      <div key={note.id} className={`p-3 rounded-xl border   ${'bg-white/60 border-white/50'}`}>
+                        <div className={`flex items-center gap-1.5 mb-1.5 text-xs font-bold ${'text-yellow-600'}`}><Clock size={12} /> {note.date}</div>
                         <p className={`text-xs font-medium leading-relaxed ${'text-gray-800'}`}>{note.text}</p>
                       </div>
                     ))
@@ -2964,50 +2967,50 @@ export default function App() {
                 </div>
               </div>
             </div>
-            <div className={`px-6 py-4 border-t flex justify-end shrink-0 ${'border-black/5 bg-white/40 backdrop-blur-md'}`}>
-              <button onClick={saveDrawerTask} className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-transform hover:scale-105 shadow-sm ${'bg-primary text-white'}`}><Save size={16} /> Guardar Tarea</button>
+            <div className={`px-6 py-4 border-t flex justify-end shrink-0 ${'border-black/5 bg-white/40 '}`}>
+              <button onClick={saveDrawerTask} className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-transform hover:scale-105  ${'bg-primary text-white'}`}><Save size={16} /> Guardar Tarea</button>
             </div>
           </>
         )}
       </div>
 
       {/* Drawer Overlay (User) */}
-      {drawerUser && <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[70] transition-opacity" onClick={() => setDrawerUser(null)} />}
+      {drawerUser && <div className="fixed inset-0 bg-black/40  z-[70] transition-opacity" onClick={() => setDrawerUser(null)} />}
 
       {/* Drawer (User) */}
-      <div className={`fixed inset-y-0 right-0 z-[80] w-full sm:w-[400px] ${drawerUser ? 'shadow-[0_0_40px_rgba(0,0,0,0.5)] translate-x-0' : 'translate-x-full'} transform transition-transform duration-300 flex flex-col backdrop-blur-2xl ${'bg-white/90 border-l border-white/50'}`}>
+      <div className={`fixed inset-y-0 right-0 z-[80] w-full sm:w-[400px] ${drawerUser ? ' translate-x-0' : 'translate-x-full'} transform transition-transform duration-300 flex flex-col  ${'bg-white/90 border-l border-white/50'}`}>
         {drawerUser && (
           <>
             <div className={`flex items-center justify-between px-6 py-4 border-b shrink-0 ${'border-black/5'}`}>
               <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-xl shadow-inner ${'bg-primary/10 text-primary border border-primary/25'}`}><UserPlus size={18} /></div>
+                <div className={`p-2 rounded-xl  ${'bg-primary/10 text-primary border border-primary/25'}`}><UserPlus size={18} /></div>
                 <h2 className={`text-lg font-bold ${'text-gray-900'}`}>{drawerUser.isNew ? 'Invitar Miembro' : 'Editar Usuario'}</h2>
               </div>
-              <button onClick={() => setDrawerUser(null)} className={`p-2 rounded-lg transition-all shadow-sm ${'bg-white hover:bg-gray-100 text-gray-600 border border-gray-200'}`}><X size={16} /></button>
+              <button onClick={() => setDrawerUser(null)} className={`p-2 rounded-lg transition-all  ${'bg-white hover:bg-gray-100 text-gray-600 border border-gray-200'}`}><X size={16} /></button>
             </div>
 
             <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6 custom-scrollbar">
               <div className="space-y-4">
                 {/* Preview Avatar */}
                 <div className="flex justify-center mb-6">
-                  <div className={`w-20 h-20 rounded-full flex items-center justify-center text-2xl font-bold text-white shadow-lg bg-gradient-to-br ${drawerUser.color}`}>
+                  <div className={`w-20 h-20 rounded-full flex items-center justify-center text-2xl font-bold text-white  bg-gradient-to-br ${drawerUser.color}`}>
                     {drawerUser.name ? drawerUser.name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase() : 'U'}
                   </div>
                 </div>
 
                 <div>
-                  <label className={`block text-[10px] font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}>Nombre Completo</label>
-                  <input type="text" value={drawerUser.name} onChange={(e) => setDrawerUser(prev => ({ ...prev, name: e.target.value }))} className={`w-full text-sm font-semibold px-3 py-2 rounded-xl outline-none transition-all shadow-inner ${currentGlassInput}`} placeholder="Ej. Jane Doe" />
+                  <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}>Nombre Completo</label>
+                  <input type="text" value={drawerUser.name} onChange={(e) => setDrawerUser(prev => ({ ...prev, name: e.target.value }))} className={`w-full text-sm font-semibold px-3 py-2 rounded-xl outline-none transition-all  ${currentGlassInput}`} placeholder="Ej. Jane Doe" />
                 </div>
                 
                 <div>
-                  <label className={`block text-[10px] font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}>Cargo / Puesto</label>
-                  <input type="text" value={drawerUser.job} onChange={(e) => setDrawerUser(prev => ({ ...prev, job: e.target.value }))} className={`w-full text-sm font-semibold px-3 py-2 rounded-xl outline-none transition-all shadow-inner ${currentGlassInput}`} placeholder="Ej. Frontend Developer" />
+                  <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}>Cargo / Puesto</label>
+                  <input type="text" value={drawerUser.job} onChange={(e) => setDrawerUser(prev => ({ ...prev, job: e.target.value }))} className={`w-full text-sm font-semibold px-3 py-2 rounded-xl outline-none transition-all  ${currentGlassInput}`} placeholder="Ej. Frontend Developer" />
                 </div>
 
                 <div>
-                  <label className={`block text-[10px] font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}>Rol en el Sistema</label>
-                  <select value={drawerUser.role} onChange={(e) => setDrawerUser(prev => ({ ...prev, role: e.target.value }))} className={`w-full px-3 py-2 text-sm font-medium rounded-lg outline-none cursor-pointer transition-all shadow-inner ${currentGlassInput}`}>
+                  <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}>Rol en el Sistema</label>
+                  <select value={drawerUser.role} onChange={(e) => setDrawerUser(prev => ({ ...prev, role: e.target.value }))} className={`w-full px-3 py-2 text-sm font-medium rounded-lg outline-none cursor-pointer transition-all  ${currentGlassInput}`}>
                     <option value="Admin" className="text-black">Admin</option>
                     <option value="Miembro" className="text-black">Miembro</option>
                     <option value="Observador" className="text-black">Observador</option>
@@ -3015,7 +3018,7 @@ export default function App() {
                 </div>
 
                 <div>
-                  <label className={`block text-[10px] font-bold uppercase tracking-wider mb-3 mt-4 ${'text-gray-500'}`}>Color del Avatar</label>
+                  <label className={`block text-xs font-bold uppercase tracking-wider mb-3 mt-4 ${'text-gray-500'}`}>Color del Avatar</label>
                   <div className="flex gap-3 flex-wrap">
                     {USER_COLORS.map(colorClass => (
                       <button 
@@ -3030,27 +3033,27 @@ export default function App() {
               </div>
             </div>
             
-            <div className={`px-6 py-4 border-t flex justify-end shrink-0 ${'border-black/5 bg-white/40 backdrop-blur-md'}`}>
+            <div className={`px-6 py-4 border-t flex justify-end shrink-0 ${'border-black/5 bg-white/40 '}`}>
               <button onClick={() => setDrawerUser(null)} className={`px-4 py-2.5 rounded-lg font-semibold text-sm transition-colors ${'hover:bg-gray-100 text-gray-600'}`}>Cancelar</button>
-              <button onClick={saveDrawerUser} disabled={!drawerUser.name.trim()} className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-transform shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 hover:scale-105 ${'bg-primary text-white hover:bg-primary-hover'}`}><Save size={16} /> Guardar Usuario</button>
+              <button onClick={saveDrawerUser} disabled={!drawerUser.name.trim()} className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-transform  disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 hover:scale-105 ${'bg-primary text-white hover:bg-primary-hover'}`}><Save size={16} /> Guardar Usuario</button>
             </div>
           </>
         )}
       </div>
 
       {/* Drawer Overlay (Report) */}
-      {isReportDrawerOpen && <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[70] transition-opacity" onClick={() => setIsReportDrawerOpen(false)} />}
+      {isReportDrawerOpen && <div className="fixed inset-0 bg-black/40  z-[70] transition-opacity" onClick={() => setIsReportDrawerOpen(false)} />}
 
       {/* Drawer (Report) */}
-      <div className={`fixed inset-y-0 right-0 z-[80] w-full sm:w-[400px] ${isReportDrawerOpen ? 'shadow-[0_0_40px_rgba(0,0,0,0.5)] translate-x-0' : 'translate-x-full'} transform transition-transform duration-300 flex flex-col backdrop-blur-2xl ${'bg-white/90 border-l border-white/50'}`}>
+      <div className={`fixed inset-y-0 right-0 z-[80] w-full sm:w-[400px] ${isReportDrawerOpen ? ' translate-x-0' : 'translate-x-full'} transform transition-transform duration-300 flex flex-col  ${'bg-white/90 border-l border-white/50'}`}>
         {isReportDrawerOpen && (
           <>
             <div className={`flex items-center justify-between px-6 py-4 border-b shrink-0 ${'border-black/5'}`}>
               <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-xl shadow-inner ${'bg-primary/10 text-primary border border-primary/25'}`}><Download size={18} /></div>
+                <div className={`p-2 rounded-xl  ${'bg-primary/10 text-primary border border-primary/25'}`}><Download size={18} /></div>
                 <h2 className={`text-lg font-bold ${'text-gray-900'}`}>Exportar Informes</h2>
               </div>
-              <button onClick={() => setIsReportDrawerOpen(false)} className={`p-2 rounded-lg transition-all shadow-sm ${'bg-white hover:bg-gray-100 text-gray-600 border border-gray-200'}`}><X size={16} /></button>
+              <button onClick={() => setIsReportDrawerOpen(false)} className={`p-2 rounded-lg transition-all  ${'bg-white hover:bg-gray-100 text-gray-600 border border-gray-200'}`}><X size={16} /></button>
             </div>
 
             <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6 custom-scrollbar">
@@ -3058,24 +3061,24 @@ export default function App() {
                 <p className={`text-sm font-medium leading-relaxed ${'text-gray-600'} mb-4`}>Selecciona los filtros para descargar un reporte detallado en formato CSV compatible con Excel y Google Sheets.</p>
                 
                 <div>
-                  <label className={`block text-[10px] font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}>Filtrar por Proyecto</label>
-                  <select value={reportFilters.projectId} onChange={(e) => setReportFilters(prev => ({ ...prev, projectId: e.target.value }))} className={`w-full px-3 py-2 text-sm font-medium rounded-lg outline-none cursor-pointer transition-all shadow-inner ${currentGlassInput}`}>
+                  <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}>Filtrar por Proyecto</label>
+                  <select value={reportFilters.projectId} onChange={(e) => setReportFilters(prev => ({ ...prev, projectId: e.target.value }))} className={`w-full px-3 py-2 text-sm font-medium rounded-lg outline-none cursor-pointer transition-all  ${currentGlassInput}`}>
                     <option value="all" className="text-black">Todos los proyectos</option>
                     {projectsList.map(p => <option key={p.id} value={p.id} className="text-black">{p.title}</option>)}
                   </select>
                 </div>
 
                 <div>
-                  <label className={`block text-[10px] font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}>Filtrar por Estado</label>
-                  <select value={reportFilters.status} onChange={(e) => setReportFilters(prev => ({ ...prev, status: e.target.value }))} className={`w-full px-3 py-2 text-sm font-medium rounded-lg outline-none cursor-pointer transition-all shadow-inner ${currentGlassInput}`}>
+                  <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}>Filtrar por Estado</label>
+                  <select value={reportFilters.status} onChange={(e) => setReportFilters(prev => ({ ...prev, status: e.target.value }))} className={`w-full px-3 py-2 text-sm font-medium rounded-lg outline-none cursor-pointer transition-all  ${currentGlassInput}`}>
                     <option value="all" className="text-black">Todos los estados</option>
                     {DEFAULT_COLUMNS.map(c => <option key={c.id} value={c.id} className="text-black">{c.title}</option>)}
                   </select>
                 </div>
 
                 <div>
-                  <label className={`block text-[10px] font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}>Filtrar por Asignado</label>
-                  <select value={reportFilters.assigneeId} onChange={(e) => setReportFilters(prev => ({ ...prev, assigneeId: e.target.value }))} className={`w-full px-3 py-2 text-sm font-medium rounded-lg outline-none cursor-pointer transition-all shadow-inner ${currentGlassInput}`}>
+                  <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}>Filtrar por Asignado</label>
+                  <select value={reportFilters.assigneeId} onChange={(e) => setReportFilters(prev => ({ ...prev, assigneeId: e.target.value }))} className={`w-full px-3 py-2 text-sm font-medium rounded-lg outline-none cursor-pointer transition-all  ${currentGlassInput}`}>
                     <option value="all" className="text-black">Todo el equipo</option>
                     {users.map(u => <option key={u.id} value={u.id} className="text-black">{u.name}</option>)}
                   </select>
@@ -3084,8 +3087,8 @@ export default function App() {
               </div>
             </div>
             
-            <div className={`px-6 py-4 border-t flex justify-end shrink-0 ${'border-black/5 bg-white/40 backdrop-blur-md'}`}>
-              <button onClick={exportToCSV} className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-transform shadow-sm hover:scale-105 ${'bg-primary text-white hover:bg-primary-hover'}`}><Download size={16} /> Descargar CSV</button>
+            <div className={`px-6 py-4 border-t flex justify-end shrink-0 ${'border-black/5 bg-white/40 '}`}>
+              <button onClick={exportToCSV} className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-transform  hover:scale-105 ${'bg-primary text-white hover:bg-primary-hover'}`}><Download size={16} /> Descargar CSV</button>
             </div>
           </>
         )}
@@ -3094,7 +3097,7 @@ export default function App() {
       {/* Contenedor de Toasts (Notificaciones Flotantes Minimalistas) */}
       <div className="fixed bottom-6 right-6 z-[100] flex flex-col gap-2 pointer-events-none">
         {toasts.map(toast => (
-          <div key={toast.id} className={`animate-in slide-in-from-bottom-5 fade-in duration-300 flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-lg pointer-events-auto backdrop-blur-md border ${'bg-white/90 border-gray-200 text-gray-800'}`}>
+          <div key={toast.id} className={`animate-in slide-in-from-bottom-5 fade-in duration-300 flex items-center gap-2.5 px-4 py-3 rounded-xl  pointer-events-auto  border ${'bg-white/90 border-gray-200 text-gray-800'}`}>
             {toast.type === 'success' && <CheckCircle2 size={16} className="text-emerald-500" />}
             {toast.type === 'error' && <X size={16} className="text-red-500" />}
             {toast.type === 'sync' && <Cloud size={16} className="text-primary animate-pulse" />}
@@ -3105,8 +3108,8 @@ export default function App() {
 
       {/* Confirmación Global Personalizada */}
       {globalConfirmDialog && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-2xl border border-slate-100 max-w-sm w-full overflow-hidden p-6 animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50  p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl  border border-slate-100 max-w-sm w-full overflow-hidden p-6 animate-in zoom-in-95 duration-200">
             <div className="flex flex-col items-center text-center">
               <div className="w-12 h-12 rounded-full bg-amber-50 border border-amber-100 flex items-center justify-center shrink-0 mb-4 animate-bounce">
                 <AlertCircle className="text-amber-500" size={24} />
@@ -3125,7 +3128,7 @@ export default function App() {
               <button 
                 type="button"
                 onClick={globalConfirmDialog.onConfirm}
-                className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-primary text-white hover:bg-primary-hover shadow-sm transition-all active:scale-95"
+                className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-primary text-white hover:bg-primary-hover  transition-all active:scale-95"
               >
                 Aceptar
               </button>

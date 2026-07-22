@@ -42,12 +42,12 @@ export default function ErpDashboard({ setActivePageId, setVentasInitialSubTab, 
           {/* Item 1: POS */}
           <button 
             onClick={() => { setVentasInitialSubTab && setVentasInitialSubTab('pos'); setActivePageId('ventas'); }}
-            className="group flex flex-col items-center justify-center p-4 sm:p-8 rounded-2xl bg-white border border-gray-200/85 shadow-sm hover:shadow-md hover:border-primary/30 transition-all duration-300 hover:-translate-y-1"
+            className="group flex flex-col items-center justify-center p-4 sm:p-8 rounded-2xl bg-white border border-gray-200/85  hover:border-primary/30 transition-all duration-300 hover:-translate-y-1"
           >
             <div className="p-3 sm:p-4 rounded-xl mb-3 bg-primary/10 text-primary transition-all duration-300 group-hover:scale-105">
               <ShoppingCart size={24} className="sm:w-7 sm:h-7" />
             </div>
-            <span className="text-[16px] font-normal text-gray-700 tracking-wide text-center leading-tight">
+            <span className="text-lg font-normal text-gray-700 tracking-wide text-center leading-tight">
               Punto de Venta
             </span>
           </button>
@@ -55,12 +55,12 @@ export default function ErpDashboard({ setActivePageId, setVentasInitialSubTab, 
           {/* Item 2: Facturas SRI */}
           <button 
             onClick={() => { setVentasInitialSubTab && setVentasInitialSubTab('resumen_ventas'); setActivePageId('ventas'); }}
-            className="group flex flex-col items-center justify-center p-4 sm:p-8 rounded-2xl bg-white border border-gray-200/85 shadow-sm hover:shadow-md hover:border-primary/30 transition-all duration-300 hover:-translate-y-1"
+            className="group flex flex-col items-center justify-center p-4 sm:p-8 rounded-2xl bg-white border border-gray-200/85  hover:border-primary/30 transition-all duration-300 hover:-translate-y-1"
           >
             <div className="p-3 sm:p-4 rounded-xl mb-3 bg-primary/10 text-primary transition-all duration-300 group-hover:scale-105">
               <FileText size={24} className="sm:w-7 sm:h-7" />
             </div>
-            <span className="text-[16px] font-normal text-gray-700 tracking-wide text-center leading-tight">
+            <span className="text-lg font-normal text-gray-700 tracking-wide text-center leading-tight">
               Facturación
             </span>
           </button>
@@ -68,12 +68,12 @@ export default function ErpDashboard({ setActivePageId, setVentasInitialSubTab, 
           {/* Item 3: Inventario */}
           <button 
             onClick={() => setActivePageId('inventario')}
-            className="group flex flex-col items-center justify-center p-4 sm:p-8 rounded-2xl bg-white border border-gray-200/85 shadow-sm hover:shadow-md hover:border-primary/30 transition-all duration-300 hover:-translate-y-1"
+            className="group flex flex-col items-center justify-center p-4 sm:p-8 rounded-2xl bg-white border border-gray-200/85  hover:border-primary/30 transition-all duration-300 hover:-translate-y-1"
           >
             <div className="p-3 sm:p-4 rounded-xl mb-3 bg-primary/10 text-primary transition-all duration-300 group-hover:scale-105">
               <Package size={24} className="sm:w-7 sm:h-7" />
             </div>
-            <span className="text-[16px] font-normal text-gray-700 tracking-wide text-center leading-tight">
+            <span className="text-lg font-normal text-gray-700 tracking-wide text-center leading-tight">
               Inventario
             </span>
           </button>
@@ -81,12 +81,12 @@ export default function ErpDashboard({ setActivePageId, setVentasInitialSubTab, 
           {/* Item 4: Personas */}
           <button 
             onClick={() => setActivePageId('personas')}
-            className="group flex flex-col items-center justify-center p-4 sm:p-8 rounded-2xl bg-white border border-gray-200/85 shadow-sm hover:shadow-md hover:border-primary/30 transition-all duration-300 hover:-translate-y-1"
+            className="group flex flex-col items-center justify-center p-4 sm:p-8 rounded-2xl bg-white border border-gray-200/85  hover:border-primary/30 transition-all duration-300 hover:-translate-y-1"
           >
             <div className="p-3 sm:p-4 rounded-xl mb-3 bg-primary/10 text-primary transition-all duration-300 group-hover:scale-105">
               <Users size={24} className="sm:w-7 sm:h-7" />
             </div>
-            <span className="text-[16px] font-normal text-gray-700 tracking-wide text-center leading-tight">
+            <span className="text-lg font-normal text-gray-700 tracking-wide text-center leading-tight">
               Clientes / Prov
             </span>
           </button>
@@ -94,12 +94,12 @@ export default function ErpDashboard({ setActivePageId, setVentasInitialSubTab, 
           {/* Item 5: Calendario */}
           <button 
             onClick={() => setActivePageId('calendar')}
-            className="group flex flex-col items-center justify-center p-4 sm:p-8 rounded-2xl bg-white border border-gray-200/85 shadow-sm hover:shadow-md hover:border-primary/30 transition-all duration-300 hover:-translate-y-1"
+            className="group flex flex-col items-center justify-center p-4 sm:p-8 rounded-2xl bg-white border border-gray-200/85  hover:border-primary/30 transition-all duration-300 hover:-translate-y-1"
           >
             <div className="p-3 sm:p-4 rounded-xl mb-3 bg-primary/10 text-primary transition-all duration-300 group-hover:scale-105">
               <CalendarDays size={24} className="sm:w-7 sm:h-7" />
             </div>
-            <span className="text-[16px] font-normal text-gray-700 tracking-wide text-center leading-tight">
+            <span className="text-lg font-normal text-gray-700 tracking-wide text-center leading-tight">
               Calendario
             </span>
           </button>
@@ -107,12 +107,12 @@ export default function ErpDashboard({ setActivePageId, setVentasInitialSubTab, 
           {/* Item 6: Ajustes */}
           <button 
             onClick={() => setActivePageId('general_settings')}
-            className="group flex flex-col items-center justify-center p-4 sm:p-8 rounded-2xl bg-white border border-gray-200/85 shadow-sm hover:shadow-md hover:border-primary/30 transition-all duration-300 hover:-translate-y-1"
+            className="group flex flex-col items-center justify-center p-4 sm:p-8 rounded-2xl bg-white border border-gray-200/85  hover:border-primary/30 transition-all duration-300 hover:-translate-y-1"
           >
             <div className="p-3 sm:p-4 rounded-xl mb-3 bg-primary/10 text-primary transition-all duration-300 group-hover:scale-105">
               <Settings size={24} className="sm:w-7 sm:h-7" />
             </div>
-            <span className="text-[16px] font-normal text-gray-700 tracking-wide text-center leading-tight">
+            <span className="text-lg font-normal text-gray-700 tracking-wide text-center leading-tight">
               Ajustes
             </span>
           </button>

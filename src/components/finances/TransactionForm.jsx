@@ -2491,7 +2491,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                                         <Percent size={12} />
                                       </button>
                                       {discVal > 0 && (
-                                        <span className="text-[10px] font-bold text-red-500">
+                                        <span className="text-xs font-bold text-red-500">
                                           -{item.discount_type === 'PORCENTAJE' ? `${discVal}%` : `$${discVal}`}
                                         </span>
                                       )}
@@ -3744,14 +3744,14 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       {selectedLineItemForDiscount && (() => {
         const available = getAvailableDiscountsForLineItem(selectedLineItemForDiscount);
         return (
-          <div className="fixed inset-0 z-[250] flex items-center justify-center bg-slate-900/35 backdrop-blur-xs p-4">
-            <div className="bg-white rounded-2xl w-full max-w-md border border-[#CDD1EA] overflow-hidden flex flex-col shadow-lg animate-in fade-in zoom-in-95 duration-200">
+          <div className="fixed inset-0 z-[250] flex items-center justify-center bg-slate-900/35  p-4">
+            <div className="bg-white rounded-2xl w-full max-w-md border border-border-default overflow-hidden flex flex-col  animate-in fade-in zoom-in-95 duration-200">
               <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
                 <div>
                   <h3 className="text-xs font-extrabold text-slate-800 uppercase tracking-wider">
                     Descuento / Promo de Ítem
                   </h3>
-                  <p className="text-[10px] text-slate-500 font-bold mt-0.5">{selectedLineItemForDiscount.name}</p>
+                  <p className="text-xs text-slate-500 font-bold mt-0.5">{selectedLineItemForDiscount.name}</p>
                 </div>
                 <button 
                   onClick={() => setSelectedLineItemForDiscount(null)} 
@@ -3835,7 +3835,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       >
                         <div className="flex flex-col">
                           <span className="text-xs font-bold uppercase">{d.nombre}</span>
-                          <span className="text-[10px] text-slate-400 mt-0.5">
+                          <span className="text-xs text-slate-400 mt-0.5">
                             Valor: {d.tipo_valor === 'PORCENTAJE' ? `${d.valor}%` : `$${d.valor}`}
                             {d.requiere_autorizacion && ' • [Clave Supervisor]'}
                           </span>
@@ -3853,8 +3853,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
       {/* SUPERVISOR AUTHORIZATION MODAL */}
       {authDialog && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm border border-[#CDD1EA] overflow-hidden flex flex-col shadow-xl animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-slate-900/40  p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm border border-border-default overflow-hidden flex flex-col  animate-in zoom-in-95 duration-200">
             <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
               <span className="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1.5 text-red-500">
                 <ShieldAlert size={15} /> Autorización Requerida
@@ -3872,7 +3872,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               </p>
               
               <div>
-                <label className="block text-[10px] uppercase font-extrabold text-slate-500 mb-1.5">Clave de Supervisor</label>
+                <label className="block text-xs uppercase font-extrabold text-slate-500 mb-1.5">Clave de Supervisor</label>
                 <input
                   type="password"
                   required
@@ -3898,7 +3898,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   autoFocus
                 />
                 {authError && (
-                  <p className="text-red-500 font-bold text-[10px] mt-1.5 animate-pulse">{authError}</p>
+                  <p className="text-red-500 font-bold text-xs mt-1.5 animate-pulse">{authError}</p>
                 )}
               </div>
 

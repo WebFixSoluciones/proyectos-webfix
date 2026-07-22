@@ -456,7 +456,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
             
             {/* FORMATO 1: RIDE OFICIAL A4 */}
             {viewFormat === 'ride' && (
-              <div className="w-full max-w-3xl mx-auto p-5 bg-white border border-gray-300 text-black shadow-lg text-xs font-sans leading-tight print:shadow-none print:border-none print:p-0">
+              <div className="w-full max-w-3xl mx-auto p-5 bg-white border border-gray-300 text-black  text-xs font-sans leading-tight print: print:border-none print:p-0">
                 
                 {/* Cabecera Principal Compacta */}
                 <div className="border border-gray-300 grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-300 print:grid-cols-2 print:divide-x print:divide-y-0 text-xs text-black">
@@ -770,7 +770,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
 
             {/* FORMATO 2: TICKET POS TERMICO 80MM */}
             {viewFormat === 'ticket' && (
-              <div className="w-[300px] mx-auto p-4 bg-white border border-gray-400 text-black text-xs font-mono leading-tight print:shadow-none print:border-none print:p-0">
+              <div className="w-[300px] mx-auto p-4 bg-white border border-gray-400 text-black text-xs font-mono leading-tight print: print:border-none print:p-0">
                 <div className="text-center space-y-1">
                   <h2 className="font-bold text-sm uppercase">{emisor.nombreComercial}</h2>
                   <p className="text-xs">{emisor.razonSocial}</p>

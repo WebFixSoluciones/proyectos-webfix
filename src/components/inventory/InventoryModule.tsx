@@ -429,7 +429,7 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
                                     />
                                     <div className="min-w-0">
                                       <span className={`font-semibold block truncate max-w-[220px] ${'text-gray-900 font-bold'}`}>{p.name}</span>
-                                      {p.description && <p className="text-[10px] text-gray-500 truncate max-w-[220px] mt-0.5">{p.description}</p>}
+                                      {p.description && <p className="text-xs text-gray-500 truncate max-w-[220px] mt-0.5">{p.description}</p>}
                                     </div>
                                   </div>
                                 </td>

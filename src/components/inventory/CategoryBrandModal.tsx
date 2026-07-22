@@ -292,7 +292,7 @@ export default function CategoryBrandModal({ onClose, onChanged }: CategoryBrand
                           {cat.id_descuento_asociado && (() => {
                             const disc = discounts.find(d => d.id === cat.id_descuento_asociado);
                             return disc ? (
-                              <span className="inline-block mt-1 px-2.5 py-0.5 bg-red-50 text-red-500 rounded-md text-[9px] font-bold uppercase">
+                              <span className="inline-block mt-1 px-2.5 py-0.5 bg-red-50 text-red-500 rounded-md text-xs font-bold uppercase">
                                 Descuento: {disc.nombre}
                               </span>
                             ) : null;

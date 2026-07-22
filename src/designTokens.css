@@ -1,9 +1,9 @@
 :root {
   /* Primary */
   --primary: #2563EB;
-  --primary-hover: color-mix(in srgb, var(--primary) 85%, #000000);
-  --primary-light: color-mix(in srgb, var(--primary) 8%, #ffffff);
-  --primary-muted: color-mix(in srgb, var(--primary) 15%, #ffffff);
+  --primary-hover: #1D4ED8;
+  --primary-light: #EFF6FF;
+  --primary-muted: #DBEAFE;
 
   /* Surfaces */
   --surface-bg: #F8FAFC;
@@ -15,9 +15,9 @@
   --border-strong: #CBD5E1;
 
   /* Text */
-  --text-primary: #000000;
-  --text-secondary: #262626;
-  --text-muted: #525252;
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #94A3B8;
 
   /* Semantic */
   --success: #16A34A;

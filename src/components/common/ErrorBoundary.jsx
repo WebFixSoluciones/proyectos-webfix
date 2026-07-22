@@ -32,7 +32,7 @@ export class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="p-6 md:p-8 m-4 rounded-xl border border-red-200 bg-red-50/50 shadow-sm animate-in fade-in duration-300">
+        <div className="p-6 md:p-8 m-4 rounded-xl border border-red-200 bg-red-50/50  animate-in fade-in duration-300">
           <div className="flex items-start gap-4">
             <div className="p-3 bg-red-100 text-red-600 rounded-lg shrink-0">
               <AlertOctagon size={24} />
@@ -50,7 +50,7 @@ export class ErrorBoundary extends React.Component {
                   {this.state.error?.name}: {this.state.error?.message}
                 </p>
                 {this.state.error?.stack && (
-                  <pre className="text-[11px] leading-relaxed opacity-80 whitespace-pre-wrap">
+                  <pre className="text-xs leading-relaxed opacity-80 whitespace-pre-wrap">
                     {this.state.error.stack}
                   </pre>
                 )}
@@ -59,7 +59,7 @@ export class ErrorBoundary extends React.Component {
               <div className="flex items-center gap-2">
                 <button
                   onClick={this.handleReset}
-                  className="flex items-center gap-1.5 px-3.5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm"
+                  className="flex items-center gap-1.5 px-3.5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-all "
                 >
                   <RefreshCw size={14} /> Reintentar
                 </button>

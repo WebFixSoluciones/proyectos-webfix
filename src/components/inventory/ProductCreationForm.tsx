@@ -823,7 +823,7 @@ export default function ProductCreationForm({
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-xs font-bold text-gray-700 dark:text-gray-200">Precio sin IVA</label>
                 {formData.tax_mode === 'INCLUIDO' && (
-                  <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full font-semibold">Autocalculado</span>
+                  <span className="text-xs bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full font-semibold">Autocalculado</span>
                 )}
               </div>
               <div className="relative">
@@ -851,7 +851,7 @@ export default function ProductCreationForm({
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-xs font-bold text-gray-700 dark:text-gray-200">Precio con IVA *</label>
                 {formData.tax_mode === 'EXCLUIDO' && (
-                  <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full font-semibold">Autocalculado</span>
+                  <span className="text-xs bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full font-semibold">Autocalculado</span>
                 )}
               </div>
               <div className="relative">
@@ -876,7 +876,7 @@ export default function ProductCreationForm({
             </div>
           </div>
           
-          <div className="text-[11px] text-slate-400 italic flex items-center gap-1">
+          <div className="text-xs text-slate-400 italic flex items-center gap-1">
             <span>IVA Calculado:</span>
             <span className="font-bold font-mono text-slate-600">${formData.ivaCalculated.toFixed(2)}</span>
           </div>
@@ -1148,14 +1148,14 @@ export default function ProductCreationForm({
                   </option>
                 ))}
               </select>
-              <p className="text-[10px] text-gray-500 mt-1 font-semibold">
+              <p className="text-xs text-gray-500 mt-1 font-semibold">
                 Este descuento se aplicará de forma automática en el POS y facturación para este producto.
               </p>
             </div>
 
             {/* Heredado de Categoría */}
             <div className="p-3.5 bg-slate-50 border border-slate-100 rounded-2xl flex flex-col justify-center">
-              <span className="text-[10px] font-extrabold uppercase text-slate-550 mb-1">
+              <span className="text-xs font-extrabold uppercase text-slate-550 mb-1">
                 Descuento Heredado de Categoría
               </span>
               {(() => {
@@ -1168,7 +1168,7 @@ export default function ProductCreationForm({
                         <p className="text-xs font-bold text-red-500 uppercase flex items-center gap-1">
                           <Tag size={12} /> {disc.nombre}
                         </p>
-                        <p className="text-[10px] text-slate-500 mt-1 leading-normal font-semibold">
+                        <p className="text-xs text-slate-500 mt-1 leading-normal font-semibold">
                           Heredado automáticamente de la categoría <strong>{activeCat.name}</strong>.
                           {formData.id_descuento_asociado && (
                             <span className="text-orange-500 font-bold block mt-1">
