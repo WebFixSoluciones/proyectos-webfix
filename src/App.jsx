@@ -357,6 +357,7 @@ export default function App() {
   const [plansList, setPlansList] = useState(Object.values(PLANS));
   const [pages, setPages] = useState(INITIAL_PAGES);
   const [trash, setTrash] = useState([]);
+  const [users, setUsers] = useState(MOCK_USERS);
   const [activePageId, setActivePageId] = useState(() => {
     try {
       const savedPage = localStorage.getItem('activePageId');
