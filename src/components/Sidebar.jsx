@@ -184,7 +184,7 @@ export default function Sidebar({
  </button>
  {isSidebarOpen && expandedSidebarMenu ==='finances' && (
  <div className={menuBorderClass}>
- {[{ id:'dashboard', label:'Resumen financiero' },{ id:'movimientos', label:'Movimientos' },{ id:'cxc', label:'Cuentas por cobrar' },{ id:'cxp', label:'Cuentas por pagar' },{ id:'tarjetas_creditos', label:'Tarjetas y créditos' },{ id:'captura_inteligente', label:'Captura inteligente' },{ id:'contabilidad', label:'Contabilidad' },{ id:'impuestos_sri', label:'Impuestos y SRI' },{ id:'reports', label:'Reportes' }].map(sub => {
+ {[{ id:'dashboard', label:'Resumen financiero' },{ id:'movimientos', label:'Movimientos' },{ id:'cxc', label:'Cuentas por cobrar' },{ id:'cxp', label:'Cuentas por pagar' },{ id:'bancos_caja', label:'Bancos y Caja' },{ id:'tarjetas_creditos', label:'Tarjetas y créditos' },{ id:'captura_inteligente', label:'Captura inteligente' },{ id:'contabilidad', label:'Contabilidad' },{ id:'impuestos_sri', label:'Impuestos y SRI' },{ id:'reports', label:'Reportes' }].map(sub => {
  const isActive = activePageId ==='finances' && contabilidadInitialSubTab === sub.id;
  return <button key={sub.id} onClick={() => { setContabilidadInitialSubTab(sub.id); setActivePageId('finances'); closeMobile(); }} className={subItemClass(isActive)}>{sub.label}</button>;
  })}
