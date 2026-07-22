@@ -105,7 +105,7 @@ import PublicRideView from './pages/PublicRideView';
 import { PLANS } from './config/plans';
 
 import FinanceModule from './components/finances/FinanceModule';
-import FinancialControlModule from './components/finances/FinancialControlModule';
+
 import ErpDashboard from './components/dashboard/ErpDashboard';
 import GeneralSettings from './components/dashboard/GeneralSettings';
 import HiringServicesModule from './components/dashboard/HiringServicesModule';
@@ -2217,12 +2217,7 @@ export default function App() {
                     <BillingPortal showToast={showToast} initialSubTab={billingInitialSubTab} />
                   )}
 
-                  {/* VISTAS FINANCIERAS MODULARES */}
-                  {activePageId === 'finances' && (
-                    <ErrorBoundary title="Error en el módulo de Control Financiero">
-                      <FinancialControlModule initialSubTab={contabilidadInitialSubTab} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} companyProfile={companyProfile} />
-                    </ErrorBoundary>
-                  )}
+
               {activePageId === 'ventas' && (
                 <ErrorBoundary title="Error en el módulo de Ventas">
                   <FinanceModule mode="ventas" initialSubTab={ventasInitialSubTab} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} discounts={globalDiscounts} promotions={globalPromotions} isLoading={isLoadingFinances} />

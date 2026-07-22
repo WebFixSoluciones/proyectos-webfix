@@ -173,26 +173,6 @@ export default function Sidebar({
  </div>
  )}
 
- {(activeModules.finances || activeModules.compras || activeModules.gastos_creditos) && (
- <div className="space-y-0.5">
- <button onClick={() => { setExpandedSidebarMenu(expandedSidebarMenu ==='finances' ? null :'finances'); setContabilidadInitialSubTab('dashboard'); setActivePageId('finances'); }} className={navBtnClass(activePageId ==='finances')}>
- <div className="flex items-center gap-3 flex-1">
- <DollarSign size={16} className={iconClass(activePageId ==='finances')} />
- {isSidebarOpen && <span>Control Financiero</span>}
- </div>
- {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu ==='finances' ?'rotate-180' :''} text-text-secondary`} />}
- </button>
- {isSidebarOpen && expandedSidebarMenu ==='finances' && (
- <div className={menuBorderClass}>
- {[{ id:'dashboard', label:'Resumen financiero' },{ id:'movimientos', label:'Movimientos' },{ id:'cxc', label:'Cuentas por cobrar' },{ id:'cxp', label:'Cuentas por pagar' },{ id:'bancos_caja', label:'Bancos y Caja' },{ id:'tarjetas_creditos', label:'Tarjetas y créditos' },{ id:'captura_inteligente', label:'Captura inteligente' },{ id:'contabilidad', label:'Contabilidad' },{ id:'impuestos_sri', label:'Impuestos y SRI' },{ id:'reports', label:'Reportes' }].map(sub => {
- const isActive = activePageId ==='finances' && contabilidadInitialSubTab === sub.id;
- return <button key={sub.id} onClick={() => { setContabilidadInitialSubTab(sub.id); setActivePageId('finances'); closeMobile(); }} className={subItemClass(isActive)}>{sub.label}</button>;
- })}
- </div>
- )}
- </div>
- )}
-
  {activeModules.personas && (
  <div className="space-y-0.5">
  <button onClick={() => { setExpandedSidebarMenu(expandedSidebarMenu ==='personas_menu' ? null :'personas_menu'); setPersonasSubTab('cliente'); setActivePageId('personas'); }} className={navBtnClass(activePageId ==='personas' || activePageId ==='team')}>
