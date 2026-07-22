@@ -1,14 +1,15 @@
 import { 
- LayoutDashboard, ShoppingCart, CreditCard,
- Package, DollarSign, Users, Briefcase, Settings,
- ChevronDown, LifeBuoy, Trash2, LogOut
-} from'lucide-react';
+  LayoutDashboard, ShoppingCart, ShoppingBag, CreditCard,
+  Package, DollarSign, Users, Briefcase, Settings,
+  ChevronDown, LifeBuoy, Trash2, LogOut
+} from 'lucide-react';
 
 export default function Sidebar({
- isSidebarOpen, setIsSidebarOpen, activePageId, setActivePageId,
- companyProfile, activeModules, expandedSidebarMenu, setExpandedSidebarMenu,
- ventasInitialSubTab, setVentasInitialSubTab,
- inventarioInitialSubTab, setInventarioInitialSubTab,
+  isSidebarOpen, setIsSidebarOpen, activePageId, setActivePageId,
+  companyProfile, activeModules, expandedSidebarMenu, setExpandedSidebarMenu,
+  ventasInitialSubTab, setVentasInitialSubTab,
+  comprasInitialSubTab, setComprasInitialSubTab,
+  inventarioInitialSubTab, setInventarioInitialSubTab,
  contabilidadInitialSubTab, setContabilidadInitialSubTab,
  billingInitialSubTab, setBillingInitialSubTab,
  personasSubTab, setPersonasSubTab,
@@ -101,6 +102,56 @@ export default function Sidebar({
  )}
  </div>
  )}
+
+  {activeModules.compras && (
+    <div className="space-y-0.5">
+      <button 
+        onClick={() => { 
+          setExpandedSidebarMenu(expandedSidebarMenu === 'compras' ? null : 'compras'); 
+          setComprasInitialSubTab('compras_resumen'); 
+          setActivePageId('compras'); 
+        }} 
+        className={navBtnClass(activePageId === 'compras')}
+      >
+        <div className="flex items-center gap-3 flex-1">
+          <ShoppingBag size={16} className={iconClass(activePageId === 'compras')} />
+          {isSidebarOpen && <span>Compras</span>}
+        </div>
+        {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu === 'compras' ? 'rotate-180' : ''} text-text-secondary`} />}
+      </button>
+      {isSidebarOpen && expandedSidebarMenu === 'compras' && (
+        <div className={menuBorderClass}>
+          {[
+            { id: 'compras_resumen', label: 'Historial de Compras' },
+            { id: 'compras_preventa', label: 'Registrar Compra' },
+            { id: 'compras_nc', label: 'Notas de Credito Recibidas' },
+            { id: 'compras_nd', label: 'Notas de Debito Recibidas' },
+            { id: 'compras_retencion', label: 'Retenciones de Compras' }
+          ].map(sub => {
+            const isActive = activePageId === 'compras' && (
+              sub.id === 'compras_preventa' 
+                ? (comprasInitialSubTab && String(comprasInitialSubTab).startsWith('compras_preventa'))
+                : comprasInitialSubTab === sub.id
+            );
+            return (
+              <button 
+                key={sub.id} 
+                onClick={() => { 
+                  const targetId = sub.id === 'compras_preventa' ? `compras_preventa_${Date.now()}` : sub.id;
+                  setComprasInitialSubTab(targetId); 
+                  setActivePageId('compras'); 
+                  closeMobile(); 
+                }} 
+                className={subItemClass(isActive)}
+              >
+                {sub.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  )}
 
  {activeModules.inventario && (
  <div className="space-y-0.5">
