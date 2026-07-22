@@ -287,21 +287,21 @@ export default function TransactionsView({ transactions, thirdParties, showToast
   };
 
   const getStatusBadge = (status, documentType) => {
-    const baseClass = "flex items-center gap-1 text-xs px-2 py-0.5 rounded-md font-bold uppercase border";
+    const baseClass = "inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded font-bold uppercase tracking-wider border shadow-2xs";
     switch(status) {
       case 'autorizado': 
         if (documentType === 'nota_venta') {
-          return <span className={`${baseClass} bg-emerald-100 text-emerald-800 border-emerald-300`}><CheckCircle2 size={10}/> Registrado</span>;
+          return <span className={`${baseClass} bg-emerald-50 text-emerald-800 border-emerald-300/80`}><CheckCircle2 size={11}/> Registrado</span>;
         }
-        return <span className={`${baseClass} bg-emerald-100 text-emerald-800 border-emerald-300`}><CheckCircle2 size={10}/> Autorizado</span>;
+        return <span className={`${baseClass} bg-emerald-50 text-emerald-800 border-emerald-300/80`}><CheckCircle2 size={11}/> Autorizado</span>;
       case 'pendiente': 
-        return <span className={`${baseClass} bg-yellow-100 text-yellow-800 border-yellow-300`}><AlertCircle size={10}/> Pendiente</span>;
+        return <span className={`${baseClass} bg-amber-50 text-amber-800 border-amber-300/80`}><AlertCircle size={11}/> Pendiente</span>;
       case 'anulado': 
-        return <span className={`${baseClass} bg-red-100 text-red-800 border-red-300`}>Anulado</span>;
+        return <span className={`${baseClass} bg-rose-50 text-rose-800 border-rose-300/80`}>Anulado</span>;
       case 'rechazado': 
-        return <span className={`${baseClass} bg-red-100 text-red-800 border-red-300`}><AlertTriangle size={10}/> Rechazado</span>;
+        return <span className={`${baseClass} bg-rose-50 text-rose-800 border-rose-300/80`}><AlertTriangle size={11}/> Rechazado</span>;
       default: 
-        return <span className="text-xs px-2 py-0.5 rounded-md bg-gray-150 text-gray-700 border border-gray-300 font-bold uppercase">{status || 'Borrador'}</span>;
+        return <span className="inline-flex items-center text-[11px] px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-300 font-bold uppercase">{status || 'Borrador'}</span>;
     }
   };
 
@@ -614,25 +614,25 @@ export default function TransactionsView({ transactions, thirdParties, showToast
               {sortedFiltered.map(tx => (
                 <tr key={tx.id} className="transition-colors hover:bg-slate-50/40">
                   <td className="px-6 py-2.5">
-                    <div className="text-black font-semibold text-xs leading-none">{tx.date}</div>
+                    <div className="text-slate-900 font-bold text-xs leading-none">{tx.date}</div>
                     {tx.time && (
-                      <div className="text-xs text-slate-500 font-medium leading-none mt-1.5">
+                      <div className="text-[11px] text-slate-600 font-semibold leading-none mt-1.5">
                         {tx.time.substring(0, 5)}
                       </div>
                     )}
                   </td>
                   <td className="px-6 py-2.5">
-                    <div className="text-xs text-slate-500 font-semibold leading-none mb-1">
+                    <div className="text-[11px] text-slate-600 font-semibold leading-none mb-1">
                       {getDocumentTypeLabel(tx.documentType, tx.type)}
                     </div>
-                    <div className="font-mono text-xs text-black font-bold tracking-wider">
+                    <div className="font-mono text-xs text-slate-900 font-bold tracking-wider">
                       {tx.documentNumber || '-'}
                     </div>
                   </td>
-                  <td className="px-6 py-2.5 font-bold truncate max-w-[200px] text-black" title={thirdParties.find(tp => tp.id === tx.thirdPartyId)?.name}>
+                  <td className="px-6 py-2.5 font-bold truncate max-w-[200px] text-slate-900" title={thirdParties.find(tp => tp.id === tx.thirdPartyId)?.name}>
                     {thirdParties.find(tp => tp.id === tx.thirdPartyId)?.name || 'Desconocido'}
                   </td>
-                  <td className="px-6 py-2.5 font-extrabold text-black font-black">${Number(tx.total || 0).toFixed(2)}</td>
+                  <td className="px-6 py-2.5 font-extrabold text-slate-900 text-xs">${Number(tx.total || 0).toFixed(2)}</td>
                   <td className="px-6 py-2.5">{getStatusBadge(tx.sriStatus, tx.documentType)}</td>
                   {isPreventaTab && (
                     <td className="px-6 py-3.5">

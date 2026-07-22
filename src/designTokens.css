@@ -15,9 +15,9 @@
   --border-strong: #CBD5E1;
 
   /* Text */
-  --text-primary: #0F172A;
-  --text-secondary: #475569;
-  --text-muted: #94A3B8;
+  --text-primary: #000000;
+  --text-secondary: #1E293B;
+  --text-muted: #475569;
 
   /* Semantic */
   --success: #16A34A;
