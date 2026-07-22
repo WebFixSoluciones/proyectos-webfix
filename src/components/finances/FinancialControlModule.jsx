@@ -219,33 +219,7 @@ export default function FinancialControlModule({
 
   return (
     <div className="min-h-full bg-white p-5 md:p-7 rounded-xl space-y-5">
-      {/* Encabezado del módulo */}
-      <div className="border-b border-slate-100 pb-4">
-        <h2 className="text-base font-bold text-slate-900">Control Financiero</h2>
-        <p className="text-xs text-slate-500 mt-0.5">{currentArea.label}</p>
-      </div>
 
-      {/* Navegación lateral en pills (sin duplicar título) */}
-      <div className="flex flex-wrap gap-1.5 mb-2">
-        {AREAS.map(area => {
-          const Icon = area.icon;
-          const isActive = activeArea === area.id;
-          return (
-            <button
-              key={area.id}
-              onClick={() => setActiveArea(area.id)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md border transition-colors cursor-pointer ${
-                isActive
-                  ? 'bg-primary text-white border-primary'
-                  : 'bg-white text-text-secondary border-border-default hover:bg-primary-light hover:text-primary hover:border-primary'
-              }`}
-            >
-              {Icon && <Icon size={12} />}
-              {area.label}
-            </button>
-          );
-        })}
-      </div>
 
       {/* Contenido del sub-módulo activo */}
       <div>
