@@ -1,12 +1,12 @@
 // Constantes de datos y paletas del espacio de trabajo (Kanban, usuarios, páginas demo).
 
 export const COLUMN_COLORS = [
-  { id: 'gray', badge: 'bg-gray-200/60 text-gray-700 dark:bg-white/[0.08] dark:text-gray-300', bgDark: 'bg-text-primary/40 border-border-default', bgLight: 'bg-gray-100/40 border-gray-200/80', dot: 'bg-gray-400' },
-  { id: 'blue', badge: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300', bgDark: 'bg-blue-900/10 border-blue-500/20', bgLight: 'bg-blue-50/70 border-blue-200/80', dot: 'bg-blue-500' },
-  { id: 'green', badge: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300', bgDark: 'bg-green-900/10 border-green-500/20', bgLight: 'bg-green-50/70 border-green-200/80', dot: 'bg-green-500' },
-  { id: 'yellow', badge: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300', bgDark: 'bg-yellow-900/10 border-yellow-500/20', bgLight: 'bg-yellow-50/70 border-yellow-200/80', dot: 'bg-yellow-500' },
-  { id: 'red', badge: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300', bgDark: 'bg-red-900/10 border-red-500/20', bgLight: 'bg-red-50/70 border-red-200/80', dot: 'bg-red-500' },
-  { id: 'purple', badge: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300', bgDark: 'bg-purple-900/10 border-purple-500/20', bgLight: 'bg-purple-50/70 border-purple-200/80', dot: 'bg-purple-500' },
+  { id: 'gray', badge: 'bg-slate-200/90 text-slate-900 border border-slate-300 font-extrabold uppercase tracking-wider text-[11px]', bgDark: 'bg-slate-900/40 border-slate-700', bgLight: 'bg-slate-50 border-slate-200/90 shadow-sm', dot: 'bg-slate-600' },
+  { id: 'blue', badge: 'bg-blue-100 text-blue-950 border border-blue-300/90 font-extrabold uppercase tracking-wider text-[11px]', bgDark: 'bg-blue-950/40 border-blue-800', bgLight: 'bg-slate-50 border-slate-200/90 shadow-sm', dot: 'bg-blue-600' },
+  { id: 'green', badge: 'bg-emerald-100 text-emerald-950 border border-emerald-300/90 font-extrabold uppercase tracking-wider text-[11px]', bgDark: 'bg-emerald-950/40 border-emerald-800', bgLight: 'bg-slate-50 border-slate-200/90 shadow-sm', dot: 'bg-emerald-600' },
+  { id: 'yellow', badge: 'bg-amber-100 text-amber-950 border border-amber-300/90 font-extrabold uppercase tracking-wider text-[11px]', bgDark: 'bg-amber-950/40 border-amber-800', bgLight: 'bg-slate-50 border-slate-200/90 shadow-sm', dot: 'bg-amber-600' },
+  { id: 'red', badge: 'bg-rose-100 text-rose-950 border border-rose-300/90 font-extrabold uppercase tracking-wider text-[11px]', bgDark: 'bg-rose-950/40 border-rose-800', bgLight: 'bg-slate-50 border-slate-200/90 shadow-sm', dot: 'bg-rose-600' },
+  { id: 'purple', badge: 'bg-purple-100 text-purple-950 border border-purple-300/90 font-extrabold uppercase tracking-wider text-[11px]', bgDark: 'bg-purple-950/40 border-purple-800', bgLight: 'bg-slate-50 border-slate-200/90 shadow-sm', dot: 'bg-purple-600' },
 ];
 
 export const DEFAULT_COLUMNS = [

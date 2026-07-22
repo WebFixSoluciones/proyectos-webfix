@@ -161,8 +161,8 @@ const SortableTaskItem = ({
     <div 
       ref={setNodeRef} 
       style={style}
-      className={`group p-2 rounded-lg border transition-all duration-300 relative backdrop-blur-xl ${
-        'bg-white border-gray-200/80 hover:border-primary/45 shadow-sm hover:shadow hover:bg-white'
+      className={`group p-3 rounded-xl border transition-all duration-300 relative ${
+        'bg-white border-slate-200/90 hover:border-primary shadow-sm hover:shadow-md hover:bg-white'
       } ${isDragging ? 'z-50 shadow-2xl scale-105' : ''}`}
     >
       <div className="flex justify-between items-start mb-2">
@@ -170,7 +170,7 @@ const SortableTaskItem = ({
           <div 
             {...attributes} 
             {...listeners} 
-            className={`cursor-grab active:cursor-grabbing mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity ${'text-gray-400 hover:text-gray-600'}`}
+            className={`cursor-grab active:cursor-grabbing mt-0.5 opacity-60 group-hover:opacity-100 transition-opacity text-slate-400 hover:text-slate-700`}
           >
             <GripVertical size={14} />
           </div>
@@ -185,7 +185,7 @@ const SortableTaskItem = ({
                 onKeyDown={(e) => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleInlineSave(task.id, editingTaskContent); setEditingTaskId(null); } }}
                 onClick={(e) => e.stopPropagation()}
                 onPointerDown={(e) => e.stopPropagation()}
-                className={`w-full text-xs font-light leading-tight px-1.5 py-1 rounded-lg outline-none bg-black/20 backdrop-blur-md border border-white/20 text-white shadow-inner resize-none overflow-hidden`}
+                className={`w-full text-xs font-bold leading-tight px-2 py-1 rounded-lg outline-none bg-white border border-primary text-slate-900 shadow-sm resize-none overflow-hidden`}
                 rows={2}
               />
             ) : (
@@ -193,7 +193,7 @@ const SortableTaskItem = ({
                 onClick={(e) => startEditingTask(e, task)}
                 onPointerDown={(e) => e.stopPropagation()}
                 title="Clic para editar título"
-                className={`text-xs font-light leading-tight cursor-text transition-colors hover:text-primary ${'text-gray-800'} w-full`}
+                className={`text-xs font-bold leading-snug cursor-text transition-colors hover:text-primary text-slate-900 w-full uppercase tracking-wide`}
               >
                 {task.content}
               </p>
@@ -204,7 +204,7 @@ const SortableTaskItem = ({
         <button 
           onClick={() => setDrawerTask({ ...task, projectId: activePageId })}
           onPointerDown={(e) => e.stopPropagation()}
-          className={`absolute top-2.5 right-2.5 opacity-0 group-hover:opacity-100 p-1.5 rounded-lg transition-all shrink-0 backdrop-blur-xl shadow-sm ${'bg-white/90 text-gray-800 hover:text-white hover:bg-primary border border-gray-200'}`}
+          className={`absolute top-2.5 right-2.5 opacity-0 group-hover:opacity-100 p-1.5 rounded-lg transition-all shrink-0 shadow-sm bg-white text-slate-700 hover:text-white hover:bg-primary border border-slate-200`}
           title="Editar detalles completos"
         >
           <Pencil size={12} />
@@ -212,7 +212,7 @@ const SortableTaskItem = ({
       </div>
 
       {task.meetLink && (
-        <a href={task.meetLink} target="_blank" rel="noopener noreferrer" onPointerDown={(e) => e.stopPropagation()} className={`inline-flex items-center gap-1.5 px-2 py-1 mb-2 ml-5 rounded-md text-[10px] font-bold transition-all shadow-sm ${'bg-primary/10 text-primary hover:bg-primary/15 border border-primary/25'}`}>
+        <a href={task.meetLink} target="_blank" rel="noopener noreferrer" onPointerDown={(e) => e.stopPropagation()} className={`inline-flex items-center gap-1.5 px-2 py-1 mb-2 ml-5 rounded-md text-[10px] font-bold transition-all shadow-sm bg-primary/10 text-primary hover:bg-primary/15 border border-primary/25`}>
           <Video size={10} /> Unirse a Meet
         </a>
       )}
@@ -221,18 +221,16 @@ const SortableTaskItem = ({
         <div className="flex items-center gap-1.5">
           {task.notes && task.notes.length > 0 && (
             <div className="relative group/tooltip w-max">
-              <span className={`flex items-center gap-1 text-[10px] px-2 py-1 rounded-lg font-semibold cursor-help transition-all shadow-sm ${
-                'bg-yellow-100/80 text-yellow-700 border border-yellow-200 hover:bg-yellow-200'
-              }`}>
+              <span className={`flex items-center gap-1 text-[10px] px-2 py-1 rounded-lg font-semibold cursor-help transition-all shadow-sm bg-amber-100 text-amber-900 border border-amber-200 hover:bg-amber-200`}>
                 <MessageSquare size={10} /> {task.notes.length}
               </span>
-              <div className={`absolute bottom-full left-0 mb-2 w-64 p-3 rounded-xl shadow-[0_5px_20px_-5px_rgba(0,0,0,0.5)] opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all duration-300 z-50 backdrop-blur-3xl border ${'bg-white/95 border-gray-200'}`}>
-                <h4 className={`text-[10px] font-bold uppercase tracking-wider mb-2 pb-1.5 border-b ${'text-gray-500 border-gray-100'}`}>Notas Históricas</h4>
+              <div className={`absolute bottom-full left-0 mb-2 w-64 p-3 rounded-xl shadow-lg opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all duration-300 z-50 border bg-white border-slate-200`}>
+                <h4 className={`text-[10px] font-bold uppercase tracking-wider mb-2 pb-1.5 border-b text-slate-500 border-slate-100`}>Notas Históricas</h4>
                 <div className="space-y-3 max-h-40 overflow-y-auto pr-1 custom-scrollbar">
                   {task.notes.map(note => (
                     <div key={note.id} className="text-xs">
-                      <span className={`block text-[9px] font-medium mb-0.5 ${'text-primary'}`}>{note.date}</span>
-                      <p className={`leading-relaxed font-medium ${'text-gray-700'}`}>{note.text}</p>
+                      <span className={`block text-[9px] font-medium mb-0.5 text-primary`}>{note.date}</span>
+                      <p className={`leading-relaxed font-medium text-slate-700`}>{note.text}</p>
                     </div>
                   ))}
                 </div>
@@ -240,9 +238,7 @@ const SortableTaskItem = ({
             </div>
           )}
           {task.subtasks && task.subtasks.length > 0 && (
-            <span className={`flex items-center gap-1 text-[10px] px-2 py-1 rounded-lg font-semibold transition-all shadow-sm ${
-              'bg-primary/10/80 text-primary border border-primary/25'
-            }`}>
+            <span className={`flex items-center gap-1 text-[10px] px-2 py-1 rounded-lg font-semibold transition-all shadow-sm bg-primary/10 text-primary border border-primary/25`}>
               <ListTodo size={10} /> {task.subtasks.filter(s => s.completed).length}/{task.subtasks.length}
             </span>
           )}
@@ -283,15 +279,15 @@ const SortableColumn = ({
     <div 
       ref={setNodeRef}
       style={style}
-      className={`snap-center shrink-0 w-[200px] rounded-xl p-2.5 flex flex-col backdrop-blur-2xl transition-all border shadow-lg ${getColumnBgClass(col.color)} ${isDragging ? 'z-40 shadow-2xl scale-105' : ''}`}
+      className={`snap-center shrink-0 w-[220px] rounded-2xl p-3 flex flex-col transition-all border shadow-sm ${getColumnBgClass(col.color)} ${isDragging ? 'z-40 shadow-2xl scale-105' : ''}`}
     >
       {/* HEADER COLUMNA */}
-      <div className="flex items-center justify-between mb-4 group/col px-1">
+      <div className="flex items-center justify-between mb-3 group/col px-1">
         <div className="flex items-center gap-2">
           <div 
             {...attributes} 
             {...listeners} 
-            className={`cursor-grab active:cursor-grabbing ${'text-gray-400 hover:text-gray-600'}`}
+            className={`cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-700`}
           >
             <GripVertical size={14} />
           </div>
@@ -299,8 +295,8 @@ const SortableColumn = ({
           <button 
              onClick={(e) => { e.stopPropagation(); cycleColumnColor(col.id); }}
              onPointerDown={(e) => e.stopPropagation()}
-             title="Cambiar color de fondo"
-             className={`w-3 h-3 rounded-full transition-transform hover:scale-125 shadow-inner ${COLUMN_COLORS.find(c => c.id === (col.color || 'gray'))?.dot || 'bg-gray-400'}`}
+             title="Cambiar color de distintivo"
+             className={`w-3 h-3 rounded-full transition-transform hover:scale-125 shadow-sm border border-black/10 ${COLUMN_COLORS.find(c => c.id === (col.color || 'gray'))?.dot || 'bg-slate-400'}`}
           />
           
           {editingColumnId === col.id ? (
@@ -312,20 +308,20 @@ const SortableColumn = ({
               onBlur={saveColumnTitle}
               onKeyDown={(e) => { if(e.key === 'Enter') saveColumnTitle(); }}
               onPointerDown={(e) => e.stopPropagation()}
-              className={`font-light text-xs px-2 py-0.5 rounded-md outline-none bg-black/20 backdrop-blur-md border border-white/20 w-28 text-white shadow-inner`}
+              className={`font-extrabold text-xs px-2 py-0.5 rounded-md outline-none bg-white border border-primary w-28 text-slate-900 shadow-sm`}
             />
           ) : (
             <button 
                onClick={(e) => { e.stopPropagation(); startEditingColumn(col); }}
                onPointerDown={(e) => e.stopPropagation()}
                title="Clic para editar nombre"
-               className={`font-light text-xs px-2 py-0.5 rounded-md transition-all truncate max-w-[130px] hover:scale-105 shadow-sm ${getColorClass(col.color)} cursor-text`}
+               className={`px-2.5 py-1 rounded-lg transition-all truncate max-w-[130px] hover:scale-105 shadow-sm ${getColorClass(col.color)} cursor-text`}
             >
               {col.title}
             </button>
           )}
           
-          <span className={`opacity-0 group-hover/col:opacity-100 transition-opacity text-[10px] font-medium w-4 h-4 flex items-center justify-center rounded-full shadow-sm border ${'bg-white/80 text-gray-800 border-white/50'}`}>
+          <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full shadow-sm border bg-slate-200/90 text-slate-900 border-slate-300`}>
             {activePageTasks.filter(t => t.status === col.id).length}
           </span>
         </div>
@@ -2358,8 +2354,8 @@ export default function App() {
                                               <Briefcase size={20} />
                                             </div>
                                             <div>
-                                              <h4 className="font-bold text-base truncate max-w-[180px]">{proj.title || 'Sin título'}</h4>
-                                              <p className={`text-xs ${'text-gray-550'}`}>
+                                              <h4 className="font-extrabold text-base text-slate-900 truncate max-w-[180px] uppercase tracking-tight">{proj.title || 'Sin título'}</h4>
+                                              <p className="text-xs text-slate-600 font-semibold mt-0.5">
                                                 {totalTasksCount} tareas • {completedTasksCount} completadas
                                               </p>
                                             </div>
