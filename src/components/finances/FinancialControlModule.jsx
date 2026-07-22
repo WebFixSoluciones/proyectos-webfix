@@ -433,7 +433,7 @@ export default function FinancialControlModule({ initialSubTab = 'dashboard', sh
   const currentAreaInfo = AREAS[activeArea] || AREAS.dashboard;
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
+    <div className="min-h-full bg-white p-6 md:p-8 rounded-xl space-y-6 animate-in fade-in duration-300">
 
       {/* 1. AREA: RESUMEN FINANCIERO */}
       {activeArea === 'dashboard' && (
