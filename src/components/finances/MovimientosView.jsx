@@ -45,7 +45,10 @@ export default function MovimientosView({ db, usuario, showToast }) {
     }
   }, [db, filtros]);
 
-  useEffect(() => { cargarMovimientos(); }, [cargarMovimientos]);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    cargarMovimientos();
+  }, [cargarMovimientos]);
 
   const handleSave = () => {
     setShowForm(false);
