@@ -193,7 +193,7 @@ const SortableTaskItem = ({
                 onClick={(e) => startEditingTask(e, task)}
                 onPointerDown={(e) => e.stopPropagation()}
                 title="Clic para editar título"
-                className={`text-xs font-bold leading-snug cursor-text transition-colors hover:text-primary text-slate-900 w-full uppercase tracking-wide`}
+                className="text-xs font-semibold leading-snug cursor-text transition-colors hover:text-primary text-slate-800 w-full"
               >
                 {task.content}
               </p>
