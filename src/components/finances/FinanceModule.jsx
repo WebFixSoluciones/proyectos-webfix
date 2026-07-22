@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { 
   DollarSign, PieChart, Users, FileText, Download, Sparkles, ShoppingCart, Package,
-  ArrowDownCircle, ArrowUpCircle, Percent, CreditCard, ShoppingBag,
+  ArrowUpCircle, Percent, CreditCard, ShoppingBag, TrendingUp,
   X, ArrowRight, Upload
 } from 'lucide-react';
 import { doc, setDoc } from 'firebase/firestore';
@@ -22,6 +22,7 @@ import ComprasGastosView from './ComprasGastosView';
 import GastosCreditosModule from './GastosCreditosModule';
 import DiscountsPromotionsView from './DiscountsPromotionsView';
 import MovimientosView from './MovimientosView';
+import CuentasPorCobrarView from './CuentasPorCobrarView';
 
 export default function FinanceModule({ 
   mode = 'contabilidad', 
@@ -275,7 +276,7 @@ export default function FinanceModule({
         { id: 'movimientos', label: 'Movimientos', icon: DollarSign },
         { id: 'dashboard', label: 'Resumen', icon: PieChart },
         { id: 'sri_docs', label: 'Documentos SRI', icon: FileText },
-        { id: 'cxc', label: 'Cuentas por Cobrar', icon: ArrowDownCircle },
+        { id: 'cxc', label: 'Cuentas por Cobrar', icon: TrendingUp },
         { id: 'cxp', label: 'Cuentas por Pagar', icon: ArrowUpCircle },
         { id: 'gastos_creditos_sub', label: 'Gastos y Creditos', icon: CreditCard },
         { id: 'gastos_ia', label: 'Gastos con IA', icon: Sparkles },
@@ -454,7 +455,7 @@ export default function FinanceModule({
 
               {/* SECCIÓN CUENTAS POR COBRAR (CxC) */}
               {activeTab === 'cxc' && (
-                <AccountsReceivablePayable type="cxc" transactions={transactions} thirdParties={thirdParties} showToast={showToast} db={db} appId={appId} />
+                <CuentasPorCobrarView db={db} usuario={usuario} showToast={showToast} />
               )}
 
               {/* SECCIÓN CUENTAS POR PAGAR (CxP) */}
