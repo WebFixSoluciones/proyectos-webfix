@@ -357,8 +357,15 @@ export default function App() {
   const [plansList, setPlansList] = useState(Object.values(PLANS));
   const [pages, setPages] = useState(INITIAL_PAGES);
   const [trash, setTrash] = useState([]);
-  const [users, setUsers] = useState(MOCK_USERS);
-  const [activePageId, setActivePageId] = useState('dashboard');
+  const [activePageId, setActivePageId] = useState(() => {
+    try {
+      const savedPage = localStorage.getItem('activePageId');
+      if (savedPage) return savedPage;
+    } catch (e) {
+      console.error(e);
+    }
+    return 'dashboard';
+  });
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const mainContentRef = useRef(null);
 
@@ -459,14 +466,28 @@ export default function App() {
       setActiveModules(newModules);
     }
   }, [planId, plansList]);
-  const [ventasInitialSubTab, setVentasInitialSubTab] = useState('resumen_ventas');
-  const [comprasInitialSubTab, setComprasInitialSubTab] = useState('compras_resumen');
-  const [contabilidadInitialSubTab, setContabilidadInitialSubTab] = useState('dashboard');
-  const [billingInitialSubTab, setBillingInitialSubTab] = useState('facturacion');
-  const [gastosInitialSubTab, setGastosInitialSubTab] = useState('resumen');
-  const [inventarioInitialSubTab, setInventarioInitialSubTab] = useState('productos');
+  const [ventasInitialSubTab, setVentasInitialSubTab] = useState(() => localStorage.getItem('ventasInitialSubTab') || 'resumen_ventas');
+  const [comprasInitialSubTab, setComprasInitialSubTab] = useState(() => localStorage.getItem('comprasInitialSubTab') || 'compras_resumen');
+  const [contabilidadInitialSubTab, setContabilidadInitialSubTab] = useState(() => localStorage.getItem('contabilidadInitialSubTab') || 'dashboard');
+  const [billingInitialSubTab, setBillingInitialSubTab] = useState(() => localStorage.getItem('billingInitialSubTab') || 'facturacion');
+  const [gastosInitialSubTab, setGastosInitialSubTab] = useState(() => localStorage.getItem('gastosInitialSubTab') || 'resumen');
+  const [inventarioInitialSubTab, setInventarioInitialSubTab] = useState(() => localStorage.getItem('inventarioInitialSubTab') || 'productos');
   const [expandedSidebarMenu, setExpandedSidebarMenu] = useState(null);
-  const [personasSubTab, setPersonasSubTab] = useState('cliente');
+  const [personasSubTab, setPersonasSubTab] = useState(() => localStorage.getItem('personasSubTab') || 'cliente');
+
+  useEffect(() => {
+    if (activePageId) {
+      try {
+        localStorage.setItem('activePageId', activePageId);
+      } catch (e) { console.error(e); }
+    }
+  }, [activePageId]);
+
+  useEffect(() => { try { localStorage.setItem('ventasInitialSubTab', ventasInitialSubTab); } catch (e) {} }, [ventasInitialSubTab]);
+  useEffect(() => { try { localStorage.setItem('comprasInitialSubTab', comprasInitialSubTab); } catch (e) {} }, [comprasInitialSubTab]);
+  useEffect(() => { try { localStorage.setItem('contabilidadInitialSubTab', contabilidadInitialSubTab); } catch (e) {} }, [contabilidadInitialSubTab]);
+  useEffect(() => { try { localStorage.setItem('inventarioInitialSubTab', inventarioInitialSubTab); } catch (e) {} }, [inventarioInitialSubTab]);
+  useEffect(() => { try { localStorage.setItem('personasSubTab', personasSubTab); } catch (e) {} }, [personasSubTab]);
 
   useEffect(() => {
     const activePageType = pages.find(p => p.id === activePageId)?.type;
