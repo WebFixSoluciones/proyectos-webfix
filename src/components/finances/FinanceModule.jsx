@@ -17,12 +17,12 @@ import QuotesView from './QuotesView';
 import PosView from './PosView';
 import TransactionForm from './TransactionForm';
 import PurchaseForm from './PurchaseForm';
-import AccountsReceivablePayable from './AccountsReceivablePayable';
 import ComprasGastosView from './ComprasGastosView';
 import GastosCreditosModule from './GastosCreditosModule';
 import DiscountsPromotionsView from './DiscountsPromotionsView';
 import MovimientosView from './MovimientosView';
 import CuentasPorCobrarView from './CuentasPorCobrarView';
+import CuentasPorPagarView from './CuentasPorPagarView';
 
 export default function FinanceModule({ 
   mode = 'contabilidad', 
@@ -460,7 +460,7 @@ export default function FinanceModule({
 
               {/* SECCIÓN CUENTAS POR PAGAR (CxP) */}
               {activeTab === 'cxp' && (
-                <AccountsReceivablePayable type="cxp" transactions={transactions} thirdParties={thirdParties} showToast={showToast} db={db} appId={appId} />
+                <CuentasPorPagarView db={db} usuario={usuario} showToast={showToast} />
               )}
 
               {/* REPORTES */}
