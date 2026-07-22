@@ -24,6 +24,7 @@ import MovimientosView from './MovimientosView';
 import CuentasPorCobrarView from './CuentasPorCobrarView';
 import CuentasPorPagarView from './CuentasPorPagarView';
 import BancosCajaView from './BancosCajaView';
+import TarjetasCreditosView from './TarjetasCreditosView';
 
 export default function FinanceModule({ 
   mode = 'contabilidad', 
@@ -280,6 +281,7 @@ export default function FinanceModule({
         { id: 'cxc', label: 'Cuentas por Cobrar', icon: TrendingUp },
         { id: 'cxp', label: 'Cuentas por Pagar', icon: ArrowUpCircle },
         { id: 'bancos', label: 'Bancos y Caja', icon: Building2 },
+        { id: 'tarjetas', label: 'Tarjetas y Créditos', icon: CreditCard },
         { id: 'gastos_creditos_sub', label: 'Gastos y Creditos', icon: CreditCard },
         { id: 'gastos_ia', label: 'Gastos con IA', icon: Sparkles },
         { id: 'reports', label: 'Reportes', icon: Download },
@@ -468,6 +470,11 @@ export default function FinanceModule({
               {/* SECCIÓN BANCOS Y CAJA */}
               {activeTab === 'bancos' && (
                 <BancosCajaView db={db} usuario={usuario} showToast={showToast} />
+              )}
+
+              {/* SECCIÓN TARJETAS Y CRÉDITOS */}
+              {activeTab === 'tarjetas' && (
+                <TarjetasCreditosView db={db} usuario={usuario} showToast={showToast} />
               )}
 
               {/* REPORTES */}
