@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { 
   DollarSign, PieChart, Users, FileText, Download, Sparkles, ShoppingCart, Package,
   ArrowUpCircle, Percent, CreditCard, ShoppingBag, TrendingUp,
-  X, ArrowRight, Upload, Building2, Landmark
+  X, ArrowRight, Upload, Building2, Landmark, Scan, BarChart3
 } from 'lucide-react';
 import { doc, setDoc } from 'firebase/firestore';
 import { getEcuadorDateString } from '../../services/sriService';
@@ -26,6 +26,8 @@ import CuentasPorPagarView from './CuentasPorPagarView';
 import BancosCajaView from './BancosCajaView';
 import TarjetasCreditosView from './TarjetasCreditosView';
 import PrestamosView from './PrestamosView';
+import CapturaInteligenteView from './CapturaInteligenteView';
+import ResumenFinancieroView from './ResumenFinancieroView';
 
 export default function FinanceModule({ 
   mode = 'contabilidad', 
@@ -44,7 +46,7 @@ export default function FinanceModule({
     if (m === 'inventario') return 'products';
     if (m === 'personas') return 'personas';
     if (m === 'compras') return 'compras_resumen';
-    return 'movimientos'; // 'contabilidad'
+    return 'resumen_financiero'; // 'contabilidad'
   };
 
   const [activeTab, setActiveTab] = useState(() => {
@@ -276,14 +278,16 @@ export default function FinanceModule({
   const getTabsForMode = () => {
     if (mode === 'contabilidad') {
       return [
+        { id: 'resumen_financiero', label: 'Resumen', icon: PieChart },
         { id: 'movimientos', label: 'Movimientos', icon: DollarSign },
-        { id: 'dashboard', label: 'Resumen', icon: PieChart },
+        { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
         { id: 'sri_docs', label: 'Documentos SRI', icon: FileText },
         { id: 'cxc', label: 'Cuentas por Cobrar', icon: TrendingUp },
         { id: 'cxp', label: 'Cuentas por Pagar', icon: ArrowUpCircle },
         { id: 'bancos', label: 'Bancos y Caja', icon: Building2 },
         { id: 'tarjetas', label: 'Tarjetas y Créditos', icon: CreditCard },
         { id: 'prestamos', label: 'Préstamos', icon: Landmark },
+        { id: 'captura', label: 'Captura IA', icon: Scan },
         { id: 'gastos_creditos_sub', label: 'Gastos y Creditos', icon: CreditCard },
         { id: 'gastos_ia', label: 'Gastos con IA', icon: Sparkles },
         { id: 'reports', label: 'Reportes', icon: Download },
@@ -345,6 +349,9 @@ export default function FinanceModule({
             </div>
           ) : (
             <>
+              {activeTab === 'resumen_financiero' && (
+                <ResumenFinancieroView db={db} usuario={usuario} showToast={showToast} onNavigate={(tab) => setActiveTab(tab)} />
+              )}
               {activeTab === 'movimientos' && (
                 <MovimientosView db={db} usuario={usuario} showToast={showToast} />
               )}
@@ -482,6 +489,10 @@ export default function FinanceModule({
               {/* SECCIÓN PRÉSTAMOS BANCARIOS */}
               {activeTab === 'prestamos' && (
                 <PrestamosView db={db} usuario={usuario} showToast={showToast} />
+              )}
+
+              {activeTab === 'captura' && (
+                <CapturaInteligenteView db={db} storage={storage} appId={appId} usuario={usuario} showToast={showToast} />
               )}
 
               {/* REPORTES */}
