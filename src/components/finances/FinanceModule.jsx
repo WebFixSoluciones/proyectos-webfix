@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { 
   DollarSign, PieChart, Users, FileText, Download, Sparkles, ShoppingCart, Package,
   ArrowUpCircle, Percent, CreditCard, ShoppingBag, TrendingUp,
-  X, ArrowRight, Upload, Building2, Landmark, Scan, BarChart3
+  X, ArrowRight, Upload, Building2, Landmark, Scan, BarChart3, BookOpen
 } from 'lucide-react';
 import { doc, setDoc } from 'firebase/firestore';
 import { getEcuadorDateString } from '../../services/sriService';
@@ -28,6 +28,7 @@ import TarjetasCreditosView from './TarjetasCreditosView';
 import PrestamosView from './PrestamosView';
 import CapturaInteligenteView from './CapturaInteligenteView';
 import ResumenFinancieroView from './ResumenFinancieroView';
+import ContabilidadView from './ContabilidadView';
 
 export default function FinanceModule({ 
   mode = 'contabilidad', 
@@ -287,6 +288,7 @@ export default function FinanceModule({
         { id: 'bancos', label: 'Bancos y Caja', icon: Building2 },
         { id: 'tarjetas', label: 'Tarjetas y Créditos', icon: CreditCard },
         { id: 'prestamos', label: 'Préstamos', icon: Landmark },
+        { id: 'contabilidad_tab', label: 'Contabilidad', icon: BookOpen },
         { id: 'captura', label: 'Captura IA', icon: Scan },
         { id: 'gastos_creditos_sub', label: 'Gastos y Creditos', icon: CreditCard },
         { id: 'gastos_ia', label: 'Gastos con IA', icon: Sparkles },
@@ -489,6 +491,11 @@ export default function FinanceModule({
               {/* SECCIÓN PRÉSTAMOS BANCARIOS */}
               {activeTab === 'prestamos' && (
                 <PrestamosView db={db} usuario={usuario} showToast={showToast} />
+              )}
+
+              {/* SECCIÓN CONTABILIDAD (PLAN DE CUENTAS, CENTROS DE COSTO, LIBRO DIARIO) */}
+              {activeTab === 'contabilidad_tab' && (
+                <ContabilidadView db={db} usuario={usuario} showToast={showToast} />
               )}
 
               {activeTab === 'captura' && (
