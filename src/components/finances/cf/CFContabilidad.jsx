@@ -110,7 +110,7 @@ export default function CFContabilidad({ transactions = [] }) {
       </div>
 
       {/* Libro diario */}
-      <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+      <div className="rounded-lg border border-border-default bg-white overflow-hidden">
         <div className="flex items-center gap-2 p-4 border-b border-slate-100 bg-slate-50">
           <BookOpen size={14} className="text-slate-500" />
           <h3 className="text-xs font-bold text-slate-800">

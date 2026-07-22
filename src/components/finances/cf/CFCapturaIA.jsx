@@ -165,7 +165,7 @@ export default function CFCapturaIA({ db, appId, showToast }) {
         </div>
 
         {/* Panel de resultado */}
-        <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-4 min-h-[260px]">
+        <div className="p-6 rounded-lg bg-white border border-border-default space-y-4 min-h-[260px]">
           <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
             <FileText size={14} className="text-slate-500" />
             <h3 className="text-sm font-bold text-slate-800">Propuesta Extraída por IA</h3>

@@ -234,10 +234,10 @@ export default function FinancialControlModule({
             <button
               key={area.id}
               onClick={() => setActiveArea(area.id)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold rounded-xl border transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md border transition-colors cursor-pointer ${
                 isActive
-                  ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
-                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                  ? 'bg-primary text-white border-primary'
+                  : 'bg-white text-text-secondary border-border-default hover:bg-primary-light hover:text-primary hover:border-primary'
               }`}
             >
               {Icon && <Icon size={12} />}

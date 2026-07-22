@@ -188,7 +188,7 @@ export default function CFReportes({ transactions = [] }) {
             <BarChart2 size={14} className="text-blue-600" />
             <p className="text-sm font-bold text-slate-800">Estado de Resultados Simplificado</p>
           </div>
-          <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+          <div className="rounded-lg border border-border-default bg-white overflow-hidden">
             {[
               { label: '(+) Total Ingresos', value: totalIngresos, indent: false, bold: true, color: 'text-emerald-700' },
               { label: '(−) Total Gastos / Costos', value: totalGastos, indent: false, bold: true, color: 'text-rose-700' },

@@ -86,7 +86,7 @@ export default function CFCXC({ transactions = [], db, appId, showToast, onRegis
       </div>
 
       {/* Tabla */}
-      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div className="overflow-x-auto rounded-lg border border-border-default bg-white">
         <table className="w-full text-left text-xs text-slate-600 min-w-[700px]">
           <thead className="bg-slate-50 text-slate-700 font-bold uppercase tracking-wider border-b border-slate-200">
             <tr>

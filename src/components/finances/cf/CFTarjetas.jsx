@@ -94,7 +94,7 @@ export default function CFTarjetas({ financialCards = [], db, appId, showToast }
               <div
                 key={c.id}
                 onClick={() => { setForm(c); setShowForm(true); }}
-                className="p-4 rounded-xl bg-white border border-slate-200 shadow-sm space-y-3 cursor-pointer hover:border-blue-300 hover:shadow-md transition-all"
+                className="p-4 rounded-lg bg-white border border-border-default space-y-3 cursor-pointer hover:border-primary transition-colors"
               >
                 <div className="flex items-center gap-2 border-b border-slate-100 pb-2.5">
                   <CreditCard size={14} className="text-blue-600" />

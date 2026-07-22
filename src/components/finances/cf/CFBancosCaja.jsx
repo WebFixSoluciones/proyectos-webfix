@@ -101,7 +101,7 @@ export default function CFBancosCaja({ bankAccounts = [], db, appId, showToast }
             <div
               key={b.id}
               onClick={() => { setForm(b); setShowForm(true); }}
-              className="p-4 rounded-xl bg-white border border-slate-200 shadow-sm space-y-2 cursor-pointer hover:border-blue-300 hover:shadow-md transition-all"
+              className="p-4 rounded-lg bg-white border border-border-default space-y-2 cursor-pointer hover:border-primary transition-colors"
             >
               <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
                 {b.type === 'banco' || b.type === 'ahorro'
