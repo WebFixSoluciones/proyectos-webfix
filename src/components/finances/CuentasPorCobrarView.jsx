@@ -1,8 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Search, Download, FileText, Wallet, TrendingUp, AlertTriangle, DollarSign, Clock } from 'lucide-react';
 import { getCxC, getAging, registrarCobro, getResumenCxC } from '../../services/cxcService';
-import MovimientoAbono from './MovimientoAbono';
-
 const ESTADO_BADGES = {
   pendiente: 'bg-status-pending-bg text-status-pending-text border-status-pending-border',
   parcial: 'bg-warning-light text-warning border-warning/20',
@@ -16,8 +14,6 @@ export default function CuentasPorCobrarView({ db, usuario, showToast }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filtros, setFiltros] = useState({ search: '', estado: 'all', fechaDesde: '', fechaHasta: '' });
-  const [showAbono, setShowAbono] = useState(null);
-
   const cargar = useCallback(async () => {
     setLoading(true); setError(null);
     try { const data = await getCxC(db, filtros); setItems(data); } catch (e) { setError(e.message); } finally { setLoading(false); }
@@ -27,8 +23,6 @@ export default function CuentasPorCobrarView({ db, usuario, showToast }) {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     cargar();
   }, [cargar]);
-
-  const handleAbonoSave = () => { setShowAbono(null); cargar(); };
 
   const formatCurrency = (v) => `$${(Number(v) || 0).toFixed(2)}`;
   const formatDate = (d) => d?.toDate ? d.toDate().toLocaleDateString('es-EC') : d ? new Date(d).toLocaleDateString('es-EC') : '-';
