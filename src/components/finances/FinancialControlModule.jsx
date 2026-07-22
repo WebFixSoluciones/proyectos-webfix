@@ -434,37 +434,11 @@ export default function FinancialControlModule({ initialSubTab = 'dashboard', sh
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
-      
-      {/* 📌 NAVEGACIÓN PRINCIPAL DE ÁREAS DEL CONTROL FINANCIERO */}
-      <div className="flex overflow-x-auto gap-2 border-b border-slate-200 pb-3 custom-scrollbar">
-        {Object.values(AREAS).map(area => {
-          const Icon = area.icon;
-          const isActive = activeArea === area.id;
-          return (
-            <button
-              key={area.id}
-              onClick={() => setActiveArea(area.id)}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold shrink-0 transition-all cursor-pointer ${
-                isActive
-                  ? 'bg-primary text-white shadow-sm'
-                  : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
-              }`}
-            >
-              {Icon && typeof Icon === 'function' ? <Icon size={14} /> : null}
-              <span>{area.label}</span>
-            </button>
-          );
-        })}
-      </div>
 
       {/* 1. AREA: RESUMEN FINANCIERO */}
       {activeArea === 'dashboard' && (
         <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-base font-bold text-slate-900">{currentAreaInfo.label}</h2>
-              <p className="text-xs text-slate-500 mt-0.5">{currentAreaInfo.desc}</p>
-            </div>
+          <div className="flex justify-start border-b border-slate-100 pb-4">
             <button onClick={() => setIsMovementModalOpen(true)} className="btn-primary flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl cursor-pointer">
               <Plus size={14} /> Registrar Movimiento
             </button>
@@ -539,11 +513,7 @@ export default function FinancialControlModule({ initialSubTab = 'dashboard', sh
       {/* 2. AREA: MOVIMIENTOS FINANCIEROS */}
       {activeArea === 'movimientos' && (
         <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h2 className="text-base font-bold text-slate-900">Registro Único de Movimientos Financieros</h2>
-              <p className="text-xs text-slate-500 mt-0.5">Ingresos, egresos, transferencias, consumos de tarjeta y ajustes internos.</p>
-            </div>
+          <div className="flex justify-start border-b border-slate-100 pb-4">
             <button onClick={() => setIsMovementModalOpen(true)} className="btn-primary flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl cursor-pointer">
               <Plus size={14} /> Nuevo Movimiento
             </button>
@@ -602,13 +572,6 @@ export default function FinancialControlModule({ initialSubTab = 'dashboard', sh
       {/* 3. AREA: CUENTAS POR COBRAR (CXC) */}
       {activeArea === 'cxc' && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-base font-bold text-slate-900">Cuentas por Cobrar (Clientes)</h2>
-              <p className="text-xs text-slate-500 mt-0.5">Seguimiento de facturas abiertas, abonos parciales y cartera de clientes.</p>
-            </div>
-          </div>
-
           <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xs">
             <table className="w-full text-left text-xs text-slate-600">
               <thead className="bg-slate-50 text-slate-700 font-bold uppercase tracking-wider border-b border-slate-200">
@@ -655,13 +618,6 @@ export default function FinancialControlModule({ initialSubTab = 'dashboard', sh
       {/* 4. AREA: CUENTAS POR PAGAR (CXP) */}
       {activeArea === 'cxp' && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-base font-bold text-slate-900">Cuentas por Pagar (Proveedores)</h2>
-              <p className="text-xs text-slate-500 mt-0.5">Compromisos de pago a proveedores, cuotas, retenciones y prioridades.</p>
-            </div>
-          </div>
-
           <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xs">
             <table className="w-full text-left text-xs text-slate-600">
               <thead className="bg-slate-50 text-slate-700 font-bold uppercase tracking-wider border-b border-slate-200">
@@ -708,11 +664,7 @@ export default function FinancialControlModule({ initialSubTab = 'dashboard', sh
       {/* 5. AREA: TARJETAS Y CRÉDITOS */}
       {activeArea === 'tarjetas_creditos' && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-base font-bold text-slate-900">Tarjetas de Crédito & Líneas de Financiamiento</h2>
-              <p className="text-xs text-slate-500 mt-0.5">Control de consumos corporativos, fechas de corte, días de pago y compras diferidas.</p>
-            </div>
+          <div className="flex justify-start border-b border-slate-100 pb-4">
             <button onClick={() => setIsCardModalOpen(true)} className="btn-primary flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl cursor-pointer">
               <Plus size={14} /> Nueva Tarjeta / Crédito
             </button>
@@ -753,11 +705,6 @@ export default function FinancialControlModule({ initialSubTab = 'dashboard', sh
       {/* 6. AREA: CAPTURA INTELIGENTE (IA OCR + CONFIRMACIÓN HUMANA) */}
       {activeArea === 'captura_inteligente' && (
         <div className="space-y-6">
-          <div>
-            <h2 className="text-base font-bold text-slate-900">Captura Inteligente con IA (Fotos, PDF y XML)</h2>
-            <p className="text-xs text-slate-500 mt-0.5">Gemini Vision OCR extrae datos y sugiere la clasificación. La confirmación humana siempre es requerida antes de guardar.</p>
-          </div>
-
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Zona de Carga */}
             <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-2xs flex flex-col items-center justify-center text-center space-y-4">
@@ -828,11 +775,6 @@ export default function FinancialControlModule({ initialSubTab = 'dashboard', sh
       {/* 7. AREA: CONTABILIDAD GENERAL */}
       {activeArea === 'contabilidad' && (
         <div className="space-y-6">
-          <div>
-            <h2 className="text-base font-bold text-slate-900">Contabilidad General & Plan de Cuentas</h2>
-            <p className="text-xs text-slate-500 mt-0.5">Asientos automáticos derivados de cada movimiento financiero registrado.</p>
-          </div>
-
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Plan de Cuentas Base */}
             <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-3">
@@ -878,11 +820,7 @@ export default function FinancialControlModule({ initialSubTab = 'dashboard', sh
       {/* 8. AREA: IMPUESTOS & SRI (ATS XML) */}
       {activeArea === 'impuestos_sri' && (
         <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-base font-bold text-slate-900">Impuestos & Generación del ATS (SRI)</h2>
-              <p className="text-xs text-slate-500 mt-0.5">Exportación del Anexo Transaccional Simplificado en XML oficial normado por el SRI de Ecuador.</p>
-            </div>
+          <div className="flex justify-start border-b border-slate-100 pb-4">
             <button
               onClick={() => downloadSriAtsXml({ companyProfile, year: new Date().getFullYear(), month: new Date().getMonth() + 1, transactions: movements })}
               className="btn-primary flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl cursor-pointer"
@@ -915,11 +853,6 @@ export default function FinancialControlModule({ initialSubTab = 'dashboard', sh
       {/* 9. AREA: REPORTES */}
       {activeArea === 'reports' && (
         <div className="space-y-6">
-          <div>
-            <h2 className="text-base font-bold text-slate-900">Reportes Financieros & Diagnóstico</h2>
-            <p className="text-xs text-slate-500 mt-0.5">Informes de rentabilidad, desglose de gastos hormiga y exportaciones personalizadas.</p>
-          </div>
-
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="p-5 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-2">
               <p className="text-xs font-bold text-slate-500 uppercase">Estado de Resultados (P&L)</p>
