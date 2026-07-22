@@ -151,8 +151,8 @@ const SortableTaskItem = ({
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.4 : 1,
+    transition: isDragging ? undefined : transition,
+    opacity: isDragging ? 0.3 : 1,
   };
 
   const assignedUser = task.assigneeId ? users.find(u => u.id === task.assigneeId) : null;
@@ -161,16 +161,16 @@ const SortableTaskItem = ({
     <div 
       ref={setNodeRef} 
       style={style}
-      className={`group p-3 rounded-xl border transition-all duration-300 relative ${
-        'bg-white border-slate-200/90 hover:border-primary shadow-sm hover:shadow-md hover:bg-white'
-      } ${isDragging ? 'z-50 shadow-2xl scale-105' : ''}`}
+      className={`group p-3 rounded-xl border relative bg-white border-slate-200/80 hover:border-slate-300 shadow-xs hover:shadow-sm ${
+        isDragging ? 'z-50 shadow-lg ring-2 ring-primary/40' : ''
+      }`}
     >
       <div className="flex justify-between items-start mb-2">
         <div className="flex items-start gap-2 w-full">
           <div 
             {...attributes} 
             {...listeners} 
-            className={`cursor-grab active:cursor-grabbing mt-0.5 opacity-60 group-hover:opacity-100 transition-opacity text-slate-400 hover:text-slate-700`}
+            className="cursor-grab active:cursor-grabbing mt-0.5 opacity-40 group-hover:opacity-100 transition-opacity text-slate-400 hover:text-slate-700"
           >
             <GripVertical size={14} />
           </div>
@@ -185,7 +185,7 @@ const SortableTaskItem = ({
                 onKeyDown={(e) => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleInlineSave(task.id, editingTaskContent); setEditingTaskId(null); } }}
                 onClick={(e) => e.stopPropagation()}
                 onPointerDown={(e) => e.stopPropagation()}
-                className={`w-full text-xs font-bold leading-tight px-2 py-1 rounded-lg outline-none bg-white border border-primary text-slate-900 shadow-sm resize-none overflow-hidden`}
+                className="w-full text-xs font-semibold leading-tight px-2 py-1 rounded-lg outline-none bg-white border border-primary text-slate-800 shadow-xs resize-none overflow-hidden"
                 rows={2}
               />
             ) : (
@@ -204,7 +204,7 @@ const SortableTaskItem = ({
         <button 
           onClick={() => setDrawerTask({ ...task, projectId: activePageId })}
           onPointerDown={(e) => e.stopPropagation()}
-          className={`absolute top-2.5 right-2.5 opacity-0 group-hover:opacity-100 p-1.5 rounded-lg transition-all shrink-0 shadow-sm bg-white text-slate-700 hover:text-white hover:bg-primary border border-slate-200`}
+          className="absolute top-2.5 right-2.5 opacity-0 group-hover:opacity-100 p-1.5 rounded-lg transition-all shrink-0 shadow-xs bg-white text-slate-600 hover:text-white hover:bg-primary border border-slate-200"
           title="Editar detalles completos"
         >
           <Pencil size={12} />
@@ -212,25 +212,26 @@ const SortableTaskItem = ({
       </div>
 
       {task.meetLink && (
-        <a href={task.meetLink} target="_blank" rel="noopener noreferrer" onPointerDown={(e) => e.stopPropagation()} className={`inline-flex items-center gap-1.5 px-2 py-1 mb-2 ml-5 rounded-md text-[10px] font-bold transition-all shadow-sm bg-primary/10 text-primary hover:bg-primary/15 border border-primary/25`}>
+        <a href={task.meetLink} target="_blank" rel="noopener noreferrer" onPointerDown={(e) => e.stopPropagation()} className="inline-flex items-center gap-1.5 px-2 py-1 mb-2 ml-5 rounded-md text-[10px] font-bold transition-all shadow-xs bg-primary/10 text-primary hover:bg-primary/15 border border-primary/25">
           <Video size={10} /> Unirse a Meet
         </a>
       )}
 
-      <div className="flex items-center justify-between mt-1 ml-5">
-        <div className="flex items-center gap-1.5">
+      <div className="flex items-center justify-between mt-2.5 ml-5">
+        <div className="flex items-center gap-3">
           {task.notes && task.notes.length > 0 && (
             <div className="relative group/tooltip w-max">
-              <span className={`flex items-center gap-1 text-[10px] px-2 py-1 rounded-lg font-semibold cursor-help transition-all shadow-sm bg-amber-100 text-amber-900 border border-amber-200 hover:bg-amber-200`}>
-                <MessageSquare size={10} /> {task.notes.length}
+              <span className="inline-flex items-center gap-1 text-slate-400 text-[11px] font-medium hover:text-slate-600 transition-colors cursor-help">
+                <MessageSquare size={12} className="text-slate-400" />
+                <span className="text-[11px] font-semibold text-slate-600">{task.notes.length}</span>
               </span>
-              <div className={`absolute bottom-full left-0 mb-2 w-64 p-3 rounded-xl shadow-lg opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all duration-300 z-50 border bg-white border-slate-200`}>
-                <h4 className={`text-[10px] font-bold uppercase tracking-wider mb-2 pb-1.5 border-b text-slate-500 border-slate-100`}>Notas Históricas</h4>
+              <div className="absolute bottom-full left-0 mb-2 w-64 p-3 rounded-xl shadow-lg opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all duration-200 z-50 border bg-white border-slate-200">
+                <h4 className="text-[10px] font-bold uppercase tracking-wider mb-2 pb-1.5 border-b text-slate-400 border-slate-100">Notas Históricas</h4>
                 <div className="space-y-3 max-h-40 overflow-y-auto pr-1 custom-scrollbar">
                   {task.notes.map(note => (
                     <div key={note.id} className="text-xs">
-                      <span className={`block text-[9px] font-medium mb-0.5 text-primary`}>{note.date}</span>
-                      <p className={`leading-relaxed font-medium text-slate-700`}>{note.text}</p>
+                      <span className="block text-[9px] font-medium mb-0.5 text-primary">{note.date}</span>
+                      <p className="leading-relaxed font-medium text-slate-700">{note.text}</p>
                     </div>
                   ))}
                 </div>
@@ -238,14 +239,17 @@ const SortableTaskItem = ({
             </div>
           )}
           {task.subtasks && task.subtasks.length > 0 && (
-            <span className={`flex items-center gap-1 text-[10px] px-2 py-1 rounded-lg font-semibold transition-all shadow-sm bg-primary/10 text-primary border border-primary/25`}>
-              <ListTodo size={10} /> {task.subtasks.filter(s => s.completed).length}/{task.subtasks.length}
+            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-slate-500">
+              <ListTodo size={11} className="text-slate-400" /> {task.subtasks.filter(s => s.completed).length}/{task.subtasks.length}
             </span>
           )}
         </div>
 
         {assignedUser && (
-          <div title={`Asignado a: ${assignedUser.name}`} className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-inner bg-gradient-to-br ${assignedUser.color}`}>
+          <div 
+            title={`Asignado a: ${assignedUser.name}`} 
+            className="px-1.5 py-0.5 rounded text-[10px] font-bold tracking-tight bg-slate-100 text-slate-600 border border-slate-200/90 shadow-2xs cursor-default uppercase"
+          >
             {assignedUser.initials}
           </div>
         )}
@@ -1273,7 +1277,7 @@ export default function App() {
   const [activeDragCol, setActiveDragCol] = useState(null);
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(PointerSensor, { activationConstraint: { distance: 3 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
