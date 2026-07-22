@@ -1054,10 +1054,18 @@ export default function App() {
         return { ...current, icon: 'finances' };
       }
       case 'ventas': {
-        if (ventasInitialSubTab.startsWith('pos')) {
+        const subStr = String(ventasInitialSubTab || '');
+        if (subStr.startsWith('pos')) {
           return {
             title: 'Punto de Venta (POS)',
             desc: 'Facturación rápida e intuitiva para tiendas y comercio directo',
+            icon: 'ventas'
+          };
+        }
+        if (subStr.startsWith('ventas_preventa')) {
+          return {
+            title: 'Registrar Venta',
+            desc: 'Registro directo de ventas y facturación electrónica',
             icon: 'ventas'
           };
         }
@@ -1068,9 +1076,10 @@ export default function App() {
           preventas: { title: 'Preventas', desc: 'Gestión y despacho de ventas y pedidos realizados de forma anticipada' },
           quotes: { title: 'Cotizaciones', desc: 'Emisión y gestión de cotizaciones comerciales para clientes' },
           nota_credito: { title: 'Notas de Crédito', desc: 'Anulaciones y devoluciones tributarias autorizadas por el SRI' },
-          retencion: { title: 'Retenciones de Venta', desc: 'Registro de retenciones de IVA y Renta recibidas de clientes' }
+          retencion: { title: 'Retenciones de Venta', desc: 'Registro de retenciones de IVA y Renta recibidas de clientes' },
+          discounts: { title: 'Descuentos & Promociones', desc: 'Configuración de descuentos por producto y reglas de promoción' }
         };
-        const current = subtabs[ventasInitialSubTab] || { title: 'Módulo de Ventas y Proformas', desc: 'Punto de Venta (POS), cotizaciones comerciales y facturas de venta autorizadas' };
+        const current = subtabs[ventasInitialSubTab] || { title: 'Descuentos & Promociones', desc: 'Configuración de descuentos y promociones comerciales' };
         return { ...current, icon: 'ventas' };
       }
       case 'inventario': {

@@ -234,11 +234,8 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       
-      {/* HEADER */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-5">
-        <div>
-          <h2 className="text-xl font-extrabold text-slate-800 uppercase tracking-wide">Descuentos & Promociones</h2>
-        </div>
+      {/* HEADER ACTIONS */}
+      <div className="flex justify-end gap-2 border-b border-slate-100 pb-4">
         <div className="flex gap-2">
           {activeTab === 'discounts' ? (
             <button onClick={openNewDiscount} className="btn-primary flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-xl cursor-pointer">
