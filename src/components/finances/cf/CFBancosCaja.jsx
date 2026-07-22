@@ -135,7 +135,7 @@ export default function CFBancosCaja({ bankAccounts = [], db, appId, showToast }
           className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
           onClick={e => { if (e.target === e.currentTarget) setShowForm(false); }}
         >
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl space-y-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md border border-border-default space-y-4">
             <h3 className="text-sm font-bold text-slate-800">
               {form.id ? 'Editar Cuenta / Caja' : 'Nueva Cuenta / Caja'}
             </h3>
