@@ -62,15 +62,24 @@ function generarAsientoContable({ movementType, total, accountFrom, accountTo, c
   };
 }
 
+const resolveAreaKey = (key) => {
+  if (!key) return 'dashboard';
+  const aliases = {
+    sri_docs: 'impuestos_sri',
+    compras_resumen: 'movimientos',
+    gastos_creditos_sub: 'tarjetas_creditos',
+    gastos_ia: 'captura_inteligente',
+    compras_retencion: 'impuestos_sri'
+  };
+  const resolved = aliases[key] || key;
+  return AREAS[resolved] ? resolved : 'dashboard';
+};
+
 export default function FinancialControlModule({ initialSubTab = 'dashboard', showToast, transactions = [], thirdParties = [], companyProfile = {} }) {
-  const [activeArea, setActiveArea] = useState(initialSubTab);
+  const [activeArea, setActiveArea] = useState(() => resolveAreaKey(initialSubTab));
 
   useEffect(() => {
-    if (initialSubTab && AREAS[initialSubTab]) {
-      setActiveArea(initialSubTab);
-    } else {
-      setActiveArea('dashboard');
-    }
+    setActiveArea(resolveAreaKey(initialSubTab));
   }, [initialSubTab]);
 
   // Colecciones adicionales de tesorería y tarjetas
@@ -441,7 +450,7 @@ export default function FinancialControlModule({ initialSubTab = 'dashboard', sh
                   : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
               }`}
             >
-              <Icon size={14} />
+              {Icon && typeof Icon === 'function' ? <Icon size={14} /> : null}
               <span>{area.label}</span>
             </button>
           );
