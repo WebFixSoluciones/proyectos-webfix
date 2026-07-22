@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { 
-  DollarSign, PieChart, Users, FileText, Download, Settings, Sparkles, ShoppingCart, Package, Bookmark,
-  ArrowDownCircle, ArrowUpCircle, TrendingUp, Calculator, Building, Percent, CreditCard, ShoppingBag,
+  DollarSign, PieChart, Users, FileText, Download, Sparkles, ShoppingCart, Package,
+  ArrowDownCircle, ArrowUpCircle, Percent, CreditCard, ShoppingBag,
   X, ArrowRight, Upload
 } from 'lucide-react';
-import { collection, onSnapshot, doc, setDoc, getDoc, getDocs } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 import { getEcuadorDateString } from '../../services/sriService';
 import { registrarMovimientoKardex } from '../../services/inventoryService';
 import { db, storage, appId } from '../../firebase';
@@ -12,22 +12,22 @@ import FinanceDashboard from './FinanceDashboard';
 import TransactionsView from './TransactionsView';
 import ThirdPartiesView from './ThirdPartiesView';
 import ReportsView from './ReportsView';
-import FinanceChat from './FinanceChat';
 import InventoryModule from '../inventory/InventoryModule';
 import QuotesView from './QuotesView';
 import PosView from './PosView';
 import TransactionForm from './TransactionForm';
 import PurchaseForm from './PurchaseForm';
 import AccountsReceivablePayable from './AccountsReceivablePayable';
-import SalesDashboard from './SalesDashboard';
 import ComprasGastosView from './ComprasGastosView';
 import GastosCreditosModule from './GastosCreditosModule';
 import DiscountsPromotionsView from './DiscountsPromotionsView';
+import MovimientosView from './MovimientosView';
 
 export default function FinanceModule({ 
   mode = 'contabilidad', 
   initialSubTab, 
   showToast,
+  usuario = null,
   transactions = [],
   thirdParties = [],
   products = [],
@@ -40,7 +40,7 @@ export default function FinanceModule({
     if (m === 'inventario') return 'products';
     if (m === 'personas') return 'personas';
     if (m === 'compras') return 'compras_resumen';
-    return 'dashboard'; // 'contabilidad'
+    return 'movimientos'; // 'contabilidad'
   };
 
   const [activeTab, setActiveTab] = useState(() => {
@@ -53,11 +53,24 @@ export default function FinanceModule({
   // Sync state if mode changes
   useEffect(() => {
     if (initialSubTab && (mode === 'compras' || mode === 'contabilidad')) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setActiveTab(initialSubTab);
     } else {
       setActiveTab(getInitialTab(mode));
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode]);
+
+  // Estados de sub-navegación ERP
+  const [subTabVentas, setSubTabVentas] = useState(() => (mode === 'ventas' && initialSubTab) ? (String(initialSubTab).startsWith('pos') ? 'pos' : initialSubTab) : 'resumen_ventas');
+  const [subTabSri, setSubTabSri] = useState('nota_credito');
+  const [subTabPersonas, setSubTabPersonas] = useState(() => (mode === 'personas' && initialSubTab) ? initialSubTab : 'cliente');
+
+  // Estados centralizados para el modal de Facturación / SRI
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingTx, setEditingTx] = useState(null);
+  const [purchaseMethod, setPurchaseMethod] = useState(null);
+  const [showPurchaseMethodSelect, setShowPurchaseMethodSelect] = useState(false);
 
   // Sincronizar subTab de ventas y personas desde prop de navegación rápida
   useEffect(() => {
@@ -65,6 +78,7 @@ export default function FinanceModule({
       if (mode === 'ventas') {
         const subStr = String(initialSubTab);
         if (subStr.startsWith('ventas_preventa') || subStr === 'ventas_nueva') {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
           setSubTabVentas('ventas_preventa');
           setEditingTx(null);
           setIsModalOpen(true);
@@ -84,17 +98,6 @@ export default function FinanceModule({
       }
     }
   }, [initialSubTab, mode]);
-
-  // Estados de sub-navegación ERP
-  const [subTabVentas, setSubTabVentas] = useState(() => (mode === 'ventas' && initialSubTab) ? (String(initialSubTab).startsWith('pos') ? 'pos' : initialSubTab) : 'resumen_ventas');
-  const [subTabSri, setSubTabSri] = useState('nota_credito');
-  const [subTabPersonas, setSubTabPersonas] = useState(() => (mode === 'personas' && initialSubTab) ? initialSubTab : 'cliente');
-
-  // Estados centralizados para el modal de Facturación / SRI
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingTx, setEditingTx] = useState(null);
-  const [purchaseMethod, setPurchaseMethod] = useState(null);
-  const [showPurchaseMethodSelect, setShowPurchaseMethodSelect] = useState(false);
 
   const isFormActive = isModalOpen && (
     (editingTx?.type === 'ingreso') || 
@@ -188,7 +191,7 @@ export default function FinanceModule({
                 concept: `Compra XML #${documentNumber}`, referenceId: docId,
                 bodega: 'Bodega Central'
               });
-            } catch (e) { /* skip failed kardex item */ }
+            } catch { /* skip failed kardex item */ }
           }
         }
         await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId), { inventarioRegistrado: true }, { merge: true });
@@ -263,11 +266,13 @@ export default function FinanceModule({
   };
 
   const moduleHeader = getModuleHeader();
+  // eslint-disable-next-line no-unused-vars
   const ModuleIcon = moduleHeader.icon;
 
   const getTabsForMode = () => {
     if (mode === 'contabilidad') {
       return [
+        { id: 'movimientos', label: 'Movimientos', icon: DollarSign },
         { id: 'dashboard', label: 'Resumen', icon: PieChart },
         { id: 'sri_docs', label: 'Documentos SRI', icon: FileText },
         { id: 'cxc', label: 'Cuentas por Cobrar', icon: ArrowDownCircle },
@@ -288,6 +293,7 @@ export default function FinanceModule({
     return [];
   };
 
+  // eslint-disable-next-line no-unused-vars
   const displayedTabs = getTabsForMode();
 
   return (
@@ -332,6 +338,9 @@ export default function FinanceModule({
             </div>
           ) : (
             <>
+              {activeTab === 'movimientos' && (
+                <MovimientosView db={db} usuario={usuario} showToast={showToast} />
+              )}
               {activeTab === 'dashboard' && <FinanceDashboard transactions={transactions} thirdParties={thirdParties} db={db} appId={appId} />}
               
               {/* SECCIÓN VENTAS */}
