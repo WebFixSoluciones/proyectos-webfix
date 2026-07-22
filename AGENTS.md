@@ -7,26 +7,15 @@ React 19 + Vite 8 | Tailwind CSS 4 | Firebase | React Router 7
 
 ## Walkthroughs activos (ordenados por fecha)
 
-### 1. Design Standardization (2026-07-06) — EN PROGRESO
+### 1. Design Standardization (2026-07-06) — COMPLETADO
 **Spec:** `docs/superpowers/specs/2026-07-06-design-standardization-design.md`
 **Plan:** `docs/superpowers/plans/2026-07-06-design-standardization-plan.md`
 
-Estandarizar todo el UI a **Flat Modern Design** (Token-First). 8 tareas:
-
-| # | Tarea | Estado |
-|---|-------|--------|
-| 1 | Actualizar `designTokens.css` con paleta azul `#2563EB` | pendiente |
-| 2 | Mapear tokens en `index.css` (`@theme` block) | pendiente |
-| 3 | Crear 5 componentes base (`Button`, `Card`, `Badge`, `Input`, `Table`) en `src/components/ui/` | pendiente |
-| 4 | Migrar `Sidebar.jsx` (~15 colores hardcodeados) | pendiente |
-| 5 | Migrar `LoginPage` y `RegisterPage` | pendiente |
-| 6 | Migrar dashboard (`ErpDashboard`, `GeneralSettings`, etc.) | pendiente |
-| 7 | Migrar finanzas (~13 archivos), inventario (~5), landing (~6), etc. | pendiente |
-| 8 | Actualizar `ui_stability_policies.md` y validación final | pendiente |
+UI estandarizado a **Flat Modern Design** (Token-First). 8 tareas completadas.
 
 **Reglas:** Zero shadows, sin `bg-[#...]`, sin `text-[Npx]`, sin `backdrop-blur`, radius 4-6px, sin dark mode.
 
-### 2. Purchase Module (2026-06-28)
+### 2. Purchase Module (2026-06-28) — COMPLETADO
 **Plan:** `docs/superpowers/plans/2026-06-28-purchase-module-plan.md`
 Renombrar "Compras" a "Historial de Compras", integrar `TransactionsView`, renderizar `PurchaseForm`.
 
@@ -37,6 +26,29 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
 ### 4. Preventas Workflow (2026-06-27)
 ### 5. Compact Tables (2026-06-27)
 ### 6. SuperAdmin Sidebar & Tenant Mgmt (2026-06-18)
+
+### 7. Control Financiero — Fase 1: Movimientos (2026-07-22) — COMPLETADO
+**Spec:** `docs/superpowers/specs/2026-07-22-control-financiero-redesign.md`
+**Plan:** `docs/superpowers/plans/2026-07-22-finanzas-fase1-movimientos.md`
+**Commits:** `93bdd9a` → `3ab6ef9` (8 commits)
+
+Registro central de ingresos/egresos con partidas múltiples, abonos parciales, filtros, exportación CSV, estados UI (carga/vacío/error/éxito) y auditoría completa en `fin_auditoria`.
+
+Próxima: **Fase 3: Cuentas por Pagar (CxP)**.
+
+### 8. Control Financiero — Fase 2: Cuentas por Cobrar (2026-07-22) — COMPLETADO
+**Spec:** `docs/superpowers/specs/2026-07-22-control-financiero-redesign.md`
+**Plan:** `docs/superpowers/plans/2026-07-22-finanzas-fase2-cxc.md`
+**Commits:** `3ab6ef9` → `79a3826` (4 commits)
+
+Seguimiento de facturas de venta a crédito con abonos parciales, aging de saldos (0-30/31-60/61-90/+90 días), filtros, exportación CSV, KPIs de cartera y estados UI completos.
+
+Próxima: **Fase 3: Cuentas por Pagar (CxP)**.
+
+### 9. Control Financiero — Fase 6: Préstamos Bancarios (2026-07-22) — COMPLETADO
+**Spec:** `docs/superpowers/specs/2026-07-22-control-financiero-redesign.md`
+
+Obligaciones financieras con CRUD de préstamos, generación automática de tabla de amortización (3 métodos: Francés, Alemán, Americano), registro de pagos de cuota, cálculo de saldo pendiente, alertas de cuotas vencidas, KPIs de deuda y estados UI completos.
 
 ## Últimos commits
 ```

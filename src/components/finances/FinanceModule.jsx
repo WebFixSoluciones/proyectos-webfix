@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { 
   DollarSign, PieChart, Users, FileText, Download, Sparkles, ShoppingCart, Package,
   ArrowUpCircle, Percent, CreditCard, ShoppingBag, TrendingUp,
-  X, ArrowRight, Upload, Building2
+  X, ArrowRight, Upload, Building2, Landmark
 } from 'lucide-react';
 import { doc, setDoc } from 'firebase/firestore';
 import { getEcuadorDateString } from '../../services/sriService';
@@ -25,6 +25,7 @@ import CuentasPorCobrarView from './CuentasPorCobrarView';
 import CuentasPorPagarView from './CuentasPorPagarView';
 import BancosCajaView from './BancosCajaView';
 import TarjetasCreditosView from './TarjetasCreditosView';
+import PrestamosView from './PrestamosView';
 
 export default function FinanceModule({ 
   mode = 'contabilidad', 
@@ -282,6 +283,7 @@ export default function FinanceModule({
         { id: 'cxp', label: 'Cuentas por Pagar', icon: ArrowUpCircle },
         { id: 'bancos', label: 'Bancos y Caja', icon: Building2 },
         { id: 'tarjetas', label: 'Tarjetas y Créditos', icon: CreditCard },
+        { id: 'prestamos', label: 'Préstamos', icon: Landmark },
         { id: 'gastos_creditos_sub', label: 'Gastos y Creditos', icon: CreditCard },
         { id: 'gastos_ia', label: 'Gastos con IA', icon: Sparkles },
         { id: 'reports', label: 'Reportes', icon: Download },
@@ -475,6 +477,11 @@ export default function FinanceModule({
               {/* SECCIÓN TARJETAS Y CRÉDITOS */}
               {activeTab === 'tarjetas' && (
                 <TarjetasCreditosView db={db} usuario={usuario} showToast={showToast} />
+              )}
+
+              {/* SECCIÓN PRÉSTAMOS BANCARIOS */}
+              {activeTab === 'prestamos' && (
+                <PrestamosView db={db} usuario={usuario} showToast={showToast} />
               )}
 
               {/* REPORTES */}
