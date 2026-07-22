@@ -105,6 +105,7 @@ import PublicRideView from './pages/PublicRideView';
 import { PLANS } from './config/plans';
 
 import FinanceModule from './components/finances/FinanceModule';
+import FinancialControlModule from './components/finances/FinancialControlModule';
 import ErpDashboard from './components/dashboard/ErpDashboard';
 import GeneralSettings from './components/dashboard/GeneralSettings';
 import HiringServicesModule from './components/dashboard/HiringServicesModule';
@@ -1044,12 +1045,17 @@ export default function App() {
       case 'finances': {
         const subtabs = {
           dashboard: { title: 'Control Financiero: Resumen', desc: 'Flujo de caja, saldos, cartera y cumplimiento fiscal en tiempo real' },
+          movimientos: { title: 'Movimientos financieros', desc: 'Registro único de ingresos, gastos, transferencias, pagos, cobros y ajustes' },
           compras_resumen: { title: 'Compras y Gastos', desc: 'Registro de facturas, consumos y egresos del negocio' },
           sri_docs: { title: 'Documentos Electrónicos SRI', desc: 'Historial y consulta de validez de comprobantes con el SRI' },
           cxc: { title: 'Cuentas por Cobrar', desc: 'Seguimiento de cartera y saldos pendientes de clientes' },
           cxp: { title: 'Cuentas por Pagar', desc: 'Control de compromisos de pago y obligaciones con proveedores' },
           gastos_creditos_sub: { title: 'Tarjetas y Créditos', desc: 'Control de consumos, cuotas, deudas y líneas de crédito' },
+          tarjetas_creditos: { title: 'Tarjetas y Créditos', desc: 'Control de consumos, cortes, cupos, cuotas y líneas de crédito' },
           gastos_ia: { title: 'Captura Inteligente', desc: 'Clasificación asistida de comprobantes y gastos desde archivos' },
+          captura_inteligente: { title: 'Captura Inteligente', desc: 'Lectura de XML, PDF o imagen con confirmación antes de registrar' },
+          contabilidad: { title: 'Contabilidad', desc: 'Plan de cuentas, asientos automáticos, diarios y centros de costo' },
+          impuestos_sri: { title: 'Impuestos y SRI', desc: 'Compras, ventas, IVA, retenciones y preparación del ATS' },
           compras_retencion: { title: 'Retenciones de Compras', desc: 'Gestión de retenciones aplicadas a proveedores' },
           reports: { title: 'Reportes Financieros', desc: 'Informes de resultados, flujo de caja y análisis personalizado' }
         };
@@ -2213,8 +2219,8 @@ export default function App() {
 
                   {/* VISTAS FINANCIERAS MODULARES */}
                   {activePageId === 'finances' && (
-                    <ErrorBoundary title="Error en el módulo de Contabilidad">
-                      <FinanceModule mode="contabilidad" initialSubTab={contabilidadInitialSubTab} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} discounts={globalDiscounts} promotions={globalPromotions} isLoading={isLoadingFinances} />
+                    <ErrorBoundary title="Error en el módulo de Control Financiero">
+                      <FinancialControlModule initialSubTab={contabilidadInitialSubTab} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} companyProfile={companyProfile} />
                     </ErrorBoundary>
                   )}
               {activePageId === 'ventas' && (
