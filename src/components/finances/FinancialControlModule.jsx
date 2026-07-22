@@ -433,12 +433,12 @@ export default function FinancialControlModule({ initialSubTab = 'dashboard', sh
   const currentAreaInfo = AREAS[activeArea] || AREAS.dashboard;
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-2xs space-y-6 animate-in fade-in duration-300">
+    <div className="space-y-6 animate-in fade-in duration-300">
 
       {/* 1. AREA: RESUMEN FINANCIERO */}
       {activeArea === 'dashboard' && (
         <div className="space-y-6">
-          <div className="flex justify-start border-b border-slate-100 pb-4">
+          <div className="flex justify-start mb-2">
             <button onClick={() => setIsMovementModalOpen(true)} className="btn-primary flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl cursor-pointer">
               <Plus size={14} /> Registrar Movimiento
             </button>
@@ -513,7 +513,7 @@ export default function FinancialControlModule({ initialSubTab = 'dashboard', sh
       {/* 2. AREA: MOVIMIENTOS FINANCIEROS */}
       {activeArea === 'movimientos' && (
         <div className="space-y-4">
-          <div className="flex justify-start border-b border-slate-100 pb-4">
+          <div className="flex justify-start mb-2">
             <button onClick={() => setIsMovementModalOpen(true)} className="btn-primary flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl cursor-pointer">
               <Plus size={14} /> Nuevo Movimiento
             </button>
@@ -664,7 +664,7 @@ export default function FinancialControlModule({ initialSubTab = 'dashboard', sh
       {/* 5. AREA: TARJETAS Y CRÉDITOS */}
       {activeArea === 'tarjetas_creditos' && (
         <div className="space-y-4">
-          <div className="flex justify-start border-b border-slate-100 pb-4">
+          <div className="flex justify-start mb-2">
             <button onClick={() => setIsCardModalOpen(true)} className="btn-primary flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl cursor-pointer">
               <Plus size={14} /> Nueva Tarjeta / Crédito
             </button>
@@ -820,7 +820,7 @@ export default function FinancialControlModule({ initialSubTab = 'dashboard', sh
       {/* 8. AREA: IMPUESTOS & SRI (ATS XML) */}
       {activeArea === 'impuestos_sri' && (
         <div className="space-y-6">
-          <div className="flex justify-start border-b border-slate-100 pb-4">
+          <div className="flex justify-start mb-2">
             <button
               onClick={() => downloadSriAtsXml({ companyProfile, year: new Date().getFullYear(), month: new Date().getMonth() + 1, transactions: movements })}
               className="btn-primary flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl cursor-pointer"
