@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { 
   DollarSign, PieChart, Users, FileText, Download, Sparkles, ShoppingCart, Package,
   ArrowUpCircle, Percent, CreditCard, ShoppingBag, TrendingUp,
-  X, ArrowRight, Upload
+  X, ArrowRight, Upload, Building2
 } from 'lucide-react';
 import { doc, setDoc } from 'firebase/firestore';
 import { getEcuadorDateString } from '../../services/sriService';
@@ -23,6 +23,7 @@ import DiscountsPromotionsView from './DiscountsPromotionsView';
 import MovimientosView from './MovimientosView';
 import CuentasPorCobrarView from './CuentasPorCobrarView';
 import CuentasPorPagarView from './CuentasPorPagarView';
+import BancosCajaView from './BancosCajaView';
 
 export default function FinanceModule({ 
   mode = 'contabilidad', 
@@ -278,6 +279,7 @@ export default function FinanceModule({
         { id: 'sri_docs', label: 'Documentos SRI', icon: FileText },
         { id: 'cxc', label: 'Cuentas por Cobrar', icon: TrendingUp },
         { id: 'cxp', label: 'Cuentas por Pagar', icon: ArrowUpCircle },
+        { id: 'bancos', label: 'Bancos y Caja', icon: Building2 },
         { id: 'gastos_creditos_sub', label: 'Gastos y Creditos', icon: CreditCard },
         { id: 'gastos_ia', label: 'Gastos con IA', icon: Sparkles },
         { id: 'reports', label: 'Reportes', icon: Download },
@@ -461,6 +463,11 @@ export default function FinanceModule({
               {/* SECCIÓN CUENTAS POR PAGAR (CxP) */}
               {activeTab === 'cxp' && (
                 <CuentasPorPagarView db={db} usuario={usuario} showToast={showToast} />
+              )}
+
+              {/* SECCIÓN BANCOS Y CAJA */}
+              {activeTab === 'bancos' && (
+                <BancosCajaView db={db} usuario={usuario} showToast={showToast} />
               )}
 
               {/* REPORTES */}
