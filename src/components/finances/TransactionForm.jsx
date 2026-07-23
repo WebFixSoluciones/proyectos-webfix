@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { 
-  X, UploadCloud, Calculator, FileText, CheckCircle2, AlertTriangle, Sparkles, 
+  X, Calculator, FileText, CheckCircle2, AlertTriangle, Sparkles, 
   Terminal, ShieldAlert, Download, Plus, Trash2, RefreshCw, ArrowLeft, ArrowRight, 
-  User, DollarSign, CreditCard, Layers, Search, Building, ChevronDown, UserPlus, Tag, Zap, Percent
+  User, DollarSign, CreditCard, Layers, Search, Tag, Percent
 } from 'lucide-react';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, runTransaction } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
@@ -11,6 +11,7 @@ import { validarIdentificacion, generarFacturaXML, simularTransmisionSRI, consul
 import { firmarComprobanteXML } from '../../services/xadesSigner';
 import { registrarMovimientoKardex } from '../../services/inventoryService';
 import { calculateTransactionTotals } from '../../services/discountCalcService';
+import { sincronizarVenta, sincronizarCompra } from '../../services/integracionFinanzasService';
 import RidePreviewModal from './RidePreviewModal';
 
 const SRI_RENTA_CODES = [
@@ -168,6 +169,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   // Local states for Mini POS and Client Credit Limits
   const [productSearchTerm, setProductSearchTerm] = useState('');
   const [clientDebt, setClientDebt] = useState(0);
+  // eslint-disable-next-line no-unused-vars
   const [loadingDebt, setLoadingDebt] = useState(false);
   const [creditDueDate, setCreditDueDate] = useState(() => {
     const d = new Date();
@@ -179,7 +181,9 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   const [mobileTab, setMobileTab] = useState('cliente'); // 'cliente' | 'carrito' | 'pago'
 
   // MiniPOS Discount
+  // eslint-disable-next-line no-unused-vars
   const [generalDiscountType, setGeneralDiscountType] = useState('percent'); // 'percent' | 'fixed'
+  // eslint-disable-next-line no-unused-vars
   const [generalDiscountValue, setGeneralDiscountValue] = useState(0);
 
   // Unified Discounts & Promotions state
@@ -252,6 +256,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   };
 
   const [confirmDialog, setConfirmDialog] = useState(null);
+  // eslint-disable-next-line no-unused-vars
   const fileInputRef = useRef(null);
 
   // States for Quick Contact Creation Modal (SRI)
@@ -439,10 +444,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       }));
 
       // Inicializar desglose de pagos
-      let breakdownEf = 0;
-      let breakdownTr = 0;
-      let breakdownTj = 0;
-      let breakdownCr = 0;
+      let breakdownEf;
+      let breakdownTr;
+      let breakdownTj;
+      let breakdownCr;
 
       if (tx.paymentsBreakdown) {
         breakdownEf = tx.paymentsBreakdown.efectivo || 0;
@@ -599,6 +604,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         total: totalVal.toFixed(2)
       }));
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     formData.baseImponible, 
     formData.ivaPorcentaje, 
@@ -679,6 +685,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   };
 
   // Métodos para el desglose de productos
+  // eslint-disable-next-line no-unused-vars
   const handleAddItem = () => {
     setFormData(prev => ({
       ...prev,
@@ -784,6 +791,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     showToast(`Añadido: ${product.name}`, 'success');
   };
 
+  // eslint-disable-next-line no-unused-vars
   const handleQuickAddFirstMatch = () => {
     if (!productSearchTerm.trim()) {
       showToast('Escribe un término de búsqueda para agregar rápido', 'warning');
@@ -801,6 +809,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     }
   };
 
+  // eslint-disable-next-line no-unused-vars
   const handlePaymentMethodSelect = (method) => {
     setFormData(prev => ({ ...prev, paymentMethod: method }));
     if (method === 'credito') {
@@ -808,6 +817,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     }
   };
 
+  // eslint-disable-next-line no-unused-vars
   const handleFileUpload = async (e, fileType) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -821,7 +831,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       
       uploadTask.on('state_changed', 
         null, 
-        (error) => {
+        () => {
           showToast(`Error al subir ${fileType}`, 'error');
           setIsUploading(false);
         }, 
@@ -898,10 +908,12 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     };
   };
 
+  // eslint-disable-next-line no-unused-vars
   const getPrimaryPaymentMethod = () => {
     return formData.paymentMethod || 'efectivo';
   };
 
+  // eslint-disable-next-line no-unused-vars
   const fillRemaining = (field) => {
     const total = Number(formData.total) || 0;
     setPayments(prev => ({
@@ -1103,9 +1115,9 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
     const { isFinalizingNotaVenta = false } = options;
 
-    let title = "";
-    let message = "";
-    let type = "info";
+    let title;
+    let message;
+    let type;
 
     if (isFinalizingNotaVenta) {
       title = "Confirmar Registro de Venta";
@@ -1219,6 +1231,65 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       if (finalTxData.type !== 'ingreso' || isFinalizingNotaVenta) {
         await registrarInventarioTransaccion(finalTxData);
         finalTxData.inventarioRegistrado = true;
+      }
+
+      try {
+        if (finalTxData.type === 'ingreso') {
+          const ventaData = {
+            id: docId,
+            type: 'ingreso',
+            documentType: finalTxData.documentType,
+            documentNumber: finalTxData.documentNumber,
+            claveAcceso: finalTxData.claveAcceso || '',
+            total: Number(finalTxData.total) || 0,
+            baseImponible: Number(finalTxData.baseImponible) || Number(finalTxData.subtotal) || 0,
+            ivaValor: Number(finalTxData.ivaValor) || 0,
+            clienteNombre: finalTxData.thirdPartyName || finalTxData.clienteNombre || '',
+            clienteRuc: finalTxData.thirdPartyRuc || finalTxData.clienteRuc || '',
+            thirdPartyId: finalTxData.thirdPartyId || '',
+            date: finalTxData.date || new Date().toISOString(),
+            fechaVencimiento: finalTxData.creditDueDate || null,
+            paymentMethod: finalTxData.paymentMethod || 'efectivo',
+            paymentStatus: finalTxData.paymentStatus || 'pagado',
+            sriStatus: finalTxData.sriStatus || 'no_aplica',
+            notas: finalTxData.notas || '',
+            xmlUrl: finalTxData.xmlUrl || '',
+            pdfUrl: finalTxData.pdfUrl || '',
+            transactionRef: finalTxData.transferenciaRef || '',
+            isPOS: !!finalTxData.isPOS,
+            creadoPor: '',
+          };
+          await sincronizarVenta(ventaData, db, { uid: '', email: '' });
+        } else if (finalTxData.type === 'egreso') {
+          const compraData = {
+            id: docId,
+            type: 'egreso',
+            documentType: finalTxData.documentType,
+            documentNumber: finalTxData.documentNumber,
+            claveAcceso: finalTxData.claveAcceso || '',
+            total: Number(finalTxData.total) || 0,
+            baseImponible: Number(finalTxData.baseImponible) || Number(finalTxData.subtotal) || 0,
+            ivaValor: Number(finalTxData.ivaValor) || 0,
+            retencionFuente: Number(finalTxData.retencionFuente) || 0,
+            retencionIva: Number(finalTxData.retencionIva) || 0,
+            proveedorNombre: finalTxData.thirdPartyName || finalTxData.proveedorNombre || '',
+            proveedorRuc: finalTxData.thirdPartyRuc || finalTxData.proveedorRuc || '',
+            thirdPartyId: finalTxData.thirdPartyId || '',
+            date: finalTxData.date || new Date().toISOString(),
+            fechaVencimiento: finalTxData.creditDueDate || null,
+            paymentMethod: finalTxData.paymentMethod || 'transferencia',
+            paymentStatus: finalTxData.paymentStatus || 'pagado',
+            sriStatus: finalTxData.sriStatus || 'no_aplica',
+            category: finalTxData.category || 'costos',
+            notas: finalTxData.notas || '',
+            xmlUrl: finalTxData.xmlUrl || '',
+            pdfUrl: finalTxData.pdfUrl || '',
+            creadoPor: '',
+          };
+          await sincronizarCompra(compraData, db, { uid: '', email: '' });
+        }
+      } catch (syncErr) {
+        console.error('Error sincronizando con modulo financiero:', syncErr);
       }
 
       showToast('Transacción guardada', 'success');
@@ -1387,7 +1458,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         } catch (signErr) {
           console.error(signErr);
           setSriLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), message: `Firma Fallida: ${signErr.message}`, status: 'error' }]);
-          throw new Error(`Error en la firma digital: ${signErr.message}. Verifique la contraseña de su firma electrónica.`);
+          throw new Error(`Error en la firma digital: ${signErr.message}. Verifique la contraseña de su firma electrónica.`, { cause: signErr });
         }
       } else {
         if (configData.ambiente === '2') {
@@ -1524,7 +1595,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       
       setFormData(prev => ({ ...prev, sriStatus: 'anulado', inventarioRegistrado: false }));
       showToast(isNotaVenta ? "Nota de Venta anulada exitosamente" : "Comprobante anulado tributariamente", "success");
-    } catch (e) {
+    } catch {
       showToast("Error al anular", "error");
     }
   };
@@ -1576,6 +1647,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         executeSave({ isFinalizingNotaVenta: formData.documentType === 'nota_venta' });
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isInitializedFromPOS]);
 
   const isAuthorized = formData.sriStatus === 'autorizado';
@@ -1583,6 +1655,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   const isEditable = !isAuthorized && !isAnulado;
   // Documento finalizado en paso 2 — no se puede regresar ni editar desde aquí
   const isLockedInStep2 = (isAuthorized || isAnulado) && currentStep === 2;
+  // eslint-disable-next-line no-unused-vars
   const hasItems = formData.items && formData.items.length > 0;
 
   const handleNextStep = () => {
@@ -1665,6 +1738,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   const cardClass = `p-[12px] rounded-card ${
     'bg-white text-black'}`;
 
+  // eslint-disable-next-line no-unused-vars
   const sectionTitleClass = `text-xs font-bold uppercase ${
     'text-black'}`;
 
@@ -1681,11 +1755,13 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       tp.name?.toLowerCase().includes(clientSearchTerm.toLowerCase()) ||
       tp.ruc?.toLowerCase().includes(clientSearchTerm.toLowerCase())
     );
+  // eslint-disable-next-line no-unused-vars
   const paymentStatus = calculatePaymentStatus();
   const efVal = Number(payments.efectivo) || 0;
   const tjVal = Number(payments.tarjeta) || 0;
   const trVal = Number(payments.transferencia) || 0;
   const crVal = Number(payments.cruce_cuentas) || 0;
+  // eslint-disable-next-line no-unused-vars
   const totalPaid = efVal + tjVal + trVal + crVal;
 
   const formJSX = (

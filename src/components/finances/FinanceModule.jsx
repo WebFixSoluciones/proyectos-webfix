@@ -7,6 +7,7 @@ import {
 import { doc, setDoc } from 'firebase/firestore';
 import { getEcuadorDateString } from '../../services/sriService';
 import { registrarMovimientoKardex } from '../../services/inventoryService';
+import { sincronizarCompra } from '../../services/integracionFinanzasService';
 import { db, storage, appId } from '../../firebase';
 import FinanceDashboard from './FinanceDashboard';
 import TransactionsView from './TransactionsView';
@@ -207,6 +208,32 @@ export default function FinanceModule({
       }
 
       showToast?.(`Compra automatica registrada: ${razonSocial} - $${importeTotal.toFixed(2)}`, 'success');
+
+      try {
+        await sincronizarCompra({
+          id: docId,
+          type: 'egreso',
+          documentType: 'factura',
+          documentNumber,
+          claveAcceso: claveAcceso || '',
+          total: Number(importeTotal) || 0,
+          baseImponible: Number(baseImponible) || 0,
+          ivaValor: Number(ivaValor) || 0,
+          proveedorNombre: razonSocial || '',
+          proveedorRuc: ruc || '',
+          thirdPartyId: supplierId || '',
+          date: fechaEmision || new Date().toISOString(),
+          paymentMethod: 'transferencia',
+          paymentStatus: 'pagado',
+          sriStatus: 'autorizado',
+          category: 'compras',
+          descripcion: `Compra automatica XML - ${razonSocial}`,
+          creadoPor: '',
+        }, db, { uid: '', email: '' });
+      } catch (syncErr) {
+        console.error('Error sincronizando compra XML automatica con modulo financiero:', syncErr);
+      }
+
     } catch (err) { console.error(err); showToast?.('Error al procesar XML automatico', 'error'); }
   };
 

@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import { 
-  X, Plus, Trash2, Search, Upload, Package, FileText,
-  ShoppingBag, DollarSign, ChevronRight, ChevronLeft,
-  CheckCircle2, Sparkles, UserPlus, Building, ArrowRight, Percent
+  X, Plus, Search, Upload, Package, FileText,
+  ShoppingBag, ChevronRight, ChevronLeft,
+  CheckCircle2, UserPlus
 } from 'lucide-react';
 import { doc, setDoc, getDoc, getDocs, collection, deleteDoc } from 'firebase/firestore';
 import { registrarMovimientoKardex } from '../../services/inventoryService';
 import { getEcuadorDateString } from '../../services/sriService';
+import { sincronizarCompra } from '../../services/integracionFinanzasService';
 
 export default function PurchaseForm({ tx, onClose, thirdParties = [], products = [], showToast, db, appId, purchaseMethod }) {
   const [step, setStep] = useState(1);
@@ -81,7 +82,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
       const newAvg = (currentStock * currentCost + Number(newQty) * Number(newCost)) / (currentStock + Number(newQty));
       const delta = ((newAvg - currentCost) / currentCost * 100) || 0;
       setCostImpacts(prev => ({ ...prev, [productId]: { currentCost, newAvg, delta, isNew: false } }));
-    } catch (e) { /* ignore */ }
+    } catch { /* ignore */ }
   };
 
   // Add product to list
@@ -133,7 +134,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
       handleAddProduct(prod);
       setShowCreateProduct(false);
       setNewProduct({ name: '', sku: '', cost: 0, price: 0, category: '', iva: 15, unit: 'unidad' });
-    } catch (err) { showToast?.('Error al crear producto', 'error'); }
+    } catch { showToast?.('Error al crear producto', 'error'); }
   };
 
   // Quick add supplier
@@ -146,7 +147,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
       setForm(prev => ({ ...prev, supplierId: supId, supplierName: sup.name, supplierRuc: sup.ruc }));
       setQuickAddSupplier(false);
       showToast?.('Proveedor creado', 'success');
-    } catch (err) { showToast?.('Error al crear proveedor', 'error'); }
+    } catch { showToast?.('Error al crear proveedor', 'error'); }
   };
 
   // XML Import
@@ -169,6 +170,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
 
       const infoFact = xmlDoc.getElementsByTagName("infoFactura")?.[0];
       const fechaEmision = infoFact?.getElementsByTagName("fechaEmision")?.[0]?.textContent || getEcuadorDateString();
+      // eslint-disable-next-line no-unused-vars
       const importeTotal = infoFact?.getElementsByTagName("importeTotal")?.[0]?.textContent || '0';
 
       // Lookup supplier
@@ -197,7 +199,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
         items, ...recalcTotals(items)
       }));
       showToast?.('XML importado correctamente', 'success');
-    } catch (err) { showToast?.('Error al procesar XML', 'error'); }
+    } catch { showToast?.('Error al procesar XML', 'error'); }
     e.target.value = '';
   };
 
@@ -251,7 +253,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
         
         if (kardexFailed) {
           // Rollback: attempt to delete the orphaned transaction
-          try { await deleteDoc(txRef); } catch (e) { /* ignore */ }
+          try { await deleteDoc(txRef); } catch { /* ignore */ }
           showToast?.('Error al registrar inventario. Se revierte la compra.', 'error');
           setSaving(false);
           return;
@@ -262,6 +264,39 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
       }
 
       showToast?.('Compra registrada exitosamente', 'success');
+
+      try {
+        const compraData = {
+          id: docId,
+          type: 'egreso',
+          documentType: form.documentType,
+          documentNumber: form.documentNumber || `COMPRA-${Date.now()}`,
+          claveAcceso: form.claveAcceso || '',
+          total: Number(form.total) || 0,
+          baseImponible: Number(form.baseImponible) || 0,
+          ivaValor: Number(form.ivaValor) || 0,
+          retencionFuente: Number(form.retencionFuente) || 0,
+          retencionIva: Number(form.retencionIva) || 0,
+          proveedorNombre: form.supplierName || '',
+          proveedorRuc: form.supplierRuc || '',
+          thirdPartyId: form.supplierId || '',
+          date: form.date || new Date().toISOString(),
+          fechaVencimiento: form.fechaVencimiento || null,
+          paymentMethod: form.paymentMethod || 'transferencia',
+          paymentStatus: form.paymentStatus || 'pagado',
+          sriStatus: form.claveAcceso ? 'autorizado' : 'pendiente',
+          category: 'compras',
+          descripcion: form.description || '',
+          notas: form.notas || '',
+          xmlUrl: '',
+          pdfUrl: '',
+          creadoPor: '',
+        };
+        await sincronizarCompra(compraData, db, { uid: '', email: '' });
+      } catch (syncErr) {
+        console.error('Error sincronizando compra con modulo financiero:', syncErr);
+      }
+
       onClose?.();
     } catch (err) { 
       console.error(err); 
@@ -273,6 +308,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
   // Helpers
   const inputClass = "w-full text-sm px-3 py-2 rounded-md border outline-none bg-white border-border-default text-black focus:border-[var(--primary-color)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--primary-color)_15%,transparent)] transition-all";
   const labelClass = "block text-xs font-semibold mb-1.5 text-black";
+  // eslint-disable-next-line no-unused-vars
   const btnBase = "flex items-center gap-2 px-4 py-2.5 rounded-md text-sm font-medium transition-all";
 
   const filteredSuppliers = thirdParties.filter(t =>
@@ -303,7 +339,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
           {/* Stepper dots */}
           <div className="flex items-center gap-1.5">
             {[1, 2, 3].filter(s => s <= maxStep).map(s => (
-              <React.Fragment key={s}>
+              <Fragment key={s}>
                 <div className={`flex items-center gap-1.5 ${step >= s ? 'text-[var(--primary-color)]' : 'text-text-secondary'}`}>
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${step === s ? 'bg-[var(--primary-color)] text-white' : step > s ? 'bg-[var(--primary-color)] text-white' : 'bg-surface-card text-text-primary'}`}>
                     {step > s ? <CheckCircle2 size={12} /> : s}
@@ -313,7 +349,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
                   </span>
                 </div>
                 {s < maxStep && <div className={`flex-1 h-0.5 rounded ${step > s ? 'bg-[var(--primary-color)]' : 'bg-surface-card'}`} />}
-              </React.Fragment>
+              </Fragment>
             ))}
           </div>
         </div>

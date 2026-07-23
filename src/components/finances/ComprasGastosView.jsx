@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { Sparkles, Save, CheckCircle2, AlertTriangle, FileText, X, RefreshCw, Copy, Trash2, ArrowUpRight } from 'lucide-react';
+import { useState } from 'react';
+import { Sparkles, Save, CheckCircle2, X, RefreshCw, Copy, Trash2 } from 'lucide-react';
 import { doc, setDoc, deleteDoc } from 'firebase/firestore';
 import { analizarTextoFacturaConGemini } from '../../services/geminiService';
 import { getEcuadorDateString } from '../../services/sriService';
+import { sincronizarCompra } from '../../services/integracionFinanzasService';
 
 export default function ComprasGastosView({ transactions = [], showToast, db, appId }) {
   const [pastedText, setPastedText] = useState('');
@@ -86,6 +87,32 @@ Gracias por su compra`;
       };
 
       await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', txId), payload);
+
+      try {
+        await sincronizarCompra({
+          id: txId,
+          type: 'egreso',
+          documentType: 'nota_venta',
+          documentNumber: payload.documentNumber || '',
+          claveAcceso: '',
+          total: Number(payload.total) || 0,
+          baseImponible: Number(payload.baseImponible) || 0,
+          ivaValor: Number(payload.ivaValor) || 0,
+          proveedorNombre: parsedData.razonSocial || '',
+          proveedorRuc: '',
+          thirdPartyId: '',
+          date: payload.date || new Date().toISOString(),
+          paymentMethod: payload.paymentMethod || 'transferencia',
+          paymentStatus: 'pagado',
+          sriStatus: 'no_aplica',
+          category: parsedData.category || 'gastos_administrativos',
+          descripcion: payload.description || '',
+          creadoPor: '',
+        }, db, { uid: '', email: '' });
+      } catch (syncErr) {
+        console.error('Error sincronizando gasto con modulo financiero:', syncErr);
+      }
+
       showToast("Gasto registrado y clasificado correctamente en la contabilidad", "success");
       setParsedData(null);
       setPastedText('');
