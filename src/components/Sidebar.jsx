@@ -1,7 +1,7 @@
 import { 
   LayoutDashboard, ShoppingCart, ShoppingBag, CreditCard,
   Package, Users, Briefcase, Settings,
-  ChevronDown, LifeBuoy, Trash2, LogOut
+  ChevronDown, LifeBuoy, Trash2, LogOut, DollarSign
 } from 'lucide-react';
 
 export default function Sidebar({
@@ -141,6 +141,57 @@ export default function Sidebar({
                   const targetId = sub.id === 'compras_preventa' ? `compras_preventa_${Date.now()}` : sub.id;
                   setComprasInitialSubTab(targetId); 
                   setActivePageId('compras'); 
+                  closeMobile(); 
+                }} 
+                className={subItemClass(isActive)}
+              >
+                {sub.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  )}
+
+  {activeModules.finances && (
+    <div className="space-y-0.5">
+      <button 
+        onClick={() => { 
+          setExpandedSidebarMenu(expandedSidebarMenu === 'finanzas' ? null : 'finanzas'); 
+          setContabilidadInitialSubTab('resumen_financiero'); 
+          setActivePageId('finances'); 
+        }} 
+        className={navBtnClass(activePageId === 'finances')}
+      >
+        <div className="flex items-center gap-3 flex-1">
+          <DollarSign size={16} className={iconClass(activePageId === 'finances')} />
+          {isSidebarOpen && <span>Control Financiero</span>}
+        </div>
+        {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu === 'finanzas' ? 'rotate-180' : ''} text-text-secondary`} />}
+      </button>
+      {isSidebarOpen && expandedSidebarMenu === 'finanzas' && (
+        <div className={menuBorderClass}>
+          {[
+            { id: 'resumen_financiero', label: 'Resumen' },
+            { id: 'movimientos', label: 'Movimientos' },
+            { id: 'cxc', label: 'Cuentas por Cobrar' },
+            { id: 'cxp', label: 'Cuentas por Pagar' },
+            { id: 'bancos', label: 'Bancos y Caja' },
+            { id: 'tarjetas', label: 'Tarjetas y Créditos' },
+            { id: 'prestamos', label: 'Préstamos' },
+            { id: 'captura', label: 'Captura Inteligente' },
+            { id: 'contabilidad_tab', label: 'Contabilidad' },
+            { id: 'impuestos', label: 'Impuestos y SRI' },
+            { id: 'reportes', label: 'Reportes' }
+          ].map(sub => {
+            const isActive = activePageId === 'finances' && contabilidadInitialSubTab === sub.id;
+            return (
+              <button 
+                key={sub.id} 
+                onClick={() => { 
+                  setContabilidadInitialSubTab(sub.id); 
+                  setActivePageId('finances'); 
                   closeMobile(); 
                 }} 
                 className={subItemClass(isActive)}
