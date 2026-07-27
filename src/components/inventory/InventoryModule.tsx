@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { 
-  Package, Plus, Search, Filter, Tag, BarChart3, 
+  Package, Plus, Search, Tag, BarChart3, 
   ArrowRightLeft, Settings, Database, RefreshCw, 
   Trash2, Briefcase, PlusCircle, CheckCircle, ShieldAlert,
-  MapPin, SlidersHorizontal, Layers, Award, Edit2, X, Box
+  SlidersHorizontal, Layers, Award, Edit2, X, Box
 } from 'lucide-react';
 import ProductCreationForm from './ProductCreationForm';
 import ServiceCreationForm from './ServiceCreationForm';
@@ -18,7 +18,7 @@ import { Product } from '../../modules/inventory/domain/schemas/product.schema';
 import { Category, Brand } from '../../modules/inventory/domain/schemas/category-brand.schema';
 import { KardexTransaction } from '../../modules/inventory/domain/schemas/kardex-transfer.schema';
 
-import { collection, getDocs, query, orderBy, doc, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { db, appId } from '../../firebase';
 
 interface InventoryModuleProps {
@@ -296,10 +296,6 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
     { id: 'transferencias', label: 'Transferencias', icon: ArrowRightLeft },
     { id: 'ajustes', label: 'Ajustes de Inventario', icon: Settings },
   ];
-
-  // Colors and typography matching the App styling
-  const tableHeaderClass = 'bg-gray-100 text-gray-600 border-gray-200';
-  const tableRowClass = 'hover:bg-black/5 border-gray-100';
 
   return (
     <div className="flex flex-col h-full w-full overflow-hidden animate-in fade-in duration-500">

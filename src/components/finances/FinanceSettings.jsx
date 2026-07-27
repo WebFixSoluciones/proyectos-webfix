@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Settings, Shield, Award, Sparkles, Key, Eye, EyeOff, Save, CheckCircle2, UploadCloud, Trash2, ExternalLink, AlertCircle, CheckCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Settings, Sparkles, Key, Eye, EyeOff, Save, ExternalLink } from 'lucide-react';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import forge from 'node-forge';
 
-export default function FinanceSettings({  showToast, db, storage, appId }) {
+
+export default function FinanceSettings({  showToast, db, appId }) {
   const [loading, setLoading] = useState(true);
   const [showKey, setShowKey] = useState(false);
   const [sriConfig, setSriConfig] = useState({
@@ -81,6 +80,7 @@ export default function FinanceSettings({  showToast, db, storage, appId }) {
       }
     }
     loadSettings();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [appId, db]);
 
   const handleSave = async (e) => {
@@ -88,6 +88,7 @@ export default function FinanceSettings({  showToast, db, storage, appId }) {
     try {
       const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config');
       // Extraer solo los campos administrados por esta pantalla, evitando sobreescribir la firma digital
+      /* eslint-disable no-unused-vars */
       const {
         certificadoCargado,
         certificadoNombre,
@@ -98,6 +99,7 @@ export default function FinanceSettings({  showToast, db, storage, appId }) {
         certificadoSujeto,
         ...sriConfigRest
       } = sriConfig;
+      /* eslint-enable no-unused-vars */
 
       await setDoc(docRef, sriConfigRest, { merge: true });
 

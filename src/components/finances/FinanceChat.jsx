@@ -1,8 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Sparkles, Send, Bot, User, X, AlertCircle } from 'lucide-react';
 import { chatearConAsistenteContable } from '../../services/geminiService';
 
-export default function FinanceChat({ transactions, thirdParties, onClose }) {
+export default function FinanceChat({ transactions, onClose }) {
   const [messages, setMessages] = useState([
     { role: 'model', text: '¡Hola! Soy tu asistente contable inteligente. ¿En qué puedo ayudarte hoy? Puedo analizar tus comprobantes, darte resúmenes de impuestos o clasificar gastos.' }
   ]);
@@ -34,8 +34,7 @@ export default function FinanceChat({ transactions, thirdParties, onClose }) {
       const response = await chatearConAsistenteContable(
         userMessage,
         history,
-        transactions,
-        thirdParties
+        transactions
       );
 
       setMessages(prev => [...prev, { role: 'model', text: response }]);

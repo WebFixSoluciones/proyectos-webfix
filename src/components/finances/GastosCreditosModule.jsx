@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { 
-  CreditCard, DollarSign, Calendar, Landmark, ShoppingBag, Plus, 
-  Trash2, FileText, CheckCircle2, AlertTriangle, RefreshCw, X, 
-  ArrowDownCircle, ArrowUpCircle, History, TrendingUp
+  CreditCard, DollarSign, Landmark, ShoppingBag, Plus, 
+  Trash2, X, 
+  ArrowUpCircle, History
 } from 'lucide-react';
-import { doc, setDoc, collection, onSnapshot, addDoc, deleteDoc } from 'firebase/firestore';
+import { doc, setDoc, collection, onSnapshot, deleteDoc } from 'firebase/firestore';
 import { getEcuadorDateString } from '../../services/sriService';
 
 export default function GastosCreditosModule({ showToast, transactions = [], thirdParties = [], db, appId, initialSubTab }) {
@@ -12,6 +12,7 @@ export default function GastosCreditosModule({ showToast, transactions = [], thi
 
   useEffect(() => {
     if (initialSubTab) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setActiveTab(initialSubTab);
     }
   }, [initialSubTab]);

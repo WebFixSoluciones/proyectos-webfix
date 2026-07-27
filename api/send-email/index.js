@@ -1,3 +1,4 @@
+/* global Buffer */
 import nodemailer from 'nodemailer';
 
 export default async function handler(req, res) {
@@ -20,11 +21,16 @@ export default async function handler(req, res) {
     pdfUrl, 
     xmlUrl,
     companyName,
+    // eslint-disable-next-line no-unused-vars
     logoUrl,
+    // eslint-disable-next-line no-unused-vars
     companyRuc,
+    // eslint-disable-next-line no-unused-vars
     companyAddress,
+    // eslint-disable-next-line no-unused-vars
     companyPhone,
     claveAcceso,
+    // eslint-disable-next-line no-unused-vars
     fechaAutorizacion,
     documentType,
     date

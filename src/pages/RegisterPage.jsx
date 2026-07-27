@@ -1,4 +1,4 @@
-import React, { useState } from'react';
+import { useState } from 'react';
 import { useNavigate, useSearchParams } from'react-router-dom';
 import { Mail, Lock, User, Building, ArrowRight, RefreshCw } from'lucide-react';
 import { createUserWithEmailAndPassword } from'firebase/auth';

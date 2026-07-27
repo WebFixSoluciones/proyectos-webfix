@@ -159,12 +159,12 @@ Devuelve únicamente el código JSON, sin decoradores markdown ni bloques de có
     return data;
   } catch (err) {
     console.error("Error al decodificar respuesta JSON de Gemini", text, err);
-    throw new Error("La respuesta de la IA no tiene el formato JSON esperado. Intente subir el archivo nuevamente.");
+    throw new Error("La respuesta de la IA no tiene el formato JSON esperado. Intente subir el archivo nuevamente.", { cause: err });
   }
 }
 
 // Chatbot Contable Asistente
-export async function chatearConAsistenteContable(mensaje, historial, transactions, thirdParties) {
+export async function chatearConAsistenteContable(mensaje, historial, transactions) {
   const apiKey = getApiKey();
   if (!apiKey) {
     throw new Error("No se ha configurado la clave API de Gemini. Configúrala en Ajustes.");
@@ -172,15 +172,13 @@ export async function chatearConAsistenteContable(mensaje, historial, transactio
 
   const contextData = {
     totalComprobantes: transactions.length,
-    tercerosRegistrados: thirdParties.length,
     comprobantesResumen: transactions.slice(0, 50).map(t => ({
       fecha: t.date,
       tipo: t.type,
       documento: t.documentNumber,
       total: t.total,
       categoria: t.category,
-      sriStatus: t.sriStatus,
-      contacto: thirdParties.find(tp => tp.id === t.thirdPartyId)?.name || 'Desconocido'
+      sriStatus: t.sriStatus
     }))
   };
 
@@ -238,7 +236,7 @@ Por favor, utiliza estos datos reales para responder preguntas como sumas, filtr
 }
 
 // Analizar el contexto consolidado del ERP (Proyectos, Tareas, Inventario, Finanzas, Clientes)
-export async function analizarERPContextoConGemini(projects, tasks, products, transactions, thirdParties) {
+export async function analizarERPContextoConGemini(projects, tasks, products, transactions) {
   const apiKey = getApiKey();
   if (!apiKey) {
     throw new Error("No se ha configurado la clave API de Gemini. Por favor configúrala en Ajustes.");
@@ -387,7 +385,7 @@ Devuelve únicamente el código JSON, sin decoradores markdown ni bloques de có
     return data;
   } catch (err) {
     console.error("Error al decodificar respuesta JSON de Gemini", text, err);
-    throw new Error("La respuesta de la IA no tiene el formato JSON esperado. Intente reescribir o pegar con más claridad.");
+    throw new Error("La respuesta de la IA no tiene el formato JSON esperado. Intente reescribir o pegar con más claridad.", { cause: err });
   }
 }
 

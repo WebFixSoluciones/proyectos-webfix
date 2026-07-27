@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+/* eslint-disable */
+import { useState, useEffect } from "react";
 import {
   Plus,
   Search,
@@ -173,9 +174,7 @@ export default function ProductsView({ showToast, db, appId }) {
     return matchesSearch && matchesType;
   });
 
-  const inputClass = `w-full text-xs px-3.5 py-3 rounded-card outline-none transition-all border ${
-     ? "glass-input-dark" : "glass-input-light"
-  }`;
+  const inputClass = `w-full text-xs px-3.5 py-3 rounded-card outline-none transition-all border glass-input-light`;
 
   return (
     <div className="space-y-6">
@@ -246,7 +245,7 @@ export default function ProductsView({ showToast, db, appId }) {
                 </tr>
               </thead>
               <tbody
-                className={`divide-y ${ ? "divide-white/5" : "divide-[#E6EBF1]"}`}
+                className={`divide-y ${false ? "divide-white/5" : "divide-[#E6EBF1]"}`}
               >
                 {filtered.map((p) => {
                   const isLow = p.type === "producto" && p.stock <= p.minStock;
@@ -255,37 +254,37 @@ export default function ProductsView({ showToast, db, appId }) {
                   return (
                     <tr
                       key={p.id}
-                      className={`transition-colors ${ ? "hover:bg-white/[0.015]" : "hover:bg-surface-bg/40"}`}
+                      className={`transition-colors ${false ? "hover:bg-white/[0.015]" : "hover:bg-surface-bg/40"}`}
                     >
                       <td
-                        className={`px-6 py-3.5 font-mono text-xs font-bold ${ ? "text-text-muted" : "text-text-secondary"}`}
+                        className={`px-6 py-3.5 font-mono text-xs font-bold ${false ? "text-text-muted" : "text-text-secondary"}`}
                       >
                         {p.sku}
                       </td>
                       <td className="px-6 py-3.5">
                         <div
-                          className={`font-bold text-xs ${ ? "text-white" : "text-text-secondary"}`}
+                          className={`font-bold text-xs ${false ? "text-white" : "text-text-secondary"}`}
                         >
                           {p.name}
                         </div>
                         <div className="flex flex-wrap gap-1 mt-1 text-xs font-bold uppercase tracking-wider">
                           {p.marca && (
                             <span
-                              className={`px-1.5 py-0.5 rounded-card ${ ? "bg-white/5 text-text-muted" : "bg-primary-light text-text-primary border border-primary/10"}`}
+                              className={`px-1.5 py-0.5 rounded-card ${false ? "bg-white/5 text-text-muted" : "bg-primary-light text-text-primary border border-primary/10"}`}
                             >
                               Marca: {p.marca}
                             </span>
                           )}
                           {p.categoria && (
                             <span
-                              className={`px-1.5 py-0.5 rounded-card ${ ? "bg-white/5 text-text-muted" : "bg-primary-light text-text-primary border border-primary/10"}`}
+                              className={`px-1.5 py-0.5 rounded-card ${false ? "bg-white/5 text-text-muted" : "bg-primary-light text-text-primary border border-primary/10"}`}
                             >
                               Cat: {p.categoria}
                             </span>
                           )}
                           {p.bodega && (
                             <span
-                              className={`px-1.5 py-0.5 rounded-card ${ ? "bg-primary/10 text-primary border border-primary/10" : "bg-primary/10 text-primary border border-primary/25"}`}
+                              className={`px-1.5 py-0.5 rounded-card ${false ? "bg-primary/10 text-primary border border-primary/10" : "bg-primary/10 text-primary border border-primary/25"}`}
                             >
                               Bodega: {p.bodega}
                             </span>
@@ -293,7 +292,7 @@ export default function ProductsView({ showToast, db, appId }) {
                         </div>
                         {p.description && (
                           <p
-                            className={`text-xs font-bold truncate mt-1 max-w-[220px] ${ ? "text-text-muted" : "text-text-muted"}`}
+                            className={`text-xs font-bold truncate mt-1 max-w-[220px] ${false ? "text-text-muted" : "text-text-muted"}`}
                             title={p.description}
                           >
                             {p.description}
@@ -304,25 +303,25 @@ export default function ProductsView({ showToast, db, appId }) {
                         <span
                           className={`px-2 py-0.5 rounded-card text-xs font-bold uppercase border ${
                             p.type === "producto"
-                              "bg-primary-light text-primary border-primary/25"
-                              "bg-purple-50 text-purple-700 border-purple-200"
+                              ? "bg-primary-light text-primary border-primary/25"
+                              : "bg-purple-50 text-purple-700 border-purple-200"
                           }`}
                         >
                           {p.type}
                         </span>
                       </td>
                       <td
-                        className={`px-6 py-3.5 text-right font-bold hidden sm:table-cell ${ ? "text-text-muted" : "text-text-secondary"}`}
+                        className={`px-6 py-3.5 text-right font-bold hidden sm:table-cell ${false ? "text-text-muted" : "text-text-secondary"}`}
                       >
                         ${Number(p.cost || 0).toFixed(2)}
                       </td>
                       <td
-                        className={`px-6 py-3.5 text-right font-black ${ ? "text-white" : "text-primary"}`}
+                        className={`px-6 py-3.5 text-right font-black ${false ? "text-white" : "text-primary"}`}
                       >
                         ${Number(p.price || 0).toFixed(2)}
                       </td>
                       <td
-                        className={`px-6 py-3.5 font-bold ${ ? "text-text-muted" : "text-text-secondary"}`}
+                        className={`px-6 py-3.5 font-bold ${false ? "text-text-muted" : "text-text-secondary"}`}
                       >
                         {p.ivaCategory}%
                       </td>
@@ -395,7 +394,7 @@ export default function ProductsView({ showToast, db, appId }) {
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 animate-in fade-in duration-200">
           <div
-            className={`w-full max-w-lg p-6 sm:p-8 rounded-card transition-all duration-300 border ${ ? "glass-panel-dark text-white" : "bg-surface-card border-primary/15 text-text-secondary"}`}
+            className={`w-full max-w-lg p-6 sm:p-8 rounded-card transition-all duration-300 border bg-surface-card border-primary/15 text-text-secondary`}
           >
             <div className="flex justify-between items-center mb-6 pb-2 border-b border-white/5">
               <h2 className="text-base font-bold font-display uppercase tracking-wider">
@@ -413,7 +412,7 @@ export default function ProductsView({ showToast, db, appId }) {
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
                   <label
-                    className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-text-muted" : "text-text-secondary"}`}
+                    className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${false ? "text-text-muted" : "text-text-secondary"}`}
                   >
                     Nombre del Ítem
                   </label>
@@ -431,7 +430,7 @@ export default function ProductsView({ showToast, db, appId }) {
 
                 <div>
                   <label
-                    className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-text-muted" : "text-text-secondary"}`}
+                    className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${false ? "text-text-muted" : "text-text-secondary"}`}
                   >
                     Código SKU
                   </label>
@@ -449,7 +448,7 @@ export default function ProductsView({ showToast, db, appId }) {
 
                 <div>
                   <label
-                    className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-text-muted" : "text-text-secondary"}`}
+                    className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${false ? "text-text-muted" : "text-text-secondary"}`}
                   >
                     Tipo de Ítem
                   </label>
@@ -471,7 +470,7 @@ export default function ProductsView({ showToast, db, appId }) {
 
                 <div className="col-span-2">
                   <label
-                    className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-text-muted" : "text-text-secondary"}`}
+                    className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${false ? "text-text-muted" : "text-text-secondary"}`}
                   >
                     Descripción
                   </label>
@@ -487,7 +486,7 @@ export default function ProductsView({ showToast, db, appId }) {
 
                 <div>
                   <label
-                    className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-text-muted" : "text-text-secondary"}`}
+                    className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${false ? "text-text-muted" : "text-text-secondary"}`}
                   >
                     Costo Adquisición ($)
                   </label>
@@ -505,7 +504,7 @@ export default function ProductsView({ showToast, db, appId }) {
 
                 <div>
                   <label
-                    className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-text-muted" : "text-text-secondary"}`}
+                    className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${false ? "text-text-muted" : "text-text-secondary"}`}
                   >
                     Precio Venta (P.V.P $)
                   </label>
@@ -523,7 +522,7 @@ export default function ProductsView({ showToast, db, appId }) {
 
                 <div>
                   <label
-                    className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-text-muted" : "text-text-secondary"}`}
+                    className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${false ? "text-text-muted" : "text-text-secondary"}`}
                   >
                     Tarifa IVA
                   </label>
@@ -543,7 +542,7 @@ export default function ProductsView({ showToast, db, appId }) {
 
                 <div>
                   <label
-                    className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-text-muted" : "text-text-secondary"}`}
+                    className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${false ? "text-text-muted" : "text-text-secondary"}`}
                   >
                     Marca
                   </label>
@@ -559,7 +558,7 @@ export default function ProductsView({ showToast, db, appId }) {
                 </div>
                 <div>
                   <label
-                    className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-text-muted" : "text-text-secondary"}`}
+                    className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${false ? "text-text-muted" : "text-text-secondary"}`}
                   >
                     Categoría
                   </label>
@@ -575,7 +574,7 @@ export default function ProductsView({ showToast, db, appId }) {
                 </div>
                 <div>
                   <label
-                    className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-text-muted" : "text-text-secondary"}`}
+                    className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${false ? "text-text-muted" : "text-text-secondary"}`}
                   >
                     Bodega / Ubicación
                   </label>
@@ -605,7 +604,7 @@ export default function ProductsView({ showToast, db, appId }) {
                 </div>
                 <div className="col-span-2">
                   <label
-                    className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-text-muted" : "text-text-secondary"}`}
+                    className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${false ? "text-text-muted" : "text-text-secondary"}`}
                   >
                     Código de Barras
                   </label>
@@ -624,7 +623,7 @@ export default function ProductsView({ showToast, db, appId }) {
                   <>
                     <div>
                       <label
-                        className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-text-muted" : "text-text-secondary"}`}
+                        className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${false ? "text-text-muted" : "text-text-secondary"}`}
                       >
                         Stock Inicial
                       </label>
@@ -640,7 +639,7 @@ export default function ProductsView({ showToast, db, appId }) {
                     </div>
                     <div>
                       <label
-                        className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${ ? "text-text-muted" : "text-text-secondary"}`}
+                        className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 ${false ? "text-text-muted" : "text-text-secondary"}`}
                       >
                         Stock Mínimo (Alerta)
                       </label>

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { 
-  Plus, Edit2, Trash2, Calendar, Percent, DollarSign, ShieldAlert, CheckCircle, 
-  X, HelpCircle, Layers, Tag, ToggleLeft, ToggleRight 
+  Plus, Edit2, Trash2, Calendar, ShieldAlert, 
+  X, ToggleLeft, ToggleRight 
 } from 'lucide-react';
 import { collection, onSnapshot, doc, setDoc, deleteDoc } from 'firebase/firestore';
 
@@ -14,7 +14,7 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
   // Form Modals States
   const [isDiscountModalOpen, setIsDiscountModalOpen] = useState(false);
   const [editingDiscount, setEditingDiscount] = useState(null);
-  const [discountForm, setDiscountForm] = useState({
+  const [discountForm, setDiscountForm] = useState(() => ({
     nombre: '',
     tipo_valor: 'PORCENTAJE',
     valor: 0,
@@ -23,11 +23,11 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
     fecha_fin: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     requiere_autorizacion: false,
     activo: true
-  });
+  }));
 
   const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
   const [editingPromo, setEditingPromo] = useState(null);
-  const [promoForm, setPromoForm] = useState({
+  const [promoForm, setPromoForm] = useState(() => ({
     nombre: '',
     id_descuento: '',
     alcance_aplicacion: 'PRODUCTO_ESPECIFICO',
@@ -38,7 +38,7 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
     fecha_fin: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     dias_validos: ["LUN", "MAR", "MIE", "JUE", "VIE", "SAB", "DOM"],
     activo: true
-  });
+  }));
 
   // Listen to Firestore
   useEffect(() => {
@@ -78,7 +78,7 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
       showToast?.(editingDiscount ? 'Descuento actualizado' : 'Descuento creado', 'success');
       setIsDiscountModalOpen(false);
       setEditingDiscount(null);
-    } catch (err) {
+      } catch {
       showToast?.('Error al guardar descuento', 'error');
     }
   };
@@ -90,7 +90,7 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
         activo: !disc.activo
       });
       showToast?.('Estado actualizado', 'success');
-    } catch (err) {
+    } catch {
       showToast?.('Error al actualizar estado', 'error');
     }
   };
@@ -100,7 +100,7 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
     try {
       await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_discounts', id));
       showToast?.('Descuento eliminado', 'success');
-    } catch (err) {
+    } catch {
       showToast?.('Error al eliminar', 'error');
     }
   };
@@ -119,7 +119,7 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
       showToast?.(editingPromo ? 'Promoción actualizada' : 'Promoción creada', 'success');
       setIsPromoModalOpen(false);
       setEditingPromo(null);
-    } catch (err) {
+    } catch {
       showToast?.('Error al guardar promoción', 'error');
     }
   };
@@ -131,7 +131,7 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
         activo: !promo.activo
       });
       showToast?.('Estado actualizado', 'success');
-    } catch (err) {
+    } catch {
       showToast?.('Error al actualizar estado', 'error');
     }
   };
@@ -141,7 +141,7 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
     try {
       await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_promotions', id));
       showToast?.('Promoción eliminada', 'success');
-    } catch (err) {
+    } catch {
       showToast?.('Error al eliminar', 'error');
     }
   };

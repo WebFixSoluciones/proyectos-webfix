@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Plus, Users, Search, Trash2, Edit2, Sparkles, RefreshCw, MapPin, Phone } from 'lucide-react';
+import { useState } from 'react';
+import { Plus, Search, Trash2, Edit2, Sparkles, RefreshCw } from 'lucide-react';
 import { doc, setDoc, deleteDoc } from 'firebase/firestore';
 import { consultarRucSri } from '../../services/sriService';
 
@@ -133,7 +133,7 @@ export default function ThirdPartiesView({ thirdParties, showToast, db, appId, f
       try {
         await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_third_parties', id));
         showToast('Registro eliminado', 'success');
-      } catch(e) {
+      } catch {
         showToast('Error al eliminar', 'error');
       }
     }

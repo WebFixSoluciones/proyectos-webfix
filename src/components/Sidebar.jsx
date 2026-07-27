@@ -1,6 +1,6 @@
 import { 
   LayoutDashboard, ShoppingCart, ShoppingBag, CreditCard,
-  Package, DollarSign, Users, Briefcase, Settings,
+  Package, Users, Briefcase, Settings,
   ChevronDown, LifeBuoy, Trash2, LogOut
 } from 'lucide-react';
 
@@ -10,7 +10,8 @@ export default function Sidebar({
   ventasInitialSubTab, setVentasInitialSubTab,
   comprasInitialSubTab, setComprasInitialSubTab,
   inventarioInitialSubTab, setInventarioInitialSubTab,
- contabilidadInitialSubTab, setContabilidadInitialSubTab,
+  // eslint-disable-next-line no-unused-vars
+  contabilidadInitialSubTab, setContabilidadInitialSubTab,
  billingInitialSubTab, setBillingInitialSubTab,
  personasSubTab, setPersonasSubTab,
  isProyectosActive, trash, handleLogout

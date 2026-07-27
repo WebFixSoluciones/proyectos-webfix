@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Plus, Search, Trash2, Edit2, FileText, CheckCircle2, AlertCircle, UploadCloud, Sparkles, AlertTriangle, Eye, Mail, Loader2, Truck, Clock, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Plus, Search, Trash2, Edit2, FileText, CheckCircle2, AlertCircle, Sparkles, AlertTriangle, Eye, Mail, Loader2, Truck, Clock, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { doc, deleteDoc, setDoc, getDoc } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { analizarComprobanteConGemini, parsearXMLComprobante } from '../../services/geminiService';
@@ -15,14 +15,18 @@ export default function TransactionsView({ transactions, thirdParties, showToast
 
   useEffect(() => {
     if (forcedDocType) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFilterDocType(forcedDocType);
     }
+      
   }, [forcedDocType]);
 
   useEffect(() => {
     if (forcedType) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFilterType(forcedType);
     }
+      
   }, [forcedType]);
   
   // Estados de IA y Carga
@@ -56,7 +60,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
   };
 
   const getDocumentTypeLabel = (docType, type) => {
-    let label = '';
+    let label;
     if (docType === 'factura') label = 'Factura de Venta';
     else if (docType === 'nota_venta') label = 'Nota de Venta';
     else if (docType === 'nota_credito') label = 'Nota de Crédito';
@@ -95,7 +99,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                           (thirdParties.find(tp => tp.id === tx.thirdPartyId)?.name || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = filterType === 'all' || tx.type === filterType;
     
-    let matchesDocType = false;
+    let matchesDocType;
     if (filterDocType === 'all') {
       matchesDocType = true;
     } else if (filterDocType === 'ventas_resumen') {
@@ -280,28 +284,28 @@ export default function TransactionsView({ transactions, thirdParties, showToast
       try {
         await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', tx.id));
         showToast('Transacción eliminada', 'success');
-      } catch(e) {
+      } catch {
         showToast('Error al eliminar', 'error');
       }
     }
   };
 
   const getStatusBadge = (status, documentType) => {
-    const baseClass = "inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded font-bold uppercase tracking-wider border shadow-2xs";
+    const baseClass = "inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded font-bold uppercase tracking-wider border";
     switch(status) {
-      case 'autorizado': 
+      case 'autorizado':
         if (documentType === 'nota_venta') {
           return <span className={`${baseClass} bg-emerald-50 text-emerald-800 border-emerald-300/80`}><CheckCircle2 size={11}/> Registrado</span>;
         }
         return <span className={`${baseClass} bg-emerald-50 text-emerald-800 border-emerald-300/80`}><CheckCircle2 size={11}/> Autorizado</span>;
-      case 'pendiente': 
+      case 'pendiente':
         return <span className={`${baseClass} bg-amber-50 text-amber-800 border-amber-300/80`}><AlertCircle size={11}/> Pendiente</span>;
-      case 'anulado': 
+      case 'anulado':
         return <span className={`${baseClass} bg-rose-50 text-rose-800 border-rose-300/80`}>Anulado</span>;
-      case 'rechazado': 
+      case 'rechazado':
         return <span className={`${baseClass} bg-rose-50 text-rose-800 border-rose-300/80`}><AlertTriangle size={11}/> Rechazado</span>;
-      default: 
-        return <span className="inline-flex items-center text-[11px] px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-300 font-bold uppercase">{status || 'Borrador'}</span>;
+      default:
+        return <span className="inline-flex items-center text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-300 font-bold uppercase">{status || 'Borrador'}</span>;
     }
   };
 
@@ -616,13 +620,13 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                   <td className="px-6 py-2.5">
                     <div className="text-slate-900 font-bold text-xs leading-none">{tx.date}</div>
                     {tx.time && (
-                      <div className="text-[11px] text-slate-600 font-semibold leading-none mt-1.5">
+                      <div className="text-xs text-slate-600 font-semibold leading-none mt-1.5">
                         {tx.time.substring(0, 5)}
                       </div>
                     )}
                   </td>
                   <td className="px-6 py-2.5">
-                    <div className="text-[11px] text-slate-600 font-semibold leading-none mb-1">
+                    <div className="text-xs text-slate-600 font-semibold leading-none mb-1">
                       {getDocumentTypeLabel(tx.documentType, tx.type)}
                     </div>
                     <div className="font-mono text-xs text-slate-900 font-bold tracking-wider">

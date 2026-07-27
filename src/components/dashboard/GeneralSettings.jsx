@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from'react';
+import { useState, useEffect } from 'react';
 import { 
- Settings, Link as LinkIcon, Sparkles, User, Users, Folder, Shield, 
- Save, Download, CheckCircle2, AlertTriangle, Key, Mail, Globe, 
- MapPin, Phone, Building, ShoppingCart, DollarSign, Package, Calendar, 
- Plus, Trash2, Eye, EyeOff, LayoutDashboard, ToggleLeft, ToggleRight,
- Palette, CreditCard, Award, UploadCloud, ExternalLink, X, Lock, AlertCircle, CheckCircle, RefreshCw, FileText
+  Link as LinkIcon, Sparkles, Users, Shield, 
+  Save, Download, CheckCircle2, AlertTriangle, Mail, 
+  Phone, Building, ShoppingCart, DollarSign, Package, Calendar, 
+  Plus, Trash2, Eye, EyeOff, LayoutDashboard, ToggleLeft, ToggleRight,
+  Palette, CreditCard, Award, UploadCloud, X, Lock, RefreshCw, FileText,
+  AlertCircle, CheckCircle
 } from'lucide-react';
 import { doc, setDoc, getDoc } from'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from'firebase/storage';
@@ -14,7 +15,8 @@ import FinanceSettings from'../finances/FinanceSettings';
 
 export default function GeneralSettings({ 
  showToast, db, appId, storage,
- users = [], trash = [], handleDownloadBackup, 
+  users = [], // eslint-disable-next-line no-unused-vars
+  trash = [], handleDownloadBackup, 
  googleClientId, setGoogleClientId, 
  activeModules = {}, setActiveModules,
  primaryColor, setPrimaryColor
@@ -192,38 +194,41 @@ export default function GeneralSettings({
  loadConfig();
  }, [appId, db]);
 
- // Sync users prop with local state
- useEffect(() => {
- setLocalUsers(users);
- }, [users]);
+  // Sync users prop with local state
+  useEffect(() => {
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  setLocalUsers(users);
+  }, [users]);
 
- // Sync tempFirma when modal opens
- useEffect(() => {
- if (isFirmaOpen) {
- setTempFirma({
- certificadoCargado: companyProfile.certificadoCargado || false,
- certificadoNombre: companyProfile.certificadoNombre ||'',
- certificadoClave: companyProfile.certificadoClave ||'',
- certificadoVence: companyProfile.certificadoVence ||'',
- certificadoBase64: companyProfile.certificadoBase64 ||''
- });
- if (companyProfile.certificadoCargado && companyProfile.certificadoBase64 && companyProfile.certificadoClave) {
- setTimeout(() => {
- verifySignatureDetails(companyProfile.certificadoBase64, companyProfile.certificadoClave, companyProfile.ruc ||'');
- }, 100);
- } else {
- setCertValidation({
- verificado: false,
- mensaje:'Cargue su firma electrónica (.p12 / .pfx) e ingrese la contraseña para verificarla.',
- tipo:'info',
- sujeto:'',
- emisor:'',
- vence:'',
- ruc:''
- });
- }
- }
- }, [isFirmaOpen, companyProfile]);
+  // Sync tempFirma when modal opens
+  useEffect(() => {
+  if (isFirmaOpen) {
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  setTempFirma({
+  certificadoCargado: companyProfile.certificadoCargado || false,
+  certificadoNombre: companyProfile.certificadoNombre ||'',
+  certificadoClave: companyProfile.certificadoClave ||'',
+  certificadoVence: companyProfile.certificadoVence ||'',
+  certificadoBase64: companyProfile.certificadoBase64 ||''
+  });
+  if (companyProfile.certificadoCargado && companyProfile.certificadoBase64 && companyProfile.certificadoClave) {
+  setTimeout(() => {
+  verifySignatureDetails(companyProfile.certificadoBase64, companyProfile.certificadoClave, companyProfile.ruc ||'');
+  }, 100);
+  } else {
+  setCertValidation({
+  verificado: false,
+  mensaje:'Cargue su firma electrónica (.p12 / .pfx) e ingrese la contraseña para verificarla.',
+  tipo:'info',
+  sujeto:'',
+  emisor:'',
+  vence:'',
+  ruc:''
+  });
+  }
+  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isFirmaOpen, companyProfile]);
 
  // Extract from SRI Service
  const handleSRIExtraction = async () => {
@@ -498,8 +503,8 @@ export default function GeneralSettings({
  showToast("Logo removido. Guarde los cambios para confirmar.","info");
  };
 
- // Signature verification logic (node-forge)
- const verifySignatureDetails = (base64, password, emisorRuc) => {
+  // Signature verification logic (node-forge)
+  function verifySignatureDetails(base64, password, emisorRuc) {
  if (!base64) return;
  if (!password) return;
 
@@ -1016,11 +1021,11 @@ export default function GeneralSettings({
         await setDoc(docRef, { users: updatedUsers }, { merge: true });
         setLocalUsers(updatedUsers);
         showToast("Usuario removido del espacio","success");
-      } catch (err) {
+      } catch {
         showToast("Error al remover usuario","error");
       }
     }
-  };
+  }
 
  const inputClass =`w-full text-xs px-3 py-2.5 rounded-card outline-none transition-all border bg-white border-gray-300 text-gray-900 focus:border-primary focus:ring-1 focus:ring-primary/35 font-medium`;
 

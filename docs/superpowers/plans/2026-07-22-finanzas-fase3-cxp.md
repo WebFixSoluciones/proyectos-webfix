@@ -1,5 +1,118 @@
+# Fase 3: Cuentas por Pagar (CxP) — Plan de Implementación
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task.
+
+**Goal:** Construir el módulo de Cuentas por Pagar: seguimiento de facturas de compra a crédito, abonos parciales, retenciones (fuente + IVA), aging de saldos, y conexión automática con Compras.
+
+**Architecture:** Firebase `fin_cxp` vinculada a `fin_movimientos` por `movimientoId`. Cada abono genera un movimiento de tipo egreso en `fin_movimientos`. Similar a CxC pero con campos de retención (fuente + IVA) y base imponible.
+
+**Tech Stack:** React 19, Firebase Firestore, Tailwind CSS 4 (token-first), lucide-react.
+
+## Global Constraints
+- Zero shadows (Flat Modern Design)
+- Token-first: usar clases del `@theme` block
+- Radius: `rounded-card` (6px), `rounded-btn` (6px), `rounded-badge` (4px)
+- No hardcoded hex, no `text-[Npx]`, no `backdrop-blur`
+- Estados UI obligatorios: skeleton, empty, error, success
+- Soft delete: anular, nunca borrar físicamente
+- Toda operación registra auditoría en `fin_auditoria`
+
+---
+
+### Task 1: Crear `cxpService.js` (servicio CxP)
+
+**Files:** Create: `src/services/cxpService.js`
+
+**Interfaces:**
+- Consumes: `registrarAuditoria` de `auditService.js`, `crearMovimiento` y `registrarAbono` de `movimientoService.js`
+- Produces: `getCxP()`, `registrarPago()`, `getAging()`, `getResumenCxP()`
+
+- [ ] **Step 1: Crear el servicio**
+
+```js
+import { collection, updateDoc, doc, getDocs, query, where, orderBy, serverTimestamp, getDoc } from 'firebase/firestore';
+import { registrarAuditoria } from './auditService';
+import { crearMovimiento } from './movimientoService';
+
+const COLLECTION = 'fin_cxp';
+
+export async function getCxP(db, filtros = {}) {
+  const constraints = [orderBy('factura.fecha', 'desc')];
+  if (filtros.estado && filtros.estado !== 'all') constraints.push(where('estado', '==', filtros.estado));
+  const q = query(collection(db, COLLECTION), ...constraints);
+  const snap = await getDocs(q);
+  let items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+  if (filtros.search) {
+    const s = filtros.search.toLowerCase();
+    items = items.filter(i => i.tercero?.nombre?.toLowerCase().includes(s) || i.tercero?.ruc?.includes(s) || i.factura?.numero?.toLowerCase().includes(s));
+  }
+  if (filtros.fechaDesde) items = items.filter(i => new Date(i.factura?.fecha?.toDate?.() || i.factura?.fecha) >= new Date(filtros.fechaDesde));
+  if (filtros.fechaHasta) items = items.filter(i => new Date(i.factura?.fecha?.toDate?.() || i.factura?.fecha) <= new Date(filtros.fechaHasta + 'T23:59:59'));
+
+  items.forEach(i => { i.diasVencido = i.factura?.fechaVencimiento ? Math.floor((Date.now() - new Date(i.factura.fechaVencimiento.toDate?.() || i.factura.fechaVencimiento).getTime()) / 86400000) : 0; });
+  return items;
+}
+
+export async function registrarPago(db, cxpId, abono, usuario) {
+  const docRef = doc(db, COLLECTION, cxpId);
+  const snap = await getDoc(docRef);
+  if (!snap.exists()) throw new Error('Registro CxP no encontrado');
+  const cxp = snap.data();
+
+  const nuevoAbono = { id: Date.now().toString(36) + Math.random().toString(36).slice(2), fecha: abono.fecha || new Date().toISOString(), monto: Number(abono.monto), metodoPago: abono.metodoPago || 'efectivo', referencia: abono.referencia || '' };
+  const abonos = [...(cxp.abonos || []), nuevoAbono];
+  const totalAbonado = abonos.reduce((s, p) => s + Number(p.monto), 0);
+  const nuevoSaldo = Math.max(0, Number(cxp.factura?.montoTotal || cxp.saldoPendiente) - totalAbonado);
+  const nuevoEstado = nuevoSaldo <= 0.01 ? 'pagado' : 'parcial';
+
+  await updateDoc(docRef, { abonos, saldoPendiente: nuevoSaldo, estado: nuevoEstado, actualizadoEn: serverTimestamp() });
+  registrarAuditoria(db, { coleccion: COLLECTION, documentoId: cxpId, accion: 'abonar', usuario: usuario.uid, usuarioEmail: usuario.email, cambios: { abono: nuevoAbono }, modulo: 'finanzas' });
+  return { ...cxp, abonos, saldoPendiente: nuevoSaldo, estado: nuevoEstado };
+}
+
+export function getAging(items) {
+  const ahora = Date.now();
+  const aging = { '0-30': { count: 0, total: 0 }, '31-60': { count: 0, total: 0 }, '61-90': { count: 0, total: 0 }, '+90': { count: 0, total: 0 } };
+  items.filter(i => i.estado !== 'pagado' && i.estado !== 'anulado').forEach(i => {
+    const d = (i.factura?.fechaVencimiento?.toDate?.() || new Date(i.factura?.fechaVencimiento));
+    const dias = Math.floor((ahora - d.getTime()) / 86400000);
+    const bucket = dias <= 30 ? '0-30' : dias <= 60 ? '31-60' : dias <= 90 ? '61-90' : '+90';
+    aging[bucket].count++; aging[bucket].total += Number(i.saldoPendiente) || 0;
+  });
+  return aging;
+}
+
+export function getResumenCxP(items) {
+  const activos = items.filter(i => i.estado !== 'anulado');
+  return {
+    totalObligaciones: activos.reduce((s, i) => s + (Number(i.saldoPendiente) || 0), 0),
+    totalVencido: activos.filter(i => i.diasVencido > 0).reduce((s, i) => s + (Number(i.saldoPendiente) || 0), 0),
+    totalPagado: activos.reduce((s, i) => s + ((i.abonos || []).reduce((a, b) => a + Number(b.monto), 0)), 0),
+    totalFacturado: activos.reduce((s, i) => s + (Number(i.factura?.montoTotal) || 0), 0),
+    totalRetFuente: activos.reduce((s, i) => s + (Number(i.factura?.retencionFuente) || 0), 0),
+    totalRetIva: activos.reduce((s, i) => s + (Number(i.factura?.retencionIva) || 0), 0),
+    conteo: activos.length,
+  };
+}
+```
+
+- [ ] **Step 2: Verificar build** `npm run build` → sin errores
+- [ ] **Step 3: Commit** `feat: crear servicio CRUD de cuentas por pagar con aging, retenciones y resumen`
+
+---
+
+### Task 2: Crear `CuentasPorPagarView.jsx`
+
+**Files:** Create: `src/components/finances/CuentasPorPagarView.jsx`
+
+**Interfaces:** Consumes: `getCxP`, `registrarPago`, `getAging`, `getResumenCxP` de `cxpService.js`.
+
+- [ ] **Step 1: Crear la vista principal**
+
+```jsx
 import { useState, useEffect, useCallback } from 'react';
-import { Search, Download, FileText, Wallet, TrendingUp, AlertTriangle, Clock, BookOpen } from 'lucide-react';
+import { Search, Download, FileText, Wallet, TrendingUp, AlertTriangle, DollarSign, Clock, BookOpen } from 'lucide-react';
 import { getCxP, getAging, registrarPago, getResumenCxP } from '../../services/cxpService';
 
 const ESTADO_BADGES = {
@@ -71,11 +184,11 @@ export default function CuentasPorPagarView({ db, usuario, showToast }) {
         </div>
         <div className="bg-surface-card border border-border-default rounded-card p-4">
           <div className="flex items-center gap-2 text-text-secondary text-xs mb-1"><Wallet size={14} className="text-warning" />Ret. Fuente</div>
-          <div className="text-lg font-bold text-warning">{formatCurrency(resumen.totalRetencionFuente)}</div>
+          <div className="text-lg font-bold text-warning">{formatCurrency(resumen.totalRetFuente)}</div>
         </div>
         <div className="bg-surface-card border border-border-default rounded-card p-4">
           <div className="flex items-center gap-2 text-text-secondary text-xs mb-1"><Wallet size={14} className="text-info" />Ret. IVA</div>
-          <div className="text-lg font-bold text-info">{formatCurrency(resumen.totalRetencionIva)}</div>
+          <div className="text-lg font-bold text-info">{formatCurrency(resumen.totalRetIva)}</div>
         </div>
       </div>
 
@@ -200,3 +313,43 @@ export default function CuentasPorPagarView({ db, usuario, showToast }) {
     </div>
   );
 }
+```
+
+- [ ] **Step 2: Verificar build** `npm run build` → sin errores
+- [ ] **Step 3: Commit** `feat: crear vista de cuentas por pagar con aging, retenciones y pagos`
+
+---
+
+### Task 3: Conectar CxP en `FinanceModule.jsx`
+
+**Files:** Modify: `src/components/finances/FinanceModule.jsx`
+
+- [ ] **Step 1: Agregar import y tab**
+
+Leer el archivo. Agregar:
+```jsx
+import CuentasPorPagarView from './CuentasPorPagarView';
+```
+
+En el array de tabs (modo contabilidad), agregar después de `cxc`:
+```jsx
+{ id: 'cxp', label: 'Cuentas por Pagar', icon: BookOpen },
+```
+
+En la sección de renderizado, agregar después del bloque `cxc`:
+```jsx
+{activeTab === 'cxp' && (
+  <CuentasPorPagarView db={db} usuario={usuario} showToast={showToast} />
+)}
+```
+
+- [ ] **Step 2: Build + lint** → sin errores
+- [ ] **Step 3: Commit** `feat: conectar cuentas por pagar como pestaña en FinanceModule`
+
+---
+
+### Task 4: Build final y verificación
+
+- [ ] **Step 1:** `npm run build` → exit 0
+- [ ] **Step 2:** Lint de nuevos archivos → 0 errores
+- [ ] **Step 3:** Commit final `feat: completar Fase 3 - modulo de cuentas por pagar con aging, retenciones y pagos`

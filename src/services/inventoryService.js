@@ -1,4 +1,4 @@
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, collection, getDocs } from "firebase/firestore";
 import { kardexService } from "../modules/inventory/services/KardexService";
 
 /**
@@ -65,22 +65,14 @@ export async function registrarMovimientoKardex(db, appId, {
   }
 
   // Mapear tipos de movimiento al nuevo Kardex
-  let mappedType = 'SALE';
   const isEntry = ['entrada', 'ajuste_ingreso', 'transferencia_entrada'].includes(type);
   const isAnulacion = concept.toLowerCase().includes('anulaci') || concept.toLowerCase().includes('revers');
 
+  let mappedType;
   if (isEntry) {
-    if (isAnulacion) {
-      mappedType = 'CUSTOMER_RETURN';
-    } else {
-      mappedType = 'PURCHASE_RECEIPT';
-    }
+    mappedType = isAnulacion ? 'CUSTOMER_RETURN' : 'PURCHASE_RECEIPT';
   } else {
-    if (isAnulacion) {
-      mappedType = 'NEGATIVE_ADJUSTMENT';
-    } else {
-      mappedType = 'SALE';
-    }
+    mappedType = isAnulacion ? 'NEGATIVE_ADJUSTMENT' : 'SALE';
   }
 
   // Llamar al nuevo KardexService unificado

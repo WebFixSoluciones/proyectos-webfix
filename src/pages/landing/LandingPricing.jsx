@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, ChevronDown, ChevronUp, Sliders } from 'lucide-react';
+import { Check, ChevronDown, ChevronUp } from 'lucide-react';
 
 export default function LandingPricing() {
   const navigate = useNavigate();

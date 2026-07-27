@@ -7,7 +7,6 @@
 // Ecuador NO tiene horario de verano (DST), siempre UTC-5.
 // Se usa desplazamiento manual en lugar de Intl.DateTimeFormat para garantizar
 // el resultado correcto incluso cuando el servidor/navegador corre en UTC u otro huso.
-const ECUADOR_OFFSET_MS = -5 * 60 * 60 * 1000; // -5 horas en ms
 
 export function getEcuadorDateString(d = new Date()) {
   const dateObj = d instanceof Date ? d : new Date(d);
@@ -699,7 +698,7 @@ async function enviarPeticionSoap(wsPath, soapBody, ambiente) {
   } catch (err) {
     clearTimeout(timeoutId);
     if (err.name === 'AbortError') {
-      throw new Error('Tiempo de espera agotado (25s) conectando con el SRI. Verifique su conexión e intente de nuevo.');
+      throw new Error('Tiempo de espera agotado (25s) conectando con el SRI. Verifique su conexión e intente de nuevo.', { cause: err });
     }
     throw err;
   }
@@ -911,11 +910,6 @@ function ejecutarSimulacionSRI(documentoData, configSRI, onLogUpdate) {
   });
 }
 
-function empaquetarResolucionSRI(ambiente) {
-  const num = Math.floor(10000000 + Math.random() * 90000000);
-  return `${ambiente === '2' ? 'PROD' : 'TEST'}-AUT-${num}`;
-}
-
 // ═══════════════════════════════════════════════════════════
 // UTILIDADES PARA FETCH ROBUSTO CON BYPASS DE CORS
 // ═══════════════════════════════════════════════════════════
@@ -1072,7 +1066,7 @@ export async function consultarRucSri(rucOrCi) {
     let apiData;
     try {
       apiData = JSON.parse(text);
-    } catch (parseErr) {
+    } catch {
       errores.push(`CipherByte (${via}): Respuesta no es JSON válido.`);
       apiData = null;
     }
@@ -1118,7 +1112,7 @@ export async function consultarRucSri(rucOrCi) {
     let sriData;
     try {
       sriData = JSON.parse(sriText);
-    } catch (_) {
+    } catch {
       sriData = null;
     }
 

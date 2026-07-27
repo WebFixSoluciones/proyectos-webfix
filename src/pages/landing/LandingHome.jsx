@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sparkles, ArrowRight, CheckCircle, ShieldCheck, Check, Laptop, Smartphone, Zap, Star, FileSpreadsheet, TrendingUp, DollarSign } from 'lucide-react';
 import heroBilling from '../../assets/hero_billing.png';
@@ -84,7 +84,8 @@ export default function LandingHome() {
   useEffect(() => {
     startAutoplay();
     return () => stopAutoplay();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
 
   const handleTabClick = (tabId) => {
     stopAutoplay();

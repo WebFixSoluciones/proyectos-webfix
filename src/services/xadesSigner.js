@@ -6,7 +6,7 @@ import forge from 'node-forge';
 function hexToDec(hex) {
   try {
     return BigInt('0x' + hex).toString(10);
-  } catch (e) {
+  } catch {
     return parseInt(hex, 16).toString();
   }
 }
@@ -220,6 +220,6 @@ export function firmarComprobanteXML(xmlString, p12Base64, password) {
     return signedDocument;
   } catch (err) {
     console.error("Error en firmarComprobanteXML:", err);
-    throw new Error(`Fallo de Firma Electrónica: ${err.message}`);
+    throw new Error(`Fallo de Firma Electrónica: ${err.message}`, { cause: err });
   }
 }

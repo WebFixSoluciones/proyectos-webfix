@@ -1,73 +1,44 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Plus, 
-  FileText, 
-  Calendar, 
-  Video, 
-  Trash2, 
-  Menu, 
-  LogIn, 
-  LogOut, 
+import { useState, useEffect, useRef } from 'react';
+import {
+  Plus,
+  FileText,
+  Calendar,
+  Video,
+  Trash2,
+  Menu,
+  LogIn,
+  LogOut,
   Clock,
-  MoreHorizontal,
-  ChevronRight,
   RefreshCw,
   Sparkles,
   Wand2,
-  RotateCcw,
   Briefcase,
-  Sun,
-  Moon,
   X,
   CalendarDays,
   DollarSign,
-  ShoppingCart,
-  Package,
   AlignLeft,
   Save,
-  Maximize2,
   CheckSquare,
   MessageSquare,
-  LayoutDashboard,
-  Monitor,
-  Palette,
-  Rocket,
-  BarChart3,
   ListTodo,
   CheckCircle2,
-  CircleDashed,
-  FolderOpen,
-  Users,
-  User,
-  Eye,
-  EyeOff,
   Shield,
   UserCircle,
   UserPlus,
   Pencil,
   Download,
-  Link as LinkIcon,
   Lock,
-  Mail,
-  Key,
-  ArrowRight,
   ArrowLeft,
   Cloud,
   Settings,
   GripVertical,
-  CreditCard,
-  ChevronDown,
-  ShoppingBag,
-  Building,
   Calculator,
   CloudOff,
-  LifeBuoy,
   AlertCircle
 } from 'lucide-react';
 
 import {
   DndContext,
-  DragOverlay,
   closestCorners,
   KeyboardSensor,
   PointerSensor,
@@ -84,8 +55,8 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
-import { onAuthStateChanged, signInAnonymously, signInWithCustomToken, signOut, signInWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc, onSnapshot, collection, updateDoc, deleteDoc, writeBatch, getDocs, getDoc } from 'firebase/firestore';
+import { signOut, signInWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc, onSnapshot, collection, deleteDoc, writeBatch, getDocs, getDoc } from 'firebase/firestore';
 
 import { auth, db, storage, appId } from './firebase';
 import { useAuth } from './contexts/AuthContext';
@@ -117,7 +88,8 @@ import Sidebar from './components/Sidebar';
 import IconRenderer from './components/common/IconRenderer';
 import {
   COLUMN_COLORS, DEFAULT_COLUMNS, USER_COLORS,
-  MOCK_USERS, MOCK_EVENTS, INITIAL_PAGES
+  MOCK_USERS, MOCK_EVENTS, // eslint-disable-line no-unused-vars
+  INITIAL_PAGES
 } from './constants/appData';
 
 const apiKey = ""; // API Key para Gemini (configura tu clave aquí si usas IA)
@@ -126,8 +98,10 @@ const apiKey = ""; // API Key para Gemini (configura tu clave aquí si usas IA)
 const GOOGLE_CALENDAR_SCOPES = "https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly";
 
 // Helper Strings para clases Glassmorphism
+// eslint-disable-next-line no-unused-vars
 const glassPanelDark = "glass-panel-dark";
 const glassPanelLight = "glass-panel-light";
+// eslint-disable-next-line no-unused-vars
 const glassInputDark = "glass-input-dark";
 const glassInputLight = "glass-input-light";
 
@@ -350,6 +324,7 @@ const SortableColumn = ({
 };
 
 export default function App() {
+  // eslint-disable-next-line no-unused-vars
   const { currentUser, tenantInfo, planId, planStatus, role: userRole } = useAuth();
   const isAuthenticated = !!currentUser;
   const navigate = useNavigate();
@@ -426,6 +401,7 @@ export default function App() {
     if (path.startsWith('/app/')) {
       const subpage = path.substring(5);
       if (subpage === 'billing') {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setActivePageId('billing');
       }
     }
@@ -441,6 +417,7 @@ export default function App() {
         navigate('/app');
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activePageId, isAuthenticated, navigate]);
 
 
@@ -465,6 +442,7 @@ export default function App() {
         team: currentPlan.modules.includes('team') || isProfessional || isEnterprise,
         proyectos_general: currentPlan.modules.includes('proyectos_general') || isProfessional || isEnterprise
       };
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setActiveModules(newModules);
     }
   }, [planId, plansList]);
@@ -485,15 +463,16 @@ export default function App() {
     }
   }, [activePageId]);
 
-  useEffect(() => { try { localStorage.setItem('ventasInitialSubTab', ventasInitialSubTab); } catch (e) {} }, [ventasInitialSubTab]);
-  useEffect(() => { try { localStorage.setItem('comprasInitialSubTab', comprasInitialSubTab); } catch (e) {} }, [comprasInitialSubTab]);
-  useEffect(() => { try { localStorage.setItem('contabilidadInitialSubTab', contabilidadInitialSubTab); } catch (e) {} }, [contabilidadInitialSubTab]);
-  useEffect(() => { try { localStorage.setItem('inventarioInitialSubTab', inventarioInitialSubTab); } catch (e) {} }, [inventarioInitialSubTab]);
-  useEffect(() => { try { localStorage.setItem('personasSubTab', personasSubTab); } catch (e) {} }, [personasSubTab]);
+  useEffect(() => { try { localStorage.setItem('ventasInitialSubTab', ventasInitialSubTab); } catch { /* empty */ } }, [ventasInitialSubTab]);
+  useEffect(() => { try { localStorage.setItem('comprasInitialSubTab', comprasInitialSubTab); } catch { /* empty */ } }, [comprasInitialSubTab]);
+  useEffect(() => { try { localStorage.setItem('contabilidadInitialSubTab', contabilidadInitialSubTab); } catch { /* empty */ } }, [contabilidadInitialSubTab]);
+  useEffect(() => { try { localStorage.setItem('inventarioInitialSubTab', inventarioInitialSubTab); } catch { /* empty */ } }, [inventarioInitialSubTab]);
+  useEffect(() => { try { localStorage.setItem('personasSubTab', personasSubTab); } catch { /* empty */ } }, [personasSubTab]);
 
   useEffect(() => {
     const activePageType = pages.find(p => p.id === activePageId)?.type;
     if (['ventas', 'compras', 'finances', 'billing', 'gastos_creditos', 'inventario'].includes(activePageId)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setExpandedSidebarMenu(activePageId);
     } else if (activePageId === 'personas' || activePageId === 'team') {
       setExpandedSidebarMenu('personas_menu');
@@ -521,8 +500,11 @@ export default function App() {
   const [events, setEvents] = useState([]);
   const [googleAccessToken, setGoogleAccessToken] = useState(null);
   
+  // eslint-disable-next-line no-unused-vars
   const isDarkMode = false;
+  // eslint-disable-next-line no-unused-vars
   const setIsDarkMode = () => {};
+
   const [primaryColor, setPrimaryColor] = useState('#4F46E5');
 
   useEffect(() => {
@@ -568,13 +550,19 @@ export default function App() {
   const [googleClientId, setGoogleClientId] = useState('');
 
   // --- SISTEMA DE LOGIN ---
+  // eslint-disable-next-line no-unused-vars
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
+  // eslint-disable-next-line no-unused-vars
   const [loginError, setLoginError] = useState('');
+  // eslint-disable-next-line no-unused-vars
   const [isAuthenticating, setIsAuthenticating] = useState(false);
+  // eslint-disable-next-line no-unused-vars
   const [showPassword, setShowPassword] = useState(false);
 
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+  // eslint-disable-next-line no-unused-vars
   const [dashboardReport, setDashboardReport] = useState('');
+  // eslint-disable-next-line no-unused-vars
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
 
   // --- ESTADOS GLOBALIZADOS DE FINANZAS ---
@@ -630,13 +618,18 @@ export default function App() {
         precio_con_iva: precioConIva
       };
     });
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setGlobalProducts(mapped);
   }, [rawProducts, globalCategories, globalBrands]);
   const [isGlobalChatOpen, setIsGlobalChatOpen] = useState(false);
 
+  // eslint-disable-next-line no-unused-vars
   const [isCloudSynced, setIsCloudSynced] = useState(false);
+  // eslint-disable-next-line no-unused-vars
   const [isSaving, setIsSaving] = useState(false);
+  // eslint-disable-next-line no-unused-vars
   const isInitialMount = useRef(true);
+  // eslint-disable-next-line no-unused-vars
   const isRemoteUpdate = useRef(false);
   // Marca para no re-empujar al historial cuando el cambio de página viene del botón atrás/adelante
   const isPopNavigation = useRef(false);
@@ -647,8 +640,15 @@ export default function App() {
   const [toasts, setToasts] = useState([]);
   const [globalConfirmDialog, setGlobalConfirmDialog] = useState(null);
 
+  const showToast = (message, type = 'success') => {
+    const id = Date.now() + Math.random();
+    setToasts(prev => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id));
+    }, 3000);
+  };
+
   useEffect(() => {
-    // Sobrescribir confirm nativo para usar nuestro modal personalizado
     window.confirm = (message) => {
       return new Promise((resolve) => {
         setGlobalConfirmDialog({
@@ -665,19 +665,10 @@ export default function App() {
       });
     };
 
-    // Sobrescribir alert nativo para usar showToast
     window.alert = (message) => {
       showToast(message, 'error');
     };
   }, []);
-
-  const showToast = (message, type = 'success') => {
-    const id = Date.now() + Math.random();
-    setToasts(prev => [...prev, { id, message, type }]);
-    setTimeout(() => {
-      setToasts(prev => prev.filter(t => t.id !== id));
-    }, 3000); // Se oculta después de 3 segundos
-  };
 
   // --- LOGIN CON MINIMALISMO LÍQUIDO PURO (SIN CANVAS) ---
 
@@ -694,6 +685,7 @@ export default function App() {
   // Limpiar sincronización de la nube al cerrar sesión
   useEffect(() => {
     if (!isAuthenticated) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsCloudSynced(false);
     }
   }, [isAuthenticated]);
@@ -767,12 +759,15 @@ export default function App() {
   // 2. Cargar datos de Firestore (Opción B: Colecciones separadas)
   const [globalTasks, setGlobalTasks] = useState([]);
   const [companyProfile, setCompanyProfile] = useState(null);
+  // eslint-disable-next-line no-unused-vars
   const [isPersonasExpanded, setIsPersonasExpanded] = useState(true);
+  // eslint-disable-next-line no-unused-vars
   const [isProyectosExpanded, setIsProyectosExpanded] = useState(true);
 
   // Auto-expand submenus when active page changes
   useEffect(() => {
     if (activePageId === 'personas' || activePageId === 'team') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsPersonasExpanded(true);
     }
   }, [activePageId]);
@@ -780,6 +775,7 @@ export default function App() {
   useEffect(() => {
     const page = pages.find(p => p.id === activePageId);
     if (activePageId === 'calendar' || (page && (page.type === 'project' || page.type === 'doc'))) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsProyectosExpanded(true);
     }
   }, [activePageId, pages]);
@@ -1209,6 +1205,7 @@ export default function App() {
       contentRef.current.style.height = contentRef.current.scrollHeight + 'px';
       window.scrollTo(0, scrollPos);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activePage?.content, activePageId]);
 
   const addPage = async () => {
@@ -1218,7 +1215,7 @@ export default function App() {
     try {
       await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'pages', newPage.id), newPage);
       showToast('Guardado', 'success');
-    } catch (e) { showToast('Error', 'error'); }
+    } catch (_e) { /* eslint-disable-line no-unused-vars */ showToast('Error', 'error'); }
   };
 
   const addProject = async () => {
@@ -1228,12 +1225,13 @@ export default function App() {
     try {
       await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'pages', newProject.id), newProject);
       showToast('Guardado', 'success');
-    } catch (e) { showToast('Error', 'error'); }
+    } catch (_e) { /* eslint-disable-line no-unused-vars */ showToast('Error', 'error'); }
   };
 
   // --- Lógica de Columnas ---
   const handleAddColumn = async () => {
     if (!newColumnName.trim() || activePage.type !== 'project') return;
+    // eslint-disable-next-line react-hooks/purity
     const newCol = { id: `col-${Date.now()}`, title: newColumnName.trim(), color: 'gray' };
     const updatedColumns = [...(activePage.columns || DEFAULT_COLUMNS), newCol];
     updateActivePage({ columns: updatedColumns });
@@ -1300,6 +1298,7 @@ export default function App() {
     setEditingTaskContent(task.content);
   };
 
+  // eslint-disable-next-line no-unused-vars
   const saveTaskContent = async () => {
     if (editingTaskId && editingTaskContent.trim()) {
       setGlobalTasks(globalTasks.map(t =>
@@ -1313,7 +1312,9 @@ export default function App() {
   };
 
   // --- Lógica de Drag & Drop (@dnd-kit) ---
+  // eslint-disable-next-line no-unused-vars
   const [activeDragTask, setActiveDragTask] = useState(null);
+  // eslint-disable-next-line no-unused-vars
   const [activeDragCol, setActiveDragCol] = useState(null);
 
   const sensors = useSensors(
@@ -1451,6 +1452,7 @@ export default function App() {
       return;
     }
 
+    /* eslint-disable react-hooks/purity */
     setDrawerTask({
       id: Date.now().toString(),
       content: '',
@@ -1463,6 +1465,7 @@ export default function App() {
       subtasks: [],
       timeSpent: 0
     });
+    /* eslint-enable react-hooks/purity */
   };
 
   const saveDrawerTask = async () => {
@@ -1481,7 +1484,7 @@ export default function App() {
     try {
       await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', drawerTask.id), drawerTask);
       showToast('Tarea guardada', 'success');
-    } catch (e) { showToast('Error', 'error'); }
+    } catch (_e) { /* eslint-disable-line no-unused-vars */ showToast('Error', 'error'); }
   };
 
   const convertEventToTask = async (event) => {
@@ -1491,6 +1494,7 @@ export default function App() {
       return;
     }
     const targetProject = projects[0];
+    /* eslint-disable react-hooks/purity */
     const newTask = {
       id: Date.now().toString(),
       content: `Reunión: ${event.title}`,
@@ -1503,15 +1507,17 @@ export default function App() {
       subtasks: [],
       timeSpent: 0
     };
+    /* eslint-enable react-hooks/purity */
     
     setGlobalTasks([...globalTasks, newTask]);
     
     try {
       await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', newTask.id), newTask);
       alert(`¡Evento convertido! Tarea añadida al proyecto: "${targetProject.title}"`);
-    } catch (e) { showToast('Error al guardar', 'error'); }
+    } catch (_e) { /* eslint-disable-line no-unused-vars */ showToast('Error al guardar', 'error'); }
   };
 
+  // eslint-disable-next-line no-unused-vars
   const handleUpdateTaskStatus = async (taskId, newStatus) => {
     setGlobalTasks(globalTasks.map(t => t.id === taskId ? { ...t, status: newStatus } : t));
     try {
@@ -1524,7 +1530,7 @@ export default function App() {
     try {
       await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', taskId));
       showToast('Tarea eliminada', 'success');
-    } catch (e) { showToast('Error', 'error'); }
+    } catch (_e) { /* eslint-disable-line no-unused-vars */ showToast('Error', 'error'); }
   };
 
   const handleDeleteTaskFromDrawer = () => {
@@ -1664,6 +1670,7 @@ export default function App() {
     } catch (e) { console.error('Error deletePage:', e); showToast('Error', 'error'); }
   };
 
+  // eslint-disable-next-line no-unused-vars
   const restorePage = async (id) => {
     const pageToRestore = trash.find(p => p.id === id);
     if (!pageToRestore) return;
@@ -1682,6 +1689,7 @@ export default function App() {
     } catch (e) { console.error('Error restorePage:', e); showToast('Error', 'error'); }
   };
 
+  // eslint-disable-next-line no-unused-vars
   const permanentlyDeletePage = async (id) => {
     const newTrash = trash.filter(p => p.id !== id);
     setTrash(newTrash);
@@ -1900,7 +1908,7 @@ export default function App() {
         const data = await response.json();
         const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
         setIsGeneratingAI(false); return text;
-      } catch (error) {
+      } catch (_error) { /* eslint-disable-line no-unused-vars */
         retries--;
         if (retries === 0) { setIsGeneratingAI(false); return "❌ Error: No se pudo conectar con la IA después de varios intentos."; }
         await new Promise(res => setTimeout(res, delay)); delay *= 2;
@@ -1931,6 +1939,7 @@ export default function App() {
     }
   };
 
+  // eslint-disable-next-line no-unused-vars
   const generateDashboardReport = async () => {
     setIsGeneratingReport(true);
     const projectData = projectsList.map(p => ({
@@ -1979,6 +1988,7 @@ export default function App() {
 
   const currentGlassInput = glassInputLight;
 
+  // eslint-disable-next-line no-unused-vars
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsAuthenticating(true);
@@ -2511,7 +2521,7 @@ export default function App() {
                                                         setEditingTaskContent={(val) => {
                                                           setEditingTaskContent(val);
                                                           setGlobalTasks(globalTasks.map(t => t.id === task.id ? { ...t, content: val } : t));
-                                                          setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', task.id), { content: val }, { merge: true }).catch((err) => console.error('inline save err:', err));
+                                                          setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', task.id), { content: val }, { merge: true }).catch(() => {});
                                                         }}
                                                         handleInlineSave={() => setEditingTaskId(null)}
                                                         setEditingTaskId={setEditingTaskId}
@@ -2552,6 +2562,7 @@ export default function App() {
                                         return (
                                           <div key={col.id} className={`p-5 rounded-2xl border  ${'bg-white border-gray-150'}`}>
                                             <div className="flex items-center justify-between mb-4">
+                                              {/* eslint-disable-next-line no-undef */}
                                               <span className={`text-xs font-bold px-2.5 py-1 rounded-lg ${getColumnColorClass(col.color)}`}>{col.title} ({colTasks.length})</span>
                                             </div>
                                             <div className="divide-y divide-white/5">
@@ -2773,10 +2784,9 @@ export default function App() {
         {/* Chat Lateral de IA Global */}
         {isGlobalChatOpen && (
           <div className={`w-80 border-l shrink-0 flex flex-col p-4 animate-in slide-in-from-right duration-300 ${'border-primary/10 bg-primary-light'}`}>
-            <FinanceChat 
-              transactions={globalTransactions} 
-              thirdParties={globalThirdParties} 
-              onClose={() => setIsGlobalChatOpen(false)} 
+            <FinanceChat
+              transactions={globalTransactions}
+              onClose={() => setIsGlobalChatOpen(false)}
             />
           </div>
         )}

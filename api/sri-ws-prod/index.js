@@ -1,3 +1,4 @@
+/* global Buffer */
 // Función serverless de Vercel: proxy server-side de los WebServices SOAP del SRI
 // en AMBIENTE DE PRODUCCIÓN (cel.sri.gob.ec). Ver explicación en
 // api/sri-ws-pruebas/[...path].js — esta es la variante de producción.

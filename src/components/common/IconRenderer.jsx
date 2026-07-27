@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   Monitor, Palette, Rocket, Briefcase, LayoutDashboard, CalendarDays,
   Users, Trash2, ShoppingCart, ShoppingBag, CreditCard, DollarSign,

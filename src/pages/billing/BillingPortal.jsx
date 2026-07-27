@@ -1,24 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { 
-  CreditCard, 
-  Building, 
-  CheckCircle, 
-  AlertTriangle, 
-  Calendar, 
-  ArrowRight, 
-  Upload, 
-  Clock, 
-  ShieldCheck, 
-  DollarSign,
-  Briefcase,
-  Mail,
-  MessageSquare,
-  Globe,
+import { useState, useEffect } from 'react';
+
+import {
+  Building,
   Check,
   RefreshCw
 } from 'lucide-react';
-import { collection, doc, setDoc, updateDoc, getDocs, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, doc, setDoc, updateDoc, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -134,7 +121,6 @@ const PRODUCTS_CATALOG = {
 };
 
 export default function BillingPortal({ showToast, initialSubTab }) {
-  const navigate = useNavigate();
   const { tenantInfo, planId, planStatus, tenantId } = useAuth();
   const [activePlan, setActivePlan] = useState('starter');
   const [billingPeriod, setBillingPeriod] = useState('monthly');
@@ -158,25 +144,25 @@ export default function BillingPortal({ showToast, initialSubTab }) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showPayPhoneSim, setShowPayPhoneSim] = useState(false);
 
-  useEffect(() => {
-    if (initialSubTab) {
-      if (initialSubTab === 'historial') {
-        setActiveCategory('historial');
-      } else if (PRODUCTS_CATALOG[initialSubTab]) {
-        setActiveCategory(initialSubTab);
-        setSelectedPlanId(PRODUCTS_CATALOG[initialSubTab].plans[0].id);
-      }
+  // Sync initialSubTab from props
+  if (initialSubTab) {
+    if (initialSubTab === 'historial' && activeCategory !== 'historial') {
+      setActiveCategory('historial');
+    } else if (PRODUCTS_CATALOG[initialSubTab] && activeCategory !== initialSubTab) {
+      setActiveCategory(initialSubTab);
+      setSelectedPlanId(PRODUCTS_CATALOG[initialSubTab].plans[0].id);
     }
-  }, [initialSubTab]);
+  }
 
-  useEffect(() => {
-    if (planId) {
-      setActivePlan(planId);
-    }
-    if (tenantInfo?.billingPeriod) {
-      setBillingPeriod(tenantInfo.billingPeriod);
-    }
-  }, [planId, tenantInfo]);
+  // Sync planId from props
+  if (planId && planId !== activePlan) {
+    setActivePlan(planId);
+  }
+
+  // Sync billingPeriod from tenantInfo
+  if (tenantInfo?.billingPeriod && tenantInfo.billingPeriod !== billingPeriod) {
+    setBillingPeriod(tenantInfo.billingPeriod);
+  }
 
   // Load billing history (transfers)
   useEffect(() => {

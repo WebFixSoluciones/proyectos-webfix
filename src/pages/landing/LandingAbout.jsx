@@ -1,5 +1,4 @@
-import React from 'react';
-import { Shield, Sparkles, Heart, CheckCircle2 } from 'lucide-react';
+import { Shield, CheckCircle2 } from 'lucide-react';
 
 export default function LandingAbout() {
   return (

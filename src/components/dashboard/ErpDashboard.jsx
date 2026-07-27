@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   ShoppingCart, FileText, Package, Users, CalendarDays, Settings
 } from 'lucide-react';

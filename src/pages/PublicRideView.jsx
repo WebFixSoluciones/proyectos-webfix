@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Printer, X, FileText, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
+import { Printer, FileText, AlertCircle, RefreshCw } from 'lucide-react';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 
@@ -31,6 +31,7 @@ function numeroALetras(num) {
     if (n < 1000) return centenasFn(n);
     const mil = Math.floor(n / 1000);
     const resto = n % 1000;
+    // eslint-disable-next-line no-useless-assignment
     let milStr = '';
     if (mil === 1) milStr = 'MIL';
     else milStr = centenasFn(mil) + ' MIL';
@@ -41,11 +42,25 @@ function numeroALetras(num) {
   const entero = parseInt(partes[0]);
   const decimales = partes[1];
 
+  // eslint-disable-next-line no-useless-assignment
   let enteroStr = '';
   if (entero === 0) enteroStr = 'CERO';
   else enteroStr = milesFn(entero);
 
   return `SON: ${enteroStr} CON ${decimales}/100 DÓLARES`;
+}
+
+function MockBarcode({ claveAcceso }) {
+  return (
+    <div className="flex flex-col items-center my-1 select-none print:my-0.5">
+      <div className="flex h-6 w-full bg-white items-stretch justify-center gap-[1px] px-1 py-0.5" style={{ backgroundColor: '#ffffff' }}>
+        {[2,1,3,1,4,1,2,2,1,3,1,4,1,2,2,1,3,1,4,1,2,2,1,3,1,4,1,2,2,1,3,1,4,1,2,2,1,3,1,4,1,2].map((w, idx) => (
+          <div key={idx} className="bg-black" style={{ width: `${w}px`, backgroundColor: '#000000', height: '100%' }}></div>
+        ))}
+      </div>
+      <span className="text-xs font-mono tracking-[0.1em] text-black text-center mt-0.5">{claveAcceso}</span>
+    </div>
+  );
 }
 
 export default function PublicRideView() {
@@ -60,7 +75,9 @@ export default function PublicRideView() {
 
   useEffect(() => {
     if (!claveAcceso || !tenantId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setError('Enlace inválido. Faltan parámetros de clave de acceso o inquilino.');
+       
       setLoading(false);
       return;
     }
@@ -161,19 +178,6 @@ export default function PublicRideView() {
     direccion: tx.thirdPartyDireccion || tx.thirdParty?.direccion || 'Ecuador',
     email: tx.thirdPartyEmail || tx.thirdParty?.email || 'N/D',
     telefono: tx.thirdPartyTelefono || tx.thirdParty?.telefono || 'N/D'
-  };
-
-  const getPlazoDias = () => {
-    if (!tx.creditDueDate || !tx.date) return 'N/D';
-    try {
-      const f1 = new Date(tx.date);
-      const f2 = new Date(tx.creditDueDate);
-      const diffTime = Math.abs(f2 - f1);
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      return `${diffDays} Días (Vence: ${tx.creditDueDate.split('-').reverse().join('/')})`;
-    } catch (e) {
-      return `Vence: ${tx.creditDueDate.split('-').reverse().join('/')}`;
-    }
   };
 
   const getPaymentsTableRows = () => {
@@ -295,17 +299,6 @@ export default function PublicRideView() {
   const handlePrint = () => {
     window.print();
   };
-
-  const MockBarcode = () => (
-    <div className="flex flex-col items-center my-1 select-none print:my-0.5">
-      <div className="flex h-6 w-full bg-white items-stretch justify-center gap-[1px] px-1 py-0.5" style={{ backgroundColor: '#ffffff' }}>
-        {[2,1,3,1,4,1,2,2,1,3,1,4,1,2,2,1,3,1,4,1,2,2,1,3,1,4,1,2,2,1,3,1,4,1,2,2,1,3,1,4,1,2].map((w, idx) => (
-          <div key={idx} className="bg-black" style={{ width: `${w}px`, backgroundColor: '#000000', height: '100%' }}></div>
-        ))}
-      </div>
-      <span className="text-xs font-mono tracking-[0.1em] text-black text-center mt-0.5">{claveAcceso}</span>
-    </div>
-  );
 
   return (
     <div className="min-h-screen w-full flex flex-col bg-slate-900 text-slate-100 font-sans print:bg-white print:text-black">
@@ -448,7 +441,7 @@ export default function PublicRideView() {
                     
                     {/* Código de barras */}
                     <div className="my-1.5">
-                      <MockBarcode />
+                      <MockBarcode claveAcceso={claveAcceso} />
                     </div>
                   </div>
                 )}

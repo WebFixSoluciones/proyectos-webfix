@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { X, Printer, FileText, CheckCircle2, AlertTriangle, HelpCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { X, Printer, FileText } from 'lucide-react';
 import { doc, getDoc } from 'firebase/firestore';
 
 function numeroALetras(num) {
@@ -29,6 +29,7 @@ function numeroALetras(num) {
     if (n < 1000) return centenasFn(n);
     const mil = Math.floor(n / 1000);
     const resto = n % 1000;
+    // eslint-disable-next-line no-useless-assignment
     let milStr = '';
     if (mil === 1) milStr = 'MIL';
     else milStr = centenasFn(mil) + ' MIL';
@@ -39,11 +40,25 @@ function numeroALetras(num) {
   const entero = parseInt(partes[0]);
   const decimales = partes[1];
 
+  // eslint-disable-next-line no-useless-assignment
   let enteroStr = '';
   if (entero === 0) enteroStr = 'CERO';
   else enteroStr = milesFn(entero);
 
   return `SON: ${enteroStr} CON ${decimales}/100 DÓLARES`;
+}
+
+function MockBarcode({ claveAcceso }) {
+  return (
+    <div className="flex flex-col items-center my-1 select-none print:my-0.5">
+      <div className="flex h-6 w-full bg-white items-stretch justify-center gap-[1px] px-1 py-0.5" style={{ backgroundColor: '#ffffff' }}>
+        {[2,1,3,1,4,1,2,2,1,3,1,4,1,2,2,1,3,1,4,1,2,2,1,3,1,4,1,2,2,1,3,1,4,1,2,2,1,3,1,4,1,2].map((w, idx) => (
+          <div key={idx} className="bg-black" style={{ width: `${w}px`, backgroundColor: '#000000', height: '100%' }}></div>
+        ))}
+      </div>
+      <span className="text-xs font-mono tracking-[0.1em] text-black text-center mt-0.5">{claveAcceso}</span>
+    </div>
+  );
 }
 
 export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId, initialFormat = 'ride' }) {
@@ -52,6 +67,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
 
   // Sync format if initialFormat changes
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setViewFormat(initialFormat);
   }, [initialFormat]);
 
@@ -135,19 +151,6 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
       ? `${tx.date.split('-').reverse().join('')}01${emisor.ruc}${emisor.ambiente}${docNumFormatted.replace(/-/g, '')}123456781` 
       : '0000000000000000000000000000000000000000000000000'
   );
-
-  const getPlazoDias = () => {
-    if (!tx.creditDueDate || !tx.date) return 'N/D';
-    try {
-      const f1 = new Date(tx.date);
-      const f2 = new Date(tx.creditDueDate);
-      const diffTime = Math.abs(f2 - f1);
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      return `${diffDays} Días (Vence: ${tx.creditDueDate.split('-').reverse().join('/')})`;
-    } catch (e) {
-      return `Vence: ${tx.creditDueDate.split('-').reverse().join('/')}`;
-    }
-  };
 
   const getPaymentsTableRows = () => {
     const breakdown = tx.paymentsBreakdown || {};
@@ -259,18 +262,6 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
   const handlePrint = () => {
     window.print();
   };
-
-  // Generador de código de barras visual usando CSS puro
-  const MockBarcode = () => (
-    <div className="flex flex-col items-center my-1 select-none print:my-0.5">
-      <div className="flex h-6 w-full bg-white items-stretch justify-center gap-[1px] px-1 py-0.5" style={{ backgroundColor: '#ffffff' }}>
-        {[2,1,3,1,4,1,2,2,1,3,1,4,1,2,2,1,3,1,4,1,2,2,1,3,1,4,1,2,2,1,3,1,4,1,2,2,1,3,1,4,1,2].map((w, idx) => (
-          <div key={idx} className="bg-black" style={{ width: `${w}px`, backgroundColor: '#000000', height: '100%' }}></div>
-        ))}
-      </div>
-      <span className="text-xs font-mono tracking-[0.1em] text-black text-center mt-0.5">{claveAcceso}</span>
-    </div>
-  );
 
   return (
     <div className="fixed inset-0 z-[120] bg-black/80 flex items-start justify-center p-4 overflow-y-auto animate-in fade-in print-modal-backdrop print:items-start print:overflow-visible">
@@ -512,7 +503,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
                         
                         {/* Código de barras */}
                         <div className="my-1.5">
-                          <MockBarcode />
+                          <MockBarcode claveAcceso={claveAcceso} />
                         </div>
                       </div>
                     )}

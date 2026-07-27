@@ -1,12 +1,12 @@
 // Constantes de datos y paletas del espacio de trabajo (Kanban, usuarios, páginas demo).
 
 export const COLUMN_COLORS = [
-  { id: 'gray', badge: 'bg-slate-100 text-slate-700 border border-slate-200/90 font-semibold text-xs', bgDark: 'bg-slate-900/40 border-slate-700', bgLight: 'bg-slate-50/90 border-slate-200/80 shadow-xs', dot: 'bg-slate-500' },
-  { id: 'blue', badge: 'bg-blue-50 text-blue-700 border border-blue-200/90 font-semibold text-xs', bgDark: 'bg-blue-950/40 border-blue-800', bgLight: 'bg-slate-50/90 border-slate-200/80 shadow-xs', dot: 'bg-blue-500' },
-  { id: 'green', badge: 'bg-emerald-50 text-emerald-700 border border-emerald-200/90 font-semibold text-xs', bgDark: 'bg-emerald-950/40 border-emerald-800', bgLight: 'bg-slate-50/90 border-slate-200/80 shadow-xs', dot: 'bg-emerald-500' },
-  { id: 'yellow', badge: 'bg-amber-50 text-amber-800 border border-amber-200/90 font-semibold text-xs', bgDark: 'bg-amber-950/40 border-amber-800', bgLight: 'bg-slate-50/90 border-slate-200/80 shadow-xs', dot: 'bg-amber-500' },
-  { id: 'red', badge: 'bg-rose-50 text-rose-700 border border-rose-200/90 font-semibold text-xs', bgDark: 'bg-rose-950/40 border-rose-800', bgLight: 'bg-slate-50/90 border-slate-200/80 shadow-xs', dot: 'bg-rose-500' },
-  { id: 'purple', badge: 'bg-purple-50 text-purple-700 border border-purple-200/90 font-semibold text-xs', bgDark: 'bg-purple-950/40 border-purple-800', bgLight: 'bg-slate-50/90 border-slate-200/80 shadow-xs', dot: 'bg-purple-500' },
+  { id: 'gray', badge: 'bg-slate-100 text-slate-700 border border-slate-200/90 font-semibold text-xs', bgDark: 'bg-slate-900/40 border-slate-700', bgLight: 'bg-slate-50/90 border-slate-200/80', dot: 'bg-slate-500' },
+  { id: 'blue', badge: 'bg-blue-50 text-blue-700 border border-blue-200/90 font-semibold text-xs', bgDark: 'bg-blue-950/40 border-blue-800', bgLight: 'bg-slate-50/90 border-slate-200/80', dot: 'bg-blue-500' },
+  { id: 'green', badge: 'bg-emerald-50 text-emerald-700 border border-emerald-200/90 font-semibold text-xs', bgDark: 'bg-emerald-950/40 border-emerald-800', bgLight: 'bg-slate-50/90 border-slate-200/80', dot: 'bg-emerald-500' },
+  { id: 'yellow', badge: 'bg-amber-50 text-amber-800 border border-amber-200/90 font-semibold text-xs', bgDark: 'bg-amber-950/40 border-amber-800', bgLight: 'bg-slate-50/90 border-slate-200/80', dot: 'bg-amber-500' },
+  { id: 'red', badge: 'bg-rose-50 text-rose-700 border border-rose-200/90 font-semibold text-xs', bgDark: 'bg-rose-950/40 border-rose-800', bgLight: 'bg-slate-50/90 border-slate-200/80', dot: 'bg-rose-500' },
+  { id: 'purple', badge: 'bg-purple-50 text-purple-700 border border-purple-200/90 font-semibold text-xs', bgDark: 'bg-purple-950/40 border-purple-800', bgLight: 'bg-slate-50/90 border-slate-200/80', dot: 'bg-purple-500' },
 ];
 
 export const DEFAULT_COLUMNS = [

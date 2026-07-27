@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { 
   Download, FileSpreadsheet, PieChart, TrendingUp, TrendingDown, 
-  FileText, Shield, Percent, AlertCircle, RefreshCw 
+  FileText, Shield, Percent, AlertCircle
 } from 'lucide-react';
 
 export default function ReportsView({ transactions, showToast }) {

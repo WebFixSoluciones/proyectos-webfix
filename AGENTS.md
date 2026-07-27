@@ -27,34 +27,54 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
 ### 5. Compact Tables (2026-06-27)
 ### 6. SuperAdmin Sidebar & Tenant Mgmt (2026-06-18)
 
-### 7. Control Financiero — Fase 1: Movimientos (2026-07-22) — COMPLETADO
+### 7. Control Financiero — Rediseño Integral (2026-07-22) — COMPLETADO
 **Spec:** `docs/superpowers/specs/2026-07-22-control-financiero-redesign.md`
-**Plan:** `docs/superpowers/plans/2026-07-22-finanzas-fase1-movimientos.md`
-**Commits:** `93bdd9a` → `3ab6ef9` (8 commits)
+**Commits:** `93bdd9a` → `36309da` (9 fases completadas)
 
-Registro central de ingresos/egresos con partidas múltiples, abonos parciales, filtros, exportación CSV, estados UI (carga/vacío/error/éxito) y auditoría completa en `fin_auditoria`.
+**Módulo reconstruido desde cero con 11 submódulos interconectados:**
 
-Próxima: **Fase 3: Cuentas por Pagar (CxP)**.
+| Fase | Submódulo | Estado |
+|------|-----------|--------|
+| 1 | Movimientos Financieros | ✅ |
+| 2 | Cuentas por Cobrar (CxC) | ✅ |
+| 3 | Cuentas por Pagar (CxP) | ✅ |
+| 4 | Bancos y Caja | ✅ |
+| 5 | Tarjetas y Créditos | ✅ |
+| 6 | Préstamos Bancarios | ✅ |
+| 7 | Captura Inteligente (OCR) | ✅ |
+| 8 | Resumen Financiero | ✅ |
+| 9 | Contabilidad | ✅ |
+| 10 | Impuestos y SRI | ✅ |
+| 11 | Reportes Especializados | ✅ |
 
-### 8. Control Financiero — Fase 2: Cuentas por Cobrar (2026-07-22) — COMPLETADO
-**Spec:** `docs/superpowers/specs/2026-07-22-control-financiero-redesign.md`
-**Plan:** `docs/superpowers/plans/2026-07-22-finanzas-fase2-cxc.md`
-**Commits:** `3ab6ef9` → `79a3826` (4 commits)
+**Colecciones Firebase creadas:**
+- `fin_movimientos` — Registro central de ingresos/egresos
+- `fin_cxc` — Cuentas por cobrar con abonos parciales
+- `fin_cxp` — Cuentas por pagar con retenciones
+- `fin_bancos` — Cuentas bancarias y movimientos
+- `fin_tarjetas` — Tarjetas de crédito con consumos diferidos
+- `fin_prestamos` — Préstamos con tabla de amortización
+- `fin_capturas` — Documentos OCR con IA
+- `fin_cuentas` — Plan de cuentas contable
+- `fin_centros_costo` — Centros de costo
+- `fin_asientos` — Asientos contables
+- `fin_auditoria` — Log de auditoría completo
 
-Seguimiento de facturas de venta a crédito con abonos parciales, aging de saldos (0-30/31-60/61-90/+90 días), filtros, exportación CSV, KPIs de cartera y estados UI completos.
-
-Próxima: **Fase 3: Cuentas por Pagar (CxP)**.
-
-### 9. Control Financiero — Fase 6: Préstamos Bancarios (2026-07-22) — COMPLETADO
-**Spec:** `docs/superpowers/specs/2026-07-22-control-financiero-redesign.md`
-
-Obligaciones financieras con CRUD de préstamos, generación automática de tabla de amortización (3 métodos: Francés, Alemán, Americano), registro de pagos de cuota, cálculo de saldo pendiente, alertas de cuotas vencidas, KPIs de deuda y estados UI completos.
+**Funcionalidades clave:**
+- Abonos parciales en CxC/CxP
+- Tablas de amortización automática (Francés/Alemán/Americano)
+- OCR con Gemini AI para capturas de documentos
+- Conciliación bancaria
+- Forecast de caja a 30/60/90 días
+- Generación de ATS XML para SRI
+- Exportación CSV/PDF en todos los reportes
+- Auditoría completa de todas las operaciones
 
 ## Últimos commits
 ```
-3a1f43e feat: implementar motor avanzado de descuentos y promociones
-b58dfdd feat: agregar alertas y validaciones profesionales de cliente, carrito y formulario
-055d990 feat: implementar tipo de descuento especial SIN_IVA
-6152313 fix: importar icono Percent en PosView y TransactionForm
-79c9404 fix: corregir referencia a propiedad de subtotal de linea en POS
+36309da feat: implementar Reportes Especializados con exportación (Fase 11 - FINAL)
+2efd3aa feat: implementar módulo de Contabilidad con plan de cuentas y asientos (Fase 9)
+2d246d4 feat: implementar Resumen Financiero con dashboard consolidado (Fase 8)
+f064a68 feat: implementar módulo de Préstamos con tablas de amortización (Fase 6)
+f7bed6c feat: implementar módulo de Tarjetas y Créditos (Fase 5)
 ```

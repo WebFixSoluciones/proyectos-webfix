@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, DollarSign, AlertCircle, Clock, ShieldAlert, Award, FileText, CheckCircle2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { TrendingUp, TrendingDown, DollarSign, Clock, ShieldAlert, Award, FileText, CheckCircle2 } from 'lucide-react';
 import { doc, getDoc } from 'firebase/firestore';
 
 export default function FinanceDashboard({ transactions, thirdParties, db, appId }) {
@@ -48,6 +48,7 @@ export default function FinanceDashboard({ transactions, thirdParties, db, appId
   }, {});
 
   const pendingPayments = transactions.filter(t => t.paymentStatus === 'pendiente');
+  // eslint-disable-next-line no-unused-vars
   const missingFiles = transactions.filter(t => !t.xmlUrl || !t.pdfUrl);
 
   // Calcular días restantes de firma digital

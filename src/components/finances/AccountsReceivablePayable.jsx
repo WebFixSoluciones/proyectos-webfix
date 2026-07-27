@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { 
-  DollarSign, Search, Plus, Calendar, FileText, CheckCircle2, 
-  AlertTriangle, RefreshCw, Eye, ArrowDownCircle, ArrowUpCircle, X, Download, Users
+  DollarSign, Search, FileText, 
+  Eye, ArrowDownCircle, ArrowUpCircle, X, Download, Users
 } from 'lucide-react';
 import { doc, setDoc } from 'firebase/firestore';
 import { getEcuadorDateString } from '../../services/sriService';

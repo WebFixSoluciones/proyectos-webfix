@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Search, Download, Plus, Building2, Wallet, ArrowDownLeft, ArrowUpRight, Link2, Link2Off, Trash2, X, Filter } from 'lucide-react';
-import { getCuentas, crearCuenta, actualizarCuenta, eliminarCuenta, getMovimientosBancarios, registrarMovimientoBancario, eliminarMovimientoBancario, conciliarMovimiento, desconciliarMovimiento, getResumenBancos } from '../../services/bancosService';
+import { Download, Plus, Building2, Wallet, ArrowDownLeft, ArrowUpRight, Link2, Link2Off, Trash2, X, Filter, Sparkles, CheckCircle } from 'lucide-react';
+import { getCuentas, crearCuenta, actualizarCuenta, eliminarCuenta, getMovimientosBancarios, registrarMovimientoBancario, eliminarMovimientoBancario, conciliarMovimiento, desconciliarMovimiento, getResumenBancos, conciliacionAutomatica } from '../../services/bancosService';
 
 const TIPO_BADGES = {
   banco: 'bg-blue-50 text-blue-700 border-blue-200',
@@ -21,6 +21,8 @@ export default function BancosCajaView({ db, usuario, showToast }) {
   const [showFormCuenta, setShowFormCuenta] = useState(false);
   const [showFormMov, setShowFormMov] = useState(false);
   const [editingCuenta, setEditingCuenta] = useState(null);
+  const [sugerenciasConciliacion, setSugerenciasConciliacion] = useState(null);
+  const [loadingConciliacion, setLoadingConciliacion] = useState(false);
 
   const formatCurrency = (v) => `$${(Number(v) || 0).toFixed(2)}`;
   const formatDate = (d) => d?.toDate ? d.toDate().toLocaleDateString('es-EC') : d ? new Date(d).toLocaleDateString('es-EC') : '-';
@@ -46,10 +48,12 @@ export default function BancosCajaView({ db, usuario, showToast }) {
   }, [db, cuentaActiva, filtros.movTipo, filtros.fechaDesde, filtros.fechaHasta, filtros.movConciliado]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     cargarCuentas();
   }, [cargarCuentas]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (cuentaActiva) cargarMovimientos();
   }, [cuentaActiva?.id, cargarMovimientos]);
 
@@ -105,6 +109,55 @@ export default function BancosCajaView({ db, usuario, showToast }) {
     const r = movimientos.map(m => [formatDate(m.fecha), m.tipo, Number(m.monto).toFixed(2), m.descripcion, m.referencia, m.conciliado ? 'Si' : 'No']);
     const csv = [h.join(','), ...r.map(row => row.map(c => `"${c}"`).join(','))].join('\n');
     const b = new Blob([csv], { type: 'text/csv' }); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = `movimientos_${cuentaActiva?.nombre || 'banco'}.csv`; a.click(); URL.revokeObjectURL(u);
+  };
+
+  const handleConciliacionAutomatica = async () => {
+    if (!cuentaActiva) return;
+    setLoadingConciliacion(true);
+    try {
+      const resultado = await conciliacionAutomatica(db, cuentaActiva.id, usuario);
+      setSugerenciasConciliacion(resultado);
+      if (resultado.sugerencias > 0) {
+        showToast(`Se encontraron ${resultado.sugerencias} posibles conciliaciones`, 'success');
+      } else {
+        showToast('No se encontraron coincidencias automáticas', 'info');
+      }
+    } catch (e) {
+      showToast('Error en conciliación automática: ' + e.message, 'error');
+    } finally {
+      setLoadingConciliacion(false);
+    }
+  };
+
+  const handleAplicarSugerencia = async (movBancId, movFinId) => {
+    try {
+      await conciliarMovimiento(db, movBancId, movFinId, usuario);
+      showToast('Movimiento conciliado automáticamente', 'success');
+      cargarMovimientos();
+      // Actualizar sugerencias
+      if (sugerenciasConciliacion) {
+        const nuevasSugerencias = {
+          ...sugerenciasConciliacion,
+          detalle: sugerenciasConciliacion.detalle.filter(s => s.movimientoBancario.id !== movBancId),
+          sugerencias: sugerenciasConciliacion.sugerencias - 1
+        };
+        setSugerenciasConciliacion(nuevasSugerencias);
+      }
+    } catch (e) {
+      showToast('Error: ' + e.message, 'error');
+    }
+  };
+
+  const getConfianzaColor = (confianza) => {
+    if (confianza >= 90) return 'text-green-600 bg-green-50 border-green-200';
+    if (confianza >= 80) return 'text-blue-600 bg-blue-50 border-blue-200';
+    return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+  };
+
+  const getConfianzaBadge = (confianza) => {
+    if (confianza >= 90) return { label: 'Alta', color: 'bg-green-100 text-green-700' };
+    if (confianza >= 80) return { label: 'Media', color: 'bg-blue-100 text-blue-700' };
+    return { label: 'Baja', color: 'bg-yellow-100 text-yellow-700' };
   };
 
   if (loading && cuentas.length === 0) {
@@ -215,6 +268,11 @@ export default function BancosCajaView({ db, usuario, showToast }) {
               <input type="date" value={filtros.fechaHasta} onChange={e => setFiltros(f => ({ ...f, fechaHasta: e.target.value }))}
                 className="px-2 py-1.5 text-xs border border-border-default rounded-btn bg-white text-text-primary" />
               <button onClick={handleExportCSV} className="px-2 py-1.5 text-xs font-medium text-text-secondary border border-border-default rounded-btn hover:bg-primary-light flex items-center gap-1"><Download size={12} />CSV</button>
+              <button onClick={handleConciliacionAutomatica} disabled={loadingConciliacion}
+                className="px-3 py-1.5 text-xs font-medium bg-purple-600 text-white rounded-btn hover:bg-purple-700 disabled:opacity-50 flex items-center gap-1">
+                {loadingConciliacion ? <span className="animate-spin">⚙</span> : <Sparkles size={12} />}
+                {loadingConciliacion ? 'Analizando...' : 'Conciliación Auto'}
+              </button>
               <button onClick={() => setShowFormMov(true)}
                 className="px-3 py-1.5 text-xs font-medium bg-primary text-white rounded-btn flex items-center gap-1"><Plus size={12} />Nuevo Movimiento</button>
             </div>
@@ -277,6 +335,58 @@ export default function BancosCajaView({ db, usuario, showToast }) {
               </table>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Panel de Sugerencias de Conciliación Automática */}
+      {sugerenciasConciliacion && sugerenciasConciliacion.detalle.length > 0 && (
+        <div className="bg-surface-card border border-border-default rounded-card p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold text-text-primary flex items-center gap-1">
+              <Sparkles size={14} className="text-purple-600" />
+              Sugerencias de Conciliación Automática ({sugerenciasConciliacion.detalle.length})
+            </h3>
+            <button onClick={() => setSugerenciasConciliacion(null)} className="btn-icon w-6 h-6 text-text-secondary hover:text-text-primary">
+              <X size={14} />
+            </button>
+          </div>
+
+          <div className="space-y-2 max-h-96 overflow-y-auto custom-scrollbar">
+            {sugerenciasConciliacion.detalle.map((sug, idx) => {
+              const badge = getConfianzaBadge(sug.confianza);
+              return (
+                <div key={idx} className={`p-3 rounded-card border ${getConfianzaColor(sug.confianza)}`}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className={`inline-flex px-2 py-0.5 text-[10px] font-bold rounded-badge ${badge.color}`}>
+                          {badge.label} ({sug.confianza}%)
+                        </span>
+                        <span className="text-[10px] text-text-secondary">
+                          {formatDate(sug.movimientoBancario.fecha)} — {formatCurrency(sug.movimientoBancario.monto)}
+                        </span>
+                      </div>
+                      <div className="text-xs text-text-primary mb-1 truncate">
+                        <strong>Banco:</strong> {sug.movimientoBancario.descripcion || 'Sin descripción'}
+                      </div>
+                      <div className="text-xs text-text-primary truncate">
+                        <strong>Financiero:</strong> {sug.movimientoFinanciero.documento?.numero || 'Sin número'} — {sug.movimientoFinanciero.tercero?.nombre || 'Sin tercero'}
+                      </div>
+                      <div className="text-[10px] text-text-secondary mt-1">
+                        Coincidencia: {sug.razon}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button onClick={() => handleAplicarSugerencia(sug.movimientoBancario.id, sug.movimientoFinanciero.id)}
+                        className="btn-icon w-7 h-7 text-text-secondary hover:text-success" title="Aplicar conciliación">
+                        <CheckCircle size={14} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 

@@ -124,3 +124,101 @@ export function getResumenBancos(cuentas) {
   const totalGeneral = activas.reduce((s, c) => s + (c.saldoActual || 0), 0);
   return { totalBancos, totalCaja, totalGeneral, cuentaActivas: activas.length };
 }
+
+/**
+ * Conciliación bancaria automática
+ * Busca posibles matches entre movimientos bancarios no conciliados y movimientos financieros
+ */
+export async function conciliacionAutomatica(db, cuentaId, usuario) {
+  // Obtener movimientos bancarios no conciliados
+  const movsBancarios = await getMovimientosBancarios(db, cuentaId, { conciliado: 'false' });
+  
+  // Obtener todos los movimientos financieros
+  const movFinancierosRef = collection(db, 'fin_movimientos');
+  const q = query(movFinancierosRef, where('estado', 'in', ['pendiente', 'parcial', 'pagado']));
+  const snapFinancieros = await getDocs(q);
+  const movFinancieros = snapFinancieros.docs.map(d => ({ id: d.id, ...d.data() }));
+  
+  const sugerencias = [];
+  
+  for (const movBanc of movsBancarios) {
+    const posiblesMatches = [];
+    
+    for (const movFin of movFinancieros) {
+      let confianza = 0;
+      let razon = [];
+      
+      // 1. Monto exacto (40 puntos)
+      const montoBanc = Math.abs(Number(movBanc.monto) || 0);
+      const montoFin = Number(movFin.monto) || 0;
+      if (Math.abs(montoBanc - montoFin) < 0.01) {
+        confianza += 40;
+        razon.push('monto exacto');
+      } else if (Math.abs(montoBanc - montoFin) < 0.05) {
+        confianza += 20;
+        razon.push('monto similar');
+      }
+      
+      // 2. Fecha ±3 días (30 puntos)
+      const fechaBanc = movBanc.fecha?.toDate?.() || new Date(movBanc.fecha);
+      const fechaFin = movFin.fecha?.toDate?.() || new Date(movFin.fecha);
+      const diferenciaDias = Math.abs((fechaBanc - fechaFin) / (1000 * 60 * 60 * 24));
+      if (diferenciaDias <= 1) {
+        confianza += 30;
+        razon.push('fecha exacta');
+      } else if (diferenciaDias <= 3) {
+        confianza += 20;
+        razon.push(`fecha ±${Math.round(diferenciaDias)}d`);
+      } else if (diferenciaDias <= 7) {
+        confianza += 10;
+        razon.push(`fecha ±${Math.round(diferenciaDias)}d`);
+      }
+      
+      // 3. Referencia o descripción (20 puntos)
+      const refBanc = (movBanc.referencia || '').toLowerCase();
+      const descBanc = (movBanc.descripcion || '').toLowerCase();
+      const numDocFin = (movFin.documento?.numero || '').toLowerCase();
+      const claveAcceso = (movFin.documento?.claveAcceso || '').toLowerCase();
+      
+      if (refBanc && refBanc === numDocFin) {
+        confianza += 20;
+        razon.push('referencia exacta');
+      } else if (claveAcceso && refBanc.includes(claveAcceso)) {
+        confianza += 15;
+        razon.push('clave acceso');
+      }
+      
+      // 4. Tercero (10 puntos)
+      const terceroFin = (movFin.tercero?.nombre || '').toLowerCase();
+      if (terceroFin && descBanc.includes(terceroFin.substring(0, 10))) {
+        confianza += 10;
+        razon.push('tercero similar');
+      }
+      
+      // Solo sugerir si confianza >= 70
+      if (confianza >= 70) {
+        posiblesMatches.push({
+          movimientoFinanciero: movFin,
+          confianza,
+          razon: razon.join(', ')
+        });
+      }
+    }
+    
+    // Ordenar por confianza descendente
+    posiblesMatches.sort((a, b) => b.confianza - a.confianza);
+    
+    if (posiblesMatches.length > 0) {
+      sugerencias.push({
+        movimientoBancario: movBanc,
+        matches: posiblesMatches.slice(0, 3) // Top 3 sugerencias
+      });
+    }
+  }
+  
+  return {
+    totalNoConciliados: movsBancarios.length,
+    sugerencias: sugerencias.length,
+    detalle: sugerencias
+  };
+}

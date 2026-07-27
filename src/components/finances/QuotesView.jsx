@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Search, Trash2, Edit2, FileText, CheckCircle2, ChevronRight, AlertCircle, ShoppingBag, Eye } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, Search, Trash2, Edit2, AlertCircle, ShoppingBag, Eye } from 'lucide-react';
 import { collection, onSnapshot, doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
 import { getEcuadorDateString } from '../../services/sriService';
 import RidePreviewModal from './RidePreviewModal';
@@ -10,6 +10,7 @@ export default function QuotesView({ products, thirdParties,  showToast, db, app
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isBlocked, setIsBlocked] = useState(false);
+  // eslint-disable-next-line no-unused-vars
   const [companyConfig, setCompanyConfig] = useState(null);
   const [selectedQuoteTx, setSelectedQuoteTx] = useState(null);
   const [filterStatus, setFilterStatus] = useState('all');
@@ -69,6 +70,7 @@ export default function QuotesView({ products, thirdParties,  showToast, db, app
   useEffect(() => {
     if (!formData.id && isModalOpen) {
       const nextNum = quotes.length + 1;
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFormData(prev => ({
         ...prev,
         quoteNumber: `COT-${String(nextNum).padStart(6, '0')}`,
@@ -88,6 +90,7 @@ export default function QuotesView({ products, thirdParties,  showToast, db, app
       iva += lineIva;
     });
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFormData(prev => ({
       ...prev,
       subtotal: sub.toFixed(2),
@@ -171,7 +174,7 @@ export default function QuotesView({ products, thirdParties,  showToast, db, app
       try {
         await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_quotes', id));
         showToast("Cotización eliminada", "success");
-      } catch (err) {
+      } catch {
         showToast("Error al eliminar", "error");
       }
     }

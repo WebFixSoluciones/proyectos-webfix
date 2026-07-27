@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react';
 import { 
   DollarSign, PieChart, Users, FileText, Download, Sparkles, ShoppingCart, Package,
   ArrowUpCircle, Percent, CreditCard, ShoppingBag, TrendingUp,
-  X, ArrowRight, Upload, Building2, Landmark, Scan, BarChart3, BookOpen, Calculator
+  X, ArrowRight, Upload, Building2, Landmark, Scan, BarChart3, BookOpen, Calculator, Shield
 } from 'lucide-react';
 import { doc, setDoc } from 'firebase/firestore';
 import { getEcuadorDateString } from '../../services/sriService';
 import { registrarMovimientoKardex } from '../../services/inventoryService';
 import { sincronizarCompra } from '../../services/integracionFinanzasService';
 import { db, storage, appId } from '../../firebase';
+import ValidacionesView from './ValidacionesView';
 import FinanceDashboard from './FinanceDashboard';
 import TransactionsView from './TransactionsView';
 import ThirdPartiesView from './ThirdPartiesView';
@@ -321,6 +322,7 @@ export default function FinanceModule({
         { id: 'impuestos', label: 'Impuestos SRI', icon: Calculator },
         { id: 'captura', label: 'Captura IA', icon: Scan },
         { id: 'reportes', label: 'Reportes', icon: BarChart3 },
+        { id: 'validaciones', label: 'Validaciones', icon: Shield },
         { id: 'gastos_creditos_sub', label: 'Gastos y Creditos', icon: CreditCard },
         { id: 'gastos_ia', label: 'Gastos con IA', icon: Sparkles },
         { id: 'reports', label: 'SRI', icon: Download },
@@ -531,6 +533,11 @@ export default function FinanceModule({
 
               {activeTab === 'impuestos' && (
                 <ImpuestosSriView db={db} usuario={usuario} showToast={showToast} />
+              )}
+
+              {/* VALIDACIONES */}
+              {activeTab === 'validaciones' && (
+                <ValidacionesView db={db} usuario={usuario} showToast={showToast} />
               )}
 
               {activeTab === 'reportes' && (

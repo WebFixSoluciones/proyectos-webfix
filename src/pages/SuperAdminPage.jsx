@@ -1,17 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Building, 
-  Users, 
   CreditCard, 
   Settings, 
-  CheckCircle, 
   XCircle, 
   Search, 
-  ChevronRight, 
   Activity, 
   Edit3, 
-  Calendar, 
   Check, 
   X, 
   LogOut,
@@ -55,6 +51,7 @@ export default function SuperAdminPage({ showToast }) {
 
   // Modals / Edit states
   const [editingPlan, setEditingPlan] = useState(null);
+  // eslint-disable-next-line no-unused-vars
   const [selectedTransfer, setSelectedTransfer] = useState(null);
 
   // New Tenant Creation Form State
@@ -83,10 +80,12 @@ export default function SuperAdminPage({ showToast }) {
       showToast("Acceso denegado. Se requieren permisos de super-administrador.", "error");
       navigate('/app');
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser, role]);
 
   // Load Tenants, Transfers, and Plans
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     
     // 1. Listen to Tenants
@@ -170,6 +169,7 @@ export default function SuperAdminPage({ showToast }) {
   useEffect(() => {
     if (viewMode === 'create') {
       const randPassword = Math.random().toString(36).slice(-8) + 'A1!';
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setNewTenantForm(prev => ({ ...prev, initialPassword: randPassword }));
     }
   }, [viewMode]);
@@ -245,7 +245,7 @@ export default function SuperAdminPage({ showToast }) {
       });
       showToast("Transferencia bancaria rechazada.", "warning");
       setSelectedTransfer(null);
-    } catch (err) {
+    } catch {
       showToast("Error al rechazar transferencia", "error");
     }
   };
@@ -261,7 +261,7 @@ export default function SuperAdminPage({ showToast }) {
       showToast("Suscripción de inquilino actualizada correctamente", "success");
       setViewMode('list');
       setSelectedTenantDetails(null);
-    } catch (err) {
+    } catch {
       showToast("Error al actualizar la suscripción", "error");
     }
   };
@@ -272,7 +272,7 @@ export default function SuperAdminPage({ showToast }) {
       await setDoc(doc(db, 'plans', editingPlan.id), editingPlan, { merge: true });
       showToast(`Configuración del plan ${editingPlan.name} guardada`, "success");
       setEditingPlan(null);
-    } catch (err) {
+    } catch {
       showToast("Error al guardar plan", "error");
     }
   };
@@ -341,8 +341,10 @@ export default function SuperAdminPage({ showToast }) {
 
   useEffect(() => {
     if (viewMode === 'edit' && selectedTenantDetails) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       loadGodModeData();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viewMode, selectedTenantDetails, godModeCollection]);
 
   const handleDeleteGodModeDoc = async (docId) => {
@@ -539,7 +541,9 @@ export default function SuperAdminPage({ showToast }) {
       if (tempApp) {
         try {
           await tempApp.delete();
-        } catch (_) {}
+        } catch (cleanupErr) {
+          console.warn("Error al limpiar app temporal después de error de creación:", cleanupErr);
+        }
       }
     } finally {
       setIsCreatingTenant(false);

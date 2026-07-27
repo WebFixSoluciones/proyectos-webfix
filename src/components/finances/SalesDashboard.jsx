@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { 
-  TrendingUp, DollarSign, ShoppingCart, Package, Clock, Users, ArrowUpRight, 
-  Activity, ArrowDownRight, Tag, ShieldCheck, HelpCircle
+  TrendingUp, DollarSign, ShoppingCart, Package, Clock, ArrowUpRight, 
+  Activity, Tag
 } from 'lucide-react';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { getEcuadorDateString } from '../../services/sriService';
 
-export default function SalesDashboard({ transactions, thirdParties, products, db, appId }) {
+export default function SalesDashboard({ transactions, db, appId }) {
   const [activeSession, setActiveSession] = useState(null);
   const [sessionLoading, setSessionLoading] = useState(true);
 

@@ -1,6 +1,6 @@
-import React, { useState } from'react';
-import { Globe, Mail, Megaphone, CheckCircle2, X, MessageSquare, Loader2, ArrowRight } from'lucide-react';
-import { doc, setDoc } from'firebase/firestore';
+import { useState } from 'react';
+import { Globe, Mail, Megaphone, CheckCircle2, X, MessageSquare, Loader2, ArrowRight } from 'lucide-react';
+import { doc, setDoc } from 'firebase/firestore';
 
 export default function HiringServicesModule({ showToast, db, appId }) {
  const [selectedService, setSelectedService] = useState(null);
