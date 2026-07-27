@@ -29,7 +29,7 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
 
 ### 7. Control Financiero — Rediseño Integral (2026-07-22) — COMPLETADO
 **Spec:** `docs/superpowers/specs/2026-07-22-control-financiero-redesign.md`
-**Commits:** `93bdd9a` → `36309da` (9 fases completadas)
+**Commits:** `93bdd9a` → `a9abd02` (11 fases + mejoras completadas)
 
 **Módulo reconstruido desde cero con 11 submódulos interconectados:**
 
@@ -60,15 +60,13 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
 - `fin_asientos` — Asientos contables
 - `fin_auditoria` — Log de auditoría completo
 
-**Funcionalidades clave:**
-- Abonos parciales en CxC/CxP
-- Tablas de amortización automática (Francés/Alemán/Americano)
-- OCR con Gemini AI para capturas de documentos
-- Conciliación bancaria
-- Forecast de caja a 30/60/90 días
-- Generación de ATS XML para SRI
-- Exportación CSV/PDF en todos los reportes
-- Auditoría completa de todas las operaciones
+**Mejoras implementadas:**
+- ✅ Integración automática Ventas/Compras → módulo financiero
+- ✅ Validaciones de integridad de datos (suma partidas, saldos, duplicados, consistencia CxC/CxP)
+- ✅ Conciliación bancaria automática con matching inteligente (monto ±0.01, fecha ±3 días, referencia, tercero)
+- ✅ Exportación CSV/PDF en todos los reportes
+- ✅ Auditoría completa de todas las operaciones
+- ✅ Build exitoso, lint limpio
 
 ## Últimos commits
 ```
