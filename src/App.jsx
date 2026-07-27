@@ -2238,6 +2238,11 @@ export default function App() {
                   <InventoryModule initialSubTab={inventarioInitialSubTab} showToast={showToast} />
                 </ErrorBoundary>
               )}
+              {activePageId === 'finances' && (
+                <ErrorBoundary title="Error en el módulo de Control Financiero">
+                  <FinanceModule mode="contabilidad" initialSubTab={contabilidadInitialSubTab} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} discounts={globalDiscounts} promotions={globalPromotions} isLoading={isLoadingFinances} />
+                </ErrorBoundary>
+              )}
               {activePageId === 'compras' && (
                 <ErrorBoundary title="Error en el módulo de Compras">
                   <FinanceModule mode="compras" initialSubTab={comprasInitialSubTab} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} discounts={globalDiscounts} promotions={globalPromotions} isLoading={isLoadingFinances} />
