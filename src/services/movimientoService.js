@@ -195,51 +195,67 @@ export async function registrarAbono(db, movimientoId, abono, usuario) {
 }
 
 export async function getMovimientos(db, filtros = {}) {
-  const constraints = [orderBy('fecha', 'desc')];
-  
-  if (filtros.tipo && filtros.tipo !== 'all') constraints.push(where('tipo', '==', filtros.tipo));
-  if (filtros.estado && filtros.estado !== 'all') constraints.push(where('estado', '==', filtros.estado));
-  
-  const q = query(collection(db, COLLECTION), ...constraints);
-  const snap = await getDocs(q);
-  
-  let movimientos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  
-  if (filtros.search) {
-    const s = filtros.search.toLowerCase();
-    movimientos = movimientos.filter(m =>
-      m.documento?.numero?.toLowerCase().includes(s) ||
-      m.tercero?.nombre?.toLowerCase().includes(s) ||
-      m.tercero?.ruc?.includes(s) ||
-      m.partidas?.some(p => p.descripcion?.toLowerCase().includes(s))
-    );
+  try {
+    const constraints = [orderBy('fecha', 'desc')];
+    
+    if (filtros.tipo && filtros.tipo !== 'all') constraints.push(where('tipo', '==', filtros.tipo));
+    if (filtros.estado && filtros.estado !== 'all') constraints.push(where('estado', '==', filtros.estado));
+    
+    const q = query(collection(db, COLLECTION), ...constraints);
+    const snap = await getDocs(q);
+    
+    let movimientos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    
+    if (filtros.search) {
+      const s = filtros.search.toLowerCase();
+      movimientos = movimientos.filter(m =>
+        m.documento?.numero?.toLowerCase().includes(s) ||
+        m.tercero?.nombre?.toLowerCase().includes(s) ||
+        m.tercero?.ruc?.includes(s) ||
+        m.partidas?.some(p => p.descripcion?.toLowerCase().includes(s))
+      );
+    }
+    
+    if (filtros.metodoPago && filtros.metodoPago !== 'all') {
+      movimientos = movimientos.filter(m => m.metodoPago === filtros.metodoPago);
+    }
+    
+    if (filtros.categoria && filtros.categoria !== 'all') {
+      movimientos = movimientos.filter(m =>
+        m.partidas?.some(p => p.categoria === filtros.categoria)
+      );
+    }
+    
+    if (filtros.fechaDesde) {
+      movimientos = movimientos.filter(m => {
+        const f = m.fecha?.toDate ? m.fecha.toDate() : new Date(m.fecha);
+        return f >= new Date(filtros.fechaDesde);
+      });
+    }
+    
+    if (filtros.fechaHasta) {
+      movimientos = movimientos.filter(m => {
+        const f = m.fecha?.toDate ? m.fecha.toDate() : new Date(m.fecha);
+        return f <= new Date(filtros.fechaHasta + 'T23:59:59');
+      });
+    }
+    
+    return movimientos;
+  } catch (e) {
+    if (e.code === 'failed-precondition' || e.message?.includes('index')) {
+      console.warn('[movimientoService] Índice de Firestore requerido. Usando fallback sin orderBy.');
+      const q = query(collection(db, COLLECTION));
+      const snap = await getDocs(q);
+      let movimientos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      movimientos.sort((a, b) => {
+        const fa = a.fecha?.toDate ? a.fecha.toDate() : new Date(a.fecha || 0);
+        const fb = b.fecha?.toDate ? b.fecha.toDate() : new Date(b.fecha || 0);
+        return fb - fa;
+      });
+      return movimientos;
+    }
+    throw e;
   }
-  
-  if (filtros.metodoPago && filtros.metodoPago !== 'all') {
-    movimientos = movimientos.filter(m => m.metodoPago === filtros.metodoPago);
-  }
-  
-  if (filtros.categoria && filtros.categoria !== 'all') {
-    movimientos = movimientos.filter(m =>
-      m.partidas?.some(p => p.categoria === filtros.categoria)
-    );
-  }
-  
-  if (filtros.fechaDesde) {
-    movimientos = movimientos.filter(m => {
-      const f = m.fecha?.toDate ? m.fecha.toDate() : new Date(m.fecha);
-      return f >= new Date(filtros.fechaDesde);
-    });
-  }
-  
-  if (filtros.fechaHasta) {
-    movimientos = movimientos.filter(m => {
-      const f = m.fecha?.toDate ? m.fecha.toDate() : new Date(m.fecha);
-      return f <= new Date(filtros.fechaHasta + 'T23:59:59');
-    });
-  }
-  
-  return movimientos;
 }
 
 export function getResumen(movimientos) {

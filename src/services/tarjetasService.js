@@ -5,9 +5,21 @@ const COLLECTION_TARJETAS = 'fin_tarjetas';
 const COLLECTION_CONSUMOS = 'fin_consumos_tarjeta';
 
 export async function getTarjetas(db) {
-  const q = query(collection(db, COLLECTION_TARJETAS), orderBy('emisor', 'asc'));
-  const snap = await getDocs(q);
-  const tarjetas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  let tarjetas;
+  try {
+    const q = query(collection(db, COLLECTION_TARJETAS), orderBy('emisor', 'asc'));
+    const snap = await getDocs(q);
+    tarjetas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch (e) {
+    if (e.code === 'failed-precondition' || e.message?.includes('index')) {
+      const q = query(collection(db, COLLECTION_TARJETAS));
+      const snap = await getDocs(q);
+      tarjetas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      tarjetas.sort((a, b) => (a.emisor || '').localeCompare(b.emisor || ''));
+    } else {
+      throw e;
+    }
+  }
   for (const t of tarjetas) {
     const { saldoUtilizado, cuotasPendientes } = await calcularEstadoTarjeta(db, t.id);
     t.saldoUtilizado = saldoUtilizado;
@@ -68,10 +80,22 @@ export async function eliminarTarjeta(db, id, usuario) {
 }
 
 export async function getConsumosTarjeta(db, tarjetaId, filtros = {}) {
-  const constraints = [where('tarjetaId', '==', tarjetaId), orderBy('fecha', 'desc')];
-  const q = query(collection(db, COLLECTION_CONSUMOS), ...constraints);
-  const snap = await getDocs(q);
-  let items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  let items;
+  try {
+    const constraints = [where('tarjetaId', '==', tarjetaId), orderBy('fecha', 'desc')];
+    const q = query(collection(db, COLLECTION_CONSUMOS), ...constraints);
+    const snap = await getDocs(q);
+    items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch (e) {
+    if (e.code === 'failed-precondition' || e.message?.includes('index')) {
+      const q = query(collection(db, COLLECTION_CONSUMOS));
+      const snap = await getDocs(q);
+      items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      items.sort((a, b) => { const fa = a.fecha?.toDate?.() || new Date(a.fecha || 0); const fb = b.fecha?.toDate?.() || new Date(b.fecha || 0); return fb - fa; });
+    } else {
+      throw e;
+    }
+  }
 
   if (filtros.tipo && filtros.tipo !== 'all') items = items.filter(i => i.tipo === filtros.tipo);
   if (filtros.fechaDesde) items = items.filter(i => { const fd = i.fecha?.toDate?.() || new Date(i.fecha); return fd >= new Date(filtros.fechaDesde); });
@@ -81,10 +105,22 @@ export async function getConsumosTarjeta(db, tarjetaId, filtros = {}) {
 }
 
 export async function getAllConsumosTarjeta(db, filtros = {}) {
-  const constraints = [orderBy('fecha', 'desc')];
-  const q = query(collection(db, COLLECTION_CONSUMOS), ...constraints);
-  const snap = await getDocs(q);
-  let items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  let items;
+  try {
+    const constraints = [orderBy('fecha', 'desc')];
+    const q = query(collection(db, COLLECTION_CONSUMOS), ...constraints);
+    const snap = await getDocs(q);
+    items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch (e) {
+    if (e.code === 'failed-precondition' || e.message?.includes('index')) {
+      const q = query(collection(db, COLLECTION_CONSUMOS));
+      const snap = await getDocs(q);
+      items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      items.sort((a, b) => { const fa = a.fecha?.toDate?.() || new Date(a.fecha || 0); const fb = b.fecha?.toDate?.() || new Date(b.fecha || 0); return fb - fa; });
+    } else {
+      throw e;
+    }
+  }
 
   if (filtros.tarjetaId && filtros.tarjetaId !== 'all') items = items.filter(i => i.tarjetaId === filtros.tarjetaId);
   if (filtros.tipo && filtros.tipo !== 'all') items = items.filter(i => i.tipo === filtros.tipo);

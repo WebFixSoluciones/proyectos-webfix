@@ -4,21 +4,32 @@ import { registrarAuditoria } from './auditService';
 const COLLECTION = 'fin_cxp';
 
 export async function getCxP(db, filtros = {}) {
-  const constraints = [orderBy('factura.fecha', 'desc')];
-  if (filtros.estado && filtros.estado !== 'all') constraints.push(where('estado', '==', filtros.estado));
-  const q = query(collection(db, COLLECTION), ...constraints);
-  const snap = await getDocs(q);
-  let items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  try {
+    const constraints = [orderBy('factura.fecha', 'desc')];
+    if (filtros.estado && filtros.estado !== 'all') constraints.push(where('estado', '==', filtros.estado));
+    const q = query(collection(db, COLLECTION), ...constraints);
+    const snap = await getDocs(q);
+    let items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-  if (filtros.search) {
-    const s = filtros.search.toLowerCase();
-    items = items.filter(i => i.tercero?.nombre?.toLowerCase().includes(s) || i.tercero?.ruc?.includes(s) || i.factura?.numero?.toLowerCase().includes(s));
+    if (filtros.search) {
+      const s = filtros.search.toLowerCase();
+      items = items.filter(i => i.tercero?.nombre?.toLowerCase().includes(s) || i.tercero?.ruc?.includes(s) || i.factura?.numero?.toLowerCase().includes(s));
+    }
+    if (filtros.fechaDesde) items = items.filter(i => new Date(i.factura?.fecha?.toDate?.() || i.factura?.fecha) >= new Date(filtros.fechaDesde));
+    if (filtros.fechaHasta) items = items.filter(i => new Date(i.factura?.fecha?.toDate?.() || i.factura?.fecha) <= new Date(filtros.fechaHasta + 'T23:59:59'));
+
+    items.forEach(i => { i.diasVencido = i.factura?.fechaVencimiento ? Math.floor((Date.now() - new Date(i.factura.fechaVencimiento.toDate?.() || i.factura.fechaVencimiento).getTime()) / 86400000) : 0; });
+    return items;
+  } catch (e) {
+    if (e.code === 'failed-precondition' || e.message?.includes('index')) {
+      const q = query(collection(db, COLLECTION));
+      const snap = await getDocs(q);
+      let items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      items.sort((a, b) => { const fa = a.factura?.fecha?.toDate?.() || new Date(a.factura?.fecha || 0); const fb = b.factura?.fecha?.toDate?.() || new Date(b.factura?.fecha || 0); return fb - fa; });
+      return items;
+    }
+    throw e;
   }
-  if (filtros.fechaDesde) items = items.filter(i => new Date(i.factura?.fecha?.toDate?.() || i.factura?.fecha) >= new Date(filtros.fechaDesde));
-  if (filtros.fechaHasta) items = items.filter(i => new Date(i.factura?.fecha?.toDate?.() || i.factura?.fecha) <= new Date(filtros.fechaHasta + 'T23:59:59'));
-
-  items.forEach(i => { i.diasVencido = i.factura?.fechaVencimiento ? Math.floor((Date.now() - new Date(i.factura.fechaVencimiento.toDate?.() || i.factura.fechaVencimiento).getTime()) / 86400000) : 0; });
-  return items;
 }
 
 export async function registrarPago(db, cxpId, pago, usuario) {

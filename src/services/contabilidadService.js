@@ -29,12 +29,24 @@ function validarAsiento(data) {
 }
 
 export async function getCuentas(db, filtros = {}) {
-  const constraints = [orderBy('codigo', 'asc')];
-  if (filtros.tipo && filtros.tipo !== 'all') constraints.push(where('tipo', '==', filtros.tipo));
-  if (filtros.estado && filtros.estado !== 'all') constraints.push(where('estado', '==', filtros.estado));
-  const q = query(collection(db, CTAS), ...constraints);
-  const snap = await getDocs(q);
-  let items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  let items;
+  try {
+    const constraints = [orderBy('codigo', 'asc')];
+    if (filtros.tipo && filtros.tipo !== 'all') constraints.push(where('tipo', '==', filtros.tipo));
+    if (filtros.estado && filtros.estado !== 'all') constraints.push(where('estado', '==', filtros.estado));
+    const q = query(collection(db, CTAS), ...constraints);
+    const snap = await getDocs(q);
+    items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch (e) {
+    if (e.code === 'failed-precondition' || e.message?.includes('index')) {
+      const q = query(collection(db, CTAS));
+      const snap = await getDocs(q);
+      items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      items.sort((a, b) => (a.codigo || '').localeCompare(b.codigo || ''));
+    } else {
+      throw e;
+    }
+  }
   if (filtros.search) {
     const s = filtros.search.toLowerCase();
     items = items.filter(i => i.codigo?.toLowerCase().includes(s) || i.nombre?.toLowerCase().includes(s));
@@ -96,11 +108,23 @@ export async function deleteCuenta(db, id, usuario) {
 }
 
 export async function getCentrosCosto(db, filtros = {}) {
-  const constraints = [orderBy('codigo', 'asc')];
-  if (filtros.estado && filtros.estado !== 'all') constraints.push(where('estado', '==', filtros.estado));
-  const q = query(collection(db, CC), ...constraints);
-  const snap = await getDocs(q);
-  let items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  let items;
+  try {
+    const constraints = [orderBy('codigo', 'asc')];
+    if (filtros.estado && filtros.estado !== 'all') constraints.push(where('estado', '==', filtros.estado));
+    const q = query(collection(db, CC), ...constraints);
+    const snap = await getDocs(q);
+    items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch (e) {
+    if (e.code === 'failed-precondition' || e.message?.includes('index')) {
+      const q = query(collection(db, CC));
+      const snap = await getDocs(q);
+      items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      items.sort((a, b) => (a.codigo || '').localeCompare(b.codigo || ''));
+    } else {
+      throw e;
+    }
+  }
   if (filtros.search) {
     const s = filtros.search.toLowerCase();
     items = items.filter(i => i.codigo?.toLowerCase().includes(s) || i.nombre?.toLowerCase().includes(s) || i.responsable?.toLowerCase().includes(s));
@@ -162,12 +186,24 @@ export async function deleteCentroCosto(db, id, usuario) {
 }
 
 export async function getAsientos(db, filtros = {}) {
-  const constraints = [orderBy('fecha', 'desc')];
-  if (filtros.estado && filtros.estado !== 'all') constraints.push(where('estado', '==', filtros.estado));
-  if (filtros.tipo) constraints.push(where('tipo', '==', filtros.tipo));
-  const q = query(collection(db, ASIENTOS), ...constraints);
-  const snap = await getDocs(q);
-  let items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  let items;
+  try {
+    const constraints = [orderBy('fecha', 'desc')];
+    if (filtros.estado && filtros.estado !== 'all') constraints.push(where('estado', '==', filtros.estado));
+    if (filtros.tipo) constraints.push(where('tipo', '==', filtros.tipo));
+    const q = query(collection(db, ASIENTOS), ...constraints);
+    const snap = await getDocs(q);
+    items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch (e) {
+    if (e.code === 'failed-precondition' || e.message?.includes('index')) {
+      const q = query(collection(db, ASIENTOS));
+      const snap = await getDocs(q);
+      items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      items.sort((a, b) => { const fa = a.fecha?.toDate?.() || new Date(a.fecha || 0); const fb = b.fecha?.toDate?.() || new Date(b.fecha || 0); return fb - fa; });
+    } else {
+      throw e;
+    }
+  }
   if (filtros.fechaDesde) items = items.filter(i => new Date(i.fecha?.toDate?.() || i.fecha) >= new Date(filtros.fechaDesde));
   if (filtros.fechaHasta) items = items.filter(i => new Date(i.fecha?.toDate?.() || i.fecha) <= new Date(filtros.fechaHasta + 'T23:59:59'));
   if (filtros.centroCostoId) items = items.filter(i => (i.lineas || []).some(l => l.centroCostoId === filtros.centroCostoId));

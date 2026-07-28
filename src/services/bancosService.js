@@ -5,16 +5,30 @@ const COLLECTION_BANCOS = 'fin_bancos';
 const COLLECTION_MOV_BANCARIOS = 'fin_movimientos_bancarios';
 
 export async function getCuentas(db, filtros = {}) {
-  const constraints = [orderBy('nombre', 'asc')];
-  if (filtros.tipo && filtros.tipo !== 'all') constraints.push(where('tipo', '==', filtros.tipo));
-  if (filtros.estado && filtros.estado !== 'all') constraints.push(where('estado', '==', filtros.estado));
-  const q = query(collection(db, COLLECTION_BANCOS), ...constraints);
-  const snap = await getDocs(q);
-  let items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  for (const cuenta of items) {
-    cuenta.saldoActual = await calcularSaldoCuenta(db, cuenta.id, cuenta.saldoInicial);
+  try {
+    const constraints = [orderBy('nombre', 'asc')];
+    if (filtros.tipo && filtros.tipo !== 'all') constraints.push(where('tipo', '==', filtros.tipo));
+    if (filtros.estado && filtros.estado !== 'all') constraints.push(where('estado', '==', filtros.estado));
+    const q = query(collection(db, COLLECTION_BANCOS), ...constraints);
+    const snap = await getDocs(q);
+    let items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    for (const cuenta of items) {
+      cuenta.saldoActual = await calcularSaldoCuenta(db, cuenta.id, cuenta.saldoInicial);
+    }
+    return items;
+  } catch (e) {
+    if (e.code === 'failed-precondition' || e.message?.includes('index')) {
+      const q = query(collection(db, COLLECTION_BANCOS));
+      const snap = await getDocs(q);
+      let items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      items.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+      for (const cuenta of items) {
+        cuenta.saldoActual = await calcularSaldoCuenta(db, cuenta.id, cuenta.saldoInicial);
+      }
+      return items;
+    }
+    throw e;
   }
-  return items;
 }
 
 export async function getCuentaById(db, id) {
@@ -61,10 +75,22 @@ export async function eliminarCuenta(db, id, usuario) {
 }
 
 export async function getMovimientosBancarios(db, cuentaId, filtros = {}) {
-  const constraints = [where('cuentaId', '==', cuentaId), orderBy('fecha', 'desc')];
-  const q = query(collection(db, COLLECTION_MOV_BANCARIOS), ...constraints);
-  const snap = await getDocs(q);
-  let items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  let items;
+  try {
+    const constraints = [where('cuentaId', '==', cuentaId), orderBy('fecha', 'desc')];
+    const q = query(collection(db, COLLECTION_MOV_BANCARIOS), ...constraints);
+    const snap = await getDocs(q);
+    items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch (e) {
+    if (e.code === 'failed-precondition' || e.message?.includes('index')) {
+      const q = query(collection(db, COLLECTION_MOV_BANCARIOS));
+      const snap = await getDocs(q);
+      items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      items.sort((a, b) => { const fa = a.fecha?.toDate?.() || new Date(a.fecha || 0); const fb = b.fecha?.toDate?.() || new Date(b.fecha || 0); return fb - fa; });
+    } else {
+      throw e;
+    }
+  }
   if (filtros.tipo && filtros.tipo !== 'all') items = items.filter(i => i.tipo === filtros.tipo);
   if (filtros.fechaDesde) items = items.filter(i => { const fd = i.fecha?.toDate?.() || new Date(i.fecha); return fd >= new Date(filtros.fechaDesde); });
   if (filtros.fechaHasta) items = items.filter(i => { const fd = i.fecha?.toDate?.() || new Date(i.fecha); return fd <= new Date(filtros.fechaHasta + 'T23:59:59'); });

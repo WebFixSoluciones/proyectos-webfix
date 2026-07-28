@@ -81,9 +81,21 @@ export function generarTablaAmortizacion(monto, tasaMensual, plazoMeses, metodo,
 }
 
 export async function getPrestamos(db) {
-  const q = query(collection(db, COLLECTION), orderBy('createdAt', 'desc'));
-  const snap = await getDocs(q);
-  const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  let items;
+  try {
+    const q = query(collection(db, COLLECTION), orderBy('createdAt', 'desc'));
+    const snap = await getDocs(q);
+    items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch (e) {
+    if (e.code === 'failed-precondition' || e.message?.includes('index')) {
+      const q = query(collection(db, COLLECTION));
+      const snap = await getDocs(q);
+      items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      items.sort((a, b) => { const fa = a.createdAt?.toDate?.() || new Date(a.createdAt || 0); const fb = b.createdAt?.toDate?.() || new Date(b.createdAt || 0); return fb - fa; });
+    } else {
+      throw e;
+    }
+  }
   items.forEach(p => actualizarEstadosCuotas(p));
   return items;
 }
