@@ -532,7 +532,7 @@ export default function FinanceModule({
               )}
 
               {activeTab === 'impuestos' && (
-                <ImpuestosSriView db={db} usuario={usuario} showToast={showToast} />
+                <ImpuestosSriView db={db} usuario={usuario} showToast={showToast} transactions={transactions} />
               )}
 
               {/* VALIDACIONES */}

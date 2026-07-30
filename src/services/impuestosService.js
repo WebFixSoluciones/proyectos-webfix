@@ -12,34 +12,38 @@ const VENCIMIENTOS_TRIBUTARIOS = [
   { tipo: 'ATS', dia: 14, descripcion: 'Anexo Transaccional Simplificado' },
 ];
 
-export async function getTransaccionesPeriodo(db, year, month) {
+export async function getTransaccionesPeriodo(db, year, month, localTransactions = null) {
   const mm = String(month).padStart(2, '0');
   const desde = `${year}-${mm}-01`;
   const ultimoDia = new Date(year, month, 0).getDate();
   const hasta = `${year}-${mm}-${String(ultimoDia).padStart(2, '0')}`;
 
-  const appId = getAppId();
   let todas = [];
-  try {
-    const q = query(
-      collection(db, 'artifacts', appId, 'public', 'data', 'finances_transactions'),
-      orderBy('date', 'asc')
-    );
-    const snap = await getDocs(q);
-    todas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  } catch (e) {
-    if (e.code === 'failed-precondition' || e.message?.includes('index')) {
-      console.warn('[impuestosService] Index error, falling back to client-side sorting.');
-      const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'finances_transactions'));
+  if (Array.isArray(localTransactions)) {
+    todas = localTransactions;
+  } else {
+    const appId = getAppId();
+    try {
+      const q = query(
+        collection(db, 'artifacts', appId, 'public', 'data', 'finances_transactions'),
+        orderBy('date', 'asc')
+      );
       const snap = await getDocs(q);
       todas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      todas.sort((a, b) => {
-        const da = a.date || '';
-        const db = b.date || '';
-        return da.localeCompare(db);
-      });
-    } else {
-      throw e;
+    } catch (e) {
+      if (e.code === 'failed-precondition' || e.message?.includes('index')) {
+        console.warn('[impuestosService] Index error, falling back to client-side sorting.');
+        const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'finances_transactions'));
+        const snap = await getDocs(q);
+        todas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        todas.sort((a, b) => {
+          const da = a.date || '';
+          const db = b.date || '';
+          return da.localeCompare(db);
+        });
+      } else {
+        throw e;
+      }
     }
   }
 
@@ -50,8 +54,8 @@ export async function getTransaccionesPeriodo(db, year, month) {
   });
 }
 
-export async function calcularIva(db, year, month) {
-  const txs = await getTransaccionesPeriodo(db, year, month);
+export async function calcularIva(db, year, month, localTransactions = null) {
+  const txs = await getTransaccionesPeriodo(db, year, month, localTransactions);
 
   const ventas = txs.filter(t => t.type === 'ingreso');
   const compras = txs.filter(t => t.type === 'egreso');
@@ -79,8 +83,8 @@ export async function calcularIva(db, year, month) {
   };
 }
 
-export async function calcularRetenciones(db, year, month) {
-  const txs = await getTransaccionesPeriodo(db, year, month);
+export async function calcularRetenciones(db, year, month, localTransactions = null) {
+  const txs = await getTransaccionesPeriodo(db, year, month, localTransactions);
 
   const retencionesFuente = txs.reduce((sum, t) => sum + (Number(t.retencionFuente) || 0), 0);
   const retencionesIva = txs.reduce((sum, t) => sum + (Number(t.retencionIva) || 0), 0);
@@ -106,8 +110,8 @@ export async function calcularRetenciones(db, year, month) {
   };
 }
 
-export async function getDocumentosSri(db, year, month) {
-  const txs = await getTransaccionesPeriodo(db, year, month);
+export async function getDocumentosSri(db, year, month, localTransactions = null) {
+  const txs = await getTransaccionesPeriodo(db, year, month, localTransactions);
 
   const emitidos = txs.filter(t => t.type === 'ingreso');
   const recibidos = txs.filter(t => t.type === 'egreso');
@@ -141,11 +145,11 @@ export function getVencimientosMes(year, month) {
   });
 }
 
-export async function getResumenImpuestos(db, year, month) {
+export async function getResumenImpuestos(db, year, month, localTransactions = null) {
   const [iva, retenciones, documentos] = await Promise.all([
-    calcularIva(db, year, month),
-    calcularRetenciones(db, year, month),
-    getDocumentosSri(db, year, month),
+    calcularIva(db, year, month, localTransactions),
+    calcularRetenciones(db, year, month, localTransactions),
+    getDocumentosSri(db, year, month, localTransactions),
   ]);
 
   const vencimientos = getVencimientosMes(year, month);
@@ -170,12 +174,12 @@ export function descargarAtsXml(datos) {
   downloadSriAtsXml(datos);
 }
 
-export async function generarAtsCompleto(db, companyProfile, year, month) {
-  const txs = await getTransaccionesPeriodo(db, year, month);
+export async function generarAtsCompleto(db, companyProfile, year, month, localTransactions = null) {
+  const txs = await getTransaccionesPeriodo(db, year, month, localTransactions);
   const [iva, retenciones, documentos] = await Promise.all([
-    calcularIva(db, year, month),
-    calcularRetenciones(db, year, month),
-    getDocumentosSri(db, year, month),
+    calcularIva(db, year, month, localTransactions),
+    calcularRetenciones(db, year, month, localTransactions),
+    getDocumentosSri(db, year, month, localTransactions),
   ]);
 
   const rucsEnTx = [...new Set(txs.map(t => t.thirdPartyRuc).filter(Boolean))];

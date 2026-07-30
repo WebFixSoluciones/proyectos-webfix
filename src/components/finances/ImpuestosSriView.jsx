@@ -26,7 +26,7 @@ const URGENCIA_BADGES = {
   ok: 'bg-success-light text-success border-success/20',
 };
 
-export default function ImpuestosSriView({ db, usuario, showToast }) {
+export default function ImpuestosSriView({ db, usuario, showToast, transactions = [] }) {
   const now = new Date();
   const [tab, setTab] = useState('iva');
   const [year, setYear] = useState(now.getFullYear());
@@ -45,10 +45,10 @@ export default function ImpuestosSriView({ db, usuario, showToast }) {
   const cargar = useCallback(async () => {
     setLoading(true); setError(null);
     try {
-      const data = await getResumenImpuestos(db, year, month);
+      const data = await getResumenImpuestos(db, year, month, transactions);
       setResumen(data);
     } catch (e) { setError(e.message); } finally { setLoading(false); }
-  }, [db, year, month]);
+  }, [db, year, month, transactions]);
 
   useEffect(() => { cargar(); }, [cargar]);
 
@@ -60,7 +60,7 @@ export default function ImpuestosSriView({ db, usuario, showToast }) {
         razonSocial: usuario?.empresa?.razonSocial || usuario?.nombre || 'EMPRESA REGISTRADA',
         establecimiento: usuario?.empresa?.establecimiento || '001',
       };
-      const result = await generarAtsCompleto(db, companyProfile, year, month);
+      const result = await generarAtsCompleto(db, companyProfile, year, month, transactions);
       setAtsPreview(result.xml);
       setAtsData(result);
       if (result.warnings?.length > 0) {
