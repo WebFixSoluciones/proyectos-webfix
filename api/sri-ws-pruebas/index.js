@@ -1,17 +1,13 @@
 /* global Buffer */
 // Función serverless de Vercel: proxy server-side de los WebServices SOAP del SRI
 // en AMBIENTE DE PRUEBAS (celcer.sri.gob.ec).
-//
-// ¿Por qué existe? El navegador no puede llamar directo al SRI (CORS) y los
-// `rewrites` de Vercel hacia URLs externas no reenvían de forma fiable el cuerpo
-// POST del SOAP. Esta función reenvía la petición server-side (sin CORS), con
-// control total del cuerpo, las cabeceras y el timeout, y devuelve el XML crudo.
-//
-// El cliente llama, por ejemplo:
-//   POST /api/sri-ws-pruebas/comprobantes-electronicos-ws/RecepcionComprobantesOffline
-// y se reenvía a:
-//   https://celcer.sri.gob.ec/comprobantes-electronicos-ws/RecepcionComprobantesOffline
 const SRI_HOST = 'https://celcer.sri.gob.ec';
+
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -19,27 +15,26 @@ export default async function handler(req, res) {
     return;
   }
 
-  // Reconstruir la ruta destino a partir del catch-all [...path]
   const segs = req.query?.path;
   const path = Array.isArray(segs) ? segs.join('/') : (segs || '');
   const target = `${SRI_HOST}/${path}`;
 
-  // Obtener el cuerpo SOAP crudo. Vercel entrega text/xml como string en req.body;
-  // si no estuviera, lo leemos del stream.
-  let body = req.body;
-  if (typeof body !== 'string') {
-    if (body && Buffer.isBuffer(body)) {
-      body = body.toString('utf8');
-    } else if (body && typeof body === 'object' && Object.keys(body).length > 0) {
-      body = JSON.stringify(body);
+  let body = '';
+  if (req.body) {
+    if (typeof req.body === 'string') {
+      body = req.body;
+    } else if (Buffer.isBuffer(req.body)) {
+      body = req.body.toString('utf8');
     } else {
-      body = await new Promise((resolve, reject) => {
-        let data = '';
-        req.on('data', (chunk) => { data += chunk; });
-        req.on('end', () => resolve(data));
-        req.on('error', reject);
-      });
+      body = JSON.stringify(req.body);
     }
+  } else {
+    body = await new Promise((resolve, reject) => {
+      let data = '';
+      req.on('data', (chunk) => { data += chunk; });
+      req.on('end', () => resolve(data));
+      req.on('error', reject);
+    });
   }
 
   try {
@@ -60,3 +55,4 @@ export default async function handler(req, res) {
     res.status(502).send(`<error>Fallo el proxy del SRI (pruebas): ${err.message || err}</error>`);
   }
 }
+
