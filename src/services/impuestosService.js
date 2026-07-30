@@ -1,6 +1,7 @@
 import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { generarClaveAcceso, validarIdentificacion } from './sriService';
 import { generateSriAtsXml, downloadSriAtsXml } from './SriAtsExporter';
+import { getAppId } from '../firebase';
 
 const TX_COLLECTION = 'finances_transactions';
 
@@ -17,12 +18,30 @@ export async function getTransaccionesPeriodo(db, year, month) {
   const ultimoDia = new Date(year, month, 0).getDate();
   const hasta = `${year}-${mm}-${String(ultimoDia).padStart(2, '0')}`;
 
-  const q = query(
-    collection(db, TX_COLLECTION),
-    orderBy('date', 'asc')
-  );
-  const snap = await getDocs(q);
-  const todas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  const appId = getAppId();
+  let todas = [];
+  try {
+    const q = query(
+      collection(db, 'artifacts', appId, 'public', 'data', 'finances_transactions'),
+      orderBy('date', 'asc')
+    );
+    const snap = await getDocs(q);
+    todas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch (e) {
+    if (e.code === 'failed-precondition' || e.message?.includes('index')) {
+      console.warn('[impuestosService] Index error, falling back to client-side sorting.');
+      const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'finances_transactions'));
+      const snap = await getDocs(q);
+      todas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      todas.sort((a, b) => {
+        const da = a.date || '';
+        const db = b.date || '';
+        return da.localeCompare(db);
+      });
+    } else {
+      throw e;
+    }
+  }
 
   return todas.filter(t => {
     if (!t.date) return false;
