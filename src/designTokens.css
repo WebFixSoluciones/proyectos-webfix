@@ -1,72 +1,108 @@
 :root {
-  /* Primary */
+  /* ==========================================================================
+     VERCEL / GEIST DESIGN SYSTEM TOKENS (LIGHT VERSION)
+     ========================================================================== */
+
+  /* Primary Brand Accent (Vercel Electric Blue) */
   --primary: #1C40F2;
   --primary-hover: #102ECF;
   --primary-light: #EFF2FF;
   --primary-muted: #D0DAFF;
 
-  /* Surfaces */
+  /* Surfaces & Backgrounds */
   --surface-bg: #FFFFFF;
   --surface-card: #FFFFFF;
   --surface-sidebar: #FAFAFA;
+  --surface-hover: #FAFAFA;
+  --surface-muted: #F5F5F5;
 
-  /* Borders */
+  /* Hairline Borders */
   --border-default: #EAEAEA;
-  --border-strong: #D5D5D5;
+  --border-strong: #D4D4D4;
+  --border-focus: #1C40F2;
 
-  /* Text */
+  /* Typography Colors (High Contrast Monochromatic) */
+  --text-heading: #000000;
   --text-primary: #070B18;
   --text-secondary: #666666;
   --text-muted: #888888;
 
-  /* Semantic */
+  /* Semantic Status Colors (Vercel Mint, Amber, Rose) */
   --success: #00E4B8;
   --success-light: #E6FDF9;
+  --success-text: #008F73;
+  --success-border: #A2F2E4;
+
   --warning: #F5A623;
   --warning-light: #FFF8E6;
+  --warning-text: #A66000;
+  --warning-border: #FFE8A3;
+
   --error: #FF0057;
   --error-light: #FFF0F5;
+  --error-text: #D10043;
+  --error-border: #FFA3C4;
+
   --info: #1C40F2;
   --info-light: #EFF2FF;
+  --info-text: #1C40F2;
+  --info-border: #D0DAFF;
 
-  /* Status badges */
+  /* Status Badges */
   --status-authorized-bg: var(--success-light);
-  --status-authorized-text: #00B18E; /* Darker mint green for readibility */
-  --status-authorized-border: #A2F2E4;
+  --status-authorized-text: var(--success-text);
+  --status-authorized-border: var(--success-border);
+
   --status-registered-bg: var(--info-light);
-  --status-registered-text: var(--primary);
-  --status-registered-border: var(--primary-muted);
+  --status-registered-text: var(--info-text);
+  --status-registered-border: var(--info-border);
+
   --status-pending-bg: var(--warning-light);
-  --status-pending-text: #D97706; /* Darker warning color for text readability */
-  --status-pending-border: #FFE8A3;
+  --status-pending-text: var(--warning-text);
+  --status-pending-border: var(--warning-border);
+
   --status-rejected-bg: var(--error-light);
-  --status-rejected-text: var(--error);
-  --status-rejected-border: #FFA3C4;
+  --status-rejected-text: var(--error-text);
+  --status-rejected-border: var(--error-border);
+
   --status-draft-bg: var(--surface-sidebar);
   --status-draft-text: var(--text-secondary);
   --status-draft-border: var(--border-default);
+
   --status-cancelled-bg: var(--surface-sidebar);
   --status-cancelled-text: var(--text-muted);
   --status-cancelled-border: var(--border-default);
 
-  /* Border radius */
+  /* Precise Border Radius (Geist Flat Standard) */
+  --radius-xs: 3px;
   --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 6px;
+  --radius-button: 6px;
+  --radius-card: 6px;
+  --radius-input: 6px;
+  --radius-badge: 4px;
 
-  /* Typography */
+  /* Typography Scale */
   --text-xs: 11px;
   --text-sm: 12px;
   --text-base: 13px;
   --text-md: 14px;
   --text-lg: 16px;
   --text-xl: 18px;
+  --text-2xl: 22px;
+  --text-3xl: 28px;
+
   --font-weight-normal: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
 
-  /* Spacing */
+  /* Font Families */
+  --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Spacing Scale */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -75,7 +111,7 @@
   --space-6: 24px;
   --space-8: 32px;
 
-  /* Legacy aliases (consumed by existing utility classes until fully migrated) */
+  /* Compatibility Aliases */
   --primary-color: var(--primary);
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
@@ -83,13 +119,9 @@
   --color-primary-text: #FFFFFF;
   --stripe-text-primary: var(--text-primary);
   --stripe-text-secondary: var(--text-secondary);
-  --stripe-text-tertiary: var(--text-secondary);
+  --stripe-text-tertiary: var(--text-muted);
   --stripe-border: var(--border-default);
   --stripe-border-light: var(--border-default);
   --stripe-bg: var(--surface-bg);
   --stripe-surface: var(--surface-card);
-  --radius-card: var(--radius-lg);
-  --radius-button: var(--radius-md);
-  --radius-input: var(--radius-md);
-  --radius-badge: var(--radius-sm);
 }

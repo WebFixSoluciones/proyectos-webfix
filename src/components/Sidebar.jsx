@@ -17,19 +17,19 @@ export default function Sidebar({
 }) {
  const closeMobile = () => { if(window.innerWidth < 768) setIsSidebarOpen(false); };
 
- const navBase ="group flex items-center gap-3 w-full px-3 py-2.5 rounded-md transition-all text-base font-medium";
- const navActive ="bg-primary-light text-primary";
- const navInactive ="text-text-primary hover:bg-surface-bg hover:text-black";
- const navBtnClass = (isActive) =>`${navBase} ${isActive ? navActive : navInactive}`;
+  const navBase = "group flex items-center gap-2.5 w-full px-2.5 py-1.5 rounded-md transition-all text-xs font-medium tracking-tight";
+  const navActive = "bg-text-heading text-white font-medium";
+  const navInactive = "text-text-secondary hover:bg-black/5 hover:text-text-heading";
+  const navBtnClass = (isActive) => `${navBase} ${isActive ? navActive : navInactive}`;
 
- const iconClass = (isActive) =>`shrink-0 transition-colors ${isActive ?'text-primary' :'text-text-secondary group-hover:text-black'}`;
+  const iconClass = (isActive) => `shrink-0 transition-colors ${isActive ? 'text-white' : 'text-text-secondary group-hover:text-text-heading'}`;
 
- const subBase ="block w-full text-left py-1.5 px-3 rounded-md text-sm font-medium transition-all";
- const subActive ="text-primary bg-primary-light";
- const subInactive ="text-text-secondary hover:text-black hover:bg-surface-bg";
- const subItemClass = (isActive) =>`${subBase} ${isActive ? subActive : subInactive}`;
+  const subBase = "block w-full text-left py-1 px-2.5 rounded-md text-xs font-medium transition-all tracking-tight";
+  const subActive = "text-text-heading font-semibold bg-black/5";
+  const subInactive = "text-text-secondary hover:text-text-heading hover:bg-black/5";
+  const subItemClass = (isActive) => `${subBase} ${isActive ? subActive : subInactive}`;
 
- const menuBorderClass ="pl-9 pr-2 space-y-0.5 border-l border-border-default ml-5 mt-1 select-none";
+  const menuBorderClass = "pl-6 pr-2 space-y-0.5 border-l border-border-default ml-4 mt-1 select-none";
 
  return (
  <>

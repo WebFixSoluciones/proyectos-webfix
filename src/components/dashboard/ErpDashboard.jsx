@@ -28,26 +28,26 @@ export default function ErpDashboard({ setActivePageId, setVentasInitialSubTab, 
   const companyName = settings?.nombreComercial || settings?.razonSocial || 'Mi Empresa';
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[70vh] w-full px-4 animate-in fade-in duration-500">
-      <div className="max-w-3xl w-full flex flex-col items-center text-center">
+    <div className="flex flex-col items-center justify-center min-h-[70vh] w-full px-4 animate-in fade-in duration-300">
+      <div className="max-w-2xl w-full flex flex-col items-center text-center">
         
         {/* Bienvenido + Nombre Empresa */}
-        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-gray-900 mb-10">
-          Bienvenido, <span className="text-primary font-bold">{companyName}</span>
+        <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-text-heading mb-8">
+          Bienvenido, <span className="text-primary font-semibold">{companyName}</span>
         </h1>
 
         {/* Grid de 6 accesos directos: 3 arriba, 3 abajo */}
-        <div className="grid grid-cols-3 gap-4 sm:gap-6 w-full max-w-2xl mb-12">
+        <div className="grid grid-cols-3 gap-3 sm:gap-4 w-full mb-8">
           
           {/* Item 1: POS */}
           <button 
             onClick={() => { setVentasInitialSubTab && setVentasInitialSubTab('pos'); setActivePageId('ventas'); }}
-            className="group flex flex-col items-center justify-center p-4 sm:p-8 rounded-2xl bg-white border border-gray-200/85  hover:border-primary/30 transition-all duration-300 hover:-translate-y-1"
+            className="group flex flex-col items-center justify-center p-4 sm:p-5 rounded-md bg-white border border-border-default hover:border-text-heading hover:bg-surface-sidebar transition-all duration-150 cursor-pointer"
           >
-            <div className="p-3 sm:p-4 rounded-xl mb-3 bg-primary/10 text-primary transition-all duration-300 group-hover:scale-105">
-              <ShoppingCart size={24} className="sm:w-7 sm:h-7" />
+            <div className="p-2.5 rounded-md mb-2 bg-black/5 text-text-heading group-hover:bg-text-heading group-hover:text-white transition-all duration-150">
+              <ShoppingCart size={20} />
             </div>
-            <span className="text-lg font-normal text-gray-700 tracking-wide text-center leading-tight">
+            <span className="text-xs sm:text-sm font-medium text-text-primary tracking-tight text-center leading-tight">
               Punto de Venta
             </span>
           </button>
@@ -55,12 +55,12 @@ export default function ErpDashboard({ setActivePageId, setVentasInitialSubTab, 
           {/* Item 2: Facturas SRI */}
           <button 
             onClick={() => { setVentasInitialSubTab && setVentasInitialSubTab('resumen_ventas'); setActivePageId('ventas'); }}
-            className="group flex flex-col items-center justify-center p-4 sm:p-8 rounded-2xl bg-white border border-gray-200/85  hover:border-primary/30 transition-all duration-300 hover:-translate-y-1"
+            className="group flex flex-col items-center justify-center p-4 sm:p-5 rounded-md bg-white border border-border-default hover:border-text-heading hover:bg-surface-sidebar transition-all duration-150 cursor-pointer"
           >
-            <div className="p-3 sm:p-4 rounded-xl mb-3 bg-primary/10 text-primary transition-all duration-300 group-hover:scale-105">
-              <FileText size={24} className="sm:w-7 sm:h-7" />
+            <div className="p-2.5 rounded-md mb-2 bg-black/5 text-text-heading group-hover:bg-text-heading group-hover:text-white transition-all duration-150">
+              <FileText size={20} />
             </div>
-            <span className="text-lg font-normal text-gray-700 tracking-wide text-center leading-tight">
+            <span className="text-xs sm:text-sm font-medium text-text-primary tracking-tight text-center leading-tight">
               Facturación
             </span>
           </button>
@@ -68,12 +68,12 @@ export default function ErpDashboard({ setActivePageId, setVentasInitialSubTab, 
           {/* Item 3: Inventario */}
           <button 
             onClick={() => setActivePageId('inventario')}
-            className="group flex flex-col items-center justify-center p-4 sm:p-8 rounded-2xl bg-white border border-gray-200/85  hover:border-primary/30 transition-all duration-300 hover:-translate-y-1"
+            className="group flex flex-col items-center justify-center p-4 sm:p-5 rounded-md bg-white border border-border-default hover:border-text-heading hover:bg-surface-sidebar transition-all duration-150 cursor-pointer"
           >
-            <div className="p-3 sm:p-4 rounded-xl mb-3 bg-primary/10 text-primary transition-all duration-300 group-hover:scale-105">
-              <Package size={24} className="sm:w-7 sm:h-7" />
+            <div className="p-2.5 rounded-md mb-2 bg-black/5 text-text-heading group-hover:bg-text-heading group-hover:text-white transition-all duration-150">
+              <Package size={20} />
             </div>
-            <span className="text-lg font-normal text-gray-700 tracking-wide text-center leading-tight">
+            <span className="text-xs sm:text-sm font-medium text-text-primary tracking-tight text-center leading-tight">
               Inventario
             </span>
           </button>
@@ -81,12 +81,12 @@ export default function ErpDashboard({ setActivePageId, setVentasInitialSubTab, 
           {/* Item 4: Personas */}
           <button 
             onClick={() => setActivePageId('personas')}
-            className="group flex flex-col items-center justify-center p-4 sm:p-8 rounded-2xl bg-white border border-gray-200/85  hover:border-primary/30 transition-all duration-300 hover:-translate-y-1"
+            className="group flex flex-col items-center justify-center p-4 sm:p-5 rounded-md bg-white border border-border-default hover:border-text-heading hover:bg-surface-sidebar transition-all duration-150 cursor-pointer"
           >
-            <div className="p-3 sm:p-4 rounded-xl mb-3 bg-primary/10 text-primary transition-all duration-300 group-hover:scale-105">
-              <Users size={24} className="sm:w-7 sm:h-7" />
+            <div className="p-2.5 rounded-md mb-2 bg-black/5 text-text-heading group-hover:bg-text-heading group-hover:text-white transition-all duration-150">
+              <Users size={20} />
             </div>
-            <span className="text-lg font-normal text-gray-700 tracking-wide text-center leading-tight">
+            <span className="text-xs sm:text-sm font-medium text-text-primary tracking-tight text-center leading-tight">
               Clientes / Prov
             </span>
           </button>
@@ -94,12 +94,12 @@ export default function ErpDashboard({ setActivePageId, setVentasInitialSubTab, 
           {/* Item 5: Calendario */}
           <button 
             onClick={() => setActivePageId('calendar')}
-            className="group flex flex-col items-center justify-center p-4 sm:p-8 rounded-2xl bg-white border border-gray-200/85  hover:border-primary/30 transition-all duration-300 hover:-translate-y-1"
+            className="group flex flex-col items-center justify-center p-4 sm:p-5 rounded-md bg-white border border-border-default hover:border-text-heading hover:bg-surface-sidebar transition-all duration-150 cursor-pointer"
           >
-            <div className="p-3 sm:p-4 rounded-xl mb-3 bg-primary/10 text-primary transition-all duration-300 group-hover:scale-105">
-              <CalendarDays size={24} className="sm:w-7 sm:h-7" />
+            <div className="p-2.5 rounded-md mb-2 bg-black/5 text-text-heading group-hover:bg-text-heading group-hover:text-white transition-all duration-150">
+              <CalendarDays size={20} />
             </div>
-            <span className="text-lg font-normal text-gray-700 tracking-wide text-center leading-tight">
+            <span className="text-xs sm:text-sm font-medium text-text-primary tracking-tight text-center leading-tight">
               Calendario
             </span>
           </button>
@@ -107,12 +107,12 @@ export default function ErpDashboard({ setActivePageId, setVentasInitialSubTab, 
           {/* Item 6: Ajustes */}
           <button 
             onClick={() => setActivePageId('general_settings')}
-            className="group flex flex-col items-center justify-center p-4 sm:p-8 rounded-2xl bg-white border border-gray-200/85  hover:border-primary/30 transition-all duration-300 hover:-translate-y-1"
+            className="group flex flex-col items-center justify-center p-4 sm:p-5 rounded-md bg-white border border-border-default hover:border-text-heading hover:bg-surface-sidebar transition-all duration-150 cursor-pointer"
           >
-            <div className="p-3 sm:p-4 rounded-xl mb-3 bg-primary/10 text-primary transition-all duration-300 group-hover:scale-105">
-              <Settings size={24} className="sm:w-7 sm:h-7" />
+            <div className="p-2.5 rounded-md mb-2 bg-black/5 text-text-heading group-hover:bg-text-heading group-hover:text-white transition-all duration-150">
+              <Settings size={20} />
             </div>
-            <span className="text-lg font-normal text-gray-700 tracking-wide text-center leading-tight">
+            <span className="text-xs sm:text-sm font-medium text-text-primary tracking-tight text-center leading-tight">
               Ajustes
             </span>
           </button>
@@ -120,14 +120,12 @@ export default function ErpDashboard({ setActivePageId, setVentasInitialSubTab, 
         </div>
 
         {/* Indicador Conexión SRI */}
-        <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-600 transition-all duration-300 hover:bg-emerald-100/50">
+        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#E6FDF9] border border-[#A2F2E4] text-[#008F73] text-[11px] font-medium tracking-wide">
           <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00E4B8] opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00E4B8]"></span>
           </span>
-          <span className="text-xs font-semibold tracking-wider uppercase">
-            Conexión SRI Activa
-          </span>
+          <span>Conexión SRI Activa</span>
         </div>
 
       </div>
