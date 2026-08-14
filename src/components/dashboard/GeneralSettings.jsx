@@ -1832,72 +1832,72 @@ export default function GeneralSettings({
 
  {/* PESTAÑA: GOOGLE GEMINI (INTELIGENCIA ARTIFICIAL) */}
  {activeSubTab ==='gemini' && (
- <form onSubmit={handleSaveGemini} className="space-y-6 animate-in fade-in duration-200">
- <div className="border-b border-white/5 pb-3">
- <h3 className="text-sm font-black uppercase tracking-wider text-primary">Google Gemini AI Advisor</h3>
- <p className="text-xs text-gray-500 mt-1">Vincula tu clave de API de Gemini 1.5 Flash para habilitar el diagnóstico estratégico de la empresa. La IA analizará tus tareas, stock crítico de inventario y balances para sugerirte mejoras operativas.</p>
+ <div className="space-y-6 animate-in fade-in duration-200">
+ <div className="border-b border-gray-100 pb-3">
+ <h3 className="text-sm font-black uppercase tracking-wider text-primary">Inteligencia Artificial y Asistente Gemini</h3>
+ <p className="text-xs text-gray-500 mt-1">Servicios cognitivos de IA integrados para optimizar la toma de decisiones, extracción automática de documentos y planificación operativa.</p>
  </div>
 
- <div className="space-y-4">
+ <div className="p-5 rounded-2xl border border-emerald-200 bg-emerald-50/50 space-y-3">
+ <div className="flex items-center justify-between">
+ <div className="flex items-center gap-2.5">
+ <div className="p-2 rounded-xl bg-emerald-600 text-white">
+ <Sparkles size={18} />
+ </div>
  <div>
- <label className="label-field label-field-dark">Clave de API de Gemini (Google AI Studio)</label>
- <div className="flex gap-2">
- <div className="relative flex-1">
- <input 
- type={showKey ?"text" :"password"} 
- value={geminiKey} 
- onChange={(e) => setFormKey(e.target.value)} 
- className={`${inputClass} pr-10`} 
- placeholder="AIzaSy..." 
- />
- <button
- type="button"
- onClick={() => setShowKey(!showKey)}
- className="absolute right-3.5 top-3 text-gray-400 hover:text-gray-650 dark:hover:text-white"
- >
- {showKey ? <EyeOff size={15} /> : <Eye size={15} />}
- </button>
+ <h4 className="text-sm font-bold text-emerald-950">Asistente IA Activado para tu Empresa</h4>
+ <p className="text-xs text-emerald-700">Gestionado automáticamente desde la administración central de la plataforma</p>
  </div>
- <button
- type="button"
- onClick={handleTestGeminiKey}
- disabled={testingKey}
- className={`px-4 rounded-card text-xs font-bold transition-all border shrink-0 ${
- testingKey 
- ?'bg-gray-500/10 text-gray-400 border-gray-500/20 cursor-not-allowed'
- :'bg-purple-50 hover:bg-purple-100 border-purple-200 text-purple-800'
- }`}
- >
- {testingKey ?'Probando...' :'Probar Clave'}
- </button>
+ </div>
+ <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-600 text-white shadow-xs">
+ <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+ Activo y Operativo
+ </span>
  </div>
  </div>
 
- {testResult && (
- <div className={`p-3 rounded-card border text-xs leading-relaxed font-semibold transition-all duration-300 ${
- testResult.success 
- ?'bg-emerald-50 border-emerald-250 text-emerald-850'
- :'bg-red-50 border-red-200 text-red-850'
- }`}>
- <p className="flex items-center gap-1.5 font-bold">
- {testResult.success ? <CheckCircle2 size={13} className="text-emerald-505 shrink-0" /> : <AlertTriangle size={13} className="text-red-550 shrink-0" />}
- <span>{testResult.message}</span>
+ <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+ <div className="p-4 rounded-xl border border-[#CDD1EA] bg-white space-y-1.5">
+ <h5 className="text-xs font-black uppercase text-slate-800 flex items-center gap-2">
+ <Sparkles size={14} className="text-primary" />
+ OCR de Facturas y Compras
+ </h5>
+ <p className="text-xs text-gray-500 leading-relaxed">
+ Reconocimiento inteligente de tickets, PDF y facturas escaneadas para cargar egresos y compras sin digitación manual.
  </p>
  </div>
- )}
+
+ <div className="p-4 rounded-xl border border-[#CDD1EA] bg-white space-y-1.5">
+ <h5 className="text-xs font-black uppercase text-slate-800 flex items-center gap-2">
+ <Sparkles size={14} className="text-primary" />
+ Asistente de Proyectos y Tareas
+ </h5>
+ <p className="text-xs text-gray-500 leading-relaxed">
+ Generación instantánea de listas de chequeo, agendas de reunión y resumen ejecutivo de proyectos con un solo clic.
+ </p>
  </div>
 
- <div className={`p-4 rounded-card border text-xs leading-normal space-y-1.5 bg-purple-50 border-purple-200 text-purple-900`}>
- <p className="font-bold text-xs uppercase tracking-wider">¿Cómo obtener una clave de API gratuita?</p>
- <p>Puedes generar tu clave de API de Gemini ingresando a <a href="https://aistudio.google.com/" target="_blank" rel="noreferrer" className="underline font-bold">Google AI Studio</a> con tu cuenta de correo corporativo o personal de Google. Generar la clave toma 1 minuto y te dará acceso inmediato al asesor de Inteligencia Artificial.</p>
+ <div className="p-4 rounded-xl border border-[#CDD1EA] bg-white space-y-1.5">
+ <h5 className="text-xs font-black uppercase text-slate-800 flex items-center gap-2">
+ <Sparkles size={14} className="text-primary" />
+ Asesor Contable y Financiero
+ </h5>
+ <p className="text-xs text-gray-500 leading-relaxed">
+ Diagnóstico del estado del negocio, alertas de stock mínimo y recomendaciones estratégicas de balances.
+ </p>
  </div>
 
- <div className="flex justify-end pt-4 border-t border-white/5">
- <button type="submit" className="flex items-center gap-1.5 px-5 py-2.5 rounded-card text-xs font-black bg-primary hover:bg-primary-hover text-white transition-transform hover:-translate-y-0.5">
- <Save size={14} /> Guardar Clave Gemini
- </button>
+ <div className="p-4 rounded-xl border border-[#CDD1EA] bg-white space-y-1.5">
+ <h5 className="text-xs font-black uppercase text-slate-800 flex items-center gap-2">
+ <Sparkles size={14} className="text-primary" />
+ Redacción y Edición de Documentos
+ </h5>
+ <p className="text-xs text-gray-500 leading-relaxed">
+ Asistencia en tiempo real para resumir, mejorar ortografía y expandir minutas en el módulo de documentación.
+ </p>
  </div>
- </form>
+ </div>
+ </div>
  )}
 
  {/* PESTAÑA: USUARIOS Y ROLES */}

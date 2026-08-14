@@ -139,9 +139,9 @@ export default function FinanceSettings({  showToast, db, appId }) {
           
           {/* CONFIGURACIÓN AMBIENTE Y GEMINI */}
           <div className={`p-6 rounded-card border space-y-4 bg-white border-gray-200`}>
-            <div className="flex items-center gap-2 mb-2 pb-3 border-b border-white/10">
-              <Sparkles size={18} className="text-purple-500" />
-              <h3 className="text-base font-bold">Integraciones y Entornos</h3>
+            <div className="flex items-center gap-2 mb-2 pb-3 border-b border-gray-100">
+              <Sparkles size={18} className="text-primary" />
+              <h3 className="text-base font-bold">Entorno SRI e Inteligencia Artificial</h3>
             </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -166,24 +166,16 @@ export default function FinanceSettings({  showToast, db, appId }) {
               </div>
 
               <div>
-                <label className="label-field label-field-dark">Google Gemini API Key</label>
-                <div className={`flex items-center gap-2 px-3 py-2 rounded-card border mt-1 bg-white border-gray-200`}>
-                  <Key size={14} className="text-gray-500" />
-                  <input 
-                    type={showKey ? "text" : "password"} 
-                    value={geminiKey} 
-                    onChange={e => setGeminiKey(e.target.value)} 
-                    className={`bg-transparent border-none outline-none text-xs w-full py-1 font-medium text-black`} 
-                    placeholder="AIzaSy..." 
-                  />
-                  <button type="button" onClick={() => setShowKey(!showKey)} className="text-gray-500 hover:text-gray-300">
-                    {showKey ? <EyeOff size={14} /> : <Eye size={14} />}
-                  </button>
+                <label className="label-field label-field-dark">Asistente IA (Gemini OCR & Chat)</label>
+                <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-card border mt-1 bg-emerald-50/60 border-emerald-200 text-emerald-800">
+                  <Sparkles size={15} className="text-emerald-600 shrink-0" />
+                  <span className="text-xs font-bold flex-1">Activado por Administración Central</span>
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                 </div>
               </div>
             </div>
             <p className="text-xs text-gray-500 leading-relaxed">
-              El ambiente determina a qué servidor del SRI se envían las facturas. La clave de Gemini habilita la categorización inteligente de facturas y OCR de compras.
+              El ambiente determina a qué servidor del SRI se envían las facturas. Las herramientas de Inteligencia Artificial (OCR de comprobantes, categorización contable y chat asesor) están habilitadas y gestionadas automáticamente para todos los usuarios.
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-white/10">

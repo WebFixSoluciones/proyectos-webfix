@@ -91,8 +91,9 @@ import {
   MOCK_USERS, MOCK_EVENTS, // eslint-disable-line no-unused-vars
   INITIAL_PAGES
 } from './constants/appData';
-
-const apiKey = ""; // API Key para Gemini (configura tu clave aquí si usas IA)
+const getSystemGeminiKey = () => {
+  return import.meta.env.VITE_GEMINI_API_KEY || localStorage.getItem('finances_gemini_api_key') || "";
+};
 
 // ⚠️ El GOOGLE_CLIENT_ID ahora se maneja desde la interfaz (Estado)
 const GOOGLE_CALENDAR_SCOPES = "https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly";
@@ -1888,11 +1889,16 @@ export default function App() {
 
   // --- Funciones IA ---
   const callGeminiAPI = async (prompt) => {
+    const key = getSystemGeminiKey();
+    if (!key) {
+      console.warn("Gemini API key no configurada en las variables del sistema (VITE_GEMINI_API_KEY).");
+      return "⚠️ El asistente de Inteligencia Artificial requiere la clave VITE_GEMINI_API_KEY configurada en el servidor de administración.";
+    }
     setIsGeneratingAI(true);
     let retries = 5; let delay = 1000;
     while (retries > 0) {
       try {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${key}`;
         const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) });
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
