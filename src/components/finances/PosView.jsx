@@ -78,7 +78,7 @@ const BarcodeScannerIcon = ({ className = "text-primary shrink-0", size = 18 }) 
   </svg>
 );
 
-export default function PosView({ products, thirdParties, transactions = [], discounts = [], promotions = [], showToast, db, appId, onCheckout, onClose, isPreventaOnly }) {
+export default function PosView({ products, thirdParties, transactions = [], discounts = [], promotions = [], showToast, db, appId, onCheckout, onClose, isPreventaOnly, usuario = null }) {
   // Configuración de visualización del POS (persistente en localStorage)
   const [posConfig, setPosConfig] = useState(() => {
     const saved = localStorage.getItem(`pos_config_${appId}`);
@@ -355,6 +355,73 @@ export default function PosView({ products, thirdParties, transactions = [], dis
   const changeDue = Math.max(0, paidTotal - totalToPay);
   const remainingDue = Math.max(0, totalToPay - paidTotal);
 
+  // Cliente SRI selector
+  const getSelectedClient = () => {
+    if (selectedClientId) {
+      const found = thirdParties.find(tp => tp.id === selectedClientId);
+      if (found) return found;
+    }
+    return {
+      name: 'Consumidor Final',
+      ruc: '9999999999999',
+      type: 'cliente',
+      email: 'consumidorfinal@sri.gob.ec',
+      tipoIdentificacion: 'consumidor_final',
+      direccion: 'Ecuador',
+      telefono: '999999999',
+      tipoContribuyente: 'general'
+    };
+  };
+
+  // Validación exhaustiva previa al cobro
+  const validarCobro = () => {
+    // 1. Validar Carrito
+    if (!cart || cart.length === 0) {
+      showToast("Alerta: El carrito está vacío. Agregue al menos un producto antes de cobrar.", "error");
+      return false;
+    }
+
+    // 2. Validar que los items del carrito tengan cantidades válidas
+    const invalidItem = cart.find(item => !item.quantity || Number(item.quantity) <= 0);
+    if (invalidItem) {
+      showToast(`Alerta: El producto "${invalidItem.name || 'en carrito'}" tiene una cantidad inválida.`, "error");
+      return false;
+    }
+
+    // 3. Validar Cliente
+    if (!selectedClientId) {
+      showToast("Alerta: Debe seleccionar o registrar un cliente antes de cobrar.", "error");
+      return false;
+    }
+
+    const client = getSelectedClient();
+    if (!client || !client.name) {
+      showToast("Alerta: El cliente seleccionado no es válido.", "error");
+      return false;
+    }
+
+    // 4. Validar límite Consumidor Final (SRI Ecuador: Máximo $50.00 sin identificación)
+    if ((client.ruc === '9999999999999' || client.tipoIdentificacion === 'consumidor_final') && totalToPay > 50 && posDocType === 'factura') {
+      showToast(`Alerta SRI: Ventas a Consumidor Final superiores a $50.00 requieren identificar al cliente con RUC o Cédula (Total: $${totalToPay.toFixed(2)}).`, "error");
+      return false;
+    }
+
+    // 5. Validar Usuario / Cajero
+    const cajero = activeSession?.responsible || usuario?.email || usuario?.nombre || usuario?.displayName || 'Cajero Principal';
+    if (!cajero) {
+      showToast("Alerta: Debe existir un usuario o cajero activo responsable de la venta.", "error");
+      return false;
+    }
+
+    // 6. Validar Total a cobrar
+    if (totalToPay <= 0) {
+      showToast("Alerta: El total a cobrar debe ser mayor a $0.00.", "error");
+      return false;
+    }
+
+    return true;
+  };
+
   const playCashRegisterSound = () => {
     try {
       const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -566,29 +633,22 @@ export default function PosView({ products, thirdParties, transactions = [], dis
 
       if (e.key === 'F12' || (e.ctrlKey && e.key === 'Enter')) {
         e.preventDefault();
-        if (cart.length > 0) {
-          if (!selectedClientId) {
-            showToast("Alerta: No se seleccionó ningún cliente", "error");
-            return;
-          }
-          if (!showPaymentScreen) {
-            setReceivedAmount('');
-            setPosPaymentMethod('efectivo');
-            setPaymentRefCode('');
-            setShowPaymentScreen(true);
-          } else {
-            if (posPaymentMethod === 'efectivo') {
-              const cashVal = Number(receivedAmount) || 0;
-              if (cashVal < getTotal()) {
-                showToast(`Por favor, cubre el total de la factura. Falta pagar $${(getTotal() - cashVal).toFixed(2)}`, "error");
-                return;
-              }
-            }
-            // eslint-disable-next-line react-hooks/immutability
-            handleFinalCheckout();
-          }
+        if (!validarCobro()) return;
+        if (!showPaymentScreen) {
+          setReceivedAmount('');
+          setPosPaymentMethod('efectivo');
+          setPaymentRefCode('');
+          setShowPaymentScreen(true);
         } else {
-          showToast("El carrito está vacío", "error");
+          if (posPaymentMethod === 'efectivo') {
+            const cashVal = receivedAmount === '' ? totalToPay : Number(receivedAmount);
+            if (isNaN(cashVal) || cashVal < totalToPay) {
+              showToast(`Monto insuficiente: Falta cubrir $${(totalToPay - (cashVal || 0)).toFixed(2)}`, "error");
+              return;
+            }
+          }
+          // eslint-disable-next-line react-hooks/immutability
+          handleFinalCheckout();
         }
         return;
       }
@@ -858,24 +918,6 @@ export default function PosView({ products, thirdParties, transactions = [], dis
 
 
 
-  // Cliente SRI selector
-  const getSelectedClient = () => {
-    if (selectedClientId) {
-      const found = thirdParties.find(tp => tp.id === selectedClientId);
-      if (found) return found;
-    }
-    return {
-      name: 'Consumidor Final',
-      ruc: '9999999999999',
-      type: 'cliente',
-      email: 'consumidorfinal@sri.gob.ec',
-      tipoIdentificacion: 'consumidor_final',
-      direccion: 'Ecuador',
-      telefono: '999999999',
-      tipoContribuyente: 'general'
-    };
-  };
-
   // Guardar / Suspender ventas
   const suspendSale = () => {
     if (cart.length === 0) {
@@ -906,15 +948,17 @@ export default function PosView({ products, thirdParties, transactions = [], dis
 
   // Checkout Finalizado
   const handleFinalCheckout = async () => {
-    if (cart.length === 0) {
-      showToast("Alerta: El carrito está vacío", "error");
-      return;
+    if (!validarCobro()) return;
+
+    if (showPaymentScreen && posPaymentMethod === 'efectivo') {
+      const cashVal = receivedAmount === '' ? totalToPay : Number(receivedAmount);
+      if (isNaN(cashVal) || cashVal < totalToPay) {
+        showToast(`Monto insuficiente: El efectivo recibido ($${(cashVal || 0).toFixed(2)}) no cubre el total ($${totalToPay.toFixed(2)})`, "error");
+        return;
+      }
     }
-    if (!selectedClientId) {
-      showToast("Alerta: No se seleccionó ningún cliente", "error");
-      return;
-    }
-    if (remainingDue > 0) {
+
+    if (isCheckoutOpen && remainingDue > 0.009) {
       showToast(`Falta pagar $${remainingDue.toFixed(2)} para completar el total`, "error");
       return;
     }
@@ -939,13 +983,14 @@ export default function PosView({ products, thirdParties, transactions = [], dis
         }
       }
 
-
-
       // Determinar método de pago dominante
-      let pMethod = 'transferencia';
-      if (payments.efectivo >= payments.tarjeta && payments.efectivo >= payments.transferencia && payments.efectivo >= payments.cruce_cuentas) pMethod = 'efectivo';
-      else if (payments.tarjeta >= payments.efectivo && payments.tarjeta >= payments.transferencia && payments.tarjeta >= payments.cruce_cuentas) pMethod = 'tarjeta';
-      else if (payments.cruce_cuentas >= payments.efectivo && payments.cruce_cuentas >= payments.tarjeta && payments.cruce_cuentas >= payments.transferencia) pMethod = 'cruce_cuentas';
+      let pMethod = posPaymentMethod || 'efectivo';
+      if (isCheckoutOpen) {
+        pMethod = 'transferencia';
+        if (payments.efectivo >= payments.tarjeta && payments.efectivo >= payments.transferencia && payments.efectivo >= payments.cruce_cuentas) pMethod = 'efectivo';
+        else if (payments.tarjeta >= payments.efectivo && payments.tarjeta >= payments.transferencia && payments.tarjeta >= payments.cruce_cuentas) pMethod = 'tarjeta';
+        else if (payments.cruce_cuentas >= payments.efectivo && payments.cruce_cuentas >= payments.tarjeta && payments.cruce_cuentas >= payments.transferencia) pMethod = 'cruce_cuentas';
+      }
 
       const invoiceData = {
         type: 'ingreso',
@@ -968,16 +1013,21 @@ export default function PosView({ products, thirdParties, transactions = [], dis
         isPOS: !isPreventaOnly,
         isPreventa: !!isPreventaOnly,
         cashSessionId: isPreventaOnly ? '' : (activeSession?.id || ''),
-        paymentsBreakdown: {
+        paymentsBreakdown: isCheckoutOpen ? {
           efectivo: Number(payments.efectivo),
           transferencia: Number(payments.transferencia),
           tarjeta: Number(payments.tarjeta),
           cruce_cuentas: Number(payments.cruce_cuentas)
+        } : {
+          efectivo: pMethod === 'efectivo' ? Number(totalToPay.toFixed(2)) : 0,
+          transferencia: pMethod === 'transferencia' ? Number(totalToPay.toFixed(2)) : 0,
+          tarjeta: pMethod === 'tarjeta' ? Number(totalToPay.toFixed(2)) : 0,
+          cruce_cuentas: pMethod === 'cruce_cuentas' ? Number(totalToPay.toFixed(2)) : 0
         },
         paymentReferences: {
-          transferenciaRef: payments.transferenciaRef,
-          tarjetaRef: payments.tarjetaRef,
-          cruceRef: payments.cruceRef
+          transferenciaRef: isCheckoutOpen ? payments.transferenciaRef : (pMethod === 'transferencia' ? paymentRefCode : ''),
+          tarjetaRef: isCheckoutOpen ? payments.tarjetaRef : (pMethod === 'tarjeta' ? paymentRefCode : ''),
+          cruceRef: isCheckoutOpen ? payments.cruceRef : (pMethod === 'cruce_cuentas' ? paymentRefCode : '')
         }
       };
 
@@ -1893,9 +1943,9 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                   type="button"
                   onClick={handleFinalCheckout}
                   disabled={isProcessing}
-                  className="w-full py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-base uppercase flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full py-3.5 rounded-md bg-text-heading hover:bg-black/90 text-white font-medium text-sm flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <CheckCircle2 size={20} />
+                  <CheckCircle2 size={18} />
                   <span>
                     {isProcessing ? 'Procesando...' : 
                       posDocType === 'factura' ? 'Emitir Factura Electrónica (F12)' :
@@ -2472,14 +2522,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
               <button 
                 type="button" 
                 onClick={() => {
-                  if (cart.length === 0) {
-                    showToast("Alerta: El carrito está vacío", "error");
-                    return;
-                  }
-                  if (!selectedClientId) {
-                    showToast("Alerta: No se seleccionó ningún cliente", "error");
-                    return;
-                  }
+                  if (!validarCobro()) return;
                   // Entrar a la pantalla inline de Cobro e Impresión
                   setReceivedAmount('');
                   setPosPaymentMethod('efectivo');
@@ -3301,8 +3344,12 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                     <button 
                       type="button" 
                       onClick={() => {
-                        if (checkoutStep === 2 && remainingDue > 0) {
-                          showToast(`Por favor, cubre el total de la factura. Falta pagar $${remainingDue.toFixed(2)}`, "error");
+                        if (checkoutStep === 1 && !selectedClientId) {
+                          showToast("Alerta: Debe seleccionar o registrar un cliente antes de continuar.", "error");
+                          return;
+                        }
+                        if (checkoutStep === 2 && remainingDue > 0.009) {
+                          showToast(`Por favor, cubra el total de la venta. Falta pagar $${remainingDue.toFixed(2)}`, "error");
                           return;
                         }
                         setCheckoutStep(prev => prev + 1);

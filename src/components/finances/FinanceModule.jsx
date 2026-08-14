@@ -423,6 +423,7 @@ export default function FinanceModule({
                         showToast={showToast} 
                         db={db} 
                         appId={appId} 
+                        usuario={usuario}
                         onCheckout={handlePOSCheckout} 
                         onClose={() => setSubTabVentas('resumen_ventas')}
                         isPreventaOnly={true}
@@ -438,6 +439,7 @@ export default function FinanceModule({
                         showToast={showToast} 
                         db={db} 
                         appId={appId} 
+                        usuario={usuario}
                         onCheckout={handlePOSCheckout} 
                         onClose={() => setSubTabVentas('resumen_ventas')}
                         isPreventaOnly={false}
