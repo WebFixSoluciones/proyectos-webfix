@@ -19,7 +19,7 @@ export default async function handler(req, res) {
   const path = Array.isArray(segs) ? segs.join('/') : (segs || '');
   const target = `${SRI_HOST}/${path}`;
 
-  let body = '';
+  let body;
   if (req.body) {
     if (typeof req.body === 'string') {
       body = req.body;

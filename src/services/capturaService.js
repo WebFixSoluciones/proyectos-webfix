@@ -1,4 +1,4 @@
-import { collection, addDoc, updateDoc, doc, getDocs, query, orderBy, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, doc, getDocs, query, orderBy, serverTimestamp } from 'firebase/firestore';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { analizarComprobanteConGemini, parsearXMLComprobante } from './geminiService';
 import { registrarAuditoria } from './auditService';
@@ -18,24 +18,17 @@ export async function getResumenCapturas(capturas) {
     const f = c.createdAt?.toDate?.() || new Date(c.createdAt);
     return f >= inicioMes;
   });
-  const confirmadas = esteMes.filter(c => c.estado === 'confirmado');
-  const duplicadas = esteMes.filter(c => c.duplicado);
-  const tasaExito = esteMes.length > 0 ? Math.round((confirmadas.length / esteMes.length) * 100) : 0;
-  return {
-    capturasMes: esteMes.length,
-    duplicadosDetectados: duplicadas.length,
-    tasaExito,
-    totalProcesado: confirmadas.reduce((s, c) => s + (Number(c.datosExtraidos?.montoTotal) || 0), 0),
-  };
+  const pendientes = capturas.filter(c => c.estado === 'pendiente');
+  const confirmados = capturas.filter(c => c.estado === 'confirmado');
+  const rechazados = capturas.filter(c => c.estado === 'rechazado');
+  const montoTotal = confirmados.reduce((s, c) => s + (c.datosExtraidos?.montoTotal || 0), 0);
+  return { total: capturas.length, esteMes: esteMes.length, pendientes: pendientes.length, confirmados: confirmados.length, rechazados: rechazados.length, montoTotal };
 }
 
-export async function procesarArchivoCaptura(db, file, storage, appId, usuario) {
-  const extension = file.name.split('.').pop().toLowerCase();
-  let tipoDocumento = 'imagen';
-  if (extension === 'pdf') tipoDocumento = 'pdf';
-  else if (extension === 'xml') tipoDocumento = 'xml';
-
+export async function procesarArchivoCaptura(db, storage, appId, file, usuario) {
+  const tipoDocumento = file.type === 'application/pdf' ? 'pdf' : file.name.endsWith('.xml') ? 'xml' : 'imagen';
   let urlArchivo = null;
+
   if (storage && appId) {
     const path = `capturas/${appId}/${Date.now()}_${file.name}`;
     const sRef = storageRef(storage, path);
@@ -44,7 +37,6 @@ export async function procesarArchivoCaptura(db, file, storage, appId, usuario) 
   }
 
   let datosExtraidos = null;
-  let confianza = 0;
 
   if (tipoDocumento === 'xml') {
     const text = await file.text();
@@ -65,7 +57,6 @@ export async function procesarArchivoCaptura(db, file, storage, appId, usuario) 
         centroCosto: '',
         confianza: 95,
       };
-      confianza = 95;
     }
   } else {
     try {
@@ -85,7 +76,6 @@ export async function procesarArchivoCaptura(db, file, storage, appId, usuario) 
           centroCosto: geminiData.centroCosto || '',
           confianza: calcularConfianza(geminiData),
         };
-        confianza = datosExtraidos.confianza;
       }
     } catch (err) {
       console.error('Error OCR Gemini:', err);

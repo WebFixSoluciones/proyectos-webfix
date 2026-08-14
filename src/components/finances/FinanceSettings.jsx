@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Settings, Sparkles, Key, Eye, EyeOff, Save, ExternalLink } from 'lucide-react';
+import { Settings, Sparkles, Save, ExternalLink } from 'lucide-react';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 
 export default function FinanceSettings({  showToast, db, appId }) {
   const [loading, setLoading] = useState(true);
-  const [showKey, setShowKey] = useState(false);
   const [sriConfig, setSriConfig] = useState({
     razonSocial: '',
     nombreComercial: '',

@@ -37,15 +37,15 @@ export default function BancosCajaView({ db, usuario, showToast }) {
         if (actualizada) setCuentaActiva(actualizada);
       }
     } catch (e) { setError(e.message); } finally { setLoading(false); }
-  }, [db, filtros.tipo]);
+  }, [db, filtros.tipo, cuentaActiva]);
 
   const cargarMovimientos = useCallback(async () => {
     if (!cuentaActiva) return;
     try {
       const data = await getMovimientosBancarios(db, cuentaActiva.id, { tipo: filtros.movTipo, fechaDesde: filtros.fechaDesde, fechaHasta: filtros.fechaHasta, conciliado: filtros.movConciliado });
       setMovimientos(data);
-    } catch (e) { showToast('Error cargando movimientos: ' + e.message, 'error'); }
-  }, [db, cuentaActiva, filtros.movTipo, filtros.fechaDesde, filtros.fechaHasta, filtros.movConciliado]);
+    } catch (e) { showToast?.('Error cargando movimientos: ' + e.message, 'error'); }
+  }, [db, cuentaActiva, filtros.movTipo, filtros.fechaDesde, filtros.fechaHasta, filtros.movConciliado, showToast]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -55,7 +55,7 @@ export default function BancosCajaView({ db, usuario, showToast }) {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (cuentaActiva) cargarMovimientos();
-  }, [cuentaActiva?.id, cargarMovimientos]);
+  }, [cuentaActiva, cargarMovimientos]);
 
   const resumen = getResumenBancos(cuentas);
 

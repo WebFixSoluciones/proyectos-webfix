@@ -1,9 +1,7 @@
-import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
-import { generarClaveAcceso, validarIdentificacion } from './sriService';
+import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { validarIdentificacion } from './sriService';
 import { generateSriAtsXml, downloadSriAtsXml } from './SriAtsExporter';
 import { getAppId } from '../firebase';
-
-const TX_COLLECTION = 'finances_transactions';
 
 const VENCIMIENTOS_TRIBUTARIOS = [
   { tipo: 'IVA', dia: 14, descripcion: 'Declaración de IVA' },
@@ -18,7 +16,7 @@ export async function getTransaccionesPeriodo(db, year, month, localTransactions
   const ultimoDia = new Date(year, month, 0).getDate();
   const hasta = `${year}-${mm}-${String(ultimoDia).padStart(2, '0')}`;
 
-  let todas = [];
+  let todas;
   if (Array.isArray(localTransactions)) {
     todas = localTransactions;
   } else {

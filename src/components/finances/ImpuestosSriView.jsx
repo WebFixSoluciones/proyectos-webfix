@@ -1,12 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   FileText, Download, Calculator, AlertTriangle, CheckCircle2, XCircle,
-  Clock, Search, RefreshCw, FileDown, Percent, TrendingUp, TrendingDown,
-  Receipt, Eye, AlertCircle, Calendar, Building2
+  Search, RefreshCw, FileDown, Percent, TrendingUp, TrendingDown,
+  Receipt, AlertCircle, Calendar
 } from 'lucide-react';
 import {
-  getResumenImpuestos, calcularIva, calcularRetenciones, getDocumentosSri,
-  getVencimientosMes, generarAtsCompleto, descargarAtsXml, validarRuc
+  getResumenImpuestos, generarAtsCompleto, descargarAtsXml, validarRuc
 } from '../../services/impuestosService';
 
 const TABS = [
@@ -50,7 +49,10 @@ export default function ImpuestosSriView({ db, usuario, showToast, transactions 
     } catch (e) { setError(e.message); } finally { setLoading(false); }
   }, [db, year, month, transactions]);
 
-  useEffect(() => { cargar(); }, [cargar]);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    cargar();
+  }, [cargar]);
 
   const handleGenerarAts = async () => {
     setAtsGenerating(true);
@@ -207,6 +209,7 @@ export default function ImpuestosSriView({ db, usuario, showToast, transactions 
           rucValidate={rucValidate}
           rucResult={rucResult}
           setRucValidate={setRucValidate}
+          setRucResult={setRucResult}
           onGenerar={handleGenerarAts}
           onDescargar={handleDescargarAts}
           onValidarRuc={handleValidarRuc}
@@ -383,7 +386,7 @@ function RetencionesTab({ retenciones, fmt }) {
   );
 }
 
-function AtsTab({ atsPreview, atsGenerating, atsData, rucValidate, rucResult, setRucValidate, onGenerar, onDescargar, onValidarRuc, fmt }) {
+function AtsTab({ atsPreview, atsGenerating, atsData, rucValidate, rucResult, setRucValidate, setRucResult, onGenerar, onDescargar, onValidarRuc, fmt }) {
   return (
     <div className="space-y-4">
       <div className="bg-surface-card border border-border-default rounded-card p-4">

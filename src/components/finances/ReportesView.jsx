@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   TrendingUp, TrendingDown, DollarSign, Clock, FileText, Download,
   Printer, AlertTriangle, Users, Landmark, Calculator, Shield,
-  BarChart3, Search, ArrowUpDown, Wallet, Receipt
+  BarChart3, Search, Wallet, Receipt
 } from 'lucide-react';
 import {
   getFlujoCaja, getAgingConsolidado, getReporteCartera, getReporteDeuda,
@@ -20,12 +20,12 @@ const TABS = [
 
 const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 
-export default function ReportesView({ db, usuario, showToast }) {
+export default function ReportesView({ db, showToast }) {
   const [tab, setTab] = useState('flujo');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [data, setData] = useState(null);
-  const [filtros, setFiltros] = useState({ fechaDesde: '', fechaHasta: '', estado: 'all', search: '' });
+  const [filtros, setFiltros] = useState({ fechaDesde: '', fechaHasta: '', estado: 'all', search: '', usuario: '' });
   const [agingTipo, setAgingTipo] = useState('cxc');
 
   const fmt = (v) => `$${(Number(v) || 0).toFixed(2)}`;
@@ -52,7 +52,10 @@ export default function ReportesView({ db, usuario, showToast }) {
     } catch (e) { setError(e.message); } finally { setLoading(false); }
   }, [db, tab, filtros, agingTipo]);
 
-  useEffect(() => { cargar(); }, [cargar]);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    cargar();
+  }, [cargar]);
 
   const handleExportCSV = () => {
     if (!data) return;
@@ -102,7 +105,7 @@ export default function ReportesView({ db, usuario, showToast }) {
   const handleExportPDF = () => {
     if (!data) return;
     const tabLabel = TABS.find(t => t.id === tab)?.label || '';
-    let html = '';
+    let html;
     switch (tab) {
       case 'flujo':
         html = `<div><span class="kpi"><span class="kpi-label">Ingresos</span><br><span class="kpi-value">${fmt(data.totalIngresos)}</span></span>
@@ -123,41 +126,6 @@ export default function ReportesView({ db, usuario, showToast }) {
     exportarPDF(`Reporte - ${tabLabel}`, html, `reporte_${tab}`);
     showToast?.('PDF generado', 'success');
   };
-
-  const FiltrosComunes = () => (
-    <div className="flex flex-wrap items-center gap-2">
-      <input type="date" value={filtros.fechaDesde} onChange={e => setFiltros(f => ({ ...f, fechaDesde: e.target.value }))}
-        className="px-2.5 py-1.5 text-xs border border-border-default rounded-btn bg-white text-text-primary" />
-      <span className="text-xs text-text-muted">a</span>
-      <input type="date" value={filtros.fechaHasta} onChange={e => setFiltros(f => ({ ...f, fechaHasta: e.target.value }))}
-        className="px-2.5 py-1.5 text-xs border border-border-default rounded-btn bg-white text-text-primary" />
-      {tab === 'auditoria' && (
-        <div className="relative">
-          <Search size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-text-muted" />
-          <input type="text" value={filtros.usuario} onChange={e => setFiltros(f => ({ ...f, usuario: e.target.value }))}
-            placeholder="Usuario..." className="pl-7 pr-2.5 py-1.5 text-xs border border-border-default rounded-btn bg-white text-text-primary w-32" />
-        </div>
-      )}
-      {tab === 'cartera' && (
-        <div className="relative">
-          <Search size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-text-muted" />
-          <input type="text" value={filtros.search} onChange={e => setFiltros(f => ({ ...f, search: e.target.value }))}
-            placeholder="Cliente..." className="pl-7 pr-2.5 py-1.5 text-xs border border-border-default rounded-btn bg-white text-text-primary w-36" />
-        </div>
-      )}
-      <button onClick={() => setFiltros({ fechaDesde: '', fechaHasta: '', estado: 'all', search: '' })}
-        className="px-2.5 py-1.5 text-xs text-text-muted border border-border-default rounded-btn hover:bg-surface-sidebar">Limpiar</button>
-    </div>
-  );
-
-  const KPI = ({ icon: Icon, label, value, color = 'text-text-primary' }) => (
-    <div className="bg-surface-card border border-border-default rounded-card p-3">
-      <div className="flex items-center gap-1.5 text-text-secondary text-[10px] uppercase tracking-wide mb-0.5">
-        <Icon size={12} className={color} />{label}
-      </div>
-      <div className={`text-base font-bold ${color}`}>{value}</div>
-    </div>
-  );
 
   const renderFlujoCaja = () => {
     if (!data) return null;
@@ -557,7 +525,7 @@ export default function ReportesView({ db, usuario, showToast }) {
       </div>
 
       {/* Filtros */}
-      <FiltrosComunes />
+      <FiltrosComunes filtros={filtros} setFiltros={setFiltros} tab={tab} />
 
       {/* Contenido */}
       {tab === 'flujo' && renderFlujoCaja()}
@@ -566,6 +534,45 @@ export default function ReportesView({ db, usuario, showToast }) {
       {tab === 'deuda' && renderDeuda()}
       {tab === 'impuestos' && renderImpuestos()}
       {tab === 'auditoria' && renderAuditoria()}
+    </div>
+  );
+}
+
+function KPI({ icon: Icon, label, value, color = 'text-text-primary' }) {
+  return (
+    <div className="bg-surface-card border border-border-default rounded-card p-3">
+      <div className="flex items-center gap-1.5 text-text-secondary text-[10px] uppercase tracking-wide mb-0.5">
+        <Icon size={12} className={color} />{label}
+      </div>
+      <div className={`text-base font-bold ${color}`}>{value}</div>
+    </div>
+  );
+}
+
+function FiltrosComunes({ filtros, setFiltros, tab }) {
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <input type="date" value={filtros.fechaDesde} onChange={e => setFiltros(f => ({ ...f, fechaDesde: e.target.value }))}
+        className="px-2.5 py-1.5 text-xs border border-border-default rounded-btn bg-white text-text-primary" />
+      <span className="text-xs text-text-muted">a</span>
+      <input type="date" value={filtros.fechaHasta} onChange={e => setFiltros(f => ({ ...f, fechaHasta: e.target.value }))}
+        className="px-2.5 py-1.5 text-xs border border-border-default rounded-btn bg-white text-text-primary" />
+      {tab === 'auditoria' && (
+        <div className="relative">
+          <Search size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-text-muted" />
+          <input type="text" value={filtros.usuario || ''} onChange={e => setFiltros(f => ({ ...f, usuario: e.target.value }))}
+            placeholder="Usuario..." className="pl-7 pr-2.5 py-1.5 text-xs border border-border-default rounded-btn bg-white text-text-primary w-32" />
+        </div>
+      )}
+      {tab === 'cartera' && (
+        <div className="relative">
+          <Search size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-text-muted" />
+          <input type="text" value={filtros.search || ''} onChange={e => setFiltros(f => ({ ...f, search: e.target.value }))}
+            placeholder="Cliente..." className="pl-7 pr-2.5 py-1.5 text-xs border border-border-default rounded-btn bg-white text-text-primary w-36" />
+        </div>
+      )}
+      <button onClick={() => setFiltros({ fechaDesde: '', fechaHasta: '', estado: 'all', search: '', usuario: '' })}
+        className="px-2.5 py-1.5 text-xs text-text-muted border border-border-default rounded-btn hover:bg-surface-sidebar">Limpiar</button>
     </div>
   );
 }

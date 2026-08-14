@@ -10,7 +10,6 @@ export default function Sidebar({
   ventasInitialSubTab, setVentasInitialSubTab,
   comprasInitialSubTab, setComprasInitialSubTab,
   inventarioInitialSubTab, setInventarioInitialSubTab,
-  // eslint-disable-next-line no-unused-vars
   contabilidadInitialSubTab, setContabilidadInitialSubTab,
  billingInitialSubTab, setBillingInitialSubTab,
  personasSubTab, setPersonasSubTab,

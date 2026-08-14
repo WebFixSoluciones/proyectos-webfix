@@ -1,4 +1,4 @@
-import { collection, getDocs, query, orderBy, where, limit as fLimit } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, limit as fLimit } from 'firebase/firestore';
 
 export async function getFlujoCaja(db, filtros = {}) {
   const q = query(collection(db, 'fin_movimientos'), orderBy('fecha', 'desc'));
@@ -306,7 +306,8 @@ export function exportarCSV(headers, rows, nombreArchivo) {
 export function exportarPDF(titulo, contenido, nombreArchivo) {
   const w = window.open('', '_blank');
   if (!w) return;
-  w.document.write(`<!DOCTYPE html><html><head><title>${titulo}</title><style>
+  const docTitle = nombreArchivo || titulo;
+  w.document.write(`<!DOCTYPE html><html><head><title>${docTitle}</title><style>
     body{font-family:Arial,sans-serif;padding:24px;color:#1a1a1a;font-size:12px}
     h1{font-size:18px;margin-bottom:4px}
     .subtitle{color:#666;font-size:12px;margin-bottom:16px}

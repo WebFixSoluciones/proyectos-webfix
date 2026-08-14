@@ -1,4 +1,4 @@
-import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, getDoc, query, where, orderBy, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, getDoc, query, orderBy, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { registrarAuditoria } from './auditService';
 
 const COLLECTION = 'fin_prestamos';

@@ -130,7 +130,6 @@ export async function validarConsistenciaCxC(db) {
   const registrosCxC = snapshotCxC.docs.map(d => ({ id: d.id, ...d.data() }));
   
   // Verificar que cada movimiento pendiente tenga su CxC
-  const movimientosIds = new Set(movimientosPendientes.map(m => m.id));
   const cxcMovimientoIds = new Set(registrosCxC.map(c => c.movimientoId));
   
   movimientosPendientes.forEach(mov => {
@@ -195,7 +194,6 @@ export async function validarConsistenciaCxP(db) {
   const registrosCxP = snapshotCxP.docs.map(d => ({ id: d.id, ...d.data() }));
   
   // Verificar que cada movimiento pendiente tenga su CxP
-  const movimientosIds = new Set(movimientosPendientes.map(m => m.id));
   const cxpMovimientoIds = new Set(registrosCxP.map(c => c.movimientoId));
   
   movimientosPendientes.forEach(mov => {
@@ -321,14 +319,14 @@ export async function validarIntegridadCompleta(db) {
     
   } catch (error) {
     console.error('Error en validación de integridad:', error);
-    throw new Error(`Error al validar integridad: ${error.message}`);
+    throw new Error(`Error al validar integridad: ${error.message}`, { cause: error });
   }
 }
 
 /**
  * Corrige saldo pendiente de un movimiento
  */
-export async function corregirSaldoPendiente(db, movimientoId, usuario) {
+export async function corregirSaldoPendiente(db, movimientoId) {
   const docRef = doc(db, 'fin_movimientos', movimientoId);
   const snap = await getDoc(docRef);
   

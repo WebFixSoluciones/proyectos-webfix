@@ -1,4 +1,3 @@
-import { collection, getDocs, query, where } from 'firebase/firestore';
 import { getMovimientos, getResumen } from './movimientoService';
 import { getCxC, getAging as getAgingCxC, getResumenCxC } from './cxcService';
 import { getCxP, getAging as getAgingCxP, getResumenCxP } from './cxpService';
@@ -44,7 +43,7 @@ export async function getResumenFinanciero(db, filtros = {}) {
     disponible: resumenBancos.totalGeneral
   };
 
-  const forecast = calcularForecast(cxcItems, cxpItems, movimientos);
+  const forecast = calcularForecast(cxcItems, cxpItems);
 
   const agingCxC = getAgingCxC(cxcItems.filter(i => i.estado !== 'pagado' && i.estado !== 'anulado'));
   const agingCxP = getAgingCxP(cxpItems.filter(i => i.estado !== 'pagado' && i.estado !== 'anulado'));
@@ -71,7 +70,7 @@ export async function getResumenFinanciero(db, filtros = {}) {
   };
 }
 
-function calcularForecast(cxcItems, cxpItems, movimientos) {
+function calcularForecast(cxcItems, cxpItems) {
   const hoy = new Date();
   const en30Dias = new Date(hoy.getTime() + 30 * 24 * 60 * 60 * 1000);
   const en60Dias = new Date(hoy.getTime() + 60 * 24 * 60 * 60 * 1000);

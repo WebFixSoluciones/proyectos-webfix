@@ -155,7 +155,7 @@ export function getResumenBancos(cuentas) {
  * Conciliación bancaria automática
  * Busca posibles matches entre movimientos bancarios no conciliados y movimientos financieros
  */
-export async function conciliacionAutomatica(db, cuentaId, usuario) {
+export async function conciliacionAutomatica(db, cuentaId) {
   // Obtener movimientos bancarios no conciliados
   const movsBancarios = await getMovimientosBancarios(db, cuentaId, { conciliado: 'false' });
   

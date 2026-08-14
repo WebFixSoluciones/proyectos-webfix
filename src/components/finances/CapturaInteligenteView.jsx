@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Scan, Upload, FileText, Image, FileCode, CheckCircle2, XCircle, AlertTriangle, Sparkles, Trash2, Eye, Clock, DollarSign, ShieldAlert, TrendingUp, RefreshCw } from 'lucide-react';
+import { Scan, Upload, FileText, Image, FileCode, CheckCircle2, XCircle, AlertTriangle, Sparkles, Eye, Clock, DollarSign, ShieldAlert, TrendingUp, RefreshCw } from 'lucide-react';
 import { getCapturas, procesarArchivoCaptura, confirmarCaptura, rechazarCaptura, getResumenCapturas } from '../../services/capturaService';
 
 const TIPO_ICONOS = { pdf: FileText, imagen: Image, xml: FileCode };
@@ -25,7 +25,7 @@ export default function CapturaInteligenteView({ db, storage, appId, usuario, sh
   }, [db]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     cargar();
   }, [cargar]);
 

@@ -2,10 +2,10 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   BookOpen, Building2, FileText, Plus, Edit2, Trash2, Save, X,
   ChevronRight, ChevronDown, Search, Layers, Calculator, Calendar,
-  AlertCircle, CheckCircle2, XCircle, DollarSign, Target, FileCheck
+  AlertCircle, CheckCircle2, XCircle, Target, FileCheck
 } from 'lucide-react';
 import {
-  getCuentas, buildArbolCuentas, addCuenta, updateCuenta, deleteCuenta,
+  getCuentas, addCuenta, updateCuenta, deleteCuenta,
   getCentrosCosto, addCentroCosto, updateCentroCosto, deleteCentroCosto,
   getAsientos, confirmarAsiento, anularAsiento, deleteAsiento,
   getResumenContabilidad
@@ -35,7 +35,6 @@ const TABS = [
 
 const EMPTY_CUENTA = { codigo: '', nombre: '', tipo: 'activo', nivel: 1, padreId: null, aceptaMovimientos: false, estado: 'activo' };
 const EMPTY_CC = { codigo: '', nombre: '', responsable: '', presupuestoAnual: 0, estado: 'activo' };
-const EMPTY_LINEA = { cuentaId: '', centroCostoId: '', debe: 0, haber: 0, descripcion: '' };
 
 export default function ContabilidadView({ db, usuario, showToast }) {
   const [tab, setTab] = useState('plan');
@@ -61,7 +60,10 @@ export default function ContabilidadView({ db, usuario, showToast }) {
     } catch (e) { setError(e.message); } finally { setLoading(false); }
   }, [db, filtros]);
 
-  useEffect(() => { cargarTodo(); }, [cargarTodo]);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    cargarTodo();
+  }, [cargarTodo]);
 
   const fmt = (v) => `$${(Number(v) || 0).toFixed(2)}`;
   const fmtDate = (d) => d?.toDate ? d.toDate().toLocaleDateString('es-EC') : d ? new Date(d).toLocaleDateString('es-EC') : '-';

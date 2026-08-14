@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-  DollarSign, TrendingUp, TrendingDown, Wallet, Building2, CreditCard,
+  DollarSign, TrendingUp, Wallet, Building2, CreditCard,
   Landmark, AlertTriangle, ArrowUpCircle, ArrowDownCircle, Calendar,
   PieChart, RefreshCw, BarChart3, Target, ChevronRight, Clock
 } from 'lucide-react';
@@ -27,7 +27,7 @@ const TIPO_ICONOS = {
   prestamo_vencido: Landmark,
 };
 
-export default function ResumenFinancieroView({ db, usuario, showToast, onNavigate }) {
+export default function ResumenFinancieroView({ db, onNavigate }) {
   const [resumen, setResumen] = useState(null);
   const [flujoMensual, setFlujoMensual] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -56,6 +56,7 @@ export default function ResumenFinancieroView({ db, usuario, showToast, onNaviga
   }, [db, periodo]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     cargar();
   }, [cargar]);
 

@@ -3,8 +3,8 @@ import {
   Link as LinkIcon, Sparkles, Users, Shield, 
   Save, Download, CheckCircle2, AlertTriangle, Mail, 
   Phone, Building, ShoppingCart, DollarSign, Package, Calendar, 
-  Plus, Trash2, Eye, EyeOff, LayoutDashboard, ToggleLeft, ToggleRight,
-  Palette, CreditCard, Award, UploadCloud, X, Lock, RefreshCw, FileText,
+  Plus, Trash2, LayoutDashboard, ToggleLeft, ToggleRight,
+  CreditCard, Award, UploadCloud, X, Lock, RefreshCw, FileText,
   AlertCircle, CheckCircle
 } from'lucide-react';
 import { doc, setDoc, getDoc } from'firebase/firestore';
@@ -83,115 +83,97 @@ export default function GeneralSettings({
  certificadoBase64:''
  });
 
- // State for Gemini Key
- const [geminiKey, setGeminiKey] = useState('');
- const [showKey, setShowKey] = useState(false);
- const [testingKey, setTestingKey] = useState(false);
- const [testResult, setTestResult] = useState(null);
-
  // States for User Management
  const [localUsers, setLocalUsers] = useState(users);
  const [newUser, setNewUser] = useState({ name:'', role:'Miembro', job:'', email:'' });
 
  // Load configuration on mount
  useEffect(() => {
- if (!appId || !db) return;
- async function loadConfig() {
- try {
- const docRef = doc(db,'artifacts', appId,'public','data','meta','info');
- const snap = await getDoc(docRef);
- let cloudGeminiKey ='';
- if (snap.exists()) {
- const data = snap.data();
- if (data.users) {
- setLocalUsers(data.users);
- }
- if (data.geminiApiKey) {
- cloudGeminiKey = data.geminiApiKey;
- }
- }
+    if (!appId || !db) return;
+    async function loadConfig() {
+      try {
+        const docRef = doc(db,'artifacts', appId,'public','data','meta','info');
+        const snap = await getDoc(docRef);
+        if (snap.exists()) {
+          const data = snap.data();
+          if (data.users) {
+            setLocalUsers(data.users);
+          }
+        }
 
- const finRef = doc(db,'artifacts', appId,'public','data','finances_settings','config');
- const finSnap = await getDoc(finRef);
- if (finSnap.exists()) {
- const finData = finSnap.data();
- setCompanyProfile(prev => ({
- ...prev,
- razonSocial: finData.razonSocial ||'',
- nombreComercial: finData.nombreComercial ||'',
- ruc: finData.ruc ||'',
- direccionMatriz: finData.direccionMatriz ||'',
- telefono: finData.telefonoContacto || finData.telefono ||'',
- email: finData.correoContacto || finData.email ||'',
- web: finData.web ||'',
- rucActivo: finData.rucActivo !== false,
- rucEstado: finData.rucEstado ||'ACTIVO',
- rucRegimen: finData.rucRegimen ||'RIMPE Emprendedor',
- obligadoContabilidad: finData.obligadoContabilidad || false,
- contribuyenteTipo: finData.contribuyenteTipo ||'rimpe_emprendedor',
- sucursales: finData.sucursales || [
- { codigo:'001', nombre:'Casa Matriz', direccion: finData.direccionMatriz ||'Av. de los Shyris y Naciones Unidas, Quito', activa: true, bodegas: ['Bodega Central'] }
- ],
- bodegas: finData.bodegas || ['Bodega Central'],
- agenteRetencion: finData.agenteRetencion || false,
- agenteResolucion: finData.agenteResolucion ||'',
- contribuyenteEspecial: finData.contribuyenteEspecial || false,
- especialResolucion: finData.especialResolucion ||'',
- certificadoCargado: finData.certificadoCargado || false,
- certificadoNombre: finData.certificadoNombre ||'',
- certificadoClave: finData.certificadoClave ||'',
- certificadoVence: finData.certificadoVence ||'',
- certificadoBase64: finData.certificadoBase64 ||'',
- certificadoRuc: finData.certificadoRuc ||'',
- certificadoSujeto: finData.certificadoSujeto ||'',
- logoUrl: finData.logoUrl ||'',
- smtpHost: finData.smtpHost ||'',
- smtpPort: finData.smtpPort ||'',
- smtpUser: finData.smtpUser ||'',
- smtpPass: finData.smtpPass ||'',
- smtpSecure: finData.smtpSecure || false
- }));
- } else if (snap.exists() && snap.data().companyProfile) {
- const cp = snap.data().companyProfile;
- setCompanyProfile(prev => ({
- ...prev,
- ...cp,
- rucActivo: cp.rucActivo !== false,
- rucEstado: cp.rucEstado ||'ACTIVO',
- rucRegimen: cp.rucRegimen ||'RIMPE Emprendedor',
- sucursales: cp.sucursales || [
- { codigo:'001', nombre:'Casa Matriz', direccion: cp.direccionMatriz ||'Av. de los Shyris y Naciones Unidas, Quito', activa: true, bodegas: ['Bodega Central'] }
- ],
- bodegas: cp.bodegas || ['Bodega Central'],
- certificadoCargado: cp.certificadoCargado || false,
- certificadoNombre: cp.certificadoNombre ||'',
- certificadoClave: cp.certificadoClave ||'',
- certificadoVence: cp.certificadoVence ||'',
- certificadoBase64: cp.certificadoBase64 ||'',
- certificadoRuc: cp.certificadoRuc ||'',
- certificadoSujeto: cp.certificadoSujeto ||'',
- logoUrl: cp.logoUrl ||'',
- smtpHost: cp.smtpHost ||'',
- smtpPort: cp.smtpPort ||'',
- smtpUser: cp.smtpUser ||'',
- smtpPass: cp.smtpPass ||'',
- smtpSecure: cp.smtpSecure || false
- }));
- }
- 
- // Load Gemini key from localStorage, fallback to cloud
- const savedGemini = localStorage.getItem('finances_gemini_api_key') ||'';
- const finalKey = cloudGeminiKey || savedGemini;
- setGeminiKey(finalKey);
- if (finalKey) {
- localStorage.setItem('finances_gemini_api_key', finalKey);
- }
- } catch (err) {
- console.error("Error al cargar configuración general", err);
- }
- }
- loadConfig();
- }, [appId, db]);
+        const finRef = doc(db,'artifacts', appId,'public','data','finances_settings','config');
+        const finSnap = await getDoc(finRef);
+        if (finSnap.exists()) {
+          const finData = finSnap.data();
+          setCompanyProfile(prev => ({
+            ...prev,
+            razonSocial: finData.razonSocial ||'',
+            nombreComercial: finData.nombreComercial ||'',
+            ruc: finData.ruc ||'',
+            direccionMatriz: finData.direccionMatriz ||'',
+            telefono: finData.telefonoContacto || finData.telefono ||'',
+            email: finData.correoContacto || finData.email ||'',
+            web: finData.web ||'',
+            rucActivo: finData.rucActivo !== false,
+            rucEstado: finData.rucEstado ||'ACTIVO',
+            rucRegimen: finData.rucRegimen ||'RIMPE Emprendedor',
+            obligadoContabilidad: finData.obligadoContabilidad || false,
+            contribuyenteTipo: finData.contribuyenteTipo ||'rimpe_emprendedor',
+            sucursales: finData.sucursales || [
+              { codigo:'001', nombre:'Casa Matriz', direccion: finData.direccionMatriz ||'Av. de los Shyris y Naciones Unidas, Quito', activa: true, bodegas: ['Bodega Central'] }
+            ],
+            bodegas: finData.bodegas || ['Bodega Central'],
+            agenteRetencion: finData.agenteRetencion || false,
+            agenteResolucion: finData.agenteResolucion ||'',
+            contribuyenteEspecial: finData.contribuyenteEspecial || false,
+            especialResolucion: finData.especialResolucion ||'',
+            certificadoCargado: finData.certificadoCargado || false,
+            certificadoNombre: finData.certificadoNombre ||'',
+            certificadoClave: finData.certificadoClave ||'',
+            certificadoVence: finData.certificadoVence ||'',
+            certificadoBase64: finData.certificadoBase64 ||'',
+            certificadoRuc: finData.certificadoRuc ||'',
+            certificadoSujeto: finData.certificadoSujeto ||'',
+            logoUrl: finData.logoUrl ||'',
+            smtpHost: finData.smtpHost ||'',
+            smtpPort: finData.smtpPort ||'',
+            smtpUser: finData.smtpUser ||'',
+            smtpPass: finData.smtpPass ||'',
+            smtpSecure: finData.smtpSecure || false
+          }));
+        } else if (snap.exists() && snap.data().companyProfile) {
+          const cp = snap.data().companyProfile;
+          setCompanyProfile(prev => ({
+            ...prev,
+            ...cp,
+            rucActivo: cp.rucActivo !== false,
+            rucEstado: cp.rucEstado ||'ACTIVO',
+            rucRegimen: cp.rucRegimen ||'RIMPE Emprendedor',
+            sucursales: cp.sucursales || [
+              { codigo:'001', nombre:'Casa Matriz', direccion: cp.direccionMatriz ||'Av. de los Shyris y Naciones Unidas, Quito', activa: true, bodegas: ['Bodega Central'] }
+            ],
+            bodegas: cp.bodegas || ['Bodega Central'],
+            certificadoCargado: cp.certificadoCargado || false,
+            certificadoNombre: cp.certificadoNombre ||'',
+            certificadoClave: cp.certificadoClave ||'',
+            certificadoVence: cp.certificadoVence ||'',
+            certificadoBase64: cp.certificadoBase64 ||'',
+            certificadoRuc: cp.certificadoRuc ||'',
+            certificadoSujeto: cp.certificadoSujeto ||'',
+            logoUrl: cp.logoUrl ||'',
+            smtpHost: cp.smtpHost ||'',
+            smtpPort: cp.smtpPort ||'',
+            smtpUser: cp.smtpUser ||'',
+            smtpPass: cp.smtpPass ||'',
+            smtpSecure: cp.smtpSecure || false
+          }));
+        }
+      } catch (err) {
+        console.error("Error al cargar configuración general", err);
+      }
+    }
+    loadConfig();
+  }, [appId, db]);
 
   // Sync users prop with local state
   useEffect(() => {
@@ -858,60 +840,6 @@ export default function GeneralSettings({
  };
 
  // Save Gemini Key
- const handleSaveGemini = (e) => {
- e.preventDefault();
- const trimmedKey = geminiKey.trim();
- localStorage.setItem('finances_gemini_api_key', trimmedKey);
- // Also save to meta info for cloud backup
- const docRef = doc(db,'artifacts', appId,'public','data','meta','info');
- setDoc(docRef, { geminiApiKey: trimmedKey }, { merge: true })
- .then(() => {
- showToast("Clave de Gemini guardada correctamente","success");
- })
- .catch((err) => {
- console.error(err);
- showToast("Clave guardada en local (Error al respaldar en la nube)","warning");
- });
- };
-
- const handleTestGeminiKey = async () => {
- if (!geminiKey) {
- showToast("Por favor ingresa una clave de API primero","error");
- return;
- }
- setTestingKey(true);
- setTestResult(null);
- try {
- const url =`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey.trim()}`;
- const response = await fetch(url, {
- method:'POST',
- headers: {
-'Content-Type':'application/json',
- },
- body: JSON.stringify({
- contents: [{
- parts: [{ text:'Hola' }]
- }]
- })
- });
-
- if (response.ok) {
- setTestResult({ success: true, message:'¡Conexión exitosa! La clave de Gemini es válida y se comunica con el servidor de IA.' });
- showToast("Conexión con Gemini exitosa","success");
- } else {
- const data = await response.json();
- const errMsg = data.error?.message ||'Error de API desconocido';
- setTestResult({ success: false, message:`Error de API: ${errMsg}` });
- showToast("Error al validar clave de Gemini","error");
- }
- } catch (err) {
- setTestResult({ success: false, message:`Error de red: ${err.message}` });
- showToast("Error de conexión con la API","error");
- } finally {
- setTestingKey(false);
- }
- };
-
  // Save Google client ID
  const handleSaveWorkspace = async (e) => {
  e.preventDefault();
@@ -2143,11 +2071,6 @@ export default function GeneralSettings({
  </div>
  )}
 
- </div>
- );
-
- // Helper hook state for key text input
- function setFormKey(val) {
- setGeminiKey(val);
- }
+  </div>
+  );
 }

@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import {
   Shield, CheckCircle, AlertTriangle, XCircle, RefreshCw,
-  DollarSign, FileText, TrendingUp, TrendingDown, Users,
-  Landmark, Calculator, Clock, ArrowRight, Download, Printer
+  FileText, Users, Landmark, ArrowRight, Download
 } from 'lucide-react';
 import {
   validarIntegridadCompleta, corregirSaldoPendiente
