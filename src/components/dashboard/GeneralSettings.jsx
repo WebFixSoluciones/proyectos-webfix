@@ -18,8 +18,7 @@ export default function GeneralSettings({
   users = [], // eslint-disable-next-line no-unused-vars
   trash = [], handleDownloadBackup, 
  googleClientId, setGoogleClientId, 
- activeModules = {}, setActiveModules,
- primaryColor, setPrimaryColor
+ activeModules = {}, setActiveModules
 }) {
  const [activeSubTab, setActiveSubTab] = useState('profile');
  
@@ -858,23 +857,6 @@ export default function GeneralSettings({
  setCompanyProfile(prev => ({ ...prev, sucursales: updated }));
  };
 
- // Save Appearance Configuration
- const handleSaveAppearance = async (e) => {
- e.preventDefault();
- if (!primaryColor || !/^#[0-9A-Fa-f]{6}$/.test(primaryColor)) {
- showToast("Por favor ingresa un color hexadecimal válido (ej. #4F46E5)","error");
- return;
- }
- try {
- const docRef = doc(db,'artifacts', appId,'public','data','meta','info');
- await setDoc(docRef, { primaryColor }, { merge: true });
- showToast("Color primario guardado y aplicado correctamente","success");
- } catch (err) {
- console.error(err);
- showToast("Error al guardar la configuración de apariencia","error");
- }
- };
-
  // Save Gemini Key
  const handleSaveGemini = (e) => {
  e.preventDefault();
@@ -1032,7 +1014,6 @@ export default function GeneralSettings({
  const tabs = [
  { id:'profile', label:'Perfil de Empresa', icon: Building },
  { id:'einvoicing', label:'Facturación Electrónica', icon: FileText },
- { id:'appearance', label:'Apariencia y Tema', icon: Palette },
  { id:'modules', label:'Módulos ERP', icon: ToggleRight },
  { id:'workspace', label:'Google Workspace', icon: LinkIcon },
  { id:'gemini', label:'Google Gemini', icon: Sparkles },
@@ -1622,82 +1603,6 @@ export default function GeneralSettings({
  </div>
  )}
 
- {/* PESTAÑA: APARIENCIA Y TEMA */}
- {activeSubTab ==='appearance' && (
- <form onSubmit={handleSaveAppearance} className="space-y-6 animate-in fade-in duration-200">
- <div className="border-b border-white/5 pb-3">
- <h3 className="text-sm font-black uppercase tracking-wider text-primary">Apariencia y Personalización de Marca</h3>
- <p className="text-xs text-gray-500 mt-1">Configura el color de acento de tu ERP para alinearlo con la identidad visual de tu empresa. El color elegido se aplicará a botones, enlaces activos e indicadores del sistema.</p>
- </div>
-
- <div className="space-y-4">
- <div>
- <label className="label-field label-field-dark">Color Primario del Sistema (Hexadecimal)</label>
- <div className="flex items-center gap-3">
- <div className="relative w-12 h-12 rounded-card overflow-hidden border border-gray-300 dark:border-white/10 shrink-0">
- <input 
- type="color" 
- value={primaryColor ||'#4F46E5'} 
- onChange={e => setPrimaryColor(e.target.value)} 
- className="absolute inset-0 w-full h-full p-0 border-0 cursor-pointer"
- />
- </div>
- <div className="flex-1">
- <input 
- type="text" 
- value={primaryColor ||'#4F46E5'} 
- onChange={e => {
- let val = e.target.value;
- if (val && !val.startsWith('#')) val ='#' + val;
- setPrimaryColor(val);
- }} 
- maxLength={7}
- className={inputClass} 
- placeholder="#4F46E5" 
- />
- </div>
- </div>
- </div>
-
- {/* Sugerencias Rápidas */}
- <div>
- <label className="label-field label-field-dark">Colores Recomendados</label>
- <div className="flex flex-wrap gap-2">
- {[
- { name:'Azul WebFix', hex:'#4F46E5' },
- { name:'Esmeralda', hex:'#10b981' },
- { name:'Índigo', hex:'#6366f1' },
- { name:'Violeta', hex:'#8b5cf6' },
- { name:'Naranja', hex:'#f97316' },
- { name:'Rojo', hex:'#ef4444' },
- { name:'Gris Oscuro', hex:'#374151' }
- ].map(preset => (
- <button
- key={preset.hex}
- type="button"
- onClick={() => setPrimaryColor(preset.hex)}
- className="flex items-center gap-1.5 px-3 py-1.5 rounded-card border text-xs font-bold transition-all hover:scale-105"
- style={{
- borderColor: primaryColor === preset.hex ? primaryColor :'rgba(0,0,0,0.08)',
- backgroundColor: primaryColor === preset.hex ?'color-mix(in srgb,' + preset.hex +' 10%, transparent)' :'transparent',
- color: primaryColor === preset.hex ?'#000000' :'inherit'
- }}
- >
- <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: preset.hex }}></span>
- <span>{preset.name}</span>
- </button>
- ))}
- </div>
- </div>
- </div>
-
- <div className="flex justify-end pt-4 border-t border-white/5">
- <button type="submit" className="flex items-center gap-1.5 px-5 py-2.5 rounded-card text-xs font-black bg-primary hover:bg-primary-hover text-white transition-transform hover:-translate-y-0.5">
- <Save size={14} /> Guardar Apariencia
- </button>
- </div>
- </form>
- )}
 
  {/* PESTAÑA: MODULOS ERP (ACTIVACION / DESACTIVACION) */}
  {activeSubTab ==='modules' && (

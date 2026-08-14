@@ -36,7 +36,7 @@ export default function Sidebar({
  <>
  {isSidebarOpen && <div className="fixed inset-0 bg-black/40 z-40 md:hidden transition-opacity duration-200" onClick={() => setIsSidebarOpen(false)} />}
  
- <div className={`flex flex-col border-r border-border-default bg-white transition-all duration-300 z-50 absolute md:relative h-full ${isSidebarOpen ?'translate-x-0 w-[80vw] max-w-60' :'-translate-x-full md:translate-x-0 w-0 hidden md:flex md:w-16'}`}>
+ <div className={`flex flex-col border-r border-border-default bg-surface-sidebar transition-all duration-300 z-50 absolute md:relative h-full ${isSidebarOpen ?'translate-x-0 w-[80vw] max-w-60' :'-translate-x-full md:translate-x-0 w-0 hidden md:flex md:w-16'}`}>
  
  <div className={`h-14 flex items-center ${isSidebarOpen ?'justify-between px-4' :'justify-center'} border-b border-border-default shrink-0 overflow-hidden`}>
  {isSidebarOpen ? (

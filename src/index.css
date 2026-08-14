@@ -228,7 +228,7 @@ table thead tr { background-color: transparent !important; border-bottom: 1px so
 table thead th { font-size: var(--text-xs) !important; font-weight: var(--font-weight-medium) !important; color: var(--stripe-text-secondary) !important; text-transform: none !important; letter-spacing: 0 !important; }
 table tbody tr { border-bottom: 1px solid var(--stripe-border-light); }
 table tbody tr:last-child { border-bottom: none; }
-table tbody tr:hover { background-color: var(--stripe-bg) !important; }
+table tbody tr:hover { background-color: var(--surface-sidebar) !important; }
 table tbody tr:nth-child(even) { background-color: transparent !important; }
 table td .btn-icon { width: 28px !important; height: 28px !important; border-radius: var(--radius-button) !important; }
 table td .btn-icon svg { width: 14px !important; height: 14px !important; }
@@ -241,14 +241,14 @@ table td .btn-icon svg { width: 14px !important; height: 14px !important; }
 .modal-header-std-dark { border-color: var(--stripe-border); background-color: #FFFFFF; }
 :not(.dark):not([class*="dark"]) .modal-header-std-dark { border-color: var(--stripe-border); background-color: #FFFFFF; }
 .modal-body-std { flex: 1; overflow-y: auto; padding: 20px 24px; }
-.modal-footer-std { display: flex; justify-content: flex-end; padding: 16px 24px; border-top: 1px solid var(--stripe-border); background-color: #FAFBFD; flex-shrink: 0; }
-.modal-footer-std-dark { border-color: var(--stripe-border); background-color: #FAFBFD; }
-:not(.dark):not([class*="dark"]) .modal-footer-std-dark { border-color: var(--stripe-border); background-color: #FAFBFD; }
+.modal-footer-std { display: flex; justify-content: flex-end; padding: 16px 24px; border-top: 1px solid var(--stripe-border); background-color: var(--surface-sidebar); flex-shrink: 0; }
+.modal-footer-std-dark { border-color: var(--stripe-border); background-color: var(--surface-sidebar); }
+:not(.dark):not([class*="dark"]) .modal-footer-std-dark { border-color: var(--stripe-border); background-color: var(--surface-sidebar); }
 
 .surface-app { background-color: var(--stripe-bg) !important; }
 .surface-card { background-color: var(--surface-card) !important; border: 1px solid var(--border-default); }
 .surface-input { background-color: #FFFFFF !important; }
-.surface-table-row { background-color: #FAFBFD !important; }
+.surface-table-row { background-color: var(--surface-sidebar) !important; }
 .dark .surface-app, [class*="dark"] .surface-app { background-color: var(--stripe-bg) !important; }
 .dark .surface-card, [class*="dark"] .surface-card { background-color: var(--surface-card) !important; border: 1px solid var(--border-default); }
 

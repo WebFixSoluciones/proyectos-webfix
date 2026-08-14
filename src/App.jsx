@@ -505,12 +505,6 @@ export default function App() {
   // eslint-disable-next-line no-unused-vars
   const setIsDarkMode = () => {};
 
-  const [primaryColor, setPrimaryColor] = useState('#4F46E5');
-
-  useEffect(() => {
-    document.documentElement.style.setProperty('--primary', primaryColor);
-    document.documentElement.style.setProperty('--primary-color', primaryColor);
-  }, [primaryColor]);
 
   // --- CARGAR HOUDINI PAINT WORKLET (Antigravity Particles) ---
   useEffect(() => {
@@ -890,11 +884,7 @@ export default function App() {
           if (data.companyProfile !== undefined) {
             setCompanyProfile(data.companyProfile);
           }
-          if (data.primaryColor !== undefined) {
-            setPrimaryColor(data.primaryColor);
-            document.documentElement.style.setProperty('--primary', data.primaryColor);
-            document.documentElement.style.setProperty('--primary-color', data.primaryColor);
-          }
+
         }
       }, err => {
         console.error("Error subscribing to meta:", err);
@@ -2268,8 +2258,6 @@ export default function App() {
                   setGoogleClientId={setGoogleClientId} 
                   activeModules={activeModules} 
                   setActiveModules={setActiveModules} 
-                  primaryColor={primaryColor}
-                  setPrimaryColor={setPrimaryColor}
                 />
               )}
 
