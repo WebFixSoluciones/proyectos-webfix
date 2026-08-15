@@ -34,7 +34,8 @@ import {
   GripVertical,
   Calculator,
   CloudOff,
-  AlertCircle
+  AlertCircle,
+  Search
 } from 'lucide-react';
 
 import {
@@ -61,6 +62,7 @@ import { doc, setDoc, onSnapshot, collection, deleteDoc, writeBatch, getDocs, ge
 import { auth, db, storage, appId } from './firebase';
 import { useAuth } from './contexts/AuthContext';
 import ErrorBoundary from './components/common/ErrorBoundary';
+import { Badge } from './components/ui/badge';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import LandingLayout from './pages/landing/LandingLayout';
 import LandingHome from './pages/landing/LandingHome';
@@ -2129,52 +2131,80 @@ export default function App() {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col h-full overflow-hidden relative z-10 md:z-[60]">
         
-        {/* Topbar Stripe */}
-        <div className="flex items-center px-6 justify-between gap-4 shrink-0 bg-white border-b border-border-default h-14">
-          <div className="flex items-center gap-4">
+        {/* Topbar Stripe (Geist / Shadcn Header) */}
+        <div className="flex items-center px-4 sm:px-6 justify-between gap-4 shrink-0 bg-white border-b border-border-default h-14 select-none">
+          {/* Left: Sidebar Toggle + Title */}
+          <div className="flex items-center gap-3 sm:gap-4">
             <button 
               onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
-              className="flex items-center justify-center p-1.5 rounded-lg transition-colors hover:bg-surface-bg text-text-muted active:scale-95"
+              className="flex items-center justify-center p-1.5 rounded-md transition-colors hover:bg-surface-sidebar text-text-secondary hover:text-text-heading cursor-pointer active:scale-95"
+              title="Alternar Menú Lateral"
             >
               <Menu size={18} />
             </button>
-            <div className="h-4 w-px bg-surface-sidebar self-center"></div>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center p-2 rounded-lg bg-primary-light text-primary">
+            <div className="h-4 w-[1px] bg-border-default self-center hidden sm:block"></div>
+            <div className="flex items-center gap-2.5">
+              <div className="flex items-center justify-center p-1.5 rounded-md bg-black/5 text-text-heading">
                 <IconRenderer name={headerDetails.icon} size={15} />
               </div>
-              <div className="flex flex-col">
-                <h1 className="text-md font-semibold tracking-tight text-text-primary leading-none">{headerDetails.title}</h1>
-              </div>
+              <h1 className="text-sm font-semibold tracking-tight text-text-heading leading-none">{headerDetails.title}</h1>
             </div>
           </div>
-          <div className="flex items-center gap-2 flex-wrap">
+
+          {/* Center: Command Palette Trigger Search Pill */}
+          <div 
+            onClick={() => setActivePageId('ventas')}
+            className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-md border border-border-default bg-surface-sidebar hover:bg-white hover:border-text-heading text-text-muted text-xs cursor-pointer transition-all duration-120 max-w-xs w-full"
+          >
+            <Search size={13} className="text-text-muted" />
+            <span className="flex-1 text-left">Buscar comprobantes, clientes...</span>
+            <kbd className="hidden lg:inline-block px-1.5 py-0.5 text-[10px] font-mono font-medium text-text-muted bg-white border border-border-default rounded">⌘K</kbd>
+          </div>
+
+          {/* Right: Actions */}
+          <div className="flex items-center gap-2">
+            {/* SRI Connection Badge */}
+            <Badge variant="success" className="hidden lg:inline-flex items-center gap-1.5 py-1 px-2.5 normal-case font-normal text-xs">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00E4B8] opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00E4B8]"></span>
+              </span>
+              <span className="font-medium text-success-text">SRI Conectado</span>
+            </Badge>
+
             {activeModules.ventas && (
               <button 
                 onClick={() => { setVentasInitialSubTab(`pos_${Date.now()}`); setActivePageId('ventas'); }} 
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all shrink-0 border border-border-default bg-warning-light text-warning hover:bg-warning-light"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium tracking-tight transition-all duration-120 shrink-0 bg-primary text-white border border-primary hover:bg-primary-hover active:scale-[0.99] cursor-pointer"
                 title="Abrir Punto de Venta (POS)">
-                <Calculator size={14} />
-                <span className="hidden sm:inline">Punto de venta</span>
+                <Calculator size={13} />
+                <span className="hidden sm:inline">Punto de Venta</span>
               </button>
             )}
+
             <button 
               onClick={() => setIsGlobalChatOpen(!isGlobalChatOpen)} 
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all border shrink-0 ${
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium tracking-tight transition-all duration-120 border shrink-0 cursor-pointer ${
                 isGlobalChatOpen 
-                  ? 'bg-[var(--primary-color)] border-[var(--primary-color)] text-white' 
-                  : 'bg-white border-border-default text-text-secondary hover:bg-surface-bg'
+                  ? 'bg-text-heading border-text-heading text-white' 
+                  : 'bg-white border-border-default text-text-primary hover:bg-surface-sidebar'
               }`}
               title="Abrir Asistente AI">
-              <Sparkles size={14} />
-              <span className="hidden sm:inline">Asistente AI</span>
+              <Sparkles size={13} />
+              <span className="hidden sm:inline">Asistente</span>
             </button>
-            <button onClick={() => setActivePageId('general_settings')} className="p-2 rounded-md transition-colors hover:bg-surface-bg text-text-muted" title="Ajustes"><Settings size={16} /></button>
+
+            <button 
+              onClick={() => setActivePageId('general_settings')} 
+              className="p-2 rounded-md transition-colors hover:bg-surface-sidebar text-text-secondary hover:text-text-heading cursor-pointer" 
+              title="Ajustes"
+            >
+              <Settings size={15} />
+            </button>
+
             {(activePage.type === 'project' || activePage.type === 'doc') ? (
-              <button onClick={(e) => deletePage(activePageId, e)} className="p-2 rounded-md transition-colors hover:bg-error-light text-text-muted hover:text-error" title="Eliminar"><Trash2 size={16} /></button>
-            ) : (
-              <div className="w-8"></div>
-            )}
+              <button onClick={(e) => deletePage(activePageId, e)} className="p-2 rounded-md transition-colors hover:bg-error-light text-text-muted hover:text-error cursor-pointer" title="Eliminar"><Trash2 size={15} /></button>
+            ) : null}
           </div>
         </div>
 

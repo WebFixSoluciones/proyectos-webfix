@@ -5,6 +5,7 @@ import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { analizarComprobanteConGemini, parsearXMLComprobante } from '../../services/geminiService';
 import { getEcuadorDateString, getEcuadorDateTimeString } from '../../services/sriService';
 import RidePreviewModal from './RidePreviewModal';
+import { Badge } from '../ui/badge';
 
 export default function TransactionsView({ transactions, thirdParties, showToast, db, storage, appId, onOpenForm, forcedDocType, forcedType, isPreventaTab = false }) {
   const [searchTerm, setSearchTerm] = useState('');
@@ -291,21 +292,20 @@ export default function TransactionsView({ transactions, thirdParties, showToast
   };
 
   const getStatusBadge = (status, documentType) => {
-    const baseClass = "inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded font-bold uppercase tracking-wider border";
     switch(status) {
       case 'autorizado':
         if (documentType === 'nota_venta') {
-          return <span className={`${baseClass} bg-emerald-50 text-emerald-800 border-emerald-300/80`}><CheckCircle2 size={11}/> Registrado</span>;
+          return <Badge variant="success"><CheckCircle2 size={10}/> Registrado</Badge>;
         }
-        return <span className={`${baseClass} bg-emerald-50 text-emerald-800 border-emerald-300/80`}><CheckCircle2 size={11}/> Autorizado</span>;
+        return <Badge variant="success"><CheckCircle2 size={10}/> Autorizado</Badge>;
       case 'pendiente':
-        return <span className={`${baseClass} bg-amber-50 text-amber-800 border-amber-300/80`}><AlertCircle size={11}/> Pendiente</span>;
+        return <Badge variant="warning"><AlertCircle size={10}/> Pendiente</Badge>;
       case 'anulado':
-        return <span className={`${baseClass} bg-rose-50 text-rose-800 border-rose-300/80`}>Anulado</span>;
+        return <Badge variant="destructive">Anulado</Badge>;
       case 'rechazado':
-        return <span className={`${baseClass} bg-rose-50 text-rose-800 border-rose-300/80`}><AlertTriangle size={11}/> Rechazado</span>;
+        return <Badge variant="destructive"><AlertTriangle size={10}/> Rechazado</Badge>;
       default:
-        return <span className="inline-flex items-center text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-300 font-bold uppercase">{status || 'Borrador'}</span>;
+        return <Badge variant="outline">{status || 'Borrador'}</Badge>;
     }
   };
 
@@ -449,17 +449,17 @@ export default function TransactionsView({ transactions, thirdParties, showToast
 
       {/* TABS DE TIPO DE DOCUMENTO SRI */}
       {!forcedDocType && !isPreventaTab && (
-        <div className="flex p-1 gap-1 rounded-card border overflow-x-auto custom-scrollbar whitespace-nowrap bg-gray-100/70 border-gray-200">
+        <div className="inline-flex h-9 items-center justify-start rounded-md bg-surface-sidebar p-1 text-text-secondary border border-border-default gap-1 overflow-x-auto custom-scrollbar whitespace-nowrap mb-2">
           {docTypeTabs.map(tab => {
             const isActive = filterDocType === tab.id;
             return (
               <button
                 key={tab.id}
                 onClick={() => setFilterDocType(tab.id)}
-                className={`px-4 py-2 rounded-card text-xs font-bold transition-all ${
+                className={`inline-flex items-center justify-center whitespace-nowrap rounded-[4px] px-3 py-1 text-xs font-medium tracking-tight transition-all duration-120 select-none cursor-pointer ${
                   isActive 
-                    ? 'bg-white text-gray-900 border border-gray-300/40'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-white text-text-heading border border-border-default shadow-none font-semibold'
+                    : 'text-text-secondary hover:text-text-heading hover:bg-black/5'
                 }`}
               >
                 {tab.label}
