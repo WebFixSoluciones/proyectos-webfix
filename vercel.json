@@ -46,6 +46,10 @@
     {
       "source": "/api/sri-ws-prod/:path*",
       "destination": "/api/sri-ws-prod/index.js?path=:path*"
+    },
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
     }
   ]
 }
