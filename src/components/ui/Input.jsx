@@ -1,12 +1,20 @@
-export default function Input({ label, error, className = '', ...rest }) {
+import * as React from "react";
+import { cn } from "../../lib/utils";
+
+const Input = React.forwardRef(({ className, type, ...props }, ref) => {
   return (
-    <div className="flex flex-col gap-1">
-      {label && <label className="text-xs font-medium text-text-secondary">{label}</label>}
-      <input
-        className={`w-full px-3 py-2 text-base bg-white border rounded-input text-text-primary placeholder:text-text-muted transition-colors duration-150 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/25 ${error ? 'border-error' : 'border-border-default'} ${className}`}
-        {...rest}
-      />
-      {error && <span className="text-xs text-error">{error}</span>}
-    </div>
+    <input
+      type={type}
+      className={cn(
+        "flex h-9 w-full rounded-md border border-border-default bg-white px-3 py-1.5 text-xs text-text-primary shadow-none transition-colors file:border-0 file:bg-transparent file:text-xs file:font-medium placeholder:text-text-muted focus-visible:outline-none focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50",
+        className
+      )}
+      ref={ref}
+      {...props}
+    />
   );
-}
+});
+Input.displayName = "Input";
+
+export { Input };
+export default Input;
