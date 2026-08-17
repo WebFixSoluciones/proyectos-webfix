@@ -2322,6 +2322,11 @@ export default function App() {
                   allTasksGlobal={allTasksGlobal} 
                   setActivePageId={setActivePageId} 
                   setVentasInitialSubTab={setVentasInitialSubTab}
+                  transactions={globalTransactions}
+                  thirdParties={globalThirdParties}
+                  products={globalProducts}
+                  companyProfile={companyProfile}
+                  usuario={currentUser}
                   db={db} 
                   appId={appId} 
                 />
