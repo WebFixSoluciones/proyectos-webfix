@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, ArrowUpRight } from 'lucide-react';
 import { Button } from '../../components/ui/button';
@@ -8,8 +8,12 @@ export default function LandingLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const scrollContainerRef = useRef(null);
 
   useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = 0;
+    }
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   }, [location.pathname]);
 
@@ -27,7 +31,10 @@ export default function LandingLayout() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-white text-text-primary font-sans flex flex-col justify-between selection:bg-primary selection:text-white">
+    <div 
+      ref={scrollContainerRef}
+      className="fixed inset-0 w-full h-full overflow-y-auto overflow-x-hidden bg-white text-text-primary font-sans flex flex-col justify-between selection:bg-primary selection:text-white"
+    >
       
       {/* 1. TOP ANNOUNCEMENT BAR */}
       <div className="bg-surface-sidebar border-b border-border-default px-4 py-1.5 text-center text-[11px] font-medium text-text-secondary flex items-center justify-center gap-2">
