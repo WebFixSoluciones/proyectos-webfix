@@ -4,7 +4,8 @@ import {
   ArrowRight, Check, 
   ShoppingCart, FileText, TrendingUp, Package, 
   CheckCircle2, ChevronDown, Sparkles,
-  DollarSign, ShieldCheck
+  DollarSign, ShieldCheck,
+  Laptop, Smartphone, Store, Wifi, RefreshCw
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
@@ -443,6 +444,171 @@ export default function LandingHome() {
               <div className="grid grid-cols-2 px-4 py-3 items-center">
                 <div className="text-text-muted">Pérdida de datos si la computadora se daña</div>
                 <div className="text-text-heading font-medium flex items-center gap-1.5"><Check size={14} className="text-[#00E4B8]" /> Respaldo continuo en la nube con Firebase</div>
+              </div>
+            </div>
+          </div>
+
+          {/* ECOSISTEMA MULTIPLATAFORMA: PC, POS MOSTRADOR Y SMARTPHONE */}
+          <div className="mt-12 rounded-xl border border-border-default bg-white p-6 sm:p-8 text-left shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border-default pb-6 mb-8">
+              <div>
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-primary flex items-center gap-1.5 mb-1 select-none">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#00E4B8] animate-pulse"></span>
+                  Ecosistema Multiplataforma Integrado
+                </span>
+                <h3 className="text-lg sm:text-xl font-bold tracking-tight text-text-heading">
+                  Tu negocio sincronizado en PC, Móvil y Punto de Venta
+                </h3>
+              </div>
+              <div className="flex items-center gap-2 bg-surface-sidebar px-3 py-1.5 rounded-md border border-border-default text-xs text-text-secondary font-mono">
+                <Wifi size={13} className="text-[#00E4B8]" />
+                <span>Cloud Sync 100% en Vivo</span>
+              </div>
+            </div>
+
+            {/* 3 Devices Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+              
+              {/* DISPOSITIVO 1: PC / COMPUTADORA */}
+              <div className="rounded-lg border border-border-default bg-surface-sidebar/40 p-4 flex flex-col justify-between hover:border-border-strong transition-colors">
+                <div>
+                  {/* Laptop Mockup Window */}
+                  <div className="rounded-md border border-border-default bg-white overflow-hidden shadow-xs mb-4">
+                    <div className="bg-surface-sidebar border-b border-border-default px-2.5 py-1.5 flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-border-strong inline-block"></span>
+                        <span className="w-2 h-2 rounded-full bg-border-default inline-block"></span>
+                        <span className="w-2 h-2 rounded-full bg-border-default inline-block"></span>
+                      </div>
+                      <span className="text-[9px] font-mono text-text-muted">app.webfix.ec</span>
+                      <span className="w-2 h-2"></span>
+                    </div>
+                    <div className="p-3 space-y-2 text-[10px]">
+                      <div className="flex justify-between items-center pb-1 border-b border-border-default/60">
+                        <span className="font-semibold text-text-heading">ERP Dashboard</span>
+                        <Badge variant="success" className="text-[9px] py-0 px-1 font-normal">SRI Activo</Badge>
+                      </div>
+                      <div className="grid grid-cols-2 gap-1.5 font-mono">
+                        <div className="p-1.5 rounded bg-surface-sidebar border border-border-default/50">
+                          <span className="text-text-muted block text-[8px]">Ventas Mes</span>
+                          <span className="font-bold text-text-heading">$4,850.00</span>
+                        </div>
+                        <div className="p-1.5 rounded bg-surface-sidebar border border-border-default/50">
+                          <span className="text-text-muted block text-[8px]">Facturas</span>
+                          <span className="font-bold text-success-text">142 Ok</span>
+                        </div>
+                      </div>
+                      <div className="p-1.5 rounded bg-surface-sidebar text-[9px] text-text-secondary flex justify-between">
+                        <span>Último XML autorizado:</span>
+                        <span className="font-mono text-text-heading font-semibold">FAC-0084</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <div className="p-1.5 rounded bg-primary-light text-primary border border-primary-muted">
+                      <Laptop size={14} />
+                    </div>
+                    <h4 className="text-xs font-bold text-text-heading">PC & Laptops</h4>
+                  </div>
+                  <p className="text-[11px] text-text-secondary leading-relaxed">
+                    Control administrativo completo, reportes tributarios, subida de firmas .p12 y gestión de inventario multibodega.
+                  </p>
+                </div>
+              </div>
+
+              {/* DISPOSITIVO 2: PUNTO DE VENTA (POS) / TABLET */}
+              <div className="rounded-lg border border-border-default bg-surface-sidebar/40 p-4 flex flex-col justify-between hover:border-border-strong transition-colors">
+                <div>
+                  {/* Tablet / POS Mockup Window */}
+                  <div className="rounded-md border border-border-default bg-white overflow-hidden shadow-xs mb-4">
+                    <div className="bg-surface-sidebar border-b border-border-default px-2.5 py-1.5 flex items-center justify-between">
+                      <span className="text-[9px] font-semibold text-text-heading">Terminal POS 01</span>
+                      <Badge variant="outline" className="text-[9px] py-0 px-1">Caja Abierta</Badge>
+                    </div>
+                    <div className="p-3 space-y-2 text-[10px]">
+                      <div className="grid grid-cols-2 gap-1.5">
+                        <div className="p-1.5 rounded bg-surface-sidebar border border-border-default text-center">
+                          <span className="block font-semibold text-text-heading truncate">Café Espresso</span>
+                          <span className="font-mono text-text-secondary text-[9px]">$1.75</span>
+                        </div>
+                        <div className="p-1.5 rounded bg-surface-sidebar border border-border-default text-center">
+                          <span className="block font-semibold text-text-heading truncate">Combo Lunch</span>
+                          <span className="font-mono text-text-secondary text-[9px]">$6.50</span>
+                        </div>
+                      </div>
+                      <div className="p-1.5 rounded bg-surface-sidebar border border-border-default/60 flex justify-between items-center">
+                        <span className="font-semibold text-text-heading">Total Ticket:</span>
+                        <span className="font-mono font-bold text-primary">$8.25</span>
+                      </div>
+                      <div className="bg-text-heading text-white text-[9px] font-semibold py-1 rounded text-center">
+                        Cobro Rápido (F12)
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <div className="p-1.5 rounded bg-primary-light text-primary border border-primary-muted">
+                      <Store size={14} />
+                    </div>
+                    <h4 className="text-xs font-bold text-text-heading">Puntos de Venta & Tablets</h4>
+                  </div>
+                  <p className="text-[11px] text-text-secondary leading-relaxed">
+                    Atención ágil en mostrador con pantalla táctil, pistolas lectoras de barras, tickets térmicos y cobro en 5 segundos.
+                  </p>
+                </div>
+              </div>
+
+              {/* DISPOSITIVO 3: MÓVIL / SMARTPHONE */}
+              <div className="rounded-lg border border-border-default bg-surface-sidebar/40 p-4 flex flex-col justify-between hover:border-border-strong transition-colors">
+                <div>
+                  {/* Smartphone Mockup */}
+                  <div className="max-w-[160px] mx-auto rounded-xl border border-border-default bg-white overflow-hidden shadow-xs mb-4">
+                    <div className="bg-surface-sidebar border-b border-border-default px-3 py-1 flex items-center justify-between text-[8px] font-mono text-text-muted">
+                      <span>9:41</span>
+                      <div className="w-8 h-1 bg-border-strong rounded-full"></div>
+                      <span>5G</span>
+                    </div>
+                    <div className="p-2.5 space-y-1.5 text-[9px]">
+                      <div className="p-1.5 rounded bg-surface-sidebar border border-border-default text-center">
+                        <span className="text-[8px] text-text-muted block">Ventas de Hoy</span>
+                        <span className="font-mono font-bold text-success-text text-[11px]">+$1,340.00</span>
+                      </div>
+                      <div className="p-1.5 rounded bg-surface-sidebar text-[8px] text-text-secondary space-y-0.5">
+                        <div className="flex justify-between font-semibold text-text-heading">
+                          <span>FAC-0091</span>
+                          <span>$45.00</span>
+                        </div>
+                        <span className="text-success-text block font-medium">✓ Enviada al SRI</span>
+                      </div>
+                      <div className="bg-primary text-white text-[8px] font-semibold py-1 rounded text-center">
+                        + Nueva Factura
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <div className="p-1.5 rounded bg-primary-light text-primary border border-primary-muted">
+                      <Smartphone size={14} />
+                    </div>
+                    <h4 className="text-xs font-bold text-text-heading">Smartphones & Celulares</h4>
+                  </div>
+                  <p className="text-[11px] text-text-secondary leading-relaxed">
+                    Supervisa tu negocio desde cualquier lugar: emite comprobantes en ruta, consulta existencias y revisa tu dinero en tiempo real.
+                  </p>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Bottom Sync Banner */}
+            <div className="mt-6 pt-5 border-t border-border-default flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-text-secondary">
+              <div className="flex items-center gap-2">
+                <RefreshCw size={13} className="text-primary" />
+                <span className="font-medium text-text-primary">
+                  Sincronización bidireccional automática:
+                </span>
+                <span>Una venta en el POS descuenta el inventario en la PC y actualiza el saldo en tu celular al segundo.</span>
               </div>
             </div>
           </div>
