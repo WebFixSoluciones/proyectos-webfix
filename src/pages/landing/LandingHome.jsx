@@ -48,6 +48,10 @@ export default function LandingHome() {
       
       {/* 1. HERO SECTION (Minimalist Startup Aesthetic) */}
       <section className="relative pt-16 pb-20 md:pt-24 md:pb-28 overflow-hidden border-b border-border-default">
+        {/* Ambient Glow Lights */}
+        <div className="absolute -top-24 left-1/4 w-[450px] h-[450px] bg-primary/8 rounded-full blur-[120px] pointer-events-none animate-glow-pulse"></div>
+        <div className="absolute top-48 right-1/4 w-[350px] h-[350px] bg-[#00E4B8]/8 rounded-full blur-[100px] pointer-events-none animate-glow-pulse" style={{ animationDelay: '3s' }}></div>
+
         {/* Subtle background hairline grid */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#EAEAEA_1px,transparent_1px),linear-gradient(to_bottom,#EAEAEA_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-60 pointer-events-none"></div>
 
@@ -312,8 +316,11 @@ export default function LandingHome() {
       </section>
 
       {/* 3. BENTO GRID FEATURES ("Infraestructura de Grado Empresarial") */}
-      <section className="py-20 border-b border-border-default bg-white">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+      <section className="relative py-24 border-b border-border-default bg-white overflow-hidden">
+        {/* Ambient Subtle Dot Matrix */}
+        <div className="absolute inset-0 bg-[radial-gradient(#E5E5E5_1px,transparent_1px)] [background-size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-70 pointer-events-none"></div>
+
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10">
           
           <div className="text-center max-w-2xl mx-auto mb-14 space-y-2">
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-text-heading">
@@ -324,13 +331,14 @@ export default function LandingHome() {
             </p>
           </div>
 
-          {/* Bento Grid */}
+          {/* Bento Grid with Floating Micro-Interactions */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
             
             {/* Card 1: Facturación SRI */}
-            <Card className="hover:border-border-strong transition-colors">
+            <Card className="group hover:-translate-y-1 hover:border-border-strong hover:shadow-md transition-all duration-300 relative overflow-hidden bg-white">
+              <div className="absolute top-0 left-0 right-0 h-[2px] bg-transparent group-hover:bg-primary transition-colors duration-300"></div>
               <CardHeader className="pb-2">
-                <div className="p-2 rounded-md bg-black/5 text-text-heading w-fit mb-2">
+                <div className="p-2 rounded-md bg-black/5 text-text-heading w-fit mb-2 group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all duration-200">
                   <FileText size={18} />
                 </div>
                 <CardTitle className="text-sm font-semibold text-text-heading">Facturación SRI en 1 Clic</CardTitle>
@@ -341,9 +349,10 @@ export default function LandingHome() {
             </Card>
 
             {/* Card 2: POS */}
-            <Card className="hover:border-border-strong transition-colors">
+            <Card className="group hover:-translate-y-1 hover:border-border-strong hover:shadow-md transition-all duration-300 relative overflow-hidden bg-white">
+              <div className="absolute top-0 left-0 right-0 h-[2px] bg-transparent group-hover:bg-primary transition-colors duration-300"></div>
               <CardHeader className="pb-2">
-                <div className="p-2 rounded-md bg-black/5 text-text-heading w-fit mb-2">
+                <div className="p-2 rounded-md bg-black/5 text-text-heading w-fit mb-2 group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all duration-200">
                   <ShoppingCart size={18} />
                 </div>
                 <CardTitle className="text-sm font-semibold text-text-heading">Punto de Venta (POS)</CardTitle>
@@ -354,9 +363,10 @@ export default function LandingHome() {
             </Card>
 
             {/* Card 3: Control Financiero */}
-            <Card className="hover:border-border-strong transition-colors">
+            <Card className="group hover:-translate-y-1 hover:border-border-strong hover:shadow-md transition-all duration-300 relative overflow-hidden bg-white">
+              <div className="absolute top-0 left-0 right-0 h-[2px] bg-transparent group-hover:bg-primary transition-colors duration-300"></div>
               <CardHeader className="pb-2">
-                <div className="p-2 rounded-md bg-black/5 text-text-heading w-fit mb-2">
+                <div className="p-2 rounded-md bg-black/5 text-text-heading w-fit mb-2 group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all duration-200">
                   <TrendingUp size={18} />
                 </div>
                 <CardTitle className="text-sm font-semibold text-text-heading">Control Financiero & Flujo</CardTitle>
@@ -367,9 +377,10 @@ export default function LandingHome() {
             </Card>
 
             {/* Card 4: OCR IA */}
-            <Card className="hover:border-border-strong transition-colors">
+            <Card className="group hover:-translate-y-1 hover:border-border-strong hover:shadow-md transition-all duration-300 relative overflow-hidden bg-white">
+              <div className="absolute top-0 left-0 right-0 h-[2px] bg-transparent group-hover:bg-primary transition-colors duration-300"></div>
               <CardHeader className="pb-2">
-                <div className="p-2 rounded-md bg-black/5 text-text-heading w-fit mb-2">
+                <div className="p-2 rounded-md bg-black/5 text-text-heading w-fit mb-2 group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all duration-200">
                   <Sparkles size={18} />
                 </div>
                 <CardTitle className="text-sm font-semibold text-text-heading">Captura Inteligente OCR</CardTitle>
@@ -380,9 +391,10 @@ export default function LandingHome() {
             </Card>
 
             {/* Card 5: Inventario */}
-            <Card className="hover:border-border-strong transition-colors">
+            <Card className="group hover:-translate-y-1 hover:border-border-strong hover:shadow-md transition-all duration-300 relative overflow-hidden bg-white">
+              <div className="absolute top-0 left-0 right-0 h-[2px] bg-transparent group-hover:bg-primary transition-colors duration-300"></div>
               <CardHeader className="pb-2">
-                <div className="p-2 rounded-md bg-black/5 text-text-heading w-fit mb-2">
+                <div className="p-2 rounded-md bg-black/5 text-text-heading w-fit mb-2 group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all duration-200">
                   <Package size={18} />
                 </div>
                 <CardTitle className="text-sm font-semibold text-text-heading">Kardex & Stock en Tiempo Real</CardTitle>
@@ -393,9 +405,10 @@ export default function LandingHome() {
             </Card>
 
             {/* Card 6: Seguridad Cloud */}
-            <Card className="hover:border-border-strong transition-colors">
+            <Card className="group hover:-translate-y-1 hover:border-border-strong hover:shadow-md transition-all duration-300 relative overflow-hidden bg-white">
+              <div className="absolute top-0 left-0 right-0 h-[2px] bg-transparent group-hover:bg-primary transition-colors duration-300"></div>
               <CardHeader className="pb-2">
-                <div className="p-2 rounded-md bg-black/5 text-text-heading w-fit mb-2">
+                <div className="p-2 rounded-md bg-black/5 text-text-heading w-fit mb-2 group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all duration-200">
                   <ShieldCheck size={18} />
                 </div>
                 <CardTitle className="text-sm font-semibold text-text-heading">Seguridad & Nube 24/7</CardTitle>
@@ -410,9 +423,16 @@ export default function LandingHome() {
         </div>
       </section>
 
-      {/* 4. COMPARATIVA MINIMALISTA (Sistemas Tradicionales vs WebFix) */}
-      <section className="py-20 border-b border-border-default bg-surface-sidebar/40">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6">
+      {/* 4. COMPARATIVA MINIMALISTA & ECOSISTEMA MULTIPLATAFORMA (PC, POS, MÓVIL) */}
+      <section className="relative py-24 border-b border-border-default overflow-hidden bg-gradient-to-b from-white via-surface-sidebar/60 to-white">
+        {/* Ambient Glow Lights behind section */}
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] bg-primary/6 rounded-full blur-[120px] pointer-events-none animate-glow-pulse"></div>
+        <div className="absolute bottom-10 right-10 w-[350px] h-[350px] bg-[#00E4B8]/6 rounded-full blur-[100px] pointer-events-none animate-glow-pulse" style={{ animationDelay: '2.5s' }}></div>
+        
+        {/* Subtle grid pattern */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#EAEAEA_1px,transparent_1px),linear-gradient(to_bottom,#EAEAEA_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_70%_60%_at_50%_50%,#000_70%,transparent_100%)] opacity-40 pointer-events-none"></div>
+
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 relative z-10">
           
           <div className="text-center mb-12 space-y-2">
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-text-heading">
@@ -423,37 +443,46 @@ export default function LandingHome() {
             </p>
           </div>
 
-          <div className="rounded-lg border border-border-default bg-white overflow-hidden text-xs">
+          <div className="rounded-lg border border-border-default bg-white overflow-hidden text-xs shadow-xs">
             <div className="grid grid-cols-2 bg-surface-sidebar px-4 py-3 font-semibold text-text-heading border-b border-border-default">
               <div>Sistemas Tradicionales / Antiguos</div>
               <div className="text-primary font-bold">WebFix ERP Cloud</div>
             </div>
             <div className="divide-y divide-border-default text-text-secondary">
-              <div className="grid grid-cols-2 px-4 py-3 items-center">
+              <div className="grid grid-cols-2 px-4 py-3 items-center hover:bg-surface-sidebar/30 transition-colors">
                 <div className="text-text-muted">Instalaciones lentas en una sola PC física</div>
                 <div className="text-text-heading font-medium flex items-center gap-1.5"><Check size={14} className="text-[#00E4B8]" /> 100% Cloud desde cualquier navegador</div>
               </div>
-              <div className="grid grid-cols-2 px-4 py-3 items-center">
+              <div className="grid grid-cols-2 px-4 py-3 items-center hover:bg-surface-sidebar/30 transition-colors">
                 <div className="text-text-muted">Cobro por cantidad de facturas emitidas</div>
                 <div className="text-text-heading font-medium flex items-center gap-1.5"><Check size={14} className="text-[#00E4B8]" /> Facturación SRI Ilimitada en todos los planes</div>
               </div>
-              <div className="grid grid-cols-2 px-4 py-3 items-center">
+              <div className="grid grid-cols-2 px-4 py-3 items-center hover:bg-surface-sidebar/30 transition-colors">
                 <div className="text-text-muted">Interfaces complejas y lentas con ventanas viejas</div>
                 <div className="text-text-heading font-medium flex items-center gap-1.5"><Check size={14} className="text-[#00E4B8]" /> Diseño limpio Vercel/Geist con atajos de teclado</div>
               </div>
-              <div className="grid grid-cols-2 px-4 py-3 items-center">
+              <div className="grid grid-cols-2 px-4 py-3 items-center hover:bg-surface-sidebar/30 transition-colors">
                 <div className="text-text-muted">Pérdida de datos si la computadora se daña</div>
                 <div className="text-text-heading font-medium flex items-center gap-1.5"><Check size={14} className="text-[#00E4B8]" /> Respaldo continuo en la nube con Firebase</div>
               </div>
             </div>
           </div>
 
-          {/* ECOSISTEMA MULTIPLATAFORMA: PC, POS MOSTRADOR Y SMARTPHONE */}
-          <div className="mt-12 rounded-xl border border-border-default bg-white p-6 sm:p-8 text-left shadow-sm">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border-default pb-6 mb-8">
+          {/* ECOSISTEMA MULTIPLATAFORMA FLOTANTE: PC, POS MOSTRADOR Y SMARTPHONE */}
+          <div className="mt-14 rounded-xl border border-border-default bg-white/90 backdrop-blur-sm p-6 sm:p-8 text-left shadow-sm relative overflow-hidden">
+            
+            {/* Animated Laser Beam on top */}
+            <div className="absolute top-0 left-0 right-0 h-[2px] bg-border-default overflow-hidden">
+              <div className="h-full w-1/3 bg-gradient-to-r from-transparent via-primary to-transparent animate-beam-slide"></div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border-default pb-6 mb-8 pt-1">
               <div>
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-primary flex items-center gap-1.5 mb-1 select-none">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#00E4B8] animate-pulse"></span>
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00E4B8] opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00E4B8]"></span>
+                  </span>
                   Ecosistema Multiplataforma Integrado
                 </span>
                 <h3 className="text-lg sm:text-xl font-bold tracking-tight text-text-heading">
@@ -466,14 +495,14 @@ export default function LandingHome() {
               </div>
             </div>
 
-            {/* 3 Devices Grid */}
+            {/* 3 Devices Floating Fleet */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
               
-              {/* DISPOSITIVO 1: PC / COMPUTADORA */}
-              <div className="rounded-lg border border-border-default bg-surface-sidebar/40 p-4 flex flex-col justify-between hover:border-border-strong transition-colors">
+              {/* DISPOSITIVO 1: PC / COMPUTADORA (Flota Suave a 6s) */}
+              <div className="rounded-lg border border-border-default bg-surface-sidebar/40 p-4 flex flex-col justify-between hover:border-border-strong hover:bg-white transition-all duration-300 group">
                 <div>
-                  {/* Laptop Mockup Window */}
-                  <div className="rounded-md border border-border-default bg-white overflow-hidden shadow-xs mb-4">
+                  {/* Laptop Mockup Window with Float Animation */}
+                  <div className="animate-float-slow rounded-md border border-border-default bg-white overflow-hidden shadow-xs mb-4 group-hover:shadow-md transition-shadow">
                     <div className="bg-surface-sidebar border-b border-border-default px-2.5 py-1.5 flex items-center justify-between">
                       <div className="flex items-center gap-1.5">
                         <span className="w-2 h-2 rounded-full bg-border-strong inline-block"></span>
@@ -486,7 +515,10 @@ export default function LandingHome() {
                     <div className="p-3 space-y-2 text-[10px]">
                       <div className="flex justify-between items-center pb-1 border-b border-border-default/60">
                         <span className="font-semibold text-text-heading">ERP Dashboard</span>
-                        <Badge variant="success" className="text-[9px] py-0 px-1 font-normal">SRI Activo</Badge>
+                        <Badge variant="success" className="text-[9px] py-0 px-1 font-normal flex items-center gap-1">
+                          <span className="h-1.5 w-1.5 rounded-full bg-[#00E4B8] animate-pulse"></span>
+                          SRI Activo
+                        </Badge>
                       </div>
                       <div className="grid grid-cols-2 gap-1.5 font-mono">
                         <div className="p-1.5 rounded bg-surface-sidebar border border-border-default/50">
@@ -498,15 +530,15 @@ export default function LandingHome() {
                           <span className="font-bold text-success-text">142 Ok</span>
                         </div>
                       </div>
-                      <div className="p-1.5 rounded bg-surface-sidebar text-[9px] text-text-secondary flex justify-between">
-                        <span>Último XML autorizado:</span>
+                      <div className="p-1.5 rounded bg-surface-sidebar text-[9px] text-text-secondary flex justify-between items-center">
+                        <span>Último comprobante:</span>
                         <span className="font-mono text-text-heading font-semibold">FAC-0084</span>
                       </div>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2 mb-1.5">
-                    <div className="p-1.5 rounded bg-primary-light text-primary border border-primary-muted">
+                    <div className="p-1.5 rounded bg-primary-light text-primary border border-primary-muted group-hover:bg-primary group-hover:text-white transition-colors">
                       <Laptop size={14} />
                     </div>
                     <h4 className="text-xs font-bold text-text-heading">PC & Laptops</h4>
@@ -517,14 +549,14 @@ export default function LandingHome() {
                 </div>
               </div>
 
-              {/* DISPOSITIVO 2: PUNTO DE VENTA (POS) / TABLET */}
-              <div className="rounded-lg border border-border-default bg-surface-sidebar/40 p-4 flex flex-col justify-between hover:border-border-strong transition-colors">
+              {/* DISPOSITIVO 2: PUNTO DE VENTA (POS) / TABLET (Flota Asíncrona a 4.5s) */}
+              <div className="rounded-lg border border-border-default bg-surface-sidebar/40 p-4 flex flex-col justify-between hover:border-border-strong hover:bg-white transition-all duration-300 group">
                 <div>
-                  {/* Tablet / POS Mockup Window */}
-                  <div className="rounded-md border border-border-default bg-white overflow-hidden shadow-xs mb-4">
+                  {/* Tablet / POS Mockup Window with Float Animation */}
+                  <div className="animate-float-medium rounded-md border border-border-default bg-white overflow-hidden shadow-xs mb-4 group-hover:shadow-md transition-shadow">
                     <div className="bg-surface-sidebar border-b border-border-default px-2.5 py-1.5 flex items-center justify-between">
                       <span className="text-[9px] font-semibold text-text-heading">Terminal POS 01</span>
-                      <Badge variant="outline" className="text-[9px] py-0 px-1">Caja Abierta</Badge>
+                      <Badge variant="outline" className="text-[9px] py-0 px-1 font-mono">Caja Abierta</Badge>
                     </div>
                     <div className="p-3 space-y-2 text-[10px]">
                       <div className="grid grid-cols-2 gap-1.5">
@@ -541,14 +573,14 @@ export default function LandingHome() {
                         <span className="font-semibold text-text-heading">Total Ticket:</span>
                         <span className="font-mono font-bold text-primary">$8.25</span>
                       </div>
-                      <div className="bg-text-heading text-white text-[9px] font-semibold py-1 rounded text-center">
-                        Cobro Rápido (F12)
+                      <div className="bg-text-heading hover:bg-primary text-white text-[9px] font-semibold py-1 rounded text-center transition-colors cursor-pointer shadow-xs">
+                        Cobro Rápido (F12) ↵
                       </div>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2 mb-1.5">
-                    <div className="p-1.5 rounded bg-primary-light text-primary border border-primary-muted">
+                    <div className="p-1.5 rounded bg-primary-light text-primary border border-primary-muted group-hover:bg-primary group-hover:text-white transition-colors">
                       <Store size={14} />
                     </div>
                     <h4 className="text-xs font-bold text-text-heading">Puntos de Venta & Tablets</h4>
@@ -559,15 +591,15 @@ export default function LandingHome() {
                 </div>
               </div>
 
-              {/* DISPOSITIVO 3: MÓVIL / SMARTPHONE */}
-              <div className="rounded-lg border border-border-default bg-surface-sidebar/40 p-4 flex flex-col justify-between hover:border-border-strong transition-colors">
+              {/* DISPOSITIVO 3: MÓVIL / SMARTPHONE (Flota Asíncrona a 3.8s) */}
+              <div className="rounded-lg border border-border-default bg-surface-sidebar/40 p-4 flex flex-col justify-between hover:border-border-strong hover:bg-white transition-all duration-300 group">
                 <div>
-                  {/* Smartphone Mockup */}
-                  <div className="max-w-[160px] mx-auto rounded-xl border border-border-default bg-white overflow-hidden shadow-xs mb-4">
+                  {/* Smartphone Mockup with Float Animation */}
+                  <div className="animate-float-fast max-w-[160px] mx-auto rounded-xl border border-border-default bg-white overflow-hidden shadow-xs mb-4 group-hover:shadow-md transition-shadow">
                     <div className="bg-surface-sidebar border-b border-border-default px-3 py-1 flex items-center justify-between text-[8px] font-mono text-text-muted">
                       <span>9:41</span>
                       <div className="w-8 h-1 bg-border-strong rounded-full"></div>
-                      <span>5G</span>
+                      <span className="text-success-text font-bold">5G</span>
                     </div>
                     <div className="p-2.5 space-y-1.5 text-[9px]">
                       <div className="p-1.5 rounded bg-surface-sidebar border border-border-default text-center">
@@ -579,7 +611,10 @@ export default function LandingHome() {
                           <span>FAC-0091</span>
                           <span>$45.00</span>
                         </div>
-                        <span className="text-success-text block font-medium">✓ Enviada al SRI</span>
+                        <span className="text-success-text block font-medium flex items-center gap-1">
+                          <span className="h-1 w-1 rounded-full bg-[#00E4B8] inline-block animate-ping"></span>
+                          Enviada al SRI
+                        </span>
                       </div>
                       <div className="bg-primary text-white text-[8px] font-semibold py-1 rounded text-center">
                         + Nueva Factura
@@ -588,7 +623,7 @@ export default function LandingHome() {
                   </div>
 
                   <div className="flex items-center gap-2 mb-1.5">
-                    <div className="p-1.5 rounded bg-primary-light text-primary border border-primary-muted">
+                    <div className="p-1.5 rounded bg-primary-light text-primary border border-primary-muted group-hover:bg-primary group-hover:text-white transition-colors">
                       <Smartphone size={14} />
                     </div>
                     <h4 className="text-xs font-bold text-text-heading">Smartphones & Celulares</h4>
@@ -601,10 +636,10 @@ export default function LandingHome() {
 
             </div>
 
-            {/* Bottom Sync Banner */}
+            {/* Bottom Sync Banner with Continuous Flow */}
             <div className="mt-6 pt-5 border-t border-border-default flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-text-secondary">
               <div className="flex items-center gap-2">
-                <RefreshCw size={13} className="text-primary" />
+                <RefreshCw size={13} className="text-primary animate-spin-slow shrink-0" />
                 <span className="font-medium text-text-primary">
                   Sincronización bidireccional automática:
                 </span>
@@ -791,31 +826,45 @@ export default function LandingHome() {
         </div>
       </section>
 
-      {/* 7. FINAL CALL TO ACTION (Minimalist High-Contrast Banner) */}
-      <section className="py-20 bg-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
-          <div className="rounded-lg border border-border-default bg-surface-sidebar p-8 sm:p-12 space-y-5">
+      {/* 7. FINAL CALL TO ACTION (Minimalist High-Contrast Banner with Ambient Glow) */}
+      <section className="relative py-24 bg-white overflow-hidden">
+        {/* Ambient Glow Lights */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[350px] bg-primary/8 rounded-full blur-[100px] pointer-events-none animate-glow-pulse"></div>
+
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center relative z-10">
+          <div className="rounded-2xl border border-border-default bg-gradient-to-b from-surface-sidebar via-white to-surface-sidebar p-8 sm:p-14 space-y-5 shadow-sm relative overflow-hidden">
+            
+            {/* Top decorative laser line */}
+            <div className="absolute top-0 left-0 right-0 h-[2px] bg-border-default overflow-hidden">
+              <div className="h-full w-1/3 bg-gradient-to-r from-transparent via-[#00E4B8] to-transparent animate-beam-slide" style={{ animationDuration: '4s' }}></div>
+            </div>
+
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border-default bg-white text-text-secondary text-xs font-medium tracking-tight shadow-xs select-none">
+              <span className="flex h-1.5 w-1.5 rounded-full bg-[#00E4B8] animate-pulse"></span>
+              <span>14 Días Gratis • Sin Tarjeta</span>
+            </div>
+
             <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-text-heading">
               Comienza a facturar y controlar tu negocio hoy.
             </h2>
             <p className="text-xs sm:text-sm text-text-secondary max-w-lg mx-auto leading-relaxed">
               Únete a cientos de emprendedores ecuatorianos que ya modernizaron su gestión tributaria y comercial con WebFix.
             </p>
-            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <div className="pt-3 flex flex-col sm:flex-row items-center justify-center gap-3">
               <Button 
                 size="lg" 
                 variant="default"
                 onClick={() => navigate('/register')}
-                className="w-full sm:w-auto text-xs px-6 h-10 gap-2 shadow-sm"
+                className="w-full sm:w-auto text-xs px-6 h-10 gap-2 shadow-sm group hover:scale-[1.02] transition-all"
               >
                 <span>Crear Cuenta Gratis</span>
-                <ArrowRight size={13} />
+                <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
               </Button>
               <Button 
                 size="lg" 
                 variant="secondary"
                 onClick={() => navigate('/contacto')}
-                className="w-full sm:w-auto text-xs px-5 h-10"
+                className="w-full sm:w-auto text-xs px-5 h-10 hover:bg-surface-sidebar transition-colors"
               >
                 Hablar con un Asesor
               </Button>
