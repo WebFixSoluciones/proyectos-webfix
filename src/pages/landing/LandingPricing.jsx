@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, ChevronDown, ChevronUp } from 'lucide-react';
+import { Check, ChevronDown } from 'lucide-react';
+import { Card } from '../../components/ui/card';
+import { Badge } from '../../components/ui/badge';
+import { Button } from '../../components/ui/button';
 
 export default function LandingPricing() {
   const navigate = useNavigate();
@@ -14,47 +17,50 @@ export default function LandingPricing() {
   const plans = [
     {
       id: 'starter',
-      name: 'Starter',
-      price: billingPeriod === 'monthly' ? 29 : Math.round(29 * 0.8),
+      name: 'Emprendedor',
+      desc: 'Para profesionales y pequeños negocios que inician en el SRI.',
+      price: billingPeriod === 'monthly' ? 15 : 12,
       features: [
-        "Facturación Electrónica ILIMITADA",
-        "Dashboard de Ventas e Ingresos",
-        "Gestión de Clientes y Proveedores",
-        "Cuentas por Cobrar y Pagar",
-        "Hasta 3 Usuarios",
-        "Configuración SRI y Firma Electrónica"
+        "Facturación Electrónica SRI ILIMITADA",
+        "Punto de Venta (POS) Comercial",
+        "Directorio de Clientes y Proveedores",
+        "Firma electrónica .p12 automática",
+        "1 Usuario Administrador",
+        "Soporte por Correo y WhatsApp"
       ],
       cta: "Comenzar Prueba Gratis",
       recommended: false
     },
     {
       id: 'professional',
-      name: 'Profesional',
-      price: billingPeriod === 'monthly' ? 79 : Math.round(79 * 0.8),
+      name: 'Negocio Pro',
+      desc: 'Para comercios y empresas que manejan inventario y ventas.',
+      price: billingPeriod === 'monthly' ? 29 : 23,
       features: [
-        "Todo lo de Starter",
-        "Módulo de Inventario (Kárdex)",
-        "Control de Bodegas y Productos",
-        "Equipos de Trabajo y Permisos",
-        "Calendario y Tareas Colaborativas",
-        "Hasta 10 Usuarios"
+        "Todo lo del Plan Emprendedor",
+        "Inventario & Kardex Multibodega",
+        "Control de Cuentas por Cobrar (CxC)",
+        "Control de Gastos y Compras",
+        "Cruce automático de IVA para el SRI",
+        "Hasta 5 Usuarios y Cajeros"
       ],
-      cta: "Comenzar Prueba Gratis",
+      cta: "Comenzar con Pro",
       recommended: true
     },
     {
       id: 'enterprise',
-      name: 'Enterprise',
-      price: billingPeriod === 'monthly' ? 149 : Math.round(149 * 0.8),
+      name: 'Empresarial',
+      desc: 'Para empresas consolidadas que requieren gestión financiera total.',
+      price: billingPeriod === 'monthly' ? 59 : 47,
       features: [
-        "Todo lo de Profesional",
-        "Contabilidad Completa Avanzada",
-        "Balances y Libro Diario Automático",
-        "Gestión de Compras y Gastos SRI",
-        "Chatbot Asistente con IA (Gemini)",
-        "Usuarios ILIMITADOS"
+        "Todo lo del Plan Negocio Pro",
+        "Captura Inteligente de Compras con IA (OCR)",
+        "Módulo de Contabilidad y Plan de Cuentas",
+        "Préstamos Bancarios y Conciliación",
+        "Asientos Contables y Reportes ATS",
+        "Usuarios y Cajeros ILIMITADOS"
       ],
-      cta: "Hablar con Asesor",
+      cta: "Probar Empresarial",
       recommended: false
     }
   ];
@@ -62,171 +68,171 @@ export default function LandingPricing() {
   const faqs = [
     {
       q: "¿Cómo funciona la facturación electrónica ilimitada?",
-      a: "A diferencia de otras plataformas, no cobramos por el número de comprobantes emitidos (facturas, notas de crédito, guías, etc.). Puedes emitir comprobantes de forma ilimitada en cualquiera de los planes. La diferencia de precio radica únicamente en el acceso a módulos de control administrativo (Inventario, Contabilidad, etc.)."
+      a: "A diferencia de otras plataformas tradicionales, no cobramos por el número de comprobantes emitidos. Puedes emitir facturas, notas de crédito y retenciones de forma ilimitada en cualquiera de los planes sin costo adicional."
     },
     {
       q: "¿Es obligatoria la firma electrónica?",
-      a: "Sí, para facturar electrónicamente de forma oficial en Ecuador necesitas tu certificado de firma electrónica en archivo formato `.p12`. El sistema te permite subir tu firma y digitar tu contraseña de manera segura en la configuración corporativa para firmar digitalmente cada documento."
+      a: "Sí, para facturar electrónicamente de forma oficial en Ecuador necesitas tu certificado de firma electrónica en archivo formato .p12. El sistema te permite subir tu firma de forma segura para firmar digitalmente cada documento."
     },
     {
       q: "¿Puedo cambiar de plan o cancelar en cualquier momento?",
-      a: "Por supuesto. Puedes subir o bajar de categoría de plan (Upgrade/Downgrade) en cualquier momento. Si pagas anualmente, obtienes un 20% de descuento sobre la tarifa regular mensual."
+      a: "Sí. Puedes actualizar tu plan, cambiar de ciclo de facturación o cancelar el servicio en cualquier momento desde tu panel de ajustes sin penalidades ni plazos forzosos."
     },
     {
-      q: "¿Qué métodos de pago aceptan?",
-      a: "Aceptamos pagos directos mediante tarjetas de crédito o débito a través de la pasarela segura PayPhone, o mediante reporte de Transferencia Bancaria el cual es verificado manualmente por nuestro equipo en menos de 2 horas."
+      q: "¿Mis datos están seguros si mi computador se daña?",
+      a: "Totalmente. Al ser un sistema 100% en la nube con tecnología Firebase, toda tu información contable, clientes y facturas están respaldadas en tiempo real y accesibles desde cualquier navegador."
     }
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-12 lg:py-20">
+    <div className="w-full bg-white text-text-primary">
       
-      <div className="text-center mb-12">
-        <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-4 text-black">Planes diseñados para cada etapa de tu negocio</h1>
-        <p className="text-sm text-gray-650 max-w-md mx-auto mb-8 font-medium">Todos nuestros planes incluyen facturación del SRI ilimitada. La diferencia radica en la potencia y alcance de tus herramientas.</p>
-        
-        {/* Toggle Billing Period */}
-        <div className="inline-flex items-center gap-1.5 p-1 rounded-card bg-white border border-border-default select-none">
-          <button 
-            onClick={() => setBillingPeriod('monthly')}
-            className={`px-4 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer border-none ${billingPeriod === 'monthly' ? 'bg-primary text-white' : 'text-gray-500 hover:text-gray-700 bg-transparent'}`}
-          >
-            Mensual
-          </button>
-          <button 
-            onClick={() => setBillingPeriod('yearly')}
-            className={`px-4 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer border-none ${billingPeriod === 'yearly' ? 'bg-primary text-white' : 'text-gray-500 hover:text-gray-700 bg-transparent'}`}
-          >
-            Anual <span className="px-1.5 py-0.5 rounded bg-emerald-500 text-white text-xs font-black tracking-widest">-20%</span>
-          </button>
-        </div>
-      </div>
+      {/* 1. Header & Billing Toggle */}
+      <section className="pt-16 pb-12 border-b border-border-default bg-surface-sidebar/30 text-center">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 space-y-4">
+          <Badge variant="outline" className="text-xs py-0.5 px-2.5">
+            Precios Transparentes
+          </Badge>
+          <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-text-heading">
+            Planes claros para cada etapa de tu negocio.
+          </h1>
+          <p className="text-xs sm:text-sm text-text-secondary max-w-xl mx-auto leading-relaxed">
+            Sin límites en la cantidad de comprobantes SRI. Prueba cualquier plan durante 14 días sin compromiso.
+          </p>
 
-      {/* Pricing Cards Grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch max-w-5xl mx-auto mb-20">
-        {plans.map((plan, idx) => (
-          <div key={idx} className={`p-8 rounded-card border flex flex-col justify-between bg-white transition-all duration-300 relative ${
-            plan.recommended 
-              ? 'border-primary' 
-              : 'border-border-default'
-          }`}>
-            {plan.recommended && (
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 px-4 py-1.5 rounded-full text-xs font-black tracking-wider uppercase bg-primary text-white">
-                MÁS RECOMENDADO
-              </div>
-            )}
-            
-            <div>
-              <h3 className="text-lg font-bold mb-1.5 text-black">{plan.name}</h3>
-              <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-3xl font-black text-black">$</span>
-                <span className="text-5xl font-black text-black">{plan.price}</span>
-                <span className="text-xs font-semibold text-gray-500">/ mes</span>
-              </div>
-              
-              <hr className="border-t border-slate-100 mb-6" />
-              
-              <ul className="space-y-3.5 mb-8 text-xs font-semibold text-gray-700 text-left">
-                {plan.features.map((feat, fIdx) => (
-                  <li key={fIdx} className="flex items-start gap-2.5">
-                    <Check size={12} className="text-primary stroke-[3.5] shrink-0 mt-0.5" />
-                    <span>{feat}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <button 
-              onClick={() => navigate(`/register?plan=${plan.id}&period=${billingPeriod}`)}
-              className={`w-full py-4 text-xs font-bold tracking-wider uppercase rounded-card transition-all cursor-pointer border-none ${
-                plan.recommended 
-                  ? 'bg-primary hover:bg-surface-card text-white' 
-                  : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-              }`}
-            >
-              {plan.cta}
-            </button>
-          </div>
-        ))}
-      </div>
-
-      {/* DETAILED COMPARATIVE TABLE */}
-      <div className="max-w-4xl mx-auto mb-20 text-left">
-        <h2 className="text-xl font-black mb-6 text-center">Tabla Comparativa de Módulos</h2>
-        <div className="border border-border-default rounded-card bg-white overflow-hidden text-xs font-medium">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="bg-slate-550/5 border-b border-border-default text-gray-650 font-bold uppercase tracking-wider text-xs">
-                <th className="px-6 py-4">Módulo / Límite</th>
-                <th className="px-6 py-4 text-center">Starter</th>
-                <th className="px-6 py-4 text-center">Profesional</th>
-                <th className="px-6 py-4 text-center">Enterprise</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              <tr className="hover:bg-slate-50">
-                <td className="px-6 py-3.5 font-bold">Facturación Electrónica SRI</td>
-                <td className="px-6 py-3.5 text-center text-primary font-bold">ILIMITADA</td>
-                <td className="px-6 py-3.5 text-center text-primary font-bold">ILIMITADA</td>
-                <td className="px-6 py-3.5 text-center text-primary font-bold">ILIMITADA</td>
-              </tr>
-              <tr className="hover:bg-slate-50">
-                <td className="px-6 py-3.5 font-bold">Cuentas de Usuarios (Límite)</td>
-                <td className="px-6 py-3.5 text-center">Hasta 3</td>
-                <td className="px-6 py-3.5 text-center">Hasta 10</td>
-                <td className="px-6 py-3.5 text-center text-emerald-600 font-bold">ILIMITADO</td>
-              </tr>
-              <tr className="hover:bg-slate-50">
-                <td className="px-6 py-3.5 font-bold">Módulo de Ventas y POS</td>
-                <td className="px-6 py-3.5 text-center"><Check size={14} className="mx-auto text-primary" /></td>
-                <td className="px-6 py-3.5 text-center"><Check size={14} className="mx-auto text-primary" /></td>
-                <td className="px-6 py-3.5 text-center"><Check size={14} className="mx-auto text-primary" /></td>
-              </tr>
-              <tr className="hover:bg-slate-50">
-                <td className="px-6 py-3.5 font-bold">Módulo de Inventarios & Bodegas</td>
-                <td className="px-6 py-3.5 text-center text-gray-400">No incluido</td>
-                <td className="px-6 py-3.5 text-center"><Check size={14} className="mx-auto text-primary" /></td>
-                <td className="px-6 py-3.5 text-center"><Check size={14} className="mx-auto text-primary" /></td>
-              </tr>
-              <tr className="hover:bg-slate-50">
-                <td className="px-6 py-3.5 font-bold">Gastos y Conciliación SRI</td>
-                <td className="px-6 py-3.5 text-center text-gray-400">No incluido</td>
-                <td className="px-6 py-3.5 text-center text-gray-400">No incluido</td>
-                <td className="px-6 py-3.5 text-center"><Check size={14} className="mx-auto text-primary" /></td>
-              </tr>
-              <tr className="hover:bg-slate-50">
-                <td className="px-6 py-3.5 font-bold">Soporte Técnico Especializado</td>
-                <td className="px-6 py-3.5 text-center">Email</td>
-                <td className="px-6 py-3.5 text-center">WhatsApp / Email</td>
-                <td className="px-6 py-3.5 text-center text-emerald-600 font-bold">24/7 Prioritario</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* FAQS SECTION */}
-      <div className="max-w-3xl mx-auto text-center border-t border-border-default pt-16">
-        <h2 className="text-2xl font-black mb-10 text-black">Preguntas Frecuentes</h2>
-        <div className="space-y-4">
-          {faqs.map((faq, idx) => (
-            <div key={idx} className="rounded-card border bg-white border-border-default text-left">
-              <button 
-                onClick={() => toggleFaq(idx)}
-                className="w-full px-6 py-4 flex items-center justify-between font-bold text-xs sm:text-sm text-left text-black outline-none cursor-pointer bg-transparent border-none"
+          {/* Toggle Mensual / Anual */}
+          <div className="pt-2">
+            <div className="inline-flex items-center p-1 rounded-md bg-white border border-border-default gap-1">
+              <button
+                onClick={() => setBillingPeriod('monthly')}
+                className={`px-3 py-1.5 text-xs font-medium rounded-[4px] transition-all cursor-pointer ${
+                  billingPeriod === 'monthly' ? 'bg-surface-sidebar text-text-heading font-semibold shadow-none' : 'text-text-secondary'
+                }`}
               >
-                <span>{faq.q}</span>
-                {activeFaq === idx ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                Facturación Mensual
               </button>
-              {activeFaq === idx && (
-                <div className="px-6 pb-5 pt-1 text-xs sm:text-xs leading-relaxed text-gray-600 border-t border-slate-100">
-                  {faq.a}
-                </div>
-              )}
+              <button
+                onClick={() => setBillingPeriod('yearly')}
+                className={`px-3 py-1.5 text-xs font-medium rounded-[4px] transition-all cursor-pointer flex items-center gap-1.5 ${
+                  billingPeriod === 'yearly' ? 'bg-surface-sidebar text-text-heading font-semibold shadow-none' : 'text-text-secondary'
+                }`}
+              >
+                <span>Anual</span>
+                <span className="text-[10px] text-success-text bg-success-light px-1.5 py-0.5 rounded font-mono font-bold">-20%</span>
+              </button>
             </div>
-          ))}
+          </div>
         </div>
-      </div>
+      </section>
+
+      {/* 2. Pricing Cards Grid */}
+      <section className="py-16 border-b border-border-default">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left max-w-5xl mx-auto">
+            {plans.map((plan) => (
+              <Card 
+                key={plan.id}
+                className={`p-6 flex flex-col justify-between transition-all ${
+                  plan.recommended 
+                    ? 'border-text-heading ring-1 ring-text-heading shadow-sm relative' 
+                    : 'border-border-default hover:border-border-strong'
+                }`}
+              >
+                {plan.recommended && (
+                  <Badge variant="default" className="absolute -top-2.5 right-6 text-[10px] normal-case py-0.5 px-2 font-normal">
+                    Más Popular
+                  </Badge>
+                )}
+
+                <div>
+                  <div className="mb-4">
+                    <h3 className="text-base font-bold text-text-heading">{plan.name}</h3>
+                    <p className="text-xs text-text-secondary mt-1 leading-relaxed">{plan.desc}</p>
+                  </div>
+
+                  <div className="mb-6 pt-2">
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-3xl sm:text-4xl font-bold font-mono text-text-heading">
+                        ${plan.price}
+                      </span>
+                      <span className="text-xs text-text-secondary font-medium">/ mes</span>
+                    </div>
+                    {billingPeriod === 'yearly' && (
+                      <span className="text-[11px] text-success-text font-medium mt-1 block">
+                        Facturado anualmente (${plan.price * 12}/año)
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="border-t border-border-default/60 pt-4 mb-6">
+                    <span className="text-[11px] font-semibold text-text-heading uppercase tracking-wider block mb-3">
+                      Incluye:
+                    </span>
+                    <ul className="space-y-2 text-xs text-text-secondary">
+                      {plan.features.map((feature, i) => (
+                        <li key={i} className="flex items-start gap-2">
+                          <Check size={13} className="text-[#00E4B8] shrink-0 mt-0.5" />
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
+                <Button 
+                  variant={plan.recommended ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => navigate('/register')}
+                  className="w-full text-xs h-9 mt-4"
+                >
+                  {plan.cta}
+                </Button>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 3. FAQ Section */}
+      <section className="py-16 bg-surface-sidebar/30">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 text-left">
+          
+          <div className="text-center mb-10 space-y-2">
+            <h2 className="text-2xl font-bold tracking-tight text-text-heading">
+              Preguntas Frecuentes
+            </h2>
+            <p className="text-xs text-text-secondary">
+              Resolvemos tus dudas sobre planes y facturación.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            {faqs.map((faq, index) => {
+              const isOpen = activeFaq === index;
+              return (
+                <div 
+                  key={index}
+                  className="rounded-md border border-border-default bg-white overflow-hidden transition-colors"
+                >
+                  <button
+                    onClick={() => toggleFaq(index)}
+                    className="w-full px-4 py-3.5 text-left flex items-center justify-between gap-4 text-xs font-semibold text-text-heading hover:bg-surface-sidebar/50 transition-colors cursor-pointer"
+                  >
+                    <span>{faq.q}</span>
+                    <ChevronDown size={14} className={`shrink-0 transition-transform duration-150 ${isOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  {isOpen && (
+                    <div className="px-4 pb-4 pt-1 text-xs text-text-secondary leading-relaxed border-t border-border-default/50">
+                      {faq.a}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+        </div>
+      </section>
 
     </div>
   );

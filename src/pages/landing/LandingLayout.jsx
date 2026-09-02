@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, ArrowUpRight } from 'lucide-react';
+import { Button } from '../../components/ui/button';
+import { Badge } from '../../components/ui/badge';
 
 export default function LandingLayout() {
   const location = useLocation();
@@ -10,7 +12,7 @@ export default function LandingLayout() {
   const navLinks = [
     { path: '/', label: 'Inicio' },
     { path: '/soluciones', label: 'Soluciones' },
-    { path: '/precios', label: 'Planes y Precios' },
+    { path: '/precios', label: 'Precios' },
     { path: '/nosotros', label: 'Nosotros' },
     { path: '/contacto', label: 'Contacto' }
   ];
@@ -21,36 +23,44 @@ export default function LandingLayout() {
   };
 
   return (
-    <div className="min-h-screen w-full overflow-y-auto overflow-x-hidden bg-surface-bg text-text-secondary font-sans scroll-smooth custom-scrollbar light-scrollbar flex flex-col justify-between relative">
+    <div className="min-h-screen w-full bg-white text-text-primary font-sans flex flex-col justify-between selection:bg-primary selection:text-white">
       
-      {/* NAVBAR */}
-      <header className="sticky top-0 z-50 border-b bg-surface-bg/90 border-slate-200/80 shrink-0 transition-all duration-300">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+      {/* 1. TOP ANNOUNCEMENT BAR */}
+      <div className="bg-surface-sidebar border-b border-border-default px-4 py-1.5 text-center text-[11px] font-medium text-text-secondary flex items-center justify-center gap-2">
+        <span className="flex h-1.5 w-1.5 rounded-full bg-[#00E4B8] animate-pulse"></span>
+        <span>Cumplimiento tributario SRI 2026 activo • Firma electrónica .p12 y facturación ilimitada</span>
+        <Link to="/precios" className="text-text-heading font-semibold hover:underline inline-flex items-center gap-0.5 ml-1">
+          Ver planes <ArrowUpRight size={11} />
+        </Link>
+      </div>
+
+      {/* 2. STICKY NAVBAR (Vercel / Linear Minimalist Style) */}
+      <header className="sticky top-0 z-50 border-b border-border-default bg-white/90 backdrop-blur-md shrink-0">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
           
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-3 cursor-pointer decoration-none group">
-            <div className="w-9 h-9 rounded-card bg-primary flex items-center justify-center transition-transform duration-300 group-hover:scale-105 group-hover:rotate-3">
-              <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-              </svg>
+          {/* Brand Logo */}
+          <Link to="/" className="flex items-center gap-2.5 group cursor-pointer select-none">
+            <div className="w-7 h-7 rounded-md bg-text-heading text-white flex items-center justify-center font-bold text-xs tracking-tight transition-transform duration-150 group-hover:scale-105">
+              W
             </div>
-            <span className="text-lg font-black tracking-tight text-text-secondary transition-colors duration-200 group-hover:text-primary">
-              WebFix <span className="text-primary/80 font-medium text-sm">ERP</span>
-            </span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-sm font-semibold tracking-tight text-text-heading">WebFix</span>
+              <span className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-surface-sidebar border border-border-default text-text-secondary">ERP</span>
+            </div>
           </Link>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center gap-8 text-xs font-black uppercase tracking-wider">
+          <nav className="hidden md:flex items-center gap-1">
             {navLinks.map(link => {
               const isActive = location.pathname === link.path;
               return (
                 <Link 
                   key={link.path}
                   to={link.path}
-                  className={`transition-colors cursor-pointer decoration-none ${
+                  className={`px-3 py-1.5 rounded-md text-xs font-medium tracking-tight transition-all duration-120 ${
                     isActive 
-                      ? 'text-primary' 
-                      : 'text-slate-500 hover:text-primary'
+                      ? 'text-text-heading bg-surface-sidebar font-semibold' 
+                      : 'text-text-secondary hover:text-text-heading hover:bg-black/5'
                   }`}
                 >
                   {link.label}
@@ -60,27 +70,32 @@ export default function LandingLayout() {
           </nav>
  
           {/* Action Buttons */}
-          <div className="hidden md:flex items-center gap-4">
-            <button 
+          <div className="hidden md:flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="sm"
               onClick={() => navigate('/login')} 
-              className="landing-button-secondary px-5 py-2.5 text-xs font-bold border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 cursor-pointer"
+              className="text-xs text-text-secondary hover:text-text-heading"
             >
-              Entrar
-            </button>
-            <button 
+              Iniciar Sesión
+            </Button>
+            <Button 
+              variant="default" 
+              size="sm"
               onClick={() => navigate('/register')} 
-              className="landing-button-primary px-5 py-2.5 text-xs font-bold text-white bg-primary hover:bg-surface-card cursor-pointer"
+              className="text-xs"
             >
-              Registrarse
-            </button>
+              Comenzar Gratis
+            </Button>
           </div>
 
           {/* Mobile Menu Toggle */}
           <button 
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="p-2 rounded-card border border-slate-200 bg-white text-slate-700 md:hidden cursor-pointer hover:bg-slate-50 transition-colors"
+            className="p-1.5 rounded-md border border-border-default text-text-secondary md:hidden cursor-pointer hover:bg-surface-sidebar transition-colors"
+            aria-label="Abrir menú"
           >
-            {isMobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
+            {isMobileMenuOpen ? <X size={16} /> : <Menu size={16} />}
           </button>
 
         </div>
@@ -88,34 +103,38 @@ export default function LandingLayout() {
 
       {/* MOBILE NAV OVERLAY */}
       {isMobileMenuOpen && (
-        <div className="fixed inset-0 top-16 bg-white z-40 flex flex-col p-6 space-y-4 md:hidden animate-in fade-in slide-in-from-top-4 duration-200">
-          <div className="flex flex-col space-y-4 border-b border-slate-100 pb-6">
+        <div className="fixed inset-0 top-20 bg-white z-40 flex flex-col p-6 space-y-4 md:hidden border-b border-border-default animate-in fade-in duration-150">
+          <div className="flex flex-col space-y-2 border-b border-border-default pb-4">
             {navLinks.map(link => {
               const isActive = location.pathname === link.path;
               return (
                 <button
                   key={link.path}
                   onClick={() => handleMobileLinkClick(link.path)}
-                  className={`text-left text-sm font-bold py-2 ${isActive ? 'text-primary' : 'text-slate-650'}`}
+                  className={`text-left text-sm font-medium py-2 px-3 rounded-md transition-colors ${
+                    isActive ? 'bg-surface-sidebar font-semibold text-text-heading' : 'text-text-secondary'
+                  }`}
                 >
                   {link.label}
                 </button>
               );
             })}
           </div>
-          <div className="flex flex-col gap-3 pt-2">
-            <button 
+          <div className="flex flex-col gap-2 pt-2">
+            <Button 
+              variant="outline"
               onClick={() => { setIsMobileMenuOpen(false); navigate('/login'); }}
-              className="w-full py-3.5 text-xs font-bold border border-slate-200 rounded-card text-center bg-white text-slate-800"
+              className="w-full text-xs"
             >
-              Entrar al ERP
-            </button>
-            <button 
+              Iniciar Sesión
+            </Button>
+            <Button 
+              variant="default"
               onClick={() => { setIsMobileMenuOpen(false); navigate('/register'); }}
-              className="w-full py-3.5 text-xs font-bold bg-primary text-white rounded-card text-center"
+              className="w-full text-xs"
             >
-              Registrar Negocio
-            </button>
+              Comenzar Gratis
+            </Button>
           </div>
         </div>
       )}
@@ -125,59 +144,74 @@ export default function LandingLayout() {
         <Outlet />
       </main>
 
-      {/* FOOTER */}
-      <footer className="border-t py-12 bg-white border-slate-100 text-slate-500 shrink-0 mt-auto">
-        <div className="max-w-7xl mx-auto px-6">
+      {/* MINIMALIST STARTUP FOOTER */}
+      <footer className="border-t border-border-default bg-surface-sidebar/60 text-text-secondary py-12 shrink-0 mt-auto">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10 text-left">
+            
             {/* Brand Column */}
-            <div className="md:col-span-1 flex flex-col items-start gap-4">
-              <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
-                  <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-                  </svg>
+            <div className="md:col-span-1 space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-md bg-text-heading text-white flex items-center justify-center font-bold text-xs">
+                  W
                 </div>
-                <span className="font-black text-text-secondary tracking-tight">WebFix ERP</span>
+                <span className="font-semibold text-sm text-text-heading tracking-tight">WebFix ERP</span>
               </div>
-              <p className="text-xs text-slate-400 leading-relaxed max-w-[200px]">
-                Plataforma de facturación electrónica y control financiero para emprendedores ecuatorianos en cumplimiento con el SRI.
+              <p className="text-xs text-text-secondary leading-relaxed">
+                Plataforma de facturación electrónica y control financiero diseñada para empresas modernas en Ecuador.
+              </p>
+              <div className="flex items-center gap-2 pt-1">
+                <Badge variant="success" className="gap-1 text-[10px] py-0.5 px-2 font-normal normal-case">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#00E4B8]"></span>
+                  SRI Online 100%
+                </Badge>
+              </div>
+            </div>
+
+            {/* Product Links */}
+            <div>
+              <h4 className="text-xs font-semibold text-text-heading tracking-tight uppercase mb-3">Producto</h4>
+              <div className="flex flex-col gap-2 text-xs">
+                <Link to="/" className="text-text-secondary hover:text-text-heading transition-colors">Inicio</Link>
+                <Link to="/soluciones" className="text-text-secondary hover:text-text-heading transition-colors">Módulos</Link>
+                <Link to="/precios" className="text-text-secondary hover:text-text-heading transition-colors">Planes y Precios</Link>
+              </div>
+            </div>
+
+            {/* Resources Links */}
+            <div>
+              <h4 className="text-xs font-semibold text-text-heading tracking-tight uppercase mb-3">Recursos</h4>
+              <div className="flex flex-col gap-2 text-xs">
+                <a href="https://srienlinea.sri.gob.ec" target="_blank" rel="noopener noreferrer" className="text-text-secondary hover:text-text-heading transition-colors flex items-center gap-1">
+                  Portal SRI Ecuador <ArrowUpRight size={10} />
+                </a>
+                <Link to="/contacto" className="text-text-secondary hover:text-text-heading transition-colors">Soporte Técnico</Link>
+                <Link to="/nosotros" className="text-text-secondary hover:text-text-heading transition-colors">Acerca de WebFix</Link>
+              </div>
+            </div>
+
+            {/* Technology & Security */}
+            <div>
+              <h4 className="text-xs font-semibold text-text-heading tracking-tight uppercase mb-3">Seguridad</h4>
+              <p className="text-xs text-text-secondary leading-relaxed">
+                Infraestructura cifrada en la nube con firma digital XAdES-BES y almacenamiento seguro de certificados .p12.
               </p>
             </div>
-            {/* Quick Links */}
-            <div>
-              <h4 className="text-xs font-black uppercase text-slate-800 tracking-wider mb-4">Explorar</h4>
-              <div className="flex flex-col gap-2.5 text-xs font-semibold">
-                <Link to="/" className="text-slate-500 hover:text-primary decoration-none">Inicio</Link>
-                <Link to="/soluciones" className="text-slate-500 hover:text-primary decoration-none">Módulos</Link>
-                <Link to="/precios" className="text-slate-500 hover:text-primary decoration-none">Planes y Precios</Link>
-              </div>
-            </div>
-            {/* Legals */}
-            <div>
-              <h4 className="text-xs font-black uppercase text-slate-800 tracking-wider mb-4">Soporte y Normas</h4>
-              <div className="flex flex-col gap-2.5 text-xs font-semibold">
-                <a href="https://srienlinea.sri.gob.ec" target="_blank" rel="noopener noreferrer" className="text-slate-500 hover:text-primary decoration-none">SRI del Ecuador</a>
-                <Link to="/contacto" className="text-slate-500 hover:text-primary decoration-none">Contacto y Soporte</Link>
-                <Link to="/nosotros" className="text-slate-500 hover:text-primary decoration-none">Sobre Nosotros</Link>
-              </div>
-            </div>
-            {/* Tech Specs */}
-            <div>
-              <h4 className="text-xs font-black uppercase text-slate-800 tracking-wider mb-4">Tecnología</h4>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Infraestructura en la nube segura con firmas electrónicas en formato digital p12. 100% libre de instalaciones físicas.
-              </p>
-            </div>
+
           </div>
           
-          <div className="border-t border-slate-100 pt-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs font-semibold">
-            <p className="text-xs text-slate-400">© 2026 WebFix. Todos los derechos reservados. Diseñado para emprendedores ecuatorianos.</p>
-            <div className="flex gap-4 text-xs text-slate-400">
-              <a href="#terminos" className="hover:text-primary decoration-none">Términos y condiciones</a>
+          {/* Bottom Bar */}
+          <div className="border-t border-border-default pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-text-muted">
+            <p>© {new Date().getFullYear()} WebFix Soluciones. Todos los derechos reservados.</p>
+            <div className="flex items-center gap-4">
+              <Link to="/contacto" className="hover:text-text-heading transition-colors">Contacto</Link>
               <span>•</span>
-              <a href="#privacidad" className="hover:text-primary decoration-none">Política de privacidad</a>
+              <a href="#privacidad" className="hover:text-text-heading transition-colors">Privacidad</a>
+              <span>•</span>
+              <a href="#terminos" className="hover:text-text-heading transition-colors">Términos</a>
             </div>
           </div>
+
         </div>
       </footer>
 

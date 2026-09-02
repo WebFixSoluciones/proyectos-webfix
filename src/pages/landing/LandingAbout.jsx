@@ -1,65 +1,80 @@
 import { Shield, CheckCircle2 } from 'lucide-react';
+import { Card } from '../../components/ui/card';
+import { Badge } from '../../components/ui/badge';
 
 export default function LandingAbout() {
   return (
-    <div className="max-w-4xl mx-auto px-6 py-12 lg:py-20 text-left space-y-12">
+    <div className="w-full bg-white text-text-primary">
       
-      <div className="text-center space-y-4">
-        <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-black">Sobre WebFix ERP</h1>
-        <p className="text-sm text-gray-650 max-w-lg mx-auto font-medium">
-          Simplificamos la facturación electrónica y el control operativo de las PYMES y profesionales independientes en el Ecuador.
-        </p>
-      </div>
-
-      {/* Corporate Philosophy */}
-      <div className="grid md:grid-cols-2 gap-8 items-center pt-8 border-t border-border-default">
-        <div>
-          <h2 className="text-xl font-black mb-4">Nuestra Misión</h2>
-          <p className="text-xs text-gray-650 leading-relaxed mb-4 font-medium">
-            Nacimos en Ecuador para resolver los retos tecnológicos y fiscales que enfrentan los emprendedores al conectarse con el SRI. Creemos que la contabilidad y el control de inventarios no deberían requerir capacitaciones engorrosas ni software costoso de instalar.
-          </p>
-          <p className="text-xs text-gray-650 leading-relaxed font-medium">
-            WebFix ERP provee una plataforma multi-bodega, con facturación automática y simulación de flujos de caja en tiempo real, accesible desde cualquier dispositivo y respaldada por servidores de nube avanzados.
+      {/* Header */}
+      <section className="pt-16 pb-12 border-b border-border-default bg-surface-sidebar/30 text-center">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 space-y-3">
+          <Badge variant="outline" className="text-xs py-0.5 px-2.5">
+            Sobre Nosotros
+          </Badge>
+          <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-text-heading">
+            Simplificamos la facturación y finanzas en Ecuador.
+          </h1>
+          <p className="text-xs sm:text-sm text-text-secondary max-w-xl mx-auto leading-relaxed">
+            Creamos tecnología moderna para que los emprendedores y empresas cumplan con el SRI sin fricciones y con total control operativo.
           </p>
         </div>
-        <div className="p-6 rounded-card bg-white border border-border-default space-y-4">
-          <h3 className="text-xs font-black uppercase tracking-wider text-primary">Nuestros Valores</h3>
-          <ul className="space-y-3 text-xs text-gray-750 font-semibold">
-            <li className="flex gap-2">
-              <CheckCircle2 size={15} className="text-primary shrink-0 mt-0.5" />
-              <span>Transparencia en precios (Cero costos ocultos)</span>
-            </li>
-            <li className="flex gap-2">
-              <CheckCircle2 size={15} className="text-primary shrink-0 mt-0.5" />
-              <span>Conexión y automatización directa con el SRI</span>
-            </li>
-            <li className="flex gap-2">
-              <CheckCircle2 size={15} className="text-primary shrink-0 mt-0.5" />
-              <span>Foco en la velocidad del Punto de Venta (POS)</span>
-            </li>
-            <li className="flex gap-2">
-              <CheckCircle2 size={15} className="text-primary shrink-0 mt-0.5" />
-              <span>Protección y copias de seguridad de data transaccional</span>
-            </li>
-          </ul>
-        </div>
-      </div>
+      </section>
 
-      {/* Security and Infrastructure details */}
-      <div className="p-6 rounded-card bg-white border border-border-default space-y-4 pt-8">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-card bg-primary/10 text-primary flex items-center justify-center">
-            <Shield size={20} />
+      {/* Main Content */}
+      <section className="py-16 max-w-5xl mx-auto px-4 sm:px-6 text-left space-y-12">
+        
+        {/* Mission & Vision Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+          <div className="space-y-4">
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-text-heading">Nuestra Misión</h2>
+            <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
+              Nacimos en Ecuador para resolver los retos tecnológicos y fiscales que enfrentan los emprendedores al conectarse con el SRI. Creemos que la facturación y el control de inventarios no deberían requerir capacitaciones engorrosas ni software de escritorio costoso de instalar.
+            </p>
+            <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
+              WebFix ERP provee una plataforma modular, con facturación automática y simulación de flujos de caja en tiempo real, accesible desde cualquier dispositivo y respaldada por infraestructura en la nube.
+            </p>
           </div>
-          <div>
-            <h3 className="text-sm font-black uppercase tracking-wider">Infraestructura Segura y Alta Disponibilidad</h3>
-            <p className="text-xs text-gray-500">Respaldado por tecnología Firebase Google Cloud</p>
-          </div>
+
+          <Card className="p-6">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-text-heading mb-4">Nuestros Principios</h3>
+            <ul className="space-y-3 text-xs text-text-secondary">
+              <li className="flex items-start gap-2.5">
+                <CheckCircle2 size={14} className="text-[#00E4B8] shrink-0 mt-0.5" />
+                <span><strong className="text-text-heading font-medium">Precios transparentes:</strong> Facturación ilimitada sin cobros por documento.</span>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <CheckCircle2 size={14} className="text-[#00E4B8] shrink-0 mt-0.5" />
+                <span><strong className="text-text-heading font-medium">Automatización SRI directa:</strong> Firma digital y autorización inmediata.</span>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <CheckCircle2 size={14} className="text-[#00E4B8] shrink-0 mt-0.5" />
+                <span><strong className="text-text-heading font-medium">Velocidad en Punto de Venta:</strong> Optimizado para atajos rápidos en mostrador.</span>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <CheckCircle2 size={14} className="text-[#00E4B8] shrink-0 mt-0.5" />
+                <span><strong className="text-text-heading font-medium">Seguridad de datos:</strong> Cifrado continuo y respaldos automáticos.</span>
+              </li>
+            </ul>
+          </Card>
         </div>
-        <p className="text-xs text-gray-650 leading-relaxed font-medium">
-          Toda la data transaccional contable y de inventarios está encriptada y protegida bajo las reglas de seguridad de Google Cloud. Mantenemos réplicas en tiempo real para asegurar que tu negocio nunca se detenga. Puedes subir tu firma electrónica `.p12` con absoluta confianza: las credenciales son procesadas de manera aislada y segura de acuerdo a los estándares fiscales del Ecuador.
-        </p>
-      </div>
+
+        {/* Security and Cloud */}
+        <Card className="p-6 border-border-default bg-surface-sidebar/40">
+          <div className="flex items-start gap-4">
+            <div className="p-2.5 rounded-md bg-white border border-border-default text-text-heading shrink-0">
+              <Shield size={20} />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-sm font-semibold text-text-heading">Infraestructura Segura y de Alta Disponibilidad</h3>
+              <p className="text-xs text-text-secondary leading-relaxed">
+                Toda la información contable, comprobantes y catálogo está respaldada bajo las reglas de seguridad de Google Cloud y Firebase. Puedes cargar tu firma electrónica .p12 con total tranquilidad: las claves son procesadas de manera aislada y segura de acuerdo con la normativa del SRI ecuatoriano.
+              </p>
+            </div>
+          </div>
+        </Card>
+
+      </section>
 
     </div>
   );
