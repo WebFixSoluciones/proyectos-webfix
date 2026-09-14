@@ -86,7 +86,6 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   useEffect(() => {
     async function fetchDbCategories() {
       try {
-        const { collection, getDocs } = await import('firebase/firestore');
         const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_categories'));
         setDbCategories(snap.docs.map(doc => doc.data()));
       } catch (err) {

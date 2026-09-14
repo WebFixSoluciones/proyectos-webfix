@@ -140,7 +140,7 @@ export default function HiringServicesModule({ showToast, db, appId }) {
  Te ayudamos a digitalizar tu marca. Contrata nuestros servicios profesionales directamente desde tu panel de control y agiliza tu visibilidad, correos corporativos y campañas publicitarias.
  </p>
  </div>
- <div className="absolute right-0 top-0 bottom-0 w-1/3 opacity-10 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary via-transparent to-transparent hidden md:block"></div>
+ <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-gradient-to-l from-primary/10 via-transparent to-transparent hidden md:block"></div>
  </div>
 
  {/* Grid de Servicios */}

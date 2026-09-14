@@ -1034,19 +1034,17 @@ export default function App() {
       case 'finances': {
         const subtabs = {
           dashboard: { title: 'Control Financiero: Resumen', desc: 'Flujo de caja, saldos, cartera y cumplimiento fiscal en tiempo real' },
-          movimientos: { title: 'Movimientos financieros', desc: 'Registro único de ingresos, gastos, transferencias, pagos, cobros y ajustes' },
-          compras_resumen: { title: 'Compras y Gastos', desc: 'Registro de facturas, consumos y egresos del negocio' },
-          sri_docs: { title: 'Documentos Electrónicos SRI', desc: 'Historial y consulta de validez de comprobantes con el SRI' },
-          cxc: { title: 'Cuentas por Cobrar', desc: 'Seguimiento de cartera y saldos pendientes de clientes' },
-          cxp: { title: 'Cuentas por Pagar', desc: 'Control de compromisos de pago y obligaciones con proveedores' },
-          gastos_creditos_sub: { title: 'Tarjetas y Créditos', desc: 'Control de consumos, cuotas, deudas y líneas de crédito' },
-          tarjetas_creditos: { title: 'Tarjetas y Créditos', desc: 'Control de consumos, cortes, cupos, cuotas y líneas de crédito' },
-          gastos_ia: { title: 'Captura Inteligente', desc: 'Clasificación asistida de comprobantes y gastos desde archivos' },
-          captura_inteligente: { title: 'Captura Inteligente', desc: 'Lectura de XML, PDF o imagen con confirmación antes de registrar' },
-          contabilidad: { title: 'Contabilidad', desc: 'Plan de cuentas, asientos automáticos, diarios y centros de costo' },
-          impuestos_sri: { title: 'Impuestos y SRI', desc: 'Compras, ventas, IVA, retenciones y preparación del ATS' },
-          compras_retencion: { title: 'Retenciones de Compras', desc: 'Gestión de retenciones aplicadas a proveedores' },
-          reports: { title: 'Reportes Financieros', desc: 'Informes de resultados, flujo de caja y análisis personalizado' }
+          resumen_financiero: { title: 'Resumen Financiero', desc: 'Flujo de caja consolidado, liquidez, cartera, deuda y pronóstico' },
+          movimientos: { title: 'Movimientos Financieros', desc: 'Registro central de ingresos, egresos, cobros y pagos' },
+          cxc: { title: 'Cuentas por Cobrar (CxC)', desc: 'Seguimiento de cartera, vencimientos y abonos de clientes' },
+          cxp: { title: 'Cuentas por Pagar (CxP)', desc: 'Control de deudas con proveedores, retenciones y programación de pagos' },
+          bancos: { title: 'Bancos y Caja', desc: 'Saldos de cuentas bancarias, arqueos de caja y conciliación inteligente' },
+          tarjetas: { title: 'Tarjetas y Créditos', desc: 'Control de tarjetas de crédito corporativas, cortes y consumos diferidos' },
+          prestamos: { title: 'Préstamos Bancarios', desc: 'Tablas de amortización francesa/alemana y seguimiento de cuotas' },
+          captura: { title: 'Captura Inteligente (OCR)', desc: 'Extracción asistida con IA de comprobantes físicos, XML y PDFs' },
+          contabilidad_tab: { title: 'Contabilidad & Plan de Cuentas', desc: 'Plan de cuentas NIIF, asientos contables y libro diario' },
+          impuestos: { title: 'Impuestos & SRI', desc: 'Cruce de IVA, retenciones y generación del anexo ATS' },
+          reportes: { title: 'Reportes Especializados', desc: 'Reporte de flujo, cartera, deudas, impuestos y exportación' }
         };
         const current = subtabs[contabilidadInitialSubTab] || { title: 'Control Financiero', desc: 'Ingresos, gastos, cartera, tarjetas, créditos, reportes y cumplimiento tributario' };
         return { ...current, icon: 'finances' };

@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { Mail, Phone, MapPin, CheckCircle2, Send } from 'lucide-react';
+import { Mail, Phone, MapPin, CheckCircle2, Send, MessageSquare } from 'lucide-react';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '../../firebase';
 import { Card } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
@@ -15,19 +17,39 @@ export default function LandingContact() {
   });
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
-  const handleSubmit = (e) => {
+  const WHATSAPP_NUMBER = '593984920626';
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.name || !form.email || !form.message) {
-      alert("Por favor complete los campos obligatorios.");
+    setErrorMsg('');
+    if (!form.name.trim() || !form.email.trim() || !form.message.trim()) {
+      setErrorMsg('Por favor complete los campos obligatorios (*).');
       return;
     }
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      if (db) {
+        await addDoc(collection(db, 'landing_leads'), {
+          nombre: form.name.trim(),
+          email: form.email.trim(),
+          telefono: form.phone.trim(),
+          empresa: form.company.trim(),
+          mensaje: form.message.trim(),
+          fecha: serverTimestamp(),
+          estado: 'nuevo'
+        });
+      }
       setSubmitted(true);
       setForm({ name: '', email: '', phone: '', company: '', message: '' });
-    }, 1000);
+    } catch (err) {
+      console.error('Error guardando lead:', err);
+      // Even if Firestore write fails, allow contact via WhatsApp
+      setSubmitted(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -72,15 +94,20 @@ export default function LandingContact() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 p-3 rounded-md bg-surface-sidebar border border-border-default">
-                <div className="p-2 rounded bg-white text-text-heading border border-border-default">
+              <a 
+                href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hola WebFix, deseo información sobre el ERP y facturación electrónica.')}`}
+                target="_blank" 
+                rel="noreferrer"
+                className="flex items-center gap-3 p-3 rounded-md bg-surface-sidebar border border-border-default hover:border-text-heading hover:bg-white transition-all cursor-pointer group"
+              >
+                <div className="p-2 rounded bg-white text-text-heading border border-border-default group-hover:bg-[#00E4B8] group-hover:text-black transition-colors">
                   <Phone size={15} />
                 </div>
                 <div>
                   <span className="text-[10px] text-text-muted uppercase font-semibold block">WhatsApp Directo</span>
-                  <span className="font-semibold text-text-heading">+593 99 999 9999</span>
+                  <span className="font-semibold text-text-heading">+593 98 492 0626</span>
                 </div>
-              </div>
+              </a>
 
               <div className="flex items-center gap-3 p-3 rounded-md bg-surface-sidebar border border-border-default">
                 <div className="p-2 rounded bg-white text-text-heading border border-border-default">
@@ -102,19 +129,35 @@ export default function LandingContact() {
                   <CheckCircle2 size={36} className="text-[#00E4B8] mx-auto" />
                   <h3 className="text-base font-bold text-text-heading">¡Mensaje Enviado con Éxito!</h3>
                   <p className="text-xs text-text-secondary max-w-sm mx-auto">
-                    Hemos recibido tu consulta. Uno de nuestros asesores técnicos se comunicará contigo en breve.
+                    Hemos registrado tu consulta. Uno de nuestros asesores técnicos se comunicará contigo en breve o puedes escribirnos directamente por WhatsApp.
                   </p>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => setSubmitted(false)}
-                    className="text-xs mt-4"
-                  >
-                    Enviar otro mensaje
-                  </Button>
+                  <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-2">
+                    <a
+                      href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hola WebFix, acabo de enviar una consulta desde la web y deseo asesoría rápida.')}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="btn-accent text-xs h-9 px-4 inline-flex items-center gap-1.5"
+                    >
+                      <MessageSquare size={13} />
+                      <span>Chatear por WhatsApp</span>
+                    </a>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => setSubmitted(false)}
+                      className="text-xs h-9"
+                    >
+                      Enviar otro mensaje
+                    </Button>
+                  </div>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-4">
+                  {errorMsg && (
+                    <div className="p-2.5 rounded-md bg-red-50 border border-red-200 text-xs text-red-600">
+                      {errorMsg}
+                    </div>
+                  )}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <label className="text-xs font-semibold text-text-heading">Nombre Completo *</label>

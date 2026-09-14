@@ -39,7 +39,7 @@ function mapearVentaAMovimiento(venta) {
     },
     partidas: [{
       cuenta: '',
-      categoria: 'gastos_administrativos',
+      categoria: 'ventas',
       descripcion: venta.descripcion || `Venta ${venta.documentType || 'factura'} ${venta.documentNumber || ''}`,
       baseImponible: Number(venta.baseImponible) || Number(venta.subtotal) || 0,
       iva: Number(venta.ivaValor) || 0,

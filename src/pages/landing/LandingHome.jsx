@@ -53,7 +53,13 @@ export default function LandingHome() {
         <div className="absolute top-48 right-1/4 w-[350px] h-[350px] bg-[#00E4B8]/8 rounded-full blur-[100px] pointer-events-none animate-glow-pulse" style={{ animationDelay: '3s' }}></div>
 
         {/* Subtle background hairline grid */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#EAEAEA_1px,transparent_1px),linear-gradient(to_bottom,#EAEAEA_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-60 pointer-events-none"></div>
+        <div 
+          className="absolute inset-0 bg-[linear-gradient(to_right,#EAEAEA_1px,transparent_1px),linear-gradient(to_bottom,#EAEAEA_1px,transparent_1px)] bg-[size:32px_32px] opacity-60 pointer-events-none"
+          style={{
+            maskImage: 'radial-gradient(ellipse 60% 50% at 50% 0%, #000 70%, transparent 100%)',
+            WebkitMaskImage: 'radial-gradient(ellipse 60% 50% at 50% 0%, #000 70%, transparent 100%)'
+          }}
+        ></div>
 
         <div className="max-w-5xl mx-auto px-4 sm:px-6 relative z-10 text-center space-y-6">
           
@@ -318,7 +324,15 @@ export default function LandingHome() {
       {/* 3. BENTO GRID FEATURES ("Infraestructura de Grado Empresarial") */}
       <section className="relative py-24 border-b border-border-default bg-white overflow-hidden">
         {/* Ambient Subtle Dot Matrix */}
-        <div className="absolute inset-0 bg-[radial-gradient(#E5E5E5_1px,transparent_1px)] [background-size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-70 pointer-events-none"></div>
+        <div 
+          className="absolute inset-0 opacity-70 pointer-events-none"
+          style={{
+            backgroundImage: 'radial-gradient(#E5E5E5 1px, transparent 1px)',
+            backgroundSize: '24px 24px',
+            maskImage: 'radial-gradient(ellipse 60% 50% at 50% 50%, #000 70%, transparent 100%)',
+            WebkitMaskImage: 'radial-gradient(ellipse 60% 50% at 50% 50%, #000 70%, transparent 100%)'
+          }}
+        ></div>
 
         <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10">
           
@@ -430,7 +444,13 @@ export default function LandingHome() {
         <div className="absolute bottom-10 right-10 w-[350px] h-[350px] bg-[#00E4B8]/6 rounded-full blur-[100px] pointer-events-none animate-glow-pulse" style={{ animationDelay: '2.5s' }}></div>
         
         {/* Subtle grid pattern */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#EAEAEA_1px,transparent_1px),linear-gradient(to_bottom,#EAEAEA_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_70%_60%_at_50%_50%,#000_70%,transparent_100%)] opacity-40 pointer-events-none"></div>
+        <div 
+          className="absolute inset-0 bg-[linear-gradient(to_right,#EAEAEA_1px,transparent_1px),linear-gradient(to_bottom,#EAEAEA_1px,transparent_1px)] bg-[size:32px_32px] opacity-40 pointer-events-none"
+          style={{
+            maskImage: 'radial-gradient(ellipse 70% 60% at 50% 50%, #000 70%, transparent 100%)',
+            WebkitMaskImage: 'radial-gradient(ellipse 70% 60% at 50% 50%, #000 70%, transparent 100%)'
+          }}
+        ></div>
 
         <div className="max-w-4xl mx-auto px-4 sm:px-6 relative z-10">
           

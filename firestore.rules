@@ -104,6 +104,12 @@ service cloud.firestore {
       allow read, write: if request.auth != null;
     }
 
+    // 6. Contact Leads desde la Landing Page
+    match /landing_leads/{leadId} {
+      allow create: if true;
+      allow read, update, delete: if esPersonalAutorizado();
+    }
+
     // Denegar por defecto cualquier otra ruta no contemplada arriba.
     match /{document=**} {
       allow read, write: if false;

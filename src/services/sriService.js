@@ -222,6 +222,16 @@ export function fechaSRI(f) {
   return f;
 }
 
+// Mapea la forma de pago interna al código oficial del SRI
+export function mapearFormaPagoSRI(method) {
+  const m = String(method || '').toLowerCase();
+  if (m === 'tarjeta_credito' || m === 'credito' || m === 'tarjeta') return '19';
+  if (m === 'tarjeta_debito' || m === 'debito') return '16';
+  if (m === 'transferencia' || m === 'banco' || m === 'deposito' || m === 'cheque') return '20';
+  if (m === 'endoso' || m === 'compensacion') return '15';
+  return '01'; // Sin utilización del sistema financiero (Efectivo)
+}
+
 // Generar estructura XML para Factura
 export function generarFacturaXML(emisorConfig, facturaData, terceroData, items = []) {
   const codigoNumerico = facturaData.codigoNumerico ||
@@ -245,6 +255,7 @@ export function generarFacturaXML(emisorConfig, facturaData, terceroData, items 
   const activeItems = items.length > 0 ? items : (facturaData.items || []);
   const gruposIva = {}; // codigoPorcentaje -> { base, valor }
   let totalSinImpuestos = 0;
+  let totalDescuento = 0;
   let detallesXml = '';
 
   activeItems.forEach((item, idx) => {
@@ -252,10 +263,16 @@ export function generarFacturaXML(emisorConfig, facturaData, terceroData, items 
     const precio = parseFloat(item.price) || 0;
     const tarifa = Number(item.ivaCategory ?? 15);
     const codPorc = codigoPorcentajeIva(tarifa);
-    const lineSub = round2(precio * cantidad);
+    const lineGross = round2(precio * cantidad);
+    const lineDiscount = round2(
+      parseFloat(item.monto_descuento_total_linea || item.monto_descuento_linea || item.discount || item.itemDiscount || item.descuento || 0)
+    );
+    const lineSub = round2(Math.max(0, lineGross - lineDiscount));
     const lineIva = round2(lineSub * (tarifa / 100));
 
     totalSinImpuestos = round2(totalSinImpuestos + lineSub);
+    totalDescuento = round2(totalDescuento + lineDiscount);
+
     if (!gruposIva[codPorc]) gruposIva[codPorc] = { base: 0, valor: 0 };
     gruposIva[codPorc].base = round2(gruposIva[codPorc].base + lineSub);
     gruposIva[codPorc].valor = round2(gruposIva[codPorc].valor + lineIva);
@@ -266,7 +283,7 @@ export function generarFacturaXML(emisorConfig, facturaData, terceroData, items 
       <descripcion>${escaparXml(item.name || 'Detalle')}</descripcion>
       <cantidad>${cantidad.toFixed(2)}</cantidad>
       <precioUnitario>${precio.toFixed(2)}</precioUnitario>
-      <descuento>0.00</descuento>
+      <descuento>${lineDiscount.toFixed(2)}</descuento>
       <precioTotalSinImpuesto>${lineSub.toFixed(2)}</precioTotalSinImpuesto>
       <impuestos>
         <impuesto>
@@ -317,7 +334,7 @@ export function generarFacturaXML(emisorConfig, facturaData, terceroData, items 
     <razonSocialComprador>${escaparXml(terceroData.name)}</razonSocialComprador>
     <identificacionComprador>${terceroData.ruc}</identificacionComprador>
     <totalSinImpuestos>${totalSinImpuestos.toFixed(2)}</totalSinImpuestos>
-    <totalDescuento>0.00</totalDescuento>
+    <totalDescuento>${totalDescuento.toFixed(2)}</totalDescuento>
     <totalConImpuestos>${totalImpuestosXml}
     </totalConImpuestos>
     <propina>0.00</propina>
@@ -325,7 +342,7 @@ export function generarFacturaXML(emisorConfig, facturaData, terceroData, items 
     <moneda>DOLAR</moneda>
     <pagos>
       <pago>
-        <formaPago>${facturaData.paymentMethod === 'transferencia' ? '20' : '01'}</formaPago>
+        <formaPago>${mapearFormaPagoSRI(facturaData.paymentMethod)}</formaPago>
         <total>${importeTotal.toFixed(2)}</total>
       </pago>
     </pagos>
@@ -380,23 +397,23 @@ export function generarRetencionXML(emisorConfig, retencionData, terceroData) {
   <infoTributaria>
     <ambiente>${emisorConfig.ambiente}</ambiente>
     <tipoEmision>1</tipoEmision>
-    <razonSocial>${emisorConfig.razonSocial}</razonSocial>
-    <nombreComercial>${emisorConfig.nombreComercial || emisorConfig.razonSocial}</nombreComercial>
+    <razonSocial>${escaparXml(emisorConfig.razonSocial)}</razonSocial>
+    <nombreComercial>${escaparXml(emisorConfig.nombreComercial || emisorConfig.razonSocial)}</nombreComercial>
     <ruc>${emisorConfig.ruc}</ruc>
     <claveAcceso>${claveAcceso}</claveAcceso>
     <codDoc>07</codDoc>
     <estab>${emisorConfig.establecimiento}</estab>
     <ptoEmi>${emisorConfig.puntoEmision}</ptoEmi>
     <secuencial>${String(retencionData.secuencial || '1').padStart(9, '0')}</secuencial>
-    <dirMatriz>${emisorConfig.direccionMatriz || 'Ecuador'}</dirMatriz>
+    <dirMatriz>${escaparXml(emisorConfig.direccionMatriz || 'Ecuador')}</dirMatriz>
   </infoTributaria>
   <infoCompRetencion>
     <fechaEmision>${retencionData.date.split('-').reverse().join('/')}</fechaEmision>
-    <dirEstablecimiento>${emisorConfig.direccionMatriz || 'Ecuador'}</dirEstablecimiento>
+    <dirEstablecimiento>${escaparXml(emisorConfig.direccionMatriz || 'Ecuador')}</dirEstablecimiento>
     <obligadoContabilidad>${emisorConfig.obligadoContabilidad ? 'SI' : 'NO'}</obligadoContabilidad>
     <tipoIdentificacionSujetoRetenido>${obtenerTipoIdentificacionSRI(terceroData)}</tipoIdentificacionSujetoRetenido>
-    <razonSocialSujetoRetenido>${terceroData.name}</razonSocialSujetoRetenido>
-    <identificacionSujetoRetenido>${terceroData.ruc}</identificacionSujetoRetenido>
+    <razonSocialSujetoRetenido>${escaparXml(terceroData.name)}</razonSocialSujetoRetenido>
+    <identificacionSujetoRetenido>${escaparXml(terceroData.ruc)}</identificacionSujetoRetenido>
     <periodoFiscal>${periodoFiscal}</periodoFiscal>
   </infoCompRetencion>
   <impuestos>${impuestosXml}
@@ -426,21 +443,24 @@ export function generarNotaCreditoXML(emisorConfig, ncData, terceroData, items =
   const activeItems = items.length > 0 ? items : (ncData.items || []);
   let detallesXml = '';
   activeItems.forEach((item, idx) => {
-    const lineSub = (parseFloat(item.price) || 0) * (parseInt(item.quantity) || 1);
-    const lineIva = lineSub * ((parseInt(item.ivaCategory) || 15) / 100);
+    const cantidad = parseFloat(item.quantity) || 1;
+    const precio = parseFloat(item.price) || 0;
+    const tarifa = Number(item.ivaCategory ?? 15);
+    const lineSub = round2(precio * cantidad);
+    const lineIva = round2(lineSub * (tarifa / 100));
     detallesXml += `
     <detalle>
-      <codigoInterno>P${idx + 1}</codigoInterno>
-      <descripcion>${item.name || 'Detalle'}</descripcion>
-      <cantidad>${Number(item.quantity).toFixed(2)}</cantidad>
-      <precioUnitario>${Number(item.price).toFixed(2)}</precioUnitario>
+      <codigoInterno>${escaparXml(item.code || `P${idx + 1}`)}</codigoInterno>
+      <descripcion>${escaparXml(item.name || 'Detalle')}</descripcion>
+      <cantidad>${cantidad.toFixed(2)}</cantidad>
+      <precioUnitario>${precio.toFixed(2)}</precioUnitario>
       <descuento>0.00</descuento>
       <precioTotalSinImpuesto>${lineSub.toFixed(2)}</precioTotalSinImpuesto>
       <impuestos>
         <impuesto>
           <codigo>2</codigo>
-          <codigoPorcentaje>${codigoPorcentajeIva(item.ivaCategory)}</codigoPorcentaje>
-          <tarifa>${item.ivaCategory}</tarifa>
+          <codigoPorcentaje>${codigoPorcentajeIva(tarifa)}</codigoPorcentaje>
+          <tarifa>${tarifa}</tarifa>
           <baseImponible>${lineSub.toFixed(2)}</baseImponible>
           <valor>${lineIva.toFixed(2)}</valor>
         </impuesto>
@@ -453,22 +473,22 @@ export function generarNotaCreditoXML(emisorConfig, ncData, terceroData, items =
   <infoTributaria>
     <ambiente>${emisorConfig.ambiente}</ambiente>
     <tipoEmision>1</tipoEmision>
-    <razonSocial>${emisorConfig.razonSocial}</razonSocial>
-    <nombreComercial>${emisorConfig.nombreComercial || emisorConfig.razonSocial}</nombreComercial>
+    <razonSocial>${escaparXml(emisorConfig.razonSocial)}</razonSocial>
+    <nombreComercial>${escaparXml(emisorConfig.nombreComercial || emisorConfig.razonSocial)}</nombreComercial>
     <ruc>${emisorConfig.ruc}</ruc>
     <claveAcceso>${claveAcceso}</claveAcceso>
     <codDoc>04</codDoc>
     <estab>${emisorConfig.establecimiento}</estab>
     <ptoEmi>${emisorConfig.puntoEmision}</ptoEmi>
     <secuencial>${String(ncData.secuencial || '1').padStart(9, '0')}</secuencial>
-    <dirMatriz>${emisorConfig.direccionMatriz || 'Ecuador'}</dirMatriz>
+    <dirMatriz>${escaparXml(emisorConfig.direccionMatriz || 'Ecuador')}</dirMatriz>
   </infoTributaria>
   <infoNotaCredito>
     <fechaEmision>${ncData.date.split('-').reverse().join('/')}</fechaEmision>
-    <dirEstablecimiento>${emisorConfig.direccionMatriz || 'Ecuador'}</dirEstablecimiento>
+    <dirEstablecimiento>${escaparXml(emisorConfig.direccionMatriz || 'Ecuador')}</dirEstablecimiento>
     <tipoIdentificacionComprador>${obtenerTipoIdentificacionSRI(terceroData)}</tipoIdentificacionComprador>
-    <razonSocialComprador>${terceroData.name}</razonSocialComprador>
-    <identificacionComprador>${terceroData.ruc}</identificacionComprador>
+    <razonSocialComprador>${escaparXml(terceroData.name)}</razonSocialComprador>
+    <identificacionComprador>${escaparXml(terceroData.ruc)}</identificacionComprador>
     <obligadoContabilidad>${emisorConfig.obligadoContabilidad ? 'SI' : 'NO'}</obligadoContabilidad>
     <codDocModificado>${ncData.codDocModificado || '01'}</codDocModificado>
     <numDocModificado>${ncData.numDocModificado || '001-001-000000000'}</numDocModificado>
@@ -479,12 +499,12 @@ export function generarNotaCreditoXML(emisorConfig, ncData, terceroData, items =
     <totalConImpuestos>
       <totalImpuesto>
         <codigo>2</codigo>
-        <codigoPorcentaje>${ncData.ivaPorcentaje === 15 ? '4' : '2'}</codigoPorcentaje>
+        <codigoPorcentaje>${codigoPorcentajeIva(ncData.ivaPorcentaje ?? 15)}</codigoPorcentaje>
         <baseImponible>${Number(ncData.baseImponible).toFixed(2)}</baseImponible>
         <valor>${Number(ncData.ivaValor).toFixed(2)}</valor>
       </totalImpuesto>
     </totalConImpuestos>
-    <motivo>${ncData.motivo || 'Devolución de mercadería'}</motivo>
+    <motivo>${escaparXml(ncData.motivo || 'Devolución de mercadería')}</motivo>
   </infoNotaCredito>
   <detalles>${detallesXml}
   </detalles>
@@ -513,21 +533,24 @@ export function generarLiquidacionXML(emisorConfig, liqData, terceroData, items 
   const activeItems = items.length > 0 ? items : (liqData.items || []);
   let detallesXml = '';
   activeItems.forEach((item, idx) => {
-    const lineSub = (parseFloat(item.price) || 0) * (parseInt(item.quantity) || 1);
-    const lineIva = lineSub * ((parseInt(item.ivaCategory) || 15) / 100);
+    const cantidad = parseFloat(item.quantity) || 1;
+    const precio = parseFloat(item.price) || 0;
+    const tarifa = Number(item.ivaCategory ?? 15);
+    const lineSub = round2(precio * cantidad);
+    const lineIva = round2(lineSub * (tarifa / 100));
     detallesXml += `
     <detalle>
-      <codigoPrincipal>P${idx + 1}</codigoPrincipal>
-      <descripcion>${item.name || 'Detalle'}</descripcion>
-      <cantidad>${Number(item.quantity).toFixed(2)}</cantidad>
-      <precioUnitario>${Number(item.price).toFixed(2)}</precioUnitario>
+      <codigoPrincipal>${escaparXml(item.code || `P${idx + 1}`)}</codigoPrincipal>
+      <descripcion>${escaparXml(item.name || 'Detalle')}</descripcion>
+      <cantidad>${cantidad.toFixed(2)}</cantidad>
+      <precioUnitario>${precio.toFixed(2)}</precioUnitario>
       <descuento>0.00</descuento>
       <precioTotalSinImpuesto>${lineSub.toFixed(2)}</precioTotalSinImpuesto>
       <impuestos>
         <impuesto>
           <codigo>2</codigo>
-          <codigoPorcentaje>${codigoPorcentajeIva(item.ivaCategory)}</codigoPorcentaje>
-          <tarifa>${item.ivaCategory}</tarifa>
+          <codigoPorcentaje>${codigoPorcentajeIva(tarifa)}</codigoPorcentaje>
+          <tarifa>${tarifa}</tarifa>
           <baseImponible>${lineSub.toFixed(2)}</baseImponible>
           <valor>${lineIva.toFixed(2)}</valor>
         </impuesto>
@@ -540,29 +563,29 @@ export function generarLiquidacionXML(emisorConfig, liqData, terceroData, items 
   <infoTributaria>
     <ambiente>${emisorConfig.ambiente}</ambiente>
     <tipoEmision>1</tipoEmision>
-    <razonSocial>${emisorConfig.razonSocial}</razonSocial>
-    <nombreComercial>${emisorConfig.nombreComercial || emisorConfig.razonSocial}</nombreComercial>
+    <razonSocial>${escaparXml(emisorConfig.razonSocial)}</razonSocial>
+    <nombreComercial>${escaparXml(emisorConfig.nombreComercial || emisorConfig.razonSocial)}</nombreComercial>
     <ruc>${emisorConfig.ruc}</ruc>
     <claveAcceso>${claveAcceso}</claveAcceso>
     <codDoc>03</codDoc>
     <estab>${emisorConfig.establecimiento}</estab>
     <ptoEmi>${emisorConfig.puntoEmision}</ptoEmi>
     <secuencial>${String(liqData.secuencial || '1').padStart(9, '0')}</secuencial>
-    <dirMatriz>${emisorConfig.direccionMatriz || 'Ecuador'}</dirMatriz>
+    <dirMatriz>${escaparXml(emisorConfig.direccionMatriz || 'Ecuador')}</dirMatriz>
   </infoTributaria>
   <infoLiquidacionCompra>
     <fechaEmision>${liqData.date.split('-').reverse().join('/')}</fechaEmision>
-    <dirEstablecimiento>${emisorConfig.direccionMatriz || 'Ecuador'}</dirEstablecimiento>
+    <dirEstablecimiento>${escaparXml(emisorConfig.direccionMatriz || 'Ecuador')}</dirEstablecimiento>
     <obligadoContabilidad>${emisorConfig.obligadoContabilidad ? 'SI' : 'NO'}</obligadoContabilidad>
     <tipoIdentificacionProveedor>${obtenerTipoIdentificacionSRI(terceroData)}</tipoIdentificacionProveedor>
-    <razonSocialProveedor>${terceroData.name}</razonSocialProveedor>
-    <identificacionProveedor>${terceroData.ruc}</identificacionProveedor>
+    <razonSocialProveedor>${escaparXml(terceroData.name)}</razonSocialProveedor>
+    <identificacionProveedor>${escaparXml(terceroData.ruc)}</identificacionProveedor>
     <totalSinImpuestos>${Number(liqData.baseImponible).toFixed(2)}</totalSinImpuestos>
     <totalDescuento>0.00</totalDescuento>
     <totalConImpuestos>
       <totalImpuesto>
         <codigo>2</codigo>
-        <codigoPorcentaje>${liqData.ivaPorcentaje === 15 ? '4' : '2'}</codigoPorcentaje>
+        <codigoPorcentaje>${codigoPorcentajeIva(liqData.ivaPorcentaje ?? 15)}</codigoPorcentaje>
         <baseImponible>${Number(liqData.baseImponible).toFixed(2)}</baseImponible>
         <valor>${Number(liqData.ivaValor).toFixed(2)}</valor>
       </totalImpuesto>
@@ -571,7 +594,7 @@ export function generarLiquidacionXML(emisorConfig, liqData, terceroData, items 
     <moneda>DOLAR</moneda>
     <pagos>
       <pago>
-        <formaPago>${liqData.paymentMethod === 'transferencia' ? '20' : '01'}</formaPago>
+        <formaPago>${mapearFormaPagoSRI(liqData.paymentMethod)}</formaPago>
         <total>${Number(liqData.total).toFixed(2)}</total>
       </pago>
     </pagos>
