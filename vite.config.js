@@ -6,30 +6,7 @@ export default defineConfig({
   plugins: [react()],
   build: {
     sourcemap: true,
-    chunkSizeWarningLimit: 1000,
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          if (id.includes('node_modules')) {
-            if (id.includes('firebase')) {
-              return 'vendor-firebase';
-            }
-            if (id.includes('node-forge') || id.includes('xml-crypto') || id.includes('xmldom')) {
-              return 'vendor-crypto';
-            }
-            if (id.includes('@dnd-kit')) {
-              return 'vendor-dnd';
-            }
-            if (id.includes('lucide-react')) {
-              return 'vendor-icons';
-            }
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
-              return 'vendor-react';
-            }
-          }
-        }
-      }
-    }
+    chunkSizeWarningLimit: 2500
   },
   server: {
     proxy: {
