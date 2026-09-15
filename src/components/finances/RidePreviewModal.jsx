@@ -461,18 +461,18 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
               <div className="w-full max-w-3xl mx-auto p-5 bg-white border border-border-strong text-black text-xs font-sans leading-tight print:max-w-none print:w-full print:border-none print:p-0 print:m-0">
                 
                 {/* Cabecera Principal Compacta */}
-                <div className="border border-border-strong grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-300 print:grid-cols-2 print:divide-x print:divide-y-0 text-xs text-black">
+                <div className="border border-border-strong grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-300 print:grid-cols-2 print:divide-x print:divide-y-0 text-black" style={{ fontSize: '10.5px', lineHeight: '1.3' }}>
                   
                   {/* Columna Izquierda: Datos del Emisor */}
-                  <div className="p-3 flex items-start gap-3 min-w-0">
+                  <div className="p-2.5 flex items-start gap-2.5 min-w-0">
                     {emisor.logoUrl ? (
                       <img src={emisor.logoUrl} alt="Logo" className="max-h-12 max-w-[100px] object-contain print:max-h-10 shrink-0" />
                     ) : (
                       <div className="h-10 w-20 bg-surface-muted border border-border-strong rounded flex items-center justify-center font-bold text-xs text-text-primary tracking-wider shrink-0">LOGOTIPO</div>
                     )}
                     <div className="space-y-0.5 min-w-0 flex-1">
-                      <h2 className="font-semibold text-xs uppercase leading-tight text-black truncate">{emisor.razonSocial}</h2>
-                      {emisor.nombreComercial && <p className="font-bold text-xs text-black truncate">{emisor.nombreComercial}</p>}
+                      <h2 className="font-bold uppercase leading-tight text-black truncate" style={{ fontSize: '11px' }}>{emisor.razonSocial}</h2>
+                      {emisor.nombreComercial && <p className="font-bold text-black truncate" style={{ fontSize: '10.5px' }}>{emisor.nombreComercial}</p>}
                       <p><span className="font-bold">RUC:</span> {emisor.ruc}</p>
                       {emisor.contribuyenteEspecial && (
                         <p><span className="font-bold">Contribuyente Especial Resolución Nro.</span> {emisor.especialResolucion || '3257'}</p>
@@ -494,7 +494,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
                   </div>
 
                   {/* Columna Derecha: Autorización y Factura */}
-                  <div className="p-3 flex flex-col justify-between space-y-1 min-w-0">
+                  <div className="p-2.5 flex flex-col justify-between space-y-1 min-w-0">
                     {tx.documentType === 'nota_venta' ? (
                       <div className="space-y-0.5">
                         <p><span className="font-bold">TIPO DE DOCUMENTO:</span> RECIBO INTERNO</p>
@@ -504,12 +504,12 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
                       </div>
                     ) : (
                       <div className="space-y-0.5">
-                        <div className="flex justify-between items-center text-xs">
+                        <div className="flex justify-between items-center" style={{ fontSize: '10.5px' }}>
                           <p><span className="font-bold">Ambiente:</span> {emisor.ambiente === '2' ? 'PRODUCCIÓN' : 'PRUEBAS'}</p>
                           <p><span className="font-bold">Emisión:</span> NORMAL</p>
                         </div>
                         <p className="mt-1"><span className="font-bold">Clave Acceso/ No. Autorización:</span></p>
-                        <p className="font-mono text-xs break-all tracking-wide leading-none">{claveAcceso}</p>
+                        <p className="font-mono break-all tracking-wide leading-none" style={{ fontSize: '9.5px' }}>{claveAcceso}</p>
                         <p className="mt-1"><span className="font-bold">FECHA Y HORA DE AUTORIZACIÓN:</span> {tx.fechaAutorizacion || (tx.date.split('-').reverse().join('/') + ' ' + (tx.time || '12:00:00'))}</p>
                         
                         {/* Código de barras */}
@@ -519,7 +519,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
                       </div>
                     )}
                     <div className="border-t border-gray-250 pt-1.5 mt-auto">
-                      <h2 className="font-semibold text-xs tracking-wide text-black uppercase leading-none">
+                      <h2 className="font-bold tracking-wide text-black uppercase leading-none" style={{ fontSize: '11px' }}>
                         {getDocTypeLabel()} {docNumFormatted}
                       </h2>
                     </div>
@@ -801,7 +801,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
                 </div>
 
                 {/* Texto de Compromiso / Letra de Pagaré */}
-                <div className="mt-3 p-2.5 border border-border-strong text-xs leading-relaxed text-black text-justify font-sans print:text-[7.5px] print:p-1.5 print:mt-1.5 print:leading-snug">
+                <div className="mt-2.5 p-2 border border-border-strong text-black text-justify font-sans print:text-[7.5px] print:p-1.5 print:mt-1.5 print:leading-snug" style={{ fontSize: '9px', lineHeight: '1.35' }}>
                   HE RECIBIDO LOS ARTÍCULOS O SERVICIOS DETALLADOS EN ESTA FACTURA, POR EL VALOR INDICADO EN EL "TOTAL".
                   DEBO Y PAGARÉ A <span className="font-bold">{emisor.razonSocial}</span> INCONDICIONALMENTE Y SIN PROTESTO EL VALOR ADEUDADO. EN CASO DE MORA ME
                   SUJETO A PAGAR EL INTERÉS MÁXIMO PREVISTO EN LA LEY Y A SER DEMANDADO EN JUICIO O VERBAL SUMARIO A ELECCIÓN DEL ACTOR,
