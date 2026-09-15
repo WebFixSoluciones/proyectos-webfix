@@ -53,13 +53,13 @@ function numeroALetras(num) {
 
 function MockBarcode({ claveAcceso }) {
   return (
-    <div className="flex flex-col items-center my-1 select-none print:my-0.5">
-      <div className="flex h-6 w-full bg-white items-stretch justify-center gap-[1px] px-1 py-0.5" style={{ backgroundColor: '#ffffff' }}>
+    <div className="flex flex-col items-center my-1 select-none print:my-0.5 w-full max-w-full overflow-hidden">
+      <div className="flex h-6 w-full max-w-[280px] bg-white items-stretch justify-center gap-[1px] px-1 py-0.5" style={{ backgroundColor: '#ffffff' }}>
         {[2,1,3,1,4,1,2,2,1,3,1,4,1,2,2,1,3,1,4,1,2,2,1,3,1,4,1,2,2,1,3,1,4,1,2,2,1,3,1,4,1,2].map((w, idx) => (
           <div key={idx} className="bg-black" style={{ width: `${w}px`, backgroundColor: '#000000', height: '100%' }}></div>
         ))}
       </div>
-      <span className="text-xs font-mono tracking-[0.1em] text-black text-center mt-0.5">{claveAcceso}</span>
+      <span className="font-mono text-black text-center mt-0.5 select-all" style={{ fontSize: '7.8px', letterSpacing: '0.01em', lineHeight: '1.1', maxWidth: '100%' }}>{claveAcceso}</span>
     </div>
   );
 }
@@ -470,7 +470,7 @@ export default function PublicRideView() {
                       <p><span className="font-bold">Emisión:</span> NORMAL</p>
                     </div>
                     <p className="mt-1"><span className="font-bold">Clave Acceso/ No. Autorización:</span></p>
-                    <p className="font-mono break-all tracking-wide leading-none" style={{ fontSize: '9.5px' }}>{claveAcceso}</p>
+                    <p className="font-mono select-all tracking-normal text-black" style={{ fontSize: '8px', lineHeight: '1.25' }}>{claveAcceso}</p>
                     <p className="mt-1"><span className="font-bold">FECHA Y HORA DE AUTORIZACIÓN:</span> {tx.fechaAutorizacion || (tx.date.split('-').reverse().join('/') + ' ' + (tx.time || '12:00:00'))}</p>
                     
                     {/* Código de barras */}
