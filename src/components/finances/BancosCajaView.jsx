@@ -229,15 +229,15 @@ export default function BancosCajaView({ db, usuario, showToast }) {
                   <div>
                     <div className="text-sm font-medium text-text-primary">{cuenta.nombre}</div>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span className={`inline-flex px-1.5 py-0.5 text-[10px] font-medium border rounded-badge ${TIPO_BADGES[cuenta.tipo]}`}>{TIPO_LABELS[cuenta.tipo]}</span>
-                      <span className={`text-[10px] ${cuenta.estado === 'activo' ? 'text-success' : 'text-text-muted'}`}>{cuenta.estado}</span>
+                      <span className={`inline-flex px-1.5 py-0.5 text-xs font-medium border rounded-badge ${TIPO_BADGES[cuenta.tipo]}`}>{TIPO_LABELS[cuenta.tipo]}</span>
+                      <span className={`text-xs ${cuenta.estado === 'activo' ? 'text-success' : 'text-text-muted'}`}>{cuenta.estado}</span>
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="text-right">
                     <div className={`text-sm font-bold ${(cuenta.saldoActual || 0) >= 0 ? 'text-success' : 'text-error'}`}>{formatCurrency(cuenta.saldoActual)}</div>
-                    <div className="text-[10px] text-text-muted">Saldo inicial: {formatCurrency(cuenta.saldoInicial)}</div>
+                    <div className="text-xs text-text-muted">Saldo inicial: {formatCurrency(cuenta.saldoInicial)}</div>
                   </div>
                   <div className="flex gap-1" onClick={e => e.stopPropagation()}>
                     <button onClick={() => { setEditingCuenta(cuenta); setShowFormCuenta(true); }} className="btn-icon w-7 h-7 text-text-secondary hover:text-primary"><Filter size={13} /></button>
@@ -314,8 +314,8 @@ export default function BancosCajaView({ db, usuario, showToast }) {
                       </td>
                       <td className="px-3 py-2.5 text-center">
                         {mov.conciliado
-                          ? <span className="inline-flex items-center gap-1 text-[10px] font-medium text-success"><Link2 size={10} />Sí</span>
-                          : <span className="inline-flex items-center gap-1 text-[10px] font-medium text-text-muted"><Link2Off size={10} />No</span>
+                          ? <span className="inline-flex items-center gap-1 text-xs font-medium text-success"><Link2 size={10} />Sí</span>
+                          : <span className="inline-flex items-center gap-1 text-xs font-medium text-text-muted"><Link2Off size={10} />No</span>
                         }
                       </td>
                       <td className="px-3 py-2.5">
@@ -359,10 +359,10 @@ export default function BancosCajaView({ db, usuario, showToast }) {
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className={`inline-flex px-2 py-0.5 text-[10px] font-bold rounded-badge ${badge.color}`}>
+                        <span className={`inline-flex px-2 py-0.5 text-xs font-bold rounded-badge ${badge.color}`}>
                           {badge.label} ({sug.confianza}%)
                         </span>
-                        <span className="text-[10px] text-text-secondary">
+                        <span className="text-xs text-text-secondary">
                           {formatDate(sug.movimientoBancario.fecha)} — {formatCurrency(sug.movimientoBancario.monto)}
                         </span>
                       </div>
@@ -372,7 +372,7 @@ export default function BancosCajaView({ db, usuario, showToast }) {
                       <div className="text-xs text-text-primary truncate">
                         <strong>Financiero:</strong> {sug.movimientoFinanciero.documento?.numero || 'Sin número'} — {sug.movimientoFinanciero.tercero?.nombre || 'Sin tercero'}
                       </div>
-                      <div className="text-[10px] text-text-secondary mt-1">
+                      <div className="text-xs text-text-secondary mt-1">
                         Coincidencia: {sug.razon}
                       </div>
                     </div>
@@ -426,10 +426,10 @@ function FormCuentaModal({ cuenta, onSave, onClose }) {
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50" onClick={onClose}>
-      <div className="w-full max-w-md bg-white rounded-lg border border-border-default" onClick={e => e.stopPropagation()}>
+      <div className="w-full max-w-md bg-white rounded-md border border-border-default" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-3 border-b border-border-default">
           <h3 className="text-md font-semibold text-black">{cuenta ? 'Editar Cuenta' : 'Nueva Cuenta'}</h3>
-          <button onClick={onClose} className="btn-icon text-gray-500"><X size={16} /></button>
+          <button onClick={onClose} className="btn-icon text-text-secondary"><X size={16} /></button>
         </div>
         <form onSubmit={handleSubmit} className="p-5 space-y-3">
           <div>
@@ -490,10 +490,10 @@ function FormMovimientoModal({ cuenta, onSave, onClose }) {
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50" onClick={onClose}>
-      <div className="w-full max-w-md bg-white rounded-lg border border-border-default" onClick={e => e.stopPropagation()}>
+      <div className="w-full max-w-md bg-white rounded-md border border-border-default" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-3 border-b border-border-default">
           <h3 className="text-md font-semibold text-black">Nuevo Movimiento — {cuenta.nombre}</h3>
-          <button onClick={onClose} className="btn-icon text-gray-500"><X size={16} /></button>
+          <button onClick={onClose} className="btn-icon text-text-secondary"><X size={16} /></button>
         </div>
         <form onSubmit={handleSubmit} className="p-5 space-y-3">
           <div className="grid grid-cols-2 gap-3">

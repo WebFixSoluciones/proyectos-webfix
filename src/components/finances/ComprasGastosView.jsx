@@ -159,14 +159,14 @@ Gracias por su compra`;
           <div className="flex gap-2 text-xs font-bold">
             <button
               onClick={() => setPastedText(MOCK_CNT_TEXT)}
-              className="px-3 py-1 rounded-lg bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 transition-all flex items-center gap-1"
+              className="px-3 py-1 rounded-md bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 transition-all flex items-center gap-1"
             >
               <Copy size={10} />
               <span>Demo Factura CNT</span>
             </button>
             <button
               onClick={() => setPastedText(MOCK_SUPERMAXI_TEXT)}
-              className="px-3 py-1 rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-400 hover:bg-purple-500/20 transition-all flex items-center gap-1"
+              className="px-3 py-1 rounded-md bg-purple-500/10 border border-purple-500/20 text-purple-400 hover:bg-purple-500/20 transition-all flex items-center gap-1"
             >
               <Copy size={10} />
               <span>Demo Supermaxi</span>
@@ -200,7 +200,7 @@ Gracias por su compra`;
                   <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1">
                     <CheckCircle2 size={14} /> Campos Extraídos por IA
                   </h4>
-                  <button type="button" onClick={() => setParsedData(null)} className="btn-icon text-gray-400"><X size={14} /></button>
+                  <button type="button" onClick={() => setParsedData(null)} className="btn-icon text-text-secondary"><X size={14} /></button>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 text-xs">
@@ -282,7 +282,7 @@ Gracias por su compra`;
                   </div>
                   <div className="col-span-2 border-t border-dashed border-white/10 pt-2 flex justify-between items-center">
                     <span className="font-bold text-red-500">Total a Contabilizar:</span>
-                    <span className="font-black text-red-500 text-base">${(Number(parsedData.baseImponible || 0) + Number(parsedData.ivaValor || 0)).toFixed(2)}</span>
+                    <span className="font-semibold text-red-500 text-base">${(Number(parsedData.baseImponible || 0) + Number(parsedData.ivaValor || 0)).toFixed(2)}</span>
                   </div>
                 </div>
               </div>
@@ -296,10 +296,10 @@ Gracias por su compra`;
               </button>
             </form>
           ) : (
-            <div className="h-full flex flex-col items-center justify-center text-center p-6 text-gray-500">
-              <Sparkles size={32} className="text-gray-400 mb-2 animate-bounce" />
+            <div className="h-full flex flex-col items-center justify-center text-center p-6 text-text-secondary">
+              <Sparkles size={32} className="text-text-secondary mb-2 animate-bounce" />
               <p className="text-xs font-semibold">Esperando análisis...</p>
-              <p className="text-xs text-gray-600 mt-1">Pegue los datos en el recuadro de la izquierda y presione "Analizar Gasto con IA".</p>
+              <p className="text-xs text-text-primary mt-1">Pegue los datos en el recuadro de la izquierda y presione "Analizar Gasto con IA".</p>
             </div>
           )}
         </div>
@@ -307,13 +307,13 @@ Gracias por su compra`;
       </div>
 
       {/* HISTORIAL RECIENTE GASTOS IA */}
-      <div className="rounded-card border overflow-hidden transition-all border-slate-200/80 bg-white">
+      <div className="rounded-card border overflow-hidden transition-all border-border-default/80 bg-white">
         <div className="p-6 pb-2 border-b border-dashed border-white/5">
           <h3 className="text-xs font-bold uppercase tracking-wider text-black">Últimos Gastos Registrados con IA</h3>
         </div>
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left text-xs whitespace-nowrap">
-            <thead className="text-xs uppercase font-bold tracking-wider bg-slate-50 text-slate-600 border-b border-slate-100">
+            <thead className="text-xs uppercase font-bold tracking-wider bg-surface-bg text-text-primary border-b border-border-default">
               <tr>
                 <th className="px-6 py-3.5">Fecha</th>
                 <th className="px-6 py-3.5">Proveedor / RUC</th>
@@ -327,11 +327,11 @@ Gracias por su compra`;
             </thead>
             <tbody className="divide-y divide-slate-100">
               {currentExpenses.map(tx => (
-                <tr key={tx.id} className="transition-colors hover:bg-slate-50/40">
-                  <td className="px-6 py-3.5 text-gray-400 font-medium">{tx.date}</td>
+                <tr key={tx.id} className="transition-colors hover:bg-surface-bg/40">
+                  <td className="px-6 py-3.5 text-text-secondary font-medium">{tx.date}</td>
                   <td className="px-6 py-3.5 font-semibold text-black">{tx.description}</td>
                   <td className="px-6 py-3.5 font-mono text-xs">{tx.documentNumber}</td>
-                  <td className="px-6 py-3.5 capitalize text-gray-500 font-medium">{String(tx.category || '').replace('_', ' ')}</td>
+                  <td className="px-6 py-3.5 capitalize text-text-secondary font-medium">{String(tx.category || '').replace('_', ' ')}</td>
                   <td className="px-6 py-3.5 text-right font-mono">${(Number(tx.baseImponible) || 0).toFixed(2)}</td>
                   <td className="px-6 py-3.5 text-right font-mono">${(Number(tx.ivaValor) || 0).toFixed(2)}</td>
                   <td className="px-6 py-3.5 text-right font-bold text-red-500">${Number(tx.total).toFixed(2)}</td>
@@ -349,7 +349,7 @@ Gracias por su compra`;
 
               {currentExpenses.length === 0 && (
                 <tr>
-                  <td colSpan="8" className="px-6 py-8 text-center text-gray-500 italic">No hay gastos ingresados por IA en esta sesión.</td>
+                  <td colSpan="8" className="px-6 py-8 text-center text-text-secondary italic">No hay gastos ingresados por IA en esta sesión.</td>
                 </tr>
               )}
             </tbody>

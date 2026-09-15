@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { auth, db, setTenantId } from '../firebase';
 
 
@@ -12,82 +12,36 @@ export function AuthProvider({ children }) {
   const [tenantInfo, setTenantInfo] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const [profileError, setProfileError] = useState('');
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        try {
-          // 1. Obtener datos de usuario
-          const userDocRef = doc(db, 'users', user.uid);
-          const userSnap = await getDoc(userDocRef);
-          
-          let profile = null;
-          let tempTenantId = '';
-          
-          if (userSnap.exists()) {
-            profile = userSnap.data();
-            tempTenantId = profile.tenantId;
-          } else {
-            // Caso de fallback: si es un usuario existente de antes de la transformación SaaS,
-            // le asociamos el tenant default para no romper sus datos.
-            const defaultTenantId = "1:625295446429:web:95fa8147488a6ab3a65f74";
-            profile = {
-              uid: user.uid,
-              email: user.email,
-              tenantId: defaultTenantId,
-              role: user.email === 'aurresta@webfixsoluciones.net' ? 'superadmin' : 'admin',
-              status: 'active'
-            };
-            await setDoc(userDocRef, profile, { merge: true });
-            tempTenantId = defaultTenantId;
-          }
-
-          if (user.email === 'aurresta@webfixsoluciones.net' && profile.role !== 'superadmin') {
-            profile.role = 'superadmin';
-            await setDoc(userDocRef, { role: 'superadmin' }, { merge: true });
-          }
-
-          
-          // 2. Establecer tenantId de manera dinámica para live-binding en firebase.js
-          setTenantId(tempTenantId);
-          setUserProfile(profile);
-          
-          // 3. Obtener info del tenant (suscripción, plan, etc.)
-          const tenantDocRef = doc(db, 'tenants', tempTenantId);
-          const tenantSnap = await getDoc(tenantDocRef);
-          
-          if (tenantSnap.exists()) {
-            setTenantInfo(tenantSnap.data());
-          } else {
-            // Crear el tenant si no existe (fallback para usuarios heredados)
-            const defaultTenant = {
-              id: tempTenantId,
-              companyName: 'Mi Empresa (ERP)',
-              planId: 'enterprise', // Plan por defecto para heredados
-              planStatus: 'active',
-              expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() // 1 año
-            };
-            await setDoc(tenantDocRef, defaultTenant);
-            setTenantInfo(defaultTenant);
-          }
-          
-          setCurrentUser(user);
-        } catch (err) {
-          console.error("Error al cargar perfil de inquilino:", err);
+    let stopProfile = () => {};
+    let stopTenant = () => {};
+    const clear = () => { setCurrentUser(null); setUserProfile(null); setTenantInfo(null); };
+    const unsubscribe = onAuthStateChanged(auth, user => {
+      stopProfile(); stopTenant(); clear(); setProfileError('');
+      if (!user) { setLoading(false); return; }
+      setLoading(true);
+      stopProfile = onSnapshot(doc(db, 'users', user.uid), snapshot => {
+        stopTenant();
+        const profile = snapshot.data();
+        if (!profile?.tenantId || profile.status !== 'active') {
+          clear(); setProfileError(profile ? 'Tu acceso está desactivado. Contacta al administrador.' : 'Tu cuenta todavía no tiene una empresa asignada.'); setLoading(false); return;
         }
-      } else {
-        setCurrentUser(null);
-        setUserProfile(null);
-        setTenantInfo(null);
-      }
-      setLoading(false);
+        setTenantId(profile.tenantId);
+        stopTenant = onSnapshot(doc(db, 'tenants', profile.tenantId), tenant => {
+          if (!tenant.exists()) { clear(); setProfileError('La empresa asignada no está disponible.'); }
+          else { setUserProfile(profile); setTenantInfo(tenant.data()); setCurrentUser(user); setProfileError(''); }
+          setLoading(false);
+        }, () => { clear(); setProfileError('No se pudo verificar el acceso a la empresa.'); setLoading(false); });
+      }, () => { clear(); setProfileError('No se pudo verificar tu perfil de acceso.'); setLoading(false); });
     });
-
-    return () => unsubscribe();
+    return () => { unsubscribe(); stopProfile(); stopTenant(); };
   }, []);
 
   const logout = () => signOut(auth);
 
   const value = {
+    profileError,
     currentUser,
     userProfile,
     tenantInfo,

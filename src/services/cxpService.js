@@ -1,59 +1,31 @@
-import { collection, updateDoc, doc, getDocs, query, where, orderBy, serverTimestamp, getDoc } from 'firebase/firestore';
-import { registrarAuditoria } from './auditService';
+import { postFinancialPayment } from './financialTransactions.js';
+import { getAppId } from '../firebase.js';
+import { collection, getDocs } from './financeStore.js';
 
 const COLLECTION = 'fin_cxp';
 
 export async function getCxP(db, filtros = {}) {
-  try {
-    const constraints = [orderBy('factura.fecha', 'desc')];
-    if (filtros.estado && filtros.estado !== 'all') constraints.push(where('estado', '==', filtros.estado));
-    const q = query(collection(db, COLLECTION), ...constraints);
-    const snap = await getDocs(q);
-    let items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-    if (filtros.search) {
-      const s = filtros.search.toLowerCase();
-      items = items.filter(i => i.tercero?.nombre?.toLowerCase().includes(s) || i.tercero?.ruc?.includes(s) || i.factura?.numero?.toLowerCase().includes(s));
-    }
-    if (filtros.fechaDesde) items = items.filter(i => new Date(i.factura?.fecha?.toDate?.() || i.factura?.fecha) >= new Date(filtros.fechaDesde));
-    if (filtros.fechaHasta) items = items.filter(i => new Date(i.factura?.fecha?.toDate?.() || i.factura?.fecha) <= new Date(filtros.fechaHasta + 'T23:59:59'));
-
-    items.forEach(i => { i.diasVencido = i.factura?.fechaVencimiento ? Math.floor((Date.now() - new Date(i.factura.fechaVencimiento.toDate?.() || i.factura.fechaVencimiento).getTime()) / 86400000) : 0; });
-    return items;
-  } catch (e) {
-    if (e.code === 'failed-precondition' || e.message?.includes('index')) {
-      const q = query(collection(db, COLLECTION));
-      const snap = await getDocs(q);
-      let items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      items.sort((a, b) => { const fa = a.factura?.fecha?.toDate?.() || new Date(a.factura?.fecha || 0); const fb = b.factura?.fecha?.toDate?.() || new Date(b.factura?.fecha || 0); return fb - fa; });
-      return items;
-    }
-    throw e;
-  }
+  const snap = await getDocs(collection(db, COLLECTION));
+  const date = value => new Date(value?.toDate?.() || value || 0);
+  return snap.docs.map(d => ({ ...d.data(), id: d.id })).filter(i => {
+    if (filtros.estado && filtros.estado !== 'all' && i.estado !== filtros.estado) return false;
+    const search = (filtros.search || '').toLowerCase();
+    if (search && ![i.tercero?.nombre, i.tercero?.ruc, i.factura?.numero].some(v => String(v || '').toLowerCase().includes(search))) return false;
+    if (filtros.fechaDesde && date(i.factura?.fecha) < new Date(filtros.fechaDesde)) return false;
+    if (filtros.fechaHasta && date(i.factura?.fecha) > new Date(filtros.fechaHasta + 'T23:59:59')) return false;
+    return true;
+  }).map(i => ({ ...i, diasVencido: i.factura?.fechaVencimiento ? Math.max(0, Math.floor((Date.now() - date(i.factura.fechaVencimiento).getTime()) / 86400000)) : 0 })).sort((a,b) => date(b.factura?.fecha) - date(a.factura?.fecha));
 }
 
 export async function registrarPago(db, cxpId, pago, usuario) {
-  const docRef = doc(db, COLLECTION, cxpId);
-  const snap = await getDoc(docRef);
-  if (!snap.exists()) throw new Error('Registro CxP no encontrado');
-  const cxp = snap.data();
-
-  const nuevoPago = { id: Date.now().toString(36) + Math.random().toString(36).slice(2), fecha: pago.fecha || new Date().toISOString(), monto: Number(pago.monto), metodoPago: pago.metodoPago || 'efectivo', referencia: pago.referencia || '' };
-  const pagos = [...(cxp.abonos || []), nuevoPago];
-  const totalAbonado = pagos.reduce((s, p) => s + Number(p.monto), 0);
-  const nuevoSaldo = Math.max(0, Number(cxp.factura?.montoTotal || cxp.saldoPendiente) - totalAbonado);
-  const nuevoEstado = nuevoSaldo <= 0.01 ? 'pagado' : 'parcial';
-
-  await updateDoc(docRef, { abonos: pagos, saldoPendiente: nuevoSaldo, estado: nuevoEstado, actualizadoEn: serverTimestamp() });
-  registrarAuditoria(db, { coleccion: COLLECTION, documentoId: cxpId, accion: 'abonar', usuario: usuario.uid, usuarioEmail: usuario.email, cambios: { pago: nuevoPago }, modulo: 'finanzas' });
-  return { ...cxp, abonos: pagos, saldoPendiente: nuevoSaldo, estado: nuevoEstado };
+  return postFinancialPayment(db, { collection: 'fin_cxp', id: cxpId }, pago, usuario, { tenantId: getAppId() });
 }
 
 export function getAging(items) {
   const ahora = Date.now();
   const aging = { '0-30': { count: 0, total: 0 }, '31-60': { count: 0, total: 0 }, '61-90': { count: 0, total: 0 }, '+90': { count: 0, total: 0 } };
   items.filter(i => i.estado !== 'pagado' && i.estado !== 'anulado').forEach(i => {
-    const d = (i.factura?.fechaVencimiento?.toDate?.() || new Date(i.factura?.fechaVencimiento));
+    const d = (i.factura?.fechaVencimiento?.toDate?.() || new Date(i.factura?.fechaVencimiento || Date.now()));
     const dias = Math.floor((ahora - d.getTime()) / 86400000);
     const bucket = dias <= 30 ? '0-30' : dias <= 60 ? '31-60' : dias <= 90 ? '61-90' : '+90';
     aging[bucket].count++; aging[bucket].total += Number(i.saldoPendiente) || 0;

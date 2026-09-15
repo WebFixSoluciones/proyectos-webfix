@@ -1,3 +1,4 @@
+import { useAuth } from '../contexts/AuthContext';
 import { useState } from 'react';
 import { useNavigate } from'react-router-dom';
 import { User, Lock, Eye, EyeOff, RefreshCw } from'lucide-react';
@@ -6,6 +7,7 @@ import { auth } from'../firebase';
 
 export default function LoginPage({ showToast, companyProfile }) {
  const navigate = useNavigate();
+ const { profileError } = useAuth();
  const [loginForm, setLoginForm] = useState({ email:'', password:'' });
  const [loginError, setLoginError] = useState('');
  const [isAuthenticating, setIsAuthenticating] = useState(false);
@@ -39,7 +41,7 @@ export default function LoginPage({ showToast, companyProfile }) {
  };
 
  return (
- <div className="flex items-center justify-center min-h-screen w-full font-sans overflow-hidden transition-colors duration-500 relative z-0 text-gray-800">
+ <div className="flex items-center justify-center min-h-screen w-full font-sans overflow-hidden transition-colors duration-500 relative z-0 text-text-heading">
  
  {/* BASE BACKGROUND SOLID COLOR */}
  <div className="absolute inset-0 -z-20 transition-colors duration-500 bg-surface-bg" />
@@ -59,7 +61,7 @@ export default function LoginPage({ showToast, companyProfile }) {
  <div className="absolute inset-0 rounded-btn bg-gradient-to-tr from-primary/10 to-primary-muted blur-xl opacity-60 pointer-events-none"></div>
  
  {/* La tarjeta principal */}
- <div className="w-full p-8 sm:p-10 rounded-btn flex flex-col border transition-all duration-500 relative z-10 bg-white/95 border-slate-200/60">
+ <div className="w-full p-8 sm:p-10 rounded-btn flex flex-col border transition-all duration-500 relative z-10 bg-white/95 border-border-default/60">
  
  {/* Header de la Empresa o Web Fix */}
  <div className="text-left mb-8 select-none">
@@ -72,7 +74,7 @@ export default function LoginPage({ showToast, companyProfile }) {
  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
  </svg>
  </div>
- <span className="text-2xl font-black tracking-tight text-black">
+ <span className="text-2xl font-semibold tracking-tight text-black">
  Web Fix
  </span>
  </div>
@@ -95,7 +97,7 @@ export default function LoginPage({ showToast, companyProfile }) {
  type="email" 
  value={loginForm.email}
  onChange={(e) => setLoginForm({...loginForm, email: e.target.value})}
- className="w-full text-xs font-medium tracking-wide pl-11 pr-3.5 py-3.5 rounded-btn outline-none transition-all border bg-surface-bg border-slate-300 text-black focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white" 
+ className="w-full text-xs font-medium tracking-wide pl-11 pr-3.5 py-3.5 rounded-btn outline-none transition-all border bg-surface-bg border-border-strong text-black focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white"
  placeholder="correo@ejemplo.com" 
  required
  />
@@ -114,14 +116,14 @@ export default function LoginPage({ showToast, companyProfile }) {
  type={showPassword ?"text" :"password"}
  value={loginForm.password}
  onChange={(e) => setLoginForm({...loginForm, password: e.target.value})}
- className="w-full text-xs font-medium tracking-wide pl-11 pr-10 py-3.5 rounded-btn outline-none transition-all border bg-surface-bg border-slate-300 text-black focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white" 
+ className="w-full text-xs font-medium tracking-wide pl-11 pr-10 py-3.5 rounded-btn outline-none transition-all border bg-surface-bg border-border-strong text-black focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white"
  placeholder="••••••••••••" 
  required
  />
  <button
  type="button"
  onClick={() => setShowPassword(!showPassword)}
- className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-black/60 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors"
+ className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-black/60  hover:text-black  transition-colors"
  >
  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
  </button>
@@ -139,7 +141,7 @@ export default function LoginPage({ showToast, companyProfile }) {
  </div>
  </div>
  
- {loginError && (
+ {(loginError || profileError) && (
  <div className="p-3 rounded-btn text-xs font-semibold tracking-wide flex items-center justify-center text-center animate-in fade-in duration-300 border bg-red-50 text-red-650 border-red-100">
  {loginError}
  </div>

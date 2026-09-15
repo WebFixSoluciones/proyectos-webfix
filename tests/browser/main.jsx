@@ -1,0 +1,14 @@
+import { createRoot } from 'react-dom/client';
+import '../../src/index.css';
+import FinanceModule from '../../src/components/finances/FinanceModule';
+import TransactionForm from '../../src/components/finances/TransactionForm';
+import InventoryModule from '../../src/components/inventory/InventoryModule';
+import { setTenantId } from '../../src/firebase';
+import { normalizeProduct, makeCartItem } from '../../src/services/productModel';
+import { fixtureProducts, fixtureClient } from './firebase-fixture';
+setTenantId('test');
+const products = fixtureProducts.map(p => normalizeProduct(p));
+const mode = new URLSearchParams(location.search).get('mode');
+const showToast = (message, type) => { globalThis.__lastToast = { message, type }; document.getElementById('test-status').textContent = message; };
+const transaction = { type: 'ingreso', documentType: 'nota_venta', date: '2026-09-14', thirdPartyId: fixtureClient.id, thirdParty: fixtureClient, items: [makeCartItem(products[0])], total: 23, baseImponible: 20, ivaValor: 3, paymentsBreakdown: { efectivo: 23, transferencia: 0, tarjeta: 0, cruce_cuentas: 0 }, paymentStatus: 'pagado' };
+createRoot(document.getElementById('root')).render(<><div id="test-status" role="status" className="fixed bottom-0 left-0 z-[500] bg-surface-card text-text-primary p-2 text-sm pointer-events-none" /><div className="p-6">{mode === 'inventory' ? <InventoryModule showToast={showToast} /> : mode === 'admin' ? <TransactionForm tx={transaction} products={products} thirdParties={[fixtureClient]} showToast={showToast} db={{}} appId="test" onClose={() => { globalThis.__closed = true; }} onSaved={data => { globalThis.__saved = data; }} /> : <FinanceModule mode="ventas" initialSubTab="pos" products={products} thirdParties={[fixtureClient]} transactions={[]} usuario={{ uid: 'tester', email: 'pruebas@example.invalid' }} showToast={showToast} />}</div></>);

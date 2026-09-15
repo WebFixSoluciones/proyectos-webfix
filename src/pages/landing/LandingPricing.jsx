@@ -105,7 +105,7 @@ export default function LandingPricing() {
             <div className="inline-flex items-center p-1 rounded-md bg-white border border-border-default gap-1">
               <button
                 onClick={() => setBillingPeriod('monthly')}
-                className={`px-3 py-1.5 text-xs font-medium rounded-[4px] transition-all cursor-pointer ${
+                className={`px-3 py-1.5 text-xs font-medium rounded-badge transition-all cursor-pointer ${
                   billingPeriod === 'monthly' ? 'bg-surface-sidebar text-text-heading font-semibold shadow-none' : 'text-text-secondary'
                 }`}
               >
@@ -113,12 +113,12 @@ export default function LandingPricing() {
               </button>
               <button
                 onClick={() => setBillingPeriod('yearly')}
-                className={`px-3 py-1.5 text-xs font-medium rounded-[4px] transition-all cursor-pointer flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 text-xs font-medium rounded-badge transition-all cursor-pointer flex items-center gap-1.5 ${
                   billingPeriod === 'yearly' ? 'bg-surface-sidebar text-text-heading font-semibold shadow-none' : 'text-text-secondary'
                 }`}
               >
                 <span>Anual</span>
-                <span className="text-[10px] text-success-text bg-success-light px-1.5 py-0.5 rounded font-mono font-bold">-20%</span>
+                <span className="text-xs text-success-text bg-success-light px-1.5 py-0.5 rounded font-mono font-bold">-20%</span>
               </button>
             </div>
           </div>
@@ -134,12 +134,12 @@ export default function LandingPricing() {
                 key={plan.id}
                 className={`p-6 flex flex-col justify-between transition-all ${
                   plan.recommended 
-                    ? 'border-text-heading ring-1 ring-text-heading shadow-sm relative' 
+                    ? 'border-text-heading ring-1 ring-text-heading  relative'
                     : 'border-border-default hover:border-border-strong'
                 }`}
               >
                 {plan.recommended && (
-                  <Badge variant="default" className="absolute -top-2.5 right-6 text-[10px] normal-case py-0.5 px-2 font-normal">
+                  <Badge variant="default" className="absolute -top-2.5 right-6 text-xs normal-case py-0.5 px-2 font-normal">
                     Más Popular
                   </Badge>
                 )}
@@ -158,20 +158,20 @@ export default function LandingPricing() {
                       <span className="text-xs text-text-secondary font-medium">/ mes</span>
                     </div>
                     {billingPeriod === 'yearly' && (
-                      <span className="text-[11px] text-success-text font-medium mt-1 block">
+                      <span className="text-xs text-success-text font-medium mt-1 block">
                         Facturado anualmente (${plan.price * 12}/año)
                       </span>
                     )}
                   </div>
 
                   <div className="border-t border-border-default/60 pt-4 mb-6">
-                    <span className="text-[11px] font-semibold text-text-heading uppercase tracking-wider block mb-3">
+                    <span className="text-xs font-semibold text-text-heading uppercase tracking-wider block mb-3">
                       Incluye:
                     </span>
                     <ul className="space-y-2 text-xs text-text-secondary">
                       {plan.features.map((feature, i) => (
                         <li key={i} className="flex items-start gap-2">
-                          <Check size={13} className="text-[#00E4B8] shrink-0 mt-0.5" />
+                          <Check size={13} className="text-success shrink-0 mt-0.5" />
                           <span>{feature}</span>
                         </li>
                       ))}

@@ -206,7 +206,7 @@ export default function ProductsView({ showToast, db, appId }) {
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="px-3 py-1.5 rounded-card border-none text-xs font-medium outline-none transition-all cursor-pointer bg-surface-bg hover:bg-surface-card text-slate-700 focus:ring-1 focus:ring-primary/25"
+            className="px-3 py-1.5 rounded-card border-none text-xs font-medium outline-none transition-all cursor-pointer bg-surface-bg hover:bg-surface-card text-text-primary focus:ring-1 focus:ring-primary/25"
           >
             <option value="all">Todos los tipos</option>
             <option value="producto">Productos físicos</option>
@@ -316,7 +316,7 @@ export default function ProductsView({ showToast, db, appId }) {
                         ${Number(p.cost || 0).toFixed(2)}
                       </td>
                       <td
-                        className={`px-6 py-3.5 text-right font-black ${false ? "text-white" : "text-primary"}`}
+                        className={`px-6 py-3.5 text-right font-semibold ${false ? "text-white" : "text-primary"}`}
                       >
                         ${Number(p.price || 0).toFixed(2)}
                       </td>
@@ -402,7 +402,7 @@ export default function ProductsView({ showToast, db, appId }) {
               </h2>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="btn-icon text-gray-450 hover:text-text-primary dark:text-text-muted dark:hover:text-white"
+                className="btn-icon text-gray-450 hover:text-text-primary  "
               >
                 <Plus size={16} className="rotate-45" />
               </button>

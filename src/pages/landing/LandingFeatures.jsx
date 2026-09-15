@@ -26,10 +26,10 @@ export default function LandingFeatures() {
         <Card className="w-full max-w-sm mx-auto text-left">
           <CardHeader className="py-3 flex flex-row items-center justify-between border-b border-border-default">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#00E4B8] animate-pulse"></span>
+              <span className="w-2 h-2 rounded-full bg-success animate-pulse"></span>
               <span className="text-xs font-semibold text-text-heading">Terminal POS 01</span>
             </div>
-            <Badge variant="success" className="text-[10px]">Caja Abierta</Badge>
+            <Badge variant="success" className="text-xs">Caja Abierta</Badge>
           </CardHeader>
           <CardContent className="pt-3 space-y-3 text-xs">
             <div className="space-y-1.5 font-mono">
@@ -42,7 +42,7 @@ export default function LandingFeatures() {
                 <span>$90.00</span>
               </div>
             </div>
-            <div className="border-t border-border-default pt-2 space-y-1 text-[11px] text-text-secondary">
+            <div className="border-t border-border-default pt-2 space-y-1 text-xs text-text-secondary">
               <div className="flex justify-between">
                 <span>Subtotal 15%</span>
                 <span className="font-mono">$338.26</span>
@@ -76,10 +76,10 @@ export default function LandingFeatures() {
         <Card className="w-full max-w-sm mx-auto text-left">
           <CardHeader className="py-3 flex flex-row items-center justify-between border-b border-border-default">
             <span className="text-xs font-semibold text-text-heading">Comprobante Autorizado</span>
-            <Badge variant="success" className="text-[10px]">SRI Aprobado</Badge>
+            <Badge variant="success" className="text-xs">SRI Aprobado</Badge>
           </CardHeader>
           <CardContent className="pt-3 space-y-3 text-xs">
-            <div className="p-3 bg-surface-sidebar rounded-md font-mono text-[11px] space-y-1">
+            <div className="p-3 bg-surface-sidebar rounded-md font-mono text-xs space-y-1">
               <div className="flex justify-between text-text-secondary">
                 <span>N° Factura:</span>
                 <span className="font-bold text-text-heading">001-001-000004512</span>
@@ -119,14 +119,14 @@ export default function LandingFeatures() {
             <div className="flex items-center justify-between p-2 rounded bg-surface-sidebar">
               <div>
                 <span className="font-semibold block text-text-heading">Monitor LG 27"</span>
-                <span className="text-[10px] text-text-muted">SKU: MON-LG27</span>
+                <span className="text-xs text-text-muted">SKU: MON-LG27</span>
               </div>
               <span className="font-mono font-bold text-text-heading">14 en stock</span>
             </div>
             <div className="flex items-center justify-between p-2 rounded bg-warning-light/30 border border-warning-border">
               <div>
                 <span className="font-semibold block text-text-heading">Mouse Inalámbrico</span>
-                <span className="text-[10px] text-warning-text font-medium">Stock bajo (min. 5)</span>
+                <span className="text-xs text-warning-text font-medium">Stock bajo (min. 5)</span>
               </div>
               <span className="font-mono font-bold text-warning-text">2 restantes</span>
             </div>
@@ -147,7 +147,7 @@ export default function LandingFeatures() {
         <Card className="w-full max-w-sm mx-auto text-left">
           <CardHeader className="py-3 flex flex-row items-center justify-between border-b border-border-default">
             <span className="text-xs font-semibold text-text-heading">Cruce de IVA Mensual</span>
-            <Badge variant="outline" className="text-[10px]">Periodo Activo</Badge>
+            <Badge variant="outline" className="text-xs">Periodo Activo</Badge>
           </CardHeader>
           <CardContent className="pt-3 space-y-2 text-xs">
             <div className="flex justify-between text-text-secondary">
@@ -251,7 +251,7 @@ export default function LandingFeatures() {
               </div>
             </div>
 
-            <div className="lg:col-span-6 p-6 rounded-lg bg-surface-sidebar border border-border-default flex items-center justify-center">
+            <div className="lg:col-span-6 p-6 rounded-md bg-surface-sidebar border border-border-default flex items-center justify-center">
               {solutionsData[activeTab].uiSim}
             </div>
           </div>

@@ -131,9 +131,9 @@ export default function TransferModal({ onClose, onSuccess }: TransferModalProps
     }
   };
 
-  const inputClass = `w-full px-3 py-2.5 rounded-card outline-none transition-all border text-sm bg-white border-gray-200 text-gray-800 focus:border-purple-500`;
+  const inputClass = `w-full px-3 py-2.5 rounded-card outline-none transition-all border text-sm bg-white border-border-default text-text-heading focus:border-purple-500`;
 
-  const labelClass = `block text-xs font-semibold mb-1.5 uppercase tracking-wider text-gray-500`;
+  const labelClass = `block text-xs font-semibold mb-1.5 uppercase tracking-wider text-text-secondary`;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-black/40 animate-in fade-in duration-300">
@@ -141,23 +141,23 @@ export default function TransferModal({ onClose, onSuccess }: TransferModalProps
         className={`w-full max-w-4xl max-h-[90vh] flex flex-col rounded-card border overflow-hidden bg-white/95 border-white/40`}
       >
         {/* Header */}
-        <div className={`modal-header-std modal-header-std-dark border-gray-100 bg-white/80`}>
+        <div className={`modal-header-std modal-header-std-dark border-border-default bg-white/80`}>
           <div className="flex items-center gap-2.5">
-            <div className={`p-2 rounded-lg bg-purple-100 text-purple-600`}>
+            <div className={`p-2 rounded-md bg-purple-100 text-purple-600`}>
               <ArrowRightLeft size={20} />
             </div>
             <div>
-              <h2 className={`text-lg font-bold text-gray-900`}>
+              <h2 className={`text-lg font-bold text-text-heading`}>
                 Nueva Transferencia Interna / Externa
               </h2>
-              <p className={`text-xs text-gray-500`}>
+              <p className={`text-xs text-text-secondary`}>
                 Mueve productos físicos entre bodegas o sucursales
               </p>
             </div>
           </div>
           <button 
             onClick={onClose}
-            className={`p-1.5 rounded-card transition-all hover:scale-105 bg-gray-100 text-gray-500 hover:text-gray-900`}
+            className={`p-1.5 rounded-card transition-all hover:scale-105 bg-surface-muted text-text-secondary hover:text-text-heading`}
           >
             <X size={18} />
           </button>
@@ -224,17 +224,17 @@ export default function TransferModal({ onClose, onSuccess }: TransferModalProps
                 step="0.01"
                 value={transferCost}
                 onChange={(e) => setTransferCost(parseFloat(e.target.value) || 0)}
-                className="w-1/3 px-3 py-2 rounded-card outline-none border text-sm bg-black/5 dark:bg-black/20"
+                className="w-1/3 px-3 py-2 rounded-card outline-none border text-sm bg-black/5 "
                 placeholder="0.00"
               />
-              <p className="text-xs text-gray-500 mt-1">Este costo se prorrateará entre los costos unitarios de entrada de los ítems en destino.</p>
+              <p className="text-xs text-text-secondary mt-1">Este costo se prorrateará entre los costos unitarios de entrada de los ítems en destino.</p>
             </div>
           )}
 
           <div className="w-full h-px bg-gradient-to-r from-transparent via-gray-500/20 to-transparent"></div>
 
           {/* Add Item Form */}
-          <div className={`p-5 rounded-card border bg-gray-50 border-gray-100`}>
+          <div className={`p-5 rounded-card border bg-surface-bg border-border-default`}>
             <h3 className={`text-xs font-bold mb-4 uppercase tracking-wider text-purple-600`}>
               Agregar Productos al Envío
             </h3>
@@ -278,9 +278,9 @@ export default function TransferModal({ onClose, onSuccess }: TransferModalProps
           {/* Items Table */}
           <div className="space-y-2">
             <label className={labelClass}>Ítems a Enviar ({items.length})</label>
-            <div className={`rounded-card border overflow-hidden transition-all border-slate-200/80 bg-white`}>
+            <div className={`rounded-card border overflow-hidden transition-all border-border-default/80 bg-white`}>
               <table className="w-full text-left text-xs whitespace-nowrap">
-                <thead className={`text-xs uppercase font-bold tracking-wider bg-slate-50 text-slate-600 border-b border-slate-100`}>
+                <thead className={`text-xs uppercase font-bold tracking-wider bg-surface-bg text-text-primary border-b border-border-default`}>
                   <tr>
                     <th className="px-6 py-3.5">Producto</th>
                     <th className="px-6 py-3.5">Costo Base ($)</th>
@@ -292,7 +292,7 @@ export default function TransferModal({ onClose, onSuccess }: TransferModalProps
                 <tbody className={`divide-y divide-slate-100`}>
                   {items.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-6 py-8 text-center text-gray-500 italic">
+                      <td colSpan={5} className="px-6 py-8 text-center text-text-secondary italic">
                         No has agregado ningún ítem a la lista todavía.
                       </td>
                     </tr>
@@ -300,9 +300,9 @@ export default function TransferModal({ onClose, onSuccess }: TransferModalProps
                     items.map((item, index) => {
                       const p = products.find(prod => prod.id === item.productId);
                       return (
-                        <tr key={index} className={`transition-colors hover:bg-slate-50/40`}>
+                        <tr key={index} className={`transition-colors hover:bg-surface-bg/40`}>
                           <td className="px-6 py-3.5 font-semibold text-black">
-                            {p?.name} <span className="text-gray-500 font-normal">({p?.sku})</span>
+                            {p?.name} <span className="text-text-secondary font-normal">({p?.sku})</span>
                           </td>
                           <td className="px-6 py-3.5 font-mono">${item.unitCost.toFixed(2)}</td>
                           <td className="px-6 py-3.5 font-bold">{item.quantity}</td>
@@ -331,7 +331,7 @@ export default function TransferModal({ onClose, onSuccess }: TransferModalProps
               type="button"
               onClick={onClose}
               disabled={loading}
-              className={`px-6 py-2.5 rounded-card font-bold transition-all text-sm bg-gray-100 hover:bg-gray-200 text-gray-700`}
+              className={`px-6 py-2.5 rounded-card font-bold transition-all text-sm bg-surface-muted hover:bg-surface-muted text-text-primary`}
             >
               Cancelar
             </button>

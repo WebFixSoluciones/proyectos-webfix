@@ -140,9 +140,9 @@ export default function AdjustmentModal({ onClose, onSuccess }: AdjustmentModalP
         className={`w-full max-w-2xl max-h-[90vh] flex flex-col rounded-card border overflow-hidden bg-white/95 border-white/40`}
       >
         {/* Header */}
-        <div className={`modal-header-std modal-header-std-dark border-gray-100 bg-white/80`}>
+        <div className={`modal-header-std modal-header-std-dark border-border-default bg-white/80`}>
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-lg bg-red-100 text-red-600">
+            <div className="p-2 rounded-md bg-red-100 text-red-600">
               <RefreshCw size={20} />
             </div>
             <div>
@@ -156,7 +156,7 @@ export default function AdjustmentModal({ onClose, onSuccess }: AdjustmentModalP
           </div>
           <button 
             onClick={onClose}
-            className={`p-1.5 rounded-card transition-all hover:scale-105 bg-gray-100 text-gray-500 hover:text-gray-900`}
+            className={`p-1.5 rounded-card transition-all hover:scale-105 bg-surface-muted text-text-secondary hover:text-text-heading`}
           >
             <X size={18} />
           </button>
@@ -178,7 +178,7 @@ export default function AdjustmentModal({ onClose, onSuccess }: AdjustmentModalP
               className={`flex-1 py-2 rounded-card text-xs font-bold transition-all border ${
                 adjustmentType === 'MANUAL'
                   ? 'bg-red-600/20 text-red-400 border-red-500/30'
-                  : 'bg-transparent text-gray-400 border-transparent hover:bg-white/5'
+                  : 'bg-transparent text-text-secondary border-transparent hover:bg-white/5'
               }`}
             >
               Ajuste Manual de Producto
@@ -189,7 +189,7 @@ export default function AdjustmentModal({ onClose, onSuccess }: AdjustmentModalP
               className={`flex-1 py-2 rounded-card text-xs font-bold transition-all border ${
                 adjustmentType === 'ZERO_INVENTORY'
                   ? 'bg-red-600 text-white border-red-600'
-                  : 'bg-transparent text-gray-400 border-transparent hover:bg-white/5'
+                  : 'bg-transparent text-text-secondary border-transparent hover:bg-white/5'
               }`}
             >
               Cero Inventario (Destructivo)
@@ -272,7 +272,7 @@ export default function AdjustmentModal({ onClose, onSuccess }: AdjustmentModalP
                 <AlertTriangle className="shrink-0" />
                 <div>
                   <h4 className="font-bold text-sm">Operación Crítica y Destructiva</h4>
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-xs text-text-secondary mt-1">
                     Esta opción registrará egresos automáticos para llevar a 0 unidades el stock de todos los productos físicos de esta sucursal en el Kardex.
                   </p>
                 </div>
@@ -311,7 +311,7 @@ export default function AdjustmentModal({ onClose, onSuccess }: AdjustmentModalP
               type="button"
               onClick={onClose}
               disabled={loading}
-              className={`px-6 py-2.5 rounded-card font-bold transition-all text-sm bg-gray-100 hover:bg-gray-200 text-gray-700`}
+              className={`px-6 py-2.5 rounded-card font-bold transition-all text-sm bg-surface-muted hover:bg-surface-muted text-text-primary`}
             >
               Cancelar
             </button>

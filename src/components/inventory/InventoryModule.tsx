@@ -256,13 +256,13 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
   }
 
   const handleDeleteProduct = async (id: string) => {
-    if (!await confirm("¿Está seguro de eliminar este producto/servicio?")) return;
+    if (!await confirm("¿Desactivar este producto/servicio? Se conservará su historial y dejará de estar disponible en ventas.")) return;
     try {
       await productRepository.delete(id);
       await loadCatalogData();
     } catch (err) {
       console.error(err);
-      alert("Error al eliminar el producto");
+      alert("Error al desactivar el producto");
     }
   };
 
@@ -302,7 +302,7 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
       
 
 
-      <div className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto py-4 custom-scrollbar">
         
         {/* --- TAB: PRODUCTOS & SERVICIOS --- */}
         {activeTab === 'productos' && (
@@ -331,7 +331,7 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
                     <button 
                       onClick={() => setIsCatBrandOpen(true)}
                       className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-card text-xs font-bold transition-all border ${
-                        'bg-gray-50 border-gray-300 text-gray-700 hover:bg-gray-100'
+                        'bg-surface-bg border-border-strong text-text-primary hover:bg-surface-muted'
                       }`}
                     >
                       <Tag size={15} /> Categorías/Marcas
@@ -340,7 +340,7 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
 
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
                     <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-card border-none w-full sm:w-64 transition-all focus-within:ring-1 focus-within:ring-primary/25 bg-surface-bg hover:bg-surface-card focus-within:bg-surface-card">
-                      <Search size={14} className={'text-gray-400'} />
+                      <Search size={14} className={'text-text-secondary'} />
                       <input
                         type="text"
                         placeholder="Buscar por SKU o nombre..."
@@ -353,7 +353,7 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
                     <select
                       value={selectedCategory}
                       onChange={(e) => setSelectedCategory(e.target.value)}
-                      className="px-3 py-1.5 rounded-card border-none text-xs font-medium outline-none transition-all cursor-pointer bg-surface-bg hover:bg-surface-card text-slate-700 focus:ring-1 focus:ring-primary/25"
+                      className="px-3 py-1.5 rounded-card border-none text-xs font-medium outline-none transition-all cursor-pointer bg-surface-bg hover:bg-surface-card text-text-primary focus:ring-1 focus:ring-primary/25"
                     >
                       <option value="" className="text-black">Todas las Categorías</option>
                       {categories.map(c => (
@@ -364,7 +364,7 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
                     <select
                       value={selectedType}
                       onChange={(e) => setSelectedType(e.target.value)}
-                      className="px-3 py-1.5 rounded-card border-none text-xs font-medium outline-none transition-all cursor-pointer bg-surface-bg hover:bg-surface-card text-slate-700 focus:ring-1 focus:ring-primary/25"
+                      className="px-3 py-1.5 rounded-card border-none text-xs font-medium outline-none transition-all cursor-pointer bg-surface-bg hover:bg-surface-card text-text-primary focus:ring-1 focus:ring-primary/25"
                     >
                       <option value="" className="text-black">Todos los Tipos</option>
                       <option value="STANDARD" className="text-black">Estándar</option>
@@ -377,12 +377,12 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
                 
                 {/* Products Table */}
                 <div className={`rounded-card border overflow-hidden transition-all ${
-                  'border-slate-200/80 bg-white'
+                  'border-border-default/80 bg-white'
                 }`}>
                   <div className="overflow-x-auto custom-scrollbar">
                     <table className="w-full text-left text-xs whitespace-nowrap">
                       <thead className={`text-xs uppercase font-bold tracking-wider ${
-                        'bg-slate-50 text-slate-600 border-b border-slate-100'
+                        'bg-surface-bg text-text-primary border-b border-border-default'
                       }`}>
                         <tr>
                           <th className="px-6 py-3.5">SKU</th>
@@ -399,33 +399,33 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
                       <tbody className={`divide-y ${'divide-slate-100'}`}>
                         {loading ? (
                           <tr>
-                            <td colSpan={9} className="px-6 py-8 text-center text-gray-500 font-bold">Cargando catálogo...</td>
+                            <td colSpan={9} className="px-6 py-8 text-center text-text-secondary font-bold">Cargando catálogo...</td>
                           </tr>
                         ) : filteredProducts.length === 0 ? (
                           <tr>
-                            <td colSpan={9} className="px-6 py-8 text-center text-gray-500">No se encontraron productos ni servicios.</td>
+                            <td colSpan={9} className="px-6 py-8 text-center text-text-secondary">No se encontraron productos ni servicios.</td>
                           </tr>
                         ) : (
                           filteredProducts.map(p => {
-                            const stock = stocks[p.id || ''] !== undefined ? stocks[p.id || ''] : 0;
+                            const stock = Number(p.stock ?? stocks[p.id || ''] ?? 0);
                             const isService = p.type === 'SERVICE';
                             
                             return (
-                              <tr key={p.id} className={`transition-colors ${'hover:bg-slate-50/40'}`}>
+                              <tr key={p.id} className={`transition-colors ${'hover:bg-surface-bg/40'}`}>
                                 <td className={`px-6 py-3.5 font-mono text-xs font-bold ${'text-black font-semibold'}`}>{p.sku}</td>
                                 <td className="px-6 py-2.5">
                                   <div className="flex items-center gap-3">
                                     <img 
                                       src={p.imageUrl && !p.imageUrl.includes('placehold.co') && !p.imageUrl.includes('placehold.net') ? p.imageUrl : '/product.svg'} 
-                                      className="w-8 h-8 rounded object-cover border border-slate-200" 
+                                      className="w-8 h-8 rounded object-cover border border-border-default"
                                       alt={p.name}
                                       onError={(e) => {
                                         e.currentTarget.src = '/product.svg';
                                       }}
                                     />
                                     <div className="min-w-0">
-                                      <span className={`font-semibold block truncate max-w-[220px] ${'text-gray-900 font-bold'}`}>{p.name}</span>
-                                      {p.description && <p className="text-xs text-gray-500 truncate max-w-[220px] mt-0.5">{p.description}</p>}
+                                      <span className={`font-semibold block truncate max-w-[220px] ${'text-text-heading font-bold'}`}>{p.name}</span>
+                                      {p.description && <p className="text-xs text-text-secondary truncate max-w-[220px] mt-0.5">{p.description}</p>}
                                     </div>
                                   </div>
                                 </td>
@@ -435,13 +435,13 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
                                   {p.type === 'SUBPRODUCT' && <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-primary/10 text-primary border border-primary/20">Subproducto</span>}
                                   {p.type === 'SERVICE' && <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-pink-500/10 text-pink-400 border border-pink-500/20">Servicio</span>}
                                 </td>
-                                <td className="px-6 py-3.5 text-gray-500 font-medium">{getCategoryName(p.categoryId)}</td>
+                                <td className="px-6 py-3.5 text-text-secondary font-medium">{getCategoryName(p.categoryId)}</td>
                                 <td className="px-6 py-3.5 font-semibold">${(Number(p.baseCost ?? p.cost ?? 0)).toFixed(2)}</td>
                                 <td className="px-6 py-3.5 font-bold text-emerald-500">${(Number(p.salePrice ?? p.price ?? 0)).toFixed(2)}</td>
-                                <td className="px-6 py-3.5 text-gray-500 font-medium">{p.taxRate ?? 15}%</td>
+                                <td className="px-6 py-3.5 text-text-secondary font-medium">{p.taxRate ?? 15}%</td>
                                 <td className="px-6 py-3.5 font-bold">
                                   {isService || p.inventoryType === 'VIRTUAL' ? (
-                                    <span className="text-gray-400 italic font-medium">Virtual (N/A)</span>
+                                    <span className="text-text-secondary italic font-medium">Virtual (N/A)</span>
                                   ) : stock > 0 ? (
                                     <span className="text-emerald-500">{stock} u.</span>
                                   ) : (
@@ -462,14 +462,14 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
                                           scrollToForm();
                                         }
                                       }}
-                                      className="p-1.5 rounded-card text-primary hover:bg-primary/10 transition-all border border-primary/10 bg-white dark:bg-transparent"
+                                      className="p-1.5 rounded-card text-primary hover:bg-primary/10 transition-all border border-primary/10 bg-white "
                                       title="Editar"
                                     >
                                       <Edit2 size={13} />
                                     </button>
                                     <button
                                       onClick={() => p.id && handleDeleteProduct(p.id)}
-                                      className="p-1.5 rounded-card text-red-500 hover:bg-red-500/10 transition-all border border-red-500/10 bg-white dark:bg-transparent"
+                                      className="p-1.5 rounded-card text-red-500 hover:bg-red-500/10 transition-all border border-red-500/10 bg-white "
                                       title="Eliminar"
                                     >
                                       <Trash2 size={13} />
@@ -539,16 +539,16 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* Categorías Column */}
-              <div className={`p-6 rounded-card border ${'bg-white border-gray-200'}`}>
+              <div className={`p-6 rounded-card border ${'bg-white border-border-default'}`}>
                 <h3 className={`text-sm font-bold flex items-center gap-2 mb-4 uppercase tracking-wider ${'text-primary'}`}>
                   <Layers size={16} /> Categorías ({categories.length})
                 </h3>
                 <div className="space-y-3">
                   {categories.map(cat => (
-                    <div key={cat.id} className={`p-3 rounded-card border flex items-center justify-between ${'bg-gray-50 border-gray-100'}`}>
+                    <div key={cat.id} className={`p-3 rounded-card border flex items-center justify-between ${'bg-surface-bg border-border-default'}`}>
                       <div>
-                        <span className={`font-semibold ${'text-gray-800'}`}>{cat.name}</span>
-                        {cat.description && <p className="text-xs text-gray-500">{cat.description}</p>}
+                        <span className={`font-semibold ${'text-text-heading'}`}>{cat.name}</span>
+                        {cat.description && <p className="text-xs text-text-secondary">{cat.description}</p>}
                       </div>
                     </div>
                   ))}
@@ -556,16 +556,16 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
               </div>
 
               {/* Marcas Column */}
-              <div className={`p-6 rounded-card border ${'bg-white border-gray-200'}`}>
+              <div className={`p-6 rounded-card border ${'bg-white border-border-default'}`}>
                 <h3 className={`text-sm font-bold flex items-center gap-2 mb-4 uppercase tracking-wider ${'text-purple-600'}`}>
                   <Award size={16} /> Marcas ({brands.length})
                 </h3>
                 <div className="space-y-3">
                   {brands.map(b => (
-                    <div key={b.id} className={`p-3 rounded-card border flex items-center justify-between ${'bg-gray-50 border-gray-100'}`}>
+                    <div key={b.id} className={`p-3 rounded-card border flex items-center justify-between ${'bg-surface-bg border-border-default'}`}>
                       <div>
-                        <span className={`font-semibold ${'text-gray-800'}`}>{b.name}</span>
-                        {b.manufacturer && <p className="text-xs text-gray-500">{b.manufacturer}</p>}
+                        <span className={`font-semibold ${'text-text-heading'}`}>{b.name}</span>
+                        {b.manufacturer && <p className="text-xs text-text-secondary">{b.manufacturer}</p>}
                       </div>
                     </div>
                   ))}
@@ -581,14 +581,14 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
 
 
             {/* Selector de Producto */}
-            <div className={`p-5 rounded-card border grid grid-cols-1 md:grid-cols-2 gap-4 ${'bg-gray-50 border-gray-150'}`}>
+            <div className={`p-5 rounded-card border grid grid-cols-1 md:grid-cols-2 gap-4 ${'bg-surface-bg border-border-default'}`}>
               <div>
-                <label className="block text-xs font-semibold mb-1 uppercase tracking-wider text-gray-500">Seleccionar Producto Físico</label>
+                <label className="block text-xs font-semibold mb-1 uppercase tracking-wider text-text-secondary">Seleccionar Producto Físico</label>
                 <select
                   value={kardexProductId}
                   onChange={(e) => setKardexProductId(e.target.value)}
                   className={`w-full px-3 py-2 rounded-card outline-none border text-xs cursor-pointer ${
-                    'bg-white border-gray-200 text-gray-800'
+                    'bg-white border-border-default text-text-heading'
                   }`}
                 >
                   <option value="" className="text-black">-- Selecciona un producto --</option>
@@ -599,12 +599,12 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
               </div>
 
               <div>
-                <label className="block text-xs font-semibold mb-1 uppercase tracking-wider text-gray-500">Sucursal / Bodega</label>
+                <label className="block text-xs font-semibold mb-1 uppercase tracking-wider text-text-secondary">Sucursal / Bodega</label>
                 <select
                   value={kardexBranchId}
                   onChange={(e) => setKardexBranchId(e.target.value)}
                   className={`w-full px-3 py-2 rounded-card outline-none border text-xs cursor-pointer ${
-                    'bg-white border-gray-200 text-gray-800'
+                    'bg-white border-border-default text-text-heading'
                   }`}
                 >
                   {BRANCHES.map(b => (
@@ -622,10 +622,10 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
                   <div className={`p-5 rounded-card border ${'bg-emerald-50 border-emerald-200'}`}>
                     <span className="block text-xs font-bold uppercase tracking-wider text-emerald-500 mb-1">Saldo Actual</span>
                     <div className="flex items-baseline gap-2">
-                      <span className={`text-2xl font-black ${'text-gray-900'}`}>
+                      <span className={`text-2xl font-semibold ${'text-text-heading'}`}>
                         {kardexHistory[0]?.balanceQuantity ?? 0}
                       </span>
-                      <span className="text-xs text-gray-500 font-semibold">unidades</span>
+                      <span className="text-xs text-text-secondary font-semibold">unidades</span>
                     </div>
                   </div>
 
@@ -633,7 +633,7 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
                   <div className={`p-5 rounded-card border ${'bg-primary-light border-primary/25'}`}>
                     <span className="block text-xs font-bold uppercase tracking-wider text-primary mb-1">Costo Promedio Ponderado</span>
                     <div className="flex items-baseline gap-2">
-                      <span className={`text-2xl font-black ${'text-gray-900'}`}>
+                      <span className={`text-2xl font-semibold ${'text-text-heading'}`}>
                         ${(kardexHistory[0]?.balanceAverageCost ?? 0).toFixed(2)}
                       </span>
                     </div>
@@ -643,7 +643,7 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
                   <div className={`p-5 rounded-card border ${'bg-purple-50 border-purple-205'}`}>
                     <span className="block text-xs font-bold uppercase tracking-wider text-purple-500 mb-1">Valor Total del Inventario</span>
                     <div className="flex items-baseline gap-2">
-                      <span className={`text-2xl font-black ${'text-gray-900'}`}>
+                      <span className={`text-2xl font-semibold ${'text-text-heading'}`}>
                         ${((kardexHistory[0]?.balanceQuantity ?? 0) * (kardexHistory[0]?.balanceAverageCost ?? 0)).toFixed(2)}
                       </span>
                     </div>
@@ -652,12 +652,12 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
 
                 {/* Kardex Transactions Table */}
                 <div className={`rounded-card border overflow-hidden transition-all ${
-                  'border-slate-200/80 bg-white'
+                  'border-border-default/80 bg-white'
                 }`}>
                   <div className="overflow-x-auto custom-scrollbar">
                     <table className="w-full text-left text-xs whitespace-nowrap">
                       <thead className={`text-xs uppercase font-bold tracking-wider ${
-                        'bg-slate-50 text-slate-600 border-b border-slate-100'
+                        'bg-surface-bg text-text-primary border-b border-border-default'
                       }`}>
                         <tr>
                           <th className="px-6 py-3.5">Fecha</th>
@@ -673,14 +673,14 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
                       <tbody className={`divide-y ${'divide-slate-100'}`}>
                         {kardexHistory.length === 0 ? (
                           <tr>
-                            <td colSpan={8} className="px-6 py-8 text-center text-gray-500">No hay movimientos registrados para este producto en la sucursal seleccionada.</td>
+                            <td colSpan={8} className="px-6 py-8 text-center text-text-secondary">No hay movimientos registrados para este producto en la sucursal seleccionada.</td>
                           </tr>
                         ) : (
                           kardexHistory.map(tx => {
                             const isEntry = tx.quantity > 0;
                             return (
-                              <tr key={tx.id} className={`transition-colors ${'hover:bg-slate-50/40'}`}>
-                                <td className="px-6 py-3.5 text-gray-500 font-medium">{new Date(tx.date as any).toLocaleString('es-ES')}</td>
+                              <tr key={tx.id} className={`transition-colors ${'hover:bg-surface-bg/40'}`}>
+                                <td className="px-6 py-3.5 text-text-secondary font-medium">{new Date(tx.date as any).toLocaleString('es-ES')}</td>
                                 <td className="px-6 py-3.5">
                                   {tx.type === 'PURCHASE_RECEIPT' && <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-green-500/10 text-green-400">Ingreso / Compra</span>}
                                   {tx.type === 'CUSTOMER_RETURN' && <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-emerald-500/10 text-emerald-400">Devolución Cliente</span>}
@@ -691,14 +691,14 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
                                   {tx.type === 'SHRINKAGE' && <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-orange-500/10 text-orange-400">Mermas / Pérdida</span>}
                                   {tx.type === 'MASSIVE_ZERO' && <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-red-650/20 text-red-500 border border-red-500/10">Cero Inventario</span>}
                                 </td>
-                                <td className="px-6 py-3.5 font-mono text-xs text-gray-500 font-bold">{tx.referenceId}</td>
+                                <td className="px-6 py-3.5 font-mono text-xs text-text-secondary font-bold">{tx.referenceId}</td>
                                 <td className={`px-6 py-3.5 font-bold ${isEntry ? 'text-emerald-500' : 'text-red-500'}`}>
                                   {isEntry ? `+${tx.quantity}` : tx.quantity}
                                 </td>
                                 <td className="px-6 py-3.5 font-mono">${(Number(tx.unitCost ?? 0)).toFixed(2)}</td>
                                 <td className="px-6 py-3.5 font-mono">${(Number(tx.totalCost ?? 0)).toFixed(2)}</td>
                                 <td className="px-6 py-3.5 font-bold">{tx.balanceQuantity ?? 0}</td>
-                                <td className="px-6 py-3.5 font-extrabold text-primary">${(Number(tx.balanceAverageCost ?? 0)).toFixed(2)}</td>
+                                <td className="px-6 py-3.5 font-semibold text-primary">${(Number(tx.balanceAverageCost ?? 0)).toFixed(2)}</td>
                               </tr>
                             );
                           })
@@ -709,9 +709,9 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
                 </div>
               </div>
             ) : (
-              <div className={`rounded-card border flex flex-col items-center justify-center p-8 text-center ${'bg-white/50 border-gray-200'}`}>
+              <div className={`rounded-card border flex flex-col items-center justify-center p-8 text-center ${'bg-white/50 border-border-default'}`}>
                 <Database size={32} className={`mb-4 ${'text-emerald-600'}`} />
-                <p className={'text-gray-500'}>Selecciona un producto físico para ver su Kardex de transacciones.</p>
+                <p className={'text-text-secondary'}>Selecciona un producto físico para ver su Kardex de transacciones.</p>
               </div>
             )}
           </div>
@@ -733,12 +733,12 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
             </div>
 
             <div className={`rounded-card border overflow-hidden transition-all ${
-              'border-slate-200/80 bg-white'
+              'border-border-default/80 bg-white'
             }`}>
               <div className="overflow-x-auto custom-scrollbar">
                 <table className="w-full text-left text-xs whitespace-nowrap">
                   <thead className={`text-xs uppercase font-bold tracking-wider ${
-                    'bg-slate-50 text-slate-600 border-b border-slate-100'
+                    'bg-surface-bg text-text-primary border-b border-border-default'
                   }`}>
                     <tr>
                       <th className="px-6 py-3.5">Fecha</th>
@@ -754,15 +754,15 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
                   <tbody className={`divide-y ${'divide-slate-100'}`}>
                     {transfers.length === 0 ? (
                       <tr>
-                        <td colSpan={8} className="px-6 py-8 text-center text-gray-500">No hay transferencias registradas.</td>
+                        <td colSpan={8} className="px-6 py-8 text-center text-text-secondary">No hay transferencias registradas.</td>
                       </tr>
                     ) : (
                       transfers.map(tr => {
                         const fromName = BRANCHES.find(b => b.id === tr.sourceBranchId)?.name || 'Desconocida';
                         const toName = BRANCHES.find(b => b.id === tr.targetBranchId)?.name || 'Desconocida';
                         return (
-                          <tr key={tr.id} className={`transition-colors ${'hover:bg-slate-50/40'}`}>
-                            <td className="px-6 py-3.5 text-gray-500 font-medium">{new Date(tr.createdAt).toLocaleString('es-ES')}</td>
+                          <tr key={tr.id} className={`transition-colors ${'hover:bg-surface-bg/40'}`}>
+                            <td className="px-6 py-3.5 text-text-secondary font-medium">{new Date(tr.createdAt).toLocaleString('es-ES')}</td>
                             <td className="px-6 py-3.5">
                               {tr.type === 'INTERNAL' ? (
                                 <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-primary/10 text-primary border border-primary/20">Interna</span>
@@ -774,7 +774,7 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
                             <td className="px-6 py-3.5 font-semibold">{toName}</td>
                             <td className="px-6 py-3.5 font-bold">{tr.items?.length ?? 0} ítems</td>
                             <td className="px-6 py-3.5 font-mono">${(tr.transferCost ?? 0).toFixed(2)}</td>
-                            <td className="px-6 py-3.5 text-gray-400 font-medium">{tr.createdBy}</td>
+                            <td className="px-6 py-3.5 text-text-secondary font-medium">{tr.createdBy}</td>
                             <td className="px-6 py-3.5 text-center">
                               <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-green-500/10 text-green-400 flex items-center justify-center gap-1 w-24 mx-auto border border-green-500/10">
                                 <CheckCircle size={10} /> Completado
@@ -804,12 +804,12 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
             </div>
 
             <div className={`rounded-card border overflow-hidden transition-all ${
-              'border-slate-200/80 bg-white'
+              'border-border-default/80 bg-white'
             }`}>
               <div className="overflow-x-auto custom-scrollbar">
                 <table className="w-full text-left text-xs whitespace-nowrap">
                   <thead className={`text-xs uppercase font-bold tracking-wider ${
-                    'bg-slate-50 text-slate-600 border-b border-slate-100'
+                    'bg-surface-bg text-text-primary border-b border-border-default'
                   }`}>
                     <tr>
                       <th className="px-6 py-3.5">Fecha</th>
@@ -824,15 +824,15 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
                   <tbody className={`divide-y ${'divide-slate-100'}`}>
                     {adjustments.length === 0 ? (
                       <tr>
-                        <td colSpan={7} className="px-6 py-8 text-center text-gray-500">No se han registrado ajustes.</td>
+                        <td colSpan={7} className="px-6 py-8 text-center text-text-secondary">No se han registrado ajustes.</td>
                       </tr>
                     ) : (
                       adjustments.map(ad => {
                         const branchName = BRANCHES.find(b => b.id === ad.branchId)?.name || 'Desconocida';
                         const isZero = ad.type === 'ZERO_INVENTORY';
                         return (
-                          <tr key={ad.id} className={`transition-colors ${'hover:bg-slate-50/40'}`}>
-                            <td className="px-6 py-3.5 text-gray-500 font-medium">{new Date(ad.createdAt).toLocaleString('es-ES')}</td>
+                          <tr key={ad.id} className={`transition-colors ${'hover:bg-surface-bg/40'}`}>
+                            <td className="px-6 py-3.5 text-text-secondary font-medium">{new Date(ad.createdAt).toLocaleString('es-ES')}</td>
                             <td className="px-6 py-3.5">
                               {isZero ? (
                                 <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-red-600/20 text-red-500 flex items-center gap-1 border border-red-500/20">
@@ -845,7 +845,7 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
                             <td className="px-6 py-3.5 font-semibold">{branchName}</td>
                             <td className="px-6 py-3.5 max-w-xs truncate" title={ad.reason}>{ad.reason}</td>
                             <td className="px-6 py-3.5 font-bold">{ad.items?.length ?? 0} items</td>
-                            <td className="px-6 py-3.5 text-gray-400 font-medium">{ad.confirmedBy}</td>
+                            <td className="px-6 py-3.5 text-text-secondary font-medium">{ad.confirmedBy}</td>
                             <td className="px-6 py-3.5 text-center">
                               <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-green-500/10 text-green-400 flex items-center justify-center gap-1 w-24 mx-auto border border-green-500/10">
                                 <CheckCircle size={10} /> Aplicado
@@ -867,7 +867,7 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
       {showProductTypeSelector && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 animate-in fade-in duration-300">
           <div className={`w-full max-w-md p-6 rounded-card border transition-all ${
-            'bg-white border-slate-200 text-slate-900'
+            'bg-white border-border-default text-text-heading'
           }`}>
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-base font-bold flex items-center gap-2">
@@ -876,15 +876,15 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
               </h3>
               <button 
                 onClick={() => setShowProductTypeSelector(false)}
-                className={`p-1.5 rounded-lg transition-all ${
-                  'hover:bg-gray-100 text-gray-500 hover:text-gray-900'
+                className={`p-1.5 rounded-md transition-all ${
+                  'hover:bg-surface-muted text-text-secondary hover:text-text-heading'
                 }`}
               >
                 <X size={16} />
               </button>
             </div>
             
-            <p className={`text-xs mb-4 ${'text-gray-500'}`}>
+            <p className={`text-xs mb-4 ${'text-text-secondary'}`}>
               ¿Qué tipo de producto deseas registrar en el catálogo?
             </p>
             
@@ -897,7 +897,7 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
                   scrollToForm();
                 }}
                 className={`w-full p-4 rounded-card border text-left transition-all flex items-start gap-3.5 group ${
-                  'border-slate-100 bg-slate-50 hover:bg-primary/5 hover:border-primary/30'
+                  'border-border-default bg-surface-bg hover:bg-primary/5 hover:border-primary/30'
                 }`}
               >
                 <div className={`p-2.5 rounded-card bg-primary/10 text-primary group-hover:scale-110 transition-transform`}>
@@ -905,7 +905,7 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
                 </div>
                 <div>
                   <span className="block text-xs font-bold">Producto Estándar</span>
-                  <span className={`block text-xs mt-0.5 ${'text-gray-500'}`}>
+                  <span className={`block text-xs mt-0.5 ${'text-text-secondary'}`}>
                     Productos individuales sin variantes ni agrupaciones.
                   </span>
                 </div>
@@ -919,7 +919,7 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
                   scrollToForm();
                 }}
                 className={`w-full p-4 rounded-card border text-left transition-all flex items-start gap-3.5 group ${
-                  'border-slate-100 bg-slate-50 hover:bg-primary/5 hover:border-primary/30'
+                  'border-border-default bg-surface-bg hover:bg-primary/5 hover:border-primary/30'
                 }`}
               >
                 <div className={`p-2.5 rounded-card bg-primary/10 text-primary group-hover:scale-110 transition-transform`}>
@@ -927,7 +927,7 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
                 </div>
                 <div>
                   <span className="block text-xs font-bold">Subproducto / Variante</span>
-                  <span className={`block text-xs mt-0.5 ${'text-gray-500'}`}>
+                  <span className={`block text-xs mt-0.5 ${'text-text-secondary'}`}>
                     Mismo artículo con variaciones (talla, color o dimensiones).
                   </span>
                 </div>
@@ -941,7 +941,7 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
                   scrollToForm();
                 }}
                 className={`w-full p-4 rounded-card border text-left transition-all flex items-start gap-3.5 group ${
-                  'border-slate-100 bg-slate-50 hover:bg-purple-500/5 hover:border-purple-500/30'
+                  'border-border-default bg-surface-bg hover:bg-purple-500/5 hover:border-purple-500/30'
                 }`}
               >
                 <div className={`p-2.5 rounded-card bg-purple-500/10 text-purple-400 group-hover:scale-110 transition-transform`}>
@@ -949,7 +949,7 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
                 </div>
                 <div>
                   <span className="block text-xs font-bold">Combo / Kit</span>
-                  <span className={`block text-xs mt-0.5 ${'text-gray-500'}`}>
+                  <span className={`block text-xs mt-0.5 ${'text-text-secondary'}`}>
                     Paquete que agrupa múltiples productos estándar o servicios.
                   </span>
                 </div>

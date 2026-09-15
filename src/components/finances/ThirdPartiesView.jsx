@@ -156,7 +156,7 @@ export default function ThirdPartiesView({ thirdParties, showToast, db, appId, f
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
           <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-card border-none w-full sm:w-64 transition-all focus-within:ring-1 focus-within:ring-primary/25 bg-surface-bg hover:bg-surface-card focus-within:bg-surface-card">
-            <Search size={14} className="text-gray-400" />
+            <Search size={14} className="text-text-secondary" />
             <input 
               type="text" 
               placeholder={`Buscar por nombre, RUC o dirección...`} 
@@ -169,7 +169,7 @@ export default function ThirdPartiesView({ thirdParties, showToast, db, appId, f
           <select 
             value={filterIdType} 
             onChange={e => setFilterIdType(e.target.value)} 
-            className="px-3 py-1.5 rounded-card border-none text-xs font-medium outline-none transition-all cursor-pointer bg-surface-bg hover:bg-surface-card text-slate-700 focus:ring-1 focus:ring-primary/25"
+            className="px-3 py-1.5 rounded-card border-none text-xs font-medium outline-none transition-all cursor-pointer bg-surface-bg hover:bg-surface-card text-text-primary focus:ring-1 focus:ring-primary/25"
           >
             <option value="all" className="text-black">Identificación: Todos</option>
             <option value="ruc" className="text-black">RUC</option>
@@ -179,10 +179,10 @@ export default function ThirdPartiesView({ thirdParties, showToast, db, appId, f
         </div>
       </div>
 
-      <div className="rounded-card border overflow-hidden transition-all border-slate-200/80 bg-white">
+      <div className="rounded-card border overflow-hidden transition-all border-border-default/80 bg-white">
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left text-xs whitespace-nowrap">
-            <thead className="text-xs uppercase font-bold tracking-wider bg-slate-50 text-slate-600 border-b border-slate-100">
+            <thead className="text-xs uppercase font-bold tracking-wider bg-surface-bg text-text-primary border-b border-border-default">
               <tr>
                 <th className="px-6 py-3.5">Razón Social / Nombres</th>
                 <th className="px-6 py-3.5">Identificación</th>
@@ -207,7 +207,7 @@ export default function ThirdPartiesView({ thirdParties, showToast, db, appId, f
                 const colorClass = colors[charCodeSum % colors.length];
 
                 return (
-                  <tr key={tp.id} className="transition-colors hover:bg-slate-50/40">
+                  <tr key={tp.id} className="transition-colors hover:bg-surface-bg/40">
                     <td className="px-6 py-3.5">
                       <div className="flex items-center gap-3">
                         <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${colorClass} flex items-center justify-center text-xs font-bold text-white`}>
@@ -220,13 +220,13 @@ export default function ThirdPartiesView({ thirdParties, showToast, db, appId, f
                       </div>
                     </td>
                     <td className="px-6 py-3.5 font-mono text-xs">
-                      <span className="text-xs text-gray-500 font-bold block uppercase opacity-85">{tp.tipoIdentificacion || 'ruc'}</span>
+                      <span className="text-xs text-text-secondary font-bold block uppercase opacity-85">{tp.tipoIdentificacion || 'ruc'}</span>
                       <span className="text-black font-semibold">{tp.ruc}</span>
                     </td>
                     <td className="px-6 py-3.5 text-xs font-bold text-black hidden sm:table-cell">{tp.telefono || '-'}</td>
                     <td className="px-6 py-3.5 text-xs max-w-[220px] truncate text-black font-semibold" title={tp.direccion}>
                        {tp.direccion || '-'}
-                       {tp.ciudad && <span className="block text-xs text-gray-500 font-bold uppercase mt-0.5">{tp.ciudad}</span>}
+                       {tp.ciudad && <span className="block text-xs text-text-secondary font-bold uppercase mt-0.5">{tp.ciudad}</span>}
                      </td>
                     <td className="px-6 py-3.5 text-xs font-bold text-primary hover:underline"><a href={`mailto:${tp.email}`}>{tp.email || '-'}</a></td>
                     <td className="px-6 py-3.5 text-right">
@@ -252,7 +252,7 @@ export default function ThirdPartiesView({ thirdParties, showToast, db, appId, f
               })}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan="6" className="px-6 py-12 text-center text-gray-500 italic">No se encontraron registros de personas.</td>
+                  <td colSpan="6" className="px-6 py-12 text-center text-text-secondary italic">No se encontraron registros de personas.</td>
                 </tr>
               )}
             </tbody>
@@ -263,14 +263,14 @@ export default function ThirdPartiesView({ thirdParties, showToast, db, appId, f
       {/* MODAL CREAR/EDITAR */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 animate-in fade-in duration-200">
-          <div className="w-full max-w-lg p-6 sm:p-8 rounded-card transition-all duration-300 border glass-panel-light text-gray-900">
+          <div className="w-full max-w-lg p-6 sm:p-8 rounded-card transition-all duration-300 border glass-panel-light text-text-heading">
             <div className="flex justify-between items-center mb-6 pb-2 border-b border-white/5">
               <h2 className="text-base font-bold font-display uppercase tracking-wider">
                 {formData.id ? 'Editar' : 'Nuevo'} {forcedType === 'cliente' ? 'Cliente' : forcedType === 'proveedor' ? 'Proveedor' : 'Contacto'}
               </h2>
               <button 
                 onClick={() => setIsModalOpen(false)} 
-                className="btn-icon text-gray-450 hover:text-gray-900"
+                className="btn-icon text-gray-450 hover:text-text-heading"
               >
                 <Plus size={16} className="rotate-45" />
               </button>
@@ -279,7 +279,7 @@ export default function ThirdPartiesView({ thirdParties, showToast, db, appId, f
             <form onSubmit={handleSave} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 text-gray-600">Tipo Identificación</label>
+                  <label className="block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 text-text-primary">Tipo Identificación</label>
                   <select value={formData.tipoIdentificacion || 'ruc'} onChange={e => setFormData({...formData, tipoIdentificacion: e.target.value})} className={`${inputClass} cursor-pointer`}>
                     <option value="ruc" className="text-black">RUC (13 dígitos)</option>
                     <option value="cedula" className="text-black">Cédula de Identidad (10 dígitos)</option>
@@ -288,7 +288,7 @@ export default function ThirdPartiesView({ thirdParties, showToast, db, appId, f
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 text-gray-600">Identificación</label>
+                  <label className="block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 text-text-primary">Identificación</label>
                   <div className="flex gap-2">
                     <input 
                       type="text" 
@@ -312,34 +312,34 @@ export default function ThirdPartiesView({ thirdParties, showToast, db, appId, f
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 text-gray-600">Razón Social / Nombres Completos</label>
+                <label className="block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 text-text-primary">Razón Social / Nombres Completos</label>
                 <input type="text" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className={inputClass} placeholder="Ej. Juan Pérez o WEBFIX S.A." />
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 text-gray-600">Teléfono Contacto</label>
+                <label className="block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 text-text-primary">Teléfono Contacto</label>
                 <input type="text" value={formData.telefono || ''} onChange={e => setFormData({...formData, telefono: e.target.value})} className={inputClass} placeholder="Ej. 0998765432 o 022987654" />
               </div>
 
               <div className="grid grid-cols-3 gap-4 font-mono">
                  <div className="col-span-2 font-sans">
-                   <label className="block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 text-gray-600">Dirección Matriz / Domicilio</label>
+                   <label className="block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 text-text-primary">Dirección Matriz / Domicilio</label>
                    <input type="text" value={formData.direccion || ''} onChange={e => setFormData({...formData, direccion: e.target.value})} className={inputClass} placeholder="Av. de los Shyris y Holanda, Quito" />
                  </div>
                  <div className="font-sans">
-                   <label className="block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 text-gray-600">Ciudad</label>
+                   <label className="block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 text-text-primary">Ciudad</label>
                    <input type="text" value={formData.ciudad || ''} onChange={e => setFormData({...formData, ciudad: e.target.value})} className={inputClass} placeholder="Ej. Quito" />
                  </div>
                </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 text-gray-600">Correo Electrónico (Notificación SRI)</label>
+                <label className="block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 text-text-primary">Correo Electrónico (Notificación SRI)</label>
                 <input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className={inputClass} placeholder="correo@ejemplo.com" />
               </div>
 
               {!forcedType && (
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 text-gray-600">Tipo de Relación</label>
+                  <label className="block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 text-text-primary">Tipo de Relación</label>
                   <select value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})} className={`${inputClass} cursor-pointer`}>
                     <option value="cliente" className="text-black">Cliente</option>
                     <option value="proveedor" className="text-black">Proveedor</option>

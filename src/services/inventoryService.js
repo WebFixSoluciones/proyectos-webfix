@@ -1,5 +1,5 @@
 import { doc, getDoc, setDoc, collection, getDocs } from "firebase/firestore";
-import { kardexService } from "../modules/inventory/services/KardexService";
+import { registerInventoryOperations, branchForWarehouse } from "./inventoryLedger";
 
 /**
  * Registra un movimiento de Kardex y actualiza la existencia/costo del producto.
@@ -15,75 +15,10 @@ export async function registrarMovimientoKardex(db, appId, {
   referenceId,
   bodega = "Bodega Central"
 }) {
-  const qty = Number(quantity) || 0;
-  const unitCost = Number(cost) || 0;
-  const unitPrice = Number(price) || 0;
-  
-  if (qty <= 0) return;
-
-  const productRef = doc(db, "artifacts", appId, "public", "data", "inventory_products", productId);
-  const productSnap = await getDoc(productRef);
-
-  if (!productSnap.exists()) {
-    throw new Error(`El producto con ID ${productId} no existe.`);
-  }
-
-  const productData = productSnap.data();
-
-  // Si el producto es un Combo, desglosamos y registramos movimientos para sus componentes
-  if ((productData.type === 'COMBO' || productData.productCategoryType === 'combo') && productData.comboItems && productData.comboItems.length > 0) {
-    for (const item of productData.comboItems) {
-      const componentQty = qty * (Number(item.quantity) || 1);
-      
-      const compRef = doc(db, "artifacts", appId, "public", "data", "inventory_products", item.productId);
-      const compSnap = await getDoc(compRef);
-      let compCost = 0;
-      if (compSnap.exists()) {
-        compCost = Number(compSnap.data().baseCost) || Number(compSnap.data().cost) || 0;
-      }
-
-      await registrarMovimientoKardex(db, appId, {
-        productId: item.productId,
-        type,
-        quantity: componentQty,
-        cost: compCost,
-        price: 0,
-        concept: `${concept} (Componente de Combo: ${productData.name})`,
-        referenceId,
-        bodega
-      });
-    }
-    return;
-  }
-
-  // Mapear bodega a branchId
-  let branchId = 'sucursal-central-uuid';
-  if (bodega.toLowerCase().includes('sur')) {
-    branchId = 'sucursal-sur-uuid';
-  } else if (bodega.toLowerCase().includes('norte')) {
-    branchId = 'sucursal-norte-uuid';
-  }
-
-  // Mapear tipos de movimiento al nuevo Kardex
-  const isEntry = ['entrada', 'ajuste_ingreso', 'transferencia_entrada'].includes(type);
-  const isAnulacion = concept.toLowerCase().includes('anulaci') || concept.toLowerCase().includes('revers');
-
-  let mappedType;
-  if (isEntry) {
-    mappedType = isAnulacion ? 'CUSTOMER_RETURN' : 'PURCHASE_RECEIPT';
-  } else {
-    mappedType = isAnulacion ? 'NEGATIVE_ADJUSTMENT' : 'SALE';
-  }
-
-  // Llamar al nuevo KardexService unificado
-  await kardexService.registerTransaction(
-    productId,
-    branchId,
-    mappedType,
-    referenceId || `sys_${Date.now()}`,
-    qty,
-    isEntry ? (unitCost || unitPrice || 0) : 0 // En salidas, el costo se resuelve por promedio ponderado
-  );
+  const mapped = { entrada: 'PURCHASE_RECEIPT', salida: 'SALE', ajuste_ingreso: 'POSITIVE_ADJUSTMENT', ajuste_egreso: 'NEGATIVE_ADJUSTMENT', transferencia_entrada: 'TRANSFER_IN', transferencia_salida: 'TRANSFER_OUT' };
+  const isReversal = /anulaci|revers/i.test(concept || '');
+  const movementType = isReversal && type === 'entrada' ? 'CUSTOMER_RETURN' : mapped[type];
+  return registerInventoryOperations(db, appId, [{ productId, branchId: branchForWarehouse(bodega), type: movementType, referenceId: (referenceId || crypto.randomUUID()) + (isReversal ? ':reversal' : ''), quantity: Number(quantity), unitCost: Number(cost ?? price ?? 0) }]);
 }
 
 /**

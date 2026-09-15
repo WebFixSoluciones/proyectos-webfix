@@ -1,4 +1,4 @@
-import { collection, getDocs, query, orderBy, limit as fLimit } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, limit as fLimit } from './financeStore.js';
 
 export async function getFlujoCaja(db, filtros = {}) {
   const q = query(collection(db, 'fin_movimientos'), orderBy('fecha', 'desc'));

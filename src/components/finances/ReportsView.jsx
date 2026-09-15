@@ -232,9 +232,9 @@ export default function ReportsView({ transactions, showToast }) {
     showToast('Archivo ATS descargado con éxito', 'success');
   };
 
-  const cardClass = 'p-6 rounded-card border transition-all bg-white border-gray-200 text-gray-900';
+  const cardClass = 'p-6 rounded-card border transition-all bg-white border-border-default text-text-heading';
 
-  const inputClass = 'px-3 py-2.5 rounded-card text-xs border outline-none bg-white border-gray-200 text-gray-900';
+  const inputClass = 'px-3 py-2.5 rounded-card text-xs border outline-none bg-white border-border-default text-text-heading';
 
   return (
     <div className="animate-in slide-in-from-bottom-4 duration-500 space-y-6">
@@ -243,7 +243,7 @@ export default function ReportsView({ transactions, showToast }) {
       <div className="p-5 rounded-card border flex flex-col md:flex-row items-center justify-between gap-4 bg-white border-gray-250">
         <div className="flex items-center gap-3">
           <div>
-            <label className="block text-xs font-bold uppercase mb-1 text-gray-500">Periodo Fiscal</label>
+            <label className="block text-xs font-bold uppercase mb-1 text-text-secondary">Periodo Fiscal</label>
             <div className="flex gap-2">
               <select value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)} className={inputClass}>
                 {['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'].map((m, i) => (
@@ -258,7 +258,7 @@ export default function ReportsView({ transactions, showToast }) {
             </div>
           </div>
 
-          <div className="flex items-end self-end h-[38px] p-0.5 rounded-card border border-gray-250/65 bg-gray-100/50">
+          <div className="flex items-end self-end h-[38px] p-0.5 rounded-card border border-gray-250/65 bg-surface-muted/50">
             {[
               { id: 'resumen', label: 'Resumen', icon: PieChart },
               { id: 'iva', label: 'IVA', icon: Percent },
@@ -271,10 +271,10 @@ export default function ReportsView({ transactions, showToast }) {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold uppercase transition-all ${
                     isActive 
-                      ? 'bg-white text-gray-950'
-                      : 'text-gray-600 hover:text-gray-900'
+                      ? 'bg-white text-text-heading'
+                      : 'text-text-primary hover:text-text-heading'
                   }`}
                 >
                   <Icon size={12} />
@@ -304,13 +304,13 @@ export default function ReportsView({ transactions, showToast }) {
             
             {/* VENTAS */}
             <div className={cardClass}>
-              <div className="flex items-center gap-2 mb-6 pb-4 border-b border-gray-200">
+              <div className="flex items-center gap-2 mb-6 pb-4 border-b border-border-default">
                 <TrendingUp size={18} className="text-emerald-500" />
                 <h3 className="text-sm font-bold uppercase tracking-wider">Ventas e Ingresos</h3>
               </div>
               <div className="space-y-4 text-xs">
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Base Imponible Gravable:</span>
+                  <span className="text-text-secondary">Base Imponible Gravable:</span>
                   <span className="font-semibold">${baseVentas.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-primary">
@@ -334,13 +334,13 @@ export default function ReportsView({ transactions, showToast }) {
 
             {/* COMPRAS */}
             <div className={cardClass}>
-              <div className="flex items-center gap-2 mb-6 pb-4 border-b border-gray-200">
+              <div className="flex items-center gap-2 mb-6 pb-4 border-b border-border-default">
                 <TrendingDown size={18} className="text-red-500" />
                 <h3 className="text-sm font-bold uppercase tracking-wider">Compras y Egresos</h3>
               </div>
               <div className="space-y-4 text-xs">
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Base Imponible Operativa:</span>
+                  <span className="text-text-secondary">Base Imponible Operativa:</span>
                   <span className="font-semibold">${baseCompras.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-primary">
@@ -376,19 +376,19 @@ export default function ReportsView({ transactions, showToast }) {
       {/* 2. CONCILIACIÓN DE IVA */}
       {activeTab === 'iva' && (
         <div className={cardClass}>
-          <div className="flex items-center gap-2 mb-6 pb-4 border-b border-gray-200">
+          <div className="flex items-center gap-2 mb-6 pb-4 border-b border-border-default">
             <Percent size={18} className="text-primary" />
             <h3 className="text-sm font-bold uppercase tracking-wider">Conciliación Mensual de IVA (SRI)</h3>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            <div className="p-4 rounded-card border bg-gray-50 border-gray-200">
-              <p className="text-xs uppercase text-gray-500 font-bold">Total IVA Ventas (Cobrado)</p>
-              <p className="text-xl font-black mt-1">${ivaVentas.toFixed(2)}</p>
+            <div className="p-4 rounded-card border bg-surface-bg border-border-default">
+              <p className="text-xs uppercase text-text-secondary font-bold">Total IVA Ventas (Cobrado)</p>
+              <p className="text-xl font-semibold mt-1">${ivaVentas.toFixed(2)}</p>
             </div>
-            <div className="p-4 rounded-card border bg-gray-50 border-gray-200">
-              <p className="text-xs uppercase text-gray-500 font-bold">Total IVA Compras (Crédito)</p>
-              <p className="text-xl font-black mt-1">${ivaCompras.toFixed(2)}</p>
+            <div className="p-4 rounded-card border bg-surface-bg border-border-default">
+              <p className="text-xs uppercase text-text-secondary font-bold">Total IVA Compras (Crédito)</p>
+              <p className="text-xl font-semibold mt-1">${ivaCompras.toFixed(2)}</p>
             </div>
             <div className={`p-4 rounded-card border ${
               (ivaVentas - ivaCompras) >= 0 
@@ -396,14 +396,14 @@ export default function ReportsView({ transactions, showToast }) {
                 : 'bg-emerald-50 border-emerald-200 text-emerald-700'
             }`}>
               <p className="text-xs uppercase font-bold">IVA a Pagar / Crédito Tributario</p>
-              <p className="text-xl font-black mt-1">${(ivaVentas - ivaCompras).toFixed(2)}</p>
+              <p className="text-xl font-semibold mt-1">${(ivaVentas - ivaCompras).toFixed(2)}</p>
             </div>
           </div>
 
-          <div className="rounded-card border overflow-hidden transition-all border-slate-200/80 bg-white">
+          <div className="rounded-card border overflow-hidden transition-all border-border-default/80 bg-white">
             <div className="overflow-x-auto custom-scrollbar">
               <table className="w-full text-left text-xs whitespace-nowrap">
-                <thead className="text-xs uppercase font-bold tracking-wider bg-slate-50 text-slate-600 border-b border-slate-100">
+                <thead className="text-xs uppercase font-bold tracking-wider bg-surface-bg text-text-primary border-b border-border-default">
                   <tr>
                     <th className="px-6 py-3.5">Tarifa / Porcentaje</th>
                     <th className="px-6 py-3.5 text-right">Base Ventas</th>
@@ -413,26 +413,26 @@ export default function ReportsView({ transactions, showToast }) {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  <tr className="transition-colors hover:bg-slate-50/40">
+                  <tr className="transition-colors hover:bg-surface-bg/40">
                     <td className="px-6 py-3.5 font-semibold text-black">Tarifa 15% (General)</td>
                     <td className="px-6 py-3.5 text-right font-mono text-black">${ivaVentasBreakdown.iva15Base.toFixed(2)}</td>
                     <td className="px-6 py-3.5 text-right font-mono text-primary">${ivaVentasBreakdown.iva15Val.toFixed(2)}</td>
                     <td className="px-6 py-3.5 text-right font-mono text-black">${ivaComprasBreakdown.iva15Base.toFixed(2)}</td>
                     <td className="px-6 py-3.5 text-right font-mono text-primary">${ivaComprasBreakdown.iva15Val.toFixed(2)}</td>
                   </tr>
-                  <tr className="transition-colors hover:bg-slate-50/40">
+                  <tr className="transition-colors hover:bg-surface-bg/40">
                     <td className="px-6 py-3.5 font-semibold text-black">Tarifa 12% (Otros/Anterior)</td>
                     <td className="px-6 py-3.5 text-right font-mono text-black">${ivaVentasBreakdown.iva12Base.toFixed(2)}</td>
                     <td className="px-6 py-3.5 text-right font-mono text-primary">${ivaVentasBreakdown.iva12Val.toFixed(2)}</td>
                     <td className="px-6 py-3.5 text-right font-mono text-black">${ivaComprasBreakdown.iva12Base.toFixed(2)}</td>
                     <td className="px-6 py-3.5 text-right font-mono text-primary">${ivaComprasBreakdown.iva12Val.toFixed(2)}</td>
                   </tr>
-                  <tr className="transition-colors hover:bg-slate-50/40">
+                  <tr className="transition-colors hover:bg-surface-bg/40">
                     <td className="px-6 py-3.5 font-semibold text-black">Tarifa 0% (Exentos)</td>
                     <td className="px-6 py-3.5 text-right font-mono text-black">${ivaVentasBreakdown.iva0Base.toFixed(2)}</td>
-                    <td className="px-6 py-3.5 text-right font-mono text-gray-400 font-medium">$0.00</td>
+                    <td className="px-6 py-3.5 text-right font-mono text-text-secondary font-medium">$0.00</td>
                     <td className="px-6 py-3.5 text-right font-mono text-black">${ivaComprasBreakdown.iva0Base.toFixed(2)}</td>
-                    <td className="px-6 py-3.5 text-right font-mono text-gray-400 font-medium">$0.00</td>
+                    <td className="px-6 py-3.5 text-right font-mono text-text-secondary font-medium">$0.00</td>
                   </tr>
                 </tbody>
               </table>
@@ -447,7 +447,7 @@ export default function ReportsView({ transactions, showToast }) {
           
           {/* RETENCIONES EMITIDAS (COMPRAS) */}
           <div className={cardClass}>
-            <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
+            <div className="flex justify-between items-center mb-6 pb-4 border-b border-border-default">
               <div className="flex items-center gap-2">
                 <Shield size={18} className="text-red-500" />
                 <h3 className="text-sm font-bold uppercase tracking-wider">Retenciones Emitidas (Gastos/Compras)</h3>
@@ -455,10 +455,10 @@ export default function ReportsView({ transactions, showToast }) {
               <span className="text-xs font-bold text-red-500">${totalRetsEmitidasVal.toFixed(2)}</span>
             </div>
 
-            <div className="rounded-card border overflow-hidden transition-all border-slate-200/80 bg-white">
+            <div className="rounded-card border overflow-hidden transition-all border-border-default/80 bg-white">
               <div className="overflow-x-auto max-h-[300px] overflow-y-auto custom-scrollbar">
                 <table className="w-full text-left text-xs whitespace-nowrap">
-                  <thead className="text-xs uppercase font-bold tracking-wider bg-slate-50 text-slate-600 border-b border-slate-100">
+                  <thead className="text-xs uppercase font-bold tracking-wider bg-surface-bg text-text-primary border-b border-border-default">
                     <tr>
                       <th className="px-6 py-3.5">Fecha</th>
                       <th className="px-6 py-3.5">Tipo</th>
@@ -469,8 +469,8 @@ export default function ReportsView({ transactions, showToast }) {
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {retsEmitidas.map((r, i) => (
-                      <tr key={i} className="transition-colors hover:bg-slate-50/40">
-                        <td className="px-6 py-3.5 text-gray-400 font-medium">{r.fecha}</td>
+                      <tr key={i} className="transition-colors hover:bg-surface-bg/40">
+                        <td className="px-6 py-3.5 text-text-secondary font-medium">{r.fecha}</td>
                         <td className="px-6 py-3.5 font-bold text-black">{r.impuesto}</td>
                         <td className="px-6 py-3.5 font-mono text-xs text-gray-550 font-bold">{r.codigo}</td>
                         <td className="px-6 py-3.5 text-right font-mono text-black">${r.base.toFixed(2)}</td>
@@ -479,7 +479,7 @@ export default function ReportsView({ transactions, showToast }) {
                     ))}
                     {retsEmitidas.length === 0 && (
                       <tr>
-                        <td colSpan="5" className="px-6 py-8 text-center text-gray-500 italic">No se registran retenciones emitidas en este periodo.</td>
+                        <td colSpan="5" className="px-6 py-8 text-center text-text-secondary italic">No se registran retenciones emitidas en este periodo.</td>
                       </tr>
                     )}
                   </tbody>
@@ -490,7 +490,7 @@ export default function ReportsView({ transactions, showToast }) {
 
           {/* RETENCIONES RECIBIDAS (VENTAS) */}
           <div className={cardClass}>
-            <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
+            <div className="flex justify-between items-center mb-6 pb-4 border-b border-border-default">
               <div className="flex items-center gap-2">
                 <Shield size={18} className="text-emerald-500" />
                 <h3 className="text-sm font-bold uppercase tracking-wider">Retenciones Recibidas (Ventas/Ingresos)</h3>
@@ -498,10 +498,10 @@ export default function ReportsView({ transactions, showToast }) {
               <span className="text-xs font-bold text-emerald-500">${totalRetsRecibidasVal.toFixed(2)}</span>
             </div>
 
-            <div className="rounded-card border overflow-hidden transition-all border-slate-200/80 bg-white">
+            <div className="rounded-card border overflow-hidden transition-all border-border-default/80 bg-white">
               <div className="overflow-x-auto max-h-[300px] overflow-y-auto custom-scrollbar">
                 <table className="w-full text-left text-xs whitespace-nowrap">
-                  <thead className="text-xs uppercase font-bold tracking-wider bg-slate-50 text-slate-600 border-b border-slate-100">
+                  <thead className="text-xs uppercase font-bold tracking-wider bg-surface-bg text-text-primary border-b border-border-default">
                     <tr>
                       <th className="px-6 py-3.5">Fecha</th>
                       <th className="px-6 py-3.5">Factura</th>
@@ -512,8 +512,8 @@ export default function ReportsView({ transactions, showToast }) {
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {retsRecibidas.map((r, i) => (
-                      <tr key={i} className="transition-colors hover:bg-slate-50/40">
-                        <td className="px-6 py-3.5 text-gray-400 font-medium">{r.fecha}</td>
+                      <tr key={i} className="transition-colors hover:bg-surface-bg/40">
+                        <td className="px-6 py-3.5 text-text-secondary font-medium">{r.fecha}</td>
                         <td className="px-6 py-3.5 font-mono text-xs font-bold">{r.comprobante}</td>
                         <td className="px-6 py-3.5 font-bold text-black">{r.impuesto}</td>
                         <td className="px-6 py-3.5 text-right font-mono text-black">${r.base.toFixed(2)}</td>
@@ -522,7 +522,7 @@ export default function ReportsView({ transactions, showToast }) {
                     ))}
                     {retsRecibidas.length === 0 && (
                       <tr>
-                        <td colSpan="5" className="px-6 py-8 text-center text-gray-500 italic">No se registran retenciones recibidas en este periodo.</td>
+                        <td colSpan="5" className="px-6 py-8 text-center text-text-secondary italic">No se registran retenciones recibidas en este periodo.</td>
                       </tr>
                     )}
                   </tbody>
@@ -537,7 +537,7 @@ export default function ReportsView({ transactions, showToast }) {
       {/* 4. PRE-ATS EXPORTADOR */}
       {activeTab === 'ats' && (
         <div className={cardClass}>
-          <div className="flex items-center gap-2 mb-6 pb-4 border-b border-gray-200">
+          <div className="flex items-center gap-2 mb-6 pb-4 border-b border-border-default">
             <FileText size={18} className="text-purple-500" />
             <h3 className="text-sm font-bold uppercase tracking-wider">Generador del Anexo Transaccional Simplificado (ATS)</h3>
           </div>
@@ -548,21 +548,21 @@ export default function ReportsView({ transactions, showToast }) {
               Este módulo compila todas las facturas y retenciones ingresadas en el mes para pre-validar las transacciones y generar el archivo exportador.
             </p>
             
-            <div className="p-4 rounded-card border grid grid-cols-2 md:grid-cols-4 gap-4 bg-gray-50 border-gray-200">
+            <div className="p-4 rounded-card border grid grid-cols-2 md:grid-cols-4 gap-4 bg-surface-bg border-border-default">
               <div>
-                <p className="text-xs uppercase text-gray-500 font-black">Registros Compilados</p>
+                <p className="text-xs uppercase text-text-secondary font-semibold">Registros Compilados</p>
                 <p className="text-base font-bold">{filteredTx.length} transacciones</p>
               </div>
               <div>
-                <p className="text-xs uppercase text-gray-500 font-black">Periodo ATS</p>
+                <p className="text-xs uppercase text-text-secondary font-semibold">Periodo ATS</p>
                 <p className="text-base font-bold font-mono">{selectedYear}-{String(Number(selectedMonth)+1).padStart(2, '0')}</p>
               </div>
               <div>
-                <p className="text-xs uppercase text-gray-500 font-black">Ventas Reportadas</p>
+                <p className="text-xs uppercase text-text-secondary font-semibold">Ventas Reportadas</p>
                 <p className="text-base font-bold text-emerald-500">{ventas.length} facturas</p>
               </div>
               <div>
-                <p className="text-xs uppercase text-gray-500 font-black">Compras con Retención</p>
+                <p className="text-xs uppercase text-text-secondary font-semibold">Compras con Retención</p>
                 <p className="text-base font-bold text-red-500">
                   {compras.filter(c => c.retenciones && c.retenciones.length > 0).length} registros
                 </p>
@@ -575,7 +575,7 @@ export default function ReportsView({ transactions, showToast }) {
               </button>
             </div>
             
-            <p className="text-xs text-gray-500 leading-normal pt-2">
+            <p className="text-xs text-text-secondary leading-normal pt-2">
               Nota: El archivo JSON puede convertirse a formato XML compatible con el validador DIMM de forma automática o utilizarse como sustento directo para contabilidad.
             </p>
           </div>

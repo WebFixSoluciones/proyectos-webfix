@@ -123,20 +123,20 @@ export default function HiringServicesModule({ showToast, db, appId }) {
  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`,'_blank');
  };
 
- const inputClass =`w-full px-3.5 py-2 text-xs rounded-btn border outline-none transition-all focus:ring-1 focus:ring-primary/25 bg-white border-slate-200 text-black focus:border-primary`;
+ const inputClass =`w-full px-3.5 py-2 text-xs rounded-btn border outline-none transition-all focus:ring-1 focus:ring-primary/25 bg-white border-border-default text-black focus:border-primary`;
 
  return (
  <div className="space-y-6">
  {/* Banner de Presentación */}
- <div className={`p-6 rounded-btn border relative overflow-hidden bg-gradient-to-r from-primary-light via-white to-white border-slate-200`}>
+ <div className={`p-6 rounded-btn border relative overflow-hidden bg-gradient-to-r from-primary-light via-white to-white border-border-default`}>
  <div className="max-w-2xl space-y-2 relative z-10">
- <span className="text-xs font-black uppercase tracking-widest text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+ <span className="text-xs font-semibold uppercase tracking-widest text-primary bg-primary/10 px-2 py-0.5 rounded-full">
  Servicios Web Fix
  </span>
- <h2 className={`text-xl font-black tracking-tight text-slate-900`}>
+ <h2 className={`text-xl font-semibold tracking-tight text-text-heading`}>
  Lleva tu negocio al siguiente nivel digital
  </h2>
- <p className="text-xs text-gray-500 leading-relaxed">
+ <p className="text-xs text-text-secondary leading-relaxed">
  Te ayudamos a digitalizar tu marca. Contrata nuestros servicios profesionales directamente desde tu panel de control y agiliza tu visibilidad, correos corporativos y campañas publicitarias.
  </p>
  </div>
@@ -146,14 +146,14 @@ export default function HiringServicesModule({ showToast, db, appId }) {
  {/* Grid de Servicios */}
  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
  {services.map(service => (
- <div key={service.id} className={`rounded-btn border flex flex-col justify-between overflow-hidden transition-all duration-300 bg-white border-slate-200 hover:border-primary/30`}>
+ <div key={service.id} className={`rounded-btn border flex flex-col justify-between overflow-hidden transition-all duration-300 bg-white border-border-default hover:border-primary/30`}>
  <div className="p-6 space-y-4">
  {/* Header de Tarjeta */}
  <div className="flex items-center justify-between">
- <div className={`p-2.5 rounded-btn bg-slate-50`}>
+ <div className={`p-2.5 rounded-btn bg-surface-bg`}>
  {service.icon}
  </div>
- <span className={`text-xs font-black uppercase tracking-wider px-2 py-0.5 rounded-card ${
+ <span className={`text-xs font-semibold uppercase tracking-wider px-2 py-0.5 rounded-card ${
  service.id ==='diseno_web' 
  ?'bg-blue-500/10 text-blue-500' 
  : service.id ==='correos_corporativos' 
@@ -165,26 +165,26 @@ export default function HiringServicesModule({ showToast, db, appId }) {
  </div>
 
  <div className="space-y-1.5">
- <h3 className={`text-sm font-black uppercase tracking-wide text-slate-900`}>
+ <h3 className={`text-sm font-semibold uppercase tracking-wide text-text-heading`}>
  {service.title}
  </h3>
- <p className="text-xs text-gray-500 leading-normal min-h-[48px]">
+ <p className="text-xs text-text-secondary leading-normal min-h-[48px]">
  {service.desc}
  </p>
  </div>
 
  {/* Precio */}
  <div className="pt-2">
- <span className="text-xs text-gray-500 font-bold uppercase block tracking-wider">Inversión</span>
- <span className="text-base font-extrabold text-primary">{service.price}</span>
+ <span className="text-xs text-text-secondary font-bold uppercase block tracking-wider">Inversión</span>
+ <span className="text-base font-semibold text-primary">{service.price}</span>
  </div>
 
  {/* Características */}
- <div className="space-y-2 pt-2 border-t border-gray-500/5">
- <span className="text-xs text-gray-500 font-bold uppercase block tracking-wider">¿Qué incluye?</span>
+ <div className="space-y-2 pt-2 border-t border-border-strong/5">
+ <span className="text-xs text-text-secondary font-bold uppercase block tracking-wider">¿Qué incluye?</span>
  <ul className="space-y-2">
  {service.features.map((feat, idx) => (
- <li key={idx} className="flex items-start gap-2 text-xs text-gray-400">
+ <li key={idx} className="flex items-start gap-2 text-xs text-text-secondary">
  <CheckCircle2 size={12} className="text-primary mt-0.5 shrink-0" />
  <span>{feat}</span>
  </li>
@@ -194,10 +194,10 @@ export default function HiringServicesModule({ showToast, db, appId }) {
  </div>
 
  {/* Acción */}
- <div className={`p-4 border-t bg-slate-50/50 border-slate-100`}>
+ <div className={`p-4 border-t bg-surface-bg/50 border-border-default`}>
  <button 
  onClick={() => handleOpenModal(service)}
- className="w-full py-2.5 text-xs font-black uppercase tracking-wider rounded-btn bg-primary hover:bg-primary-hover text-white flex items-center justify-center gap-1.5 transition-all"
+ className="w-full py-2.5 text-xs font-semibold uppercase tracking-wider rounded-btn bg-primary hover:bg-primary-hover text-white flex items-center justify-center gap-1.5 transition-all"
  >
  Solicitar Cotización <ArrowRight size={13} />
  </button>
@@ -209,23 +209,23 @@ export default function HiringServicesModule({ showToast, db, appId }) {
  {/* Modal de Solicitud */}
  {selectedService && (
  <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
- <div className={`w-full max-w-md rounded-card border p-6 space-y-4 transition-all scale-100 bg-white border-slate-200 text-slate-900`}>
+ <div className={`w-full max-w-md rounded-card border p-6 space-y-4 transition-all scale-100 bg-white border-border-default text-text-heading`}>
  {/* Modal Header */}
- <div className="flex items-center justify-between pb-2 border-b border-gray-500/10">
+ <div className="flex items-center justify-between pb-2 border-b border-border-strong/10">
  <div className="flex items-center gap-3">
- <div className={`p-2 rounded-btn bg-slate-50`}>
+ <div className={`p-2 rounded-btn bg-surface-bg`}>
  {selectedService.icon}
  </div>
  <div>
- <h3 className="text-sm font-black uppercase tracking-wider">Cotizar Servicio</h3>
- <p className="text-xs text-gray-500 font-medium leading-none mt-1">
+ <h3 className="text-sm font-semibold uppercase tracking-wider">Cotizar Servicio</h3>
+ <p className="text-xs text-text-secondary font-medium leading-none mt-1">
  {selectedService.title}
  </p>
  </div>
  </div>
  <button 
  onClick={() => setSelectedService(null)}
- className={`p-1.5 rounded-full hover:bg-gray-500/10 text-gray-500 transition-colors`}
+ className={`p-1.5 rounded-full hover:bg-surface-sidebar/10 text-text-secondary transition-colors`}
  >
  <X size={16} />
  </button>
@@ -234,13 +234,13 @@ export default function HiringServicesModule({ showToast, db, appId }) {
  {/* Modal Body */}
  {!successRequest ? (
  <form onSubmit={handleSubmit} className="space-y-4">
- <p className="text-xs leading-relaxed text-gray-400">
+ <p className="text-xs leading-relaxed text-text-secondary">
  Ingresa tus datos de contacto. Uno de nuestros asesores de **Web Fix** se comunicará contigo en menos de 24 horas para enviarte una propuesta detallada.
  </p>
 
  <div className="space-y-3">
  <div>
- <label className="block text-xs font-bold uppercase mb-1.5 text-gray-500">
+ <label className="block text-xs font-bold uppercase mb-1.5 text-text-secondary">
  Nombre de Contacto *
  </label>
  <input 
@@ -257,7 +257,7 @@ export default function HiringServicesModule({ showToast, db, appId }) {
 
  <div className="grid grid-cols-2 gap-3">
  <div>
- <label className="block text-xs font-bold uppercase mb-1.5 text-gray-500">
+ <label className="block text-xs font-bold uppercase mb-1.5 text-text-secondary">
  Teléfono / Celular *
  </label>
  <input 
@@ -272,7 +272,7 @@ export default function HiringServicesModule({ showToast, db, appId }) {
  />
  </div>
  <div>
- <label className="block text-xs font-bold uppercase mb-1.5 text-gray-500">
+ <label className="block text-xs font-bold uppercase mb-1.5 text-text-secondary">
  Correo de Contacto *
  </label>
  <input 
@@ -289,7 +289,7 @@ export default function HiringServicesModule({ showToast, db, appId }) {
  </div>
 
  <div>
- <label className="block text-xs font-bold uppercase mb-1.5 text-gray-500">
+ <label className="block text-xs font-bold uppercase mb-1.5 text-text-secondary">
  Mensaje o Requerimientos Adicionales
  </label>
  <textarea 
@@ -305,19 +305,19 @@ export default function HiringServicesModule({ showToast, db, appId }) {
  </div>
 
  {/* Modal Footer Actions */}
- <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-500/5">
+ <div className="flex items-center justify-end gap-2 pt-2 border-t border-border-strong/5">
  <button 
  type="button" 
  onClick={() => setSelectedService(null)}
  disabled={isSaving}
- className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-btn border transition-colors border-slate-200 hover:bg-slate-50 text-slate-600`}
+ className={`px-4 py-2 text-xs font-semibold uppercase tracking-wider rounded-btn border transition-colors border-border-default hover:bg-surface-bg text-text-primary`}
  >
  Cancelar
  </button>
  <button 
  type="submit" 
  disabled={isSaving}
- className="px-4 py-2 text-xs font-black uppercase tracking-wider rounded-btn bg-primary hover:bg-primary-hover text-white flex items-center gap-1.5 transition-colors disabled:opacity-60"
+ className="px-4 py-2 text-xs font-semibold uppercase tracking-wider rounded-btn bg-primary hover:bg-primary-hover text-white flex items-center gap-1.5 transition-colors disabled:opacity-60"
  >
  {isSaving ? (
  <>
@@ -339,17 +339,17 @@ export default function HiringServicesModule({ showToast, db, appId }) {
  <CheckCircle2 size={24} />
  </div>
  <div className="space-y-1">
- <h4 className="text-xs font-black uppercase tracking-wider">¡Solicitud Registrada!</h4>
- <p className="text-xs text-gray-400 leading-normal px-2">
+ <h4 className="text-xs font-semibold uppercase tracking-wider">¡Solicitud Registrada!</h4>
+ <p className="text-xs text-text-secondary leading-normal px-2">
  Hemos guardado tus requerimientos en el sistema de manera segura. Para agilizar y chatear directamente con nosotros, presiona el botón de abajo.
  </p>
  </div>
 
- <div className="flex flex-col gap-2 pt-4 border-t border-gray-500/5">
+ <div className="flex flex-col gap-2 pt-4 border-t border-border-strong/5">
  <button 
  type="button" 
  onClick={handleSendWhatsApp}
- className="w-full py-2.5 text-xs font-black uppercase tracking-wider rounded-btn bg-emerald-500 hover:bg-emerald-600 text-white flex items-center justify-center gap-1.5 transition-colors"
+ className="w-full py-2.5 text-xs font-semibold uppercase tracking-wider rounded-btn bg-emerald-500 hover:bg-emerald-600 text-white flex items-center justify-center gap-1.5 transition-colors"
  >
  <MessageSquare size={13} />
  Chatear por WhatsApp
@@ -357,7 +357,7 @@ export default function HiringServicesModule({ showToast, db, appId }) {
  <button 
  type="button" 
  onClick={() => setSelectedService(null)}
- className={`w-full py-2.5 text-xs font-black uppercase tracking-wider rounded-btn border transition-colors border-slate-200 hover:bg-slate-50 text-slate-600`}
+ className={`w-full py-2.5 text-xs font-semibold uppercase tracking-wider rounded-btn border transition-colors border-border-default hover:bg-surface-bg text-text-primary`}
  >
  Cerrar Ventana
  </button>

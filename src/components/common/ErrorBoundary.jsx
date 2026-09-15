@@ -32,9 +32,9 @@ export class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="p-6 md:p-8 m-4 rounded-xl border border-red-200 bg-red-50/50  animate-in fade-in duration-300">
+        <div className="p-6 md:p-8 m-4 rounded-card border border-red-200 bg-red-50/50  animate-in fade-in duration-300">
           <div className="flex items-start gap-4">
-            <div className="p-3 bg-red-100 text-red-600 rounded-lg shrink-0">
+            <div className="p-3 bg-red-100 text-red-600 rounded-md shrink-0">
               <AlertOctagon size={24} />
             </div>
             <div className="flex-1 min-w-0">
@@ -45,7 +45,7 @@ export class ErrorBoundary extends React.Component {
                 Ocurrió una excepción no controlada. Puedes revisar el detalle técnico abajo o intentar recargar la sección.
               </p>
 
-              <div className="bg-red-950 text-red-200 p-3 rounded-lg font-mono text-xs overflow-x-auto mb-4 border border-red-900/50 max-h-48 custom-scrollbar">
+              <div className="bg-red-950 text-red-200 p-3 rounded-md font-mono text-xs overflow-x-auto mb-4 border border-red-900/50 max-h-48 custom-scrollbar">
                 <p className="font-bold text-red-400 mb-1">
                   {this.state.error?.name}: {this.state.error?.message}
                 </p>
@@ -59,13 +59,13 @@ export class ErrorBoundary extends React.Component {
               <div className="flex items-center gap-2">
                 <button
                   onClick={this.handleReset}
-                  className="flex items-center gap-1.5 px-3.5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-all "
+                  className="flex items-center gap-1.5 px-3.5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md text-xs font-bold transition-all "
                 >
                   <RefreshCw size={14} /> Reintentar
                 </button>
                 <button
                   onClick={this.handleCopy}
-                  className="flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-lg text-xs font-bold transition-all"
+                  className="flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-surface-muted text-text-primary border border-border-strong rounded-md text-xs font-bold transition-all"
                 >
                   {this.state.copied ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
                   {this.state.copied ? "Copiado" : "Copiar Error"}

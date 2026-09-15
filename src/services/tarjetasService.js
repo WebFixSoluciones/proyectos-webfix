@@ -1,4 +1,4 @@
-import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, getDoc, query, where, orderBy, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, getDoc, query, where, orderBy, serverTimestamp, Timestamp } from './financeStore.js';
 import { registrarAuditoria } from './auditService';
 
 const COLLECTION_TARJETAS = 'fin_tarjetas';
@@ -88,7 +88,7 @@ export async function getConsumosTarjeta(db, tarjetaId, filtros = {}) {
     items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   } catch (e) {
     if (e.code === 'failed-precondition' || e.message?.includes('index')) {
-      const q = query(collection(db, COLLECTION_CONSUMOS));
+      const q = query(collection(db, COLLECTION_CONSUMOS), where('tarjetaId', '==', tarjetaId));
       const snap = await getDocs(q);
       items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       items.sort((a, b) => { const fa = a.fecha?.toDate?.() || new Date(a.fecha || 0); const fb = b.fecha?.toDate?.() || new Date(b.fecha || 0); return fb - fa; });

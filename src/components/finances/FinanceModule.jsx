@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { 
   DollarSign, PieChart, Users, FileText, Download, Sparkles, ShoppingCart, Package,
   ArrowUpCircle, Percent, CreditCard, ShoppingBag, TrendingUp,
@@ -80,6 +80,10 @@ export default function FinanceModule({
   // Estados centralizados para el modal de Facturación / SRI
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTx, setEditingTx] = useState(null);
+  const checkoutResolver = useRef(null);
+  const closeTransactionForm = () => { checkoutResolver.current?.(false); checkoutResolver.current = null; setIsModalOpen(false); };
+  const transactionSaved = data => { if (checkoutResolver.current) { checkoutResolver.current(data); checkoutResolver.current = null; } };
+  useEffect(() => () => checkoutResolver.current?.(false), []);
   const [purchaseMethod, setPurchaseMethod] = useState(null);
   const [showPurchaseMethodSelect, setShowPurchaseMethodSelect] = useState(false);
 
@@ -267,10 +271,11 @@ export default function FinanceModule({
   };
 
   // Checkout desde Punto de Venta (POS)
-  const handlePOSCheckout = (invoiceData) => {
+  const handlePOSCheckout = invoiceData => new Promise(resolve => {
+    checkoutResolver.current = resolve;
     setEditingTx(invoiceData);
     setIsModalOpen(true);
-  };
+  });
 
   const getModuleHeader = () => {
     switch (mode) {
@@ -350,7 +355,7 @@ export default function FinanceModule({
       {/* SUB-SUB-NAVEGACIÓN SI ACTIVE TAB TIENE SUB-TABS (ej: sri_docs en contabilidad) */}
       {activeTab === 'sri_docs' && mode === 'contabilidad' && (
         <div className="flex items-center gap-2 px-8 py-2 border-b shrink-0 border-primary/10 bg-primary-light/50">
-          <span className="text-xs font-black uppercase tracking-wider text-primary">Tipo Doc:</span>
+          <span className="text-xs font-semibold uppercase tracking-wider text-primary">Tipo Doc:</span>
           <div className="flex gap-1.5 overflow-x-auto whitespace-nowrap scrollbar-none">
             {[
               { id: 'nota_credito', label: 'Notas de Crédito' },
@@ -362,7 +367,7 @@ export default function FinanceModule({
               <button
                 key={sub.id}
                 onClick={() => setSubTabSri(sub.id)}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all border ${
+                className={`px-3 py-1 rounded-md text-xs font-bold transition-all border ${
                   subTabSri === sub.id
                     ? 'bg-emerald-600 text-white border-emerald-600'
                     : 'border-transparent text-black hover:text-black hover:bg-black/5'
@@ -377,7 +382,7 @@ export default function FinanceModule({
 
       {/* CUERPO PRINCIPAL */}
       <div className="flex flex-1 overflow-hidden min-h-0 bg-transparent">
-        <div className={`flex-1 overflow-y-auto px-8 ${isFormActive ? 'pt-0 pb-6' : 'py-6'} custom-scrollbar bg-white`}>
+        <div className={`flex-1 min-w-0 overflow-y-auto ${isFormActive ? 'pt-0 pb-6' : 'py-4'} custom-scrollbar bg-surface-bg`}>
           {isLoading ? (
             <div className="flex justify-center items-center h-64">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
@@ -394,10 +399,10 @@ export default function FinanceModule({
               
               {/* SECCIÓN VENTAS */}
               {activeTab === 'ventas' && (
-                isModalOpen && editingTx?.type === 'ingreso' && !editingTx?.isPOS ? (
-                  <TransactionForm 
+                isModalOpen && editingTx?.type === 'ingreso' && !editingTx?.posCheckoutOrigin && !editingTx?.isPOS ? (
+                  <TransactionForm onSaved={transactionSaved} usuario={usuario}
                     tx={editingTx} 
-                    onClose={() => setIsModalOpen(false)} 
+                    onClose={closeTransactionForm}
                     thirdParties={thirdParties} 
                     products={products}
                     discounts={discounts}
@@ -461,29 +466,6 @@ export default function FinanceModule({
                       <DiscountsPromotionsView db={db} appId={appId} showToast={showToast} products={products} />
                     )}
 
-                    {/* Si el formulario es de POS, se abre como modal overlay sobre el POS */}
-                    {isModalOpen && editingTx?.type === 'ingreso' && editingTx?.isPOS && (
-                      <TransactionForm 
-                        tx={editingTx} 
-                        onClose={() => {
-                          setIsModalOpen(false);
-                          // Sincronizar foco del input del POS después de cerrar el modal de impresión
-                          setTimeout(() => {
-                            const searchInput = document.getElementById('pos-search-input');
-                            if (searchInput) searchInput.focus();
-                          }, 350);
-                        }} 
-                        thirdParties={thirdParties} 
-                        products={products}
-                        discounts={discounts}
-                        promotions={promotions}
-                        showToast={showToast} 
-                        db={db} 
-                        storage={storage} 
-                        appId={appId} 
-                        isInline={false}
-                      />
-                    )}
                   </>
                 )
               )}
@@ -607,10 +589,10 @@ export default function FinanceModule({
       {isModalOpen && !(
         editingTx?.type === 'egreso' && 
         (editingTx?.documentType === 'factura' || editingTx?.documentType === 'nota_venta' || editingTx?.documentType === 'liquidacion' || !editingTx?.documentType)
-      ) && activeTab !== 'ventas' && (
-        <TransactionForm 
+      ) && (activeTab !== 'ventas' || editingTx?.isPOS || editingTx?.posCheckoutOrigin) && (
+        <TransactionForm onSaved={transactionSaved} usuario={usuario}
           tx={editingTx} 
-          onClose={() => setIsModalOpen(false)} 
+          onClose={closeTransactionForm}
           thirdParties={thirdParties} 
           products={products}
           discounts={discounts}
@@ -625,10 +607,10 @@ export default function FinanceModule({
       {/* Modal: Seleccion de Metodo de Compra */}
       {showPurchaseMethodSelect && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50" onClick={() => setShowPurchaseMethodSelect(false)}>
-          <div className="w-full max-w-lg bg-white rounded-lg border border-border-default" onClick={e => e.stopPropagation()}>
+          <div className="w-full max-w-lg bg-white rounded-md border border-border-default" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between px-5 py-3 border-b border-border-default">
               <h3 className="text-md font-semibold text-black">Registrar Compra</h3>
-              <button onClick={() => setShowPurchaseMethodSelect(false)} className="btn-icon text-gray-500"><X size={16} /></button>
+              <button onClick={() => setShowPurchaseMethodSelect(false)} className="btn-icon text-text-secondary"><X size={16} /></button>
             </div>
             <div className="p-5 space-y-3">
               <p className="text-sm text-text-primary">Selecciona el metodo para registrar la compra:</p>

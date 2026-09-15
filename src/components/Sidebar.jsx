@@ -17,15 +17,15 @@ export default function Sidebar({
 }) {
  const closeMobile = () => { if(window.innerWidth < 768) setIsSidebarOpen(false); };
 
-  const navBase = "group flex items-center gap-2.5 w-full px-2.5 py-1.5 rounded-md transition-all text-xs font-medium tracking-tight";
-  const navActive = "bg-text-heading text-white font-medium";
+  const navBase = "group flex items-center gap-2.5 w-full px-2.5 py-2 rounded-md transition-all text-xs font-medium tracking-tight";
+  const navActive = "bg-primary-light text-primary font-semibold";
   const navInactive = "text-text-secondary hover:bg-black/5 hover:text-text-heading";
   const navBtnClass = (isActive) => `${navBase} ${isActive ? navActive : navInactive}`;
 
-  const iconClass = (isActive) => `shrink-0 transition-colors ${isActive ? 'text-white' : 'text-text-secondary group-hover:text-text-heading'}`;
+  const iconClass = (isActive) => `shrink-0 transition-colors ${isActive ? 'text-primary' : 'text-text-secondary group-hover:text-text-heading'}`;
 
   const subBase = "block w-full text-left py-1 px-2.5 rounded-md text-xs font-medium transition-all tracking-tight";
-  const subActive = "text-text-heading font-semibold bg-black/5";
+  const subActive = "text-primary font-semibold bg-primary-light";
   const subInactive = "text-text-secondary hover:text-text-heading hover:bg-black/5";
   const subItemClass = (isActive) => `${subBase} ${isActive ? subActive : subInactive}`;
 

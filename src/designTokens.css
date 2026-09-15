@@ -1,52 +1,52 @@
 :root {
   /* ==========================================================================
-     VERCEL / GEIST DESIGN SYSTEM TOKENS (LIGHT VERSION)
+     WEBFIX — FLAT OPERATIVO AZUL (OPCIÓN A)
      ========================================================================== */
 
-  /* Primary Brand Accent (Vercel Electric Blue) */
-  --primary: #1C40F2;
-  --primary-hover: #102ECF;
-  --primary-light: #EFF2FF;
-  --primary-muted: #D0DAFF;
+  /* Primary Brand Accent (WebFix Blue) */
+  --primary: #2563EB;
+  --primary-hover: #1D4ED8;
+  --primary-light: #EFF6FF;
+  --primary-muted: #DBEAFE;
 
   /* Surfaces & Backgrounds */
-  --surface-bg: #FFFFFF;
+  --surface-bg: #F8FAFC;
   --surface-card: #FFFFFF;
-  --surface-sidebar: #FAFAFA;
-  --surface-hover: #FAFAFA;
-  --surface-muted: #F5F5F5;
+  --surface-sidebar: #FFFFFF;
+  --surface-hover: #EFF6FF;
+  --surface-muted: #F1F5F9;
 
   /* Hairline Borders */
-  --border-default: #EAEAEA;
-  --border-strong: #D4D4D4;
-  --border-focus: #1C40F2;
+  --border-default: #DCE3EB;
+  --border-strong: #A8B6C8;
+  --border-focus: #2563EB;
 
   /* Typography Colors (High Contrast Monochromatic) */
-  --text-heading: #000000;
-  --text-primary: #070B18;
-  --text-secondary: #666666;
-  --text-muted: #888888;
+  --text-heading: #172033;
+  --text-primary: #243247;
+  --text-secondary: #526176;
+  --text-muted: #617087;
 
-  /* Semantic Status Colors (Vercel Mint, Amber, Rose) */
-  --success: #00E4B8;
-  --success-light: #E6FDF9;
-  --success-text: #008F73;
-  --success-border: #A2F2E4;
+  /* Semantic Status Colors (Semantic states) */
+  --success: #15803D;
+  --success-light: #F0FDF4;
+  --success-text: #166534;
+  --success-border: #BBE4C7;
 
-  --warning: #F5A623;
-  --warning-light: #FFF8E6;
-  --warning-text: #A66000;
-  --warning-border: #FFE8A3;
+  --warning: #A16207;
+  --warning-light: #FFFBEB;
+  --warning-text: #854D0E;
+  --warning-border: #F5D990;
 
-  --error: #FF0057;
-  --error-light: #FFF0F5;
-  --error-text: #D10043;
-  --error-border: #FFA3C4;
+  --error: #DC2626;
+  --error-light: #FEF2F2;
+  --error-text: #B91C1C;
+  --error-border: #FECACA;
 
-  --info: #1C40F2;
-  --info-light: #EFF2FF;
-  --info-text: #1C40F2;
-  --info-border: #D0DAFF;
+  --info: #2563EB;
+  --info-light: #EFF6FF;
+  --info-text: #1D4ED8;
+  --info-border: #BFDBFE;
 
   /* Status Badges */
   --status-authorized-bg: var(--success-light);
@@ -73,25 +73,25 @@
   --status-cancelled-text: var(--text-muted);
   --status-cancelled-border: var(--border-default);
 
-  /* Precise Border Radius (Geist Flat Standard) */
-  --radius-xs: 3px;
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 6px;
+  /* Precise Border Radius (Flat standard) */
+  --radius-xs: 4px;
+  --ui-radius-sm: 4px;
+  --ui-radius-md: 6px;
+  --ui-radius-lg: 6px;
   --radius-button: 6px;
-  --radius-card: 6px;
-  --radius-input: 6px;
-  --radius-badge: 4px;
+  --ui-radius-card: 6px;
+  --ui-radius-input: 6px;
+  --ui-radius-badge: 4px;
 
   /* Typography Scale */
-  --text-xs: 11px;
-  --text-sm: 12px;
-  --text-base: 13px;
-  --text-md: 14px;
-  --text-lg: 16px;
-  --text-xl: 18px;
-  --text-2xl: 22px;
-  --text-3xl: 28px;
+  --ui-text-xs: 12px;
+  --ui-text-sm: 13px;
+  --ui-text-base: 14px;
+  --ui-text-md: 14px;
+  --ui-text-lg: 16px;
+  --ui-text-xl: 20px;
+  --ui-text-2xl: 24px;
+  --ui-text-3xl: 28px;
 
   --font-weight-normal: 400;
   --font-weight-medium: 500;
@@ -124,4 +124,18 @@
   --stripe-border-light: var(--border-default);
   --stripe-bg: var(--surface-bg);
   --stripe-surface: var(--surface-card);
+  --text-xs: var(--ui-text-xs);
+  --text-sm: var(--ui-text-sm);
+  --text-base: var(--ui-text-base);
+  --text-md: var(--ui-text-md);
+  --text-lg: var(--ui-text-lg);
+  --text-xl: var(--ui-text-xl);
+  --text-2xl: var(--ui-text-2xl);
+  --text-3xl: var(--ui-text-3xl);
+  --radius-sm: var(--ui-radius-sm);
+  --radius-md: var(--ui-radius-md);
+  --radius-lg: var(--ui-radius-lg);
+  --radius-card: var(--ui-radius-card);
+  --radius-input: var(--ui-radius-input);
+  --radius-badge: var(--ui-radius-badge);
 }

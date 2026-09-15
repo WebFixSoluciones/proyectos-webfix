@@ -1,82 +1,18 @@
-import { kardexService, KardexService } from './KardexService';
-import { Transfer, TransferTypeEnum } from '../domain/schemas/kardex-transfer.schema';
-import { z } from 'zod';
-import { collection, doc, setDoc } from 'firebase/firestore';
-import { db, appId } from '../../../firebase';
-
+import { db, getAppId } from '../../../firebase';
+import { registerInventoryOperations } from '../../../services/inventoryLedger';
 export class TransferService {
-  constructor(private kardex: KardexService = kardexService) {}
-
-  private getCollectionRef() {
-    return collection(db, 'artifacts', appId, 'public', 'data', 'inventory_transfers');
-  }
-
-  async executeTransfer(
-    transferType: z.infer<typeof TransferTypeEnum>,
-    sourceBranchId: string,
-    targetBranchId: string,
-    items: { productId: string; quantity: number; unitCost: number }[],
-    createdBy: string,
-    transferCost: number = 0 // Costos logísticos adicionales (para EXTERNAL)
-  ): Promise<string> {
-    
-    if (sourceBranchId === targetBranchId) {
-      throw new Error("La sucursal de origen y destino no pueden ser la misma.");
-    }
-
-    const transferId = crypto.randomUUID();
-
-    // 1. Ejecutar Salidas en el Kardex (Source Branch)
-    // El KardexService validará si hay stock suficiente en la sucursal origen.
-    for (const item of items) {
-      await this.kardex.registerTransaction(
-        item.productId,
-        sourceBranchId,
-        'TRANSFER_OUT',
-        transferId,
-        item.quantity,
-        0 // En salidas, el unitCost que se manda no importa, el servicio usa el Promedio Ponderado actual.
-      );
-    }
-
-    // 2. Ejecutar Entradas en el Kardex (Target Branch)
-    // Para entradas, el costo unitario será el costo original + costo de transferencia proporcional.
-    const addedLogisticsCostPerUnit = transferType === 'EXTERNAL' && items.length > 0
-      ? transferCost / items.reduce((acc, curr) => acc + curr.quantity, 0)
-      : 0;
-
-    for (const item of items) {
-      const finalEntryCost = item.unitCost + addedLogisticsCostPerUnit;
-      
-      await this.kardex.registerTransaction(
-        item.productId,
-        targetBranchId,
-        'PURCHASE_RECEIPT', // Lo tratamos como un ingreso. Si se quiere trazar como traslado, se usa POSITIVE_ADJUSTMENT o un enum específico de ingreso por traslado si existiese.
-        transferId,
-        item.quantity,
-        finalEntryCost
-      );
-    }
-
-    // 3. Guardar el registro de la transferencia en su propia colección
-    const transferDoc: Partial<Transfer> = {
-      id: transferId,
-      type: transferType,
-      sourceBranchId,
-      targetBranchId,
-      status: 'COMPLETED',
-      items,
-      transferCost,
-      createdBy,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-
-    const docRef = doc(this.getCollectionRef(), transferId);
-    await setDoc(docRef, transferDoc);
-
-    return transferId;
+  async executeTransfer(type: string, sourceBranchId: string, targetBranchId: string, items: { productId: string; quantity: number; unitCost: number }[], createdBy: string, transferCost = 0): Promise<string> {
+    if (!items.length) throw new Error('Agrega productos a la transferencia.');
+    if (sourceBranchId === targetBranchId) throw new Error('Origen y destino deben ser distintos.');
+    if (!Number.isFinite(transferCost) || transferCost < 0) throw new Error('El costo de traslado no es válido.');
+    const id = crypto.randomUUID();
+    const logisticsCost = type === 'EXTERNAL' ? transferCost / items.reduce((sum, item) => sum + item.quantity, 0) : 0;
+    const operations = [
+      ...items.map(item => ({ ...item, branchId: sourceBranchId, type: 'TRANSFER_OUT', referenceId: id, unitCost: 0 })),
+      ...items.map(item => ({ ...item, branchId: targetBranchId, type: 'TRANSFER_IN', referenceId: id, sourceBranchId, logisticsCost }))
+    ];
+    await registerInventoryOperations(db, getAppId(), operations, { document: { collection: 'inventory_transfers', id, data: { id, type, sourceBranchId, targetBranchId, items, createdBy, transferCost, status: 'COMPLETED', createdAt: new Date(), updatedAt: new Date() } } });
+    return id;
   }
 }
-
 export const transferService = new TransferService();

@@ -109,7 +109,7 @@ export default function SalesDashboard({ transactions, db, appId }) {
 
   // Clases CSS premium
   const cardClass = `p-5 rounded-card border transition-all ${
-    'bg-white border-border-default hover:border-gray-400/80'
+    'bg-white border-border-default hover:border-border-strong/80'
   }`;
 
   const progressBgClass = 'bg-surface-bg';
@@ -146,7 +146,7 @@ export default function SalesDashboard({ transactions, db, appId }) {
             </div>
           </div>
           <div className="shrink-0 flex items-center gap-2">
-            <span className={`text-xs font-black uppercase tracking-wider px-2 py-0.5 rounded border ${
+            <span className={`text-xs font-semibold uppercase tracking-wider px-2 py-0.5 rounded border ${
               activeSession 
                 ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' 
                 : 'bg-orange-500/10 border-orange-500/30 text-orange-400'
@@ -164,11 +164,11 @@ export default function SalesDashboard({ transactions, db, appId }) {
         <div className={cardClass}>
           <div className="flex items-center justify-between mb-3">
             <span className={`text-xs font-bold uppercase tracking-wider ${'text-text-secondary'}`}>Ventas de Hoy</span>
-            <div className={`p-1.5 rounded-lg ${'bg-primary/10 text-primary'}`}>
+            <div className={`p-1.5 rounded-md ${'bg-primary/10 text-primary'}`}>
               <ShoppingCart size={14} />
             </div>
           </div>
-          <p className="text-2xl font-black">${todaySalesTotal.toFixed(2)}</p>
+          <p className="text-2xl font-semibold">${todaySalesTotal.toFixed(2)}</p>
           <div className="flex items-center gap-1 mt-1 text-xs">
             <span className="font-bold text-emerald-500 flex items-center"><ArrowUpRight size={10} /> {todaySalesCount}</span>
             <span className={'text-text-secondary font-semibold'}>transacciones concretadas</span>
@@ -179,11 +179,11 @@ export default function SalesDashboard({ transactions, db, appId }) {
         <div className={cardClass}>
           <div className="flex items-center justify-between mb-3">
             <span className={`text-xs font-bold uppercase tracking-wider ${'text-text-secondary'}`}>Ventas del Mes</span>
-            <div className={`p-1.5 rounded-lg ${'bg-emerald-100 text-emerald-800'}`}>
+            <div className={`p-1.5 rounded-md ${'bg-emerald-100 text-emerald-800'}`}>
               <TrendingUp size={14} />
             </div>
           </div>
-          <p className="text-2xl font-black text-emerald-500">${monthlySalesTotal.toFixed(2)}</p>
+          <p className="text-2xl font-semibold text-emerald-500">${monthlySalesTotal.toFixed(2)}</p>
           <div className="flex items-center gap-1 mt-1 text-xs">
             <span className="font-bold text-emerald-500 flex items-center"><ArrowUpRight size={10} /> {monthlySalesCount}</span>
             <span className={'text-text-secondary font-semibold'}>facturas de venta</span>
@@ -194,11 +194,11 @@ export default function SalesDashboard({ transactions, db, appId }) {
         <div className={cardClass}>
           <div className="flex items-center justify-between mb-3">
             <span className={`text-xs font-bold uppercase tracking-wider ${'text-text-secondary'}`}>Ticket Promedio</span>
-            <div className={`p-1.5 rounded-lg ${'bg-purple-100 text-purple-800'}`}>
+            <div className={`p-1.5 rounded-md ${'bg-purple-100 text-purple-800'}`}>
               <DollarSign size={14} />
             </div>
           </div>
-          <p className="text-2xl font-black">${averageTicket.toFixed(2)}</p>
+          <p className="text-2xl font-semibold">${averageTicket.toFixed(2)}</p>
           <div className="flex items-center gap-1 mt-1 text-xs">
             <span className={'text-text-secondary font-semibold'}>Valor medio por compra</span>
           </div>
@@ -208,11 +208,11 @@ export default function SalesDashboard({ transactions, db, appId }) {
         <div className={cardClass}>
           <div className="flex items-center justify-between mb-3">
             <span className={`text-xs font-bold uppercase tracking-wider ${'text-text-secondary'}`}>Artículos Vendidos</span>
-            <div className={`p-1.5 rounded-lg ${'bg-orange-100 text-orange-800'}`}>
+            <div className={`p-1.5 rounded-md ${'bg-orange-100 text-orange-800'}`}>
               <Package size={14} />
             </div>
           </div>
-          <p className="text-2xl font-black">{totalItemsSold} ud.</p>
+          <p className="text-2xl font-semibold">{totalItemsSold} ud.</p>
           <div className="flex items-center gap-1 mt-1 text-xs">
             <span className={'text-text-secondary font-semibold'}>Productos y servicios entregados</span>
           </div>
@@ -227,7 +227,7 @@ export default function SalesDashboard({ transactions, db, appId }) {
         <div className={`${cardClass} lg:col-span-2 space-y-4`}>
           <div className="flex items-center gap-2 pb-2 border-b border-white/5">
             <Activity size={15} className="text-primary" />
-            <h3 className="text-xs font-black uppercase tracking-wider">Desglose de Métodos de Pago</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider">Desglose de Métodos de Pago</h3>
           </div>
 
           <div className="space-y-4">
@@ -235,7 +235,7 @@ export default function SalesDashboard({ transactions, db, appId }) {
               { key: 'efectivo', label: 'Efectivo en Caja', color: 'bg-emerald-500' },
               { key: 'tarjeta', label: 'Tarjetas Débito/Crédito', color: 'bg-blue-500' },
               { key: 'transferencia', label: 'Transferencia Bancaria', color: 'bg-purple-500' },
-              { key: 'cruce_cuentas', label: 'Cruce de Cuentas', color: 'bg-gray-500' }
+              { key: 'cruce_cuentas', label: 'Cruce de Cuentas', color: 'bg-surface-sidebar' }
             ].map(m => {
               const value = paymentMethods[m.key] || 0;
               const pct = (value / totalPaymentSum) * 100;
@@ -258,7 +258,7 @@ export default function SalesDashboard({ transactions, db, appId }) {
         <div className={`${cardClass} lg:col-span-3 space-y-4`}>
           <div className="flex items-center gap-2 pb-2 border-b border-white/5">
             <Tag size={15} className="text-orange-500" />
-            <h3 className="text-xs font-black uppercase tracking-wider">Productos Más Vendidos (Mes)</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider">Productos Más Vendidos (Mes)</h3>
           </div>
 
           <div className="space-y-3.5">
@@ -266,7 +266,7 @@ export default function SalesDashboard({ transactions, db, appId }) {
               const pct = (p.quantity / maxProductQty) * 100;
               return (
                 <div key={idx} className="flex items-center gap-3">
-                  <span className={`w-5 h-5 rounded-lg flex items-center justify-center text-xs font-black shrink-0 ${
+                  <span className={`w-5 h-5 rounded-md flex items-center justify-center text-xs font-semibold shrink-0 ${
                     idx === 0 
                       ? 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/20' 
                       : ('bg-surface-bg text-text-secondary')

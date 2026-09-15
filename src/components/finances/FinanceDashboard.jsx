@@ -91,7 +91,7 @@ export default function FinanceDashboard({ transactions, thirdParties, db, appId
               </p>
             </div>
           </div>
-          <div className="px-3 py-1 rounded-lg text-xs font-bold border uppercase shrink-0 border-primary/40 bg-primary/10 text-primary">
+          <div className="px-3 py-1 rounded-md text-xs font-bold border uppercase shrink-0 border-primary/40 bg-primary/10 text-primary">
             {certStatus === 'none' ? 'Incompleto' : certStatus === 'expired' ? 'Expirado' : 'Urgente'}
           </div>
         </div>
@@ -103,36 +103,36 @@ export default function FinanceDashboard({ transactions, thirdParties, db, appId
         {/* INGRESOS */}
         <div className={cardClass}>
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-bold uppercase tracking-wider text-black font-extrabold">Ventas (Mes)</span>
-            <div className="p-1.5 rounded-lg bg-emerald-100 text-emerald-700">
+            <span className="text-xs font-bold uppercase tracking-wider text-black font-semibold">Ventas (Mes)</span>
+            <div className="p-1.5 rounded-md bg-emerald-100 text-emerald-700">
               <TrendingUp size={16} />
             </div>
           </div>
-          <p className="text-2xl font-black text-emerald-600">${totalIncome.toFixed(2)}</p>
+          <p className="text-2xl font-semibold text-emerald-600">${totalIncome.toFixed(2)}</p>
           <p className="text-xs mt-1 text-black">IVA Cobrado: ${ivaVentas.toFixed(2)}</p>
         </div>
 
         {/* EGRESOS */}
         <div className={cardClass}>
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-bold uppercase tracking-wider text-black font-extrabold">Gastos (Mes)</span>
-            <div className="p-1.5 rounded-lg bg-red-100 text-red-700">
+            <span className="text-xs font-bold uppercase tracking-wider text-black font-semibold">Gastos (Mes)</span>
+            <div className="p-1.5 rounded-md bg-red-100 text-red-700">
               <TrendingDown size={16} />
             </div>
           </div>
-          <p className="text-2xl font-black text-red-600">${totalExpense.toFixed(2)}</p>
+          <p className="text-2xl font-semibold text-red-600">${totalExpense.toFixed(2)}</p>
           <p className="text-xs mt-1 text-black">IVA Pagado: ${ivaCompras.toFixed(2)}</p>
         </div>
 
         {/* MARGEN */}
         <div className={cardClass}>
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-bold uppercase tracking-wider text-black font-extrabold">Flujo Neto</span>
-            <div className="p-1.5 rounded-lg bg-primary/10 text-primary">
+            <span className="text-xs font-bold uppercase tracking-wider text-black font-semibold">Flujo Neto</span>
+            <div className="p-1.5 rounded-md bg-primary/10 text-primary">
               <DollarSign size={16} />
             </div>
           </div>
-          <p className={`text-2xl font-black ${netMargin >= 0 ? 'text-black' : 'text-red-600'}`}>
+          <p className={`text-2xl font-semibold ${netMargin >= 0 ? 'text-black' : 'text-red-600'}`}>
             ${netMargin.toFixed(2)}
           </p>
           <p className="text-xs mt-1 text-black">Rendimiento mensual</p>
@@ -141,12 +141,12 @@ export default function FinanceDashboard({ transactions, thirdParties, db, appId
         {/* BALANCE IVA */}
         <div className={cardClass}>
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-bold uppercase tracking-wider text-black font-extrabold">IVA por Declarar</span>
-            <div className="p-1.5 rounded-lg bg-purple-100 text-purple-700">
+            <span className="text-xs font-bold uppercase tracking-wider text-black font-semibold">IVA por Declarar</span>
+            <div className="p-1.5 rounded-md bg-purple-100 text-purple-700">
               <Award size={16} />
             </div>
           </div>
-          <p className={`text-2xl font-black ${ivaEstimado >= 0 ? 'text-purple-700' : 'text-primary'}`}>
+          <p className={`text-2xl font-semibold ${ivaEstimado >= 0 ? 'text-purple-700' : 'text-primary'}`}>
             ${Math.abs(ivaEstimado).toFixed(2)}
           </p>
           <p className="text-xs mt-1 text-black">
@@ -163,7 +163,7 @@ export default function FinanceDashboard({ transactions, thirdParties, db, appId
         <div className={`${cardClass} md:col-span-1`}>
           <div className="flex items-center gap-2 mb-5 pb-3 border-b border-primary/15">
             <FileText size={16} className="text-primary" />
-            <h3 className="text-xs font-bold uppercase tracking-wider text-black font-black">Estados de Emisión SRI</h3>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-black font-semibold">Estados de Emisión SRI</h3>
           </div>
           
           <div className="space-y-3.5">
@@ -171,7 +171,7 @@ export default function FinanceDashboard({ transactions, thirdParties, db, appId
               {key: 'autorizado', label: 'Autorizados / Registrados', color: 'bg-emerald-600' },
               { key: 'pendiente', label: 'Pendientes', color: 'bg-yellow-600' },
               { key: 'rechazado', label: 'Rechazados', color: 'bg-red-600' },
-              { key: 'anulado', label: 'Anulados', color: 'bg-gray-600' }
+              { key: 'anulado', label: 'Anulados', color: 'bg-surface-sidebar' }
             ].map(item => {
               const count = statusCounts[item.key] || 0;
               const pct = transactions.length > 0 ? (count / transactions.length) * 100 : 0;
@@ -194,7 +194,7 @@ export default function FinanceDashboard({ transactions, thirdParties, db, appId
         <div className={`${cardClass} md:col-span-2`}>
           <div className="flex items-center gap-2 mb-5 pb-3 border-b border-primary/15">
             <Clock size={16} className="text-yellow-600" />
-            <h3 className="text-xs font-bold uppercase tracking-wider text-black font-black">Comprobantes por Cobrar / Pagar</h3>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-black font-semibold">Comprobantes por Cobrar / Pagar</h3>
           </div>
 
           {pendingPayments.length > 0 ? (

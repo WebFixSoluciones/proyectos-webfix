@@ -2,14 +2,14 @@ import { z } from 'zod';
 
 // --- KARDEX SCHEMA ---
 export const TransactionTypeEnum = z.enum([
-  'PURCHASE_RECEIPT', 'CUSTOMER_RETURN', 'POSITIVE_ADJUSTMENT', // Entradas
+  'PURCHASE_RECEIPT', 'CUSTOMER_RETURN', 'POSITIVE_ADJUSTMENT', 'TRANSFER_IN', // Entradas
   'SALE', 'TRANSFER_OUT', 'NEGATIVE_ADJUSTMENT', 'SHRINKAGE', 'MASSIVE_ZERO' // Salidas
 ]);
 
 export const KardexTransactionSchema = z.object({
-  id: z.string().uuid().optional(),
-  productId: z.string().uuid(),
-  branchId: z.string().uuid(),
+  id: z.string().min(1).optional(),
+  productId: z.string().min(1),
+  branchId: z.string().min(1),
   date: z.date(),
   type: TransactionTypeEnum,
   referenceId: z.string(), // ID de la venta, compra, o ajuste (trazabilidad)
@@ -28,13 +28,13 @@ export const TransferTypeEnum = z.enum(['INTERNAL', 'EXTERNAL']);
 export const TransferStatusEnum = z.enum(['PENDING', 'IN_TRANSIT', 'COMPLETED', 'CANCELLED']);
 
 export const TransferSchema = z.object({
-  id: z.string().uuid().optional(),
+  id: z.string().min(1).optional(),
   type: TransferTypeEnum,
-  sourceBranchId: z.string().uuid(),
-  targetBranchId: z.string().uuid(),
+  sourceBranchId: z.string().min(1),
+  targetBranchId: z.string().min(1),
   status: TransferStatusEnum.default('PENDING'),
   items: z.array(z.object({
-    productId: z.string().uuid(),
+    productId: z.string().min(1),
     quantity: z.number().positive(),
     unitCost: z.number().nonnegative() // Costo en el momento de la transferencia
   })),
@@ -50,12 +50,12 @@ export type Transfer = z.infer<typeof TransferSchema>;
 export const AdjustmentTypeEnum = z.enum(['MANUAL', 'MASSIVE', 'ZERO_INVENTORY']);
 
 export const InventoryAdjustmentSchema = z.object({
-  id: z.string().uuid().optional(),
-  branchId: z.string().uuid(),
+  id: z.string().min(1).optional(),
+  branchId: z.string().min(1),
   type: AdjustmentTypeEnum,
   reason: z.string().min(5, "La justificación es obligatoria y debe ser descriptiva"),
   items: z.array(z.object({
-    productId: z.string().uuid(),
+    productId: z.string().min(1),
     quantity: z.number(), // +ingreso o -egreso
     operation: z.enum(['IN', 'OUT'])
   })),

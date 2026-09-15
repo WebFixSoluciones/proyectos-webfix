@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useSearchParams } from'react-router-dom';
 import { Mail, Lock, User, Building, ArrowRight, RefreshCw } from'lucide-react';
 import { createUserWithEmailAndPassword } from'firebase/auth';
-import { doc, setDoc } from'firebase/firestore';
+import { doc, writeBatch } from'firebase/firestore';
 import { auth, db, setTenantId } from'../firebase';
 
 export default function RegisterPage({ showToast }) {
@@ -53,7 +53,9 @@ export default function RegisterPage({ showToast }) {
  const expiresAt = new Date();
  expiresAt.setDate(expiresAt.getDate() + 14);
 
+ const batch = writeBatch(db);
  const tenantData = {
+ ownerUid: user.uid,
  id: generatedTenantId,
  companyName: companyName,
  planId: planParam,
@@ -63,7 +65,7 @@ export default function RegisterPage({ showToast }) {
  expiresAt: expiresAt.toISOString()
  };
 
- await setDoc(doc(db,'tenants', generatedTenantId), tenantData);
+ batch.set(doc(db,'tenants', generatedTenantId), tenantData);
 
  // 4. Crear el documento del usuario en Firestore
  const userData = {
@@ -76,12 +78,12 @@ export default function RegisterPage({ showToast }) {
  createdAt: new Date().toISOString()
  };
 
- await setDoc(doc(db,'users', user.uid), userData);
+ batch.set(doc(db,'users', user.uid), userData);
 
  // 5. Inicializar la base del Workspace de la empresa para evitar errores de ruteo
  // Configuración de Facturación/Perfil
  const configRef = doc(db,'artifacts', generatedTenantId,'public','data','finances_settings','config');
- await setDoc(configRef, {
+ batch.set(configRef, {
  razonSocial: companyName,
  nombreComercial: companyName,
  ruc:'',
@@ -105,11 +107,13 @@ export default function RegisterPage({ showToast }) {
 
  // Meta Info
  const metaRef = doc(db,'artifacts', generatedTenantId,'public','data','meta','info');
- await setDoc(metaRef, {
+ batch.set(metaRef, {
  users: [{ email: email, role:'admin' }],
  trash: [],
  googleClientId:''
  });
+
+ await batch.commit();
 
  // 6. Establecer el tenantId de forma dinámica
  setTenantId(generatedTenantId);
@@ -133,7 +137,7 @@ export default function RegisterPage({ showToast }) {
  };
 
  return (
- <div className="flex items-center justify-center min-h-screen w-full font-sans overflow-hidden transition-colors duration-500 relative z-0 text-gray-800">
+ <div className="flex items-center justify-center min-h-screen w-full font-sans overflow-hidden transition-colors duration-500 relative z-0 text-text-heading">
  
  {/* BASE BACKGROUND SOLID COLOR */}
  <div className="absolute inset-0 -z-20 transition-colors duration-500 bg-surface-bg" />
@@ -153,7 +157,7 @@ export default function RegisterPage({ showToast }) {
  <div className="absolute inset-0 rounded-btn bg-gradient-to-tr from-primary/10 to-primary-muted blur-xl opacity-60 pointer-events-none"></div>
  
  {/* La tarjeta principal */}
- <div className="w-full p-8 sm:p-10 rounded-btn flex flex-col border transition-all duration-500 relative z-10 bg-white/95 border-slate-200/60">
+ <div className="w-full p-8 sm:p-10 rounded-btn flex flex-col border transition-all duration-500 relative z-10 bg-white/95 border-border-default/60">
  
  {/* Header */}
  <div className="text-left mb-6 select-none">
@@ -163,14 +167,14 @@ export default function RegisterPage({ showToast }) {
  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
  </svg>
  </div>
- <span className="text-2xl font-black tracking-tight text-black">
+ <span className="text-2xl font-semibold tracking-tight text-black">
  Web Fix ERP
  </span>
  </div>
  <span className="text-xl font-medium leading-none block text-black">
  Crear cuenta de empresa
  </span>
- <span className="text-xs font-black uppercase text-indigo-500 mt-2 block tracking-wider">
+ <span className="text-xs font-semibold uppercase text-indigo-500 mt-2 block tracking-wider">
  {getPlanName(planParam)} — Prueba de 14 días gratis
  </span>
  </div>
@@ -188,7 +192,7 @@ export default function RegisterPage({ showToast }) {
  type="text" 
  value={registerForm.name}
  onChange={(e) => setRegisterForm({...registerForm, name: e.target.value})}
- className="w-full text-xs font-medium tracking-wide pl-11 pr-3.5 py-3 rounded-btn outline-none transition-all border bg-surface-bg border-slate-300 text-black focus:border-primary focus:bg-white" 
+ className="w-full text-xs font-medium tracking-wide pl-11 pr-3.5 py-3 rounded-btn outline-none transition-all border bg-surface-bg border-border-strong text-black focus:border-primary focus:bg-white"
  placeholder="Tu Nombre" 
  required
  />
@@ -207,7 +211,7 @@ export default function RegisterPage({ showToast }) {
  type="text" 
  value={registerForm.companyName}
  onChange={(e) => setRegisterForm({...registerForm, companyName: e.target.value})}
- className="w-full text-xs font-medium tracking-wide pl-11 pr-3.5 py-3 rounded-btn outline-none transition-all border bg-surface-bg border-slate-300 text-black focus:border-primary focus:bg-white" 
+ className="w-full text-xs font-medium tracking-wide pl-11 pr-3.5 py-3 rounded-btn outline-none transition-all border bg-surface-bg border-border-strong text-black focus:border-primary focus:bg-white"
  placeholder="Ej. Mi Negocio S.A.S" 
  required
  />
@@ -226,7 +230,7 @@ export default function RegisterPage({ showToast }) {
  type="email" 
  value={registerForm.email}
  onChange={(e) => setRegisterForm({...registerForm, email: e.target.value})}
- className="w-full text-xs font-medium tracking-wide pl-11 pr-3.5 py-3 rounded-btn outline-none transition-all border bg-surface-bg border-slate-300 text-black focus:border-primary focus:bg-white" 
+ className="w-full text-xs font-medium tracking-wide pl-11 pr-3.5 py-3 rounded-btn outline-none transition-all border bg-surface-bg border-border-strong text-black focus:border-primary focus:bg-white"
  placeholder="correo@empresa.com" 
  required
  />
@@ -245,7 +249,7 @@ export default function RegisterPage({ showToast }) {
  type="password" 
  value={registerForm.password}
  onChange={(e) => setRegisterForm({...registerForm, password: e.target.value})}
- className="w-full text-xs font-medium tracking-wide pl-11 pr-3.5 py-3 rounded-btn outline-none transition-all border bg-surface-bg border-slate-300 text-black focus:border-primary focus:bg-white" 
+ className="w-full text-xs font-medium tracking-wide pl-11 pr-3.5 py-3 rounded-btn outline-none transition-all border bg-surface-bg border-border-strong text-black focus:border-primary focus:bg-white"
  placeholder="Mínimo 6 caracteres" 
  minLength={6}
  required

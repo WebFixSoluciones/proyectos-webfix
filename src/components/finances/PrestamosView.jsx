@@ -283,10 +283,10 @@ function FormPrestamo({ db, usuario, showToast, onClose }) {
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50" onClick={onClose}>
-      <div className="w-full max-w-2xl bg-white rounded-lg border border-border-default max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+      <div className="w-full max-w-2xl bg-white rounded-md border border-border-default max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-3 border-b border-border-default sticky top-0 bg-white z-10">
           <h3 className="text-md font-semibold text-black">Nuevo Préstamo Bancario</h3>
-          <button onClick={onClose} className="btn-icon text-gray-500"><X size={16} /></button>
+          <button onClick={onClose} className="btn-icon text-text-secondary"><X size={16} /></button>
         </div>
         <div className="p-5 space-y-3">
           <div className="grid grid-cols-2 gap-3">

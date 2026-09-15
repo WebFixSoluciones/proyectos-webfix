@@ -47,20 +47,20 @@ export default function FinanceChat({ transactions, onClose }) {
   };
 
   return (
-    <div className="flex flex-col h-full rounded-card border overflow-hidden bg-white border-gray-200">
+    <div className="flex flex-col h-full rounded-card border overflow-hidden bg-white border-border-default">
       {/* HEADER CHAT */}
-      <div className="px-4 py-3 flex items-center justify-between border-b border-gray-100 bg-gray-50/50">
+      <div className="px-4 py-3 flex items-center justify-between border-b border-border-default bg-surface-bg/50">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-purple-500/20 text-purple-400">
+          <div className="p-1.5 rounded-md bg-purple-500/20 text-purple-400">
             <Sparkles size={16} />
           </div>
           <div>
             <h4 className="text-xs font-bold">Asistente Contable AI</h4>
-            <p className="text-xs text-gray-500">Respuestas basadas en tu base contable</p>
+            <p className="text-xs text-text-secondary">Respuestas basadas en tu base contable</p>
           </div>
         </div>
         {onClose && (
-          <button onClick={onClose} className="btn-icon text-gray-400 hover:text-gray-200">
+          <button onClick={onClose} className="btn-icon text-text-secondary hover:text-text-secondary">
             <X size={14} />
           </button>
         )}
@@ -73,7 +73,7 @@ export default function FinanceChat({ transactions, onClose }) {
             <div className={`p-2 rounded-card shrink-0 flex items-center justify-center h-7 w-7 ${msg.role === 'user' ? 'bg-primary text-white' : 'bg-purple-600/20 text-purple-400'}`}>
               {msg.role === 'user' ? <User size={12} /> : <Bot size={12} />}
             </div>
-            <div className={`p-3 rounded-card leading-relaxed whitespace-pre-line ${msg.role === 'user' ? 'bg-primary text-white rounded-tr-none' : 'bg-gray-100 text-gray-800 rounded-tl-none'}`}>
+            <div className={`p-3 rounded-card leading-relaxed whitespace-pre-line ${msg.role === 'user' ? 'bg-primary text-white rounded-tr-none' : 'bg-surface-muted text-text-heading rounded-tl-none'}`}>
               {msg.text}
             </div>
           </div>
@@ -84,7 +84,7 @@ export default function FinanceChat({ transactions, onClose }) {
             <div className="p-2 rounded-card bg-purple-600/20 text-purple-400 shrink-0 flex items-center justify-center h-7 w-7">
               <Bot size={12} />
             </div>
-            <div className="p-3 rounded-card rounded-tl-none flex items-center gap-1.5 bg-gray-100 text-gray-500">
+            <div className="p-3 rounded-card rounded-tl-none flex items-center gap-1.5 bg-surface-muted text-text-secondary">
               <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '0ms' }}></span>
               <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '150ms' }}></span>
               <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '300ms' }}></span>
@@ -104,13 +104,13 @@ export default function FinanceChat({ transactions, onClose }) {
       </div>
 
       {/* INPUT CHAT */}
-      <form onSubmit={handleSend} className="p-3 border-t flex gap-2 items-center border-gray-100 bg-white">
+      <form onSubmit={handleSend} className="p-3 border-t flex gap-2 items-center border-border-default bg-white">
         <input 
           type="text" 
           value={input} 
           onChange={e => setInput(e.target.value)} 
           placeholder="Pregúntame algo sobre tus finanzas..."
-          className="flex-1 text-xs px-3 py-2 rounded-card border outline-none transition-all bg-gray-50 border-gray-200 text-gray-900 focus:border-primary/50"
+          className="flex-1 text-xs px-3 py-2 rounded-card border outline-none transition-all bg-surface-bg border-border-default text-text-heading focus:border-primary/50"
         />
         <button 
           type="submit" 

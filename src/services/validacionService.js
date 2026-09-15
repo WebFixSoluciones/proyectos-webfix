@@ -1,4 +1,4 @@
-import { collection, getDocs, query, where, doc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, query, where, doc, getDoc, serverTimestamp } from './financeStore.js';
 
 /**
  * Servicio de validación de integridad de datos financieros

@@ -291,20 +291,20 @@ export default function BillingPortal({ showToast, initialSubTab }) {
   };
 
   return (
-    <div className={`p-6 max-w-5xl mx-auto space-y-8 text-left text-gray-800`}>
+    <div className={`p-6 max-w-5xl mx-auto space-y-8 text-left text-text-heading`}>
       
       {/* Header Info */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-extrabold tracking-tight">Suscripción y Facturación</h2>
-          <p className="text-xs text-gray-500 font-medium">Administra los módulos de tu negocio y realiza tus pagos.</p>
+          <h2 className="text-xl font-semibold tracking-tight">Suscripción y Facturación</h2>
+          <p className="text-xs text-text-secondary font-medium">Administra los módulos de tu negocio y realiza tus pagos.</p>
         </div>
-        <div className={`p-4 rounded-card border flex items-center gap-3 bg-white border-slate-200`}>
-          <div className="p-2 bg-primary/10 rounded-lg text-primary">
+        <div className={`p-4 rounded-card border flex items-center gap-3 bg-white border-border-default`}>
+          <div className="p-2 bg-primary/10 rounded-md text-primary">
             <Building size={18} />
           </div>
           <div>
-            <div className="text-xs uppercase font-bold text-gray-500">Plan Actual</div>
+            <div className="text-xs uppercase font-bold text-text-secondary">Plan Actual</div>
             <div className="text-xs font-bold capitalize">{activePlan} — {planStatus === 'trial' ? `Prueba (${getDaysRemaining()} días)` : 'Suscripción Activa'}</div>
           </div>
         </div>
@@ -312,22 +312,22 @@ export default function BillingPortal({ showToast, initialSubTab }) {
 
       {/* Grid: Plan Selector & Payment Form */}
       {activeCategory === 'historial' ? (
-        <div className={`p-6 rounded-card border bg-white border-slate-200`}>
+        <div className={`p-6 rounded-card border bg-white border-border-default`}>
           <h3 className="text-xs font-bold uppercase tracking-wider mb-4">Historial de Transacciones</h3>
           <div className="overflow-x-auto text-xs">
             <table className="w-full text-left">
               <thead>
-                <tr className="border-b dark:border-white/5 text-gray-500 font-bold uppercase text-xs">
+                <tr className="border-b  text-text-secondary font-bold uppercase text-xs">
                   <th className="py-2">Fecha</th>
                   <th className="py-2">Referencia</th>
                   <th className="py-2">Monto</th>
                   <th className="py-2">Estado</th>
                 </tr>
               </thead>
-              <tbody className="divide-y dark:divide-white/5 font-medium">
+              <tbody className="divide-y  font-medium">
                 {history.length === 0 ? (
                   <tr>
-                    <td colSpan="4" className="py-4 text-center text-gray-500 font-semibold">No se registran transacciones previas.</td>
+                    <td colSpan="4" className="py-4 text-center text-text-secondary font-semibold">No se registran transacciones previas.</td>
                   </tr>
                 ) : (
                   history.map((tx) => (
@@ -336,7 +336,7 @@ export default function BillingPortal({ showToast, initialSubTab }) {
                       <td className="py-3.5 font-mono">{tx.referenceNumber}</td>
                       <td className="py-3.5 font-bold text-emerald-500">${tx.amount}</td>
                       <td className="py-3.5">
-                        <span className={`px-2 py-0.5 rounded text-xs font-black uppercase ${
+                        <span className={`px-2 py-0.5 rounded text-xs font-semibold uppercase ${
                           tx.status === 'approved' ? 'bg-emerald-500/15 text-emerald-500' :
                           tx.status === 'pending' ? 'bg-orange-500/15 text-orange-500 animate-pulse' :
                           'bg-red-500/15 text-red-500'
@@ -357,28 +357,28 @@ export default function BillingPortal({ showToast, initialSubTab }) {
           
           {/* Left Col: Plan Selector */}
           <div className="lg:col-span-2 space-y-6">
-            <div className={`p-6 rounded-card border bg-white border-slate-200`}>
+            <div className={`p-6 rounded-card border bg-white border-border-default`}>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                 <div>
                   <h3 className="text-xs font-bold uppercase tracking-wider text-primary">
                     {PRODUCTS_CATALOG[activeCategory]?.title}
                   </h3>
-                  <p className="text-xs text-gray-500 mt-0.5 font-medium">
+                  <p className="text-xs text-text-secondary mt-0.5 font-medium">
                     {PRODUCTS_CATALOG[activeCategory]?.desc}
                   </p>
                 </div>
                 
                 {/* Billing Cycle Toggle */}
-                <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-card text-xs font-bold self-start sm:self-center">
+                <div className="flex bg-surface-muted  p-1 rounded-card text-xs font-bold self-start sm:self-center">
                   <button 
                     onClick={() => setBillingPeriod('monthly')}
-                    className={`px-3 py-1.5 rounded-lg ${billingPeriod === 'monthly' ? 'bg-white dark:bg-white/10 text-primary dark:text-white' : 'text-gray-500'}`}
+                    className={`px-3 py-1.5 rounded-md ${billingPeriod === 'monthly' ? 'bg-white  text-primary ' : 'text-text-secondary'}`}
                   >
                     Mensual
                   </button>
                   <button 
                     onClick={() => setBillingPeriod('yearly')}
-                    className={`px-3 py-1.5 rounded-lg ${billingPeriod === 'yearly' ? 'bg-white dark:bg-white/10 text-primary dark:text-white' : 'text-gray-500'}`}
+                    className={`px-3 py-1.5 rounded-md ${billingPeriod === 'yearly' ? 'bg-white  text-primary ' : 'text-text-secondary'}`}
                   >
                     Anual
                   </button>
@@ -394,18 +394,18 @@ export default function BillingPortal({ showToast, initialSubTab }) {
                       onClick={() => setSelectedPlanId(plan.id)}
                       className={`p-5 rounded-card border cursor-pointer transition-all flex flex-col justify-between ${
                         isSelected 
-                          ? 'border-primary bg-primary/5 dark:bg-primary/10 ring-1 ring-primary/30' 
-                          : 'border-slate-200 bg-slate-50 hover:bg-slate-100/50'
+                          ? 'border-primary bg-primary/5  ring-1 ring-primary/30'
+                          : 'border-border-default bg-surface-bg hover:bg-surface-muted/50'
                       }`}
                     >
                       <div>
                         <div className="font-bold text-xs mb-1">{plan.name}</div>
                         <div className="flex items-baseline gap-0.5 mb-4">
-                          <span className="text-lg font-black">$</span>
-                          <span className="text-2xl font-black">{getPrice(plan)}</span>
-                          <span className="text-xs text-gray-500">/mes</span>
+                          <span className="text-lg font-semibold">$</span>
+                          <span className="text-2xl font-semibold">{getPrice(plan)}</span>
+                          <span className="text-xs text-text-secondary">/mes</span>
                         </div>
-                        <ul className="space-y-2 text-xs text-gray-500 font-medium">
+                        <ul className="space-y-2 text-xs text-text-secondary font-medium">
                           {plan.features.map((feat, idx) => (
                             <li key={idx} className="flex items-start gap-1.5 leading-normal">
                               <Check size={10} className="text-emerald-500 shrink-0 mt-0.5" />
@@ -423,7 +423,7 @@ export default function BillingPortal({ showToast, initialSubTab }) {
 
           {/* Right Col: Checkout & Payment details */}
           <div className="space-y-6">
-            <div className={`p-6 rounded-card border bg-white border-slate-200`}>
+            <div className={`p-6 rounded-card border bg-white border-border-default`}>
               <h3 className="text-xs font-bold uppercase tracking-wider mb-4">Resumen del Pago</h3>
               
               <div className="space-y-3.5 text-xs font-medium mb-6">
@@ -437,27 +437,27 @@ export default function BillingPortal({ showToast, initialSubTab }) {
                   <span>Ciclo de Cobro:</span>
                   <strong className="capitalize">{billingPeriod === 'yearly' ? 'Anual' : 'Mensual'}</strong>
                 </div>
-                <div className="flex justify-between text-base font-black border-t dark:border-white/5 pt-3">
+                <div className="flex justify-between text-base font-semibold border-t  pt-3">
                   <span>Total a Pagar:</span>
-                  <span className="text-primary dark:text-white">
+                  <span className="text-primary ">
                     ${billingPeriod === 'yearly' ? getPrice(getSelectedPlanConfig()) * 12 : getPrice(getSelectedPlanConfig())}
                   </span>
                 </div>
               </div>
 
               {/* Payment Method Selector */}
-              <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-white/5 rounded-card text-xs font-bold mb-6">
+              <div className="grid grid-cols-2 gap-2 p-1 bg-surface-muted  rounded-card text-xs font-bold mb-6">
                 <button 
                   type="button"
                   onClick={() => setPaymentMethod('card')}
-                  className={`py-2 rounded-lg transition-all ${paymentMethod === 'card' ? 'bg-white dark:bg-white/10 text-primary dark:text-white' : 'text-gray-500'}`}
+                  className={`py-2 rounded-md transition-all ${paymentMethod === 'card' ? 'bg-white  text-primary ' : 'text-text-secondary'}`}
                 >
                   Tarjeta (PayPhone)
                 </button>
                 <button 
                   type="button"
                   onClick={() => setPaymentMethod('transfer')}
-                  className={`py-2 rounded-lg transition-all ${paymentMethod === 'transfer' ? 'bg-white dark:bg-white/10 text-primary dark:text-white' : 'text-gray-500'}`}
+                  className={`py-2 rounded-md transition-all ${paymentMethod === 'transfer' ? 'bg-white  text-primary ' : 'text-text-secondary'}`}
                 >
                   Transferencia
                 </button>
@@ -466,7 +466,7 @@ export default function BillingPortal({ showToast, initialSubTab }) {
               {/* CARD PAYMENT: PAYPHONE BUTTON */}
               {paymentMethod === 'card' && (
                 <div className="space-y-4">
-                  <p className="text-xs text-gray-500 leading-normal">Los pagos con tarjeta se acreditan de manera automática. Aceptamos Visa, MasterCard y todas las tarjetas nacionales.</p>
+                  <p className="text-xs text-text-secondary leading-normal">Los pagos con tarjeta se acreditan de manera automática. Aceptamos Visa, MasterCard y todas las tarjetas nacionales.</p>
                   <button 
                     onClick={handlePayPhoneCheckout}
                     disabled={isProcessing}
@@ -480,7 +480,7 @@ export default function BillingPortal({ showToast, initialSubTab }) {
               {/* BANK TRANSFER: UPLOAD FORM */}
               {paymentMethod === 'transfer' && (
                 <form onSubmit={handleSubmitTransfer} className="space-y-4 text-xs font-medium text-left">
-                  <div className="p-3 bg-blue-500/5 rounded-card border border-blue-500/10 text-xs text-gray-500 leading-relaxed mb-4">
+                  <div className="p-3 bg-blue-500/5 rounded-card border border-blue-500/10 text-xs text-text-secondary leading-relaxed mb-4">
                     <strong>Cuentas Bancarias WebFix:</strong><br />
                     Banco Pichincha - Cta. Corriente: 2201928472<br />
                     A nombre de WebFix Soluciones S.A.S (RUC: 1792847382001)
@@ -490,7 +490,7 @@ export default function BillingPortal({ showToast, initialSubTab }) {
                     <select 
                       value={transferData.bankName} 
                       onChange={e => setTransferData({ ...transferData, bankName: e.target.value })}
-                      className={`w-full p-2.5 rounded-lg border outline-none bg-white border-slate-300`}
+                      className={`w-full p-2.5 rounded-md border outline-none bg-white border-border-strong`}
                     >
                       <option value="Banco Pichincha">Banco Pichincha</option>
                       <option value="Banco Guayaquil">Banco Guayaquil</option>
@@ -505,7 +505,7 @@ export default function BillingPortal({ showToast, initialSubTab }) {
                       value={transferData.referenceNumber}
                       onChange={e => setTransferData({ ...transferData, referenceNumber: e.target.value })}
                       placeholder="Referencia de 6-8 dígitos"
-                      className={`w-full p-2.5 rounded-lg border outline-none bg-white border-slate-300`}
+                      className={`w-full p-2.5 rounded-md border outline-none bg-white border-border-strong`}
                       required
                     />
                   </div>
@@ -516,7 +516,7 @@ export default function BillingPortal({ showToast, initialSubTab }) {
                       value={transferData.amount}
                       onChange={e => setTransferData({ ...transferData, amount: e.target.value })}
                       placeholder={`Total: $${billingPeriod === 'yearly' ? getPrice(getSelectedPlanConfig()) * 12 : getPrice(getSelectedPlanConfig())}`}
-                      className={`w-full p-2.5 rounded-lg border outline-none bg-white border-slate-300`}
+                      className={`w-full p-2.5 rounded-md border outline-none bg-white border-border-strong`}
                       required
                     />
                   </div>
@@ -540,13 +540,13 @@ export default function BillingPortal({ showToast, initialSubTab }) {
       {/* PAYPHONE SIMULATION MODAL */}
       {showPayPhoneSim && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-          <div className={`w-full max-w-sm p-6 rounded-card border relative text-center bg-white border-slate-200 text-black`}>
+          <div className={`w-full max-w-sm p-6 rounded-card border relative text-center bg-white border-border-default text-black`}>
             <div className="flex justify-between items-center mb-6">
-              <span className="text-xs font-black uppercase text-warning tracking-wider">Pasarela PayPhone (Sandbox)</span>
-              <button onClick={() => setShowPayPhoneSim(false)} className="text-gray-400 hover:text-white">✕</button>
+              <span className="text-xs font-semibold uppercase text-warning tracking-wider">Pasarela PayPhone (Sandbox)</span>
+              <button onClick={() => setShowPayPhoneSim(false)} className="text-text-secondary hover:text-white">✕</button>
             </div>
             
-            <div className="p-4 rounded-card bg-slate-500/5 mb-6 text-xs text-left space-y-2">
+            <div className="p-4 rounded-card bg-surface-sidebar/5 mb-6 text-xs text-left space-y-2">
               <div className="flex justify-between">
                 <span>Empresa receptora:</span>
                 <strong>WebFix Soluciones S.A.S</strong>
@@ -555,7 +555,7 @@ export default function BillingPortal({ showToast, initialSubTab }) {
                 <span>Plan solicitado:</span>
                 <strong className="capitalize">{getSelectedPlanConfig()?.name || ''}</strong>
               </div>
-              <div className="flex justify-between border-t dark:border-white/5 pt-2">
+              <div className="flex justify-between border-t  pt-2">
                 <span>Total a Cobrar:</span>
                 <strong className="text-emerald-500">
                   ${billingPeriod === 'yearly' ? getPrice(getSelectedPlanConfig()) * 12 : getPrice(getSelectedPlanConfig())}
@@ -566,16 +566,16 @@ export default function BillingPortal({ showToast, initialSubTab }) {
             <form onSubmit={(e) => { e.preventDefault(); completePayPhoneSim(); }} className="space-y-4 text-xs font-medium text-left">
               <div>
                 <label className="block font-bold mb-1">Número de tarjeta</label>
-                <input type="text" placeholder="4000 1234 5678 9010" className={`w-full p-2.5 rounded-lg border outline-none bg-white border-slate-300`} required />
+                <input type="text" placeholder="4000 1234 5678 9010" className={`w-full p-2.5 rounded-md border outline-none bg-white border-border-strong`} required />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block font-bold mb-1">Expiración</label>
-                  <input type="text" placeholder="MM/AA" className={`w-full p-2.5 rounded-lg border outline-none bg-white border-slate-300`} required />
+                  <input type="text" placeholder="MM/AA" className={`w-full p-2.5 rounded-md border outline-none bg-white border-border-strong`} required />
                 </div>
                 <div>
                   <label className="block font-bold mb-1">CVV</label>
-                  <input type="password" placeholder="•••" maxLength={3} className={`w-full p-2.5 rounded-lg border outline-none bg-white border-slate-300`} required />
+                  <input type="password" placeholder="•••" maxLength={3} className={`w-full p-2.5 rounded-md border outline-none bg-white border-border-strong`} required />
                 </div>
               </div>
 

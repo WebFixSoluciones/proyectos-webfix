@@ -1,3 +1,5 @@
+import { invoiceDescription } from './invoiceLine.js';
+import { calculateTransactionTotals } from './discountCalcService.js';
 /**
  * Servicio del Core SRI (Ecuador)
  * Maneja validaciones tributarias, generación de clave de acceso, estructura XML y estados del SRI.
@@ -258,14 +260,15 @@ export function generarFacturaXML(emisorConfig, facturaData, terceroData, items 
   let totalDescuento = 0;
   let detallesXml = '';
 
-  activeItems.forEach((item, idx) => {
-    const cantidad = parseFloat(item.quantity) || 1;
-    const precio = parseFloat(item.price) || 0;
-    const tarifa = Number(item.ivaCategory ?? 15);
+  const calculatedItems = calculateTransactionTotals(activeItems, facturaData.generalDiscount).items;
+  calculatedItems.forEach((item, idx) => {
+    const cantidad = Number(item.quantity);
+    const precio = item.precio_base_unitario;
+    const tarifa = item.tarifa_iva * 100;
     const codPorc = codigoPorcentajeIva(tarifa);
     const lineGross = round2(precio * cantidad);
     const lineDiscount = round2(
-      parseFloat(item.monto_descuento_total_linea || item.monto_descuento_linea || item.discount || item.itemDiscount || item.descuento || 0)
+      item.monto_descuento_linea + item.descuento_prorrateado
     );
     const lineSub = round2(Math.max(0, lineGross - lineDiscount));
     const lineIva = round2(lineSub * (tarifa / 100));
@@ -280,9 +283,9 @@ export function generarFacturaXML(emisorConfig, facturaData, terceroData, items 
     detallesXml += `
     <detalle>
       <codigoPrincipal>${escaparXml(item.code || `P${idx + 1}`)}</codigoPrincipal>
-      <descripcion>${escaparXml(item.name || 'Detalle')}</descripcion>
+      <descripcion>${escaparXml(invoiceDescription(item))}</descripcion>
       <cantidad>${cantidad.toFixed(2)}</cantidad>
-      <precioUnitario>${precio.toFixed(2)}</precioUnitario>
+      <precioUnitario>${precio.toFixed(6)}</precioUnitario>
       <descuento>${lineDiscount.toFixed(2)}</descuento>
       <precioTotalSinImpuesto>${lineSub.toFixed(2)}</precioTotalSinImpuesto>
       <impuestos>
@@ -451,7 +454,7 @@ export function generarNotaCreditoXML(emisorConfig, ncData, terceroData, items =
     detallesXml += `
     <detalle>
       <codigoInterno>${escaparXml(item.code || `P${idx + 1}`)}</codigoInterno>
-      <descripcion>${escaparXml(item.name || 'Detalle')}</descripcion>
+      <descripcion>${escaparXml(invoiceDescription(item))}</descripcion>
       <cantidad>${cantidad.toFixed(2)}</cantidad>
       <precioUnitario>${precio.toFixed(2)}</precioUnitario>
       <descuento>0.00</descuento>
@@ -541,7 +544,7 @@ export function generarLiquidacionXML(emisorConfig, liqData, terceroData, items 
     detallesXml += `
     <detalle>
       <codigoPrincipal>${escaparXml(item.code || `P${idx + 1}`)}</codigoPrincipal>
-      <descripcion>${escaparXml(item.name || 'Detalle')}</descripcion>
+      <descripcion>${escaparXml(invoiceDescription(item))}</descripcion>
       <cantidad>${cantidad.toFixed(2)}</cantidad>
       <precioUnitario>${precio.toFixed(2)}</precioUnitario>
       <descuento>0.00</descuento>
@@ -634,7 +637,7 @@ export function generarGuiaRemisionXML(emisorConfig, guiaData, destinatarioData,
     detallesXml += `
       <detalle>
         <codigoInterno>${escaparXml(item.code || `P${idx + 1}`)}</codigoInterno>
-        <descripcion>${escaparXml(item.name || 'Detalle')}</descripcion>
+        <descripcion>${escaparXml(invoiceDescription(item))}</descripcion>
         <cantidad>${cantidad.toFixed(2)}</cantidad>
       </detalle>`;
   });

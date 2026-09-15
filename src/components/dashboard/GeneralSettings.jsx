@@ -937,7 +937,7 @@ export default function GeneralSettings({
     }
   }
 
- const inputClass =`w-full text-xs px-3 py-2.5 rounded-card outline-none transition-all border bg-white border-gray-300 text-gray-900 focus:border-primary focus:ring-1 focus:ring-primary/35 font-medium`;
+ const inputClass =`w-full text-xs px-3 py-2.5 rounded-card outline-none transition-all border bg-white border-border-strong text-text-heading focus:border-primary focus:ring-1 focus:ring-primary/35 font-medium`;
 
  const tabs = [
  { id:'profile', label:'Perfil de Empresa', icon: Building },
@@ -975,19 +975,19 @@ export default function GeneralSettings({
  </div>
 
  {/* CONTENIDO DE PESTAÑA */}
- <div className={`flex-1 p-4 sm:p-6 rounded-card border bg-white border-gray-200 text-gray-700`}>
+ <div className={`flex-1 p-4 sm:p-6 rounded-card border bg-white border-border-default text-text-primary`}>
  
  {/* PESTAÑA: PERFIL EMPRESA */}
  {activeSubTab ==='profile' && (
  <form onSubmit={handleSaveProfile} className="space-y-6 animate-in fade-in duration-200">
  <div className="border-b border-white/5 pb-3">
- <h3 className="text-sm font-black uppercase tracking-wider text-primary">Perfil de Empresa</h3>
- <p className="text-xs text-gray-500 mt-1">Identidad fiscal, firma electrónica y establecimientos de su negocio. El ambiente de emisión, secuenciales y formatos se configuran en la pestaña <span className="font-bold text-primary">Facturación Electrónica</span>.</p>
+ <h3 className="text-sm font-semibold uppercase tracking-wider text-primary">Perfil de Empresa</h3>
+ <p className="text-xs text-text-secondary mt-1">Identidad fiscal, firma electrónica y establecimientos de su negocio. El ambiente de emisión, secuenciales y formatos se configuran en la pestaña <span className="font-bold text-primary">Facturación Electrónica</span>.</p>
  </div>
 
  {/* ALERTA RUC INACTIVO */}
  {!companyProfile.rucActivo && (
- <div className="p-3.5 rounded-card border border-red-500/20 bg-red-500/5 text-red-500 dark:text-red-400 text-xs flex items-center gap-2 animate-pulse">
+ <div className="p-3.5 rounded-card border border-red-500/20 bg-red-500/5 text-red-500  text-xs flex items-center gap-2 animate-pulse">
  <AlertTriangle size={16} className="shrink-0" />
  <span className="font-bold">Facturación Electrónica Deshabilitada: El RUC de la empresa está suspendido o inactivo. El sistema solo emitirá recibos contables.</span>
  </div>
@@ -995,7 +995,7 @@ export default function GeneralSettings({
 
  {/* ALERTA FIRMA INCOMPATIBLE */}
  {companyProfile.certificadoCargado && !isFirmaMatch() && (
- <div className="p-3.5 rounded-card border border-red-500/20 bg-red-500/5 text-red-500 dark:text-red-400 text-xs flex items-center gap-2">
+ <div className="p-3.5 rounded-card border border-red-500/20 bg-red-500/5 text-red-500  text-xs flex items-center gap-2">
  <AlertTriangle size={16} className="shrink-0" />
  <span className="font-bold">Error de Validación: La firma electrónica activa pertenece al RUC {companyProfile.certificadoRuc} ({getPersonaTipoStr(companyProfile.certificadoRuc)}), el cual no coincide con el RUC de la empresa ({companyProfile.ruc}). Por favor, ingrese una firma que coincida o elimine la firma actual.</span>
  </div>
@@ -1007,8 +1007,8 @@ export default function GeneralSettings({
  <div className="space-y-6">
  
  {/* CARD 1: DATOS FISCALES DE LA EMPRESA */}
- <div className={`p-5 rounded-card border space-y-4 bg-gray-50/50 border-gray-200`}>
- <h4 className="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
+ <div className={`p-5 rounded-card border space-y-4 bg-surface-bg/50 border-border-default`}>
+ <h4 className="text-xs font-semibold uppercase tracking-wider text-primary flex items-center gap-1.5">
  <Building size={14} className="text-primary" /> Identificación Fiscal
  </h4>
  
@@ -1016,7 +1016,7 @@ export default function GeneralSettings({
  <div className="flex gap-2 items-end">
  <div className="flex-1">
  <label className="label-field label-field-dark flex items-center gap-1">
- <Lock size={10} className="text-gray-400" /> RUC Emisor (13 dígitos)
+ <Lock size={10} className="text-text-secondary" /> RUC Emisor (13 dígitos)
  </label>
  <input 
  type="text" 
@@ -1031,7 +1031,7 @@ export default function GeneralSettings({
  type="button"
  onClick={handleSRIExtraction}
  disabled={isExtractingSRI}
- className={`px-4 py-2.5 rounded-card text-xs font-black transition-all border flex items-center gap-1.5 shrink-0 bg-primary hover:bg-primary text-white`}
+ className={`px-4 py-2.5 rounded-card text-xs font-semibold transition-all border flex items-center gap-1.5 shrink-0 bg-primary hover:bg-primary text-white`}
  >
  {isExtractingSRI && <RefreshCw size={12} className="animate-spin" />}
  {isExtractingSRI ?'Consultando...' :'Configurar Empresa'}
@@ -1041,41 +1041,41 @@ export default function GeneralSettings({
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
  <div>
  <label className="label-field label-field-dark flex items-center gap-1">
- <Lock size={10} className="text-gray-400" /> Razón Social (Bloqueado)
+ <Lock size={10} className="text-text-secondary" /> Razón Social (Bloqueado)
  </label>
  <input 
  type="text" 
  readOnly
  disabled
  value={companyProfile.razonSocial} 
- className={`${inputClass} opacity-60 bg-gray-500/5 cursor-not-allowed`} 
+ className={`${inputClass} opacity-60 bg-surface-sidebar/5 cursor-not-allowed`}
  placeholder="Razón Social cargada desde el SRI" 
  />
  </div>
  <div>
  <label className="label-field label-field-dark flex items-center gap-1">
- <Lock size={10} className="text-gray-400" /> Nombre Comercial (Bloqueado)
+ <Lock size={10} className="text-text-secondary" /> Nombre Comercial (Bloqueado)
  </label>
  <input 
  type="text" 
  readOnly
  disabled
  value={companyProfile.nombreComercial} 
- className={`${inputClass} opacity-60 bg-gray-500/5 cursor-not-allowed`} 
+ className={`${inputClass} opacity-60 bg-surface-sidebar/5 cursor-not-allowed`}
  placeholder="Nombre Comercial cargado desde el SRI" 
  />
  </div>
 
  <div className="sm:col-span-2">
  <label className="label-field label-field-dark flex items-center gap-1">
- <Lock size={10} className="text-gray-400" /> Dirección Matriz (Bloqueado)
+ <Lock size={10} className="text-text-secondary" /> Dirección Matriz (Bloqueado)
  </label>
  <input 
  type="text" 
  readOnly
  disabled
  value={companyProfile.direccionMatriz} 
- className={`${inputClass} opacity-60 bg-gray-500/5 cursor-not-allowed`} 
+ className={`${inputClass} opacity-60 bg-surface-sidebar/5 cursor-not-allowed`}
  placeholder="Dirección Matriz cargada desde el SRI" 
  />
  </div>
@@ -1084,13 +1084,13 @@ export default function GeneralSettings({
  {companyProfile.ruc && companyProfile.ruc.length === 13 && (
  <div className={`sm:col-span-2 p-3 rounded-card flex items-center justify-between text-xs border ${
  companyProfile.rucActivo
- ?'bg-emerald-500/5 border-emerald-500/15 text-emerald-600 dark:text-emerald-400'
- :'bg-red-500/5 border-red-500/15 text-red-500 dark:text-red-400'
+ ?'bg-emerald-500/5 border-emerald-500/15 text-emerald-600 '
+ :'bg-red-500/5 border-red-500/15 text-red-500 '
  }`}>
  <span className="font-bold flex items-center gap-1">
  <Lock size={11} /> Estado del Contribuyente:
  </span>
- <div className="flex items-center gap-2 font-black">
+ <div className="flex items-center gap-2 font-semibold">
  <span className={`w-2 h-2 rounded-full ${companyProfile.rucActivo ?'bg-emerald-500' :'bg-red-500'}`}></span>
  {companyProfile.rucEstado} ({companyProfile.rucRegimen})
  </div>
@@ -1100,8 +1100,8 @@ export default function GeneralSettings({
  </div>
 
  {/* CARD 2: INFORMACIÓN DE CONTACTO */}
- <div className={`p-5 rounded-card border space-y-4 bg-gray-50/50 border-gray-200`}>
- <h4 className="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
+ <div className={`p-5 rounded-card border space-y-4 bg-surface-bg/50 border-border-default`}>
+ <h4 className="text-xs font-semibold uppercase tracking-wider text-primary flex items-center gap-1.5">
  <Phone size={13} className="text-primary" /> Información de Contacto
  </h4>
  
@@ -1140,11 +1140,11 @@ export default function GeneralSettings({
  </div>
 
  {/* CARD 2.5: CONFIGURACIÓN DE CORREO SALIENTE (SMTP) */}
- <div className={`p-5 rounded-card border space-y-4 bg-gray-50/50 border-gray-200`}>
- <h4 className="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
+ <div className={`p-5 rounded-card border space-y-4 bg-surface-bg/50 border-border-default`}>
+ <h4 className="text-xs font-semibold uppercase tracking-wider text-primary flex items-center gap-1.5">
  <Mail size={13} className="text-primary" /> Correo Saliente (SMTP)
  </h4>
- <p className="text-xs text-gray-500 leading-normal">
+ <p className="text-xs text-text-secondary leading-normal">
  Configura tu cuenta de correo para enviar automáticamente los comprobantes electrónicos (XML y PDF) autorizados a tus clientes.
  </p>
  
@@ -1175,9 +1175,9 @@ export default function GeneralSettings({
  id="smtpSecure"
  checked={!!companyProfile.smtpSecure} 
  onChange={e => setCompanyProfile({...companyProfile, smtpSecure: e.target.checked})} 
- className="rounded border-gray-300 text-primary focus:ring-primary h-3.5 w-3.5" 
+ className="rounded border-border-strong text-primary focus:ring-primary h-3.5 w-3.5"
  />
- <label htmlFor="smtpSecure" className="text-xs font-bold uppercase text-gray-500 cursor-pointer">Usar Conexión Segura (SSL/TLS)</label>
+ <label htmlFor="smtpSecure" className="text-xs font-bold uppercase text-text-secondary cursor-pointer">Usar Conexión Segura (SSL/TLS)</label>
  </div>
  <div>
  <label className="label-field label-field-dark">Usuario / Correo SMTP</label>
@@ -1203,8 +1203,8 @@ export default function GeneralSettings({
  </div>
 
  {/* CARD 3: PARÁMETROS TRIBUTARIOS CONTABLES */}
- <div className={`p-5 rounded-card border space-y-4 bg-gray-50/50 border-gray-200`}>
- <h4 className="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
+ <div className={`p-5 rounded-card border space-y-4 bg-surface-bg/50 border-border-default`}>
+ <h4 className="text-xs font-semibold uppercase tracking-wider text-primary flex items-center gap-1.5">
  <Shield size={13} className="text-primary" /> Parámetros Tributarios
  </h4>
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1214,9 +1214,9 @@ export default function GeneralSettings({
  id="obligadoCont" 
  checked={companyProfile.obligadoContabilidad} 
  onChange={e => setCompanyProfile({...companyProfile, obligadoContabilidad: e.target.checked})} 
- className="rounded text-primary focus:ring-primary h-4 w-4 bg-transparent border-gray-300 cursor-pointer"
+ className="rounded text-primary focus:ring-primary h-4 w-4 bg-transparent border-border-strong cursor-pointer"
  />
- <label htmlFor="obligadoCont" className="text-xs font-semibold text-gray-400 cursor-pointer">Obligado a llevar contabilidad</label>
+ <label htmlFor="obligadoCont" className="text-xs font-semibold text-text-secondary cursor-pointer">Obligado a llevar contabilidad</label>
  </div>
 
  <div>
@@ -1240,9 +1240,9 @@ export default function GeneralSettings({
  id="agenteRet" 
  checked={companyProfile.agenteRetencion} 
  onChange={e => setCompanyProfile({...companyProfile, agenteRetencion: e.target.checked})} 
- className="rounded text-primary focus:ring-primary h-4 w-4 bg-transparent border-gray-300 cursor-pointer"
+ className="rounded text-primary focus:ring-primary h-4 w-4 bg-transparent border-border-strong cursor-pointer"
  />
- <label htmlFor="agenteRet" className="text-xs font-semibold text-gray-400 cursor-pointer">Agente de Retención</label>
+ <label htmlFor="agenteRet" className="text-xs font-semibold text-text-secondary cursor-pointer">Agente de Retención</label>
  </div>
  {companyProfile.agenteRetencion && (
  <input 
@@ -1262,9 +1262,9 @@ export default function GeneralSettings({
  id="contEspecial" 
  checked={companyProfile.contribuyenteEspecial} 
  onChange={e => setCompanyProfile({...companyProfile, contribuyenteEspecial: e.target.checked})} 
- className="rounded text-primary focus:ring-primary h-4 w-4 bg-transparent border-gray-300 cursor-pointer"
+ className="rounded text-primary focus:ring-primary h-4 w-4 bg-transparent border-border-strong cursor-pointer"
  />
- <label htmlFor="contEspecial" className="text-xs font-semibold text-gray-400 cursor-pointer">Contribuyente Especial</label>
+ <label htmlFor="contEspecial" className="text-xs font-semibold text-text-secondary cursor-pointer">Contribuyente Especial</label>
  </div>
  {companyProfile.contribuyenteEspecial && (
  <input 
@@ -1288,12 +1288,12 @@ export default function GeneralSettings({
  <div className={`p-5 rounded-card border space-y-4 ${
  companyProfile.certificadoCargado
  ? !isFirmaMatch()
- ?'bg-red-500/5 border-red-500/20 text-red-900 dark:text-red-300'
+ ?'bg-red-500/5 border-red-500/20 text-red-900 '
  :'bg-emerald-50/50 border-emerald-200 text-emerald-900'
- :'bg-gray-50/50 border-gray-200'
+ :'bg-surface-bg/50 border-border-default'
  }`}>
  <div className="flex justify-between items-center">
- <h4 className="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
+ <h4 className="text-xs font-semibold uppercase tracking-wider text-primary flex items-center gap-1.5">
  <Award size={14} className="text-purple-500" /> Firma Electrónica (.p12 / .pfx)
  </h4>
  </div>
@@ -1324,7 +1324,7 @@ export default function GeneralSettings({
  {/* Advertencia / Info detallada */}
  <p className={`text-xs p-2.5 rounded-card border leading-relaxed ${
  !isFirmaMatch()
- ?'bg-red-500/10 border-red-500/20 text-red-500 dark:text-red-400'
+ ?'bg-red-500/10 border-red-500/20 text-red-500 '
  :'bg-emerald-100/50 border-emerald-200 text-emerald-800'
  }`}>
  {!isFirmaMatch()
@@ -1344,35 +1344,35 @@ export default function GeneralSettings({
  </div>
  ) : (
  <div className="space-y-3 text-center py-2">
- <p className="text-xs text-gray-500 leading-normal">
+ <p className="text-xs text-text-secondary leading-normal">
  Configure su firma digital (.p12 / .pfx) para firmar comprobantes autorizados del SRI.
  </p>
  <button
  type="button"
  onClick={() => setIsFirmaOpen(true)}
  disabled={!companyProfile.ruc}
- className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-card text-xs font-black transition-all ${
+ className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-card text-xs font-semibold transition-all ${
  companyProfile.ruc
  ?'bg-purple-600 hover:bg-purple-500 text-white'
- :'bg-gray-500/10 border border-white/5 text-gray-500 cursor-not-allowed'
+ :'bg-surface-sidebar/10 border border-white/5 text-text-secondary cursor-not-allowed'
  }`}
  >
  <Award size={13} /> Ingresar Firma
  </button>
  {!companyProfile.ruc && (
- <p className="text-xs text-gray-500 italic">Debe ingresar y configurar su RUC primero.</p>
+ <p className="text-xs text-text-secondary italic">Debe ingresar y configurar su RUC primero.</p>
  )}
  </div>
  )}
  </div>
 
  {/* LOGOTIPO OFICIAL */}
- <div className={`p-5 rounded-card border space-y-4 bg-gray-50/50 border-gray-200`}>
- <label className="block text-xs font-bold uppercase mb-1.5 text-gray-500 text-center">Logotipo Oficial de la Empresa</label>
+ <div className={`p-5 rounded-card border space-y-4 bg-surface-bg/50 border-border-default`}>
+ <label className="block text-xs font-bold uppercase mb-1.5 text-text-secondary text-center">Logotipo Oficial de la Empresa</label>
 
  {companyProfile.logoUrl ? (
  <div className="flex flex-col items-center justify-center gap-3 p-4 rounded-card border border-dashed border-emerald-500/30 bg-emerald-500/5">
- <div className="w-32 h-32 flex items-center justify-center bg-white rounded-card p-2 border border-gray-100">
+ <div className="w-32 h-32 flex items-center justify-center bg-white rounded-card p-2 border border-border-default">
  <img src={companyProfile.logoUrl} alt="Logo" className="max-h-full max-w-full object-contain" />
  </div>
  <div className="text-center">
@@ -1388,14 +1388,14 @@ export default function GeneralSettings({
  </div>
  ) : (
  <div>
- <label className={`w-full flex flex-col items-center justify-center gap-3 p-8 rounded-card border border-dashed cursor-pointer transition-all border-gray-300 hover:border-primary/40 hover:bg-gray-100/50 text-gray-650`}>
+ <label className={`w-full flex flex-col items-center justify-center gap-3 p-8 rounded-card border border-dashed cursor-pointer transition-all border-border-strong hover:border-primary/40 hover:bg-surface-muted/50 text-text-primary`}>
  <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} disabled={isUploadingLogo} />
  <UploadCloud size={28} className={isUploadingLogo ?'animate-bounce text-primary' :'text-gray-450'} />
  <span className="text-xs font-semibold text-center leading-normal">
  {isUploadingLogo ?'Subiendo imagen...' :'Subir Logotipo\n(PNG, JPG, SVG)'}
  </span>
  </label>
- <p className="text-xs text-gray-500 mt-2.5 text-center leading-relaxed">
+ <p className="text-xs text-text-secondary mt-2.5 text-center leading-relaxed">
  Este logotipo se insertará en el encabezado de todas las Facturas, Notas de Crédito, Guías de Remisión y Cotizaciones.
  </p>
  </div>
@@ -1403,22 +1403,22 @@ export default function GeneralSettings({
  </div>
 
  {/* CARD 3: ESTABLECIMIENTOS DEL SRI (Bloqueado) */}
- <div className={`p-5 rounded-card border space-y-4 bg-gray-50/50 border-gray-200`}>
- <h4 className="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
- <Lock size={12} className="text-gray-400" /> Establecimientos del SRI (Bloqueado)
+ <div className={`p-5 rounded-card border space-y-4 bg-surface-bg/50 border-border-default`}>
+ <h4 className="text-xs font-semibold uppercase tracking-wider text-primary flex items-center gap-1.5">
+ <Lock size={12} className="text-text-secondary" /> Establecimientos del SRI (Bloqueado)
  </h4>
 
  <div className="space-y-3 max-h-[180px] overflow-y-auto pr-1">
  {companyProfile.sucursales && companyProfile.sucursales.map(branch => (
- <div key={branch.codigo} className={`p-3 rounded-card border space-y-2 bg-white border-gray-200 opacity-85`}>
+ <div key={branch.codigo} className={`p-3 rounded-card border space-y-2 bg-white border-border-default opacity-85`}>
  <div className="flex justify-between items-start">
  <div>
- <p className="text-xs font-black flex items-center gap-1 text-gray-700 dark:text-gray-200">
- <Building size={11} className="text-gray-500" /> {branch.codigo} - {branch.nombre}
+ <p className="text-xs font-semibold flex items-center gap-1 text-text-primary ">
+ <Building size={11} className="text-text-secondary" /> {branch.codigo} - {branch.nombre}
  </p>
- <p className="text-xs text-gray-500 mt-0.5">{branch.direccion}</p>
+ <p className="text-xs text-text-secondary mt-0.5">{branch.direccion}</p>
  </div>
- <span className={`text-xs font-black uppercase px-1.5 py-0.5 rounded ${
+ <span className={`text-xs font-semibold uppercase px-1.5 py-0.5 rounded ${
  branch.activa 
  ?'bg-emerald-500/10 text-emerald-450 border border-emerald-500/20' 
  :'bg-red-500/10 text-red-450 border border-red-500/20'
@@ -1428,18 +1428,18 @@ export default function GeneralSettings({
  </div>
 
  {/* Checkboxes de bodegas asociadas a esta sucursal */}
- <div className="pt-2 border-t border-gray-200 dark:border-white/5 space-y-1">
- <p className="text-xs font-bold uppercase tracking-wider text-gray-500">Bodegas Asignadas:</p>
+ <div className="pt-2 border-t border-border-default  space-y-1">
+ <p className="text-xs font-bold uppercase tracking-wider text-text-secondary">Bodegas Asignadas:</p>
  <div className="flex flex-wrap gap-x-3 gap-y-1">
  {companyProfile.customBodegas || companyProfile.bodegas ? (companyProfile.bodegas.map(whName => {
  const isAssoc = branch.bodegas && branch.bodegas.includes(whName);
  return (
- <label key={whName} className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 cursor-pointer hover:text-white dark:hover:text-white">
+ <label key={whName} className="flex items-center gap-1 text-xs text-text-secondary  cursor-pointer hover:text-white ">
  <input 
  type="checkbox" 
  checked={isAssoc}
  onChange={() => handleToggleWarehouseForBranch(branch.codigo, whName)}
- className="rounded text-primary h-3.5 w-3.5 bg-transparent border-gray-300 cursor-pointer"
+ className="rounded text-primary h-3.5 w-3.5 bg-transparent border-border-strong cursor-pointer"
  />
  {whName}
  </label>
@@ -1450,26 +1450,26 @@ export default function GeneralSettings({
  </div>
  ))}
  {(!companyProfile.sucursales || companyProfile.sucursales.length === 0) && (
- <p className="text-xs text-gray-500 italic">No hay establecimientos cargados. Ingrese su RUC arriba y pulse configurar.</p>
+ <p className="text-xs text-text-secondary italic">No hay establecimientos cargados. Ingrese su RUC arriba y pulse configurar.</p>
  )}
  </div>
  </div>
 
  {/* CARD 4: BODEGAS DE INVENTARIO (Manual) */}
- <div className={`p-5 rounded-card border space-y-4 bg-gray-50/50 border-gray-200`}>
- <h4 className="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
+ <div className={`p-5 rounded-card border space-y-4 bg-surface-bg/50 border-border-default`}>
+ <h4 className="text-xs font-semibold uppercase tracking-wider text-primary flex items-center gap-1.5">
  <Package size={14} className="text-emerald-500" /> Bodegas de Inventario (Manual)
  </h4>
 
- <div className={`flex flex-wrap gap-2 min-h-[60px] p-3 rounded-card border border-dashed border-gray-300 bg-white align-middle`}>
+ <div className={`flex flex-wrap gap-2 min-h-[60px] p-3 rounded-card border border-dashed border-border-strong bg-white align-middle`}>
  {companyProfile.bodegas.map(wh => (
- <div key={wh} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-card text-xs font-bold bg-white text-gray-800 border border-gray-200`}>
+ <div key={wh} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-card text-xs font-bold bg-white text-text-heading border border-border-default`}>
  <span>{wh}</span>
  {wh !=='Bodega Central' && (
  <button 
  type="button" 
  onClick={() => handleRemoveWarehouse(wh)}
- className="text-red-500 hover:text-red-700 font-black ml-1 text-sm leading-none"
+ className="text-red-500 hover:text-red-700 font-semibold ml-1 text-sm leading-none"
  >
  ×
  </button>
@@ -1490,7 +1490,7 @@ export default function GeneralSettings({
  <button 
  type="button" 
  onClick={handleAddWarehouse}
- className="px-4 py-2.5 rounded-card bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs shrink-0 transition-transform active:scale-95"
+ className="px-4 py-2.5 rounded-card bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shrink-0 transition-transform active:scale-95"
  >
  Agregar Bodega
  </button>
@@ -1506,7 +1506,7 @@ export default function GeneralSettings({
  {(!companyProfile.certificadoCargado || isFirmaMatch()) ? (
  <button 
  type="submit" 
- className="flex items-center gap-1.5 px-6 py-2.5 rounded-card text-xs font-black bg-primary hover:bg-primary-hover text-white transition-transform hover:-translate-y-0.5 active:scale-95 animate-in fade-in duration-200"
+ className="flex items-center gap-1.5 px-6 py-2.5 rounded-card text-xs font-semibold bg-primary hover:bg-primary-hover text-white transition-transform hover:-translate-y-0.5 active:scale-95 animate-in fade-in duration-200"
  >
  <Save size={14} /> Guardar Empresa
  </button>
@@ -1524,8 +1524,8 @@ export default function GeneralSettings({
  {activeSubTab ==='einvoicing' && (
  <div className="animate-in fade-in duration-200">
  <div className="border-b border-white/5 pb-3 mb-6">
- <h3 className="text-sm font-black uppercase tracking-wider text-primary">Facturación Electrónica (SRI)</h3>
- <p className="text-xs text-gray-500 mt-1">Configure el ambiente de emisión, los secuenciales de cada comprobante y los formatos de impresión. El certificado de firma electrónica se gestiona en la pestaña Perfil de Empresa.</p>
+ <h3 className="text-sm font-semibold uppercase tracking-wider text-primary">Facturación Electrónica (SRI)</h3>
+ <p className="text-xs text-text-secondary mt-1">Configure el ambiente de emisión, los secuenciales de cada comprobante y los formatos de impresión. El certificado de firma electrónica se gestiona en la pestaña Perfil de Empresa.</p>
  </div>
  <FinanceSettings showToast={showToast} db={db} storage={storage} appId={appId} />
  </div>
@@ -1536,182 +1536,182 @@ export default function GeneralSettings({
  {activeSubTab ==='modules' && (
  <div className="space-y-6 animate-in fade-in duration-200">
  <div className="border-b border-white/5 pb-3">
- <h3 className="text-sm font-black uppercase tracking-wider text-primary">Activación y Desactivación de Módulos</h3>
- <p className="text-xs text-gray-500 mt-1">Personaliza tu espacio de trabajo desactivando los módulos que no utilices. Los cambios se reflejarán inmediatamente en el menú de navegación izquierdo.</p>
+ <h3 className="text-sm font-semibold uppercase tracking-wider text-primary">Activación y Desactivación de Módulos</h3>
+ <p className="text-xs text-text-secondary mt-1">Personaliza tu espacio de trabajo desactivando los módulos que no utilices. Los cambios se reflejarán inmediatamente en el menú de navegación izquierdo.</p>
  </div>
 
  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
  {/* CARD: PROYECTOS */}
- <div className={`p-4 rounded-card border flex flex-col justify-between bg-gray-50 border-gray-200`}>
+ <div className={`p-4 rounded-card border flex flex-col justify-between bg-surface-bg border-border-default`}>
  <div className="space-y-2">
  <div className="flex items-center justify-between">
  <span className="p-2 rounded-card bg-primary/10 text-primary"><LayoutDashboard size={18} /></span>
  <span className="text-xs px-2 py-0.5 rounded bg-primary/15 text-primary font-bold uppercase">Núcleo</span>
  </div>
  <h4 className="text-xs font-bold font-sans">Proyectos y Tableros</h4>
- <p className="text-xs text-gray-500 leading-normal">Mi Espacio, control de tareas Kanban, priorización de sprints y bitácoras.</p>
+ <p className="text-xs text-text-secondary leading-normal">Mi Espacio, control de tareas Kanban, priorización de sprints y bitácoras.</p>
  </div>
  <div className="flex justify-between items-center mt-6 border-t border-white/5 pt-3">
- <span className="text-xs text-gray-400 font-bold">Estado</span>
+ <span className="text-xs text-text-secondary font-bold">Estado</span>
  <button type="button" onClick={() => handleToggleModule('dashboard')} className="text-emerald-500"><ToggleRight size={30} /></button>
  </div>
  </div>
 
  {/* CARD: VENTAS */}
- <div className={`p-4 rounded-card border flex flex-col justify-between bg-gray-50 border-gray-200`}>
+ <div className={`p-4 rounded-card border flex flex-col justify-between bg-surface-bg border-border-default`}>
  <div className="space-y-2">
  <div className="flex items-center justify-between">
  <span className="p-2 rounded-card bg-orange-500/10 text-orange-500"><ShoppingCart size={18} /></span>
  <button type="button" onClick={() => handleToggleModule('ventas')}>
- {activeModules.ventas ? <ToggleRight size={28} className="text-emerald-500" /> : <ToggleLeft size={28} className="text-gray-500" />}
+ {activeModules.ventas ? <ToggleRight size={28} className="text-emerald-500" /> : <ToggleLeft size={28} className="text-text-secondary" />}
  </button>
  </div>
  <h4 className="text-xs font-bold font-sans">Ventas y Facturación</h4>
- <p className="text-xs text-gray-500 leading-normal">Bandeja de facturas, Cotizaciones comerciales y Punto de venta (POS) en pantalla completa.</p>
+ <p className="text-xs text-text-secondary leading-normal">Bandeja de facturas, Cotizaciones comerciales y Punto de venta (POS) en pantalla completa.</p>
  </div>
  <div className="flex justify-between items-center mt-6 border-t border-white/5 pt-3">
- <span className="text-xs text-gray-400 font-bold">Estado</span>
- <span className={`text-xs font-black uppercase ${activeModules.ventas ?'text-emerald-400' :'text-gray-500'}`}>
+ <span className="text-xs text-text-secondary font-bold">Estado</span>
+ <span className={`text-xs font-semibold uppercase ${activeModules.ventas ?'text-emerald-400' :'text-text-secondary'}`}>
  {activeModules.ventas ?'Activado' :'Desactivado'}
  </span>
  </div>
  </div>
 
  {/* CARD: CONTABILIDAD */}
- <div className={`p-4 rounded-card border flex flex-col justify-between bg-gray-50 border-gray-200`}>
+ <div className={`p-4 rounded-card border flex flex-col justify-between bg-surface-bg border-border-default`}>
  <div className="space-y-2">
  <div className="flex items-center justify-between">
  <span className="p-2 rounded-card bg-emerald-500/10 text-emerald-500"><DollarSign size={18} /></span>
  <button type="button" onClick={() => handleToggleModule('finances')}>
- {activeModules.finances ? <ToggleRight size={28} className="text-emerald-500" /> : <ToggleLeft size={28} className="text-gray-500" />}
+ {activeModules.finances ? <ToggleRight size={28} className="text-emerald-500" /> : <ToggleLeft size={28} className="text-text-secondary" />}
  </button>
  </div>
  <h4 className="text-xs font-bold font-sans">Contabilidad y Retenciones</h4>
- <p className="text-xs text-gray-500 leading-normal">Gestión contable, retenciones del SRI, Cuentas por Cobrar (CxC), Cuentas por Pagar (CxP) y reportes.</p>
+ <p className="text-xs text-text-secondary leading-normal">Gestión contable, retenciones del SRI, Cuentas por Cobrar (CxC), Cuentas por Pagar (CxP) y reportes.</p>
  </div>
  <div className="flex justify-between items-center mt-6 border-t border-white/5 pt-3">
- <span className="text-xs text-gray-400 font-bold">Estado</span>
- <span className={`text-xs font-black uppercase ${activeModules.finances ?'text-emerald-400' :'text-gray-500'}`}>
+ <span className="text-xs text-text-secondary font-bold">Estado</span>
+ <span className={`text-xs font-semibold uppercase ${activeModules.finances ?'text-emerald-400' :'text-text-secondary'}`}>
  {activeModules.finances ?'Activado' :'Desactivado'}
  </span>
  </div>
  </div>
 
  {/* CARD: INVENTARIO */}
- <div className={`p-4 rounded-card border flex flex-col justify-between bg-gray-50 border-gray-200`}>
+ <div className={`p-4 rounded-card border flex flex-col justify-between bg-surface-bg border-border-default`}>
  <div className="space-y-2">
  <div className="flex items-center justify-between">
  <span className="p-2 rounded-card bg-sky-500/10 text-sky-500"><Package size={18} /></span>
  <button type="button" onClick={() => handleToggleModule('inventario')}>
- {activeModules.inventario ? <ToggleRight size={28} className="text-emerald-500" /> : <ToggleLeft size={28} className="text-gray-500" />}
+ {activeModules.inventario ? <ToggleRight size={28} className="text-emerald-500" /> : <ToggleLeft size={28} className="text-text-secondary" />}
  </button>
  </div>
  <h4 className="text-xs font-bold font-sans">Catálogo e Inventario</h4>
- <p className="text-xs text-gray-500 leading-normal">Control de stock de productos, mínimos críticos y configuración fiscal individual de IVA.</p>
+ <p className="text-xs text-text-secondary leading-normal">Control de stock de productos, mínimos críticos y configuración fiscal individual de IVA.</p>
  </div>
  <div className="flex justify-between items-center mt-6 border-t border-white/5 pt-3">
- <span className="text-xs text-gray-400 font-bold">Estado</span>
- <span className={`text-xs font-black uppercase ${activeModules.inventario ?'text-emerald-400' :'text-gray-500'}`}>
+ <span className="text-xs text-text-secondary font-bold">Estado</span>
+ <span className={`text-xs font-semibold uppercase ${activeModules.inventario ?'text-emerald-400' :'text-text-secondary'}`}>
  {activeModules.inventario ?'Activado' :'Desactivado'}
  </span>
  </div>
  </div>
 
  {/* CARD: PERSONAS */}
- <div className={`p-4 rounded-card border flex flex-col justify-between bg-gray-50 border-gray-200`}>
+ <div className={`p-4 rounded-card border flex flex-col justify-between bg-surface-bg border-border-default`}>
  <div className="space-y-2">
  <div className="flex items-center justify-between">
  <span className="p-2 rounded-card bg-teal-500/10 text-teal-500"><Users size={18} /></span>
  <button type="button" onClick={() => handleToggleModule('personas')}>
- {activeModules.personas ? <ToggleRight size={28} className="text-emerald-500" /> : <ToggleLeft size={28} className="text-gray-500" />}
+ {activeModules.personas ? <ToggleRight size={28} className="text-emerald-500" /> : <ToggleLeft size={28} className="text-text-secondary" />}
  </button>
  </div>
  <h4 className="text-xs font-bold font-sans">Gestión de Personas</h4>
- <p className="text-xs text-gray-500 leading-normal">Directorio unificado de Clientes y Proveedores con RUC/Identificación del SRI.</p>
+ <p className="text-xs text-text-secondary leading-normal">Directorio unificado de Clientes y Proveedores con RUC/Identificación del SRI.</p>
  </div>
  <div className="flex justify-between items-center mt-6 border-t border-white/5 pt-3">
- <span className="text-xs text-gray-400 font-bold">Estado</span>
- <span className={`text-xs font-black uppercase ${activeModules.personas ?'text-emerald-400' :'text-gray-500'}`}>
+ <span className="text-xs text-text-secondary font-bold">Estado</span>
+ <span className={`text-xs font-semibold uppercase ${activeModules.personas ?'text-emerald-400' :'text-text-secondary'}`}>
  {activeModules.personas ?'Activado' :'Desactivado'}
  </span>
  </div>
  </div>
 
  {/* CARD: CALENDARIO */}
- <div className={`p-4 rounded-card border flex flex-col justify-between bg-gray-50 border-gray-200`}>
+ <div className={`p-4 rounded-card border flex flex-col justify-between bg-surface-bg border-border-default`}>
  <div className="space-y-2">
  <div className="flex items-center justify-between">
  <span className="p-2 rounded-card bg-purple-500/10 text-purple-500"><Calendar size={18} /></span>
  <button type="button" onClick={() => handleToggleModule('calendar')}>
- {activeModules.calendar ? <ToggleRight size={28} className="text-emerald-500" /> : <ToggleLeft size={28} className="text-gray-500" />}
+ {activeModules.calendar ? <ToggleRight size={28} className="text-emerald-500" /> : <ToggleLeft size={28} className="text-text-secondary" />}
  </button>
  </div>
  <h4 className="text-xs font-bold font-sans">Calendario de Eventos</h4>
- <p className="text-xs text-gray-500 leading-normal">Planificación interna, sincronización con Google Calendar y enlaces de Google Meet.</p>
+ <p className="text-xs text-text-secondary leading-normal">Planificación interna, sincronización con Google Calendar y enlaces de Google Meet.</p>
  </div>
  <div className="flex justify-between items-center mt-6 border-t border-white/5 pt-3">
- <span className="text-xs text-gray-400 font-bold">Estado</span>
- <span className={`text-xs font-black uppercase ${activeModules.calendar ?'text-emerald-400' :'text-gray-500'}`}>
+ <span className="text-xs text-text-secondary font-bold">Estado</span>
+ <span className={`text-xs font-semibold uppercase ${activeModules.calendar ?'text-emerald-400' :'text-text-secondary'}`}>
  {activeModules.calendar ?'Activado' :'Desactivado'}
  </span>
  </div>
  </div>
 
  {/* CARD: EQUIPO */}
- <div className={`p-4 rounded-card border flex flex-col justify-between bg-gray-50 border-gray-200`}>
+ <div className={`p-4 rounded-card border flex flex-col justify-between bg-surface-bg border-border-default`}>
  <div className="space-y-2">
  <div className="flex items-center justify-between">
  <span className="p-2 rounded-card bg-yellow-500/10 text-yellow-500"><Users size={18} /></span>
  <button type="button" onClick={() => handleToggleModule('team')}>
- {activeModules.team ? <ToggleRight size={28} className="text-emerald-500" /> : <ToggleLeft size={28} className="text-gray-500" />}
+ {activeModules.team ? <ToggleRight size={28} className="text-emerald-500" /> : <ToggleLeft size={28} className="text-text-secondary" />}
  </button>
  </div>
  <h4 className="text-xs font-bold font-sans">Equipo de Trabajo</h4>
- <p className="text-xs text-gray-500 leading-normal">Gestión interna de colaboradores de este espacio, roles y asignación de tareas.</p>
+ <p className="text-xs text-text-secondary leading-normal">Gestión interna de colaboradores de este espacio, roles y asignación de tareas.</p>
  </div>
  <div className="flex justify-between items-center mt-6 border-t border-white/5 pt-3">
- <span className="text-xs text-gray-400 font-bold">Estado</span>
- <span className={`text-xs font-black uppercase ${activeModules.team ?'text-emerald-400' :'text-gray-500'}`}>
+ <span className="text-xs text-text-secondary font-bold">Estado</span>
+ <span className={`text-xs font-semibold uppercase ${activeModules.team ?'text-emerald-400' :'text-text-secondary'}`}>
  {activeModules.team ?'Activado' :'Desactivado'}
  </span>
  </div>
  </div>
 
  {/* CARD: COMPRAS */}
- <div className={`p-4 rounded-card border flex flex-col justify-between bg-gray-50 border-gray-200`}>
+ <div className={`p-4 rounded-card border flex flex-col justify-between bg-surface-bg border-border-default`}>
  <div className="space-y-2">
  <div className="flex items-center justify-between">
  <span className="p-2 rounded-card bg-orange-500/10 text-orange-500"><ShoppingCart size={18} /></span>
  <button type="button" onClick={() => handleToggleModule('compras')}>
- {activeModules.compras ? <ToggleRight size={28} className="text-emerald-500" /> : <ToggleLeft size={28} className="text-gray-500" />}
+ {activeModules.compras ? <ToggleRight size={28} className="text-emerald-500" /> : <ToggleLeft size={28} className="text-text-secondary" />}
  </button>
  </div>
  <h4 className="text-xs font-bold font-sans">Módulo de Compras (SRI / ATS)</h4>
- <p className="text-xs text-gray-500 leading-normal">Gestión de facturas recibidas del SRI, gastos con categorización de IA y retenciones de compras.</p>
+ <p className="text-xs text-text-secondary leading-normal">Gestión de facturas recibidas del SRI, gastos con categorización de IA y retenciones de compras.</p>
  </div>
  <div className="flex justify-between items-center mt-6 border-t border-white/5 pt-3">
- <span className="text-xs text-gray-400 font-bold">Estado</span>
- <span className={`text-xs font-black uppercase ${activeModules.compras ?'text-emerald-400' :'text-gray-500'}`}>
+ <span className="text-xs text-text-secondary font-bold">Estado</span>
+ <span className={`text-xs font-semibold uppercase ${activeModules.compras ?'text-emerald-400' :'text-text-secondary'}`}>
  {activeModules.compras ?'Activado' :'Desactivado'}
  </span>
  </div>
  </div>
 
  {/* CARD: GASTOS Y CRÉDITOS */}
- <div className={`p-4 rounded-card border flex flex-col justify-between bg-gray-50 border-gray-200`}>
+ <div className={`p-4 rounded-card border flex flex-col justify-between bg-surface-bg border-border-default`}>
  <div className="space-y-2">
  <div className="flex items-center justify-between">
  <span className="p-2 rounded-card bg-pink-500/10 text-pink-500"><CreditCard size={18} /></span>
  <button type="button" onClick={() => handleToggleModule('gastos_creditos')}>
- {activeModules.gastos_creditos ? <ToggleRight size={28} className="text-emerald-500" /> : <ToggleLeft size={28} className="text-gray-500" />}
+ {activeModules.gastos_creditos ? <ToggleRight size={28} className="text-emerald-500" /> : <ToggleLeft size={28} className="text-text-secondary" />}
  </button>
  </div>
  <h4 className="text-xs font-bold font-sans">Gastos y Pasivos Financieros</h4>
- <p className="text-xs text-gray-500 leading-normal">Control financiero de préstamos bancarios, créditos comerciales de locales y tarjetas de crédito.</p>
+ <p className="text-xs text-text-secondary leading-normal">Control financiero de préstamos bancarios, créditos comerciales de locales y tarjetas de crédito.</p>
  </div>
  <div className="flex justify-between items-center mt-6 border-t border-white/5 pt-3">
- <span className="text-xs text-gray-400 font-bold">Estado</span>
- <span className={`text-xs font-black uppercase ${activeModules.gastos_creditos ?'text-emerald-400' :'text-gray-500'}`}>
+ <span className="text-xs text-text-secondary font-bold">Estado</span>
+ <span className={`text-xs font-semibold uppercase ${activeModules.gastos_creditos ?'text-emerald-400' :'text-text-secondary'}`}>
  {activeModules.gastos_creditos ?'Activado' :'Desactivado'}
  </span>
  </div>
@@ -1724,8 +1724,8 @@ export default function GeneralSettings({
  {activeSubTab ==='workspace' && (
  <form onSubmit={handleSaveWorkspace} className="space-y-6 animate-in fade-in duration-200">
  <div className="border-b border-white/5 pb-3">
- <h3 className="text-sm font-black uppercase tracking-wider text-primary">Integración con Google Workspace</h3>
- <p className="text-xs text-gray-500 mt-1">Conecta tu calendario de Google Calendar oficial para agendar citas directamente desde las tareas del ERP y autogenerar enlaces de Google Meet.</p>
+ <h3 className="text-sm font-semibold uppercase tracking-wider text-primary">Integración con Google Workspace</h3>
+ <p className="text-xs text-text-secondary mt-1">Conecta tu calendario de Google Calendar oficial para agendar citas directamente desde las tareas del ERP y autogenerar enlaces de Google Meet.</p>
  </div>
 
  <div>
@@ -1751,7 +1751,7 @@ export default function GeneralSettings({
  </div>
 
  <div className="flex justify-end pt-4 border-t border-white/5">
- <button type="submit" className="flex items-center gap-1.5 px-5 py-2.5 rounded-card text-xs font-black bg-primary hover:bg-primary-hover text-white transition-transform hover:-translate-y-0.5">
+ <button type="submit" className="flex items-center gap-1.5 px-5 py-2.5 rounded-card text-xs font-semibold bg-primary hover:bg-primary-hover text-white transition-transform hover:-translate-y-0.5">
  <Save size={14} /> Guardar Conexión Google
  </button>
  </div>
@@ -1761,15 +1761,15 @@ export default function GeneralSettings({
  {/* PESTAÑA: GOOGLE GEMINI (INTELIGENCIA ARTIFICIAL) */}
  {activeSubTab ==='gemini' && (
  <div className="space-y-6 animate-in fade-in duration-200">
- <div className="border-b border-gray-100 pb-3">
- <h3 className="text-sm font-black uppercase tracking-wider text-primary">Inteligencia Artificial y Asistente Gemini</h3>
- <p className="text-xs text-gray-500 mt-1">Servicios cognitivos de IA integrados para optimizar la toma de decisiones, extracción automática de documentos y planificación operativa.</p>
+ <div className="border-b border-border-default pb-3">
+ <h3 className="text-sm font-semibold uppercase tracking-wider text-primary">Inteligencia Artificial y Asistente Gemini</h3>
+ <p className="text-xs text-text-secondary mt-1">Servicios cognitivos de IA integrados para optimizar la toma de decisiones, extracción automática de documentos y planificación operativa.</p>
  </div>
 
- <div className="p-5 rounded-2xl border border-emerald-200 bg-emerald-50/50 space-y-3">
+ <div className="p-5 rounded-card border border-emerald-200 bg-emerald-50/50 space-y-3">
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-2.5">
- <div className="p-2 rounded-xl bg-emerald-600 text-white">
+ <div className="p-2 rounded-card bg-emerald-600 text-white">
  <Sparkles size={18} />
  </div>
  <div>
@@ -1777,7 +1777,7 @@ export default function GeneralSettings({
  <p className="text-xs text-emerald-700">Gestionado automáticamente desde la administración central de la plataforma</p>
  </div>
  </div>
- <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-600 text-white shadow-xs">
+ <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-600 text-white ">
  <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>
  Activo y Operativo
  </span>
@@ -1785,42 +1785,42 @@ export default function GeneralSettings({
  </div>
 
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
- <div className="p-4 rounded-xl border border-[#CDD1EA] bg-white space-y-1.5">
- <h5 className="text-xs font-black uppercase text-slate-800 flex items-center gap-2">
+ <div className="p-4 rounded-card border border-border-default bg-white space-y-1.5">
+ <h5 className="text-xs font-semibold uppercase text-text-heading flex items-center gap-2">
  <Sparkles size={14} className="text-primary" />
  OCR de Facturas y Compras
  </h5>
- <p className="text-xs text-gray-500 leading-relaxed">
+ <p className="text-xs text-text-secondary leading-relaxed">
  Reconocimiento inteligente de tickets, PDF y facturas escaneadas para cargar egresos y compras sin digitación manual.
  </p>
  </div>
 
- <div className="p-4 rounded-xl border border-[#CDD1EA] bg-white space-y-1.5">
- <h5 className="text-xs font-black uppercase text-slate-800 flex items-center gap-2">
+ <div className="p-4 rounded-card border border-border-default bg-white space-y-1.5">
+ <h5 className="text-xs font-semibold uppercase text-text-heading flex items-center gap-2">
  <Sparkles size={14} className="text-primary" />
  Asistente de Proyectos y Tareas
  </h5>
- <p className="text-xs text-gray-500 leading-relaxed">
+ <p className="text-xs text-text-secondary leading-relaxed">
  Generación instantánea de listas de chequeo, agendas de reunión y resumen ejecutivo de proyectos con un solo clic.
  </p>
  </div>
 
- <div className="p-4 rounded-xl border border-[#CDD1EA] bg-white space-y-1.5">
- <h5 className="text-xs font-black uppercase text-slate-800 flex items-center gap-2">
+ <div className="p-4 rounded-card border border-border-default bg-white space-y-1.5">
+ <h5 className="text-xs font-semibold uppercase text-text-heading flex items-center gap-2">
  <Sparkles size={14} className="text-primary" />
  Asesor Contable y Financiero
  </h5>
- <p className="text-xs text-gray-500 leading-relaxed">
+ <p className="text-xs text-text-secondary leading-relaxed">
  Diagnóstico del estado del negocio, alertas de stock mínimo y recomendaciones estratégicas de balances.
  </p>
  </div>
 
- <div className="p-4 rounded-xl border border-[#CDD1EA] bg-white space-y-1.5">
- <h5 className="text-xs font-black uppercase text-slate-800 flex items-center gap-2">
+ <div className="p-4 rounded-card border border-border-default bg-white space-y-1.5">
+ <h5 className="text-xs font-semibold uppercase text-text-heading flex items-center gap-2">
  <Sparkles size={14} className="text-primary" />
  Redacción y Edición de Documentos
  </h5>
- <p className="text-xs text-gray-500 leading-relaxed">
+ <p className="text-xs text-text-secondary leading-relaxed">
  Asistencia en tiempo real para resumir, mejorar ortografía y expandir minutas en el módulo de documentación.
  </p>
  </div>
@@ -1832,27 +1832,27 @@ export default function GeneralSettings({
  {activeSubTab ==='users' && (
  <div className="space-y-6 animate-in fade-in duration-200">
  <div className="border-b border-white/5 pb-3">
- <h3 className="text-sm font-black uppercase tracking-wider text-primary">Gestión de Usuarios de este Espacio</h3>
- <p className="text-xs text-gray-500 mt-1">Colaboradores registrados con acceso a este ERP. Puedes crear, asignar roles o revocar permisos.</p>
+ <h3 className="text-sm font-semibold uppercase tracking-wider text-primary">Gestión de Usuarios de este Espacio</h3>
+ <p className="text-xs text-text-secondary mt-1">Colaboradores registrados con acceso a este ERP. Puedes crear, asignar roles o revocar permisos.</p>
  </div>
 
  {/* LISTA DE USUARIOS */}
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
  {localUsers.map(user => (
- <div key={user.id} className={`p-4 rounded-card border flex items-center justify-between bg-gray-50 border-gray-200`}>
+ <div key={user.id} className={`p-4 rounded-card border flex items-center justify-between bg-surface-bg border-border-default`}>
  <div className="flex items-center gap-3">
  <div className={`w-9 h-9 rounded-full bg-gradient-to-tr ${user.color ||'from-gray-400 to-gray-600'} flex items-center justify-center text-xs font-bold text-white shrink-0 shadow`}>
  {user.initials}
  </div>
  <div>
  <p className="text-xs font-bold">{user.name}</p>
- <p className="text-xs text-gray-500">{user.job} — <span className="font-semibold uppercase tracking-wider text-xs">{user.role}</span></p>
- {user.email && <p className="text-xs font-mono text-gray-400 truncate max-w-[160px]">{user.email}</p>}
+ <p className="text-xs text-text-secondary">{user.job} — <span className="font-semibold uppercase tracking-wider text-xs">{user.role}</span></p>
+ {user.email && <p className="text-xs font-mono text-text-secondary truncate max-w-[160px]">{user.email}</p>}
  </div>
  </div>
  <button 
  onClick={() => handleDeleteUser(user.id)}
- className="p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/10 transition-colors"
+ className="p-2 rounded-md bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/10 transition-colors"
  >
  <Trash2 size={13} />
  </button>
@@ -1861,8 +1861,8 @@ export default function GeneralSettings({
  </div>
 
  {/* FORMULARIO AGREGAR USUARIO */}
- <form onSubmit={handleAddUser} className={`p-5 rounded-card border space-y-4 bg-gray-100/50 border-gray-250`}>
- <h4 className="text-xs font-black uppercase tracking-wider text-gray-500">Registrar Nuevo Colaborador</h4>
+ <form onSubmit={handleAddUser} className={`p-5 rounded-card border space-y-4 bg-surface-muted/50 border-gray-250`}>
+ <h4 className="text-xs font-semibold uppercase tracking-wider text-text-secondary">Registrar Nuevo Colaborador</h4>
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
  <div>
  <label className="label-field label-field-dark">Nombre Completo</label>
@@ -1910,7 +1910,7 @@ export default function GeneralSettings({
  </div>
 
  <div className="flex justify-end pt-2">
- <button type="submit" className="flex items-center gap-1.5 px-4 py-2 rounded-card text-xs font-black bg-emerald-600 hover:bg-emerald-500 text-white">
+ <button type="submit" className="flex items-center gap-1.5 px-4 py-2 rounded-card text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white">
  <Plus size={14} /> Registrar Usuario
  </button>
  </div>
@@ -1922,19 +1922,19 @@ export default function GeneralSettings({
  {activeSubTab ==='backup' && (
  <div className="space-y-6 animate-in fade-in duration-200">
  <div className="border-b border-white/5 pb-3">
- <h3 className="text-sm font-black uppercase tracking-wider text-primary">Copia de Seguridad y Respaldos</h3>
- <p className="text-xs text-gray-500 mt-1">Respalda localmente toda la base de datos de tu espacio de trabajo para mayor seguridad. Descarga un archivo estructurado en JSON listo para ser restaurado.</p>
+ <h3 className="text-sm font-semibold uppercase tracking-wider text-primary">Copia de Seguridad y Respaldos</h3>
+ <p className="text-xs text-text-secondary mt-1">Respalda localmente toda la base de datos de tu espacio de trabajo para mayor seguridad. Descarga un archivo estructurado en JSON listo para ser restaurado.</p>
  </div>
 
- <div className={`p-5 rounded-card border flex flex-col sm:flex-row gap-4 items-center justify-between bg-gray-50 border-gray-200`}>
+ <div className={`p-5 rounded-card border flex flex-col sm:flex-row gap-4 items-center justify-between bg-surface-bg border-border-default`}>
  <div className="space-y-1 text-xs">
  <p className="font-bold">Respaldar Datos del ERP</p>
- <p className="text-xs text-gray-500 leading-normal">Incluye Proyectos, Tareas, Clientes, Proveedores, Transacciones y Configuraciones.</p>
+ <p className="text-xs text-text-secondary leading-normal">Incluye Proyectos, Tareas, Clientes, Proveedores, Transacciones y Configuraciones.</p>
  </div>
 
  <button 
  onClick={handleDownloadBackup}
- className={`flex justify-center items-center gap-2 px-5 py-3 rounded-card text-xs font-black transition-all hover:-translate-y-0.5 uppercase tracking-wider shrink-0 bg-emerald-100 text-emerald-800 hover:bg-emerald-250 border border-emerald-300`}
+ className={`flex justify-center items-center gap-2 px-5 py-3 rounded-card text-xs font-semibold transition-all hover:-translate-y-0.5 uppercase tracking-wider shrink-0 bg-emerald-100 text-emerald-800 hover:bg-emerald-250 border border-emerald-300`}
  >
  <Download size={14} /> Exportar Backup (JSON)
  </button>
@@ -1955,21 +1955,21 @@ export default function GeneralSettings({
  {/* MODAL CONFIGURACIÓN FIRMA ELECTRÓNICA */}
  {isFirmaOpen && (
  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 overflow-y-auto animate-in fade-in duration-300">
- <div className="relative w-full max-w-md rounded-card border border-white/10 bg-text-primary p-6 text-gray-300 animate-in zoom-in-95 duration-200">
+ <div className="relative w-full max-w-md rounded-card border border-white/10 bg-text-primary p-6 text-text-secondary animate-in zoom-in-95 duration-200">
  
  {/* Cabecera */}
  <div className="flex justify-between items-start pb-4 border-b border-white/5 mb-4">
  <div className="flex items-center gap-2">
  <Award size={18} className="text-purple-400" />
  <div>
- <h3 className="text-sm font-black uppercase tracking-wider text-purple-400">Firma Electrónica</h3>
- <p className="text-xs text-gray-500">Cargar archivo de firma digital (.p12 / .pfx)</p>
+ <h3 className="text-sm font-semibold uppercase tracking-wider text-purple-400">Firma Electrónica</h3>
+ <p className="text-xs text-text-secondary">Cargar archivo de firma digital (.p12 / .pfx)</p>
  </div>
  </div>
  <button 
  type="button" 
  onClick={() => setIsFirmaOpen(false)}
- className="text-gray-400 hover:text-white transition-colors"
+ className="text-text-secondary hover:text-white transition-colors"
  >
  <X size={16} />
  </button>
@@ -1989,8 +1989,8 @@ export default function GeneralSettings({
  }`}>
  <div className="flex justify-between items-start">
  <div className="truncate pr-2">
- <p className="text-xs font-black truncate">{tempFirma.certificadoNombre}</p>
- {certValidation.sujeto && <p className="text-xs font-bold mt-1.5 text-gray-400">Sujeto: <span className="font-extrabold text-gray-200">{certValidation.sujeto}</span></p>}
+ <p className="text-xs font-semibold truncate">{tempFirma.certificadoNombre}</p>
+ {certValidation.sujeto && <p className="text-xs font-bold mt-1.5 text-text-secondary">Sujeto: <span className="font-semibold text-text-secondary">{certValidation.sujeto}</span></p>}
  {certValidation.emisor && <p className="text-xs opacity-80 mt-0.5">Emisor: {certValidation.emisor}</p>}
  {certValidation.vence && <p className="text-xs opacity-80 mt-0.5 font-mono">Expira: {certValidation.vence}</p>}
  {certValidation.ruc && <p className="text-xs opacity-85 mt-0.5 font-bold">RUC Firma: {certValidation.ruc}</p>}
@@ -2015,7 +2015,7 @@ export default function GeneralSettings({
  </div>
 
  <div className="space-y-1.5">
- <label className="block text-xs font-bold uppercase text-gray-500">Contraseña de la Firma</label>
+ <label className="block text-xs font-bold uppercase text-text-secondary">Contraseña de la Firma</label>
  <div className="flex gap-2">
  <input 
  type="password" 
@@ -2036,12 +2036,12 @@ export default function GeneralSettings({
  </div>
  ) : (
  <div className="space-y-3">
- <label className="w-full flex flex-col items-center justify-center gap-2 p-6 rounded-card border border-dashed border-white/20 hover:bg-white/5 hover:border-purple-500/40 text-gray-400 cursor-pointer transition-all">
+ <label className="w-full flex flex-col items-center justify-center gap-2 p-6 rounded-card border border-dashed border-white/20 hover:bg-white/5 hover:border-purple-500/40 text-text-secondary cursor-pointer transition-all">
  <input type="file" accept=".p12,.pfx" className="hidden" onChange={handleCertificateUpload} />
- <Award size={24} className="text-gray-500" />
+ <Award size={24} className="text-text-secondary" />
  <span className="text-xs font-semibold">Seleccionar Firma (.p12 / .pfx)</span>
  </label>
- <p className="text-xs text-gray-500 leading-relaxed text-center">
+ <p className="text-xs text-text-secondary leading-relaxed text-center">
  Su archivo de firma electrónica se almacena de forma segura en la base de datos para realizar la firma en el servidor al emitir comprobantes autorizados por el SRI.
  </p>
  </div>
@@ -2054,14 +2054,14 @@ export default function GeneralSettings({
  <button 
  type="button" 
  onClick={() => setIsFirmaOpen(false)}
- className="px-4 py-2 rounded-card text-xs font-bold bg-white/5 hover:bg-white/10 text-gray-300 transition-colors"
+ className="px-4 py-2 rounded-card text-xs font-bold bg-white/5 hover:bg-white/10 text-text-secondary transition-colors"
  >
  Cancelar
  </button>
  <button 
  type="button" 
  onClick={handleSaveFirma}
- className="px-4.5 py-2 rounded-card text-xs font-black bg-purple-600 hover:bg-purple-500 text-white shadow transition-transform active:scale-95"
+ className="px-4.5 py-2 rounded-card text-xs font-semibold bg-purple-600 hover:bg-purple-500 text-white shadow transition-transform active:scale-95"
  >
  Guardar Firma
  </button>

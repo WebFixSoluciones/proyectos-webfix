@@ -1,3 +1,9 @@
+import { cancelInternalSale } from '../../services/cancelSale';
+import { productRepository } from '../../modules/inventory/repositories/ProductRepository';
+import { normalizeProduct } from '../../services/productModel';
+import { registerInventoryOperations, CENTRAL_BRANCH } from '../../services/inventoryLedger';
+import { invoiceDescription } from '../../services/invoiceLine';
+import { settlePayments } from '../../services/paymentModel';
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { 
@@ -9,7 +15,8 @@ import { doc, getDoc, setDoc, collection, query, where, getDocs, runTransaction 
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { validarIdentificacion, generarFacturaXML, simularTransmisionSRI, consultarRucSri, generarRetencionXML, generarNotaCreditoXML, generarLiquidacionXML, generarGuiaRemisionXML, getEcuadorDateString, getEcuadorTimeString, getEcuadorDateTimeString } from '../../services/sriService';
 import { firmarComprobanteXML } from '../../services/xadesSigner';
-import { registrarMovimientoKardex } from '../../services/inventoryService';
+import { registerTransactionInventory } from '../../services/inventoryLedger';
+import { validateCartStock, taxRateFor } from '../../services/productModel';
 import { calculateTransactionTotals } from '../../services/discountCalcService';
 import { sincronizarVenta, sincronizarCompra } from '../../services/integracionFinanzasService';
 import RidePreviewModal from './RidePreviewModal';
@@ -54,7 +61,7 @@ function sanitizeFirestoreData(obj) {
   return obj;
 }
 
-export default function TransactionForm({ tx, onClose, thirdParties, products = [], discounts = [], promotions = [], showToast, db, storage, appId, isInline = false }) {
+export default function TransactionForm({ tx, onClose, thirdParties, products = [], discounts = [], promotions = [], showToast, db, storage, appId, isInline = false, onSaved, usuario = null }) {
   const [sriConfig, setSriConfig] = useState({
     ruc: '',
     razonSocial: '',
@@ -76,10 +83,12 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     agenteRetencion: false,
     resolucionAgente: ''
   });
+  const operationRef = useRef(false);
+  const stableIdRef = useRef(tx?.id || crypto.randomUUID());
+  const [isSaving, setIsSaving] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [printTx, setPrintTx] = useState(null);
   const [printFormat, setPrintFormat] = useState('ride');
-  const [isInitializedFromPOS, setIsInitializedFromPOS] = useState(false);
   
   const [dbCategories, setDbCategories] = useState([]);
 
@@ -186,7 +195,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   const [generalDiscountValue, setGeneralDiscountValue] = useState(0);
 
   // Unified Discounts & Promotions state
-  const [selectedGeneralDiscount, setSelectedGeneralDiscount] = useState(null);
+  const [selectedGeneralDiscount, setSelectedGeneralDiscount] = useState(tx?.generalDiscount || null);
   const [selectedLineItemForDiscount, setSelectedLineItemForDiscount] = useState(null);
   const [authDialog, setAuthDialog] = useState(null);
   const [supervisorPassword, setSupervisorPassword] = useState('');
@@ -364,21 +373,11 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       return;
     }
     try {
-      const productId = `prod_${new Date().getTime()}`;
-      const newProdData = {
-        id: productId,
-        name: quickAddProductFormData.name,
-        sku: quickAddProductFormData.sku || '',
-        codigoBarras: quickAddProductFormData.codigoBarras || '',
-        price: Number(quickAddProductFormData.price) || 0,
-        baseCost: Number(quickAddProductFormData.baseCost) || 0,
-        ivaCategory: Number(quickAddProductFormData.ivaCategory) || 15,
-        stock: Number(quickAddProductFormData.stock) || 0,
-        updatedAt: new Date().toISOString()
-      };
-      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'inventory_products', productId), sanitizeFirestoreData(newProdData));
+      const saved = await productRepository.create({ type: 'STANDARD', name: quickAddProductFormData.name, sku: quickAddProductFormData.sku || 'PROD-' + crypto.randomUUID().slice(0,8), codigoBarras: quickAddProductFormData.codigoBarras || '', salePrice: Number(quickAddProductFormData.price), baseCost: Number(quickAddProductFormData.baseCost || 0), taxRate: Number(quickAddProductFormData.ivaCategory ?? 15), inventoryType: 'PHYSICAL' });
+      const stock = Number(quickAddProductFormData.stock || 0);
+      if (stock > 0) await registerInventoryOperations(db, appId, [{ productId: saved.id, branchId: CENTRAL_BRANCH, type: 'POSITIVE_ADJUSTMENT', referenceId: 'initial:' + saved.id, quantity: stock, unitCost: saved.baseCost }]);
+      handleAddProductToCart(normalizeProduct({ ...saved, stock }));
       showToast('Producto creado y agregado al carrito', 'success');
-      handleAddProductToCart(newProdData);
       setIsQuickAddProductOpen(false);
     } catch (err) {
       console.error("Error creating product:", err);
@@ -493,9 +492,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         setCurrentStep(2);
       }
 
-      if (tx.isPOS) {
-        setIsInitializedFromPOS(true);
-      }
+
     }
   }, [tx]);
 
@@ -532,6 +529,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
   // Cálculo automático del total y desglose de items/retenciones con Motor Unificado
   useEffect(() => {
+    if (['autorizado', 'anulado'].includes(formData.sriStatus)) return;
     if (formData.documentType === 'retencion') {
       const rets = formData.retenciones || [];
       const sumRet = rets.reduce((sum, r) => sum + (parseFloat(r.valorRetenido) || 0), 0);
@@ -565,12 +563,12 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
           price: Number(item.price) || 0,
           quantity: Number(item.quantity) || 1,
           tax_mode: item.tax_mode || 'EXCLUIDO',
-          tarifa_iva: item.tarifa_iva !== undefined ? Number(item.tarifa_iva) : 0.15,
+          tarifa_iva: taxRateFor(item),
           id_descuento_aplicado: item.id_descuento_aplicado || '',
           id_promocion_aplicada: item.id_promocion_aplicada || '',
           discount_value: Number(item.discount_value) || Number(item.itemDiscount) || 0,
           discount_type: item.discount_type || 'PORCENTAJE',
-          descuento_objeto: disc
+          descuento_objeto: item.id_descuento_aplicado ? ((discounts || []).find(d => d.id === item.id_descuento_aplicado) || item.descuento_objeto || null) : disc
         };
       });
 
@@ -582,7 +580,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
       setFormData(prev => ({
         ...prev,
-        baseImponible: totals.subtotalGeneralNeto.toFixed(2),
+        baseImponible: totals.baseImponible.toFixed(2),
         ivaValor: totals.ivaValor.toFixed(2),
         total: totalVal.toFixed(2)
       }));
@@ -612,8 +610,13 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     formData.items,
     formData.retenciones,
     formData.documentType,
-    selectedGeneralDiscount
+    selectedGeneralDiscount, discounts, dbCategories
   ]);
+
+  const invoiceItems = () => calculateTransactionTotals((formData.items || []).map(item => {
+    const id = item.id_descuento_aplicado || item.id_descuento_asociado || dbCategories.find(c => c.id === item.categoryId)?.id_descuento_asociado;
+    return { ...item, descuento_objeto: discounts.find(d => d.id === id) || item.descuento_objeto || null };
+  }), selectedGeneralDiscount).items;
 
   // Métodos para el desglose de retenciones
   const handleAddRetencion = () => {
@@ -733,8 +736,9 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
           ...updatedItems[index],
           productId: value,
           name: prod.name,
+          invoiceDescription: prod.name,
           price: priceVal,
-          ivaCategory: prod.ivaCategory || 15,
+          ivaCategory: prod.ivaCategory ?? 15,
           tax_mode: prod.tax_mode || 'EXCLUIDO',
           tarifa_iva: prod.tarifa_iva !== undefined ? Number(prod.tarifa_iva) : 0.15,
           categoryId: prod.categoryId || '',
@@ -758,7 +762,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     let updatedItems;
     if (existingIndex > -1) {
       updatedItems = [...formData.items];
-      updatedItems[existingIndex].quantity = (parseInt(updatedItems[existingIndex].quantity) || 0) + 1;
+      updatedItems[existingIndex] = { ...updatedItems[existingIndex], quantity: Number(updatedItems[existingIndex].quantity) + 1 };
     } else {
       const priceVal = product.tax_mode === 'INCLUIDO' 
         ? (Number(product.precio_con_iva) || Number(product.price) || 0)
@@ -772,7 +776,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
           codigoBarras: product.codigoBarras || '',
           price: priceVal, 
           quantity: 1, 
-          ivaCategory: product.ivaCategory || 15,
+          ivaCategory: product.ivaCategory ?? 15,
           tax_mode: product.tax_mode || 'EXCLUIDO',
           tarifa_iva: product.tarifa_iva !== undefined ? Number(product.tarifa_iva) : 0.15,
           categoryId: product.categoryId || '',
@@ -934,6 +938,9 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   };
 
   const validateForm = () => {
+    if ((formData.items || []).some(item => !invoiceDescription(item) || !Number.isFinite(Number(item.quantity)) || Number(item.quantity) <= 0 || !Number.isFinite(Number(item.price)) || Number(item.price) < 0)) {
+      showToast('Revisa la descripción, cantidad y precio de cada línea.', 'error'); return false;
+    }
     if (!formData.thirdPartyId) {
       showValidationErrorAlert('FALTA INGRESAR CLIENTE');
       return false;
@@ -989,118 +996,20 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     return true;
   };
 
-  const registrarInventarioTransaccion = async (transaction) => {
-    if (transaction.inventarioRegistrado) return;
-
-    const items = transaction.items || [];
-    if (items.length === 0) return;
-
-    const isIngreso = transaction.type === 'ingreso';
-    const concept = isIngreso 
-      ? `Venta ${transaction.documentType === 'nota_venta' ? 'Nota de Venta' : 'Factura'} ${transaction.documentNumber || transaction.id}`
-      : `Compra/Gasto ${transaction.documentType || ''} ${transaction.documentNumber || transaction.id}`;
-
-    const updatedItems = [];
-    for (const item of items) {
-      if (!item.productId) { updatedItems.push(item); continue; }
-      
-      try {
-        if (isIngreso) {
-          // Read current average cost BEFORE kardex (will be the exit cost)
-          const prodRef = doc(db, 'artifacts', appId, 'public', 'data', 'inventory_products', item.productId);
-          const prodSnap = await getDoc(prodRef);
-          let currentAvgCost = 0;
-          if (prodSnap.exists()) {
-            currentAvgCost = Number(prodSnap.data().baseCost) || 0;
-          }
-
-          await registrarMovimientoKardex(db, appId, {
-            productId: item.productId,
-            type: 'salida',
-            quantity: Number(item.quantity) || 0,
-            cost: 0, // Kardex resolves average cost internally for exits
-            price: Number(item.price) || 0,
-            concept,
-            referenceId: transaction.id,
-            bodega: transaction.bodega || "Bodega Central"
-          });
-          
-          // Store the cost used for this sale (for accurate reversal later)
-          updatedItems.push({ ...item, kardexCost: currentAvgCost });
-        } else {
-          await registrarMovimientoKardex(db, appId, {
-            productId: item.productId,
-            type: 'entrada',
-            quantity: Number(item.quantity) || 0,
-            cost: Number(item.price) || 0,
-            price: 0,
-            concept,
-            referenceId: transaction.id,
-            bodega: transaction.bodega || "Bodega Central"
-          });
-          updatedItems.push(item);
-        }
-      } catch (err) {
-        console.error("Error al registrar movimiento de inventario para item:", item, err);
-        updatedItems.push(item);
-      }
-    }
-
-    // Save kardex costs to transaction for accurate reversals
-    const txRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', transaction.id);
-    await setDoc(txRef, { inventarioRegistrado: true, items: updatedItems }, { merge: true });
+  const completePendingSale = async () => {
+    if (operationRef.current) return;
+    operationRef.current = true; setIsSaving(true);
+    try {
+      await registerTransactionInventory(db, appId, formData);
+      if (formData.type === 'ingreso' && ['factura', 'nota_venta'].includes(formData.documentType)) await sincronizarVenta(formData, db, usuario);
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', formData.id), { financialSyncStatus: 'complete' }, { merge: true });
+      const completed = { ...formData, financialSyncStatus: 'complete', inventarioRegistrado: true };
+      setFormData(completed); onSaved?.(completed); showToast('Inventario y finanzas sincronizados.', 'success');
+    } catch (error) { showToast(error.message, 'error'); }
+    finally { operationRef.current = false; setIsSaving(false); }
   };
 
-  const reversarInventarioTransaccion = async (transaction) => {
-    if (!transaction.inventarioRegistrado) return;
-
-    const items = transaction.items || [];
-    if (items.length === 0) return;
-
-    const isIngreso = transaction.type === 'ingreso';
-    const concept = `Anulacion de ${isIngreso ? 'Venta' : 'Compra/Gasto'} ${transaction.documentType || ''} ${transaction.documentNumber || transaction.id}`;
-
-    const updatedItems = [];
-    for (const item of items) {
-      if (!item.productId) { updatedItems.push(item); continue; }
-
-      try {
-        if (isIngreso) {
-          // Use the ORIGINAL kardexCost stored during registration, NOT current average
-          const originalCost = Number(item.kardexCost) || Number(item.price) || 0;
-          await registrarMovimientoKardex(db, appId, {
-            productId: item.productId,
-            type: 'entrada',
-            quantity: Number(item.quantity) || 0,
-            cost: originalCost,
-            price: 0,
-            concept,
-            referenceId: transaction.id,
-            bodega: transaction.bodega || "Bodega Central"
-          });
-          updatedItems.push({ ...item, kardexCost: 0 });
-        } else {
-          await registrarMovimientoKardex(db, appId, {
-            productId: item.productId,
-            type: 'salida',
-            quantity: Number(item.quantity) || 0,
-            cost: 0,
-            price: 0,
-            concept,
-            referenceId: transaction.id,
-            bodega: transaction.bodega || "Bodega Central"
-          });
-          updatedItems.push(item);
-        }
-      } catch (err) {
-        console.error("Error al reversar movimiento de inventario para item:", item, err);
-        updatedItems.push(item);
-      }
-    }
-
-    const txRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', transaction.id);
-    await setDoc(txRef, { inventarioRegistrado: false, items: updatedItems }, { merge: true });
-  };
+  const registrarInventarioTransaccion = transaction => registerTransactionInventory(db, appId, transaction);
 
   const handleSave = (options = {}) => {
     // If called via form submit event, prevent default
@@ -1145,11 +1054,13 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   };
 
   const executeSave = async (options = {}) => {
-    if (!validateForm()) return;
+    if (operationRef.current || !validateForm()) return;
+    operationRef.current = true;
+    setIsSaving(true);
 
     try {
-      const docId = formData.id || `tx_${new Date().getTime()}`;
-      let updatedFormData = { ...formData };
+      const docId = formData.id || stableIdRef.current;
+      let updatedFormData = { ...formData, items: invoiceItems(), generalDiscount: selectedGeneralDiscount, financialSyncStatus: 'pending' };
 
       // Lock system date & time automatically (non-modifiable)
       const now = new Date();
@@ -1162,20 +1073,23 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       const { isFinalizingNotaVenta = false } = options;
       if (formData.documentType === 'nota_venta' && isFinalizingNotaVenta && !formData.documentNumber) {
         const configRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config');
-        const configSnap = await getDoc(configRef);
-        if (configSnap.exists()) {
-          const configData = configSnap.data();
-          const secVal = configData.secuencialNotaVenta || 1;
-          const sec = String(secVal);
-          const docNum = `${configData.establecimiento || '001'}-${configData.puntoEmision || '001'}-${String(sec).padStart(9, '0')}`;
-          
-          updatedFormData.secuencial = sec;
-          updatedFormData.documentNumber = docNum;
-          updatedFormData.sriStatus = 'autorizado'; // Finalize and lock the document
-          
-          // Increment and save the sequential counter
-          await setDoc(configRef, { secuencialNotaVenta: secVal + 1 }, { merge: true });
-        }
+        await runTransaction(db, async transaction => {
+          const receiptRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId);
+          const receipt = await transaction.get(receiptRef);
+          const configSnap = await transaction.get(configRef);
+          if (!configSnap.exists()) throw new Error('Configura el emisor antes de registrar una venta.');
+          const existing = receipt.data();
+          if (existing?.documentNumber) {
+            updatedFormData = { ...updatedFormData, documentNumber: existing.documentNumber, secuencial: existing.secuencial, sriStatus: 'autorizado' };
+            return;
+          }
+          const config = configSnap.data();
+          const sec = Number(config.secuencialNotaVenta || 1);
+          const number = `${config.establecimiento || '001'}-${config.puntoEmision || '001'}-${String(sec).padStart(9, '0')}`;
+          updatedFormData = { ...updatedFormData, secuencial: String(sec), documentNumber: number, sriStatus: 'autorizado' };
+          transaction.set(receiptRef, { id: docId, documentNumber: number, secuencial: String(sec), sriStatus: 'pendiente' }, { merge: true });
+          transaction.update(configRef, { secuencialNotaVenta: sec + 1 });
+        });
       }
 
       // Compute paidAmount and status based on multi-payment breakdown
@@ -1224,7 +1138,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         updatedBy: 'Usuario ERP'
       };
 
+      if (finalTxData.type === 'ingreso' && isFinalizingNotaVenta) Object.assign(finalTxData, settlePayments(finalTxData.total, payments));
+      setFormData(prev => ({ ...prev, id: docId }));
       await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId), sanitizeFirestoreData(finalTxData), { merge: true });
+      setFormData(finalTxData);
 
       // Si es un egreso (compra/gasto) o se está finalizando una Nota de Venta (ingreso)
       if (finalTxData.type !== 'ingreso' || isFinalizingNotaVenta) {
@@ -1233,13 +1150,14 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       }
 
       try {
-        if (finalTxData.type === 'ingreso') {
+        if (finalTxData.type === 'ingreso' && (isFinalizingNotaVenta || finalTxData.sriStatus === 'autorizado')) {
           const ventaData = {
             id: docId,
             type: 'ingreso',
             documentType: finalTxData.documentType,
             documentNumber: finalTxData.documentNumber,
             claveAcceso: finalTxData.claveAcceso || '',
+            ...finalTxData,
             total: Number(finalTxData.total) || 0,
             baseImponible: Number(finalTxData.baseImponible) || Number(finalTxData.subtotal) || 0,
             ivaValor: Number(finalTxData.ivaValor) || 0,
@@ -1258,7 +1176,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
             isPOS: !!finalTxData.isPOS,
             creadoPor: '',
           };
-          await sincronizarVenta(ventaData, db, { uid: '', email: '' });
+          await sincronizarVenta(ventaData, db, usuario || { uid: '', email: '' });
         } else if (finalTxData.type === 'egreso') {
           const compraData = {
             id: docId,
@@ -1285,19 +1203,25 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
             pdfUrl: finalTxData.pdfUrl || '',
             creadoPor: '',
           };
-          await sincronizarCompra(compraData, db, { uid: '', email: '' });
+          await sincronizarCompra(compraData, db, usuario || { uid: '', email: '' });
         }
       } catch (syncErr) {
-        console.error('Error sincronizando con modulo financiero:', syncErr);
+        showToast('El documento está guardado, pero falta sincronizar finanzas. Vuelve a guardar para reintentar: ' + syncErr.message, 'warning');
+        throw syncErr;
       }
 
+      if (finalTxData.sriStatus === 'autorizado' || finalTxData.type !== 'ingreso') {
+        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId), { financialSyncStatus: 'complete' }, { merge: true });
+        finalTxData.financialSyncStatus = 'complete';
+      }
       showToast('Transacción guardada', 'success');
       setFormData(finalTxData);
+      onSaved?.(finalTxData);
       setCurrentStep(2);
     } catch (err) {
       console.error(err);
       showToast('Error al guardar: ' + (err.message || ''), 'error');
-    }
+    } finally { operationRef.current = false; setIsSaving(false); }
   };
 
   const handleEmitirSRI = () => {
@@ -1378,7 +1302,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   };
 
   const executeEmitirSRI = async () => {
-    if (!validateForm()) return;
+    if (operationRef.current || !validateForm()) return;
+    if (formData.sriStatus === 'autorizado') { showToast('Este comprobante ya está autorizado.', 'info'); return; }
+    try { if (formData.type === 'ingreso' && formData.documentType === 'factura' && !formData.inventarioRegistrado) validateCartStock(formData.items, products); } catch (error) { showToast(error.message, 'error'); return; }
+    operationRef.current = true;
 
     const matchedTercero = thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
 
@@ -1428,7 +1355,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       const serverDate = getEcuadorDateString(now);
       const serverTime = getEcuadorTimeString(now);
 
-      const docData = { ...formData, date: serverDate, time: serverTime, secuencial: sec, codigoNumerico };
+      const docData = { ...formData, items: invoiceItems(), generalDiscount: selectedGeneralDiscount, date: serverDate, time: serverTime, secuencial: sec, codigoNumerico };
 
       let xmlObj;
       if (formData.documentType === 'factura') {
@@ -1479,7 +1406,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         (logs) => setSriLogs(logs)
       );
 
-      const docId = formData.id || `tx_${new Date().getTime()}`;
+      const docId = formData.id || stableIdRef.current;
 
       // Compute paidAmount and status based on multi-payment breakdown
       const totalNum = Number(formData.total) || 0;
@@ -1512,7 +1439,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       }
 
       const finalTx = {
-        ...formData,
+        ...docData,
         id: docId,
         date: serverDate,
         time: serverTime,
@@ -1521,6 +1448,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         sriStatus: 'autorizado',
         claveAcceso: result.claveAcceso,
         fechaAutorizacion: result.fechaAutorizacion || getEcuadorDateTimeString(),
+        financialSyncStatus: 'pending',
         codigoNumerico, // Guardar el código numérico generado
         xmlUrl: result.xmlUrl,
         pdfUrl: result.pdfUrl,
@@ -1537,11 +1465,18 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         updatedBy: 'Servicio Fiscal SRI'
       };
 
+      Object.assign(finalTx, settlePayments(finalTx.total, payments), { generalDiscount: selectedGeneralDiscount });
       await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId), sanitizeFirestoreData(finalTx));
+
+      setFormData(finalTx);
 
       // Registrar en el Kardex y actualizar stock al emitir factura autorizada
       await registrarInventarioTransaccion(finalTx);
       finalTx.inventarioRegistrado = true;
+      if (finalTx.type === 'ingreso' && finalTx.documentType === 'factura') await sincronizarVenta(finalTx, db, usuario || { uid: '', email: '' });
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId), { financialSyncStatus: 'complete' }, { merge: true });
+      finalTx.financialSyncStatus = 'complete';
+      onSaved?.(finalTx);
 
       // El secuencial ya fue reservado e incrementado atómicamente al inicio
       // (transacción), por lo que aquí no es necesario volver a incrementarlo.
@@ -1558,11 +1493,13 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       if (err.logs) setSriLogs(err.logs);
       showToast(err.error || err.message || 'Fallo en la autorización del SRI', 'error');
     } finally {
+      operationRef.current = false;
       setIsEmitting(false);
     }
   };
 
   const handleAnular = () => {
+    if (formData.documentType !== 'nota_venta') { showToast('Gestiona la anulación tributaria mediante el proceso correspondiente del SRI.', 'warning'); return; }
     const isNotaVenta = formData.documentType === 'nota_venta';
     setConfirmDialog({
       title: "Confirmar Anulación",
@@ -1580,18 +1517,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
   const executeAnular = async () => {
     try {
-      const docId = formData.id;
       const isNotaVenta = formData.documentType === 'nota_venta';
 
-      // Reversar el inventario si ya estaba registrado
-      await reversarInventarioTransaccion(formData);
+      await cancelInternalSale(db, appId, formData);
 
-      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId), sanitizeFirestoreData({
-        sriStatus: 'anulado',
-        inventarioRegistrado: false,
-        updatedAt: new Date().toISOString()
-      }), { merge: true });
-      
       setFormData(prev => ({ ...prev, sriStatus: 'anulado', inventarioRegistrado: false }));
       showToast(isNotaVenta ? "Nota de Venta anulada exitosamente" : "Comprobante anulado tributariamente", "success");
     } catch {
@@ -1637,21 +1566,11 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   };
 
   // Auto-emisión/Guardado directo para transacciones iniciadas desde el POS
-  useEffect(() => {
-    if (isInitializedFromPOS && currentStep === 1) {
-      setCurrentStep(2);
-      if (formData.documentType === 'factura') {
-        executeEmitirSRI();
-      } else {
-        executeSave({ isFinalizingNotaVenta: formData.documentType === 'nota_venta' });
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isInitializedFromPOS]);
+
 
   const isAuthorized = formData.sriStatus === 'autorizado';
   const isAnulado = formData.sriStatus === 'anulado';
-  const isEditable = !isAuthorized && !isAnulado;
+  const isEditable = !isAuthorized && !isAnulado && !isSaving && !isEmitting;
   // Documento finalizado en paso 2 — no se puede regresar ni editar desde aquí
   const isLockedInStep2 = (isAuthorized || isAnulado) && currentStep === 2;
   // eslint-disable-next-line no-unused-vars
@@ -1728,14 +1647,14 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     setCurrentStep(prev => Math.max(prev - 1, 1));
   };
 
-  const inputClass = `w-full text-xs px-[10px] py-[6px] rounded-input outline-none transition-all ${
-    'bg-surface-bg text-black placeholder:text-gray-400 focus:bg-surface-card focus:ring-1 focus:ring-primary/20 disabled:bg-gray-50 disabled:text-gray-500'}`;
+  const inputClass = `w-full text-sm px-3 py-2 rounded-input border border-border-strong outline-none transition-all ${
+    'bg-surface-card text-text-primary placeholder:text-text-secondary focus:bg-surface-card focus:ring-1 focus:ring-primary/20 disabled:bg-surface-bg disabled:text-text-secondary'}`;
 
-  const labelClass = `block text-xs font-bold uppercase mb-[4px] ${
+  const labelClass = `block text-sm font-medium mb-1.5 ${
     'text-black'}`;
 
   const cardClass = `p-[12px] rounded-card ${
-    'bg-white text-black'}`;
+    'bg-surface-card border border-border-default text-text-primary'}`;
 
   // eslint-disable-next-line no-unused-vars
   const sectionTitleClass = `text-xs font-bold uppercase ${
@@ -1764,43 +1683,11 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   const totalPaid = efVal + tjVal + trVal + crVal;
 
   const formJSX = (
-    <div className={`transaction-form-clean ${isInline ? `w-full flex flex-col font-sans animate-in fade-in duration-300 bg-transparent text-black` : `fixed inset-0 z-[100] w-screen h-screen overflow-y-auto flex flex-col font-sans bg-gray-50 text-black`}`}>
-      <style>{`
-        .transaction-form-clean * {
-          font-weight: 400 !important;
-        }
-        /* Minimalist Input & Control Overrides */
-        .transaction-form-clean input,
-        .transaction-form-clean select,
-        .transaction-form-clean textarea {
-          border: none !important;
-          box-shadow: none !important;
-          outline: none !important;
-          border-radius: 8px !important;
-          background-color: #f8fafc !important;
-          color: #090d16 !important;
-          transition: background-color 150ms ease, box-shadow 150ms ease !important;
-        }
-        .transaction-form-clean input:focus,
-        .transaction-form-clean select:focus,
-        .transaction-form-clean textarea:focus {
-          background-color: #f1f5f9 !important;
-          box-shadow: 0 0 0 1px rgba(28, 64, 242, 0.15) !important;
-        }
-        /* Flat Buttons styling */
-        .transaction-form-clean .btn-secondary {
-          background: #f8fafc !important;
-          border: 1px solid #e2e8f0 !important;
-          color: #475569 !important;
-          font-weight: 400 !important;
-        }
-        .transaction-form-clean .btn-secondary:hover {
-          background: #f1f5f9 !important;
-        }
-      `}</style>
+    <div className={`transaction-form-clean ${isInline ? `w-full flex flex-col font-sans animate-in fade-in duration-300 bg-transparent text-black` : `fixed inset-0 z-[100] w-screen h-screen overflow-y-auto flex flex-col font-sans bg-surface-bg text-black`}`}>
+
       
       {/* TOP HEADER */}
-      <div className={`sticky top-0 z-20 flex items-center justify-between px-[8px] py-[5px] border-b border-gray-200 bg-white/95`}>
+      <div className={`sticky top-0 z-20 flex items-center justify-between px-4 py-3 border-b border-border-default bg-surface-card`}>
         <div className="flex items-center gap-[5px]">
           {!isInline && (
             <div className={`p-[5px] rounded-card ${formData.type === 'ingreso' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
@@ -1809,14 +1696,14 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
           )}
           <div>
             {/* Desktop / Tablet Header Title */}
-            <h2 className="text-xs font-black uppercase tracking-wider text-black dark:text-white hidden sm:block">
+            <h2 className="text-lg font-semibold text-text-heading hidden sm:block">
               {formData.type === 'ingreso' ? 'Venta Administrativa' : 'Asistente de Compras'}
             </h2>
             {/* Mobile Header Title */}
-            <h2 className="text-xs font-black uppercase tracking-wider text-black dark:text-white sm:hidden">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-black  sm:hidden">
               {formData.type === 'ingreso' ? 'Venta Administrativa' : 'Compras'}
             </h2>
-            {formData.claveAcceso && <p className="text-xs font-mono text-black dark:text-white/60 mt-[1px]">Clave SRI: {formData.claveAcceso}</p>}
+            {formData.claveAcceso && <p className="text-xs font-mono text-black  mt-[1px]">Clave SRI: {formData.claveAcceso}</p>}
           </div>
         </div>
 
@@ -1841,27 +1728,27 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   currentStep === step.id ? 'opacity-100' : 'opacity-60 hover:opacity-100'
                 }`}
               >
-                <span className={`w-4 h-4 rounded-full flex items-center justify-center text-xs font-black transition-all ${
+                <span className={`w-4 h-4 rounded-full flex items-center justify-center text-xs font-semibold transition-all ${
                   currentStep === step.id
                     ? 'bg-primary text-white'
-                    : 'bg-slate-200 dark:bg-white/10 text-slate-600 dark:text-slate-400'
+                    : 'bg-surface-muted  text-text-primary '
                 }`}>
                   {step.id}
                 </span>
-                <span className={`hidden sm:inline text-xs font-extrabold uppercase ${
-                  currentStep === step.id ? 'text-text-secondary' : 'text-slate-500 dark:text-slate-400'
+                <span className={`hidden sm:inline text-xs font-semibold uppercase ${
+                  currentStep === step.id ? 'text-text-secondary' : 'text-text-secondary '
                 }`}>
                   {step.name}
                 </span>
                 {idx < steps.length - 1 && (
-                  <span className="text-slate-300 dark:text-white/10 font-normal ml-1">/</span>
+                  <span className="text-text-secondary  font-normal ml-1">/</span>
                 )}
               </button>
             ))}
           </div>
         )}
         <button 
-          onClick={onClose} 
+          onClick={onClose} disabled={isSaving || isEmitting}
           className="btn-secondary"
         >
           <X size={12} />
@@ -1869,15 +1756,16 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         </button>
       </div>
 
+      {isAuthorized && formData.financialSyncStatus === 'pending' && <div role="alert" className="m-4 flex flex-wrap items-center justify-between gap-3 rounded-card border border-warning-border bg-warning-light p-4 text-warning-text"><p>El comprobante está registrado. Falta completar inventario o finanzas.</p><button type="button" className="btn-secondary" disabled={isSaving} onClick={completePendingSale}>{isSaving ? 'Sincronizando…' : 'Reintentar sincronización'}</button></div>}
       {/* STATE BANNERS (Sri authorized / canceled) */}
       {isAuthorized && (
         <div className="m-[5px] mb-0 p-[5px] rounded-card border border-dashed bg-emerald-500/10 border-emerald-500/20 text-emerald-400 flex items-center gap-[3px]">
           <CheckCircle2 size={16} className="shrink-0" />
           <div className="text-xs">
-            <p className="font-bold text-black dark:text-white">
+            <p className="font-bold text-black ">
               {formData.documentType === 'nota_venta' ? 'Comprobante de Venta Guardado' : 'Comprobante Autorizado por el SRI'}
             </p>
-            <p className="opacity-80 text-black dark:text-white font-normal">
+            <p className="opacity-80 text-black  font-normal">
               {formData.documentType === 'nota_venta' 
                 ? 'Este documento ha sido guardado para control interno y no puede ser editado ni eliminado. Para corregirlo, anule este comprobante.' 
                 : 'Este documento tiene efectos fiscales y no puede ser editado ni eliminado. Para corregirlo, emita una Nota de Crédito.'}
@@ -1890,8 +1778,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         <div className="m-[5px] mb-0 p-[5px] rounded-card border border-dashed bg-red-500/10 border-red-500/20 text-red-400 flex items-center gap-[3px]">
           <ShieldAlert size={16} className="shrink-0" />
           <div className="text-xs">
-            <p className="font-bold text-black dark:text-white">Comprobante Anulado</p>
-            <p className="opacity-80 text-black dark:text-white font-normal">
+            <p className="font-bold text-black ">Comprobante Anulado</p>
+            <p className="opacity-80 text-black  font-normal">
               {formData.documentType === 'nota_venta'
                 ? 'Este documento ha sido anulado de forma definitiva.'
                 : 'Este documento ya no tiene validez tributaria ante el SRI.'}
@@ -1909,21 +1797,21 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         {currentStep === 1 && (
           <div className="space-y-[12px]">
             {/* Mobile Navigation Tabs */}
-            <div className="flex lg:hidden w-full p-[3px] rounded-card bg-slate-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 gap-[3px] mb-[4px]">
+            <div className="flex lg:hidden w-full p-[3px] rounded-card bg-surface-muted  border border-border-default  gap-[3px] mb-[4px]">
               {[
                 { 
                   id: 'cliente', 
                   label: 'Cliente', 
                   icon: User,
                   badge: formData.thirdPartyId ? (
-                    <span className="text-xs font-extrabold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 dark:bg-emerald-500/20 px-2 py-0.5 rounded-full">Listo</span>
+                    <span className="text-xs font-semibold text-emerald-600  bg-emerald-500/10  px-2 py-0.5 rounded-full">Listo</span>
                   ) : (
-                    <span className="text-xs font-extrabold text-amber-600 dark:text-amber-400 bg-amber-500/10 dark:bg-amber-500/20 px-2 py-0.5 rounded-full">Pendiente</span>
+                    <span className="text-xs font-semibold text-amber-600  bg-amber-500/10  px-2 py-0.5 rounded-full">Pendiente</span>
                   ),
                   activeBadge: formData.thirdPartyId ? (
-                    <span className="text-xs font-extrabold text-text-secondary bg-white px-2 py-0.5 rounded-full">Listo</span>
+                    <span className="text-xs font-semibold text-text-secondary bg-white px-2 py-0.5 rounded-full">Listo</span>
                   ) : (
-                    <span className="text-xs font-extrabold text-text-secondary bg-white px-2 py-0.5 rounded-full">Pendiente</span>
+                    <span className="text-xs font-semibold text-text-secondary bg-white px-2 py-0.5 rounded-full">Pendiente</span>
                   )
                 },
                 { 
@@ -1931,12 +1819,12 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   label: 'Carrito', 
                   icon: Layers,
                   badge: (
-                    <span className="text-xs font-extrabold text-slate-650 dark:text-slate-350 bg-slate-200 dark:bg-white/10 px-2 py-0.5 rounded-full">
+                    <span className="text-xs font-semibold text-text-primary  bg-surface-muted  px-2 py-0.5 rounded-full">
                       {formData.items?.length || 0}
                     </span>
                   ),
                   activeBadge: (
-                    <span className="text-xs font-extrabold text-text-secondary bg-white px-2 py-0.5 rounded-full">
+                    <span className="text-xs font-semibold text-text-secondary bg-white px-2 py-0.5 rounded-full">
                       {formData.items?.length || 0}
                     </span>
                   )
@@ -1946,12 +1834,12 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   label: 'Pago', 
                   icon: CreditCard,
                   badge: (
-                    <span className="text-xs font-extrabold text-emerald-650 dark:text-emerald-400 bg-emerald-500/10 dark:bg-emerald-500/20 px-2 py-0.5 rounded-full">
+                    <span className="text-xs font-semibold text-emerald-650  bg-emerald-500/10  px-2 py-0.5 rounded-full">
                       ${Number(formData.total).toFixed(2)}
                     </span>
                   ),
                   activeBadge: (
-                    <span className="text-xs font-extrabold text-text-secondary bg-white px-2 py-0.5 rounded-full">
+                    <span className="text-xs font-semibold text-text-secondary bg-white px-2 py-0.5 rounded-full">
                       ${Number(formData.total).toFixed(2)}
                     </span>
                   )
@@ -1966,8 +1854,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     onClick={() => setMobileTab(tab.id)}
                     className={`flex-1 flex flex-col items-center justify-center py-[5px] px-[2px] rounded-btn transition-all ${
                       isActive 
-                        ? 'bg-primary text-white font-black'
-                        : 'text-slate-650 hover:text-black hover:bg-slate-200'}`}
+                        ? 'bg-primary text-white font-semibold'
+                        : 'text-text-primary hover:text-black hover:bg-surface-muted'}`}
                   >
                     <div className="flex items-center gap-[3px] mb-[2px]">
                       <IconComponent size={11} className="shrink-0" />
@@ -1989,7 +1877,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   <div className="text-text-secondary">
                     <User size={14} />
                   </div>
-                  <h4 style={{ color: '#000000'}} className="text-xs font-bold uppercase">
+                  <h4  className="text-xs font-bold uppercase">
                     Datos del Cliente y Emisión
                   </h4>
                 </div>
@@ -2008,14 +1896,14 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     />
                     <Search className="absolute left-[8px] top-1/2 -translate-y-1/2 text-black" size={12} />
                     {clientSearchTerm && (
-                      <button type="button" onClick={() => setClientSearchTerm('')} className="absolute right-[8px] top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500">
+                      <button type="button" onClick={() => setClientSearchTerm('')} className="absolute right-[8px] top-1/2 -translate-y-1/2 text-text-secondary hover:text-red-500">
                         <X size={12} />
                       </button>
                     )}
                     
                     {clientSearchTerm.trim() !== '' && (
                       <div className={`absolute z-30 w-full rounded-card border max-h-60 overflow-y-auto mt-1 ${
-                        'bg-white border-gray-300 text-black'}`}>
+                        'bg-white border-border-strong text-black'}`}>
                         {filteredClients.slice(0, 10).map(tp => (
                           <button
                             key={tp.id}
@@ -2025,14 +1913,14 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                               setClientSearchTerm('');
                             }}
                             className={`w-full text-left px-3 py-2 text-xs flex flex-col border-b last:border-0 transition-colors ${
-                              'border-gray-100 hover:bg-primary-light text-black'}`}
+                              'border-border-default hover:bg-primary-light text-black'}`}
                           >
                             <span className="font-bold">{tp.name}</span>
                             <span className="text-xs font-mono opacity-80">RUC/CI: {tp.ruc} | Tel: {tp.telefono || 'S/N'}</span>
                           </button>
                         ))}
                         {filteredClients.length === 0 && (
-                          <div className="p-3 text-center text-xs text-gray-500 font-mono">
+                          <div className="p-3 text-center text-xs text-text-secondary font-mono">
                             No se encontraron clientes. Usa (+) para crear uno.
                           </div>
                         )}
@@ -2060,18 +1948,18 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
                 {/* Client detail card (extremely compact) */}
                 {matchedTercero ? (
-                  <div className={`grid grid-cols-1 sm:grid-cols-3 gap-[10px] p-[8px] rounded-card bg-gray-50 border border-gray-150 mb-[8px] text-xs`}>
+                  <div className={`grid grid-cols-1 sm:grid-cols-3 gap-[10px] p-[8px] rounded-card bg-surface-bg border border-border-default mb-[8px] text-xs`}>
                     <div>
                       <p className={`uppercase text-xs font-bold text-text-secondary/60`}>Razón Social</p>
-                      <p style={{ color: '#000000'}} className="font-semibold truncate uppercase text-xs">{matchedTercero.name}</p>
+                      <p  className="font-semibold truncate uppercase text-xs">{matchedTercero.name}</p>
                     </div>
                     <div>
                       <p className={`uppercase text-xs font-bold text-text-secondary/60`}>RUC / CI</p>
-                      <p style={{ color: '#000000'}} className="font-semibold text-xs">{matchedTercero.ruc}</p>
+                      <p  className="font-semibold text-xs">{matchedTercero.ruc}</p>
                     </div>
                     <div>
                       <p className={`uppercase text-xs font-bold text-text-secondary/60`}>Teléfono / Correo</p>
-                      <p style={{ color: '#000000'}} className="font-semibold truncate uppercase text-xs">
+                      <p  className="font-semibold truncate uppercase text-xs">
                         {matchedTercero.telefono || 'S/N'} {matchedTercero.email ? `| ${matchedTercero.email}` : ''}
                       </p>
                     </div>
@@ -2192,7 +2080,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
                 {/* Extra fields for Nota Credito and Guia Remision inside the same card */}
                 {formData.documentType === 'nota_credito' && (
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-[8px] border-t border-dashed mt-[8px] pt-[8px] border-gray-150 dark:border-white/10">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-[8px] border-t border-dashed mt-[8px] pt-[8px] border-border-default ">
                     <div>
                       <label className={labelClass}>Doc Modificado</label>
                       <select disabled={!isEditable} value={formData.codDocModificado || '01'} onChange={e => setFormData({...formData, codDocModificado: e.target.value})} className={inputClass}>
@@ -2216,7 +2104,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 )}
 
                 {formData.documentType === 'guia_remision' && (
-                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-[8px] border-t border-dashed mt-[8px] pt-[8px] border-gray-150 dark:border-white/10">
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-[8px] border-t border-dashed mt-[8px] pt-[8px] border-border-default ">
                     <div>
                       <label className={labelClass}>Placa</label>
                       <input disabled={!isEditable} type="text" required value={formData.placa || ''} onChange={e => setFormData({...formData, placa: e.target.value.toUpperCase()})} className={inputClass} placeholder="PBA1234" />
@@ -2266,7 +2154,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       <div className="text-text-secondary">
                         <Layers size={14} />
                       </div>
-                      <h3 style={{ color: '#000000'}} className="text-xs font-bold uppercase">Desglose de Retenciones</h3>
+                      <h3  className="text-xs font-bold uppercase">Desglose de Retenciones</h3>
                     </div>
                     {isEditable && (
                       <button type="button" onClick={handleAddRetencion} className="btn-secondary h-8 px-3 text-xs flex items-center gap-[4px]">
@@ -2276,7 +2164,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   </div>
                   <div className="space-y-[8px] max-h-[50vh] overflow-y-auto pr-1">
                     {(formData.retenciones || []).map((ret, index) => (
-                      <div key={index} className={`p-[8px] rounded-card border space-y-[8px] relative bg-gray-50 border-gray-150`}>
+                      <div key={index} className={`p-[8px] rounded-card border space-y-[8px] relative bg-surface-bg border-border-default`}>
                         {isEditable && (
                           <button type="button" onClick={() => handleRemoveRetencion(index)} className="absolute top-2 right-2 btn-icon text-red-500 hover:bg-red-500/10">
                             <Trash2 size={12} />
@@ -2311,12 +2199,12 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                           </div>
                           <div>
                             <label className={labelClass}>Valor Retenido</label>
-                            <div style={{ color: '#000000'}} className={`px-[10px] py-[6px] rounded-card border text-center font-bold text-xs bg-gray-50 border-gray-150`}>
+                            <div  className={`px-[10px] py-[6px] rounded-card border text-center font-bold text-xs bg-surface-bg border-border-default`}>
                               ${Number(ret.valorRetenido || 0).toFixed(2)}
                             </div>
                           </div>
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-[8px] border-t border-dashed pt-[8px] border-gray-150 dark:border-white/10">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-[8px] border-t border-dashed pt-[8px] border-border-default ">
                           <div>
                             <label className={labelClass}>Doc. Sustento</label>
                             <select disabled={!isEditable} value={ret.codDocSustento || '01'} onChange={(e) => handleRetencionChange(index, 'codDocSustento', e.target.value)} className={inputClass}>
@@ -2333,7 +2221,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       </div>
                     ))}
                     {(!formData.retenciones || formData.retenciones.length === 0) && (
-                      <div style={{ color: '#000000'}} className="py-10 text-center text-xs italic">
+                      <div  className="py-10 text-center text-xs italic">
                         No hay filas de retención. Haz clic en "Añadir Fila" para comenzar.
                       </div>
                     )}
@@ -2355,7 +2243,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       />
                       <Search className="absolute left-[8px] top-1/2 -translate-y-1/2 text-black" size={12} />
                       {productSearchTerm && (
-                        <button type="button" onClick={() => setProductSearchTerm('')} className="absolute right-[8px] top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500">
+                        <button type="button" onClick={() => setProductSearchTerm('')} className="absolute right-[8px] top-1/2 -translate-y-1/2 text-text-secondary hover:text-red-500">
                           <X size={12} />
                         </button>
                       )}
@@ -2363,7 +2251,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       {/* Search Results dropdown */}
                       {productSearchTerm.trim() !== '' && (
                         <div className={`absolute z-30 w-full rounded-card border max-h-60 overflow-y-auto mt-1 ${
-                          'bg-white border-gray-300'}`}>
+                          'bg-white border-border-strong'}`}>
                           {products.filter(p => 
                             p.name?.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
                             p.sku?.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
@@ -2374,11 +2262,11 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                               type="button"
                               onClick={() => handleAddProductToCart(p)}
                               className={`w-full text-left px-3 py-2 text-xs flex justify-between items-center border-b last:border-0 transition-colors ${
-                                'border-gray-100 hover:bg-primary-light text-black'}`}
+                                'border-border-default hover:bg-primary-light text-black'}`}
                             >
                               <div>
-                                <p style={{ color: '#000000'}} className="font-bold">{p.name}</p>
-                                <p style={{ color: '#000000'}} className="text-xs font-mono">
+                                <p  className="font-bold">{p.name}</p>
+                                <p  className="text-xs font-mono">
                                   {p.sku ? `SKU: ${p.sku}` : ''} {p.codigoBarras ? ` | EAN: ${p.codigoBarras}` : ''}
                                 </p>
                               </div>
@@ -2427,7 +2315,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   {/* Actions: discount, clear cart */}
                   <div className="flex items-center gap-[8px] mb-[8px] flex-wrap">
                     {/* General Discount */}
-                    <div className="flex items-center gap-[4px] rounded-card border px-[8px] py-[4px] flex-1 min-w-[200px] bg-gray-50 border-gray-200">
+                    <div className="flex items-center gap-[4px] rounded-card border px-[8px] py-[4px] flex-1 min-w-[200px] bg-surface-bg border-border-default">
                       <Tag size={10} className="text-primary shrink-0" />
                       <span className="text-xs font-bold uppercase shrink-0 text-black mr-1">Descuento General:</span>
                       <select
@@ -2485,7 +2373,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   <div className="overflow-x-auto">
                     {(formData.items || []).length > 0 ? (
                       <table className="w-full text-left text-xs whitespace-nowrap">
-                        <thead className={`text-xs uppercase font-bold bg-gray-50 text-black border-b border-gray-150`}>
+                        <thead className={`text-xs uppercase font-bold bg-surface-bg text-black border-b border-border-default`}>
                           <tr>
                             <th className="px-[8px] py-[6px]">Producto / Servicio</th>
                             <th className="px-[8px] py-[6px] text-center w-20">Cant.</th>
@@ -2504,12 +2392,16 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                               : Math.min(lineBase, discVal);
                             const subtotalLine = Math.max(0, lineBase - lineDiscount);
                             return (
-                              <tr key={index} style={{ color: '#000000'}} className="font-medium text-base">
+                              <tr key={index}  className="font-medium text-base">
                                 <td className="px-[8px] py-[6px]">
                                   {item.productId ? (
                                     <div>
-                                      <div className="font-bold text-sm truncate max-w-[250px]" title={item.name}>
-                                        {item.name}
+                                      <div className="min-w-48 max-w-lg">
+                                        {isEditable ? <label className="block text-xs text-text-secondary">
+                                          Descripción en factura
+                                          <textarea aria-label={`Descripción en factura, línea ${index + 1}`} rows={2} maxLength={300} value={item.invoiceDescription ?? item.name ?? ''} onChange={event => handleItemChange(index, 'invoiceDescription', event.target.value)} className="mt-1 block w-full resize-y rounded-input border border-border-strong bg-surface-card px-3 py-2 text-sm text-text-primary" />
+                                          <span className="mt-1 block">Producto: {item.name}</span>
+                                        </label> : <div className="whitespace-pre-wrap break-words text-sm font-medium">{invoiceDescription(item)}</div>}
                                       </div>
                                       <span className="text-xs font-mono opacity-80">
                                         {item.sku ? `SKU: ${item.sku}` : ''}
@@ -2520,7 +2412,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                                       disabled={!isEditable}
                                       value={item.productId} 
                                       onChange={(e) => handleItemChange(index, 'productId', e.target.value)} 
-                                      className={`text-base px-[8px] py-[4px] rounded-card border bg-white border-gray-200 text-black`}
+                                      className={`text-base px-[8px] py-[4px] rounded-card border bg-white border-border-default text-black`}
                                     >
                                       <option value="" disabled>Seleccionar...</option>
                                       {products.map(p => (
@@ -2531,22 +2423,22 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                                 </td>
                                 
                                 <td className="px-[8px] py-[6px] text-center">
-                                  <div className={`inline-flex items-center gap-[4px] border rounded-card p-[3px] border-gray-200 bg-white`}>
+                                  <div className={`inline-flex items-center gap-[4px] border rounded-card p-[3px] border-border-default bg-white`}>
                                     <button type="button" disabled={!isEditable} onClick={() => {
                                       const q = parseInt(item.quantity) || 1;
                                       if (q > 1) handleItemChange(index, 'quantity', q - 1);
-                                    }} className={`w-5 h-5 rounded-btn flex items-center justify-center font-bold text-xs bg-gray-100 hover:bg-gray-200 text-black`}>-</button>
+                                    }} className={`w-5 h-5 rounded-btn flex items-center justify-center font-bold text-xs bg-surface-muted hover:bg-surface-muted text-black`}>-</button>
                                     <input disabled={!isEditable} type="number" value={item.quantity} min="1" onChange={(e) => handleItemChange(index, 'quantity', Math.max(1, parseInt(e.target.value) || 1))} className={`w-8 text-center text-xs font-bold bg-transparent outline-none border-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none text-black`} />
                                     <button type="button" disabled={!isEditable} onClick={() => {
                                       handleItemChange(index, 'quantity', (parseInt(item.quantity) || 1) + 1);
-                                    }} className={`w-5 h-5 rounded-btn flex items-center justify-center font-bold text-xs bg-gray-100 hover:bg-gray-200 text-black`}>+</button>
+                                    }} className={`w-5 h-5 rounded-btn flex items-center justify-center font-bold text-xs bg-surface-muted hover:bg-surface-muted text-black`}>+</button>
                                   </div>
                                 </td>
 
                                 <td className="px-[8px] py-[6px] text-right">
                                   <div className="relative inline-block w-20">
                                     <span className="absolute left-[5px] top-1/2 -translate-y-1/2 text-xs font-bold opacity-80">$</span>
-                                    <input disabled={!isEditable} type="number" step="0.01" required value={item.price} onChange={(e) => handleItemChange(index, 'price', e.target.value)} className={`w-full text-xs pl-[12px] pr-[2px] py-[4px] rounded-card border outline-none text-right font-bold bg-white border-gray-200 text-black`} />
+                                    <input disabled={!isEditable} type="number" step="0.01" required value={item.price} onChange={(e) => handleItemChange(index, 'price', e.target.value)} className={`w-full text-xs pl-[12px] pr-[2px] py-[4px] rounded-card border outline-none text-right font-bold bg-white border-border-default text-black`} />
                                   </div>
                                 </td>
 
@@ -2556,10 +2448,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                                       <button
                                         type="button"
                                         onClick={() => setSelectedLineItemForDiscount({ ...item, cartIndex: index })}
-                                        className={`p-1.5 rounded-lg border transition-colors flex items-center justify-center cursor-pointer ${
+                                        className={`p-1.5 rounded-md border transition-colors flex items-center justify-center cursor-pointer ${
                                           discVal > 0
                                             ? 'bg-red-50 text-red-500 border-red-200 hover:bg-red-100'
-                                            : 'bg-white text-slate-500 border-slate-200 hover:text-primary hover:border-primary'
+                                            : 'bg-white text-text-secondary border-border-default hover:text-primary hover:border-primary'
                                         }`}
                                         title="Descuento del ítem"
                                       >
@@ -2591,7 +2483,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         </tbody>
                       </table>
                     ) : (
-                      <div style={{ color: '#000000'}} className="py-8 text-center text-xs italic rounded-card border border-dashed border-gray-300">
+                      <div  className="py-8 text-center text-xs italic rounded-card border border-dashed border-border-strong">
                         No hay productos en el carrito. Utiliza el buscador.
                       </div>
                     )}
@@ -2609,10 +2501,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   <div className="text-text-secondary">
                     <Calculator size={14} />
                   </div>
-                  <h3 style={{ color: '#000000'}} className="text-xs font-bold uppercase">Resumen e Impuestos</h3>
+                  <h3  className="text-xs font-bold uppercase">Resumen e Impuestos</h3>
                 </div>
 
-                <div className={`p-[10px] rounded-card border text-base space-y-[6px] bg-gray-50 border-gray-150 text-black`}>
+                <div className={`p-[10px] rounded-card border text-base space-y-[6px] bg-surface-bg border-border-default text-black`}>
                   <div className="flex justify-between">
                     <span className="font-semibold">Subtotal bruto:</span>
                     <span className="font-bold">
@@ -2648,7 +2540,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       )}
                       
                       {/* Base imponible */}
-                      <div className="flex justify-between border-t border-dashed pt-[4px] border-gray-150 dark:border-white/10">
+                      <div className="flex justify-between border-t border-dashed pt-[4px] border-border-default ">
                         <span className="font-semibold">Base imponible:</span>
                         <span className="font-bold">${Number(formData.baseImponible).toFixed(2)}</span>
                       </div>
@@ -2662,15 +2554,15 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   )}
 
                   {formData.documentType === 'retencion' && (
-                    <div className="flex justify-between text-yellow-600 dark:text-yellow-400">
+                    <div className="flex justify-between text-yellow-600 ">
                       <span className="font-semibold">Total Retenido:</span>
                       <span className="font-bold">${Number(formData.total).toFixed(2)}</span>
                     </div>
                   )}
 
-                  <div className="flex justify-between items-center pt-[8px] border-t font-bold border-gray-150 dark:border-white/10">
-                    <span style={{ color: '#000000'}} className="font-bold text-base">TOTAL:</span>
-                    <span style={{ color: '#1C40F2' }} className="font-black text-2xl">${Number(formData.total).toFixed(2)}</span>
+                  <div className="flex justify-between items-center pt-[8px] border-t font-bold border-border-default ">
+                    <span  className="font-bold text-base">TOTAL:</span>
+                    <span style={{ color: '#1C40F2' }} className="font-semibold text-2xl">${Number(formData.total).toFixed(2)}</span>
                   </div>
                 </div>
               </div>
@@ -2682,7 +2574,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     <div className="text-text-secondary">
                       <CreditCard size={14} />
                     </div>
-                    <h3 style={{ color: '#000000'}} className="text-xs font-bold uppercase">Medios de Pago</h3>
+                    <h3  className="text-xs font-bold uppercase">Medios de Pago</h3>
                   </div>
 
                   <div className="grid grid-cols-4 gap-[8px] mb-[10px]">
@@ -2720,14 +2612,14 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                           }}
                           className={`flex flex-col items-center justify-center p-[8px] rounded-btn border transition-all gap-[6px] ${
                             !isClientSelected
-                              ? 'opacity-40 cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400 dark:border-white/5 dark:bg-white/5'
+                              ? 'opacity-40 cursor-not-allowed border-border-default bg-surface-muted text-text-secondary  '
                               : isSelected 
                                 ? 'bg-primary border-border-default text-white'
-                                : 'border-gray-200 bg-gray-50 text-black hover:bg-gray-100'}`}
+                                : 'border-border-default bg-surface-bg text-black hover:bg-surface-muted'}`}
                         >
                           <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
                             !isClientSelected
-                              ? 'bg-gray-300 text-gray-500 dark:bg-white/10 dark:text-gray-500'
+                              ? 'bg-surface-sidebar text-text-secondary  '
                               : isSelected 
                                 ? 'bg-white text-text-secondary' 
                                 : 'bg-primary text-white'}`}>
@@ -2742,10 +2634,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   {/* Input Fields for Active Payments (very compact) */}
                   <div className="space-y-[8px]">
                     {activePayments.efectivo && (
-                      <div className={`p-[8px] rounded-card border bg-gray-50 border-gray-150`}>
+                      <div className={`p-[8px] rounded-card border bg-surface-bg border-border-default`}>
                         <div className="flex justify-between items-center mb-[4px] text-xs">
-                          <span style={{ color: '#000000'}} className="font-bold uppercase">Efectivo</span>
-                          <span style={{ color: '#404040'}} className="text-xs uppercase">Recibido</span>
+                          <span  className="font-bold uppercase">Efectivo</span>
+                          <span  className="text-xs uppercase">Recibido</span>
                         </div>
                         <div className="relative">
                           <span className="absolute left-[8px] top-1/2 -translate-y-1/2 text-xs font-bold text-black opacity-60">$</span>
@@ -2755,10 +2647,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     )}
 
                     {activePayments.transferencia && (
-                      <div className={`p-[8px] rounded-card border bg-gray-50 border-gray-150`}>
+                      <div className={`p-[8px] rounded-card border bg-surface-bg border-border-default`}>
                         <div className="flex justify-between items-center mb-[4px] text-xs">
-                          <span style={{ color: '#000000'}} className="font-bold uppercase">Transferencia</span>
-                          <span style={{ color: '#404040'}} className="text-xs uppercase">Monto</span>
+                          <span  className="font-bold uppercase">Transferencia</span>
+                          <span  className="text-xs uppercase">Monto</span>
                         </div>
                         <div className="space-y-[6px]">
                           <div className="relative">
@@ -2771,10 +2663,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     )}
 
                     {activePayments.tarjeta && (
-                      <div className={`p-[8px] rounded-card border bg-gray-50 border-gray-150`}>
+                      <div className={`p-[8px] rounded-card border bg-surface-bg border-border-default`}>
                         <div className="flex justify-between items-center mb-[4px] text-xs">
-                          <span style={{ color: '#000000'}} className="font-bold uppercase">Tarjeta</span>
-                          <span style={{ color: '#404040'}} className="text-xs uppercase">Monto</span>
+                          <span  className="font-bold uppercase">Tarjeta</span>
+                          <span  className="text-xs uppercase">Monto</span>
                         </div>
                         <div className="space-y-[6px]">
                           <div className="relative">
@@ -2787,10 +2679,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     )}
 
                     {activePayments.cruce_cuentas && (
-                      <div className={`p-[8px] rounded-card border bg-gray-50 border-gray-150`}>
+                      <div className={`p-[8px] rounded-card border bg-surface-bg border-border-default`}>
                         <div className="flex justify-between items-center mb-[4px] text-xs">
-                          <span style={{ color: '#000000'}} className="font-bold uppercase">Crédito / CxC</span>
-                          <span style={{ color: '#404040'}} className="text-xs uppercase">Monto</span>
+                          <span  className="font-bold uppercase">Crédito / CxC</span>
+                          <span  className="text-xs uppercase">Monto</span>
                         </div>
                         <div className="space-y-[6px]">
                           <div className="relative">
@@ -2816,14 +2708,14 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                           sum >= totalNum - 0.01 
                             ? 'bg-emerald-50 border-emerald-200 text-emerald-900 font-bold'
                             : 'bg-red-50 border-red-200 text-red-900 font-bold'}`}>
-                          <span style={{ color: '#404040'}} className="text-xs font-bold uppercase block">Cambio / Vuelto</span>
-                          <span className="text-base font-black">${cambio.toFixed(2)}</span>
+                          <span  className="text-xs font-bold uppercase block">Cambio / Vuelto</span>
+                          <span className="text-base font-semibold">${cambio.toFixed(2)}</span>
                         </div>
                         <div className={`p-[8px] rounded-card text-center border flex items-center justify-center text-xs font-semibold ${
-                          'bg-gray-50 border-gray-200 text-black'}`}>
+                          'bg-surface-bg border-border-default text-black'}`}>
                           <div>
-                            <p style={{ color: '#404040'}} className="text-xs font-bold uppercase">Cubierto</p>
-                            <p className="text-base font-black">${sum.toFixed(2)} / ${totalNum.toFixed(2)}</p>
+                            <p  className="text-xs font-bold uppercase">Cubierto</p>
+                            <p className="text-base font-semibold">${sum.toFixed(2)} / ${totalNum.toFixed(2)}</p>
                           </div>
                         </div>
                       </div>
@@ -2861,7 +2753,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   <div className="text-text-secondary">
                     <Tag size={14} />
                   </div>
-                  <h3 style={{ color: '#000000'}} className="text-xs font-bold uppercase">
+                  <h3  className="text-xs font-bold uppercase">
                     Emisión de Comprobante
                   </h3>
                 </div>
@@ -2876,7 +2768,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       <button 
                         type="button" 
                         onClick={handleSave} 
-                        disabled={isUploading || isEmitting} 
+                        disabled={isUploading || isEmitting || isSaving}
                         className={`btn-secondary w-full ${isUploading || isEmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                       >
                         <CheckCircle2 size={12} />
@@ -2888,7 +2780,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         <button 
                           type="button" 
                           onClick={handleEmitirSRI} 
-                          disabled={isUploading || isEmitting} 
+                          disabled={isUploading || isEmitting || isSaving}
                           className={`btn-primary w-full ${isUploading || isEmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                           <Sparkles size={12} />
@@ -2901,7 +2793,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         <button 
                           type="button" 
                           onClick={() => handleSave({ isFinalizingNotaVenta: true })} 
-                          disabled={isUploading || isEmitting} 
+                          disabled={isUploading || isEmitting || isSaving}
                           className={`btn-primary w-full ${isUploading || isEmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                           <CheckCircle2 size={12} />
@@ -2914,7 +2806,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         <button 
                           type="button" 
                           onClick={handleSave} 
-                          disabled={isUploading || isEmitting} 
+                          disabled={isUploading || isEmitting || isSaving}
                           className={`btn-primary w-full ${isUploading || isEmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                           <CheckCircle2 size={12} />
@@ -2923,7 +2815,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       )}
                     </>
                   ) : (
-                    <div style={{ color: '#15803d'}} className={`p-[6px] flex items-center justify-center gap-1.5 rounded-card text-xs font-bold border ${
+                    <div  className={`p-[6px] flex items-center justify-center gap-1.5 rounded-card text-xs font-bold border ${
                       'border-emerald-300 bg-emerald-50'}`}>
                       <CheckCircle2 size={12} className="shrink-0" />
                       <span>Autorizado / registrado con éxito.</span>
@@ -2935,15 +2827,15 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               {/* SRI Live Console */}
               {(isEmitting || sriLogs.length > 0) && (
                 <div className="p-[4px] rounded-card bg-black border border-white/10 text-white font-mono text-xs space-y-[2px] max-h-[120px] overflow-y-auto">
-                  <div className="flex items-center gap-[3px] border-b border-white/10 pb-[2px] text-gray-400">
+                  <div className="flex items-center gap-[3px] border-b border-white/10 pb-[2px] text-text-secondary">
                     <Terminal size={10} />
                     <span>Consola SRI (Ecuador)</span>
                   </div>
                   <div className="space-y-[1px]">
                     {sriLogs.map((log, i) => (
                       <div key={i} className="flex gap-[5px] items-start">
-                        <span className="text-gray-500 shrink-0">{log.time}</span>
-                        <span className={log.status === 'error' ? 'text-red-400 font-bold' : log.status === 'success' ? 'text-emerald-400' : 'text-gray-200'}>{log.message}</span>
+                        <span className="text-text-secondary shrink-0">{log.time}</span>
+                        <span className={log.status === 'error' ? 'text-red-400 font-bold' : log.status === 'success' ? 'text-emerald-400' : 'text-text-secondary'}>{log.message}</span>
                       </div>
                     ))}
                   </div>
@@ -2969,21 +2861,21 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   </div>
                 </div>
                 <div>
-                  <h3 style={{ color: '#000000'}} className="text-base font-bold uppercase">
+                  <h3  className="text-base font-bold uppercase">
                     {formData.documentType === 'nota_venta'
                       ? (formData.sriStatus === 'anulado' ? '¡Nota de Venta Anulada!' : '¡Venta Registrada Exitosamente!')
                       : formData.sriStatus === 'autorizado' 
                         ? '¡Comprobante Autorizado por el SRI!' 
                         : '¡Transacción Guardada con Éxito!'}
                   </h3>
-                  <p style={{ color: '#000000'}} className="text-xs font-normal">
+                  <p  className="text-xs font-normal">
                     El documento ha sido guardado e ingresado en los registros financieros de forma satisfactoria.
                   </p>
                 </div>
 
                 {formData.claveAcceso && (
-                  <div className={`p-[8px] rounded-card border text-left font-mono text-xs break-all bg-gray-50 border-gray-150 text-black`}>
-                    <span style={{ color: '#16a34a'}} className="font-bold uppercase text-xs block mb-[4px]">Clave de Acceso SRI:</span>
+                  <div className={`p-[8px] rounded-card border text-left font-mono text-xs break-all bg-surface-bg border-border-default text-black`}>
+                    <span  className="font-bold uppercase text-xs block mb-[4px]">Clave de Acceso SRI:</span>
                     {formData.claveAcceso}
                   </div>
                 )}
@@ -2995,7 +2887,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   <div className="text-text-secondary">
                     <Download size={12} />
                   </div>
-                  <h4 style={{ color: '#000000'}} className="text-xs font-bold uppercase">Opciones de Impresión / Descarga</h4>
+                  <h4  className="text-xs font-bold uppercase">Opciones de Impresión / Descarga</h4>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-[8px]">
@@ -3040,7 +2932,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
                 {/* SRI Anulación if authorized */}
                 {isAuthorized && (
-                  <div className="mt-[8px] border-t border-dashed border-gray-150 dark:border-white/10 pt-[8px]">
+                  <div className="mt-[8px] border-t border-dashed border-border-default  pt-[8px]">
                     <button 
                       type="button" 
                       onClick={handleAnular}
@@ -3057,18 +2949,18 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
             {/* Right Column (col-span-12 lg:col-span-5): Vista Previa del Documento */}
             <div className="col-span-12 lg:col-span-5">
               <div className={`${cardClass} space-y-[8px]`}>
-                <h4 style={{ color: '#000000'}} className="text-xs font-bold uppercase">Vista Previa del Comprobante</h4>
+                <h4  className="text-xs font-bold uppercase">Vista Previa del Comprobante</h4>
 
-                <div className={`p-[10px] rounded-card border text-xs space-y-[8px] bg-white text-black border-gray-200 font-mono max-h-[60vh] overflow-y-auto`}>
-                  <div className="text-center border-b pb-[8px] border-gray-200">
+                <div className={`p-[10px] rounded-card border text-xs space-y-[8px] bg-white text-black border-border-default font-mono max-h-[60vh] overflow-y-auto`}>
+                  <div className="text-center border-b pb-[8px] border-border-default">
                     <p className="font-bold text-xs uppercase">{sriConfig.nombreComercial || 'WEBFIX ERP'}</p>
                     <p className="text-xs font-bold">{sriConfig.razonSocial}</p>
                     <p className="text-xs text-black mt-[2px]">{sriConfig.direccionMatriz}</p>
                     <p className="text-xs font-bold mt-[4px]">RUC: {sriConfig.ruc}</p>
                   </div>
 
-                  <div className="space-y-[4px] border-b pb-[8px] border-gray-200 text-xs">
-                    <p className="font-bold uppercase text-center border bg-gray-100 py-[2px] text-black">
+                  <div className="space-y-[4px] border-b pb-[8px] border-border-default text-xs">
+                    <p className="font-bold uppercase text-center border bg-surface-muted py-[2px] text-black">
                       {formData.documentType === 'nota_venta' ? 'NOTA DE VENTA' : 'FACTURA ELECTRÓNICA'}
                     </p>
                     <p className="text-black"><b>Número:</b> {formData.documentNumber || `001-001-${String(formData.secuencial || 1).padStart(9, '0')}`}</p>
@@ -3083,7 +2975,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     </p>
                   </div>
 
-                  <div className="space-y-[4px] border-b pb-[8px] border-gray-200 text-xs text-black">
+                  <div className="space-y-[4px] border-b pb-[8px] border-border-default text-xs text-black">
                     <p><b>Cliente:</b> {matchedTercero?.name || 'CONSUMIDOR FINAL'}</p>
                     <p><b>RUC/CI:</b> {matchedTercero?.ruc || '9999999999999'}</p>
                     <p><b>Dirección:</b> {matchedTercero?.direccion || 'S/N'}</p>
@@ -3091,10 +2983,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
                   {/* Detalle items */}
                   {formData.documentType !== 'retencion' && (
-                    <div className="border-b pb-[8px] border-gray-200 text-xs text-black">
+                    <div className="border-b pb-[8px] border-border-default text-xs text-black">
                       <table className="w-full text-left">
                         <thead>
-                          <tr className="border-b border-gray-200 font-bold">
+                          <tr className="border-b border-border-default font-bold">
                             <th className="pb-[2px]">Cant</th>
                             <th className="pb-[2px]">Detalle</th>
                             <th className="pb-[2px] text-right">Unit</th>
@@ -3105,7 +2997,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                           {(formData.items || []).map((item, idx) => (
                             <tr key={idx} className="text-xs text-black font-normal">
                               <td className="py-[2px] align-top">{item.quantity}</td>
-                              <td className="py-[2px] pr-[5px]">{item.name}</td>
+                              <td className="py-[2px] pr-[5px]">{invoiceDescription(item)}</td>
                               <td className="py-[2px] text-right align-top">${Number(item.price).toFixed(2)}</td>
                               <td className="py-[2px] text-right align-top">${(Number(item.price) * Number(item.quantity)).toFixed(2)}</td>
                             </tr>
@@ -3121,13 +3013,13 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     {formData.documentType !== 'retencion' && (
                       <p>IVA ({formData.ivaPorcentaje}%): ${Number(formData.ivaValor).toFixed(2)}</p>
                     )}
-                    <p className="font-bold text-xs border-t border-gray-200 pt-[4px] text-black">
+                    <p className="font-bold text-xs border-t border-border-default pt-[4px] text-black">
                       TOTAL: ${Number(formData.total).toFixed(2)}
                     </p>
                   </div>
 
                   {/* Pagos desglosados */}
-                  <div className="border-t border-dashed border-gray-200 pt-[6px] text-xs space-y-[2px] text-black">
+                  <div className="border-t border-dashed border-border-default pt-[6px] text-xs space-y-[2px] text-black">
                     <p className="font-bold uppercase text-xs text-black">Forma de Pago:</p>
                     {Number(payments.efectivo) > 0 && <p>Efectivo: ${Number(payments.efectivo).toFixed(2)}</p>}
                     {Number(payments.transferencia) > 0 && <p>Transferencia: ${Number(payments.transferencia).toFixed(2)}</p>}
@@ -3257,9 +3149,9 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       {isCreditModalOpen && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-[10px] bg-black/85 animate-in fade-in">
           <div className={`w-full max-w-md p-[20px] rounded-card border ${
-            'bg-white border border-gray-150 text-black'}`}>
-            <div className="flex justify-between items-center mb-[12px] border-b pb-[8px] dark:border-white/5">
-              <h3 className="text-base font-bold flex items-center gap-[4px] text-black dark:text-white uppercase">
+            'bg-white border border-border-default text-black'}`}>
+            <div className="flex justify-between items-center mb-[12px] border-b pb-[8px] ">
+              <h3 className="text-base font-bold flex items-center gap-[4px] text-black  uppercase">
                 <User className="text-text-secondary" size={14} />
                 Seguimiento de Cuenta por Cobrar
               </h3>
@@ -3274,7 +3166,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
             <div className="space-y-[10px]">
               <div className={`p-[10px] rounded-card border text-xs space-y-[4px] ${
-                'bg-gray-50 border-gray-150 text-black'}`}>
+                'bg-surface-bg border-border-default text-black'}`}>
                 <div className="flex justify-between">
                   <span className={'text-black/70'}>Cliente:</span>
                   <span className="font-bold">{matchedTercero?.name || 'Cliente no seleccionado'}</span>
@@ -3283,11 +3175,11 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   <span className={'text-black/70'}>Cupo de Crédito:</span>
                   <span className="font-bold">${(Number(matchedTercero?.limiteCredito) || 1000).toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-red-650 dark:text-red-400">
+                <div className="flex justify-between text-red-650 ">
                   <span>Deuda Pendiente Actual:</span>
                   <span className="font-bold">${clientDebt.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-text-secondary border-t border-dashed border-gray-150 dark:border-white/5 pt-[4px]">
+                <div className="flex justify-between text-text-secondary border-t border-dashed border-border-default  pt-[4px]">
                   <span>Monto Venta Actual:</span>
                   <span className="font-bold">${Number(formData.total).toFixed(2)}</span>
                 </div>
@@ -3297,8 +3189,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   const totalVenta = Number(formData.total) || 0;
                   const available = limit - clientDebt - totalVenta;
                   return (
-                    <div className={`flex justify-between border-t border-dashed border-gray-150 dark:border-white/5 pt-[4px] ${
-                      available < 0 ? 'text-red-600 dark:text-red-400 font-bold' : 'text-emerald-700 dark:text-emerald-450 font-bold'
+                    <div className={`flex justify-between border-t border-dashed border-border-default  pt-[4px] ${
+                      available < 0 ? 'text-red-600  font-bold' : 'text-emerald-700  font-bold'
                     }`}>
                       <span>Cupo Disponible Resultante:</span>
                       <span>${available.toFixed(2)}</span>
@@ -3313,7 +3205,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 const available = limit - clientDebt - totalVenta;
                 if (available < 0) {
                   return (
-                    <div className="p-[8px] rounded-card bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-450 text-xs leading-normal flex items-start gap-[4px]">
+                    <div className="p-[8px] rounded-card bg-red-500/10 border border-red-500/20 text-red-600  text-xs leading-normal flex items-start gap-[4px]">
                       <AlertTriangle size={12} className="shrink-0 mt-[1px]" />
                       <div>
                         <p className="font-bold">Límite de Crédito Superado</p>
@@ -3327,7 +3219,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
               <div className="space-y-[8px]">
                 <div>
-                  <label className="block text-xs font-bold uppercase mb-[4px] text-black dark:text-white/60">Fecha de Vencimiento de la Deuda</label>
+                  <label className="block text-xs font-bold uppercase mb-[4px] text-black ">Fecha de Vencimiento de la Deuda</label>
                   <input 
                     type="date" 
                     value={creditDueDate} 
@@ -3336,7 +3228,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold uppercase mb-[4px] text-black dark:text-white/60">Observaciones / Comentario de Crédito</label>
+                  <label className="block text-xs font-bold uppercase mb-[4px] text-black ">Observaciones / Comentario de Crédito</label>
                   <textarea 
                     rows={3}
                     value={creditObservations} 
@@ -3347,7 +3239,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 </div>
               </div>
 
-              <div className="flex justify-end gap-[8px] mt-[10px] pt-[10px] border-t border-gray-150 dark:border-white/5">
+              <div className="flex justify-end gap-[8px] mt-[10px] pt-[10px] border-t border-border-default ">
                 <button 
                   type="button" 
                   onClick={() => {
@@ -3374,15 +3266,15 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       {/* MODAL CREAR CONTACTO RAPIDO */}
       {isQuickAddOpen && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-[10px] bg-black/85 animate-in fade-in">
-          <div className={`w-full max-w-md p-[20px] rounded-card border bg-white border border-gray-150 text-black`}>
-            <h3 style={{ color: '#000000'}} className="text-base font-bold mb-[12px] border-b pb-[8px] dark:border-white/5 uppercase">
+          <div className={`w-full max-w-md p-[20px] rounded-card border bg-white border border-border-default text-black`}>
+            <h3  className="text-base font-bold mb-[12px] border-b pb-[8px]  uppercase">
               Nuevo {formData.type === 'ingreso' ? 'Cliente' : 'Proveedor'} (Rápido)
             </h3>
             
             <form onSubmit={handleQuickAddSave} className="space-y-[10px]">
               <div className="grid grid-cols-2 gap-[8px]">
                 <div>
-                  <label className="block text-xs font-bold uppercase mb-[4px] text-black dark:text-white/60">Identificación</label>
+                  <label className="block text-xs font-bold uppercase mb-[4px] text-black ">Identificación</label>
                   <select 
                     value={quickAddFormData.tipoIdentificacion || 'ruc'} 
                     onChange={e => setQuickAddFormData({...quickAddFormData, tipoIdentificacion: e.target.value})} 
@@ -3394,7 +3286,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold uppercase mb-[4px] text-black dark:text-white/60">Número</label>
+                  <label className="block text-xs font-bold uppercase mb-[4px] text-black ">Número</label>
                   <div className="flex gap-[8px]">
                     <input 
                       type="text" 
@@ -3418,7 +3310,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase mb-[4px] text-black dark:text-white/60">Razón Social / Nombres</label>
+                <label className="block text-xs font-bold uppercase mb-[4px] text-black ">Razón Social / Nombres</label>
                 <input 
                   type="text" 
                   required 
@@ -3430,7 +3322,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase mb-[4px] text-black dark:text-white/60">Teléfono</label>
+                <label className="block text-xs font-bold uppercase mb-[4px] text-black ">Teléfono</label>
                 <input 
                   type="text" 
                   value={quickAddFormData.telefono || ''} 
@@ -3442,7 +3334,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
               <div className="grid grid-cols-2 gap-[8px]">
                 <div>
-                  <label className="block text-xs font-bold uppercase mb-[4px] text-black dark:text-white/60">Dirección</label>
+                  <label className="block text-xs font-bold uppercase mb-[4px] text-black ">Dirección</label>
                   <input 
                     type="text" 
                     value={quickAddFormData.direccion || ''} 
@@ -3452,7 +3344,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold uppercase mb-[4px] text-black dark:text-white/60">Ciudad</label>
+                  <label className="block text-xs font-bold uppercase mb-[4px] text-black ">Ciudad</label>
                   <input 
                     type="text" 
                     value={quickAddFormData.ciudad || ''} 
@@ -3464,7 +3356,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase mb-[4px] text-black dark:text-white/60">Correo Electrónico</label>
+                <label className="block text-xs font-bold uppercase mb-[4px] text-black ">Correo Electrónico</label>
                 <input 
                   type="email" 
                   value={quickAddFormData.email || ''} 
@@ -3474,7 +3366,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 />
               </div>
 
-              <div className="flex justify-end gap-[8px] mt-[10px] pt-[10px] border-t border-gray-150 dark:border-white/5">
+              <div className="flex justify-end gap-[8px] mt-[10px] pt-[10px] border-t border-border-default ">
                 <button 
                   type="button" 
                   onClick={() => setIsQuickAddOpen(false)} 
@@ -3498,7 +3390,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       {confirmDialog && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-[10px] bg-black/80 animate-in fade-in duration-200">
           <div className={`w-full max-w-md p-[20px] rounded-card border transition-all ${
-            'bg-white border-gray-150 text-black'}`}>
+            'bg-white border-border-default text-black'}`}>
             <div className="flex items-center gap-[8px] mb-[10px]">
               <div className={`p-[8px] rounded-card shrink-0 ${
                 confirmDialog.type === 'danger'
@@ -3516,17 +3408,17 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 )}
               </div>
               <div>
-                <h3 style={{ color: '#000000'}} className="text-base font-bold uppercase">
+                <h3  className="text-base font-bold uppercase">
                   {confirmDialog.title}
                 </h3>
-                <p className="text-xs mt-[2px] font-bold uppercase text-black dark:text-white/60">
+                <p className="text-xs mt-[2px] font-bold uppercase text-black ">
                   Acción de Seguridad Requerida
                 </p>
               </div>
             </div>
 
-            <div style={{ color: '#000000'}} className={`p-[10px] rounded-card border text-xs leading-normal mb-[12px] font-normal ${
-              'bg-gray-50 border-gray-150'}`}>
+            <div  className={`p-[10px] rounded-card border text-xs leading-normal mb-[12px] font-normal ${
+              'bg-surface-bg border-border-default'}`}>
               {confirmDialog.message}
             </div>
 
@@ -3556,10 +3448,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       {isAdvancedSearchOpen && (
         <div className="fixed inset-0 z-[160] flex items-center justify-center p-[10px] bg-black/85 animate-in fade-in">
           <div className={`w-full max-w-2xl p-[20px] rounded-card border flex flex-col max-h-[85vh] ${
-            'bg-white border border-gray-150 text-black'}`}>
+            'bg-white border border-border-default text-black'}`}>
             {/* Header */}
-            <div className="flex justify-between items-center mb-[12px] border-b pb-[8px] dark:border-white/5 border-gray-150">
-              <h3 className="text-base font-bold flex items-center gap-[4px] text-black dark:text-white uppercase">
+            <div className="flex justify-between items-center mb-[12px] border-b pb-[8px]  border-border-default">
+              <h3 className="text-base font-bold flex items-center gap-[4px] text-black  uppercase">
                 <Search className="text-text-secondary" size={14} />
                 Búsqueda Avanzada de Productos
               </h3>
@@ -3583,7 +3475,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   placeholder="Buscar por nombre, SKU, barra..."
                 />
                 {advSearchTerm && (
-                  <button type="button" onClick={() => setAdvSearchTerm('')} className="absolute right-[8px] top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500">
+                  <button type="button" onClick={() => setAdvSearchTerm('')} className="absolute right-[8px] top-1/2 -translate-y-1/2 text-text-secondary hover:text-red-500">
                     <X size={10} />
                   </button>
                 )}
@@ -3622,7 +3514,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
                 if (filtered.length === 0) {
                   return (
-                    <div style={{ color: '#000000'}} className="py-8 text-center text-xs italic rounded-card border border-dashed border-gray-150">
+                    <div  className="py-8 text-center text-xs italic rounded-card border border-dashed border-border-default">
                       No se encontraron productos coincidentes.
                     </div>
                   );
@@ -3636,13 +3528,13 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     <div 
                       key={p.id} 
                       className={`p-[8px] rounded-card border flex justify-between items-center transition-all ${
-                        'bg-gray-50 border-gray-150 text-black'}`}
+                        'bg-surface-bg border-border-default text-black'}`}
                     >
                       <div>
                         <div className="flex items-center gap-[6px]">
                           <p className="font-bold text-xs">{p.name}</p>
                           {p.category && (
-                            <span className="px-[5px] py-[2px] rounded-badge text-xs font-bold bg-gray-200 text-gray-800 dark:bg-white/10 dark:text-gray-300 uppercase">
+                            <span className="px-[5px] py-[2px] rounded-badge text-xs font-bold bg-surface-muted text-text-heading   uppercase">
                               {p.category}
                             </span>
                           )}
@@ -3654,7 +3546,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       </div>
 
                       <div className="flex items-center gap-[8px] shrink-0">
-                        <span style={{ color: '#1C40F2' }} className="font-black text-xs mr-[4px]">${Number(p.price).toFixed(2)}</span>
+                        <span style={{ color: '#1C40F2' }} className="font-semibold text-xs mr-[4px]">${Number(p.price).toFixed(2)}</span>
                         {isAlreadyInCart && (
                           <span className="text-xs font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-[6px] py-[3px] rounded-card">
                             En Carrito ({cartQty})
@@ -3675,7 +3567,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
             </div>
 
             {/* Footer */}
-            <div className="flex justify-end mt-[10px] pt-[10px] border-t border-gray-150 dark:border-white/5">
+            <div className="flex justify-end mt-[10px] pt-[10px] border-t border-border-default ">
               <button
                 type="button"
                 onClick={() => setIsAdvancedSearchOpen(false)}
@@ -3692,14 +3584,14 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       {isQuickAddProductOpen && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-[10px] bg-black/85 animate-in fade-in">
           <div className={`w-full max-w-md p-[20px] rounded-card border ${
-            'bg-white border border-gray-150 text-black'}`}>
-            <h3 style={{ color: '#000000'}} className="text-base font-bold mb-[12px] border-b pb-[8px] dark:border-white/5 uppercase">
+            'bg-white border border-border-default text-black'}`}>
+            <h3  className="text-base font-bold mb-[12px] border-b pb-[8px]  uppercase">
               Nuevo Producto (Rápido)
             </h3>
             
             <form onSubmit={handleQuickAddProductSave} className="space-y-[10px]">
               <div>
-                <label className="block text-xs font-bold uppercase mb-[4px] text-black dark:text-white/60">Nombre del Producto / Servicio</label>
+                <label className="block text-xs font-bold uppercase mb-[4px] text-black ">Nombre del Producto / Servicio</label>
                 <input 
                   type="text" 
                   required 
@@ -3712,7 +3604,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
               <div className="grid grid-cols-2 gap-[8px]">
                 <div>
-                  <label className="block text-xs font-bold uppercase mb-[4px] text-black dark:text-white/60">SKU / Código</label>
+                  <label className="block text-xs font-bold uppercase mb-[4px] text-black ">SKU / Código</label>
                   <input 
                     type="text" 
                     value={quickAddProductFormData.sku} 
@@ -3722,7 +3614,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold uppercase mb-[4px] text-black dark:text-white/60">Código de Barras</label>
+                  <label className="block text-xs font-bold uppercase mb-[4px] text-black ">Código de Barras</label>
                   <input 
                     type="text" 
                     value={quickAddProductFormData.codigoBarras} 
@@ -3735,7 +3627,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
               <div className="grid grid-cols-3 gap-[8px]">
                 <div>
-                  <label className="block text-xs font-bold uppercase mb-[4px] text-black dark:text-white/60">P. Venta ($)</label>
+                  <label className="block text-xs font-bold uppercase mb-[4px] text-black ">P. Venta ($)</label>
                   <input 
                     type="number" 
                     step="0.0001"
@@ -3747,7 +3639,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold uppercase mb-[4px] text-black dark:text-white/60">Costo ($)</label>
+                  <label className="block text-xs font-bold uppercase mb-[4px] text-black ">Costo ($)</label>
                   <input 
                     type="number" 
                     step="0.0001" 
@@ -3758,7 +3650,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold uppercase mb-[4px] text-black dark:text-white/60">Stock Inicial</label>
+                  <label className="block text-xs font-bold uppercase mb-[4px] text-black ">Stock Inicial</label>
                   <input 
                     type="number" 
                     value={quickAddProductFormData.stock} 
@@ -3770,7 +3662,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase mb-[4px] text-black dark:text-white/60">Categoría IVA</label>
+                <label className="block text-xs font-bold uppercase mb-[4px] text-black ">Categoría IVA</label>
                 <select 
                   value={quickAddProductFormData.ivaCategory} 
                   onChange={e => setQuickAddProductFormData({...quickAddProductFormData, ivaCategory: Number(e.target.value)})} 
@@ -3783,7 +3675,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 </select>
               </div>
 
-              <div className="flex justify-end gap-[8px] mt-[10px] pt-[10px] border-t border-gray-150 dark:border-white/5">
+              <div className="flex justify-end gap-[8px] mt-[10px] pt-[10px] border-t border-border-default ">
                 <button 
                   type="button" 
                   onClick={() => setIsQuickAddProductOpen(false)} 
@@ -3819,18 +3711,18 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       {selectedLineItemForDiscount && (() => {
         const available = getAvailableDiscountsForLineItem(selectedLineItemForDiscount);
         return (
-          <div className="fixed inset-0 z-[250] flex items-center justify-center bg-slate-900/35  p-4">
-            <div className="bg-white rounded-2xl w-full max-w-md border border-border-default overflow-hidden flex flex-col  animate-in fade-in zoom-in-95 duration-200">
-              <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+          <div className="fixed inset-0 z-[250] flex items-center justify-center bg-text-heading/35  p-4">
+            <div className="bg-white rounded-card w-full max-w-md border border-border-default overflow-hidden flex flex-col  animate-in fade-in zoom-in-95 duration-200">
+              <div className="p-4 border-b border-border-default flex items-center justify-between bg-surface-bg">
                 <div>
-                  <h3 className="text-xs font-extrabold text-slate-800 uppercase tracking-wider">
+                  <h3 className="text-xs font-semibold text-text-heading uppercase tracking-wider">
                     Descuento / Promo de Ítem
                   </h3>
-                  <p className="text-xs text-slate-500 font-bold mt-0.5">{selectedLineItemForDiscount.name}</p>
+                  <p className="text-xs text-text-secondary font-bold mt-0.5">{selectedLineItemForDiscount.name}</p>
                 </div>
                 <button 
                   onClick={() => setSelectedLineItemForDiscount(null)} 
-                  className="text-slate-400 hover:text-slate-700 cursor-pointer"
+                  className="text-text-secondary hover:text-text-primary cursor-pointer"
                 >
                   <X size={18} />
                 </button>
@@ -3854,10 +3746,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     showToast("Descuento removido", "success");
                     setSelectedLineItemForDiscount(null);
                   }}
-                  className={`w-full text-left p-3 rounded-xl border flex justify-between items-center transition-all cursor-pointer ${
+                  className={`w-full text-left p-3 rounded-card border flex justify-between items-center transition-all cursor-pointer ${
                     !selectedLineItemForDiscount.id_descuento_aplicado
                       ? 'bg-primary/5 border-primary text-primary font-bold'
-                      : 'bg-white border-slate-155 text-slate-650 hover:bg-slate-50'
+                      : 'bg-white border-slate-155 text-text-primary hover:bg-surface-bg'
                   }`}
                 >
                   <span className="text-xs font-semibold">Sin Descuento</span>
@@ -3866,7 +3758,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
                 {/* Available Discounts/Promos */}
                 {available.length === 0 ? (
-                  <p className="text-xs text-slate-400 italic text-center py-4">No hay descuentos o promociones de producto vigentes hoy.</p>
+                  <p className="text-xs text-text-secondary italic text-center py-4">No hay descuentos o promociones de producto vigentes hoy.</p>
                 ) : (
                   available.map(d => {
                     const isSelected = selectedLineItemForDiscount.id_descuento_aplicado === d.id && 
@@ -3902,15 +3794,15 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                             apply();
                           }
                         }}
-                        className={`w-full text-left p-3 rounded-xl border flex justify-between items-center transition-all cursor-pointer ${
+                        className={`w-full text-left p-3 rounded-card border flex justify-between items-center transition-all cursor-pointer ${
                           isSelected
                             ? 'bg-primary/5 border-primary text-primary font-bold'
-                            : 'bg-white border-slate-155 text-slate-650 hover:bg-slate-50'
+                            : 'bg-white border-slate-155 text-text-primary hover:bg-surface-bg'
                         }`}
                       >
                         <div className="flex flex-col">
                           <span className="text-xs font-bold uppercase">{d.nombre}</span>
-                          <span className="text-xs text-slate-400 mt-0.5">
+                          <span className="text-xs text-text-secondary mt-0.5">
                             Valor: {d.tipo_valor === 'PORCENTAJE' ? `${d.valor}%` : `$${d.valor}`}
                             {d.requiere_autorizacion && ' • [Clave Supervisor]'}
                           </span>
@@ -3928,26 +3820,26 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
       {/* SUPERVISOR AUTHORIZATION MODAL */}
       {authDialog && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-slate-900/40  p-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm border border-border-default overflow-hidden flex flex-col  animate-in zoom-in-95 duration-200">
-            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-              <span className="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1.5 text-red-500">
+        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-text-heading/40  p-4">
+          <div className="bg-white rounded-card w-full max-w-sm border border-border-default overflow-hidden flex flex-col  animate-in zoom-in-95 duration-200">
+            <div className="p-4 border-b border-border-default flex items-center justify-between bg-surface-bg">
+              <span className="text-xs font-semibold text-text-heading uppercase tracking-wider flex items-center gap-1.5 text-red-500">
                 <ShieldAlert size={15} /> Autorización Requerida
               </span>
               <button 
                 onClick={() => { authDialog.onCancel?.(); setAuthDialog(null); }} 
-                className="text-slate-400 hover:text-slate-700 cursor-pointer"
+                className="text-text-secondary hover:text-text-primary cursor-pointer"
               >
                 <X size={18} />
               </button>
             </div>
-            <div className="p-5 space-y-4 text-xs font-semibold text-slate-700">
+            <div className="p-5 space-y-4 text-xs font-semibold text-text-primary">
               <p className="text-slate-550 leading-relaxed">
                 El descuento <strong>{authDialog.discount.nombre}</strong> requiere clave de autorización de supervisor para ser aplicado.
               </p>
               
               <div>
-                <label className="block text-xs uppercase font-extrabold text-slate-500 mb-1.5">Clave de Supervisor</label>
+                <label className="block text-xs uppercase font-semibold text-text-secondary mb-1.5">Clave de Supervisor</label>
                 <input
                   type="password"
                   required
@@ -3969,7 +3861,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       }
                     }
                   }}
-                  className="w-full h-10 px-3 rounded-xl border border-slate-200 focus:outline-none focus:border-red-500 text-black font-semibold text-center tracking-widest text-sm"
+                  className="w-full h-10 px-3 rounded-card border border-border-default focus:outline-none focus:border-red-500 text-black font-semibold text-center tracking-widest text-sm"
                   autoFocus
                 />
                 {authError && (
@@ -3977,11 +3869,11 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 )}
               </div>
 
-              <div className="pt-3 flex justify-end gap-2 border-t border-slate-100">
+              <div className="pt-3 flex justify-end gap-2 border-t border-border-default">
                 <button 
                   type="button" 
                   onClick={() => { authDialog.onCancel?.(); setAuthDialog(null); }} 
-                  className="btn-secondary px-4 py-2 font-bold rounded-xl cursor-pointer"
+                  className="btn-secondary px-4 py-2 font-bold rounded-card cursor-pointer"
                 >
                   Cancelar
                 </button>
@@ -3997,7 +3889,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       setAuthError('Clave incorrecta. Solicite al supervisor.');
                     }
                   }} 
-                  className="btn-primary bg-red-650 hover:bg-red-700 px-4 py-2 font-bold text-white rounded-xl cursor-pointer"
+                  className="btn-primary bg-red-650 hover:bg-red-700 px-4 py-2 font-bold text-white rounded-card cursor-pointer"
                 >
                   Autorizar
                 </button>

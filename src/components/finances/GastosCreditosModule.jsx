@@ -220,7 +220,7 @@ export default function GastosCreditosModule({ showToast, transactions = [], thi
     }
   };
 
-  const inputClass = `w-full text-xs px-3 py-2.5 outline-none rounded-card border transition-all bg-white border-gray-300 text-gray-900 focus:border-primary`;
+  const inputClass = `w-full text-xs px-3 py-2.5 outline-none rounded-card border transition-all bg-white border-border-strong text-text-heading focus:border-primary`;
 
   return (
     <div className="flex flex-col h-full w-full animate-in fade-in duration-500 overflow-hidden">
@@ -241,43 +241,43 @@ export default function GastosCreditosModule({ showToast, transactions = [], thi
                 <div className="space-y-6">
                   {/* Tarjetas métricas */}
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                    <div className="p-5 rounded-card border bg-white border-gray-200">
+                    <div className="p-5 rounded-card border bg-white border-border-default">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-black uppercase text-gray-500 tracking-wider">Total Endeudamiento</span>
-                        <div className="p-1.5 rounded-lg bg-red-500/10 text-red-500">
+                        <span className="text-xs font-semibold uppercase text-text-secondary tracking-wider">Total Endeudamiento</span>
+                        <div className="p-1.5 rounded-md bg-red-500/10 text-red-500">
                           <ArrowUpCircle size={16} />
                         </div>
                       </div>
-                      <p className="text-2xl font-black text-red-500">${totalPasivos.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                      <p className="text-xs text-gray-400 mt-1">Saldo pendiente acumulado de todas las obligaciones</p>
+                      <p className="text-2xl font-semibold text-red-500">${totalPasivos.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                      <p className="text-xs text-text-secondary mt-1">Saldo pendiente acumulado de todas las obligaciones</p>
                     </div>
 
-                    <div className="p-5 rounded-card border bg-white border-gray-200">
+                    <div className="p-5 rounded-card border bg-white border-border-default">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-black uppercase text-gray-500 tracking-wider">Pago de Cuotas Mensual</span>
-                        <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-500">
+                        <span className="text-xs font-semibold uppercase text-text-secondary tracking-wider">Pago de Cuotas Mensual</span>
+                        <div className="p-1.5 rounded-md bg-emerald-500/10 text-emerald-500">
                           <DollarSign size={16} />
                         </div>
                       </div>
-                      <p className="text-2xl font-black text-emerald-500">${totalCuotasMes.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                      <p className="text-xs text-gray-400 mt-1">Suma del pago mensual programado de cuotas</p>
+                      <p className="text-2xl font-semibold text-emerald-500">${totalCuotasMes.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                      <p className="text-xs text-text-secondary mt-1">Suma del pago mensual programado de cuotas</p>
                     </div>
 
-                    <div className="p-5 rounded-card border bg-white border-gray-200">
+                    <div className="p-5 rounded-card border bg-white border-border-default">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-black uppercase text-gray-500 tracking-wider">Total Gastos ERP</span>
-                        <div className="p-1.5 rounded-lg bg-pink-500/10 text-pink-500">
+                        <span className="text-xs font-semibold uppercase text-text-secondary tracking-wider">Total Gastos ERP</span>
+                        <div className="p-1.5 rounded-md bg-pink-500/10 text-pink-500">
                           <History size={16} />
                         </div>
                       </div>
-                      <p className="text-2xl font-black">${totalExpensesAllTime.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                      <p className="text-xs text-gray-400 mt-1">Egresos totales registrados en contabilidad general</p>
+                      <p className="text-2xl font-semibold">${totalExpensesAllTime.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                      <p className="text-xs text-text-secondary mt-1">Egresos totales registrados en contabilidad general</p>
                     </div>
                   </div>
 
                   {/* Resumen por tipo de pasivo */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="p-6 rounded-card border bg-white border-gray-200">
+                    <div className="p-6 rounded-card border bg-white border-border-default">
                       <h3 className="text-xs font-bold uppercase tracking-wider mb-4">Composición de Deuda Financiera</h3>
                       <div className="space-y-4">
                         <div className="flex justify-between items-center text-xs">
@@ -301,10 +301,10 @@ export default function GastosCreditosModule({ showToast, transactions = [], thi
                       </div>
                     </div>
 
-                    <div className="p-6 rounded-card border flex flex-col justify-between bg-white border-gray-200">
+                    <div className="p-6 rounded-card border flex flex-col justify-between bg-white border-border-default">
                       <div>
                         <h3 className="text-xs font-bold uppercase tracking-wider mb-2">Salud Crediticia del Negocio</h3>
-                        <p className="text-xs text-gray-500 leading-normal">
+                        <p className="text-xs text-text-secondary leading-normal">
                           Llevar un control ordenado de sus deudas le permite evitar mora, planificar flujos de efectivo futuros y deducir los gastos de interés comercial según la normativa ecuatoriana.
                         </p>
                       </div>
@@ -342,39 +342,39 @@ export default function GastosCreditosModule({ showToast, transactions = [], thi
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {liabilities.map(liab => (
-                      <div key={liab.id} className="p-5 rounded-card border relative flex flex-col justify-between bg-white border-gray-200">
+                      <div key={liab.id} className="p-5 rounded-card border relative flex flex-col justify-between bg-white border-border-default">
                         <div>
                           <div className="flex justify-between items-start mb-3">
                             <span className="p-2.5 rounded-card bg-white/5 border border-white/5">
                               {getIcon(liab.type)}
                             </span>
-                            <span className={`text-xs font-black uppercase px-2 py-0.5 rounded-full ${
+                            <span className={`text-xs font-semibold uppercase px-2 py-0.5 rounded-full ${
                               liab.saldoPendiente > 0 ? 'bg-red-500/10 text-red-400' : 'bg-emerald-500/10 text-emerald-450'
                             }`}>
                               {liab.saldoPendiente > 0 ? 'Con saldo' : 'Liquidado'}
                             </span>
                           </div>
 
-                          <h4 className="font-bold text-sm text-black dark:text-white mb-0.5">{liab.entity}</h4>
-                          <p className="text-xs text-gray-500 mb-4">{getTypeName(liab.type)}</p>
+                          <h4 className="font-bold text-sm text-black  mb-0.5">{liab.entity}</h4>
+                          <p className="text-xs text-text-secondary mb-4">{getTypeName(liab.type)}</p>
 
                           <div className="space-y-2 border-t border-white/5 pt-3 text-xs">
                             <div className="flex justify-between">
-                              <span className="text-gray-400">Monto Inicial:</span>
+                              <span className="text-text-secondary">Monto Inicial:</span>
                               <span className="font-semibold">${Number(liab.montoInicial || 0).toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-gray-400">Saldo Pendiente:</span>
-                              <span className="font-black text-red-500">${Number(liab.saldoPendiente || 0).toFixed(2)}</span>
+                              <span className="text-text-secondary">Saldo Pendiente:</span>
+                              <span className="font-semibold text-red-500">${Number(liab.saldoPendiente || 0).toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-gray-400">Cuota Mensual:</span>
+                              <span className="text-text-secondary">Cuota Mensual:</span>
                               <span className="font-bold text-emerald-500">${Number(liab.cuotaMensual || 0).toFixed(2)}</span>
                             </div>
                             {liab.nextPaymentDate && (
                               <div className="flex justify-between">
-                                <span className="text-gray-400">Próximo Pago:</span>
-                                <span className="font-mono text-gray-300">{liab.nextPaymentDate}</span>
+                                <span className="text-text-secondary">Próximo Pago:</span>
+                                <span className="font-mono text-text-secondary">{liab.nextPaymentDate}</span>
                               </div>
                             )}
                           </div>
@@ -390,7 +390,7 @@ export default function GastosCreditosModule({ showToast, transactions = [], thi
                             className={`flex-1 h-[34px] rounded-btn text-xs font-semibold text-center transition-all border-none ${
                               liab.saldoPendiente > 0 
                                 ? 'bg-pink-600 hover:bg-pink-500 text-white' 
-                                : 'bg-gray-500/20 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+                                : 'bg-surface-sidebar/20 text-text-secondary  cursor-not-allowed'
                             }`}
                           >
                             Pagar Cuota
@@ -407,7 +407,7 @@ export default function GastosCreditosModule({ showToast, transactions = [], thi
                     ))}
 
                     {liabilities.length === 0 && (
-                      <div className="col-span-full py-16 text-center text-gray-500 italic">
+                      <div className="col-span-full py-16 text-center text-text-secondary italic">
                         No hay deudas o pasivos registrados. ¡Excelente! Tu negocio está libre de deudas financieras directas.
                       </div>
                     )}
@@ -422,14 +422,14 @@ export default function GastosCreditosModule({ showToast, transactions = [], thi
                     <h3 className="text-xs font-bold uppercase tracking-wider">Historial de Todos los Egresos / Compras</h3>
                     <div className="text-xs font-bold">
                       <span>Total Egresos Acumulado: </span>
-                      <span className="text-red-500 text-sm font-black">${totalExpensesAllTime.toFixed(2)}</span>
+                      <span className="text-red-500 text-sm font-semibold">${totalExpensesAllTime.toFixed(2)}</span>
                     </div>
                   </div>
 
-                  <div className="rounded-card border overflow-hidden transition-all border-slate-200/80 bg-white">
+                  <div className="rounded-card border overflow-hidden transition-all border-border-default/80 bg-white">
                     <div className="overflow-x-auto custom-scrollbar">
                       <table className="w-full text-left text-xs whitespace-nowrap">
-                        <thead className="text-xs uppercase font-bold tracking-wider bg-slate-50 text-slate-600 border-b border-slate-100">
+                        <thead className="text-xs uppercase font-bold tracking-wider bg-surface-bg text-text-primary border-b border-border-default">
                           <tr>
                             <th className="px-6 py-3.5">Fecha</th>
                             <th className="px-6 py-3.5">Descripción / Comprobante</th>
@@ -445,15 +445,15 @@ export default function GastosCreditosModule({ showToast, transactions = [], thi
                           {historicalEgresos.map(tx => {
                             const contact = thirdParties.find(tp => tp.id === tx.thirdPartyId);
                             return (
-                              <tr key={tx.id} className="transition-colors hover:bg-slate-50/40">
-                                <td className="px-6 py-3.5 text-gray-400 font-medium">{tx.date}</td>
+                              <tr key={tx.id} className="transition-colors hover:bg-surface-bg/40">
+                                <td className="px-6 py-3.5 text-text-secondary font-medium">{tx.date}</td>
                                 <td className="px-6 py-3.5">
                                   <div>
-                                    <p className="font-bold text-black dark:text-white line-clamp-1">{tx.description || 'Sin descripción'}</p>
-                                    <p className="text-xs text-gray-500 font-mono mt-0.5">{tx.documentNumber || `Sec: ${tx.secuencial || 'N/A'}`}</p>
+                                    <p className="font-bold text-black  line-clamp-1">{tx.description || 'Sin descripción'}</p>
+                                    <p className="text-xs text-text-secondary font-mono mt-0.5">{tx.documentNumber || `Sec: ${tx.secuencial || 'N/A'}`}</p>
                                   </div>
                                 </td>
-                                <td className="px-6 py-3.5 font-semibold text-black dark:text-white">
+                                <td className="px-6 py-3.5 font-semibold text-black ">
                                   {contact?.name || 'Proveedor Externo (S/N)'}
                                 </td>
                                 <td className="px-6 py-3.5">
@@ -464,14 +464,14 @@ export default function GastosCreditosModule({ showToast, transactions = [], thi
                                 <td className="px-6 py-3.5 text-right font-mono">${(Number(tx.baseImponible) || Number(tx.total) || 0).toFixed(2)}</td>
                                 <td className="px-6 py-3.5 text-right font-mono">${(Number(tx.ivaValor) || 0).toFixed(2)}</td>
                                 <td className="px-6 py-3.5 text-right font-bold text-red-500">${Number(tx.total).toFixed(2)}</td>
-                                <td className="px-6 py-3.5 text-center capitalize text-gray-400 font-medium">{tx.paymentMethod}</td>
+                                <td className="px-6 py-3.5 text-center capitalize text-text-secondary font-medium">{tx.paymentMethod}</td>
                               </tr>
                             );
                           })}
 
                           {historicalEgresos.length === 0 && (
                             <tr>
-                              <td colSpan="8" className="px-6 py-8 text-center text-gray-500 italic">
+                              <td colSpan="8" className="px-6 py-8 text-center text-text-secondary italic">
                                 No hay compras o egresos registrados en el ERP todavía.
                               </td>
                             </tr>
@@ -490,24 +490,24 @@ export default function GastosCreditosModule({ showToast, transactions = [], thi
       {/* MODAL: REGISTRAR PAGO DE CUOTA */}
       {selectedLiability && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/85 animate-in fade-in">
-          <div className="w-full max-w-md p-6 rounded-card bg-white border border-gray-200">
+          <div className="w-full max-w-md p-6 rounded-card bg-white border border-border-default">
             <div className="flex justify-between items-center mb-4 border-b pb-2 border-white/5">
-              <h3 className="text-sm font-black">Registrar Pago de Cuota / Abono</h3>
-              <button onClick={() => setSelectedLiability(null)} className="btn-icon text-gray-400 hover:text-white"><X size={16} /></button>
+              <h3 className="text-sm font-semibold">Registrar Pago de Cuota / Abono</h3>
+              <button onClick={() => setSelectedLiability(null)} className="btn-icon text-text-secondary hover:text-white"><X size={16} /></button>
             </div>
 
             <form onSubmit={handleRecordPayment} className="space-y-4">
               <div className="p-3.5 rounded-card bg-black/15 border border-white/5 text-xs space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Entidad:</span>
+                  <span className="text-text-secondary">Entidad:</span>
                   <span className="font-bold">{selectedLiability.entity}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Cuota Programada:</span>
+                  <span className="text-text-secondary">Cuota Programada:</span>
                   <span className="font-bold text-emerald-500">${Number(selectedLiability.cuotaMensual || 0).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between border-t border-dashed border-white/10 pt-2 font-bold">
-                  <span className="text-gray-400">Saldo Pendiente Actual:</span>
+                  <span className="text-text-secondary">Saldo Pendiente Actual:</span>
                   <span className="text-red-500">${Number(selectedLiability.saldoPendiente || 0).toFixed(2)}</span>
                 </div>
               </div>
@@ -574,10 +574,10 @@ export default function GastosCreditosModule({ showToast, transactions = [], thi
       {/* MODAL: AGREGAR PASIVO */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/85 animate-in fade-in">
-          <div className="w-full max-w-md p-6 rounded-card bg-white border border-gray-200">
+          <div className="w-full max-w-md p-6 rounded-card bg-white border border-border-default">
             <div className="flex justify-between items-center mb-4 border-b pb-2 border-white/5">
-              <h3 className="text-sm font-black">Registrar Nuevo Pasivo</h3>
-              <button onClick={() => setIsAddModalOpen(false)} className="btn-icon text-gray-400 hover:text-white"><X size={16} /></button>
+              <h3 className="text-sm font-semibold">Registrar Nuevo Pasivo</h3>
+              <button onClick={() => setIsAddModalOpen(false)} className="btn-icon text-text-secondary hover:text-white"><X size={16} /></button>
             </div>
 
             <form onSubmit={handleAddLiability} className="space-y-4">

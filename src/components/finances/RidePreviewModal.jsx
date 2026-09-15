@@ -1,3 +1,4 @@
+import { invoiceDescription, invoiceLineAmounts } from '../../services/invoiceLine';
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Printer, FileText } from 'lucide-react';
@@ -65,12 +66,9 @@ function MockBarcode({ claveAcceso }) {
 export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId, initialFormat = 'ride' }) {
   const [companyConfig, setCompanyConfig] = useState(null);
   const [viewFormat, setViewFormat] = useState(initialFormat);
-  const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-    return () => setMounted(false);
-  }, []);
+
+
 
   // Sync format if initialFormat changes
   useEffect(() => {
@@ -210,11 +208,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
 
     if (items.length > 0) {
       items.forEach(item => {
-        const itemQty = Number(item.quantity) || 1;
-        const itemPrice = Number(item.price) || 0;
-        const itemDisc = Number(item.itemDiscount) || 0;
-        const lineBase = (itemPrice * itemQty) - itemDisc;
-        const rate = Number(item.ivaCategory);
+        const { discount: itemDisc, base: lineBase, rate } = invoiceLineAmounts(item);
 
         if (rate === 15 || rate === 12) {
           subtotal15 += lineBase;
@@ -284,7 +278,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
     window.print();
   };
 
-  if (!mounted || typeof document === 'undefined') return null;
+  if (typeof document === 'undefined') return null;
 
   const modalJSX = (
     <div className="fixed inset-0 z-[120] bg-black/80 flex items-start justify-center p-4 overflow-y-auto animate-in fade-in print-modal-backdrop print:items-start print:overflow-visible">
@@ -408,26 +402,26 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
         }
       `}} />
 
-      <div className="w-full max-w-4xl h-[90vh] flex flex-col rounded-card overflow-hidden border print-modal-content bg-gray-50 border-gray-300">
+      <div className="w-full max-w-4xl h-[90vh] flex flex-col rounded-card overflow-hidden border print-modal-content bg-surface-bg border-border-strong">
         
         {/* Barra de Acciones del Modal */}
-        <div className="px-6 py-3 border-b flex items-center justify-between no-print shrink-0 bg-gray-100 border-gray-250">
+        <div className="px-6 py-3 border-b flex items-center justify-between no-print shrink-0 bg-surface-muted border-gray-250">
           <div className="flex items-center gap-2">
             <FileText size={16} className="text-primary" />
-            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-800">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-text-heading">
               Vista Previa: {getDocTypeLabel()}
             </h3>
           </div>
           
           <div className="flex items-center gap-3">
             {/* Selector de formato */}
-            <div className="flex p-0.5 rounded-lg border bg-white border-gray-300">
+            <div className="flex p-0.5 rounded-md border bg-white border-border-strong">
               <button 
                 onClick={() => setViewFormat('ride')}
                 className={`px-3 py-1 rounded text-xs font-bold transition-all ${
                   viewFormat === 'ride' 
                     ? 'bg-primary text-white' 
-                    : 'text-gray-600 hover:text-gray-900'
+                    : 'text-text-primary hover:text-text-heading'
                 }`}
               >
                 RIDE Oficial (A4)
@@ -437,7 +431,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
                 className={`px-3 py-1 rounded text-xs font-bold transition-all ${
                   viewFormat === 'ticket' 
                     ? 'bg-primary text-white' 
-                    : 'text-gray-600 hover:text-gray-900'
+                    : 'text-text-primary hover:text-text-heading'
                 }`}
               >
                 Ticket POS (80mm)
@@ -451,33 +445,33 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
               <Printer size={12} /> Imprimir / PDF
             </button>
 
-            <button onClick={onClose} className="p-1 rounded-lg hover:bg-white/10 text-gray-500 hover:text-white transition-colors">
+            <button onClick={onClose} className="p-1 rounded-md hover:bg-white/10 text-text-secondary hover:text-white transition-colors">
               <X size={16} />
             </button>
           </div>
         </div>
 
         {/* Contenedor del Comprobante */}
-        <div className="flex-1 overflow-y-auto p-8 flex justify-center bg-gray-500/20 custom-scrollbar print-modal-scroll print:p-0 print:bg-white">
+        <div className="flex-1 overflow-y-auto p-8 flex justify-center bg-surface-sidebar/20 custom-scrollbar print-modal-scroll print:p-0 print:bg-white">
           
           <div id="print-area-wrapper" className="w-full">
             
             {/* FORMATO 1: RIDE OFICIAL A4 */}
             {viewFormat === 'ride' && (
-              <div className="w-full max-w-3xl mx-auto p-5 bg-white border border-gray-300 text-black text-xs font-sans leading-tight print:max-w-none print:w-full print:border-none print:p-0 print:m-0">
+              <div className="w-full max-w-3xl mx-auto p-5 bg-white border border-border-strong text-black text-xs font-sans leading-tight print:max-w-none print:w-full print:border-none print:p-0 print:m-0">
                 
                 {/* Cabecera Principal Compacta */}
-                <div className="border border-gray-300 grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-300 print:grid-cols-2 print:divide-x print:divide-y-0 text-xs text-black">
+                <div className="border border-border-strong grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-300 print:grid-cols-2 print:divide-x print:divide-y-0 text-xs text-black">
                   
                   {/* Columna Izquierda: Datos del Emisor */}
                   <div className="p-3 flex items-start gap-3 min-w-0">
                     {emisor.logoUrl ? (
                       <img src={emisor.logoUrl} alt="Logo" className="max-h-12 max-w-[100px] object-contain print:max-h-10 shrink-0" />
                     ) : (
-                      <div className="h-10 w-20 bg-gray-200 border border-gray-300 rounded flex items-center justify-center font-bold text-xs text-gray-600 tracking-wider shrink-0">LOGOTIPO</div>
+                      <div className="h-10 w-20 bg-surface-muted border border-border-strong rounded flex items-center justify-center font-bold text-xs text-text-primary tracking-wider shrink-0">LOGOTIPO</div>
                     )}
                     <div className="space-y-0.5 min-w-0 flex-1">
-                      <h2 className="font-extrabold text-xs uppercase leading-tight text-black truncate">{emisor.razonSocial}</h2>
+                      <h2 className="font-semibold text-xs uppercase leading-tight text-black truncate">{emisor.razonSocial}</h2>
                       {emisor.nombreComercial && <p className="font-bold text-xs text-black truncate">{emisor.nombreComercial}</p>}
                       <p><span className="font-bold">RUC:</span> {emisor.ruc}</p>
                       {emisor.contribuyenteEspecial && (
@@ -525,7 +519,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
                       </div>
                     )}
                     <div className="border-t border-gray-250 pt-1.5 mt-auto">
-                      <h2 className="font-extrabold text-xs tracking-wide text-black uppercase leading-none">
+                      <h2 className="font-semibold text-xs tracking-wide text-black uppercase leading-none">
                         {getDocTypeLabel()} {docNumFormatted}
                       </h2>
                     </div>
@@ -533,7 +527,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
                 </div>
 
                 {/* Datos del Receptor Compactos (Detalle de Cliente) */}
-                <div className="mt-3 border border-gray-300 text-xs text-black">
+                <div className="mt-3 border border-border-strong text-xs text-black">
                   {/* Fila 1 */}
                   <div className="grid grid-cols-12">
                     <div className="col-span-10 py-[2px] px-1.5 truncate">
@@ -595,46 +589,46 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
                   </div>
                 </div>
 
-                <div className="mt-2 border border-gray-300 overflow-hidden">
+                <div className="mt-2 border border-border-strong overflow-hidden">
                   <table className="w-full text-left text-xs text-black">
-                    <thead className="bg-gray-100 font-bold uppercase text-xs border-b border-gray-300 text-black">
+                    <thead className="bg-surface-muted font-bold uppercase text-xs border-b border-border-strong text-black">
                       <tr>
-                        <th className="px-1 py-[2px] border-r border-gray-300 w-7 text-center">ITEM</th>
-                        <th className="px-1 py-[2px] border-r border-gray-300 w-14">CODIGO</th>
-                        <th className="px-1 py-[2px] border-r border-gray-300">DESCRIPCION</th>
-                        <th className="px-1 py-[2px] border-r border-gray-300 w-9 text-center">U/M</th>
-                        <th className="px-1 py-[2px] border-r border-gray-300 w-18 text-center">COD/BARRAS</th>
-                        <th className="px-1 py-[2px] border-r border-gray-300 w-9 text-right">CANTIDAD</th>
-                        <th className="px-1 py-[2px] border-r border-gray-300 text-right w-14">V.UNIT</th>
-                        <th className="px-1 py-[2px] border-r border-gray-300 text-right w-10">DESC.</th>
+                        <th className="px-1 py-[2px] border-r border-border-strong w-7 text-center">ITEM</th>
+                        <th className="px-1 py-[2px] border-r border-border-strong w-14">CODIGO</th>
+                        <th className="px-1 py-[2px] border-r border-border-strong">DESCRIPCION</th>
+                        <th className="px-1 py-[2px] border-r border-border-strong w-9 text-center">U/M</th>
+                        <th className="px-1 py-[2px] border-r border-border-strong w-18 text-center">COD/BARRAS</th>
+                        <th className="px-1 py-[2px] border-r border-border-strong w-9 text-right">CANTIDAD</th>
+                        <th className="px-1 py-[2px] border-r border-border-strong text-right w-14">V.UNIT</th>
+                        <th className="px-1 py-[2px] border-r border-border-strong text-right w-10">DESC.</th>
                         <th className="px-1 py-[2px] text-right w-14">V.TOTAL</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
                       {tx.items && tx.items.length > 0 ? (
                         tx.items.map((item, idx) => (
-                          <tr key={idx} className="border-b border-gray-200">
-                            <td className="px-1 py-[1px] border-r border-gray-300 text-center font-mono">{idx + 1}</td>
-                            <td className="px-1 py-[1px] border-r border-gray-300 font-mono">{item.sku || 'SERV'}</td>
-                            <td className="px-1 py-[1px] border-r border-gray-300 font-medium">{item.name}</td>
-                            <td className="px-1 py-[1px] border-r border-gray-300 text-center uppercase font-mono">{item.unit || 'UNIDAD'}</td>
-                            <td className="px-1 py-[1px] border-r border-gray-300 text-center font-mono">{item.barcode || item.sku || 'N/A'}</td>
-                            <td className="px-1 py-[1px] border-r border-gray-300 text-right">{item.quantity}</td>
-                            <td className="px-1 py-[1px] border-r border-gray-300 text-right">${Number(item.price).toFixed(2)}</td>
-                            <td className="px-1 py-[1px] border-r border-gray-300 text-right">${Number(item.itemDiscount || 0).toFixed(2)}</td>
-                            <td className="px-1 py-[1px] text-right font-bold">${((item.price * item.quantity) - (item.itemDiscount || 0)).toFixed(2)}</td>
+                          <tr key={idx} className="border-b border-border-default">
+                            <td className="px-1 py-[1px] border-r border-border-strong text-center font-mono">{idx + 1}</td>
+                            <td className="px-1 py-[1px] border-r border-border-strong font-mono">{item.sku || 'SERV'}</td>
+                            <td className="px-1 py-[1px] border-r border-border-strong font-medium">{invoiceDescription(item)}</td>
+                            <td className="px-1 py-[1px] border-r border-border-strong text-center uppercase font-mono">{item.unit || 'UNIDAD'}</td>
+                            <td className="px-1 py-[1px] border-r border-border-strong text-center font-mono">{item.barcode || item.sku || 'N/A'}</td>
+                            <td className="px-1 py-[1px] border-r border-border-strong text-right">{item.quantity}</td>
+                            <td className="px-1 py-[1px] border-r border-border-strong text-right">${invoiceLineAmounts(item).unitPrice.toFixed(2)}</td>
+                            <td className="px-1 py-[1px] border-r border-border-strong text-right">${invoiceLineAmounts(item).discount.toFixed(2)}</td>
+                            <td className="px-1 py-[1px] text-right font-bold">${invoiceLineAmounts(item).base.toFixed(2)}</td>
                           </tr>
                         ))
                       ) : (
-                        <tr className="border-b border-gray-200">
-                          <td className="px-1 py-[1px] border-r border-gray-300 text-center font-mono">1</td>
-                          <td className="px-1 py-[1px] border-r border-gray-300 font-mono">COM01</td>
-                          <td className="px-1 py-[1px] border-r border-gray-300 font-medium">Servicios Comerciales - {tx.category || 'Ventas'}</td>
-                          <td className="px-1 py-[1px] border-r border-gray-300 text-center uppercase font-mono">UNIDAD</td>
-                          <td className="px-1 py-[1px] border-r border-gray-300 text-center font-mono">N/A</td>
-                          <td className="px-1 py-[1px] border-r border-gray-300 text-right">1</td>
-                          <td className="px-1 py-[1px] border-r border-gray-300 text-right">${Number(tx.baseImponible).toFixed(2)}</td>
-                          <td className="px-1 py-[1px] border-r border-gray-300 text-right">$0.00</td>
+                        <tr className="border-b border-border-default">
+                          <td className="px-1 py-[1px] border-r border-border-strong text-center font-mono">1</td>
+                          <td className="px-1 py-[1px] border-r border-border-strong font-mono">COM01</td>
+                          <td className="px-1 py-[1px] border-r border-border-strong font-medium">Servicios Comerciales - {tx.category || 'Ventas'}</td>
+                          <td className="px-1 py-[1px] border-r border-border-strong text-center uppercase font-mono">UNIDAD</td>
+                          <td className="px-1 py-[1px] border-r border-border-strong text-center font-mono">N/A</td>
+                          <td className="px-1 py-[1px] border-r border-border-strong text-right">1</td>
+                          <td className="px-1 py-[1px] border-r border-border-strong text-right">${Number(tx.baseImponible).toFixed(2)}</td>
+                          <td className="px-1 py-[1px] border-r border-border-strong text-right">$0.00</td>
                           <td className="px-1 py-[1px] text-right font-bold">${Number(tx.baseImponible).toFixed(2)}</td>
                         </tr>
                       )}
@@ -647,8 +641,8 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
                   
                   {/* Columna Izquierda: Información Adicional y Pagos */}
                   <div className="md:col-span-3 space-y-1.5">
-                    <div className="p-1.5 border border-gray-300 space-y-0.5">
-                      <p className="font-bold border-b border-gray-200 pb-0.5 uppercase mb-0.5">Información Adicional</p>
+                    <div className="p-1.5 border border-border-strong space-y-0.5">
+                      <p className="font-bold border-b border-border-default pb-0.5 uppercase mb-0.5">Información Adicional</p>
                       <div className="grid grid-cols-2 gap-x-2 gap-y-0 mt-0.5 text-xs">
                         <p><span className="font-bold">Asesor:</span> {tx.createdBy || 'ADMINISTRADOR'}</p>
                         <p><span className="font-bold">Tipo Orden:</span> ZVTA</p>
@@ -669,21 +663,21 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
                       </div>
                       
                       {/* Tabla de desglose de pagos */}
-                      <table className="w-full text-left text-xs border border-gray-300 mt-2">
-                        <thead className="bg-gray-100 font-bold border-b border-gray-300">
+                      <table className="w-full text-left text-xs border border-border-strong mt-2">
+                        <thead className="bg-surface-muted font-bold border-b border-border-strong">
                           <tr>
-                            <th className="px-2 py-0.5 border-r border-gray-300">Forma Pago</th>
-                            <th className="px-2 py-0.5 border-r border-gray-300 text-right">Valor</th>
-                            <th className="px-2 py-0.5 border-r border-gray-300 text-center">Plazo</th>
+                            <th className="px-2 py-0.5 border-r border-border-strong">Forma Pago</th>
+                            <th className="px-2 py-0.5 border-r border-border-strong text-right">Valor</th>
+                            <th className="px-2 py-0.5 border-r border-border-strong text-center">Plazo</th>
                             <th className="px-2 py-0.5 text-center">Tiempo</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
                           {getPaymentsTableRows().map((row, idx) => (
                             <tr key={idx}>
-                              <td className="px-2 py-0.5 border-r border-gray-300 uppercase">{row.method}</td>
-                              <td className="px-2 py-0.5 border-r border-gray-300 text-right">${Number(row.val).toFixed(2)}</td>
-                              <td className="px-2 py-0.5 border-r border-gray-300 text-center">000</td>
+                              <td className="px-2 py-0.5 border-r border-border-strong uppercase">{row.method}</td>
+                              <td className="px-2 py-0.5 border-r border-border-strong text-right">${Number(row.val).toFixed(2)}</td>
+                              <td className="px-2 py-0.5 border-r border-border-strong text-center">000</td>
                               <td className="px-2 py-0.5 text-center">DIAS</td>
                             </tr>
                           ))}
@@ -691,115 +685,115 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
                       </table>
                     </div>
                     
-                    <p className="text-xs uppercase font-bold text-gray-700 bg-gray-100 p-1.5 rounded border border-gray-300 text-center tracking-wide leading-none">
+                    <p className="text-xs uppercase font-bold text-text-primary bg-surface-muted p-1.5 rounded border border-border-strong text-center tracking-wide leading-none">
                       Son: {numeroALetras(tx.total)}
                     </p>
                   </div>
 
-                  <div className="md:col-span-2 border border-gray-300 overflow-hidden">
+                  <div className="md:col-span-2 border border-border-strong overflow-hidden">
                     <table className="w-full text-right text-xs text-black">
                       <tbody className="divide-y divide-gray-200 font-medium">
                         {hasIva15 && (
                           <tr>
-                            <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">Subtotal 15%</td>
+                            <td className="px-2 py-0.5 bg-surface-bg border-r border-border-strong text-left">Subtotal 15%</td>
                             <td className="px-2 py-0.5 font-bold">${Number(taxDetails.subtotal15 || 0).toFixed(2)}</td>
                           </tr>
                         )}
                         {hasIva5 && (
                           <tr>
-                            <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">Subtotal 5%</td>
+                            <td className="px-2 py-0.5 bg-surface-bg border-r border-border-strong text-left">Subtotal 5%</td>
                             <td className="px-2 py-0.5 font-bold">${Number(taxDetails.subtotal5 || 0).toFixed(2)}</td>
                           </tr>
                         )}
                         {hasIva0 && (
                           <tr>
-                            <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">Subtotal 0%</td>
+                            <td className="px-2 py-0.5 bg-surface-bg border-r border-border-strong text-left">Subtotal 0%</td>
                             <td className="px-2 py-0.5 font-bold">${Number(taxDetails.subtotal0 || 0).toFixed(2)}</td>
                           </tr>
                         )}
                         {hasNoObjeto && (
                           <tr>
-                            <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">Subtotal No Sujeto de IVA</td>
+                            <td className="px-2 py-0.5 bg-surface-bg border-r border-border-strong text-left">Subtotal No Sujeto de IVA</td>
                             <td className="px-2 py-0.5 font-bold">${Number(taxDetails.subtotalNoObjeto || 0).toFixed(2)}</td>
                           </tr>
                         )}
                         {hasExento && (
                           <tr>
-                            <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">Subtotal Exento de IVA</td>
+                            <td className="px-2 py-0.5 bg-surface-bg border-r border-border-strong text-left">Subtotal Exento de IVA</td>
                             <td className="px-2 py-0.5 font-bold">${Number(taxDetails.subtotalExento || 0).toFixed(2)}</td>
                           </tr>
                         )}
                         <tr>
-                          <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">Subtotal Sin Impuestos</td>
+                          <td className="px-2 py-0.5 bg-surface-bg border-r border-border-strong text-left">Subtotal Sin Impuestos</td>
                           <td className="px-2 py-0.5 font-bold">${Number(taxDetails.subtotalSinImpuestos || 0).toFixed(2)}</td>
                         </tr>
                         {hasDiscount && (
                           <tr>
-                            <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">Total Descuento</td>
+                            <td className="px-2 py-0.5 bg-surface-bg border-r border-border-strong text-left">Total Descuento</td>
                             <td className="px-2 py-0.5 font-bold text-red-600">-${Number(taxDetails.totalDiscount || tx.descuentoValor || 0).toFixed(2)}</td>
                           </tr>
                         )}
                         {hasIce && (
                           <tr>
-                            <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">Valor ICE</td>
+                            <td className="px-2 py-0.5 bg-surface-bg border-r border-border-strong text-left">Valor ICE</td>
                             <td className="px-2 py-0.5 font-bold">${Number(tx.iceValor || 0).toFixed(2)}</td>
                           </tr>
                         )}
                         {hasIva15 && (
                           <tr>
-                            <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">IVA 15%</td>
+                            <td className="px-2 py-0.5 bg-surface-bg border-r border-border-strong text-left">IVA 15%</td>
                             <td className="px-2 py-0.5 font-bold">${Number(taxDetails.iva15 || tx.ivaValor || 0).toFixed(2)}</td>
                           </tr>
                         )}
                         {hasIva5 && (
                           <tr>
-                            <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">IVA 5%</td>
+                            <td className="px-2 py-0.5 bg-surface-bg border-r border-border-strong text-left">IVA 5%</td>
                             <td className="px-2 py-0.5 font-bold">${Number(taxDetails.iva5 || 0).toFixed(2)}</td>
                           </tr>
                         )}
                         {!hasIva15 && !hasIva5 && (
                           <tr>
-                            <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">IVA 0%</td>
+                            <td className="px-2 py-0.5 bg-surface-bg border-r border-border-strong text-left">IVA 0%</td>
                             <td className="px-2 py-0.5 font-bold">$0.00</td>
                           </tr>
                         )}
                         {hasIrbpnr && (
                           <tr>
-                            <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">IRBPNR</td>
+                            <td className="px-2 py-0.5 bg-surface-bg border-r border-border-strong text-left">IRBPNR</td>
                             <td className="px-2 py-0.5 font-bold">${Number(tx.irbpnrValor || 0).toFixed(2)}</td>
                           </tr>
                         )}
                         {hasPropina && (
                           <tr>
-                            <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">Propina</td>
+                            <td className="px-2 py-0.5 bg-surface-bg border-r border-border-strong text-left">Propina</td>
                             <td className="px-2 py-0.5 font-bold">${Number(tx.propinaValor || 0).toFixed(2)}</td>
                           </tr>
                         )}
-                        <tr className="bg-gray-100 font-extrabold text-xs border-y border-gray-300">
-                          <td className="px-2 py-1 border-r border-gray-300 text-left">Valor Total</td>
-                          <td className="px-2 py-1 text-black font-black">${Number(taxDetails.total || tx.total || 0).toFixed(2)}</td>
+                        <tr className="bg-surface-muted font-semibold text-xs border-y border-border-strong">
+                          <td className="px-2 py-1 border-r border-border-strong text-left">Valor Total</td>
+                          <td className="px-2 py-1 text-black font-semibold">${Number(taxDetails.total || tx.total || 0).toFixed(2)}</td>
                         </tr>
                         {hasIrf175 && (
                           <tr>
-                            <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">IRF 1.75%</td>
+                            <td className="px-2 py-0.5 bg-surface-bg border-r border-border-strong text-left">IRF 1.75%</td>
                             <td className="px-2 py-0.5">${Number(tx.irf175Valor || 0).toFixed(2)}</td>
                           </tr>
                         )}
                         {hasIrf275 && (
                           <tr>
-                            <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">IRF 2.75%</td>
+                            <td className="px-2 py-0.5 bg-surface-bg border-r border-border-strong text-left">IRF 2.75%</td>
                             <td className="px-2 py-0.5">${Number(tx.irf275Valor || 0).toFixed(2)}</td>
                           </tr>
                         )}
                         {hasRetFuente && !hasIrf175 && !hasIrf275 && (
                           <tr>
-                            <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">Retención Fuente</td>
+                            <td className="px-2 py-0.5 bg-surface-bg border-r border-border-strong text-left">Retención Fuente</td>
                             <td className="px-2 py-0.5">${Number(tx.retencionFuente || 0).toFixed(2)}</td>
                           </tr>
                         )}
                         {hasRetIva && (
                           <tr>
-                            <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">Retención IVA</td>
+                            <td className="px-2 py-0.5 bg-surface-bg border-r border-border-strong text-left">Retención IVA</td>
                             <td className="px-2 py-0.5">${Number(tx.retencionIva || 0).toFixed(2)}</td>
                           </tr>
                         )}
@@ -810,7 +804,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
                 </div>
 
                 {/* Texto de Compromiso / Letra de Pagaré */}
-                <div className="mt-3 p-2.5 border border-gray-300 text-xs leading-relaxed text-black text-justify font-sans print:text-[7.5px] print:p-1.5 print:mt-1.5 print:leading-snug">
+                <div className="mt-3 p-2.5 border border-border-strong text-xs leading-relaxed text-black text-justify font-sans print:text-[7.5px] print:p-1.5 print:mt-1.5 print:leading-snug">
                   HE RECIBIDO LOS ARTÍCULOS O SERVICIOS DETALLADOS EN ESTA FACTURA, POR EL VALOR INDICADO EN EL "TOTAL".
                   DEBO Y PAGARÉ A <span className="font-bold">{emisor.razonSocial}</span> INCONDICIONALMENTE Y SIN PROTESTO EL VALOR ADEUDADO. EN CASO DE MORA ME
                   SUJETO A PAGAR EL INTERÉS MÁXIMO PREVISTO EN LA LEY Y A SER DEMANDADO EN JUICIO O VERBAL SUMARIO A ELECCIÓN DEL ACTOR,
@@ -822,7 +816,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
 
             {/* FORMATO 2: TICKET POS TERMICO 80MM */}
             {viewFormat === 'ticket' && (
-              <div className="w-[300px] mx-auto p-4 bg-white border border-gray-400 text-black text-xs font-mono leading-tight print: print:border-none print:p-0">
+              <div className="w-[300px] mx-auto p-4 bg-white border border-border-strong text-black text-xs font-mono leading-tight print: print:border-none print:p-0">
                 <div className="text-center space-y-1">
                   <h2 className="font-bold text-sm uppercase">{emisor.nombreComercial}</h2>
                   <p className="text-xs">{emisor.razonSocial}</p>
@@ -863,17 +857,17 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
                       tx.items.map((item, idx) => (
                         <tr key={idx} className="align-top">
                           <td className="py-1">
-                            {item.quantity} x {item.name.slice(0,20)}
-                            <div className="text-xs text-gray-500">${Number(item.price).toFixed(2)} c/u</div>
+                            {item.quantity} x {invoiceDescription(item)}
+                            <div className="text-xs text-text-secondary">${invoiceLineAmounts(item).unitPrice.toFixed(2)} c/u</div>
                           </td>
-                          <td className="text-right py-1 font-bold">${(item.price * item.quantity).toFixed(2)}</td>
+                          <td className="text-right py-1 font-bold">${invoiceLineAmounts(item).total.toFixed(2)}</td>
                         </tr>
                       ))
                     ) : (
                       <tr>
                         <td className="py-1">
                           1 x Serv. {tx.category || 'Venta'}
-                          <div className="text-xs text-gray-500">${Number(tx.baseImponible).toFixed(2)} c/u</div>
+                          <div className="text-xs text-text-secondary">${Number(tx.baseImponible).toFixed(2)} c/u</div>
                         </td>
                         <td className="text-right py-1 font-bold">${Number(tx.baseImponible).toFixed(2)}</td>
                       </tr>

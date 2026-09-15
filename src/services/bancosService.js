@@ -1,4 +1,5 @@
-import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, getDoc, query, where, orderBy, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { reconcileBankMovement, positiveMoney } from './financialTransactions.js';
+import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, getDoc, query, where, orderBy, serverTimestamp, Timestamp } from './financeStore.js';
 import { registrarAuditoria } from './auditService';
 
 const COLLECTION_BANCOS = 'fin_bancos';
@@ -70,7 +71,7 @@ export async function actualizarCuenta(db, id, data, usuario) {
 }
 
 export async function eliminarCuenta(db, id, usuario) {
-  await deleteDoc(doc(db, COLLECTION_BANCOS, id));
+  await updateDoc(doc(db, COLLECTION_BANCOS, id), { estado: 'inactivo', updatedAt: serverTimestamp() });
   registrarAuditoria(db, { coleccion: COLLECTION_BANCOS, documentoId: id, accion: 'eliminar', usuario: usuario.uid, usuarioEmail: usuario.email, cambios: { antes: { id } }, modulo: 'finanzas' });
 }
 
@@ -83,7 +84,7 @@ export async function getMovimientosBancarios(db, cuentaId, filtros = {}) {
     items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   } catch (e) {
     if (e.code === 'failed-precondition' || e.message?.includes('index')) {
-      const q = query(collection(db, COLLECTION_MOV_BANCARIOS));
+      const q = query(collection(db, COLLECTION_MOV_BANCARIOS), where('cuentaId', '==', cuentaId));
       const snap = await getDocs(q);
       items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       items.sort((a, b) => { const fa = a.fecha?.toDate?.() || new Date(a.fecha || 0); const fb = b.fecha?.toDate?.() || new Date(b.fecha || 0); return fb - fa; });
@@ -99,6 +100,10 @@ export async function getMovimientosBancarios(db, cuentaId, filtros = {}) {
 }
 
 export async function registrarMovimientoBancario(db, data, usuario) {
+  positiveMoney(data.monto);
+  if (!['credito', 'debito'].includes(data.tipo)) throw new Error('Tipo de movimiento bancario inválido.');
+  const account = await getCuentaById(db, data.cuentaId);
+  if (account.estado !== 'activo') throw new Error('La cuenta bancaria no está activa.');
   const payload = {
     cuentaId: data.cuentaId,
     tipo: data.tipo,
@@ -117,19 +122,19 @@ export async function registrarMovimientoBancario(db, data, usuario) {
 }
 
 export async function eliminarMovimientoBancario(db, id, usuario) {
+  const existing = (await getDoc(doc(db, COLLECTION_MOV_BANCARIOS, id))).data();
+  if (existing?.conciliado || existing?.movimientoId) throw new Error('No se puede eliminar un movimiento vinculado.');
   await deleteDoc(doc(db, COLLECTION_MOV_BANCARIOS, id));
   registrarAuditoria(db, { coleccion: COLLECTION_MOV_BANCARIOS, documentoId: id, accion: 'eliminar', usuario: usuario.uid, usuarioEmail: usuario.email, cambios: { antes: { id } }, modulo: 'finanzas' });
 }
 
 export async function conciliarMovimiento(db, movBancarioId, movimientoId, usuario) {
-  const ref = doc(db, COLLECTION_MOV_BANCARIOS, movBancarioId);
-  await updateDoc(ref, { conciliado: true, movimientoId, updatedAt: serverTimestamp() });
+  await reconcileBankMovement(db, movBancarioId, movimientoId);
   registrarAuditoria(db, { coleccion: COLLECTION_MOV_BANCARIOS, documentoId: movBancarioId, accion: 'conciliar', usuario: usuario.uid, usuarioEmail: usuario.email, cambios: { movimientoId }, modulo: 'finanzas' });
 }
 
 export async function desconciliarMovimiento(db, movBancarioId, usuario) {
-  const ref = doc(db, COLLECTION_MOV_BANCARIOS, movBancarioId);
-  await updateDoc(ref, { conciliado: false, movimientoId: null, updatedAt: serverTimestamp() });
+  await reconcileBankMovement(db, movBancarioId, null);
   registrarAuditoria(db, { coleccion: COLLECTION_MOV_BANCARIOS, documentoId: movBancarioId, accion: 'desconciliar', usuario: usuario.uid, usuarioEmail: usuario.email, cambios: {}, modulo: 'finanzas' });
 }
 
@@ -171,6 +176,7 @@ export async function conciliacionAutomatica(db, cuentaId) {
     const posiblesMatches = [];
     
     for (const movFin of movFinancieros) {
+      if (movFin.conciliacionBancariaId || (movBanc.tipo === 'credito') !== (movFin.tipo === 'ingreso')) continue;
       let confianza = 0;
       let razon = [];
       

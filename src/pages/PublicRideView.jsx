@@ -1,3 +1,4 @@
+import { invoiceDescription, invoiceLineAmounts } from '../services/invoiceLine';
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Printer, FileText, AlertCircle, RefreshCw } from 'lucide-react';
@@ -120,23 +121,23 @@ export default function PublicRideView() {
 
   if (loading) {
     return (
-      <div className="min-h-screen w-full flex flex-col items-center justify-center bg-slate-900 text-white font-sans">
+      <div className="min-h-screen w-full flex flex-col items-center justify-center bg-text-heading text-white font-sans">
         <RefreshCw className="animate-spin text-primary mb-4" size={40} />
-        <p className="text-sm font-bold uppercase tracking-wider text-slate-400">Cargando Comprobante RIDE...</p>
+        <p className="text-sm font-bold uppercase tracking-wider text-text-secondary">Cargando Comprobante RIDE...</p>
       </div>
     );
   }
 
   if (error || !tx) {
     return (
-      <div className="min-h-screen w-full flex flex-col items-center justify-center bg-slate-900 text-white font-sans px-4">
-        <div className="max-w-md w-full bg-slate-800 border border-slate-700 rounded-card p-6 text-center space-y-4">
+      <div className="min-h-screen w-full flex flex-col items-center justify-center bg-text-heading text-white font-sans px-4">
+        <div className="max-w-md w-full bg-text-heading border border-border-strong rounded-card p-6 text-center space-y-4">
           <div className="w-12 h-12 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mx-auto">
             <AlertCircle size={24} />
           </div>
-          <h2 className="text-lg font-black uppercase text-red-400">Error de Consulta</h2>
-          <p className="text-slate-300 text-xs leading-relaxed">{error || 'Comprobante no disponible.'}</p>
-          <div className="text-xs font-mono text-slate-500 break-all select-all">
+          <h2 className="text-lg font-semibold uppercase text-red-400">Error de Consulta</h2>
+          <p className="text-text-secondary text-xs leading-relaxed">{error || 'Comprobante no disponible.'}</p>
+          <div className="text-xs font-mono text-text-secondary break-all select-all">
             Clave: {claveAcceso || 'No proporcionada'}
           </div>
         </div>
@@ -231,11 +232,7 @@ export default function PublicRideView() {
 
     if (items.length > 0) {
       items.forEach(item => {
-        const itemQty = Number(item.quantity) || 1;
-        const itemPrice = Number(item.price) || 0;
-        const itemDisc = Number(item.itemDiscount) || 0;
-        const lineBase = (itemPrice * itemQty) - itemDisc;
-        const rate = Number(item.ivaCategory);
+        const { discount: itemDisc, base: lineBase, rate } = invoiceLineAmounts(item);
 
         if (rate === 15 || rate === 12) {
           subtotal15 += lineBase;
@@ -315,7 +312,7 @@ export default function PublicRideView() {
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col bg-slate-900 text-slate-100 font-sans print:bg-white print:text-black public-ride-outer">
+    <div className="min-h-screen w-full flex flex-col bg-text-heading text-text-secondary font-sans print:bg-white print:text-black public-ride-outer">
       {/* Estilos para impresión limpia sin desfase superior */}
       <style dangerouslySetInnerHTML={{__html: `
         @page {
@@ -400,14 +397,14 @@ export default function PublicRideView() {
       `}} />
 
       {/* Top action bar */}
-      <div className="sticky top-0 z-50 bg-slate-950/80 border-b border-slate-800/80 px-4 py-3 flex items-center justify-between print-hide print:hidden">
+      <div className="sticky top-0 z-50 bg-text-heading/80 border-b border-border-strong/80 px-4 py-3 flex items-center justify-between print-hide print:hidden">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-surface-card/20 flex items-center justify-center text-text-secondary border border-border-default/30">
+          <div className="w-8 h-8 rounded-md bg-surface-card/20 flex items-center justify-center text-text-secondary border border-border-default/30">
             <FileText size={16} />
           </div>
           <div>
-            <h1 className="text-xs font-black uppercase tracking-wider text-slate-200">Visor RIDE Oficial</h1>
-            <p className="text-xs text-slate-400 font-mono select-all mt-0.5">{claveAcceso}</p>
+            <h1 className="text-xs font-semibold uppercase tracking-wider text-text-secondary">Visor RIDE Oficial</h1>
+            <p className="text-xs text-text-secondary font-mono select-all mt-0.5">{claveAcceso}</p>
           </div>
         </div>
 
@@ -420,22 +417,22 @@ export default function PublicRideView() {
       </div>
 
       {/* RIDE Content Sheet */}
-      <div className="flex-1 overflow-y-auto p-4 md:p-8 flex justify-center bg-slate-900 print:p-0 print:bg-white public-ride-scroll">
+      <div className="flex-1 overflow-y-auto p-4 md:p-8 flex justify-center bg-text-heading print:p-0 print:bg-white public-ride-scroll">
         <div id="print-area-wrapper" className="w-full max-w-3xl">
-          <div className="w-full mx-auto p-5 bg-white border border-gray-300 text-black text-xs font-sans leading-snug print:max-w-none print:w-full print:border-none print:p-0 print:m-0">
+          <div className="w-full mx-auto p-5 bg-white border border-border-strong text-black text-xs font-sans leading-snug print:max-w-none print:w-full print:border-none print:p-0 print:m-0">
             
             {/* Cabecera Principal Compacta */}
-            <div className="border border-gray-300 grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-300 print:grid-cols-2 print:divide-x print:divide-y-0 text-xs text-black">
+            <div className="border border-border-strong grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-300 print:grid-cols-2 print:divide-x print:divide-y-0 text-xs text-black">
               
               {/* Columna Izquierda: Datos del Emisor */}
               <div className="p-3 flex items-start gap-3 min-w-0">
                 {emisor.logoUrl ? (
                   <img src={emisor.logoUrl} alt="Logo" className="max-h-12 max-w-[100px] object-contain print:max-h-10 shrink-0" />
                 ) : (
-                  <div className="h-10 w-20 bg-gray-200 border border-gray-300 rounded flex items-center justify-center font-bold text-xs text-gray-600 tracking-wider shrink-0">LOGOTIPO</div>
+                  <div className="h-10 w-20 bg-surface-muted border border-border-strong rounded flex items-center justify-center font-bold text-xs text-text-primary tracking-wider shrink-0">LOGOTIPO</div>
                 )}
                 <div className="space-y-0.5 min-w-0 flex-1">
-                  <h2 className="font-extrabold text-xs uppercase leading-tight text-black truncate">{emisor.razonSocial}</h2>
+                  <h2 className="font-semibold text-xs uppercase leading-tight text-black truncate">{emisor.razonSocial}</h2>
                   {emisor.nombreComercial && <p className="font-bold text-xs text-black truncate">{emisor.nombreComercial}</p>}
                   <p><span className="font-bold">RUC:</span> {emisor.ruc}</p>
                   {emisor.contribuyenteEspecial && (
@@ -483,7 +480,7 @@ export default function PublicRideView() {
                   </div>
                 )}
                 <div className="border-t border-gray-250 pt-1.5 mt-auto">
-                  <h2 className="font-extrabold text-xs tracking-wide text-black uppercase leading-none">
+                  <h2 className="font-semibold text-xs tracking-wide text-black uppercase leading-none">
                     {getDocTypeLabel()} {docNumFormatted}
                   </h2>
                 </div>
@@ -491,7 +488,7 @@ export default function PublicRideView() {
             </div>
 
             {/* Datos del Receptor Compactos (Detalle de Cliente) */}
-            <div className="mt-3 border border-gray-300 text-xs text-black">
+            <div className="mt-3 border border-border-strong text-xs text-black">
               {/* Fila 1 */}
               <div className="grid grid-cols-12">
                 <div className="col-span-10 py-[2px] px-1.5 truncate">
@@ -554,46 +551,46 @@ export default function PublicRideView() {
             </div>
 
             {/* Detalle de Artículos */}
-            <div className="mt-3 border border-gray-300 overflow-hidden" style={{ borderRadius: '0px' }}>
+            <div className="mt-3 border border-border-strong overflow-hidden" style={{ borderRadius: '0px' }}>
               <table className="w-full text-left text-xs text-black">
-                <thead className="bg-gray-100 font-bold uppercase text-xs border-b border-gray-300 text-black">
+                <thead className="bg-surface-muted font-bold uppercase text-xs border-b border-border-strong text-black">
                   <tr>
-                    <th className="px-2 py-1 border-r border-gray-300 w-8 text-center">ITEM</th>
-                    <th className="px-2 py-1 border-r border-gray-300 w-16">CODIGO</th>
-                    <th className="px-2 py-1 border-r border-gray-300">DESCRIPCION</th>
-                    <th className="px-2 py-1 border-r border-gray-300 w-10 text-center">U/M</th>
-                    <th className="px-2 py-1 border-r border-gray-300 w-20 text-center">COD/BARRAS</th>
-                    <th className="px-2 py-1 border-r border-gray-300 w-10 text-right">CANTIDAD</th>
-                    <th className="px-2 py-1 border-r border-gray-300 text-right w-16">V.UNIT</th>
-                    <th className="px-2 py-1 border-r border-gray-300 text-right w-12">DESC.</th>
+                    <th className="px-2 py-1 border-r border-border-strong w-8 text-center">ITEM</th>
+                    <th className="px-2 py-1 border-r border-border-strong w-16">CODIGO</th>
+                    <th className="px-2 py-1 border-r border-border-strong">DESCRIPCION</th>
+                    <th className="px-2 py-1 border-r border-border-strong w-10 text-center">U/M</th>
+                    <th className="px-2 py-1 border-r border-border-strong w-20 text-center">COD/BARRAS</th>
+                    <th className="px-2 py-1 border-r border-border-strong w-10 text-right">CANTIDAD</th>
+                    <th className="px-2 py-1 border-r border-border-strong text-right w-16">V.UNIT</th>
+                    <th className="px-2 py-1 border-r border-border-strong text-right w-12">DESC.</th>
                     <th className="px-2 py-1 text-right w-16">V.TOTAL</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {tx.items && tx.items.length > 0 ? (
                     tx.items.map((item, idx) => (
-                      <tr key={idx} className="border-b border-gray-200">
-                        <td className="px-2 py-1 border-r border-gray-300 text-center font-mono">{idx + 1}</td>
-                        <td className="px-2 py-1 border-r border-gray-300 font-mono">{item.sku || 'SERV'}</td>
-                        <td className="px-2 py-1 border-r border-gray-300 font-medium">{item.name}</td>
-                        <td className="px-2 py-1 border-r border-gray-300 text-center uppercase font-mono">{item.unit || 'UNIDAD'}</td>
-                        <td className="px-2 py-1 border-r border-gray-300 text-center font-mono">{item.barcode || item.sku || 'N/A'}</td>
-                        <td className="px-2 py-1 border-r border-gray-300 text-right">{item.quantity}</td>
-                        <td className="px-2 py-1 border-r border-gray-300 text-right">${Number(item.price).toFixed(2)}</td>
-                        <td className="px-2 py-1 border-r border-gray-300 text-right">${Number(item.itemDiscount || 0).toFixed(2)}</td>
-                        <td className="px-2 py-1 text-right font-bold">${((item.price * item.quantity) - (item.itemDiscount || 0)).toFixed(2)}</td>
+                      <tr key={idx} className="border-b border-border-default">
+                        <td className="px-2 py-1 border-r border-border-strong text-center font-mono">{idx + 1}</td>
+                        <td className="px-2 py-1 border-r border-border-strong font-mono">{item.sku || 'SERV'}</td>
+                        <td className="px-2 py-1 border-r border-border-strong font-medium">{invoiceDescription(item)}</td>
+                        <td className="px-2 py-1 border-r border-border-strong text-center uppercase font-mono">{item.unit || 'UNIDAD'}</td>
+                        <td className="px-2 py-1 border-r border-border-strong text-center font-mono">{item.barcode || item.sku || 'N/A'}</td>
+                        <td className="px-2 py-1 border-r border-border-strong text-right">{item.quantity}</td>
+                        <td className="px-2 py-1 border-r border-border-strong text-right">${invoiceLineAmounts(item).unitPrice.toFixed(2)}</td>
+                        <td className="px-2 py-1 border-r border-border-strong text-right">${invoiceLineAmounts(item).discount.toFixed(2)}</td>
+                        <td className="px-2 py-1 text-right font-bold">${invoiceLineAmounts(item).base.toFixed(2)}</td>
                       </tr>
                     ))
                   ) : (
-                    <tr className="border-b border-gray-200">
-                      <td className="px-2 py-1 border-r border-gray-300 text-center font-mono">1</td>
-                      <td className="px-2 py-1 border-r border-gray-300 font-mono">COM01</td>
-                      <td className="px-2 py-1 border-r border-gray-300 font-medium">Servicios Comerciales - {tx.category || 'Ventas'}</td>
-                      <td className="px-2 py-1 border-r border-gray-300 text-center uppercase font-mono">UNIDAD</td>
-                      <td className="px-2 py-1 border-r border-gray-300 text-center font-mono">N/A</td>
-                      <td className="px-2 py-1 border-r border-gray-300 text-right">1</td>
-                      <td className="px-2 py-1 border-r border-gray-300 text-right">${Number(tx.baseImponible).toFixed(2)}</td>
-                      <td className="px-2 py-1 border-r border-gray-300 text-right">$0.00</td>
+                    <tr className="border-b border-border-default">
+                      <td className="px-2 py-1 border-r border-border-strong text-center font-mono">1</td>
+                      <td className="px-2 py-1 border-r border-border-strong font-mono">COM01</td>
+                      <td className="px-2 py-1 border-r border-border-strong font-medium">Servicios Comerciales - {tx.category || 'Ventas'}</td>
+                      <td className="px-2 py-1 border-r border-border-strong text-center uppercase font-mono">UNIDAD</td>
+                      <td className="px-2 py-1 border-r border-border-strong text-center font-mono">N/A</td>
+                      <td className="px-2 py-1 border-r border-border-strong text-right">1</td>
+                      <td className="px-2 py-1 border-r border-border-strong text-right">${Number(tx.baseImponible).toFixed(2)}</td>
+                      <td className="px-2 py-1 border-r border-border-strong text-right">$0.00</td>
                       <td className="px-2 py-1 text-right font-bold">${Number(tx.baseImponible).toFixed(2)}</td>
                     </tr>
                   )}
@@ -606,8 +603,8 @@ export default function PublicRideView() {
               
               {/* Columna Izquierda: Información Adicional y Pagos */}
               <div className="md:col-span-3 space-y-2">
-                <div className="p-2 border border-gray-300 space-y-1">
-                  <p className="font-bold border-b border-gray-200 pb-0.5 uppercase mb-1">Información Adicional</p>
+                <div className="p-2 border border-border-strong space-y-1">
+                  <p className="font-bold border-b border-border-default pb-0.5 uppercase mb-1">Información Adicional</p>
                   <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 mt-1 text-xs">
                     <p><span className="font-bold">Asesor:</span> {tx.createdBy || 'ADMINISTRADOR'}</p>
                     <p><span className="font-bold">Tipo Orden:</span> ZVTA</p>
@@ -625,21 +622,21 @@ export default function PublicRideView() {
                   </div>
                   
                   {/* Tabla de desglose de pagos */}
-                  <table className="w-full text-left text-xs border border-gray-300 mt-2">
-                    <thead className="bg-gray-100 font-bold border-b border-gray-300">
+                  <table className="w-full text-left text-xs border border-border-strong mt-2">
+                    <thead className="bg-surface-muted font-bold border-b border-border-strong">
                       <tr>
-                        <th className="px-2 py-0.5 border-r border-gray-300">Forma Pago</th>
-                        <th className="px-2 py-0.5 border-r border-gray-300 text-right">Valor</th>
-                        <th className="px-2 py-0.5 border-r border-gray-300 text-center">Plazo</th>
+                        <th className="px-2 py-0.5 border-r border-border-strong">Forma Pago</th>
+                        <th className="px-2 py-0.5 border-r border-border-strong text-right">Valor</th>
+                        <th className="px-2 py-0.5 border-r border-border-strong text-center">Plazo</th>
                         <th className="px-2 py-0.5 text-center">Tiempo</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
                       {getPaymentsTableRows().map((row, idx) => (
                         <tr key={idx}>
-                          <td className="px-2 py-0.5 border-r border-gray-300 uppercase">{row.method}</td>
-                          <td className="px-2 py-0.5 border-r border-gray-300 text-right">${Number(row.val).toFixed(2)}</td>
-                          <td className="px-2 py-0.5 border-r border-gray-300 text-center">000</td>
+                          <td className="px-2 py-0.5 border-r border-border-strong uppercase">{row.method}</td>
+                          <td className="px-2 py-0.5 border-r border-border-strong text-right">${Number(row.val).toFixed(2)}</td>
+                          <td className="px-2 py-0.5 border-r border-border-strong text-center">000</td>
                           <td className="px-2 py-0.5 text-center">DIAS</td>
                         </tr>
                       ))}
@@ -647,116 +644,116 @@ export default function PublicRideView() {
                   </table>
                 </div>
                 
-                <p className="text-xs uppercase font-bold text-gray-700 bg-gray-100 p-1.5 rounded border border-gray-300 text-center tracking-wide leading-none">
+                <p className="text-xs uppercase font-bold text-text-primary bg-surface-muted p-1.5 rounded border border-border-strong text-center tracking-wide leading-none">
                   Son: {numeroALetras(tx.total)}
                 </p>
               </div>
 
               {/* Columna Derecha: Totales Factura */}
-              <div className="md:col-span-2 border border-gray-300 overflow-hidden">
+              <div className="md:col-span-2 border border-border-strong overflow-hidden">
                 <table className="w-full text-right text-xs text-black">
                   <tbody className="divide-y divide-gray-200 font-medium">
                     {hasIva15 && (
                       <tr>
-                        <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">Subtotal 15%</td>
+                        <td className="px-2 py-0.5 bg-surface-bg border-r border-border-strong text-left">Subtotal 15%</td>
                         <td className="px-2 py-0.5 font-bold">${Number(taxDetails.subtotal15 || 0).toFixed(2)}</td>
                       </tr>
                     )}
                     {hasIva5 && (
                       <tr>
-                        <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">Subtotal 5%</td>
+                        <td className="px-2 py-0.5 bg-surface-bg border-r border-border-strong text-left">Subtotal 5%</td>
                         <td className="px-2 py-0.5 font-bold">${Number(taxDetails.subtotal5 || 0).toFixed(2)}</td>
                       </tr>
                     )}
                     {hasIva0 && (
                       <tr>
-                        <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">Subtotal 0%</td>
+                        <td className="px-2 py-0.5 bg-surface-bg border-r border-border-strong text-left">Subtotal 0%</td>
                         <td className="px-2 py-0.5 font-bold">${Number(taxDetails.subtotal0 || 0).toFixed(2)}</td>
                       </tr>
                     )}
                     {hasNoObjeto && (
                       <tr>
-                        <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">Subtotal No Sujeto de IVA</td>
+                        <td className="px-2 py-0.5 bg-surface-bg border-r border-border-strong text-left">Subtotal No Sujeto de IVA</td>
                         <td className="px-2 py-0.5 font-bold">${Number(taxDetails.subtotalNoObjeto || 0).toFixed(2)}</td>
                       </tr>
                     )}
                     {hasExento && (
                       <tr>
-                        <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">Subtotal Exento de IVA</td>
+                        <td className="px-2 py-0.5 bg-surface-bg border-r border-border-strong text-left">Subtotal Exento de IVA</td>
                         <td className="px-2 py-0.5 font-bold">${Number(taxDetails.subtotalExento || 0).toFixed(2)}</td>
                       </tr>
                     )}
                     <tr>
-                      <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">Subtotal Sin Impuestos</td>
+                      <td className="px-2 py-0.5 bg-surface-bg border-r border-border-strong text-left">Subtotal Sin Impuestos</td>
                       <td className="px-2 py-0.5 font-bold">${Number(taxDetails.subtotalSinImpuestos || 0).toFixed(2)}</td>
                     </tr>
                     {hasDiscount && (
                       <tr>
-                        <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">Total Descuento</td>
+                        <td className="px-2 py-0.5 bg-surface-bg border-r border-border-strong text-left">Total Descuento</td>
                         <td className="px-2 py-0.5 font-bold text-red-600">-${Number(taxDetails.totalDiscount || tx.descuentoValor || 0).toFixed(2)}</td>
                       </tr>
                     )}
                     {hasIce && (
                       <tr>
-                        <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">Valor ICE</td>
+                        <td className="px-2 py-0.5 bg-surface-bg border-r border-border-strong text-left">Valor ICE</td>
                         <td className="px-2 py-0.5 font-bold">${Number(tx.iceValor || 0).toFixed(2)}</td>
                       </tr>
                     )}
                     {hasIva15 && (
                       <tr>
-                        <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">IVA 15%</td>
+                        <td className="px-2 py-0.5 bg-surface-bg border-r border-border-strong text-left">IVA 15%</td>
                         <td className="px-2 py-0.5 font-bold">${Number(taxDetails.iva15 || tx.ivaValor || 0).toFixed(2)}</td>
                       </tr>
                     )}
                     {hasIva5 && (
                       <tr>
-                        <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">IVA 5%</td>
+                        <td className="px-2 py-0.5 bg-surface-bg border-r border-border-strong text-left">IVA 5%</td>
                         <td className="px-2 py-0.5 font-bold">${Number(taxDetails.iva5 || 0).toFixed(2)}</td>
                       </tr>
                     )}
                     {!hasIva15 && !hasIva5 && (
                       <tr>
-                        <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">IVA 0%</td>
+                        <td className="px-2 py-0.5 bg-surface-bg border-r border-border-strong text-left">IVA 0%</td>
                         <td className="px-2 py-0.5 font-bold">$0.00</td>
                       </tr>
                     )}
                     {hasIrbpnr && (
                       <tr>
-                        <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">IRBPNR</td>
+                        <td className="px-2 py-0.5 bg-surface-bg border-r border-border-strong text-left">IRBPNR</td>
                         <td className="px-2 py-0.5 font-bold">${Number(tx.irbpnrValor || 0).toFixed(2)}</td>
                       </tr>
                     )}
                     {hasPropina && (
                       <tr>
-                        <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">Propina</td>
+                        <td className="px-2 py-0.5 bg-surface-bg border-r border-border-strong text-left">Propina</td>
                         <td className="px-2 py-0.5 font-bold">${Number(tx.propinaValor || 0).toFixed(2)}</td>
                       </tr>
                     )}
-                    <tr className="bg-gray-100 font-extrabold text-xs border-y border-gray-300">
-                      <td className="px-2 py-1 border-r border-gray-300 text-left">Valor Total</td>
-                      <td className="px-2 py-1 text-black font-black">${Number(taxDetails.total || tx.total || 0).toFixed(2)}</td>
+                    <tr className="bg-surface-muted font-semibold text-xs border-y border-border-strong">
+                      <td className="px-2 py-1 border-r border-border-strong text-left">Valor Total</td>
+                      <td className="px-2 py-1 text-black font-semibold">${Number(taxDetails.total || tx.total || 0).toFixed(2)}</td>
                     </tr>
                     {hasIrf175 && (
                       <tr>
-                        <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">IRF 1.75%</td>
+                        <td className="px-2 py-0.5 bg-surface-bg border-r border-border-strong text-left">IRF 1.75%</td>
                         <td className="px-2 py-0.5">${Number(tx.irf175Valor || 0).toFixed(2)}</td>
                       </tr>
                     )}
                     {hasIrf275 && (
                       <tr>
-                        <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">IRF 2.75%</td>
+                        <td className="px-2 py-0.5 bg-surface-bg border-r border-border-strong text-left">IRF 2.75%</td>
                         <td className="px-2 py-0.5">${Number(tx.irf275Valor || 0).toFixed(2)}</td>
                       </tr>
                     )}
                     {hasRetFuente && !hasIrf175 && !hasIrf275 && (
                       <tr>
-                        <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">Retención Fuente</td>
+                        <td className="px-2 py-0.5 bg-surface-bg border-r border-border-strong text-left">Retención Fuente</td>
                         <td className="px-2 py-0.5">${Number(tx.retencionFuente || 0).toFixed(2)}</td>
                       </tr>
                     )}
                     {hasRetIva && (
                       <tr>
-                        <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">Retención IVA</td>
+                        <td className="px-2 py-0.5 bg-surface-bg border-r border-border-strong text-left">Retención IVA</td>
                         <td className="px-2 py-0.5">${Number(tx.retencionIva || 0).toFixed(2)}</td>
                       </tr>
                     )}
@@ -767,7 +764,7 @@ export default function PublicRideView() {
             </div>
 
             {/* Texto de Compromiso / Letra de Pagaré */}
-            <div className="mt-3 p-2.5 border border-gray-300 text-xs leading-relaxed text-black text-justify font-sans print:text-[7.5px] print:p-1.5 print:mt-1.5 print:leading-snug">
+            <div className="mt-3 p-2.5 border border-border-strong text-xs leading-relaxed text-black text-justify font-sans print:text-[7.5px] print:p-1.5 print:mt-1.5 print:leading-snug">
               HE RECIBIDO LOS ARTÍCULOS O SERVICIOS DETALLADOS EN ESTA FACTURA, POR EL VALOR INDICADO EN EL "TOTAL".
               DEBO Y PAGARÉ A <span className="font-bold">{emisor.razonSocial}</span> INCONDICIONALMENTE Y SIN PROTESTO EL VALOR ADEUDADO. EN CASO DE MORA ME
               SUJETO A PAGAR EL INTERÉS MÁXIMO PREVISTO EN LA LEY Y A SER DEMANDADO EN JUICIO O VERBAL SUMARIO A ELECCIÓN DEL ACTOR,

@@ -152,7 +152,7 @@ export default function ImpuestosSriView({ db, usuario, showToast, transactions 
             <Percent size={14} className="text-primary" />IVA del Mes
           </div>
           <div className="text-lg font-bold text-primary">{fmt(iva?.aPagar)}</div>
-          <div className="text-[10px] text-text-muted mt-0.5">
+          <div className="text-xs text-text-muted mt-0.5">
             {iva?.creditoFiscal > 0 ? `Crédito fiscal: ${fmt(iva.creditoFiscal)}` : `Sobre ${fmt(iva?.baseImponibleVentas)} base`}
           </div>
         </div>
@@ -161,14 +161,14 @@ export default function ImpuestosSriView({ db, usuario, showToast, transactions 
             <Receipt size={14} className="text-amber-600" />Retenciones
           </div>
           <div className="text-lg font-bold text-amber-700">{fmt(retenciones?.total)}</div>
-          <div className="text-[10px] text-text-muted mt-0.5">Fuente: {fmt(retenciones?.fuente)} | IVA: {fmt(retenciones?.iva)}</div>
+          <div className="text-xs text-text-muted mt-0.5">Fuente: {fmt(retenciones?.fuente)} | IVA: {fmt(retenciones?.iva)}</div>
         </div>
         <div className="bg-surface-card border border-border-default rounded-card p-4">
           <div className="flex items-center gap-2 text-text-secondary text-xs mb-1">
             <FileText size={14} className="text-blue-600" />Documentos
           </div>
           <div className="text-lg font-bold text-blue-700">{documentos?.total || 0}</div>
-          <div className="text-[10px] text-text-muted mt-0.5">{documentos?.autorizados || 0} autorizados | {documentos?.pendientes || 0} pendientes</div>
+          <div className="text-xs text-text-muted mt-0.5">{documentos?.autorizados || 0} autorizados | {documentos?.pendientes || 0} pendientes</div>
         </div>
         <div className="bg-surface-card border border-border-default rounded-card p-4">
           <div className="flex items-center gap-2 text-text-secondary text-xs mb-1">
@@ -179,7 +179,7 @@ export default function ImpuestosSriView({ db, usuario, showToast, transactions 
               {vencimientos?.filter(v => v.vencido).length || 0}
             </span>
           </div>
-          <div className="text-[10px] text-text-muted mt-0.5">
+          <div className="text-xs text-text-muted mt-0.5">
             {vencimientos?.filter(v => !v.vencido && v.diasRestantes <= 5).length || 0} próximos a vencer
           </div>
         </div>
@@ -233,7 +233,7 @@ export default function ImpuestosSriView({ db, usuario, showToast, transactions 
                   </div>
                   <div>
                     <div className="text-sm font-medium text-text-primary">{v.descripcion}</div>
-                    <div className="text-[10px] text-text-muted">Día {v.dia} — {v.fecha}</div>
+                    <div className="text-xs text-text-muted">Día {v.dia} — {v.fecha}</div>
                   </div>
                 </div>
                 <span className={`px-2 py-0.5 text-xs font-medium border rounded-badge ${URGENCIA_BADGES[v.urgencia]}`}>
@@ -340,7 +340,7 @@ function RetencionesTab({ retenciones, fmt }) {
             <FileText size={14} className="text-primary" />Total Retenido
           </div>
           <div className="text-lg font-bold text-primary">{fmt(retenciones.total)}</div>
-          <div className="text-[10px] text-text-muted mt-0.5">{retenciones.documentosRetenidos} documentos</div>
+          <div className="text-xs text-text-muted mt-0.5">{retenciones.documentosRetenidos} documentos</div>
         </div>
       </div>
 
@@ -438,19 +438,19 @@ function AtsTab({ atsPreview, atsGenerating, atsData, rucValidate, rucResult, se
         {atsData && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
             <div className="p-2 rounded-md border border-border-default">
-              <div className="text-[10px] text-text-muted">Total Docs</div>
+              <div className="text-xs text-text-muted">Total Docs</div>
               <div className="text-sm font-bold text-text-primary">{atsData.totalDocumentos}</div>
             </div>
             <div className="p-2 rounded-md border border-border-default">
-              <div className="text-[10px] text-text-muted">IVA Ventas</div>
+              <div className="text-xs text-text-muted">IVA Ventas</div>
               <div className="text-sm font-bold text-success">{fmt(atsData.resumen?.iva?.ventas)}</div>
             </div>
             <div className="p-2 rounded-md border border-border-default">
-              <div className="text-[10px] text-text-muted">IVA Compras</div>
+              <div className="text-xs text-text-muted">IVA Compras</div>
               <div className="text-sm font-bold text-blue-700">{fmt(atsData.resumen?.iva?.compras)}</div>
             </div>
             <div className="p-2 rounded-md border border-border-default">
-              <div className="text-[10px] text-text-muted">Retenciones</div>
+              <div className="text-xs text-text-muted">Retenciones</div>
               <div className="text-sm font-bold text-amber-700">{fmt(atsData.resumen?.retenciones?.total)}</div>
             </div>
           </div>
@@ -479,7 +479,7 @@ function AtsTab({ atsPreview, atsGenerating, atsData, rucValidate, rucResult, se
           <div className="border border-border-default rounded-md overflow-hidden">
             <div className="px-3 py-1.5 bg-surface-sidebar border-b border-border-default flex items-center justify-between">
               <span className="text-xs font-semibold text-text-secondary">Vista previa XML</span>
-              <span className="text-[10px] text-text-muted">{atsPreview.length} caracteres</span>
+              <span className="text-xs text-text-muted">{atsPreview.length} caracteres</span>
             </div>
             <pre className="p-3 text-xs font-mono text-text-primary bg-white overflow-auto max-h-72 custom-scrollbar whitespace-pre-wrap">
               {atsPreview}

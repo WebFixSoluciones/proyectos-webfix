@@ -544,7 +544,7 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
             <div className="relative flex-1 min-w-[200px] max-w-xs">
               <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-primary" />
               <input value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Buscar..." className={`${inputClass} pl-8`} />
-              {searchTerm && <button onClick={() => setSearchTerm('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black"><X size={12} /></button>}
+              {searchTerm && <button onClick={() => setSearchTerm('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-text-secondary hover:text-black"><X size={12} /></button>}
             </div>
             <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="text-xs font-medium px-2 py-1.5 rounded-md border border-border-default bg-white text-black">
               <option value="all">Todos ({sriBills.length})</option><option value="nuevo">Pendientes ({sriBills.filter(b => !isBillImported(b)).length})</option><option value="importado">Ya en Compras ({sriBills.filter(b => isBillImported(b)).length})</option>
@@ -637,8 +637,8 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
                         </td>
                         <td>
                           <div className="flex items-center justify-center gap-1">
-                            <button onClick={() => handleViewRide(bill)} className="btn-icon text-gray-500" title="Ver RIDE"><Eye size={13} /></button>
-                            <button onClick={() => handleDownloadXml(bill)} className="btn-icon text-gray-500" title="Descargar XML"><Download size={13} /></button>
+                            <button onClick={() => handleViewRide(bill)} className="btn-icon text-text-secondary" title="Ver RIDE"><Eye size={13} /></button>
+                            <button onClick={() => handleDownloadXml(bill)} className="btn-icon text-text-secondary" title="Descargar XML"><Download size={13} /></button>
                             {!imported && (
                               <button onClick={() => handleOpenImport(bill)} className="btn-icon bg-primary" title="Importar a Compras"><ArrowRight size={13} /></button>
                             )}
@@ -837,10 +837,10 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
       {/* ============ MODAL: RIDE Viewer ============ */}
       {selectedRide && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/40" onClick={() => setSelectedRide(null)}>
-          <div className="w-full max-w-lg bg-white rounded-lg border border-border-default" onClick={e => e.stopPropagation()}>
+          <div className="w-full max-w-lg bg-white rounded-md border border-border-default" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between px-5 py-3 border-b border-border-default">
               <h3 className="text-md font-semibold text-black">RIDE - {selectedRide.documentNumber}</h3>
-              <button onClick={() => setSelectedRide(null)} className="btn-icon text-gray-500"><X size={16} /></button>
+              <button onClick={() => setSelectedRide(null)} className="btn-icon text-text-secondary"><X size={16} /></button>
             </div>
             <div className="p-5 space-y-2 text-sm text-black">
               <div className="grid grid-cols-2 gap-2">
@@ -867,10 +867,10 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
       {/* ============ MODAL: Import Method Selector ============ */}
       {importModal && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/40" onClick={() => setImportModal(null)}>
-          <div className="w-full max-w-md bg-white rounded-lg border border-border-default" onClick={e => e.stopPropagation()}>
+          <div className="w-full max-w-md bg-white rounded-md border border-border-default" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between px-5 py-3 border-b border-border-default">
               <h3 className="text-md font-semibold text-black">Importar a Historial de Compras</h3>
-              <button onClick={() => setImportModal(null)} className="btn-icon text-gray-500"><X size={16} /></button>
+              <button onClick={() => setImportModal(null)} className="btn-icon text-text-secondary"><X size={16} /></button>
             </div>
             <div className="p-5 space-y-3">
               <p className="text-sm text-text-primary">
@@ -896,7 +896,7 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
       {/* ============ MODAL: Confirmar Extraccion SRI ============ */}
       {confirmFetch && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50" onClick={() => setConfirmFetch(false)}>
-          <div className="w-full max-w-sm bg-white rounded-lg border border-border-default" onClick={e => e.stopPropagation()}>
+          <div className="w-full max-w-sm bg-white rounded-md border border-border-default" onClick={e => e.stopPropagation()}>
             <div className="p-5 text-center space-y-4">
               <div className="mx-auto w-12 h-12 rounded-full bg-surface-card flex items-center justify-center">
                 <RefreshCw size={24} className="text-[var(--primary-color)]" />
@@ -925,7 +925,7 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
       {/* ============ MODAL: Confirmar Limpieza de Buzon ============ */}
       {confirmClear && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50" onClick={() => setConfirmClear(false)}>
-          <div className="w-full max-w-sm bg-white rounded-lg border border-border-default" onClick={e => e.stopPropagation()}>
+          <div className="w-full max-w-sm bg-white rounded-md border border-border-default" onClick={e => e.stopPropagation()}>
             <div className="p-5 text-center space-y-4">
               <div className="mx-auto w-12 h-12 rounded-full bg-surface-card flex items-center justify-center">
                 <Trash2 size={24} className="text-text-secondary" />
@@ -948,7 +948,7 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
       {/* ============ MODAL: Confirmar Eliminacion Individual ============ */}
       {confirmDeleteId && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50" onClick={() => setConfirmDeleteId(null)}>
-          <div className="w-full max-w-sm bg-white rounded-lg border border-border-default" onClick={e => e.stopPropagation()}>
+          <div className="w-full max-w-sm bg-white rounded-md border border-border-default" onClick={e => e.stopPropagation()}>
             <div className="p-5 text-center space-y-4">
               <div className="mx-auto w-12 h-12 rounded-full bg-surface-card flex items-center justify-center">
                 <Trash2 size={24} className="text-text-secondary" />

@@ -1,11 +1,13 @@
-import { useState, useEffect, Fragment } from 'react';
+import { useState, useEffect, useRef, Fragment } from 'react';
 import { 
   X, Plus, Search, Upload, Package, FileText,
   ShoppingBag, ChevronRight, ChevronLeft,
   CheckCircle2, UserPlus
 } from 'lucide-react';
-import { doc, setDoc, getDoc, getDocs, collection, deleteDoc } from 'firebase/firestore';
-import { registrarMovimientoKardex } from '../../services/inventoryService';
+import { doc, setDoc, getDoc, getDocs, collection } from 'firebase/firestore';
+import { registerTransactionInventory } from '../../services/inventoryLedger';
+import { productRepository } from '../../modules/inventory/repositories/ProductRepository';
+import { normalizeProduct } from '../../services/productModel';
 import { getEcuadorDateString } from '../../services/sriService';
 import { sincronizarCompra } from '../../services/integracionFinanzasService';
 
@@ -55,7 +57,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
     let iva5 = 0, iva12 = 0, iva15 = 0;
     const base = items.reduce((s, i) => {
       const subtotal = Number(i.quantity) * Number(i.price) - Number(i.discount || 0);
-      const ivaRate = Number(i.ivaCategory) || 15;
+      const ivaRate = Number(i.ivaCategory ?? 15);
       if (ivaRate === 5) iva5 += subtotal * 0.05;
       else if (ivaRate === 12) iva12 += subtotal * 0.12;
       else if (ivaRate === 15 || ivaRate !== 0) iva15 += subtotal * 0.15;
@@ -128,8 +130,8 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
       unit: newProduct.unit || 'unidad', createdAt: new Date().toISOString()
     };
     try {
-      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'inventory_products', prodId), { ...prod, baseCost: Number(newProduct.cost) || 0 });
-      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_products', prodId), { ...prod, cost: Number(newProduct.cost) || 0, baseCost: Number(newProduct.cost) || 0 });
+      const saved = await productRepository.create({ id: prodId, type: 'STANDARD', name: prod.name, sku: prod.sku, salePrice: prod.price, baseCost: prod.baseCost, taxRate: Number(newProduct.iva ?? 15) });
+      Object.assign(prod, normalizeProduct(saved));
       showToast?.('Producto creado y agregado a la compra', 'success');
       handleAddProduct(prod);
       setShowCreateProduct(false);
@@ -204,11 +206,16 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
   };
 
   // Save
+  const stableId = useRef(tx?.id || crypto.randomUUID());
+  const saveLock = useRef(false);
   const handleSave = async () => {
+    if (saveLock.current) return;
+    if (!Number.isFinite(Number(form.total)) || Number(form.total) <= 0 || form.items.some(item => Number(item.quantity) <= 0 || Number(item.price) < 0)) { showToast?.('Revisa los importes y cantidades de la compra.', 'error'); return; }
     if (!form.supplierName && !form.description) { showToast?.('Selecciona un proveedor o agrega una descripcion', 'warning'); return; }
     if (form.purchaseType === 'con_inventario' && form.items.length === 0 && !form.description) { showToast?.('Agrega al menos un producto o una descripcion', 'warning'); return; }
+    saveLock.current = true;
     setSaving(true);
-    const docId = tx?.id || `compra_${Date.now()}`;
+    const docId = stableId.current;
     
     const payload = {
       id: docId, type: 'egreso', category: 'compras',
@@ -221,52 +228,25 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
       sriStatus: form.claveAcceso ? 'autorizado' : 'pendiente',
       description: form.description, reference: form.reference,
       items: form.items, bodega: form.bodega, purchaseType: form.purchaseType,
-      inventarioRegistrado: false
+      financialSyncStatus: 'pending', inventarioRegistrado: !!tx?.inventarioRegistrado
     };
 
     try {
       // 1. Save transaction
       const txRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId);
-      await setDoc(txRef, payload);
-
-      // 2. Register kardex for inventory purchases (with rollback)
-      if (form.purchaseType === 'con_inventario' && form.items.length > 0) {
-        const updatedItems = [];
-        let kardexFailed = false;
-        for (const item of form.items) {
-          if (!item.productId) { updatedItems.push(item); continue; }
-          try {
-            await registrarMovimientoKardex(db, appId, {
-              productId: item.productId, type: 'entrada',
-              quantity: Number(item.quantity), cost: Number(item.price),
-              price: Number(item.price),
-              concept: `Compra #${form.documentNumber || docId}`,
-              referenceId: docId, bodega: form.bodega
-            });
-            updatedItems.push(item);
-          } catch (kardexErr) {
-            console.error("Error kardex para item:", item, kardexErr);
-            kardexFailed = true;
-            updatedItems.push(item);
-          }
-        }
-        
-        if (kardexFailed) {
-          // Rollback: attempt to delete the orphaned transaction
-          try { await deleteDoc(txRef); } catch { /* ignore */ }
-          showToast?.('Error al registrar inventario. Se revierte la compra.', 'error');
-          setSaving(false);
-          return;
-        }
-        
-        // Mark as registered
-        await setDoc(txRef, { inventarioRegistrado: true, items: updatedItems }, { merge: true });
+      const previous = await getDoc(txRef);
+      if (previous.data()?.inventarioRegistrado) {
+        const signature = items => JSON.stringify((items || []).map(item => [item.productId, Number(item.quantity), Number(item.price)]));
+        if (signature(previous.data().items) !== signature(payload.items)) throw new Error('La compra ya afectó inventario. Registra un ajuste para corregir cantidades o costos.');
+        payload.inventarioRegistrado = true;
       }
+      await setDoc(txRef, payload, { merge: true });
 
-      showToast?.('Compra registrada exitosamente', 'success');
+      if (form.purchaseType === 'con_inventario' && form.items.length > 0) await registerTransactionInventory(db, appId, payload);
 
-      try {
+      {
         const compraData = {
+          ...payload,
           id: docId,
           type: 'egreso',
           documentType: form.documentType,
@@ -293,16 +273,16 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
           creadoPor: '',
         };
         await sincronizarCompra(compraData, db, { uid: '', email: '' });
-      } catch (syncErr) {
-        console.error('Error sincronizando compra con modulo financiero:', syncErr);
       }
 
+      await setDoc(txRef, { financialSyncStatus: 'complete' }, { merge: true });
+      showToast?.('Compra e inventario registrados correctamente.', 'success');
       onClose?.();
     } catch (err) { 
       console.error(err); 
-      showToast?.('Error al guardar la compra', 'error'); 
+      showToast?.(err.message || 'Error al guardar la compra. Puedes reintentar sin duplicarla.', 'error');
     }
-    finally { setSaving(false); }
+    finally { saveLock.current = false; setSaving(false); }
   };
 
   // Helpers
@@ -321,7 +301,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
 
   return (
     <div className="fixed inset-0 z-[150] flex items-center justify-center p-2 sm:p-4 bg-black/50" onClick={onClose}>
-      <div className="w-full max-w-2xl max-h-[95vh] bg-white rounded-lg border border-border-default flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
+      <div className="w-full max-w-2xl max-h-[95vh] bg-white rounded-md border border-border-default flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
         
         {/* Header + Stepper */}
         <div className="shrink-0 px-5 py-3 border-b border-border-default space-y-3">
@@ -334,7 +314,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
                 {tx?.id ? 'Editar Compra' : 'Nueva Compra'}
               </h2>
             </div>
-            <button onClick={onClose} className="btn-icon text-gray-500"><X size={16} /></button>
+            <button onClick={onClose} className="btn-icon text-text-secondary"><X size={16} /></button>
           </div>
           {/* Stepper dots */}
           <div className="flex items-center gap-1.5">

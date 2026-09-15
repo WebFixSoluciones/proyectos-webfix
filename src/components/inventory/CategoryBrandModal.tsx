@@ -134,9 +134,9 @@ export default function CategoryBrandModal({ onClose, onChanged }: CategoryBrand
     }
   };
 
-  const inputClass = `w-full px-3 py-2 rounded-card outline-none transition-all border text-sm bg-white border-gray-200 text-gray-800 focus:border-primary`;
+  const inputClass = `w-full px-3 py-2 rounded-card outline-none transition-all border text-sm bg-white border-border-default text-text-heading focus:border-primary`;
 
-  const labelClass = `block text-xs font-semibold mb-1 uppercase tracking-wider text-gray-500`;
+  const labelClass = `block text-xs font-semibold mb-1 uppercase tracking-wider text-text-secondary`;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-black/40 animate-in fade-in duration-300">
@@ -144,16 +144,16 @@ export default function CategoryBrandModal({ onClose, onChanged }: CategoryBrand
         className={`w-full max-w-4xl h-[80vh] flex flex-col rounded-card border overflow-hidden bg-white/95 border-white/40`}
       >
         {/* Header */}
-        <div className={`modal-header-std modal-header-std-dark border-gray-100 bg-white/80`}>
+        <div className={`modal-header-std modal-header-std-dark border-border-default bg-white/80`}>
           <div className="flex items-center gap-2">
             <Tag className="text-primary" />
-            <h2 className={`text-lg font-bold text-gray-900`}>
+            <h2 className={`text-lg font-bold text-text-heading`}>
               Gestionar Categorías y Marcas
             </h2>
           </div>
           <button 
             onClick={onClose}
-            className={`p-1.5 rounded-card transition-all hover:scale-105 bg-gray-100 text-gray-500 hover:text-gray-900`}
+            className={`p-1.5 rounded-card transition-all hover:scale-105 bg-surface-muted text-text-secondary hover:text-text-heading`}
           >
             <X size={18} />
           </button>
@@ -166,7 +166,7 @@ export default function CategoryBrandModal({ onClose, onChanged }: CategoryBrand
             className={`px-4 py-1.5 rounded-card text-xs font-bold transition-all border flex items-center gap-1.5 ${
               activeTab === 'categories'
                 ? 'bg-primary text-white border-primary'
-                : 'border-transparent text-gray-600 hover:text-gray-900'
+                : 'border-transparent text-text-primary hover:text-text-heading'
             }`}
           >
             <FolderOpen size={14} />
@@ -177,7 +177,7 @@ export default function CategoryBrandModal({ onClose, onChanged }: CategoryBrand
             className={`px-4 py-1.5 rounded-card text-xs font-bold transition-all border flex items-center gap-1.5 ${
               activeTab === 'brands'
                 ? 'bg-primary text-white border-primary'
-                : 'border-transparent text-gray-600 hover:text-gray-900'
+                : 'border-transparent text-text-primary hover:text-text-heading'
             }`}
           >
             <Award size={14} />
@@ -251,7 +251,7 @@ export default function CategoryBrandModal({ onClose, onChanged }: CategoryBrand
                         setCategoryDesc('');
                         setSelectedDiscountId('');
                       }}
-                      className="w-1/2 py-2 rounded-card text-sm font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all cursor-pointer"
+                      className="w-1/2 py-2 rounded-card text-sm font-bold bg-surface-muted hover:bg-surface-muted text-text-primary transition-all cursor-pointer"
                     >
                       Cancelar
                     </button>
@@ -269,25 +269,25 @@ export default function CategoryBrandModal({ onClose, onChanged }: CategoryBrand
 
               {/* List Side */}
               <div className="flex-1 p-6 overflow-y-auto custom-scrollbar">
-                <h3 className={`text-xs font-bold uppercase tracking-wider mb-4 text-gray-500`}>
+                <h3 className={`text-xs font-bold uppercase tracking-wider mb-4 text-text-secondary`}>
                   Categorías Registradas ({categories.length})
                 </h3>
 
                 <div className="space-y-3">
                   {categories.length === 0 ? (
-                    <p className={`text-sm text-center py-8 text-gray-400`}>
+                    <p className={`text-sm text-center py-8 text-text-secondary`}>
                       No hay categorías registradas.
                     </p>
                   ) : (
                     categories.map(cat => (
                       <div 
                         key={cat.id} 
-                        className={`p-4 rounded-card border flex items-center justify-between transition-all bg-gray-50 border-gray-100 hover:border-gray-200`}
+                        className={`p-4 rounded-card border flex items-center justify-between transition-all bg-surface-bg border-border-default hover:border-border-default`}
                       >
                         <div>
-                          <h4 className={`text-sm font-bold text-gray-800`}>{cat.name}</h4>
+                          <h4 className={`text-sm font-bold text-text-heading`}>{cat.name}</h4>
                           {cat.description && (
-                            <p className={`text-xs mt-1 text-gray-500`}>{cat.description}</p>
+                            <p className={`text-xs mt-1 text-text-secondary`}>{cat.description}</p>
                           )}
                           {cat.id_descuento_asociado && (() => {
                             const disc = discounts.find(d => d.id === cat.id_descuento_asociado);
@@ -368,25 +368,25 @@ export default function CategoryBrandModal({ onClose, onChanged }: CategoryBrand
 
               {/* List Side */}
               <div className="flex-1 p-6 overflow-y-auto custom-scrollbar">
-                <h3 className={`text-xs font-bold uppercase tracking-wider mb-4 text-gray-500`}>
+                <h3 className={`text-xs font-bold uppercase tracking-wider mb-4 text-text-secondary`}>
                   Marcas Registradas ({brands.length})
                 </h3>
 
                 <div className="space-y-3">
                   {brands.length === 0 ? (
-                    <p className={`text-sm text-center py-8 text-gray-400`}>
+                    <p className={`text-sm text-center py-8 text-text-secondary`}>
                       No hay marcas registradas.
                     </p>
                   ) : (
                     brands.map(brand => (
                       <div 
                         key={brand.id} 
-                        className={`p-4 rounded-card border flex items-center justify-between transition-all bg-gray-50 border-gray-100 hover:border-gray-200`}
+                        className={`p-4 rounded-card border flex items-center justify-between transition-all bg-surface-bg border-border-default hover:border-border-default`}
                       >
                         <div>
-                          <h4 className={`text-sm font-bold text-gray-800`}>{brand.name}</h4>
+                          <h4 className={`text-sm font-bold text-text-heading`}>{brand.name}</h4>
                           {brand.manufacturer && (
-                            <p className={`text-xs mt-1 text-gray-500`}>{brand.manufacturer}</p>
+                            <p className={`text-xs mt-1 text-text-secondary`}>{brand.manufacturer}</p>
                           )}
                         </div>
                         <button

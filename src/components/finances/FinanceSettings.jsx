@@ -120,7 +120,7 @@ export default function FinanceSettings({  showToast, db, appId }) {
   };
 
   const inputClass = `w-full text-xs px-3 py-2.5 rounded-card outline-none transition-all border ${
-    'bg-white border-gray-200 text-gray-900 focus:border-primary/50'
+    'bg-white border-border-default text-text-heading focus:border-primary/50'
   }`;
 
   if (loading) {
@@ -137,8 +137,8 @@ export default function FinanceSettings({  showToast, db, appId }) {
         <div className="md:col-span-2 space-y-6">
           
           {/* CONFIGURACIÓN AMBIENTE Y GEMINI */}
-          <div className={`p-6 rounded-card border space-y-4 bg-white border-gray-200`}>
-            <div className="flex items-center gap-2 mb-2 pb-3 border-b border-gray-100">
+          <div className={`p-6 rounded-card border space-y-4 bg-white border-border-default`}>
+            <div className="flex items-center gap-2 mb-2 pb-3 border-b border-border-default">
               <Sparkles size={18} className="text-primary" />
               <h3 className="text-base font-bold">Entorno SRI e Inteligencia Artificial</h3>
             </div>
@@ -150,14 +150,14 @@ export default function FinanceSettings({  showToast, db, appId }) {
                   <button 
                     type="button" 
                     onClick={() => setSriConfig({...sriConfig, ambiente: '1'})} 
-                    className={`py-2.5 text-xs font-bold rounded-card border transition-all ${sriConfig.ambiente === '1' ? 'bg-primary text-white border-primary' : ('bg-gray-100 text-gray-600 border-gray-200')}`}
+                    className={`py-2.5 text-xs font-bold rounded-card border transition-all ${sriConfig.ambiente === '1' ? 'bg-primary text-white border-primary' : ('bg-surface-muted text-text-primary border-border-default')}`}
                   >
                     PRUEBAS
                   </button>
                   <button 
                     type="button" 
                     onClick={() => setSriConfig({...sriConfig, ambiente: '2'})} 
-                    className={`py-2.5 text-xs font-bold rounded-card border transition-all ${sriConfig.ambiente === '2' ? 'bg-emerald-600 text-white border-emerald-600' : ('bg-gray-100 text-gray-600 border-gray-200')}`}
+                    className={`py-2.5 text-xs font-bold rounded-card border transition-all ${sriConfig.ambiente === '2' ? 'bg-emerald-600 text-white border-emerald-600' : ('bg-surface-muted text-text-primary border-border-default')}`}
                   >
                     PRODUCCIÓN
                   </button>
@@ -173,7 +173,7 @@ export default function FinanceSettings({  showToast, db, appId }) {
                 </div>
               </div>
             </div>
-            <p className="text-xs text-gray-500 leading-relaxed">
+            <p className="text-xs text-text-secondary leading-relaxed">
               El ambiente determina a qué servidor del SRI se envían las facturas. Las herramientas de Inteligencia Artificial (OCR de comprobantes, categorización contable y chat asesor) están habilitadas y gestionadas automáticamente para todos los usuarios.
             </p>
 
@@ -206,17 +206,17 @@ export default function FinanceSettings({  showToast, db, appId }) {
           </div>
 
           {/* VINCULACIÓN SRI ECUADOR */}
-          <div className={`p-6 rounded-card border bg-white border-gray-200`}>
+          <div className={`p-6 rounded-card border bg-white border-border-default`}>
             <div className="flex items-center gap-2 mb-4 pb-2 border-b border-white/10">
               <ExternalLink size={18} className="text-primary" />
               <h3 className="text-base font-bold">Guía de Vinculación con el SRI (Ecuador)</h3>
             </div>
             
             <div className="space-y-4 text-xs leading-normal">
-              <p className="text-gray-400 text-xs">
+              <p className="text-text-secondary text-xs">
                 Siga estos pasos para enlazar su ERP con el Servicio de Rentas Internas:
               </p>
-              <ol className="list-decimal pl-4 text-gray-400 space-y-1.5 text-xs">
+              <ol className="list-decimal pl-4 text-text-secondary space-y-1.5 text-xs">
                 <li>
                   Ingrese a <a href="https://srienlinea.sri.gob.ec" target="_blank" rel="noreferrer" className="text-primary hover:underline font-bold inline-flex items-center gap-0.5">SRI en Línea <ExternalLink size={8} /></a> con su RUC y clave.
                 </li>
@@ -247,19 +247,19 @@ export default function FinanceSettings({  showToast, db, appId }) {
         {/* COLUMNA DERECHA: DATOS COMERCIALES */}
         <div className="space-y-6">
           
-          <div className={`p-6 rounded-card border bg-white border-gray-200`}>
+          <div className={`p-6 rounded-card border bg-white border-border-default`}>
             <div className="flex items-center gap-2 mb-4 pb-2 border-b border-white/10">
               <Settings size={18} className="text-primary" />
               <h3 className="text-base font-bold">Formatos de Impresión</h3>
             </div>
 
             <div className="space-y-4">
-              <p className="text-xs text-gray-500 leading-relaxed">
+              <p className="text-xs text-text-secondary leading-relaxed">
                 Los datos del logo, correo y teléfono que se imprimen en los documentos se configuran en <span className="font-bold">Perfil de Empresa</span>.
               </p>
 
               <div>
-                <label className="block text-xs font-bold uppercase mb-1.5 text-gray-500">Plantilla de Cotización</label>
+                <label className="block text-xs font-bold uppercase mb-1.5 text-text-secondary">Plantilla de Cotización</label>
                 <select
                   value={sriConfig.cotizacionFormActivo || sriConfig.cotizacionFormatoActivo || 'basico'}
                   onChange={e => setSriConfig({...sriConfig, cotizacionFormatoActivo: e.target.value, cotizacionFormActivo: e.target.value})}
@@ -273,12 +273,12 @@ export default function FinanceSettings({  showToast, db, appId }) {
           </div>
 
           {/* SECUENCIALES DE COMPROBANTES */}
-          <div className={`p-6 rounded-card border bg-white border-gray-200`}>
+          <div className={`p-6 rounded-card border bg-white border-border-default`}>
             <div className="flex items-center gap-2 mb-4 pb-2 border-b border-white/10">
               <Settings size={18} className="text-purple-500" />
               <h3 className="text-base font-bold">Secuenciales de Facturación (SRI)</h3>
             </div>
-            <p className="text-xs text-gray-500 mb-4 leading-relaxed">
+            <p className="text-xs text-text-secondary mb-4 leading-relaxed">
               Configure el número secuencial para cada tipo de comprobante. El sistema lo incrementará automáticamente tras cada emisión autorizada por el SRI.
             </p>
             
@@ -320,7 +320,7 @@ export default function FinanceSettings({  showToast, db, appId }) {
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase mb-1.5 text-gray-500">Próximo Secuencial de Liquidación de Compra</label>
+                <label className="block text-xs font-bold uppercase mb-1.5 text-text-secondary">Próximo Secuencial de Liquidación de Compra</label>
                 <input 
                   type="number" 
                   min="1"
@@ -332,7 +332,7 @@ export default function FinanceSettings({  showToast, db, appId }) {
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase mb-1.5 text-gray-500">Próximo Secuencial de Guía de Remisión</label>
+                <label className="block text-xs font-bold uppercase mb-1.5 text-text-secondary">Próximo Secuencial de Guía de Remisión</label>
                 <input
                   type="number"
                   min="1"
@@ -344,7 +344,7 @@ export default function FinanceSettings({  showToast, db, appId }) {
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase mb-1.5 text-gray-500">Próximo Secuencial de Nota de Venta / Recibo</label>
+                <label className="block text-xs font-bold uppercase mb-1.5 text-text-secondary">Próximo Secuencial de Nota de Venta / Recibo</label>
                 <input 
                   type="number" 
                   min="1"

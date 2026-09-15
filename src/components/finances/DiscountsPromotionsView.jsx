@@ -235,14 +235,14 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
     <div className="space-y-6 animate-in fade-in duration-300">
       
       {/* HEADER ACTIONS */}
-      <div className="flex justify-start gap-2 border-b border-slate-100 pb-4">
+      <div className="flex justify-start gap-2 border-b border-border-default pb-4">
         <div className="flex gap-2">
           {activeTab === 'discounts' ? (
-            <button onClick={openNewDiscount} className="btn-primary flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-xl cursor-pointer">
+            <button onClick={openNewDiscount} className="btn-primary flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-card cursor-pointer">
               <Plus size={16} /> Nuevo Descuento
             </button>
           ) : (
-            <button onClick={openNewPromo} className="btn-primary flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-xl cursor-pointer" disabled={discounts.length === 0}>
+            <button onClick={openNewPromo} className="btn-primary flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-card cursor-pointer" disabled={discounts.length === 0}>
               <Plus size={16} /> Nueva Promoción
             </button>
           )}
@@ -250,13 +250,13 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
       </div>
 
       {/* TABS */}
-      <div className="flex border-b border-slate-100 gap-6">
+      <div className="flex border-b border-border-default gap-6">
         <button
           onClick={() => setActiveTab('discounts')}
           className={`pb-3 text-sm font-bold uppercase tracking-wider transition-all border-b-2 cursor-pointer ${
             activeTab === 'discounts'
-              ? 'border-primary text-primary font-black'
-              : 'border-transparent text-slate-400 hover:text-slate-650'
+              ? 'border-primary text-primary font-semibold'
+              : 'border-transparent text-text-secondary hover:text-text-primary'
           }`}
         >
           Descuentos Maestros ({discounts.length})
@@ -265,8 +265,8 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
           onClick={() => setActiveTab('promotions')}
           className={`pb-3 text-sm font-bold uppercase tracking-wider transition-all border-b-2 cursor-pointer ${
             activeTab === 'promotions'
-              ? 'border-primary text-primary font-black'
-              : 'border-transparent text-slate-400 hover:text-slate-650'
+              ? 'border-primary text-primary font-semibold'
+              : 'border-transparent text-text-secondary hover:text-text-primary'
           }`}
         >
           Reglas de Promociones ({promotions.length})
@@ -275,10 +275,10 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
 
       {/* DISCOUNTS TAB */}
       {activeTab === 'discounts' && (
-        <div className="bg-white rounded-2xl border border-border-default overflow-hidden ">
+        <div className="bg-white rounded-card border border-border-default overflow-hidden ">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50/75 border-b border-slate-100 text-slate-500 font-extrabold text-xs uppercase tracking-wider">
+              <tr className="bg-surface-bg/75 border-b border-border-default text-text-secondary font-semibold text-xs uppercase tracking-wider">
                 <th className="py-3 px-4">Nombre</th>
                 <th className="py-3 px-4">Alcance</th>
                 <th className="py-3 px-4">Tipo Valor</th>
@@ -292,12 +292,12 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
             <tbody className="divide-y divide-slate-100 text-xs">
               {discounts.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-8 text-center text-slate-400 italic">No hay descuentos configurados. Crea uno para comenzar.</td>
+                  <td colSpan={8} className="py-8 text-center text-text-secondary italic">No hay descuentos configurados. Crea uno para comenzar.</td>
                 </tr>
               ) : (
                 discounts.map(disc => (
-                  <tr key={disc.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="py-3.5 px-4 font-bold text-slate-800 uppercase">{disc.nombre}</td>
+                  <tr key={disc.id} className="hover:bg-surface-bg/50 transition-colors">
+                    <td className="py-3.5 px-4 font-bold text-text-heading uppercase">{disc.nombre}</td>
                     <td className="py-3.5 px-4">
                       <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
                         disc.alcance === 'PRODUCTO' ? 'bg-indigo-50 text-indigo-600' : 'bg-emerald-50 text-emerald-600'
@@ -305,11 +305,11 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
                         {disc.alcance}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 font-medium text-slate-500">{disc.tipo_valor === 'PORCENTAJE' ? 'Porcentaje (%)' : (disc.tipo_valor === 'SIN_IVA' ? 'Quitar IVA' : 'Monto Fijo ($)')}</td>
-                    <td className="py-3.5 px-4 font-extrabold font-mono text-slate-700">
+                    <td className="py-3.5 px-4 font-medium text-text-secondary">{disc.tipo_valor === 'PORCENTAJE' ? 'Porcentaje (%)' : (disc.tipo_valor === 'SIN_IVA' ? 'Quitar IVA' : 'Monto Fijo ($)')}</td>
+                    <td className="py-3.5 px-4 font-semibold font-mono text-text-primary">
                       {disc.tipo_valor === 'SIN_IVA' ? 'Sin IVA' : (disc.tipo_valor === 'PORCENTAJE' ? `${disc.valor}%` : `$${disc.valor.toFixed(2)}`)}
                     </td>
-                    <td className="py-3.5 px-4 text-slate-500 font-medium">
+                    <td className="py-3.5 px-4 text-text-secondary font-medium">
                       <div className="flex items-center gap-1">
                         <Calendar size={12} />
                         <span>{disc.fecha_inicio} al {disc.fecha_fin}</span>
@@ -321,7 +321,7 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
                           <ShieldAlert size={12} /> Requiere Clave
                         </span>
                       ) : (
-                        <span className="text-slate-400">Libre</span>
+                        <span className="text-text-secondary">Libre</span>
                       )}
                     </td>
                     <td className="py-3.5 px-4 text-center">
@@ -335,10 +335,10 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
                     </td>
                     <td className="py-3.5 px-4 text-right">
                       <div className="flex justify-end gap-2">
-                        <button onClick={() => openEditDiscount(disc)} className="p-1 hover:bg-slate-100 rounded-lg text-slate-500 hover:text-primary transition-colors cursor-pointer" title="Editar">
+                        <button onClick={() => openEditDiscount(disc)} className="p-1 hover:bg-surface-muted rounded-md text-text-secondary hover:text-primary transition-colors cursor-pointer" title="Editar">
                           <Edit2 size={14} />
                         </button>
-                        <button onClick={() => handleDeleteDiscount(disc.id)} className="p-1 hover:bg-red-50 rounded-lg text-slate-400 hover:text-red-650 transition-colors cursor-pointer" title="Eliminar">
+                        <button onClick={() => handleDeleteDiscount(disc.id)} className="p-1 hover:bg-red-50 rounded-md text-text-secondary hover:text-red-650 transition-colors cursor-pointer" title="Eliminar">
                           <Trash2 size={14} />
                         </button>
                       </div>
@@ -353,10 +353,10 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
 
       {/* PROMOTIONS TAB */}
       {activeTab === 'promotions' && (
-        <div className="bg-white rounded-2xl border border-border-default overflow-hidden ">
+        <div className="bg-white rounded-card border border-border-default overflow-hidden ">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50/75 border-b border-slate-100 text-slate-500 font-extrabold text-xs uppercase tracking-wider">
+              <tr className="bg-surface-bg/75 border-b border-border-default text-text-secondary font-semibold text-xs uppercase tracking-wider">
                 <th className="py-3 px-4">Nombre Promoción</th>
                 <th className="py-3 px-4">Descuento Maestro</th>
                 <th className="py-3 px-4">Aplicación</th>
@@ -370,17 +370,17 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
             <tbody className="divide-y divide-slate-100 text-xs">
               {promotions.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-8 text-center text-slate-400 italic">No hay promociones configuradas.</td>
+                  <td colSpan={8} className="py-8 text-center text-text-secondary italic">No hay promociones configuradas.</td>
                 </tr>
               ) : (
                 promotions.map(promo => {
                   const linkedDisc = discounts.find(d => d.id === promo.id_descuento);
                   return (
-                    <tr key={promo.id} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="py-3.5 px-4 font-bold text-slate-800 uppercase">{promo.nombre}</td>
+                    <tr key={promo.id} className="hover:bg-surface-bg/50 transition-colors">
+                      <td className="py-3.5 px-4 font-bold text-text-heading uppercase">{promo.nombre}</td>
                       <td className="py-3.5 px-4">
                         <span className="font-semibold text-primary">{linkedDisc?.nombre || 'Descuento no encontrado'}</span>
-                        <span className="text-xs font-mono block text-slate-400">
+                        <span className="text-xs font-mono block text-text-secondary">
                           ({linkedDisc?.tipo_valor === 'SIN_IVA' ? 'Sin IVA' : (linkedDisc?.tipo_valor === 'PORCENTAJE' ? `${linkedDisc?.valor}%` : `$${linkedDisc?.valor || 0}`)})
                         </span>
                       </td>
@@ -390,7 +390,7 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
                             {promo.alcance_aplicacion}
                           </span>
                           {promo.target_id && (
-                            <span className="text-xs font-medium text-slate-500 truncate max-w-[120px]">
+                            <span className="text-xs font-medium text-text-secondary truncate max-w-[120px]">
                               {promo.alcance_aplicacion === 'PRODUCTO_ESPECIFICO'
                                 ? products.find(p => p.id === promo.target_id)?.name
                                 : promo.target_id}
@@ -400,19 +400,19 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
                       </td>
                       <td className="py-3.5 px-4">
                         {promo.condicion === 'NINGUNA' ? (
-                          <span className="text-slate-400">Ninguna</span>
+                          <span className="text-text-secondary">Ninguna</span>
                         ) : (
-                          <span className="font-semibold text-slate-700">
+                          <span className="font-semibold text-text-primary">
                             {promo.condicion === 'MONTO_MINIMO' ? `Min. Compra: $${promo.valor_condicion}` : `Min. Cantidad: ${promo.valor_condicion} und.`}
                           </span>
                         )}
                       </td>
                       <td className="py-3.5 px-4">
-                        <span className="text-slate-500 font-medium truncate block max-w-[150px]" title={promo.dias_validos?.join(', ')}>
+                        <span className="text-text-secondary font-medium truncate block max-w-[150px]" title={promo.dias_validos?.join(', ')}>
                           {promo.dias_validos?.join(', ')}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 text-slate-500 font-medium">
+                      <td className="py-3.5 px-4 text-text-secondary font-medium">
                         <div className="flex items-center gap-1">
                           <Calendar size={12} />
                           <span>{promo.fecha_inicio} al {promo.fecha_fin}</span>
@@ -429,10 +429,10 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
                       </td>
                       <td className="py-3.5 px-4 text-right">
                         <div className="flex justify-end gap-2">
-                          <button onClick={() => openEditPromo(promo)} className="p-1 hover:bg-slate-100 rounded-lg text-slate-500 hover:text-primary transition-colors cursor-pointer" title="Editar">
+                          <button onClick={() => openEditPromo(promo)} className="p-1 hover:bg-surface-muted rounded-md text-text-secondary hover:text-primary transition-colors cursor-pointer" title="Editar">
                             <Edit2 size={14} />
                           </button>
-                          <button onClick={() => handleDeletePromo(promo.id)} className="p-1 hover:bg-red-50 rounded-lg text-slate-400 hover:text-red-650 transition-colors cursor-pointer" title="Eliminar">
+                          <button onClick={() => handleDeletePromo(promo.id)} className="p-1 hover:bg-red-50 rounded-md text-text-secondary hover:text-red-650 transition-colors cursor-pointer" title="Eliminar">
                             <Trash2 size={14} />
                           </button>
                         </div>
@@ -448,38 +448,38 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
 
       {/* DISCOUNTS FORM MODAL */}
       {isDiscountModalOpen && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/35  p-4">
-          <div className="bg-white rounded-2xl w-full max-w-lg border border-border-default overflow-hidden flex flex-col">
-            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-              <h3 className="text-sm font-extrabold text-slate-800 uppercase tracking-wider">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-text-heading/35  p-4">
+          <div className="bg-white rounded-card w-full max-w-lg border border-border-default overflow-hidden flex flex-col">
+            <div className="p-4 border-b border-border-default flex items-center justify-between bg-surface-bg">
+              <h3 className="text-sm font-semibold text-text-heading uppercase tracking-wider">
                 {editingDiscount ? 'Editar Descuento Maestro' : 'Nuevo Descuento Maestro'}
               </h3>
-              <button onClick={() => setIsDiscountModalOpen(false)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
+              <button onClick={() => setIsDiscountModalOpen(false)} className="text-text-secondary hover:text-text-primary cursor-pointer">
                 <X size={18} />
               </button>
             </div>
-            <form onSubmit={handleSaveDiscount} className="p-5 space-y-4 text-xs font-semibold text-slate-700">
+            <form onSubmit={handleSaveDiscount} className="p-5 space-y-4 text-xs font-semibold text-text-primary">
               {/* Nombre */}
               <div>
-                <label className="block text-xs uppercase font-extrabold text-slate-500 mb-1.5">Nombre del Descuento</label>
+                <label className="block text-xs uppercase font-semibold text-text-secondary mb-1.5">Nombre del Descuento</label>
                 <input
                   type="text"
                   required
                   placeholder="Ej: Descuento 15% Clientes VIP"
                   value={discountForm.nombre}
                   onChange={e => setDiscountForm(prev => ({ ...prev, nombre: e.target.value }))}
-                  className="w-full h-10 px-3 rounded-xl border border-slate-200 focus:outline-none focus:border-primary text-black font-medium"
+                  className="w-full h-10 px-3 rounded-card border border-border-default focus:outline-none focus:border-primary text-black font-medium"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 {/* Alcance */}
                 <div>
-                  <label className="block text-xs uppercase font-extrabold text-slate-500 mb-1.5">Alcance</label>
+                  <label className="block text-xs uppercase font-semibold text-text-secondary mb-1.5">Alcance</label>
                   <select
                     value={discountForm.alcance}
                     onChange={e => setDiscountForm(prev => ({ ...prev, alcance: e.target.value }))}
-                    className="w-full h-10 px-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-primary text-black cursor-pointer font-medium"
+                    className="w-full h-10 px-2.5 rounded-card border border-border-default focus:outline-none focus:border-primary text-black cursor-pointer font-medium"
                   >
                     <option value="PRODUCTO">Por Producto (Ítem)</option>
                     <option value="VENTA">Por Venta (Total)</option>
@@ -488,7 +488,7 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
 
                 {/* Tipo de Valor */}
                 <div>
-                  <label className="block text-xs uppercase font-extrabold text-slate-500 mb-1.5">Tipo de Valor</label>
+                  <label className="block text-xs uppercase font-semibold text-text-secondary mb-1.5">Tipo de Valor</label>
                   <select
                     value={discountForm.tipo_valor}
                     onChange={e => {
@@ -499,7 +499,7 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
                         valor: valType === 'SIN_IVA' ? 0 : prev.valor
                       }));
                     }}
-                    className="w-full h-10 px-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-primary text-black cursor-pointer font-medium"
+                    className="w-full h-10 px-2.5 rounded-card border border-border-default focus:outline-none focus:border-primary text-black cursor-pointer font-medium"
                   >
                     <option value="PORCENTAJE">Porcentaje (%)</option>
                     <option value="MONTO_FIJO">Monto Fijo ($)</option>
@@ -511,7 +511,7 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
               <div className="grid grid-cols-2 gap-4">
                 {/* Valor */}
                 <div>
-                  <label className="block text-xs uppercase font-extrabold text-slate-500 mb-1.5">Valor Descuento</label>
+                  <label className="block text-xs uppercase font-semibold text-text-secondary mb-1.5">Valor Descuento</label>
                   <input
                     type="number"
                     required={discountForm.tipo_valor !== 'SIN_IVA'}
@@ -521,8 +521,8 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
                     placeholder={discountForm.tipo_valor === 'SIN_IVA' ? "Autocalculado" : "0.00"}
                     value={discountForm.tipo_valor === 'SIN_IVA' ? '0' : (discountForm.valor || '')}
                     onChange={e => setDiscountForm(prev => ({ ...prev, valor: parseFloat(e.target.value) || 0 }))}
-                    className={`w-full h-10 px-3 rounded-xl border border-slate-200 focus:outline-none focus:border-primary text-black font-medium font-mono ${
-                      discountForm.tipo_valor === 'SIN_IVA' ? 'bg-slate-100 text-slate-450' : ''
+                    className={`w-full h-10 px-3 rounded-card border border-border-default focus:outline-none focus:border-primary text-black font-medium font-mono ${
+                      discountForm.tipo_valor === 'SIN_IVA' ? 'bg-surface-muted text-slate-450' : ''
                     }`}
                   />
                 </div>
@@ -536,19 +536,19 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
                       onChange={e => setDiscountForm(prev => ({ ...prev, requiere_autorizacion: e.target.checked }))}
                       className="rounded text-primary focus:ring-primary w-4 h-4 cursor-pointer"
                     />
-                    <span className="text-xs font-bold text-slate-700">Requiere clave de supervisor</span>
+                    <span className="text-xs font-bold text-text-primary">Requiere clave de supervisor</span>
                   </label>
                 </div>
               </div>
 
               {/* Método de Aplicación y Cantidad Volumen */}
-              <div className="grid grid-cols-2 gap-4 border-t border-slate-100 pt-4">
+              <div className="grid grid-cols-2 gap-4 border-t border-border-default pt-4">
                 <div>
-                  <label className="block text-xs uppercase font-extrabold text-slate-500 mb-1.5">Método de Aplicación</label>
+                  <label className="block text-xs uppercase font-semibold text-text-secondary mb-1.5">Método de Aplicación</label>
                   <select
                     value={discountForm.metodo || 'SIEMPRE'}
                     onChange={e => setDiscountForm(prev => ({ ...prev, metodo: e.target.value }))}
-                    className="w-full h-10 px-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-primary text-black cursor-pointer font-medium"
+                    className="w-full h-10 px-2.5 rounded-card border border-border-default focus:outline-none focus:border-primary text-black cursor-pointer font-medium"
                   >
                     <option value="SIEMPRE">Siempre (Sin cantidad mínima)</option>
                     <option value="POR_CADA">Por cada (Escalonado)</option>
@@ -556,7 +556,7 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs uppercase font-extrabold text-slate-500 mb-1.5">
+                  <label className="block text-xs uppercase font-semibold text-text-secondary mb-1.5">
                     {discountForm.metodo === 'POR_CADA' ? 'Cada X Unidades' : 'Cantidad Mínima'}
                   </label>
                   <input
@@ -567,43 +567,43 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
                     placeholder={discountForm.metodo === 'SIEMPRE' ? "N/A" : "Ej. 5"}
                     value={discountForm.metodo === 'SIEMPRE' ? '' : (discountForm.cantidad_volumen || '')}
                     onChange={e => setDiscountForm(prev => ({ ...prev, cantidad_volumen: parseInt(e.target.value) || 1 }))}
-                    className={`w-full h-10 px-3 rounded-xl border border-slate-200 focus:outline-none focus:border-primary text-black font-medium font-mono ${
-                      discountForm.metodo === 'SIEMPRE' ? 'bg-slate-100 text-slate-400' : ''
+                    className={`w-full h-10 px-3 rounded-card border border-border-default focus:outline-none focus:border-primary text-black font-medium font-mono ${
+                      discountForm.metodo === 'SIEMPRE' ? 'bg-surface-muted text-text-secondary' : ''
                     }`}
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 border-t border-slate-100 pt-4">
+              <div className="grid grid-cols-2 gap-4 border-t border-border-default pt-4">
                 {/* Fecha Inicio */}
                 <div>
-                  <label className="block text-xs uppercase font-extrabold text-slate-500 mb-1.5">Fecha Inicio</label>
+                  <label className="block text-xs uppercase font-semibold text-text-secondary mb-1.5">Fecha Inicio</label>
                   <input
                     type="date"
                     required
                     value={discountForm.fecha_inicio}
                     onChange={e => setDiscountForm(prev => ({ ...prev, fecha_inicio: e.target.value }))}
-                    className="w-full h-10 px-3 rounded-xl border border-slate-200 focus:outline-none focus:border-primary text-black font-medium"
+                    className="w-full h-10 px-3 rounded-card border border-border-default focus:outline-none focus:border-primary text-black font-medium"
                   />
                 </div>
 
                 {/* Fecha Fin */}
                 <div>
-                  <label className="block text-xs uppercase font-extrabold text-slate-500 mb-1.5">Fecha Fin</label>
+                  <label className="block text-xs uppercase font-semibold text-text-secondary mb-1.5">Fecha Fin</label>
                   <input
                     type="date"
                     required
                     value={discountForm.fecha_fin}
                     onChange={e => setDiscountForm(prev => ({ ...prev, fecha_fin: e.target.value }))}
-                    className="w-full h-10 px-3 rounded-xl border border-slate-200 focus:outline-none focus:border-primary text-black font-medium"
+                    className="w-full h-10 px-3 rounded-card border border-border-default focus:outline-none focus:border-primary text-black font-medium"
                   />
                 </div>
               </div>
 
               {/* Disponibilidad Horaria y Días de la Semana */}
-              <div className="border-t border-slate-100 pt-4 space-y-3">
+              <div className="border-t border-border-default pt-4 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-700">Disponibilidad Horaria</span>
+                  <span className="text-xs font-bold text-text-primary">Disponibilidad Horaria</span>
                   <label className="flex items-center gap-2 cursor-pointer select-none">
                     <input
                       type="checkbox"
@@ -611,30 +611,30 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
                       onChange={e => setDiscountForm(prev => ({ ...prev, activo_24h: e.target.checked }))}
                       className="rounded text-primary focus:ring-primary w-4 h-4 cursor-pointer"
                     />
-                    <span className="text-xs font-bold text-slate-700">Activo las 24 horas</span>
+                    <span className="text-xs font-bold text-text-primary">Activo las 24 horas</span>
                   </label>
                 </div>
 
                 {!(discountForm.activo_24h ?? true) && (
                   <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-1 duration-200">
                     <div>
-                      <label className="block text-xs uppercase font-extrabold text-slate-500 mb-1.5">Hora Inicio</label>
+                      <label className="block text-xs uppercase font-semibold text-text-secondary mb-1.5">Hora Inicio</label>
                       <input
                         type="time"
                         required
                         value={discountForm.hora_inicio || '00:00'}
                         onChange={e => setDiscountForm(prev => ({ ...prev, hora_inicio: e.target.value }))}
-                        className="w-full h-10 px-3 rounded-xl border border-slate-200 focus:outline-none focus:border-primary text-black font-medium"
+                        className="w-full h-10 px-3 rounded-card border border-border-default focus:outline-none focus:border-primary text-black font-medium"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs uppercase font-extrabold text-slate-500 mb-1.5">Hora Fin</label>
+                      <label className="block text-xs uppercase font-semibold text-text-secondary mb-1.5">Hora Fin</label>
                       <input
                         type="time"
                         required
                         value={discountForm.hora_fin || '23:59'}
                         onChange={e => setDiscountForm(prev => ({ ...prev, hora_fin: e.target.value }))}
-                        className="w-full h-10 px-3 rounded-xl border border-slate-200 focus:outline-none focus:border-primary text-black font-medium"
+                        className="w-full h-10 px-3 rounded-card border border-border-default focus:outline-none focus:border-primary text-black font-medium"
                       />
                     </div>
                   </div>
@@ -642,7 +642,7 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
 
                 {/* Días de la Semana */}
                 <div>
-                  <label className="block text-xs uppercase font-extrabold text-slate-500 mb-2">Días Activos de la Semana</label>
+                  <label className="block text-xs uppercase font-semibold text-text-secondary mb-2">Días Activos de la Semana</label>
                   <div className="flex flex-wrap gap-2">
                     {['LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB', 'DOM'].map(day => {
                       const list = discountForm.dias_semana || ['LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB', 'DOM'];
@@ -657,10 +657,10 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
                               : [...list, day];
                             setDiscountForm(prev => ({ ...prev, dias_semana: updated }));
                           }}
-                          className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                          className={`px-3 py-1.5 rounded-card border text-xs font-bold transition-all cursor-pointer ${
                             isChecked
                               ? 'bg-primary/10 border-primary text-primary'
-                              : 'bg-white border-slate-200 text-slate-550 hover:bg-slate-50'
+                              : 'bg-white border-border-default text-slate-550 hover:bg-surface-bg'
                           }`}
                         >
                           {day}
@@ -671,9 +671,9 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
                 </div>
               </div>
 
-              <div className="pt-3 flex justify-end gap-2 border-t border-slate-100">
-                <button type="button" onClick={() => setIsDiscountModalOpen(false)} className="btn-secondary px-4 py-2 font-bold rounded-xl cursor-pointer">Cancelar</button>
-                <button type="submit" className="btn-primary px-4 py-2 font-bold text-white rounded-xl cursor-pointer">Guardar Descuento</button>
+              <div className="pt-3 flex justify-end gap-2 border-t border-border-default">
+                <button type="button" onClick={() => setIsDiscountModalOpen(false)} className="btn-secondary px-4 py-2 font-bold rounded-card cursor-pointer">Cancelar</button>
+                <button type="submit" className="btn-primary px-4 py-2 font-bold text-white rounded-card cursor-pointer">Guardar Descuento</button>
               </div>
             </form>
           </div>
@@ -682,39 +682,39 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
 
       {/* PROMO FORM MODAL */}
       {isPromoModalOpen && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/35  p-4">
-          <div className="bg-white rounded-2xl w-full max-w-lg border border-border-default overflow-hidden flex flex-col">
-            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-              <h3 className="text-sm font-extrabold text-slate-800 uppercase tracking-wider">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-text-heading/35  p-4">
+          <div className="bg-white rounded-card w-full max-w-lg border border-border-default overflow-hidden flex flex-col">
+            <div className="p-4 border-b border-border-default flex items-center justify-between bg-surface-bg">
+              <h3 className="text-sm font-semibold text-text-heading uppercase tracking-wider">
                 {editingPromo ? 'Editar Promoción' : 'Nueva Promoción'}
               </h3>
-              <button onClick={() => setIsPromoModalOpen(false)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
+              <button onClick={() => setIsPromoModalOpen(false)} className="text-text-secondary hover:text-text-primary cursor-pointer">
                 <X size={18} />
               </button>
             </div>
-            <form onSubmit={handleSavePromo} className="p-5 space-y-4 text-xs font-semibold text-slate-700">
+            <form onSubmit={handleSavePromo} className="p-5 space-y-4 text-xs font-semibold text-text-primary">
               {/* Nombre */}
               <div>
-                <label className="block text-xs uppercase font-extrabold text-slate-500 mb-1.5">Nombre de la Promoción</label>
+                <label className="block text-xs uppercase font-semibold text-text-secondary mb-1.5">Nombre de la Promoción</label>
                 <input
                   type="text"
                   required
                   placeholder="Ej: Descuento Lunes de Frutas"
                   value={promoForm.nombre}
                   onChange={e => setPromoForm(prev => ({ ...prev, nombre: e.target.value }))}
-                  className="w-full h-10 px-3 rounded-xl border border-slate-200 focus:outline-none focus:border-primary text-black font-medium"
+                  className="w-full h-10 px-3 rounded-card border border-border-default focus:outline-none focus:border-primary text-black font-medium"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 {/* Descuento Asociado */}
                 <div>
-                  <label className="block text-xs uppercase font-extrabold text-slate-500 mb-1.5">Descuento Asociado</label>
+                  <label className="block text-xs uppercase font-semibold text-text-secondary mb-1.5">Descuento Asociado</label>
                   <select
                     value={promoForm.id_descuento}
                     required
                     onChange={e => setPromoForm(prev => ({ ...prev, id_descuento: e.target.value }))}
-                    className="w-full h-10 px-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-primary text-black cursor-pointer font-medium"
+                    className="w-full h-10 px-2.5 rounded-card border border-border-default focus:outline-none focus:border-primary text-black cursor-pointer font-medium"
                   >
                     {discounts.map(d => (
                       <option key={d.id} value={d.id}>{d.nombre} ({d.tipo_valor === 'SIN_IVA' ? 'Sin IVA' : (d.tipo_valor === 'PORCENTAJE' ? `${d.valor}%` : `$${d.valor}`)})</option>
@@ -724,11 +724,11 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
 
                 {/* Alcance de aplicación */}
                 <div>
-                  <label className="block text-xs uppercase font-extrabold text-slate-500 mb-1.5">Alcance de Aplicación</label>
+                  <label className="block text-xs uppercase font-semibold text-text-secondary mb-1.5">Alcance de Aplicación</label>
                   <select
                     value={promoForm.alcance_aplicacion}
                     onChange={e => setPromoForm(prev => ({ ...prev, alcance_aplicacion: e.target.value, target_id: '' }))}
-                    className="w-full h-10 px-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-primary text-black cursor-pointer font-medium"
+                    className="w-full h-10 px-2.5 rounded-card border border-border-default focus:outline-none focus:border-primary text-black cursor-pointer font-medium"
                   >
                     <option value="PRODUCTO_ESPECIFICO">Producto Específico</option>
                     <option value="CATEGORIA">Categoría Específica</option>
@@ -740,14 +740,14 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
               {/* Target ID Selector (Product or Category) */}
               {promoForm.alcance_aplicacion !== 'VENTA_TOTAL' && (
                 <div>
-                  <label className="block text-xs uppercase font-extrabold text-slate-500 mb-1.5">
+                  <label className="block text-xs uppercase font-semibold text-text-secondary mb-1.5">
                     {promoForm.alcance_aplicacion === 'PRODUCTO_ESPECIFICO' ? 'Seleccionar Producto' : 'Seleccionar Categoría'}
                   </label>
                   <select
                     value={promoForm.target_id}
                     required
                     onChange={e => setPromoForm(prev => ({ ...prev, target_id: e.target.value }))}
-                    className="w-full h-10 px-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-primary text-black cursor-pointer font-medium"
+                    className="w-full h-10 px-2.5 rounded-card border border-border-default focus:outline-none focus:border-primary text-black cursor-pointer font-medium"
                   >
                     <option value="">-- Seleccionar --</option>
                     {promoForm.alcance_aplicacion === 'PRODUCTO_ESPECIFICO'
@@ -758,14 +758,14 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-4 border-t border-slate-100 pt-4">
+              <div className="grid grid-cols-2 gap-4 border-t border-border-default pt-4">
                 {/* Condición */}
                 <div>
-                  <label className="block text-xs uppercase font-extrabold text-slate-500 mb-1.5">Condición</label>
+                  <label className="block text-xs uppercase font-semibold text-text-secondary mb-1.5">Condición</label>
                   <select
                     value={promoForm.condicion}
                     onChange={e => setPromoForm(prev => ({ ...prev, condicion: e.target.value, valor_condicion: 0 }))}
-                    className="w-full h-10 px-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-primary text-black cursor-pointer font-medium"
+                    className="w-full h-10 px-2.5 rounded-card border border-border-default focus:outline-none focus:border-primary text-black cursor-pointer font-medium"
                   >
                     <option value="NINGUNA">Ninguna (Siempre se aplica)</option>
                     <option value="MONTO_MINIMO">Monto de Venta Mínimo ($)</option>
@@ -776,7 +776,7 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
                 {/* Valor Condición */}
                 {promoForm.condicion !== 'NINGUNA' && (
                   <div>
-                    <label className="block text-xs uppercase font-extrabold text-slate-500 mb-1.5">Valor Condición</label>
+                    <label className="block text-xs uppercase font-semibold text-text-secondary mb-1.5">Valor Condición</label>
                     <input
                       type="number"
                       required
@@ -785,7 +785,7 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
                       placeholder="0.00"
                       value={promoForm.valor_condicion || ''}
                       onChange={e => setPromoForm(prev => ({ ...prev, valor_condicion: parseFloat(e.target.value) || 0 }))}
-                      className="w-full h-10 px-3 rounded-xl border border-slate-200 focus:outline-none focus:border-primary text-black font-medium font-mono"
+                      className="w-full h-10 px-3 rounded-card border border-border-default focus:outline-none focus:border-primary text-black font-medium font-mono"
                     />
                   </div>
                 )}
@@ -793,7 +793,7 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
 
               {/* Días válidos */}
               <div>
-                <label className="block text-xs uppercase font-extrabold text-slate-500 mb-1.5">Días Válidos de la Semana</label>
+                <label className="block text-xs uppercase font-semibold text-text-secondary mb-1.5">Días Válidos de la Semana</label>
                 <div className="flex flex-wrap gap-1.5">
                   {["LUN", "MAR", "MIE", "JUE", "VIE", "SAB", "DOM"].map(day => {
                     const isSel = promoForm.dias_validos.includes(day);
@@ -802,10 +802,10 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
                         key={day}
                         type="button"
                         onClick={() => toggleDay(day)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-extrabold tracking-wider transition-colors cursor-pointer border ${
+                        className={`px-3 py-1.5 rounded-md text-xs font-semibold tracking-wider transition-colors cursor-pointer border ${
                           isSel
                             ? 'bg-primary text-white border-primary'
-                            : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'
+                            : 'bg-white text-text-secondary border-border-default hover:bg-surface-bg'
                         }`}
                       >
                         {day}
@@ -815,35 +815,35 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 border-t border-slate-100 pt-4">
+              <div className="grid grid-cols-2 gap-4 border-t border-border-default pt-4">
                 {/* Fecha Inicio */}
                 <div>
-                  <label className="block text-xs uppercase font-extrabold text-slate-500 mb-1.5">Fecha Inicio</label>
+                  <label className="block text-xs uppercase font-semibold text-text-secondary mb-1.5">Fecha Inicio</label>
                   <input
                     type="date"
                     required
                     value={promoForm.fecha_inicio}
                     onChange={e => setPromoForm(prev => ({ ...prev, fecha_inicio: e.target.value }))}
-                    className="w-full h-10 px-3 rounded-xl border border-slate-200 focus:outline-none focus:border-primary text-black font-medium"
+                    className="w-full h-10 px-3 rounded-card border border-border-default focus:outline-none focus:border-primary text-black font-medium"
                   />
                 </div>
 
                 {/* Fecha Fin */}
                 <div>
-                  <label className="block text-xs uppercase font-extrabold text-slate-500 mb-1.5">Fecha Fin</label>
+                  <label className="block text-xs uppercase font-semibold text-text-secondary mb-1.5">Fecha Fin</label>
                   <input
                     type="date"
                     required
                     value={promoForm.fecha_fin}
                     onChange={e => setPromoForm(prev => ({ ...prev, fecha_fin: e.target.value }))}
-                    className="w-full h-10 px-3 rounded-xl border border-slate-200 focus:outline-none focus:border-primary text-black font-medium"
+                    className="w-full h-10 px-3 rounded-card border border-border-default focus:outline-none focus:border-primary text-black font-medium"
                   />
                 </div>
               </div>
 
-              <div className="pt-3 flex justify-end gap-2 border-t border-slate-100">
-                <button type="button" onClick={() => setIsPromoModalOpen(false)} className="btn-secondary px-4 py-2 font-bold rounded-xl cursor-pointer">Cancelar</button>
-                <button type="submit" className="btn-primary px-4 py-2 font-bold text-white rounded-xl cursor-pointer">Guardar Promoción</button>
+              <div className="pt-3 flex justify-end gap-2 border-t border-border-default">
+                <button type="button" onClick={() => setIsPromoModalOpen(false)} className="btn-secondary px-4 py-2 font-bold rounded-card cursor-pointer">Cancelar</button>
+                <button type="submit" className="btn-primary px-4 py-2 font-bold text-white rounded-card cursor-pointer">Guardar Promoción</button>
               </div>
             </form>
           </div>

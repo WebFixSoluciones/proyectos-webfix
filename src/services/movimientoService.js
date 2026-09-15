@@ -1,18 +1,22 @@
+import { postFinancialPayment, paymentBalance } from './financialTransactions.js';
+import { getAppId } from '../firebase.js';
 import { 
-  collection, addDoc, updateDoc, doc, getDocs, query,
-  where, orderBy, serverTimestamp, getDoc
-} from 'firebase/firestore';
-import { registrarAuditoria } from './auditService';
+  collection, runTransaction, doc, getDocs, query,
+  where, orderBy, serverTimestamp
+} from './financeStore.js';
 
 const COLLECTION = 'fin_movimientos';
 
 function validarMovimiento(data) {
   const errores = [];
   if (!data.tipo || !['ingreso', 'egreso'].includes(data.tipo)) errores.push('tipo inválido');
-  if (!data.monto || data.monto <= 0) errores.push('monto debe ser > 0');
+  if (!Number.isFinite(Number(data.monto)) || Number(data.monto) <= 0) errores.push('monto debe ser > 0');
   if (!data.documento?.tipo) errores.push('tipo de documento requerido');
   if (!data.tercero?.nombre) errores.push('tercero requerido');
   if (!data.partidas?.length) errores.push('al menos una partida requerida');
+  const lines = data.partidas || [];
+  if (lines.some(p => !Number.isFinite(Number(p.total)) || Number(p.total) < 0)) errores.push('partidas con importes inválidos');
+  if (Math.abs(lines.reduce((sum,p) => sum + Number(p.total || 0),0) - Number(data.monto)) > 0.01) errores.push('la suma de partidas no coincide con el total');
   return errores;
 }
 
@@ -70,128 +74,70 @@ function sanitizar(data) {
   };
 }
 
-export async function crearMovimiento(db, data, usuario) {
-  const errores = validarMovimiento(data);
-  if (errores.length) throw new Error('Validación: ' + errores.join(', '));
-  
-  const docData = sanitizar({ ...data, creadoPor: usuario.uid });
-  const docRef = await addDoc(collection(db, COLLECTION), docData);
-  
-  registrarAuditoria(db, {
-    coleccion: COLLECTION,
-    documentoId: docRef.id,
-    accion: 'crear',
-    usuario: usuario.uid,
-    usuarioEmail: usuario.email,
-    cambios: { antes: null, despues: docData },
-    modulo: data.origen || 'finanzas',
-  });
-  
-  return { id: docRef.id, ...docData };
+function accountFromMovement(movement, id, balance) {
+  return { movimientoId: id, tenantId: movement.tenantId || getAppId(), tercero: movement.tercero, factura: { tipo: movement.documento.tipo, numero: movement.documento.numero, fecha: movement.fecha, fechaVencimiento: movement.fechaVencimiento, montoTotal: movement.monto }, abonos: movement.pagos || [], saldoPendiente: balance.saldoPendiente, estado: balance.estado, actualizadoEn: serverTimestamp() };
 }
 
-export async function editarMovimiento(db, id, data, usuario) {
-  const docRef = doc(db, COLLECTION, id);
-  const snap = await getDoc(docRef);
-  if (!snap.exists()) throw new Error('Movimiento no encontrado');
-  
-  const anterior = snap.data();
-  if (anterior.origen !== 'finanzas') throw new Error('Solo se pueden editar movimientos creados desde Finanzas');
-  
-  const cambios = {
-    ...data,
-    actualizadoEn: serverTimestamp(),
-    auditLog: [...(anterior.auditLog || []), {
-      accion: 'editar',
-      usuario: usuario.uid,
-      fecha: new Date().toISOString(),
-      cambios: { anterior: anterior, nuevo: data },
-    }],
-  };
-  
-  await updateDoc(docRef, cambios);
-  
-  registrarAuditoria(db, {
-    coleccion: COLLECTION,
-    documentoId: id,
-    accion: 'editar',
-    usuario: usuario.uid,
-    usuarioEmail: usuario.email,
-    cambios: { antes: anterior, despues: cambios },
-    modulo: 'finanzas',
+export async function crearMovimiento(db, data, usuario = {}) {
+  const errors = validarMovimiento(data);
+  if (errors.length) throw new Error(errors.join(', '));
+  const id = data.id || crypto.randomUUID();
+  const payload = sanitizar({ ...data, creadoPor: usuario.uid || '' });
+  const balance = paymentBalance(payload.monto, payload.pagos);
+  Object.assign(payload, { tenantId: getAppId(), saldoPendiente: balance.saldoPendiente, estado: balance.estado });
+  await runTransaction(db, async tx => {
+    const ref = doc(db, COLLECTION, id);
+    const previous = await tx.get(ref);
+    if (previous.exists()) {
+      if (Number(previous.data().monto) !== payload.monto) throw new Error('Esta referencia ya existe con otro importe.');
+      return;
+    }
+    tx.set(ref, payload);
+    tx.set(doc(db, payload.tipo === 'ingreso' ? 'fin_cxc' : 'fin_cxp', 'fin_' + id), accountFromMovement(payload, id, balance));
+    tx.set(doc(db, 'fin_auditoria', 'mov_' + id), { tenantId: getAppId(), accion: 'crear', documentoId: id, coleccion: COLLECTION, usuario: usuario.uid || '', fecha: serverTimestamp(), modulo: 'finanzas' });
   });
-  
-  return { id, ...cambios };
+  return { id, ...payload };
 }
 
-export async function anularMovimiento(db, id, usuario) {
-  const docRef = doc(db, COLLECTION, id);
-  const snap = await getDoc(docRef);
-  if (!snap.exists()) throw new Error('Movimiento no encontrado');
-  
-  await updateDoc(docRef, {
-    estado: 'anulado',
-    actualizadoEn: serverTimestamp(),
-    auditLog: [...(snap.data().auditLog || []), {
-      accion: 'anular',
-      usuario: usuario.uid,
-      fecha: new Date().toISOString(),
-    }],
+export async function editarMovimiento(db, id, data, usuario = {}) {
+  return runTransaction(db, async tx => {
+    const ref = doc(db, COLLECTION, id);
+    const previous = (await tx.get(ref)).data();
+    if (!previous || previous.origen !== 'finanzas' || previous.estado === 'anulado') throw new Error('El movimiento no permite edición desde Finanzas.');
+    if (data.tipo && data.tipo !== previous.tipo) throw new Error('No se puede cambiar el tipo de un movimiento registrado.');
+    const merged = { ...previous, ...data, pagos: previous.pagos || [] };
+    const errors = validarMovimiento(merged);
+    if (errors.length) throw new Error(errors.join(', '));
+    const balance = paymentBalance(merged.monto, merged.pagos);
+    const accountRef = doc(db, merged.tipo === 'ingreso' ? 'fin_cxc' : 'fin_cxp', 'fin_' + id);
+    const account = await tx.get(accountRef);
+    const changes = { ...sanitizar(merged), creadoEn: previous.creadoEn, creadoPor: previous.creadoPor || '', saldoPendiente: balance.saldoPendiente, estado: balance.estado, auditLog: [...(previous.auditLog || []), { accion: 'editar', usuario: usuario.uid || '', fecha: new Date().toISOString() }] };
+    tx.update(ref, changes);
+    if (account.exists()) tx.set(accountRef, accountFromMovement(changes, id, balance), { merge: true });
+    return { id, ...previous, ...changes };
   });
-  
-  registrarAuditoria(db, {
-    coleccion: COLLECTION,
-    documentoId: id,
-    accion: 'anular',
-    usuario: usuario.uid,
-    usuarioEmail: usuario.email,
-    modulo: 'finanzas',
+}
+
+export async function anularMovimiento(db, id, usuario = {}) {
+  await runTransaction(db, async tx => {
+    const ref = doc(db, COLLECTION, id);
+    const previous = (await tx.get(ref)).data();
+    if (!previous) throw new Error('Movimiento no encontrado.');
+    if (previous.estado === 'anulado') return;
+    if (previous.origen !== 'finanzas') throw new Error('Anula este documento desde su módulo de origen para conservar sus relaciones.');
+    if (previous.pagos?.length || previous.conciliacionBancariaId) throw new Error('El movimiento tiene pagos o conciliaciones. Debes revertirlos antes de anular.');
+    const accountRef = doc(db, previous.tipo === 'ingreso' ? 'fin_cxc' : 'fin_cxp', 'fin_' + id);
+    const account = await tx.get(accountRef);
+    if (account.data()?.abonos?.length) throw new Error('La cuenta vinculada tiene abonos.');
+    const changes = { estado: 'anulado', saldoPendiente: 0, actualizadoEn: serverTimestamp() };
+    tx.update(ref, changes);
+    if (account.exists()) tx.update(accountRef, changes);
+    tx.set(doc(db, 'fin_auditoria', 'anular_' + id), { accion: 'anular', documentoId: id, usuario: usuario.uid || '', fecha: serverTimestamp() });
   });
 }
 
 export async function registrarAbono(db, movimientoId, abono, usuario) {
-  const docRef = doc(db, COLLECTION, movimientoId);
-  const snap = await getDoc(docRef);
-  if (!snap.exists()) throw new Error('Movimiento no encontrado');
-  
-  const mov = snap.data();
-  const nuevoAbono = {
-    id: Date.now().toString(36) + Math.random().toString(36).slice(2),
-    fecha: abono.fecha || new Date().toISOString(),
-    monto: Number(abono.monto),
-    metodoPago: abono.metodoPago || 'efectivo',
-    referencia: abono.referencia || '',
-    registradoPor: usuario.uid,
-  };
-  
-  const totalAbonado = [...(mov.pagos || []), nuevoAbono].reduce((s, p) => s + Number(p.monto), 0);
-  const nuevoSaldo = Math.max(0, Number(mov.monto) - totalAbonado);
-  const nuevoEstado = nuevoSaldo <= 0.01 ? 'pagado' : 'parcial';
-  
-  await updateDoc(docRef, {
-    pagos: [...(mov.pagos || []), nuevoAbono],
-    saldoPendiente: nuevoSaldo,
-    estado: nuevoEstado,
-    actualizadoEn: serverTimestamp(),
-    auditLog: [...(mov.auditLog || []), {
-      accion: 'abonar',
-      usuario: usuario.uid,
-      fecha: new Date().toISOString(),
-      cambios: { abono: nuevoAbono, saldoAnterior: mov.saldoPendiente, saldoNuevo: nuevoSaldo },
-    }],
-  });
-  
-  registrarAuditoria(db, {
-    coleccion: COLLECTION,
-    documentoId: movimientoId,
-    accion: 'abonar',
-    usuario: usuario.uid,
-    usuarioEmail: usuario.email,
-    cambios: { abono: nuevoAbono },
-    modulo: 'finanzas',
-  });
-  
-  return { ...mov, saldoPendiente: nuevoSaldo, estado: nuevoEstado, pagos: [...(mov.pagos || []), nuevoAbono] };
+  return postFinancialPayment(db, { collection: 'fin_movimientos', id: movimientoId }, abono, usuario, { tenantId: getAppId() });
 }
 
 export async function getMovimientos(db, filtros = {}) {

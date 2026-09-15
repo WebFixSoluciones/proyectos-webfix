@@ -105,10 +105,10 @@ export default function ErpDashboard({
             <h1 className="text-xl font-bold tracking-tight text-text-heading">
               {companyName}
             </h1>
-            <Badge variant="success" className="gap-1 normal-case font-normal text-[11px] py-0.5 px-2">
+            <Badge variant="success" className="gap-1 normal-case font-normal text-xs py-0.5 px-2">
               <span className="relative flex h-1.5 w-1.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00E4B8] opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#00E4B8]"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success"></span>
               </span>
               <span>SRI Activo</span>
             </Badge>
@@ -124,7 +124,7 @@ export default function ErpDashboard({
             variant="accent" 
             size="sm"
             onClick={() => { setVentasInitialSubTab && setVentasInitialSubTab('pos'); setActivePageId('ventas'); }}
-            className="gap-1.5 shadow-sm"
+            className="gap-1.5 "
           >
             <ShoppingCart size={13} />
             <span>Punto de Venta</span>
@@ -159,7 +159,7 @@ export default function ErpDashboard({
             <div className="text-2xl font-bold tracking-tight text-text-heading font-mono">
               ${kpis.totalVentas.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
-            <p className="text-[11px] text-text-muted mt-1 flex items-center gap-1">
+            <p className="text-xs text-text-muted mt-1 flex items-center gap-1">
               <span className="text-success-text font-medium">{kpis.salesCount} operaciones</span> registradas
             </p>
           </CardContent>
@@ -180,11 +180,11 @@ export default function ErpDashboard({
               {kpis.sriAutorizadas}
             </div>
             <div className="flex items-center gap-2 mt-1">
-              <span className="text-[11px] text-success-text font-medium flex items-center gap-1">
+              <span className="text-xs text-success-text font-medium flex items-center gap-1">
                 <CheckCircle2 size={11} /> {kpis.sriAutorizadas} autorizados
               </span>
               {kpis.sriPendientes > 0 && (
-                <span className="text-[11px] text-warning-text font-medium flex items-center gap-1">
+                <span className="text-xs text-warning-text font-medium flex items-center gap-1">
                   <AlertCircle size={11} /> {kpis.sriPendientes} pendientes
                 </span>
               )}
@@ -206,7 +206,7 @@ export default function ErpDashboard({
             <div className="text-2xl font-bold tracking-tight text-text-heading font-mono">
               ${kpis.cxcPendiente.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
-            <p className="text-[11px] text-text-muted mt-1">
+            <p className="text-xs text-text-muted mt-1">
               Saldos y créditos activos de clientes
             </p>
           </CardContent>
@@ -226,7 +226,7 @@ export default function ErpDashboard({
             <div className="text-2xl font-bold tracking-tight text-text-heading font-mono">
               {kpis.totalProductos}
             </div>
-            <p className="text-[11px] text-text-muted mt-1">
+            <p className="text-xs text-text-muted mt-1">
               {kpis.lowStockCount > 0 ? (
                 <span className="text-warning-text font-medium">{kpis.lowStockCount} con stock bajo</span>
               ) : (
@@ -299,15 +299,15 @@ export default function ErpDashboard({
                           </TableCell>
                           <TableCell className="text-center">
                             {tx.sriStatus === 'autorizado' ? (
-                              <Badge variant="success" className="gap-1 text-[10px]">
+                              <Badge variant="success" className="gap-1 text-xs">
                                 <CheckCircle2 size={10} /> Autorizado
                               </Badge>
                             ) : tx.sriStatus === 'pendiente' ? (
-                              <Badge variant="warning" className="gap-1 text-[10px]">
+                              <Badge variant="warning" className="gap-1 text-xs">
                                 <AlertCircle size={10} /> Pendiente
                               </Badge>
                             ) : (
-                              <Badge variant="outline" className="text-[10px]">
+                              <Badge variant="outline" className="text-xs">
                                 {tx.sriStatus || 'Registrado'}
                               </Badge>
                             )}
@@ -346,7 +346,7 @@ export default function ErpDashboard({
                   <ShoppingCart size={15} />
                 </div>
                 <span className="text-xs font-semibold text-text-heading">Punto de Venta</span>
-                <span className="text-[10px] text-text-secondary mt-0.5">Cobro rápido (F12)</span>
+                <span className="text-xs text-text-secondary mt-0.5">Cobro rápido (F12)</span>
               </button>
 
               {/* Facturación */}
@@ -358,7 +358,7 @@ export default function ErpDashboard({
                   <FileText size={15} />
                 </div>
                 <span className="text-xs font-semibold text-text-heading">Facturas SRI</span>
-                <span className="text-[10px] text-text-secondary mt-0.5">Emisión y RIDE</span>
+                <span className="text-xs text-text-secondary mt-0.5">Emisión y RIDE</span>
               </button>
 
               {/* Inventario */}
@@ -370,7 +370,7 @@ export default function ErpDashboard({
                   <Package size={15} />
                 </div>
                 <span className="text-xs font-semibold text-text-heading">Inventario</span>
-                <span className="text-[10px] text-text-secondary mt-0.5">Kardex y Stock</span>
+                <span className="text-xs text-text-secondary mt-0.5">Kardex y Stock</span>
               </button>
 
               {/* Clientes */}
@@ -382,7 +382,7 @@ export default function ErpDashboard({
                   <Users size={15} />
                 </div>
                 <span className="text-xs font-semibold text-text-heading">Clientes y Prov</span>
-                <span className="text-[10px] text-text-secondary mt-0.5">Directorio RUC</span>
+                <span className="text-xs text-text-secondary mt-0.5">Directorio RUC</span>
               </button>
 
               {/* Finanzas / Gastos */}
@@ -394,7 +394,7 @@ export default function ErpDashboard({
                   <CreditCard size={15} />
                 </div>
                 <span className="text-xs font-semibold text-text-heading">Gastos y CxP</span>
-                <span className="text-[10px] text-text-secondary mt-0.5">Control de egresos</span>
+                <span className="text-xs text-text-secondary mt-0.5">Control de egresos</span>
               </button>
 
               {/* Configuración */}
@@ -406,7 +406,7 @@ export default function ErpDashboard({
                   <Settings size={15} />
                 </div>
                 <span className="text-xs font-semibold text-text-heading">Ajustes SRI</span>
-                <span className="text-[10px] text-text-secondary mt-0.5">Firma .p12 y datos</span>
+                <span className="text-xs text-text-secondary mt-0.5">Firma .p12 y datos</span>
               </button>
 
             </CardContent>

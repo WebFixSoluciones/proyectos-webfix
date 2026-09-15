@@ -1,3 +1,5 @@
+import { roundMoney } from './paymentModel.js';
+import { taxRateFor } from './productModel.js';
 /**
  * Motor de cálculo unificado para POS y Ventas Administrativas.
  * 
@@ -60,11 +62,7 @@ export function calculateTransactionTotals(items = [], generalDiscount = null) {
     const cantidad = Number(item.quantity) || 0;
     
     // Normalizar tarifa IVA (ej: 15 o 0.15)
-    let tarifaIvaRaw = Number(item.taxRate || item.ivaCategory || 0);
-    if (tarifaIvaRaw > 1) {
-      tarifaIvaRaw = tarifaIvaRaw / 100; // e.g. 15 -> 0.15
-    }
-    const tarifaIva = tarifaIvaRaw;
+    const tarifaIva = taxRateFor(item);
 
     const taxMode = item.tax_mode || 'EXCLUIDO';
 
@@ -75,7 +73,7 @@ export function calculateTransactionTotals(items = [], generalDiscount = null) {
     }
 
     // Paso 2 - Subtotal bruto
-    const subtotalBruto = cantidad * precioBaseUnitario;
+    const subtotalBruto = roundMoney(cantidad * precioBaseUnitario);
 
     // Paso 3 - Aplicar descuento de PRODUCTO condicionado por volumen y vigencia
     let descuentoLinea = 0;
@@ -125,22 +123,24 @@ export function calculateTransactionTotals(items = [], generalDiscount = null) {
           }
         }
       }
-    } else if (item.id_descuento_aplicado || item.id_promocion_aplicada) {
+    } else if (!discount && (item.id_descuento_aplicado || item.id_promocion_aplicada || item.itemDiscount || item.discount || item.discount_value)) {
       // Soporte para descuentos directos legacy o manuales pasados por propiedades básicas
-      const discVal = Number(item.discount_value) || Number(item.itemDiscount) || 0;
-      if (item.discount_type === 'PORCENTAJE') {
+      const discVal = Number(item.discount_value) || Number(item.itemDiscount) || Number(item.discount) || 0;
+      appliedDiscountValue = discVal;
+      appliedDiscountType = item.discount_type || 'MONTO_FIJO';
+      if (appliedDiscountType === 'PORCENTAJE') {
         descuentoLinea = subtotalBruto * (discVal / 100);
-      } else if (item.discount_type === 'MONTO_FIJO') {
+      } else if (appliedDiscountType === 'MONTO_FIJO') {
         descuentoLinea = discVal;
-      } else if (item.discount_type === 'SIN_IVA') {
+      } else if (appliedDiscountType === 'SIN_IVA') {
         descuentoLinea = subtotalBruto * (tarifaIva / (1 + tarifaIva));
       }
     }
     
-    descuentoLinea = Math.min(subtotalBruto, descuentoLinea);
+    descuentoLinea = roundMoney(Math.max(0, Math.min(subtotalBruto, descuentoLinea)));
 
     // Paso 4 - Subtotal neto de línea
-    const subtotalNetoLinea = subtotalBruto - descuentoLinea;
+    const subtotalNetoLinea = roundMoney(subtotalBruto - descuentoLinea);
 
     return {
       ...item,
@@ -171,24 +171,28 @@ export function calculateTransactionTotals(items = [], generalDiscount = null) {
         return acc + item.subtotal_neto_linea * (item.tarifa_iva / (1 + item.tarifa_iva));
       }, 0);
     }
-    montoDescuentoVenta = Math.min(subtotalGeneralNeto, montoDescuentoVenta);
+    montoDescuentoVenta = roundMoney(Math.max(0, Math.min(subtotalGeneralNeto, montoDescuentoVenta)));
   }
 
   // Paso 7 & 8 & 9 - Prorratear, calcular IVA y totales por línea
   let totalIva = 0;
   let totalNetoFinal = 0;
   
+  let allocatedDiscount = 0;
+  let cumulativeBase = 0;
   const finalItems = processedItems.map(item => {
     let descuentoProrrateado = 0;
     if (subtotalGeneralNeto > 0) {
-      const factorProporcion = item.subtotal_neto_linea / subtotalGeneralNeto;
-      descuentoProrrateado = montoDescuentoVenta * factorProporcion;
+      cumulativeBase += item.subtotal_neto_linea;
+      const cumulativeDiscount = roundMoney(montoDescuentoVenta * cumulativeBase / subtotalGeneralNeto);
+      descuentoProrrateado = roundMoney(cumulativeDiscount - allocatedDiscount);
+      allocatedDiscount = cumulativeDiscount;
     }
     
-    const subtotalNetoLineaFinal = Math.max(0, item.subtotal_neto_linea - descuentoProrrateado);
+    const subtotalNetoLineaFinal = roundMoney(Math.max(0, item.subtotal_neto_linea - descuentoProrrateado));
     
     // Paso 8 - IVA por línea (siempre sobre la base neta FINAL, después de todos los descuentos)
-    const ivaLinea = subtotalNetoLineaFinal * item.tarifa_iva;
+    const ivaLinea = roundMoney(subtotalNetoLineaFinal * item.tarifa_iva);
     
     // Paso 9 - Totales
     const totalLinea = subtotalNetoLineaFinal + ivaLinea;
@@ -205,7 +209,7 @@ export function calculateTransactionTotals(items = [], generalDiscount = null) {
     };
   });
 
-  const totalVenta = totalNetoFinal + totalIva;
+  const totalVenta = roundMoney(totalNetoFinal + totalIva);
 
   return {
     items: finalItems,

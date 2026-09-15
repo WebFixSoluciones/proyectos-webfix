@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const ProductTypeEnum = z.enum(['STANDARD', 'SUBPRODUCT', 'COMBO', 'SERVICE']);
 
 export const ProductSchema = z.object({
-  id: z.string().uuid().optional(), // Puede ser opcional al crear
+  id: z.string().min(1).optional(), // Puede ser opcional al crear
   tenantId: z.string().optional(),
   type: ProductTypeEnum,
   sku: z.string().min(3, "El SKU debe tener al menos 3 caracteres"),
@@ -31,7 +31,9 @@ export const ProductSchema = z.object({
   precio_con_iva: z.number().optional(),
   tarifa_iva: z.number().default(0.15).optional(),
   
-  stock: z.number().default(0),
+  stock: z.number().nonnegative().default(0),
+  codigoBarras: z.string().optional(),
+  stockByBranch: z.record(z.string(), z.object({ quantity: z.number().nonnegative(), averageCost: z.number().nonnegative() })).optional(),
   
   // New visual and tier pricing fields
   showInSales: z.boolean().default(true).optional(),

@@ -40,19 +40,19 @@ export default function LandingAbout() {
             <h3 className="text-xs font-semibold uppercase tracking-wider text-text-heading mb-4">Nuestros Principios</h3>
             <ul className="space-y-3 text-xs text-text-secondary">
               <li className="flex items-start gap-2.5">
-                <CheckCircle2 size={14} className="text-[#00E4B8] shrink-0 mt-0.5" />
+                <CheckCircle2 size={14} className="text-success shrink-0 mt-0.5" />
                 <span><strong className="text-text-heading font-medium">Precios transparentes:</strong> Facturación ilimitada sin cobros por documento.</span>
               </li>
               <li className="flex items-start gap-2.5">
-                <CheckCircle2 size={14} className="text-[#00E4B8] shrink-0 mt-0.5" />
+                <CheckCircle2 size={14} className="text-success shrink-0 mt-0.5" />
                 <span><strong className="text-text-heading font-medium">Automatización SRI directa:</strong> Firma digital y autorización inmediata.</span>
               </li>
               <li className="flex items-start gap-2.5">
-                <CheckCircle2 size={14} className="text-[#00E4B8] shrink-0 mt-0.5" />
+                <CheckCircle2 size={14} className="text-success shrink-0 mt-0.5" />
                 <span><strong className="text-text-heading font-medium">Velocidad en Punto de Venta:</strong> Optimizado para atajos rápidos en mostrador.</span>
               </li>
               <li className="flex items-start gap-2.5">
-                <CheckCircle2 size={14} className="text-[#00E4B8] shrink-0 mt-0.5" />
+                <CheckCircle2 size={14} className="text-success shrink-0 mt-0.5" />
                 <span><strong className="text-text-heading font-medium">Seguridad de datos:</strong> Cifrado continuo y respaldos automáticos.</span>
               </li>
             </ul>

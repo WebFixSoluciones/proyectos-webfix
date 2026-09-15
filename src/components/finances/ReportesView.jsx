@@ -15,7 +15,7 @@ const TABS = [
   { id: 'cartera', label: 'Cartera', icon: Wallet, color: 'text-blue-600' },
   { id: 'deuda', label: 'Deuda', icon: Landmark, color: 'text-red-600' },
   { id: 'impuestos', label: 'Impuestos', icon: Calculator, color: 'text-purple-600' },
-  { id: 'auditoria', label: 'Auditoría', icon: Shield, color: 'text-slate-600' },
+  { id: 'auditoria', label: 'Auditoría', icon: Shield, color: 'text-text-primary' },
 ];
 
 const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
@@ -146,7 +146,7 @@ export default function ReportesView({ db, showToast }) {
               {data.serie.map(s => {
                 const [y, m] = s.mes.split('-');
                 return (
-                  <div key={s.mes} className="flex items-center gap-2 text-[10px]">
+                  <div key={s.mes} className="flex items-center gap-2 text-xs">
                     <span className="w-14 text-text-muted shrink-0">{MESES[parseInt(m)-1]} {y?.slice(2)}</span>
                     <div className="flex-1 flex items-center gap-1">
                       <div className="h-3 bg-success/20 rounded-sm" style={{ width: `${(s.ingresos / maxVal) * 100}%`, minWidth: s.ingresos > 0 ? '2px' : '0' }} title={`Ingresos: ${fmt(s.ingresos)}`} />
@@ -157,7 +157,7 @@ export default function ReportesView({ db, showToast }) {
                 );
               })}
             </div>
-            <div className="flex items-center gap-4 mt-3 text-[10px] text-text-muted">
+            <div className="flex items-center gap-4 mt-3 text-xs text-text-muted">
               <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 bg-success/30 rounded-sm inline-block" /> Ingresos</span>
               <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 bg-error/30 rounded-sm inline-block" /> Egresos</span>
             </div>
@@ -209,7 +209,7 @@ export default function ReportesView({ db, showToast }) {
             const bg = k === '+90' ? 'bg-status-rejected-bg' : k === '61-90' ? 'bg-warning-light' : k === '31-60' ? 'bg-warning-light/50' : 'bg-surface-sidebar';
             return (
               <div key={k} className={`${bg} border border-border-default rounded-card p-3`}>
-                <div className="text-[10px] uppercase tracking-wide text-text-muted mb-0.5">{k} días</div>
+                <div className="text-xs uppercase tracking-wide text-text-muted mb-0.5">{k} días</div>
                 <div className="text-base font-bold text-text-primary">{v.count}</div>
                 <div className="text-xs text-text-secondary">{fmt(v.total)}</div>
                 <div className="mt-1.5 h-1 bg-border-default rounded-full overflow-hidden">
@@ -269,7 +269,7 @@ export default function ReportesView({ db, showToast }) {
                   <span className="flex-1 truncate text-text-primary">{c.cliente}</span>
                   <span className="text-text-muted shrink-0">{c.facturas} doc</span>
                   <span className="text-text-primary font-medium w-20 text-right shrink-0">{fmt(c.saldo)}</span>
-                  {c.vencido > 0 && <span className="text-error text-[10px] w-20 text-right shrink-0">Venc: {fmt(c.vencido)}</span>}
+                  {c.vencido > 0 && <span className="text-error text-xs w-20 text-right shrink-0">Venc: {fmt(c.vencido)}</span>}
                 </div>
               ))}
             </div>
@@ -326,11 +326,11 @@ export default function ReportesView({ db, showToast }) {
                 <div key={p.id} className="flex items-center gap-2 text-xs bg-surface-sidebar rounded-card px-3 py-2">
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-text-primary truncate">{p.entidad}</div>
-                    <div className="text-[10px] text-text-muted">{p.numero} · {p.cuotasPendientes} cuotas pend. {p.cuotasVencidas > 0 ? `· ${p.cuotasVencidas} vencidas` : ''}</div>
+                    <div className="text-xs text-text-muted">{p.numero} · {p.cuotasPendientes} cuotas pend. {p.cuotasVencidas > 0 ? `· ${p.cuotasVencidas} vencidas` : ''}</div>
                   </div>
                   <div className="text-right shrink-0">
                     <div className="font-bold text-error">{fmt(p.saldoPendiente)}</div>
-                    <div className="text-[10px] text-text-muted">de {fmt(p.montoOriginal)}</div>
+                    <div className="text-xs text-text-muted">de {fmt(p.montoOriginal)}</div>
                   </div>
                   <EstadoBadge estado={p.estado} />
                 </div>
@@ -346,11 +346,11 @@ export default function ReportesView({ db, showToast }) {
                 <div key={t.id} className="flex items-center gap-2 text-xs bg-surface-sidebar rounded-card px-3 py-2">
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-text-primary truncate">{t.entidad} ****{String(t.numero).slice(-4)}</div>
-                    <div className="text-[10px] text-text-muted">{t.cuotasPendientes} cuotas pendientes</div>
+                    <div className="text-xs text-text-muted">{t.cuotasPendientes} cuotas pendientes</div>
                   </div>
                   <div className="text-right shrink-0">
                     <div className="font-bold text-amber-600">{fmt(t.saldoPendiente)}</div>
-                    <div className="text-[10px] text-text-muted">cupo: {fmt(t.montoOriginal)}</div>
+                    <div className="text-xs text-text-muted">cupo: {fmt(t.montoOriginal)}</div>
                   </div>
                   <EstadoBadge estado={t.estado} />
                 </div>
@@ -371,7 +371,7 @@ export default function ReportesView({ db, showToast }) {
           <KPI icon={TrendingUp} label="IVA Débito Fiscal" value={fmt(data.ivaVentas)} color="text-primary" />
           <KPI icon={TrendingDown} label="IVA Crédito Fiscal" value={fmt(data.ivaCompras)} color="text-purple-600" />
           <KPI icon={DollarSign} label="IVA Neto a Pagar" value={fmt(data.ivaNeto)} color={data.ivaNeto >= 0 ? 'text-error' : 'text-success'} />
-          <KPI icon={Receipt} label="Retenciones Netas" value={fmt(data.retencionesNetas)} color="text-slate-600" />
+          <KPI icon={Receipt} label="Retenciones Netas" value={fmt(data.retencionesNetas)} color="text-text-primary" />
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-surface-card border border-border-default rounded-card p-4">
@@ -429,7 +429,7 @@ export default function ReportesView({ db, showToast }) {
     return (
       <div className="space-y-4">
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          <KPI icon={Shield} label="Total Registros" value={data.totalRegistros} color="text-slate-600" />
+          <KPI icon={Shield} label="Total Registros" value={data.totalRegistros} color="text-text-primary" />
           <KPI icon={FileText} label="Acciones Distintas" value={acciones.length} color="text-text-primary" />
           <KPI icon={Clock} label="Última Acción" value={data.items.length > 0 ? fmtDate(data.items[0].fecha) : '-'} color="text-text-secondary" />
         </div>
@@ -438,7 +438,7 @@ export default function ReportesView({ db, showToast }) {
             <h4 className="text-xs font-semibold text-text-primary mb-3">Distribución por Acción</h4>
             <div className="flex flex-wrap gap-2">
               {acciones.map(([accion, count]) => (
-                <span key={accion} className="px-2 py-1 text-[10px] bg-surface-sidebar border border-border-default rounded-card text-text-secondary">
+                <span key={accion} className="px-2 py-1 text-xs bg-surface-sidebar border border-border-default rounded-card text-text-secondary">
                   {accion}: <span className="font-bold text-text-primary">{count}</span>
                 </span>
               ))}
@@ -459,10 +459,10 @@ export default function ReportesView({ db, showToast }) {
                 {data.items.slice(0, 100).map(i => (
                   <tr key={i.id} className="border-b border-border-default/50 hover:bg-surface-sidebar/50">
                     <td className="px-3 py-1.5 text-text-muted whitespace-nowrap">{fmtDate(i.fecha)}</td>
-                    <td className="px-3 py-1.5"><span className="px-1.5 py-0.5 bg-surface-sidebar border border-border-default rounded text-[10px] font-medium">{i.accion}</span></td>
+                    <td className="px-3 py-1.5"><span className="px-1.5 py-0.5 bg-surface-sidebar border border-border-default rounded text-xs font-medium">{i.accion}</span></td>
                     <td className="px-3 py-1.5 text-text-primary truncate max-w-[150px]">{i.usuario}</td>
                     <td className="px-3 py-1.5 text-text-secondary">{i.coleccion}</td>
-                    <td className="px-3 py-1.5 text-text-muted font-mono text-[10px]">{i.documentoId?.slice(0, 12) || '-'}</td>
+                    <td className="px-3 py-1.5 text-text-muted font-mono text-xs">{i.documentoId?.slice(0, 12) || '-'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -541,7 +541,7 @@ export default function ReportesView({ db, showToast }) {
 function KPI({ icon: Icon, label, value, color = 'text-text-primary' }) {
   return (
     <div className="bg-surface-card border border-border-default rounded-card p-3">
-      <div className="flex items-center gap-1.5 text-text-secondary text-[10px] uppercase tracking-wide mb-0.5">
+      <div className="flex items-center gap-1.5 text-text-secondary text-xs uppercase tracking-wide mb-0.5">
         <Icon size={12} className={color} />{label}
       </div>
       <div className={`text-base font-bold ${color}`}>{value}</div>
@@ -591,7 +591,7 @@ function EstadoBadge({ estado }) {
     inactiva: 'bg-surface-sidebar text-text-muted border-border-default',
   };
   return (
-    <span className={`px-1.5 py-0.5 text-[10px] font-medium border rounded ${styles[estado] || 'bg-surface-sidebar text-text-muted border-border-default'}`}>
+    <span className={`px-1.5 py-0.5 text-xs font-medium border rounded ${styles[estado] || 'bg-surface-sidebar text-text-muted border-border-default'}`}>
       {estado}
     </span>
   );

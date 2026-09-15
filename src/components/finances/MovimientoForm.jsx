@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { X, Plus, Minus, Save } from 'lucide-react';
 import { crearMovimiento, editarMovimiento } from '../../services/movimientoService';
 
@@ -42,11 +42,12 @@ const PARTIDA_VACIA = {
 };
 
 export default function MovimientoForm({ onClose, onSave, movimiento, db, usuario, showToast }) {
+  const stableId = useRef(crypto.randomUUID());
   const esEdicion = !!movimiento?.id;
   
   const [formData, setFormData] = useState({
     tipo: movimiento?.tipo || 'egreso',
-    fecha: movimiento?.fecha ? new Date(movimiento.fecha.toDate()).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+    fecha: movimiento?.fecha ? new Date(movimiento.fecha.toDate?.() || movimiento.fecha).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
     fechaVencimiento: movimiento?.fechaVencimiento?.toDate ? new Date(movimiento.fechaVencimiento.toDate()).toISOString().split('T')[0] : '',
     monto: movimiento?.monto || 0,
     metodoPago: movimiento?.metodoPago || 'efectivo',
@@ -119,7 +120,7 @@ export default function MovimientoForm({ onClose, onSave, movimiento, db, usuari
       if (esEdicion) {
         await editarMovimiento(db, movimiento.id, formData, usuario);
       } else {
-        await crearMovimiento(db, formData, usuario);
+        await crearMovimiento(db, { ...formData, id: stableId.current }, usuario);
       }
       showToast(esEdicion ? 'Movimiento actualizado' : 'Movimiento creado', 'success');
       onSave();

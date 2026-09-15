@@ -1,151 +1,53 @@
-import { collection, doc, setDoc, getDoc, getDocs, updateDoc, deleteDoc, query, where } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, query, where, runTransaction } from 'firebase/firestore';
 import { db, getAppId } from '../../../firebase';
-import { Product, ProductSchema } from '../domain/schemas/product.schema';
+import { ProductSchema } from '../domain/schemas/product.schema';
+import type { Product } from '../domain/schemas/product.schema';
+import { normalizeProduct } from '../../../services/productModel';
 
 export class ProductRepository {
-  private getCollectionRef() {
-    return collection(db, 'artifacts', getAppId(), 'public', 'data', 'inventory_products');
-  }
-
-  async create(productData: Partial<Product>): Promise<Product> {
-    // Si no tiene imagen, asignar imagen de placeholder automática (placehold.co)
-    const imageUrl = productData.imageUrl && productData.imageUrl.trim() !== '' 
-      ? productData.imageUrl 
-      : '/product.svg';
-
-    // Validar con Zod
-    const validatedData = ProductSchema.parse({
-      ...productData,
-      imageUrl,
-      id: productData.id || crypto.randomUUID(),
-      createdAt: new Date(),
-      updatedAt: new Date()
+  private getCollectionRef() { return collection(db, 'artifacts', getAppId(), 'public', 'data', 'inventory_products'); }
+  private ref(collectionName: string, id: string) { return doc(db, 'artifacts', getAppId(), 'public', 'data', collectionName, id); }
+  async create(data: Partial<Product>): Promise<Product> { return this.save(data.id || crypto.randomUUID(), data, true); }
+  async update(id: string, data: Partial<Product>): Promise<void> { await this.save(id, data, false); }
+  private async save(id: string, updates: Partial<Product>, creating: boolean): Promise<Product> {
+    const existing = creating ? null : await this.findById(id);
+    if (!creating && !existing) throw new Error('El producto ya no existe.');
+    const merged = { ...existing, ...updates, id };
+    const duplicate = await this.findBySku(merged.sku || '');
+    if (duplicate && duplicate.id !== id) throw new Error('El SKU ya pertenece a otro producto.');
+    if (merged.type === 'SUBPRODUCT' && (!merged.parentId || merged.parentId === id)) throw new Error('Selecciona un producto padre válido.');
+    if (merged.type === 'COMBO' && !merged.comboItems?.length) throw new Error('Agrega al menos un componente al combo.');
+    const relatedIds = merged.type === 'COMBO' ? (merged.comboItems || []).map(item => item.productId) : merged.type === 'SUBPRODUCT' ? [merged.parentId!] : [];
+    if (relatedIds.includes(id)) throw new Error('Un producto no puede contenerse a sí mismo.');
+    for (const related of relatedIds) { if (!await this.findById(related)) throw new Error('Uno de los productos relacionados ya no existe.'); }
+    const data = ProductSchema.parse({ ...merged, sku: (merged.sku || '').trim().toUpperCase(), name: (merged.name || '').trim(), imageUrl: merged.imageUrl?.trim() || '/product.svg', tarifa_iva: Number(merged.taxRate ?? 15) / 100, createdAt: new Date(), updatedAt: new Date() });
+    const mirror = normalizeProduct(data);
+    const skuRef = this.ref('inventory_skus', encodeURIComponent(data.sku));
+    await runTransaction(db, async tx => {
+      const productRef = this.ref('inventory_products', id);
+      const current = await tx.get(productRef);
+      const sku = await tx.get(skuRef);
+      if (!creating && !current.exists()) throw new Error('El producto ya no existe.');
+      if (sku.exists() && sku.data().productId !== id) throw new Error('El SKU ya está registrado.');
+      const live = current.data();
+      const oldSkuRef = live?.sku && live.sku !== data.sku ? this.ref('inventory_skus', encodeURIComponent(live.sku)) : null;
+      const oldSku = oldSkuRef ? await tx.get(oldSkuRef) : null;
+      if (live && Number(live.stock) > 0 && (live.type !== data.type || live.inventoryType !== data.inventoryType)) throw new Error('Ajusta primero las existencias antes de cambiar el tipo de inventario.');
+      const stock = live?.stock ?? 0;
+      const baseCost = live?.stockByBranch ? live.baseCost : data.baseCost;
+      tx.set(productRef, { ...data, stock, baseCost, createdAt: live?.createdAt || new Date() }, { merge: true });
+      tx.set(this.ref('finances_products', id), { ...mirror, stock, cost: baseCost, updatedAt: new Date().toISOString() }, { merge: true });
+      tx.set(skuRef, { productId: id });
+      if (oldSkuRef && oldSku?.data()?.productId === id) tx.delete(oldSkuRef);
     });
-
-    const docRef = doc(this.getCollectionRef(), validatedData.id);
-    await setDoc(docRef, validatedData);
-    
-    // INTEGRACIÓN GLOBAL: Guardar también en la colección de finanzas para que el POS y Ventas puedan facturarlo
-    try {
-      const financesProductRef = doc(db, 'artifacts', getAppId(), 'public', 'data', 'finances_products', validatedData.id);
-      
-      let categoryName = "";
-      let brandName = "";
-      if (validatedData.categoryId) {
-        const catSnap = await getDoc(doc(db, 'artifacts', getAppId(), 'public', 'data', 'inventory_categories', validatedData.categoryId));
-        if (catSnap.exists()) categoryName = catSnap.data().name || "";
-      }
-      if (validatedData.brandId) {
-        const brandSnap = await getDoc(doc(db, 'artifacts', getAppId(), 'public', 'data', 'inventory_brands', validatedData.brandId));
-        if (brandSnap.exists()) brandName = brandSnap.data().name || "";
-      }
-
-      await setDoc(financesProductRef, {
-        id: validatedData.id,
-        name: validatedData.name,
-        sku: validatedData.sku.toUpperCase(),
-        description: validatedData.description || "",
-        price: validatedData.salePrice,
-        cost: validatedData.baseCost,
-        ivaCategory: validatedData.taxRate,
-        imageUrl: validatedData.imageUrl,
-        stock: validatedData.type === 'SERVICE' ? 0 : 0, // Inicializado en 0 (el stock real se calcula del Kardex)
-        minStock: validatedData.stockMinimo !== undefined ? validatedData.stockMinimo : 5,
-        maxStock: validatedData.stockMaximo !== undefined ? validatedData.stockMaximo : 100,
-        inventoryType: validatedData.inventoryType || 'PHYSICAL',
-        type: validatedData.type === 'SERVICE' ? 'servicio' : 'producto',
-        marca: brandName,
-        categoria: categoryName,
-        bodega: "Bodega Central",
-        codigoBarras: "",
-        updatedAt: new Date().toISOString()
-      });
-    } catch (err) {
-      console.error("Error synchronizing with finances_products:", err);
-    }
-    
-    return validatedData;
+    return { ...data, stock: existing?.stock ?? 0 };
   }
-
-  async findById(id: string): Promise<Product | null> {
-    const docRef = doc(this.getCollectionRef(), id);
-    const snap = await getDoc(docRef);
-    if (!snap.exists()) return null;
-    return snap.data() as Product;
-  }
-
-  async findBySku(sku: string): Promise<Product | null> {
-    if (!sku || !sku.trim()) return null;
-    const cleanSku = sku.trim().toUpperCase();
-    const q = query(this.getCollectionRef(), where('sku', '==', cleanSku));
-    const snap = await getDocs(q);
-    if (snap.empty) return null;
-    return snap.docs[0].data() as Product;
-  }
-
-  async findAll(): Promise<Product[]> {
-    const snap = await getDocs(this.getCollectionRef());
-    const productsMap = new Map<string, Product>();
-    for (const doc of snap.docs) {
-      const data = doc.data() as Product;
-      if (data && data.id && !productsMap.has(data.id)) {
-        productsMap.set(data.id, data);
-      }
-    }
-    return Array.from(productsMap.values());
-  }
-
-  async update(id: string, updates: Partial<Product>): Promise<void> {
-    const docRef = doc(this.getCollectionRef(), id);
-    const cleanedUpdates = { ...updates };
-    if (cleanedUpdates.imageUrl !== undefined && (!cleanedUpdates.imageUrl || cleanedUpdates.imageUrl.trim() === '')) {
-      cleanedUpdates.imageUrl = '/product.svg';
-    }
-
-    await updateDoc(docRef, {
-      ...cleanedUpdates,
-      updatedAt: new Date()
-    });
-
-    // INTEGRACIÓN GLOBAL: Actualizar también en la colección de finanzas
-    try {
-      const financesProductRef = doc(db, 'artifacts', getAppId(), 'public', 'data', 'finances_products', id);
-      
-      const updateData: any = {};
-      if (cleanedUpdates.name !== undefined) updateData.name = cleanedUpdates.name;
-      if (cleanedUpdates.sku !== undefined) updateData.sku = cleanedUpdates.sku.toUpperCase();
-      if (cleanedUpdates.description !== undefined) updateData.description = cleanedUpdates.description;
-      if (cleanedUpdates.salePrice !== undefined) updateData.price = cleanedUpdates.salePrice;
-      if (cleanedUpdates.baseCost !== undefined) updateData.cost = cleanedUpdates.baseCost;
-      if (cleanedUpdates.taxRate !== undefined) updateData.ivaCategory = cleanedUpdates.taxRate;
-      if (cleanedUpdates.type !== undefined) updateData.type = cleanedUpdates.type === 'SERVICE' ? 'servicio' : 'producto';
-      if (cleanedUpdates.stockMinimo !== undefined) updateData.minStock = cleanedUpdates.stockMinimo;
-      if (cleanedUpdates.stockMaximo !== undefined) updateData.maxStock = cleanedUpdates.stockMaximo;
-      if (cleanedUpdates.inventoryType !== undefined) updateData.inventoryType = cleanedUpdates.inventoryType;
-      if (cleanedUpdates.imageUrl !== undefined) updateData.imageUrl = cleanedUpdates.imageUrl;
-      
-      if (Object.keys(updateData).length > 0) {
-        updateData.updatedAt = new Date().toISOString();
-        await updateDoc(financesProductRef, updateData);
-      }
-    } catch (err) {
-      console.error("Error updating finances_products:", err);
-    }
-  }
-
+  async findById(id: string): Promise<Product | null> { const snap = await getDoc(this.ref('inventory_products', id)); return snap.exists() ? { ...snap.data(), id: snap.id } as Product : null; }
+  async findBySku(sku: string): Promise<Product | null> { if (!sku.trim()) return null; const snap = await getDocs(query(this.getCollectionRef(), where('sku', '==', sku.trim().toUpperCase()))); return snap.empty ? null : { ...snap.docs[0].data(), id: snap.docs[0].id } as Product; }
+  async findAll(): Promise<Product[]> { const snap = await getDocs(this.getCollectionRef()); return snap.docs.map(d => ({ ...d.data(), id: d.id }) as Product); }
   async delete(id: string): Promise<void> {
-    const docRef = doc(this.getCollectionRef(), id);
-    await deleteDoc(docRef);
-
-    // INTEGRACIÓN GLOBAL: Eliminar también de la colección de finanzas
-    try {
-      const financesProductRef = doc(db, 'artifacts', getAppId(), 'public', 'data', 'finances_products', id);
-      await deleteDoc(financesProductRef);
-    } catch (err) {
-      console.error("Error deleting from finances_products:", err);
-    }
+    // Preserve references from invoices, combos and ledger history.
+    await this.update(id, { status: 'INACTIVE', showInSales: false });
   }
 }
-
-// Exportar una instancia única (Singleton)
 export const productRepository = new ProductRepository();

@@ -55,7 +55,7 @@ const TabsTrigger = React.forwardRef(({ className, value, children, ...props }, 
       aria-selected={isActive}
       onClick={() => onValueChange(value)}
       className={cn(
-        "inline-flex items-center justify-center whitespace-nowrap rounded-[4px] px-3 py-1 text-xs font-medium tracking-tight transition-all duration-120 select-none cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-50",
+        "inline-flex items-center justify-center whitespace-nowrap rounded-badge px-3 py-1 text-xs font-medium tracking-tight transition-all duration-120 select-none cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-50",
         isActive
           ? "bg-white text-text-heading border border-border-default shadow-none font-semibold"
           : "text-text-secondary hover:text-text-heading hover:bg-black/5",

@@ -37,8 +37,8 @@ export default function LandingLayout() {
     >
       
       {/* 1. TOP ANNOUNCEMENT BAR */}
-      <div className="bg-surface-sidebar border-b border-border-default px-4 py-1.5 text-center text-[11px] font-medium text-text-secondary flex items-center justify-center gap-2">
-        <span className="flex h-1.5 w-1.5 rounded-full bg-[#00E4B8] animate-pulse"></span>
+      <div className="bg-surface-sidebar border-b border-border-default px-4 py-1.5 text-center text-xs font-medium text-text-secondary flex items-center justify-center gap-2">
+        <span className="flex h-1.5 w-1.5 rounded-full bg-success animate-pulse"></span>
         <span>Cumplimiento tributario SRI 2026 activo • Firma electrónica .p12 y facturación ilimitada</span>
         <Link to="/precios" className="text-text-heading font-semibold hover:underline inline-flex items-center gap-0.5 ml-1">
           Ver planes <ArrowUpRight size={11} />
@@ -46,7 +46,7 @@ export default function LandingLayout() {
       </div>
 
       {/* 2. STICKY NAVBAR (Vercel / Linear Minimalist Style) */}
-      <header className="sticky top-0 z-50 border-b border-border-default bg-white/90 backdrop-blur-md shrink-0">
+      <header className="sticky top-0 z-50 border-b border-border-default bg-white/90  shrink-0">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
           
           {/* Brand Logo */}
@@ -56,7 +56,7 @@ export default function LandingLayout() {
             </div>
             <div className="flex items-center gap-1.5">
               <span className="text-sm font-semibold tracking-tight text-text-heading">WebFix</span>
-              <span className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-surface-sidebar border border-border-default text-text-secondary">ERP</span>
+              <span className="text-xs font-mono font-medium px-1.5 py-0.5 rounded bg-surface-sidebar border border-border-default text-text-secondary">ERP</span>
             </div>
           </Link>
 
@@ -172,8 +172,8 @@ export default function LandingLayout() {
                 Plataforma de facturación electrónica y control financiero diseñada para empresas modernas en Ecuador.
               </p>
               <div className="flex items-center gap-2 pt-1">
-                <Badge variant="success" className="gap-1 text-[10px] py-0.5 px-2 font-normal normal-case">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#00E4B8]"></span>
+                <Badge variant="success" className="gap-1 text-xs py-0.5 px-2 font-normal normal-case">
+                  <span className="h-1.5 w-1.5 rounded-full bg-success"></span>
                   SRI Online 100%
                 </Badge>
               </div>

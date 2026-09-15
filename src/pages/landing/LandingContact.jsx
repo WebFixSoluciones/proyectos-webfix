@@ -89,7 +89,7 @@ export default function LandingContact() {
                   <Mail size={15} />
                 </div>
                 <div>
-                  <span className="text-[10px] text-text-muted uppercase font-semibold block">Correo Electrónico</span>
+                  <span className="text-xs text-text-muted uppercase font-semibold block">Correo Electrónico</span>
                   <span className="font-semibold text-text-heading">soporte@webfixsoluciones.net</span>
                 </div>
               </div>
@@ -100,11 +100,11 @@ export default function LandingContact() {
                 rel="noreferrer"
                 className="flex items-center gap-3 p-3 rounded-md bg-surface-sidebar border border-border-default hover:border-text-heading hover:bg-white transition-all cursor-pointer group"
               >
-                <div className="p-2 rounded bg-white text-text-heading border border-border-default group-hover:bg-[#00E4B8] group-hover:text-black transition-colors">
+                <div className="p-2 rounded bg-white text-text-heading border border-border-default group-hover:bg-success group-hover:text-black transition-colors">
                   <Phone size={15} />
                 </div>
                 <div>
-                  <span className="text-[10px] text-text-muted uppercase font-semibold block">WhatsApp Directo</span>
+                  <span className="text-xs text-text-muted uppercase font-semibold block">WhatsApp Directo</span>
                   <span className="font-semibold text-text-heading">+593 98 492 0626</span>
                 </div>
               </a>
@@ -114,7 +114,7 @@ export default function LandingContact() {
                   <MapPin size={15} />
                 </div>
                 <div>
-                  <span className="text-[10px] text-text-muted uppercase font-semibold block">Ubicación</span>
+                  <span className="text-xs text-text-muted uppercase font-semibold block">Ubicación</span>
                   <span className="font-semibold text-text-heading">Quito / Guayaquil, Ecuador</span>
                 </div>
               </div>
@@ -126,7 +126,7 @@ export default function LandingContact() {
             <Card className="p-6">
               {submitted ? (
                 <div className="text-center py-10 space-y-3">
-                  <CheckCircle2 size={36} className="text-[#00E4B8] mx-auto" />
+                  <CheckCircle2 size={36} className="text-success mx-auto" />
                   <h3 className="text-base font-bold text-text-heading">¡Mensaje Enviado con Éxito!</h3>
                   <p className="text-xs text-text-secondary max-w-sm mx-auto">
                     Hemos registrado tu consulta. Uno de nuestros asesores técnicos se comunicará contigo en breve o puedes escribirnos directamente por WhatsApp.

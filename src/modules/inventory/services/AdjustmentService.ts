@@ -1,17 +1,11 @@
-import { kardexService, KardexService } from './KardexService';
-import { InventoryAdjustment, AdjustmentTypeEnum } from '../domain/schemas/kardex-transfer.schema';
+import { registerInventoryOperations } from '../../../services/inventoryLedger';
+import { AdjustmentTypeEnum } from '../domain/schemas/kardex-transfer.schema';
 import { z } from 'zod';
-import { collection, doc, setDoc, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db, appId } from '../../../firebase';
 import { kardexRepository } from '../repositories/KardexRepository';
 
 export class AdjustmentService {
-  constructor(private kardex: KardexService = kardexService) {}
-
-  private getCollectionRef() {
-    return collection(db, 'artifacts', appId, 'public', 'data', 'inventory_adjustments');
-  }
-
   /**
    * Ajuste Manual (Un solo producto) o Masivo (Varios productos de un CSV por ejemplo).
    */
@@ -29,33 +23,9 @@ export class AdjustmentService {
 
     const adjustmentId = crypto.randomUUID();
 
-    for (const item of items) {
-      if (item.operation === 'IN') {
-        if (item.unitCost === undefined) {
-          throw new Error("Para ajustes de entrada (IN) se requiere especificar el costo unitario del producto.");
-        }
-        await this.kardex.registerTransaction(
-          item.productId,
-          branchId,
-          'POSITIVE_ADJUSTMENT',
-          adjustmentId,
-          item.quantity,
-          item.unitCost
-        );
-      } else {
-        await this.kardex.registerTransaction(
-          item.productId,
-          branchId,
-          'NEGATIVE_ADJUSTMENT',
-          adjustmentId,
-          item.quantity,
-          0 // Costo lo resuelve Kardex usando promedio ponderado
-        );
-      }
-    }
-
-    // Registrar documento del ajuste
-    await this.saveAdjustmentDoc(adjustmentId, branchId, type, reason, items, confirmedBy);
+    if (reason.trim().length < 5) throw new Error('Describe la razón del ajuste.');
+    const operations = items.map(item => ({ productId: item.productId, branchId, type: item.operation === 'IN' ? 'POSITIVE_ADJUSTMENT' : 'NEGATIVE_ADJUSTMENT', referenceId: adjustmentId, quantity: item.quantity, unitCost: item.operation === 'IN' ? Number(item.unitCost) : 0 }));
+    await registerInventoryOperations(db, appId, operations, { document: { collection: 'inventory_adjustments', id: adjustmentId, data: { id: adjustmentId, branchId, type, reason, items, confirmedBy, status: 'APPLIED', createdAt: new Date() } } });
 
     return adjustmentId;
   }
@@ -69,8 +39,6 @@ export class AdjustmentService {
     reason: string,
     confirmedBy: string
   ): Promise<string> {
-    const adjustmentId = crypto.randomUUID();
-    
     // Obtener todo el inventario actual de la sucursal
     // Necesitamos todos los productos que tienen stock > 0
     const q = query(
@@ -101,16 +69,6 @@ export class AdjustmentService {
       const lastBalance = await kardexRepository.getLastBalance(productId, branchId);
       
       if (lastBalance && lastBalance.balanceQuantity > 0) {
-        // Ejecutar salida masiva para zerar
-        await this.kardex.registerTransaction(
-          productId,
-          branchId,
-          'MASSIVE_ZERO',
-          adjustmentId,
-          lastBalance.balanceQuantity,
-          0
-        );
-        
         itemsToAdjust.push({
           productId,
           quantity: lastBalance.balanceQuantity,
@@ -119,24 +77,9 @@ export class AdjustmentService {
       }
     }
 
-    await this.saveAdjustmentDoc(adjustmentId, branchId, 'ZERO_INVENTORY', reason, itemsToAdjust, confirmedBy);
-    return adjustmentId;
+    return this.executeAdjustment(branchId, 'ZERO_INVENTORY', reason, itemsToAdjust, confirmedBy);
   }
 
-  private async saveAdjustmentDoc(id: string, branchId: string, type: any, reason: string, items: any[], confirmedBy: string) {
-    const docRef = doc(this.getCollectionRef(), id);
-    const adjustment: Partial<InventoryAdjustment> = {
-      id,
-      branchId,
-      type,
-      reason,
-      items,
-      confirmedBy,
-      status: 'APPLIED',
-      createdAt: new Date()
-    };
-    await setDoc(docRef, adjustment);
-  }
 }
 
 export const adjustmentService = new AdjustmentService();

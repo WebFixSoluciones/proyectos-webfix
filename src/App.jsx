@@ -1,3 +1,4 @@
+import { normalizeProduct } from './services/productModel';
 import { useState, useEffect, useRef } from 'react';
 import {
   Plus,
@@ -139,7 +140,7 @@ const SortableTaskItem = ({
     <div 
       ref={setNodeRef} 
       style={style}
-      className={`group p-3 rounded-xl border relative bg-white border-slate-200/80 hover:border-slate-300 ${
+      className={`group p-3 rounded-card border relative bg-white border-border-default/80 hover:border-border-strong ${
         isDragging ? 'z-50  ring-2 ring-primary/40' : ''
       }`}
     >
@@ -148,7 +149,7 @@ const SortableTaskItem = ({
           <div 
             {...attributes} 
             {...listeners} 
-            className="cursor-grab active:cursor-grabbing mt-0.5 opacity-40 group-hover:opacity-100 transition-opacity text-slate-400 hover:text-slate-700"
+            className="cursor-grab active:cursor-grabbing mt-0.5 opacity-40 group-hover:opacity-100 transition-opacity text-text-secondary hover:text-text-primary"
           >
             <GripVertical size={14} />
           </div>
@@ -163,7 +164,7 @@ const SortableTaskItem = ({
                 onKeyDown={(e) => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleInlineSave(task.id, editingTaskContent); setEditingTaskId(null); } }}
                 onClick={(e) => e.stopPropagation()}
                 onPointerDown={(e) => e.stopPropagation()}
-                className="w-full text-xs font-semibold leading-tight px-2 py-1 rounded-lg outline-none bg-white border border-primary text-slate-800  resize-none overflow-hidden"
+                className="w-full text-xs font-semibold leading-tight px-2 py-1 rounded-md outline-none bg-white border border-primary text-text-heading  resize-none overflow-hidden"
                 rows={2}
               />
             ) : (
@@ -171,7 +172,7 @@ const SortableTaskItem = ({
                 onClick={(e) => startEditingTask(e, task)}
                 onPointerDown={(e) => e.stopPropagation()}
                 title="Clic para editar título"
-                className="text-xs font-semibold leading-snug cursor-text transition-colors hover:text-primary text-slate-800 w-full"
+                className="text-xs font-semibold leading-snug cursor-text transition-colors hover:text-primary text-text-heading w-full"
               >
                 {task.content}
               </p>
@@ -182,7 +183,7 @@ const SortableTaskItem = ({
         <button 
           onClick={() => setDrawerTask({ ...task, projectId: activePageId })}
           onPointerDown={(e) => e.stopPropagation()}
-          className="absolute top-2.5 right-2.5 opacity-0 group-hover:opacity-100 p-1.5 rounded-lg transition-all shrink-0  bg-white text-slate-600 hover:text-white hover:bg-primary border border-slate-200"
+          className="absolute top-2.5 right-2.5 opacity-0 group-hover:opacity-100 p-1.5 rounded-md transition-all shrink-0  bg-white text-text-primary hover:text-white hover:bg-primary border border-border-default"
           title="Editar detalles completos"
         >
           <Pencil size={12} />
@@ -199,17 +200,17 @@ const SortableTaskItem = ({
         <div className="flex items-center gap-3">
           {task.notes && task.notes.length > 0 && (
             <div className="relative group/tooltip w-max">
-              <span className="inline-flex items-center gap-1 text-slate-400 text-xs font-medium hover:text-slate-600 transition-colors cursor-help">
-                <MessageSquare size={12} className="text-slate-400" />
-                <span className="text-xs font-semibold text-slate-600">{task.notes.length}</span>
+              <span className="inline-flex items-center gap-1 text-text-secondary text-xs font-medium hover:text-text-primary transition-colors cursor-help">
+                <MessageSquare size={12} className="text-text-secondary" />
+                <span className="text-xs font-semibold text-text-primary">{task.notes.length}</span>
               </span>
-              <div className="absolute bottom-full left-0 mb-2 w-64 p-3 rounded-xl  opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all duration-200 z-50 border bg-white border-slate-200">
-                <h4 className="text-xs font-bold uppercase tracking-wider mb-2 pb-1.5 border-b text-slate-400 border-slate-100">Notas Históricas</h4>
+              <div className="absolute bottom-full left-0 mb-2 w-64 p-3 rounded-card  opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all duration-200 z-50 border bg-white border-border-default">
+                <h4 className="text-xs font-bold uppercase tracking-wider mb-2 pb-1.5 border-b text-text-secondary border-border-default">Notas Históricas</h4>
                 <div className="space-y-3 max-h-40 overflow-y-auto pr-1 custom-scrollbar">
                   {task.notes.map(note => (
                     <div key={note.id} className="text-xs">
                       <span className="block text-xs font-medium mb-0.5 text-primary">{note.date}</span>
-                      <p className="leading-relaxed font-medium text-slate-700">{note.text}</p>
+                      <p className="leading-relaxed font-medium text-text-primary">{note.text}</p>
                     </div>
                   ))}
                 </div>
@@ -217,8 +218,8 @@ const SortableTaskItem = ({
             </div>
           )}
           {task.subtasks && task.subtasks.length > 0 && (
-            <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500">
-              <ListTodo size={11} className="text-slate-400" /> {task.subtasks.filter(s => s.completed).length}/{task.subtasks.length}
+            <span className="inline-flex items-center gap-1 text-xs font-semibold text-text-secondary">
+              <ListTodo size={11} className="text-text-secondary" /> {task.subtasks.filter(s => s.completed).length}/{task.subtasks.length}
             </span>
           )}
         </div>
@@ -226,7 +227,7 @@ const SortableTaskItem = ({
         {assignedUser && (
           <div 
             title={`Asignado a: ${assignedUser.name}`} 
-            className="px-1.5 py-0.5 rounded text-xs font-bold tracking-tight bg-slate-100 text-slate-600 border border-slate-200/90  cursor-default uppercase"
+            className="px-1.5 py-0.5 rounded text-xs font-bold tracking-tight bg-surface-muted text-text-primary border border-border-default/90  cursor-default uppercase"
           >
             {assignedUser.initials}
           </div>
@@ -261,7 +262,7 @@ const SortableColumn = ({
     <div 
       ref={setNodeRef}
       style={style}
-      className={`snap-center shrink-0 w-[220px] rounded-2xl p-3 flex flex-col transition-all border  ${getColumnBgClass(col.color)} ${isDragging ? 'z-40  scale-105' : ''}`}
+      className={`snap-center shrink-0 w-[220px] rounded-card p-3 flex flex-col transition-all border  ${getColumnBgClass(col.color)} ${isDragging ? 'z-40  scale-105' : ''}`}
     >
       {/* HEADER COLUMNA */}
       <div className="flex items-center justify-between mb-3 group/col px-1">
@@ -269,7 +270,7 @@ const SortableColumn = ({
           <div 
             {...attributes} 
             {...listeners} 
-            className={`cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-700`}
+            className={`cursor-grab active:cursor-grabbing text-text-secondary hover:text-text-primary`}
           >
             <GripVertical size={14} />
           </div>
@@ -278,7 +279,7 @@ const SortableColumn = ({
              onClick={(e) => { e.stopPropagation(); cycleColumnColor(col.id); }}
              onPointerDown={(e) => e.stopPropagation()}
              title="Cambiar color de distintivo"
-             className={`w-3 h-3 rounded-full transition-transform hover:scale-125  border border-black/10 ${COLUMN_COLORS.find(c => c.id === (col.color || 'gray'))?.dot || 'bg-slate-400'}`}
+             className={`w-3 h-3 rounded-full transition-transform hover:scale-125  border border-black/10 ${COLUMN_COLORS.find(c => c.id === (col.color || 'gray'))?.dot || 'bg-surface-sidebar'}`}
           />
           
           {editingColumnId === col.id ? (
@@ -290,29 +291,29 @@ const SortableColumn = ({
               onBlur={saveColumnTitle}
               onKeyDown={(e) => { if(e.key === 'Enter') saveColumnTitle(); }}
               onPointerDown={(e) => e.stopPropagation()}
-              className={`font-extrabold text-xs px-2 py-0.5 rounded-md outline-none bg-white border border-primary w-28 text-slate-900 `}
+              className={`font-semibold text-xs px-2 py-0.5 rounded-md outline-none bg-white border border-primary w-28 text-text-heading `}
             />
           ) : (
             <button 
                onClick={(e) => { e.stopPropagation(); startEditingColumn(col); }}
                onPointerDown={(e) => e.stopPropagation()}
                title="Clic para editar nombre"
-               className={`px-2.5 py-1 rounded-lg transition-all truncate max-w-[130px] hover:scale-105  ${getColorClass(col.color)} cursor-text`}
+               className={`px-2.5 py-1 rounded-md transition-all truncate max-w-[130px] hover:scale-105  ${getColorClass(col.color)} cursor-text`}
             >
               {col.title}
             </button>
           )}
           
-          <span className={`text-xs font-extrabold px-2 py-0.5 rounded-full  border bg-slate-200/90 text-slate-900 border-slate-300`}>
+          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full  border bg-surface-muted/90 text-text-heading border-border-strong`}>
             {activePageTasks.filter(t => t.status === col.id).length}
           </span>
         </div>
         
         <div className="flex items-center gap-1 opacity-0 group-hover/col:opacity-100 transition-opacity">
-          <button onClick={() => openNewTaskDrawer(col.id)} onPointerDown={(e) => e.stopPropagation()} className={`p-1.5 rounded-lg transition-colors ${'bg-black/5 hover:bg-white text-gray-800'}`} title="Añadir tarea aquí">
+          <button onClick={() => openNewTaskDrawer(col.id)} onPointerDown={(e) => e.stopPropagation()} className={`p-1.5 rounded-md transition-colors ${'bg-black/5 hover:bg-white text-text-heading'}`} title="Añadir tarea aquí">
             <Plus size={14} />
           </button>
-          <button onClick={() => handleDeleteColumn(col.id)} onPointerDown={(e) => e.stopPropagation()} className={`p-1.5 rounded-lg transition-colors ${'bg-red-100 hover:bg-red-200 text-red-600'}`} title="Eliminar columna">
+          <button onClick={() => handleDeleteColumn(col.id)} onPointerDown={(e) => e.stopPropagation()} className={`p-1.5 rounded-md transition-colors ${'bg-red-100 hover:bg-red-200 text-red-600'}`} title="Eliminar columna">
             <X size={12} />
           </button>
         </div>
@@ -588,33 +589,7 @@ export default function App() {
       return true;
     });
 
-    const mapped = uniqueRaw.map(p => {
-      const catName = globalCategories.find(c => c.id === p.categoryId)?.name || "";
-      const brandName = globalBrands.find(b => b.id === p.brandId)?.name || "";
-      
-      const taxMode = p.tax_mode || 'EXCLUIDO';
-      const tarifaIva = p.tarifa_iva !== undefined ? Number(p.tarifa_iva) : (Number(p.taxRate || 15) / 100);
-      const precioSinIva = p.precio_sin_iva !== undefined ? Number(p.precio_sin_iva) : Number(p.priceASinImpuesto || p.salePrice || 0);
-      const precioConIva = p.precio_con_iva !== undefined ? Number(p.precio_con_iva) : Number(p.priceA || p.salePrice || 0);
-
-      return {
-        ...p,
-        price: Number(p.salePrice) || 0,
-        cost: Number(p.baseCost) || 0,
-        ivaCategory: Number(p.taxRate) || 15,
-        type: p.type === 'SERVICE' ? 'servicio' : 'producto',
-        stock: Number(p.stock) || 0,
-        minStock: 5,
-        categoria: catName,
-        marca: brandName,
-        bodega: "Bodega Central",
-        codigoBarras: p.codigoBarras || "",
-        tax_mode: taxMode,
-        tarifa_iva: tarifaIva,
-        precio_sin_iva: precioSinIva,
-        precio_con_iva: precioConIva
-      };
-    });
+    const mapped = uniqueRaw.map(p => normalizeProduct(p, globalCategories, globalBrands));
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setGlobalProducts(mapped);
   }, [rawProducts, globalCategories, globalBrands]);
@@ -2033,22 +2008,22 @@ export default function App() {
   // --- PANTALLA DE ERROR DE CONEXIÓN / SINCRONIZACIÓN ---
   if (dbSyncError) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen w-full bg-text-primary text-gray-100 font-sans p-6 z-[9999] relative overflow-hidden">
+      <div className="flex flex-col items-center justify-center min-h-screen w-full bg-text-primary text-text-secondary font-sans p-6 z-[9999] relative overflow-hidden">
         {/* Background decorative blobs */}
         <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-red-600/10 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-orange-600/10 rounded-full blur-3xl animate-pulse"></div>
 
         <div className="w-full max-w-md p-8 rounded-card bg-text-primary/80 border border-red-500/20  flex flex-col text-center ">
           <div className="flex justify-center mb-6">
-            <div className="p-4 rounded-2xl bg-red-500/10 text-red-500 border border-red-500/30 ">
+            <div className="p-4 rounded-card bg-red-500/10 text-red-500 border border-red-500/30 ">
               <CloudOff size={32} className="animate-bounce" />
             </div>
           </div>
-          <h2 className="text-xl font-extrabold tracking-tight mb-3 text-white">Error de Sincronización</h2>
-          <p className="text-sm font-medium text-gray-400 mb-6 leading-relaxed">
+          <h2 className="text-xl font-semibold tracking-tight mb-3 text-white">Error de Sincronización</h2>
+          <p className="text-sm font-medium text-text-secondary mb-6 leading-relaxed">
             Se ha perdido la sincronización con la base de datos centralizada. Por seguridad y para evitar pérdida de información, se cerró el sistema.
           </p>
-          <div className="p-4 rounded-2xl bg-red-500/5 border border-red-500/10 text-xs font-semibold text-red-400 mb-8 leading-normal">
+          <div className="p-4 rounded-card bg-red-500/5 border border-red-500/10 text-xs font-semibold text-red-400 mb-8 leading-normal">
             Por favor, verifica tu conexión a internet o comunícate con tu soporte técnico oficial.
           </div>
           <button
@@ -2057,7 +2032,7 @@ export default function App() {
               setDbSyncError(false);
               window.location.reload();
             }}
-            className="w-full py-3.5 rounded-xl text-xs font-bold tracking-wider uppercase bg-red-600 hover:bg-red-500 text-white transition-all hover:scale-[1.02] active:scale-[0.98]"
+            className="w-full py-3.5 rounded-card text-xs font-bold tracking-wider uppercase bg-red-600 hover:bg-red-500 text-white transition-all hover:scale-[1.02] active:scale-[0.98]"
           >
             Reintentar Conexión
           </button>
@@ -2156,7 +2131,7 @@ export default function App() {
           >
             <Search size={13} className="text-text-muted" />
             <span className="flex-1 text-left">Buscar comprobantes, clientes...</span>
-            <kbd className="hidden lg:inline-block px-1.5 py-0.5 text-[10px] font-mono font-medium text-text-muted bg-white border border-border-default rounded">⌘K</kbd>
+            <kbd className="hidden lg:inline-block px-1.5 py-0.5 text-xs font-mono font-medium text-text-muted bg-white border border-border-default rounded">⌘K</kbd>
           </div>
 
           {/* Right: Actions */}
@@ -2164,10 +2139,10 @@ export default function App() {
             {/* SRI Connection Badge */}
             <Badge variant="success" className="hidden lg:inline-flex items-center gap-1.5 py-1 px-2.5 normal-case font-normal text-xs">
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00E4B8] opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00E4B8]"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-success"></span>
               </span>
-              <span className="font-medium text-success-text">SRI Conectado</span>
+              <span className="font-medium text-success-text">Facturación electrónica</span>
             </Badge>
 
             {activeModules.ventas && (
@@ -2210,36 +2185,36 @@ export default function App() {
         <div className="flex-1 flex overflow-hidden min-h-0 relative">
 
           {/* Editor Area */}
-          <div ref={mainContentRef} className={`flex-1 overflow-y-auto scroll-smooth custom-scrollbar ${(isPersonasActive || isProyectosActive) ? 'pb-0 pt-0' : 'pb-12 pt-2 px-6 md:px-8'}`}>
+          <div ref={mainContentRef} className={`flex-1 overflow-y-auto scroll-smooth custom-scrollbar ${(isPersonasActive || isProyectosActive) ? 'pb-0 pt-0' : 'pb-8 pt-4 px-4 md:px-6'}`}>
             <div className={(isPersonasActive || isProyectosActive) ? 'w-full h-full' : 'max-w-[1600px] w-full mx-auto'}>
               {planStatus === 'suspended' && activePageId !== 'billing' ? (
                 <div className="flex flex-col items-center justify-center p-12 text-center h-[70vh] w-full select-none animate-in fade-in duration-300">
-                  <div className="p-5 rounded-2xl bg-red-500/10 text-red-500 mb-6 border border-red-500/20 ">
+                  <div className="p-5 rounded-card bg-red-500/10 text-red-500 mb-6 border border-red-500/20 ">
                     <Lock size={36} />
                   </div>
-                  <h2 className="text-lg font-black tracking-tight mb-2 text-red-500">Servicio Suspendido</h2>
-                  <p className="text-xs font-semibold text-gray-500 max-w-sm mb-6 leading-relaxed">
+                  <h2 className="text-lg font-semibold tracking-tight mb-2 text-red-500">Servicio Suspendido</h2>
+                  <p className="text-xs font-semibold text-text-secondary max-w-sm mb-6 leading-relaxed">
                     Tu acceso al ERP ha sido temporalmente suspendido debido al vencimiento o falta de pago de tu suscripción.
                   </p>
                   <button
                     onClick={() => setActivePageId('billing')}
-                    className="px-5 py-3 rounded-xl bg-primary text-white text-xs font-bold uppercase tracking-wider transition-all hover:scale-[1.02] active:scale-[0.98]"
+                    className="px-5 py-3 rounded-card bg-primary text-white text-xs font-bold uppercase tracking-wider transition-all hover:scale-[1.02] active:scale-[0.98]"
                   >
                     Registrar Pago / Suscripción
                   </button>
                 </div>
               ) : isModuleLocked ? (
                 <div className="flex flex-col items-center justify-center p-12 text-center h-[70vh] w-full select-none animate-in fade-in duration-300">
-                  <div className="p-5 rounded-2xl bg-primary/10 text-primary mb-6 border border-primary/20 ">
+                  <div className="p-5 rounded-card bg-primary/10 text-primary mb-6 border border-primary/20 ">
                     <Lock size={36} className="text-primary" />
                   </div>
-                  <h2 className="text-lg font-black tracking-tight mb-2">Módulo Premium Reservado</h2>
-                  <p className="text-xs font-semibold text-gray-500 max-w-sm mb-6 leading-relaxed">
+                  <h2 className="text-lg font-semibold tracking-tight mb-2">Módulo Premium Reservado</h2>
+                  <p className="text-xs font-semibold text-text-secondary max-w-sm mb-6 leading-relaxed">
                     Este módulo no está incluido en tu plan actual. Actualiza tu cuenta para habilitarlo de forma inmediata.
                   </p>
                   <button
                     onClick={() => setActivePageId('billing')}
-                    className="px-5 py-3 rounded-xl bg-primary text-white text-xs font-bold uppercase tracking-wider transition-all hover:scale-[1.02] active:scale-[0.98]"
+                    className="px-5 py-3 rounded-card bg-primary text-white text-xs font-bold uppercase tracking-wider transition-all hover:scale-[1.02] active:scale-[0.98]"
                   >
                     Ver Planes y Precios
                   </button>
@@ -2352,14 +2327,14 @@ export default function App() {
                       {activePageId === 'team' && (
                         <div className="animate-in fade-in duration-500 px-8 py-6">
                           <div className="flex justify-end mb-6">
-                            <button onClick={openNewUserDrawer} className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-transform  hover:-translate-y-0.5 ${'bg-primary text-white hover:bg-primary-hover'}`}>
+                            <button onClick={openNewUserDrawer} className={`flex items-center gap-1.5 px-4 py-2 rounded-card text-sm font-semibold transition-transform  hover:-translate-y-0.5 ${'bg-primary text-white hover:bg-primary-hover'}`}>
                               <UserPlus size={16} /> Invitar Miembro
                             </button>
                           </div>
 
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                             {users.map(user => (
-                              <div key={user.id} className={`p-5 rounded-2xl flex flex-col justify-between ${currentGlassPanel} hover:-translate-y-1 transition-transform duration-300`}>
+                              <div key={user.id} className={`p-5 rounded-card flex flex-col justify-between ${currentGlassPanel} hover:-translate-y-1 transition-transform duration-300`}>
                                 <div className="flex items-start gap-4 mb-4">
                                   <div className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold text-white  bg-gradient-to-br ${user.color}`}>
                                     {user.initials}
@@ -2371,12 +2346,12 @@ export default function App() {
                                 </div>
                                 <div className="flex items-center justify-between mt-auto border-t pt-3 border-white/10">
                                   <div className="flex items-center gap-1.5">
-                                    <Shield size={14} className={user.role === 'Admin' ? 'text-red-400' : (user.role === 'Miembro' ? 'text-primary' : 'text-gray-500')} />
-                                    <span className={`text-xs font-semibold ${'text-gray-600'}`}>{user.role}</span>
+                                    <Shield size={14} className={user.role === 'Admin' ? 'text-red-400' : (user.role === 'Miembro' ? 'text-primary' : 'text-text-secondary')} />
+                                    <span className={`text-xs font-semibold ${'text-text-primary'}`}>{user.role}</span>
                                   </div>
                                   <div className="flex items-center gap-1">
-                                    <button onClick={() => setDrawerUser(user)} className={`p-1.5 rounded-lg transition-colors ${'hover:bg-black/5 text-gray-500 hover:text-primary'}`} title="Editar Usuario"><Pencil size={14} /></button>
-                                    <button onClick={(e) => deleteUser(user.id, e)} className={`p-1.5 rounded-lg transition-colors ${'hover:bg-red-100 text-gray-500 hover:text-red-650'}`} title="Eliminar Usuario"><Trash2 size={14} /></button>
+                                    <button onClick={() => setDrawerUser(user)} className={`p-1.5 rounded-md transition-colors ${'hover:bg-black/5 text-text-secondary hover:text-primary'}`} title="Editar Usuario"><Pencil size={14} /></button>
+                                    <button onClick={(e) => deleteUser(user.id, e)} className={`p-1.5 rounded-md transition-colors ${'hover:bg-red-100 text-text-secondary hover:text-red-650'}`} title="Eliminar Usuario"><Trash2 size={14} /></button>
                                   </div>
                                 </div>
                               </div>
@@ -2407,7 +2382,7 @@ export default function App() {
                                 <h3 className="text-lg font-bold">Listado de Proyectos</h3>
                                 <button 
                                   onClick={addProject} 
-                                  className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-transform  hover:-translate-y-0.5 ${'bg-primary text-white hover:bg-primary-hover'}`}
+                                  className={`flex items-center gap-1.5 px-4 py-2 rounded-card text-xs font-semibold transition-transform  hover:-translate-y-0.5 ${'bg-primary text-white hover:bg-primary-hover'}`}
                                 >
                                   <Plus size={14} /> Nuevo Proyecto
                                 </button>
@@ -2424,26 +2399,26 @@ export default function App() {
                                     <div 
                                       key={proj.id} 
                                       onClick={() => setActivePageId(proj.id)}
-                                      className={`p-5 rounded-2xl flex flex-col justify-between cursor-pointer border transition-all duration-300 hover:-translate-y-1 ${
-                                        'bg-white border-gray-150 hover:bg-surface-bg hover:border-gray-300 '
+                                      className={`p-5 rounded-card flex flex-col justify-between cursor-pointer border transition-all duration-300 hover:-translate-y-1 ${
+                                        'bg-white border-border-default hover:bg-surface-bg hover:border-border-strong '
                                       }`}
                                     >
                                       <div>
                                         <div className="flex items-start justify-between gap-4 mb-3">
                                           <div className="flex items-center gap-3">
-                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${'bg-primary-light text-primary'}`}>
+                                            <div className={`w-10 h-10 rounded-card flex items-center justify-center ${'bg-primary-light text-primary'}`}>
                                               <Briefcase size={20} />
                                             </div>
                                             <div>
-                                              <h4 className="font-extrabold text-base text-slate-900 truncate max-w-[180px] uppercase tracking-tight">{proj.title || 'Sin título'}</h4>
-                                              <p className="text-xs text-slate-600 font-semibold mt-0.5">
+                                              <h4 className="font-semibold text-base text-text-heading truncate max-w-[180px] uppercase tracking-tight">{proj.title || 'Sin título'}</h4>
+                                              <p className="text-xs text-text-primary font-semibold mt-0.5">
                                                 {totalTasksCount} tareas • {completedTasksCount} completadas
                                               </p>
                                             </div>
                                           </div>
                                           <button 
                                             onClick={(e) => { e.stopPropagation(); deletePage(proj.id, e); }}
-                                            className={`p-1.5 rounded-lg transition-colors ${'hover:bg-red-100 text-gray-500 hover:text-red-650'}`}
+                                            className={`p-1.5 rounded-md transition-colors ${'hover:bg-red-100 text-text-secondary hover:text-red-650'}`}
                                             title="Eliminar Proyecto"
                                           >
                                             <Trash2 size={14} />
@@ -2452,7 +2427,7 @@ export default function App() {
 
                                         <div className="mt-4">
                                           <div className="flex justify-between items-center text-xs font-semibold mb-1">
-                                            <span className={'text-gray-600'}>Progreso</span>
+                                            <span className={'text-text-primary'}>Progreso</span>
                                             <span className={'text-primary'}>{progressPercent}%</span>
                                           </div>
                                           <div className={`w-full h-2 rounded-full overflow-hidden ${'bg-black/5'}`}>
@@ -2464,7 +2439,7 @@ export default function App() {
                                   );
                                 })}
                                 {pages.filter(p => p.type === 'project').length === 0 && (
-                                  <div className={`col-span-full text-center py-12 rounded-2xl border border-dashed ${'border-gray-200 text-gray-400'}`}>
+                                  <div className={`col-span-full text-center py-12 rounded-card border border-dashed ${'border-border-default text-text-secondary'}`}>
                                     No hay proyectos creados aún.
                                   </div>
                                 )}
@@ -2474,13 +2449,13 @@ export default function App() {
                             <div className="animate-in fade-in duration-500">
                               <div className="px-8 py-6">
                                 <div className="mt-2 animate-in fade-in duration-500 relative z-0">
-                                  <div className={`flex items-center justify-between mb-6 border-b pb-3 ${'border-gray-200'}`}>
+                                  <div className={`flex items-center justify-between mb-6 border-b pb-3 ${'border-border-default'}`}>
                                     <div className="flex items-center gap-5">
                                       {/* Pequeño botón de volver al listado de proyectos */}
                                       <button 
                                         onClick={() => setActivePageId('proyectos_general')}
-                                        className={`p-1.5 rounded-xl transition-all border  ${
-                                          'border-gray-200 hover:bg-black/5 text-black hover:text-black bg-white'
+                                        className={`p-1.5 rounded-card transition-all border  ${
+                                          'border-border-default hover:bg-black/5 text-black hover:text-black bg-white'
                                         }`}
                                         title="Volver a la lista de proyectos"
                                       >
@@ -2494,18 +2469,18 @@ export default function App() {
                                         onChange={(e) => updateActivePage({ title: e.target.value })} 
                                         placeholder="Título del proyecto" 
                                         className={`text-base font-bold bg-transparent border-none outline-none focus:ring-0 p-0.5 rounded w-52 transition-colors ${
-                                          'text-gray-900 hover:bg-black/5 focus:bg-black/5'
+                                          'text-text-heading hover:bg-black/5 focus:bg-black/5'
                                         }`} 
                                       />
                                       
                                       {/* Selector de Líder */}
-                                      <div className="flex items-center gap-1.5 text-xs border-l pl-5 border-gray-200 dark:border-white/15">
+                                      <div className="flex items-center gap-1.5 text-xs border-l pl-5 border-border-default ">
                                         <UserCircle size={14} className={'text-gray-450'} />
                                         <span className={`font-semibold uppercase tracking-wider ${'text-gray-450'}`}>Líder:</span>
                                         <select 
                                           value={activePage.leadId || ''} 
                                           onChange={(e) => updateActivePage({ leadId: e.target.value })} 
-                                          className={`px-2 py-0.5 text-xs font-semibold rounded-lg outline-none cursor-pointer transition-all border ${'bg-white/60 border-gray-200 text-gray-700 hover:bg-white'}`}
+                                          className={`px-2 py-0.5 text-xs font-semibold rounded-md outline-none cursor-pointer transition-all border ${'bg-white/60 border-border-default text-text-primary hover:bg-white'}`}
                                         >
                                           <option value="">Sin Asignar</option>
                                           {users.map(u => <option key={u.id} value={u.id} className="text-black">{u.name}</option>)}
@@ -2513,9 +2488,9 @@ export default function App() {
                                       </div>
                                     </div>
                                     
-                                    <div className={`flex p-1 rounded-lg ${'bg-black/5'}`}>
-                                      <button onClick={() => setCurrentProjectView('board')} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${currentProjectView === 'board' ? ('bg-white text-gray-950 ') : ('text-gray-500 hover:text-gray-750')}`}>Tablero</button>
-                                      <button onClick={() => setCurrentProjectView('list')} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${currentProjectView === 'list' ? ('bg-white text-gray-900 ') : ('text-gray-500 hover:text-gray-700')}`}>Lista</button>
+                                    <div className={`flex p-1 rounded-md ${'bg-black/5'}`}>
+                                      <button onClick={() => setCurrentProjectView('board')} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${currentProjectView === 'board' ? ('bg-white text-text-heading ') : ('text-text-secondary hover:text-gray-750')}`}>Tablero</button>
+                                      <button onClick={() => setCurrentProjectView('list')} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${currentProjectView === 'list' ? ('bg-white text-text-heading ') : ('text-text-secondary hover:text-text-primary')}`}>Lista</button>
                                     </div>
                                   </div>
 
@@ -2569,18 +2544,18 @@ export default function App() {
                                           })}
                                         </SortableContext>
                                         
-                                        <div className={`w-[200px] shrink-0 p-3 rounded-xl flex flex-col gap-2.5 border border-dashed transition-all duration-300 hover:border-solid ${'border-gray-300 hover:border-gray-400 bg-black/[0.01]'}`}>
+                                        <div className={`w-[200px] shrink-0 p-3 rounded-card flex flex-col gap-2.5 border border-dashed transition-all duration-300 hover:border-solid ${'border-border-strong hover:border-border-strong bg-black/[0.01]'}`}>
                                           <input 
                                             type="text" 
                                             value={newColumnName} 
                                             onChange={(e) => setNewColumnName(e.target.value)} 
                                             onKeyDown={(e) => e.key === 'Enter' && handleAddColumn()} 
                                             placeholder="Nueva columna..." 
-                                            className={`w-full text-xs px-2.5 py-2 rounded-lg outline-none transition-colors  ${currentGlassInput}`}
+                                            className={`w-full text-xs px-2.5 py-2 rounded-md outline-none transition-colors  ${currentGlassInput}`}
                                           />
                                           <button 
                                             onClick={handleAddColumn} 
-                                            className={`flex items-center justify-center gap-1.5 w-full py-2 rounded-lg transition-all text-xs font-bold  ${'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}
+                                            className={`flex items-center justify-center gap-1.5 w-full py-2 rounded-md transition-all text-xs font-bold  ${'bg-surface-muted hover:bg-surface-muted text-text-primary'}`}
                                           >
                                             <Plus size={14} /> Crear Columna
                                           </button>
@@ -2592,30 +2567,30 @@ export default function App() {
                                       {(activePage.columns || DEFAULT_COLUMNS).map(col => {
                                         const colTasks = (activePage.tasks || []).filter(t => t.status === col.id).sort((a, b) => (a.order || 0) - (b.order || 0));
                                         return (
-                                          <div key={col.id} className={`p-5 rounded-2xl border  ${'bg-white border-gray-150'}`}>
+                                          <div key={col.id} className={`p-5 rounded-card border  ${'bg-white border-border-default'}`}>
                                             <div className="flex items-center justify-between mb-4">
                                               {/* eslint-disable-next-line no-undef */}
-                                              <span className={`text-xs font-bold px-2.5 py-1 rounded-lg ${getColumnColorClass(col.color)}`}>{col.title} ({colTasks.length})</span>
+                                              <span className={`text-xs font-bold px-2.5 py-1 rounded-md ${getColumnColorClass(col.color)}`}>{col.title} ({colTasks.length})</span>
                                             </div>
                                             <div className="divide-y divide-white/5">
                                               {colTasks.length === 0 ? (
-                                                <div className="py-4 text-xs italic text-gray-500">Sin tareas en esta lista</div>
+                                                <div className="py-4 text-xs italic text-text-secondary">Sin tareas en esta lista</div>
                                               ) : (
                                                 colTasks.map(task => {
                                                   const assignedUser = users.find(u => u.id === task.assigneeId);
                                                   return (
                                                     <div key={task.id} className="group py-3 flex flex-col md:flex-row md:items-center justify-between gap-3 cursor-pointer" onClick={() => setDrawerTask(task)}>
                                                       <div className="flex items-center gap-3 md:w-1/2">
-                                                        <div className={`p-1.5 rounded-lg shrink-0 ${'bg-black/5 text-gray-650'}`}>
+                                                        <div className={`p-1.5 rounded-md shrink-0 ${'bg-black/5 text-text-primary'}`}>
                                                           <CheckSquare size={14} />
                                                         </div>
-                                                        <span className={`text-sm font-medium ${'text-gray-700 group-hover:text-black'}`}>{task.content}</span>
+                                                        <span className={`text-sm font-medium ${'text-text-primary group-hover:text-black'}`}>{task.content}</span>
                                                       </div>
                                                       <div className="flex items-center gap-4 md:w-1/2 md:justify-end ml-7 md:ml-0">
                                                         {task.meetLink && <span className={`flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-md opacity-70 group-hover:opacity-100 transition-opacity ${'bg-primary/10 text-primary border border-primary/25'}`}><Video size={10} /> Videollamada</span>}
                                                         {assignedUser ? (
                                                           <div className={`flex items-center gap-2 opacity-70 group-hover:opacity-100 transition-opacity min-w-[120px] justify-end`}>
-                                                            <span className={`text-xs font-semibold truncate ${'text-gray-600'}`}>{assignedUser.name}</span>
+                                                            <span className={`text-xs font-semibold truncate ${'text-text-primary'}`}>{assignedUser.name}</span>
                                                             <div className={`w-6 h-6 rounded-full flex shrink-0 items-center justify-center text-xs font-bold text-white  bg-gradient-to-br ${assignedUser.color}`}>{assignedUser.initials}</div>
                                                           </div>
                                                         ) : (
@@ -2626,7 +2601,7 @@ export default function App() {
                                                   );
                                                 })
                                               )}
-                                              <div className={`px-4 py-3 transition-colors cursor-pointer rounded-b-xl flex items-center gap-2 ${'hover:bg-black/[0.03] text-gray-500 hover:text-gray-700'}`} onClick={() => openNewTaskDrawer(col.id)}>
+                                              <div className={`px-4 py-3 transition-colors cursor-pointer rounded-b-xl flex items-center gap-2 ${'hover:bg-black/[0.03] text-text-secondary hover:text-text-primary'}`} onClick={() => openNewTaskDrawer(col.id)}>
                                                 <Plus size={14} />
                                                 <span className="text-xs font-semibold tracking-wide">Añadir nueva tarea</span>
                                               </div>
@@ -2652,7 +2627,7 @@ export default function App() {
                                 <h3 className="text-lg font-bold">Listado de Páginas</h3>
                                 <button 
                                   onClick={addPage} 
-                                  className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-transform  hover:-translate-y-0.5 ${'bg-primary text-white hover:bg-primary-hover'}`}
+                                  className={`flex items-center gap-1.5 px-4 py-2 rounded-card text-xs font-semibold transition-transform  hover:-translate-y-0.5 ${'bg-primary text-white hover:bg-primary-hover'}`}
                                 >
                                   <Plus size={14} /> Nueva Página
                                 </button>
@@ -2663,14 +2638,14 @@ export default function App() {
                                   <div 
                                     key={docPage.id} 
                                     onClick={() => setActivePageId(docPage.id)}
-                                    className={`p-5 rounded-2xl flex flex-col justify-between cursor-pointer border transition-all duration-350 hover:-translate-y-1 ${
-                                      'bg-white border-gray-150 hover:bg-surface-bg hover:border-gray-300 '
+                                    className={`p-5 rounded-card flex flex-col justify-between cursor-pointer border transition-all duration-350 hover:-translate-y-1 ${
+                                      'bg-white border-border-default hover:bg-surface-bg hover:border-border-strong '
                                     }`}
                                   >
                                     <div>
                                       <div className="flex items-start justify-between gap-4 mb-3">
                                         <div className="flex items-center gap-3">
-                                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${'bg-emerald-50 text-emerald-600'}`}>
+                                          <div className={`w-10 h-10 rounded-card flex items-center justify-center ${'bg-emerald-50 text-emerald-600'}`}>
                                             <FileText size={20} />
                                           </div>
                                           <div>
@@ -2682,7 +2657,7 @@ export default function App() {
                                         </div>
                                         <button 
                                           onClick={(e) => { e.stopPropagation(); deletePage(docPage.id, e); }}
-                                          className={`p-1.5 rounded-lg transition-colors ${'hover:bg-red-100 text-gray-500 hover:text-red-650'}`}
+                                          className={`p-1.5 rounded-md transition-colors ${'hover:bg-red-100 text-text-secondary hover:text-red-650'}`}
                                           title="Eliminar Página"
                                         >
                                           <Trash2 size={14} />
@@ -2692,7 +2667,7 @@ export default function App() {
                                   </div>
                                 ))}
                                 {pages.filter(p => p.type === 'doc').length === 0 && (
-                                  <div className={`col-span-full text-center py-12 rounded-2xl border border-dashed ${'border-gray-200 text-gray-400'}`}>
+                                  <div className={`col-span-full text-center py-12 rounded-card border border-dashed ${'border-border-default text-text-secondary'}`}>
                                     No hay páginas creadas aún.
                                   </div>
                                 )}
@@ -2703,33 +2678,33 @@ export default function App() {
                               <div className={`flex items-center gap-3 px-8 py-3.5 border-b shrink-0 ${'border-primary/10 bg-primary-light/40'}`}>
                                 <button 
                                   onClick={() => setActivePageId('paginas_general')}
-                                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
-                                    'border-gray-200 hover:bg-black/5 text-black hover:text-black'
+                                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all border ${
+                                    'border-border-default hover:bg-black/5 text-black hover:text-black'
                                   }`}
                                 >
                                   <ArrowLeft size={12} /> Volver a Páginas
                                 </button>
-                                <span className={`text-xs font-bold ${'text-gray-600'}`}>
-                                  Página activa: <span className="text-primary font-extrabold">{activePage.title}</span>
+                                <span className={`text-xs font-bold ${'text-text-primary'}`}>
+                                  Página activa: <span className="text-primary font-semibold">{activePage.title}</span>
                                 </span>
                               </div>
                               <div className="max-w-4xl mx-auto px-6 md:px-12 lg:px-24 py-8">
                                 <div className="mb-8">
                                   <div className="group relative flex items-center gap-3">
-                                     <div className={`p-2.5 rounded-xl transition-colors  border ${'bg-white/60 border-gray-200 text-gray-700 '}`}>
+                                     <div className={`p-2.5 rounded-card transition-colors  border ${'bg-white/60 border-border-default text-text-primary '}`}>
                                        <IconRenderer name={activePage.icon} size={24} />
                                      </div>
-                                     <input type="text" value={activePage.title} onChange={(e) => updateActivePage({ title: e.target.value })} placeholder="Título del documento" className={`w-full text-3xl font-bold border-none outline-none bg-transparent resize-none focus:ring-0 tracking-tight ${'text-gray-900 placeholder-gray-400'}`} />
+                                     <input type="text" value={activePage.title} onChange={(e) => updateActivePage({ title: e.target.value })} placeholder="Título del documento" className={`w-full text-3xl font-bold border-none outline-none bg-transparent resize-none focus:ring-0 tracking-tight ${'text-text-heading placeholder-gray-400'}`} />
                                   </div>
                                 </div>
 
-                                <div className={`flex flex-wrap gap-2 mb-6 p-2 rounded-xl animate-in fade-in duration-300 ${'bg-white/40 border border-white/40  '}`}>
+                                <div className={`flex flex-wrap gap-2 mb-6 p-2 rounded-card animate-in fade-in duration-300 ${'bg-white/40 border border-white/40  '}`}>
                                   <span className={`flex items-center px-2 text-xs font-bold uppercase tracking-wider ${'text-purple-600'}`}>Herramientas IA</span>
-                                  <button onClick={() => handleAiAction('improve')} disabled={isGeneratingAI || !activePage.content.trim()} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>{isGeneratingAI ? <RefreshCw size={12} className="animate-spin" /> : <Wand2 size={12} />} Mejorar</button>
-                                  <button onClick={() => handleAiAction('summarize')} disabled={isGeneratingAI || !activePage.content.trim()} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>{isGeneratingAI ? <RefreshCw size={12} className="animate-spin" /> : <Sparkles size={12} />} Resumir</button>
-                                  <button onClick={() => handleAiAction('continue')} disabled={isGeneratingAI || !activePage.content.trim()} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>{isGeneratingAI ? <RefreshCw size={12} className="animate-spin" /> : <Sparkles size={12} />} Continuar</button>
+                                  <button onClick={() => handleAiAction('improve')} disabled={isGeneratingAI || !activePage.content.trim()} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>{isGeneratingAI ? <RefreshCw size={12} className="animate-spin" /> : <Wand2 size={12} />} Mejorar</button>
+                                  <button onClick={() => handleAiAction('summarize')} disabled={isGeneratingAI || !activePage.content.trim()} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>{isGeneratingAI ? <RefreshCw size={12} className="animate-spin" /> : <Sparkles size={12} />} Resumir</button>
+                                  <button onClick={() => handleAiAction('continue')} disabled={isGeneratingAI || !activePage.content.trim()} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>{isGeneratingAI ? <RefreshCw size={12} className="animate-spin" /> : <Sparkles size={12} />} Continuar</button>
                                 </div>
-                                <textarea ref={contentRef} value={activePage.content} onChange={(e) => updateActivePage({ content: e.target.value })} placeholder="Presiona '/' para comandos o empieza a escribir..." className={`w-full text-base leading-tight border-none outline-none bg-transparent resize-none focus:ring-0 min-h-[300px] font-medium ${'text-gray-900 placeholder-gray-500'}`} />
+                                <textarea ref={contentRef} value={activePage.content} onChange={(e) => updateActivePage({ content: e.target.value })} placeholder="Presiona '/' para comandos o empieza a escribir..." className={`w-full text-base leading-tight border-none outline-none bg-transparent resize-none focus:ring-0 min-h-[300px] font-medium ${'text-text-heading placeholder-gray-500'}`} />
                               </div>
                             </div>
                           )}
@@ -2739,25 +2714,25 @@ export default function App() {
                       {/* TAB: CALENDARIO */}
                       {activePageId === 'calendar' && (
                         <div className="space-y-8 animate-in fade-in duration-500 px-8 py-6">
-                          <div className={`p-6 rounded-2xl ${currentGlassPanel}`}>
+                          <div className={`p-6 rounded-card ${currentGlassPanel}`}>
                             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                               <div>
                                 <h2 className="text-lg font-semibold flex items-center gap-2"><Calendar size={20} className={'text-primary'} /> Google Workspace (API Real)</h2>
-                                <p className={`text-sm mt-1 font-medium ${'text-gray-500'}`}>Lee tus eventos reales y genera enlaces oficiales de Google Meet.</p>
+                                <p className={`text-sm mt-1 font-medium ${'text-text-secondary'}`}>Lee tus eventos reales y genera enlaces oficiales de Google Meet.</p>
                               </div>
                               
                               {!googleClientId ? (
-                                <button onClick={() => setActivePageId('general_settings')} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-transform  hover:-translate-y-0.5 ${'bg-gray-900 text-white hover:bg-gray-800'}`}>
+                                <button onClick={() => setActivePageId('general_settings')} className={`flex items-center gap-2 px-4 py-2 rounded-card text-sm font-semibold transition-transform  hover:-translate-y-0.5 ${'bg-text-heading text-white hover:bg-text-heading'}`}>
                                   <Settings size={16} /> Configurar Integración
                                 </button>
                               ) : !isGoogleConnected ? (
-                                <button onClick={handleConnectGoogle} disabled={isConnecting} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-transform  hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:translate-y-0 ${'bg-primary text-white'}`}>
+                                <button onClick={handleConnectGoogle} disabled={isConnecting} className={`flex items-center gap-2 px-4 py-2 rounded-card text-sm font-semibold transition-transform  hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:translate-y-0 ${'bg-primary text-white'}`}>
                                   {isConnecting ? <RefreshCw className="animate-spin" size={16} /> : <LogIn size={16} />} {isConnecting ? 'Conectando...' : 'Conectar Google'}
                                 </button>
                               ) : (
                                 <div className="flex items-center gap-3">
-                                  <span className={`text-xs px-3 py-1.5 rounded-lg border flex items-center gap-1.5 font-semibold  ${'bg-green-100/60 text-green-700 border-green-200'}`}><span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Sincronizado</span>
-                                  <button onClick={handleDisconnectGoogle} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${'bg-black/5 text-gray-600 hover:text-red-650'}`}><LogOut size={14} /> Desconectar</button>
+                                  <span className={`text-xs px-3 py-1.5 rounded-md border flex items-center gap-1.5 font-semibold  ${'bg-green-100/60 text-green-700 border-green-200'}`}><span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Sincronizado</span>
+                                  <button onClick={handleDisconnectGoogle} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${'bg-black/5 text-text-primary hover:text-red-650'}`}><LogOut size={14} /> Desconectar</button>
                                 </div>
                               )}
                             </div>
@@ -2765,36 +2740,36 @@ export default function App() {
 
                           {isGoogleConnected && (
                             <div className="space-y-5">
-                              <div className={`flex items-center justify-between border-b pb-3 ${'border-gray-200'}`}>
+                              <div className={`flex items-center justify-between border-b pb-3 ${'border-border-default'}`}>
                                 <h3 className="text-lg font-semibold">Próximos Eventos Reales (7 días)</h3>
-                                <button onClick={handleCreateInstantMeetUI} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all text-xs font-semibold  ${'bg-primary/10 text-primary hover:bg-primary/15 border border-primary/25'}`}><Video size={14} /> Crear Meet Real</button>
+                                <button onClick={handleCreateInstantMeetUI} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all text-xs font-semibold  ${'bg-primary/10 text-primary hover:bg-primary/15 border border-primary/25'}`}><Video size={14} /> Crear Meet Real</button>
                               </div>
                               <div className="grid grid-cols-1 gap-3">
                                 {events.length > 0 ? events.map(event => (
-                                  <div key={event.id} className={`group flex flex-col md:flex-row items-start md:items-center justify-between p-5 rounded-2xl transition-all hover:-translate-y-0.5 ${currentGlassPanel}`}>
+                                  <div key={event.id} className={`group flex flex-col md:flex-row items-start md:items-center justify-between p-5 rounded-card transition-all hover:-translate-y-0.5 ${currentGlassPanel}`}>
                                     <div className="flex items-start gap-4">
-                                      <div className={`px-2.5 py-1 rounded-lg text-xs font-bold border   ${event.color} border-current/20`}>{event.date}</div>
+                                      <div className={`px-2.5 py-1 rounded-md text-xs font-bold border   ${event.color} border-current/20`}>{event.date}</div>
                                       <div>
                                         <h4 className="text-base font-semibold mb-0.5 max-w-[250px] truncate">{event.title}</h4>
                                         <div className={`flex items-center gap-1.5 text-xs font-medium ${'text-gray-550'}`}><Clock size={14} />{event.time}</div>
                                       </div>
                                     </div>
                                     <div className="mt-4 md:mt-0 w-full md:w-auto flex flex-wrap gap-2 justify-start md:justify-end">
-                                      <button onClick={() => convertEventToTask(event)} className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all  ${'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}`}>
+                                      <button onClick={() => convertEventToTask(event)} className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-semibold transition-all  ${'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}`}>
                                           <CheckSquare size={14} /> Convertir en Tarea
                                       </button>
-                                      <button onClick={() => generateMeetingAgenda(event)} disabled={isGeneratingAI} className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all disabled:opacity-50  ${'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>
+                                      <button onClick={() => generateMeetingAgenda(event)} disabled={isGeneratingAI} className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-semibold transition-all disabled:opacity-50  ${'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>
                                           {isGeneratingAI ? <RefreshCw className="animate-spin" size={14} /> : <Wand2 size={14} />} Agenda con IA
                                       </button>
                                       {event.meetLink && (
-                                        <a href={event.meetLink} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all  ${'bg-primary/10 text-primary hover:bg-primary/15 border border-primary/25'}`}>
+                                        <a href={event.meetLink} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-semibold transition-all  ${'bg-primary/10 text-primary hover:bg-primary/15 border border-primary/25'}`}>
                                           <Video size={14} /> Unirse a Meet
                                         </a>
                                       )}
                                     </div>
                                   </div>
                                 )) : (
-                                  <div className={`col-span-full text-center py-12 rounded-2xl border border-dashed ${'border-gray-200 text-gray-400'}`}>
+                                  <div className={`col-span-full text-center py-12 rounded-card border border-dashed ${'border-border-default text-text-secondary'}`}>
                                     No hay eventos para los próximos 7 días.
                                   </div>
                                 )}
@@ -2835,35 +2810,35 @@ export default function App() {
           <>
             <div className={`flex items-center justify-between px-6 py-4 border-b shrink-0 ${'border-black/5'}`}>
               <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-xl  ${'bg-primary/10 text-primary border border-white/50'}`}><Briefcase size={18} /></div>
-                <h2 className={`text-lg font-bold ${'text-gray-900'}`}>{drawerTask.id && globalTasks.some(t => t.id === drawerTask.id) ? 'Detalles de Tarea' : 'Crear Tarea'}</h2>
+                <div className={`p-2 rounded-card  ${'bg-primary/10 text-primary border border-white/50'}`}><Briefcase size={18} /></div>
+                <h2 className={`text-lg font-bold ${'text-text-heading'}`}>{drawerTask.id && globalTasks.some(t => t.id === drawerTask.id) ? 'Detalles de Tarea' : 'Crear Tarea'}</h2>
               </div>
               <div className="flex items-center gap-1">
                 {drawerTask.id && globalTasks.some(t => t.id === drawerTask.id) && (
-                  <button onClick={handleDeleteTaskFromDrawer} className={`p-2 rounded-lg transition-all  ${'bg-red-50 hover:bg-red-100 text-red-500 border border-red-100'}`} title="Eliminar tarea">
+                  <button onClick={handleDeleteTaskFromDrawer} className={`p-2 rounded-md transition-all  ${'bg-red-50 hover:bg-red-100 text-red-500 border border-red-100'}`} title="Eliminar tarea">
                     <Trash2 size={16} />
                   </button>
                 )}
-                <button onClick={() => setDrawerTask(null)} className={`p-2 rounded-lg transition-all  ${'bg-white hover:bg-gray-100 text-gray-600 border border-gray-200'}`}><X size={16} /></button>
+                <button onClick={() => setDrawerTask(null)} className={`p-2 rounded-md transition-all  ${'bg-white hover:bg-surface-muted text-text-primary border border-border-default'}`}><X size={16} /></button>
               </div>
             </div>
 
             <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6 custom-scrollbar">
-              <div className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-primary/10 to-purple-500/10 border border-primary/20 mb-2 ">
+              <div className="flex items-center justify-between p-3 rounded-card bg-gradient-to-r from-primary/10 to-purple-500/10 border border-primary/20 mb-2 ">
                 <div className="flex items-center gap-3">
                   <div className={`p-2 rounded-full ${isTimerRunning && activeTimerTaskId === drawerTask.id ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-primary/20 text-primary'}`}>
                     <Clock size={16} />
                   </div>
                   <div>
-                    <p className={`text-xs font-bold uppercase tracking-wider ${'text-gray-500'}`}>Tiempo Invertido</p>
-                    <p className={`text-sm font-semibold ${'text-gray-800'}`}>
+                    <p className={`text-xs font-bold uppercase tracking-wider ${'text-text-secondary'}`}>Tiempo Invertido</p>
+                    <p className={`text-sm font-semibold ${'text-text-heading'}`}>
                       {Math.floor(((drawerTask.timeSpent || 0) + (isTimerRunning && activeTimerTaskId === drawerTask.id ? elapsedTime : 0)) / 60)} min {((drawerTask.timeSpent || 0) + (isTimerRunning && activeTimerTaskId === drawerTask.id ? elapsedTime : 0)) % 60} seg
                     </p>
                   </div>
                 </div>
                 <button 
                   onClick={toggleTimer}
-                  className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all  ${isTimerRunning && activeTimerTaskId === drawerTask.id ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-primary hover:bg-primary-hover text-white'}`}
+                  className={`px-4 py-1.5 rounded-md text-xs font-semibold transition-all  ${isTimerRunning && activeTimerTaskId === drawerTask.id ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-primary hover:bg-primary-hover text-white'}`}
                 >
                   {isTimerRunning && activeTimerTaskId === drawerTask.id ? 'Detener' : 'Iniciar'}
                 </button>
@@ -2871,14 +2846,14 @@ export default function App() {
 
               <div className="space-y-4">
                 <div>
-                  <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}>¿Qué hay que hacer?</label>
-                  <input type="text" value={drawerTask.content} onChange={(e) => setDrawerTask(prev => ({ ...prev, content: e.target.value }))} className={`w-full text-sm font-semibold px-3 py-2 rounded-xl outline-none transition-all  ${currentGlassInput}`} placeholder="Ej. Implementar Auth con Firebase..." />
+                  <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${'text-text-secondary'}`}>¿Qué hay que hacer?</label>
+                  <input type="text" value={drawerTask.content} onChange={(e) => setDrawerTask(prev => ({ ...prev, content: e.target.value }))} className={`w-full text-sm font-semibold px-3 py-2 rounded-card outline-none transition-all  ${currentGlassInput}`} placeholder="Ej. Implementar Auth con Firebase..." />
                 </div>
                 
                 {/* Nuevo Selector de Asignación */}
                 <div>
-                  <label className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}><UserCircle size={14} className={'text-emerald-500'}/> Asignado a</label>
-                  <select value={drawerTask.assigneeId || ''} onChange={(e) => setDrawerTask(prev => ({ ...prev, assigneeId: e.target.value }))} className={`w-full px-3 py-2 text-sm font-medium rounded-lg outline-none cursor-pointer transition-all  ${currentGlassInput}`}>
+                  <label className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider mb-2 ${'text-text-secondary'}`}><UserCircle size={14} className={'text-emerald-500'}/> Asignado a</label>
+                  <select value={drawerTask.assigneeId || ''} onChange={(e) => setDrawerTask(prev => ({ ...prev, assigneeId: e.target.value }))} className={`w-full px-3 py-2 text-sm font-medium rounded-md outline-none cursor-pointer transition-all  ${currentGlassInput}`}>
                     <option value="" className="text-black">Sin asignar</option>
                     {users.map(u => <option key={u.id} value={u.id} className="text-black">{u.name} - {u.job}</option>)}
                   </select>
@@ -2886,41 +2861,41 @@ export default function App() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}>Proyecto Maestro</label>
-                    <select value={drawerTask.projectId || ''} onChange={(e) => setDrawerTask(prev => ({ ...prev, projectId: e.target.value }))} className={`w-full px-3 py-2 text-sm font-medium rounded-lg outline-none cursor-pointer transition-all  ${currentGlassInput}`}>
+                    <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${'text-text-secondary'}`}>Proyecto Maestro</label>
+                    <select value={drawerTask.projectId || ''} onChange={(e) => setDrawerTask(prev => ({ ...prev, projectId: e.target.value }))} className={`w-full px-3 py-2 text-sm font-medium rounded-md outline-none cursor-pointer transition-all  ${currentGlassInput}`}>
                       {projectsList.map(p => <option key={p.id} value={p.id} className="text-black">{p.title}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}>Fase actual</label>
-                    <select value={drawerTask.status} onChange={(e) => setDrawerTask(prev => ({ ...prev, status: e.target.value }))} className={`w-full px-3 py-2 text-sm font-medium rounded-lg outline-none cursor-pointer transition-all  ${currentGlassInput}`}>
+                    <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${'text-text-secondary'}`}>Fase actual</label>
+                    <select value={drawerTask.status} onChange={(e) => setDrawerTask(prev => ({ ...prev, status: e.target.value }))} className={`w-full px-3 py-2 text-sm font-medium rounded-md outline-none cursor-pointer transition-all  ${currentGlassInput}`}>
                       {((projectsList.find(p => p.id === drawerTask.projectId)?.columns) || DEFAULT_COLUMNS).map(c => <option key={c.id} value={c.id} className="text-black">{c.title}</option>)}
                     </select>
                   </div>
                 </div>
 
                 {/* --- NUEVO: Integración Google Workspace en Drawer --- */}
-                <div className={`p-4 rounded-xl border ${'bg-primary-light border-primary/15'}`}>
+                <div className={`p-4 rounded-card border ${'bg-primary-light border-primary/15'}`}>
                   <label className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider mb-3 ${'text-primary'}`}>
                     <Calendar size={14} className={'text-primary'} /> Google Workspace (API Real)
                   </label>
                   {!isGoogleConnected ? (
                      <div className="flex items-start gap-2 text-xs italic opacity-80">
-                        <span className="w-2 h-2 mt-1 rounded-full bg-gray-500 shrink-0"></span>
+                        <span className="w-2 h-2 mt-1 rounded-full bg-surface-sidebar shrink-0"></span>
                         <p>Desconectado. Ve a la pestaña Calendario para vincular tu cuenta y generar un enlace oficial de Google Meet para esta tarea.</p>
                      </div>
                   ) : (
                      <div className="flex flex-col gap-2">
                        {drawerTask.meetLink ? (
                          <div className="flex items-center gap-2">
-                           <div className="flex-1 px-3 py-2 text-xs rounded-lg truncate bg-black/10 border border-white/10 opacity-70">
+                           <div className="flex-1 px-3 py-2 text-xs rounded-md truncate bg-black/10 border border-white/10 opacity-70">
                              {drawerTask.meetLink}
                            </div>
-                           <a href={drawerTask.meetLink} target="_blank" rel="noopener noreferrer" className={`px-3 py-2 rounded-lg text-xs font-bold transition-all  shrink-0 ${'bg-primary text-white hover:bg-primary-hover'}`}>Entrar</a>
-                           <button onClick={() => setDrawerTask(p => ({...p, meetLink: ''}))} className="p-2 rounded-lg transition-colors bg-red-500/10 text-red-400 hover:bg-red-500/30 border border-red-500/20 shrink-0" title="Quitar enlace"><X size={14}/></button>
+                           <a href={drawerTask.meetLink} target="_blank" rel="noopener noreferrer" className={`px-3 py-2 rounded-md text-xs font-bold transition-all  shrink-0 ${'bg-primary text-white hover:bg-primary-hover'}`}>Entrar</a>
+                           <button onClick={() => setDrawerTask(p => ({...p, meetLink: ''}))} className="p-2 rounded-md transition-colors bg-red-500/10 text-red-400 hover:bg-red-500/30 border border-red-500/20 shrink-0" title="Quitar enlace"><X size={14}/></button>
                          </div>
                        ) : (
-                         <button onClick={handleGenerateMeetForTask} className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all border  ${'bg-white border-gray-200 text-primary hover:bg-gray-50'}`}>
+                         <button onClick={handleGenerateMeetForTask} className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md text-xs font-semibold transition-all border  ${'bg-white border-border-default text-primary hover:bg-surface-bg'}`}>
                             <Video size={14} /> Crear Evento y Generar Meet
                          </button>
                        )}
@@ -2930,21 +2905,21 @@ export default function App() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}><CalendarDays size={14} className={'text-primary'} /> Arranca el</label>
-                    <input type="date" value={drawerTask.startDate || ''} onChange={(e) => setDrawerTask(prev => ({ ...prev, startDate: e.target.value }))} className={`w-full px-3 py-2 text-xs font-medium rounded-lg outline-none transition-all  ${''} ${currentGlassInput}`} />
+                    <label className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider mb-2 ${'text-text-secondary'}`}><CalendarDays size={14} className={'text-primary'} /> Arranca el</label>
+                    <input type="date" value={drawerTask.startDate || ''} onChange={(e) => setDrawerTask(prev => ({ ...prev, startDate: e.target.value }))} className={`w-full px-3 py-2 text-xs font-medium rounded-md outline-none transition-all  ${''} ${currentGlassInput}`} />
                   </div>
                   <div>
-                    <label className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}><CalendarDays size={14} className={'text-red-500'} /> Fecha Límite</label>
-                    <input type="date" value={drawerTask.dueDate || ''} onChange={(e) => setDrawerTask(prev => ({ ...prev, dueDate: e.target.value }))} className={`w-full px-3 py-2 text-xs font-medium rounded-lg outline-none transition-all  ${''} ${currentGlassInput}`} />
+                    <label className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider mb-2 ${'text-text-secondary'}`}><CalendarDays size={14} className={'text-red-500'} /> Fecha Límite</label>
+                    <input type="date" value={drawerTask.dueDate || ''} onChange={(e) => setDrawerTask(prev => ({ ...prev, dueDate: e.target.value }))} className={`w-full px-3 py-2 text-xs font-medium rounded-md outline-none transition-all  ${''} ${currentGlassInput}`} />
                   </div>
                 </div>
                 <div>
-                  <label className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}><DollarSign size={14} className={'text-green-500'} /> Presupuesto Asignado (USD)</label>
-                  <input type="number" value={drawerTask.budget || ''} onChange={(e) => setDrawerTask(prev => ({ ...prev, budget: e.target.value }))} placeholder="Ej. 1200" className={`w-full px-3 py-2 text-sm font-medium rounded-lg outline-none transition-all  ${currentGlassInput}`} />
+                  <label className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider mb-2 ${'text-text-secondary'}`}><DollarSign size={14} className={'text-green-500'} /> Presupuesto Asignado (USD)</label>
+                  <input type="number" value={drawerTask.budget || ''} onChange={(e) => setDrawerTask(prev => ({ ...prev, budget: e.target.value }))} placeholder="Ej. 1200" className={`w-full px-3 py-2 text-sm font-medium rounded-md outline-none transition-all  ${currentGlassInput}`} />
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider ${'text-gray-500'}`}><AlignLeft size={14} className={'text-purple-500'} /> Descripción</label>
+                    <label className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider ${'text-text-secondary'}`}><AlignLeft size={14} className={'text-purple-500'} /> Descripción</label>
                     <button 
                       onClick={generateTaskPlan}
                       disabled={isGeneratingAI || !drawerTask.content}
@@ -2953,7 +2928,7 @@ export default function App() {
                       {isGeneratingAI ? <RefreshCw size={12} className="animate-spin" /> : <Sparkles size={12} />} ✨ Plan IA
                     </button>
                   </div>
-                  <textarea value={drawerTask.description || ''} onChange={(e) => setDrawerTask(prev => ({ ...prev, description: e.target.value }))} placeholder="Escribe enlaces importantes, notas de clientes..." rows={4} className={`w-full px-3 py-2 text-sm font-medium rounded-xl outline-none resize-none transition-all  ${currentGlassInput}`} />
+                  <textarea value={drawerTask.description || ''} onChange={(e) => setDrawerTask(prev => ({ ...prev, description: e.target.value }))} placeholder="Escribe enlaces importantes, notas de clientes..." rows={4} className={`w-full px-3 py-2 text-sm font-medium rounded-card outline-none resize-none transition-all  ${currentGlassInput}`} />
                 </div>
               </div>
 
@@ -2962,7 +2937,7 @@ export default function App() {
               {/* CHECKLIST / SUBTAREAS */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider ${'text-gray-500'}`}><ListTodo size={14} className={'text-primary'} /> Subtareas (Checklist)</label>
+                  <label className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider ${'text-text-secondary'}`}><ListTodo size={14} className={'text-primary'} /> Subtareas (Checklist)</label>
                   {drawerTask.subtasks && drawerTask.subtasks.length > 0 && (
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${'bg-primary/10 text-primary'}`}>
                       {drawerTask.subtasks.filter(s => s.completed).length} / {drawerTask.subtasks.length}
@@ -2972,19 +2947,19 @@ export default function App() {
                 
                 <div className="space-y-2 mb-3">
                   {(drawerTask.subtasks || []).map(st => (
-                    <div key={st.id} className={`flex items-center gap-2 p-2 rounded-lg border ${'bg-white/50 border-gray-200'} group`}>
-                      <button onClick={() => toggleSubtask(st.id)} className={`w-4 h-4 rounded flex shrink-0 items-center justify-center border transition-all ${st.completed ? 'bg-primary border-primary text-white' : ('border-gray-400 hover:border-gray-600')}`}>
+                    <div key={st.id} className={`flex items-center gap-2 p-2 rounded-md border ${'bg-white/50 border-border-default'} group`}>
+                      <button onClick={() => toggleSubtask(st.id)} className={`w-4 h-4 rounded flex shrink-0 items-center justify-center border transition-all ${st.completed ? 'bg-primary border-primary text-white' : ('border-border-strong hover:border-border-strong')}`}>
                          {st.completed && <CheckSquare size={10} />}
                       </button>
-                      <span className={`flex-1 text-xs font-medium ${st.completed ? 'line-through opacity-50' : ''} ${'text-gray-700'}`}>{st.text}</span>
+                      <span className={`flex-1 text-xs font-medium ${st.completed ? 'line-through opacity-50' : ''} ${'text-text-primary'}`}>{st.text}</span>
                       <button onClick={() => removeSubtask(st.id)} className={`opacity-0 group-hover:opacity-100 p-1 rounded transition-colors ${'text-red-500 hover:bg-red-100'}`}><X size={12} /></button>
                     </div>
                   ))}
                 </div>
 
                 <div className="flex gap-2">
-                  <input type="text" value={newSubtaskText} onChange={(e) => setNewSubtaskText(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addSubtask()} placeholder="Agregar un paso o subtarea..." className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-lg outline-none transition-all  ${currentGlassInput}`} />
-                  <button onClick={addSubtask} disabled={!newSubtaskText.trim()} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-50 ${'bg-primary/10 text-primary hover:bg-primary/15'}`}><Plus size={14}/></button>
+                  <input type="text" value={newSubtaskText} onChange={(e) => setNewSubtaskText(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addSubtask()} placeholder="Agregar un paso o subtarea..." className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-md outline-none transition-all  ${currentGlassInput}`} />
+                  <button onClick={addSubtask} disabled={!newSubtaskText.trim()} className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all disabled:opacity-50 ${'bg-primary/10 text-primary hover:bg-primary/15'}`}><Plus size={14}/></button>
                 </div>
               </div>
               
@@ -2993,25 +2968,25 @@ export default function App() {
               <div>
                 <label className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider mb-3 ${'text-yellow-600'}`}><MessageSquare size={14} /> Historial de Avances</label>
                 <div className="flex items-start gap-2 mb-4">
-                  <textarea value={quickNoteText} onChange={(e) => setQuickNoteText(e.target.value)} placeholder="Agrega un update rápido..." rows={2} className={`flex-1 px-3 py-2 text-sm font-medium rounded-lg outline-none resize-none transition-all  ${currentGlassInput}`} />
-                  <button onClick={addQuickNote} disabled={!quickNoteText.trim()} className={`px-3 py-2 rounded-lg transition-all font-semibold text-xs  disabled:opacity-50 ${'bg-yellow-100 text-yellow-700 hover:bg-yellow-200 border border-yellow-200'}`}>Subir</button>
+                  <textarea value={quickNoteText} onChange={(e) => setQuickNoteText(e.target.value)} placeholder="Agrega un update rápido..." rows={2} className={`flex-1 px-3 py-2 text-sm font-medium rounded-md outline-none resize-none transition-all  ${currentGlassInput}`} />
+                  <button onClick={addQuickNote} disabled={!quickNoteText.trim()} className={`px-3 py-2 rounded-md transition-all font-semibold text-xs  disabled:opacity-50 ${'bg-yellow-100 text-yellow-700 hover:bg-yellow-200 border border-yellow-200'}`}>Subir</button>
                 </div>
                 <div className="space-y-3">
                   {drawerTask.notes && drawerTask.notes.length > 0 ? (
                     drawerTask.notes.map((note) => (
-                      <div key={note.id} className={`p-3 rounded-xl border   ${'bg-white/60 border-white/50'}`}>
+                      <div key={note.id} className={`p-3 rounded-card border   ${'bg-white/60 border-white/50'}`}>
                         <div className={`flex items-center gap-1.5 mb-1.5 text-xs font-bold ${'text-yellow-600'}`}><Clock size={12} /> {note.date}</div>
-                        <p className={`text-xs font-medium leading-relaxed ${'text-gray-800'}`}>{note.text}</p>
+                        <p className={`text-xs font-medium leading-relaxed ${'text-text-heading'}`}>{note.text}</p>
                       </div>
                     ))
                   ) : (
-                    <div className={`text-center py-5 text-xs font-medium italic rounded-xl border border-dashed ${'text-gray-400 border-black/10 bg-black/5'}`}>No hay avances documentados aún.</div>
+                    <div className={`text-center py-5 text-xs font-medium italic rounded-card border border-dashed ${'text-text-secondary border-black/10 bg-black/5'}`}>No hay avances documentados aún.</div>
                   )}
                 </div>
               </div>
             </div>
             <div className={`px-6 py-4 border-t flex justify-end shrink-0 ${'border-black/5 bg-white/40 '}`}>
-              <button onClick={saveDrawerTask} className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-transform hover:scale-105  ${'bg-primary text-white'}`}><Save size={16} /> Guardar Tarea</button>
+              <button onClick={saveDrawerTask} className={`flex items-center gap-2 px-5 py-2.5 rounded-md font-semibold text-sm transition-transform hover:scale-105  ${'bg-primary text-white'}`}><Save size={16} /> Guardar Tarea</button>
             </div>
           </>
         )}
@@ -3026,10 +3001,10 @@ export default function App() {
           <>
             <div className={`flex items-center justify-between px-6 py-4 border-b shrink-0 ${'border-black/5'}`}>
               <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-xl  ${'bg-primary/10 text-primary border border-primary/25'}`}><UserPlus size={18} /></div>
-                <h2 className={`text-lg font-bold ${'text-gray-900'}`}>{drawerUser.isNew ? 'Invitar Miembro' : 'Editar Usuario'}</h2>
+                <div className={`p-2 rounded-card  ${'bg-primary/10 text-primary border border-primary/25'}`}><UserPlus size={18} /></div>
+                <h2 className={`text-lg font-bold ${'text-text-heading'}`}>{drawerUser.isNew ? 'Invitar Miembro' : 'Editar Usuario'}</h2>
               </div>
-              <button onClick={() => setDrawerUser(null)} className={`p-2 rounded-lg transition-all  ${'bg-white hover:bg-gray-100 text-gray-600 border border-gray-200'}`}><X size={16} /></button>
+              <button onClick={() => setDrawerUser(null)} className={`p-2 rounded-md transition-all  ${'bg-white hover:bg-surface-muted text-text-primary border border-border-default'}`}><X size={16} /></button>
             </div>
 
             <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6 custom-scrollbar">
@@ -3042,18 +3017,18 @@ export default function App() {
                 </div>
 
                 <div>
-                  <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}>Nombre Completo</label>
-                  <input type="text" value={drawerUser.name} onChange={(e) => setDrawerUser(prev => ({ ...prev, name: e.target.value }))} className={`w-full text-sm font-semibold px-3 py-2 rounded-xl outline-none transition-all  ${currentGlassInput}`} placeholder="Ej. Jane Doe" />
+                  <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${'text-text-secondary'}`}>Nombre Completo</label>
+                  <input type="text" value={drawerUser.name} onChange={(e) => setDrawerUser(prev => ({ ...prev, name: e.target.value }))} className={`w-full text-sm font-semibold px-3 py-2 rounded-card outline-none transition-all  ${currentGlassInput}`} placeholder="Ej. Jane Doe" />
                 </div>
                 
                 <div>
-                  <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}>Cargo / Puesto</label>
-                  <input type="text" value={drawerUser.job} onChange={(e) => setDrawerUser(prev => ({ ...prev, job: e.target.value }))} className={`w-full text-sm font-semibold px-3 py-2 rounded-xl outline-none transition-all  ${currentGlassInput}`} placeholder="Ej. Frontend Developer" />
+                  <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${'text-text-secondary'}`}>Cargo / Puesto</label>
+                  <input type="text" value={drawerUser.job} onChange={(e) => setDrawerUser(prev => ({ ...prev, job: e.target.value }))} className={`w-full text-sm font-semibold px-3 py-2 rounded-card outline-none transition-all  ${currentGlassInput}`} placeholder="Ej. Frontend Developer" />
                 </div>
 
                 <div>
-                  <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}>Rol en el Sistema</label>
-                  <select value={drawerUser.role} onChange={(e) => setDrawerUser(prev => ({ ...prev, role: e.target.value }))} className={`w-full px-3 py-2 text-sm font-medium rounded-lg outline-none cursor-pointer transition-all  ${currentGlassInput}`}>
+                  <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${'text-text-secondary'}`}>Rol en el Sistema</label>
+                  <select value={drawerUser.role} onChange={(e) => setDrawerUser(prev => ({ ...prev, role: e.target.value }))} className={`w-full px-3 py-2 text-sm font-medium rounded-md outline-none cursor-pointer transition-all  ${currentGlassInput}`}>
                     <option value="Admin" className="text-black">Admin</option>
                     <option value="Miembro" className="text-black">Miembro</option>
                     <option value="Observador" className="text-black">Observador</option>
@@ -3061,7 +3036,7 @@ export default function App() {
                 </div>
 
                 <div>
-                  <label className={`block text-xs font-bold uppercase tracking-wider mb-3 mt-4 ${'text-gray-500'}`}>Color del Avatar</label>
+                  <label className={`block text-xs font-bold uppercase tracking-wider mb-3 mt-4 ${'text-text-secondary'}`}>Color del Avatar</label>
                   <div className="flex gap-3 flex-wrap">
                     {USER_COLORS.map(colorClass => (
                       <button 
@@ -3077,8 +3052,8 @@ export default function App() {
             </div>
             
             <div className={`px-6 py-4 border-t flex justify-end shrink-0 ${'border-black/5 bg-white/40 '}`}>
-              <button onClick={() => setDrawerUser(null)} className={`px-4 py-2.5 rounded-lg font-semibold text-sm transition-colors ${'hover:bg-gray-100 text-gray-600'}`}>Cancelar</button>
-              <button onClick={saveDrawerUser} disabled={!drawerUser.name.trim()} className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-transform  disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 hover:scale-105 ${'bg-primary text-white hover:bg-primary-hover'}`}><Save size={16} /> Guardar Usuario</button>
+              <button onClick={() => setDrawerUser(null)} className={`px-4 py-2.5 rounded-md font-semibold text-sm transition-colors ${'hover:bg-surface-muted text-text-primary'}`}>Cancelar</button>
+              <button onClick={saveDrawerUser} disabled={!drawerUser.name.trim()} className={`flex items-center gap-2 px-5 py-2.5 rounded-md font-semibold text-sm transition-transform  disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 hover:scale-105 ${'bg-primary text-white hover:bg-primary-hover'}`}><Save size={16} /> Guardar Usuario</button>
             </div>
           </>
         )}
@@ -3093,35 +3068,35 @@ export default function App() {
           <>
             <div className={`flex items-center justify-between px-6 py-4 border-b shrink-0 ${'border-black/5'}`}>
               <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-xl  ${'bg-primary/10 text-primary border border-primary/25'}`}><Download size={18} /></div>
-                <h2 className={`text-lg font-bold ${'text-gray-900'}`}>Exportar Informes</h2>
+                <div className={`p-2 rounded-card  ${'bg-primary/10 text-primary border border-primary/25'}`}><Download size={18} /></div>
+                <h2 className={`text-lg font-bold ${'text-text-heading'}`}>Exportar Informes</h2>
               </div>
-              <button onClick={() => setIsReportDrawerOpen(false)} className={`p-2 rounded-lg transition-all  ${'bg-white hover:bg-gray-100 text-gray-600 border border-gray-200'}`}><X size={16} /></button>
+              <button onClick={() => setIsReportDrawerOpen(false)} className={`p-2 rounded-md transition-all  ${'bg-white hover:bg-surface-muted text-text-primary border border-border-default'}`}><X size={16} /></button>
             </div>
 
             <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6 custom-scrollbar">
               <div className="space-y-4">
-                <p className={`text-sm font-medium leading-relaxed ${'text-gray-600'} mb-4`}>Selecciona los filtros para descargar un reporte detallado en formato CSV compatible con Excel y Google Sheets.</p>
+                <p className={`text-sm font-medium leading-relaxed ${'text-text-primary'} mb-4`}>Selecciona los filtros para descargar un reporte detallado en formato CSV compatible con Excel y Google Sheets.</p>
                 
                 <div>
-                  <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}>Filtrar por Proyecto</label>
-                  <select value={reportFilters.projectId} onChange={(e) => setReportFilters(prev => ({ ...prev, projectId: e.target.value }))} className={`w-full px-3 py-2 text-sm font-medium rounded-lg outline-none cursor-pointer transition-all  ${currentGlassInput}`}>
+                  <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${'text-text-secondary'}`}>Filtrar por Proyecto</label>
+                  <select value={reportFilters.projectId} onChange={(e) => setReportFilters(prev => ({ ...prev, projectId: e.target.value }))} className={`w-full px-3 py-2 text-sm font-medium rounded-md outline-none cursor-pointer transition-all  ${currentGlassInput}`}>
                     <option value="all" className="text-black">Todos los proyectos</option>
                     {projectsList.map(p => <option key={p.id} value={p.id} className="text-black">{p.title}</option>)}
                   </select>
                 </div>
 
                 <div>
-                  <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}>Filtrar por Estado</label>
-                  <select value={reportFilters.status} onChange={(e) => setReportFilters(prev => ({ ...prev, status: e.target.value }))} className={`w-full px-3 py-2 text-sm font-medium rounded-lg outline-none cursor-pointer transition-all  ${currentGlassInput}`}>
+                  <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${'text-text-secondary'}`}>Filtrar por Estado</label>
+                  <select value={reportFilters.status} onChange={(e) => setReportFilters(prev => ({ ...prev, status: e.target.value }))} className={`w-full px-3 py-2 text-sm font-medium rounded-md outline-none cursor-pointer transition-all  ${currentGlassInput}`}>
                     <option value="all" className="text-black">Todos los estados</option>
                     {DEFAULT_COLUMNS.map(c => <option key={c.id} value={c.id} className="text-black">{c.title}</option>)}
                   </select>
                 </div>
 
                 <div>
-                  <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${'text-gray-500'}`}>Filtrar por Asignado</label>
-                  <select value={reportFilters.assigneeId} onChange={(e) => setReportFilters(prev => ({ ...prev, assigneeId: e.target.value }))} className={`w-full px-3 py-2 text-sm font-medium rounded-lg outline-none cursor-pointer transition-all  ${currentGlassInput}`}>
+                  <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${'text-text-secondary'}`}>Filtrar por Asignado</label>
+                  <select value={reportFilters.assigneeId} onChange={(e) => setReportFilters(prev => ({ ...prev, assigneeId: e.target.value }))} className={`w-full px-3 py-2 text-sm font-medium rounded-md outline-none cursor-pointer transition-all  ${currentGlassInput}`}>
                     <option value="all" className="text-black">Todo el equipo</option>
                     {users.map(u => <option key={u.id} value={u.id} className="text-black">{u.name}</option>)}
                   </select>
@@ -3131,7 +3106,7 @@ export default function App() {
             </div>
             
             <div className={`px-6 py-4 border-t flex justify-end shrink-0 ${'border-black/5 bg-white/40 '}`}>
-              <button onClick={exportToCSV} className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-transform  hover:scale-105 ${'bg-primary text-white hover:bg-primary-hover'}`}><Download size={16} /> Descargar CSV</button>
+              <button onClick={exportToCSV} className={`flex items-center gap-2 px-5 py-2.5 rounded-md font-semibold text-sm transition-transform  hover:scale-105 ${'bg-primary text-white hover:bg-primary-hover'}`}><Download size={16} /> Descargar CSV</button>
             </div>
           </>
         )}
@@ -3140,7 +3115,7 @@ export default function App() {
       {/* Contenedor de Toasts (Notificaciones Flotantes Minimalistas) */}
       <div className="fixed bottom-6 right-6 z-[100] flex flex-col gap-2 pointer-events-none">
         {toasts.map(toast => (
-          <div key={toast.id} className={`animate-in slide-in-from-bottom-5 fade-in duration-300 flex items-center gap-2.5 px-4 py-3 rounded-xl  pointer-events-auto  border ${'bg-white/90 border-gray-200 text-gray-800'}`}>
+          <div key={toast.id} className={`animate-in slide-in-from-bottom-5 fade-in duration-300 flex items-center gap-2.5 px-4 py-3 rounded-card  pointer-events-auto  border ${'bg-white/90 border-border-default text-text-heading'}`}>
             {toast.type === 'success' && <CheckCircle2 size={16} className="text-emerald-500" />}
             {toast.type === 'error' && <X size={16} className="text-red-500" />}
             {toast.type === 'sync' && <Cloud size={16} className="text-primary animate-pulse" />}
@@ -3152,26 +3127,26 @@ export default function App() {
       {/* Confirmación Global Personalizada */}
       {globalConfirmDialog && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50  p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl  border border-slate-100 max-w-sm w-full overflow-hidden p-6 animate-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-card  border border-border-default max-w-sm w-full overflow-hidden p-6 animate-in zoom-in-95 duration-200">
             <div className="flex flex-col items-center text-center">
               <div className="w-12 h-12 rounded-full bg-amber-50 border border-amber-100 flex items-center justify-center shrink-0 mb-4 animate-bounce">
                 <AlertCircle className="text-amber-500" size={24} />
               </div>
-              <h3 className="text-base font-black text-slate-900 leading-tight">¿Estás seguro?</h3>
-              <p className="text-xs font-semibold text-slate-500 mt-2.5 leading-relaxed whitespace-pre-wrap">{globalConfirmDialog.message}</p>
+              <h3 className="text-base font-semibold text-text-heading leading-tight">¿Estás seguro?</h3>
+              <p className="text-xs font-semibold text-text-secondary mt-2.5 leading-relaxed whitespace-pre-wrap">{globalConfirmDialog.message}</p>
             </div>
-            <div className="flex items-center gap-3 mt-6 pt-4 border-t border-slate-100">
+            <div className="flex items-center gap-3 mt-6 pt-4 border-t border-border-default">
               <button 
                 type="button"
                 onClick={globalConfirmDialog.onCancel}
-                className="flex-1 py-2.5 rounded-xl text-xs font-bold border border-slate-200 text-slate-650 hover:bg-slate-50 transition-all active:scale-95"
+                className="flex-1 py-2.5 rounded-card text-xs font-bold border border-border-default text-text-primary hover:bg-surface-bg transition-all active:scale-95"
               >
                 Cancelar
               </button>
               <button 
                 type="button"
                 onClick={globalConfirmDialog.onConfirm}
-                className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-primary text-white hover:bg-primary-hover  transition-all active:scale-95"
+                className="flex-1 py-2.5 rounded-card text-xs font-bold bg-primary text-white hover:bg-primary-hover  transition-all active:scale-95"
               >
                 Aceptar
               </button>

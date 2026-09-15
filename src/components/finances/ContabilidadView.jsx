@@ -387,7 +387,7 @@ function CuentaForm({ cuenta, cuentas, onSave, onCancel }) {
     <div className="border border-primary/30 rounded-card p-3 bg-primary-light/20 space-y-3">
       <div className="flex items-center justify-between">
         <h4 className="text-sm font-semibold text-text-primary">{cuenta._new ? 'Nueva Cuenta' : 'Editar Cuenta'}</h4>
-        <button onClick={onCancel} className="btn-icon text-gray-500"><X size={14} /></button>
+        <button onClick={onCancel} className="btn-icon text-text-secondary"><X size={14} /></button>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         <input value={data.codigo} onChange={e => setData(d => ({ ...d, codigo: e.target.value }))}
@@ -431,7 +431,7 @@ function CCForm({ centro, onSave, onCancel }) {
     <div className="border border-primary/30 rounded-card p-3 bg-primary-light/20 space-y-3">
       <div className="flex items-center justify-between">
         <h4 className="text-sm font-semibold text-text-primary">{centro._new ? 'Nuevo Centro' : 'Editar Centro'}</h4>
-        <button onClick={onCancel} className="btn-icon text-gray-500"><X size={14} /></button>
+        <button onClick={onCancel} className="btn-icon text-text-secondary"><X size={14} /></button>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         <input value={data.codigo} onChange={e => setData(d => ({ ...d, codigo: e.target.value }))}

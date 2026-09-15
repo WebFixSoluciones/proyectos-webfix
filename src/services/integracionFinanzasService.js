@@ -1,6 +1,6 @@
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { crearMovimiento } from './movimientoService';
-import { registrarAuditoria } from './auditService';
+import * as firestore from './financeStore.js';
+import { roundMoney } from './paymentModel.js';
+import { registrarAuditoria } from './auditService.js';
 
 function mapearMetodoPago(metodo) {
   const mapa = {
@@ -34,8 +34,8 @@ function mapearVentaAMovimiento(venta) {
     },
     tercero: {
       id: venta.thirdPartyId || '',
-      nombre: venta.clienteNombre || venta.thirdPartyName || 'CONSUMIDOR FINAL',
-      ruc: venta.clienteRuc || venta.thirdPartyRuc || '9999999999999',
+      nombre: venta.clienteNombre || venta.thirdPartyName || venta.thirdParty?.name || 'CONSUMIDOR FINAL',
+      ruc: venta.clienteRuc || venta.thirdPartyRuc || venta.thirdParty?.ruc || '9999999999999',
     },
     partidas: [{
       cuenta: '',
@@ -109,121 +109,38 @@ function mapearCompraAMovimiento(compra) {
   };
 }
 
-export async function sincronizarVenta(venta, db, usuario) {
-  if (!venta || !venta.id || !db) return;
-
+async function sincronizarDocumento(data, db, usuario, venta, api = firestore) {
+  const { doc, runTransaction, serverTimestamp } = api;
+  if (!data?.id || !db) throw new Error('Documento o empresa no disponible para sincronizar.');
   const user = usuario || { uid: '', email: '' };
-
-  try {
-    const movData = mapearVentaAMovimiento(venta);
-    const movimiento = await crearMovimiento(db, movData, user);
-
-    const fecha = venta.date ? new Date(venta.date) : new Date();
-
-    await setDoc(doc(db, 'fin_cxc', venta.id), {
-      movimientoId: movimiento.id,
-      tercero: {
-        id: venta.thirdPartyId || '',
-        nombre: venta.clienteNombre || venta.thirdPartyName || 'CONSUMIDOR FINAL',
-        ruc: venta.clienteRuc || venta.thirdPartyRuc || '9999999999999',
-      },
-      factura: {
-        tipo: venta.documentType || 'factura',
-        numero: venta.documentNumber || '',
-        claveAcceso: venta.claveAcceso || null,
-        fecha: fecha,
-        fechaVencimiento: venta.fechaVencimiento ? new Date(venta.fechaVencimiento) : null,
-        montoTotal: Number(venta.total) || 0,
-        iva: Number(venta.ivaValor) || 0,
-      },
-      abonos: venta.paymentStatus === 'pagado' ? [{
-        id: Date.now().toString(36) + Math.random().toString(36).slice(2),
-        fecha: fecha.toISOString(),
-        monto: Number(venta.total) || 0,
-        metodoPago: mapearMetodoPago(venta.paymentMethod),
-        referencia: venta.transactionRef || '',
-        movimientoId: movimiento.id,
-      }] : [],
-      saldoPendiente: venta.paymentStatus === 'pagado' ? 0 : (Number(venta.total) || 0),
-      estado: venta.paymentStatus === 'pagado' ? 'pagado' : 'pendiente',
-      notas: venta.notas || '',
-      creadoEn: serverTimestamp(),
-      actualizadoEn: serverTimestamp(),
-    });
-
-    registrarAuditoria(db, {
-      coleccion: 'fin_cxc',
-      documentoId: venta.id,
-      accion: 'crear',
-      usuario: user.uid,
-      usuarioEmail: user.email,
-      cambios: { movimientoId: movimiento.id },
-      modulo: 'ventas',
-    });
-
-    return { movimientoId: movimiento.id, cxcId: venta.id };
-  } catch (e) {
-    console.error('[integracionFinanzas] Error sincronizando venta:', e);
-  }
+  const collection = venta ? 'fin_cxc' : 'fin_cxp';
+  const linkedRef = doc(db, collection, data.id);
+  const movData = venta ? mapearVentaAMovimiento(data) : mapearCompraAMovimiento(data);
+  const total = roundMoney(data.total);
+  if (!Number.isFinite(total) || total <= 0) throw new Error('El total financiero debe ser mayor a cero.');
+  const result = await runTransaction(db, async tx => {
+    const linked = await tx.get(linkedRef);
+    const previous = linked.data();
+    const movementId = previous?.movimientoId || (venta ? 'venta_' : 'compra_') + data.id;
+    const movementRef = doc(db, 'fin_movimientos', movementId);
+    const movement = await tx.get(movementRef);
+    const initialPaid = Number(data.paidAmount ?? (data.paymentStatus === 'pagado' ? total : 0));
+    if (!Number.isFinite(initialPaid) || initialPaid < 0 || initialPaid > total + 0.01) throw new Error('El pago inicial no coincide con el total.');
+    const splitPayments = data.paymentsBreakdown ? ['efectivo', 'transferencia', 'tarjeta'].filter(method => Number(data.paymentsBreakdown[method]) > 0).map(method => ({ id: 'origen:' + data.id + ':' + method, fecha: movData.fecha.toISOString(), monto: roundMoney(data.paymentsBreakdown[method]), metodoPago: mapearMetodoPago(method), referencia: data[method + 'Ref'] || '', movimientoId: movementId })) : null;
+    if (splitPayments && Math.abs(roundMoney(splitPayments.reduce((sum, p) => sum + p.monto, 0)) - initialPaid) > 0.01) throw new Error('El desglose de pagos no coincide con el importe abonado.');
+    const abonos = previous?.abonos || splitPayments || (initialPaid > 0 ? [{ id: 'origen:' + data.id, fecha: movData.fecha.toISOString(), monto: roundMoney(initialPaid), metodoPago: movData.metodoPago, referencia: data.transactionRef || '', movimientoId: movementId }] : []);
+    const paid = roundMoney(abonos.reduce((sum, p) => sum + Number(p.monto || 0), 0));
+    if (paid > total + 0.01) throw new Error('El total no puede ser inferior a los abonos ya registrados.');
+    const saldoPendiente = Math.max(0, roundMoney(total - paid));
+    const estado = previous?.estado === 'anulado' ? 'anulado' : saldoPendiente === 0 ? 'pagado' : paid > 0 ? 'parcial' : 'pendiente';
+    const factura = { tipo: data.documentType || 'factura', numero: data.documentNumber || '', claveAcceso: data.claveAcceso || null, fecha: movData.fecha, fechaVencimiento: data.creditDueDate ? new Date(data.creditDueDate + 'T12:00:00') : movData.fechaVencimiento, montoTotal: total, baseImponible: Number(data.baseImponible || 0), iva: Number(data.ivaValor || 0), retencionFuente: Number(data.retencionFuente || 0), retencionIva: Number(data.retencionIva || 0) };
+    tx.set(linkedRef, { movimientoId: movementId, tercero: movData.tercero, factura, abonos, saldoPendiente, estado, notas: data.notas || '', creadoEn: previous?.creadoEn || serverTimestamp(), actualizadoEn: serverTimestamp() }, { merge: true });
+    tx.set(movementRef, { ...movData, monto: total, pagos: abonos, saldoPendiente, estado, creadoPor: user.uid || '', creadoEn: movement.data()?.creadoEn || serverTimestamp(), actualizadoEn: serverTimestamp() }, { merge: true });
+    return { movimientoId: movementId, [venta ? 'cxcId' : 'cxpId']: data.id };
+  });
+  if (api === firestore) registrarAuditoria(db, { coleccion: collection, documentoId: data.id, accion: 'sincronizar', usuario: user.uid, usuarioEmail: user.email, cambios: result, modulo: venta ? 'ventas' : 'compras' });
+  return result;
 }
 
-export async function sincronizarCompra(compra, db, usuario) {
-  if (!compra || !compra.id || !db) return;
-
-  const user = usuario || { uid: '', email: '' };
-
-  try {
-    const movData = mapearCompraAMovimiento(compra);
-    const movimiento = await crearMovimiento(db, movData, user);
-
-    const fecha = compra.date ? new Date(compra.date) : new Date();
-
-    await setDoc(doc(db, 'fin_cxp', compra.id), {
-      movimientoId: movimiento.id,
-      tercero: {
-        id: compra.thirdPartyId || '',
-        nombre: compra.proveedorNombre || compra.thirdPartyName || 'SIN PROVEEDOR',
-        ruc: compra.proveedorRuc || compra.thirdPartyRuc || '9999999999999',
-      },
-      factura: {
-        tipo: compra.documentType || 'factura',
-        numero: compra.documentNumber || '',
-        claveAcceso: compra.claveAcceso || null,
-        fecha: fecha,
-        fechaVencimiento: compra.fechaVencimiento ? new Date(compra.fechaVencimiento) : null,
-        montoTotal: Number(compra.total) || 0,
-        baseImponible: Number(compra.baseImponible) || Number(compra.subtotal) || 0,
-        iva: Number(compra.ivaValor) || 0,
-        retencionFuente: Number(compra.retencionFuente) || 0,
-        retencionIva: Number(compra.retencionIva) || 0,
-      },
-      abonos: compra.paymentStatus === 'pagado' ? [{
-        id: Date.now().toString(36) + Math.random().toString(36).slice(2),
-        fecha: fecha.toISOString(),
-        monto: Number(compra.total) || 0,
-        metodoPago: mapearMetodoPago(compra.paymentMethod),
-        referencia: compra.transactionRef || '',
-        movimientoId: movimiento.id,
-      }] : [],
-      saldoPendiente: compra.paymentStatus === 'pagado' ? 0 : (Number(compra.total) || 0),
-      estado: compra.paymentStatus === 'pagado' ? 'pagado' : 'pendiente',
-      notas: compra.notas || '',
-      creadoEn: serverTimestamp(),
-      actualizadoEn: serverTimestamp(),
-    });
-
-    registrarAuditoria(db, {
-      coleccion: 'fin_cxp',
-      documentoId: compra.id,
-      accion: 'crear',
-      usuario: user.uid,
-      usuarioEmail: user.email,
-      cambios: { movimientoId: movimiento.id },
-      modulo: 'compras',
-    });
-
-    return { movimientoId: movimiento.id, cxpId: compra.id };
-  } catch (e) {
-    console.error('[integracionFinanzas] Error sincronizando compra:', e);
-  }
-}
+export const sincronizarVenta = (venta, db, usuario, api) => sincronizarDocumento(venta, db, usuario, true, api);
+export const sincronizarCompra = (compra, db, usuario, api) => sincronizarDocumento(compra, db, usuario, false, api);

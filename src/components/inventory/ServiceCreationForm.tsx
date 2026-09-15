@@ -91,34 +91,34 @@ export default function ServiceCreationForm({
     }
   };
 
-  const inputClass = `w-full pl-4 pr-4 py-2 rounded-card outline-none transition-all border bg-white/50 border-gray-200 text-gray-800 focus:border-primary focus:bg-white`;
+  const inputClass = `w-full pl-4 pr-4 py-2 rounded-card outline-none transition-all border bg-white/50 border-border-default text-text-heading focus:border-primary focus:bg-white`;
 
-  const labelClass = `block text-xs font-semibold mb-1.5 uppercase tracking-wider text-gray-500`;
+  const labelClass = `block text-xs font-semibold mb-1.5 uppercase tracking-wider text-text-secondary`;
 
-  const iconContainerClass = `absolute left-3 top-1/2 -translate-y-1/2 text-gray-400`;
+  const iconContainerClass = `absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary`;
 
   const formJSX = (
     <div 
-      className={isInline ? `w-full rounded-card border bg-white border-gray-200 text-gray-900` : `relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-card border bg-white/95 border-white/40 custom-scrollbar`}
+      className={isInline ? `w-full rounded-card border bg-white border-border-default text-text-heading` : `relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-card border bg-white/95 border-white/40 custom-scrollbar`}
     >
       {/* Header */}
-      <div className={`modal-header-std modal-header-std-dark border-gray-100 bg-white/80`}>
+      <div className={`modal-header-std modal-header-std-dark border-border-default bg-white/80`}>
         <div className="flex items-center gap-3">
           <div className={`p-2 rounded-card bg-primary/10 text-primary`}>
             <Briefcase size={20} />
           </div>
           <div>
-            <h2 className={`text-base font-bold tracking-tight text-gray-900`}>
+            <h2 className={`text-base font-bold tracking-tight text-text-heading`}>
               {serviceToEdit?.id ? 'Editar Servicio' : 'Nuevo Servicio'}
             </h2>
-            <p className={`text-xs text-gray-500`}>
+            <p className={`text-xs text-text-secondary`}>
               {serviceToEdit?.id ? 'Edita los detalles del servicio seleccionado' : 'Registra un nuevo servicio intangible en el catálogo'}
             </p>
           </div>
         </div>
           <button 
             onClick={onClose}
-            className={`p-2 rounded-card transition-all hover:scale-105 bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-900`}
+            className={`p-2 rounded-card transition-all hover:scale-105 bg-surface-muted text-text-secondary hover:bg-surface-muted hover:text-text-heading`}
           >
             <X size={18} />
           </button>
@@ -283,15 +283,15 @@ export default function ServiceCreationForm({
                   Precio Final del Servicio
                 </p>
                 <div className="flex items-baseline gap-2">
-                  <span className={`text-3xl font-black tracking-tight text-gray-900`}>
+                  <span className={`text-3xl font-semibold tracking-tight text-text-heading`}>
                     ${finalPriceWithTax.toFixed(2)}
                   </span>
-                  <span className={`text-xs font-medium text-gray-500`}>
+                  <span className={`text-xs font-medium text-text-secondary`}>
                     (Inc. IVA)
                   </span>
                 </div>
               </div>
-              <div className={`text-right text-xs font-medium space-y-1 text-gray-500`}>
+              <div className={`text-right text-xs font-medium space-y-1 text-text-secondary`}>
                 <p>Subtotal: ${calculatedSalePrice.toFixed(2)}</p>
                 <p>IVA ({formData.taxRate}%): ${(finalPriceWithTax - calculatedSalePrice).toFixed(2)}</p>
                 <p className="text-emerald-600">
@@ -307,7 +307,7 @@ export default function ServiceCreationForm({
               type="button"
               onClick={onClose}
               disabled={loading}
-              className={`px-6 py-2.5 rounded-card font-bold transition-all text-sm bg-gray-100 hover:bg-gray-200 text-gray-700`}
+              className={`px-6 py-2.5 rounded-card font-bold transition-all text-sm bg-surface-muted hover:bg-surface-muted text-text-primary`}
             >
               Cancelar
             </button>

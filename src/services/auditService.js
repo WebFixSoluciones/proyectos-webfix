@@ -1,4 +1,4 @@
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp } from './financeStore.js';
 
 export async function registrarAuditoria(db, params) {
   try {
