@@ -2305,7 +2305,6 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                           title="Registrar y Agregar Nuevo Producto"
                         >
                           <Layers size={12} />
-                          <Plus size={10} />
                           <span>Añadir</span>
                         </button>
                       </>
