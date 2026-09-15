@@ -277,6 +277,8 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
   const hasPropina = Number(tx.propinaValor) > 0;
   const hasIrf175 = Number(tx.irf175Valor) > 0;
   const hasIrf275 = Number(tx.irf275Valor) > 0;
+  const hasRetFuente = Number(tx.retencionFuente) > 0;
+  const hasRetIva = Number(tx.retencionIva) > 0;
 
   const handlePrint = () => {
     window.print();
@@ -787,6 +789,18 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
                           <tr>
                             <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">IRF 2.75%</td>
                             <td className="px-2 py-0.5">${Number(tx.irf275Valor || 0).toFixed(2)}</td>
+                          </tr>
+                        )}
+                        {hasRetFuente && !hasIrf175 && !hasIrf275 && (
+                          <tr>
+                            <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">Retención Fuente</td>
+                            <td className="px-2 py-0.5">${Number(tx.retencionFuente || 0).toFixed(2)}</td>
+                          </tr>
+                        )}
+                        {hasRetIva && (
+                          <tr>
+                            <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">Retención IVA</td>
+                            <td className="px-2 py-0.5">${Number(tx.retencionIva || 0).toFixed(2)}</td>
                           </tr>
                         )}
                       </tbody>
