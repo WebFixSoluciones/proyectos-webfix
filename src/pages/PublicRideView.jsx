@@ -488,7 +488,7 @@ export default function PublicRideView() {
             </div>
 
             {/* Datos del Receptor Compactos (Detalle de Cliente) */}
-            <div className="mt-3 border border-border-strong text-xs text-black">
+            <div className="mt-2.5 border border-border-strong text-black" style={{ fontSize: '10.5px', lineHeight: '1.3' }}>
               {/* Fila 1 */}
               <div className="grid grid-cols-12">
                 <div className="col-span-10 py-[2px] px-1.5 truncate">
@@ -558,9 +558,8 @@ export default function PublicRideView() {
                     <th className="px-2 py-1 border-r border-border-strong w-8 text-center">ITEM</th>
                     <th className="px-2 py-1 border-r border-border-strong w-16">CODIGO</th>
                     <th className="px-2 py-1 border-r border-border-strong">DESCRIPCION</th>
-                    <th className="px-2 py-1 border-r border-border-strong w-10 text-center">U/M</th>
-                    <th className="px-2 py-1 border-r border-border-strong w-20 text-center">COD/BARRAS</th>
-                    <th className="px-2 py-1 border-r border-border-strong w-10 text-right">CANTIDAD</th>
+                    <th className="px-2 py-1 border-r border-border-strong w-12 text-center">U/M</th>
+                    <th className="px-2 py-1 border-r border-border-strong w-12 text-right">CANTIDAD</th>
                     <th className="px-2 py-1 border-r border-border-strong text-right w-16">V.UNIT</th>
                     <th className="px-2 py-1 border-r border-border-strong text-right w-12">DESC.</th>
                     <th className="px-2 py-1 text-right w-16">V.TOTAL</th>
@@ -574,7 +573,6 @@ export default function PublicRideView() {
                         <td className="px-2 py-1 border-r border-border-strong font-mono">{item.sku || 'SERV'}</td>
                         <td className="px-2 py-1 border-r border-border-strong font-medium">{invoiceDescription(item)}</td>
                         <td className="px-2 py-1 border-r border-border-strong text-center uppercase font-mono">{item.unit || 'UNIDAD'}</td>
-                        <td className="px-2 py-1 border-r border-border-strong text-center font-mono">{item.barcode || item.sku || 'N/A'}</td>
                         <td className="px-2 py-1 border-r border-border-strong text-right">{item.quantity}</td>
                         <td className="px-2 py-1 border-r border-border-strong text-right">${invoiceLineAmounts(item).unitPrice.toFixed(2)}</td>
                         <td className="px-2 py-1 border-r border-border-strong text-right">${invoiceLineAmounts(item).discount.toFixed(2)}</td>
@@ -587,7 +585,6 @@ export default function PublicRideView() {
                       <td className="px-2 py-1 border-r border-border-strong font-mono">COM01</td>
                       <td className="px-2 py-1 border-r border-border-strong font-medium">Servicios Comerciales - {tx.category || 'Ventas'}</td>
                       <td className="px-2 py-1 border-r border-border-strong text-center uppercase font-mono">UNIDAD</td>
-                      <td className="px-2 py-1 border-r border-border-strong text-center font-mono">N/A</td>
                       <td className="px-2 py-1 border-r border-border-strong text-right">1</td>
                       <td className="px-2 py-1 border-r border-border-strong text-right">${Number(tx.baseImponible).toFixed(2)}</td>
                       <td className="px-2 py-1 border-r border-border-strong text-right">$0.00</td>
