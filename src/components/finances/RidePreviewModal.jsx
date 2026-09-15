@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Printer, FileText } from 'lucide-react';
 import { doc, getDoc } from 'firebase/firestore';
 
@@ -64,6 +65,12 @@ function MockBarcode({ claveAcceso }) {
 export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId, initialFormat = 'ride' }) {
   const [companyConfig, setCompanyConfig] = useState(null);
   const [viewFormat, setViewFormat] = useState(initialFormat);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
 
   // Sync format if initialFormat changes
   useEffect(() => {
@@ -259,95 +266,107 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
   };
   const taxDetails = calculateTaxDetails();
 
+  const hasIva15 = (Number(taxDetails.subtotal15) > 0) || (Number(taxDetails.iva15) > 0) || (Number(tx.ivaValor) > 0);
+  const hasIva5 = (Number(taxDetails.subtotal5) > 0) || (Number(taxDetails.iva5) > 0);
+  const hasIva0 = (Number(taxDetails.subtotal0) > 0) || (!hasIva15 && !hasIva5 && Number(taxDetails.subtotalNoObjeto || 0) === 0 && Number(taxDetails.subtotalExento || 0) === 0);
+  const hasNoObjeto = Number(taxDetails.subtotalNoObjeto) > 0;
+  const hasExento = Number(taxDetails.subtotalExento) > 0;
+  const hasDiscount = Number(taxDetails.totalDiscount) > 0 || Number(tx.descuentoValor) > 0;
+  const hasIce = Number(tx.iceValor) > 0;
+  const hasIrbpnr = Number(tx.irbpnrValor) > 0;
+  const hasPropina = Number(tx.propinaValor) > 0;
+  const hasIrf175 = Number(tx.irf175Valor) > 0;
+  const hasIrf275 = Number(tx.irf275Valor) > 0;
+
   const handlePrint = () => {
     window.print();
   };
 
-  return (
+  if (!mounted || typeof document === 'undefined') return null;
+
+  const modalJSX = (
     <div className="fixed inset-0 z-[120] bg-black/80 flex items-start justify-center p-4 overflow-y-auto animate-in fade-in print-modal-backdrop print:items-start print:overflow-visible">
       
-      {/* Estilos temporales para imprimir solamente el comprobante */}
+      {/* Estilos para impresión profesional (Alineación superior y cero desfasaje) */}
       <style dangerouslySetInnerHTML={{__html: `
+        @page {
+          size: ${viewFormat === 'ticket' ? '80mm auto' : 'A4 portrait'};
+          margin: ${viewFormat === 'ticket' ? '2mm' : '6mm 8mm'};
+        }
+
         @media print {
-          body {
+          /* Ocultar la aplicación principal por completo de la impresión */
+          #root {
+            display: none !important;
+          }
+
+          html, body {
             margin: 0 !important;
             padding: 0 !important;
-          }
-          
-          body * {
-            visibility: hidden !important;
-            transform: none !important;
-            filter: none !important;
-          }
-          
-          #print-area-wrapper, #print-area-wrapper * {
-            visibility: visible !important;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-          }
-          
-          html, body, #root {
-            position: static !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            height: auto !important;
-            min-height: auto !important;
-            display: block !important;
-          }
-          
-          .print-modal-backdrop {
-            position: absolute !important;
-            left: 0 !important;
-            top: 0 !important;
             width: 100% !important;
             height: auto !important;
-            min-height: auto !important;
+            min-height: 0 !important;
+            background: #ffffff !important;
+            color: #000000 !important;
             overflow: visible !important;
             display: block !important;
-            background: #ffffff !important;
-            backdrop-filter: none !important;
+          }
+
+          .print-modal-backdrop {
+            position: static !important;
+            display: block !important;
+            width: 100% !important;
+            height: auto !important;
+            min-height: 0 !important;
             margin: 0 !important;
             padding: 0 !important;
+            background: transparent !important;
+            box-shadow: none !important;
+            overflow: visible !important;
+            inset: auto !important;
+            z-index: auto !important;
+            transform: none !important;
+            animation: none !important;
           }
-          
+
           .print-modal-content {
             position: static !important;
             display: block !important;
             width: 100% !important;
             height: auto !important;
             max-height: none !important;
-            overflow: visible !important;
             margin: 0 !important;
             padding: 0 !important;
             border: none !important;
             box-shadow: none !important;
             background: transparent !important;
+            overflow: visible !important;
           }
-          
+
           .print-modal-scroll {
             position: static !important;
             display: block !important;
             width: 100% !important;
             height: auto !important;
-            overflow: visible !important;
             margin: 0 !important;
             padding: 0 !important;
             background: transparent !important;
+            overflow: visible !important;
           }
-          
+
           #print-area-wrapper {
-            position: absolute !important;
-            left: 0 !important;
-            top: 0 !important;
+            position: static !important;
+            display: block !important;
             width: 100% !important;
             margin: 0 !important;
             padding: 0 !important;
             background: #ffffff !important;
             color: #000000 !important;
-            display: block !important;
+            page-break-inside: avoid;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
           }
-          
-          /* Collapse the card border, shadow, padding in print */
+
           #print-area-wrapper > div {
             border: none !important;
             box-shadow: none !important;
@@ -356,37 +375,33 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
             max-width: 100% !important;
             width: 100% !important;
           }
-          
-          /* Force fonts to exactly 8px for tables, th, td */
+
+          .no-print, .no-print * {
+            display: none !important;
+          }
+
           #print-area-wrapper table,
           #print-area-wrapper th,
           #print-area-wrapper td {
             font-size: 8px !important;
           }
-          
-          /* Force fonts for additional info block */
+
           #print-area-wrapper .grid-cols-2,
           #print-area-wrapper .grid-cols-2 *,
           #print-area-wrapper p.uppercase {
             font-size: 8px !important;
           }
-          
-          /* Custom print layout grids */
+
           .print-grid-2 {
             display: grid !important;
             grid-template-columns: 1fr 1fr !important;
-            gap: 12px !important;
+            gap: 8px !important;
           }
-          
+
           .print-grid-5 {
             display: grid !important;
             grid-template-columns: 3fr 2fr !important;
-            gap: 12px !important;
-          }
-          
-          .no-print, .no-print * {
-            display: none !important;
-            visibility: hidden !important;
+            gap: 8px !important;
           }
         }
       `}} />
@@ -447,7 +462,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
             
             {/* FORMATO 1: RIDE OFICIAL A4 */}
             {viewFormat === 'ride' && (
-              <div className="w-full max-w-3xl mx-auto p-5 bg-white border border-gray-300 text-black  text-xs font-sans leading-tight print: print:border-none print:p-0">
+              <div className="w-full max-w-3xl mx-auto p-5 bg-white border border-gray-300 text-black text-xs font-sans leading-tight print:max-w-none print:w-full print:border-none print:p-0 print:m-0">
                 
                 {/* Cabecera Principal Compacta */}
                 <div className="border border-gray-300 grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-300 print:grid-cols-2 print:divide-x print:divide-y-0 text-xs text-black">
@@ -682,66 +697,98 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
                   <div className="md:col-span-2 border border-gray-300 overflow-hidden">
                     <table className="w-full text-right text-xs text-black">
                       <tbody className="divide-y divide-gray-200 font-medium">
+                        {hasIva15 && (
+                          <tr>
+                            <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">Subtotal 15%</td>
+                            <td className="px-2 py-0.5 font-bold">${Number(taxDetails.subtotal15 || 0).toFixed(2)}</td>
+                          </tr>
+                        )}
+                        {hasIva5 && (
+                          <tr>
+                            <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">Subtotal 5%</td>
+                            <td className="px-2 py-0.5 font-bold">${Number(taxDetails.subtotal5 || 0).toFixed(2)}</td>
+                          </tr>
+                        )}
+                        {hasIva0 && (
+                          <tr>
+                            <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">Subtotal 0%</td>
+                            <td className="px-2 py-0.5 font-bold">${Number(taxDetails.subtotal0 || 0).toFixed(2)}</td>
+                          </tr>
+                        )}
+                        {hasNoObjeto && (
+                          <tr>
+                            <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">Subtotal No Sujeto de IVA</td>
+                            <td className="px-2 py-0.5 font-bold">${Number(taxDetails.subtotalNoObjeto || 0).toFixed(2)}</td>
+                          </tr>
+                        )}
+                        {hasExento && (
+                          <tr>
+                            <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">Subtotal Exento de IVA</td>
+                            <td className="px-2 py-0.5 font-bold">${Number(taxDetails.subtotalExento || 0).toFixed(2)}</td>
+                          </tr>
+                        )}
                         <tr>
-                          <td className="px-1.5 py-[1px] bg-gray-50 border-r border-gray-300 text-left">Subtotal 15%</td>
-                          <td className="px-1.5 py-[1px] font-bold">${Number(taxDetails.subtotal15 || 0).toFixed(2)}</td>
+                          <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">Subtotal Sin Impuestos</td>
+                          <td className="px-2 py-0.5 font-bold">${Number(taxDetails.subtotalSinImpuestos || 0).toFixed(2)}</td>
                         </tr>
-                        <tr>
-                          <td className="px-1.5 py-[1px] bg-gray-50 border-r border-gray-300 text-left">Subtotal 5%</td>
-                          <td className="px-1.5 py-[1px] font-bold">${Number(taxDetails.subtotal5 || 0).toFixed(2)}</td>
-                        </tr>
-                        <tr>
-                          <td className="px-1.5 py-[1px] bg-gray-50 border-r border-gray-300 text-left">Subtotal 0%</td>
-                          <td className="px-1.5 py-[1px] font-bold">${Number(taxDetails.subtotal0 || 0).toFixed(2)}</td>
-                        </tr>
-                        <tr>
-                          <td className="px-1.5 py-[1px] bg-gray-50 border-r border-gray-300 text-left">Subtotal No Sujeto de IVA</td>
-                          <td className="px-1.5 py-[1px] font-bold">${Number(taxDetails.subtotalNoObjeto || 0).toFixed(2)}</td>
-                        </tr>
-                        <tr>
-                          <td className="px-1.5 py-[1px] bg-gray-50 border-r border-gray-300 text-left">Subtotal Exento de IVA</td>
-                          <td className="px-1.5 py-[1px] font-bold">${Number(taxDetails.subtotalExento || 0).toFixed(2)}</td>
-                        </tr>
-                        <tr>
-                          <td className="px-1.5 py-[1px] bg-gray-50 border-r border-gray-300 text-left">Subtotal Sin Impuestos</td>
-                          <td className="px-1.5 py-[1px] font-bold">${Number(taxDetails.subtotalSinImpuestos || 0).toFixed(2)}</td>
-                        </tr>
-                        <tr>
-                          <td className="px-1.5 py-[1px] bg-gray-50 border-r border-gray-300 text-left">Total Descuento</td>
-                          <td className="px-1.5 py-[1px] font-bold">${Number(taxDetails.totalDiscount || 0).toFixed(2)}</td>
-                        </tr>
-                        <tr>
-                          <td className="px-1.5 py-[1px] bg-gray-50 border-r border-gray-300 text-left">Valor ICE</td>
-                          <td className="px-1.5 py-[1px] font-bold">${Number(tx.iceValor || 0).toFixed(2)}</td>
-                        </tr>
-                        <tr>
-                          <td className="px-1.5 py-[1px] bg-gray-50 border-r border-gray-300 text-left">IVA 15%</td>
-                          <td className="px-1.5 py-[1px] font-bold">${Number(taxDetails.iva15 || 0).toFixed(2)}</td>
-                        </tr>
-                        <tr>
-                          <td className="px-1.5 py-[1px] bg-gray-50 border-r border-gray-300 text-left">IVA 5%</td>
-                          <td className="px-1.5 py-[1px] font-bold">${Number(taxDetails.iva5 || 0).toFixed(2)}</td>
-                        </tr>
-                        <tr>
-                          <td className="px-1.5 py-[1px] bg-gray-50 border-r border-gray-300 text-left">IRBPNR</td>
-                          <td className="px-1.5 py-[1px] font-bold">${Number(tx.irbpnrValor || 0).toFixed(2)}</td>
-                        </tr>
-                        <tr>
-                          <td className="px-1.5 py-[1px] bg-gray-50 border-r border-gray-300 text-left">Propina</td>
-                          <td className="px-1.5 py-[1px] font-bold">${Number(tx.propinaValor || 0).toFixed(2)}</td>
-                        </tr>
+                        {hasDiscount && (
+                          <tr>
+                            <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">Total Descuento</td>
+                            <td className="px-2 py-0.5 font-bold text-red-600">-${Number(taxDetails.totalDiscount || tx.descuentoValor || 0).toFixed(2)}</td>
+                          </tr>
+                        )}
+                        {hasIce && (
+                          <tr>
+                            <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">Valor ICE</td>
+                            <td className="px-2 py-0.5 font-bold">${Number(tx.iceValor || 0).toFixed(2)}</td>
+                          </tr>
+                        )}
+                        {hasIva15 && (
+                          <tr>
+                            <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">IVA 15%</td>
+                            <td className="px-2 py-0.5 font-bold">${Number(taxDetails.iva15 || tx.ivaValor || 0).toFixed(2)}</td>
+                          </tr>
+                        )}
+                        {hasIva5 && (
+                          <tr>
+                            <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">IVA 5%</td>
+                            <td className="px-2 py-0.5 font-bold">${Number(taxDetails.iva5 || 0).toFixed(2)}</td>
+                          </tr>
+                        )}
+                        {!hasIva15 && !hasIva5 && (
+                          <tr>
+                            <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">IVA 0%</td>
+                            <td className="px-2 py-0.5 font-bold">$0.00</td>
+                          </tr>
+                        )}
+                        {hasIrbpnr && (
+                          <tr>
+                            <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">IRBPNR</td>
+                            <td className="px-2 py-0.5 font-bold">${Number(tx.irbpnrValor || 0).toFixed(2)}</td>
+                          </tr>
+                        )}
+                        {hasPropina && (
+                          <tr>
+                            <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">Propina</td>
+                            <td className="px-2 py-0.5 font-bold">${Number(tx.propinaValor || 0).toFixed(2)}</td>
+                          </tr>
+                        )}
                         <tr className="bg-gray-100 font-extrabold text-xs border-y border-gray-300">
-                          <td className="px-1.5 py-[2px] border-r border-gray-300 text-left">Valor Total</td>
-                          <td className="px-1.5 py-[2px] text-black font-black">${Number(taxDetails.total || 0).toFixed(2)}</td>
+                          <td className="px-2 py-1 border-r border-gray-300 text-left">Valor Total</td>
+                          <td className="px-2 py-1 text-black font-black">${Number(taxDetails.total || tx.total || 0).toFixed(2)}</td>
                         </tr>
-                        <tr>
-                          <td className="px-1.5 py-[1px] bg-gray-50 border-r border-gray-300 text-left">IRF 1.75%</td>
-                          <td className="px-1.5 py-[1px]">${Number(tx.irf175Valor || 0).toFixed(2)}</td>
-                        </tr>
-                        <tr>
-                          <td className="px-1.5 py-[1px] bg-gray-50 border-r border-gray-300 text-left">IRF 2.75%</td>
-                          <td className="px-1.5 py-[1px]">${Number(tx.irf275Valor || 0).toFixed(2)}</td>
-                        </tr>
+                        {hasIrf175 && (
+                          <tr>
+                            <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">IRF 1.75%</td>
+                            <td className="px-2 py-0.5">${Number(tx.irf175Valor || 0).toFixed(2)}</td>
+                          </tr>
+                        )}
+                        {hasIrf275 && (
+                          <tr>
+                            <td className="px-2 py-0.5 bg-gray-50 border-r border-gray-300 text-left">IRF 2.75%</td>
+                            <td className="px-2 py-0.5">${Number(tx.irf275Valor || 0).toFixed(2)}</td>
+                          </tr>
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -749,7 +796,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
                 </div>
 
                 {/* Texto de Compromiso / Letra de Pagaré */}
-                <div className="mt-3 p-3 border border-gray-300 text-xs leading-relaxed text-black text-justify font-sans">
+                <div className="mt-3 p-2.5 border border-gray-300 text-xs leading-relaxed text-black text-justify font-sans print:text-[7.5px] print:p-1.5 print:mt-1.5 print:leading-snug">
                   HE RECIBIDO LOS ARTÍCULOS O SERVICIOS DETALLADOS EN ESTA FACTURA, POR EL VALOR INDICADO EN EL "TOTAL".
                   DEBO Y PAGARÉ A <span className="font-bold">{emisor.razonSocial}</span> INCONDICIONALMENTE Y SIN PROTESTO EL VALOR ADEUDADO. EN CASO DE MORA ME
                   SUJETO A PAGAR EL INTERÉS MÁXIMO PREVISTO EN LA LEY Y A SER DEMANDADO EN JUICIO O VERBAL SUMARIO A ELECCIÓN DEL ACTOR,
@@ -889,4 +936,6 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
       </div>
     </div>
   );
+
+  return createPortal(modalJSX, document.body);
 }
