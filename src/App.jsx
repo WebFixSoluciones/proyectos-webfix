@@ -946,75 +946,123 @@ export default function App() {
       {/* Main Content Area */}
       <UiBox {...{"className":"flex-1 flex flex-col h-full overflow-hidden relative z-10 md:z-[60]"}}>
         
-        {/* Topbar Stripe (Geist / Shadcn Header) */}
-        <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"flex items-center px-4 sm:px-6 justify-between gap-4 shrink-0 h-14 select-none"}}>
+        {/* Topbar Stripe (Radix Themes Header) */}
+        <UiBox
+          style={{
+            backgroundColor: "var(--color-panel-solid)",
+            borderBottom: "1px solid var(--gray-a4)"
+          }}
+          className="flex items-center px-4 sm:px-6 justify-between gap-4 shrink-0 h-14 select-none"
+        >
           {/* Left: Sidebar Toggle + Title */}
-          <UiBox {...{"className":"flex items-center gap-3 sm:gap-4"}}>
-            <UiButton iconOnly
+          <UiBox className="flex items-center gap-3 sm:gap-4">
+            <UiButton
+              iconOnly
+              variant="ghost"
+              color="gray"
+              size="2"
               onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
-              {...{"color":"gray","className":"flex items-center justify-center cursor-pointer active:scale-95"}}
+              className="flex items-center justify-center cursor-pointer"
               title="Alternar Menú Lateral"
             >
               <Menu size={18} />
             </UiButton>
-            <UiBox {...{"style":{"backgroundColor":"var(--gray-2)"},"className":"h-4 w-[1px] self-center hidden sm:block"}}></UiBox>
-            <UiBox {...{"className":"flex items-center gap-2.5"}}>
-              <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--black-a7)","color":"var(--gray-12)"},"className":"flex items-center justify-center p-1.5"}}>
+            <UiBox style={{ backgroundColor: "var(--gray-a4)" }} className="h-4 w-[1px] self-center hidden sm:block" />
+            <UiBox className="flex items-center gap-2.5">
+              <UiBox
+                style={{
+                  borderRadius: "var(--radius-2)",
+                  backgroundColor: "var(--gray-a3)",
+                  color: "var(--gray-12)"
+                }}
+                className="flex items-center justify-center p-1.5"
+              >
                 <IconRenderer name={headerDetails.icon} size={15} />
               </UiBox>
-              <UiHeading as="h1" {...{"size":"2","weight":"bold","color":"gray","highContrast":true,"className":"leading-none"}}>{headerDetails.title}</UiHeading>
+              <UiHeading as="h1" size="2" weight="bold" color="gray" highContrast className="leading-none text-sm">
+                {headerDetails.title}
+              </UiHeading>
             </UiBox>
           </UiBox>
 
           {/* Center: Command Palette Trigger Search Pill */}
-          <UiCard 
+          <UiBox 
             onClick={() => setActivePageId('ventas')}
-            {...{"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-11)"},"className":"hidden md:flex items-center gap-2 px-3 py-1.5 cursor-pointer duration-120 max-w-xs w-full"}}
+            style={{
+              backgroundColor: "var(--gray-a2)",
+              border: "1px solid var(--gray-a5)",
+              borderRadius: "var(--radius-2)",
+              color: "var(--gray-11)"
+            }}
+            className="hidden md:flex items-center gap-2 px-3 py-1.5 cursor-pointer duration-120 max-w-xs w-full text-xs hover:border-[var(--gray-a7)] hover:bg-[var(--gray-a3)]"
           >
-            <Search size={13} {...{"style":{"color":"var(--gray-11)"}}} />
-            <UiText {...{"className":"flex-1 text-left"}}>Buscar comprobantes, clientes...</UiText>
-            <kbd {...{"style":{"fontFamily":"var(--code-font-family)","color":"var(--gray-11)","backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)","borderRadius":"var(--radius-3)"},"className":"hidden lg:inline-block px-1.5 py-0.5"}}>⌘K</kbd>
-          </UiCard>
+            <Search size={13} style={{ color: "var(--gray-10)" }} />
+            <span className="flex-1 text-left text-[13px] text-[var(--gray-11)]">Buscar comprobantes, clientes...</span>
+            <kbd
+              style={{
+                fontFamily: "var(--code-font-family)",
+                color: "var(--gray-11)",
+                backgroundColor: "var(--color-panel-solid)",
+                border: "1px solid var(--gray-a5)",
+                borderRadius: "var(--radius-1)"
+              }}
+              className="hidden lg:inline-block px-1.5 py-0.5 text-[10px]"
+            >
+              ⌘K
+            </kbd>
+          </UiBox>
 
           {/* Right: Actions */}
-          <UiBox {...{"className":"flex items-center gap-2"}}>
+          <UiBox className="flex items-center gap-2">
             {/* SRI Connection Badge */}
-            <Badge variant="success" {...{"className":"hidden lg:inline-flex items-center gap-1.5 py-1 px-2.5"}}>
-              <UiText {...{"className":"relative flex h-2 w-2"}}>
-                <UiText {...{"className":"animate-ping absolute inline-flex h-full w-full opacity-75"}}></UiText>
-                <UiText {...{"className":"relative inline-flex h-2 w-2"}}></UiText>
-              </UiText>
-              <UiText {...{"weight":"medium","color":"green"}}>Facturación electrónica</UiText>
+            <Badge variant="soft" color="green" size="1" className="hidden lg:inline-flex items-center gap-1.5 py-1 px-2.5">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--green-9)] opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--green-9)]"></span>
+              </span>
+              <span className="font-medium text-[var(--green-11)]">Facturación electrónica</span>
             </Badge>
 
             {activeModules.ventas && (
               <UiButton
                 onClick={() => { setVentasInitialSubTab(`pos_${Date.now()}`); setActivePageId('ventas'); }} 
-                {...{"size":"2","variant":"solid","color":"blue","className":"flex items-center gap-1.5 duration-120 shrink-0 active:scale-[0.99] cursor-pointer"}}
-                title="Abrir Punto de Venta (POS)">
-                <Calculator size={13} />
-                <UiText {...{"className":"hidden sm:inline"}}>Punto de Venta</UiText>
+                size="2"
+                variant="solid"
+                color="blue"
+                className="flex items-center gap-1.5 duration-120 shrink-0 cursor-pointer font-medium"
+                title="Abrir Punto de Venta (POS)"
+              >
+                <Calculator size={14} />
+                <span className="hidden sm:inline">Punto de Venta</span>
               </UiButton>
             )}
 
             <UiButton
               onClick={() => setIsGlobalChatOpen(!isGlobalChatOpen)} 
-              {...mergeThemeProps({"size":"2","variant":"outline","className":"flex items-center gap-1.5 duration-120 shrink-0 cursor-pointer"}, {}, (isGlobalChatOpen ? {"variant":"solid","color":"gray"} : {"variant":"surface","color":"gray"}))}
-              title="Abrir Asistente AI">
-              <Sparkles size={13} />
-              <UiText {...{"className":"hidden sm:inline"}}>Asistente</UiText>
+              size="2"
+              variant={isGlobalChatOpen ? "solid" : "soft"}
+              color="gray"
+              className="flex items-center gap-1.5 duration-120 shrink-0 cursor-pointer font-medium"
+              title="Abrir Asistente AI"
+            >
+              <Sparkles size={14} />
+              <span className="hidden sm:inline">Asistente</span>
             </UiButton>
 
-            <UiButton iconOnly
+            <UiButton
+              iconOnly
+              variant="ghost"
+              color="gray"
+              size="2"
               onClick={() => setActivePageId('general_settings')} 
-              {...{"color":"gray","className":"cursor-pointer"}} 
+              className="cursor-pointer" 
               title="Ajustes"
             >
-              <Settings size={15} />
+              <Settings size={16} />
             </UiButton>
 
           </UiBox>
-        </UiCard>
+        </UiBox>
 
         {/* Content Wrapper with AI Chat sidebar */}
         <UiBox {...{"className":"flex-1 flex overflow-hidden min-h-0 relative"}}>

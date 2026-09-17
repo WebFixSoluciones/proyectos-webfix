@@ -17,34 +17,34 @@ export default function Sidebar({
 }) {
  const closeMobile = () => { if(window.innerWidth < 768) setIsSidebarOpen(false); };
 
-  const navBase = "group flex items-center gap-2.5 w-full px-2.5 py-2 rounded-md transition-all text-xs font-medium tracking-tight";
-  const navActive = "bg-primary-light text-primary font-semibold";
-  const navInactive = "text-text-secondary hover:bg-black/5 hover:text-text-heading";
+  const navBase = "group flex items-center gap-2.5 w-full px-2.5 py-2 rounded-md transition-all text-[13px] font-medium tracking-tight";
+  const navActive = "bg-[var(--accent-3)] text-[var(--accent-11)] font-semibold";
+  const navInactive = "text-[var(--gray-11)] hover:bg-[var(--gray-a3)] hover:text-[var(--gray-12)]";
   const navBtnClass = (isActive) => `${navBase} ${isActive ? navActive : navInactive}`;
 
-  const iconClass = (isActive) => `shrink-0 transition-colors ${isActive ? 'text-primary' : 'text-text-secondary group-hover:text-text-heading'}`;
+  const iconClass = (isActive) => `shrink-0 transition-colors ${isActive ? 'text-[var(--accent-11)]' : 'text-[var(--gray-10)] group-hover:text-[var(--gray-12)]'}`;
 
-  const subBase = "block w-full text-left py-1 px-2.5 rounded-md text-xs font-medium transition-all tracking-tight";
-  const subActive = "text-primary font-semibold bg-primary-light";
-  const subInactive = "text-text-secondary hover:text-text-heading hover:bg-black/5";
+  const subBase = "block w-full text-left py-1.5 px-2.5 rounded-md text-xs font-medium transition-all tracking-tight";
+  const subActive = "text-[var(--accent-11)] font-semibold bg-[var(--accent-3)]";
+  const subInactive = "text-[var(--gray-11)] hover:text-[var(--gray-12)] hover:bg-[var(--gray-a3)]";
   const subItemClass = (isActive) => `${subBase} ${isActive ? subActive : subInactive}`;
 
-  const menuBorderClass = "pl-6 pr-2 space-y-0.5 border-l border-border-default ml-4 mt-1 select-none";
+  const menuBorderClass = "pl-6 pr-2 space-y-0.5 border-l border-[var(--gray-a4)] ml-4 mt-1 select-none";
 
  return (
  <>
  {isSidebarOpen && <div className="fixed inset-0 bg-black/40 z-40 md:hidden transition-opacity duration-200" onClick={() => setIsSidebarOpen(false)} />}
  
- <div className={`flex flex-col border-r border-border-default bg-surface-sidebar transition-all duration-300 z-50 absolute md:relative h-full ${isSidebarOpen ?'translate-x-0 w-[80vw] max-w-60' :'-translate-x-full md:translate-x-0 w-0 hidden md:flex md:w-16'}`}>
+ <div className={`flex flex-col border-r border-[var(--gray-a4)] bg-[var(--color-panel-solid)] transition-all duration-300 z-50 absolute md:relative h-full ${isSidebarOpen ? 'translate-x-0 w-[80vw] max-w-60' : '-translate-x-full md:translate-x-0 w-0 hidden md:flex md:w-16'}`}>
  
- <div className={`h-14 flex items-center ${isSidebarOpen ?'justify-between px-4' :'justify-center'} border-b border-border-default shrink-0 overflow-hidden`}>
+ <div className={`h-14 flex items-center ${isSidebarOpen ? 'justify-between px-4' : 'justify-center'} border-b border-[var(--gray-a4)] shrink-0 overflow-hidden`}>
  {isSidebarOpen ? (
  <div className="flex items-center gap-2.5">
  {companyProfile?.logoUrl ? (
  <img src={companyProfile.logoUrl} alt="Logo" className="max-h-8 object-contain rounded" />
  ) : (
- <span className="text-md font-semibold text-text-primary tracking-tight">
- {companyProfile?.nombreComercial || companyProfile?.razonSocial ||'WebFix'}
+ <span className="text-sm font-semibold text-[var(--gray-12)] tracking-tight">
+ {companyProfile?.nombreComercial || companyProfile?.razonSocial || 'WebFix'}
  </span>
  )}
  </div>
@@ -52,8 +52,8 @@ export default function Sidebar({
  companyProfile?.logoUrl ? (
  <img src={companyProfile.logoUrl} alt="Logo" className="w-7 h-7 rounded object-contain" />
  ) : (
- <div className="w-7 h-7 rounded-md bg-primary text-white flex items-center justify-center font-semibold text-xs">
- {String(companyProfile?.nombreComercial || companyProfile?.razonSocial ||'W').charAt(0).toUpperCase()}
+ <div className="w-7 h-7 rounded-md bg-[var(--accent-9)] text-white flex items-center justify-center font-semibold text-xs">
+ {String(companyProfile?.nombreComercial || companyProfile?.razonSocial || 'W').charAt(0).toUpperCase()}
  </div>
  )
  )}
@@ -73,7 +73,7 @@ export default function Sidebar({
  <ShoppingCart size={16} className={iconClass(activePageId ==='ventas')} />
  {isSidebarOpen && <span>Ventas</span>}
  </div>
- {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu ==='ventas' ?'rotate-180' :''} text-text-secondary`} />}
+ {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu ==='ventas' ?'rotate-180' :''} text-[var(--gray-10)]`} />}
  </button>
  {isSidebarOpen && expandedSidebarMenu ==='ventas' && (
  <div className={menuBorderClass}>
@@ -117,7 +117,7 @@ export default function Sidebar({
           <ShoppingBag size={16} className={iconClass(activePageId === 'compras')} />
           {isSidebarOpen && <span>Compras</span>}
         </div>
-        {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu === 'compras' ? 'rotate-180' : ''} text-text-secondary`} />}
+        {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu === 'compras' ? 'rotate-180' : ''} text-[var(--gray-10)]`} />}
       </button>
       {isSidebarOpen && expandedSidebarMenu === 'compras' && (
         <div className={menuBorderClass}>
@@ -167,7 +167,7 @@ export default function Sidebar({
           <DollarSign size={16} className={iconClass(activePageId === 'finances')} />
           {isSidebarOpen && <span>Control Financiero</span>}
         </div>
-        {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu === 'finanzas' ? 'rotate-180' : ''} text-text-secondary`} />}
+        {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu === 'finanzas' ? 'rotate-180' : ''} text-[var(--gray-10)]`} />}
       </button>
       {isSidebarOpen && expandedSidebarMenu === 'finanzas' && (
         <div className={menuBorderClass}>
@@ -211,7 +211,7 @@ export default function Sidebar({
  <Package size={16} className={iconClass(activePageId ==='inventario')} />
  {isSidebarOpen && <span>Inventarios</span>}
  </div>
- {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu ==='inventario' ?'rotate-180' :''} text-text-secondary`} />}
+ {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu ==='inventario' ?'rotate-180' :''} text-[var(--gray-10)]`} />}
  </button>
  {isSidebarOpen && expandedSidebarMenu ==='inventario' && (
  <div className={menuBorderClass}>
@@ -231,7 +231,7 @@ export default function Sidebar({
  <Users size={16} className={iconClass(activePageId ==='personas' || activePageId ==='team')} />
  {isSidebarOpen && <span>Personas</span>}
  </div>
- {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu ==='personas_menu' ?'rotate-180' :''} text-text-secondary`} />}
+ {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu ==='personas_menu' ?'rotate-180' :''} text-[var(--gray-10)]`} />}
  </button>
  {isSidebarOpen && expandedSidebarMenu ==='personas_menu' && (
  <div className={menuBorderClass}>
@@ -255,7 +255,7 @@ export default function Sidebar({
  <CreditCard size={16} className={iconClass(activePageId ==='billing')} />
  {isSidebarOpen && <span>Suscripcion</span>}
  </div>
- {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu ==='billing' ?'rotate-180' :''} text-text-secondary`} />}
+ {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu ==='billing' ?'rotate-180' :''} text-[var(--gray-10)]`} />}
  </button>
  {isSidebarOpen && expandedSidebarMenu ==='billing' && (
  <div className={menuBorderClass}>
@@ -268,20 +268,20 @@ export default function Sidebar({
  </div>
  </div>
 
- <div className="p-2.5 border-t border-border-default space-y-1">
- <button onClick={() => { setActivePageId('soporte_tecnico'); closeMobile(); }} className={`flex items-center gap-2.5 w-full px-2.5 py-2 text-sm rounded-md transition-all font-medium ${activePageId ==='soporte_tecnico' ?'bg-primary-light text-primary' :'text-text-secondary hover:bg-surface-bg hover:text-black'}`}>
- <LifeBuoy size={14} className={activePageId ==='soporte_tecnico' ?'text-primary' :'text-text-secondary'} />
+ <div className="p-2.5 border-t border-[var(--gray-a4)] space-y-1">
+ <button onClick={() => { setActivePageId('soporte_tecnico'); closeMobile(); }} className={`flex items-center gap-2.5 w-full px-2.5 py-2 text-xs rounded-md transition-all font-medium ${activePageId ==='soporte_tecnico' ?'bg-[var(--accent-3)] text-[var(--accent-11)] font-semibold' :'text-[var(--gray-11)] hover:bg-[var(--gray-a3)] hover:text-[var(--gray-12)]'}`}>
+ <LifeBuoy size={14} className={activePageId ==='soporte_tecnico' ?'text-[var(--accent-11)]' :'text-[var(--gray-10)]'} />
  {isSidebarOpen && <span>Soporte Tecnico</span>}
  </button>
- <button onClick={() => { setActivePageId('trash'); closeMobile(); }} className={`flex items-center justify-between w-full px-2.5 py-2 text-sm rounded-md transition-all font-medium ${activePageId ==='trash' ?'bg-error-light text-error' :'text-text-secondary hover:bg-surface-bg hover:text-black'}`}>
+ <button onClick={() => { setActivePageId('trash'); closeMobile(); }} className={`flex items-center justify-between w-full px-2.5 py-2 text-xs rounded-md transition-all font-medium ${activePageId ==='trash' ?'bg-[var(--red-3)] text-[var(--red-11)] font-semibold' :'text-[var(--gray-11)] hover:bg-[var(--gray-a3)] hover:text-[var(--gray-12)]'}`}>
  <div className="flex items-center gap-2.5">
- <Trash2 size={14} className={activePageId ==='trash' ?'text-error' :'text-text-secondary'} />
+ <Trash2 size={14} className={activePageId ==='trash' ?'text-[var(--red-11)]' :'text-[var(--gray-10)]'} />
  {isSidebarOpen && <span>Papelera</span>}
  </div>
- {isSidebarOpen && trash.length > 0 && <span className="text-xs px-1.5 py-0.5 rounded-full bg-surface-sidebar text-text-secondary font-medium">{trash.length}</span>}
+ {isSidebarOpen && trash.length > 0 && <span className="text-xs px-1.5 py-0.5 rounded-full bg-[var(--gray-a3)] text-[var(--gray-11)] font-medium">{trash.length}</span>}
  </button>
- <button onClick={() => { handleLogout(); closeMobile(); }} className="mt-1 flex items-center gap-2.5 w-full px-2.5 py-2 text-sm rounded-md transition-all font-medium text-text-secondary hover:bg-surface-bg hover:text-black">
- <LogOut size={14} />{isSidebarOpen && <span>Cerrar Sesion</span>}
+ <button onClick={() => { handleLogout(); closeMobile(); }} className="mt-1 flex items-center gap-2.5 w-full px-2.5 py-2 text-xs rounded-md transition-all font-medium text-[var(--gray-11)] hover:bg-[var(--gray-a3)] hover:text-[var(--gray-12)]">
+ <LogOut size={14} className="text-[var(--gray-10)]" />{isSidebarOpen && <span>Cerrar Sesion</span>}
  </button>
  </div>
  </div>
