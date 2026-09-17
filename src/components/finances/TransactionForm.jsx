@@ -406,20 +406,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 ? 'nota_venta'
                 : prev.documentType;
 
-              let nextSec = '1';
-              if (activeDocType === 'factura') {
-                nextSec = String(configData.secuencialFactura || 1);
-              } else if (activeDocType === 'retencion') {
-                nextSec = String(configData.secuencialRetencion || 1);
-              } else if (activeDocType === 'nota_credito') {
-                nextSec = String(configData.secuencialNotaCredito || 1);
-              } else if (activeDocType === 'liquidacion') {
-                nextSec = String(configData.secuencialLiquidacion || 1);
-              } else if (activeDocType === 'guia_remision') {
-                nextSec = String(configData.secuencialGuiaRemision || 1);
-              } else if (activeDocType === 'nota_venta') {
-                nextSec = String(configData.secuencialNotaVenta || 1);
-              }
+              // Solo nota de venta (documento interno) maneja un secuencial orientativo local; los comprobantes SRI se asignan al emitir
+              const nextSec = activeDocType === 'nota_venta' ? String(configData.secuencialNotaVenta || 1) : '';
 
               return {
                 ...prev,
@@ -933,6 +921,11 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       return false;
     }
 
+    if (formData.type === 'ingreso' && formData.documentType === 'factura' && String(matchedTercero.ruc || '').trim() === '9999999999999' && Number(formData.total) > 50) {
+      showValidationErrorAlert('EL SRI NO PERMITE FACTURAS A CONSUMIDOR FINAL POR MONTOS MAYORES A $50.00. DEBE ASIGNAR UN CLIENTE CON RUC O CÉDULA.');
+      return false;
+    }
+
     if (!formData.items || formData.items.length === 0) {
       showValidationErrorAlert('FALTA AGREGAR PRODUCTOS AL COMPROBANTE');
       return false;
@@ -1033,6 +1026,14 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     try {
       const docId = formData.id || stableIdRef.current;
       let updatedFormData = { ...formData, items: invoiceItems(), generalDiscount: selectedGeneralDiscount, financialSyncStatus: 'pending' };
+
+      // Si es un borrador de factura (o comprobante SRI aún no emitido), no retener ni asignar secuencial fiscal oficial
+      const isDraftFactura = updatedFormData.type === 'ingreso' && updatedFormData.documentType === 'factura' && updatedFormData.sriStatus !== 'autorizado';
+      if (isDraftFactura) {
+        updatedFormData.sriStatus = 'borrador';
+        updatedFormData.documentNumber = '';
+        updatedFormData.secuencial = '';
+      }
 
       // Lock system date & time automatically (non-modifiable)
       const now = new Date();
@@ -1186,10 +1187,16 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId), { financialSyncStatus: 'complete' }, { merge: true });
         finalTxData.financialSyncStatus = 'complete';
       }
-      showToast('Transacción guardada', 'success');
+      if (isDraftFactura) {
+        showToast('Borrador guardado con éxito. El secuencial se asignará al emitir la factura en el SRI.', 'success');
+      } else {
+        showToast('Transacción guardada', 'success');
+      }
       setFormData(finalTxData);
       onSaved?.(finalTxData);
-      setCurrentStep(2);
+      if (!isDraftFactura) {
+        setCurrentStep(2);
+      }
     } catch (err) {
       console.error(err);
       showToast('Error al guardar: ' + (err.message || ''), 'error');
@@ -1218,8 +1225,12 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       return;
     }
 
-    if (!cliente?.email || cliente.email.includes('consumidorfinal') || cliente.email.trim() === '') {
-      console.log("El cliente no tiene un correo válido registrado. Omitiendo envío de correo.");
+    const emitterEmail = configSRI.correoContacto || configSRI.email || configSRI.smtpUser || '';
+    const hasClientEmail = cliente?.email && !cliente.email.includes('consumidorfinal') && cliente.email.trim() !== '';
+    const recipientTo = hasClientEmail ? cliente.email.trim() : emitterEmail;
+
+    if (!recipientTo) {
+      console.log("Ni el cliente ni el emisor tienen un correo válido registrado. Omitiendo envío de correo.");
       return;
     }
 
@@ -1229,18 +1240,23 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     }
 
     try {
+      const effectivePdf = (txData.pdfUrl && !txData.pdfUrl.includes('srienlinea.sri.gob.ec'))
+        ? txData.pdfUrl
+        : (txData.claveAcceso ? `/public/ride?claveAcceso=${txData.claveAcceso}&tenantId=${appId || ''}` : '');
+
       const emailPayload = {
         smtpHost: configSRI.smtpHost,
         smtpPort: configSRI.smtpPort,
         smtpUser: configSRI.smtpUser,
         smtpPass: configSRI.smtpPass,
         smtpSecure: configSRI.smtpSecure,
-        to: cliente.email,
-        clientName: cliente.name,
-        clientIdentification: cliente.ruc || cliente.identificacion || '',
+        to: recipientTo,
+        emitterEmail: emitterEmail,
+        clientName: cliente?.name || 'Consumidor Final',
+        clientIdentification: cliente?.ruc || cliente?.identificacion || '9999999999999',
         documentNumber: txData.documentNumber,
         total: txData.total,
-        pdfUrl: txData.pdfUrl || '',
+        pdfUrl: effectivePdf,
         xmlUrl: txData.xmlUrl || '',
         companyName: configSRI.nombreComercial || configSRI.razonSocial || 'Facturación Electrónica',
         logoUrl: configSRI.logoUrl || '',
@@ -1263,7 +1279,11 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
       const data = await res.json();
       if (res.ok) {
-        showToast(`Correo de comprobante enviado a ${cliente.email}`, 'success');
+        if (hasClientEmail) {
+          showToast(`Comprobante enviado a ${cliente.email} con respaldo al emisor`, 'success');
+        } else {
+          showToast(`Copia de respaldo enviada al emisor (${emitterEmail})`, 'success');
+        }
       } else {
         console.error("Fallo al enviar correo:", data.error);
         showToast(`No se pudo enviar el correo: ${data.error}`, 'warning');
@@ -1277,35 +1297,116 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     if (operationRef.current || !validateForm()) return;
     if (formData.sriStatus === 'autorizado') { showToast('Este comprobante ya está autorizado.', 'info'); return; }
     try { if (formData.type === 'ingreso' && formData.documentType === 'factura' && !formData.inventarioRegistrado) validateCartStock(formData.items, products); } catch (error) { showToast(error.message, 'error'); return; }
+    
     operationRef.current = true;
 
     const matchedTercero = thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
+    if (!matchedTercero) {
+      operationRef.current = false;
+      showToast('Debe seleccionar un cliente antes de emitir la factura electrónica.', 'error');
+      return;
+    }
 
     setIsEmitting(true);
     setSriLogs([]);
 
+    const configRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config');
+    let secKey = 'secuencialFactura';
+    if (formData.documentType === 'factura') {
+      secKey = 'secuencialFactura';
+    } else if (formData.documentType === 'retencion') {
+      secKey = 'secuencialRetencion';
+    } else if (formData.documentType === 'nota_credito') {
+      secKey = 'secuencialNotaCredito';
+    } else if (formData.documentType === 'liquidacion') {
+      secKey = 'secuencialLiquidacion';
+    } else if (formData.documentType === 'guia_remision') {
+      secKey = 'secuencialGuiaRemision';
+    }
+
+    let secVal = null;
+
     try {
-      // 1. Determinar la clave de secuencial según el tipo de documento
-      const configRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config');
-      let secKey = 'secuencialFactura';
-      if (formData.documentType === 'factura') {
-        secKey = 'secuencialFactura';
-      } else if (formData.documentType === 'retencion') {
-        secKey = 'secuencialRetencion';
-      } else if (formData.documentType === 'nota_credito') {
-        secKey = 'secuencialNotaCredito';
-      } else if (formData.documentType === 'liquidacion') {
-        secKey = 'secuencialLiquidacion';
-      } else if (formData.documentType === 'guia_remision') {
-        secKey = 'secuencialGuiaRemision';
+      // ═══════════════════════════════════════════════════════════
+      // FASE 1: PRE-VALIDACIÓN TOTAL (EN MEMORIA / ZERO-BURN)
+      // Se valida emisor, cliente, items, stock y firma digital ANTES
+      // de tocar o reservar el secuencial en la base de datos.
+      // ═══════════════════════════════════════════════════════════
+      const configSnap = await getDoc(configRef);
+      if (!configSnap.exists()) {
+        throw new Error("No se pudo obtener la configuración del emisor SRI en Ajustes.");
+      }
+      const configDataPre = configSnap.data();
+
+      if (!configDataPre.ruc || configDataPre.ruc.length !== 13) {
+        throw new Error("El RUC del emisor no está configurado o es inválido en Ajustes.");
       }
 
-      // Reservar el secuencial de forma ATÓMICA antes de transmitir. Esto evita
-      // que dos emisiones simultáneas generen la misma clave de acceso (el SRI
-      // rechaza secuenciales duplicados). El SRI permite saltos en la numeración,
-      // por lo que un fallo de transmisión solo deja un hueco, nunca un duplicado.
+      if (configDataPre.ambiente === '2') {
+        if (!configDataPre.certificadoCargado || !configDataPre.certificadoBase64 || !configDataPre.certificadoClave) {
+          throw new Error("No se puede emitir facturas en ambiente de PRODUCCIÓN sin una firma electrónica (.p12) cargada. Configure su firma digital en Ajustes > Perfil de Empresa.");
+        }
+      }
+
+      // Validar receptor estrictamente
+      if (!validarIdentificacion(
+        matchedTercero.ruc,
+        matchedTercero.tipoIdentificacion,
+        matchedTercero.isValidated || matchedTercero.validado
+      )) {
+        throw new Error(`RUC/Cédula del cliente inválido (${matchedTercero.ruc}). Verifique la identificación según las normas del SRI.`);
+      }
+
+      if (formData.type === 'ingreso' && formData.documentType === 'factura' && String(matchedTercero.ruc || '').trim() === '9999999999999' && Number(formData.total) > 50) {
+        throw new Error('El SRI no permite facturas a Consumidor Final superiores a $50.00. Debe ingresar un cliente con RUC o Cédula.');
+      }
+
+      // Pre-verificar generación XML y consistencia criptográfica
+      const tempSec = String(configDataPre[secKey] || 1);
+      const tempDocData = {
+        ...formData,
+        items: invoiceItems(),
+        generalDiscount: selectedGeneralDiscount,
+        date: getEcuadorDateString(new Date()),
+        time: getEcuadorTimeString(new Date()),
+        secuencial: tempSec,
+        codigoNumerico: '12345678'
+      };
+
+      let testXmlObj;
+      if (formData.documentType === 'factura') {
+        testXmlObj = generarFacturaXML(configDataPre, tempDocData, matchedTercero, formData.items);
+      } else if (formData.documentType === 'retencion') {
+        testXmlObj = generarRetencionXML(configDataPre, tempDocData, matchedTercero);
+      } else if (formData.documentType === 'nota_credito') {
+        testXmlObj = generarNotaCreditoXML(configDataPre, tempDocData, matchedTercero, formData.items);
+      } else if (formData.documentType === 'liquidacion') {
+        testXmlObj = generarLiquidacionXML(configDataPre, tempDocData, matchedTercero, formData.items);
+      } else if (formData.documentType === 'guia_remision') {
+        testXmlObj = generarGuiaRemisionXML(configDataPre, tempDocData, matchedTercero, formData.items);
+      } else {
+        testXmlObj = generarFacturaXML(configDataPre, tempDocData, matchedTercero, formData.items);
+      }
+
+      if (!testXmlObj?.xml) {
+        throw new Error("Error generando estructura XML del comprobante.");
+      }
+
+      // Si tiene certificado cargado, probar validación de la clave y estructura .p12
+      if (configDataPre.certificadoCargado && configDataPre.certificadoBase64 && configDataPre.certificadoClave) {
+        try {
+          firmarComprobanteXML(testXmlObj.xml, configDataPre.certificadoBase64, configDataPre.certificadoClave);
+        } catch (testSignErr) {
+          throw new Error(`Error en la firma digital: ${testSignErr.message}. Verifique la contraseña de su archivo .p12 en Ajustes.`);
+        }
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // FASE 2: RESERVA ATÓMICA DEL SECUENCIAL
+      // Todas las validaciones pasaron con éxito. Ahora se reserva el
+      // secuencial de forma concurrente.
+      // ═══════════════════════════════════════════════════════════
       let configData;
-      let secVal;
       await runTransaction(db, async (tx) => {
         const snap = await tx.get(configRef);
         if (!snap.exists()) {
@@ -1315,12 +1416,11 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         secVal = configData[secKey] || 1;
         tx.update(configRef, { [secKey]: secVal + 1 });
       });
-      setSriConfig(configData); // Sync local state
+      setSriConfig(configData);
 
       const sec = String(secVal);
       const docNum = `${configData.establecimiento || '001'}-${configData.puntoEmision || '001'}-${String(sec).padStart(9, '0')}`;
       
-      // Generar y asociar un código numérico aleatorio único de 8 dígitos si no existe
       const codigoNumerico = formData.codigoNumerico || Math.floor(10000000 + Math.random() * 90000000).toString();
       
       const now = new Date();
@@ -1347,21 +1447,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       let { xml, claveAcceso } = xmlObj;
       let signedXml = xml;
 
-      // Firma XAdES-BES real si el certificado y la contraseña están cargados
       if (configData.certificadoCargado && configData.certificadoBase64 && configData.certificadoClave) {
         setSriLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), message: "Firmando XML con firma digital XAdES-BES real...", status: 'info' }]);
-        try {
-          signedXml = firmarComprobanteXML(xml, configData.certificadoBase64, configData.certificadoClave);
-          setSriLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), message: "XML firmado criptográficamente de manera exitosa (Real).", status: 'success' }]);
-        } catch (signErr) {
-          console.error(signErr);
-          setSriLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), message: `Firma Fallida: ${signErr.message}`, status: 'error' }]);
-          throw new Error(`Error en la firma digital: ${signErr.message}. Verifique la contraseña de su firma electrónica.`, { cause: signErr });
-        }
-      } else {
-        if (configData.ambiente === '2') {
-          throw new Error("No se puede emitir facturas en ambiente de PRODUCCIÓN sin una firma electrónica (.p12) cargada. Por favor, configure su firma digital en Ajustes > Perfil de Empresa.");
-        }
+        signedXml = firmarComprobanteXML(xml, configData.certificadoBase64, configData.certificadoClave);
+        setSriLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), message: "XML firmado criptográficamente de manera exitosa (Real).", status: 'success' }]);
       }
 
       const result = await simularTransmisionSRI(
@@ -1380,14 +1469,13 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
       const docId = formData.id || stableIdRef.current;
 
-      // Compute paidAmount and status based on multi-payment breakdown
       const totalNum = Number(formData.total) || 0;
       const efVal = Number(payments.efectivo) || 0;
       const trVal = Number(payments.transferencia) || 0;
       const tjVal = Number(payments.tarjeta) || 0;
       const crVal = Number(payments.cruce_cuentas) || 0;
 
-      const paidAmount = efVal + trVal + tjVal; // Suma de todos los métodos liquidados de inmediato
+      const paidAmount = efVal + trVal + tjVal;
       const paymentStatus = (paidAmount >= totalNum - 0.01) ? 'pagado' : 'pendiente';
 
       const payBreakdown = {
@@ -1398,7 +1486,6 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         credito: crVal
       };
 
-      // Determine main paymentMethod string for compatibility
       let primaryMethod = 'efectivo';
       let activeMethods = 0;
       if (efVal > 0) { primaryMethod = 'efectivo'; activeMethods++; }
@@ -1415,13 +1502,13 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         id: docId,
         date: serverDate,
         time: serverTime,
-        secuencial: sec, // Save the dynamically assigned sequential number
+        secuencial: sec,
         documentNumber: docNum,
         sriStatus: 'autorizado',
         claveAcceso: result.claveAcceso,
         fechaAutorizacion: result.fechaAutorizacion || getEcuadorDateTimeString(),
         financialSyncStatus: 'pending',
-        codigoNumerico, // Guardar el código numérico generado
+        codigoNumerico,
         xmlUrl: result.xmlUrl,
         pdfUrl: result.pdfUrl,
         paidAmount,
@@ -1442,7 +1529,6 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
       setFormData(finalTx);
 
-      // Registrar en el Kardex y actualizar stock al emitir factura autorizada
       await registrarInventarioTransaccion(finalTx);
       finalTx.inventarioRegistrado = true;
       if (finalTx.type === 'ingreso' && finalTx.documentType === 'factura') await sincronizarVenta(finalTx, db, usuario || { uid: '', email: '' });
@@ -1450,19 +1536,35 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       finalTx.financialSyncStatus = 'complete';
       onSaved?.(finalTx);
 
-      // El secuencial ya fue reservado e incrementado atómicamente al inicio
-      // (transacción), por lo que aquí no es necesario volver a incrementarlo.
-
       setFormData(finalTx);
       showToast('Comprobante autorizado tributariamente por el SRI', 'success');
 
-      // Enviar correo de comprobante al cliente de forma asíncrona
       enviarCorreoComprobante(finalTx, matchedTercero, configData);
 
       setCurrentStep(2);
     } catch (err) {
-      console.error(err);
+      console.error("Error en emisión SRI:", err);
       if (err.logs) setSriLogs(err.logs);
+
+      // Rollback de seguridad: si se reservó el secuencial pero ocurrió un error
+      // de red o rechazo antes de autorizar, restaurar el secuencial original
+      if (secVal !== null && secKey) {
+        try {
+          await runTransaction(db, async (tx) => {
+            const snap = await tx.get(configRef);
+            if (snap.exists()) {
+              const cur = snap.data()[secKey];
+              if (cur === secVal + 1) {
+                tx.update(configRef, { [secKey]: secVal });
+                console.log(`[SRI] Rollback exitoso: Secuencial ${secVal} restaurado.`);
+              }
+            }
+          });
+        } catch (rbErr) {
+          console.error("[SRI] Error al restaurar secuencial tras fallo:", rbErr);
+        }
+      }
+
       showToast(err.error || err.message || 'Fallo en la autorización del SRI', 'error');
     } finally {
       operationRef.current = false;
@@ -1957,13 +2059,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                           showToast("El RUC de la empresa está inactivo. Solo puede emitir Notas de Venta.", "error");
                           return;
                         }
-                        let nextSec = '1';
-                        if (newDocType === 'factura') nextSec = String(sriConfig?.secuencialFactura || 1);
-                        else if (newDocType === 'retencion') nextSec = String(sriConfig?.secuencialRetencion || 1);
-                        else if (newDocType === 'nota_credito') nextSec = String(sriConfig?.secuencialNotaCredito || 1);
-                        else if (newDocType === 'liquidacion') nextSec = String(sriConfig?.secuencialLiquidacion || 1);
-                        else if (newDocType === 'guia_remision') nextSec = String(sriConfig?.secuencialGuiaRemision || 1);
-                        else if (newDocType === 'nota_venta') nextSec = String(sriConfig?.secuencialNotaVenta || 1);
+                        const nextSec = newDocType === 'nota_venta' ? String(sriConfig?.secuencialNotaVenta || 1) : '';
                         setFormData(prev => ({ ...prev, documentType: newDocType, secuencial: nextSec }));
                       }} 
                       {...mergeThemeProps({}, {}, mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"}))}
@@ -2979,7 +3075,9 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     <UiText as="p" {...{"weight":"bold","color":"gray","highContrast":true,"className":"text-center py-[2px]"}}>
                       {formData.documentType === 'nota_venta' ? 'NOTA DE VENTA' : 'FACTURA ELECTRÓNICA'}
                     </UiText>
-                    <UiText as="p" {...{"color":"gray","highContrast":true}}><b>Número:</b> {formData.documentNumber || `001-001-${String(formData.secuencial || 1).padStart(9, '0')}`}</UiText>
+                    <UiText as="p" {...{"color":"gray","highContrast":true}}>
+                      <b>Número:</b> {formData.documentNumber || (formData.documentType === 'factura' ? 'Borrador (Secuencial se asigna al emitir en SRI)' : (formData.secuencial ? `001-001-${String(formData.secuencial).padStart(9, '0')}` : 'Por asignar al emitir'))}
+                    </UiText>
                     <UiText as="p" {...{"color":"gray","highContrast":true}}><b>Fecha:</b> {formData.date} {formData.time || ''}</UiText>
                     <UiText as="p" {...{"color":"gray","highContrast":true}}>
                       <b>{formData.documentType === 'nota_venta' ? 'Estado:' : 'Estado SRI:'}</b>{' '}

@@ -845,7 +845,7 @@ export async function simularTransmisionSRI(documentoData, configSRI, onLogUpdat
               status: 'autorizado',
               claveAcceso: documentoData.claveAcceso,
               fechaAutorizacion: fechaAuth,
-              pdfUrl: `https://srienlinea.sri.gob.ec/comprobantes-electronicos-internet/publico/detalle.jsf?claveAcceso=${documentoData.claveAcceso}`,
+              pdfUrl: `/public/ride?claveAcceso=${documentoData.claveAcceso}&tenantId=${configSRI.tenantId || configSRI.appId || ''}`,
               xmlUrl: "data:text/xml;charset=utf-8," + encodeURIComponent(documentoData.xml),
               logs
             };
@@ -925,7 +925,7 @@ function ejecutarSimulacionSRI(documentoData, configSRI, onLogUpdate) {
             resolve({
               status: 'autorizado',
               claveAcceso: documentoData.claveAcceso,
-              pdfUrl: `https://srienlinea.sri.gob.ec/comprobantes-electronicos-internet/publico/detalle.jsf?claveAcceso=${documentoData.claveAcceso}`,
+              pdfUrl: `/public/ride?claveAcceso=${documentoData.claveAcceso}&tenantId=${configSRI.tenantId || configSRI.appId || ''}`,
               xmlUrl: "data:text/xml;charset=utf-8," + encodeURIComponent(documentoData.xml),
               logs
             });

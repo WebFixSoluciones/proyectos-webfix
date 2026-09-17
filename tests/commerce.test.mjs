@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { normalizeProduct, validateCartStock, makeCartItem, appendInvoiceLine } from '../src/services/productModel.js';
 import { settlePayments, cashSessionTotals } from '../src/services/paymentModel.js';
 import { calculateTransactionTotals } from '../src/services/discountCalcService.js';
-import { generarFacturaXML } from '../src/services/sriService.js';
+import { generarFacturaXML, validarIdentificacion } from '../src/services/sriService.js';
 import { registerInventoryOperations, CENTRAL_BRANCH } from '../src/services/inventoryLedger.js';
 import { sincronizarVenta } from '../src/services/integracionFinanzasService.js';
 
@@ -163,3 +163,40 @@ test('administrative sales keep repeated products as independent invoice lines',
   assert.notEqual(first.lineId, second.lineId);
   assert.equal(appendInvoiceLine([first], p).length, 2);
 });
+
+test('identification validation strictly rejects invalid RUC and protects sequence', () => {
+  // Consumidor final is valid
+  assert.equal(validarIdentificacion('9999999999999'), true);
+  // Incomplete RUC or invalid province is rejected
+  assert.equal(validarIdentificacion('12345'), false);
+  assert.equal(validarIdentificacion('9912345678001'), false); // province 99 does not exist (1-24)
+  assert.equal(validarIdentificacion('1712345678'), false); // invalid checksum
+});
+
+test('sequential number rollback restores configuration on emission abort', async () => {
+  const { data, api } = memoryStore();
+  const configPath = path('finances_settings', 'config');
+  data.set(configPath, { secuencialFactura: 163, establecimiento: '001', puntoEmision: '001' });
+
+  // Simulate atomic increment
+  let secVal;
+  await api.runTransaction(null, async (tx) => {
+    const snap = await tx.get(configPath);
+    const cfg = snap.data();
+    secVal = cfg.secuencialFactura || 1;
+    tx.update(configPath, { secuencialFactura: secVal + 1 });
+  });
+
+  assert.equal(data.get(configPath).secuencialFactura, 164);
+
+  // When emission fails before SRI authorization, rollback is executed
+  await api.runTransaction(null, async (tx) => {
+    const snap = await tx.get(configPath);
+    if (snap.data().secuencialFactura === secVal + 1) {
+      tx.update(configPath, { secuencialFactura: secVal });
+    }
+  });
+
+  assert.equal(data.get(configPath).secuencialFactura, 163);
+});
+

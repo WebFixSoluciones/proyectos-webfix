@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Printer, FileText, AlertCircle, RefreshCw } from 'lucide-react';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db, getAppId } from '../firebase';
 
 function numeroALetras(num) {
   const unidades = ['SIN', 'UN', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE'];
@@ -69,6 +69,7 @@ export default function PublicRideView() {
   const [searchParams] = useSearchParams();
   const claveAcceso = searchParams.get('claveAcceso');
   const tenantId = searchParams.get('tenantId');
+  const effectiveTenantId = tenantId || getAppId();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -76,10 +77,9 @@ export default function PublicRideView() {
   const [companyConfig, setCompanyConfig] = useState(null);
 
   useEffect(() => {
-    if (!claveAcceso || !tenantId) {
+    if (!claveAcceso) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setError('Enlace inválido. Faltan parámetros de clave de acceso o inquilino.');
-       
+      setError('Enlace inválido. Falta el parámetro de clave de acceso.');
       setLoading(false);
       return;
     }
@@ -88,7 +88,7 @@ export default function PublicRideView() {
       try {
         // 1. Buscar la transacción en Firestore usando claveAcceso
         const q = query(
-          collection(db, 'artifacts', tenantId, 'public', 'data', 'finances_transactions'),
+          collection(db, 'artifacts', effectiveTenantId, 'public', 'data', 'finances_transactions'),
           where('claveAcceso', '==', claveAcceso)
         );
         const querySnap = await getDocs(q);
@@ -104,7 +104,7 @@ export default function PublicRideView() {
 
         // 2. Cargar configuración de la empresa (Emisor)
         const configSnap = await getDoc(
-          doc(db, 'artifacts', tenantId, 'public', 'data', 'finances_settings', 'config')
+          doc(db, 'artifacts', effectiveTenantId, 'public', 'data', 'finances_settings', 'config')
         );
         if (configSnap.exists()) {
           setCompanyConfig(configSnap.data());
@@ -118,7 +118,7 @@ export default function PublicRideView() {
     }
 
     loadPublicData();
-  }, [claveAcceso, tenantId]);
+  }, [claveAcceso, effectiveTenantId]);
 
   if (loading) {
     return (

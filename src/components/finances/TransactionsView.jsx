@@ -348,6 +348,10 @@ export default function TransactionsView({ transactions, thirdParties, showToast
 
       const cliente = thirdParties.find(tp => tp.id === emailModalTx.thirdPartyId);
 
+      const effectivePdf = (emailModalTx.pdfUrl && !emailModalTx.pdfUrl.includes('srienlinea.sri.gob.ec'))
+        ? emailModalTx.pdfUrl
+        : (emailModalTx.claveAcceso ? `/public/ride?claveAcceso=${emailModalTx.claveAcceso}&tenantId=${appId || ''}` : '');
+
       const emailPayload = {
         smtpHost: configData.smtpHost,
         smtpPort: configData.smtpPort,
@@ -355,11 +359,12 @@ export default function TransactionsView({ transactions, thirdParties, showToast
         smtpPass: configData.smtpPass,
         smtpSecure: configData.smtpSecure,
         to: emailTarget,
+        emitterEmail: configData.correoContacto || configData.email || configData.smtpUser || '',
         clientName: cliente?.name || 'Cliente',
         clientIdentification: cliente?.ruc || cliente?.identificacion || '',
         documentNumber: emailModalTx.documentNumber,
         total: emailModalTx.total,
-        pdfUrl: emailModalTx.pdfUrl || '',
+        pdfUrl: effectivePdf,
         xmlUrl: emailModalTx.xmlUrl || '',
         companyName: configData.nombreComercial || configData.razonSocial || 'Facturación Electrónica',
         logoUrl: configData.logoUrl || '',
@@ -635,7 +640,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                       {getDocumentTypeLabel(tx.documentType, tx.type)}
                     </UiBox>
                     <UiBox style={{ fontFamily: "var(--code-font-family)", color: "var(--gray-12)" }} className="text-xs font-mono">
-                      {tx.documentNumber || '-'}
+                      {tx.documentNumber || (tx.sriStatus === 'borrador' ? 'Borrador' : '-')}
                     </UiBox>
                   </UiTableCell>
                   <UiTableCell style={{ color: "var(--gray-12)" }} className="px-6 py-2.5 truncate max-w-[200px]" title={thirdParties.find(tp => tp.id === tx.thirdPartyId)?.name}>
@@ -699,31 +704,37 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                         </UiButton>
                       )}
                       
-                      {tx.pdfUrl ? (
-                        <UiButton
-                          iconOnly
-                          asChild
-                          variant="soft"
-                          color="red"
-                          size="1"
-                          title="Ver PDF"
-                        >
-                          <a href={tx.pdfUrl} target="_blank" rel="noreferrer">
-                            <FileText size={13}/>
-                          </a>
-                        </UiButton>
-                      ) : (
-                        <UiButton
-                          iconOnly
-                          variant="ghost"
-                          color="gray"
-                          size="1"
-                          disabled
-                          title="PDF no disponible"
-                        >
-                          <FileText size={13} className="opacity-40"/>
-                        </UiButton>
-                      )}
+                      {(() => {
+                        const effectivePdf = (tx.pdfUrl && !tx.pdfUrl.includes('srienlinea.sri.gob.ec'))
+                          ? tx.pdfUrl
+                          : (tx.claveAcceso ? `/public/ride?claveAcceso=${tx.claveAcceso}&tenantId=${appId || ''}` : null);
+
+                        return effectivePdf ? (
+                          <UiButton
+                            iconOnly
+                            asChild
+                            variant="soft"
+                            color="red"
+                            size="1"
+                            title="Ver PDF / RIDE"
+                          >
+                            <a href={effectivePdf} target="_blank" rel="noreferrer">
+                              <FileText size={13}/>
+                            </a>
+                          </UiButton>
+                        ) : (
+                          <UiButton
+                            iconOnly
+                            variant="ghost"
+                            color="gray"
+                            size="1"
+                            disabled
+                            title="PDF no disponible"
+                          >
+                            <FileText size={13} className="opacity-40"/>
+                          </UiButton>
+                        );
+                      })()}
 
                       {tx.documentType && (
                         <UiButton

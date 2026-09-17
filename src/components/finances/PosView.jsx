@@ -3473,24 +3473,30 @@ export default function PosView({ products, thirdParties, transactions = [], dis
 
                       <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"flex justify-between items-center pt-2"}}>
                         <UiBox {...{"className":"flex gap-1.5"}}>
-                          {tx.pdfUrl ? (
-                            <a 
-                              href={tx.pdfUrl} 
-                              target="_blank" 
-                              rel="noreferrer" 
-                              {...mergeThemeProps({"variant":"surface","color":"blue"}, {}, {"style":{"backgroundColor":"var(--green-3)","color":"var(--green-12)","border":"1px solid var(--gray-a6)"}})} 
-                              title="Descargar PDF RIDE"
-                            >
-                              <FileText size={12} />
-                            </a>
-                          ) : (
-                            <UiText 
-                              {...mergeThemeProps({"variant":"surface","color":"blue","className":"opacity-40 cursor-not-allowed flex items-center justify-center"}, {}, {"color":"gray"})}
-                              title="PDF no disponible"
-                            >
-                              <FileText size={12} />
-                            </UiText>
-                          )}
+                          {(() => {
+                            const effectivePdf = (tx.pdfUrl && !tx.pdfUrl.includes('srienlinea.sri.gob.ec'))
+                              ? tx.pdfUrl
+                              : (tx.claveAcceso ? `/public/ride?claveAcceso=${tx.claveAcceso}&tenantId=${appId || ''}` : null);
+
+                            return effectivePdf ? (
+                              <a 
+                                href={effectivePdf} 
+                                target="_blank" 
+                                rel="noreferrer" 
+                                {...mergeThemeProps({"variant":"surface","color":"blue"}, {}, {"style":{"backgroundColor":"var(--green-3)","color":"var(--green-12)","border":"1px solid var(--gray-a6)"}})} 
+                                title="Ver / Descargar PDF RIDE"
+                              >
+                                <FileText size={12} />
+                              </a>
+                            ) : (
+                              <UiText 
+                                {...mergeThemeProps({"variant":"surface","color":"blue","className":"opacity-40 cursor-not-allowed flex items-center justify-center"}, {}, {"color":"gray"})}
+                                title="PDF no disponible"
+                              >
+                                <FileText size={12} />
+                              </UiText>
+                            );
+                          })()}
 
                           {tx.xmlUrl && (
                             <a 

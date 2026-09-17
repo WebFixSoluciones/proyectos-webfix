@@ -14,6 +14,7 @@ export default async function handler(req, res) {
     smtpPass, 
     smtpSecure, 
     to, 
+    emitterEmail,
     clientName, 
     clientIdentification,
     documentNumber, 
@@ -41,8 +42,9 @@ export default async function handler(req, res) {
     return;
   }
 
-  if (!to) {
-    res.status(400).json({ error: 'No se especificó el correo electrónico del cliente.' });
+  const recipientTo = to || emitterEmail;
+  if (!recipientTo) {
+    res.status(400).json({ error: 'No se especificó destinatario (cliente ni correo de contacto del emisor).' });
     return;
   }
 
@@ -112,10 +114,22 @@ export default async function handler(req, res) {
       }
     })();
 
+    const isDirectToEmitter = !to || (emitterEmail && to.trim().toLowerCase() === emitterEmail.trim().toLowerCase());
+
+    // Resolver URL absoluta para el PDF si es una ruta relativa local
+    let resolvedPdfUrl = pdfUrl || '';
+    if (resolvedPdfUrl && resolvedPdfUrl.startsWith('/')) {
+      const proto = req.headers['x-forwarded-proto'] || (req.headers.host?.includes('localhost') ? 'http' : 'https');
+      const host = req.headers['x-forwarded-host'] || req.headers.host || 'localhost:5173';
+      resolvedPdfUrl = `${proto}://${host}${resolvedPdfUrl}`;
+    }
+
     const mailOptions = {
       from: `"${companyName || 'Facturación Electrónica'}" <${smtpUser}>`,
-      to,
-      subject: `Comprobante Electrónico Autorizado: ${documentNumber || ''}`,
+      to: recipientTo,
+      subject: isDirectToEmitter 
+        ? `[Copia Emisor] ${docTypeLabel} Electrónica: ${documentNumber || ''}`
+        : `Comprobante Electrónico Autorizado: ${documentNumber || ''}`,
       html: `
         <!DOCTYPE html>
         <html>
@@ -140,17 +154,17 @@ export default async function handler(req, res) {
                   <!-- Header / Branding -->
                   <div style="background-color: #1C40F2; padding: 32px 24px; text-align: center; border: none;">
                     <h1 style="font-family: 'Inter', sans-serif; font-size: 20px; font-weight: 800; color: #ffffff; margin: 0 0 10px 0; line-height: 1.2;">
-                      ¡Hola, ${String(clientName || 'Cliente').toUpperCase()}
+                      ${isDirectToEmitter ? `¡Hola, ${String(companyName || 'Emisor').toUpperCase()}!` : `¡Hola, ${String(clientName || 'Cliente').toUpperCase()}!`}
                     </h1>
                     <p style="font-family: 'Inter', sans-serif; font-size: 13.5px; font-weight: 400; color: #ffffff; margin: 0; line-height: 1.2;">
-                      Nuevo Comprobante Electrónico
+                      ${isDirectToEmitter ? 'Copia de Respaldo - Nuevo Comprobante Emitido' : 'Nuevo Comprobante Electrónico Autorizado'}
                     </p>
                   </div>
 
                   <!-- Body Content -->
                   <div style="padding: 30px 24px; background-color: #ffffff;">
                     <p style="font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700; color: #000000; margin: 0 0 24px 0; line-height: 1.5; text-transform: uppercase;">
-                      ${String(companyName || 'EMISOR').toUpperCase()}, ha emitido un comprobante electrónico a su nombre.
+                      ${isDirectToEmitter ? `Has emitido un comprobante electrónico para ${String(clientName || 'Consumidor Final').toUpperCase()}.` : `${String(companyName || 'EMISOR').toUpperCase()}, ha emitido un comprobante electrónico a su nombre.`}
                     </p>
 
                     <table style="width: 100%; border-collapse: collapse; border: none;">
@@ -210,9 +224,9 @@ export default async function handler(req, res) {
 
                   <!-- Buttons Bar -->
                   <div style="border-top: 1px solid #CAD1F4; padding: 24px; text-align: center; background-color: #ffffff;">
-                    ${pdfUrl ? `
-                      <a href="${pdfUrl}" target="_blank" style="background-color: #000000; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: 700; font-size: 10px; text-transform: uppercase; font-family: 'Inter', sans-serif; display: inline-block; margin-right: 15px;">
-                        DESCARGAR PDF
+                    ${resolvedPdfUrl && !resolvedPdfUrl.includes('srienlinea.sri.gob.ec') ? `
+                      <a href="${resolvedPdfUrl}" target="_blank" style="background-color: #000000; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: 700; font-size: 10px; text-transform: uppercase; font-family: 'Inter', sans-serif; display: inline-block; margin-right: 15px;">
+                        DESCARGAR PDF (RIDE)
                       </a>
                     ` : ''}
                     ${xmlUrl && !xmlUrl.startsWith('data:') ? `
@@ -242,6 +256,10 @@ export default async function handler(req, res) {
       `,
       attachments
     };
+
+    if (emitterEmail && recipientTo && recipientTo.trim().toLowerCase() !== emitterEmail.trim().toLowerCase()) {
+      mailOptions.bcc = emitterEmail;
+    }
 
     // 4. Enviar el correo
     const info = await transporter.sendMail(mailOptions);
