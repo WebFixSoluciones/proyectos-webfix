@@ -17,7 +17,11 @@
   --text-primary: var(--gray-12);
   --text-secondary: var(--gray-11);
   --text-muted: var(--gray-11);
-  --cursor-button: pointer;
+}
+
+:root, .webfix-theme, .radix-themes {
+  --default-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --code-font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 /* Layout only: no overrides of Radix colors, borders, shadows or focus states. */
 .rt-TextFieldInput { text-align: inherit; }
