@@ -1,9 +1,12 @@
+import { mergeThemeProps } from '../ui/themeProps';
+import { UiBox, UiCard, UiText, UiHeading, UiLabel } from '../ui/layout';
+import { UiButton, UiInput, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell, UiSelect } from '../ui/controls';
 import { useState } from 'react';
 import { 
   DollarSign, Search, FileText, 
   Eye, ArrowDownCircle, ArrowUpCircle, X, Download, Users
 } from 'lucide-react';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc } from '../../services/financeStore.js';
 import { getEcuadorDateString } from '../../services/sriService';
 
 export default function AccountsReceivablePayable({ type = 'cxc', transactions = [], thirdParties = [], showToast, db, appId }) {
@@ -122,100 +125,94 @@ export default function AccountsReceivablePayable({ type = 'cxc', transactions =
     document.body.removeChild(link);
   };
 
-  const inputClass = `w-full text-xs px-3 py-2 rounded-card outline-none transition-all border ${
-    'bg-white border-border-strong text-text-heading focus:border-primary focus:ring-1 focus:ring-primary/35'
-  }`;
+  
 
   return (
-    <div className="space-y-6">
+    <UiBox {...{"className":"space-y-6"}}>
       
       {/* TARJETAS DE MÉTRICAS */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div className={`p-5 rounded-card border bg-white border-border-default`}>
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold uppercase text-text-secondary tracking-wider">
+      <UiBox {...{"className":"grid grid-cols-1 sm:grid-cols-3 gap-6"}}>
+        <UiCard {...mergeThemeProps({"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-5"})}>
+          <UiBox {...{"className":"flex items-center justify-between mb-2"}}>
+            <UiText {...{"size":"1","weight":"bold","color":"gray"}}>
               {isCxC ? 'Total Cuentas por Cobrar' : 'Total Cuentas por Pagar'}
-            </span>
-            <div className={`p-1.5 rounded-md ${isCxC ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
+            </UiText>
+            <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)"},"className":"p-1.5"}, {}, (isCxC ? {"style":{"backgroundColor":"var(--green-3)","color":"var(--green-11)"}} : {"style":{"backgroundColor":"var(--red-3)","color":"var(--red-11)"}}))}>
               {isCxC ? <ArrowDownCircle size={16} /> : <ArrowUpCircle size={16} />}
-            </div>
-          </div>
-          <p className="text-2xl font-semibold">${totalBalance.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-          <p className="text-xs text-text-secondary mt-1">Suma del saldo neto pendiente en {filteredTxs.length} documentos</p>
-        </div>
+            </UiBox>
+          </UiBox>
+          <UiText as="p" {...{"size":"6","weight":"bold"}}>${totalBalance.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</UiText>
+          <UiText as="p" {...{"size":"1","color":"gray","className":"mt-1"}}>Suma del saldo neto pendiente en {filteredTxs.length} documentos</UiText>
+        </UiCard>
 
-        <div className={`p-5 rounded-card border bg-white border-border-default`}>
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold uppercase text-text-secondary tracking-wider">Monto Total Facturado</span>
-            <div className="p-1.5 rounded-md bg-primary/10 text-primary">
+        <UiCard {...mergeThemeProps({"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-5"})}>
+          <UiBox {...{"className":"flex items-center justify-between mb-2"}}>
+            <UiText {...{"size":"1","weight":"bold","color":"gray"}}>Monto Total Facturado</UiText>
+            <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--blue-3)","color":"var(--blue-12)"},"className":"p-1.5"}}>
               <FileText size={16} />
-            </div>
-          </div>
-          <p className="text-2xl font-semibold">${totalOriginal.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-          <p className="text-xs text-text-secondary mt-1">Valor histórico total de los comprobantes pendientes</p>
-        </div>
+            </UiBox>
+          </UiBox>
+          <UiText as="p" {...{"size":"6","weight":"bold"}}>${totalOriginal.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</UiText>
+          <UiText as="p" {...{"size":"1","color":"gray","className":"mt-1"}}>Valor histórico total de los comprobantes pendientes</UiText>
+        </UiCard>
 
-        <div className={`p-5 rounded-card border bg-white border-border-default`}>
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold uppercase text-text-secondary tracking-wider">
+        <UiCard {...mergeThemeProps({"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-5"})}>
+          <UiBox {...{"className":"flex items-center justify-between mb-2"}}>
+            <UiText {...{"size":"1","weight":"bold","color":"gray"}}>
               {isCxC ? 'Clientes Deudores' : 'Proveedores Acreedores'}
-            </span>
-            <div className="p-1.5 rounded-md bg-purple-500/10 text-purple-500">
+            </UiText>
+            <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--purple-3)","color":"var(--purple-11)"},"className":"p-1.5"}}>
               <Users size={16} />
-            </div>
-          </div>
-          <p className="text-2xl font-semibold">{distinctContactsCount}</p>
-          <p className="text-xs text-text-secondary mt-1">Contactos únicos con saldos pendientes</p>
-        </div>
-      </div>
+            </UiBox>
+          </UiBox>
+          <UiText as="p" {...{"size":"6","weight":"bold"}}>{distinctContactsCount}</UiText>
+          <UiText as="p" {...{"size":"1","color":"gray","className":"mt-1"}}>Contactos únicos con saldos pendientes</UiText>
+        </UiCard>
+      </UiBox>
 
       {/* BARRA DE FILTROS */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 mb-6">
-        <div>
-          <button 
+      <UiBox {...{"className":"flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 mb-6"}}>
+        <UiBox>
+          <UiButton
             type="button"
             onClick={exportToCSV}
-            className="btn-secondary w-full sm:w-auto"
+            {...{"variant":"surface","color":"blue","className":"w-full sm:w-auto"}}
           >
             <Download size={14} />
-            <span>Exportar Listado</span>
-          </button>
-        </div>
+            <UiText>Exportar Listado</UiText>
+          </UiButton>
+        </UiBox>
 
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
-          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-card border-none w-full sm:w-64 transition-all focus-within:ring-1 focus-within:ring-primary/25 bg-surface-bg hover:bg-surface-card focus-within:bg-surface-card">
-            <Search size={14} className={'text-text-secondary'} />
-            <input 
+        <UiBox {...{"className":"flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto"}}>
+          <UiCard {...{"style":{"backgroundColor":"var(--gray-2)"},"className":"flex items-center gap-2 px-3.5 py-1.5 w-full sm:w-64"}}>
+            <Search size={14} {...{"style":{"color":"var(--gray-11)"}}} />
+            <UiInput
               type="text" 
               placeholder="Buscar por comprobante o contacto..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="bg-transparent border-none outline-none text-xs w-full text-current placeholder-gray-500 focus:ring-0"
+              {...{"size":"2","className":"w-full"}}
             />
-          </div>
-        </div>
-      </div>
+          </UiCard>
+        </UiBox>
+      </UiBox>
 
       {/* TABLA DE CUENTAS */}
-      <div className={`rounded-card border overflow-hidden transition-all ${
-        'border-border-default/80 bg-white'
-      }`}>
-        <div className="overflow-x-auto custom-scrollbar">
-          <table className="w-full text-left text-xs whitespace-nowrap">
-            <thead className={`text-xs uppercase font-bold tracking-wider ${
-              'bg-surface-bg text-text-primary border-b border-border-default'
-            }`}>
-              <tr>
-                <th className="px-6 py-3.5">Fecha</th>
-                <th className="px-6 py-3.5">Comprobante</th>
-                <th className="px-6 py-3.5">Contacto</th>
-                <th className="px-6 py-3.5 text-right">Total Documento</th>
-                <th className="px-6 py-3.5 text-right hidden sm:table-cell">Abonado</th>
-                <th className="px-6 py-3.5 text-right">Pendiente</th>
-                <th className="px-6 py-3.5 text-center">Acciones</th>
-              </tr>
-            </thead>
-            <tbody className={`divide-y divide-slate-100`}>
+      <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"overflow-hidden"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)"}})}>
+        <UiBox {...{"className":"overflow-x-auto custom-scrollbar"}}>
+          <UiTable {...{"className":"w-full text-left whitespace-nowrap"}}>
+            <UiTableHeader {...mergeThemeProps({}, {}, {"style":{"backgroundColor":"var(--gray-2)","color":"var(--gray-12)"}})}>
+              <UiTableRow>
+                <UiTableHead {...{"className":"px-6 py-3.5"}}>Fecha</UiTableHead>
+                <UiTableHead {...{"className":"px-6 py-3.5"}}>Comprobante</UiTableHead>
+                <UiTableHead {...{"className":"px-6 py-3.5"}}>Contacto</UiTableHead>
+                <UiTableHead {...{"className":"px-6 py-3.5 text-right"}}>Total Documento</UiTableHead>
+                <UiTableHead {...{"className":"px-6 py-3.5 text-right hidden sm:table-cell"}}>Abonado</UiTableHead>
+                <UiTableHead {...{"className":"px-6 py-3.5 text-right"}}>Pendiente</UiTableHead>
+                <UiTableHead {...{"className":"px-6 py-3.5 text-center"}}>Acciones</UiTableHead>
+              </UiTableRow>
+            </UiTableHeader>
+            <UiTableBody {...mergeThemeProps({})}>
               {filteredTxs.map(tx => {
                 const contact = thirdParties.find(tp => tp.id === tx.thirdPartyId);
                 const paid = Number(tx.paidAmount) || 0;
@@ -223,191 +220,185 @@ export default function AccountsReceivablePayable({ type = 'cxc', transactions =
                 const pending = total - paid;
                 
                 return (
-                  <tr key={tx.id} className={`transition-colors hover:bg-surface-bg/40`}>
-                    <td className={`px-6 py-3.5 font-medium text-black font-semibold`}>{tx.date}</td>
-                    <td className="px-6 py-3.5 font-mono text-xs">
+                  <UiTableRow key={tx.id} {...mergeThemeProps({})}>
+                    <UiTableCell {...mergeThemeProps({"style":{"color":"var(--gray-12)"},"className":"px-6 py-3.5"})}>{tx.date}</UiTableCell>
+                    <UiTableCell {...{"style":{"fontFamily":"var(--code-font-family)"},"className":"px-6 py-3.5"}}>
                       {tx.documentNumber || `Sec: ${tx.secuencial || 'N/A'}`}
-                    </td>
-                    <td className="px-6 py-3.5">
-                      <div>
-                        <p className={`font-bold text-black font-semibold`}>{contact?.name || 'Desconocido'}</p>
-                        <p className="text-xs text-text-secondary font-mono">{contact?.ruc}</p>
-                      </div>
-                    </td>
-                    <td className={`px-6 py-3.5 text-right font-semibold text-black`}>total.toFixed(2)</td>
-                    <td className="px-6 py-3.5 text-right text-emerald-700  font-bold hidden sm:table-cell">paid.toFixed(2)</td>
-                    <td className="px-6 py-3.5 text-right text-red-700  font-semibold">pending.toFixed(2)</td>
-                    <td className="px-6 py-3.5 text-center">
-                      <div className="flex justify-center gap-1.5">
-                        <button
+                    </UiTableCell>
+                    <UiTableCell {...{"className":"px-6 py-3.5"}}>
+                      <UiBox>
+                        <UiText as="p" {...mergeThemeProps({"weight":"bold","color":"gray","highContrast":true})}>{contact?.name || 'Desconocido'}</UiText>
+                        <UiText as="p" {...{"size":"1","color":"gray","weight":"regular"}}>{contact?.ruc}</UiText>
+                      </UiBox>
+                    </UiTableCell>
+                    <UiTableCell {...mergeThemeProps({"style":{"color":"var(--gray-12)"},"className":"px-6 py-3.5 text-right"})}>total.toFixed(2)</UiTableCell>
+                    <UiTableCell {...{"style":{"color":"var(--green-12)"},"className":"px-6 py-3.5 text-right hidden sm:table-cell"}}>paid.toFixed(2)</UiTableCell>
+                    <UiTableCell {...{"style":{"color":"var(--red-12)"},"className":"px-6 py-3.5 text-right"}}>pending.toFixed(2)</UiTableCell>
+                    <UiTableCell {...{"className":"px-6 py-3.5 text-center"}}>
+                      <UiBox {...{"className":"flex justify-center gap-1.5"}}>
+                        <UiButton
                           type="button"
                           onClick={() => {
                             setSelectedTx(tx);
                             setPaymentAmount(pending.toFixed(2));
                             setIsHistoryOpen(false);
                           }}
-                          className={`h-[34px] px-3.5 rounded-btn text-xs font-semibold flex items-center justify-center gap-1.5 transition-all text-white ${
-                            isCxC 
-                              ? 'bg-emerald-600 hover:bg-emerald-700' 
-                              : 'bg-red-600 hover:bg-red-700'
-                          }`}
+                          {...mergeThemeProps({"size":"2","className":"flex items-center justify-center gap-1.5"}, {}, (isCxC ? {"variant":"solid","color":"green"} : {"variant":"solid","color":"red"}))}
                         >
                           <DollarSign size={10} />
-                          <span>{isCxC ? 'Abonar' : 'Pagar'}</span>
-                        </button>
+                          <UiText>{isCxC ? 'Abonar' : 'Pagar'}</UiText>
+                        </UiButton>
                         
                         {(tx.paymentsHistory && tx.paymentsHistory.length > 0) && (
-                          <button
+                          <UiButton iconOnly
                             type="button"
                             onClick={() => {
                               setSelectedTx(tx);
                               setIsHistoryOpen(true);
                             }}
-                            className="btn-icon bg-amber-600 text-white hover:bg-amber-700"
+                            {...{"variant":"solid","color":"amber"}}
                             title="Historial de Abonos"
                           >
                             <Eye size={13} />
-                          </button>
+                          </UiButton>
                         )}
-                      </div>
-                    </td>
-                  </tr>
+                      </UiBox>
+                    </UiTableCell>
+                  </UiTableRow>
                 );
               })}
               {filteredTxs.length === 0 && (
-                <tr>
-                  <td colSpan="7" className="px-6 py-12 text-center text-text-secondary italic">
+                <UiTableRow>
+                  <UiTableCell colSpan="7" {...{"style":{"color":"var(--gray-11)"},"className":"px-6 py-12 text-center italic"}}>
                     No se encontraron cuentas pendientes que coincidan con la búsqueda.
-                  </td>
-                </tr>
+                  </UiTableCell>
+                </UiTableRow>
               )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+            </UiTableBody>
+          </UiTable>
+        </UiBox>
+      </UiBox>
 
       {/* MODAL REGISTRAR ABONO / VER HISTORIAL */}
       {selectedTx && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/85 animate-in fade-in">
-          <div className={`w-full max-w-md p-6 rounded-card bg-white border border-border-default`}>
-            <div className="flex justify-between items-center mb-4 border-b pb-2 border-white/5">
-              <h3 className="text-sm font-semibold">
+        <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[150] flex items-center justify-center p-4 animate-in fade-in"}}>
+          <UiCard {...mergeThemeProps({"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"w-full max-w-md p-6"})}>
+            <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex justify-between items-center mb-4 pb-2"}}>
+              <UiHeading as="h3" {...{"size":"2","weight":"bold"}}>
                 {isHistoryOpen ? 'Historial de Abonos / Pagos' : `Registrar ${isCxC ? 'Abono de Cliente' : 'Pago a Proveedor'}`}
-              </h3>
-              <button onClick={() => setSelectedTx(null)} className="btn-icon text-text-secondary hover:text-white"><X size={16} /></button>
-            </div>
+              </UiHeading>
+              <UiButton iconOnly onClick={() => setSelectedTx(null)} {...{"variant":"surface","color":"gray"}}><X size={16} /></UiButton>
+            </UiBox>
 
             {isHistoryOpen ? (
-              <div className="space-y-4">
-                <div className="text-xs space-y-1">
-                  <p><span className="text-text-secondary">Comprobante:</span> <span className="font-bold font-mono">{selectedTx.documentNumber || `Sec: selectedTx.secuencial`}</span></p>
-                  <p><span className="text-text-secondary">Total Factura:</span> <span className="font-bold">Number(selectedTx.total).toFixed(2)</span></p>
-                  <p><span className="text-text-secondary">Saldo Pendiente:</span> <span className="font-bold text-red-500">${(Number(selectedTx.total) - (Number(selectedTx.paidAmount) || 0)).toFixed(2)}</span></p>
-                </div>
+              <UiBox {...{"className":"space-y-4"}}>
+                <UiBox {...{"className":"space-y-1"}}>
+                  <UiText as="p"><UiText {...{"color":"gray"}}>Comprobante:</UiText> <UiText {...{"weight":"regular"}}>{selectedTx.documentNumber || `Sec: selectedTx.secuencial`}</UiText></UiText>
+                  <UiText as="p"><UiText {...{"color":"gray"}}>Total Factura:</UiText> <UiText {...{"weight":"bold"}}>Number(selectedTx.total).toFixed(2)</UiText></UiText>
+                  <UiText as="p"><UiText {...{"color":"gray"}}>Saldo Pendiente:</UiText> <UiText {...{"weight":"bold","color":"red"}}>${(Number(selectedTx.total) - (Number(selectedTx.paidAmount) || 0)).toFixed(2)}</UiText></UiText>
+                </UiBox>
 
-                <div className="max-h-[250px] overflow-y-auto custom-scrollbar border border-white/5 rounded-card divide-y divide-white/5">
+                <UiBox {...{"style":{"border":"1px solid var(--gray-a6)","borderRadius":"var(--radius-3)"},"className":"max-h-[250px] overflow-y-auto custom-scrollbar"}}>
                   {selectedTx.paymentsHistory?.map((pay, index) => (
-                    <div key={pay.id || index} className="p-3 text-xs flex justify-between items-center">
-                      <div>
-                        <p className="font-bold capitalize text-emerald-500">Number(pay.amount).toFixed(2) — {pay.method}</p>
-                        {pay.reference && <p className="text-xs text-text-secondary font-mono mt-0.5">Ref: {pay.reference}</p>}
-                      </div>
-                      <span className="text-xs text-text-secondary">{pay.date}</span>
-                    </div>
+                    <UiBox key={pay.id || index} {...{"className":"p-3 flex justify-between items-center"}}>
+                      <UiBox>
+                        <UiText as="p" {...{"weight":"bold","color":"green"}}>Number(pay.amount).toFixed(2) — {pay.method}</UiText>
+                        {pay.reference && <UiText as="p" {...{"size":"1","color":"gray","weight":"regular","className":"mt-0.5"}}>Ref: {pay.reference}</UiText>}
+                      </UiBox>
+                      <UiText {...{"size":"1","color":"gray"}}>{pay.date}</UiText>
+                    </UiBox>
                   ))}
-                </div>
+                </UiBox>
 
-                <div className="flex justify-end gap-2 pt-2">
-                  <button 
+                <UiBox {...{"className":"flex justify-end gap-2 pt-2"}}>
+                  <UiButton
                     onClick={() => setIsHistoryOpen(false)}
-                    className="btn-secondary"
+                    {...{"variant":"surface","color":"blue"}}
                   >
                     Volver a Registrar Abono
-                  </button>
-                </div>
-              </div>
+                  </UiButton>
+                </UiBox>
+              </UiBox>
             ) : (
-              <form onSubmit={handleRecordPayment} className="space-y-4">
-                <div className="p-3.5 rounded-card bg-black/15 border border-white/5 text-xs space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-text-secondary">Total Factura:</span>
-                    <span className="font-semibold">Number(selectedTx.total).toFixed(2)</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-text-secondary">Total Abonado:</span>
-                    <span className="font-semibold text-emerald-500">${(Number(selectedTx.paidAmount) || 0).toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between border-t border-dashed border-white/10 pt-2 font-bold">
-                    <span className="text-text-secondary">Saldo Pendiente:</span>
-                    <span className="text-red-500">${(Number(selectedTx.total) - (Number(selectedTx.paidAmount) || 0)).toFixed(2)}</span>
-                  </div>
-                </div>
+              <form onSubmit={handleRecordPayment} {...{"className":"space-y-4"}}>
+                <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--black-a7)","border":"1px solid var(--gray-a6)"},"className":"p-3.5 space-y-2"}}>
+                  <UiBox {...{"className":"flex justify-between"}}>
+                    <UiText {...{"color":"gray"}}>Total Factura:</UiText>
+                    <UiText {...{"weight":"bold"}}>Number(selectedTx.total).toFixed(2)</UiText>
+                  </UiBox>
+                  <UiBox {...{"className":"flex justify-between"}}>
+                    <UiText {...{"color":"gray"}}>Total Abonado:</UiText>
+                    <UiText {...{"weight":"bold","color":"green"}}>${(Number(selectedTx.paidAmount) || 0).toFixed(2)}</UiText>
+                  </UiBox>
+                  <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"flex justify-between pt-2"}}>
+                    <UiText {...{"color":"gray"}}>Saldo Pendiente:</UiText>
+                    <UiText {...{"color":"red"}}>${(Number(selectedTx.total) - (Number(selectedTx.paidAmount) || 0)).toFixed(2)}</UiText>
+                  </UiBox>
+                </UiBox>
 
-                <div>
-                  <label className="block text-xs font-bold uppercase text-text-secondary mb-1.5">Monto del Abono ($)</label>
-                  <input
+                <UiBox>
+                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"}}>Monto del Abono ($)</UiLabel>
+                  <UiInput
                     type="number"
                     step="0.01"
                     required
                     max={(Number(selectedTx.total) - (Number(selectedTx.paidAmount) || 0)).toFixed(2)}
                     value={paymentAmount}
                     onChange={e => setPaymentAmount(e.target.value)}
-                    className={inputClass}
+                    {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})}
                     placeholder="0.00"
                   />
-                </div>
+                </UiBox>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-bold uppercase text-text-secondary mb-1.5">Forma de Cobro</label>
-                    <select
+                <UiBox {...{"className":"grid grid-cols-2 gap-3"}}>
+                  <UiBox>
+                    <UiLabel {...{"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"}}>Forma de Cobro</UiLabel>
+                    <UiSelect
                       value={paymentMethod}
                       onChange={e => setPaymentMethod(e.target.value)}
-                      className={inputClass}
+                      {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})}
                     >
-                      <option value="efectivo" className="text-black">Efectivo</option>
-                      <option value="transferencia" className="text-black">Transferencia</option>
-                      <option value="tarjeta" className="text-black">Tarjeta</option>
-                      <option value="cruce_cuentas" className="text-black">Cruce Cuentas</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold uppercase text-text-secondary mb-1.5">Referencia</label>
-                    <input
+                      <option value="efectivo" {...{"style":{"color":"var(--gray-12)"}}}>Efectivo</option>
+                      <option value="transferencia" {...{"style":{"color":"var(--gray-12)"}}}>Transferencia</option>
+                      <option value="tarjeta" {...{"style":{"color":"var(--gray-12)"}}}>Tarjeta</option>
+                      <option value="cruce_cuentas" {...{"style":{"color":"var(--gray-12)"}}}>Cruce Cuentas</option>
+                    </UiSelect>
+                  </UiBox>
+                  <UiBox>
+                    <UiLabel {...{"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"}}>Referencia</UiLabel>
+                    <UiInput
                       type="text"
                       value={paymentRef}
                       onChange={e => setPaymentRef(e.target.value)}
-                      className={inputClass}
+                      {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})}
                       placeholder="Lote / Banco / Nro doc"
                     />
-                  </div>
-                </div>
+                  </UiBox>
+                </UiBox>
 
-                <div className="flex justify-end gap-2.5 pt-3 border-t border-white/5">
-                  <button
+                <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"flex justify-end gap-2.5 pt-3"}}>
+                  <UiButton
                     type="button"
                     onClick={() => setSelectedTx(null)}
-                    className="btn-secondary"
+                    {...{"variant":"surface","color":"blue"}}
                   >
                     Cancelar
-                  </button>
-                  <button
+                  </UiButton>
+                  <UiButton
                     type="submit"
-                    className={`h-[34px] px-4 rounded-btn text-xs font-semibold flex items-center justify-center gap-1.5 transition-all text-white border-none ${
-                      isCxC ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-red-600 hover:bg-red-700'
-                    }`}
+                    {...mergeThemeProps({"size":"2","className":"flex items-center justify-center gap-1.5"}, {}, (isCxC ? {"variant":"solid","color":"green"} : {"variant":"solid","color":"red"}))}
                   >
                     Registrar Cobro
-                  </button>
-                </div>
+                  </UiButton>
+                </UiBox>
               </form>
             )}
 
-          </div>
-        </div>
+          </UiCard>
+        </UiBox>
       )}
 
-    </div>
+    </UiBox>
   );
 }
 

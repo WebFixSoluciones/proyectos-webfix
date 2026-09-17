@@ -1,3 +1,7 @@
+import { resolveThemeProps } from '../ui/themeProps';
+import { mergeThemeProps } from '../ui/themeProps';
+import { UiBox, UiText, UiCard } from '../ui/layout';
+import { UiButton, UiInput, UiSelect, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell } from '../ui/controls';
 import { useState, useEffect, useCallback } from 'react';
 import { Plus, Search, Download, FileText, Eye, Edit2, Trash2, Wallet, DollarSign, TrendingUp, TrendingDown } from 'lucide-react';
 import { getMovimientos, getResumen, anularMovimiento } from '../../services/movimientoService';
@@ -6,10 +10,10 @@ import MovimientoAbono from './MovimientoAbono';
 import MovimientoDetalle from './MovimientoDetalle';
 
 const ESTADO_BADGES = {
-  pendiente: 'bg-status-pending-bg text-status-pending-text border-status-pending-border',
-  parcial: 'bg-warning-light text-warning border-warning/20',
-  pagado: 'bg-status-authorized-bg text-status-authorized-text border-status-authorized-border',
-  anulado: 'bg-status-rejected-bg text-status-rejected-text border-status-rejected-border',
+  pendiente: {"style":{"backgroundColor":"var(--amber-3)","color":"var(--amber-11)"}},
+  parcial: {"style":{"backgroundColor":"var(--amber-3)","color":"var(--amber-11)"}},
+  pagado: {"style":{"backgroundColor":"var(--green-3)","color":"var(--green-11)"}},
+  anulado: {"style":{"backgroundColor":"var(--red-3)","color":"var(--red-11)"}},
 };
 
 const FILTROS_DEFAULT = {
@@ -102,168 +106,168 @@ export default function MovimientosView({ db, usuario, showToast }) {
 
   if (loading) {
     return (
-      <div className="space-y-4 animate-pulse">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {[1,2,3].map(i => <div key={i} className="h-20 bg-surface-sidebar rounded-card" />)}
-        </div>
-        {[1,2,3,4,5].map(i => <div key={i} className="h-12 bg-surface-sidebar rounded-card" />)}
-      </div>
+      <UiBox {...{"className":"space-y-4 animate-pulse"}}>
+        <UiBox {...{"className":"grid grid-cols-1 sm:grid-cols-3 gap-4"}}>
+          {[1,2,3].map(i => <UiBox key={i} {...{"style":{"backgroundColor":"var(--color-panel-solid)","borderRadius":"var(--radius-3)"},"className":"h-20"}} />)}
+        </UiBox>
+        {[1,2,3,4,5].map(i => <UiBox key={i} {...{"style":{"backgroundColor":"var(--color-panel-solid)","borderRadius":"var(--radius-3)"},"className":"h-12"}} />)}
+      </UiBox>
     );
   }
 
   if (error) {
     return (
-      <div className="text-center py-12">
-        <div className="text-error text-lg mb-2">Error al cargar los movimientos</div>
-        <p className="text-text-secondary text-sm mb-4">{error}</p>
-        <button onClick={cargarMovimientos} className="px-4 py-2 bg-primary text-white rounded-btn text-sm font-medium">
+      <UiBox {...{"className":"text-center py-12"}}>
+        <UiBox {...{"style":{"color":"var(--red-12)"},"className":"mb-2"}}>Error al cargar los movimientos</UiBox>
+        <UiText as="p" {...{"color":"gray","size":"2","className":"mb-4"}}>{error}</UiText>
+        <UiButton onClick={cargarMovimientos} {...{"variant":"solid","color":"blue","size":"2"}}>
           Reintentar
-        </button>
-      </div>
+        </UiButton>
+      </UiBox>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-surface-card border border-border-default rounded-card p-4">
-          <div className="flex items-center gap-2 text-text-secondary text-xs mb-1">
-            <TrendingUp size={14} className="text-success" /> Ingresos del período
-          </div>
-          <div className="text-xl font-bold text-success">{formatCurrency(resumen.totalIngresos)}</div>
-        </div>
-        <div className="bg-surface-card border border-border-default rounded-card p-4">
-          <div className="flex items-center gap-2 text-text-secondary text-xs mb-1">
-            <TrendingDown size={14} className="text-error" /> Egresos del período
-          </div>
-          <div className="text-xl font-bold text-error">{formatCurrency(resumen.totalEgresos)}</div>
-        </div>
-        <div className="bg-surface-card border border-border-default rounded-card p-4">
-          <div className="flex items-center gap-2 text-text-secondary text-xs mb-1">
-            <DollarSign size={14} className="text-primary" /> Saldo neto
-          </div>
-          <div className={`text-xl font-bold ${resumen.saldoNeto >= 0 ? 'text-primary' : 'text-error'}`}>
+    <UiBox {...{"className":"space-y-4"}}>
+      <UiBox {...{"className":"grid grid-cols-1 sm:grid-cols-3 gap-4"}}>
+        <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4"}}>
+          <UiBox {...{"style":{"color":"var(--gray-11)"},"className":"flex items-center gap-2 mb-1"}}>
+            <TrendingUp size={14} {...{"style":{"color":"var(--green-12)"}}} /> Ingresos del período
+          </UiBox>
+          <UiBox {...{"style":{"color":"var(--green-12)"}}}>{formatCurrency(resumen.totalIngresos)}</UiBox>
+        </UiCard>
+        <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4"}}>
+          <UiBox {...{"style":{"color":"var(--gray-11)"},"className":"flex items-center gap-2 mb-1"}}>
+            <TrendingDown size={14} {...{"style":{"color":"var(--red-12)"}}} /> Egresos del período
+          </UiBox>
+          <UiBox {...{"style":{"color":"var(--red-12)"}}}>{formatCurrency(resumen.totalEgresos)}</UiBox>
+        </UiCard>
+        <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4"}}>
+          <UiBox {...{"style":{"color":"var(--gray-11)"},"className":"flex items-center gap-2 mb-1"}}>
+            <DollarSign size={14} {...{"style":{"color":"var(--blue-12)"}}} /> Saldo neto
+          </UiBox>
+          <UiBox {...mergeThemeProps({}, {}, (resumen.saldoNeto >= 0 ? {"style":{"color":"var(--blue-12)"}} : {"style":{"color":"var(--red-12)"}}))}>
             {formatCurrency(resumen.saldoNeto)}
-          </div>
-        </div>
-      </div>
+          </UiBox>
+        </UiCard>
+      </UiBox>
 
-      <div className="bg-surface-card border border-border-default rounded-card p-4">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="relative flex-1 min-w-[200px]">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
-            <input type="text" value={filtros.search} onChange={e => setFiltros(f => ({ ...f, search: e.target.value }))}
+      <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4"}}>
+        <UiBox {...{"className":"flex flex-wrap items-center gap-3"}}>
+          <UiBox {...{"className":"relative flex-1 min-w-[200px]"}}>
+            <Search size={14} {...{"style":{"color":"var(--gray-11)"},"className":"absolute left-3 top-1/2 -translate-y-1/2"}} />
+            <UiInput type="text" value={filtros.search} onChange={e => setFiltros(f => ({ ...f, search: e.target.value }))}
               placeholder="Buscar por documento, tercero, RUC..."
-              className="w-full pl-9 pr-3 py-2 text-sm border border-border-default rounded-btn bg-white text-text-primary focus:border-primary" />
-          </div>
+              {...{"size":"2","color":"gray","className":"w-full"}} />
+          </UiBox>
 
-          <select value={filtros.tipo} onChange={e => setFiltros(f => ({ ...f, tipo: e.target.value }))}
-            className="px-3 py-2 text-sm border border-border-default rounded-btn bg-white text-text-primary focus:border-primary">
+          <UiSelect value={filtros.tipo} onChange={e => setFiltros(f => ({ ...f, tipo: e.target.value }))}
+            {...{"size":"2","color":"gray"}}>
             <option value="all">Todos los tipos</option>
             <option value="ingreso">Ingresos</option>
             <option value="egreso">Egresos</option>
-          </select>
+          </UiSelect>
 
-          <select value={filtros.estado} onChange={e => setFiltros(f => ({ ...f, estado: e.target.value }))}
-            className="px-3 py-2 text-sm border border-border-default rounded-btn bg-white text-text-primary focus:border-primary">
+          <UiSelect value={filtros.estado} onChange={e => setFiltros(f => ({ ...f, estado: e.target.value }))}
+            {...{"size":"2","color":"gray"}}>
             <option value="all">Todos los estados</option>
             <option value="pendiente">Pendiente</option>
             <option value="parcial">Parcial</option>
             <option value="pagado">Pagado</option>
             <option value="anulado">Anulado</option>
-          </select>
+          </UiSelect>
 
-          <input type="date" value={filtros.fechaDesde} onChange={e => setFiltros(f => ({ ...f, fechaDesde: e.target.value }))}
-            className="px-3 py-2 text-sm border border-border-default rounded-btn bg-white text-text-primary focus:border-primary" />
-          <input type="date" value={filtros.fechaHasta} onChange={e => setFiltros(f => ({ ...f, fechaHasta: e.target.value }))}
-            className="px-3 py-2 text-sm border border-border-default rounded-btn bg-white text-text-primary focus:border-primary" />
+          <UiInput type="date" value={filtros.fechaDesde} onChange={e => setFiltros(f => ({ ...f, fechaDesde: e.target.value }))}
+            {...{"size":"2","color":"gray"}} />
+          <UiInput type="date" value={filtros.fechaHasta} onChange={e => setFiltros(f => ({ ...f, fechaHasta: e.target.value }))}
+            {...{"size":"2","color":"gray"}} />
 
-          <button onClick={handleExportCsv}
-            className="px-3 py-2 text-sm font-medium text-text-secondary border border-border-default rounded-btn hover:bg-primary-light transition-colors flex items-center gap-1">
+          <UiButton onClick={handleExportCsv}
+            {...{"size":"2","color":"gray","variant":"outline","className":"flex items-center gap-1"}}>
             <Download size={14} /> CSV
-          </button>
-          <button onClick={() => { setEditingMov(null); setShowForm(true); }}
-            className="px-3 py-2 text-sm font-medium bg-primary text-white rounded-btn hover:bg-primary-hover transition-colors flex items-center gap-1">
+          </UiButton>
+          <UiButton onClick={() => { setEditingMov(null); setShowForm(true); }}
+            {...{"size":"2","variant":"solid","color":"blue","className":"flex items-center gap-1"}}>
             <Plus size={14} /> Nuevo
-          </button>
-        </div>
-      </div>
+          </UiButton>
+        </UiBox>
+      </UiCard>
 
-      <div className="bg-surface-card border border-border-default rounded-card overflow-hidden">
+      <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)","borderRadius":"var(--radius-3)"},"className":"overflow-hidden"}}>
         {movimientos.length === 0 ? (
-          <div className="text-center py-12">
-            <FileText size={40} className="mx-auto text-text-muted mb-3" />
-            <p className="text-text-secondary mb-1">No hay movimientos registrados</p>
-            <p className="text-text-muted text-sm mb-4">Crea el primer ingreso o gasto para empezar</p>
-            <button onClick={() => { setEditingMov(null); setShowForm(true); }}
-              className="px-4 py-2 bg-primary text-white rounded-btn text-sm font-medium flex items-center gap-1 mx-auto">
+          <UiBox {...{"className":"text-center py-12"}}>
+            <FileText size={40} {...{"style":{"color":"var(--gray-11)"},"className":"mx-auto mb-3"}} />
+            <UiText as="p" {...{"color":"gray","className":"mb-1"}}>No hay movimientos registrados</UiText>
+            <UiText as="p" {...{"color":"gray","size":"2","className":"mb-4"}}>Crea el primer ingreso o gasto para empezar</UiText>
+            <UiButton onClick={() => { setEditingMov(null); setShowForm(true); }}
+              {...{"variant":"solid","color":"blue","size":"2","className":"flex items-center gap-1 mx-auto"}}>
               <Plus size={14} /> Nuevo Movimiento
-            </button>
-          </div>
+            </UiButton>
+          </UiBox>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-surface-sidebar border-b border-border-default">
-                  <th className="px-3 py-2.5 text-left text-xs font-medium text-text-secondary">Fecha</th>
-                  <th className="px-3 py-2.5 text-left text-xs font-medium text-text-secondary">Tipo</th>
-                  <th className="px-3 py-2.5 text-left text-xs font-medium text-text-secondary">Documento</th>
-                  <th className="px-3 py-2.5 text-left text-xs font-medium text-text-secondary">Tercero</th>
-                  <th className="px-3 py-2.5 text-left text-xs font-medium text-text-secondary hidden sm:table-cell">Categoría</th>
-                  <th className="px-3 py-2.5 text-right text-xs font-medium text-text-secondary">Monto</th>
-                  <th className="px-3 py-2.5 text-right text-xs font-medium text-text-secondary hidden md:table-cell">Saldo</th>
-                  <th className="px-3 py-2.5 text-center text-xs font-medium text-text-secondary">Estado</th>
-                  <th className="px-3 py-2.5 text-right text-xs font-medium text-text-secondary">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
+          <UiBox {...{"className":"overflow-x-auto"}}>
+            <UiTable {...{"className":"w-full"}}>
+              <UiTableHeader>
+                <UiTableRow {...{"style":{"backgroundColor":"var(--color-panel-solid)"}}}>
+                  <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"px-3 py-2.5 text-left"}}>Fecha</UiTableHead>
+                  <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"px-3 py-2.5 text-left"}}>Tipo</UiTableHead>
+                  <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"px-3 py-2.5 text-left"}}>Documento</UiTableHead>
+                  <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"px-3 py-2.5 text-left"}}>Tercero</UiTableHead>
+                  <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"px-3 py-2.5 text-left hidden sm:table-cell"}}>Categoría</UiTableHead>
+                  <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"px-3 py-2.5 text-right"}}>Monto</UiTableHead>
+                  <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"px-3 py-2.5 text-right hidden md:table-cell"}}>Saldo</UiTableHead>
+                  <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"px-3 py-2.5 text-center"}}>Estado</UiTableHead>
+                  <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"px-3 py-2.5 text-right"}}>Acciones</UiTableHead>
+                </UiTableRow>
+              </UiTableHeader>
+              <UiTableBody>
                 {movimientos.map(mov => (
-                  <tr key={mov.id} className="border-b border-border-default hover:bg-primary-light/30 transition-colors">
-                    <td className="px-3 py-2.5 text-text-primary whitespace-nowrap">{formatDate(mov.fecha)}</td>
-                    <td className="px-3 py-2.5">
-                      <span className={`inline-flex px-1.5 py-0.5 text-xs rounded-badge ${mov.tipo === 'ingreso' ? 'bg-status-authorized-bg text-status-authorized-text' : 'bg-status-rejected-bg text-status-rejected-text'}`}>
+                  <UiTableRow key={mov.id} {...{}}>
+                    <UiTableCell {...{"style":{"color":"var(--gray-12)"},"className":"px-3 py-2.5 whitespace-nowrap"}}>{formatDate(mov.fecha)}</UiTableCell>
+                    <UiTableCell {...{"className":"px-3 py-2.5"}}>
+                      <UiText {...mergeThemeProps({"size":"1","className":"inline-flex px-1.5 py-0.5"}, {}, (mov.tipo === 'ingreso' ? {"color":"gray"} : {"color":"gray"}))}>
                         {mov.tipo === 'ingreso' ? 'Ingreso' : 'Egreso'}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2.5 text-text-primary text-xs">{mov.documento?.tipo}<br /><span className="text-text-muted">{mov.documento?.numero}</span></td>
-                    <td className="px-3 py-2.5 text-text-primary text-xs">{mov.tercero?.nombre}<br /><span className="text-text-muted">{mov.tercero?.ruc}</span></td>
-                    <td className="px-3 py-2.5 hidden sm:table-cell">
-                      <span className="inline-flex px-1.5 py-0.5 text-xs rounded-badge bg-surface-sidebar text-text-secondary">
+                      </UiText>
+                    </UiTableCell>
+                    <UiTableCell {...{"style":{"color":"var(--gray-12)"},"className":"px-3 py-2.5"}}>{mov.documento?.tipo}<br /><UiText {...{"color":"gray"}}>{mov.documento?.numero}</UiText></UiTableCell>
+                    <UiTableCell {...{"style":{"color":"var(--gray-12)"},"className":"px-3 py-2.5"}}>{mov.tercero?.nombre}<br /><UiText {...{"color":"gray"}}>{mov.tercero?.ruc}</UiText></UiTableCell>
+                    <UiTableCell {...{"className":"px-3 py-2.5 hidden sm:table-cell"}}>
+                      <UiText {...{"size":"1","color":"gray","className":"inline-flex px-1.5 py-0.5"}}>
                         {mov.partidas?.[0]?.categoria?.replace(/_/g, ' ') || '-'}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2.5 text-right font-medium text-text-primary">{formatCurrency(mov.monto)}</td>
-                    <td className="px-3 py-2.5 text-right hidden md:table-cell">
-                      <span className={Number(mov.saldoPendiente) > 0 ? 'text-warning font-medium' : 'text-text-muted'}>
+                      </UiText>
+                    </UiTableCell>
+                    <UiTableCell {...{"style":{"color":"var(--gray-12)"},"className":"px-3 py-2.5 text-right"}}>{formatCurrency(mov.monto)}</UiTableCell>
+                    <UiTableCell {...{"className":"px-3 py-2.5 text-right hidden md:table-cell"}}>
+                      <UiText {...(Number(mov.saldoPendiente) > 0 ? {"color":"amber","weight":"medium"} : {"color":"gray"})}>
                         {formatCurrency(mov.saldoPendiente)}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2.5 text-center">
-                      <span className={`inline-flex px-1.5 py-0.5 text-xs font-medium border rounded-badge ${ESTADO_BADGES[mov.estado]}`}>
+                      </UiText>
+                    </UiTableCell>
+                    <UiTableCell {...{"className":"px-3 py-2.5 text-center"}}>
+                      <UiText {...mergeThemeProps({"size":"1","weight":"medium","className":"inline-flex px-1.5 py-0.5"}, {}, resolveThemeProps(ESTADO_BADGES[mov.estado]))}>
                         {mov.estado}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2.5">
-                      <div className="flex items-center justify-end gap-1">
-                        <button onClick={() => setShowDetalle(mov)} title="Ver detalle" className="btn-icon w-7 h-7"><Eye size={14} /></button>
+                      </UiText>
+                    </UiTableCell>
+                    <UiTableCell {...{"className":"px-3 py-2.5"}}>
+                      <UiBox {...{"className":"flex items-center justify-end gap-1"}}>
+                        <UiButton iconOnly onClick={() => setShowDetalle(mov)} title="Ver detalle" {...{"variant":"surface","color":"blue","className":"w-7"}}><Eye size={14} /></UiButton>
                         {mov.origen === 'finanzas' && mov.estado !== 'anulado' && (
-                          <button onClick={() => { setEditingMov(mov); setShowForm(true); }} title="Editar" className="btn-icon w-7 h-7"><Edit2 size={14} /></button>
+                          <UiButton iconOnly onClick={() => { setEditingMov(mov); setShowForm(true); }} title="Editar" {...{"variant":"surface","color":"blue","className":"w-7"}}><Edit2 size={14} /></UiButton>
                         )}
                         {(mov.estado === 'pendiente' || mov.estado === 'parcial') && (
-                          <button onClick={() => setShowAbono(mov)} title="Abonar" className="btn-icon w-7 h-7"><Wallet size={14} /></button>
+                          <UiButton iconOnly onClick={() => setShowAbono(mov)} title="Abonar" {...{"variant":"surface","color":"blue","className":"w-7"}}><Wallet size={14} /></UiButton>
                         )}
                         {mov.estado !== 'anulado' && (
-                          <button onClick={() => handleAnular(mov.id)} title="Anular" className="btn-icon w-7 h-7 text-error"><Trash2 size={14} /></button>
+                          <UiButton iconOnly onClick={() => handleAnular(mov.id)} title="Anular" {...{"variant":"surface","color":"red","className":"w-7"}}><Trash2 size={14} /></UiButton>
                         )}
-                      </div>
-                    </td>
-                  </tr>
+                      </UiBox>
+                    </UiTableCell>
+                  </UiTableRow>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </UiTableBody>
+            </UiTable>
+          </UiBox>
         )}
-      </div>
+      </UiBox>
 
       {showForm && (
         <MovimientoForm
@@ -293,6 +297,6 @@ export default function MovimientosView({ db, usuario, showToast }) {
           onClose={() => setShowDetalle(null)}
         />
       )}
-    </div>
+    </UiBox>
   );
 }

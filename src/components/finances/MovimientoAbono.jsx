@@ -1,3 +1,5 @@
+import { UiBox, UiCard, UiHeading, UiText, UiLabel } from '../ui/layout';
+import { UiButton, UiInput, UiSelect } from '../ui/controls';
 import { useState } from 'react';
 import { X, DollarSign } from 'lucide-react';
 import { registrarAbono } from '../../services/movimientoService';
@@ -40,72 +42,72 @@ export default function MovimientoAbono({ movimiento, onClose, onSave, db, usuar
   };
 
   return (
-    <div className="fixed inset-0 z-[110] bg-black/50 flex items-center justify-center">
-      <div className="bg-surface-card border border-border-default rounded-card w-full max-w-sm mx-4">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border-default">
-          <h3 className="text-md font-semibold text-text-primary">Registrar Abono</h3>
-          <button onClick={onClose} className="btn-icon text-text-secondary"><X size={18} /></button>
-        </div>
+    <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[110] flex items-center justify-center"}}>
+      <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"w-full max-w-sm mx-4"}}>
+        <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex items-center justify-between px-5 py-4"}}>
+          <UiHeading as="h3" {...{"color":"gray","weight":"bold","highContrast":true}}>Registrar Abono</UiHeading>
+          <UiButton iconOnly onClick={onClose} {...{"variant":"surface","color":"gray"}}><X size={18} /></UiButton>
+        </UiBox>
 
-        <form onSubmit={handleSubmit} className="px-5 py-4 space-y-4">
-          <div className="bg-surface-sidebar rounded-card p-3 space-y-1 text-sm">
-            <div className="flex justify-between">
-              <span className="text-text-secondary">Documento:</span>
-              <span className="text-text-primary font-medium">{movimiento.documento?.tipo} #{movimiento.documento?.numero}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-text-secondary">Tercero:</span>
-              <span className="text-text-primary">{movimiento.tercero?.nombre}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-text-secondary">Monto total:</span>
-              <span className="text-text-primary font-semibold">${Number(movimiento.monto).toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between border-t border-border-default pt-2 mt-2">
-              <span className="text-text-secondary">Saldo pendiente:</span>
-              <span className="text-warning font-bold">${saldoPendiente.toFixed(2)}</span>
-            </div>
-          </div>
+        <form onSubmit={handleSubmit} {...{"className":"px-5 py-4 space-y-4"}}>
+          <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","borderRadius":"var(--radius-3)"},"className":"p-3 space-y-1"}}>
+            <UiBox {...{"className":"flex justify-between"}}>
+              <UiText {...{"color":"gray"}}>Documento:</UiText>
+              <UiText {...{"color":"gray","highContrast":true,"weight":"medium"}}>{movimiento.documento?.tipo} #{movimiento.documento?.numero}</UiText>
+            </UiBox>
+            <UiBox {...{"className":"flex justify-between"}}>
+              <UiText {...{"color":"gray"}}>Tercero:</UiText>
+              <UiText {...{"color":"gray","highContrast":true}}>{movimiento.tercero?.nombre}</UiText>
+            </UiBox>
+            <UiBox {...{"className":"flex justify-between"}}>
+              <UiText {...{"color":"gray"}}>Monto total:</UiText>
+              <UiText {...{"color":"gray","highContrast":true,"weight":"bold"}}>${Number(movimiento.monto).toFixed(2)}</UiText>
+            </UiBox>
+            <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"flex justify-between pt-2 mt-2"}}>
+              <UiText {...{"color":"gray"}}>Saldo pendiente:</UiText>
+              <UiText {...{"color":"amber","weight":"bold"}}>${saldoPendiente.toFixed(2)}</UiText>
+            </UiBox>
+          </UiBox>
 
-          <div>
-            <label className="text-xs font-medium text-text-secondary mb-1 block">Monto del abono</label>
-            <div className="relative">
-              <DollarSign size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
-              <input type="number" step="0.01" value={monto}
+          <UiBox>
+            <UiLabel {...{"size":"1","weight":"medium","color":"gray","className":"mb-1 block"}}>Monto del abono</UiLabel>
+            <UiBox {...{"className":"relative"}}>
+              <DollarSign size={16} {...{"style":{"color":"var(--gray-11)"},"className":"absolute left-3 top-1/2 -translate-y-1/2"}} />
+              <UiInput type="number" step="0.01" value={monto}
                 onChange={e => setMonto(e.target.value)}
                 placeholder="0.00" autoFocus
-                className="w-full pl-9 pr-3 py-2 text-sm border border-border-default rounded-btn bg-white text-text-primary focus:border-primary" />
-            </div>
-            {error && <span className="text-xs text-error mt-1">{error}</span>}
-          </div>
+                {...{"size":"2","color":"gray","className":"w-full"}} />
+            </UiBox>
+            {error && <UiText {...{"size":"1","color":"red","className":"mt-1"}}>{error}</UiText>}
+          </UiBox>
 
-          <div>
-            <label className="text-xs font-medium text-text-secondary mb-1 block">Método de pago</label>
-            <select value={metodoPago} onChange={e => setMetodoPago(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-border-default rounded-btn bg-white text-text-primary focus:border-primary">
+          <UiBox>
+            <UiLabel {...{"size":"1","weight":"medium","color":"gray","className":"mb-1 block"}}>Método de pago</UiLabel>
+            <UiSelect value={metodoPago} onChange={e => setMetodoPago(e.target.value)}
+              {...{"size":"2","color":"gray","className":"w-full"}}>
               {METODOS_PAGO.map(m => <option key={m} value={m}>{m.replace('_', ' ')}</option>)}
-            </select>
-          </div>
+            </UiSelect>
+          </UiBox>
 
-          <div>
-            <label className="text-xs font-medium text-text-secondary mb-1 block">Referencia</label>
-            <input type="text" value={referencia} onChange={e => setReferencia(e.target.value)}
+          <UiBox>
+            <UiLabel {...{"size":"1","weight":"medium","color":"gray","className":"mb-1 block"}}>Referencia</UiLabel>
+            <UiInput type="text" value={referencia} onChange={e => setReferencia(e.target.value)}
               placeholder="N° de comprobante, transferencia..."
-              className="w-full px-3 py-2 text-sm border border-border-default rounded-btn bg-white text-text-primary focus:border-primary" />
-          </div>
+              {...{"size":"2","color":"gray","className":"w-full"}} />
+          </UiBox>
 
-          <div className="flex items-center gap-2 pt-2">
-            <button type="button" onClick={onClose} disabled={saving}
-              className="flex-1 px-4 py-2 text-sm font-medium text-text-secondary border border-border-default rounded-btn hover:bg-primary-light transition-colors">
+          <UiBox {...{"className":"flex items-center gap-2 pt-2"}}>
+            <UiButton type="button" onClick={onClose} disabled={saving}
+              {...{"size":"2","color":"gray","variant":"outline","className":"flex-1"}}>
               Cancelar
-            </button>
-            <button type="submit" disabled={saving}
-              className="flex-1 px-4 py-2 text-sm font-medium bg-primary text-white rounded-btn hover:bg-primary-hover transition-colors disabled:opacity-50">
+            </UiButton>
+            <UiButton type="submit" disabled={saving}
+              {...{"size":"2","variant":"solid","color":"blue","className":"flex-1 disabled:opacity-50"}}>
               {saving ? 'Registrando...' : 'Registrar Abono'}
-            </button>
-          </div>
+            </UiButton>
+          </UiBox>
         </form>
-      </div>
-    </div>
+      </UiCard>
+    </UiBox>
   );
 }

@@ -1,9 +1,12 @@
+import { mergeThemeProps } from '../ui/themeProps';
+import { UiBox, UiText, UiHeading, UiLabel } from '../ui/layout';
+import { UiButton, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell, UiInput, UiSelect } from '../ui/controls';
 import { useState, useEffect } from 'react';
 import { 
   Plus, Edit2, Trash2, Calendar, ShieldAlert, 
   X, ToggleLeft, ToggleRight 
 } from 'lucide-react';
-import { collection, onSnapshot, doc, setDoc, deleteDoc } from 'firebase/firestore';
+import { collection, onSnapshot, doc, setDoc, deleteDoc } from '../../services/financeStore.js';
 
 export default function DiscountsPromotionsView({ db, appId, showToast, products = [] }) {
   const [activeTab, setActiveTab] = useState('discounts'); // 'discounts' | 'promotions'
@@ -232,264 +235,254 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
+    <UiBox {...{"className":"space-y-6 animate-in fade-in duration-300"}}>
       
       {/* HEADER ACTIONS */}
-      <div className="flex justify-start gap-2 border-b border-border-default pb-4">
-        <div className="flex gap-2">
+      <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex justify-start gap-2 pb-4"}}>
+        <UiBox {...{"className":"flex gap-2"}}>
           {activeTab === 'discounts' ? (
-            <button onClick={openNewDiscount} className="btn-primary flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-card cursor-pointer">
+            <UiButton onClick={openNewDiscount} {...{"variant":"solid","color":"blue","size":"2","className":"flex items-center gap-1.5 cursor-pointer"}}>
               <Plus size={16} /> Nuevo Descuento
-            </button>
+            </UiButton>
           ) : (
-            <button onClick={openNewPromo} className="btn-primary flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-card cursor-pointer" disabled={discounts.length === 0}>
+            <UiButton onClick={openNewPromo} {...{"variant":"solid","color":"blue","size":"2","className":"flex items-center gap-1.5 cursor-pointer"}} disabled={discounts.length === 0}>
               <Plus size={16} /> Nueva Promoción
-            </button>
+            </UiButton>
           )}
-        </div>
-      </div>
+        </UiBox>
+      </UiBox>
 
       {/* TABS */}
-      <div className="flex border-b border-border-default gap-6">
-        <button
+      <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex gap-6"}}>
+        <UiButton
           onClick={() => setActiveTab('discounts')}
-          className={`pb-3 text-sm font-bold uppercase tracking-wider transition-all border-b-2 cursor-pointer ${
-            activeTab === 'discounts'
-              ? 'border-primary text-primary font-semibold'
-              : 'border-transparent text-text-secondary hover:text-text-primary'
-          }`}
+          {...mergeThemeProps({"size":"2","className":"cursor-pointer"}, {}, (activeTab === 'discounts' ? {"color":"blue"} : {"color":"gray"}))}
         >
           Descuentos Maestros ({discounts.length})
-        </button>
-        <button
+        </UiButton>
+        <UiButton
           onClick={() => setActiveTab('promotions')}
-          className={`pb-3 text-sm font-bold uppercase tracking-wider transition-all border-b-2 cursor-pointer ${
-            activeTab === 'promotions'
-              ? 'border-primary text-primary font-semibold'
-              : 'border-transparent text-text-secondary hover:text-text-primary'
-          }`}
+          {...mergeThemeProps({"size":"2","className":"cursor-pointer"}, {}, (activeTab === 'promotions' ? {"color":"blue"} : {"color":"gray"}))}
         >
           Reglas de Promociones ({promotions.length})
-        </button>
-      </div>
+        </UiButton>
+      </UiBox>
 
       {/* DISCOUNTS TAB */}
       {activeTab === 'discounts' && (
-        <div className="bg-white rounded-card border border-border-default overflow-hidden ">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-surface-bg/75 border-b border-border-default text-text-secondary font-semibold text-xs uppercase tracking-wider">
-                <th className="py-3 px-4">Nombre</th>
-                <th className="py-3 px-4">Alcance</th>
-                <th className="py-3 px-4">Tipo Valor</th>
-                <th className="py-3 px-4">Valor</th>
-                <th className="py-3 px-4">Vigencia</th>
-                <th className="py-3 px-4">Autorización</th>
-                <th className="py-3 px-4 text-center">Estado</th>
-                <th className="py-3 px-4 text-right">Acciones</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 text-xs">
+        <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"overflow-hidden"}}>
+          <UiTable {...{"className":"w-full text-left"}}>
+            <UiTableHeader>
+              <UiTableRow {...{"style":{"backgroundColor":"var(--gray-2)","color":"var(--gray-11)"}}}>
+                <UiTableHead {...{"className":"py-3 px-4"}}>Nombre</UiTableHead>
+                <UiTableHead {...{"className":"py-3 px-4"}}>Alcance</UiTableHead>
+                <UiTableHead {...{"className":"py-3 px-4"}}>Tipo Valor</UiTableHead>
+                <UiTableHead {...{"className":"py-3 px-4"}}>Valor</UiTableHead>
+                <UiTableHead {...{"className":"py-3 px-4"}}>Vigencia</UiTableHead>
+                <UiTableHead {...{"className":"py-3 px-4"}}>Autorización</UiTableHead>
+                <UiTableHead {...{"className":"py-3 px-4 text-center"}}>Estado</UiTableHead>
+                <UiTableHead {...{"className":"py-3 px-4 text-right"}}>Acciones</UiTableHead>
+              </UiTableRow>
+            </UiTableHeader>
+            <UiTableBody {...{}}>
               {discounts.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="py-8 text-center text-text-secondary italic">No hay descuentos configurados. Crea uno para comenzar.</td>
-                </tr>
+                <UiTableRow>
+                  <UiTableCell colSpan={8} {...{"style":{"color":"var(--gray-11)"},"className":"py-8 text-center italic"}}>No hay descuentos configurados. Crea uno para comenzar.</UiTableCell>
+                </UiTableRow>
               ) : (
                 discounts.map(disc => (
-                  <tr key={disc.id} className="hover:bg-surface-bg/50 transition-colors">
-                    <td className="py-3.5 px-4 font-bold text-text-heading uppercase">{disc.nombre}</td>
-                    <td className="py-3.5 px-4">
-                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                        disc.alcance === 'PRODUCTO' ? 'bg-indigo-50 text-indigo-600' : 'bg-emerald-50 text-emerald-600'
-                      }`}>
+                  <UiTableRow key={disc.id} {...{}}>
+                    <UiTableCell {...{"style":{"color":"var(--gray-12)"},"className":"py-3.5 px-4"}}>{disc.nombre}</UiTableCell>
+                    <UiTableCell {...{"className":"py-3.5 px-4"}}>
+                      <UiText {...mergeThemeProps({"size":"1","weight":"bold","className":"px-2.5 py-0.5"}, {}, (disc.alcance === 'PRODUCTO' ? {"color":"indigo"} : {"color":"green"}))}>
                         {disc.alcance}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4 font-medium text-text-secondary">{disc.tipo_valor === 'PORCENTAJE' ? 'Porcentaje (%)' : (disc.tipo_valor === 'SIN_IVA' ? 'Quitar IVA' : 'Monto Fijo ($)')}</td>
-                    <td className="py-3.5 px-4 font-semibold font-mono text-text-primary">
+                      </UiText>
+                    </UiTableCell>
+                    <UiTableCell {...{"style":{"color":"var(--gray-11)"},"className":"py-3.5 px-4"}}>{disc.tipo_valor === 'PORCENTAJE' ? 'Porcentaje (%)' : (disc.tipo_valor === 'SIN_IVA' ? 'Quitar IVA' : 'Monto Fijo ($)')}</UiTableCell>
+                    <UiTableCell {...{"style":{"fontFamily":"var(--code-font-family)","color":"var(--gray-12)"},"className":"py-3.5 px-4"}}>
                       {disc.tipo_valor === 'SIN_IVA' ? 'Sin IVA' : (disc.tipo_valor === 'PORCENTAJE' ? `${disc.valor}%` : `$${disc.valor.toFixed(2)}`)}
-                    </td>
-                    <td className="py-3.5 px-4 text-text-secondary font-medium">
-                      <div className="flex items-center gap-1">
+                    </UiTableCell>
+                    <UiTableCell {...{"style":{"color":"var(--gray-11)"},"className":"py-3.5 px-4"}}>
+                      <UiBox {...{"className":"flex items-center gap-1"}}>
                         <Calendar size={12} />
-                        <span>{disc.fecha_inicio} al {disc.fecha_fin}</span>
-                      </div>
-                    </td>
-                    <td className="py-3.5 px-4">
+                        <UiText>{disc.fecha_inicio} al {disc.fecha_fin}</UiText>
+                      </UiBox>
+                    </UiTableCell>
+                    <UiTableCell {...{"className":"py-3.5 px-4"}}>
                       {disc.requiere_autorizacion ? (
-                        <span className="flex items-center gap-1 text-red-500 font-semibold text-xs uppercase">
+                        <UiText {...{"color":"red","weight":"bold","size":"1","className":"flex items-center gap-1"}}>
                           <ShieldAlert size={12} /> Requiere Clave
-                        </span>
+                        </UiText>
                       ) : (
-                        <span className="text-text-secondary">Libre</span>
+                        <UiText {...{"color":"gray"}}>Libre</UiText>
                       )}
-                    </td>
-                    <td className="py-3.5 px-4 text-center">
-                      <button onClick={() => handleToggleDiscount(disc)} className="focus:outline-none cursor-pointer">
+                    </UiTableCell>
+                    <UiTableCell {...{"className":"py-3.5 px-4 text-center"}}>
+                      <UiButton onClick={() => handleToggleDiscount(disc)} {...{"className":"cursor-pointer"}}>
                         {disc.activo ? (
-                          <ToggleRight size={26} className="text-primary" />
+                          <ToggleRight size={26} {...{"style":{"color":"var(--blue-12)"}}} />
                         ) : (
-                          <ToggleLeft size={26} className="text-slate-350" />
+                          <ToggleLeft size={26} {...{"style":{"color":"var(--gray-12)"}}} />
                         )}
-                      </button>
-                    </td>
-                    <td className="py-3.5 px-4 text-right">
-                      <div className="flex justify-end gap-2">
-                        <button onClick={() => openEditDiscount(disc)} className="p-1 hover:bg-surface-muted rounded-md text-text-secondary hover:text-primary transition-colors cursor-pointer" title="Editar">
+                      </UiButton>
+                    </UiTableCell>
+                    <UiTableCell {...{"className":"py-3.5 px-4 text-right"}}>
+                      <UiBox {...{"className":"flex justify-end gap-2"}}>
+                        <UiButton iconOnly onClick={() => openEditDiscount(disc)} {...{"color":"gray","className":"cursor-pointer"}} title="Editar">
                           <Edit2 size={14} />
-                        </button>
-                        <button onClick={() => handleDeleteDiscount(disc.id)} className="p-1 hover:bg-red-50 rounded-md text-text-secondary hover:text-red-650 transition-colors cursor-pointer" title="Eliminar">
+                        </UiButton>
+                        <UiButton iconOnly onClick={() => handleDeleteDiscount(disc.id)} {...{"color":"gray","className":"cursor-pointer"}} title="Eliminar">
                           <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
+                        </UiButton>
+                      </UiBox>
+                    </UiTableCell>
+                  </UiTableRow>
                 ))
               )}
-            </tbody>
-          </table>
-        </div>
+            </UiTableBody>
+          </UiTable>
+        </UiBox>
       )}
 
       {/* PROMOTIONS TAB */}
       {activeTab === 'promotions' && (
-        <div className="bg-white rounded-card border border-border-default overflow-hidden ">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-surface-bg/75 border-b border-border-default text-text-secondary font-semibold text-xs uppercase tracking-wider">
-                <th className="py-3 px-4">Nombre Promoción</th>
-                <th className="py-3 px-4">Descuento Maestro</th>
-                <th className="py-3 px-4">Aplicación</th>
-                <th className="py-3 px-4">Condición</th>
-                <th className="py-3 px-4">Días Válidos</th>
-                <th className="py-3 px-4">Vigencia</th>
-                <th className="py-3 px-4 text-center">Estado</th>
-                <th className="py-3 px-4 text-right">Acciones</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 text-xs">
+        <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"overflow-hidden"}}>
+          <UiTable {...{"className":"w-full text-left"}}>
+            <UiTableHeader>
+              <UiTableRow {...{"style":{"backgroundColor":"var(--gray-2)","color":"var(--gray-11)"}}}>
+                <UiTableHead {...{"className":"py-3 px-4"}}>Nombre Promoción</UiTableHead>
+                <UiTableHead {...{"className":"py-3 px-4"}}>Descuento Maestro</UiTableHead>
+                <UiTableHead {...{"className":"py-3 px-4"}}>Aplicación</UiTableHead>
+                <UiTableHead {...{"className":"py-3 px-4"}}>Condición</UiTableHead>
+                <UiTableHead {...{"className":"py-3 px-4"}}>Días Válidos</UiTableHead>
+                <UiTableHead {...{"className":"py-3 px-4"}}>Vigencia</UiTableHead>
+                <UiTableHead {...{"className":"py-3 px-4 text-center"}}>Estado</UiTableHead>
+                <UiTableHead {...{"className":"py-3 px-4 text-right"}}>Acciones</UiTableHead>
+              </UiTableRow>
+            </UiTableHeader>
+            <UiTableBody {...{}}>
               {promotions.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="py-8 text-center text-text-secondary italic">No hay promociones configuradas.</td>
-                </tr>
+                <UiTableRow>
+                  <UiTableCell colSpan={8} {...{"style":{"color":"var(--gray-11)"},"className":"py-8 text-center italic"}}>No hay promociones configuradas.</UiTableCell>
+                </UiTableRow>
               ) : (
                 promotions.map(promo => {
                   const linkedDisc = discounts.find(d => d.id === promo.id_descuento);
                   return (
-                    <tr key={promo.id} className="hover:bg-surface-bg/50 transition-colors">
-                      <td className="py-3.5 px-4 font-bold text-text-heading uppercase">{promo.nombre}</td>
-                      <td className="py-3.5 px-4">
-                        <span className="font-semibold text-primary">{linkedDisc?.nombre || 'Descuento no encontrado'}</span>
-                        <span className="text-xs font-mono block text-text-secondary">
+                    <UiTableRow key={promo.id} {...{}}>
+                      <UiTableCell {...{"style":{"color":"var(--gray-12)"},"className":"py-3.5 px-4"}}>{promo.nombre}</UiTableCell>
+                      <UiTableCell {...{"className":"py-3.5 px-4"}}>
+                        <UiText {...{"weight":"bold","color":"blue"}}>{linkedDisc?.nombre || 'Descuento no encontrado'}</UiText>
+                        <UiText {...{"size":"1","weight":"regular","color":"gray","className":"block"}}>
                           ({linkedDisc?.tipo_valor === 'SIN_IVA' ? 'Sin IVA' : (linkedDisc?.tipo_valor === 'PORCENTAJE' ? `${linkedDisc?.valor}%` : `$${linkedDisc?.valor || 0}`)})
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <div className="flex flex-col gap-0.5">
-                          <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md text-xs font-bold uppercase w-fit">
+                        </UiText>
+                      </UiTableCell>
+                      <UiTableCell {...{"className":"py-3.5 px-4"}}>
+                        <UiBox {...{"className":"flex flex-col gap-0.5"}}>
+                          <UiText {...{"color":"blue","size":"1","weight":"bold","className":"px-2 py-0.5 w-fit"}}>
                             {promo.alcance_aplicacion}
-                          </span>
+                          </UiText>
                           {promo.target_id && (
-                            <span className="text-xs font-medium text-text-secondary truncate max-w-[120px]">
+                            <UiText {...{"size":"1","weight":"medium","color":"gray","className":"truncate max-w-[120px]"}}>
                               {promo.alcance_aplicacion === 'PRODUCTO_ESPECIFICO'
                                 ? products.find(p => p.id === promo.target_id)?.name
                                 : promo.target_id}
-                            </span>
+                            </UiText>
                           )}
-                        </div>
-                      </td>
-                      <td className="py-3.5 px-4">
+                        </UiBox>
+                      </UiTableCell>
+                      <UiTableCell {...{"className":"py-3.5 px-4"}}>
                         {promo.condicion === 'NINGUNA' ? (
-                          <span className="text-text-secondary">Ninguna</span>
+                          <UiText {...{"color":"gray"}}>Ninguna</UiText>
                         ) : (
-                          <span className="font-semibold text-text-primary">
+                          <UiText {...{"weight":"bold","color":"gray","highContrast":true}}>
                             {promo.condicion === 'MONTO_MINIMO' ? `Min. Compra: $${promo.valor_condicion}` : `Min. Cantidad: ${promo.valor_condicion} und.`}
-                          </span>
+                          </UiText>
                         )}
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <span className="text-text-secondary font-medium truncate block max-w-[150px]" title={promo.dias_validos?.join(', ')}>
+                      </UiTableCell>
+                      <UiTableCell {...{"className":"py-3.5 px-4"}}>
+                        <UiText {...{"color":"gray","weight":"medium","className":"truncate block max-w-[150px]"}} title={promo.dias_validos?.join(', ')}>
                           {promo.dias_validos?.join(', ')}
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-4 text-text-secondary font-medium">
-                        <div className="flex items-center gap-1">
+                        </UiText>
+                      </UiTableCell>
+                      <UiTableCell {...{"style":{"color":"var(--gray-11)"},"className":"py-3.5 px-4"}}>
+                        <UiBox {...{"className":"flex items-center gap-1"}}>
                           <Calendar size={12} />
-                          <span>{promo.fecha_inicio} al {promo.fecha_fin}</span>
-                        </div>
-                      </td>
-                      <td className="py-3.5 px-4 text-center">
-                        <button onClick={() => handleTogglePromo(promo)} className="focus:outline-none cursor-pointer">
+                          <UiText>{promo.fecha_inicio} al {promo.fecha_fin}</UiText>
+                        </UiBox>
+                      </UiTableCell>
+                      <UiTableCell {...{"className":"py-3.5 px-4 text-center"}}>
+                        <UiButton onClick={() => handleTogglePromo(promo)} {...{"className":"cursor-pointer"}}>
                           {promo.activo ? (
-                            <ToggleRight size={26} className="text-primary" />
+                            <ToggleRight size={26} {...{"style":{"color":"var(--blue-12)"}}} />
                           ) : (
-                            <ToggleLeft size={26} className="text-slate-350" />
+                            <ToggleLeft size={26} {...{"style":{"color":"var(--gray-12)"}}} />
                           )}
-                        </button>
-                      </td>
-                      <td className="py-3.5 px-4 text-right">
-                        <div className="flex justify-end gap-2">
-                          <button onClick={() => openEditPromo(promo)} className="p-1 hover:bg-surface-muted rounded-md text-text-secondary hover:text-primary transition-colors cursor-pointer" title="Editar">
+                        </UiButton>
+                      </UiTableCell>
+                      <UiTableCell {...{"className":"py-3.5 px-4 text-right"}}>
+                        <UiBox {...{"className":"flex justify-end gap-2"}}>
+                          <UiButton iconOnly onClick={() => openEditPromo(promo)} {...{"color":"gray","className":"cursor-pointer"}} title="Editar">
                             <Edit2 size={14} />
-                          </button>
-                          <button onClick={() => handleDeletePromo(promo.id)} className="p-1 hover:bg-red-50 rounded-md text-text-secondary hover:text-red-650 transition-colors cursor-pointer" title="Eliminar">
+                          </UiButton>
+                          <UiButton iconOnly onClick={() => handleDeletePromo(promo.id)} {...{"color":"gray","className":"cursor-pointer"}} title="Eliminar">
                             <Trash2 size={14} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
+                          </UiButton>
+                        </UiBox>
+                      </UiTableCell>
+                    </UiTableRow>
                   );
                 })
               )}
-            </tbody>
-          </table>
-        </div>
+            </UiTableBody>
+          </UiTable>
+        </UiBox>
       )}
 
       {/* DISCOUNTS FORM MODAL */}
       {isDiscountModalOpen && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-text-heading/35  p-4">
-          <div className="bg-white rounded-card w-full max-w-lg border border-border-default overflow-hidden flex flex-col">
-            <div className="p-4 border-b border-border-default flex items-center justify-between bg-surface-bg">
-              <h3 className="text-sm font-semibold text-text-heading uppercase tracking-wider">
+        <UiBox {...{"style":{"backgroundColor":"var(--gray-2)"},"className":"fixed inset-0 z-[200] flex items-center justify-center p-4"}}>
+          <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"w-full max-w-lg overflow-hidden flex flex-col"}}>
+            <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)","backgroundColor":"var(--gray-2)"},"className":"p-4 flex items-center justify-between"}}>
+              <UiHeading as="h3" {...{"size":"2","weight":"bold","color":"gray","highContrast":true}}>
                 {editingDiscount ? 'Editar Descuento Maestro' : 'Nuevo Descuento Maestro'}
-              </h3>
-              <button onClick={() => setIsDiscountModalOpen(false)} className="text-text-secondary hover:text-text-primary cursor-pointer">
+              </UiHeading>
+              <UiButton iconOnly onClick={() => setIsDiscountModalOpen(false)} {...{"color":"gray","className":"cursor-pointer"}}>
                 <X size={18} />
-              </button>
-            </div>
-            <form onSubmit={handleSaveDiscount} className="p-5 space-y-4 text-xs font-semibold text-text-primary">
+              </UiButton>
+            </UiBox>
+            <form onSubmit={handleSaveDiscount} {...{"style":{"color":"var(--gray-12)"},"className":"p-5 space-y-4"}}>
               {/* Nombre */}
-              <div>
-                <label className="block text-xs uppercase font-semibold text-text-secondary mb-1.5">Nombre del Descuento</label>
-                <input
+              <UiBox>
+                <UiLabel {...{"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"}}>Nombre del Descuento</UiLabel>
+                <UiInput
                   type="text"
                   required
                   placeholder="Ej: Descuento 15% Clientes VIP"
                   value={discountForm.nombre}
                   onChange={e => setDiscountForm(prev => ({ ...prev, nombre: e.target.value }))}
-                  className="w-full h-10 px-3 rounded-card border border-border-default focus:outline-none focus:border-primary text-black font-medium"
+                  {...{"color":"gray","className":"w-full"}}
                 />
-              </div>
+              </UiBox>
 
-              <div className="grid grid-cols-2 gap-4">
+              <UiBox {...{"className":"grid grid-cols-2 gap-4"}}>
                 {/* Alcance */}
-                <div>
-                  <label className="block text-xs uppercase font-semibold text-text-secondary mb-1.5">Alcance</label>
-                  <select
+                <UiBox>
+                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"}}>Alcance</UiLabel>
+                  <UiSelect
                     value={discountForm.alcance}
                     onChange={e => setDiscountForm(prev => ({ ...prev, alcance: e.target.value }))}
-                    className="w-full h-10 px-2.5 rounded-card border border-border-default focus:outline-none focus:border-primary text-black cursor-pointer font-medium"
+                    {...{"color":"gray","className":"w-full cursor-pointer"}}
                   >
                     <option value="PRODUCTO">Por Producto (Ítem)</option>
                     <option value="VENTA">Por Venta (Total)</option>
-                  </select>
-                </div>
+                  </UiSelect>
+                </UiBox>
 
                 {/* Tipo de Valor */}
-                <div>
-                  <label className="block text-xs uppercase font-semibold text-text-secondary mb-1.5">Tipo de Valor</label>
-                  <select
+                <UiBox>
+                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"}}>Tipo de Valor</UiLabel>
+                  <UiSelect
                     value={discountForm.tipo_valor}
                     onChange={e => {
                       const valType = e.target.value;
@@ -499,20 +492,20 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
                         valor: valType === 'SIN_IVA' ? 0 : prev.valor
                       }));
                     }}
-                    className="w-full h-10 px-2.5 rounded-card border border-border-default focus:outline-none focus:border-primary text-black cursor-pointer font-medium"
+                    {...{"color":"gray","className":"w-full cursor-pointer"}}
                   >
                     <option value="PORCENTAJE">Porcentaje (%)</option>
                     <option value="MONTO_FIJO">Monto Fijo ($)</option>
                     <option value="SIN_IVA">Quitar IVA (Vender sin IVA)</option>
-                  </select>
-                </div>
-              </div>
+                  </UiSelect>
+                </UiBox>
+              </UiBox>
 
-              <div className="grid grid-cols-2 gap-4">
+              <UiBox {...{"className":"grid grid-cols-2 gap-4"}}>
                 {/* Valor */}
-                <div>
-                  <label className="block text-xs uppercase font-semibold text-text-secondary mb-1.5">Valor Descuento</label>
-                  <input
+                <UiBox>
+                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"}}>Valor Descuento</UiLabel>
+                  <UiInput
                     type="number"
                     required={discountForm.tipo_valor !== 'SIN_IVA'}
                     disabled={discountForm.tipo_valor === 'SIN_IVA'}
@@ -521,45 +514,43 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
                     placeholder={discountForm.tipo_valor === 'SIN_IVA' ? "Autocalculado" : "0.00"}
                     value={discountForm.tipo_valor === 'SIN_IVA' ? '0' : (discountForm.valor || '')}
                     onChange={e => setDiscountForm(prev => ({ ...prev, valor: parseFloat(e.target.value) || 0 }))}
-                    className={`w-full h-10 px-3 rounded-card border border-border-default focus:outline-none focus:border-primary text-black font-medium font-mono ${
-                      discountForm.tipo_valor === 'SIN_IVA' ? 'bg-surface-muted text-slate-450' : ''
-                    }`}
+                    {...mergeThemeProps({"color":"gray","className":"w-full"}, {}, (discountForm.tipo_valor === 'SIN_IVA' ? {"color":"gray"} : {}))}
                   />
-                </div>
+                </UiBox>
 
                 {/* Requiere autorización */}
-                <div className="flex flex-col justify-end pb-2">
-                  <label className="flex items-center gap-2 cursor-pointer select-none">
-                    <input
+                <UiBox {...{"className":"flex flex-col justify-end pb-2"}}>
+                  <UiLabel {...{"className":"flex items-center gap-2 cursor-pointer select-none"}}>
+                    <UiInput
                       type="checkbox"
                       checked={discountForm.requiere_autorizacion}
                       onChange={e => setDiscountForm(prev => ({ ...prev, requiere_autorizacion: e.target.checked }))}
-                      className="rounded text-primary focus:ring-primary w-4 h-4 cursor-pointer"
+                      {...{"color":"blue","className":"w-4 cursor-pointer"}}
                     />
-                    <span className="text-xs font-bold text-text-primary">Requiere clave de supervisor</span>
-                  </label>
-                </div>
-              </div>
+                    <UiText {...{"size":"1","weight":"bold","color":"gray","highContrast":true}}>Requiere clave de supervisor</UiText>
+                  </UiLabel>
+                </UiBox>
+              </UiBox>
 
               {/* Método de Aplicación y Cantidad Volumen */}
-              <div className="grid grid-cols-2 gap-4 border-t border-border-default pt-4">
-                <div>
-                  <label className="block text-xs uppercase font-semibold text-text-secondary mb-1.5">Método de Aplicación</label>
-                  <select
+              <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"grid grid-cols-2 gap-4 pt-4"}}>
+                <UiBox>
+                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"}}>Método de Aplicación</UiLabel>
+                  <UiSelect
                     value={discountForm.metodo || 'SIEMPRE'}
                     onChange={e => setDiscountForm(prev => ({ ...prev, metodo: e.target.value }))}
-                    className="w-full h-10 px-2.5 rounded-card border border-border-default focus:outline-none focus:border-primary text-black cursor-pointer font-medium"
+                    {...{"color":"gray","className":"w-full cursor-pointer"}}
                   >
                     <option value="SIEMPRE">Siempre (Sin cantidad mínima)</option>
                     <option value="POR_CADA">Por cada (Escalonado)</option>
                     <option value="A_PARTIR_DE">A partir de (Volumen mínimo)</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs uppercase font-semibold text-text-secondary mb-1.5">
+                  </UiSelect>
+                </UiBox>
+                <UiBox>
+                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"}}>
                     {discountForm.metodo === 'POR_CADA' ? 'Cada X Unidades' : 'Cantidad Mínima'}
-                  </label>
-                  <input
+                  </UiLabel>
+                  <UiInput
                     type="number"
                     required={discountForm.metodo !== 'SIEMPRE'}
                     disabled={discountForm.metodo === 'SIEMPRE'}
@@ -567,88 +558,86 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
                     placeholder={discountForm.metodo === 'SIEMPRE' ? "N/A" : "Ej. 5"}
                     value={discountForm.metodo === 'SIEMPRE' ? '' : (discountForm.cantidad_volumen || '')}
                     onChange={e => setDiscountForm(prev => ({ ...prev, cantidad_volumen: parseInt(e.target.value) || 1 }))}
-                    className={`w-full h-10 px-3 rounded-card border border-border-default focus:outline-none focus:border-primary text-black font-medium font-mono ${
-                      discountForm.metodo === 'SIEMPRE' ? 'bg-surface-muted text-text-secondary' : ''
-                    }`}
+                    {...mergeThemeProps({"color":"gray","className":"w-full"}, {}, (discountForm.metodo === 'SIEMPRE' ? {"color":"gray"} : {}))}
                   />
-                </div>
-              </div>
+                </UiBox>
+              </UiBox>
 
-              <div className="grid grid-cols-2 gap-4 border-t border-border-default pt-4">
+              <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"grid grid-cols-2 gap-4 pt-4"}}>
                 {/* Fecha Inicio */}
-                <div>
-                  <label className="block text-xs uppercase font-semibold text-text-secondary mb-1.5">Fecha Inicio</label>
-                  <input
+                <UiBox>
+                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"}}>Fecha Inicio</UiLabel>
+                  <UiInput
                     type="date"
                     required
                     value={discountForm.fecha_inicio}
                     onChange={e => setDiscountForm(prev => ({ ...prev, fecha_inicio: e.target.value }))}
-                    className="w-full h-10 px-3 rounded-card border border-border-default focus:outline-none focus:border-primary text-black font-medium"
+                    {...{"color":"gray","className":"w-full"}}
                   />
-                </div>
+                </UiBox>
 
                 {/* Fecha Fin */}
-                <div>
-                  <label className="block text-xs uppercase font-semibold text-text-secondary mb-1.5">Fecha Fin</label>
-                  <input
+                <UiBox>
+                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"}}>Fecha Fin</UiLabel>
+                  <UiInput
                     type="date"
                     required
                     value={discountForm.fecha_fin}
                     onChange={e => setDiscountForm(prev => ({ ...prev, fecha_fin: e.target.value }))}
-                    className="w-full h-10 px-3 rounded-card border border-border-default focus:outline-none focus:border-primary text-black font-medium"
+                    {...{"color":"gray","className":"w-full"}}
                   />
-                </div>
-              </div>
+                </UiBox>
+              </UiBox>
 
               {/* Disponibilidad Horaria y Días de la Semana */}
-              <div className="border-t border-border-default pt-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-text-primary">Disponibilidad Horaria</span>
-                  <label className="flex items-center gap-2 cursor-pointer select-none">
-                    <input
+              <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"pt-4 space-y-3"}}>
+                <UiBox {...{"className":"flex items-center justify-between"}}>
+                  <UiText {...{"size":"1","weight":"bold","color":"gray","highContrast":true}}>Disponibilidad Horaria</UiText>
+                  <UiLabel {...{"className":"flex items-center gap-2 cursor-pointer select-none"}}>
+                    <UiInput
                       type="checkbox"
                       checked={discountForm.activo_24h ?? true}
                       onChange={e => setDiscountForm(prev => ({ ...prev, activo_24h: e.target.checked }))}
-                      className="rounded text-primary focus:ring-primary w-4 h-4 cursor-pointer"
+                      {...{"color":"blue","className":"w-4 cursor-pointer"}}
                     />
-                    <span className="text-xs font-bold text-text-primary">Activo las 24 horas</span>
-                  </label>
-                </div>
+                    <UiText {...{"size":"1","weight":"bold","color":"gray","highContrast":true}}>Activo las 24 horas</UiText>
+                  </UiLabel>
+                </UiBox>
 
                 {!(discountForm.activo_24h ?? true) && (
-                  <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-1 duration-200">
-                    <div>
-                      <label className="block text-xs uppercase font-semibold text-text-secondary mb-1.5">Hora Inicio</label>
-                      <input
+                  <UiBox {...{"className":"grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-1 duration-200"}}>
+                    <UiBox>
+                      <UiLabel {...{"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"}}>Hora Inicio</UiLabel>
+                      <UiInput
                         type="time"
                         required
                         value={discountForm.hora_inicio || '00:00'}
                         onChange={e => setDiscountForm(prev => ({ ...prev, hora_inicio: e.target.value }))}
-                        className="w-full h-10 px-3 rounded-card border border-border-default focus:outline-none focus:border-primary text-black font-medium"
+                        {...{"color":"gray","className":"w-full"}}
                       />
-                    </div>
-                    <div>
-                      <label className="block text-xs uppercase font-semibold text-text-secondary mb-1.5">Hora Fin</label>
-                      <input
+                    </UiBox>
+                    <UiBox>
+                      <UiLabel {...{"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"}}>Hora Fin</UiLabel>
+                      <UiInput
                         type="time"
                         required
                         value={discountForm.hora_fin || '23:59'}
                         onChange={e => setDiscountForm(prev => ({ ...prev, hora_fin: e.target.value }))}
-                        className="w-full h-10 px-3 rounded-card border border-border-default focus:outline-none focus:border-primary text-black font-medium"
+                        {...{"color":"gray","className":"w-full"}}
                       />
-                    </div>
-                  </div>
+                    </UiBox>
+                  </UiBox>
                 )}
 
                 {/* Días de la Semana */}
-                <div>
-                  <label className="block text-xs uppercase font-semibold text-text-secondary mb-2">Días Activos de la Semana</label>
-                  <div className="flex flex-wrap gap-2">
+                <UiBox>
+                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","className":"block mb-2"}}>Días Activos de la Semana</UiLabel>
+                  <UiBox {...{"className":"flex flex-wrap gap-2"}}>
                     {['LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB', 'DOM'].map(day => {
                       const list = discountForm.dias_semana || ['LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB', 'DOM'];
                       const isChecked = list.includes(day);
                       return (
-                        <button
+                        <UiButton
                           type="button"
                           key={day}
                           onClick={() => {
@@ -657,127 +646,123 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
                               : [...list, day];
                             setDiscountForm(prev => ({ ...prev, dias_semana: updated }));
                           }}
-                          className={`px-3 py-1.5 rounded-card border text-xs font-bold transition-all cursor-pointer ${
-                            isChecked
-                              ? 'bg-primary/10 border-primary text-primary'
-                              : 'bg-white border-border-default text-slate-550 hover:bg-surface-bg'
-                          }`}
+                          {...mergeThemeProps({"variant":"outline","size":"2","className":"cursor-pointer"}, {}, (isChecked ? {"variant":"soft","color":"blue"} : {"variant":"surface","color":"gray"}))}
                         >
                           {day}
-                        </button>
+                        </UiButton>
                       );
                     })}
-                  </div>
-                </div>
-              </div>
+                  </UiBox>
+                </UiBox>
+              </UiBox>
 
-              <div className="pt-3 flex justify-end gap-2 border-t border-border-default">
-                <button type="button" onClick={() => setIsDiscountModalOpen(false)} className="btn-secondary px-4 py-2 font-bold rounded-card cursor-pointer">Cancelar</button>
-                <button type="submit" className="btn-primary px-4 py-2 font-bold text-white rounded-card cursor-pointer">Guardar Descuento</button>
-              </div>
+              <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"pt-3 flex justify-end gap-2"}}>
+                <UiButton type="button" onClick={() => setIsDiscountModalOpen(false)} {...{"variant":"surface","color":"blue","className":"cursor-pointer"}}>Cancelar</UiButton>
+                <UiButton type="submit" {...{"variant":"solid","color":"blue","className":"cursor-pointer"}}>Guardar Descuento</UiButton>
+              </UiBox>
             </form>
-          </div>
-        </div>
+          </UiBox>
+        </UiBox>
       )}
 
       {/* PROMO FORM MODAL */}
       {isPromoModalOpen && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-text-heading/35  p-4">
-          <div className="bg-white rounded-card w-full max-w-lg border border-border-default overflow-hidden flex flex-col">
-            <div className="p-4 border-b border-border-default flex items-center justify-between bg-surface-bg">
-              <h3 className="text-sm font-semibold text-text-heading uppercase tracking-wider">
+        <UiBox {...{"style":{"backgroundColor":"var(--gray-2)"},"className":"fixed inset-0 z-[200] flex items-center justify-center p-4"}}>
+          <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"w-full max-w-lg overflow-hidden flex flex-col"}}>
+            <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)","backgroundColor":"var(--gray-2)"},"className":"p-4 flex items-center justify-between"}}>
+              <UiHeading as="h3" {...{"size":"2","weight":"bold","color":"gray","highContrast":true}}>
                 {editingPromo ? 'Editar Promoción' : 'Nueva Promoción'}
-              </h3>
-              <button onClick={() => setIsPromoModalOpen(false)} className="text-text-secondary hover:text-text-primary cursor-pointer">
+              </UiHeading>
+              <UiButton iconOnly onClick={() => setIsPromoModalOpen(false)} {...{"color":"gray","className":"cursor-pointer"}}>
                 <X size={18} />
-              </button>
-            </div>
-            <form onSubmit={handleSavePromo} className="p-5 space-y-4 text-xs font-semibold text-text-primary">
+              </UiButton>
+            </UiBox>
+            <form onSubmit={handleSavePromo} {...{"style":{"color":"var(--gray-12)"},"className":"p-5 space-y-4"}}>
               {/* Nombre */}
-              <div>
-                <label className="block text-xs uppercase font-semibold text-text-secondary mb-1.5">Nombre de la Promoción</label>
-                <input
+              <UiBox>
+                <UiLabel {...{"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"}}>Nombre de la Promoción</UiLabel>
+                <UiInput
                   type="text"
                   required
                   placeholder="Ej: Descuento Lunes de Frutas"
                   value={promoForm.nombre}
                   onChange={e => setPromoForm(prev => ({ ...prev, nombre: e.target.value }))}
-                  className="w-full h-10 px-3 rounded-card border border-border-default focus:outline-none focus:border-primary text-black font-medium"
+                  {...{"color":"gray","className":"w-full"}}
                 />
-              </div>
+              </UiBox>
 
-              <div className="grid grid-cols-2 gap-4">
+              <UiBox {...{"className":"grid grid-cols-2 gap-4"}}>
                 {/* Descuento Asociado */}
-                <div>
-                  <label className="block text-xs uppercase font-semibold text-text-secondary mb-1.5">Descuento Asociado</label>
-                  <select
+                <UiBox>
+                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"}}>Descuento Asociado</UiLabel>
+                  <UiSelect
                     value={promoForm.id_descuento}
                     required
                     onChange={e => setPromoForm(prev => ({ ...prev, id_descuento: e.target.value }))}
-                    className="w-full h-10 px-2.5 rounded-card border border-border-default focus:outline-none focus:border-primary text-black cursor-pointer font-medium"
+                    {...{"color":"gray","className":"w-full cursor-pointer"}}
                   >
                     {discounts.map(d => (
                       <option key={d.id} value={d.id}>{d.nombre} ({d.tipo_valor === 'SIN_IVA' ? 'Sin IVA' : (d.tipo_valor === 'PORCENTAJE' ? `${d.valor}%` : `$${d.valor}`)})</option>
                     ))}
-                  </select>
-                </div>
+                  </UiSelect>
+                </UiBox>
 
                 {/* Alcance de aplicación */}
-                <div>
-                  <label className="block text-xs uppercase font-semibold text-text-secondary mb-1.5">Alcance de Aplicación</label>
-                  <select
+                <UiBox>
+                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"}}>Alcance de Aplicación</UiLabel>
+                  <UiSelect
                     value={promoForm.alcance_aplicacion}
                     onChange={e => setPromoForm(prev => ({ ...prev, alcance_aplicacion: e.target.value, target_id: '' }))}
-                    className="w-full h-10 px-2.5 rounded-card border border-border-default focus:outline-none focus:border-primary text-black cursor-pointer font-medium"
+                    {...{"color":"gray","className":"w-full cursor-pointer"}}
                   >
                     <option value="PRODUCTO_ESPECIFICO">Producto Específico</option>
                     <option value="CATEGORIA">Categoría Específica</option>
                     <option value="VENTA_TOTAL">Venta Total</option>
-                  </select>
-                </div>
-              </div>
+                  </UiSelect>
+                </UiBox>
+              </UiBox>
 
               {/* Target ID Selector (Product or Category) */}
               {promoForm.alcance_aplicacion !== 'VENTA_TOTAL' && (
-                <div>
-                  <label className="block text-xs uppercase font-semibold text-text-secondary mb-1.5">
+                <UiBox>
+                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"}}>
                     {promoForm.alcance_aplicacion === 'PRODUCTO_ESPECIFICO' ? 'Seleccionar Producto' : 'Seleccionar Categoría'}
-                  </label>
-                  <select
+                  </UiLabel>
+                  <UiSelect
                     value={promoForm.target_id}
                     required
                     onChange={e => setPromoForm(prev => ({ ...prev, target_id: e.target.value }))}
-                    className="w-full h-10 px-2.5 rounded-card border border-border-default focus:outline-none focus:border-primary text-black cursor-pointer font-medium"
+                    {...{"color":"gray","className":"w-full cursor-pointer"}}
                   >
                     <option value="">-- Seleccionar --</option>
                     {promoForm.alcance_aplicacion === 'PRODUCTO_ESPECIFICO'
                       ? products.map(p => <option key={p.id} value={p.id}>{p.name} ({p.sku})</option>)
                       : categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)
                     }
-                  </select>
-                </div>
+                  </UiSelect>
+                </UiBox>
               )}
 
-              <div className="grid grid-cols-2 gap-4 border-t border-border-default pt-4">
+              <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"grid grid-cols-2 gap-4 pt-4"}}>
                 {/* Condición */}
-                <div>
-                  <label className="block text-xs uppercase font-semibold text-text-secondary mb-1.5">Condición</label>
-                  <select
+                <UiBox>
+                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"}}>Condición</UiLabel>
+                  <UiSelect
                     value={promoForm.condicion}
                     onChange={e => setPromoForm(prev => ({ ...prev, condicion: e.target.value, valor_condicion: 0 }))}
-                    className="w-full h-10 px-2.5 rounded-card border border-border-default focus:outline-none focus:border-primary text-black cursor-pointer font-medium"
+                    {...{"color":"gray","className":"w-full cursor-pointer"}}
                   >
                     <option value="NINGUNA">Ninguna (Siempre se aplica)</option>
                     <option value="MONTO_MINIMO">Monto de Venta Mínimo ($)</option>
                     <option value="CANTIDAD_MINIMA">Cantidad de Ítems Mínima</option>
-                  </select>
-                </div>
+                  </UiSelect>
+                </UiBox>
 
                 {/* Valor Condición */}
                 {promoForm.condicion !== 'NINGUNA' && (
-                  <div>
-                    <label className="block text-xs uppercase font-semibold text-text-secondary mb-1.5">Valor Condición</label>
-                    <input
+                  <UiBox>
+                    <UiLabel {...{"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"}}>Valor Condición</UiLabel>
+                    <UiInput
                       type="number"
                       required
                       min="0"
@@ -785,70 +770,66 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
                       placeholder="0.00"
                       value={promoForm.valor_condicion || ''}
                       onChange={e => setPromoForm(prev => ({ ...prev, valor_condicion: parseFloat(e.target.value) || 0 }))}
-                      className="w-full h-10 px-3 rounded-card border border-border-default focus:outline-none focus:border-primary text-black font-medium font-mono"
+                      {...{"color":"gray","className":"w-full"}}
                     />
-                  </div>
+                  </UiBox>
                 )}
-              </div>
+              </UiBox>
 
               {/* Días válidos */}
-              <div>
-                <label className="block text-xs uppercase font-semibold text-text-secondary mb-1.5">Días Válidos de la Semana</label>
-                <div className="flex flex-wrap gap-1.5">
+              <UiBox>
+                <UiLabel {...{"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"}}>Días Válidos de la Semana</UiLabel>
+                <UiBox {...{"className":"flex flex-wrap gap-1.5"}}>
                   {["LUN", "MAR", "MIE", "JUE", "VIE", "SAB", "DOM"].map(day => {
                     const isSel = promoForm.dias_validos.includes(day);
                     return (
-                      <button
+                      <UiButton
                         key={day}
                         type="button"
                         onClick={() => toggleDay(day)}
-                        className={`px-3 py-1.5 rounded-md text-xs font-semibold tracking-wider transition-colors cursor-pointer border ${
-                          isSel
-                            ? 'bg-primary text-white border-primary'
-                            : 'bg-white text-text-secondary border-border-default hover:bg-surface-bg'
-                        }`}
+                        {...mergeThemeProps({"size":"2","variant":"outline","className":"cursor-pointer"}, {}, (isSel ? {"variant":"solid","color":"blue"} : {"variant":"surface","color":"gray"}))}
                       >
                         {day}
-                      </button>
+                      </UiButton>
                     );
                   })}
-                </div>
-              </div>
+                </UiBox>
+              </UiBox>
 
-              <div className="grid grid-cols-2 gap-4 border-t border-border-default pt-4">
+              <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"grid grid-cols-2 gap-4 pt-4"}}>
                 {/* Fecha Inicio */}
-                <div>
-                  <label className="block text-xs uppercase font-semibold text-text-secondary mb-1.5">Fecha Inicio</label>
-                  <input
+                <UiBox>
+                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"}}>Fecha Inicio</UiLabel>
+                  <UiInput
                     type="date"
                     required
                     value={promoForm.fecha_inicio}
                     onChange={e => setPromoForm(prev => ({ ...prev, fecha_inicio: e.target.value }))}
-                    className="w-full h-10 px-3 rounded-card border border-border-default focus:outline-none focus:border-primary text-black font-medium"
+                    {...{"color":"gray","className":"w-full"}}
                   />
-                </div>
+                </UiBox>
 
                 {/* Fecha Fin */}
-                <div>
-                  <label className="block text-xs uppercase font-semibold text-text-secondary mb-1.5">Fecha Fin</label>
-                  <input
+                <UiBox>
+                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"}}>Fecha Fin</UiLabel>
+                  <UiInput
                     type="date"
                     required
                     value={promoForm.fecha_fin}
                     onChange={e => setPromoForm(prev => ({ ...prev, fecha_fin: e.target.value }))}
-                    className="w-full h-10 px-3 rounded-card border border-border-default focus:outline-none focus:border-primary text-black font-medium"
+                    {...{"color":"gray","className":"w-full"}}
                   />
-                </div>
-              </div>
+                </UiBox>
+              </UiBox>
 
-              <div className="pt-3 flex justify-end gap-2 border-t border-border-default">
-                <button type="button" onClick={() => setIsPromoModalOpen(false)} className="btn-secondary px-4 py-2 font-bold rounded-card cursor-pointer">Cancelar</button>
-                <button type="submit" className="btn-primary px-4 py-2 font-bold text-white rounded-card cursor-pointer">Guardar Promoción</button>
-              </div>
+              <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"pt-3 flex justify-end gap-2"}}>
+                <UiButton type="button" onClick={() => setIsPromoModalOpen(false)} {...{"variant":"surface","color":"blue","className":"cursor-pointer"}}>Cancelar</UiButton>
+                <UiButton type="submit" {...{"variant":"solid","color":"blue","className":"cursor-pointer"}}>Guardar Promoción</UiButton>
+              </UiBox>
             </form>
-          </div>
-        </div>
+          </UiBox>
+        </UiBox>
       )}
-    </div>
+    </UiBox>
   );
 }

@@ -1,8 +1,9 @@
+import { UiButton } from '../ui/controls';
 import { invoiceDescription, invoiceLineAmounts } from '../../services/invoiceLine';
 import { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
+import { createThemedPortal as createPortal } from '../ui/themePortal';
 import { X, Printer, FileText } from 'lucide-react';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc } from '../../services/financeStore.js';
 
 function numeroALetras(num) {
   const unidades = ['SIN', 'UN', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE'];
@@ -416,7 +417,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
           <div className="flex items-center gap-3">
             {/* Selector de formato */}
             <div className="flex p-0.5 rounded-md border bg-white border-border-strong">
-              <button 
+              <UiButton
                 onClick={() => setViewFormat('ride')}
                 className={`px-3 py-1 rounded text-xs font-bold transition-all ${
                   viewFormat === 'ride' 
@@ -425,8 +426,8 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
                 }`}
               >
                 RIDE Oficial (A4)
-              </button>
-              <button 
+              </UiButton>
+              <UiButton
                 onClick={() => setViewFormat('ticket')}
                 className={`px-3 py-1 rounded text-xs font-bold transition-all ${
                   viewFormat === 'ticket' 
@@ -435,19 +436,19 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
                 }`}
               >
                 Ticket POS (80mm)
-              </button>
+              </UiButton>
             </div>
 
-            <button 
+            <UiButton
               onClick={handlePrint}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-card bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase transition-transform hover:-translate-y-0.5"
             >
               <Printer size={12} /> Imprimir / PDF
-            </button>
+            </UiButton>
 
-            <button onClick={onClose} className="p-1 rounded-md hover:bg-white/10 text-text-secondary hover:text-white transition-colors">
+            <UiButton onClick={onClose} className="p-1 rounded-md hover:bg-white/10 text-text-secondary hover:text-white transition-colors">
               <X size={16} />
-            </button>
+            </UiButton>
           </div>
         </div>
 

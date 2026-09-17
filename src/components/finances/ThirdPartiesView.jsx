@@ -1,6 +1,10 @@
+import { resolveThemeProps } from '../ui/themeProps';
+import { mergeThemeProps } from '../ui/themeProps';
+import { UiBox, UiCard, UiText, UiHeading, UiLabel } from '../ui/layout';
+import { UiButton, UiInput, UiSelect, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell } from '../ui/controls';
 import { useState } from 'react';
 import { Plus, Search, Trash2, Edit2, Sparkles, RefreshCw } from 'lucide-react';
-import { doc, setDoc, deleteDoc } from 'firebase/firestore';
+import { doc, setDoc, deleteDoc } from '../../services/financeStore.js';
 import { consultarRucSri } from '../../services/sriService';
 
 export default function ThirdPartiesView({ thirdParties, showToast, db, appId, forcedType }) {
@@ -139,60 +143,60 @@ export default function ThirdPartiesView({ thirdParties, showToast, db, appId, f
     }
   };
 
-  const inputClass = 'w-full text-xs px-3.5 py-3 rounded-card outline-none transition-all border glass-input-light';
+  
 
   return (
-    <div className="animate-in slide-in-from-bottom-4 duration-500">
+    <UiBox {...{"className":"animate-in slide-in-from-bottom-4 duration-500"}}>
       
-      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 mb-6">
-        <div>
-          <button 
+      <UiBox {...{"className":"flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 mb-6"}}>
+        <UiBox>
+          <UiButton
             onClick={() => { resetForm(); setIsModalOpen(true); }}
-            className="btn-primary w-full sm:w-auto"
+            {...{"variant":"solid","color":"blue","className":"w-full sm:w-auto"}}
           >
             <Plus size={15} /> Nuevo {forcedType === 'cliente' ? 'Cliente' : forcedType === 'proveedor' ? 'Proveedor' : 'Contacto'}
-          </button>
-        </div>
+          </UiButton>
+        </UiBox>
 
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
-          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-card border-none w-full sm:w-64 transition-all focus-within:ring-1 focus-within:ring-primary/25 bg-surface-bg hover:bg-surface-card focus-within:bg-surface-card">
-            <Search size={14} className="text-text-secondary" />
-            <input 
+        <UiBox {...{"className":"flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto"}}>
+          <UiCard {...{"style":{"backgroundColor":"var(--gray-2)"},"className":"flex items-center gap-2 px-3.5 py-1.5 w-full sm:w-64"}}>
+            <Search size={14} {...{"style":{"color":"var(--gray-11)"}}} />
+            <UiInput
               type="text" 
               placeholder={`Buscar por nombre, RUC o dirección...`} 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="bg-transparent border-none outline-none text-xs w-full text-current placeholder-gray-500 focus:ring-0"
+              {...{"size":"2","className":"w-full"}}
             />
-          </div>
+          </UiCard>
 
-          <select 
+          <UiSelect
             value={filterIdType} 
             onChange={e => setFilterIdType(e.target.value)} 
-            className="px-3 py-1.5 rounded-card border-none text-xs font-medium outline-none transition-all cursor-pointer bg-surface-bg hover:bg-surface-card text-text-primary focus:ring-1 focus:ring-primary/25"
+            {...{"size":"2","color":"gray","className":"cursor-pointer"}}
           >
-            <option value="all" className="text-black">Identificación: Todos</option>
-            <option value="ruc" className="text-black">RUC</option>
-            <option value="cedula" className="text-black">Cédula</option>
-            <option value="pasaporte" className="text-black">Pasaporte</option>
-          </select>
-        </div>
-      </div>
+            <option value="all" {...{"style":{"color":"var(--gray-12)"}}}>Identificación: Todos</option>
+            <option value="ruc" {...{"style":{"color":"var(--gray-12)"}}}>RUC</option>
+            <option value="cedula" {...{"style":{"color":"var(--gray-12)"}}}>Cédula</option>
+            <option value="pasaporte" {...{"style":{"color":"var(--gray-12)"}}}>Pasaporte</option>
+          </UiSelect>
+        </UiBox>
+      </UiBox>
 
-      <div className="rounded-card border overflow-hidden transition-all border-border-default/80 bg-white">
-        <div className="overflow-x-auto custom-scrollbar">
-          <table className="w-full text-left text-xs whitespace-nowrap">
-            <thead className="text-xs uppercase font-bold tracking-wider bg-surface-bg text-text-primary border-b border-border-default">
-              <tr>
-                <th className="px-6 py-3.5">Razón Social / Nombres</th>
-                <th className="px-6 py-3.5">Identificación</th>
-                <th className="px-6 py-3.5 hidden sm:table-cell">Teléfono</th>
-                <th className="px-6 py-3.5">Dirección Domicilio</th>
-                <th className="px-6 py-3.5">Correo Notificación</th>
-                <th className="px-6 py-3.5 text-right">Acciones</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
+      <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"overflow-hidden"}}>
+        <UiBox {...{"className":"overflow-x-auto custom-scrollbar"}}>
+          <UiTable {...{"className":"w-full text-left whitespace-nowrap"}}>
+            <UiTableHeader {...{"style":{"backgroundColor":"var(--gray-2)","color":"var(--gray-12)"}}}>
+              <UiTableRow>
+                <UiTableHead {...{"className":"px-6 py-3.5"}}>Razón Social / Nombres</UiTableHead>
+                <UiTableHead {...{"className":"px-6 py-3.5"}}>Identificación</UiTableHead>
+                <UiTableHead {...{"className":"px-6 py-3.5 hidden sm:table-cell"}}>Teléfono</UiTableHead>
+                <UiTableHead {...{"className":"px-6 py-3.5"}}>Dirección Domicilio</UiTableHead>
+                <UiTableHead {...{"className":"px-6 py-3.5"}}>Correo Notificación</UiTableHead>
+                <UiTableHead {...{"className":"px-6 py-3.5 text-right"}}>Acciones</UiTableHead>
+              </UiTableRow>
+            </UiTableHeader>
+            <UiTableBody {...{}}>
               {filtered.map(tp => {
                 const initials = tp.name ? tp.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'C';
                 const colors = [
@@ -207,165 +211,165 @@ export default function ThirdPartiesView({ thirdParties, showToast, db, appId, f
                 const colorClass = colors[charCodeSum % colors.length];
 
                 return (
-                  <tr key={tp.id} className="transition-colors hover:bg-surface-bg/40">
-                    <td className="px-6 py-3.5">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${colorClass} flex items-center justify-center text-xs font-bold text-white`}>
+                  <UiTableRow key={tp.id} {...{}}>
+                    <UiTableCell {...{"className":"px-6 py-3.5"}}>
+                      <UiBox {...{"className":"flex items-center gap-3"}}>
+                        <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--gray-2)"},"className":"w-8 h-8"}, {"style":{"color":"var(--color-background)"},"className":"flex items-center justify-center"}, resolveThemeProps(colors[charCodeSum % colors.length]))}>
                           {initials}
-                        </div>
-                        <div>
-                          <p className="font-bold text-xs text-black">{tp.name}</p>
+                        </UiBox>
+                        <UiBox>
+                          <UiText as="p" {...{"weight":"bold","size":"1","color":"gray","highContrast":true}}>{tp.name}</UiText>
 
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-3.5 font-mono text-xs">
-                      <span className="text-xs text-text-secondary font-bold block uppercase opacity-85">{tp.tipoIdentificacion || 'ruc'}</span>
-                      <span className="text-black font-semibold">{tp.ruc}</span>
-                    </td>
-                    <td className="px-6 py-3.5 text-xs font-bold text-black hidden sm:table-cell">{tp.telefono || '-'}</td>
-                    <td className="px-6 py-3.5 text-xs max-w-[220px] truncate text-black font-semibold" title={tp.direccion}>
+                        </UiBox>
+                      </UiBox>
+                    </UiTableCell>
+                    <UiTableCell {...{"style":{"fontFamily":"var(--code-font-family)"},"className":"px-6 py-3.5"}}>
+                      <UiText {...{"size":"1","color":"gray","weight":"bold","className":"block opacity-85"}}>{tp.tipoIdentificacion || 'ruc'}</UiText>
+                      <UiText {...{"color":"gray","highContrast":true,"weight":"bold"}}>{tp.ruc}</UiText>
+                    </UiTableCell>
+                    <UiTableCell {...{"style":{"color":"var(--gray-12)"},"className":"px-6 py-3.5 hidden sm:table-cell"}}>{tp.telefono || '-'}</UiTableCell>
+                    <UiTableCell {...{"style":{"color":"var(--gray-12)"},"className":"px-6 py-3.5 max-w-[220px] truncate"}} title={tp.direccion}>
                        {tp.direccion || '-'}
-                       {tp.ciudad && <span className="block text-xs text-text-secondary font-bold uppercase mt-0.5">{tp.ciudad}</span>}
-                     </td>
-                    <td className="px-6 py-3.5 text-xs font-bold text-primary hover:underline"><a href={`mailto:${tp.email}`}>{tp.email || '-'}</a></td>
-                    <td className="px-6 py-3.5 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <button 
+                       {tp.ciudad && <UiText {...{"size":"1","color":"gray","weight":"bold","className":"block mt-0.5"}}>{tp.ciudad}</UiText>}
+                     </UiTableCell>
+                    <UiTableCell {...{"style":{"color":"var(--blue-12)"},"className":"px-6 py-3.5 hover:underline"}}><a href={`mailto:${tp.email}`}>{tp.email || '-'}</a></UiTableCell>
+                    <UiTableCell {...{"className":"px-6 py-3.5 text-right"}}>
+                      <UiBox {...{"className":"flex items-center justify-end gap-1.5"}}>
+                        <UiButton iconOnly
                           onClick={() => { setFormData({ id: tp.id || '', name: tp.name || '', ruc: tp.ruc || '', email: tp.email || '', type: tp.type || forcedType || 'cliente', tipoIdentificacion: tp.tipoIdentificacion || 'ruc', direccion: tp.direccion || '', telefono: tp.telefono || '', tipoContribuyente: tp.tipoContribuyente || 'general', ciudad: tp.ciudad || '' }); setIsModalOpen(true); }} 
-                          className="btn-icon bg-primary text-white hover:bg-primary-hover" 
+                          {...{"variant":"solid","color":"blue"}} 
                           title="Editar"
                         >
                           <Edit2 size={13}/>
-                        </button>
-                        <button 
+                        </UiButton>
+                        <UiButton iconOnly
                           onClick={() => handleDelete(tp.id)} 
-                          className="btn-icon bg-red-600 text-white hover:bg-red-700" 
+                          {...{"variant":"solid","color":"red"}} 
                           title="Eliminar"
                         >
                           <Trash2 size={13}/>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
+                        </UiButton>
+                      </UiBox>
+                    </UiTableCell>
+                  </UiTableRow>
                 );
               })}
               {filtered.length === 0 && (
-                <tr>
-                  <td colSpan="6" className="px-6 py-12 text-center text-text-secondary italic">No se encontraron registros de personas.</td>
-                </tr>
+                <UiTableRow>
+                  <UiTableCell colSpan="6" {...{"style":{"color":"var(--gray-11)"},"className":"px-6 py-12 text-center italic"}}>No se encontraron registros de personas.</UiTableCell>
+                </UiTableRow>
               )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+            </UiTableBody>
+          </UiTable>
+        </UiBox>
+      </UiBox>
 
       {/* MODAL CREAR/EDITAR */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 animate-in fade-in duration-200">
-          <div className="w-full max-w-lg p-6 sm:p-8 rounded-card transition-all duration-300 border glass-panel-light text-text-heading">
-            <div className="flex justify-between items-center mb-6 pb-2 border-b border-white/5">
-              <h2 className="text-base font-bold font-display uppercase tracking-wider">
+        <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200"}}>
+          <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","color":"var(--gray-12)"},"className":"w-full max-w-lg p-6 sm:p-8 duration-300"}}>
+            <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex justify-between items-center mb-6 pb-2"}}>
+              <UiHeading as="h2" {...{"size":"3","weight":"regular"}}>
                 {formData.id ? 'Editar' : 'Nuevo'} {forcedType === 'cliente' ? 'Cliente' : forcedType === 'proveedor' ? 'Proveedor' : 'Contacto'}
-              </h2>
-              <button 
+              </UiHeading>
+              <UiButton iconOnly
                 onClick={() => setIsModalOpen(false)} 
-                className="btn-icon text-gray-450 hover:text-text-heading"
+                {...{"variant":"surface","color":"gray"}}
               >
-                <Plus size={16} className="rotate-45" />
-              </button>
-            </div>
+                <Plus size={16} {...{"className":"rotate-45"}} />
+              </UiButton>
+            </UiBox>
             
-            <form onSubmit={handleSave} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 text-text-primary">Tipo Identificación</label>
-                  <select value={formData.tipoIdentificacion || 'ruc'} onChange={e => setFormData({...formData, tipoIdentificacion: e.target.value})} className={`${inputClass} cursor-pointer`}>
-                    <option value="ruc" className="text-black">RUC (13 dígitos)</option>
-                    <option value="cedula" className="text-black">Cédula de Identidad (10 dígitos)</option>
-                    <option value="pasaporte" className="text-black">Pasaporte</option>
-                    <option value="consumidor_final" className="text-black">Consumidor Final</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 text-text-primary">Identificación</label>
-                  <div className="flex gap-2">
-                    <input 
+            <form onSubmit={handleSave} {...{"className":"space-y-4"}}>
+              <UiBox {...{"className":"grid grid-cols-2 gap-4"}}>
+                <UiBox>
+                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5 ml-1"}}>Tipo Identificación</UiLabel>
+                  <UiSelect value={formData.tipoIdentificacion || 'ruc'} onChange={e => setFormData({...formData, tipoIdentificacion: e.target.value})} {...mergeThemeProps({}, {"className":"cursor-pointer"}, {"size":"2","className":"w-full"})}>
+                    <option value="ruc" {...{"style":{"color":"var(--gray-12)"}}}>RUC (13 dígitos)</option>
+                    <option value="cedula" {...{"style":{"color":"var(--gray-12)"}}}>Cédula de Identidad (10 dígitos)</option>
+                    <option value="pasaporte" {...{"style":{"color":"var(--gray-12)"}}}>Pasaporte</option>
+                    <option value="consumidor_final" {...{"style":{"color":"var(--gray-12)"}}}>Consumidor Final</option>
+                  </UiSelect>
+                </UiBox>
+                <UiBox>
+                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5 ml-1"}}>Identificación</UiLabel>
+                  <UiBox {...{"className":"flex gap-2"}}>
+                    <UiInput
                       type="text" 
                       required 
                       value={formData.ruc} 
                       onChange={e => setFormData({...formData, ruc: e.target.value})} 
-                      className={inputClass} 
+                      {...{"size":"2","className":"w-full"}} 
                       placeholder="1790000000001" 
                     />
-                    <button
+                    <UiButton
                       type="button"
                       disabled={isQueryingSri}
                       onClick={querySRI}
-                      className="btn-icon shrink-0 bg-purple-50 text-purple-800 hover:bg-purple-100 border border-purple-200"
+                      {...{"variant":"solid","color":"purple","className":"shrink-0"}}
                       title="Consultar base del SRI"
                     >
-                      {isQueryingSri ? <RefreshCw size={13} className="animate-spin" /> : <Sparkles size={13} />}
-                    </button>
-                  </div>
-                </div>
-              </div>
+                      {isQueryingSri ? <RefreshCw size={13} {...{"className":"animate-spin"}} /> : <Sparkles size={13} />}
+                    </UiButton>
+                  </UiBox>
+                </UiBox>
+              </UiBox>
 
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 text-text-primary">Razón Social / Nombres Completos</label>
-                <input type="text" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className={inputClass} placeholder="Ej. Juan Pérez o WEBFIX S.A." />
-              </div>
+              <UiBox>
+                <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5 ml-1"}}>Razón Social / Nombres Completos</UiLabel>
+                <UiInput type="text" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} {...{"size":"2","className":"w-full"}} placeholder="Ej. Juan Pérez o WEBFIX S.A." />
+              </UiBox>
 
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 text-text-primary">Teléfono Contacto</label>
-                <input type="text" value={formData.telefono || ''} onChange={e => setFormData({...formData, telefono: e.target.value})} className={inputClass} placeholder="Ej. 0998765432 o 022987654" />
-              </div>
+              <UiBox>
+                <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5 ml-1"}}>Teléfono Contacto</UiLabel>
+                <UiInput type="text" value={formData.telefono || ''} onChange={e => setFormData({...formData, telefono: e.target.value})} {...{"size":"2","className":"w-full"}} placeholder="Ej. 0998765432 o 022987654" />
+              </UiBox>
 
-              <div className="grid grid-cols-3 gap-4 font-mono">
-                 <div className="col-span-2 font-sans">
-                   <label className="block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 text-text-primary">Dirección Matriz / Domicilio</label>
-                   <input type="text" value={formData.direccion || ''} onChange={e => setFormData({...formData, direccion: e.target.value})} className={inputClass} placeholder="Av. de los Shyris y Holanda, Quito" />
-                 </div>
-                 <div className="font-sans">
-                   <label className="block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 text-text-primary">Ciudad</label>
-                   <input type="text" value={formData.ciudad || ''} onChange={e => setFormData({...formData, ciudad: e.target.value})} className={inputClass} placeholder="Ej. Quito" />
-                 </div>
-               </div>
+              <UiBox {...{"style":{"fontFamily":"var(--code-font-family)"},"className":"grid grid-cols-3 gap-4"}}>
+                 <UiBox {...{"className":"col-span-2"}}>
+                   <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5 ml-1"}}>Dirección Matriz / Domicilio</UiLabel>
+                   <UiInput type="text" value={formData.direccion || ''} onChange={e => setFormData({...formData, direccion: e.target.value})} {...{"size":"2","className":"w-full"}} placeholder="Av. de los Shyris y Holanda, Quito" />
+                 </UiBox>
+                 <UiBox {...{}}>
+                   <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5 ml-1"}}>Ciudad</UiLabel>
+                   <UiInput type="text" value={formData.ciudad || ''} onChange={e => setFormData({...formData, ciudad: e.target.value})} {...{"size":"2","className":"w-full"}} placeholder="Ej. Quito" />
+                 </UiBox>
+               </UiBox>
 
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 text-text-primary">Correo Electrónico (Notificación SRI)</label>
-                <input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className={inputClass} placeholder="correo@ejemplo.com" />
-              </div>
+              <UiBox>
+                <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5 ml-1"}}>Correo Electrónico (Notificación SRI)</UiLabel>
+                <UiInput type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} {...{"size":"2","className":"w-full"}} placeholder="correo@ejemplo.com" />
+              </UiBox>
 
               {!forcedType && (
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider mb-1.5 ml-1 text-text-primary">Tipo de Relación</label>
-                  <select value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})} className={`${inputClass} cursor-pointer`}>
-                    <option value="cliente" className="text-black">Cliente</option>
-                    <option value="proveedor" className="text-black">Proveedor</option>
-                  </select>
-                </div>
+                <UiBox>
+                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5 ml-1"}}>Tipo de Relación</UiLabel>
+                  <UiSelect value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})} {...mergeThemeProps({}, {"className":"cursor-pointer"}, {"size":"2","className":"w-full"})}>
+                    <option value="cliente" {...{"style":{"color":"var(--gray-12)"}}}>Cliente</option>
+                    <option value="proveedor" {...{"style":{"color":"var(--gray-12)"}}}>Proveedor</option>
+                  </UiSelect>
+                </UiBox>
               )}
 
-              <div className="flex justify-end gap-3 mt-8 pt-4 border-t border-white/5">
-                <button 
+              <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"flex justify-end gap-3 mt-8 pt-4"}}>
+                <UiButton
                   type="button" 
                   onClick={() => setIsModalOpen(false)} 
-                  className="btn-secondary"
+                  {...{"variant":"surface","color":"blue"}}
                 >
                   Cancelar
-                </button>
-                <button 
+                </UiButton>
+                <UiButton
                   type="submit" 
-                  className="btn-primary"
+                  {...{"variant":"solid","color":"blue"}}
                 >
                   Guardar Persona
-                </button>
-              </div>
+                </UiButton>
+              </UiBox>
             </form>
-          </div>
-        </div>
+          </UiBox>
+        </UiBox>
       )}
-    </div>
+    </UiBox>
   );
 }

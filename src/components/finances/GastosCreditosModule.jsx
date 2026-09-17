@@ -1,10 +1,13 @@
+import { mergeThemeProps } from '../ui/themeProps';
+import { UiBox, UiCard, UiText, UiHeading, UiLabel } from '../ui/layout';
+import { UiButton, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell, UiInput, UiSelect } from '../ui/controls';
 import { useState, useEffect } from 'react';
 import { 
   CreditCard, DollarSign, Landmark, ShoppingBag, Plus, 
   Trash2, X, 
   ArrowUpCircle, History
 } from 'lucide-react';
-import { doc, setDoc, collection, onSnapshot, deleteDoc } from 'firebase/firestore';
+import { doc, setDoc, collection, onSnapshot, deleteDoc } from '../../services/financeStore.js';
 import { getEcuadorDateString } from '../../services/sriService';
 
 export default function GastosCreditosModule({ showToast, transactions = [], thirdParties = [], db, appId, initialSubTab }) {
@@ -213,506 +216,500 @@ export default function GastosCreditosModule({ showToast, transactions = [], thi
 
   const getIcon = (type) => {
     switch (type) {
-      case 'prestamo': return <Landmark className="text-emerald-500" size={18} />;
-      case 'credito_almacen': return <ShoppingBag className="text-amber-500" size={18} />;
-      case 'tarjeta_credito': return <CreditCard className="text-pink-500" size={18} />;
-      default: return <DollarSign className="text-primary" size={18} />;
+      case 'prestamo': return <Landmark {...{"style":{"color":"var(--green-11)"}}} size={18} />;
+      case 'credito_almacen': return <ShoppingBag {...{"style":{"color":"var(--amber-11)"}}} size={18} />;
+      case 'tarjeta_credito': return <CreditCard {...{"style":{"color":"var(--pink-11)"}}} size={18} />;
+      default: return <DollarSign {...{"style":{"color":"var(--blue-12)"}}} size={18} />;
     }
   };
 
-  const inputClass = `w-full text-xs px-3 py-2.5 outline-none rounded-card border transition-all bg-white border-border-strong text-text-heading focus:border-primary`;
+  
 
   return (
-    <div className="flex flex-col h-full w-full animate-in fade-in duration-500 overflow-hidden">
+    <UiBox {...{"className":"flex flex-col h-full w-full animate-in fade-in duration-500 overflow-hidden"}}>
       
 
 
       {/* CUERPO DEL MÓDULO */}
-      <div className="flex flex-1 overflow-hidden min-h-0 bg-transparent">
-        <div className="flex-1 overflow-y-auto px-8 py-6 custom-scrollbar bg-white">
+      <UiBox {...{"style":{"backgroundColor":"transparent"},"className":"flex flex-1 overflow-hidden min-h-0"}}>
+        <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"flex-1 overflow-y-auto px-8 py-6 custom-scrollbar"}}>
           {loading ? (
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500"></div>
-            </div>
+            <UiBox {...{"className":"flex justify-center items-center h-64"}}>
+              <UiBox {...{"style":{"borderRadius":"var(--radius-3)"},"className":"animate-spin h-8 w-8"}}></UiBox>
+            </UiBox>
           ) : (
             <>
               {/* TAB: RESUMEN */}
               {activeTab === 'resumen' && (
-                <div className="space-y-6">
+                <UiBox {...{"className":"space-y-6"}}>
                   {/* Tarjetas métricas */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                    <div className="p-5 rounded-card border bg-white border-border-default">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-semibold uppercase text-text-secondary tracking-wider">Total Endeudamiento</span>
-                        <div className="p-1.5 rounded-md bg-red-500/10 text-red-500">
+                  <UiBox {...{"className":"grid grid-cols-1 sm:grid-cols-3 gap-6"}}>
+                    <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-5"}}>
+                      <UiBox {...{"className":"flex items-center justify-between mb-2"}}>
+                        <UiText {...{"size":"1","weight":"bold","color":"gray"}}>Total Endeudamiento</UiText>
+                        <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--red-3)","color":"var(--red-11)"},"className":"p-1.5"}}>
                           <ArrowUpCircle size={16} />
-                        </div>
-                      </div>
-                      <p className="text-2xl font-semibold text-red-500">${totalPasivos.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                      <p className="text-xs text-text-secondary mt-1">Saldo pendiente acumulado de todas las obligaciones</p>
-                    </div>
+                        </UiBox>
+                      </UiBox>
+                      <UiText as="p" {...{"size":"6","weight":"bold","color":"red"}}>${totalPasivos.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</UiText>
+                      <UiText as="p" {...{"size":"1","color":"gray","className":"mt-1"}}>Saldo pendiente acumulado de todas las obligaciones</UiText>
+                    </UiCard>
 
-                    <div className="p-5 rounded-card border bg-white border-border-default">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-semibold uppercase text-text-secondary tracking-wider">Pago de Cuotas Mensual</span>
-                        <div className="p-1.5 rounded-md bg-emerald-500/10 text-emerald-500">
+                    <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-5"}}>
+                      <UiBox {...{"className":"flex items-center justify-between mb-2"}}>
+                        <UiText {...{"size":"1","weight":"bold","color":"gray"}}>Pago de Cuotas Mensual</UiText>
+                        <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--green-3)","color":"var(--green-11)"},"className":"p-1.5"}}>
                           <DollarSign size={16} />
-                        </div>
-                      </div>
-                      <p className="text-2xl font-semibold text-emerald-500">${totalCuotasMes.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                      <p className="text-xs text-text-secondary mt-1">Suma del pago mensual programado de cuotas</p>
-                    </div>
+                        </UiBox>
+                      </UiBox>
+                      <UiText as="p" {...{"size":"6","weight":"bold","color":"green"}}>${totalCuotasMes.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</UiText>
+                      <UiText as="p" {...{"size":"1","color":"gray","className":"mt-1"}}>Suma del pago mensual programado de cuotas</UiText>
+                    </UiCard>
 
-                    <div className="p-5 rounded-card border bg-white border-border-default">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-semibold uppercase text-text-secondary tracking-wider">Total Gastos ERP</span>
-                        <div className="p-1.5 rounded-md bg-pink-500/10 text-pink-500">
+                    <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-5"}}>
+                      <UiBox {...{"className":"flex items-center justify-between mb-2"}}>
+                        <UiText {...{"size":"1","weight":"bold","color":"gray"}}>Total Gastos ERP</UiText>
+                        <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--pink-3)","color":"var(--pink-11)"},"className":"p-1.5"}}>
                           <History size={16} />
-                        </div>
-                      </div>
-                      <p className="text-2xl font-semibold">${totalExpensesAllTime.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                      <p className="text-xs text-text-secondary mt-1">Egresos totales registrados en contabilidad general</p>
-                    </div>
-                  </div>
+                        </UiBox>
+                      </UiBox>
+                      <UiText as="p" {...{"size":"6","weight":"bold"}}>${totalExpensesAllTime.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</UiText>
+                      <UiText as="p" {...{"size":"1","color":"gray","className":"mt-1"}}>Egresos totales registrados en contabilidad general</UiText>
+                    </UiCard>
+                  </UiBox>
 
                   {/* Resumen por tipo de pasivo */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="p-6 rounded-card border bg-white border-border-default">
-                      <h3 className="text-xs font-bold uppercase tracking-wider mb-4">Composición de Deuda Financiera</h3>
-                      <div className="space-y-4">
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="flex items-center gap-2 font-semibold">
-                            <Landmark size={14} className="text-emerald-500" /> Préstamos Bancarios
-                          </span>
-                          <span className="font-bold">${prestamos.reduce((s,l) => s + (l.saldoPendiente || 0), 0).toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="flex items-center gap-2 font-semibold">
-                            <ShoppingBag size={14} className="text-amber-500" /> Créditos de Almacén
-                          </span>
-                          <span className="font-bold">${creditosAlmacen.reduce((s,l) => s + (l.saldoPendiente || 0), 0).toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="flex items-center gap-2 font-semibold">
-                            <CreditCard size={14} className="text-pink-500" /> Tarjetas de Crédito
-                          </span>
-                          <span className="font-bold">${tarjetasCredito.reduce((s,l) => s + (l.saldoPendiente || 0), 0).toFixed(2)}</span>
-                        </div>
-                      </div>
-                    </div>
+                  <UiBox {...{"className":"grid grid-cols-1 md:grid-cols-2 gap-6"}}>
+                    <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-6"}}>
+                      <UiHeading as="h3" {...{"size":"1","weight":"bold","className":"mb-4"}}>Composición de Deuda Financiera</UiHeading>
+                      <UiBox {...{"className":"space-y-4"}}>
+                        <UiBox {...{"className":"flex justify-between items-center"}}>
+                          <UiText {...{"weight":"bold","className":"flex items-center gap-2"}}>
+                            <Landmark size={14} {...{"style":{"color":"var(--green-11)"}}} /> Préstamos Bancarios
+                          </UiText>
+                          <UiText {...{"weight":"bold"}}>${prestamos.reduce((s,l) => s + (l.saldoPendiente || 0), 0).toFixed(2)}</UiText>
+                        </UiBox>
+                        <UiBox {...{"className":"flex justify-between items-center"}}>
+                          <UiText {...{"weight":"bold","className":"flex items-center gap-2"}}>
+                            <ShoppingBag size={14} {...{"style":{"color":"var(--amber-11)"}}} /> Créditos de Almacén
+                          </UiText>
+                          <UiText {...{"weight":"bold"}}>${creditosAlmacen.reduce((s,l) => s + (l.saldoPendiente || 0), 0).toFixed(2)}</UiText>
+                        </UiBox>
+                        <UiBox {...{"className":"flex justify-between items-center"}}>
+                          <UiText {...{"weight":"bold","className":"flex items-center gap-2"}}>
+                            <CreditCard size={14} {...{"style":{"color":"var(--pink-11)"}}} /> Tarjetas de Crédito
+                          </UiText>
+                          <UiText {...{"weight":"bold"}}>${tarjetasCredito.reduce((s,l) => s + (l.saldoPendiente || 0), 0).toFixed(2)}</UiText>
+                        </UiBox>
+                      </UiBox>
+                    </UiCard>
 
-                    <div className="p-6 rounded-card border flex flex-col justify-between bg-white border-border-default">
-                      <div>
-                        <h3 className="text-xs font-bold uppercase tracking-wider mb-2">Salud Crediticia del Negocio</h3>
-                        <p className="text-xs text-text-secondary leading-normal">
+                    <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-6 flex flex-col justify-between"}}>
+                      <UiBox>
+                        <UiHeading as="h3" {...{"size":"1","weight":"bold","className":"mb-2"}}>Salud Crediticia del Negocio</UiHeading>
+                        <UiText as="p" {...{"size":"1","color":"gray","className":"leading-normal"}}>
                           Llevar un control ordenado de sus deudas le permite evitar mora, planificar flujos de efectivo futuros y deducir los gastos de interés comercial según la normativa ecuatoriana.
-                        </p>
-                      </div>
-                      <div className="mt-4 pt-4 border-t border-dashed border-white/5 flex gap-2">
-                        <button
+                        </UiText>
+                      </UiBox>
+                      <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"mt-4 pt-4 flex gap-2"}}>
+                        <UiButton
                           onClick={() => setActiveTab('pasivos')}
-                          className="h-[34px] px-4 rounded-btn bg-pink-600 hover:bg-pink-500 text-white font-semibold text-xs transition-all border-none"
+                          {...{"variant":"solid","color":"pink","size":"2"}}
                         >
                           Ver Mis Créditos
-                        </button>
-                        <button
+                        </UiButton>
+                        <UiButton
                           onClick={() => setIsAddModalOpen(true)}
-                          className="btn-secondary"
+                          {...{"variant":"surface","color":"blue"}}
                         >
                           <Plus size={14} /> Registrar Deuda
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                        </UiButton>
+                      </UiBox>
+                    </UiCard>
+                  </UiBox>
+                </UiBox>
               )}
 
               {/* TAB: PASIVOS */}
               {activeTab === 'pasivos' && (
-                <div className="space-y-6">
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-xs font-bold uppercase tracking-wider">Obligaciones Comerciales y Bancarias</h3>
-                    <button
+                <UiBox {...{"className":"space-y-6"}}>
+                  <UiBox {...{"className":"flex justify-between items-center"}}>
+                    <UiHeading as="h3" {...{"size":"1","weight":"bold"}}>Obligaciones Comerciales y Bancarias</UiHeading>
+                    <UiButton
                       onClick={() => setIsAddModalOpen(true)}
-                      className="h-[34px] px-4 rounded-btn bg-pink-600 hover:bg-pink-500 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition-all border-none"
+                      {...{"variant":"solid","color":"pink","size":"2","className":"flex items-center justify-center gap-1.5"}}
                     >
                       <Plus size={14} /> Registrar Nuevo Pasivo
-                    </button>
-                  </div>
+                    </UiButton>
+                  </UiBox>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <UiBox {...{"className":"grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"}}>
                     {liabilities.map(liab => (
-                      <div key={liab.id} className="p-5 rounded-card border relative flex flex-col justify-between bg-white border-border-default">
-                        <div>
-                          <div className="flex justify-between items-start mb-3">
-                            <span className="p-2.5 rounded-card bg-white/5 border border-white/5">
+                      <UiCard key={liab.id} {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-5 relative flex flex-col justify-between"}}>
+                        <UiBox>
+                          <UiBox {...{"className":"flex justify-between items-start mb-3"}}>
+                            <UiText {...{"className":"p-2.5"}}>
                               {getIcon(liab.type)}
-                            </span>
-                            <span className={`text-xs font-semibold uppercase px-2 py-0.5 rounded-full ${
-                              liab.saldoPendiente > 0 ? 'bg-red-500/10 text-red-400' : 'bg-emerald-500/10 text-emerald-450'
-                            }`}>
+                            </UiText>
+                            <UiText {...mergeThemeProps({"size":"1","weight":"bold","className":"px-2 py-0.5"}, {}, (liab.saldoPendiente > 0 ? {"color":"red"} : {"color":"green"}))}>
                               {liab.saldoPendiente > 0 ? 'Con saldo' : 'Liquidado'}
-                            </span>
-                          </div>
+                            </UiText>
+                          </UiBox>
 
-                          <h4 className="font-bold text-sm text-black  mb-0.5">{liab.entity}</h4>
-                          <p className="text-xs text-text-secondary mb-4">{getTypeName(liab.type)}</p>
+                          <UiHeading as="h4" {...{"weight":"bold","size":"2","color":"gray","highContrast":true,"className":"mb-0.5"}}>{liab.entity}</UiHeading>
+                          <UiText as="p" {...{"size":"1","color":"gray","className":"mb-4"}}>{getTypeName(liab.type)}</UiText>
 
-                          <div className="space-y-2 border-t border-white/5 pt-3 text-xs">
-                            <div className="flex justify-between">
-                              <span className="text-text-secondary">Monto Inicial:</span>
-                              <span className="font-semibold">${Number(liab.montoInicial || 0).toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-text-secondary">Saldo Pendiente:</span>
-                              <span className="font-semibold text-red-500">${Number(liab.saldoPendiente || 0).toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-text-secondary">Cuota Mensual:</span>
-                              <span className="font-bold text-emerald-500">${Number(liab.cuotaMensual || 0).toFixed(2)}</span>
-                            </div>
+                          <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"space-y-2 pt-3"}}>
+                            <UiBox {...{"className":"flex justify-between"}}>
+                              <UiText {...{"color":"gray"}}>Monto Inicial:</UiText>
+                              <UiText {...{"weight":"bold"}}>${Number(liab.montoInicial || 0).toFixed(2)}</UiText>
+                            </UiBox>
+                            <UiBox {...{"className":"flex justify-between"}}>
+                              <UiText {...{"color":"gray"}}>Saldo Pendiente:</UiText>
+                              <UiText {...{"weight":"bold","color":"red"}}>${Number(liab.saldoPendiente || 0).toFixed(2)}</UiText>
+                            </UiBox>
+                            <UiBox {...{"className":"flex justify-between"}}>
+                              <UiText {...{"color":"gray"}}>Cuota Mensual:</UiText>
+                              <UiText {...{"weight":"bold","color":"green"}}>${Number(liab.cuotaMensual || 0).toFixed(2)}</UiText>
+                            </UiBox>
                             {liab.nextPaymentDate && (
-                              <div className="flex justify-between">
-                                <span className="text-text-secondary">Próximo Pago:</span>
-                                <span className="font-mono text-text-secondary">{liab.nextPaymentDate}</span>
-                              </div>
+                              <UiBox {...{"className":"flex justify-between"}}>
+                                <UiText {...{"color":"gray"}}>Próximo Pago:</UiText>
+                                <UiText {...{"weight":"regular","color":"gray"}}>{liab.nextPaymentDate}</UiText>
+                              </UiBox>
                             )}
-                          </div>
-                        </div>
+                          </UiBox>
+                        </UiBox>
 
-                        <div className="flex gap-2 mt-5 border-t border-white/5 pt-3">
-                          <button
+                        <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"flex gap-2 mt-5 pt-3"}}>
+                          <UiButton
                             onClick={() => {
                               setSelectedLiability(liab);
                               setPaymentAmount(liab.cuotaMensual || '');
                             }}
                             disabled={liab.saldoPendiente <= 0}
-                            className={`flex-1 h-[34px] rounded-btn text-xs font-semibold text-center transition-all border-none ${
-                              liab.saldoPendiente > 0 
-                                ? 'bg-pink-600 hover:bg-pink-500 text-white' 
-                                : 'bg-surface-sidebar/20 text-text-secondary  cursor-not-allowed'
-                            }`}
+                            {...mergeThemeProps({"size":"2","className":"flex-1 text-center"}, {}, (liab.saldoPendiente > 0 ? {"variant":"solid","color":"pink"} : {"variant":"soft","color":"gray","className":"cursor-not-allowed"}))}
                           >
                             Pagar Cuota
-                          </button>
-                          <button
+                          </UiButton>
+                          <UiButton iconOnly
                             onClick={() => handleDeleteLiability(liab.id)}
-                            className="btn-icon bg-red-600 text-white hover:bg-red-700"
+                            {...{"variant":"solid","color":"red"}}
                             title="Eliminar registro"
                           >
                             <Trash2 size={14} />
-                          </button>
-                        </div>
-                      </div>
+                          </UiButton>
+                        </UiBox>
+                      </UiCard>
                     ))}
 
                     {liabilities.length === 0 && (
-                      <div className="col-span-full py-16 text-center text-text-secondary italic">
+                      <UiBox {...{"style":{"color":"var(--gray-11)"},"className":"col-span-full py-16 text-center italic"}}>
                         No hay deudas o pasivos registrados. ¡Excelente! Tu negocio está libre de deudas financieras directas.
-                      </div>
+                      </UiBox>
                     )}
-                  </div>
-                </div>
+                  </UiBox>
+                </UiBox>
               )}
 
               {/* TAB: HISTORIAL GASTOS */}
               {activeTab === 'historial_gastos' && (
-                <div className="space-y-6">
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-xs font-bold uppercase tracking-wider">Historial de Todos los Egresos / Compras</h3>
-                    <div className="text-xs font-bold">
-                      <span>Total Egresos Acumulado: </span>
-                      <span className="text-red-500 text-sm font-semibold">${totalExpensesAllTime.toFixed(2)}</span>
-                    </div>
-                  </div>
+                <UiBox {...{"className":"space-y-6"}}>
+                  <UiBox {...{"className":"flex justify-between items-center"}}>
+                    <UiHeading as="h3" {...{"size":"1","weight":"bold"}}>Historial de Todos los Egresos / Compras</UiHeading>
+                    <UiBox {...{}}>
+                      <UiText>Total Egresos Acumulado: </UiText>
+                      <UiText {...{"color":"red","size":"2","weight":"bold"}}>${totalExpensesAllTime.toFixed(2)}</UiText>
+                    </UiBox>
+                  </UiBox>
 
-                  <div className="rounded-card border overflow-hidden transition-all border-border-default/80 bg-white">
-                    <div className="overflow-x-auto custom-scrollbar">
-                      <table className="w-full text-left text-xs whitespace-nowrap">
-                        <thead className="text-xs uppercase font-bold tracking-wider bg-surface-bg text-text-primary border-b border-border-default">
-                          <tr>
-                            <th className="px-6 py-3.5">Fecha</th>
-                            <th className="px-6 py-3.5">Descripción / Comprobante</th>
-                            <th className="px-6 py-3.5">Proveedor</th>
-                            <th className="px-6 py-3.5">Categoría</th>
-                            <th className="px-6 py-3.5 text-right">Subtotal</th>
-                            <th className="px-6 py-3.5 text-right">IVA</th>
-                            <th className="px-6 py-3.5 text-right">Total</th>
-                            <th className="px-6 py-3.5 text-center">Método Pago</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100">
+                  <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"overflow-hidden"}}>
+                    <UiBox {...{"className":"overflow-x-auto custom-scrollbar"}}>
+                      <UiTable {...{"className":"w-full text-left whitespace-nowrap"}}>
+                        <UiTableHeader {...{"style":{"backgroundColor":"var(--gray-2)","color":"var(--gray-12)"}}}>
+                          <UiTableRow>
+                            <UiTableHead {...{"className":"px-6 py-3.5"}}>Fecha</UiTableHead>
+                            <UiTableHead {...{"className":"px-6 py-3.5"}}>Descripción / Comprobante</UiTableHead>
+                            <UiTableHead {...{"className":"px-6 py-3.5"}}>Proveedor</UiTableHead>
+                            <UiTableHead {...{"className":"px-6 py-3.5"}}>Categoría</UiTableHead>
+                            <UiTableHead {...{"className":"px-6 py-3.5 text-right"}}>Subtotal</UiTableHead>
+                            <UiTableHead {...{"className":"px-6 py-3.5 text-right"}}>IVA</UiTableHead>
+                            <UiTableHead {...{"className":"px-6 py-3.5 text-right"}}>Total</UiTableHead>
+                            <UiTableHead {...{"className":"px-6 py-3.5 text-center"}}>Método Pago</UiTableHead>
+                          </UiTableRow>
+                        </UiTableHeader>
+                        <UiTableBody {...{}}>
                           {historicalEgresos.map(tx => {
                             const contact = thirdParties.find(tp => tp.id === tx.thirdPartyId);
                             return (
-                              <tr key={tx.id} className="transition-colors hover:bg-surface-bg/40">
-                                <td className="px-6 py-3.5 text-text-secondary font-medium">{tx.date}</td>
-                                <td className="px-6 py-3.5">
-                                  <div>
-                                    <p className="font-bold text-black  line-clamp-1">{tx.description || 'Sin descripción'}</p>
-                                    <p className="text-xs text-text-secondary font-mono mt-0.5">{tx.documentNumber || `Sec: ${tx.secuencial || 'N/A'}`}</p>
-                                  </div>
-                                </td>
-                                <td className="px-6 py-3.5 font-semibold text-black ">
+                              <UiTableRow key={tx.id} {...{}}>
+                                <UiTableCell {...{"style":{"color":"var(--gray-11)"},"className":"px-6 py-3.5"}}>{tx.date}</UiTableCell>
+                                <UiTableCell {...{"className":"px-6 py-3.5"}}>
+                                  <UiBox>
+                                    <UiText as="p" {...{"weight":"bold","color":"gray","highContrast":true,"className":"line-clamp-1"}}>{tx.description || 'Sin descripción'}</UiText>
+                                    <UiText as="p" {...{"size":"1","color":"gray","weight":"regular","className":"mt-0.5"}}>{tx.documentNumber || `Sec: ${tx.secuencial || 'N/A'}`}</UiText>
+                                  </UiBox>
+                                </UiTableCell>
+                                <UiTableCell {...{"style":{"color":"var(--gray-12)"},"className":"px-6 py-3.5"}}>
                                   {contact?.name || 'Proveedor Externo (S/N)'}
-                                </td>
-                                <td className="px-6 py-3.5">
-                                  <span className="badge-status-sm text-xs font-semibold">
+                                </UiTableCell>
+                                <UiTableCell {...{"className":"px-6 py-3.5"}}>
+                                  <UiText {...{"size":"1","weight":"bold"}}>
                                     {String(tx.category || 'gastos').replace('_', ' ')}
-                                  </span>
-                                </td>
-                                <td className="px-6 py-3.5 text-right font-mono">${(Number(tx.baseImponible) || Number(tx.total) || 0).toFixed(2)}</td>
-                                <td className="px-6 py-3.5 text-right font-mono">${(Number(tx.ivaValor) || 0).toFixed(2)}</td>
-                                <td className="px-6 py-3.5 text-right font-bold text-red-500">${Number(tx.total).toFixed(2)}</td>
-                                <td className="px-6 py-3.5 text-center capitalize text-text-secondary font-medium">{tx.paymentMethod}</td>
-                              </tr>
+                                  </UiText>
+                                </UiTableCell>
+                                <UiTableCell {...{"style":{"fontFamily":"var(--code-font-family)"},"className":"px-6 py-3.5 text-right"}}>${(Number(tx.baseImponible) || Number(tx.total) || 0).toFixed(2)}</UiTableCell>
+                                <UiTableCell {...{"style":{"fontFamily":"var(--code-font-family)"},"className":"px-6 py-3.5 text-right"}}>${(Number(tx.ivaValor) || 0).toFixed(2)}</UiTableCell>
+                                <UiTableCell {...{"style":{"color":"var(--red-11)"},"className":"px-6 py-3.5 text-right"}}>${Number(tx.total).toFixed(2)}</UiTableCell>
+                                <UiTableCell {...{"style":{"color":"var(--gray-11)"},"className":"px-6 py-3.5 text-center"}}>{tx.paymentMethod}</UiTableCell>
+                              </UiTableRow>
                             );
                           })}
 
                           {historicalEgresos.length === 0 && (
-                            <tr>
-                              <td colSpan="8" className="px-6 py-8 text-center text-text-secondary italic">
+                            <UiTableRow>
+                              <UiTableCell colSpan="8" {...{"style":{"color":"var(--gray-11)"},"className":"px-6 py-8 text-center italic"}}>
                                 No hay compras o egresos registrados en el ERP todavía.
-                              </td>
-                            </tr>
+                              </UiTableCell>
+                            </UiTableRow>
                           )}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
+                        </UiTableBody>
+                      </UiTable>
+                    </UiBox>
+                  </UiBox>
+                </UiBox>
               )}
             </>
           )}
-        </div>
-      </div>
+        </UiBox>
+      </UiBox>
 
       {/* MODAL: REGISTRAR PAGO DE CUOTA */}
       {selectedLiability && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/85 animate-in fade-in">
-          <div className="w-full max-w-md p-6 rounded-card bg-white border border-border-default">
-            <div className="flex justify-between items-center mb-4 border-b pb-2 border-white/5">
-              <h3 className="text-sm font-semibold">Registrar Pago de Cuota / Abono</h3>
-              <button onClick={() => setSelectedLiability(null)} className="btn-icon text-text-secondary hover:text-white"><X size={16} /></button>
-            </div>
+        <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[150] flex items-center justify-center p-4 animate-in fade-in"}}>
+          <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"w-full max-w-md p-6"}}>
+            <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex justify-between items-center mb-4 pb-2"}}>
+              <UiHeading as="h3" {...{"size":"2","weight":"bold"}}>Registrar Pago de Cuota / Abono</UiHeading>
+              <UiButton iconOnly onClick={() => setSelectedLiability(null)} {...{"variant":"surface","color":"gray"}}><X size={16} /></UiButton>
+            </UiBox>
 
-            <form onSubmit={handleRecordPayment} className="space-y-4">
-              <div className="p-3.5 rounded-card bg-black/15 border border-white/5 text-xs space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-text-secondary">Entidad:</span>
-                  <span className="font-bold">{selectedLiability.entity}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-text-secondary">Cuota Programada:</span>
-                  <span className="font-bold text-emerald-500">${Number(selectedLiability.cuotaMensual || 0).toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between border-t border-dashed border-white/10 pt-2 font-bold">
-                  <span className="text-text-secondary">Saldo Pendiente Actual:</span>
-                  <span className="text-red-500">${Number(selectedLiability.saldoPendiente || 0).toFixed(2)}</span>
-                </div>
-              </div>
+            <form onSubmit={handleRecordPayment} {...{"className":"space-y-4"}}>
+              <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--black-a7)","border":"1px solid var(--gray-a6)"},"className":"p-3.5 space-y-2"}}>
+                <UiBox {...{"className":"flex justify-between"}}>
+                  <UiText {...{"color":"gray"}}>Entidad:</UiText>
+                  <UiText {...{"weight":"bold"}}>{selectedLiability.entity}</UiText>
+                </UiBox>
+                <UiBox {...{"className":"flex justify-between"}}>
+                  <UiText {...{"color":"gray"}}>Cuota Programada:</UiText>
+                  <UiText {...{"weight":"bold","color":"green"}}>${Number(selectedLiability.cuotaMensual || 0).toFixed(2)}</UiText>
+                </UiBox>
+                <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"flex justify-between pt-2"}}>
+                  <UiText {...{"color":"gray"}}>Saldo Pendiente Actual:</UiText>
+                  <UiText {...{"color":"red"}}>${Number(selectedLiability.saldoPendiente || 0).toFixed(2)}</UiText>
+                </UiBox>
+              </UiBox>
 
-              <div>
-                <label className="label-field label-field-dark">Monto a Pagar ($)</label>
-                <input
+              <UiBox>
+                <UiLabel {...{}}>Monto a Pagar ($)</UiLabel>
+                <UiInput
                   type="number"
                   step="0.01"
                   required
                   max={Number(selectedLiability.saldoPendiente || 0).toFixed(2)}
                   value={paymentAmount}
                   onChange={e => setPaymentAmount(e.target.value)}
-                  className={inputClass}
+                  {...mergeThemeProps({"size":"2","color":"gray","className":"w-full"})}
                   placeholder="0.00"
                 />
-              </div>
+              </UiBox>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="label-field label-field-dark">Forma de Pago</label>
-                  <select
+              <UiBox {...{"className":"grid grid-cols-2 gap-3"}}>
+                <UiBox>
+                  <UiLabel {...{}}>Forma de Pago</UiLabel>
+                  <UiSelect
                     value={paymentMethod}
                     onChange={e => setPaymentMethod(e.target.value)}
-                    className={inputClass}
+                    {...mergeThemeProps({"size":"2","color":"gray","className":"w-full"})}
                   >
-                    <option value="transferencia" className="text-black">Transferencia</option>
-                    <option value="efectivo" className="text-black">Efectivo</option>
-                    <option value="tarjeta" className="text-black">Tarjeta de Crédito</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="label-field label-field-dark font-mono">Nro de Referencia / Comprobante</label>
-                  <input
+                    <option value="transferencia" {...{"style":{"color":"var(--gray-12)"}}}>Transferencia</option>
+                    <option value="efectivo" {...{"style":{"color":"var(--gray-12)"}}}>Efectivo</option>
+                    <option value="tarjeta" {...{"style":{"color":"var(--gray-12)"}}}>Tarjeta de Crédito</option>
+                  </UiSelect>
+                </UiBox>
+                <UiBox>
+                  <UiLabel {...{"weight":"regular"}}>Nro de Referencia / Comprobante</UiLabel>
+                  <UiInput
                     type="text"
                     value={paymentRef}
                     onChange={e => setPaymentRef(e.target.value)}
-                    className={inputClass}
+                    {...mergeThemeProps({"size":"2","color":"gray","className":"w-full"})}
                     placeholder="Ref. Banco o recibo"
                   />
-                </div>
-              </div>
+                </UiBox>
+              </UiBox>
 
-              <div className="flex justify-end gap-2.5 pt-3 border-t border-white/5">
-                <button
+              <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"flex justify-end gap-2.5 pt-3"}}>
+                <UiButton
                   type="button"
                   onClick={() => setSelectedLiability(null)}
-                  className="btn-secondary"
+                  {...{"variant":"surface","color":"blue"}}
                 >
                   Cancelar
-                </button>
-                <button
+                </UiButton>
+                <UiButton
                   type="submit"
-                  className="h-[34px] px-4 rounded-btn text-xs font-semibold flex items-center justify-center gap-1.5 transition-all text-white border-none bg-pink-600 hover:bg-pink-500"
+                  {...{"size":"2","variant":"solid","color":"pink","className":"flex items-center justify-center gap-1.5"}}
                 >
                   Confirmar Pago
-                </button>
-              </div>
+                </UiButton>
+              </UiBox>
             </form>
-          </div>
-        </div>
+          </UiCard>
+        </UiBox>
       )}
 
       {/* MODAL: AGREGAR PASIVO */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/85 animate-in fade-in">
-          <div className="w-full max-w-md p-6 rounded-card bg-white border border-border-default">
-            <div className="flex justify-between items-center mb-4 border-b pb-2 border-white/5">
-              <h3 className="text-sm font-semibold">Registrar Nuevo Pasivo</h3>
-              <button onClick={() => setIsAddModalOpen(false)} className="btn-icon text-text-secondary hover:text-white"><X size={16} /></button>
-            </div>
+        <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[150] flex items-center justify-center p-4 animate-in fade-in"}}>
+          <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"w-full max-w-md p-6"}}>
+            <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex justify-between items-center mb-4 pb-2"}}>
+              <UiHeading as="h3" {...{"size":"2","weight":"bold"}}>Registrar Nuevo Pasivo</UiHeading>
+              <UiButton iconOnly onClick={() => setIsAddModalOpen(false)} {...{"variant":"surface","color":"gray"}}><X size={16} /></UiButton>
+            </UiBox>
 
-            <form onSubmit={handleAddLiability} className="space-y-4">
-              <div>
-                <label className="label-field label-field-dark">Tipo de Obligación</label>
-                <select
+            <form onSubmit={handleAddLiability} {...{"className":"space-y-4"}}>
+              <UiBox>
+                <UiLabel {...{}}>Tipo de Obligación</UiLabel>
+                <UiSelect
                   value={newLiability.type}
                   onChange={e => setNewLiability({ ...newLiability, type: e.target.value })}
-                  className={inputClass}
+                  {...mergeThemeProps({"size":"2","color":"gray","className":"w-full"})}
                 >
-                  <option value="prestamo" className="text-black">Préstamo Bancario</option>
-                  <option value="credito_almacen" className="text-black">Crédito de Almacén (Locales comerciales)</option>
-                  <option value="tarjeta_credito" className="text-black">Tarjeta de Crédito Corporativa</option>
-                </select>
-              </div>
+                  <option value="prestamo" {...{"style":{"color":"var(--gray-12)"}}}>Préstamo Bancario</option>
+                  <option value="credito_almacen" {...{"style":{"color":"var(--gray-12)"}}}>Crédito de Almacén (Locales comerciales)</option>
+                  <option value="tarjeta_credito" {...{"style":{"color":"var(--gray-12)"}}}>Tarjeta de Crédito Corporativa</option>
+                </UiSelect>
+              </UiBox>
 
-              <div>
-                <label className="label-field label-field-dark">Entidad / Acreedor</label>
-                <input
+              <UiBox>
+                <UiLabel {...{}}>Entidad / Acreedor</UiLabel>
+                <UiInput
                   type="text"
                   required
                   value={newLiability.entity}
                   onChange={e => setNewLiability({ ...newLiability, entity: e.target.value })}
-                  className={inputClass}
+                  {...mergeThemeProps({"size":"2","color":"gray","className":"w-full"})}
                   placeholder="Ej. Banco Guayaquil, De Prati, Visa Produbanco"
                 />
-              </div>
+              </UiBox>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="label-field label-field-dark">Monto Inicial / Línea</label>
-                  <input
+              <UiBox {...{"className":"grid grid-cols-2 gap-3"}}>
+                <UiBox>
+                  <UiLabel {...{}}>Monto Inicial / Línea</UiLabel>
+                  <UiInput
                     type="number"
                     step="0.01"
                     required
                     value={newLiability.montoInicial}
                     onChange={e => setNewLiability({ ...newLiability, montoInicial: e.target.value, saldoPendiente: e.target.value })}
-                    className={inputClass}
+                    {...mergeThemeProps({"size":"2","color":"gray","className":"w-full"})}
                     placeholder="0.00"
                   />
-                </div>
-                <div>
-                  <label className="label-field label-field-dark">Cuota Mensual Est.</label>
-                  <input
+                </UiBox>
+                <UiBox>
+                  <UiLabel {...{}}>Cuota Mensual Est.</UiLabel>
+                  <UiInput
                     type="number"
                     step="0.01"
                     value={newLiability.cuotaMensual}
                     onChange={e => setNewLiability({ ...newLiability, cuotaMensual: e.target.value })}
-                    className={inputClass}
+                    {...mergeThemeProps({"size":"2","color":"gray","className":"w-full"})}
                     placeholder="0.00"
                   />
-                </div>
-              </div>
+                </UiBox>
+              </UiBox>
 
               {newLiability.type === 'prestamo' && (
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="label-field label-field-dark">Tasa Interés Anual (%)</label>
-                    <input
+                <UiBox {...{"className":"grid grid-cols-2 gap-3"}}>
+                  <UiBox>
+                    <UiLabel {...{}}>Tasa Interés Anual (%)</UiLabel>
+                    <UiInput
                       type="number"
                       step="0.01"
                       value={newLiability.tasaInteres}
                       onChange={e => setNewLiability({ ...newLiability, tasaInteres: e.target.value })}
-                      className={inputClass}
+                      {...mergeThemeProps({"size":"2","color":"gray","className":"w-full"})}
                       placeholder="Ej. 10.5"
                     />
-                  </div>
-                  <div>
-                    <label className="label-field label-field-dark font-mono">Plazo (Meses)</label>
-                    <input
+                  </UiBox>
+                  <UiBox>
+                    <UiLabel {...{"weight":"regular"}}>Plazo (Meses)</UiLabel>
+                    <UiInput
                       type="number"
                       value={newLiability.plazoMeses}
                       onChange={e => setNewLiability({ ...newLiability, plazoMeses: e.target.value })}
-                      className={inputClass}
+                      {...mergeThemeProps({"size":"2","color":"gray","className":"w-full"})}
                       placeholder="Ej. 24"
                     />
-                  </div>
-                </div>
+                  </UiBox>
+                </UiBox>
               )}
 
               {newLiability.type === 'tarjeta_credito' && (
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="label-field label-field-dark font-mono">Día de Corte</label>
-                    <input
+                <UiBox {...{"className":"grid grid-cols-2 gap-3"}}>
+                  <UiBox>
+                    <UiLabel {...{"weight":"regular"}}>Día de Corte</UiLabel>
+                    <UiInput
                       type="text"
                       value={newLiability.fechaCorte}
                       onChange={e => setNewLiability({ ...newLiability, fechaCorte: e.target.value })}
-                      className={inputClass}
+                      {...mergeThemeProps({"size":"2","color":"gray","className":"w-full"})}
                       placeholder="Ej. 15"
                     />
-                  </div>
-                  <div>
-                    <label className="label-field label-field-dark font-mono">Día de Pago</label>
-                    <input
+                  </UiBox>
+                  <UiBox>
+                    <UiLabel {...{"weight":"regular"}}>Día de Pago</UiLabel>
+                    <UiInput
                       type="text"
                       value={newLiability.fechaPago}
                       onChange={e => setNewLiability({ ...newLiability, fechaPago: e.target.value })}
-                      className={inputClass}
+                      {...mergeThemeProps({"size":"2","color":"gray","className":"w-full"})}
                       placeholder="Ej. 05"
                     />
-                  </div>
-                </div>
+                  </UiBox>
+                </UiBox>
               )}
 
-              <div>
-                <label className="label-field label-field-dark">Próxima Fecha de Pago</label>
-                <input
+              <UiBox>
+                <UiLabel {...{}}>Próxima Fecha de Pago</UiLabel>
+                <UiInput
                   type="date"
                   value={newLiability.nextPaymentDate}
                   onChange={e => setNewLiability({ ...newLiability, nextPaymentDate: e.target.value })}
-                  className={inputClass}
+                  {...mergeThemeProps({"size":"2","color":"gray","className":"w-full"})}
                 />
-              </div>
+              </UiBox>
 
-              <div className="flex justify-end gap-2.5 pt-3 border-t border-white/5">
-                <button
+              <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"flex justify-end gap-2.5 pt-3"}}>
+                <UiButton
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="btn-secondary"
+                  {...{"variant":"surface","color":"blue"}}
                 >
                   Cancelar
-                </button>
-                <button
+                </UiButton>
+                <UiButton
                   type="submit"
-                  className="h-[34px] px-4 rounded-btn text-xs font-semibold flex items-center justify-center gap-1.5 transition-all text-white border-none bg-pink-600 hover:bg-pink-500"
+                  {...{"size":"2","variant":"solid","color":"pink","className":"flex items-center justify-center gap-1.5"}}
                 >
                   Registrar Deuda
-                </button>
-              </div>
+                </UiButton>
+              </UiBox>
             </form>
-          </div>
-        </div>
+          </UiCard>
+        </UiBox>
       )}
 
-    </div>
+    </UiBox>
   );
 }

@@ -1,3 +1,6 @@
+import { mergeThemeProps } from '../ui/themeProps';
+import { UiBox, UiCard, UiHeading, UiText, UiLabel } from '../ui/layout';
+import { UiButton, UiSelect, UiInput, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell } from '../ui/controls';
 import React, { useState, useEffect } from 'react';
 import { X, Save, ArrowRightLeft, Plus, Trash2, HelpCircle } from 'lucide-react';
 import { productRepository } from '../../modules/inventory/repositories/ProductRepository';
@@ -131,220 +134,220 @@ export default function TransferModal({ onClose, onSuccess }: TransferModalProps
     }
   };
 
-  const inputClass = `w-full px-3 py-2.5 rounded-card outline-none transition-all border text-sm bg-white border-border-default text-text-heading focus:border-purple-500`;
+  
 
-  const labelClass = `block text-xs font-semibold mb-1.5 uppercase tracking-wider text-text-secondary`;
+  
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-black/40 animate-in fade-in duration-300">
-      <div 
-        className={`w-full max-w-4xl max-h-[90vh] flex flex-col rounded-card border overflow-hidden bg-white/95 border-white/40`}
+    <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-300"}}>
+      <UiBox 
+        {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden"})}
       >
         {/* Header */}
-        <div className={`modal-header-std modal-header-std-dark border-border-default bg-white/80`}>
-          <div className="flex items-center gap-2.5">
-            <div className={`p-2 rounded-md bg-purple-100 text-purple-600`}>
+        <UiCard {...mergeThemeProps({"style":{"backgroundColor":"var(--color-panel-solid)"}})}>
+          <UiBox {...{"className":"flex items-center gap-2.5"}}>
+            <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--purple-3)","color":"var(--purple-11)"},"className":"p-2"})}>
               <ArrowRightLeft size={20} />
-            </div>
-            <div>
-              <h2 className={`text-lg font-bold text-text-heading`}>
+            </UiBox>
+            <UiBox>
+              <UiHeading as="h2" {...mergeThemeProps({"size":"4","weight":"bold","color":"gray","highContrast":true})}>
                 Nueva Transferencia Interna / Externa
-              </h2>
-              <p className={`text-xs text-text-secondary`}>
+              </UiHeading>
+              <UiText as="p" {...mergeThemeProps({"size":"1","color":"gray"})}>
                 Mueve productos físicos entre bodegas o sucursales
-              </p>
-            </div>
-          </div>
-          <button 
+              </UiText>
+            </UiBox>
+          </UiBox>
+          <UiButton iconOnly
             onClick={onClose}
-            className={`p-1.5 rounded-card transition-all hover:scale-105 bg-surface-muted text-text-secondary hover:text-text-heading`}
+            {...mergeThemeProps({"variant":"soft","color":"gray","className":"hover:scale-105"})}
           >
             <X size={18} />
-          </button>
-        </div>
+          </UiButton>
+        </UiCard>
 
         {/* Content */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
+        <form onSubmit={handleSubmit} {...{"className":"flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar"}}>
           {error && (
-            <div className={`p-4 rounded-card border text-sm font-medium bg-red-50 border-red-200 text-red-600`}>
+            <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--red-3)","color":"var(--red-11)"},"className":"p-4"})}>
               {error}
-            </div>
+            </UiBox>
           )}
 
           {/* Configuration Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <label className={labelClass}>Tipo de Transferencia</label>
-              <select
+          <UiBox {...{"className":"grid grid-cols-1 md:grid-cols-3 gap-6"}}>
+            <UiBox>
+              <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"})}>Tipo de Transferencia</UiLabel>
+              <UiSelect
                 value={transferType}
                 onChange={(e) => setTransferType(e.target.value as any)}
-                className={inputClass}
+                {...mergeThemeProps({"size":"2","color":"gray","className":"w-full"})}
               >
                 <option value="INTERNAL">Interna (Sin Costos)</option>
                 <option value="EXTERNAL">Externa (Con Costo Logístico)</option>
-              </select>
-            </div>
+              </UiSelect>
+            </UiBox>
 
-            <div>
-              <label className={labelClass}>Sucursal Origen *</label>
-              <select
+            <UiBox>
+              <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"})}>Sucursal Origen *</UiLabel>
+              <UiSelect
                 value={sourceBranch}
                 onChange={(e) => {
                   setSourceBranch(e.target.value);
                   setItems([]); // Limpiar items por cambio de origen
                 }}
-                className={inputClass}
+                {...mergeThemeProps({"size":"2","color":"gray","className":"w-full"})}
               >
                 {BRANCHES.map(b => (
                   <option key={b.id} value={b.id}>{b.name}</option>
                 ))}
-              </select>
-            </div>
+              </UiSelect>
+            </UiBox>
 
-            <div>
-              <label className={labelClass}>Sucursal Destino *</label>
-              <select
+            <UiBox>
+              <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"})}>Sucursal Destino *</UiLabel>
+              <UiSelect
                 value={targetBranch}
                 onChange={(e) => setTargetBranch(e.target.value)}
-                className={inputClass}
+                {...mergeThemeProps({"size":"2","color":"gray","className":"w-full"})}
               >
                 {BRANCHES.map(b => (
                   <option key={b.id} value={b.id}>{b.name}</option>
                 ))}
-              </select>
-            </div>
-          </div>
+              </UiSelect>
+            </UiBox>
+          </UiBox>
 
           {transferType === 'EXTERNAL' && (
-            <div className="animate-in fade-in duration-300">
-              <label className={labelClass}>Costo Logístico Adicional ($)</label>
-              <input
+            <UiBox {...{"className":"animate-in fade-in duration-300"}}>
+              <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"})}>Costo Logístico Adicional ($)</UiLabel>
+              <UiInput
                 type="number"
                 min="0"
                 step="0.01"
                 value={transferCost}
                 onChange={(e) => setTransferCost(parseFloat(e.target.value) || 0)}
-                className="w-1/3 px-3 py-2 rounded-card outline-none border text-sm bg-black/5 "
+                {...{"size":"2","className":"w-1/3"}}
                 placeholder="0.00"
               />
-              <p className="text-xs text-text-secondary mt-1">Este costo se prorrateará entre los costos unitarios de entrada de los ítems en destino.</p>
-            </div>
+              <UiText as="p" {...{"size":"1","color":"gray","className":"mt-1"}}>Este costo se prorrateará entre los costos unitarios de entrada de los ítems en destino.</UiText>
+            </UiBox>
           )}
 
-          <div className="w-full h-px bg-gradient-to-r from-transparent via-gray-500/20 to-transparent"></div>
+          <UiBox {...{"style":{"backgroundColor":"var(--gray-2)"},"className":"w-full h-px"}}></UiBox>
 
           {/* Add Item Form */}
-          <div className={`p-5 rounded-card border bg-surface-bg border-border-default`}>
-            <h3 className={`text-xs font-bold mb-4 uppercase tracking-wider text-purple-600`}>
+          <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--gray-2)"},"className":"p-5"})}>
+            <UiHeading as="h3" {...mergeThemeProps({"size":"1","weight":"bold","color":"purple","className":"mb-4"})}>
               Agregar Productos al Envío
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-              <div className="md:col-span-2">
-                <label className={labelClass}>Seleccionar Producto</label>
-                <select
+            </UiHeading>
+            <UiBox {...{"className":"grid grid-cols-1 md:grid-cols-3 gap-4 items-end"}}>
+              <UiBox {...{"className":"md:col-span-2"}}>
+                <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"})}>Seleccionar Producto</UiLabel>
+                <UiSelect
                   value={selectedProductId}
                   onChange={(e) => setSelectedProductId(e.target.value)}
-                  className={inputClass}
+                  {...mergeThemeProps({"size":"2","color":"gray","className":"w-full"})}
                 >
                   <option value="">-- Selecciona --</option>
                   {products.map(p => (
                     <option key={p.id} value={p.id}>{p.name} (SKU: {p.sku})</option>
                   ))}
-                </select>
-              </div>
+                </UiSelect>
+              </UiBox>
 
-              <div>
-                <label className={labelClass}>Cantidad a Transferir</label>
-                <div className="flex gap-2">
-                  <input
+              <UiBox>
+                <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"})}>Cantidad a Transferir</UiLabel>
+                <UiBox {...{"className":"flex gap-2"}}>
+                  <UiInput
                     type="number"
                     min="1"
                     value={quantityToTransfer}
                     onChange={(e) => setQuantityToTransfer(parseInt(e.target.value) || 1)}
-                    className={inputClass}
+                    {...mergeThemeProps({"size":"2","color":"gray","className":"w-full"})}
                   />
-                  <button
+                  <UiButton
                     type="button"
                     onClick={handleAddItem}
-                    className="px-4 rounded-card bg-purple-600 text-white font-bold hover:bg-purple-500 transition-all flex items-center gap-1.5 shrink-0 text-sm"
+                    {...{"variant":"solid","color":"purple","size":"2","className":"flex items-center gap-1.5 shrink-0"}}
                   >
                     <Plus size={16} /> Añadir
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+                  </UiButton>
+                </UiBox>
+              </UiBox>
+            </UiBox>
+          </UiBox>
 
           {/* Items Table */}
-          <div className="space-y-2">
-            <label className={labelClass}>Ítems a Enviar ({items.length})</label>
-            <div className={`rounded-card border overflow-hidden transition-all border-border-default/80 bg-white`}>
-              <table className="w-full text-left text-xs whitespace-nowrap">
-                <thead className={`text-xs uppercase font-bold tracking-wider bg-surface-bg text-text-primary border-b border-border-default`}>
-                  <tr>
-                    <th className="px-6 py-3.5">Producto</th>
-                    <th className="px-6 py-3.5">Costo Base ($)</th>
-                    <th className="px-6 py-3.5">Cantidad</th>
-                    <th className="px-6 py-3.5">Total Estimado</th>
-                    <th className="px-6 py-3.5 text-center">Acción</th>
-                  </tr>
-                </thead>
-                <tbody className={`divide-y divide-slate-100`}>
+          <UiBox {...{"className":"space-y-2"}}>
+            <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"})}>Ítems a Enviar ({items.length})</UiLabel>
+            <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"overflow-hidden"})}>
+              <UiTable {...{"className":"w-full text-left whitespace-nowrap"}}>
+                <UiTableHeader {...mergeThemeProps({"style":{"backgroundColor":"var(--gray-2)","color":"var(--gray-12)"}})}>
+                  <UiTableRow>
+                    <UiTableHead {...{"className":"px-6 py-3.5"}}>Producto</UiTableHead>
+                    <UiTableHead {...{"className":"px-6 py-3.5"}}>Costo Base ($)</UiTableHead>
+                    <UiTableHead {...{"className":"px-6 py-3.5"}}>Cantidad</UiTableHead>
+                    <UiTableHead {...{"className":"px-6 py-3.5"}}>Total Estimado</UiTableHead>
+                    <UiTableHead {...{"className":"px-6 py-3.5 text-center"}}>Acción</UiTableHead>
+                  </UiTableRow>
+                </UiTableHeader>
+                <UiTableBody {...mergeThemeProps({})}>
                   {items.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} className="px-6 py-8 text-center text-text-secondary italic">
+                    <UiTableRow>
+                      <UiTableCell colSpan={5} {...{"style":{"color":"var(--gray-11)"},"className":"px-6 py-8 text-center italic"}}>
                         No has agregado ningún ítem a la lista todavía.
-                      </td>
-                    </tr>
+                      </UiTableCell>
+                    </UiTableRow>
                   ) : (
                     items.map((item, index) => {
                       const p = products.find(prod => prod.id === item.productId);
                       return (
-                        <tr key={index} className={`transition-colors hover:bg-surface-bg/40`}>
-                          <td className="px-6 py-3.5 font-semibold text-black">
-                            {p?.name} <span className="text-text-secondary font-normal">({p?.sku})</span>
-                          </td>
-                          <td className="px-6 py-3.5 font-mono">${item.unitCost.toFixed(2)}</td>
-                          <td className="px-6 py-3.5 font-bold">{item.quantity}</td>
-                          <td className="px-6 py-3.5 font-mono">${(item.quantity * item.unitCost).toFixed(2)}</td>
-                          <td className="px-6 py-3.5 text-center">
-                            <button
+                        <UiTableRow key={index} {...mergeThemeProps({})}>
+                          <UiTableCell {...{"style":{"color":"var(--gray-12)"},"className":"px-6 py-3.5"}}>
+                            {p?.name} <UiText {...{"color":"gray","weight":"regular"}}>({p?.sku})</UiText>
+                          </UiTableCell>
+                          <UiTableCell {...{"style":{"fontFamily":"var(--code-font-family)"},"className":"px-6 py-3.5"}}>${item.unitCost.toFixed(2)}</UiTableCell>
+                          <UiTableCell {...{"className":"px-6 py-3.5"}}>{item.quantity}</UiTableCell>
+                          <UiTableCell {...{"style":{"fontFamily":"var(--code-font-family)"},"className":"px-6 py-3.5"}}>${(item.quantity * item.unitCost).toFixed(2)}</UiTableCell>
+                          <UiTableCell {...{"className":"px-6 py-3.5 text-center"}}>
+                            <UiButton iconOnly
                               type="button"
                               onClick={() => handleRemoveItem(index)}
-                              className="p-1.5 rounded-card text-red-500 hover:bg-red-500/10 transition-all border border-red-500/10 bg-white"
+                              {...{"color":"red","variant":"surface"}}
                             >
                               <Trash2 size={13} />
-                            </button>
-                          </td>
-                        </tr>
+                            </UiButton>
+                          </UiTableCell>
+                        </UiTableRow>
                       );
                     })
                   )}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                </UiTableBody>
+              </UiTable>
+            </UiBox>
+          </UiBox>
 
           {/* Submit Actions */}
-          <div className="pt-4 flex justify-end gap-4">
-            <button
+          <UiBox {...{"className":"pt-4 flex justify-end gap-4"}}>
+            <UiButton
               type="button"
               onClick={onClose}
               disabled={loading}
-              className={`px-6 py-2.5 rounded-card font-bold transition-all text-sm bg-surface-muted hover:bg-surface-muted text-text-primary`}
+              {...mergeThemeProps({"size":"2","variant":"soft","color":"gray"})}
             >
               Cancelar
-            </button>
-            <button
+            </UiButton>
+            <UiButton
               type="submit"
               disabled={loading}
-              className="px-8 py-2.5 rounded-card font-bold transition-all text-sm bg-purple-600 hover:bg-purple-500 text-white flex items-center gap-2 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+              {...{"size":"2","variant":"solid","color":"purple","className":"flex items-center gap-2 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"}}
             >
               {loading ? "Procesando..." : "Completar Transferencia"}
-            </button>
-          </div>
+            </UiButton>
+          </UiBox>
         </form>
-      </div>
-    </div>
+      </UiBox>
+    </UiBox>
   );
 }

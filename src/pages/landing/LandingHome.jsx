@@ -1,3 +1,6 @@
+import { mergeThemeProps } from '../../components/ui/themeProps';
+import { UiBox, UiText, UiHeading, UiCard } from '../../components/ui/layout';
+import { UiButton } from '../../components/ui/controls';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -44,53 +47,53 @@ export default function LandingHome() {
   ];
 
   return (
-    <div className="w-full bg-white text-text-primary selection:bg-primary selection:text-white">
+    <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"},"className":"w-full"}}>
       
       {/* 1. HERO SECTION (Minimalist Startup Aesthetic) */}
-      <section className="relative pt-16 pb-20 md:pt-24 md:pb-28 overflow-hidden border-b border-border-default">
+      <section {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"relative pt-16 pb-20 md:pt-24 md:pb-28 overflow-hidden"}}>
         {/* Ambient Glow Lights */}
-        <div className="absolute -top-24 left-1/4 w-[450px] h-[450px] bg-primary/8 rounded-full blur-[120px] pointer-events-none animate-glow-pulse"></div>
-        <div className="absolute top-48 right-1/4 w-[350px] h-[350px] bg-success/8 rounded-full blur-[100px] pointer-events-none animate-glow-pulse" style={{ animationDelay: '3s' }}></div>
+        <UiBox {...{"style":{"backgroundColor":"var(--blue-3)","borderRadius":"var(--radius-3)"},"className":"absolute -top-24 left-1/4 w-[450px] h-[450px] pointer-events-none animate-glow-pulse"}}></UiBox>
+        <UiBox {...{"style":{"backgroundColor":"var(--green-3)","borderRadius":"var(--radius-3)"},"className":"absolute top-48 right-1/4 w-[350px] h-[350px] pointer-events-none animate-glow-pulse"}} style={{ animationDelay: '3s' }}></UiBox>
 
         {/* Subtle background hairline grid */}
-        <div 
-          className="absolute inset-0 bg-[linear-gradient(to_right,#EAEAEA_1px,transparent_1px),linear-gradient(to_bottom,#EAEAEA_1px,transparent_1px)] bg-[size:32px_32px] opacity-60 pointer-events-none"
+        <UiBox 
+          {...{"style":{"backgroundColor":"var(--gray-2)"},"className":{"className":"absolute inset-0 opacity-60 pointer-events-none"}}}
           style={{
             maskImage: 'radial-gradient(ellipse 60% 50% at 50% 0%, #000 70%, transparent 100%)',
             WebkitMaskImage: 'radial-gradient(ellipse 60% 50% at 50% 0%, #000 70%, transparent 100%)'
           }}
-        ></div>
+        ></UiBox>
 
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 relative z-10 text-center space-y-6">
+        <UiBox {...{"className":"max-w-5xl mx-auto px-4 sm:px-6 relative z-10 text-center space-y-6"}}>
           
           {/* Top Pill Tag */}
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border-default bg-surface-sidebar text-text-secondary text-xs font-medium tracking-tight hover:border-text-heading transition-colors cursor-default select-none animate-in fade-in duration-200">
-            <span className="flex h-1.5 w-1.5 rounded-full bg-success"></span>
-            <span>WebFix ERP 2.0</span>
-            <span className="text-border-default">•</span>
-            <span className="text-text-heading font-semibold">Facturación SRI & Finanzas</span>
-            <ArrowRight size={11} className="text-text-muted" />
-          </div>
+          <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)","color":"var(--gray-11)"},"className":"inline-flex items-center gap-2 px-3 py-1 cursor-default select-none animate-in fade-in duration-200"}}>
+            <UiText {...{"className":"flex h-1.5 w-1.5"}}></UiText>
+            <UiText>WebFix ERP 2.0</UiText>
+            <UiText {...{"color":"gray"}}>•</UiText>
+            <UiText {...{"color":"gray","highContrast":true,"weight":"bold"}}>Facturación SRI & Finanzas</UiText>
+            <ArrowRight size={11} {...{"style":{"color":"var(--gray-11)"}}} />
+          </UiBox>
 
           {/* Main Headline */}
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-text-heading max-w-4xl mx-auto leading-[1.08]">
+          <UiHeading as="h1" {...{"size":"8","weight":"bold","color":"gray","highContrast":true,"className":"max-w-4xl mx-auto leading-[1.08]"}}>
             El sistema operativo financiero para negocios modernos.
-          </h1>
+          </UiHeading>
 
           {/* Subtitle */}
-          <p className="text-sm sm:text-base text-text-secondary max-w-2xl mx-auto leading-relaxed font-normal">
+          <UiText as="p" {...{"size":"2","color":"gray","weight":"regular","className":"max-w-2xl mx-auto leading-relaxed"}}>
             Emite facturas electrónicas autorizadas por el SRI en segundos, administra tu punto de venta en mostrador y controla tu flujo de caja real sin enredos contables.
-          </p>
+          </UiText>
 
           {/* Action CTAs */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+          <UiBox {...{"className":"flex flex-col sm:flex-row items-center justify-center gap-3 pt-2"}}>
             <Button 
               size="lg" 
               variant="default"
               onClick={() => navigate('/register')}
-              className="w-full sm:w-auto text-xs px-6 h-10 gap-2 "
+              {...{"size":"2","className":"w-full sm:w-auto gap-2"}}
             >
-              <span>Comenzar gratis 14 días</span>
+              <UiText>Comenzar gratis 14 días</UiText>
               <ArrowRight size={13} />
             </Button>
             <Button 
@@ -100,799 +103,791 @@ export default function LandingHome() {
                 const el = document.getElementById('demo-preview');
                 el?.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="w-full sm:w-auto text-xs px-5 h-10"
+              {...{"size":"2","className":"w-full sm:w-auto"}}
             >
               Ver Demostración
             </Button>
-          </div>
+          </UiBox>
 
           {/* Micro trust badges */}
-          <div className="flex flex-wrap items-center justify-center gap-6 text-xs text-text-muted pt-4 select-none">
-            <span className="flex items-center gap-1.5 font-medium text-text-secondary">
-              <Check size={12} className="text-success" /> Sin tarjeta requerida
-            </span>
-            <span className="flex items-center gap-1.5 font-medium text-text-secondary">
-              <Check size={12} className="text-success" /> Firma .p12 digital integrada
-            </span>
-            <span className="flex items-center gap-1.5 font-medium text-text-secondary">
-              <Check size={12} className="text-success" /> Comprobantes SRI ilimitados
-            </span>
-          </div>
+          <UiBox {...{"style":{"color":"var(--gray-11)"},"className":"flex flex-wrap items-center justify-center gap-6 pt-4 select-none"}}>
+            <UiText {...{"weight":"medium","color":"gray","className":"flex items-center gap-1.5"}}>
+              <Check size={12} {...{"style":{"color":"var(--green-12)"}}} /> Sin tarjeta requerida
+            </UiText>
+            <UiText {...{"weight":"medium","color":"gray","className":"flex items-center gap-1.5"}}>
+              <Check size={12} {...{"style":{"color":"var(--green-12)"}}} /> Firma .p12 digital integrada
+            </UiText>
+            <UiText {...{"weight":"medium","color":"gray","className":"flex items-center gap-1.5"}}>
+              <Check size={12} {...{"style":{"color":"var(--green-12)"}}} /> Comprobantes SRI ilimitados
+            </UiText>
+          </UiBox>
 
-        </div>
+        </UiBox>
 
         {/* 2. HERO INTERACTIVE APP MOCKUP (Geist Window Frame) */}
-        <div id="demo-preview" className="max-w-5xl mx-auto px-4 sm:px-6 pt-12 relative z-10">
-          <div className="rounded-md border border-border-default bg-white  overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+        <UiBox id="demo-preview" {...{"className":"max-w-5xl mx-auto px-4 sm:px-6 pt-12 relative z-10"}}>
+          <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"overflow-hidden animate-in fade-in zoom-in-95 duration-300"}}>
             
             {/* Window Topbar */}
-            <div className="bg-surface-sidebar border-b border-border-default px-4 py-2.5 flex items-center justify-between gap-4">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-border-strong inline-block"></span>
-                <span className="w-2.5 h-2.5 rounded-full bg-border-default inline-block"></span>
-                <span className="w-2.5 h-2.5 rounded-full bg-border-default inline-block"></span>
-              </div>
+            <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","borderBottom":"1px solid var(--gray-a6)"},"className":"px-4 py-2.5 flex items-center justify-between gap-4"}}>
+              <UiBox {...{"className":"flex items-center gap-2"}}>
+                <UiText {...{"className":"w-2.5 h-2.5 inline-block"}}></UiText>
+                <UiText {...{"className":"w-2.5 h-2.5 inline-block"}}></UiText>
+                <UiText {...{"className":"w-2.5 h-2.5 inline-block"}}></UiText>
+              </UiBox>
               
               {/* Browser Search Pill */}
-              <div className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-white border border-border-default text-xs font-mono text-text-muted max-w-xs w-full justify-center">
-                <span className="text-text-secondary">app.webfix.ec</span>
-                <span className="text-border-strong">/</span>
-                <span>dashboard</span>
-              </div>
+              <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)","fontFamily":"var(--code-font-family)","color":"var(--gray-11)"},"className":"flex items-center gap-1.5 px-3 py-1 max-w-xs w-full justify-center"}}>
+                <UiText {...{"color":"gray"}}>app.webfix.ec</UiText>
+                <UiText {...{"color":"gray"}}>/</UiText>
+                <UiText>dashboard</UiText>
+              </UiCard>
 
-              <div className="flex items-center gap-1.5">
-                <Badge variant="success" className="gap-1 text-xs py-0 px-2 font-normal normal-case">
-                  <span className="h-1.5 w-1.5 rounded-full bg-success"></span>
+              <UiBox {...{"className":"flex items-center gap-1.5"}}>
+                <Badge variant="success" {...{"className":"gap-1 py-0 px-2"}}>
+                  <UiText {...{"className":"h-1.5 w-1.5"}}></UiText>
                   SRI Online
                 </Badge>
-              </div>
-            </div>
+              </UiBox>
+            </UiBox>
 
             {/* Interactive Tab Switcher inside the Window */}
-            <div className="border-b border-border-default bg-white px-4 pt-3 flex items-center gap-2 overflow-x-auto custom-scrollbar">
+            <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"px-4 pt-3 flex items-center gap-2 overflow-x-auto custom-scrollbar"}}>
               {heroTabs.map(tab => {
                 const Icon = tab.icon;
                 const isActive = activeHeroTab === tab.id;
                 return (
-                  <button
+                  <UiButton
                     key={tab.id}
                     onClick={() => setActiveHeroTab(tab.id)}
-                    className={`flex items-center gap-2 px-3 py-2 text-xs font-medium tracking-tight rounded-t-md border-b-2 transition-all cursor-pointer whitespace-nowrap ${
-                      isActive 
-                        ? 'border-primary text-text-heading font-semibold bg-surface-sidebar/50' 
-                        : 'border-transparent text-text-secondary hover:text-text-heading hover:bg-surface-sidebar/30'
-                    }`}
+                    {...mergeThemeProps({"size":"2","className":"flex items-center gap-2 cursor-pointer whitespace-nowrap"}, {}, (isActive ? {"color":"gray","variant":"soft"} : {"color":"gray"}))}
                   >
-                    <Icon size={14} className={isActive ? 'text-primary' : 'text-text-muted'} />
-                    <span>{tab.label}</span>
-                  </button>
+                    <Icon size={14} {...(isActive ? {"style":{"color":"var(--blue-12)"}} : {"style":{"color":"var(--gray-11)"}})} />
+                    <UiText>{tab.label}</UiText>
+                  </UiButton>
                 );
               })}
-            </div>
+            </UiBox>
 
             {/* Simulated Live Viewport based on tab */}
-            <div className="p-5 sm:p-6 bg-surface-bg/30 min-h-[320px] flex flex-col justify-center">
+            <UiBox {...{"style":{"backgroundColor":"var(--gray-2)"},"className":"p-5 sm:p-6 min-h-[320px] flex flex-col justify-center"}}>
               
               {activeHeroTab === 'sri' && (
-                <div className="space-y-4 animate-in fade-in duration-150">
+                <UiBox {...{"className":"space-y-4 animate-in fade-in duration-150"}}>
                   {/* Metric Summary Bar */}
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="p-3 rounded-md bg-white border border-border-default">
-                      <span className="text-xs text-text-secondary block">Facturas Autorizadas</span>
-                      <span className="text-lg font-bold font-mono text-text-heading">142</span>
-                    </div>
-                    <div className="p-3 rounded-md bg-white border border-border-default">
-                      <span className="text-xs text-text-secondary block">Total Facturado</span>
-                      <span className="text-lg font-bold font-mono text-text-heading">$4,850.00</span>
-                    </div>
-                    <div className="p-3 rounded-md bg-white border border-border-default">
-                      <span className="text-xs text-text-secondary block">Tiempo de Firma</span>
-                      <span className="text-lg font-bold font-mono text-success-text">1.2s</span>
-                    </div>
-                  </div>
+                  <UiBox {...{"className":"grid grid-cols-3 gap-3"}}>
+                    <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-3"}}>
+                      <UiText {...{"size":"1","color":"gray","className":"block"}}>Facturas Autorizadas</UiText>
+                      <UiText {...{"size":"4","weight":"regular","color":"gray","highContrast":true}}>142</UiText>
+                    </UiCard>
+                    <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-3"}}>
+                      <UiText {...{"size":"1","color":"gray","className":"block"}}>Total Facturado</UiText>
+                      <UiText {...{"size":"4","weight":"regular","color":"gray","highContrast":true}}>$4,850.00</UiText>
+                    </UiCard>
+                    <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-3"}}>
+                      <UiText {...{"size":"1","color":"gray","className":"block"}}>Tiempo de Firma</UiText>
+                      <UiText {...{"size":"4","weight":"regular","color":"green"}}>1.2s</UiText>
+                    </UiCard>
+                  </UiBox>
 
                   {/* Simulated Table */}
-                  <div className="rounded-md border border-border-default bg-white overflow-hidden text-xs">
-                    <div className="grid grid-cols-12 bg-surface-sidebar px-3 py-2 font-semibold text-text-secondary uppercase text-xs tracking-wider border-b border-border-default">
-                      <div className="col-span-3">Comprobante</div>
-                      <div className="col-span-4">Cliente / RUC</div>
-                      <div className="col-span-2 text-right">Total</div>
-                      <div className="col-span-3 text-right">Estado SRI</div>
-                    </div>
-                    <div className="divide-y divide-border-default">
-                      <div className="grid grid-cols-12 px-3 py-2.5 items-center font-mono hover:bg-surface-sidebar/40 transition-colors">
-                        <div className="col-span-3 font-semibold text-text-heading">001-002-000008452</div>
-                        <div className="col-span-4 font-sans text-text-primary truncate">Corporación Favorita S.A.</div>
-                        <div className="col-span-2 text-right font-bold text-text-heading">$320.00</div>
-                        <div className="col-span-3 text-right font-sans">
-                          <Badge variant="success" className="text-xs gap-1"><CheckCircle2 size={10} /> Autorizado</Badge>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-12 px-3 py-2.5 items-center font-mono hover:bg-surface-sidebar/40 transition-colors">
-                        <div className="col-span-3 font-semibold text-text-heading">001-002-000008451</div>
-                        <div className="col-span-4 font-sans text-text-primary truncate">Juan Carlos Mendoza</div>
-                        <div className="col-span-2 text-right font-bold text-text-heading">$45.50</div>
-                        <div className="col-span-3 text-right font-sans">
-                          <Badge variant="success" className="text-xs gap-1"><CheckCircle2 size={10} /> Autorizado</Badge>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                  <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"overflow-hidden"}}>
+                    <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-11)","borderBottom":"1px solid var(--gray-a6)"},"className":"grid grid-cols-12 px-3 py-2"}}>
+                      <UiBox {...{"className":"col-span-3"}}>Comprobante</UiBox>
+                      <UiBox {...{"className":"col-span-4"}}>Cliente / RUC</UiBox>
+                      <UiBox {...{"className":"col-span-2 text-right"}}>Total</UiBox>
+                      <UiBox {...{"className":"col-span-3 text-right"}}>Estado SRI</UiBox>
+                    </UiBox>
+                    <UiBox {...{}}>
+                      <UiBox {...{"style":{"fontFamily":"var(--code-font-family)"},"className":"grid grid-cols-12 px-3 py-2.5 items-center"}}>
+                        <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"col-span-3"}}>001-002-000008452</UiBox>
+                        <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"col-span-4 truncate"}}>Corporación Favorita S.A.</UiBox>
+                        <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"col-span-2 text-right"}}>$320.00</UiBox>
+                        <UiBox {...{"className":"col-span-3 text-right"}}>
+                          <Badge variant="success" {...{"className":"gap-1"}}><CheckCircle2 size={10} /> Autorizado</Badge>
+                        </UiBox>
+                      </UiBox>
+                      <UiBox {...{"style":{"fontFamily":"var(--code-font-family)"},"className":"grid grid-cols-12 px-3 py-2.5 items-center"}}>
+                        <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"col-span-3"}}>001-002-000008451</UiBox>
+                        <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"col-span-4 truncate"}}>Juan Carlos Mendoza</UiBox>
+                        <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"col-span-2 text-right"}}>$45.50</UiBox>
+                        <UiBox {...{"className":"col-span-3 text-right"}}>
+                          <Badge variant="success" {...{"className":"gap-1"}}><CheckCircle2 size={10} /> Autorizado</Badge>
+                        </UiBox>
+                      </UiBox>
+                    </UiBox>
+                  </UiBox>
+                </UiBox>
               )}
 
               {activeHeroTab === 'pos' && (
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-4 animate-in fade-in duration-150 text-left">
-                  <div className="md:col-span-7 space-y-2">
-                    <span className="text-xs font-semibold text-text-heading">Catálogo de Productos Rápido</span>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="p-3 rounded-md bg-white border border-border-default hover:border-text-heading transition-colors cursor-pointer">
-                        <span className="text-xs font-semibold block text-text-heading">Café Americano 8oz</span>
-                        <span className="text-xs font-mono text-text-secondary mt-1 block">$1.50</span>
-                      </div>
-                      <div className="p-3 rounded-md bg-white border border-border-default hover:border-text-heading transition-colors cursor-pointer">
-                        <span className="text-xs font-semibold block text-text-heading">Sandwich Gourmet</span>
-                        <span className="text-xs font-mono text-text-secondary mt-1 block">$4.50</span>
-                      </div>
-                      <div className="p-3 rounded-md bg-white border border-border-default hover:border-text-heading transition-colors cursor-pointer">
-                        <span className="text-xs font-semibold block text-text-heading">Licencia ERP 1 Mes</span>
-                        <span className="text-xs font-mono text-text-secondary mt-1 block">$19.00</span>
-                      </div>
-                      <div className="p-3 rounded-md bg-white border border-border-default hover:border-text-heading transition-colors cursor-pointer">
-                        <span className="text-xs font-semibold block text-text-heading">Servicio de Asesoría</span>
-                        <span className="text-xs font-mono text-text-secondary mt-1 block">$35.00</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="md:col-span-5 p-4 rounded-md bg-white border border-border-default flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-center justify-between border-b border-border-default pb-2 mb-2">
-                        <span className="text-xs font-semibold text-text-heading">Ticket Actual</span>
-                        <span className="text-xs font-mono text-text-muted">Caja 01</span>
-                      </div>
-                      <div className="space-y-1 text-xs">
-                        <div className="flex justify-between"><span>2x Café Americano</span><span className="font-mono">$3.00</span></div>
-                        <div className="flex justify-between"><span>1x Sandwich Gourmet</span><span className="font-mono">$4.50</span></div>
-                      </div>
-                    </div>
-                    <div className="border-t border-border-default pt-2 mt-4 space-y-2">
-                      <div className="flex justify-between text-sm font-bold text-text-heading">
-                        <span>Total (IVA incl.)</span>
-                        <span className="font-mono">$7.50</span>
-                      </div>
-                      <Button variant="accent" size="sm" className="w-full text-xs gap-1">
+                <UiBox {...{"className":"grid grid-cols-1 md:grid-cols-12 gap-4 animate-in fade-in duration-150 text-left"}}>
+                  <UiBox {...{"className":"md:col-span-7 space-y-2"}}>
+                    <UiText {...{"size":"1","weight":"bold","color":"gray","highContrast":true}}>Catálogo de Productos Rápido</UiText>
+                    <UiBox {...{"className":"grid grid-cols-2 gap-2"}}>
+                      <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-3 cursor-pointer"}}>
+                        <UiText {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block"}}>Café Americano 8oz</UiText>
+                        <UiText {...{"size":"1","weight":"regular","color":"gray","className":"mt-1 block"}}>$1.50</UiText>
+                      </UiCard>
+                      <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-3 cursor-pointer"}}>
+                        <UiText {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block"}}>Sandwich Gourmet</UiText>
+                        <UiText {...{"size":"1","weight":"regular","color":"gray","className":"mt-1 block"}}>$4.50</UiText>
+                      </UiCard>
+                      <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-3 cursor-pointer"}}>
+                        <UiText {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block"}}>Licencia ERP 1 Mes</UiText>
+                        <UiText {...{"size":"1","weight":"regular","color":"gray","className":"mt-1 block"}}>$19.00</UiText>
+                      </UiCard>
+                      <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-3 cursor-pointer"}}>
+                        <UiText {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block"}}>Servicio de Asesoría</UiText>
+                        <UiText {...{"size":"1","weight":"regular","color":"gray","className":"mt-1 block"}}>$35.00</UiText>
+                      </UiCard>
+                    </UiBox>
+                  </UiBox>
+                  <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"md:col-span-5 p-4 flex flex-col justify-between"}}>
+                    <UiBox>
+                      <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex items-center justify-between pb-2 mb-2"}}>
+                        <UiText {...{"size":"1","weight":"bold","color":"gray","highContrast":true}}>Ticket Actual</UiText>
+                        <UiText {...{"size":"1","weight":"regular","color":"gray"}}>Caja 01</UiText>
+                      </UiBox>
+                      <UiBox {...{"className":"space-y-1"}}>
+                        <UiBox {...{"className":"flex justify-between"}}><UiText>2x Café Americano</UiText><UiText {...{"weight":"regular"}}>$3.00</UiText></UiBox>
+                        <UiBox {...{"className":"flex justify-between"}}><UiText>1x Sandwich Gourmet</UiText><UiText {...{"weight":"regular"}}>$4.50</UiText></UiBox>
+                      </UiBox>
+                    </UiBox>
+                    <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"pt-2 mt-4 space-y-2"}}>
+                      <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"flex justify-between"}}>
+                        <UiText>Total (IVA incl.)</UiText>
+                        <UiText {...{"weight":"regular"}}>$7.50</UiText>
+                      </UiBox>
+                      <Button variant="accent" size="sm" {...{"size":"2","className":"w-full gap-1"}}>
                         <DollarSign size={13} /> Cobrar (F12)
                       </Button>
-                    </div>
-                  </div>
-                </div>
+                    </UiBox>
+                  </UiCard>
+                </UiBox>
               )}
 
               {activeHeroTab === 'finanzas' && (
-                <div className="space-y-3 animate-in fade-in duration-150 text-left">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="p-4 rounded-md bg-white border border-border-default">
-                      <span className="text-xs text-text-secondary block">Ingresos Totales (Mes)</span>
-                      <span className="text-xl font-bold font-mono text-success-text">+$12,450.00</span>
-                      <span className="text-xs text-text-muted mt-1 block">+14.2% vs mes anterior</span>
-                    </div>
-                    <div className="p-4 rounded-md bg-white border border-border-default">
-                      <span className="text-xs text-text-secondary block">Egresos y Compras</span>
-                      <span className="text-xl font-bold font-mono text-error">-$4,210.00</span>
-                      <span className="text-xs text-text-muted mt-1 block">Con retenciones aplicadas</span>
-                    </div>
-                  </div>
-                  <div className="p-3 rounded-md bg-surface-sidebar border border-border-default flex items-center justify-between text-xs">
-                    <span className="font-medium text-text-primary">Utilidad Neta Disponible en Bancos:</span>
-                    <span className="font-mono font-bold text-sm text-text-heading">$8,240.00</span>
-                  </div>
-                </div>
+                <UiBox {...{"className":"space-y-3 animate-in fade-in duration-150 text-left"}}>
+                  <UiBox {...{"className":"grid grid-cols-2 gap-3"}}>
+                    <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4"}}>
+                      <UiText {...{"size":"1","color":"gray","className":"block"}}>Ingresos Totales (Mes)</UiText>
+                      <UiText {...{"size":"5","weight":"regular","color":"green"}}>+$12,450.00</UiText>
+                      <UiText {...{"size":"1","color":"gray","className":"mt-1 block"}}>+14.2% vs mes anterior</UiText>
+                    </UiCard>
+                    <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4"}}>
+                      <UiText {...{"size":"1","color":"gray","className":"block"}}>Egresos y Compras</UiText>
+                      <UiText {...{"size":"5","weight":"regular","color":"red"}}>-$4,210.00</UiText>
+                      <UiText {...{"size":"1","color":"gray","className":"mt-1 block"}}>Con retenciones aplicadas</UiText>
+                    </UiCard>
+                  </UiBox>
+                  <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)"},"className":"p-3 flex items-center justify-between"}}>
+                    <UiText {...{"weight":"medium","color":"gray","highContrast":true}}>Utilidad Neta Disponible en Bancos:</UiText>
+                    <UiText {...{"weight":"bold","size":"2","color":"gray","highContrast":true}}>$8,240.00</UiText>
+                  </UiBox>
+                </UiBox>
               )}
 
               {activeHeroTab === 'inventario' && (
-                <div className="space-y-3 animate-in fade-in duration-150 text-left">
-                  <div className="rounded-md border border-border-default bg-white p-3 space-y-2">
-                    <div className="flex items-center justify-between text-xs font-semibold text-text-heading">
-                      <span>Control de Kardex en Tiempo Real</span>
-                      <Badge variant="outline" className="text-xs">Multibodega</Badge>
-                    </div>
-                    <div className="grid grid-cols-3 gap-2 pt-1 text-xs">
-                      <div className="p-2 bg-surface-sidebar rounded">
-                        <span className="text-xs text-text-secondary block">Items Registrados</span>
-                        <span className="font-mono font-bold text-text-heading">248</span>
-                      </div>
-                      <div className="p-2 bg-surface-sidebar rounded">
-                        <span className="text-xs text-text-secondary block">Stock Valorizado</span>
-                        <span className="font-mono font-bold text-text-heading">$18,920.00</span>
-                      </div>
-                      <div className="p-2 bg-surface-sidebar rounded">
-                        <span className="text-xs text-text-secondary block">Alertas Mínimas</span>
-                        <span className="font-mono font-bold text-warning-text">2 por reponer</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <UiBox {...{"className":"space-y-3 animate-in fade-in duration-150 text-left"}}>
+                  <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-3 space-y-2"}}>
+                    <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"flex items-center justify-between"}}>
+                      <UiText>Control de Kardex en Tiempo Real</UiText>
+                      <Badge variant="outline" {...{}}>Multibodega</Badge>
+                    </UiBox>
+                    <UiBox {...{"className":"grid grid-cols-3 gap-2 pt-1"}}>
+                      <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","borderRadius":"var(--radius-3)"},"className":"p-2"}}>
+                        <UiText {...{"size":"1","color":"gray","className":"block"}}>Items Registrados</UiText>
+                        <UiText {...{"weight":"bold","color":"gray","highContrast":true}}>248</UiText>
+                      </UiBox>
+                      <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","borderRadius":"var(--radius-3)"},"className":"p-2"}}>
+                        <UiText {...{"size":"1","color":"gray","className":"block"}}>Stock Valorizado</UiText>
+                        <UiText {...{"weight":"bold","color":"gray","highContrast":true}}>$18,920.00</UiText>
+                      </UiBox>
+                      <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","borderRadius":"var(--radius-3)"},"className":"p-2"}}>
+                        <UiText {...{"size":"1","color":"gray","className":"block"}}>Alertas Mínimas</UiText>
+                        <UiText {...{"weight":"bold","color":"amber"}}>2 por reponer</UiText>
+                      </UiBox>
+                    </UiBox>
+                  </UiCard>
+                </UiBox>
               )}
 
-            </div>
+            </UiBox>
 
-          </div>
-        </div>
+          </UiBox>
+        </UiBox>
 
       </section>
 
       {/* 3. BENTO GRID FEATURES ("Infraestructura de Grado Empresarial") */}
-      <section className="relative py-24 border-b border-border-default bg-white overflow-hidden">
+      <section {...{"style":{"borderBottom":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"relative py-24 overflow-hidden"}}>
         {/* Ambient Subtle Dot Matrix */}
-        <div 
-          className="absolute inset-0 opacity-70 pointer-events-none"
+        <UiBox 
+          {...{"className":"absolute inset-0 opacity-70 pointer-events-none"}}
           style={{
             backgroundImage: 'radial-gradient(#E5E5E5 1px, transparent 1px)',
             backgroundSize: '24px 24px',
             maskImage: 'radial-gradient(ellipse 60% 50% at 50% 50%, #000 70%, transparent 100%)',
             WebkitMaskImage: 'radial-gradient(ellipse 60% 50% at 50% 50%, #000 70%, transparent 100%)'
           }}
-        ></div>
+        ></UiBox>
 
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10">
+        <UiBox {...{"className":"max-w-6xl mx-auto px-4 sm:px-6 relative z-10"}}>
           
-          <div className="text-center max-w-2xl mx-auto mb-14 space-y-2">
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-text-heading">
+          <UiBox {...{"className":"text-center max-w-2xl mx-auto mb-14 space-y-2"}}>
+            <UiHeading as="h2" {...{"size":"6","weight":"bold","color":"gray","highContrast":true}}>
               Todo lo que tu negocio necesita en un solo lugar.
-            </h2>
-            <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
+            </UiHeading>
+            <UiText as="p" {...{"size":"1","color":"gray","className":"leading-relaxed"}}>
               Módulos modulares e interconectados para eliminar la fricción operativa y tributaria de tu empresa.
-            </p>
-          </div>
+            </UiText>
+          </UiBox>
 
           {/* Bento Grid with Floating Micro-Interactions */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
+          <UiBox {...{"className":"grid grid-cols-1 md:grid-cols-3 gap-4 text-left"}}>
             
             {/* Card 1: Facturación SRI */}
-            <Card className="group hover:-translate-y-1 hover:border-border-strong  transition-all duration-300 relative overflow-hidden bg-white">
-              <div className="absolute top-0 left-0 right-0 h-[2px] bg-transparent group-hover:bg-primary transition-colors duration-300"></div>
-              <CardHeader className="pb-2">
-                <div className="p-2 rounded-md bg-black/5 text-text-heading w-fit mb-2 group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all duration-200">
+            <Card {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"group hover:-translate-y-1 duration-300 relative overflow-hidden"}}>
+              <UiBox {...{"style":{"backgroundColor":"transparent"},"className":"absolute top-0 left-0 right-0 h-[2px] duration-300"}}></UiBox>
+              <CardHeader {...{"className":"pb-2"}}>
+                <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--black-a7)","color":"var(--gray-12)"},"className":"p-2 w-fit mb-2 group-hover:scale-110 duration-200"}}>
                   <FileText size={18} />
-                </div>
-                <CardTitle className="text-sm font-semibold text-text-heading">Facturación SRI en 1 Clic</CardTitle>
+                </UiBox>
+                <CardTitle {...{"style":{"color":"var(--gray-12)"}}}>Facturación SRI en 1 Clic</CardTitle>
               </CardHeader>
-              <CardContent className="text-xs text-text-secondary leading-relaxed pt-0">
+              <CardContent {...{"style":{"color":"var(--gray-11)"},"className":"leading-relaxed pt-0"}}>
                 Emite facturas, notas de crédito, retenciones y liquidaciones autorizadas por el SRI en menos de 3 segundos con firma electrónica .p12 integrada.
               </CardContent>
             </Card>
 
             {/* Card 2: POS */}
-            <Card className="group hover:-translate-y-1 hover:border-border-strong  transition-all duration-300 relative overflow-hidden bg-white">
-              <div className="absolute top-0 left-0 right-0 h-[2px] bg-transparent group-hover:bg-primary transition-colors duration-300"></div>
-              <CardHeader className="pb-2">
-                <div className="p-2 rounded-md bg-black/5 text-text-heading w-fit mb-2 group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all duration-200">
+            <Card {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"group hover:-translate-y-1 duration-300 relative overflow-hidden"}}>
+              <UiBox {...{"style":{"backgroundColor":"transparent"},"className":"absolute top-0 left-0 right-0 h-[2px] duration-300"}}></UiBox>
+              <CardHeader {...{"className":"pb-2"}}>
+                <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--black-a7)","color":"var(--gray-12)"},"className":"p-2 w-fit mb-2 group-hover:scale-110 duration-200"}}>
                   <ShoppingCart size={18} />
-                </div>
-                <CardTitle className="text-sm font-semibold text-text-heading">Punto de Venta (POS)</CardTitle>
+                </UiBox>
+                <CardTitle {...{"style":{"color":"var(--gray-12)"}}}>Punto de Venta (POS)</CardTitle>
               </CardHeader>
-              <CardContent className="text-xs text-text-secondary leading-relaxed pt-0">
+              <CardContent {...{"style":{"color":"var(--gray-11)"},"className":"leading-relaxed pt-0"}}>
                 Diseñado para mostrador y atención rápida. Atajo directo (F12), cobro múltiple (efectivo, tarjeta, transferencia) y apertura/cierre de caja.
               </CardContent>
             </Card>
 
             {/* Card 3: Control Financiero */}
-            <Card className="group hover:-translate-y-1 hover:border-border-strong  transition-all duration-300 relative overflow-hidden bg-white">
-              <div className="absolute top-0 left-0 right-0 h-[2px] bg-transparent group-hover:bg-primary transition-colors duration-300"></div>
-              <CardHeader className="pb-2">
-                <div className="p-2 rounded-md bg-black/5 text-text-heading w-fit mb-2 group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all duration-200">
+            <Card {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"group hover:-translate-y-1 duration-300 relative overflow-hidden"}}>
+              <UiBox {...{"style":{"backgroundColor":"transparent"},"className":"absolute top-0 left-0 right-0 h-[2px] duration-300"}}></UiBox>
+              <CardHeader {...{"className":"pb-2"}}>
+                <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--black-a7)","color":"var(--gray-12)"},"className":"p-2 w-fit mb-2 group-hover:scale-110 duration-200"}}>
                   <TrendingUp size={18} />
-                </div>
-                <CardTitle className="text-sm font-semibold text-text-heading">Control Financiero & Flujo</CardTitle>
+                </UiBox>
+                <CardTitle {...{"style":{"color":"var(--gray-12)"}}}>Control Financiero & Flujo</CardTitle>
               </CardHeader>
-              <CardContent className="text-xs text-text-secondary leading-relaxed pt-0">
+              <CardContent {...{"style":{"color":"var(--gray-11)"},"className":"leading-relaxed pt-0"}}>
                 Cuentas por cobrar (CxC), cuentas por pagar (CxP), cruce de IVA automático y conciliación bancaria inteligente sin hojas de Excel.
               </CardContent>
             </Card>
 
             {/* Card 4: OCR IA */}
-            <Card className="group hover:-translate-y-1 hover:border-border-strong  transition-all duration-300 relative overflow-hidden bg-white">
-              <div className="absolute top-0 left-0 right-0 h-[2px] bg-transparent group-hover:bg-primary transition-colors duration-300"></div>
-              <CardHeader className="pb-2">
-                <div className="p-2 rounded-md bg-black/5 text-text-heading w-fit mb-2 group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all duration-200">
+            <Card {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"group hover:-translate-y-1 duration-300 relative overflow-hidden"}}>
+              <UiBox {...{"style":{"backgroundColor":"transparent"},"className":"absolute top-0 left-0 right-0 h-[2px] duration-300"}}></UiBox>
+              <CardHeader {...{"className":"pb-2"}}>
+                <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--black-a7)","color":"var(--gray-12)"},"className":"p-2 w-fit mb-2 group-hover:scale-110 duration-200"}}>
                   <Sparkles size={18} />
-                </div>
-                <CardTitle className="text-sm font-semibold text-text-heading">Captura Inteligente OCR</CardTitle>
+                </UiBox>
+                <CardTitle {...{"style":{"color":"var(--gray-12)"}}}>Captura Inteligente OCR</CardTitle>
               </CardHeader>
-              <CardContent className="text-xs text-text-secondary leading-relaxed pt-0">
+              <CardContent {...{"style":{"color":"var(--gray-11)"},"className":"leading-relaxed pt-0"}}>
                 Arrastra facturas de proveedores en PDF, XML o foto. El motor de IA extrae RUC, ítems, IVA y valores completando el formulario automáticamente.
               </CardContent>
             </Card>
 
             {/* Card 5: Inventario */}
-            <Card className="group hover:-translate-y-1 hover:border-border-strong  transition-all duration-300 relative overflow-hidden bg-white">
-              <div className="absolute top-0 left-0 right-0 h-[2px] bg-transparent group-hover:bg-primary transition-colors duration-300"></div>
-              <CardHeader className="pb-2">
-                <div className="p-2 rounded-md bg-black/5 text-text-heading w-fit mb-2 group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all duration-200">
+            <Card {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"group hover:-translate-y-1 duration-300 relative overflow-hidden"}}>
+              <UiBox {...{"style":{"backgroundColor":"transparent"},"className":"absolute top-0 left-0 right-0 h-[2px] duration-300"}}></UiBox>
+              <CardHeader {...{"className":"pb-2"}}>
+                <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--black-a7)","color":"var(--gray-12)"},"className":"p-2 w-fit mb-2 group-hover:scale-110 duration-200"}}>
                   <Package size={18} />
-                </div>
-                <CardTitle className="text-sm font-semibold text-text-heading">Kardex & Stock en Tiempo Real</CardTitle>
+                </UiBox>
+                <CardTitle {...{"style":{"color":"var(--gray-12)"}}}>Kardex & Stock en Tiempo Real</CardTitle>
               </CardHeader>
-              <CardContent className="text-xs text-text-secondary leading-relaxed pt-0">
+              <CardContent {...{"style":{"color":"var(--gray-11)"},"className":"leading-relaxed pt-0"}}>
                 Control de inventario promedio ponderado con descargas automáticas por ventas y alertas de existencias mínimas.
               </CardContent>
             </Card>
 
             {/* Card 6: Seguridad Cloud */}
-            <Card className="group hover:-translate-y-1 hover:border-border-strong  transition-all duration-300 relative overflow-hidden bg-white">
-              <div className="absolute top-0 left-0 right-0 h-[2px] bg-transparent group-hover:bg-primary transition-colors duration-300"></div>
-              <CardHeader className="pb-2">
-                <div className="p-2 rounded-md bg-black/5 text-text-heading w-fit mb-2 group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all duration-200">
+            <Card {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"group hover:-translate-y-1 duration-300 relative overflow-hidden"}}>
+              <UiBox {...{"style":{"backgroundColor":"transparent"},"className":"absolute top-0 left-0 right-0 h-[2px] duration-300"}}></UiBox>
+              <CardHeader {...{"className":"pb-2"}}>
+                <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--black-a7)","color":"var(--gray-12)"},"className":"p-2 w-fit mb-2 group-hover:scale-110 duration-200"}}>
                   <ShieldCheck size={18} />
-                </div>
-                <CardTitle className="text-sm font-semibold text-text-heading">Seguridad & Nube 24/7</CardTitle>
+                </UiBox>
+                <CardTitle {...{"style":{"color":"var(--gray-12)"}}}>Seguridad & Nube 24/7</CardTitle>
               </CardHeader>
-              <CardContent className="text-xs text-text-secondary leading-relaxed pt-0">
+              <CardContent {...{"style":{"color":"var(--gray-11)"},"className":"leading-relaxed pt-0"}}>
                 Certificados digitales protegidos bajo encriptación industrial, copias de seguridad automáticas y acceso seguro desde cualquier dispositivo.
               </CardContent>
             </Card>
 
-          </div>
+          </UiBox>
 
-        </div>
+        </UiBox>
       </section>
 
       {/* 4. COMPARATIVA MINIMALISTA & ECOSISTEMA MULTIPLATAFORMA (PC, POS, MÓVIL) */}
-      <section className="relative py-24 border-b border-border-default overflow-hidden bg-gradient-to-b from-white via-surface-sidebar/60 to-white">
+      <section {...{"style":{"borderBottom":"1px solid var(--gray-a6)","backgroundColor":"var(--gray-2)"},"className":"relative py-24 overflow-hidden"}}>
         {/* Ambient Glow Lights behind section */}
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] bg-primary/6 rounded-full blur-[120px] pointer-events-none animate-glow-pulse"></div>
-        <div className="absolute bottom-10 right-10 w-[350px] h-[350px] bg-success/6 rounded-full blur-[100px] pointer-events-none animate-glow-pulse" style={{ animationDelay: '2.5s' }}></div>
+        <UiBox {...{"style":{"backgroundColor":"var(--blue-3)","borderRadius":"var(--radius-3)"},"className":"absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] pointer-events-none animate-glow-pulse"}}></UiBox>
+        <UiBox {...{"style":{"backgroundColor":"var(--green-3)","borderRadius":"var(--radius-3)"},"className":"absolute bottom-10 right-10 w-[350px] h-[350px] pointer-events-none animate-glow-pulse"}} style={{ animationDelay: '2.5s' }}></UiBox>
         
         {/* Subtle grid pattern */}
-        <div 
-          className="absolute inset-0 bg-[linear-gradient(to_right,#EAEAEA_1px,transparent_1px),linear-gradient(to_bottom,#EAEAEA_1px,transparent_1px)] bg-[size:32px_32px] opacity-40 pointer-events-none"
+        <UiBox 
+          {...{"style":{"backgroundColor":"var(--gray-2)"},"className":{"className":"absolute inset-0 opacity-40 pointer-events-none"}}}
           style={{
             maskImage: 'radial-gradient(ellipse 70% 60% at 50% 50%, #000 70%, transparent 100%)',
             WebkitMaskImage: 'radial-gradient(ellipse 70% 60% at 50% 50%, #000 70%, transparent 100%)'
           }}
-        ></div>
+        ></UiBox>
 
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 relative z-10">
+        <UiBox {...{"className":"max-w-4xl mx-auto px-4 sm:px-6 relative z-10"}}>
           
-          <div className="text-center mb-12 space-y-2">
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-text-heading">
+          <UiBox {...{"className":"text-center mb-12 space-y-2"}}>
+            <UiHeading as="h2" {...{"size":"6","weight":"bold","color":"gray","highContrast":true}}>
               Diseñado para el presente, no para el 2010.
-            </h2>
-            <p className="text-xs sm:text-sm text-text-secondary">
+            </UiHeading>
+            <UiText as="p" {...{"size":"1","color":"gray"}}>
               ¿Por qué cientos de negocios están migrando de sistemas anticuados a WebFix?
-            </p>
-          </div>
+            </UiText>
+          </UiBox>
 
-          <div className="rounded-md border border-border-default bg-white overflow-hidden text-xs ">
-            <div className="grid grid-cols-2 bg-surface-sidebar px-4 py-3 font-semibold text-text-heading border-b border-border-default">
-              <div>Sistemas Tradicionales / Antiguos</div>
-              <div className="text-primary font-bold">WebFix ERP Cloud</div>
-            </div>
-            <div className="divide-y divide-border-default text-text-secondary">
-              <div className="grid grid-cols-2 px-4 py-3 items-center hover:bg-surface-sidebar/30 transition-colors">
-                <div className="text-text-muted">Instalaciones lentas en una sola PC física</div>
-                <div className="text-text-heading font-medium flex items-center gap-1.5"><Check size={14} className="text-success" /> 100% Cloud desde cualquier navegador</div>
-              </div>
-              <div className="grid grid-cols-2 px-4 py-3 items-center hover:bg-surface-sidebar/30 transition-colors">
-                <div className="text-text-muted">Cobro por cantidad de facturas emitidas</div>
-                <div className="text-text-heading font-medium flex items-center gap-1.5"><Check size={14} className="text-success" /> Facturación SRI Ilimitada en todos los planes</div>
-              </div>
-              <div className="grid grid-cols-2 px-4 py-3 items-center hover:bg-surface-sidebar/30 transition-colors">
-                <div className="text-text-muted">Interfaces complejas y lentas con ventanas viejas</div>
-                <div className="text-text-heading font-medium flex items-center gap-1.5"><Check size={14} className="text-success" /> Diseño limpio Vercel/Geist con atajos de teclado</div>
-              </div>
-              <div className="grid grid-cols-2 px-4 py-3 items-center hover:bg-surface-sidebar/30 transition-colors">
-                <div className="text-text-muted">Pérdida de datos si la computadora se daña</div>
-                <div className="text-text-heading font-medium flex items-center gap-1.5"><Check size={14} className="text-success" /> Respaldo continuo en la nube con Firebase</div>
-              </div>
-            </div>
-          </div>
+          <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"overflow-hidden"}}>
+            <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)","borderBottom":"1px solid var(--gray-a6)"},"className":"grid grid-cols-2 px-4 py-3"}}>
+              <UiBox>Sistemas Tradicionales / Antiguos</UiBox>
+              <UiBox {...{"style":{"color":"var(--blue-12)"}}}>WebFix ERP Cloud</UiBox>
+            </UiBox>
+            <UiBox {...{"style":{"color":"var(--gray-11)"}}}>
+              <UiBox {...{"className":"grid grid-cols-2 px-4 py-3 items-center"}}>
+                <UiBox {...{"style":{"color":"var(--gray-11)"}}}>Instalaciones lentas en una sola PC física</UiBox>
+                <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"flex items-center gap-1.5"}}><Check size={14} {...{"style":{"color":"var(--green-12)"}}} /> 100% Cloud desde cualquier navegador</UiBox>
+              </UiBox>
+              <UiBox {...{"className":"grid grid-cols-2 px-4 py-3 items-center"}}>
+                <UiBox {...{"style":{"color":"var(--gray-11)"}}}>Cobro por cantidad de facturas emitidas</UiBox>
+                <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"flex items-center gap-1.5"}}><Check size={14} {...{"style":{"color":"var(--green-12)"}}} /> Facturación SRI Ilimitada en todos los planes</UiBox>
+              </UiBox>
+              <UiBox {...{"className":"grid grid-cols-2 px-4 py-3 items-center"}}>
+                <UiBox {...{"style":{"color":"var(--gray-11)"}}}>Interfaces complejas y lentas con ventanas viejas</UiBox>
+                <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"flex items-center gap-1.5"}}><Check size={14} {...{"style":{"color":"var(--green-12)"}}} /> Diseño limpio Vercel/Geist con atajos de teclado</UiBox>
+              </UiBox>
+              <UiBox {...{"className":"grid grid-cols-2 px-4 py-3 items-center"}}>
+                <UiBox {...{"style":{"color":"var(--gray-11)"}}}>Pérdida de datos si la computadora se daña</UiBox>
+                <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"flex items-center gap-1.5"}}><Check size={14} {...{"style":{"color":"var(--green-12)"}}} /> Respaldo continuo en la nube con Firebase</UiBox>
+              </UiBox>
+            </UiBox>
+          </UiBox>
 
           {/* ECOSISTEMA MULTIPLATAFORMA FLOTANTE: PC, POS MOSTRADOR Y SMARTPHONE */}
-          <div className="mt-14 rounded-card border border-border-default bg-white/90  p-6 sm:p-8 text-left  relative overflow-hidden">
+          <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"mt-14 p-6 sm:p-8 text-left relative overflow-hidden"}}>
             
             {/* Animated Laser Beam on top */}
-            <div className="absolute top-0 left-0 right-0 h-[2px] bg-border-default overflow-hidden">
-              <div className="h-full w-1/3 bg-gradient-to-r from-transparent via-primary to-transparent animate-beam-slide"></div>
-            </div>
+            <UiBox {...{"style":{"backgroundColor":"var(--gray-2)"},"className":"absolute top-0 left-0 right-0 h-[2px] overflow-hidden"}}>
+              <UiBox {...{"style":{"backgroundColor":"var(--gray-2)"},"className":"h-full w-1/3 animate-beam-slide"}}></UiBox>
+            </UiBox>
 
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border-default pb-6 mb-8 pt-1">
-              <div>
-                <span className="text-xs font-semibold uppercase tracking-wider text-primary flex items-center gap-1.5 mb-1 select-none">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-success"></span>
-                  </span>
+            <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 mb-8 pt-1"}}>
+              <UiBox>
+                <UiText {...{"size":"1","weight":"bold","color":"blue","className":"flex items-center gap-1.5 mb-1 select-none"}}>
+                  <UiText {...{"className":"relative flex h-2 w-2"}}>
+                    <UiText {...{"className":"animate-ping absolute inline-flex h-full w-full opacity-75"}}></UiText>
+                    <UiText {...{"className":"relative inline-flex h-2 w-2"}}></UiText>
+                  </UiText>
                   Ecosistema Multiplataforma Integrado
-                </span>
-                <h3 className="text-lg sm:text-xl font-bold tracking-tight text-text-heading">
+                </UiText>
+                <UiHeading as="h3" {...{"size":"4","weight":"bold","color":"gray","highContrast":true}}>
                   Tu negocio sincronizado en PC, Móvil y Punto de Venta
-                </h3>
-              </div>
-              <div className="flex items-center gap-2 bg-surface-sidebar px-3 py-1.5 rounded-md border border-border-default text-xs text-text-secondary font-mono">
-                <Wifi size={13} className="text-success" />
-                <span>Cloud Sync 100% en Vivo</span>
-              </div>
-            </div>
+                </UiHeading>
+              </UiBox>
+              <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","color":"var(--gray-11)","fontFamily":"var(--code-font-family)"},"className":"flex items-center gap-2 px-3 py-1.5"}}>
+                <Wifi size={13} {...{"style":{"color":"var(--green-12)"}}} />
+                <UiText>Cloud Sync 100% en Vivo</UiText>
+              </UiBox>
+            </UiBox>
 
             {/* 3 Devices Floating Fleet */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+            <UiBox {...{"className":"grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch"}}>
               
               {/* DISPOSITIVO 1: PC / COMPUTADORA (Flota Suave a 6s) */}
-              <div className="rounded-md border border-border-default bg-surface-sidebar/40 p-4 flex flex-col justify-between hover:border-border-strong hover:bg-white transition-all duration-300 group">
-                <div>
+              <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4 flex flex-col justify-between duration-300 group"}}>
+                <UiBox>
                   {/* Laptop Mockup Window with Float Animation */}
-                  <div className="animate-float-slow rounded-md border border-border-default bg-white overflow-hidden  mb-4  transition-shadow">
-                    <div className="bg-surface-sidebar border-b border-border-default px-2.5 py-1.5 flex items-center justify-between">
-                      <div className="flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-border-strong inline-block"></span>
-                        <span className="w-2 h-2 rounded-full bg-border-default inline-block"></span>
-                        <span className="w-2 h-2 rounded-full bg-border-default inline-block"></span>
-                      </div>
-                      <span className="text-xs font-mono text-text-muted">app.webfix.ec</span>
-                      <span className="w-2 h-2"></span>
-                    </div>
-                    <div className="p-3 space-y-2 text-xs">
-                      <div className="flex justify-between items-center pb-1 border-b border-border-default/60">
-                        <span className="font-semibold text-text-heading">ERP Dashboard</span>
-                        <Badge variant="success" className="text-xs py-0 px-1 font-normal flex items-center gap-1">
-                          <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse"></span>
+                  <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"animate-float-slow overflow-hidden mb-4 transition-shadow"}}>
+                    <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","borderBottom":"1px solid var(--gray-a6)"},"className":"px-2.5 py-1.5 flex items-center justify-between"}}>
+                      <UiBox {...{"className":"flex items-center gap-1.5"}}>
+                        <UiText {...{"className":"w-2 h-2 inline-block"}}></UiText>
+                        <UiText {...{"className":"w-2 h-2 inline-block"}}></UiText>
+                        <UiText {...{"className":"w-2 h-2 inline-block"}}></UiText>
+                      </UiBox>
+                      <UiText {...{"size":"1","weight":"regular","color":"gray"}}>app.webfix.ec</UiText>
+                      <UiText {...{"className":"w-2 h-2"}}></UiText>
+                    </UiBox>
+                    <UiBox {...{"className":"p-3 space-y-2"}}>
+                      <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex justify-between items-center pb-1"}}>
+                        <UiText {...{"weight":"bold","color":"gray","highContrast":true}}>ERP Dashboard</UiText>
+                        <Badge variant="success" {...{"className":"py-0 px-1 flex items-center gap-1"}}>
+                          <UiText {...{"className":"h-1.5 w-1.5 animate-pulse"}}></UiText>
                           SRI Activo
                         </Badge>
-                      </div>
-                      <div className="grid grid-cols-2 gap-1.5 font-mono">
-                        <div className="p-1.5 rounded bg-surface-sidebar border border-border-default/50">
-                          <span className="text-text-muted block text-xs">Ventas Mes</span>
-                          <span className="font-bold text-text-heading">$4,850.00</span>
-                        </div>
-                        <div className="p-1.5 rounded bg-surface-sidebar border border-border-default/50">
-                          <span className="text-text-muted block text-xs">Facturas</span>
-                          <span className="font-bold text-success-text">142 Ok</span>
-                        </div>
-                      </div>
-                      <div className="p-1.5 rounded bg-surface-sidebar text-xs text-text-secondary flex justify-between items-center">
-                        <span>Último comprobante:</span>
-                        <span className="font-mono text-text-heading font-semibold">FAC-0084</span>
-                      </div>
-                    </div>
-                  </div>
+                      </UiBox>
+                      <UiBox {...{"style":{"fontFamily":"var(--code-font-family)"},"className":"grid grid-cols-2 gap-1.5"}}>
+                        <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)"},"className":"p-1.5"}}>
+                          <UiText {...{"color":"gray","size":"1","className":"block"}}>Ventas Mes</UiText>
+                          <UiText {...{"weight":"bold","color":"gray","highContrast":true}}>$4,850.00</UiText>
+                        </UiBox>
+                        <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)"},"className":"p-1.5"}}>
+                          <UiText {...{"color":"gray","size":"1","className":"block"}}>Facturas</UiText>
+                          <UiText {...{"weight":"bold","color":"green"}}>142 Ok</UiText>
+                        </UiBox>
+                      </UiBox>
+                      <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--color-panel-solid)","color":"var(--gray-11)"},"className":"p-1.5 flex justify-between items-center"}}>
+                        <UiText>Último comprobante:</UiText>
+                        <UiText {...{"weight":"bold","color":"gray","highContrast":true}}>FAC-0084</UiText>
+                      </UiBox>
+                    </UiBox>
+                  </UiBox>
 
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <div className="p-1.5 rounded bg-primary-light text-primary border border-primary-muted group-hover:bg-primary group-hover:text-white transition-colors">
+                  <UiBox {...{"className":"flex items-center gap-2 mb-1.5"}}>
+                    <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--blue-3)","color":"var(--blue-12)","border":"1px solid var(--gray-a6)"},"className":"p-1.5"}}>
                       <Laptop size={14} />
-                    </div>
-                    <h4 className="text-xs font-bold text-text-heading">PC & Laptops</h4>
-                  </div>
-                  <p className="text-xs text-text-secondary leading-relaxed">
+                    </UiBox>
+                    <UiHeading as="h4" {...{"size":"1","weight":"bold","color":"gray","highContrast":true}}>PC & Laptops</UiHeading>
+                  </UiBox>
+                  <UiText as="p" {...{"size":"1","color":"gray","className":"leading-relaxed"}}>
                     Control administrativo completo, reportes tributarios, subida de firmas .p12 y gestión de inventario multibodega.
-                  </p>
-                </div>
-              </div>
+                  </UiText>
+                </UiBox>
+              </UiCard>
 
               {/* DISPOSITIVO 2: PUNTO DE VENTA (POS) / TABLET (Flota Asíncrona a 4.5s) */}
-              <div className="rounded-md border border-border-default bg-surface-sidebar/40 p-4 flex flex-col justify-between hover:border-border-strong hover:bg-white transition-all duration-300 group">
-                <div>
+              <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4 flex flex-col justify-between duration-300 group"}}>
+                <UiBox>
                   {/* Tablet / POS Mockup Window with Float Animation */}
-                  <div className="animate-float-medium rounded-md border border-border-default bg-white overflow-hidden  mb-4  transition-shadow">
-                    <div className="bg-surface-sidebar border-b border-border-default px-2.5 py-1.5 flex items-center justify-between">
-                      <span className="text-xs font-semibold text-text-heading">Terminal POS 01</span>
-                      <Badge variant="outline" className="text-xs py-0 px-1 font-mono">Caja Abierta</Badge>
-                    </div>
-                    <div className="p-3 space-y-2 text-xs">
-                      <div className="grid grid-cols-2 gap-1.5">
-                        <div className="p-1.5 rounded bg-surface-sidebar border border-border-default text-center">
-                          <span className="block font-semibold text-text-heading truncate">Café Espresso</span>
-                          <span className="font-mono text-text-secondary text-xs">$1.75</span>
-                        </div>
-                        <div className="p-1.5 rounded bg-surface-sidebar border border-border-default text-center">
-                          <span className="block font-semibold text-text-heading truncate">Combo Lunch</span>
-                          <span className="font-mono text-text-secondary text-xs">$6.50</span>
-                        </div>
-                      </div>
-                      <div className="p-1.5 rounded bg-surface-sidebar border border-border-default/60 flex justify-between items-center">
-                        <span className="font-semibold text-text-heading">Total Ticket:</span>
-                        <span className="font-mono font-bold text-primary">$8.25</span>
-                      </div>
-                      <div className="bg-text-heading hover:bg-primary text-white text-xs font-semibold py-1 rounded text-center transition-colors cursor-pointer ">
+                  <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"animate-float-medium overflow-hidden mb-4 transition-shadow"}}>
+                    <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","borderBottom":"1px solid var(--gray-a6)"},"className":"px-2.5 py-1.5 flex items-center justify-between"}}>
+                      <UiText {...{"size":"1","weight":"bold","color":"gray","highContrast":true}}>Terminal POS 01</UiText>
+                      <Badge variant="outline" {...{"style":{"fontFamily":"var(--code-font-family)"},"className":"py-0 px-1"}}>Caja Abierta</Badge>
+                    </UiBox>
+                    <UiBox {...{"className":"p-3 space-y-2"}}>
+                      <UiBox {...{"className":"grid grid-cols-2 gap-1.5"}}>
+                        <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)"},"className":"p-1.5 text-center"}}>
+                          <UiText {...{"weight":"bold","color":"gray","highContrast":true,"className":"block truncate"}}>Café Espresso</UiText>
+                          <UiText {...{"weight":"regular","color":"gray","size":"1"}}>$1.75</UiText>
+                        </UiBox>
+                        <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)"},"className":"p-1.5 text-center"}}>
+                          <UiText {...{"weight":"bold","color":"gray","highContrast":true,"className":"block truncate"}}>Combo Lunch</UiText>
+                          <UiText {...{"weight":"regular","color":"gray","size":"1"}}>$6.50</UiText>
+                        </UiBox>
+                      </UiBox>
+                      <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)"},"className":"p-1.5 flex justify-between items-center"}}>
+                        <UiText {...{"weight":"bold","color":"gray","highContrast":true}}>Total Ticket:</UiText>
+                        <UiText {...{"weight":"bold","color":"blue"}}>$8.25</UiText>
+                      </UiBox>
+                      <UiBox {...{"style":{"backgroundColor":"var(--gray-2)","color":"var(--color-background)","borderRadius":"var(--radius-3)"},"className":"py-1 text-center cursor-pointer"}}>
                         Cobro Rápido (F12) ↵
-                      </div>
-                    </div>
-                  </div>
+                      </UiBox>
+                    </UiBox>
+                  </UiBox>
 
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <div className="p-1.5 rounded bg-primary-light text-primary border border-primary-muted group-hover:bg-primary group-hover:text-white transition-colors">
+                  <UiBox {...{"className":"flex items-center gap-2 mb-1.5"}}>
+                    <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--blue-3)","color":"var(--blue-12)","border":"1px solid var(--gray-a6)"},"className":"p-1.5"}}>
                       <Store size={14} />
-                    </div>
-                    <h4 className="text-xs font-bold text-text-heading">Puntos de Venta & Tablets</h4>
-                  </div>
-                  <p className="text-xs text-text-secondary leading-relaxed">
+                    </UiBox>
+                    <UiHeading as="h4" {...{"size":"1","weight":"bold","color":"gray","highContrast":true}}>Puntos de Venta & Tablets</UiHeading>
+                  </UiBox>
+                  <UiText as="p" {...{"size":"1","color":"gray","className":"leading-relaxed"}}>
                     Atención ágil en mostrador con pantalla táctil, pistolas lectoras de barras, tickets térmicos y cobro en 5 segundos.
-                  </p>
-                </div>
-              </div>
+                  </UiText>
+                </UiBox>
+              </UiCard>
 
               {/* DISPOSITIVO 3: MÓVIL / SMARTPHONE (Flota Asíncrona a 3.8s) */}
-              <div className="rounded-md border border-border-default bg-surface-sidebar/40 p-4 flex flex-col justify-between hover:border-border-strong hover:bg-white transition-all duration-300 group">
-                <div>
+              <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4 flex flex-col justify-between duration-300 group"}}>
+                <UiBox>
                   {/* Smartphone Mockup with Float Animation */}
-                  <div className="animate-float-fast max-w-[160px] mx-auto rounded-card border border-border-default bg-white overflow-hidden  mb-4  transition-shadow">
-                    <div className="bg-surface-sidebar border-b border-border-default px-3 py-1 flex items-center justify-between text-xs font-mono text-text-muted">
-                      <span>9:41</span>
-                      <div className="w-8 h-1 bg-border-strong rounded-full"></div>
-                      <span className="text-success-text font-bold">5G</span>
-                    </div>
-                    <div className="p-2.5 space-y-1.5 text-xs">
-                      <div className="p-1.5 rounded bg-surface-sidebar border border-border-default text-center">
-                        <span className="text-xs text-text-muted block">Ventas de Hoy</span>
-                        <span className="font-mono font-bold text-success-text text-xs">+$1,340.00</span>
-                      </div>
-                      <div className="p-1.5 rounded bg-surface-sidebar text-xs text-text-secondary space-y-0.5">
-                        <div className="flex justify-between font-semibold text-text-heading">
-                          <span>FAC-0091</span>
-                          <span>$45.00</span>
-                        </div>
-                        <span className="text-success-text block font-medium flex items-center gap-1">
-                          <span className="h-1 w-1 rounded-full bg-success inline-block animate-ping"></span>
+                  <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"animate-float-fast max-w-[160px] mx-auto overflow-hidden mb-4 transition-shadow"}}>
+                    <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","borderBottom":"1px solid var(--gray-a6)","fontFamily":"var(--code-font-family)","color":"var(--gray-11)"},"className":"px-3 py-1 flex items-center justify-between"}}>
+                      <UiText>9:41</UiText>
+                      <UiBox {...{"style":{"backgroundColor":"var(--gray-2)","borderRadius":"var(--radius-3)"},"className":"w-8 h-1"}}></UiBox>
+                      <UiText {...{"color":"green","weight":"bold"}}>5G</UiText>
+                    </UiBox>
+                    <UiBox {...{"className":"p-2.5 space-y-1.5"}}>
+                      <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)"},"className":"p-1.5 text-center"}}>
+                        <UiText {...{"size":"1","color":"gray","className":"block"}}>Ventas de Hoy</UiText>
+                        <UiText {...{"weight":"bold","color":"green","size":"1"}}>+$1,340.00</UiText>
+                      </UiBox>
+                      <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--color-panel-solid)","color":"var(--gray-11)"},"className":"p-1.5 space-y-0.5"}}>
+                        <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"flex justify-between"}}>
+                          <UiText>FAC-0091</UiText>
+                          <UiText>$45.00</UiText>
+                        </UiBox>
+                        <UiText {...{"color":"green","weight":"medium","className":"block flex items-center gap-1"}}>
+                          <UiText {...{"className":"h-1 w-1 inline-block animate-ping"}}></UiText>
                           Enviada al SRI
-                        </span>
-                      </div>
-                      <div className="bg-primary text-white text-xs font-semibold py-1 rounded text-center">
+                        </UiText>
+                      </UiBox>
+                      <UiBox {...{"style":{"backgroundColor":"var(--blue-9)","color":"var(--color-background)","borderRadius":"var(--radius-3)"},"className":"py-1 text-center"}}>
                         + Nueva Factura
-                      </div>
-                    </div>
-                  </div>
+                      </UiBox>
+                    </UiBox>
+                  </UiBox>
 
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <div className="p-1.5 rounded bg-primary-light text-primary border border-primary-muted group-hover:bg-primary group-hover:text-white transition-colors">
+                  <UiBox {...{"className":"flex items-center gap-2 mb-1.5"}}>
+                    <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--blue-3)","color":"var(--blue-12)","border":"1px solid var(--gray-a6)"},"className":"p-1.5"}}>
                       <Smartphone size={14} />
-                    </div>
-                    <h4 className="text-xs font-bold text-text-heading">Smartphones & Celulares</h4>
-                  </div>
-                  <p className="text-xs text-text-secondary leading-relaxed">
+                    </UiBox>
+                    <UiHeading as="h4" {...{"size":"1","weight":"bold","color":"gray","highContrast":true}}>Smartphones & Celulares</UiHeading>
+                  </UiBox>
+                  <UiText as="p" {...{"size":"1","color":"gray","className":"leading-relaxed"}}>
                     Supervisa tu negocio desde cualquier lugar: emite comprobantes en ruta, consulta existencias y revisa tu dinero en tiempo real.
-                  </p>
-                </div>
-              </div>
+                  </UiText>
+                </UiBox>
+              </UiCard>
 
-            </div>
+            </UiBox>
 
             {/* Bottom Sync Banner with Continuous Flow */}
-            <div className="mt-6 pt-5 border-t border-border-default flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-text-secondary">
-              <div className="flex items-center gap-2">
-                <RefreshCw size={13} className="text-primary animate-spin-slow shrink-0" />
-                <span className="font-medium text-text-primary">
+            <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)","color":"var(--gray-11)"},"className":"mt-6 pt-5 flex flex-col sm:flex-row items-center justify-between gap-3"}}>
+              <UiBox {...{"className":"flex items-center gap-2"}}>
+                <RefreshCw size={13} {...{"style":{"color":"var(--blue-12)"},"className":"animate-spin-slow shrink-0"}} />
+                <UiText {...{"weight":"medium","color":"gray","highContrast":true}}>
                   Sincronización bidireccional automática:
-                </span>
-                <span>Una venta en el POS descuenta el inventario en la PC y actualiza el saldo en tu celular al segundo.</span>
-              </div>
-            </div>
-          </div>
+                </UiText>
+                <UiText>Una venta en el POS descuenta el inventario en la PC y actualiza el saldo en tu celular al segundo.</UiText>
+              </UiBox>
+            </UiBox>
+          </UiBox>
 
-        </div>
+        </UiBox>
       </section>
 
       {/* 5. PRICING PREVIEW */}
-      <section className="py-20 border-b border-border-default bg-white">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 text-center space-y-8">
+      <section {...{"style":{"borderBottom":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"py-20"}}>
+        <UiBox {...{"className":"max-w-5xl mx-auto px-4 sm:px-6 text-center space-y-8"}}>
           
-          <div className="space-y-2">
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-text-heading">
+          <UiBox {...{"className":"space-y-2"}}>
+            <UiHeading as="h2" {...{"size":"6","weight":"bold","color":"gray","highContrast":true}}>
               Precios simples y transparentes.
-            </h2>
-            <p className="text-xs sm:text-sm text-text-secondary">
+            </UiHeading>
+            <UiText as="p" {...{"size":"1","color":"gray"}}>
               Sin costos ocultos ni cobros por factura emitida. Comienza con 14 días gratis.
-            </p>
+            </UiText>
 
             {/* Toggle Mensual / Anual */}
-            <div className="inline-flex items-center p-1 rounded-md bg-surface-sidebar border border-border-default gap-1 mt-4">
-              <button
+            <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)"},"className":"inline-flex items-center p-1 gap-1 mt-4"}}>
+              <UiButton
                 onClick={() => setBillingCycle('monthly')}
-                className={`px-3 py-1 text-xs font-medium rounded-badge transition-all cursor-pointer ${
-                  billingCycle === 'monthly' ? 'bg-white text-text-heading font-semibold shadow-none' : 'text-text-secondary'
-                }`}
+                {...mergeThemeProps({"size":"2","className":"cursor-pointer"}, {}, (billingCycle === 'monthly' ? {"variant":"surface","color":"gray"} : {"color":"gray"}))}
               >
                 Mensual
-              </button>
-              <button
+              </UiButton>
+              <UiButton
                 onClick={() => setBillingCycle('yearly')}
-                className={`px-3 py-1 text-xs font-medium rounded-badge transition-all cursor-pointer flex items-center gap-1 ${
-                  billingCycle === 'yearly' ? 'bg-white text-text-heading font-semibold shadow-none' : 'text-text-secondary'
-                }`}
+                {...mergeThemeProps({"size":"2","className":"cursor-pointer flex items-center gap-1"}, {}, (billingCycle === 'yearly' ? {"variant":"surface","color":"gray"} : {"color":"gray"}))}
               >
-                <span>Anual</span>
-                <span className="text-xs text-success-text bg-success-light px-1 rounded font-mono">-20%</span>
-              </button>
-            </div>
-          </div>
+                <UiText>Anual</UiText>
+                <UiText {...{"size":"1","color":"green","weight":"regular","className":"px-1"}}>-20%</UiText>
+              </UiButton>
+            </UiBox>
+          </UiBox>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left max-w-4xl mx-auto">
+          <UiBox {...{"className":"grid grid-cols-1 md:grid-cols-3 gap-6 text-left max-w-4xl mx-auto"}}>
             
             {/* Plan Starter */}
-            <Card className="p-5 flex flex-col justify-between">
-              <div>
-                <div className="mb-4">
-                  <h3 className="text-sm font-semibold text-text-heading">Emprendedor</h3>
-                  <p className="text-xs text-text-secondary mt-0.5">Para negocios que inician con el SRI</p>
-                </div>
-                <div className="mb-6">
-                  <span className="text-3xl font-bold font-mono text-text-heading">
+            <Card {...{"className":"p-5 flex flex-col justify-between"}}>
+              <UiBox>
+                <UiBox {...{"className":"mb-4"}}>
+                  <UiHeading as="h3" {...{"size":"2","weight":"bold","color":"gray","highContrast":true}}>Emprendedor</UiHeading>
+                  <UiText as="p" {...{"size":"1","color":"gray","className":"mt-0.5"}}>Para negocios que inician con el SRI</UiText>
+                </UiBox>
+                <UiBox {...{"className":"mb-6"}}>
+                  <UiText {...{"size":"7","weight":"regular","color":"gray","highContrast":true}}>
                     ${billingCycle === 'monthly' ? '15' : '12'}
-                  </span>
-                  <span className="text-xs text-text-muted"> / mes</span>
-                </div>
-                <ul className="space-y-2 text-xs text-text-secondary">
-                  <li className="flex items-center gap-2"><Check size={12} className="text-success" /> Facturas SRI Ilimitadas</li>
-                  <li className="flex items-center gap-2"><Check size={12} className="text-success" /> Punto de Venta (POS)</li>
-                  <li className="flex items-center gap-2"><Check size={12} className="text-success" /> Directorio de Clientes</li>
-                  <li className="flex items-center gap-2"><Check size={12} className="text-success" /> 1 Usuario</li>
+                  </UiText>
+                  <UiText {...{"size":"1","color":"gray"}}> / mes</UiText>
+                </UiBox>
+                <ul {...{"style":{"color":"var(--gray-11)"},"className":"space-y-2"}}>
+                  <li {...{"className":"flex items-center gap-2"}}><Check size={12} {...{"style":{"color":"var(--green-12)"}}} /> Facturas SRI Ilimitadas</li>
+                  <li {...{"className":"flex items-center gap-2"}}><Check size={12} {...{"style":{"color":"var(--green-12)"}}} /> Punto de Venta (POS)</li>
+                  <li {...{"className":"flex items-center gap-2"}}><Check size={12} {...{"style":{"color":"var(--green-12)"}}} /> Directorio de Clientes</li>
+                  <li {...{"className":"flex items-center gap-2"}}><Check size={12} {...{"style":{"color":"var(--green-12)"}}} /> 1 Usuario</li>
                 </ul>
-              </div>
+              </UiBox>
               <Button 
                 variant="outline" 
                 size="sm" 
                 onClick={() => navigate('/register')}
-                className="w-full mt-6 text-xs"
+                {...{"size":"2","className":"w-full mt-6"}}
               >
                 Probar Gratis
               </Button>
             </Card>
 
             {/* Plan Profesional (Destacado) */}
-            <Card className="p-5 flex flex-col justify-between border-text-heading ring-1 ring-text-heading relative">
-              <Badge variant="default" className="absolute -top-2.5 right-4 text-xs normal-case py-0.5 px-2 font-normal">
+            <Card {...{"className":"p-5 flex flex-col justify-between relative"}}>
+              <Badge variant="default" {...{"className":"absolute -top-2.5 right-4 py-0.5 px-2"}}>
                 Más Popular
               </Badge>
-              <div>
-                <div className="mb-4">
-                  <h3 className="text-sm font-semibold text-text-heading">Negocio Pro</h3>
-                  <p className="text-xs text-text-secondary mt-0.5">Para comercios con inventario y POS</p>
-                </div>
-                <div className="mb-6">
-                  <span className="text-3xl font-bold font-mono text-text-heading">
+              <UiBox>
+                <UiBox {...{"className":"mb-4"}}>
+                  <UiHeading as="h3" {...{"size":"2","weight":"bold","color":"gray","highContrast":true}}>Negocio Pro</UiHeading>
+                  <UiText as="p" {...{"size":"1","color":"gray","className":"mt-0.5"}}>Para comercios con inventario y POS</UiText>
+                </UiBox>
+                <UiBox {...{"className":"mb-6"}}>
+                  <UiText {...{"size":"7","weight":"regular","color":"gray","highContrast":true}}>
                     ${billingCycle === 'monthly' ? '29' : '23'}
-                  </span>
-                  <span className="text-xs text-text-muted"> / mes</span>
-                </div>
-                <ul className="space-y-2 text-xs text-text-secondary">
-                  <li className="flex items-center gap-2"><Check size={12} className="text-success" /> Todo lo de Emprendedor</li>
-                  <li className="flex items-center gap-2"><Check size={12} className="text-success" /> Inventario & Kardex Multibodega</li>
-                  <li className="flex items-center gap-2"><Check size={12} className="text-success" /> Control de Cuentas por Cobrar (CxC)</li>
-                  <li className="flex items-center gap-2"><Check size={12} className="text-success" /> Hasta 3 Usuarios y Cajeros</li>
+                  </UiText>
+                  <UiText {...{"size":"1","color":"gray"}}> / mes</UiText>
+                </UiBox>
+                <ul {...{"style":{"color":"var(--gray-11)"},"className":"space-y-2"}}>
+                  <li {...{"className":"flex items-center gap-2"}}><Check size={12} {...{"style":{"color":"var(--green-12)"}}} /> Todo lo de Emprendedor</li>
+                  <li {...{"className":"flex items-center gap-2"}}><Check size={12} {...{"style":{"color":"var(--green-12)"}}} /> Inventario & Kardex Multibodega</li>
+                  <li {...{"className":"flex items-center gap-2"}}><Check size={12} {...{"style":{"color":"var(--green-12)"}}} /> Control de Cuentas por Cobrar (CxC)</li>
+                  <li {...{"className":"flex items-center gap-2"}}><Check size={12} {...{"style":{"color":"var(--green-12)"}}} /> Hasta 3 Usuarios y Cajeros</li>
                 </ul>
-              </div>
+              </UiBox>
               <Button 
                 variant="default" 
                 size="sm" 
                 onClick={() => navigate('/register')}
-                className="w-full mt-6 text-xs"
+                {...{"size":"2","className":"w-full mt-6"}}
               >
                 Comenzar con Pro
               </Button>
             </Card>
 
             {/* Plan Empresa */}
-            <Card className="p-5 flex flex-col justify-between">
-              <div>
-                <div className="mb-4">
-                  <h3 className="text-sm font-semibold text-text-heading">Empresarial</h3>
-                  <p className="text-xs text-text-secondary mt-0.5">Para empresas con gestión completa</p>
-                </div>
-                <div className="mb-6">
-                  <span className="text-3xl font-bold font-mono text-text-heading">
+            <Card {...{"className":"p-5 flex flex-col justify-between"}}>
+              <UiBox>
+                <UiBox {...{"className":"mb-4"}}>
+                  <UiHeading as="h3" {...{"size":"2","weight":"bold","color":"gray","highContrast":true}}>Empresarial</UiHeading>
+                  <UiText as="p" {...{"size":"1","color":"gray","className":"mt-0.5"}}>Para empresas con gestión completa</UiText>
+                </UiBox>
+                <UiBox {...{"className":"mb-6"}}>
+                  <UiText {...{"size":"7","weight":"regular","color":"gray","highContrast":true}}>
                     ${billingCycle === 'monthly' ? '59' : '47'}
-                  </span>
-                  <span className="text-xs text-text-muted"> / mes</span>
-                </div>
-                <ul className="space-y-2 text-xs text-text-secondary">
-                  <li className="flex items-center gap-2"><Check size={12} className="text-success" /> Todo lo de Negocio Pro</li>
-                  <li className="flex items-center gap-2"><Check size={12} className="text-success" /> Captura OCR con IA ilimitada</li>
-                  <li className="flex items-center gap-2"><Check size={12} className="text-success" /> Contabilidad & Asientos Automáticos</li>
-                  <li className="flex items-center gap-2"><Check size={12} className="text-success" /> Usuarios y Cajeros Ilimitados</li>
+                  </UiText>
+                  <UiText {...{"size":"1","color":"gray"}}> / mes</UiText>
+                </UiBox>
+                <ul {...{"style":{"color":"var(--gray-11)"},"className":"space-y-2"}}>
+                  <li {...{"className":"flex items-center gap-2"}}><Check size={12} {...{"style":{"color":"var(--green-12)"}}} /> Todo lo de Negocio Pro</li>
+                  <li {...{"className":"flex items-center gap-2"}}><Check size={12} {...{"style":{"color":"var(--green-12)"}}} /> Captura OCR con IA ilimitada</li>
+                  <li {...{"className":"flex items-center gap-2"}}><Check size={12} {...{"style":{"color":"var(--green-12)"}}} /> Contabilidad & Asientos Automáticos</li>
+                  <li {...{"className":"flex items-center gap-2"}}><Check size={12} {...{"style":{"color":"var(--green-12)"}}} /> Usuarios y Cajeros Ilimitados</li>
                 </ul>
-              </div>
+              </UiBox>
               <Button 
                 variant="outline" 
                 size="sm" 
                 onClick={() => navigate('/register')}
-                className="w-full mt-6 text-xs"
+                {...{"size":"2","className":"w-full mt-6"}}
               >
                 Probar Empresarial
               </Button>
             </Card>
 
-          </div>
+          </UiBox>
 
-        </div>
+        </UiBox>
       </section>
 
       {/* 6. FAQ ACCORDION */}
-      <section className="py-20 border-b border-border-default bg-surface-sidebar/30">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 text-left">
+      <section {...{"style":{"borderBottom":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"py-20"}}>
+        <UiBox {...{"className":"max-w-3xl mx-auto px-4 sm:px-6 text-left"}}>
           
-          <div className="text-center mb-12 space-y-2">
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-text-heading">
+          <UiBox {...{"className":"text-center mb-12 space-y-2"}}>
+            <UiHeading as="h2" {...{"size":"6","weight":"bold","color":"gray","highContrast":true}}>
               Preguntas Frecuentes
-            </h2>
-            <p className="text-xs sm:text-sm text-text-secondary">
+            </UiHeading>
+            <UiText as="p" {...{"size":"1","color":"gray"}}>
               Todo lo que necesitas saber para comenzar hoy mismo.
-            </p>
-          </div>
+            </UiText>
+          </UiBox>
 
-          <div className="space-y-2">
+          <UiBox {...{"className":"space-y-2"}}>
             {faqs.map((faq, index) => {
               const isOpen = openFaqIndex === index;
               return (
-                <div 
+                <UiBox 
                   key={index} 
-                  className="rounded-md border border-border-default bg-white overflow-hidden transition-colors"
+                  {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"overflow-hidden"}}
                 >
-                  <button
+                  <UiButton
                     onClick={() => setOpenFaqIndex(isOpen ? null : index)}
-                    className="w-full px-4 py-3 text-left flex items-center justify-between gap-4 text-xs font-semibold text-text-heading hover:bg-surface-sidebar/50 transition-colors cursor-pointer"
+                    {...{"size":"2","color":"gray","className":"w-full text-left flex items-center justify-between gap-4 cursor-pointer"}}
                   >
-                    <span>{faq.q}</span>
-                    <ChevronDown size={14} className={`shrink-0 transition-transform duration-150 ${isOpen ? 'rotate-180' : ''}`} />
-                  </button>
+                    <UiText>{faq.q}</UiText>
+                    <ChevronDown size={14} {...mergeThemeProps({"className":"shrink-0 transition-transform duration-150"}, {}, (isOpen ? {"className":"rotate-180"} : {}))} />
+                  </UiButton>
                   {isOpen && (
-                    <div className="px-4 pb-3.5 pt-1 text-xs text-text-secondary leading-relaxed border-t border-border-default/50 animate-in fade-in duration-100">
+                    <UiBox {...{"style":{"color":"var(--gray-11)","borderTop":"1px solid var(--gray-a6)"},"className":"px-4 pb-3.5 pt-1 leading-relaxed animate-in fade-in duration-100"}}>
                       {faq.a}
-                    </div>
+                    </UiBox>
                   )}
-                </div>
+                </UiBox>
               );
             })}
-          </div>
+          </UiBox>
 
-        </div>
+        </UiBox>
       </section>
 
       {/* 7. FINAL CALL TO ACTION (Minimalist High-Contrast Banner with Ambient Glow) */}
-      <section className="relative py-24 bg-white overflow-hidden">
+      <section {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"relative py-24 overflow-hidden"}}>
         {/* Ambient Glow Lights */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[350px] bg-primary/8 rounded-full blur-[100px] pointer-events-none animate-glow-pulse"></div>
+        <UiBox {...{"style":{"backgroundColor":"var(--blue-3)","borderRadius":"var(--radius-3)"},"className":"absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[350px] pointer-events-none animate-glow-pulse"}}></UiBox>
 
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center relative z-10">
-          <div className="rounded-card border border-border-default bg-gradient-to-b from-surface-sidebar via-white to-surface-sidebar p-8 sm:p-14 space-y-5  relative overflow-hidden">
+        <UiBox {...{"className":"max-w-4xl mx-auto px-4 sm:px-6 text-center relative z-10"}}>
+          <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--gray-2)"},"className":"p-8 sm:p-14 space-y-5 relative overflow-hidden"}}>
             
             {/* Top decorative laser line */}
-            <div className="absolute top-0 left-0 right-0 h-[2px] bg-border-default overflow-hidden">
-              <div className="h-full w-1/3 bg-gradient-to-r from-transparent via-[#00E4B8] to-transparent animate-beam-slide" style={{ animationDuration: '4s' }}></div>
-            </div>
+            <UiBox {...{"style":{"backgroundColor":"var(--gray-2)"},"className":"absolute top-0 left-0 right-0 h-[2px] overflow-hidden"}}>
+              <UiBox {...{"style":{"backgroundColor":"var(--gray-2)"},"className":"h-full w-1/3 animate-beam-slide"}} style={{ animationDuration: '4s' }}></UiBox>
+            </UiBox>
 
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border-default bg-white text-text-secondary text-xs font-medium tracking-tight  select-none">
-              <span className="flex h-1.5 w-1.5 rounded-full bg-success animate-pulse"></span>
-              <span>14 Días Gratis • Sin Tarjeta</span>
-            </div>
+            <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-11)"},"className":"inline-flex items-center gap-2 px-3 py-1 select-none"}}>
+              <UiText {...{"className":"flex h-1.5 w-1.5 animate-pulse"}}></UiText>
+              <UiText>14 Días Gratis • Sin Tarjeta</UiText>
+            </UiCard>
 
-            <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-text-heading">
+            <UiHeading as="h2" {...{"size":"6","weight":"bold","color":"gray","highContrast":true}}>
               Comienza a facturar y controlar tu negocio hoy.
-            </h2>
-            <p className="text-xs sm:text-sm text-text-secondary max-w-lg mx-auto leading-relaxed">
+            </UiHeading>
+            <UiText as="p" {...{"size":"1","color":"gray","className":"max-w-lg mx-auto leading-relaxed"}}>
               Únete a cientos de emprendedores ecuatorianos que ya modernizaron su gestión tributaria y comercial con WebFix.
-            </p>
-            <div className="pt-3 flex flex-col sm:flex-row items-center justify-center gap-3">
+            </UiText>
+            <UiBox {...{"className":"pt-3 flex flex-col sm:flex-row items-center justify-center gap-3"}}>
               <Button 
                 size="lg" 
                 variant="default"
                 onClick={() => navigate('/register')}
-                className="w-full sm:w-auto text-xs px-6 h-10 gap-2  group hover:scale-[1.02] transition-all"
+                {...{"size":"2","className":"w-full sm:w-auto gap-2 group hover:scale-[1.02]"}}
               >
-                <span>Crear Cuenta Gratis</span>
-                <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
+                <UiText>Crear Cuenta Gratis</UiText>
+                <ArrowRight size={13} {...{"className":"group-hover:translate-x-0.5 transition-transform"}} />
               </Button>
               <Button 
                 size="lg" 
                 variant="secondary"
                 onClick={() => navigate('/contacto')}
-                className="w-full sm:w-auto text-xs px-5 h-10 hover:bg-surface-sidebar transition-colors"
+                {...{"size":"2","className":"w-full sm:w-auto"}}
               >
                 Hablar con un Asesor
               </Button>
-            </div>
-          </div>
-        </div>
+            </UiBox>
+          </UiBox>
+        </UiBox>
       </section>
 
-    </div>
+    </UiBox>
   );
 }

@@ -1,3 +1,6 @@
+import { mergeThemeProps } from '../../components/ui/themeProps';
+import { UiBox, UiHeading, UiText, UiCard, UiLabel } from '../../components/ui/layout';
+import { UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell, UiButton, UiSelect, UiInput } from '../../components/ui/controls';
 import { useState, useEffect } from 'react';
 
 import {
@@ -291,306 +294,298 @@ export default function BillingPortal({ showToast, initialSubTab }) {
   };
 
   return (
-    <div className={`p-6 max-w-5xl mx-auto space-y-8 text-left text-text-heading`}>
+    <UiBox {...mergeThemeProps({"style":{"color":"var(--gray-12)"},"className":"p-6 max-w-5xl mx-auto space-y-8 text-left"})}>
       
       {/* Header Info */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-semibold tracking-tight">Suscripción y Facturación</h2>
-          <p className="text-xs text-text-secondary font-medium">Administra los módulos de tu negocio y realiza tus pagos.</p>
-        </div>
-        <div className={`p-4 rounded-card border flex items-center gap-3 bg-white border-border-default`}>
-          <div className="p-2 bg-primary/10 rounded-md text-primary">
+      <UiBox {...{"className":"flex flex-col sm:flex-row sm:items-center justify-between gap-4"}}>
+        <UiBox>
+          <UiHeading as="h2" {...{"size":"5","weight":"bold"}}>Suscripción y Facturación</UiHeading>
+          <UiText as="p" {...{"size":"1","color":"gray","weight":"medium"}}>Administra los módulos de tu negocio y realiza tus pagos.</UiText>
+        </UiBox>
+        <UiCard {...mergeThemeProps({"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4 flex items-center gap-3"})}>
+          <UiBox {...{"style":{"backgroundColor":"var(--blue-3)","borderRadius":"var(--radius-3)","color":"var(--blue-12)"},"className":"p-2"}}>
             <Building size={18} />
-          </div>
-          <div>
-            <div className="text-xs uppercase font-bold text-text-secondary">Plan Actual</div>
-            <div className="text-xs font-bold capitalize">{activePlan} — {planStatus === 'trial' ? `Prueba (${getDaysRemaining()} días)` : 'Suscripción Activa'}</div>
-          </div>
-        </div>
-      </div>
+          </UiBox>
+          <UiBox>
+            <UiBox {...{"style":{"color":"var(--gray-11)"}}}>Plan Actual</UiBox>
+            <UiBox {...{}}>{activePlan} — {planStatus === 'trial' ? `Prueba (${getDaysRemaining()} días)` : 'Suscripción Activa'}</UiBox>
+          </UiBox>
+        </UiCard>
+      </UiBox>
 
       {/* Grid: Plan Selector & Payment Form */}
       {activeCategory === 'historial' ? (
-        <div className={`p-6 rounded-card border bg-white border-border-default`}>
-          <h3 className="text-xs font-bold uppercase tracking-wider mb-4">Historial de Transacciones</h3>
-          <div className="overflow-x-auto text-xs">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b  text-text-secondary font-bold uppercase text-xs">
-                  <th className="py-2">Fecha</th>
-                  <th className="py-2">Referencia</th>
-                  <th className="py-2">Monto</th>
-                  <th className="py-2">Estado</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y  font-medium">
+        <UiCard {...mergeThemeProps({"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-6"})}>
+          <UiHeading as="h3" {...{"size":"1","weight":"bold","className":"mb-4"}}>Historial de Transacciones</UiHeading>
+          <UiBox {...{"className":"overflow-x-auto"}}>
+            <UiTable {...{"className":"w-full text-left"}}>
+              <UiTableHeader>
+                <UiTableRow {...{"style":{"color":"var(--gray-11)"}}}>
+                  <UiTableHead {...{"className":"py-2"}}>Fecha</UiTableHead>
+                  <UiTableHead {...{"className":"py-2"}}>Referencia</UiTableHead>
+                  <UiTableHead {...{"className":"py-2"}}>Monto</UiTableHead>
+                  <UiTableHead {...{"className":"py-2"}}>Estado</UiTableHead>
+                </UiTableRow>
+              </UiTableHeader>
+              <UiTableBody {...{}}>
                 {history.length === 0 ? (
-                  <tr>
-                    <td colSpan="4" className="py-4 text-center text-text-secondary font-semibold">No se registran transacciones previas.</td>
-                  </tr>
+                  <UiTableRow>
+                    <UiTableCell colSpan="4" {...{"style":{"color":"var(--gray-11)"},"className":"py-4 text-center"}}>No se registran transacciones previas.</UiTableCell>
+                  </UiTableRow>
                 ) : (
                   history.map((tx) => (
-                    <tr key={tx.id}>
-                      <td className="py-3.5">{new Date(tx.transferDate).toLocaleDateString('es-EC')}</td>
-                      <td className="py-3.5 font-mono">{tx.referenceNumber}</td>
-                      <td className="py-3.5 font-bold text-emerald-500">${tx.amount}</td>
-                      <td className="py-3.5">
-                        <span className={`px-2 py-0.5 rounded text-xs font-semibold uppercase ${
-                          tx.status === 'approved' ? 'bg-emerald-500/15 text-emerald-500' :
-                          tx.status === 'pending' ? 'bg-orange-500/15 text-orange-500 animate-pulse' :
-                          'bg-red-500/15 text-red-500'
-                        }`}>
+                    <UiTableRow key={tx.id}>
+                      <UiTableCell {...{"className":"py-3.5"}}>{new Date(tx.transferDate).toLocaleDateString('es-EC')}</UiTableCell>
+                      <UiTableCell {...{"style":{"fontFamily":"var(--code-font-family)"},"className":"py-3.5"}}>{tx.referenceNumber}</UiTableCell>
+                      <UiTableCell {...{"style":{"color":"var(--green-11)"},"className":"py-3.5"}}>${tx.amount}</UiTableCell>
+                      <UiTableCell {...{"className":"py-3.5"}}>
+                        <UiText {...mergeThemeProps({"size":"1","weight":"bold","className":"px-2 py-0.5"}, {}, (tx.status === 'approved' ? {"color":"green"} : (tx.status === 'pending' ? {"color":"orange","className":"animate-pulse"} : {"color":"red"})))}>
                           {tx.status === 'approved' ? 'Aprobado' :
                            tx.status === 'pending' ? 'Pendiente' : 'Rechazado'}
-                        </span>
-                      </td>
-                    </tr>
+                        </UiText>
+                      </UiTableCell>
+                    </UiTableRow>
                   ))
                 )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+              </UiTableBody>
+            </UiTable>
+          </UiBox>
+        </UiCard>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        <UiBox {...{"className":"grid grid-cols-1 lg:grid-cols-3 gap-8 items-start"}}>
           
           {/* Left Col: Plan Selector */}
-          <div className="lg:col-span-2 space-y-6">
-            <div className={`p-6 rounded-card border bg-white border-border-default`}>
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                <div>
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-primary">
+          <UiBox {...{"className":"lg:col-span-2 space-y-6"}}>
+            <UiCard {...mergeThemeProps({"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-6"})}>
+              <UiBox {...{"className":"flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6"}}>
+                <UiBox>
+                  <UiHeading as="h3" {...{"size":"1","weight":"bold","color":"blue"}}>
                     {PRODUCTS_CATALOG[activeCategory]?.title}
-                  </h3>
-                  <p className="text-xs text-text-secondary mt-0.5 font-medium">
+                  </UiHeading>
+                  <UiText as="p" {...{"size":"1","color":"gray","weight":"medium","className":"mt-0.5"}}>
                     {PRODUCTS_CATALOG[activeCategory]?.desc}
-                  </p>
-                </div>
+                  </UiText>
+                </UiBox>
                 
                 {/* Billing Cycle Toggle */}
-                <div className="flex bg-surface-muted  p-1 rounded-card text-xs font-bold self-start sm:self-center">
-                  <button 
+                <UiBox {...{"style":{"backgroundColor":"var(--gray-2)","borderRadius":"var(--radius-3)"},"className":"flex p-1 self-start sm:self-center"}}>
+                  <UiButton
                     onClick={() => setBillingPeriod('monthly')}
-                    className={`px-3 py-1.5 rounded-md ${billingPeriod === 'monthly' ? 'bg-white  text-primary ' : 'text-text-secondary'}`}
+                    {...mergeThemeProps({}, {}, (billingPeriod === 'monthly' ? {"variant":"surface","color":"blue"} : {"color":"gray"}))}
                   >
                     Mensual
-                  </button>
-                  <button 
+                  </UiButton>
+                  <UiButton
                     onClick={() => setBillingPeriod('yearly')}
-                    className={`px-3 py-1.5 rounded-md ${billingPeriod === 'yearly' ? 'bg-white  text-primary ' : 'text-text-secondary'}`}
+                    {...mergeThemeProps({}, {}, (billingPeriod === 'yearly' ? {"variant":"surface","color":"blue"} : {"color":"gray"}))}
                   >
                     Anual
-                  </button>
-                </div>
-              </div>
+                  </UiButton>
+                </UiBox>
+              </UiBox>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <UiBox {...{"className":"grid grid-cols-1 sm:grid-cols-3 gap-4"}}>
                 {(PRODUCTS_CATALOG[activeCategory]?.plans || []).map((plan) => {
                   const isSelected = selectedPlanId === plan.id;
                   return (
-                    <div 
+                    <UiBox 
                       key={plan.id}
                       onClick={() => setSelectedPlanId(plan.id)}
-                      className={`p-5 rounded-card border cursor-pointer transition-all flex flex-col justify-between ${
-                        isSelected 
-                          ? 'border-primary bg-primary/5  ring-1 ring-primary/30'
-                          : 'border-border-default bg-surface-bg hover:bg-surface-muted/50'
-                      }`}
+                      {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"p-5 cursor-pointer flex flex-col justify-between"}, {}, (isSelected ? {"style":{"backgroundColor":"var(--blue-3)"}} : {"style":{"backgroundColor":"var(--gray-2)"}}))}
                     >
-                      <div>
-                        <div className="font-bold text-xs mb-1">{plan.name}</div>
-                        <div className="flex items-baseline gap-0.5 mb-4">
-                          <span className="text-lg font-semibold">$</span>
-                          <span className="text-2xl font-semibold">{getPrice(plan)}</span>
-                          <span className="text-xs text-text-secondary">/mes</span>
-                        </div>
-                        <ul className="space-y-2 text-xs text-text-secondary font-medium">
+                      <UiBox>
+                        <UiBox {...{"className":"mb-1"}}>{plan.name}</UiBox>
+                        <UiBox {...{"className":"flex items-baseline gap-0.5 mb-4"}}>
+                          <UiText {...{"size":"4","weight":"bold"}}>$</UiText>
+                          <UiText {...{"size":"6","weight":"bold"}}>{getPrice(plan)}</UiText>
+                          <UiText {...{"size":"1","color":"gray"}}>/mes</UiText>
+                        </UiBox>
+                        <ul {...{"style":{"color":"var(--gray-11)"},"className":"space-y-2"}}>
                           {plan.features.map((feat, idx) => (
-                            <li key={idx} className="flex items-start gap-1.5 leading-normal">
-                              <Check size={10} className="text-emerald-500 shrink-0 mt-0.5" />
-                              <span>{feat}</span>
+                            <li key={idx} {...{"className":"flex items-start gap-1.5 leading-normal"}}>
+                              <Check size={10} {...{"style":{"color":"var(--green-11)"},"className":"shrink-0 mt-0.5"}} />
+                              <UiText>{feat}</UiText>
                             </li>
                           ))}
                         </ul>
-                      </div>
-                    </div>
+                      </UiBox>
+                    </UiBox>
                   );
                 })}
-              </div>
-            </div>
-          </div>
+              </UiBox>
+            </UiCard>
+          </UiBox>
 
           {/* Right Col: Checkout & Payment details */}
-          <div className="space-y-6">
-            <div className={`p-6 rounded-card border bg-white border-border-default`}>
-              <h3 className="text-xs font-bold uppercase tracking-wider mb-4">Resumen del Pago</h3>
+          <UiBox {...{"className":"space-y-6"}}>
+            <UiCard {...mergeThemeProps({"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-6"})}>
+              <UiHeading as="h3" {...{"size":"1","weight":"bold","className":"mb-4"}}>Resumen del Pago</UiHeading>
               
-              <div className="space-y-3.5 text-xs font-medium mb-6">
-                <div className="flex justify-between">
-                  <span>Plan Seleccionado:</span>
-                  <strong className="capitalize">
+              <UiBox {...{"className":"space-y-3.5 mb-6"}}>
+                <UiBox {...{"className":"flex justify-between"}}>
+                  <UiText>Plan Seleccionado:</UiText>
+                  <strong {...{}}>
                     {getSelectedPlanConfig()?.name || ''}
                   </strong>
-                </div>
-                <div className="flex justify-between">
-                  <span>Ciclo de Cobro:</span>
-                  <strong className="capitalize">{billingPeriod === 'yearly' ? 'Anual' : 'Mensual'}</strong>
-                </div>
-                <div className="flex justify-between text-base font-semibold border-t  pt-3">
-                  <span>Total a Pagar:</span>
-                  <span className="text-primary ">
+                </UiBox>
+                <UiBox {...{"className":"flex justify-between"}}>
+                  <UiText>Ciclo de Cobro:</UiText>
+                  <strong {...{}}>{billingPeriod === 'yearly' ? 'Anual' : 'Mensual'}</strong>
+                </UiBox>
+                <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"flex justify-between pt-3"}}>
+                  <UiText>Total a Pagar:</UiText>
+                  <UiText {...{"color":"blue"}}>
                     ${billingPeriod === 'yearly' ? getPrice(getSelectedPlanConfig()) * 12 : getPrice(getSelectedPlanConfig())}
-                  </span>
-                </div>
-              </div>
+                  </UiText>
+                </UiBox>
+              </UiBox>
 
               {/* Payment Method Selector */}
-              <div className="grid grid-cols-2 gap-2 p-1 bg-surface-muted  rounded-card text-xs font-bold mb-6">
-                <button 
+              <UiBox {...{"style":{"backgroundColor":"var(--gray-2)","borderRadius":"var(--radius-3)"},"className":"grid grid-cols-2 gap-2 p-1 mb-6"}}>
+                <UiButton
                   type="button"
                   onClick={() => setPaymentMethod('card')}
-                  className={`py-2 rounded-md transition-all ${paymentMethod === 'card' ? 'bg-white  text-primary ' : 'text-text-secondary'}`}
+                  {...mergeThemeProps({}, {}, (paymentMethod === 'card' ? {"variant":"surface","color":"blue"} : {"color":"gray"}))}
                 >
                   Tarjeta (PayPhone)
-                </button>
-                <button 
+                </UiButton>
+                <UiButton
                   type="button"
                   onClick={() => setPaymentMethod('transfer')}
-                  className={`py-2 rounded-md transition-all ${paymentMethod === 'transfer' ? 'bg-white  text-primary ' : 'text-text-secondary'}`}
+                  {...mergeThemeProps({}, {}, (paymentMethod === 'transfer' ? {"variant":"surface","color":"blue"} : {"color":"gray"}))}
                 >
                   Transferencia
-                </button>
-              </div>
+                </UiButton>
+              </UiBox>
 
               {/* CARD PAYMENT: PAYPHONE BUTTON */}
               {paymentMethod === 'card' && (
-                <div className="space-y-4">
-                  <p className="text-xs text-text-secondary leading-normal">Los pagos con tarjeta se acreditan de manera automática. Aceptamos Visa, MasterCard y todas las tarjetas nacionales.</p>
-                  <button 
+                <UiBox {...{"className":"space-y-4"}}>
+                  <UiText as="p" {...{"size":"1","color":"gray","className":"leading-normal"}}>Los pagos con tarjeta se acreditan de manera automática. Aceptamos Visa, MasterCard y todas las tarjetas nacionales.</UiText>
+                  <UiButton
                     onClick={handlePayPhoneCheckout}
                     disabled={isProcessing}
-                    className="w-full flex items-center justify-center gap-2 py-4 rounded-card text-xs font-bold tracking-wider uppercase bg-warning hover:bg-warning text-white transition-all active:scale-98"
+                    {...{"size":"2","variant":"solid","color":"amber","className":"w-full flex items-center justify-center gap-2 active:scale-98"}}
                   >
                     Pagar con PayPhone
-                  </button>
-                </div>
+                  </UiButton>
+                </UiBox>
               )}
 
               {/* BANK TRANSFER: UPLOAD FORM */}
               {paymentMethod === 'transfer' && (
-                <form onSubmit={handleSubmitTransfer} className="space-y-4 text-xs font-medium text-left">
-                  <div className="p-3 bg-blue-500/5 rounded-card border border-blue-500/10 text-xs text-text-secondary leading-relaxed mb-4">
+                <form onSubmit={handleSubmitTransfer} {...{"className":"space-y-4 text-left"}}>
+                  <UiBox {...{"style":{"backgroundColor":"var(--blue-3)","borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","color":"var(--gray-11)"},"className":"p-3 leading-relaxed mb-4"}}>
                     <strong>Cuentas Bancarias WebFix:</strong><br />
                     Banco Pichincha - Cta. Corriente: 2201928472<br />
                     A nombre de WebFix Soluciones S.A.S (RUC: 1792847382001)
-                  </div>
-                  <div>
-                    <label className="block font-bold mb-1">Banco emisor</label>
-                    <select 
+                  </UiBox>
+                  <UiBox>
+                    <UiLabel {...{"weight":"bold","className":"block mb-1"}}>Banco emisor</UiLabel>
+                    <UiSelect
                       value={transferData.bankName} 
                       onChange={e => setTransferData({ ...transferData, bankName: e.target.value })}
-                      className={`w-full p-2.5 rounded-md border outline-none bg-white border-border-strong`}
+                      {...mergeThemeProps({"className":"w-full"})}
                     >
                       <option value="Banco Pichincha">Banco Pichincha</option>
                       <option value="Banco Guayaquil">Banco Guayaquil</option>
                       <option value="Banco del Pacífico">Banco del Pacífico</option>
                       <option value="Produbanco">Produbanco</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block font-bold mb-1">Número de Referencia / Comprobante</label>
-                    <input 
+                    </UiSelect>
+                  </UiBox>
+                  <UiBox>
+                    <UiLabel {...{"weight":"bold","className":"block mb-1"}}>Número de Referencia / Comprobante</UiLabel>
+                    <UiInput
                       type="text" 
                       value={transferData.referenceNumber}
                       onChange={e => setTransferData({ ...transferData, referenceNumber: e.target.value })}
                       placeholder="Referencia de 6-8 dígitos"
-                      className={`w-full p-2.5 rounded-md border outline-none bg-white border-border-strong`}
+                      {...mergeThemeProps({"className":"w-full"})}
                       required
                     />
-                  </div>
-                  <div>
-                    <label className="block font-bold mb-1">Monto Depositado ($ USD)</label>
-                    <input 
+                  </UiBox>
+                  <UiBox>
+                    <UiLabel {...{"weight":"bold","className":"block mb-1"}}>Monto Depositado ($ USD)</UiLabel>
+                    <UiInput
                       type="number" 
                       value={transferData.amount}
                       onChange={e => setTransferData({ ...transferData, amount: e.target.value })}
                       placeholder={`Total: $${billingPeriod === 'yearly' ? getPrice(getSelectedPlanConfig()) * 12 : getPrice(getSelectedPlanConfig())}`}
-                      className={`w-full p-2.5 rounded-md border outline-none bg-white border-border-strong`}
+                      {...mergeThemeProps({"className":"w-full"})}
                       required
                     />
-                  </div>
+                  </UiBox>
                   
-                  <button 
+                  <UiButton
                     type="submit"
                     disabled={isProcessing}
-                    className="w-full py-4 rounded-card text-xs font-bold tracking-wider uppercase bg-primary hover:bg-primary-hover text-white transition-all active:scale-98"
+                    {...{"size":"2","variant":"solid","color":"blue","className":"w-full active:scale-98"}}
                   >
                     {isProcessing ? "Registrando..." : "Reportar Transferencia"}
-                  </button>
+                  </UiButton>
                 </form>
               )}
 
-            </div>
-          </div>
+            </UiCard>
+          </UiBox>
 
-        </div>
+        </UiBox>
       )}
 
       {/* PAYPHONE SIMULATION MODAL */}
       {showPayPhoneSim && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-          <div className={`w-full max-w-sm p-6 rounded-card border relative text-center bg-white border-border-default text-black`}>
-            <div className="flex justify-between items-center mb-6">
-              <span className="text-xs font-semibold uppercase text-warning tracking-wider">Pasarela PayPhone (Sandbox)</span>
-              <button onClick={() => setShowPayPhoneSim(false)} className="text-text-secondary hover:text-white">✕</button>
-            </div>
+        <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-50 flex items-center justify-center p-4"}}>
+          <UiCard {...mergeThemeProps({"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"},"className":"w-full max-w-sm p-6 relative text-center"})}>
+            <UiBox {...{"className":"flex justify-between items-center mb-6"}}>
+              <UiText {...{"size":"1","weight":"bold","color":"amber"}}>Pasarela PayPhone (Sandbox)</UiText>
+              <UiButton onClick={() => setShowPayPhoneSim(false)} {...{"color":"gray"}}>✕</UiButton>
+            </UiBox>
             
-            <div className="p-4 rounded-card bg-surface-sidebar/5 mb-6 text-xs text-left space-y-2">
-              <div className="flex justify-between">
-                <span>Empresa receptora:</span>
+            <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--color-panel-solid)"},"className":"p-4 mb-6 text-left space-y-2"}}>
+              <UiBox {...{"className":"flex justify-between"}}>
+                <UiText>Empresa receptora:</UiText>
                 <strong>WebFix Soluciones S.A.S</strong>
-              </div>
-              <div className="flex justify-between">
-                <span>Plan solicitado:</span>
-                <strong className="capitalize">{getSelectedPlanConfig()?.name || ''}</strong>
-              </div>
-              <div className="flex justify-between border-t  pt-2">
-                <span>Total a Cobrar:</span>
-                <strong className="text-emerald-500">
+              </UiBox>
+              <UiBox {...{"className":"flex justify-between"}}>
+                <UiText>Plan solicitado:</UiText>
+                <strong {...{}}>{getSelectedPlanConfig()?.name || ''}</strong>
+              </UiBox>
+              <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"flex justify-between pt-2"}}>
+                <UiText>Total a Cobrar:</UiText>
+                <strong {...{"style":{"color":"var(--green-11)"}}}>
                   ${billingPeriod === 'yearly' ? getPrice(getSelectedPlanConfig()) * 12 : getPrice(getSelectedPlanConfig())}
                 </strong>
-              </div>
-            </div>
+              </UiBox>
+            </UiBox>
 
-            <form onSubmit={(e) => { e.preventDefault(); completePayPhoneSim(); }} className="space-y-4 text-xs font-medium text-left">
-              <div>
-                <label className="block font-bold mb-1">Número de tarjeta</label>
-                <input type="text" placeholder="4000 1234 5678 9010" className={`w-full p-2.5 rounded-md border outline-none bg-white border-border-strong`} required />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-bold mb-1">Expiración</label>
-                  <input type="text" placeholder="MM/AA" className={`w-full p-2.5 rounded-md border outline-none bg-white border-border-strong`} required />
-                </div>
-                <div>
-                  <label className="block font-bold mb-1">CVV</label>
-                  <input type="password" placeholder="•••" maxLength={3} className={`w-full p-2.5 rounded-md border outline-none bg-white border-border-strong`} required />
-                </div>
-              </div>
+            <form onSubmit={(e) => { e.preventDefault(); completePayPhoneSim(); }} {...{"className":"space-y-4 text-left"}}>
+              <UiBox>
+                <UiLabel {...{"weight":"bold","className":"block mb-1"}}>Número de tarjeta</UiLabel>
+                <UiInput type="text" placeholder="4000 1234 5678 9010" {...mergeThemeProps({"className":"w-full"})} required />
+              </UiBox>
+              <UiBox {...{"className":"grid grid-cols-2 gap-4"}}>
+                <UiBox>
+                  <UiLabel {...{"weight":"bold","className":"block mb-1"}}>Expiración</UiLabel>
+                  <UiInput type="text" placeholder="MM/AA" {...mergeThemeProps({"className":"w-full"})} required />
+                </UiBox>
+                <UiBox>
+                  <UiLabel {...{"weight":"bold","className":"block mb-1"}}>CVV</UiLabel>
+                  <UiInput type="password" placeholder="•••" maxLength={3} {...mergeThemeProps({"className":"w-full"})} required />
+                </UiBox>
+              </UiBox>
 
-              <button 
+              <UiButton
                 type="submit"
                 disabled={isProcessing}
-                className="w-full mt-6 py-4 rounded-card text-xs font-bold tracking-wider uppercase bg-warning hover:bg-warning text-white transition-all flex items-center justify-center gap-2"
+                {...{"size":"2","variant":"solid","color":"amber","className":"w-full mt-6 flex items-center justify-center gap-2"}}
               >
-                {isProcessing ? <RefreshCw size={14} className="animate-spin" /> : "Confirmar y Autorizar Pago"}
-              </button>
+                {isProcessing ? <RefreshCw size={14} {...{"className":"animate-spin"}} /> : "Confirmar y Autorizar Pago"}
+              </UiButton>
             </form>
-          </div>
-        </div>
+          </UiCard>
+        </UiBox>
       )}
 
-    </div>
+    </UiBox>
   );
 }

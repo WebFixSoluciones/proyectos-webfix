@@ -1,3 +1,6 @@
+import { mergeThemeProps } from '../../components/ui/themeProps';
+import { UiBox, UiHeading, UiText, UiCard } from '../../components/ui/layout';
+import { UiButton } from '../../components/ui/controls';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Check, ChevronDown } from 'lucide-react';
@@ -85,155 +88,147 @@ export default function LandingPricing() {
   ];
 
   return (
-    <div className="w-full bg-white text-text-primary">
+    <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"},"className":"w-full"}}>
       
       {/* 1. Header & Billing Toggle */}
-      <section className="pt-16 pb-12 border-b border-border-default bg-surface-sidebar/30 text-center">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 space-y-4">
-          <Badge variant="outline" className="text-xs py-0.5 px-2.5">
+      <section {...{"style":{"borderBottom":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"pt-16 pb-12 text-center"}}>
+        <UiBox {...{"className":"max-w-4xl mx-auto px-4 sm:px-6 space-y-4"}}>
+          <Badge variant="outline" {...{"className":"py-0.5 px-2.5"}}>
             Precios Transparentes
           </Badge>
-          <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-text-heading">
+          <UiHeading as="h1" {...{"size":"7","weight":"bold","color":"gray","highContrast":true}}>
             Planes claros para cada etapa de tu negocio.
-          </h1>
-          <p className="text-xs sm:text-sm text-text-secondary max-w-xl mx-auto leading-relaxed">
+          </UiHeading>
+          <UiText as="p" {...{"size":"1","color":"gray","className":"max-w-xl mx-auto leading-relaxed"}}>
             Sin límites en la cantidad de comprobantes SRI. Prueba cualquier plan durante 14 días sin compromiso.
-          </p>
+          </UiText>
 
           {/* Toggle Mensual / Anual */}
-          <div className="pt-2">
-            <div className="inline-flex items-center p-1 rounded-md bg-white border border-border-default gap-1">
-              <button
+          <UiBox {...{"className":"pt-2"}}>
+            <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"inline-flex items-center p-1 gap-1"}}>
+              <UiButton
                 onClick={() => setBillingPeriod('monthly')}
-                className={`px-3 py-1.5 text-xs font-medium rounded-badge transition-all cursor-pointer ${
-                  billingPeriod === 'monthly' ? 'bg-surface-sidebar text-text-heading font-semibold shadow-none' : 'text-text-secondary'
-                }`}
+                {...mergeThemeProps({"size":"2","className":"cursor-pointer"}, {}, (billingPeriod === 'monthly' ? {"variant":"soft","color":"gray"} : {"color":"gray"}))}
               >
                 Facturación Mensual
-              </button>
-              <button
+              </UiButton>
+              <UiButton
                 onClick={() => setBillingPeriod('yearly')}
-                className={`px-3 py-1.5 text-xs font-medium rounded-badge transition-all cursor-pointer flex items-center gap-1.5 ${
-                  billingPeriod === 'yearly' ? 'bg-surface-sidebar text-text-heading font-semibold shadow-none' : 'text-text-secondary'
-                }`}
+                {...mergeThemeProps({"size":"2","className":"cursor-pointer flex items-center gap-1.5"}, {}, (billingPeriod === 'yearly' ? {"variant":"soft","color":"gray"} : {"color":"gray"}))}
               >
-                <span>Anual</span>
-                <span className="text-xs text-success-text bg-success-light px-1.5 py-0.5 rounded font-mono font-bold">-20%</span>
-              </button>
-            </div>
-          </div>
-        </div>
+                <UiText>Anual</UiText>
+                <UiText {...{"size":"1","color":"green","weight":"bold","className":"px-1.5 py-0.5"}}>-20%</UiText>
+              </UiButton>
+            </UiCard>
+          </UiBox>
+        </UiBox>
       </section>
 
       {/* 2. Pricing Cards Grid */}
-      <section className="py-16 border-b border-border-default">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left max-w-5xl mx-auto">
+      <section {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"py-16"}}>
+        <UiBox {...{"className":"max-w-6xl mx-auto px-4 sm:px-6"}}>
+          <UiBox {...{"className":"grid grid-cols-1 md:grid-cols-3 gap-6 text-left max-w-5xl mx-auto"}}>
             {plans.map((plan) => (
               <Card 
                 key={plan.id}
-                className={`p-6 flex flex-col justify-between transition-all ${
-                  plan.recommended 
-                    ? 'border-text-heading ring-1 ring-text-heading  relative'
-                    : 'border-border-default hover:border-border-strong'
-                }`}
+                {...mergeThemeProps({"className":"p-6 flex flex-col justify-between"}, {}, (plan.recommended ? {"className":"relative"} : {}))}
               >
                 {plan.recommended && (
-                  <Badge variant="default" className="absolute -top-2.5 right-6 text-xs normal-case py-0.5 px-2 font-normal">
+                  <Badge variant="default" {...{"className":"absolute -top-2.5 right-6 py-0.5 px-2"}}>
                     Más Popular
                   </Badge>
                 )}
 
-                <div>
-                  <div className="mb-4">
-                    <h3 className="text-base font-bold text-text-heading">{plan.name}</h3>
-                    <p className="text-xs text-text-secondary mt-1 leading-relaxed">{plan.desc}</p>
-                  </div>
+                <UiBox>
+                  <UiBox {...{"className":"mb-4"}}>
+                    <UiHeading as="h3" {...{"size":"3","weight":"bold","color":"gray","highContrast":true}}>{plan.name}</UiHeading>
+                    <UiText as="p" {...{"size":"1","color":"gray","className":"mt-1 leading-relaxed"}}>{plan.desc}</UiText>
+                  </UiBox>
 
-                  <div className="mb-6 pt-2">
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-3xl sm:text-4xl font-bold font-mono text-text-heading">
+                  <UiBox {...{"className":"mb-6 pt-2"}}>
+                    <UiBox {...{"className":"flex items-baseline gap-1"}}>
+                      <UiText {...{"size":"7","weight":"regular","color":"gray","highContrast":true}}>
                         ${plan.price}
-                      </span>
-                      <span className="text-xs text-text-secondary font-medium">/ mes</span>
-                    </div>
+                      </UiText>
+                      <UiText {...{"size":"1","color":"gray","weight":"medium"}}>/ mes</UiText>
+                    </UiBox>
                     {billingPeriod === 'yearly' && (
-                      <span className="text-xs text-success-text font-medium mt-1 block">
+                      <UiText {...{"size":"1","color":"green","weight":"medium","className":"mt-1 block"}}>
                         Facturado anualmente (${plan.price * 12}/año)
-                      </span>
+                      </UiText>
                     )}
-                  </div>
+                  </UiBox>
 
-                  <div className="border-t border-border-default/60 pt-4 mb-6">
-                    <span className="text-xs font-semibold text-text-heading uppercase tracking-wider block mb-3">
+                  <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"pt-4 mb-6"}}>
+                    <UiText {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-3"}}>
                       Incluye:
-                    </span>
-                    <ul className="space-y-2 text-xs text-text-secondary">
+                    </UiText>
+                    <ul {...{"style":{"color":"var(--gray-11)"},"className":"space-y-2"}}>
                       {plan.features.map((feature, i) => (
-                        <li key={i} className="flex items-start gap-2">
-                          <Check size={13} className="text-success shrink-0 mt-0.5" />
-                          <span>{feature}</span>
+                        <li key={i} {...{"className":"flex items-start gap-2"}}>
+                          <Check size={13} {...{"style":{"color":"var(--green-12)"},"className":"shrink-0 mt-0.5"}} />
+                          <UiText>{feature}</UiText>
                         </li>
                       ))}
                     </ul>
-                  </div>
-                </div>
+                  </UiBox>
+                </UiBox>
 
                 <Button 
                   variant={plan.recommended ? "default" : "outline"}
                   size="sm"
                   onClick={() => navigate('/register')}
-                  className="w-full text-xs h-9 mt-4"
+                  {...{"size":"2","className":"w-full mt-4"}}
                 >
                   {plan.cta}
                 </Button>
               </Card>
             ))}
-          </div>
-        </div>
+          </UiBox>
+        </UiBox>
       </section>
 
       {/* 3. FAQ Section */}
-      <section className="py-16 bg-surface-sidebar/30">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 text-left">
+      <section {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"py-16"}}>
+        <UiBox {...{"className":"max-w-3xl mx-auto px-4 sm:px-6 text-left"}}>
           
-          <div className="text-center mb-10 space-y-2">
-            <h2 className="text-2xl font-bold tracking-tight text-text-heading">
+          <UiBox {...{"className":"text-center mb-10 space-y-2"}}>
+            <UiHeading as="h2" {...{"size":"6","weight":"bold","color":"gray","highContrast":true}}>
               Preguntas Frecuentes
-            </h2>
-            <p className="text-xs text-text-secondary">
+            </UiHeading>
+            <UiText as="p" {...{"size":"1","color":"gray"}}>
               Resolvemos tus dudas sobre planes y facturación.
-            </p>
-          </div>
+            </UiText>
+          </UiBox>
 
-          <div className="space-y-2">
+          <UiBox {...{"className":"space-y-2"}}>
             {faqs.map((faq, index) => {
               const isOpen = activeFaq === index;
               return (
-                <div 
+                <UiBox 
                   key={index}
-                  className="rounded-md border border-border-default bg-white overflow-hidden transition-colors"
+                  {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"overflow-hidden"}}
                 >
-                  <button
+                  <UiButton
                     onClick={() => toggleFaq(index)}
-                    className="w-full px-4 py-3.5 text-left flex items-center justify-between gap-4 text-xs font-semibold text-text-heading hover:bg-surface-sidebar/50 transition-colors cursor-pointer"
+                    {...{"size":"2","color":"gray","className":"w-full text-left flex items-center justify-between gap-4 cursor-pointer"}}
                   >
-                    <span>{faq.q}</span>
-                    <ChevronDown size={14} className={`shrink-0 transition-transform duration-150 ${isOpen ? 'rotate-180' : ''}`} />
-                  </button>
+                    <UiText>{faq.q}</UiText>
+                    <ChevronDown size={14} {...mergeThemeProps({"className":"shrink-0 transition-transform duration-150"}, {}, (isOpen ? {"className":"rotate-180"} : {}))} />
+                  </UiButton>
                   {isOpen && (
-                    <div className="px-4 pb-4 pt-1 text-xs text-text-secondary leading-relaxed border-t border-border-default/50">
+                    <UiBox {...{"style":{"color":"var(--gray-11)","borderTop":"1px solid var(--gray-a6)"},"className":"px-4 pb-4 pt-1 leading-relaxed"}}>
                       {faq.a}
-                    </div>
+                    </UiBox>
                   )}
-                </div>
+                </UiBox>
               );
             })}
-          </div>
+          </UiBox>
 
-        </div>
+        </UiBox>
       </section>
 
-    </div>
+    </UiBox>
   );
 }

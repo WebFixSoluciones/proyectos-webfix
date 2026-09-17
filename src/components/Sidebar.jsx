@@ -1,6 +1,6 @@
 import { 
   LayoutDashboard, ShoppingCart, ShoppingBag, CreditCard,
-  Package, Users, Briefcase, Settings,
+  Package, Users, Settings,
   ChevronDown, LifeBuoy, Trash2, LogOut, DollarSign
 } from 'lucide-react';
 
@@ -13,7 +13,7 @@ export default function Sidebar({
   contabilidadInitialSubTab, setContabilidadInitialSubTab,
  billingInitialSubTab, setBillingInitialSubTab,
  personasSubTab, setPersonasSubTab,
- isProyectosActive, trash, handleLogout
+ trash, handleLogout
 }) {
  const closeMobile = () => { if(window.innerWidth < 768) setIsSidebarOpen(false); };
 
@@ -243,24 +243,6 @@ export default function Sidebar({
  )}
  </div>
  )}
-
- <div className="space-y-0.5">
- <button onClick={() => { setExpandedSidebarMenu(expandedSidebarMenu ==='proyectos_menu' ? null :'proyectos_menu'); setActivePageId('proyectos_general'); }} className={navBtnClass(isProyectosActive)}>
- <div className="flex items-center gap-3 flex-1">
- <Briefcase size={16} className={iconClass(isProyectosActive)} />
- {isSidebarOpen && <span>Proyectos</span>}
- </div>
- {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu ==='proyectos_menu' ?'rotate-180' :''} text-text-secondary`} />}
- </button>
- {isSidebarOpen && expandedSidebarMenu ==='proyectos_menu' && (
- <div className={menuBorderClass}>
- {[{ id:'proyectos_general', label:'Mis Proyectos' },{ id:'paginas_general', label:'Paginas' },{ id:'calendar', label:'Calendario' }].map(sub => {
- const isActive = activePageId === sub.id;
- return <button key={sub.id} onClick={() => { setActivePageId(sub.id); closeMobile(); }} className={subItemClass(isActive)}>{sub.label}</button>;
- })}
- </div>
- )}
- </div>
 
  <button onClick={() => { setActivePageId('general_settings'); closeMobile(); }} className={navBtnClass(activePageId ==='general_settings')}>
  <Settings size={16} className={iconClass(activePageId ==='general_settings')} />

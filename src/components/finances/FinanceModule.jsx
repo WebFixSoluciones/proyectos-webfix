@@ -1,10 +1,13 @@
+import { mergeThemeProps } from '../ui/themeProps';
+import { UiBox, UiText, UiCard, UiHeading, UiLabel } from '../ui/layout';
+import { UiButton, UiInput } from '../ui/controls';
 import { useState, useEffect, useRef } from 'react';
 import { 
   DollarSign, PieChart, Users, FileText, Download, Sparkles, ShoppingCart, Package,
   ArrowUpCircle, Percent, CreditCard, ShoppingBag, TrendingUp,
   X, ArrowRight, Upload, Building2, Landmark, Scan, BarChart3, BookOpen, Calculator, Shield
 } from 'lucide-react';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc } from '../../services/financeStore.js';
 import { getEcuadorDateString } from '../../services/sriService';
 import { registrarMovimientoKardex } from '../../services/inventoryService';
 import { sincronizarCompra } from '../../services/integracionFinanzasService';
@@ -348,15 +351,15 @@ export default function FinanceModule({
   const displayedTabs = getTabsForMode();
 
   return (
-    <div className={`flex flex-col h-full w-full animate-in fade-in duration-500 overflow-hidden`}>
+    <UiBox {...mergeThemeProps({"className":"flex flex-col h-full w-full animate-in fade-in duration-500 overflow-hidden"})}>
       
       {/* BARRA DE NAVEGACIÓN ESTÁNDAR DE SUBMÓDULOS DESTE ACCORDION SIDEBAR */}
 
       {/* SUB-SUB-NAVEGACIÓN SI ACTIVE TAB TIENE SUB-TABS (ej: sri_docs en contabilidad) */}
       {activeTab === 'sri_docs' && mode === 'contabilidad' && (
-        <div className="flex items-center gap-2 px-8 py-2 border-b shrink-0 border-primary/10 bg-primary-light/50">
-          <span className="text-xs font-semibold uppercase tracking-wider text-primary">Tipo Doc:</span>
-          <div className="flex gap-1.5 overflow-x-auto whitespace-nowrap scrollbar-none">
+        <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)","backgroundColor":"var(--blue-3)"},"className":"flex items-center gap-2 px-8 py-2 shrink-0"}}>
+          <UiText {...{"size":"1","weight":"bold","color":"blue"}}>Tipo Doc:</UiText>
+          <UiBox {...{"className":"flex gap-1.5 overflow-x-auto whitespace-nowrap scrollbar-none"}}>
             {[
               { id: 'nota_credito', label: 'Notas de Crédito' },
               { id: 'nota_debito', label: 'Notas de Débito' },
@@ -364,29 +367,25 @@ export default function FinanceModule({
               { id: 'guia_remision', label: 'Guías de Remisión' },
               { id: 'liquidacion', label: 'Liquidaciones de Compra' }
             ].map(sub => (
-              <button
+              <UiButton
                 key={sub.id}
                 onClick={() => setSubTabSri(sub.id)}
-                className={`px-3 py-1 rounded-md text-xs font-bold transition-all border ${
-                  subTabSri === sub.id
-                    ? 'bg-emerald-600 text-white border-emerald-600'
-                    : 'border-transparent text-black hover:text-black hover:bg-black/5'
-                }`}
+                {...mergeThemeProps({"size":"2","variant":"outline"}, {}, (subTabSri === sub.id ? {"variant":"solid","color":"green"} : {"color":"gray"}))}
               >
                 {sub.label}
-              </button>
+              </UiButton>
             ))}
-          </div>
-        </div>
+          </UiBox>
+        </UiBox>
       )}
 
       {/* CUERPO PRINCIPAL */}
-      <div className="flex flex-1 overflow-hidden min-h-0 bg-transparent">
-        <div className={`flex-1 min-w-0 overflow-y-auto ${isFormActive ? 'pt-0 pb-6' : 'py-4'} custom-scrollbar bg-surface-bg`}>
+      <UiBox {...{"style":{"backgroundColor":"transparent"},"className":"flex flex-1 overflow-hidden min-h-0"}}>
+        <UiBox {...mergeThemeProps({"className":"flex-1 min-w-0 overflow-y-auto"}, {"style":{"backgroundColor":"var(--gray-2)"},"className":"custom-scrollbar"}, (isFormActive ? {"className":"pt-0 pb-6"} : {"className":"py-4"}))}>
           {isLoading ? (
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
-            </div>
+            <UiBox {...{"className":"flex justify-center items-center h-64"}}>
+              <UiBox {...{"style":{"borderRadius":"var(--radius-3)"},"className":"animate-spin h-8 w-8"}}></UiBox>
+            </UiBox>
           ) : (
             <>
               {activeTab === 'resumen_financiero' && (
@@ -582,8 +581,8 @@ export default function FinanceModule({
               )}
             </>
           )}
-        </div>
-      </div>
+        </UiBox>
+      </UiBox>
 
       {/* MODAL GLOBAL DE FACTURACIÓN (COMPARTIDO) */}
       {isModalOpen && !(
@@ -606,76 +605,76 @@ export default function FinanceModule({
 
       {/* Modal: Seleccion de Metodo de Compra */}
       {showPurchaseMethodSelect && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50" onClick={() => setShowPurchaseMethodSelect(false)}>
-          <div className="w-full max-w-lg bg-white rounded-md border border-border-default" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-5 py-3 border-b border-border-default">
-              <h3 className="text-md font-semibold text-black">Registrar Compra</h3>
-              <button onClick={() => setShowPurchaseMethodSelect(false)} className="btn-icon text-text-secondary"><X size={16} /></button>
-            </div>
-            <div className="p-5 space-y-3">
-              <p className="text-sm text-text-primary">Selecciona el metodo para registrar la compra:</p>
+        <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[200] flex items-center justify-center p-4"}} onClick={() => setShowPurchaseMethodSelect(false)}>
+          <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"w-full max-w-lg"}} onClick={e => e.stopPropagation()}>
+            <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex items-center justify-between px-5 py-3"}}>
+              <UiHeading as="h3" {...{"color":"gray","weight":"bold","highContrast":true}}>Registrar Compra</UiHeading>
+              <UiButton iconOnly onClick={() => setShowPurchaseMethodSelect(false)} {...{"variant":"surface","color":"gray"}}><X size={16} /></UiButton>
+            </UiBox>
+            <UiBox {...{"className":"p-5 space-y-3"}}>
+              <UiText as="p" {...{"size":"2","color":"gray","highContrast":true}}>Selecciona el metodo para registrar la compra:</UiText>
               
               {/* Con Inventario + Manual */}
-              <button onClick={() => handleConfirmPurchaseMethod('con_inventario')} className="w-full p-4 rounded-md border border-border-default text-left hover:bg-surface-bg transition-all group">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 rounded-md bg-primary-light text-primary shrink-0">
+              <UiButton onClick={() => handleConfirmPurchaseMethod('con_inventario')} {...{"variant":"outline","className":"w-full text-left group"}}>
+                <UiBox {...{"className":"flex items-start gap-3"}}>
+                  <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--blue-3)","color":"var(--blue-12)"},"className":"p-2 shrink-0"}}>
                     <Package size={20} />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="text-base font-semibold text-black">Con Inventario - Manual</h4>
-                    <p className="text-xs text-text-primary mt-1">Ingresa proveedor, productos, cantidades y costos manualmente. Actualiza stock y kardex.</p>
-                  </div>
-                  <ArrowRight size={16} className="text-text-secondary group-hover:text-primary transition-colors shrink-0 self-center" />
-                </div>
-              </button>
+                  </UiBox>
+                  <UiBox {...{"className":"flex-1"}}>
+                    <UiHeading as="h4" {...{"size":"3","weight":"bold","color":"gray","highContrast":true}}>Con Inventario - Manual</UiHeading>
+                    <UiText as="p" {...{"size":"1","color":"gray","highContrast":true,"className":"mt-1"}}>Ingresa proveedor, productos, cantidades y costos manualmente. Actualiza stock y kardex.</UiText>
+                  </UiBox>
+                  <ArrowRight size={16} {...{"style":{"color":"var(--gray-11)"},"className":"shrink-0 self-center"}} />
+                </UiBox>
+              </UiButton>
 
               {/* Con Inventario + XML */}
-              <label className="w-full p-4 rounded-md border border-border-default text-left hover:bg-surface-bg transition-all group cursor-pointer block">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 rounded-md bg-primary-light text-primary shrink-0">
+              <UiLabel {...{"className":"w-full p-4 text-left group cursor-pointer block"}}>
+                <UiBox {...{"className":"flex items-start gap-3"}}>
+                  <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--blue-3)","color":"var(--blue-12)"},"className":"p-2 shrink-0"}}>
                     <Upload size={20} />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="text-base font-semibold text-black">Con Inventario - Importar XML</h4>
-                    <p className="text-xs text-text-primary mt-1">Sube el archivo XML de la factura electronica. El sistema procesa proveedor, productos y costos automaticamente.</p>
-                  </div>
-                  <ArrowRight size={16} className="text-text-secondary group-hover:text-primary transition-colors shrink-0 self-center" />
-                </div>
-                <input type="file" accept=".xml" onChange={(e) => handleAutoXmlPurchase(e, 'con_inventario')} className="hidden" />
-              </label>
+                  </UiBox>
+                  <UiBox {...{"className":"flex-1"}}>
+                    <UiHeading as="h4" {...{"size":"3","weight":"bold","color":"gray","highContrast":true}}>Con Inventario - Importar XML</UiHeading>
+                    <UiText as="p" {...{"size":"1","color":"gray","highContrast":true,"className":"mt-1"}}>Sube el archivo XML de la factura electronica. El sistema procesa proveedor, productos y costos automaticamente.</UiText>
+                  </UiBox>
+                  <ArrowRight size={16} {...{"style":{"color":"var(--gray-11)"},"className":"shrink-0 self-center"}} />
+                </UiBox>
+                <UiInput type="file" accept=".xml" onChange={(e) => handleAutoXmlPurchase(e, 'con_inventario')} {...{"className":"hidden"}} />
+              </UiLabel>
 
               {/* Sin Inventario + Manual */}
-              <button onClick={() => handleConfirmPurchaseMethod('sin_inventario')} className="w-full p-4 rounded-md border border-border-default text-left hover:bg-surface-bg transition-all group">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 rounded-md bg-surface-bg text-text-primary shrink-0">
+              <UiButton onClick={() => handleConfirmPurchaseMethod('sin_inventario')} {...{"variant":"outline","className":"w-full text-left group"}}>
+                <UiBox {...{"className":"flex items-start gap-3"}}>
+                  <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--gray-2)","color":"var(--gray-12)"},"className":"p-2 shrink-0"}}>
                     <FileText size={20} />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="text-base font-semibold text-black">Sin Inventario - Manual</h4>
-                    <p className="text-xs text-text-primary mt-1">Solo registro contable. Para gastos, servicios o compras sin movimiento de stock.</p>
-                  </div>
-                  <ArrowRight size={16} className="text-text-secondary group-hover:text-primary transition-colors shrink-0 self-center" />
-                </div>
-              </button>
+                  </UiBox>
+                  <UiBox {...{"className":"flex-1"}}>
+                    <UiHeading as="h4" {...{"size":"3","weight":"bold","color":"gray","highContrast":true}}>Sin Inventario - Manual</UiHeading>
+                    <UiText as="p" {...{"size":"1","color":"gray","highContrast":true,"className":"mt-1"}}>Solo registro contable. Para gastos, servicios o compras sin movimiento de stock.</UiText>
+                  </UiBox>
+                  <ArrowRight size={16} {...{"style":{"color":"var(--gray-11)"},"className":"shrink-0 self-center"}} />
+                </UiBox>
+              </UiButton>
 
               {/* Sin Inventario + XML */}
-              <label className="w-full p-4 rounded-md border border-border-default text-left hover:bg-surface-bg transition-all group cursor-pointer block">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 rounded-md bg-surface-bg text-text-primary shrink-0">
+              <UiLabel {...{"className":"w-full p-4 text-left group cursor-pointer block"}}>
+                <UiBox {...{"className":"flex items-start gap-3"}}>
+                  <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--gray-2)","color":"var(--gray-12)"},"className":"p-2 shrink-0"}}>
                     <Upload size={20} />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="text-base font-semibold text-black">Sin Inventario - Importar XML</h4>
-                    <p className="text-xs text-text-primary mt-1">Sube el XML de la factura. Se registra solo como gasto contable, sin afectar inventario.</p>
-                  </div>
-                  <ArrowRight size={16} className="text-text-secondary group-hover:text-primary transition-colors shrink-0 self-center" />
-                </div>
-                <input type="file" accept=".xml" onChange={(e) => handleAutoXmlPurchase(e, 'sin_inventario')} className="hidden" />
-              </label>
-            </div>
-          </div>
-        </div>
+                  </UiBox>
+                  <UiBox {...{"className":"flex-1"}}>
+                    <UiHeading as="h4" {...{"size":"3","weight":"bold","color":"gray","highContrast":true}}>Sin Inventario - Importar XML</UiHeading>
+                    <UiText as="p" {...{"size":"1","color":"gray","highContrast":true,"className":"mt-1"}}>Sube el XML de la factura. Se registra solo como gasto contable, sin afectar inventario.</UiText>
+                  </UiBox>
+                  <ArrowRight size={16} {...{"style":{"color":"var(--gray-11)"},"className":"shrink-0 self-center"}} />
+                </UiBox>
+                <UiInput type="file" accept=".xml" onChange={(e) => handleAutoXmlPurchase(e, 'sin_inventario')} {...{"className":"hidden"}} />
+              </UiLabel>
+            </UiBox>
+          </UiCard>
+        </UiBox>
       )}
-    </div>
+    </UiBox>
   );
 }

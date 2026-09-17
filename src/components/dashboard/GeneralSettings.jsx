@@ -1798,10 +1798,10 @@ export default function GeneralSettings({
  <div className="p-4 rounded-card border border-border-default bg-white space-y-1.5">
  <h5 className="text-xs font-semibold uppercase text-text-heading flex items-center gap-2">
  <Sparkles size={14} className="text-primary" />
- Asistente de Proyectos y Tareas
+ Asistente Inteligente de Negocios
  </h5>
  <p className="text-xs text-text-secondary leading-relaxed">
- Generación instantánea de listas de chequeo, agendas de reunión y resumen ejecutivo de proyectos con un solo clic.
+ Diagnóstico predictivo de ventas, rotación de stock y optimización operativa en tiempo real con un solo clic.
  </p>
  </div>
 
@@ -1929,7 +1929,7 @@ export default function GeneralSettings({
  <div className={`p-5 rounded-card border flex flex-col sm:flex-row gap-4 items-center justify-between bg-surface-bg border-border-default`}>
  <div className="space-y-1 text-xs">
  <p className="font-bold">Respaldar Datos del ERP</p>
- <p className="text-xs text-text-secondary leading-normal">Incluye Proyectos, Tareas, Clientes, Proveedores, Transacciones y Configuraciones.</p>
+ <p className="text-xs text-text-secondary leading-normal">Incluye Clientes, Proveedores, Transacciones, Inventario y Configuraciones.</p>
  </div>
 
  <button 

@@ -1,3 +1,6 @@
+import { mergeThemeProps } from '../ui/themeProps';
+import { UiBox, UiCard, UiHeading, UiText, UiLabel } from '../ui/layout';
+import { UiButton, UiInput, UiTextarea, UiSelect } from '../ui/controls';
 import React, { useState, useEffect } from 'react';
 import { Tag, X, Plus, Trash2, FolderPlus, FolderOpen, Award, Save, Edit2 } from 'lucide-react';
 import { categoryBrandRepository } from '../../modules/inventory/repositories/CategoryBrandRepository';
@@ -134,103 +137,95 @@ export default function CategoryBrandModal({ onClose, onChanged }: CategoryBrand
     }
   };
 
-  const inputClass = `w-full px-3 py-2 rounded-card outline-none transition-all border text-sm bg-white border-border-default text-text-heading focus:border-primary`;
+  
 
-  const labelClass = `block text-xs font-semibold mb-1 uppercase tracking-wider text-text-secondary`;
+  
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-black/40 animate-in fade-in duration-300">
-      <div 
-        className={`w-full max-w-4xl h-[80vh] flex flex-col rounded-card border overflow-hidden bg-white/95 border-white/40`}
+    <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-300"}}>
+      <UiBox 
+        {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"w-full max-w-4xl h-[80vh] flex flex-col overflow-hidden"})}
       >
         {/* Header */}
-        <div className={`modal-header-std modal-header-std-dark border-border-default bg-white/80`}>
-          <div className="flex items-center gap-2">
-            <Tag className="text-primary" />
-            <h2 className={`text-lg font-bold text-text-heading`}>
+        <UiCard {...mergeThemeProps({"style":{"backgroundColor":"var(--color-panel-solid)"}})}>
+          <UiBox {...{"className":"flex items-center gap-2"}}>
+            <Tag {...{"style":{"color":"var(--blue-12)"}}} />
+            <UiHeading as="h2" {...mergeThemeProps({"size":"4","weight":"bold","color":"gray","highContrast":true})}>
               Gestionar Categorías y Marcas
-            </h2>
-          </div>
-          <button 
+            </UiHeading>
+          </UiBox>
+          <UiButton iconOnly
             onClick={onClose}
-            className={`p-1.5 rounded-card transition-all hover:scale-105 bg-surface-muted text-text-secondary hover:text-text-heading`}
+            {...mergeThemeProps({"variant":"soft","color":"gray","className":"hover:scale-105"})}
           >
             <X size={18} />
-          </button>
-        </div>
+          </UiButton>
+        </UiCard>
 
         {/* Tab switcher */}
-        <div className={`flex border-b shrink-0 px-6 py-2 gap-2 border-primary/5 bg-primary/5`}>
-          <button
+        <UiBox {...mergeThemeProps({"style":{"borderBottom":"1px solid var(--gray-a6)","backgroundColor":"var(--blue-3)"},"className":"flex shrink-0 px-6 py-2 gap-2"})}>
+          <UiButton
             onClick={() => setActiveTab('categories')}
-            className={`px-4 py-1.5 rounded-card text-xs font-bold transition-all border flex items-center gap-1.5 ${
-              activeTab === 'categories'
-                ? 'bg-primary text-white border-primary'
-                : 'border-transparent text-text-primary hover:text-text-heading'
-            }`}
+            {...mergeThemeProps({"size":"2","variant":"outline","className":"flex items-center gap-1.5"}, {}, (activeTab === 'categories' ? {"variant":"solid","color":"blue"} : {"color":"gray"}))}
           >
             <FolderOpen size={14} />
             Categorías
-          </button>
-          <button
+          </UiButton>
+          <UiButton
             onClick={() => setActiveTab('brands')}
-            className={`px-4 py-1.5 rounded-card text-xs font-bold transition-all border flex items-center gap-1.5 ${
-              activeTab === 'brands'
-                ? 'bg-primary text-white border-primary'
-                : 'border-transparent text-text-primary hover:text-text-heading'
-            }`}
+            {...mergeThemeProps({"size":"2","variant":"outline","className":"flex items-center gap-1.5"}, {}, (activeTab === 'brands' ? {"variant":"solid","color":"blue"} : {"color":"gray"}))}
           >
             <Award size={14} />
             Marcas
-          </button>
-        </div>
+          </UiButton>
+        </UiBox>
 
         {/* Content Area */}
-        <div className="flex-1 flex overflow-hidden min-h-0">
+        <UiBox {...{"className":"flex-1 flex overflow-hidden min-h-0"}}>
           {error && (
-            <div className="absolute top-16 left-6 right-6 z-20 flex items-center gap-2 p-3 text-xs bg-red-500/10 border border-red-500/20 text-red-400 rounded-card">
+            <UiBox {...{"style":{"backgroundColor":"var(--red-3)","border":"1px solid var(--gray-a6)","color":"var(--red-11)","borderRadius":"var(--radius-3)"},"className":"absolute top-16 left-6 right-6 z-20 flex items-center gap-2 p-3"}}>
               <AlertCircle size={14} />
-              <span>{error}</span>
-            </div>
+              <UiText>{error}</UiText>
+            </UiBox>
           )}
 
           {activeTab === 'categories' ? (
-            <div className="flex-1 flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x border-white/10">
+            <UiBox {...{"className":"flex-1 flex flex-col md:flex-row"}}>
               {/* Form Side */}
-              <form onSubmit={handleCreateCategory} className="w-full md:w-1/3 p-6 space-y-4 shrink-0">
-                <h3 className={`text-xs font-bold flex items-center gap-1.5 uppercase tracking-wider text-primary`}>
+              <form onSubmit={handleCreateCategory} {...{"className":"w-full md:w-1/3 p-6 space-y-4 shrink-0"}}>
+                <UiHeading as="h3" {...mergeThemeProps({"size":"1","weight":"bold","color":"blue","className":"flex items-center gap-1.5"})}>
                   <FolderPlus size={14} /> {editingCategory ? 'Editar Categoría' : 'Nueva Categoría'}
-                </h3>
+                </UiHeading>
                 
-                <div>
-                  <label className={labelClass}>Nombre de Categoría *</label>
-                  <input
+                <UiBox>
+                  <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1"})}>Nombre de Categoría *</UiLabel>
+                  <UiInput
                     type="text"
                     required
                     placeholder="Ej. Laptops, Repuestos"
                     value={categoryName}
                     onChange={(e) => setCategoryName(e.target.value)}
-                    className={inputClass}
+                    {...mergeThemeProps({"size":"2","color":"gray","className":"w-full"})}
                   />
-                </div>
+                </UiBox>
 
-                <div>
-                  <label className={labelClass}>Descripción (Opcional)</label>
-                  <textarea
+                <UiBox>
+                  <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1"})}>Descripción (Opcional)</UiLabel>
+                  <UiTextarea
                     rows={3}
                     placeholder="Detalles sobre esta categoría..."
                     value={categoryDesc}
                     onChange={(e) => setCategoryDesc(e.target.value)}
-                    className={`${inputClass} resize-none`}
+                    {...mergeThemeProps({}, {"className":"resize-none"}, mergeThemeProps({"size":"2","color":"gray","className":"w-full"}))}
                   />
-                </div>
+                </UiBox>
 
-                <div>
-                  <label className={labelClass}>Descuento de la Categoría</label>
-                  <select
+                <UiBox>
+                  <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1"})}>Descuento de la Categoría</UiLabel>
+                  <UiSelect
                     value={selectedDiscountId}
                     onChange={(e) => setSelectedDiscountId(e.target.value)}
-                    className={inputClass}
+                    {...mergeThemeProps({"size":"2","color":"gray","className":"w-full"})}
                   >
                     <option value="">-- Ninguno / Sin Descuento --</option>
                     {discounts.map(d => (
@@ -238,12 +233,12 @@ export default function CategoryBrandModal({ onClose, onChanged }: CategoryBrand
                         {d.nombre} ({d.tipo_valor === 'PORCENTAJE' ? `${d.valor}%` : `$${d.valor}`})
                       </option>
                     ))}
-                  </select>
-                </div>
+                  </UiSelect>
+                </UiBox>
 
-                <div className="flex gap-2">
+                <UiBox {...{"className":"flex gap-2"}}>
                   {editingCategory && (
-                    <button
+                    <UiButton
                       type="button"
                       onClick={() => {
                         setEditingCategory(null);
@@ -251,160 +246,160 @@ export default function CategoryBrandModal({ onClose, onChanged }: CategoryBrand
                         setCategoryDesc('');
                         setSelectedDiscountId('');
                       }}
-                      className="w-1/2 py-2 rounded-card text-sm font-bold bg-surface-muted hover:bg-surface-muted text-text-primary transition-all cursor-pointer"
+                      {...{"size":"2","variant":"soft","color":"gray","className":"w-1/2 cursor-pointer"}}
                     >
                       Cancelar
-                    </button>
+                    </UiButton>
                   )}
-                  <button
+                  <UiButton
                     type="submit"
                     disabled={loading}
-                    className={`${editingCategory ? 'w-1/2' : 'w-full'} py-2 rounded-card text-sm font-bold bg-primary hover:bg-primary text-white flex items-center justify-center gap-2 transition-all cursor-pointer`}
+                    {...mergeThemeProps({}, {"size":"2","variant":"solid","color":"blue","className":"flex items-center justify-center gap-2 cursor-pointer"}, (editingCategory ? {"className":"w-1/2"} : {"className":"w-full"}))}
                   >
                     <Save size={16} />
                     {editingCategory ? 'Actualizar' : 'Guardar Categoría'}
-                  </button>
-                </div>
+                  </UiButton>
+                </UiBox>
               </form>
 
               {/* List Side */}
-              <div className="flex-1 p-6 overflow-y-auto custom-scrollbar">
-                <h3 className={`text-xs font-bold uppercase tracking-wider mb-4 text-text-secondary`}>
+              <UiBox {...{"className":"flex-1 p-6 overflow-y-auto custom-scrollbar"}}>
+                <UiHeading as="h3" {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"mb-4"})}>
                   Categorías Registradas ({categories.length})
-                </h3>
+                </UiHeading>
 
-                <div className="space-y-3">
+                <UiBox {...{"className":"space-y-3"}}>
                   {categories.length === 0 ? (
-                    <p className={`text-sm text-center py-8 text-text-secondary`}>
+                    <UiText as="p" {...mergeThemeProps({"size":"2","color":"gray","className":"text-center py-8"})}>
                       No hay categorías registradas.
-                    </p>
+                    </UiText>
                   ) : (
                     categories.map(cat => (
-                      <div 
+                      <UiBox 
                         key={cat.id} 
-                        className={`p-4 rounded-card border flex items-center justify-between transition-all bg-surface-bg border-border-default hover:border-border-default`}
+                        {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--gray-2)"},"className":"p-4 flex items-center justify-between"})}
                       >
-                        <div>
-                          <h4 className={`text-sm font-bold text-text-heading`}>{cat.name}</h4>
+                        <UiBox>
+                          <UiHeading as="h4" {...mergeThemeProps({"size":"2","weight":"bold","color":"gray","highContrast":true})}>{cat.name}</UiHeading>
                           {cat.description && (
-                            <p className={`text-xs mt-1 text-text-secondary`}>{cat.description}</p>
+                            <UiText as="p" {...mergeThemeProps({"size":"1","color":"gray","className":"mt-1"})}>{cat.description}</UiText>
                           )}
                           {cat.id_descuento_asociado && (() => {
                             const disc = discounts.find(d => d.id === cat.id_descuento_asociado);
                             return disc ? (
-                              <span className="inline-block mt-1 px-2.5 py-0.5 bg-red-50 text-red-500 rounded-md text-xs font-bold uppercase">
+                              <UiText {...{"color":"red","size":"1","weight":"bold","className":"inline-block mt-1 px-2.5 py-0.5"}}>
                                 Descuento: {disc.nombre}
-                              </span>
+                              </UiText>
                             ) : null;
                           })()}
-                        </div>
-                        <div className="flex items-center gap-1 shrink-0">
-                          <button
+                        </UiBox>
+                        <UiBox {...{"className":"flex items-center gap-1 shrink-0"}}>
+                          <UiButton iconOnly
                             onClick={() => {
                               setEditingCategory(cat);
                               setCategoryName(cat.name);
                               setCategoryDesc(cat.description || '');
                               setSelectedDiscountId(cat.id_descuento_asociado || '');
                             }}
-                            className={`p-2 rounded-card text-primary hover:bg-primary/10 transition-all cursor-pointer`}
+                            {...mergeThemeProps({"color":"blue","className":"cursor-pointer"})}
                             title="Editar Categoría"
                           >
                             <Edit2 size={16} />
-                          </button>
-                          <button
+                          </UiButton>
+                          <UiButton iconOnly
                             onClick={() => cat.id && handleDeleteCategory(cat.id)}
-                            className={`p-2 rounded-card text-red-500 hover:bg-red-500/10 transition-all cursor-pointer`}
+                            {...mergeThemeProps({"color":"red","className":"cursor-pointer"})}
                             title="Eliminar Categoría"
                           >
                             <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </div>
+                          </UiButton>
+                        </UiBox>
+                      </UiBox>
                     ))
                   )}
-                </div>
-              </div>
-            </div>
+                </UiBox>
+              </UiBox>
+            </UiBox>
           ) : (
-            <div className="flex-1 flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x border-white/10">
+            <UiBox {...{"className":"flex-1 flex flex-col md:flex-row"}}>
               {/* Form Side */}
-              <form onSubmit={handleCreateBrand} className="w-full md:w-1/3 p-6 space-y-4 shrink-0">
-                <h3 className={`text-xs font-bold flex items-center gap-1.5 uppercase tracking-wider text-primary`}>
+              <form onSubmit={handleCreateBrand} {...{"className":"w-full md:w-1/3 p-6 space-y-4 shrink-0"}}>
+                <UiHeading as="h3" {...mergeThemeProps({"size":"1","weight":"bold","color":"blue","className":"flex items-center gap-1.5"})}>
                   <Plus size={14} /> Nueva Marca
-                </h3>
+                </UiHeading>
                 
-                <div>
-                  <label className={labelClass}>Nombre de la Marca *</label>
-                  <input
+                <UiBox>
+                  <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1"})}>Nombre de la Marca *</UiLabel>
+                  <UiInput
                     type="text"
                     required
                     placeholder="Ej. HP, Dell, Asus"
                     value={brandName}
                     onChange={(e) => setBrandName(e.target.value)}
-                    className={inputClass}
+                    {...mergeThemeProps({"size":"2","color":"gray","className":"w-full"})}
                   />
-                </div>
+                </UiBox>
 
-                <div>
-                  <label className={labelClass}>Fabricante / Proveedor principal (Opcional)</label>
-                  <input
+                <UiBox>
+                  <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1"})}>Fabricante / Proveedor principal (Opcional)</UiLabel>
+                  <UiInput
                     type="text"
                     placeholder="Ej. Hewlett-Packard Co."
                     value={brandManufacturer}
                     onChange={(e) => setBrandManufacturer(e.target.value)}
-                    className={inputClass}
+                    {...mergeThemeProps({"size":"2","color":"gray","className":"w-full"})}
                   />
-                </div>
+                </UiBox>
 
-                <button
+                <UiButton
                   type="submit"
                   disabled={loading}
-                  className="w-full py-2 rounded-card text-sm font-bold bg-primary hover:bg-primary text-white flex items-center justify-center gap-2 transition-all"
+                  {...{"size":"2","variant":"solid","color":"blue","className":"w-full flex items-center justify-center gap-2"}}
                 >
                   <Save size={16} />
                   Guardar Marca
-                </button>
+                </UiButton>
               </form>
 
               {/* List Side */}
-              <div className="flex-1 p-6 overflow-y-auto custom-scrollbar">
-                <h3 className={`text-xs font-bold uppercase tracking-wider mb-4 text-text-secondary`}>
+              <UiBox {...{"className":"flex-1 p-6 overflow-y-auto custom-scrollbar"}}>
+                <UiHeading as="h3" {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"mb-4"})}>
                   Marcas Registradas ({brands.length})
-                </h3>
+                </UiHeading>
 
-                <div className="space-y-3">
+                <UiBox {...{"className":"space-y-3"}}>
                   {brands.length === 0 ? (
-                    <p className={`text-sm text-center py-8 text-text-secondary`}>
+                    <UiText as="p" {...mergeThemeProps({"size":"2","color":"gray","className":"text-center py-8"})}>
                       No hay marcas registradas.
-                    </p>
+                    </UiText>
                   ) : (
                     brands.map(brand => (
-                      <div 
+                      <UiBox 
                         key={brand.id} 
-                        className={`p-4 rounded-card border flex items-center justify-between transition-all bg-surface-bg border-border-default hover:border-border-default`}
+                        {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--gray-2)"},"className":"p-4 flex items-center justify-between"})}
                       >
-                        <div>
-                          <h4 className={`text-sm font-bold text-text-heading`}>{brand.name}</h4>
+                        <UiBox>
+                          <UiHeading as="h4" {...mergeThemeProps({"size":"2","weight":"bold","color":"gray","highContrast":true})}>{brand.name}</UiHeading>
                           {brand.manufacturer && (
-                            <p className={`text-xs mt-1 text-text-secondary`}>{brand.manufacturer}</p>
+                            <UiText as="p" {...mergeThemeProps({"size":"1","color":"gray","className":"mt-1"})}>{brand.manufacturer}</UiText>
                           )}
-                        </div>
-                        <button
+                        </UiBox>
+                        <UiButton iconOnly
                           onClick={() => brand.id && handleDeleteBrand(brand.id)}
-                          className={`p-2 rounded-card text-red-500 hover:bg-red-500/10 transition-all`}
+                          {...mergeThemeProps({"color":"red"})}
                         >
                           <Trash2 size={16} />
-                        </button>
-                      </div>
+                        </UiButton>
+                      </UiBox>
                     ))
                   )}
-                </div>
-              </div>
-            </div>
+                </UiBox>
+              </UiBox>
+            </UiBox>
           )}
-        </div>
-      </div>
-    </div>
+        </UiBox>
+      </UiBox>
+    </UiBox>
   );
 }
 

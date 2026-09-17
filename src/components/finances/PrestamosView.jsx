@@ -1,3 +1,7 @@
+import { resolveThemeProps } from '../ui/themeProps';
+import { mergeThemeProps } from '../ui/themeProps';
+import { UiBox, UiText, UiCard, UiHeading, UiLabel } from '../ui/layout';
+import { UiButton, UiSelect, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell, UiInput } from '../ui/controls';
 import { useState, useEffect, useCallback } from 'react';
 import { Landmark, Plus, Wallet, AlertTriangle, DollarSign, TrendingDown, CalendarDays, X, ChevronDown, ChevronUp, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 import { getPrestamos, crearPrestamo, pagarCuota, eliminarPrestamo, getResumenPrestamos, getAlertasPrestamos, generarTablaAmortizacion } from '../../services/prestamosService';
@@ -9,16 +13,16 @@ const METODOS = [
 ];
 
 const ESTADO_BADGES = {
-  vigente: 'bg-status-authorized-bg text-status-authorized-text border-status-authorized-border',
-  mora: 'bg-status-rejected-bg text-status-rejected-text border-status-rejected-border',
-  cancelado: 'bg-status-draft-bg text-status-draft-text border-status-draft-border',
+  vigente: {"style":{"backgroundColor":"var(--green-3)","color":"var(--green-11)"}},
+  mora: {"style":{"backgroundColor":"var(--red-3)","color":"var(--red-11)"}},
+  cancelado: {"style":{"backgroundColor":"var(--gray-3)","color":"var(--gray-11)"}},
 };
 
 const CUOTA_ESTADO_BADGES = {
-  pendiente: 'bg-status-pending-bg text-status-pending-text border-status-pending-border',
-  parcial: 'bg-warning-light text-warning border-warning/20',
-  pagado: 'bg-status-authorized-bg text-status-authorized-text border-status-authorized-border',
-  vencido: 'bg-status-rejected-bg text-status-rejected-text border-status-rejected-border',
+  pendiente: {"style":{"backgroundColor":"var(--amber-3)","color":"var(--amber-11)"}},
+  parcial: {"style":{"backgroundColor":"var(--amber-3)","color":"var(--amber-11)"}},
+  pagado: {"style":{"backgroundColor":"var(--green-3)","color":"var(--green-11)"}},
+  vencido: {"style":{"backgroundColor":"var(--red-3)","color":"var(--red-11)"}},
 };
 
 export default function PrestamosView({ db, usuario, showToast }) {
@@ -48,153 +52,153 @@ export default function PrestamosView({ db, usuario, showToast }) {
 
   if (loading) {
     return (
-      <div className="space-y-4 animate-pulse">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">{[1,2,3,4].map(i => <div key={i} className="h-20 bg-surface-sidebar rounded-card" />)}</div>
-        {[1,2,3].map(i => <div key={i} className="h-16 bg-surface-sidebar rounded-card" />)}
-      </div>
+      <UiBox {...{"className":"space-y-4 animate-pulse"}}>
+        <UiBox {...{"className":"grid grid-cols-2 sm:grid-cols-4 gap-4"}}>{[1,2,3,4].map(i => <UiBox key={i} {...{"style":{"backgroundColor":"var(--color-panel-solid)","borderRadius":"var(--radius-3)"},"className":"h-20"}} />)}</UiBox>
+        {[1,2,3].map(i => <UiBox key={i} {...{"style":{"backgroundColor":"var(--color-panel-solid)","borderRadius":"var(--radius-3)"},"className":"h-16"}} />)}
+      </UiBox>
     );
   }
 
   if (error) {
     return (
-      <div className="text-center py-12">
-        <div className="text-error text-lg mb-2">Error al cargar</div>
-        <p className="text-text-secondary text-sm mb-4">{error}</p>
-        <button onClick={cargar} className="px-4 py-2 bg-primary text-white rounded-btn text-sm">Reintentar</button>
-      </div>
+      <UiBox {...{"className":"text-center py-12"}}>
+        <UiBox {...{"style":{"color":"var(--red-12)"},"className":"mb-2"}}>Error al cargar</UiBox>
+        <UiText as="p" {...{"color":"gray","size":"2","className":"mb-4"}}>{error}</UiText>
+        <UiButton onClick={cargar} {...{"variant":"solid","color":"blue","size":"2"}}>Reintentar</UiButton>
+      </UiBox>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-surface-card border border-border-default rounded-card p-4">
-          <div className="flex items-center gap-2 text-text-secondary text-xs mb-1"><DollarSign size={14} className="text-error" />Total Deuda</div>
-          <div className="text-lg font-bold text-error">{formatCurrency(resumen.totalDeuda)}</div>
-          <div className="text-xs text-text-muted">{resumen.conteo} préstamo(s) activo(s)</div>
-        </div>
-        <div className="bg-surface-card border border-border-default rounded-card p-4">
-          <div className="flex items-center gap-2 text-text-secondary text-xs mb-1"><TrendingDown size={14} className="text-primary" />Capital Pagado</div>
-          <div className="text-lg font-bold text-primary">{formatCurrency(resumen.capitalPagado)}</div>
-        </div>
-        <div className="bg-surface-card border border-border-default rounded-card p-4">
-          <div className="flex items-center gap-2 text-text-secondary text-xs mb-1"><DollarSign size={14} className="text-warning" />Interés Pagado</div>
-          <div className="text-lg font-bold text-warning">{formatCurrency(resumen.interesPagado)}</div>
-        </div>
-        <div className="bg-surface-card border border-border-default rounded-card p-4">
-          <div className="flex items-center gap-2 text-text-secondary text-xs mb-1"><AlertCircle size={14} className="text-error" />Cuotas Vencidas</div>
-          <div className="text-lg font-bold text-error">{resumen.cuotasVencidas}</div>
-        </div>
-      </div>
+    <UiBox {...{"className":"space-y-4"}}>
+      <UiBox {...{"className":"grid grid-cols-2 sm:grid-cols-4 gap-4"}}>
+        <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4"}}>
+          <UiBox {...{"style":{"color":"var(--gray-11)"},"className":"flex items-center gap-2 mb-1"}}><DollarSign size={14} {...{"style":{"color":"var(--red-12)"}}} />Total Deuda</UiBox>
+          <UiBox {...{"style":{"color":"var(--red-12)"}}}>{formatCurrency(resumen.totalDeuda)}</UiBox>
+          <UiBox {...{"style":{"color":"var(--gray-11)"}}}>{resumen.conteo} préstamo(s) activo(s)</UiBox>
+        </UiCard>
+        <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4"}}>
+          <UiBox {...{"style":{"color":"var(--gray-11)"},"className":"flex items-center gap-2 mb-1"}}><TrendingDown size={14} {...{"style":{"color":"var(--blue-12)"}}} />Capital Pagado</UiBox>
+          <UiBox {...{"style":{"color":"var(--blue-12)"}}}>{formatCurrency(resumen.capitalPagado)}</UiBox>
+        </UiCard>
+        <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4"}}>
+          <UiBox {...{"style":{"color":"var(--gray-11)"},"className":"flex items-center gap-2 mb-1"}}><DollarSign size={14} {...{"style":{"color":"var(--amber-12)"}}} />Interés Pagado</UiBox>
+          <UiBox {...{"style":{"color":"var(--amber-12)"}}}>{formatCurrency(resumen.interesPagado)}</UiBox>
+        </UiCard>
+        <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4"}}>
+          <UiBox {...{"style":{"color":"var(--gray-11)"},"className":"flex items-center gap-2 mb-1"}}><AlertCircle size={14} {...{"style":{"color":"var(--red-12)"}}} />Cuotas Vencidas</UiBox>
+          <UiBox {...{"style":{"color":"var(--red-12)"}}}>{resumen.cuotasVencidas}</UiBox>
+        </UiCard>
+      </UiBox>
 
       {alertas.length > 0 && (
-        <div className="bg-warning-light border border-warning/20 rounded-card p-4">
-          <h3 className="text-sm font-semibold text-warning flex items-center gap-1 mb-2"><AlertTriangle size={14} /> Cuotas Vencidas ({alertas.length})</h3>
-          <div className="space-y-1 max-h-32 overflow-y-auto">
+        <UiBox {...{"style":{"backgroundColor":"var(--amber-3)","border":"1px solid var(--gray-a6)","borderRadius":"var(--radius-3)"},"className":"p-4"}}>
+          <UiHeading as="h3" {...{"size":"2","weight":"bold","color":"amber","className":"flex items-center gap-1 mb-2"}}><AlertTriangle size={14} /> Cuotas Vencidas ({alertas.length})</UiHeading>
+          <UiBox {...{"className":"space-y-1 max-h-32 overflow-y-auto"}}>
             {alertas.slice(0, 10).map((a, i) => (
-              <div key={i} className="text-xs text-text-primary">
-                <span className="font-medium">{a.entidad}</span> — Cuota #{a.cuota} vencida hace {a.dias} día(s)
-              </div>
+              <UiBox key={i} {...{"style":{"color":"var(--gray-12)"}}}>
+                <UiText {...{"weight":"medium"}}>{a.entidad}</UiText> — Cuota #{a.cuota} vencida hace {a.dias} día(s)
+              </UiBox>
             ))}
-            {alertas.length > 10 && <div className="text-xs text-text-muted">+{alertas.length - 10} alerta(s) más</div>}
-          </div>
-        </div>
+            {alertas.length > 10 && <UiBox {...{"style":{"color":"var(--gray-11)"}}}>+{alertas.length - 10} alerta(s) más</UiBox>}
+          </UiBox>
+        </UiBox>
       )}
 
-      <div className="flex flex-wrap items-center gap-3">
-        <button onClick={() => setShowForm(true)} className="px-3 py-2 text-sm font-medium bg-primary text-white rounded-btn flex items-center gap-1.5">
+      <UiBox {...{"className":"flex flex-wrap items-center gap-3"}}>
+        <UiButton onClick={() => setShowForm(true)} {...{"size":"2","variant":"solid","color":"blue","className":"flex items-center gap-1.5"}}>
           <Plus size={14} /> Nuevo Préstamo
-        </button>
-        <select value={filtroEstado} onChange={e => setFiltroEstado(e.target.value)}
-          className="px-3 py-2 text-sm border border-border-default rounded-btn bg-white text-text-primary">
+        </UiButton>
+        <UiSelect value={filtroEstado} onChange={e => setFiltroEstado(e.target.value)}
+          {...{"size":"2","color":"gray"}}>
           <option value="all">Todos los estados</option>
           <option value="vigente">Vigente</option>
           <option value="mora">En Mora</option>
           <option value="cancelado">Cancelado</option>
-        </select>
-      </div>
+        </UiSelect>
+      </UiBox>
 
-      <div className="space-y-3">
+      <UiBox {...{"className":"space-y-3"}}>
         {filtrados.length === 0 ? (
-          <div className="bg-surface-card border border-border-default rounded-card py-12 text-center">
-            <Landmark size={40} className="mx-auto text-text-muted mb-3" />
-            <p className="text-text-secondary">No hay préstamos registrados</p>
-          </div>
+          <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"py-12 text-center"}}>
+            <Landmark size={40} {...{"style":{"color":"var(--gray-11)"},"className":"mx-auto mb-3"}} />
+            <UiText as="p" {...{"color":"gray"}}>No hay préstamos registrados</UiText>
+          </UiCard>
         ) : (
           filtrados.map(p => (
-            <div key={p.id} className="bg-surface-card border border-border-default rounded-card overflow-hidden">
-              <div
-                className="p-4 cursor-pointer hover:bg-primary-light/20 transition-colors"
+            <UiBox key={p.id} {...{"style":{"backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)","borderRadius":"var(--radius-3)"},"className":"overflow-hidden"}}>
+              <UiBox
+                {...{"className":"p-4 cursor-pointer"}}
                 onClick={() => setExpandedId(expandedId === p.id ? null : p.id)}
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Landmark size={20} className={p.estado === 'mora' ? 'text-error' : p.estado === 'cancelado' ? 'text-text-muted' : 'text-primary'} />
-                    <div>
-                      <div className="text-sm font-semibold text-text-primary">{p.entidad}</div>
-                      <div className="text-xs text-text-muted">Contrato: {p.numeroContrato || 'N/A'} | {METODOS.find(m => m.value === p.metodoAmortizacion)?.label || p.metodoAmortizacion}</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-right hidden sm:block">
-                      <div className="text-sm font-bold text-error">{formatCurrency(p.saldoPendiente)}</div>
-                      <div className="text-xs text-text-muted">de {formatCurrency(p.montoDesembolsado)}</div>
-                    </div>
-                    <span className={`px-2 py-0.5 text-xs font-medium border rounded-badge ${ESTADO_BADGES[p.estado] || ESTADO_BADGES.vigente}`}>{p.estado}</span>
-                    <div className="flex items-center gap-2 text-xs text-text-muted">
-                      <span className="flex items-center gap-1"><CheckCircle2 size={12} className="text-success" />{p.cuotasPagadas || 0}</span>
-                      <span className="flex items-center gap-1"><Clock size={12} className="text-info" />{p.cuotasPendientes || 0}</span>
-                      {p.cuotasVencidas > 0 && <span className="flex items-center gap-1"><AlertCircle size={12} className="text-error" />{p.cuotasVencidas}</span>}
-                    </div>
+                <UiBox {...{"className":"flex items-center justify-between"}}>
+                  <UiBox {...{"className":"flex items-center gap-3"}}>
+                    <Landmark size={20} {...(p.estado === 'mora' ? {"style":{"color":"var(--red-12)"}} : (p.estado === 'cancelado' ? {"style":{"color":"var(--gray-11)"}} : {"style":{"color":"var(--blue-12)"}}))} />
+                    <UiBox>
+                      <UiBox {...{"style":{"color":"var(--gray-12)"}}}>{p.entidad}</UiBox>
+                      <UiBox {...{"style":{"color":"var(--gray-11)"}}}>Contrato: {p.numeroContrato || 'N/A'} | {METODOS.find(m => m.value === p.metodoAmortizacion)?.label || p.metodoAmortizacion}</UiBox>
+                    </UiBox>
+                  </UiBox>
+                  <UiBox {...{"className":"flex items-center gap-4"}}>
+                    <UiBox {...{"className":"text-right hidden sm:block"}}>
+                      <UiBox {...{"style":{"color":"var(--red-12)"}}}>{formatCurrency(p.saldoPendiente)}</UiBox>
+                      <UiBox {...{"style":{"color":"var(--gray-11)"}}}>de {formatCurrency(p.montoDesembolsado)}</UiBox>
+                    </UiBox>
+                    <UiText {...mergeThemeProps({"size":"1","weight":"medium","className":"px-2 py-0.5"}, {}, (ESTADO_BADGES[p.estado] || resolveThemeProps(ESTADO_BADGES.vigente)))}>{p.estado}</UiText>
+                    <UiBox {...{"style":{"color":"var(--gray-11)"},"className":"flex items-center gap-2"}}>
+                      <UiText {...{"className":"flex items-center gap-1"}}><CheckCircle2 size={12} {...{"style":{"color":"var(--green-12)"}}} />{p.cuotasPagadas || 0}</UiText>
+                      <UiText {...{"className":"flex items-center gap-1"}}><Clock size={12} {...{"style":{"color":"var(--blue-12)"}}} />{p.cuotasPendientes || 0}</UiText>
+                      {p.cuotasVencidas > 0 && <UiText {...{"className":"flex items-center gap-1"}}><AlertCircle size={12} {...{"style":{"color":"var(--red-12)"}}} />{p.cuotasVencidas}</UiText>}
+                    </UiBox>
                     {expandedId === p.id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                  </div>
-                </div>
-                <div className="mt-2 sm:hidden">
-                  <div className="text-sm font-bold text-error">{formatCurrency(p.saldoPendiente)} <span className="text-xs text-text-muted font-normal">de {formatCurrency(p.montoDesembolsado)}</span></div>
-                </div>
-              </div>
+                  </UiBox>
+                </UiBox>
+                <UiBox {...{"className":"mt-2 sm:hidden"}}>
+                  <UiBox {...{"style":{"color":"var(--red-12)"}}}>{formatCurrency(p.saldoPendiente)} <UiText {...{"size":"1","color":"gray","weight":"regular"}}>de {formatCurrency(p.montoDesembolsado)}</UiText></UiBox>
+                </UiBox>
+              </UiBox>
 
               {expandedId === p.id && (
-                <div className="border-t border-border-default">
-                  <div className="px-4 py-3 bg-surface-sidebar flex flex-wrap gap-3 text-xs">
-                    <span><span className="text-text-secondary">Tasa:</span> <span className="font-medium">{p.tasaInteres}% mensual</span></span>
-                    <span><span className="text-text-secondary">Plazo:</span> <span className="font-medium">{p.plazoMeses} meses</span></span>
-                    <span><span className="text-text-secondary">Desembolso:</span> <span className="font-medium">{formatDate(p.fechaDesembolso)}</span></span>
-                    <span><span className="text-text-secondary">Capital pagado:</span> <span className="font-medium text-primary">{formatCurrency(p.capitalPagado)}</span></span>
-                    <span><span className="text-text-secondary">Interés pagado:</span> <span className="font-medium text-warning">{formatCurrency(p.interesPagado)}</span></span>
-                  </div>
+                <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"}}}>
+                  <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"px-4 py-3 flex flex-wrap gap-3"}}>
+                    <UiText><UiText {...{"color":"gray"}}>Tasa:</UiText> <UiText {...{"weight":"medium"}}>{p.tasaInteres}% mensual</UiText></UiText>
+                    <UiText><UiText {...{"color":"gray"}}>Plazo:</UiText> <UiText {...{"weight":"medium"}}>{p.plazoMeses} meses</UiText></UiText>
+                    <UiText><UiText {...{"color":"gray"}}>Desembolso:</UiText> <UiText {...{"weight":"medium"}}>{formatDate(p.fechaDesembolso)}</UiText></UiText>
+                    <UiText><UiText {...{"color":"gray"}}>Capital pagado:</UiText> <UiText {...{"weight":"medium","color":"blue"}}>{formatCurrency(p.capitalPagado)}</UiText></UiText>
+                    <UiText><UiText {...{"color":"gray"}}>Interés pagado:</UiText> <UiText {...{"weight":"medium","color":"amber"}}>{formatCurrency(p.interesPagado)}</UiText></UiText>
+                  </UiBox>
 
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="bg-surface-sidebar border-b border-border-default">
-                          <th className="px-3 py-2 text-left text-xs font-medium text-text-secondary">#</th>
-                          <th className="px-3 py-2 text-left text-xs font-medium text-text-secondary">Vence</th>
-                          <th className="px-3 py-2 text-right text-xs font-medium text-text-secondary">Capital</th>
-                          <th className="px-3 py-2 text-right text-xs font-medium text-text-secondary">Interés</th>
-                          <th className="px-3 py-2 text-right text-xs font-medium text-text-secondary">Cuota</th>
-                          <th className="px-3 py-2 text-right text-xs font-medium text-text-secondary">Saldo</th>
-                          <th className="px-3 py-2 text-center text-xs font-medium text-text-secondary">Estado</th>
-                          <th className="px-3 py-2 text-right text-xs font-medium text-text-secondary">Acción</th>
-                        </tr>
-                      </thead>
-                      <tbody>
+                  <UiBox {...{"className":"overflow-x-auto"}}>
+                    <UiTable {...{"className":"w-full"}}>
+                      <UiTableHeader>
+                        <UiTableRow {...{"style":{"backgroundColor":"var(--color-panel-solid)"}}}>
+                          <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"px-3 py-2 text-left"}}>#</UiTableHead>
+                          <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"px-3 py-2 text-left"}}>Vence</UiTableHead>
+                          <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"px-3 py-2 text-right"}}>Capital</UiTableHead>
+                          <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"px-3 py-2 text-right"}}>Interés</UiTableHead>
+                          <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"px-3 py-2 text-right"}}>Cuota</UiTableHead>
+                          <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"px-3 py-2 text-right"}}>Saldo</UiTableHead>
+                          <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"px-3 py-2 text-center"}}>Estado</UiTableHead>
+                          <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"px-3 py-2 text-right"}}>Acción</UiTableHead>
+                        </UiTableRow>
+                      </UiTableHeader>
+                      <UiTableBody>
                         {(p.cuotas || []).map(c => (
-                          <tr key={c.numero} className={`border-b border-border-default ${c.estado === 'vencido' ? 'bg-error-light/30' : c.estado === 'pagado' ? 'bg-success/5' : ''}`}>
-                            <td className="px-3 py-2 text-text-primary font-medium">{c.numero}</td>
-                            <td className="px-3 py-2 text-text-primary whitespace-nowrap">{formatDate(c.fechaVencimiento)}</td>
-                            <td className="px-3 py-2 text-right text-text-primary">{formatCurrency(c.capital)}</td>
-                            <td className="px-3 py-2 text-right text-text-primary">{formatCurrency(c.interes)}</td>
-                            <td className="px-3 py-2 text-right font-medium text-text-primary">{formatCurrency(c.cuotaTotal)}</td>
-                            <td className="px-3 py-2 text-right text-text-secondary">{formatCurrency(c.saldoPendiente)}</td>
-                            <td className="px-3 py-2 text-center">
-                              <span className={`inline-flex px-1.5 py-0.5 text-xs font-medium border rounded-badge ${CUOTA_ESTADO_BADGES[c.estado] || ''}`}>
+                          <UiTableRow key={c.numero} {...mergeThemeProps({}, {}, (c.estado === 'vencido' ? {"style":{"backgroundColor":"var(--red-3)"}} : (c.estado === 'pagado' ? {"style":{"backgroundColor":"var(--green-3)"}} : {})))}>
+                            <UiTableCell {...{"style":{"color":"var(--gray-12)"},"className":"px-3 py-2"}}>{c.numero}</UiTableCell>
+                            <UiTableCell {...{"style":{"color":"var(--gray-12)"},"className":"px-3 py-2 whitespace-nowrap"}}>{formatDate(c.fechaVencimiento)}</UiTableCell>
+                            <UiTableCell {...{"style":{"color":"var(--gray-12)"},"className":"px-3 py-2 text-right"}}>{formatCurrency(c.capital)}</UiTableCell>
+                            <UiTableCell {...{"style":{"color":"var(--gray-12)"},"className":"px-3 py-2 text-right"}}>{formatCurrency(c.interes)}</UiTableCell>
+                            <UiTableCell {...{"style":{"color":"var(--gray-12)"},"className":"px-3 py-2 text-right"}}>{formatCurrency(c.cuotaTotal)}</UiTableCell>
+                            <UiTableCell {...{"style":{"color":"var(--gray-11)"},"className":"px-3 py-2 text-right"}}>{formatCurrency(c.saldoPendiente)}</UiTableCell>
+                            <UiTableCell {...{"className":"px-3 py-2 text-center"}}>
+                              <UiText {...mergeThemeProps({"size":"1","weight":"medium","className":"inline-flex px-1.5 py-0.5"}, {}, (CUOTA_ESTADO_BADGES[c.estado] || {}))}>
                                 {c.estado === 'pagado' && formatDate(c.fechaPago) !== '-' ? formatDate(c.fechaPago) : c.estado}
-                              </span>
-                            </td>
-                            <td className="px-3 py-2 text-right">
+                              </UiText>
+                            </UiTableCell>
+                            <UiTableCell {...{"className":"px-3 py-2 text-right"}}>
                               {(c.estado === 'pendiente' || c.estado === 'vencido' || c.estado === 'parcial') && (
-                                <button
+                                <UiButton
                                   onClick={async (e) => {
                                     e.stopPropagation();
                                     const restante = (Number(c.cuotaTotal) - Number(c.pagadaCapital || 0) - Number(c.pagadaInteres || 0));
@@ -206,21 +210,21 @@ export default function PrestamosView({ db, usuario, showToast }) {
                                       cargar();
                                     } catch (err) { showToast('Error: ' + err.message, 'error'); }
                                   }}
-                                  className="px-2 py-1 text-xs font-medium bg-success text-white rounded-btn hover:opacity-90"
+                                  {...{"size":"2","variant":"solid","color":"green","className":"hover:opacity-90"}}
                                 >
-                                  <Wallet size={12} className="inline mr-1" />Pagar
-                                </button>
+                                  <Wallet size={12} {...{"className":"inline mr-1"}} />Pagar
+                                </UiButton>
                               )}
-                            </td>
-                          </tr>
+                            </UiTableCell>
+                          </UiTableRow>
                         ))}
-                      </tbody>
-                    </table>
-                  </div>
+                      </UiTableBody>
+                    </UiTable>
+                  </UiBox>
 
                   {p.estado !== 'cancelado' && (
-                    <div className="px-4 py-3 border-t border-border-default flex justify-end">
-                      <button
+                    <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"px-4 py-3 flex justify-end"}}>
+                      <UiButton
                         onClick={async (e) => {
                           e.stopPropagation();
                           if (!window.confirm(`¿Eliminar préstamo de ${p.entidad}?`)) return;
@@ -230,21 +234,21 @@ export default function PrestamosView({ db, usuario, showToast }) {
                             cargar();
                           } catch (err) { showToast('Error: ' + err.message, 'error'); }
                         }}
-                        className="px-3 py-1.5 text-xs font-medium text-error border border-error/20 rounded-btn hover:bg-error-light"
+                        {...{"size":"2","color":"red","variant":"outline"}}
                       >
                         Eliminar Préstamo
-                      </button>
-                    </div>
+                      </UiButton>
+                    </UiBox>
                   )}
-                </div>
+                </UiBox>
               )}
-            </div>
+            </UiBox>
           ))
         )}
-      </div>
+      </UiBox>
 
       {showForm && <FormPrestamo db={db} usuario={usuario} showToast={showToast} onClose={() => { setShowForm(false); cargar(); }} />}
-    </div>
+    </UiBox>
   );
 }
 
@@ -282,87 +286,87 @@ function FormPrestamo({ db, usuario, showToast, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50" onClick={onClose}>
-      <div className="w-full max-w-2xl bg-white rounded-md border border-border-default max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-5 py-3 border-b border-border-default sticky top-0 bg-white z-10">
-          <h3 className="text-md font-semibold text-black">Nuevo Préstamo Bancario</h3>
-          <button onClick={onClose} className="btn-icon text-text-secondary"><X size={16} /></button>
-        </div>
-        <div className="p-5 space-y-3">
-          <div className="grid grid-cols-2 gap-3">
+    <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[200] flex items-center justify-center p-4"}} onClick={onClose}>
+      <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"w-full max-w-2xl max-h-[90vh] overflow-y-auto"}} onClick={e => e.stopPropagation()}>
+        <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"flex items-center justify-between px-5 py-3 sticky top-0 z-10"}}>
+          <UiHeading as="h3" {...{"color":"gray","weight":"bold","highContrast":true}}>Nuevo Préstamo Bancario</UiHeading>
+          <UiButton iconOnly onClick={onClose} {...{"variant":"surface","color":"gray"}}><X size={16} /></UiButton>
+        </UiCard>
+        <UiBox {...{"className":"p-5 space-y-3"}}>
+          <UiBox {...{"className":"grid grid-cols-2 gap-3"}}>
             <Input label="Entidad financiera *" placeholder="Banco Pichincha, Produbanco..." value={form.entidad} onChange={v => update('entidad', v)} />
             <Input label="N° Contrato" placeholder="PREST-001" value={form.numeroContrato} onChange={v => update('numeroContrato', v)} />
-          </div>
-          <div className="grid grid-cols-3 gap-3">
+          </UiBox>
+          <UiBox {...{"className":"grid grid-cols-3 gap-3"}}>
             <Input label="Monto desembolsado *" placeholder="10000" type="number" value={form.montoDesembolsado} onChange={v => { update('montoDesembolsado', v); setPreview(null); }} />
             <Input label="Tasa mensual (%) *" placeholder="1.5" type="number" value={form.tasaInteres} onChange={v => { update('tasaInteres', v); setPreview(null); }} />
             <Input label="Plazo (meses) *" placeholder="12" type="number" value={form.plazoMeses} onChange={v => { update('plazoMeses', v); setPreview(null); }} />
-          </div>
-          <div className="space-y-1">
-            <label className="text-xs font-medium text-text-secondary">Método de amortización *</label>
-            <select value={form.metodoAmortizacion} onChange={e => { update('metodoAmortizacion', e.target.value); setPreview(null); }}
-              className="w-full px-3 py-2 text-sm border border-border-default rounded-btn bg-white text-text-primary">
+          </UiBox>
+          <UiBox {...{"className":"space-y-1"}}>
+            <UiLabel {...{"size":"1","weight":"medium","color":"gray"}}>Método de amortización *</UiLabel>
+            <UiSelect value={form.metodoAmortizacion} onChange={e => { update('metodoAmortizacion', e.target.value); setPreview(null); }}
+              {...{"size":"2","color":"gray","className":"w-full"}}>
               {METODOS.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
-            </select>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
+            </UiSelect>
+          </UiBox>
+          <UiBox {...{"className":"grid grid-cols-2 gap-3"}}>
             <Input label="Fecha desembolso" type="date" value={form.fechaDesembolso} onChange={v => update('fechaDesembolso', v)} />
             <Input label="Fecha inicio pagos *" type="date" value={form.fechaInicio} onChange={v => { update('fechaInicio', v); setPreview(null); }} />
-          </div>
+          </UiBox>
 
-          <div className="pt-2 border-t border-border-default">
-            <button onClick={generarPreview} className="px-3 py-2 text-sm font-medium bg-info text-white rounded-btn">
-              <CalendarDays size={14} className="inline mr-1" /> Generar Tabla de Amortización
-            </button>
-          </div>
+          <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"pt-2"}}>
+            <UiButton onClick={generarPreview} {...{"size":"2","variant":"solid","color":"blue"}}>
+              <CalendarDays size={14} {...{"className":"inline mr-1"}} /> Generar Tabla de Amortización
+            </UiButton>
+          </UiBox>
 
           {preview && (
-            <div className="border border-border-default rounded-card overflow-hidden">
-              <div className="px-3 py-2 bg-surface-sidebar flex justify-between items-center">
-                <span className="text-xs font-semibold text-text-primary">Tabla de Amortización ({METODOS.find(m => m.value === form.metodoAmortizacion)?.label})</span>
-                <span className="text-xs text-text-secondary">Total interés: <span className="font-bold text-warning">{`$${totalInteres.toFixed(2)}`}</span> | Total a pagar: <span className="font-bold text-text-primary">{`$${totalCuotas.toFixed(2)}`}</span></span>
-              </div>
-              <div className="overflow-x-auto max-h-48 overflow-y-auto">
-                <table className="w-full text-xs">
-                  <thead className="sticky top-0 bg-white">
-                    <tr className="border-b border-border-default">
-                      <th className="px-2 py-1.5 text-left text-text-secondary">#</th>
-                      <th className="px-2 py-1.5 text-right text-text-secondary">Capital</th>
-                      <th className="px-2 py-1.5 text-right text-text-secondary">Interés</th>
-                      <th className="px-2 py-1.5 text-right text-text-secondary">Cuota</th>
-                      <th className="px-2 py-1.5 text-right text-text-secondary">Saldo</th>
-                    </tr>
-                  </thead>
-                  <tbody>
+            <UiBox {...{"style":{"border":"1px solid var(--gray-a6)","borderRadius":"var(--radius-3)"},"className":"overflow-hidden"}}>
+              <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"px-3 py-2 flex justify-between items-center"}}>
+                <UiText {...{"size":"1","weight":"bold","color":"gray","highContrast":true}}>Tabla de Amortización ({METODOS.find(m => m.value === form.metodoAmortizacion)?.label})</UiText>
+                <UiText {...{"size":"1","color":"gray"}}>Total interés: <UiText {...{"weight":"bold","color":"amber"}}>{`$${totalInteres.toFixed(2)}`}</UiText> | Total a pagar: <UiText {...{"weight":"bold","color":"gray","highContrast":true}}>{`$${totalCuotas.toFixed(2)}`}</UiText></UiText>
+              </UiBox>
+              <UiBox {...{"className":"overflow-x-auto max-h-48 overflow-y-auto"}}>
+                <UiTable {...{"className":"w-full"}}>
+                  <UiTableHeader {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"sticky top-0"}}>
+                    <UiTableRow {...{}}>
+                      <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"px-2 py-1.5 text-left"}}>#</UiTableHead>
+                      <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"px-2 py-1.5 text-right"}}>Capital</UiTableHead>
+                      <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"px-2 py-1.5 text-right"}}>Interés</UiTableHead>
+                      <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"px-2 py-1.5 text-right"}}>Cuota</UiTableHead>
+                      <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"px-2 py-1.5 text-right"}}>Saldo</UiTableHead>
+                    </UiTableRow>
+                  </UiTableHeader>
+                  <UiTableBody>
                     {preview.map(c => (
-                      <tr key={c.numero} className="border-b border-border-default">
-                        <td className="px-2 py-1.5 text-text-primary">{c.numero}</td>
-                        <td className="px-2 py-1.5 text-right text-text-primary">${c.capital.toFixed(2)}</td>
-                        <td className="px-2 py-1.5 text-right text-warning">${c.interes.toFixed(2)}</td>
-                        <td className="px-2 py-1.5 text-right font-medium text-text-primary">${c.cuotaTotal.toFixed(2)}</td>
-                        <td className="px-2 py-1.5 text-right text-text-secondary">${c.saldoPendiente.toFixed(2)}</td>
-                      </tr>
+                      <UiTableRow key={c.numero} {...{}}>
+                        <UiTableCell {...{"style":{"color":"var(--gray-12)"},"className":"px-2 py-1.5"}}>{c.numero}</UiTableCell>
+                        <UiTableCell {...{"style":{"color":"var(--gray-12)"},"className":"px-2 py-1.5 text-right"}}>${c.capital.toFixed(2)}</UiTableCell>
+                        <UiTableCell {...{"style":{"color":"var(--amber-12)"},"className":"px-2 py-1.5 text-right"}}>${c.interes.toFixed(2)}</UiTableCell>
+                        <UiTableCell {...{"style":{"color":"var(--gray-12)"},"className":"px-2 py-1.5 text-right"}}>${c.cuotaTotal.toFixed(2)}</UiTableCell>
+                        <UiTableCell {...{"style":{"color":"var(--gray-11)"},"className":"px-2 py-1.5 text-right"}}>${c.saldoPendiente.toFixed(2)}</UiTableCell>
+                      </UiTableRow>
                     ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+                  </UiTableBody>
+                </UiTable>
+              </UiBox>
+            </UiBox>
           )}
-        </div>
-        <div className="flex justify-end gap-2 px-5 py-3 border-t border-border-default sticky bottom-0 bg-white">
-          <button onClick={onClose} className="px-4 py-2 text-sm border border-border-default rounded-btn text-text-secondary">Cancelar</button>
-          <button onClick={handleSubmit} disabled={saving} className="px-4 py-2 text-sm bg-primary text-white rounded-btn disabled:opacity-50">{saving ? 'Guardando...' : 'Crear Préstamo'}</button>
-        </div>
-      </div>
-    </div>
+        </UiBox>
+        <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"flex justify-end gap-2 px-5 py-3 sticky bottom-0"}}>
+          <UiButton onClick={onClose} {...{"size":"2","variant":"outline","color":"gray"}}>Cancelar</UiButton>
+          <UiButton onClick={handleSubmit} disabled={saving} {...{"size":"2","variant":"solid","color":"blue","className":"disabled:opacity-50"}}>{saving ? 'Guardando...' : 'Crear Préstamo'}</UiButton>
+        </UiCard>
+      </UiBox>
+    </UiBox>
   );
 }
 
 function Input({ label, ...props }) {
   return (
-    <div className="space-y-1">
-      {label && <label className="text-xs font-medium text-text-secondary">{label}</label>}
-      <input {...props} className="w-full px-3 py-2 text-sm border border-border-default rounded-btn bg-white text-text-primary focus:border-primary" />
-    </div>
+    <UiBox {...{"className":"space-y-1"}}>
+      {label && <UiLabel {...{"size":"1","weight":"medium","color":"gray"}}>{label}</UiLabel>}
+      <UiInput {...props} {...{"size":"2","color":"gray","className":"w-full"}} />
+    </UiBox>
   );
 }

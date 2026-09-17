@@ -19,7 +19,8 @@ import {
   Plus,
   ShieldAlert,
   Download,
-  RefreshCw
+  RefreshCw,
+  Eye
 } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
@@ -51,7 +52,6 @@ export default function SuperAdminPage({ showToast }) {
 
   // Modals / Edit states
   const [editingPlan, setEditingPlan] = useState(null);
-  // eslint-disable-next-line no-unused-vars
   const [selectedTransfer, setSelectedTransfer] = useState(null);
 
   // New Tenant Creation Form State
@@ -1330,18 +1330,25 @@ export default function SuperAdminPage({ showToast }) {
                           </td>
                           <td className="px-6 py-4 text-right">
                             <div className="flex justify-end gap-1.5">
+                              <button 
+                                onClick={() => setSelectedTransfer(transfer)}
+                                className="p-1.5 rounded-md bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 cursor-pointer"
+                                title="Ver Comprobante y Detalles"
+                              >
+                                <Eye size={14} />
+                              </button>
                               {transfer.status === 'pending' ? (
                                 <>
                                   <button 
                                     onClick={() => handleApproveTransfer(transfer)}
-                                    className="p-1.5 rounded-md bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20"
+                                    className="p-1.5 rounded-md bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 cursor-pointer"
                                     title="Aprobar Pago"
                                   >
                                     <Check size={14} />
                                   </button>
                                   <button 
                                     onClick={() => handleRejectTransfer(transfer)}
-                                    className="p-1.5 rounded-md bg-red-500/10 text-red-500 hover:bg-red-500/20"
+                                    className="p-1.5 rounded-md bg-red-500/10 text-red-500 hover:bg-red-500/20 cursor-pointer"
                                     title="Rechazar Pago"
                                   >
                                     <X size={14} />
@@ -1482,7 +1489,6 @@ export default function SuperAdminPage({ showToast }) {
                       personas: 'Personas (Contactos)',
                       calendar: 'Calendario',
                       team: 'Equipo',
-                      proyectos_general: 'Proyectos',
                       contabilidad: 'Contabilidad SRI'
                     };
                     return Object.keys(moduleLabels).map((mod) => {
@@ -1513,6 +1519,102 @@ export default function SuperAdminPage({ showToast }) {
                 <button type="submit" className="px-4 py-2.5 rounded-card bg-surface-card text-white font-bold">Guardar Cambios</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* VIEW TRANSFER DETAILS MODAL */}
+      {selectedTransfer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]">
+          <div className="bg-surface-card rounded-card border border-border-default w-full max-w-lg p-6 space-y-4 shadow-xl">
+            <div className="flex justify-between items-center pb-3 border-b border-border-default">
+              <div className="flex items-center gap-2">
+                <CreditCard size={18} className="text-primary" />
+                <h4 className="text-sm font-bold text-text-primary">Detalle de Transferencia Bancaria</h4>
+              </div>
+              <button 
+                type="button"
+                onClick={() => setSelectedTransfer(null)} 
+                className="text-text-secondary hover:text-text-primary cursor-pointer p-1 rounded hover:bg-surface-bg"
+              >
+                <X size={16}/>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              <div className="bg-surface-bg p-2.5 rounded-md border border-border-default">
+                <span className="text-text-secondary font-semibold block mb-0.5">Empresa / Inquilino:</span>
+                <span className="font-bold text-text-primary block">{selectedTransfer.companyName || 'Empresa'}</span>
+                <span className="font-mono text-text-secondary text-[11px]">ID: {selectedTransfer.tenantId}</span>
+              </div>
+              <div className="bg-surface-bg p-2.5 rounded-md border border-border-default">
+                <span className="text-text-secondary font-semibold block mb-0.5">Plan Solicitado:</span>
+                <span className="font-bold text-text-primary block uppercase">{selectedTransfer.planId} ({selectedTransfer.billingPeriod || 'mensual'})</span>
+                <span className="font-bold text-emerald-500 text-sm">${selectedTransfer.amount || '0.00'}</span>
+              </div>
+              <div className="bg-surface-bg p-2.5 rounded-md border border-border-default">
+                <span className="text-text-secondary font-semibold block mb-0.5">Nro. Referencia:</span>
+                <span className="font-mono font-bold text-primary block">{selectedTransfer.referenceNumber || 'S/N'}</span>
+              </div>
+              <div className="bg-surface-bg p-2.5 rounded-md border border-border-default">
+                <span className="text-text-secondary font-semibold block mb-0.5">Estado:</span>
+                <span className={`px-2 py-0.5 rounded text-[11px] font-bold inline-block ${
+                  selectedTransfer.status === 'approved' ? 'bg-emerald-500/15 text-emerald-500' :
+                  selectedTransfer.status === 'pending' ? 'bg-amber-500/15 text-amber-500 animate-pulse' :
+                  'bg-red-500/15 text-red-500'
+                }`}>
+                  {selectedTransfer.status === 'approved' ? 'Aprobado' : selectedTransfer.status === 'pending' ? 'Pendiente' : 'Rechazado'}
+                </span>
+              </div>
+              {selectedTransfer.createdAt && (
+                <div className="col-span-2 bg-surface-bg p-2 rounded-md border border-border-default">
+                  <span className="text-text-secondary font-semibold">Fecha de Solicitud: </span>
+                  <span className="text-text-primary font-medium">{new Date(selectedTransfer.createdAt).toLocaleString('es-EC')}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Comprobante / Voucher Preview */}
+            <div className="space-y-1.5">
+              <span className="text-xs font-bold text-text-secondary block">Archivo / Comprobante de Pago</span>
+              {selectedTransfer.proofUrl ? (
+                <div className="max-h-60 overflow-hidden flex items-center justify-center p-2 bg-surface-bg border border-border-default rounded-md">
+                  <img src={selectedTransfer.proofUrl} alt="Comprobante de pago" className="max-h-56 object-contain rounded" />
+                </div>
+              ) : (
+                <div className="p-4 text-center italic text-xs text-text-secondary bg-surface-bg border border-border-default rounded-md">
+                  No se adjuntó archivo de imagen (solo número de referencia proporcionado por el cliente).
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-2.5 justify-end pt-3 border-t border-border-default">
+              <button 
+                type="button" 
+                onClick={() => setSelectedTransfer(null)} 
+                className="px-4 py-2 rounded-card border border-border-default hover:bg-surface-bg text-xs font-semibold cursor-pointer"
+              >
+                Cerrar
+              </button>
+              {selectedTransfer.status === 'pending' && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => handleRejectTransfer(selectedTransfer)}
+                    className="px-4 py-2 rounded-card bg-red-500/10 text-red-500 hover:bg-red-500/20 text-xs font-bold cursor-pointer"
+                  >
+                    Rechazar Transferencia
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleApproveTransfer(selectedTransfer)}
+                    className="px-4 py-2 rounded-card bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold cursor-pointer"
+                  >
+                    Aprobar y Activar Plan
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}

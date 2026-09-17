@@ -1,0 +1,25 @@
+/* Compatibility aliases for charts, document integrations and fiscal previews.
+   Interactive components use the native Themes appearance and variants. */
+.webfix-theme {
+  --primary: var(--accent-9);
+  --primary-hover: var(--accent-10);
+  --primary-light: var(--accent-3);
+  --primary-muted: var(--accent-4);
+  --surface-bg: var(--gray-2);
+  --surface-card: var(--color-panel-solid);
+  --surface-sidebar: var(--gray-1);
+  --surface-hover: var(--accent-3);
+  --surface-muted: var(--gray-3);
+  --border-default: var(--gray-a6);
+  --border-strong: var(--gray-a8);
+  --border-focus: var(--accent-9);
+  --text-heading: var(--gray-12);
+  --text-primary: var(--gray-12);
+  --text-secondary: var(--gray-11);
+  --text-muted: var(--gray-11);
+  --cursor-button: pointer;
+}
+/* Layout only: no overrides of Radix colors, borders, shadows or focus states. */
+.rt-TextFieldInput { text-align: inherit; }
+.rt-BaseButton > svg { flex-shrink: 0; }
+.webfix-theme .rt-SelectTrigger { min-width: 0; }

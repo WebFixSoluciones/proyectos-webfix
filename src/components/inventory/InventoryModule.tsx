@@ -1,3 +1,6 @@
+import { mergeThemeProps } from '../ui/themeProps';
+import { UiBox, UiCard, UiText, UiHeading, UiLabel } from '../ui/layout';
+import { UiButton, UiInput, UiSelect, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell } from '../ui/controls';
 import { useState, useEffect, useMemo } from 'react';
 import { 
   Package, Plus, Search, Tag, BarChart3, 
@@ -256,13 +259,23 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
   }
 
   const handleDeleteProduct = async (id: string) => {
-    if (!await confirm("¿Desactivar este producto/servicio? Se conservará su historial y dejará de estar disponible en ventas.")) return;
+    if (!await window.confirm("¿Desactivar este producto/servicio? Se conservará su historial y dejará de estar disponible en ventas.")) return;
     try {
       await productRepository.delete(id);
       await loadCatalogData();
     } catch (err) {
       console.error(err);
       alert("Error al desactivar el producto");
+    }
+  };
+
+  const handleReactivateProduct = async (id: string) => {
+    try {
+      await productRepository.update(id, { status: 'ACTIVE', showInSales: true });
+      await loadCatalogData();
+      showToast?.('Producto reactivado y disponible para ventas.', 'success');
+    } catch (err) {
+      showToast?.(err instanceof Error ? err.message : 'No se pudo reactivar el producto.', 'error');
     }
   };
 
@@ -298,159 +311,153 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
   ];
 
   return (
-    <div className="flex flex-col h-full w-full overflow-hidden animate-in fade-in duration-500">
+    <UiBox {...{"className":"flex flex-col h-full w-full overflow-hidden animate-in fade-in duration-500"}}>
       
 
 
-      <div className="flex-1 overflow-y-auto py-4 custom-scrollbar">
+      <UiBox {...{"className":"flex-1 overflow-y-auto py-4 custom-scrollbar"}}>
         
         {/* --- TAB: PRODUCTOS & SERVICIOS --- */}
         {activeTab === 'productos' && (
-          <div className="w-full h-full flex flex-col space-y-6 animate-in fade-in duration-300">
+          <UiBox {...{"className":"w-full h-full flex flex-col space-y-6 animate-in fade-in duration-300"}}>
             {!inlineFormMode ? (
               <>
                 {/* FILTROS Y ACCIONES */}
-                <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 mb-6">
-                  <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
-                    <button 
+                <UiBox {...{"className":"flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 mb-6"}}>
+                  <UiBox {...{"className":"flex flex-wrap items-center gap-2 w-full md:w-auto"}}>
+                    <UiButton
                       onClick={() => setShowProductTypeSelector(true)}
-                      className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-card text-xs font-bold transition-all hover-lift bg-primary text-white hover:bg-primary/95`}
+                      {...mergeThemeProps({"size":"2","variant":"solid","color":"blue","className":"flex items-center gap-1.5 hover-lift"})}
                     >
                       <Plus size={15} /> Nuevo Producto
-                    </button>
-                    <button 
+                    </UiButton>
+                    <UiButton
                       onClick={() => {
                         setInlineFormMode('create_service');
                         setEditingProduct(null);
                         scrollToForm();
                       }}
-                      className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-card text-xs font-bold transition-all hover-lift bg-indigo-600 text-white hover:bg-indigo-550`}
+                      {...mergeThemeProps({"size":"2","variant":"solid","color":"indigo","className":"flex items-center gap-1.5 hover-lift"})}
                     >
                       <Briefcase size={15} /> Nuevo Servicio
-                    </button>
-                    <button 
+                    </UiButton>
+                    <UiButton
                       onClick={() => setIsCatBrandOpen(true)}
-                      className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-card text-xs font-bold transition-all border ${
-                        'bg-surface-bg border-border-strong text-text-primary hover:bg-surface-muted'
-                      }`}
+                      {...mergeThemeProps({"size":"2","variant":"outline","className":"flex items-center gap-1.5"}, {}, {"variant":"soft","color":"gray"})}
                     >
                       <Tag size={15} /> Categorías/Marcas
-                    </button>
-                  </div>
+                    </UiButton>
+                  </UiBox>
 
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
-                    <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-card border-none w-full sm:w-64 transition-all focus-within:ring-1 focus-within:ring-primary/25 bg-surface-bg hover:bg-surface-card focus-within:bg-surface-card">
-                      <Search size={14} className={'text-text-secondary'} />
-                      <input
+                  <UiBox {...{"className":"flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto"}}>
+                    <UiCard {...{"style":{"backgroundColor":"var(--gray-2)"},"className":"flex items-center gap-2 px-3.5 py-1.5 w-full sm:w-64"}}>
+                      <Search size={14} {...{"style":{"color":"var(--gray-11)"}}} />
+                      <UiInput
                         type="text"
                         placeholder="Buscar por SKU o nombre..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="bg-transparent border-none outline-none text-xs w-full text-current placeholder-gray-500 focus:ring-0"
+                        {...{"size":"2","className":"w-full"}}
                       />
-                    </div>
+                    </UiCard>
 
-                    <select
+                    <UiSelect
                       value={selectedCategory}
                       onChange={(e) => setSelectedCategory(e.target.value)}
-                      className="px-3 py-1.5 rounded-card border-none text-xs font-medium outline-none transition-all cursor-pointer bg-surface-bg hover:bg-surface-card text-text-primary focus:ring-1 focus:ring-primary/25"
+                      {...{"size":"2","color":"gray","className":"cursor-pointer"}}
                     >
-                      <option value="" className="text-black">Todas las Categorías</option>
+                      <option value="" {...{"style":{"color":"var(--gray-12)"}}}>Todas las Categorías</option>
                       {categories.map(c => (
-                        <option key={c.id} value={c.id} className="text-black">{c.name}</option>
+                        <option key={c.id} value={c.id} {...{"style":{"color":"var(--gray-12)"}}}>{c.name}</option>
                       ))}
-                    </select>
+                    </UiSelect>
 
-                    <select
+                    <UiSelect
                       value={selectedType}
                       onChange={(e) => setSelectedType(e.target.value)}
-                      className="px-3 py-1.5 rounded-card border-none text-xs font-medium outline-none transition-all cursor-pointer bg-surface-bg hover:bg-surface-card text-text-primary focus:ring-1 focus:ring-primary/25"
+                      {...{"size":"2","color":"gray","className":"cursor-pointer"}}
                     >
-                      <option value="" className="text-black">Todos los Tipos</option>
-                      <option value="STANDARD" className="text-black">Estándar</option>
-                      <option value="COMBO" className="text-black">Combo</option>
-                      <option value="SUBPRODUCT" className="text-black">Subproducto</option>
-                      <option value="SERVICE" className="text-black">Servicio</option>
-                    </select>
-                  </div>
-                </div>
+                      <option value="" {...{"style":{"color":"var(--gray-12)"}}}>Todos los Tipos</option>
+                      <option value="STANDARD" {...{"style":{"color":"var(--gray-12)"}}}>Estándar</option>
+                      <option value="COMBO" {...{"style":{"color":"var(--gray-12)"}}}>Combo</option>
+                      <option value="SUBPRODUCT" {...{"style":{"color":"var(--gray-12)"}}}>Subproducto</option>
+                      <option value="SERVICE" {...{"style":{"color":"var(--gray-12)"}}}>Servicio</option>
+                    </UiSelect>
+                  </UiBox>
+                </UiBox>
                 
                 {/* Products Table */}
-                <div className={`rounded-card border overflow-hidden transition-all ${
-                  'border-border-default/80 bg-white'
-                }`}>
-                  <div className="overflow-x-auto custom-scrollbar">
-                    <table className="w-full text-left text-xs whitespace-nowrap">
-                      <thead className={`text-xs uppercase font-bold tracking-wider ${
-                        'bg-surface-bg text-text-primary border-b border-border-default'
-                      }`}>
-                        <tr>
-                          <th className="px-6 py-3.5">SKU</th>
-                          <th className="px-6 py-3.5">Nombre</th>
-                          <th className="px-6 py-3.5">Tipo</th>
-                          <th className="px-6 py-3.5">Categoría</th>
-                          <th className="px-6 py-3.5">Costo Base</th>
-                          <th className="px-6 py-3.5">Precio Venta</th>
-                          <th className="px-6 py-3.5">Impuesto</th>
-                          <th className="px-6 py-3.5">Stock Actual</th>
-                          <th className="px-6 py-3.5 text-center">Acciones</th>
-                        </tr>
-                      </thead>
-                      <tbody className={`divide-y ${'divide-slate-100'}`}>
+                <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"overflow-hidden"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)"}})}>
+                  <UiBox {...{"className":"overflow-x-auto custom-scrollbar"}}>
+                    <UiTable {...{"className":"w-full text-left whitespace-nowrap"}}>
+                      <UiTableHeader {...mergeThemeProps({}, {}, {"style":{"backgroundColor":"var(--gray-2)","color":"var(--gray-12)"}})}>
+                        <UiTableRow>
+                          <UiTableHead {...{"className":"px-6 py-3.5"}}>SKU</UiTableHead>
+                          <UiTableHead {...{"className":"px-6 py-3.5"}}>Nombre</UiTableHead>
+                          <UiTableHead {...{"className":"px-6 py-3.5"}}>Tipo</UiTableHead>
+                          <UiTableHead {...{"className":"px-6 py-3.5"}}>Categoría</UiTableHead>
+                          <UiTableHead {...{"className":"px-6 py-3.5"}}>Costo Base</UiTableHead>
+                          <UiTableHead {...{"className":"px-6 py-3.5"}}>Precio Venta</UiTableHead>
+                          <UiTableHead {...{"className":"px-6 py-3.5"}}>Impuesto</UiTableHead>
+                          <UiTableHead {...{"className":"px-6 py-3.5"}}>Stock Actual</UiTableHead>
+                          <UiTableHead {...{"className":"px-6 py-3.5 text-center"}}>Acciones</UiTableHead>
+                        </UiTableRow>
+                      </UiTableHeader>
+                      <UiTableBody {...mergeThemeProps({}, {}, {})}>
                         {loading ? (
-                          <tr>
-                            <td colSpan={9} className="px-6 py-8 text-center text-text-secondary font-bold">Cargando catálogo...</td>
-                          </tr>
+                          <UiTableRow>
+                            <UiTableCell colSpan={9} {...{"style":{"color":"var(--gray-11)"},"className":"px-6 py-8 text-center"}}>Cargando catálogo...</UiTableCell>
+                          </UiTableRow>
                         ) : filteredProducts.length === 0 ? (
-                          <tr>
-                            <td colSpan={9} className="px-6 py-8 text-center text-text-secondary">No se encontraron productos ni servicios.</td>
-                          </tr>
+                          <UiTableRow>
+                            <UiTableCell colSpan={9} {...{"style":{"color":"var(--gray-11)"},"className":"px-6 py-8 text-center"}}>No se encontraron productos ni servicios.</UiTableCell>
+                          </UiTableRow>
                         ) : (
                           filteredProducts.map(p => {
                             const stock = Number(p.stock ?? stocks[p.id || ''] ?? 0);
                             const isService = p.type === 'SERVICE';
                             
                             return (
-                              <tr key={p.id} className={`transition-colors ${'hover:bg-surface-bg/40'}`}>
-                                <td className={`px-6 py-3.5 font-mono text-xs font-bold ${'text-black font-semibold'}`}>{p.sku}</td>
-                                <td className="px-6 py-2.5">
-                                  <div className="flex items-center gap-3">
+                              <UiTableRow key={p.id} {...mergeThemeProps({}, {}, {})}>
+                                <UiTableCell {...mergeThemeProps({"style":{"fontFamily":"var(--code-font-family)"},"className":"px-6 py-3.5"}, {}, {"style":{"color":"var(--gray-12)"}})}>{p.sku}</UiTableCell>
+                                <UiTableCell {...{"className":"px-6 py-2.5"}}>
+                                  <UiBox {...{"className":"flex items-center gap-3"}}>
                                     <img 
                                       src={p.imageUrl && !p.imageUrl.includes('placehold.co') && !p.imageUrl.includes('placehold.net') ? p.imageUrl : '/product.svg'} 
-                                      className="w-8 h-8 rounded object-cover border border-border-default"
+                                      {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"w-8 h-8 object-cover"}}
                                       alt={p.name}
                                       onError={(e) => {
                                         e.currentTarget.src = '/product.svg';
                                       }}
                                     />
-                                    <div className="min-w-0">
-                                      <span className={`font-semibold block truncate max-w-[220px] ${'text-text-heading font-bold'}`}>{p.name}</span>
-                                      {p.description && <p className="text-xs text-text-secondary truncate max-w-[220px] mt-0.5">{p.description}</p>}
-                                    </div>
-                                  </div>
-                                </td>
-                                <td className="px-6 py-3.5">
-                                  {p.type === 'STANDARD' && <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-primary/10 text-primary border border-primary/20">Estándar</span>}
-                                  {p.type === 'COMBO' && <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-purple-500/10 text-purple-400 border border-purple-500/20">Combo</span>}
-                                  {p.type === 'SUBPRODUCT' && <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-primary/10 text-primary border border-primary/20">Subproducto</span>}
-                                  {p.type === 'SERVICE' && <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-pink-500/10 text-pink-400 border border-pink-500/20">Servicio</span>}
-                                </td>
-                                <td className="px-6 py-3.5 text-text-secondary font-medium">{getCategoryName(p.categoryId)}</td>
-                                <td className="px-6 py-3.5 font-semibold">${(Number(p.baseCost ?? p.cost ?? 0)).toFixed(2)}</td>
-                                <td className="px-6 py-3.5 font-bold text-emerald-500">${(Number(p.salePrice ?? p.price ?? 0)).toFixed(2)}</td>
-                                <td className="px-6 py-3.5 text-text-secondary font-medium">{p.taxRate ?? 15}%</td>
-                                <td className="px-6 py-3.5 font-bold">
+                                    <UiBox {...{"className":"min-w-0"}}>
+                                      <UiText {...mergeThemeProps({"weight":"bold","className":"block truncate max-w-[220px]"}, {}, {"color":"gray","highContrast":true,"weight":"bold"})}>{p.name}</UiText>
+                                      {p.description && <UiText as="p" {...{"size":"1","color":"gray","className":"truncate max-w-[220px] mt-0.5"}}>{p.description}</UiText>}
+                                    </UiBox>
+                                  </UiBox>
+                                </UiTableCell>
+                                <UiTableCell {...{"className":"px-6 py-3.5"}}>
+                                  {p.type === 'STANDARD' && <UiText {...{"size":"1","weight":"bold","color":"blue","className":"px-2 py-0.5"}}>Estándar</UiText>}
+                                  {p.type === 'COMBO' && <UiText {...{"size":"1","weight":"bold","color":"purple","className":"px-2 py-0.5"}}>Combo</UiText>}
+                                  {p.type === 'SUBPRODUCT' && <UiText {...{"size":"1","weight":"bold","color":"blue","className":"px-2 py-0.5"}}>Subproducto</UiText>}
+                                  {p.type === 'SERVICE' && <UiText {...{"size":"1","weight":"bold","color":"pink","className":"px-2 py-0.5"}}>Servicio</UiText>}
+                                </UiTableCell>
+                                <UiTableCell {...{"style":{"color":"var(--gray-11)"},"className":"px-6 py-3.5"}}>{getCategoryName(p.categoryId)}</UiTableCell>
+                                <UiTableCell {...{"className":"px-6 py-3.5"}}>${(Number(p.baseCost ?? p.cost ?? 0)).toFixed(2)}</UiTableCell>
+                                <UiTableCell {...{"style":{"color":"var(--green-11)"},"className":"px-6 py-3.5"}}>${(Number(p.salePrice ?? p.price ?? 0)).toFixed(2)}</UiTableCell>
+                                <UiTableCell {...{"style":{"color":"var(--gray-11)"},"className":"px-6 py-3.5"}}>{p.taxRate ?? 15}%</UiTableCell>
+                                <UiTableCell {...{"className":"px-6 py-3.5"}}>
                                   {isService || p.inventoryType === 'VIRTUAL' ? (
-                                    <span className="text-text-secondary italic font-medium">Virtual (N/A)</span>
+                                    <UiText {...{"color":"gray","weight":"medium","className":"italic"}}>Virtual (N/A)</UiText>
                                   ) : stock > 0 ? (
-                                    <span className="text-emerald-500">{stock} u.</span>
+                                    <UiText {...{"color":"green"}}>{stock} u.</UiText>
                                   ) : (
-                                    <span className="text-red-500">Agotado</span>
+                                    <UiText {...{"color":"red"}}>Agotado</UiText>
                                   )}
-                                </td>
-                                <td className="px-6 py-3.5 text-center">
-                                  <div className="flex items-center justify-center gap-2">
-                                    <button
+                                </UiTableCell>
+                                <UiTableCell {...{"className":"px-6 py-3.5 text-center"}}>
+                                  <UiBox {...{"className":"flex items-center justify-center gap-2"}}>
+                                    <UiButton iconOnly
                                       onClick={() => {
                                         if (p.id) {
                                           if (p.type === 'SERVICE') {
@@ -462,32 +469,34 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
                                           scrollToForm();
                                         }
                                       }}
-                                      className="p-1.5 rounded-card text-primary hover:bg-primary/10 transition-all border border-primary/10 bg-white "
+                                      {...{"color":"blue","variant":"surface"}}
                                       title="Editar"
                                     >
                                       <Edit2 size={13} />
-                                    </button>
-                                    <button
-                                      onClick={() => p.id && handleDeleteProduct(p.id)}
-                                      className="p-1.5 rounded-card text-red-500 hover:bg-red-500/10 transition-all border border-red-500/10 bg-white "
-                                      title="Eliminar"
-                                    >
-                                      <Trash2 size={13} />
-                                    </button>
-                                  </div>
-                                </td>
-                              </tr>
+                                    </UiButton>
+                                    {p.status === 'INACTIVE' ? (
+                                      <UiButton iconOnly onClick={() => p.id && handleReactivateProduct(p.id)} {...{"color":"green","variant":"surface"}} title="Reactivar">
+                                        <RefreshCw size={13} />
+                                      </UiButton>
+                                    ) : (
+                                      <UiButton iconOnly onClick={() => p.id && handleDeleteProduct(p.id)} {...{"color":"red","variant":"surface"}} title="Desactivar">
+                                        <Trash2 size={13} />
+                                      </UiButton>
+                                    )}
+                                  </UiBox>
+                                </UiTableCell>
+                              </UiTableRow>
                             );
                           })
                         )}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
+                      </UiTableBody>
+                    </UiTable>
+                  </UiBox>
+                </UiBox>
               </>
             ) : (
               /* Formulario Inline */
-              <div id="inline-form-container" className="animate-in slide-in-from-bottom duration-300">
+              <UiBox id="inline-form-container" {...{"className":"animate-in slide-in-from-bottom duration-300"}}>
                 {inlineFormMode === 'create_product' || inlineFormMode === 'edit_product' ? (
                   <ProductCreationForm
                     key={editingProduct?.id || editingProduct?.type || 'new-product'}
@@ -520,443 +529,417 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
                     }}
                   />
                 )}
-              </div>
+              </UiBox>
             )}
-          </div>
+          </UiBox>
         )}
 
         {/* --- TAB: CATEGORÍAS Y MARCAS --- */}
         {activeTab === 'categorias' && (
-          <div className="w-full h-full flex flex-col space-y-6 animate-in fade-in duration-300">
-            <div className="flex justify-end items-center mb-6">
-              <button 
+          <UiBox {...{"className":"w-full h-full flex flex-col space-y-6 animate-in fade-in duration-300"}}>
+            <UiBox {...{"className":"flex justify-end items-center mb-6"}}>
+              <UiButton
                 onClick={() => setIsCatBrandOpen(true)}
-                className="px-4 py-2 rounded-card font-bold text-xs bg-primary hover:bg-primary text-white flex items-center gap-1.5"
+                {...{"size":"2","variant":"solid","color":"blue","className":"flex items-center gap-1.5"}}
               >
                 <SlidersHorizontal size={14} /> Configurar Categorías/Marcas
-              </button>
-            </div>
+              </UiButton>
+            </UiBox>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <UiBox {...{"className":"grid grid-cols-1 md:grid-cols-2 gap-8"}}>
               {/* Categorías Column */}
-              <div className={`p-6 rounded-card border ${'bg-white border-border-default'}`}>
-                <h3 className={`text-sm font-bold flex items-center gap-2 mb-4 uppercase tracking-wider ${'text-primary'}`}>
+              <UiCard {...mergeThemeProps({"className":"p-6"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)"}})}>
+                <UiHeading as="h3" {...mergeThemeProps({"size":"2","weight":"bold","className":"flex items-center gap-2 mb-4"}, {}, {"color":"blue"})}>
                   <Layers size={16} /> Categorías ({categories.length})
-                </h3>
-                <div className="space-y-3">
+                </UiHeading>
+                <UiBox {...{"className":"space-y-3"}}>
                   {categories.map(cat => (
-                    <div key={cat.id} className={`p-3 rounded-card border flex items-center justify-between ${'bg-surface-bg border-border-default'}`}>
-                      <div>
-                        <span className={`font-semibold ${'text-text-heading'}`}>{cat.name}</span>
-                        {cat.description && <p className="text-xs text-text-secondary">{cat.description}</p>}
-                      </div>
-                    </div>
+                    <UiBox key={cat.id} {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"p-3 flex items-center justify-between"}, {}, {"style":{"backgroundColor":"var(--gray-2)"}})}>
+                      <UiBox>
+                        <UiText {...mergeThemeProps({"weight":"bold"}, {}, {"color":"gray","highContrast":true})}>{cat.name}</UiText>
+                        {cat.description && <UiText as="p" {...{"size":"1","color":"gray"}}>{cat.description}</UiText>}
+                      </UiBox>
+                    </UiBox>
                   ))}
-                </div>
-              </div>
+                </UiBox>
+              </UiCard>
 
               {/* Marcas Column */}
-              <div className={`p-6 rounded-card border ${'bg-white border-border-default'}`}>
-                <h3 className={`text-sm font-bold flex items-center gap-2 mb-4 uppercase tracking-wider ${'text-purple-600'}`}>
+              <UiCard {...mergeThemeProps({"className":"p-6"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)"}})}>
+                <UiHeading as="h3" {...mergeThemeProps({"size":"2","weight":"bold","className":"flex items-center gap-2 mb-4"}, {}, {"color":"purple"})}>
                   <Award size={16} /> Marcas ({brands.length})
-                </h3>
-                <div className="space-y-3">
+                </UiHeading>
+                <UiBox {...{"className":"space-y-3"}}>
                   {brands.map(b => (
-                    <div key={b.id} className={`p-3 rounded-card border flex items-center justify-between ${'bg-surface-bg border-border-default'}`}>
-                      <div>
-                        <span className={`font-semibold ${'text-text-heading'}`}>{b.name}</span>
-                        {b.manufacturer && <p className="text-xs text-text-secondary">{b.manufacturer}</p>}
-                      </div>
-                    </div>
+                    <UiBox key={b.id} {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"p-3 flex items-center justify-between"}, {}, {"style":{"backgroundColor":"var(--gray-2)"}})}>
+                      <UiBox>
+                        <UiText {...mergeThemeProps({"weight":"bold"}, {}, {"color":"gray","highContrast":true})}>{b.name}</UiText>
+                        {b.manufacturer && <UiText as="p" {...{"size":"1","color":"gray"}}>{b.manufacturer}</UiText>}
+                      </UiBox>
+                    </UiBox>
                   ))}
-                </div>
-              </div>
-            </div>
-          </div>
+                </UiBox>
+              </UiCard>
+            </UiBox>
+          </UiBox>
         )}
 
         {/* --- TAB: KARDEX --- */}
         {activeTab === 'kardex' && (
-          <div className="w-full h-full flex flex-col space-y-6 animate-in fade-in duration-300">
+          <UiBox {...{"className":"w-full h-full flex flex-col space-y-6 animate-in fade-in duration-300"}}>
 
 
             {/* Selector de Producto */}
-            <div className={`p-5 rounded-card border grid grid-cols-1 md:grid-cols-2 gap-4 ${'bg-surface-bg border-border-default'}`}>
-              <div>
-                <label className="block text-xs font-semibold mb-1 uppercase tracking-wider text-text-secondary">Seleccionar Producto Físico</label>
-                <select
+            <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"p-5 grid grid-cols-1 md:grid-cols-2 gap-4"}, {}, {"style":{"backgroundColor":"var(--gray-2)"}})}>
+              <UiBox>
+                <UiLabel {...{"size":"1","weight":"bold","color":"gray","className":"block mb-1"}}>Seleccionar Producto Físico</UiLabel>
+                <UiSelect
                   value={kardexProductId}
                   onChange={(e) => setKardexProductId(e.target.value)}
-                  className={`w-full px-3 py-2 rounded-card outline-none border text-xs cursor-pointer ${
-                    'bg-white border-border-default text-text-heading'
-                  }`}
+                  {...mergeThemeProps({"size":"2","className":"w-full cursor-pointer"}, {}, {"color":"gray"})}
                 >
-                  <option value="" className="text-black">-- Selecciona un producto --</option>
+                  <option value="" {...{"style":{"color":"var(--gray-12)"}}}>-- Selecciona un producto --</option>
                   {products.filter(p => p.type !== 'SERVICE').map(p => (
-                    <option key={p.id} value={p.id} className="text-black">{p.name} (SKU: {p.sku})</option>
+                    <option key={p.id} value={p.id} {...{"style":{"color":"var(--gray-12)"}}}>{p.name} (SKU: {p.sku})</option>
                   ))}
-                </select>
-              </div>
+                </UiSelect>
+              </UiBox>
 
-              <div>
-                <label className="block text-xs font-semibold mb-1 uppercase tracking-wider text-text-secondary">Sucursal / Bodega</label>
-                <select
+              <UiBox>
+                <UiLabel {...{"size":"1","weight":"bold","color":"gray","className":"block mb-1"}}>Sucursal / Bodega</UiLabel>
+                <UiSelect
                   value={kardexBranchId}
                   onChange={(e) => setKardexBranchId(e.target.value)}
-                  className={`w-full px-3 py-2 rounded-card outline-none border text-xs cursor-pointer ${
-                    'bg-white border-border-default text-text-heading'
-                  }`}
+                  {...mergeThemeProps({"size":"2","className":"w-full cursor-pointer"}, {}, {"color":"gray"})}
                 >
                   {BRANCHES.map(b => (
-                    <option key={b.id} value={b.id} className="text-black">{b.name}</option>
+                    <option key={b.id} value={b.id} {...{"style":{"color":"var(--gray-12)"}}}>{b.name}</option>
                   ))}
-                </select>
-              </div>
-            </div>
+                </UiSelect>
+              </UiBox>
+            </UiBox>
 
             {kardexProductId ? (
-              <div className="space-y-6">
+              <UiBox {...{"className":"space-y-6"}}>
                 {/* Summary Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <UiBox {...{"className":"grid grid-cols-1 md:grid-cols-3 gap-6"}}>
                   {/* Stock Actual Card */}
-                  <div className={`p-5 rounded-card border ${'bg-emerald-50 border-emerald-200'}`}>
-                    <span className="block text-xs font-bold uppercase tracking-wider text-emerald-500 mb-1">Saldo Actual</span>
-                    <div className="flex items-baseline gap-2">
-                      <span className={`text-2xl font-semibold ${'text-text-heading'}`}>
+                  <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"p-5"}, {}, {"style":{"backgroundColor":"var(--green-3)"}})}>
+                    <UiText {...{"size":"1","weight":"bold","color":"green","className":"block mb-1"}}>Saldo Actual</UiText>
+                    <UiBox {...{"className":"flex items-baseline gap-2"}}>
+                      <UiText {...mergeThemeProps({"size":"6","weight":"bold"}, {}, {"color":"gray","highContrast":true})}>
                         {kardexHistory[0]?.balanceQuantity ?? 0}
-                      </span>
-                      <span className="text-xs text-text-secondary font-semibold">unidades</span>
-                    </div>
-                  </div>
+                      </UiText>
+                      <UiText {...{"size":"1","color":"gray","weight":"bold"}}>unidades</UiText>
+                    </UiBox>
+                  </UiBox>
 
                   {/* Costo Promedio Card */}
-                  <div className={`p-5 rounded-card border ${'bg-primary-light border-primary/25'}`}>
-                    <span className="block text-xs font-bold uppercase tracking-wider text-primary mb-1">Costo Promedio Ponderado</span>
-                    <div className="flex items-baseline gap-2">
-                      <span className={`text-2xl font-semibold ${'text-text-heading'}`}>
+                  <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"p-5"}, {}, {"style":{"backgroundColor":"var(--blue-3)"}})}>
+                    <UiText {...{"size":"1","weight":"bold","color":"blue","className":"block mb-1"}}>Costo Promedio Ponderado</UiText>
+                    <UiBox {...{"className":"flex items-baseline gap-2"}}>
+                      <UiText {...mergeThemeProps({"size":"6","weight":"bold"}, {}, {"color":"gray","highContrast":true})}>
                         ${(kardexHistory[0]?.balanceAverageCost ?? 0).toFixed(2)}
-                      </span>
-                    </div>
-                  </div>
+                      </UiText>
+                    </UiBox>
+                  </UiBox>
 
                   {/* Valorización Card */}
-                  <div className={`p-5 rounded-card border ${'bg-purple-50 border-purple-205'}`}>
-                    <span className="block text-xs font-bold uppercase tracking-wider text-purple-500 mb-1">Valor Total del Inventario</span>
-                    <div className="flex items-baseline gap-2">
-                      <span className={`text-2xl font-semibold ${'text-text-heading'}`}>
+                  <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"p-5"}, {}, {"style":{"backgroundColor":"var(--purple-3)"}})}>
+                    <UiText {...{"size":"1","weight":"bold","color":"purple","className":"block mb-1"}}>Valor Total del Inventario</UiText>
+                    <UiBox {...{"className":"flex items-baseline gap-2"}}>
+                      <UiText {...mergeThemeProps({"size":"6","weight":"bold"}, {}, {"color":"gray","highContrast":true})}>
                         ${((kardexHistory[0]?.balanceQuantity ?? 0) * (kardexHistory[0]?.balanceAverageCost ?? 0)).toFixed(2)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+                      </UiText>
+                    </UiBox>
+                  </UiBox>
+                </UiBox>
 
                 {/* Kardex Transactions Table */}
-                <div className={`rounded-card border overflow-hidden transition-all ${
-                  'border-border-default/80 bg-white'
-                }`}>
-                  <div className="overflow-x-auto custom-scrollbar">
-                    <table className="w-full text-left text-xs whitespace-nowrap">
-                      <thead className={`text-xs uppercase font-bold tracking-wider ${
-                        'bg-surface-bg text-text-primary border-b border-border-default'
-                      }`}>
-                        <tr>
-                          <th className="px-6 py-3.5">Fecha</th>
-                          <th className="px-6 py-3.5">Tipo Operación</th>
-                          <th className="px-6 py-3.5">Referencia Doc</th>
-                          <th className="px-6 py-3.5">Cantidad Movimiento</th>
-                          <th className="px-6 py-3.5">Costo Operación</th>
-                          <th className="px-6 py-3.5">Total Operación</th>
-                          <th className="px-6 py-3.5">Saldo Cantidad</th>
-                          <th className="px-6 py-3.5">Saldo Costo Prom.</th>
-                        </tr>
-                      </thead>
-                      <tbody className={`divide-y ${'divide-slate-100'}`}>
+                <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"overflow-hidden"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)"}})}>
+                  <UiBox {...{"className":"overflow-x-auto custom-scrollbar"}}>
+                    <UiTable {...{"className":"w-full text-left whitespace-nowrap"}}>
+                      <UiTableHeader {...mergeThemeProps({}, {}, {"style":{"backgroundColor":"var(--gray-2)","color":"var(--gray-12)"}})}>
+                        <UiTableRow>
+                          <UiTableHead {...{"className":"px-6 py-3.5"}}>Fecha</UiTableHead>
+                          <UiTableHead {...{"className":"px-6 py-3.5"}}>Tipo Operación</UiTableHead>
+                          <UiTableHead {...{"className":"px-6 py-3.5"}}>Referencia Doc</UiTableHead>
+                          <UiTableHead {...{"className":"px-6 py-3.5"}}>Cantidad Movimiento</UiTableHead>
+                          <UiTableHead {...{"className":"px-6 py-3.5"}}>Costo Operación</UiTableHead>
+                          <UiTableHead {...{"className":"px-6 py-3.5"}}>Total Operación</UiTableHead>
+                          <UiTableHead {...{"className":"px-6 py-3.5"}}>Saldo Cantidad</UiTableHead>
+                          <UiTableHead {...{"className":"px-6 py-3.5"}}>Saldo Costo Prom.</UiTableHead>
+                        </UiTableRow>
+                      </UiTableHeader>
+                      <UiTableBody {...mergeThemeProps({}, {}, {})}>
                         {kardexHistory.length === 0 ? (
-                          <tr>
-                            <td colSpan={8} className="px-6 py-8 text-center text-text-secondary">No hay movimientos registrados para este producto en la sucursal seleccionada.</td>
-                          </tr>
+                          <UiTableRow>
+                            <UiTableCell colSpan={8} {...{"style":{"color":"var(--gray-11)"},"className":"px-6 py-8 text-center"}}>No hay movimientos registrados para este producto en la sucursal seleccionada.</UiTableCell>
+                          </UiTableRow>
                         ) : (
                           kardexHistory.map(tx => {
                             const isEntry = tx.quantity > 0;
                             return (
-                              <tr key={tx.id} className={`transition-colors ${'hover:bg-surface-bg/40'}`}>
-                                <td className="px-6 py-3.5 text-text-secondary font-medium">{new Date(tx.date as any).toLocaleString('es-ES')}</td>
-                                <td className="px-6 py-3.5">
-                                  {tx.type === 'PURCHASE_RECEIPT' && <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-green-500/10 text-green-400">Ingreso / Compra</span>}
-                                  {tx.type === 'CUSTOMER_RETURN' && <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-emerald-500/10 text-emerald-400">Devolución Cliente</span>}
-                                  {tx.type === 'POSITIVE_ADJUSTMENT' && <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-teal-500/10 text-teal-400">Ajuste Positivo</span>}
-                                  {tx.type === 'SALE' && <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-red-500/10 text-red-400">Egreso / Venta</span>}
-                                  {tx.type === 'TRANSFER_OUT' && <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-purple-500/10 text-purple-400">Salida por Traslado</span>}
-                                  {tx.type === 'NEGATIVE_ADJUSTMENT' && <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-yellow-500/10 text-yellow-400">Ajuste Negativo</span>}
-                                  {tx.type === 'SHRINKAGE' && <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-orange-500/10 text-orange-400">Mermas / Pérdida</span>}
-                                  {tx.type === 'MASSIVE_ZERO' && <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-red-650/20 text-red-500 border border-red-500/10">Cero Inventario</span>}
-                                </td>
-                                <td className="px-6 py-3.5 font-mono text-xs text-text-secondary font-bold">{tx.referenceId}</td>
-                                <td className={`px-6 py-3.5 font-bold ${isEntry ? 'text-emerald-500' : 'text-red-500'}`}>
+                              <UiTableRow key={tx.id} {...mergeThemeProps({}, {}, {})}>
+                                <UiTableCell {...{"style":{"color":"var(--gray-11)"},"className":"px-6 py-3.5"}}>{new Date(tx.date as any).toLocaleString('es-ES')}</UiTableCell>
+                                <UiTableCell {...{"className":"px-6 py-3.5"}}>
+                                  {tx.type === 'PURCHASE_RECEIPT' && <UiText {...{"size":"1","weight":"bold","color":"green","className":"px-2 py-0.5"}}>Ingreso / Compra</UiText>}
+                                  {tx.type === 'CUSTOMER_RETURN' && <UiText {...{"size":"1","weight":"bold","color":"green","className":"px-2 py-0.5"}}>Devolución Cliente</UiText>}
+                                  {tx.type === 'POSITIVE_ADJUSTMENT' && <UiText {...{"size":"1","weight":"bold","color":"teal","className":"px-2 py-0.5"}}>Ajuste Positivo</UiText>}
+                                  {tx.type === 'SALE' && <UiText {...{"size":"1","weight":"bold","color":"red","className":"px-2 py-0.5"}}>Egreso / Venta</UiText>}
+                                  {tx.type === 'TRANSFER_OUT' && <UiText {...{"size":"1","weight":"bold","color":"purple","className":"px-2 py-0.5"}}>Salida por Traslado</UiText>}
+                                  {tx.type === 'NEGATIVE_ADJUSTMENT' && <UiText {...{"size":"1","weight":"bold","color":"amber","className":"px-2 py-0.5"}}>Ajuste Negativo</UiText>}
+                                  {tx.type === 'SHRINKAGE' && <UiText {...{"size":"1","weight":"bold","color":"orange","className":"px-2 py-0.5"}}>Mermas / Pérdida</UiText>}
+                                  {tx.type === 'MASSIVE_ZERO' && <UiText {...{"size":"1","weight":"bold","color":"red","className":"px-2 py-0.5"}}>Cero Inventario</UiText>}
+                                </UiTableCell>
+                                <UiTableCell {...{"style":{"fontFamily":"var(--code-font-family)","color":"var(--gray-11)"},"className":"px-6 py-3.5"}}>{tx.referenceId}</UiTableCell>
+                                <UiTableCell {...mergeThemeProps({"className":"px-6 py-3.5"}, {}, (isEntry ? {"style":{"color":"var(--green-11)"}} : {"style":{"color":"var(--red-11)"}}))}>
                                   {isEntry ? `+${tx.quantity}` : tx.quantity}
-                                </td>
-                                <td className="px-6 py-3.5 font-mono">${(Number(tx.unitCost ?? 0)).toFixed(2)}</td>
-                                <td className="px-6 py-3.5 font-mono">${(Number(tx.totalCost ?? 0)).toFixed(2)}</td>
-                                <td className="px-6 py-3.5 font-bold">{tx.balanceQuantity ?? 0}</td>
-                                <td className="px-6 py-3.5 font-semibold text-primary">${(Number(tx.balanceAverageCost ?? 0)).toFixed(2)}</td>
-                              </tr>
+                                </UiTableCell>
+                                <UiTableCell {...{"style":{"fontFamily":"var(--code-font-family)"},"className":"px-6 py-3.5"}}>${(Number(tx.unitCost ?? 0)).toFixed(2)}</UiTableCell>
+                                <UiTableCell {...{"style":{"fontFamily":"var(--code-font-family)"},"className":"px-6 py-3.5"}}>${(Number(tx.totalCost ?? 0)).toFixed(2)}</UiTableCell>
+                                <UiTableCell {...{"className":"px-6 py-3.5"}}>{tx.balanceQuantity ?? 0}</UiTableCell>
+                                <UiTableCell {...{"style":{"color":"var(--blue-12)"},"className":"px-6 py-3.5"}}>${(Number(tx.balanceAverageCost ?? 0)).toFixed(2)}</UiTableCell>
+                              </UiTableRow>
                             );
                           })
                         )}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
+                      </UiTableBody>
+                    </UiTable>
+                  </UiBox>
+                </UiBox>
+              </UiBox>
             ) : (
-              <div className={`rounded-card border flex flex-col items-center justify-center p-8 text-center ${'bg-white/50 border-border-default'}`}>
-                <Database size={32} className={`mb-4 ${'text-emerald-600'}`} />
-                <p className={'text-text-secondary'}>Selecciona un producto físico para ver su Kardex de transacciones.</p>
-              </div>
+              <UiCard {...mergeThemeProps({"className":"flex flex-col items-center justify-center p-8 text-center"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)"}})}>
+                <Database size={32} {...mergeThemeProps({"className":"mb-4"}, {}, {"style":{"color":"var(--green-11)"}})} />
+                <UiText as="p" {...{"color":"gray"}}>Selecciona un producto físico para ver su Kardex de transacciones.</UiText>
+              </UiCard>
             )}
-          </div>
+          </UiBox>
         )}
 
         {/* --- TAB: TRANSFERENCIAS --- */}
         {activeTab === 'transferencias' && (
-          <div className="w-full h-full flex flex-col space-y-6 animate-in fade-in duration-300">
+          <UiBox {...{"className":"w-full h-full flex flex-col space-y-6 animate-in fade-in duration-300"}}>
             {/* FILTROS Y ACCIONES */}
-            <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 mb-6">
-              <div>
-                <button 
+            <UiBox {...{"className":"flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 mb-6"}}>
+              <UiBox>
+                <UiButton
                   onClick={() => setIsTransferOpen(true)}
-                  className={`w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-card text-xs font-bold transition-all bg-purple-600 hover:bg-purple-550 text-white`}
+                  {...mergeThemeProps({"size":"2","variant":"solid","color":"purple","className":"w-full sm:w-auto flex items-center justify-center gap-1.5"})}
                 >
                   <PlusCircle size={15} /> Nueva Transferencia
-                </button>
-              </div>
-            </div>
+                </UiButton>
+              </UiBox>
+            </UiBox>
 
-            <div className={`rounded-card border overflow-hidden transition-all ${
-              'border-border-default/80 bg-white'
-            }`}>
-              <div className="overflow-x-auto custom-scrollbar">
-                <table className="w-full text-left text-xs whitespace-nowrap">
-                  <thead className={`text-xs uppercase font-bold tracking-wider ${
-                    'bg-surface-bg text-text-primary border-b border-border-default'
-                  }`}>
-                    <tr>
-                      <th className="px-6 py-3.5">Fecha</th>
-                      <th className="px-6 py-3.5">Tipo</th>
-                      <th className="px-6 py-3.5">Origen</th>
-                      <th className="px-6 py-3.5">Destino</th>
-                      <th className="px-6 py-3.5">Cant. Productos</th>
-                      <th className="px-6 py-3.5">Costo Envío</th>
-                      <th className="px-6 py-3.5">Responsable</th>
-                      <th className="px-6 py-3.5 text-center">Estado</th>
-                    </tr>
-                  </thead>
-                  <tbody className={`divide-y ${'divide-slate-100'}`}>
+            <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"overflow-hidden"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)"}})}>
+              <UiBox {...{"className":"overflow-x-auto custom-scrollbar"}}>
+                <UiTable {...{"className":"w-full text-left whitespace-nowrap"}}>
+                  <UiTableHeader {...mergeThemeProps({}, {}, {"style":{"backgroundColor":"var(--gray-2)","color":"var(--gray-12)"}})}>
+                    <UiTableRow>
+                      <UiTableHead {...{"className":"px-6 py-3.5"}}>Fecha</UiTableHead>
+                      <UiTableHead {...{"className":"px-6 py-3.5"}}>Tipo</UiTableHead>
+                      <UiTableHead {...{"className":"px-6 py-3.5"}}>Origen</UiTableHead>
+                      <UiTableHead {...{"className":"px-6 py-3.5"}}>Destino</UiTableHead>
+                      <UiTableHead {...{"className":"px-6 py-3.5"}}>Cant. Productos</UiTableHead>
+                      <UiTableHead {...{"className":"px-6 py-3.5"}}>Costo Envío</UiTableHead>
+                      <UiTableHead {...{"className":"px-6 py-3.5"}}>Responsable</UiTableHead>
+                      <UiTableHead {...{"className":"px-6 py-3.5 text-center"}}>Estado</UiTableHead>
+                    </UiTableRow>
+                  </UiTableHeader>
+                  <UiTableBody {...mergeThemeProps({}, {}, {})}>
                     {transfers.length === 0 ? (
-                      <tr>
-                        <td colSpan={8} className="px-6 py-8 text-center text-text-secondary">No hay transferencias registradas.</td>
-                      </tr>
+                      <UiTableRow>
+                        <UiTableCell colSpan={8} {...{"style":{"color":"var(--gray-11)"},"className":"px-6 py-8 text-center"}}>No hay transferencias registradas.</UiTableCell>
+                      </UiTableRow>
                     ) : (
                       transfers.map(tr => {
                         const fromName = BRANCHES.find(b => b.id === tr.sourceBranchId)?.name || 'Desconocida';
                         const toName = BRANCHES.find(b => b.id === tr.targetBranchId)?.name || 'Desconocida';
                         return (
-                          <tr key={tr.id} className={`transition-colors ${'hover:bg-surface-bg/40'}`}>
-                            <td className="px-6 py-3.5 text-text-secondary font-medium">{new Date(tr.createdAt).toLocaleString('es-ES')}</td>
-                            <td className="px-6 py-3.5">
+                          <UiTableRow key={tr.id} {...mergeThemeProps({}, {}, {})}>
+                            <UiTableCell {...{"style":{"color":"var(--gray-11)"},"className":"px-6 py-3.5"}}>{new Date(tr.createdAt).toLocaleString('es-ES')}</UiTableCell>
+                            <UiTableCell {...{"className":"px-6 py-3.5"}}>
                               {tr.type === 'INTERNAL' ? (
-                                <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-primary/10 text-primary border border-primary/20">Interna</span>
+                                <UiText {...{"size":"1","weight":"bold","color":"blue","className":"px-2 py-0.5"}}>Interna</UiText>
                               ) : (
-                                <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-orange-500/10 text-orange-400 border border-orange-550/10">Externa</span>
+                                <UiText {...{"size":"1","weight":"bold","color":"orange","className":"px-2 py-0.5"}}>Externa</UiText>
                               )}
-                            </td>
-                            <td className="px-6 py-3.5 font-semibold">{fromName}</td>
-                            <td className="px-6 py-3.5 font-semibold">{toName}</td>
-                            <td className="px-6 py-3.5 font-bold">{tr.items?.length ?? 0} ítems</td>
-                            <td className="px-6 py-3.5 font-mono">${(tr.transferCost ?? 0).toFixed(2)}</td>
-                            <td className="px-6 py-3.5 text-text-secondary font-medium">{tr.createdBy}</td>
-                            <td className="px-6 py-3.5 text-center">
-                              <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-green-500/10 text-green-400 flex items-center justify-center gap-1 w-24 mx-auto border border-green-500/10">
+                            </UiTableCell>
+                            <UiTableCell {...{"className":"px-6 py-3.5"}}>{fromName}</UiTableCell>
+                            <UiTableCell {...{"className":"px-6 py-3.5"}}>{toName}</UiTableCell>
+                            <UiTableCell {...{"className":"px-6 py-3.5"}}>{tr.items?.length ?? 0} ítems</UiTableCell>
+                            <UiTableCell {...{"style":{"fontFamily":"var(--code-font-family)"},"className":"px-6 py-3.5"}}>${(tr.transferCost ?? 0).toFixed(2)}</UiTableCell>
+                            <UiTableCell {...{"style":{"color":"var(--gray-11)"},"className":"px-6 py-3.5"}}>{tr.createdBy}</UiTableCell>
+                            <UiTableCell {...{"className":"px-6 py-3.5 text-center"}}>
+                              <UiText {...{"size":"1","weight":"bold","color":"green","className":"px-2 py-0.5 flex items-center justify-center gap-1 w-24 mx-auto"}}>
                                 <CheckCircle size={10} /> Completado
-                              </span>
-                            </td>
-                          </tr>
+                              </UiText>
+                            </UiTableCell>
+                          </UiTableRow>
                         );
                       })
                     )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
+                  </UiTableBody>
+                </UiTable>
+              </UiBox>
+            </UiBox>
+          </UiBox>
         )}
 
         {/* --- TAB: AJUSTES --- */}
         {activeTab === 'ajustes' && (
-          <div className="w-full h-full flex flex-col space-y-6 animate-in fade-in duration-300">
-            <div className="flex justify-end items-center mb-6">
-              <button 
+          <UiBox {...{"className":"w-full h-full flex flex-col space-y-6 animate-in fade-in duration-300"}}>
+            <UiBox {...{"className":"flex justify-end items-center mb-6"}}>
+              <UiButton
                 onClick={() => setIsAdjustmentOpen(true)}
-                className={`w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-card text-xs font-bold transition-all bg-red-600 hover:bg-red-550 text-white`}
+                {...mergeThemeProps({"size":"2","variant":"solid","color":"red","className":"w-full sm:w-auto flex items-center justify-center gap-1.5"})}
               >
                 <RefreshCw size={15} /> Nuevo Ajuste
-              </button>
-            </div>
+              </UiButton>
+            </UiBox>
 
-            <div className={`rounded-card border overflow-hidden transition-all ${
-              'border-border-default/80 bg-white'
-            }`}>
-              <div className="overflow-x-auto custom-scrollbar">
-                <table className="w-full text-left text-xs whitespace-nowrap">
-                  <thead className={`text-xs uppercase font-bold tracking-wider ${
-                    'bg-surface-bg text-text-primary border-b border-border-default'
-                  }`}>
-                    <tr>
-                      <th className="px-6 py-3.5">Fecha</th>
-                      <th className="px-6 py-3.5">Tipo Ajuste</th>
-                      <th className="px-6 py-3.5">Sucursal</th>
-                      <th className="px-6 py-3.5">Justificación / Motivo</th>
-                      <th className="px-6 py-3.5">Cant. Ítems</th>
-                      <th className="px-6 py-3.5">Autorizado Por</th>
-                      <th className="px-6 py-3.5 text-center">Estado</th>
-                    </tr>
-                  </thead>
-                  <tbody className={`divide-y ${'divide-slate-100'}`}>
+            <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"overflow-hidden"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)"}})}>
+              <UiBox {...{"className":"overflow-x-auto custom-scrollbar"}}>
+                <UiTable {...{"className":"w-full text-left whitespace-nowrap"}}>
+                  <UiTableHeader {...mergeThemeProps({}, {}, {"style":{"backgroundColor":"var(--gray-2)","color":"var(--gray-12)"}})}>
+                    <UiTableRow>
+                      <UiTableHead {...{"className":"px-6 py-3.5"}}>Fecha</UiTableHead>
+                      <UiTableHead {...{"className":"px-6 py-3.5"}}>Tipo Ajuste</UiTableHead>
+                      <UiTableHead {...{"className":"px-6 py-3.5"}}>Sucursal</UiTableHead>
+                      <UiTableHead {...{"className":"px-6 py-3.5"}}>Justificación / Motivo</UiTableHead>
+                      <UiTableHead {...{"className":"px-6 py-3.5"}}>Cant. Ítems</UiTableHead>
+                      <UiTableHead {...{"className":"px-6 py-3.5"}}>Autorizado Por</UiTableHead>
+                      <UiTableHead {...{"className":"px-6 py-3.5 text-center"}}>Estado</UiTableHead>
+                    </UiTableRow>
+                  </UiTableHeader>
+                  <UiTableBody {...mergeThemeProps({}, {}, {})}>
                     {adjustments.length === 0 ? (
-                      <tr>
-                        <td colSpan={7} className="px-6 py-8 text-center text-text-secondary">No se han registrado ajustes.</td>
-                      </tr>
+                      <UiTableRow>
+                        <UiTableCell colSpan={7} {...{"style":{"color":"var(--gray-11)"},"className":"px-6 py-8 text-center"}}>No se han registrado ajustes.</UiTableCell>
+                      </UiTableRow>
                     ) : (
                       adjustments.map(ad => {
                         const branchName = BRANCHES.find(b => b.id === ad.branchId)?.name || 'Desconocida';
                         const isZero = ad.type === 'ZERO_INVENTORY';
                         return (
-                          <tr key={ad.id} className={`transition-colors ${'hover:bg-surface-bg/40'}`}>
-                            <td className="px-6 py-3.5 text-text-secondary font-medium">{new Date(ad.createdAt).toLocaleString('es-ES')}</td>
-                            <td className="px-6 py-3.5">
+                          <UiTableRow key={ad.id} {...mergeThemeProps({}, {}, {})}>
+                            <UiTableCell {...{"style":{"color":"var(--gray-11)"},"className":"px-6 py-3.5"}}>{new Date(ad.createdAt).toLocaleString('es-ES')}</UiTableCell>
+                            <UiTableCell {...{"className":"px-6 py-3.5"}}>
                               {isZero ? (
-                                <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-red-600/20 text-red-500 flex items-center gap-1 border border-red-500/20">
+                                <UiText {...{"size":"1","weight":"bold","color":"red","className":"px-2 py-0.5 flex items-center gap-1"}}>
                                   <ShieldAlert size={10} /> Cero Inventario
-                                </span>
+                                </UiText>
                               ) : (
-                                <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-primary/10 text-primary border border-primary/20">Manual</span>
+                                <UiText {...{"size":"1","weight":"bold","color":"blue","className":"px-2 py-0.5"}}>Manual</UiText>
                               )}
-                            </td>
-                            <td className="px-6 py-3.5 font-semibold">{branchName}</td>
-                            <td className="px-6 py-3.5 max-w-xs truncate" title={ad.reason}>{ad.reason}</td>
-                            <td className="px-6 py-3.5 font-bold">{ad.items?.length ?? 0} items</td>
-                            <td className="px-6 py-3.5 text-text-secondary font-medium">{ad.confirmedBy}</td>
-                            <td className="px-6 py-3.5 text-center">
-                              <span className="px-2 py-0.5 rounded-card text-xs font-bold bg-green-500/10 text-green-400 flex items-center justify-center gap-1 w-24 mx-auto border border-green-500/10">
+                            </UiTableCell>
+                            <UiTableCell {...{"className":"px-6 py-3.5"}}>{branchName}</UiTableCell>
+                            <UiTableCell {...{"className":"px-6 py-3.5 max-w-xs truncate"}} title={ad.reason}>{ad.reason}</UiTableCell>
+                            <UiTableCell {...{"className":"px-6 py-3.5"}}>{ad.items?.length ?? 0} items</UiTableCell>
+                            <UiTableCell {...{"style":{"color":"var(--gray-11)"},"className":"px-6 py-3.5"}}>{ad.confirmedBy}</UiTableCell>
+                            <UiTableCell {...{"className":"px-6 py-3.5 text-center"}}>
+                              <UiText {...{"size":"1","weight":"bold","color":"green","className":"px-2 py-0.5 flex items-center justify-center gap-1 w-24 mx-auto"}}>
                                 <CheckCircle size={10} /> Aplicado
-                              </span>
-                            </td>
-                          </tr>
+                              </UiText>
+                            </UiTableCell>
+                          </UiTableRow>
                         );
                       })
                     )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
+                  </UiTableBody>
+                </UiTable>
+              </UiBox>
+            </UiBox>
+          </UiBox>
         )}
-      </div>
+      </UiBox>
 
       {/* --- MODAL DIALOGS --- */}
       {showProductTypeSelector && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 animate-in fade-in duration-300">
-          <div className={`w-full max-w-md p-6 rounded-card border transition-all ${
-            'bg-white border-border-default text-text-heading'
-          }`}>
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="text-base font-bold flex items-center gap-2">
-                <Package className="text-primary" size={18} />
+        <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-300"}}>
+          <UiCard {...mergeThemeProps({"className":"w-full max-w-md p-6"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"}})}>
+            <UiBox {...{"className":"flex items-center justify-between mb-5"}}>
+              <UiHeading as="h3" {...{"size":"3","weight":"bold","className":"flex items-center gap-2"}}>
+                <Package {...{"style":{"color":"var(--blue-12)"}}} size={18} />
                 Seleccionar Tipo de Producto
-              </h3>
-              <button 
+              </UiHeading>
+              <UiButton iconOnly
                 onClick={() => setShowProductTypeSelector(false)}
-                className={`p-1.5 rounded-md transition-all ${
-                  'hover:bg-surface-muted text-text-secondary hover:text-text-heading'
-                }`}
+                {...mergeThemeProps({}, {}, {"color":"gray"})}
               >
                 <X size={16} />
-              </button>
-            </div>
+              </UiButton>
+            </UiBox>
             
-            <p className={`text-xs mb-4 ${'text-text-secondary'}`}>
+            <UiText as="p" {...mergeThemeProps({"size":"1","className":"mb-4"}, {}, {"color":"gray"})}>
               ¿Qué tipo de producto deseas registrar en el catálogo?
-            </p>
+            </UiText>
             
-            <div className="space-y-2.5">
-              <button
+            <UiBox {...{"className":"space-y-2.5"}}>
+              <UiButton
                 onClick={() => {
                   setInlineFormMode('create_product');
                   setEditingProduct({ type: 'STANDARD' });
                   setShowProductTypeSelector(false);
                   scrollToForm();
                 }}
-                className={`w-full p-4 rounded-card border text-left transition-all flex items-start gap-3.5 group ${
-                  'border-border-default bg-surface-bg hover:bg-primary/5 hover:border-primary/30'
-                }`}
+                {...mergeThemeProps({"variant":"outline","className":"w-full text-left flex items-start gap-3.5 group"}, {}, {"variant":"soft","color":"gray"})}
               >
-                <div className={`p-2.5 rounded-card bg-primary/10 text-primary group-hover:scale-110 transition-transform`}>
+                <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--blue-3)","color":"var(--blue-12)"},"className":"p-2.5 group-hover:scale-110 transition-transform"})}>
                   <Package size={16} />
-                </div>
-                <div>
-                  <span className="block text-xs font-bold">Producto Estándar</span>
-                  <span className={`block text-xs mt-0.5 ${'text-text-secondary'}`}>
+                </UiBox>
+                <UiBox>
+                  <UiText {...{"size":"1","weight":"bold","className":"block"}}>Producto Estándar</UiText>
+                  <UiText {...mergeThemeProps({"size":"1","className":"block mt-0.5"}, {}, {"color":"gray"})}>
                     Productos individuales sin variantes ni agrupaciones.
-                  </span>
-                </div>
-              </button>
+                  </UiText>
+                </UiBox>
+              </UiButton>
 
-              <button
+              <UiButton
                 onClick={() => {
                   setInlineFormMode('create_product');
                   setEditingProduct({ type: 'SUBPRODUCT' });
                   setShowProductTypeSelector(false);
                   scrollToForm();
                 }}
-                className={`w-full p-4 rounded-card border text-left transition-all flex items-start gap-3.5 group ${
-                  'border-border-default bg-surface-bg hover:bg-primary/5 hover:border-primary/30'
-                }`}
+                {...mergeThemeProps({"variant":"outline","className":"w-full text-left flex items-start gap-3.5 group"}, {}, {"variant":"soft","color":"gray"})}
               >
-                <div className={`p-2.5 rounded-card bg-primary/10 text-primary group-hover:scale-110 transition-transform`}>
+                <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--blue-3)","color":"var(--blue-12)"},"className":"p-2.5 group-hover:scale-110 transition-transform"})}>
                   <Layers size={16} />
-                </div>
-                <div>
-                  <span className="block text-xs font-bold">Subproducto / Variante</span>
-                  <span className={`block text-xs mt-0.5 ${'text-text-secondary'}`}>
+                </UiBox>
+                <UiBox>
+                  <UiText {...{"size":"1","weight":"bold","className":"block"}}>Subproducto / Variante</UiText>
+                  <UiText {...mergeThemeProps({"size":"1","className":"block mt-0.5"}, {}, {"color":"gray"})}>
                     Mismo artículo con variaciones (talla, color o dimensiones).
-                  </span>
-                </div>
-              </button>
+                  </UiText>
+                </UiBox>
+              </UiButton>
 
-              <button
+              <UiButton
                 onClick={() => {
                   setInlineFormMode('create_product');
                   setEditingProduct({ type: 'COMBO' });
                   setShowProductTypeSelector(false);
                   scrollToForm();
                 }}
-                className={`w-full p-4 rounded-card border text-left transition-all flex items-start gap-3.5 group ${
-                  'border-border-default bg-surface-bg hover:bg-purple-500/5 hover:border-purple-500/30'
-                }`}
+                {...mergeThemeProps({"variant":"outline","className":"w-full text-left flex items-start gap-3.5 group"}, {}, {"variant":"soft","color":"gray"})}
               >
-                <div className={`p-2.5 rounded-card bg-purple-500/10 text-purple-400 group-hover:scale-110 transition-transform`}>
+                <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--purple-3)","color":"var(--purple-11)"},"className":"p-2.5 group-hover:scale-110 transition-transform"})}>
                   <Box size={16} />
-                </div>
-                <div>
-                  <span className="block text-xs font-bold">Combo / Kit</span>
-                  <span className={`block text-xs mt-0.5 ${'text-text-secondary'}`}>
+                </UiBox>
+                <UiBox>
+                  <UiText {...{"size":"1","weight":"bold","className":"block"}}>Combo / Kit</UiText>
+                  <UiText {...mergeThemeProps({"size":"1","className":"block mt-0.5"}, {}, {"color":"gray"})}>
                     Paquete que agrupa múltiples productos estándar o servicios.
-                  </span>
-                </div>
-              </button>
-            </div>
-          </div>
-        </div>
+                  </UiText>
+                </UiBox>
+              </UiButton>
+            </UiBox>
+          </UiCard>
+        </UiBox>
       )}
 
       {isCatBrandOpen && (
@@ -985,6 +968,6 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
           }}
         />
       )}
-    </div>
+    </UiBox>
   );
 }

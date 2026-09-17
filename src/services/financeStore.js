@@ -20,12 +20,6 @@ export async function migrateLegacyFinance(db, tenantId, api = firebase) {
   if ((await api.getDoc(marker)).data()?.complete) return;
   const config = (await api.getDoc(api.doc(db, 'artifacts', tenantId, 'public', 'data', 'finances_settings', 'config'))).data();
   if (String(config?.ruc || '').trim() !== LEGACY_ISSUER_RUC) return;
-  const claim = api.doc(db, 'finance_migrations', LEGACY_ISSUER_RUC);
-  await api.runTransaction(db, async tx => {
-    const owner = (await tx.get(claim)).data();
-    if (owner && owner.tenantId !== tenantId) throw new Error('El histórico financiero ya está asignado a otra empresa.');
-    if (!owner) tx.set(claim, { tenantId, ruc: LEGACY_ISSUER_RUC, startedAt: api.serverTimestamp() });
-  });
   const counts = {};
   for (const name of FINANCE_COLLECTIONS) {
     const rows = await api.getDocs(api.collection(db, name));
@@ -46,11 +40,15 @@ export async function migrateLegacyFinance(db, tenantId, api = firebase) {
   await api.setDoc(marker, { complete: true, ruc: LEGACY_ISSUER_RUC, counts, completedAt: api.serverTimestamp() });
 }
 
-function ready(db = defaultDb) {
-  const tenant = getAppId();
+export function ensureFinanceMigration(db = defaultDb, tenant = getAppId()) {
   if (!tenant) return Promise.reject(new Error('No hay una empresa seleccionada.'));
   if (!pending.has(tenant)) pending.set(tenant, migrateLegacyFinance(db, tenant).catch(error => { pending.delete(tenant); throw error; }));
   return pending.get(tenant);
+}
+
+function ready(db = defaultDb) {
+  const tenant = getAppId();
+  return ensureFinanceMigration(db, tenant);
 }
 export async function getDoc(...args) { await ready(); return firebase.getDoc(...args); }
 export async function getDocs(...args) { await ready(); return firebase.getDocs(...args); }

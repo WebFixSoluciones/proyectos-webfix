@@ -1,10 +1,13 @@
+import { mergeThemeProps } from '../ui/themeProps';
+import { UiBox, UiHeading, UiText, UiLabel, UiCard } from '../ui/layout';
+import { UiButton, UiInput, UiSelect, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell, UiTextarea } from '../ui/controls';
 import { useState, useEffect, useRef, Fragment } from 'react';
 import { 
   X, Plus, Search, Upload, Package, FileText,
   ShoppingBag, ChevronRight, ChevronLeft,
   CheckCircle2, UserPlus
 } from 'lucide-react';
-import { doc, setDoc, getDoc, getDocs, collection } from 'firebase/firestore';
+import { doc, setDoc, getDoc, getDocs, collection } from '../../services/financeStore.js';
 import { registerTransactionInventory } from '../../services/inventoryLedger';
 import { productRepository } from '../../modules/inventory/repositories/ProductRepository';
 import { normalizeProduct } from '../../services/productModel';
@@ -286,8 +289,8 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
   };
 
   // Helpers
-  const inputClass = "w-full text-sm px-3 py-2 rounded-md border outline-none bg-white border-border-default text-black focus:border-[var(--primary-color)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--primary-color)_15%,transparent)] transition-all";
-  const labelClass = "block text-xs font-semibold mb-1.5 text-black";
+  
+  
   // eslint-disable-next-line no-unused-vars
   const btnBase = "flex items-center gap-2 px-4 py-2.5 rounded-md text-sm font-medium transition-all";
 
@@ -300,367 +303,367 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
   ).slice(0, 8);
 
   return (
-    <div className="fixed inset-0 z-[150] flex items-center justify-center p-2 sm:p-4 bg-black/50" onClick={onClose}>
-      <div className="w-full max-w-2xl max-h-[95vh] bg-white rounded-md border border-border-default flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
+    <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[150] flex items-center justify-center p-2 sm:p-4"}} onClick={onClose}>
+      <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"w-full max-w-2xl max-h-[95vh] flex flex-col overflow-hidden"}} onClick={e => e.stopPropagation()}>
         
         {/* Header + Stepper */}
-        <div className="shrink-0 px-5 py-3 border-b border-border-default space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-1.5 rounded-md bg-[color-mix(in_srgb,var(--primary-color)_10%,transparent)] text-[var(--primary-color)]">
+        <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"shrink-0 px-5 py-3 space-y-3"}}>
+          <UiBox {...{"className":"flex items-center justify-between"}}>
+            <UiBox {...{"className":"flex items-center gap-3"}}>
+              <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--gray-2)"},"className":"p-1.5"}}>
                 <ShoppingBag size={16} />
-              </div>
-              <h2 className="text-md font-semibold text-black">
+              </UiBox>
+              <UiHeading as="h2" {...{"color":"gray","weight":"bold","highContrast":true}}>
                 {tx?.id ? 'Editar Compra' : 'Nueva Compra'}
-              </h2>
-            </div>
-            <button onClick={onClose} className="btn-icon text-text-secondary"><X size={16} /></button>
-          </div>
+              </UiHeading>
+            </UiBox>
+            <UiButton iconOnly onClick={onClose} {...{"variant":"surface","color":"gray"}}><X size={16} /></UiButton>
+          </UiBox>
           {/* Stepper dots */}
-          <div className="flex items-center gap-1.5">
+          <UiBox {...{"className":"flex items-center gap-1.5"}}>
             {[1, 2, 3].filter(s => s <= maxStep).map(s => (
               <Fragment key={s}>
-                <div className={`flex items-center gap-1.5 ${step >= s ? 'text-[var(--primary-color)]' : 'text-text-secondary'}`}>
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${step === s ? 'bg-[var(--primary-color)] text-white' : step > s ? 'bg-[var(--primary-color)] text-white' : 'bg-surface-card text-text-primary'}`}>
+                <UiBox {...mergeThemeProps({"className":"flex items-center gap-1.5"}, {}, (step >= s ? {} : {"style":{"color":"var(--gray-11)"}}))}>
+                  <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)"},"className":"w-6 h-6 flex items-center justify-center"}, {}, (step === s ? {"style":{"backgroundColor":"var(--gray-2)","color":"var(--color-background)"}} : (step > s ? {"style":{"backgroundColor":"var(--gray-2)","color":"var(--color-background)"}} : {"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"}})))}>
                     {step > s ? <CheckCircle2 size={12} /> : s}
-                  </div>
-                  <span className="text-xs font-medium hidden sm:inline">
+                  </UiBox>
+                  <UiText {...{"size":"1","weight":"medium","className":"hidden sm:inline"}}>
                     {s === 1 ? 'Datos' : s === 2 ? 'Productos' : 'Confirmar'}
-                  </span>
-                </div>
-                {s < maxStep && <div className={`flex-1 h-0.5 rounded ${step > s ? 'bg-[var(--primary-color)]' : 'bg-surface-card'}`} />}
+                  </UiText>
+                </UiBox>
+                {s < maxStep && <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)"},"className":"flex-1 h-0.5"}, {}, (step > s ? {"style":{"backgroundColor":"var(--gray-2)"}} : {"style":{"backgroundColor":"var(--color-panel-solid)"}}))} />}
               </Fragment>
             ))}
-          </div>
-        </div>
+          </UiBox>
+        </UiBox>
 
         {/* Body - scrollable */}
-        <div className="flex-1 overflow-y-auto p-5 space-y-4">
+        <UiBox {...{"className":"flex-1 overflow-y-auto p-5 space-y-4"}}>
           
           {/* ===== STEP 1: DATOS GENERALES ===== */}
           {step === 1 && (
-            <div className="space-y-4">
+            <UiBox {...{"className":"space-y-4"}}>
               {/* Purchase type */}
-              <div>
-                <label className={labelClass}>Tipo de compra</label>
-                <div className="flex gap-2">
-                  <button type="button" onClick={() => setForm(prev => ({ ...prev, purchaseType: 'con_inventario' }))}
-                    className={`flex-1 p-3 rounded-md border text-left transition-all ${form.purchaseType === 'con_inventario' ? 'border-[var(--primary-color)] bg-[color-mix(in_srgb,var(--primary-color)_6%,transparent)]' : 'border-border-default hover:bg-surface-bg'}`}>
-                    <Package size={16} className="text-[var(--primary-color)] mb-1" />
-                    <div className="text-sm font-semibold text-black">Con Inventario</div>
-                    <div className="text-xs text-text-primary">Controla stock y costos</div>
-                  </button>
-                  <button type="button" onClick={() => setForm(prev => ({ ...prev, purchaseType: 'sin_inventario' }))}
-                    className={`flex-1 p-3 rounded-md border text-left transition-all ${form.purchaseType === 'sin_inventario' ? 'border-[var(--primary-color)] bg-[color-mix(in_srgb,var(--primary-color)_6%,transparent)]' : 'border-border-default hover:bg-surface-bg'}`}>
-                    <FileText size={16} className="text-text-primary mb-1" />
-                    <div className="text-sm font-semibold text-black">Sin Inventario</div>
-                    <div className="text-xs text-text-primary">Solo registro contable</div>
-                  </button>
-                </div>
-              </div>
+              <UiBox>
+                <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5"}}>Tipo de compra</UiLabel>
+                <UiBox {...{"className":"flex gap-2"}}>
+                  <UiButton type="button" onClick={() => setForm(prev => ({ ...prev, purchaseType: 'con_inventario' }))}
+                    {...mergeThemeProps({"variant":"outline","className":"flex-1 text-left"}, {}, (form.purchaseType === 'con_inventario' ? {"variant":"solid","color":"gray"} : {}))}>
+                    <Package size={16} {...{"className":"mb-1"}} />
+                    <UiBox {...{"style":{"color":"var(--gray-12)"}}}>Con Inventario</UiBox>
+                    <UiBox {...{"style":{"color":"var(--gray-12)"}}}>Controla stock y costos</UiBox>
+                  </UiButton>
+                  <UiButton type="button" onClick={() => setForm(prev => ({ ...prev, purchaseType: 'sin_inventario' }))}
+                    {...mergeThemeProps({"variant":"outline","className":"flex-1 text-left"}, {}, (form.purchaseType === 'sin_inventario' ? {"variant":"solid","color":"gray"} : {}))}>
+                    <FileText size={16} {...{"style":{"color":"var(--gray-12)"},"className":"mb-1"}} />
+                    <UiBox {...{"style":{"color":"var(--gray-12)"}}}>Sin Inventario</UiBox>
+                    <UiBox {...{"style":{"color":"var(--gray-12)"}}}>Solo registro contable</UiBox>
+                  </UiButton>
+                </UiBox>
+              </UiBox>
 
               {/* Document type */}
-              <div>
-                <label className={labelClass}>Tipo de documento</label>
-                <div className="flex gap-2">
+              <UiBox>
+                <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5"}}>Tipo de documento</UiLabel>
+                <UiBox {...{"className":"flex gap-2"}}>
                   {[
                     { id: 'factura', label: 'Factura SRI' },
                     { id: 'nota_venta', label: 'Recibo / Nota Venta' },
                     { id: 'liquidacion', label: 'Liq. Compras' }
                   ].map(dt => (
-                    <button key={dt.id} type="button" onClick={() => setForm(prev => ({ ...prev, documentType: dt.id }))}
-                      className={`flex-1 py-2 rounded-md border text-xs font-medium transition-all ${form.documentType === dt.id ? 'border-[var(--primary-color)] bg-[color-mix(in_srgb,var(--primary-color)_8%,transparent)] text-[var(--primary-color)]' : 'border-border-default text-text-primary hover:bg-surface-bg'}`}>
+                    <UiButton key={dt.id} type="button" onClick={() => setForm(prev => ({ ...prev, documentType: dt.id }))}
+                      {...mergeThemeProps({"variant":"outline","size":"2","className":"flex-1"}, {}, (form.documentType === dt.id ? {"variant":"solid","color":"gray"} : {"color":"gray"}))}>
                       {dt.label}
-                    </button>
+                    </UiButton>
                   ))}
-                </div>
-              </div>
+                </UiBox>
+              </UiBox>
 
               {/* XML Import */}
-              <div className="p-3 rounded-md bg-surface-bg border border-dashed border-border-default">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <div className="p-2 rounded-md bg-[color-mix(in_srgb,var(--primary-color)_10%,transparent)] text-[var(--primary-color)] shrink-0">
+              <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--gray-2)","border":"1px solid var(--gray-a6)"},"className":"p-3"}}>
+                <UiLabel {...{"className":"flex items-center gap-3 cursor-pointer"}}>
+                  <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--gray-2)"},"className":"p-2 shrink-0"}}>
                     <Upload size={16} />
-                  </div>
-                  <div className="flex-1">
-                    <div className="text-sm font-semibold text-black">Importar XML del SRI</div>
-                    <div className="text-xs text-text-primary">Carga la factura electronica y completa los datos automaticamente</div>
-                  </div>
-                  <input type="file" accept=".xml" onChange={handleXmlUpload} className="hidden" />
-                </label>
-              </div>
+                  </UiBox>
+                  <UiBox {...{"className":"flex-1"}}>
+                    <UiBox {...{"style":{"color":"var(--gray-12)"}}}>Importar XML del SRI</UiBox>
+                    <UiBox {...{"style":{"color":"var(--gray-12)"}}}>Carga la factura electronica y completa los datos automaticamente</UiBox>
+                  </UiBox>
+                  <UiInput type="file" accept=".xml" onChange={handleXmlUpload} {...{"className":"hidden"}} />
+                </UiLabel>
+              </UiBox>
 
               {/* Supplier */}
-              <div>
-                <label className={labelClass}>Proveedor</label>
-                <div className="relative">
-                  <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-primary" />
-                  <input value={form.supplierName || supplierSearch} onChange={e => { setSupplierSearch(e.target.value); setForm(prev => ({ ...prev, supplierName: e.target.value })); setShowSupplierResults(true); }} 
+              <UiBox>
+                <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5"}}>Proveedor</UiLabel>
+                <UiBox {...{"className":"relative"}}>
+                  <Search size={12} {...{"style":{"color":"var(--gray-12)"},"className":"absolute left-2.5 top-1/2 -translate-y-1/2"}} />
+                  <UiInput value={form.supplierName || supplierSearch} onChange={e => { setSupplierSearch(e.target.value); setForm(prev => ({ ...prev, supplierName: e.target.value })); setShowSupplierResults(true); }}
                     onFocus={() => setShowSupplierResults(true)} onBlur={() => setTimeout(() => setShowSupplierResults(false), 200)}
-                    placeholder="Buscar proveedor..." className={`${inputClass} pl-8`} />
+                    placeholder="Buscar proveedor..." {...mergeThemeProps({}, {}, {"size":"2","color":"gray","className":"w-full"})} />
                   {showSupplierResults && filteredSuppliers.length > 0 && (
-                    <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-border-default rounded-md max-h-44 overflow-y-auto">
+                    <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)","borderRadius":"var(--radius-3)"},"className":"absolute z-20 top-full left-0 right-0 mt-1 max-h-44 overflow-y-auto"}}>
                       {filteredSuppliers.map(t => (
-                        <button key={t.id} type="button" onMouseDown={() => { setForm(prev => ({ ...prev, supplierId: t.id, supplierName: t.name, supplierRuc: t.ruc || '' })); setShowSupplierResults(false); setSupplierSearch(''); }}
-                          className="w-full text-left px-3 py-2 text-sm hover:bg-surface-bg text-black">
-                          <div className="font-medium">{t.name}</div>
-                          {t.ruc && <div className="text-xs text-text-primary">{t.ruc}</div>}
-                        </button>
+                        <UiButton key={t.id} type="button" onMouseDown={() => { setForm(prev => ({ ...prev, supplierId: t.id, supplierName: t.name, supplierRuc: t.ruc || '' })); setShowSupplierResults(false); setSupplierSearch(''); }}
+                          {...{"size":"2","color":"gray","className":"w-full text-left"}}>
+                          <UiBox {...{}}>{t.name}</UiBox>
+                          {t.ruc && <UiBox {...{"style":{"color":"var(--gray-12)"}}}>{t.ruc}</UiBox>}
+                        </UiButton>
                       ))}
-                    </div>
+                    </UiBox>
                   )}
-                </div>
-                <button type="button" onClick={() => setQuickAddSupplier(!quickAddSupplier)} className="flex items-center gap-1 text-xs text-[var(--primary-color)] mt-1.5 font-medium">
+                </UiBox>
+                <UiButton type="button" onClick={() => setQuickAddSupplier(!quickAddSupplier)} {...{"size":"2","className":"flex items-center gap-1 mt-1.5"}}>
                   <UserPlus size={12} /> {quickAddSupplier ? 'Cancelar' : 'Crear nuevo proveedor'}
-                </button>
+                </UiButton>
                 {quickAddSupplier && (
-                  <div className="mt-2 p-3 rounded-md border border-border-default space-y-2">
-                    <div className="grid grid-cols-2 gap-2">
-                      <input value={newSupplier.ruc} onChange={e => setNewSupplier(prev => ({ ...prev, ruc: e.target.value }))} placeholder="RUC *" className={inputClass} />
-                      <input value={newSupplier.name} onChange={e => setNewSupplier(prev => ({ ...prev, name: e.target.value }))} placeholder="Nombre *" className={inputClass} />
-                      <input value={newSupplier.email} onChange={e => setNewSupplier(prev => ({ ...prev, email: e.target.value }))} placeholder="Email" className={inputClass} />
-                      <input value={newSupplier.phone} onChange={e => setNewSupplier(prev => ({ ...prev, phone: e.target.value }))} placeholder="Telefono" className={inputClass} />
-                    </div>
-                    <button type="button" onClick={handleQuickAddSupplier} className="btn-primary text-xs">Crear Proveedor</button>
-                  </div>
+                  <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"mt-2 p-3 space-y-2"}}>
+                    <UiBox {...{"className":"grid grid-cols-2 gap-2"}}>
+                      <UiInput value={newSupplier.ruc} onChange={e => setNewSupplier(prev => ({ ...prev, ruc: e.target.value }))} placeholder="RUC *" {...{"size":"2","color":"gray","className":"w-full"}} />
+                      <UiInput value={newSupplier.name} onChange={e => setNewSupplier(prev => ({ ...prev, name: e.target.value }))} placeholder="Nombre *" {...{"size":"2","color":"gray","className":"w-full"}} />
+                      <UiInput value={newSupplier.email} onChange={e => setNewSupplier(prev => ({ ...prev, email: e.target.value }))} placeholder="Email" {...{"size":"2","color":"gray","className":"w-full"}} />
+                      <UiInput value={newSupplier.phone} onChange={e => setNewSupplier(prev => ({ ...prev, phone: e.target.value }))} placeholder="Telefono" {...{"size":"2","color":"gray","className":"w-full"}} />
+                    </UiBox>
+                    <UiButton type="button" onClick={handleQuickAddSupplier} {...{"variant":"solid","color":"blue","size":"2"}}>Crear Proveedor</UiButton>
+                  </UiBox>
                 )}
-              </div>
+              </UiBox>
 
               {/* Doc details */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div>
-                  <label className={labelClass}>Nro Documento</label>
-                  <input value={form.documentNumber} onChange={e => setForm(prev => ({ ...prev, documentNumber: e.target.value }))} className={inputClass} />
-                </div>
-                <div>
-                  <label className={labelClass}>Fecha</label>
-                  <input type="date" value={form.date} onChange={e => setForm(prev => ({ ...prev, date: e.target.value }))} className={inputClass} />
-                </div>
-                <div>
-                  <label className={labelClass}>Bodega</label>
-                  <select value={form.bodega} onChange={e => setForm(prev => ({ ...prev, bodega: e.target.value }))} className={inputClass}>
+              <UiBox {...{"className":"grid grid-cols-2 sm:grid-cols-4 gap-3"}}>
+                <UiBox>
+                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5"}}>Nro Documento</UiLabel>
+                  <UiInput value={form.documentNumber} onChange={e => setForm(prev => ({ ...prev, documentNumber: e.target.value }))} {...{"size":"2","color":"gray","className":"w-full"}} />
+                </UiBox>
+                <UiBox>
+                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5"}}>Fecha</UiLabel>
+                  <UiInput type="date" value={form.date} onChange={e => setForm(prev => ({ ...prev, date: e.target.value }))} {...{"size":"2","color":"gray","className":"w-full"}} />
+                </UiBox>
+                <UiBox>
+                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5"}}>Bodega</UiLabel>
+                  <UiSelect value={form.bodega} onChange={e => setForm(prev => ({ ...prev, bodega: e.target.value }))} {...{"size":"2","color":"gray","className":"w-full"}}>
                     {branches.map(b => <option key={b.id} value={b.name}>{b.name}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className={labelClass}>Clave SRI</label>
-                  <input value={form.claveAcceso} onChange={e => setForm(prev => ({ ...prev, claveAcceso: e.target.value }))} className={inputClass} placeholder="49 digitos" />
-                </div>
-              </div>
-            </div>
+                  </UiSelect>
+                </UiBox>
+                <UiBox>
+                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5"}}>Clave SRI</UiLabel>
+                  <UiInput value={form.claveAcceso} onChange={e => setForm(prev => ({ ...prev, claveAcceso: e.target.value }))} {...{"size":"2","color":"gray","className":"w-full"}} placeholder="49 digitos" />
+                </UiBox>
+              </UiBox>
+            </UiBox>
           )}
 
           {/* ===== STEP 2: PRODUCTOS (only con_inventario) ===== */}
           {step === 2 && form.purchaseType === 'con_inventario' && (
-            <div className="space-y-4">
+            <UiBox {...{"className":"space-y-4"}}>
               {/* Product search */}
-              <div className="relative">
-                <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-primary" />
-                <input value={productSearch} onChange={e => { setProductSearch(e.target.value); setShowProductResults(true); }}
+              <UiBox {...{"className":"relative"}}>
+                <Search size={12} {...{"style":{"color":"var(--gray-12)"},"className":"absolute left-2.5 top-1/2 -translate-y-1/2"}} />
+                <UiInput value={productSearch} onChange={e => { setProductSearch(e.target.value); setShowProductResults(true); }}
                   onFocus={() => setShowProductResults(true)} onBlur={() => setTimeout(() => setShowProductResults(false), 200)}
-                  placeholder="Buscar producto por nombre o SKU..." className={`${inputClass} pl-8`} />
+                  placeholder="Buscar producto por nombre o SKU..." {...mergeThemeProps({}, {}, {"size":"2","color":"gray","className":"w-full"})} />
                 {showProductResults && filteredProducts.length > 0 && (
-                  <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-border-default rounded-md max-h-52 overflow-y-auto">
+                  <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)","borderRadius":"var(--radius-3)"},"className":"absolute z-20 top-full left-0 right-0 mt-1 max-h-52 overflow-y-auto"}}>
                     {filteredProducts.map(p => (
-                      <button key={p.id} type="button" onMouseDown={() => handleAddProduct(p)}
-                        className="w-full text-left px-3 py-2 text-sm hover:bg-surface-bg text-black flex justify-between items-center">
-                        <div><span className="font-medium">{p.name}</span><span className="text-xs text-text-primary ml-2">{p.sku}</span></div>
-                        <span className="text-xs font-mono text-text-primary">${(p.cost || p.baseCost || 0).toFixed(2)}</span>
-                      </button>
+                      <UiButton key={p.id} type="button" onMouseDown={() => handleAddProduct(p)}
+                        {...{"size":"2","color":"gray","className":"w-full text-left flex justify-between items-center"}}>
+                        <UiBox><UiText {...{"weight":"medium"}}>{p.name}</UiText><UiText {...{"size":"1","color":"gray","highContrast":true,"className":"ml-2"}}>{p.sku}</UiText></UiBox>
+                        <UiText {...{"size":"1","weight":"regular","color":"gray","highContrast":true}}>${(p.cost || p.baseCost || 0).toFixed(2)}</UiText>
+                      </UiButton>
                     ))}
-                  </div>
+                  </UiBox>
                 )}
-              </div>
-              <button type="button" onClick={() => setShowCreateProduct(true)} className="flex items-center gap-1 text-xs text-[var(--primary-color)] font-medium">
+              </UiBox>
+              <UiButton type="button" onClick={() => setShowCreateProduct(true)} {...{"size":"2","className":"flex items-center gap-1"}}>
                 <Plus size={12} /> El producto no existe? Crear nuevo
-              </button>
+              </UiButton>
 
               {/* Create product modal */}
               {showCreateProduct && (
-                <div className="p-3 rounded-md border border-border-default bg-surface-bg space-y-2">
-                  <div className="grid grid-cols-2 gap-2">
-                    <input value={newProduct.name} onChange={e => setNewProduct(p => ({ ...p, name: e.target.value }))} placeholder="Nombre *" className={inputClass} />
-                    <input value={newProduct.sku} onChange={e => setNewProduct(p => ({ ...p, sku: e.target.value }))} placeholder="SKU" className={inputClass} />
-                    <input type="number" step="0.01" value={newProduct.cost || ''} onChange={e => setNewProduct(p => ({ ...p, cost: e.target.value }))} placeholder="Costo $" className={inputClass} />
-                    <input type="number" step="0.01" value={newProduct.price || ''} onChange={e => setNewProduct(p => ({ ...p, price: e.target.value }))} placeholder="PVP $" className={inputClass} />
-                    <input value={newProduct.category} onChange={e => setNewProduct(p => ({ ...p, category: e.target.value }))} placeholder="Categoria" className={inputClass} />
-                    <input value={newProduct.unit} onChange={e => setNewProduct(p => ({ ...p, unit: e.target.value }))} placeholder="Unidad" className={inputClass} />
-                  </div>
-                  <div className="flex gap-2">
-                    <button type="button" onClick={() => setShowCreateProduct(false)} className="btn-secondary text-xs flex-1">Cancelar</button>
-                    <button type="button" onClick={handleCreateProduct} className="btn-primary text-xs flex-1">Crear y Agregar</button>
-                  </div>
-                </div>
+                <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--gray-2)"},"className":"p-3 space-y-2"}}>
+                  <UiBox {...{"className":"grid grid-cols-2 gap-2"}}>
+                    <UiInput value={newProduct.name} onChange={e => setNewProduct(p => ({ ...p, name: e.target.value }))} placeholder="Nombre *" {...{"size":"2","color":"gray","className":"w-full"}} />
+                    <UiInput value={newProduct.sku} onChange={e => setNewProduct(p => ({ ...p, sku: e.target.value }))} placeholder="SKU" {...{"size":"2","color":"gray","className":"w-full"}} />
+                    <UiInput type="number" step="0.01" value={newProduct.cost || ''} onChange={e => setNewProduct(p => ({ ...p, cost: e.target.value }))} placeholder="Costo $" {...{"size":"2","color":"gray","className":"w-full"}} />
+                    <UiInput type="number" step="0.01" value={newProduct.price || ''} onChange={e => setNewProduct(p => ({ ...p, price: e.target.value }))} placeholder="PVP $" {...{"size":"2","color":"gray","className":"w-full"}} />
+                    <UiInput value={newProduct.category} onChange={e => setNewProduct(p => ({ ...p, category: e.target.value }))} placeholder="Categoria" {...{"size":"2","color":"gray","className":"w-full"}} />
+                    <UiInput value={newProduct.unit} onChange={e => setNewProduct(p => ({ ...p, unit: e.target.value }))} placeholder="Unidad" {...{"size":"2","color":"gray","className":"w-full"}} />
+                  </UiBox>
+                  <UiBox {...{"className":"flex gap-2"}}>
+                    <UiButton type="button" onClick={() => setShowCreateProduct(false)} {...{"variant":"surface","color":"blue","size":"2","className":"flex-1"}}>Cancelar</UiButton>
+                    <UiButton type="button" onClick={handleCreateProduct} {...{"variant":"solid","color":"blue","size":"2","className":"flex-1"}}>Crear y Agregar</UiButton>
+                  </UiBox>
+                </UiBox>
               )}
 
               {/* Items table */}
               {form.items.length > 0 && (
-                <div className="overflow-x-auto rounded-md border border-border-default">
-                  <table className="w-full text-left">
-                    <thead>
-                      <tr>
-                        <th className="text-xs font-semibold text-black px-3 py-2">Producto</th>
-                        <th className="text-xs font-semibold text-black px-1 py-2 w-14 text-center">Cant</th>
-                        <th className="text-xs font-semibold text-black px-1 py-2 w-20 text-right">Costo U.</th>
-                        <th className="text-xs font-semibold text-black px-1 py-2 w-16 text-right">Desc</th>
-                        <th className="text-xs font-semibold text-black px-1 py-2 w-20 text-right">Subtotal</th>
-                        <th className="text-xs font-semibold text-black px-1 py-2 w-8"></th>
-                      </tr>
-                    </thead>
-                    <tbody>
+                <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"overflow-x-auto"}}>
+                  <UiTable {...{"className":"w-full text-left"}}>
+                    <UiTableHeader>
+                      <UiTableRow>
+                        <UiTableHead {...{"style":{"color":"var(--gray-12)"},"className":"px-3 py-2"}}>Producto</UiTableHead>
+                        <UiTableHead {...{"style":{"color":"var(--gray-12)"},"className":"px-1 py-2 w-14 text-center"}}>Cant</UiTableHead>
+                        <UiTableHead {...{"style":{"color":"var(--gray-12)"},"className":"px-1 py-2 w-20 text-right"}}>Costo U.</UiTableHead>
+                        <UiTableHead {...{"style":{"color":"var(--gray-12)"},"className":"px-1 py-2 w-16 text-right"}}>Desc</UiTableHead>
+                        <UiTableHead {...{"style":{"color":"var(--gray-12)"},"className":"px-1 py-2 w-20 text-right"}}>Subtotal</UiTableHead>
+                        <UiTableHead {...{"style":{"color":"var(--gray-12)"},"className":"px-1 py-2 w-8"}}></UiTableHead>
+                      </UiTableRow>
+                    </UiTableHeader>
+                    <UiTableBody>
                       {form.items.map((item, idx) => (
-                        <tr key={idx} className="border-t border-border-default">
-                          <td className="px-3 py-1.5">
-                            <div className="text-sm font-medium text-black">{item.name}</div>
-                            {item.sku && <div className="text-xs text-text-primary">{item.sku}</div>}
+                        <UiTableRow key={idx} {...{}}>
+                          <UiTableCell {...{"className":"px-3 py-1.5"}}>
+                            <UiBox {...{"style":{"color":"var(--gray-12)"}}}>{item.name}</UiBox>
+                            {item.sku && <UiBox {...{"style":{"color":"var(--gray-12)"}}}>{item.sku}</UiBox>}
                             {costImpacts[item.productId] && !costImpacts[item.productId].isNew && (
-                              <div className={`text-xs mt-0.5 font-medium ${costImpacts[item.productId].delta > 0 ? 'text-text-secondary' : 'text-text-secondary'}`}>
+                              <UiBox {...mergeThemeProps({"className":"mt-0.5"}, {}, (costImpacts[item.productId].delta > 0 ? {"style":{"color":"var(--gray-11)"}} : {"style":{"color":"var(--gray-11)"}}))}>
                                 Costo actual: ${costImpacts[item.productId].currentCost.toFixed(2)} → Promedio: ${costImpacts[item.productId].newAvg.toFixed(2)} ({costImpacts[item.productId].delta > 0 ? '+' : ''}{costImpacts[item.productId].delta.toFixed(1)}%)
-                              </div>
+                              </UiBox>
                             )}
                             {costImpacts[item.productId]?.isNew && (
-                              <div className="text-xs mt-0.5 text-text-secondary font-medium">Nuevo producto - costo inicial: ${costImpacts[item.productId].newAvg.toFixed(2)}</div>
+                              <UiBox {...{"style":{"color":"var(--gray-11)"},"className":"mt-0.5"}}>Nuevo producto - costo inicial: ${costImpacts[item.productId].newAvg.toFixed(2)}</UiBox>
                             )}
-                          </td>
-                          <td className="px-1 py-1.5">
-                            <input type="number" min="1" value={item.quantity} onChange={e => handleItemChange(idx, 'quantity', e.target.value)}
-                              className="w-14 text-center text-sm px-1 py-1 rounded border border-border-default text-black" />
-                          </td>
-                          <td className="px-1 py-1.5">
-                            <input type="number" min="0" step="0.01" value={item.price} onChange={e => handleItemChange(idx, 'price', e.target.value)}
-                              className="w-18 text-right text-sm px-1 py-1 rounded border border-border-default text-black" />
-                          </td>
-                          <td className="px-1 py-1.5">
-                            <input type="number" min="0" step="0.01" value={item.discount} onChange={e => handleItemChange(idx, 'discount', e.target.value)}
-                              className="w-14 text-right text-sm px-1 py-1 rounded border border-border-default text-black" />
-                          </td>
-                          <td className="px-1 py-1.5 text-right font-mono text-sm font-bold text-black">${(item.subtotal || 0).toFixed(2)}</td>
-                          <td className="px-1 py-1.5 text-center">
-                            <button type="button" onClick={() => handleRemoveItem(idx)} className="btn-icon text-red-500"><X size={12} /></button>
-                          </td>
-                        </tr>
+                          </UiTableCell>
+                          <UiTableCell {...{"className":"px-1 py-1.5"}}>
+                            <UiInput type="number" min="1" value={item.quantity} onChange={e => handleItemChange(idx, 'quantity', e.target.value)}
+                              {...{"size":"2","color":"gray","className":"w-14 text-center"}} />
+                          </UiTableCell>
+                          <UiTableCell {...{"className":"px-1 py-1.5"}}>
+                            <UiInput type="number" min="0" step="0.01" value={item.price} onChange={e => handleItemChange(idx, 'price', e.target.value)}
+                              {...{"size":"2","color":"gray","className":"w-18 text-right"}} />
+                          </UiTableCell>
+                          <UiTableCell {...{"className":"px-1 py-1.5"}}>
+                            <UiInput type="number" min="0" step="0.01" value={item.discount} onChange={e => handleItemChange(idx, 'discount', e.target.value)}
+                              {...{"size":"2","color":"gray","className":"w-14 text-right"}} />
+                          </UiTableCell>
+                          <UiTableCell {...{"style":{"fontFamily":"var(--code-font-family)","color":"var(--gray-12)"},"className":"px-1 py-1.5 text-right"}}>${(item.subtotal || 0).toFixed(2)}</UiTableCell>
+                          <UiTableCell {...{"className":"px-1 py-1.5 text-center"}}>
+                            <UiButton iconOnly type="button" onClick={() => handleRemoveItem(idx)} {...{"variant":"surface","color":"red"}}><X size={12} /></UiButton>
+                          </UiTableCell>
+                        </UiTableRow>
                       ))}
-                    </tbody>
-                  </table>
-                </div>
+                    </UiTableBody>
+                  </UiTable>
+                </UiBox>
               )}
 
               {/* Summary */}
               {form.items.length > 0 && (
-                <div className="flex justify-end gap-4 text-xs pt-2 border-t border-border-default flex-wrap">
-                  <div>Base: <span className="font-bold text-black">${form.baseImponible.toFixed(2)}</span></div>
-                  {form.iva5 > 0 && <div>IVA 5%: <span className="font-bold text-black">${form.iva5.toFixed(2)}</span></div>}
-                  {form.iva12 > 0 && <div>IVA 12%: <span className="font-bold text-black">${form.iva12.toFixed(2)}</span></div>}
-                  {form.iva15 > 0 && <div>IVA 15%: <span className="font-bold text-black">${form.iva15.toFixed(2)}</span></div>}
-                  <div>Total: <span className="font-bold text-md text-black">${form.total.toFixed(2)}</span></div>
-                </div>
+                <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"flex justify-end gap-4 pt-2 flex-wrap"}}>
+                  <UiBox>Base: <UiText {...{"weight":"bold","color":"gray","highContrast":true}}>${form.baseImponible.toFixed(2)}</UiText></UiBox>
+                  {form.iva5 > 0 && <UiBox>IVA 5%: <UiText {...{"weight":"bold","color":"gray","highContrast":true}}>${form.iva5.toFixed(2)}</UiText></UiBox>}
+                  {form.iva12 > 0 && <UiBox>IVA 12%: <UiText {...{"weight":"bold","color":"gray","highContrast":true}}>${form.iva12.toFixed(2)}</UiText></UiBox>}
+                  {form.iva15 > 0 && <UiBox>IVA 15%: <UiText {...{"weight":"bold","color":"gray","highContrast":true}}>${form.iva15.toFixed(2)}</UiText></UiBox>}
+                  <UiBox>Total: <UiText {...{"weight":"bold","color":"gray","highContrast":true}}>${form.total.toFixed(2)}</UiText></UiBox>
+                </UiBox>
               )}
-            </div>
+            </UiBox>
           )}
 
           {/* ===== STEP 2/3: CONFIRMACION ===== */}
           {(step === maxStep) && (
-            <div className="space-y-4">
-              <div className="p-4 rounded-md border border-border-default bg-white space-y-2 text-sm">
-                <h3 className="font-semibold text-black text-base mb-2">Resumen de la compra</h3>
+            <UiBox {...{"className":"space-y-4"}}>
+              <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4 space-y-2"}}>
+                <UiHeading as="h3" {...{"weight":"bold","color":"gray","highContrast":true,"size":"3","className":"mb-2"}}>Resumen de la compra</UiHeading>
                 
-                <div className="grid grid-cols-2 gap-1">
-                  <div className="text-text-primary">Tipo:</div>
-                  <div className="font-medium text-black">{form.purchaseType === 'con_inventario' ? 'Con movimiento de inventario' : 'Sin movimiento de inventario'}</div>
-                  <div className="text-text-primary">Documento:</div>
-                  <div className="font-medium text-black">{form.documentType === 'factura' ? 'Factura SRI' : form.documentType === 'nota_venta' ? 'Recibo / Nota Venta' : 'Liq. Compras'}</div>
-                  {form.supplierName && <><div className="text-text-primary">Proveedor:</div><div className="font-medium text-black">{form.supplierName} {form.supplierRuc && `(${form.supplierRuc})`}</div></>}
-                  {form.documentNumber && <><div className="text-text-primary">Nro Doc:</div><div className="font-medium text-black">{form.documentNumber}</div></>}
-                  <div className="text-text-primary">Fecha:</div><div className="font-medium text-black">{form.date}</div>
-                  <div className="text-text-primary">Bodega:</div><div className="font-medium text-black">{form.bodega}</div>
-                </div>
+                <UiBox {...{"className":"grid grid-cols-2 gap-1"}}>
+                  <UiBox {...{"style":{"color":"var(--gray-12)"}}}>Tipo:</UiBox>
+                  <UiBox {...{"style":{"color":"var(--gray-12)"}}}>{form.purchaseType === 'con_inventario' ? 'Con movimiento de inventario' : 'Sin movimiento de inventario'}</UiBox>
+                  <UiBox {...{"style":{"color":"var(--gray-12)"}}}>Documento:</UiBox>
+                  <UiBox {...{"style":{"color":"var(--gray-12)"}}}>{form.documentType === 'factura' ? 'Factura SRI' : form.documentType === 'nota_venta' ? 'Recibo / Nota Venta' : 'Liq. Compras'}</UiBox>
+                  {form.supplierName && <><UiBox {...{"style":{"color":"var(--gray-12)"}}}>Proveedor:</UiBox><UiBox {...{"style":{"color":"var(--gray-12)"}}}>{form.supplierName} {form.supplierRuc && `(${form.supplierRuc})`}</UiBox></>}
+                  {form.documentNumber && <><UiBox {...{"style":{"color":"var(--gray-12)"}}}>Nro Doc:</UiBox><UiBox {...{"style":{"color":"var(--gray-12)"}}}>{form.documentNumber}</UiBox></>}
+                  <UiBox {...{"style":{"color":"var(--gray-12)"}}}>Fecha:</UiBox><UiBox {...{"style":{"color":"var(--gray-12)"}}}>{form.date}</UiBox>
+                  <UiBox {...{"style":{"color":"var(--gray-12)"}}}>Bodega:</UiBox><UiBox {...{"style":{"color":"var(--gray-12)"}}}>{form.bodega}</UiBox>
+                </UiBox>
 
                 {form.purchaseType === 'con_inventario' && form.items.length > 0 && (
                   <>
-                    <div className="border-t border-border-default pt-2 mt-2">
-                      <div className="font-semibold text-black text-xs mb-1">Productos ({form.items.length})</div>
+                    <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"pt-2 mt-2"}}>
+                      <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"mb-1"}}>Productos ({form.items.length})</UiBox>
                       {form.items.map((item, i) => (
-                        <div key={i} className="flex justify-between text-xs">
-                          <span>{item.quantity}x {item.name}</span>
-                          <span className="font-mono">${(item.subtotal || 0).toFixed(2)}</span>
-                        </div>
+                        <UiBox key={i} {...{"className":"flex justify-between"}}>
+                          <UiText>{item.quantity}x {item.name}</UiText>
+                          <UiText {...{"weight":"regular"}}>${(item.subtotal || 0).toFixed(2)}</UiText>
+                        </UiBox>
                       ))}
-                    </div>
-                    <div className="border-t border-border-default pt-2 space-y-0.5">
-                      <div className="flex justify-between"><span>Base imponible:</span><span className="font-mono font-bold">${form.baseImponible.toFixed(2)}</span></div>
-                      {form.iva5 > 0 && <div className="flex justify-between"><span>IVA 5%:</span><span className="font-mono font-bold text-text-secondary">${form.iva5.toFixed(2)}</span></div>}
-                      {form.iva12 > 0 && <div className="flex justify-between"><span>IVA 12%:</span><span className="font-mono font-bold text-text-secondary">${form.iva12.toFixed(2)}</span></div>}
-                      {form.iva15 > 0 && <div className="flex justify-between"><span>IVA 15%:</span><span className="font-mono font-bold">${form.iva15.toFixed(2)}</span></div>}
-                      <div className="flex justify-between text-md pt-1"><span className="font-semibold">TOTAL:</span><span className="font-bold">${form.total.toFixed(2)}</span></div>
-                    </div>
+                    </UiBox>
+                    <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"pt-2 space-y-0.5"}}>
+                      <UiBox {...{"className":"flex justify-between"}}><UiText>Base imponible:</UiText><UiText {...{"weight":"bold"}}>${form.baseImponible.toFixed(2)}</UiText></UiBox>
+                      {form.iva5 > 0 && <UiBox {...{"className":"flex justify-between"}}><UiText>IVA 5%:</UiText><UiText {...{"weight":"bold","color":"gray"}}>${form.iva5.toFixed(2)}</UiText></UiBox>}
+                      {form.iva12 > 0 && <UiBox {...{"className":"flex justify-between"}}><UiText>IVA 12%:</UiText><UiText {...{"weight":"bold","color":"gray"}}>${form.iva12.toFixed(2)}</UiText></UiBox>}
+                      {form.iva15 > 0 && <UiBox {...{"className":"flex justify-between"}}><UiText>IVA 15%:</UiText><UiText {...{"weight":"bold"}}>${form.iva15.toFixed(2)}</UiText></UiBox>}
+                      <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"flex justify-between pt-1"}}><UiText {...{"weight":"bold"}}>TOTAL:</UiText><UiText {...{"weight":"bold"}}>${form.total.toFixed(2)}</UiText></UiBox>
+                    </UiBox>
                   </>
                 )}
 
                 {form.purchaseType === 'sin_inventario' && (
-                  <div className="border-t border-border-default pt-2">
-                    <div className={labelClass}>Descripcion / Concepto del gasto</div>
-                    <textarea value={form.description} onChange={e => setForm(prev => ({ ...prev, description: e.target.value }))} rows={2}
-                      className={inputClass} placeholder="Ej: Pago de servicio de internet, compra de suministros..." />
-                    <div className="grid grid-cols-2 gap-3 mt-3">
-                      <div>
-                        <div className={labelClass}>Monto total $</div>
-                        <input type="number" step="0.01" value={form.total || ''} onChange={e => setForm(prev => ({ ...prev, total: Number(e.target.value) }))} className={inputClass} />
-                      </div>
-                      <div>
-                        <div className={labelClass}>Categoria</div>
-                        <select value={form.category} onChange={e => setForm(prev => ({ ...prev, category: e.target.value }))} className={inputClass}>
+                  <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"pt-2"}}>
+                    <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"block mb-1.5"}}>Descripcion / Concepto del gasto</UiBox>
+                    <UiTextarea value={form.description} onChange={e => setForm(prev => ({ ...prev, description: e.target.value }))} rows={2}
+                      {...{"size":"2","color":"gray","className":"w-full"}} placeholder="Ej: Pago de servicio de internet, compra de suministros..." />
+                    <UiBox {...{"className":"grid grid-cols-2 gap-3 mt-3"}}>
+                      <UiBox>
+                        <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"block mb-1.5"}}>Monto total $</UiBox>
+                        <UiInput type="number" step="0.01" value={form.total || ''} onChange={e => setForm(prev => ({ ...prev, total: Number(e.target.value) }))} {...{"size":"2","color":"gray","className":"w-full"}} />
+                      </UiBox>
+                      <UiBox>
+                        <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"block mb-1.5"}}>Categoria</UiBox>
+                        <UiSelect value={form.category} onChange={e => setForm(prev => ({ ...prev, category: e.target.value }))} {...{"size":"2","color":"gray","className":"w-full"}}>
                           <option value="compras">Compras</option><option value="gastos_administrativos">Gastos Admin</option>
                           <option value="servicios_basicos">Servicios Basicos</option><option value="arriendos">Arriendos</option>
                           <option value="transporte">Transporte</option><option value="honorarios">Honorarios</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
+                        </UiSelect>
+                      </UiBox>
+                    </UiBox>
+                  </UiBox>
                 )}
-              </div>
+              </UiCard>
 
               {/* Payment */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className={labelClass}>Metodo de pago</label>
-                  <select value={form.paymentMethod} onChange={e => setForm(prev => ({ ...prev, paymentMethod: e.target.value }))} className={inputClass}>
+              <UiBox {...{"className":"grid grid-cols-2 gap-3"}}>
+                <UiBox>
+                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5"}}>Metodo de pago</UiLabel>
+                  <UiSelect value={form.paymentMethod} onChange={e => setForm(prev => ({ ...prev, paymentMethod: e.target.value }))} {...{"size":"2","color":"gray","className":"w-full"}}>
                     <option value="transferencia">Transferencia</option><option value="efectivo">Efectivo</option>
                     <option value="tarjeta">Tarjeta</option><option value="credito">Credito</option>
-                  </select>
-                </div>
-                <div>
-                  <label className={labelClass}>Estado del pago</label>
-                  <select value={form.paymentStatus} onChange={e => setForm(prev => ({ ...prev, paymentStatus: e.target.value }))} className={inputClass}>
+                  </UiSelect>
+                </UiBox>
+                <UiBox>
+                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5"}}>Estado del pago</UiLabel>
+                  <UiSelect value={form.paymentStatus} onChange={e => setForm(prev => ({ ...prev, paymentStatus: e.target.value }))} {...{"size":"2","color":"gray","className":"w-full"}}>
                     <option value="pagado">Pagado</option><option value="pendiente">Pendiente</option>
-                  </select>
-                </div>
-              </div>
-            </div>
+                  </UiSelect>
+                </UiBox>
+              </UiBox>
+            </UiBox>
           )}
 
-        </div>
+        </UiBox>
 
         {/* Footer buttons */}
-        <div className="shrink-0 px-5 py-3 border-t border-border-default flex justify-between">
-          <div>
+        <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"shrink-0 px-5 py-3 flex justify-between"}}>
+          <UiBox>
             {step > 1 && (
-              <button type="button" onClick={() => setStep(step - 1)} className="btn-secondary"><ChevronLeft size={14} /> Anterior</button>
+              <UiButton type="button" onClick={() => setStep(step - 1)} {...{"variant":"surface","color":"blue"}}><ChevronLeft size={14} /> Anterior</UiButton>
             )}
-          </div>
-          <div className="flex gap-2">
-            <button type="button" onClick={onClose} className="btn-secondary">Cancelar</button>
+          </UiBox>
+          <UiBox {...{"className":"flex gap-2"}}>
+            <UiButton type="button" onClick={onClose} {...{"variant":"surface","color":"blue"}}>Cancelar</UiButton>
             {step < maxStep ? (
-              <button type="button" onClick={() => setStep(step + 1)} className="btn-primary">
+              <UiButton type="button" onClick={() => setStep(step + 1)} {...{"variant":"solid","color":"blue"}}>
                 {form.purchaseType === 'sin_inventario' && step === 1 ? 'Confirmar' : 'Siguiente'} <ChevronRight size={14} />
-              </button>
+              </UiButton>
             ) : (
-              <button type="button" onClick={handleSave} disabled={saving} className="btn-primary">
+              <UiButton type="button" onClick={handleSave} disabled={saving} {...{"variant":"solid","color":"blue"}}>
                 <CheckCircle2 size={14} /> {saving ? 'Guardando...' : 'Guardar Compra'}
-              </button>
+              </UiButton>
             )}
-          </div>
-        </div>
-      </div>
-    </div>
+          </UiBox>
+        </UiBox>
+      </UiBox>
+    </UiBox>
   );
 }

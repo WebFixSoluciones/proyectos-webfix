@@ -1,12 +1,15 @@
+import { mergeThemeProps } from '../ui/themeProps';
+import { UiBox, UiText, UiCard, UiHeading, UiLabel } from '../ui/layout';
+import { UiButton, UiInput, UiSelect, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell } from '../ui/controls';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Scan, Upload, FileText, Image, FileCode, CheckCircle2, XCircle, AlertTriangle, Sparkles, Eye, Clock, DollarSign, ShieldAlert, TrendingUp, RefreshCw } from 'lucide-react';
 import { getCapturas, procesarArchivoCaptura, confirmarCaptura, rechazarCaptura, getResumenCapturas } from '../../services/capturaService';
 
 const TIPO_ICONOS = { pdf: FileText, imagen: Image, xml: FileCode };
 const ESTADO_BADGES = {
-  pendiente: 'bg-status-pending-bg text-status-pending-text border-status-pending-border',
-  confirmado: 'bg-status-authorized-bg text-status-authorized-text border-status-authorized-border',
-  rechazado: 'bg-status-rejected-bg text-status-rejected-text border-status-rejected-border',
+  pendiente: {"style":{"backgroundColor":"var(--amber-3)","color":"var(--amber-11)"}},
+  confirmado: {"style":{"backgroundColor":"var(--green-3)","color":"var(--green-11)"}},
+  rechazado: {"style":{"backgroundColor":"var(--red-3)","color":"var(--red-11)"}},
 };
 
 export default function CapturaInteligenteView({ db, storage, appId, usuario, showToast }) {
@@ -100,97 +103,97 @@ export default function CapturaInteligenteView({ db, storage, appId, usuario, sh
 
   if (loading) {
     return (
-      <div className="space-y-4 animate-pulse">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">{[1,2,3,4].map(i => <div key={i} className="h-20 bg-surface-sidebar rounded-card" />)}</div>
-        <div className="h-48 bg-surface-sidebar rounded-card" />
-        {[1,2,3].map(i => <div key={i} className="h-14 bg-surface-sidebar rounded-card" />)}
-      </div>
+      <UiBox {...{"className":"space-y-4 animate-pulse"}}>
+        <UiBox {...{"className":"grid grid-cols-2 sm:grid-cols-4 gap-4"}}>{[1,2,3,4].map(i => <UiBox key={i} {...{"style":{"backgroundColor":"var(--color-panel-solid)","borderRadius":"var(--radius-3)"},"className":"h-20"}} />)}</UiBox>
+        <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","borderRadius":"var(--radius-3)"},"className":"h-48"}} />
+        {[1,2,3].map(i => <UiBox key={i} {...{"style":{"backgroundColor":"var(--color-panel-solid)","borderRadius":"var(--radius-3)"},"className":"h-14"}} />)}
+      </UiBox>
     );
   }
 
   if (error) {
     return (
-      <div className="text-center py-12">
-        <div className="text-error text-lg mb-2">Error al cargar</div>
-        <p className="text-text-secondary text-sm mb-4">{error}</p>
-        <button onClick={cargar} className="px-4 py-2 bg-primary text-white rounded-btn text-sm">Reintentar</button>
-      </div>
+      <UiBox {...{"className":"text-center py-12"}}>
+        <UiBox {...{"style":{"color":"var(--red-12)"},"className":"mb-2"}}>Error al cargar</UiBox>
+        <UiText as="p" {...{"color":"gray","size":"2","className":"mb-4"}}>{error}</UiText>
+        <UiButton onClick={cargar} {...{"variant":"solid","color":"blue","size":"2"}}>Reintentar</UiButton>
+      </UiBox>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-surface-card border border-border-default rounded-card p-4">
-          <div className="flex items-center gap-2 text-text-secondary text-xs mb-1"><Scan size={14} className="text-primary" />Capturas del Mes</div>
-          <div className="text-lg font-bold text-primary">{resumen.capturasMes}</div>
-        </div>
-        <div className="bg-surface-card border border-border-default rounded-card p-4">
-          <div className="flex items-center gap-2 text-text-secondary text-xs mb-1"><ShieldAlert size={14} className="text-warning" />Duplicados</div>
-          <div className="text-lg font-bold text-warning">{resumen.duplicadosDetectados}</div>
-        </div>
-        <div className="bg-surface-card border border-border-default rounded-card p-4">
-          <div className="flex items-center gap-2 text-text-secondary text-xs mb-1"><TrendingUp size={14} className="text-emerald-500" />Tasa Exito</div>
-          <div className="text-lg font-bold text-emerald-500">{resumen.tasaExito}%</div>
-        </div>
-        <div className="bg-surface-card border border-border-default rounded-card p-4">
-          <div className="flex items-center gap-2 text-text-secondary text-xs mb-1"><DollarSign size={14} className="text-primary" />Total Procesado</div>
-          <div className="text-lg font-bold text-primary">{formatCurrency(resumen.totalProcesado)}</div>
-        </div>
-      </div>
+    <UiBox {...{"className":"space-y-4"}}>
+      <UiBox {...{"className":"grid grid-cols-2 sm:grid-cols-4 gap-4"}}>
+        <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4"}}>
+          <UiBox {...{"style":{"color":"var(--gray-11)"},"className":"flex items-center gap-2 mb-1"}}><Scan size={14} {...{"style":{"color":"var(--blue-12)"}}} />Capturas del Mes</UiBox>
+          <UiBox {...{"style":{"color":"var(--blue-12)"}}}>{resumen.capturasMes}</UiBox>
+        </UiCard>
+        <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4"}}>
+          <UiBox {...{"style":{"color":"var(--gray-11)"},"className":"flex items-center gap-2 mb-1"}}><ShieldAlert size={14} {...{"style":{"color":"var(--amber-12)"}}} />Duplicados</UiBox>
+          <UiBox {...{"style":{"color":"var(--amber-12)"}}}>{resumen.duplicadosDetectados}</UiBox>
+        </UiCard>
+        <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4"}}>
+          <UiBox {...{"style":{"color":"var(--gray-11)"},"className":"flex items-center gap-2 mb-1"}}><TrendingUp size={14} {...{"style":{"color":"var(--green-11)"}}} />Tasa Exito</UiBox>
+          <UiBox {...{"style":{"color":"var(--green-11)"}}}>{resumen.tasaExito}%</UiBox>
+        </UiCard>
+        <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4"}}>
+          <UiBox {...{"style":{"color":"var(--gray-11)"},"className":"flex items-center gap-2 mb-1"}}><DollarSign size={14} {...{"style":{"color":"var(--blue-12)"}}} />Total Procesado</UiBox>
+          <UiBox {...{"style":{"color":"var(--blue-12)"}}}>{formatCurrency(resumen.totalProcesado)}</UiBox>
+        </UiCard>
+      </UiBox>
 
-      <div
-        className={`relative border-2 border-dashed rounded-card p-8 text-center transition-all cursor-pointer ${dragOver ? 'border-primary bg-primary/5' : 'border-border-default hover:border-primary/50'}`}
+      <UiBox
+        {...mergeThemeProps({"style":{"border":"1px solid var(--gray-a6)","borderRadius":"var(--radius-3)"},"className":"relative p-8 text-center cursor-pointer"}, {}, (dragOver ? {"style":{"backgroundColor":"var(--blue-3)"}} : {}))}
         onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
         onDragLeave={() => setDragOver(false)}
         onDrop={handleDrop}
         onClick={() => fileInputRef.current?.click()}
       >
         {procesando ? (
-          <div className="flex flex-col items-center gap-3">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
-            <p className="text-sm text-text-secondary font-medium">Procesando documento con IA...</p>
-          </div>
+          <UiBox {...{"className":"flex flex-col items-center gap-3"}}>
+            <UiBox {...{"style":{"borderRadius":"var(--radius-3)"},"className":"animate-spin h-10 w-10"}}></UiBox>
+            <UiText as="p" {...{"size":"2","color":"gray","weight":"medium"}}>Procesando documento con IA...</UiText>
+          </UiBox>
         ) : (
-          <div className="flex flex-col items-center gap-3">
-            <div className="p-3 rounded-full bg-primary/10 text-primary">
+          <UiBox {...{"className":"flex flex-col items-center gap-3"}}>
+            <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--blue-3)","color":"var(--blue-12)"},"className":"p-3"}}>
               <Upload size={28} />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-black">Arrastra tu documento aqui o haz clic para seleccionar</p>
-              <p className="text-xs text-text-secondary mt-1">PDF, Imagen (JPG, PNG, WEBP) o XML - Max 10 MB</p>
-            </div>
-            <div className="flex gap-2 mt-1">
-              <span className="px-2 py-0.5 bg-red-50 text-red-600 text-xs font-bold rounded">PDF</span>
-              <span className="px-2 py-0.5 bg-blue-50 text-blue-600 text-xs font-bold rounded">Imagen</span>
-              <span className="px-2 py-0.5 bg-green-50 text-green-600 text-xs font-bold rounded">XML</span>
-            </div>
-          </div>
+            </UiBox>
+            <UiBox>
+              <UiText as="p" {...{"size":"2","weight":"bold","color":"gray","highContrast":true}}>Arrastra tu documento aqui o haz clic para seleccionar</UiText>
+              <UiText as="p" {...{"size":"1","color":"gray","className":"mt-1"}}>PDF, Imagen (JPG, PNG, WEBP) o XML - Max 10 MB</UiText>
+            </UiBox>
+            <UiBox {...{"className":"flex gap-2 mt-1"}}>
+              <UiText {...{"color":"red","size":"1","weight":"bold","className":"px-2 py-0.5"}}>PDF</UiText>
+              <UiText {...{"color":"blue","size":"1","weight":"bold","className":"px-2 py-0.5"}}>Imagen</UiText>
+              <UiText {...{"color":"green","size":"1","weight":"bold","className":"px-2 py-0.5"}}>XML</UiText>
+            </UiBox>
+          </UiBox>
         )}
-        <input ref={fileInputRef} type="file" accept=".pdf,.png,.jpg,.jpeg,.webp,.xml" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleArchivo(f); }} />
-      </div>
+        <UiInput ref={fileInputRef} type="file" accept=".pdf,.png,.jpg,.jpeg,.webp,.xml" {...{"className":"hidden"}} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleArchivo(f); }} />
+      </UiBox>
 
       {seleccionada && datosEdit && (
-        <div className="bg-surface-card border border-border-default rounded-card overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-border-default bg-surface-sidebar">
-            <h3 className="text-sm font-bold text-black flex items-center gap-2">
-              <Sparkles size={16} className="text-primary" />
+        <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)","borderRadius":"var(--radius-3)"},"className":"overflow-hidden"}}>
+          <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"flex items-center justify-between px-4 py-3"}}>
+            <UiHeading as="h3" {...{"size":"2","weight":"bold","color":"gray","highContrast":true,"className":"flex items-center gap-2"}}>
+              <Sparkles size={16} {...{"style":{"color":"var(--blue-12)"}}} />
               Datos Extraidos por IA
-            </h3>
-            <div className="flex items-center gap-2">
-              <span className={`px-2 py-0.5 text-xs font-bold rounded border ${ESTADO_BADGES[seleccionada.estado] || ''}`}>{seleccionada.estado}</span>
-              <button onClick={() => { setSeleccionada(null); setDatosEdit(null); }} className="btn-icon text-text-secondary"><XCircle size={16} /></button>
-            </div>
-          </div>
+            </UiHeading>
+            <UiBox {...{"className":"flex items-center gap-2"}}>
+              <UiText {...mergeThemeProps({"size":"1","weight":"bold","className":"px-2 py-0.5"}, {}, (ESTADO_BADGES[seleccionada.estado] || {}))}>{seleccionada.estado}</UiText>
+              <UiButton iconOnly onClick={() => { setSeleccionada(null); setDatosEdit(null); }} {...{"variant":"surface","color":"gray"}}><XCircle size={16} /></UiButton>
+            </UiBox>
+          </UiBox>
 
           {seleccionada.duplicado && (
-            <div className="mx-4 mt-3 p-3 bg-warning-light border border-warning/20 rounded flex items-center gap-2">
-              <AlertTriangle size={16} className="text-warning shrink-0" />
-              <div className="text-xs text-warning font-medium">Duplicado detectado - Este documento ya fue registrado anteriormente</div>
-            </div>
+            <UiBox {...{"style":{"backgroundColor":"var(--amber-3)","border":"1px solid var(--gray-a6)","borderRadius":"var(--radius-3)"},"className":"mx-4 mt-3 p-3 flex items-center gap-2"}}>
+              <AlertTriangle size={16} {...{"style":{"color":"var(--amber-12)"},"className":"shrink-0"}} />
+              <UiBox {...{"style":{"color":"var(--amber-12)"}}}>Duplicado detectado - Este documento ya fue registrado anteriormente</UiBox>
+            </UiBox>
           )}
 
-          <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <UiBox {...{"className":"p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"}}>
             <CampoEdit label="RUC" value={datosEdit.ruc} onChange={(v) => setDatosEdit({...datosEdit, ruc: v})} />
             <CampoEdit label="Razon Social" value={datosEdit.razonSocial} onChange={(v) => setDatosEdit({...datosEdit, razonSocial: v})} />
             <CampoEdit label="Fecha" value={datosEdit.fecha} onChange={(v) => setDatosEdit({...datosEdit, fecha: v})} />
@@ -199,120 +202,120 @@ export default function CapturaInteligenteView({ db, storage, appId, usuario, sh
             <CampoEdit label="Ret. Fuente" value={datosEdit.retencionFuente} onChange={(v) => setDatosEdit({...datosEdit, retencionFuente: Number(v)})} type="number" />
             <CampoEdit label="Ret. IVA" value={datosEdit.retencionIva} onChange={(v) => setDatosEdit({...datosEdit, retencionIva: Number(v)})} type="number" />
             <CampoEdit label="Clave Acceso" value={datosEdit.claveAcceso} onChange={(v) => setDatosEdit({...datosEdit, claveAcceso: v})} />
-            <div>
-              <label className="text-xs font-bold text-text-secondary uppercase tracking-wider mb-1 block">Tipo</label>
-              <select value={datosEdit.tipo} onChange={(e) => setDatosEdit({...datosEdit, tipo: e.target.value})} className="w-full px-3 py-2 text-sm bg-white border border-border-default rounded-btn text-black">
+            <UiBox>
+              <UiLabel {...{"size":"1","weight":"bold","color":"gray","className":"mb-1 block"}}>Tipo</UiLabel>
+              <UiSelect value={datosEdit.tipo} onChange={(e) => setDatosEdit({...datosEdit, tipo: e.target.value})} {...{"size":"2","color":"gray","className":"w-full"}}>
                 <option value="egreso">Egreso</option>
                 <option value="ingreso">Ingreso</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-xs font-bold text-text-secondary uppercase tracking-wider mb-1 block">Categoria</label>
-              <select value={datosEdit.categoria || 'otros'} onChange={(e) => setDatosEdit({...datosEdit, categoria: e.target.value})} className="w-full px-3 py-2 text-sm bg-white border border-border-default rounded-btn text-black">
+              </UiSelect>
+            </UiBox>
+            <UiBox>
+              <UiLabel {...{"size":"1","weight":"bold","color":"gray","className":"mb-1 block"}}>Categoria</UiLabel>
+              <UiSelect value={datosEdit.categoria || 'otros'} onChange={(e) => setDatosEdit({...datosEdit, categoria: e.target.value})} {...{"size":"2","color":"gray","className":"w-full"}}>
                 <option value="costos">Costos</option>
                 <option value="gastos_administrativos">Gastos Administrativos</option>
                 <option value="gastos_marketing">Gastos Marketing</option>
                 <option value="activos">Activos</option>
                 <option value="otros">Otros</option>
-              </select>
-            </div>
-          </div>
+              </UiSelect>
+            </UiBox>
+          </UiBox>
 
-          <div className="flex items-center justify-between px-4 py-3 border-t border-border-default bg-surface-sidebar">
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1">
-                <div className={`w-2 h-2 rounded-full ${datosEdit.confianza >= 80 ? 'bg-emerald-500' : datosEdit.confianza >= 50 ? 'bg-warning' : 'bg-error'}`}></div>
-                <span className="text-xs text-text-secondary font-medium">Confianza: {datosEdit.confianza || seleccionada.datosExtraidos?.confianza || 0}%</span>
-              </div>
-              <span className="text-xs text-text-muted">|</span>
-              <span className="text-xs text-text-muted">{seleccionada.nombreArchivo}</span>
-            </div>
-            <div className="flex gap-2">
-              <button onClick={handleRechazar} className="px-3 py-1.5 text-xs font-bold rounded-btn border border-border-default text-text-secondary hover:bg-error/10 hover:text-error hover:border-error/30 transition-all">Rechazar</button>
-              <button onClick={handleConfirmar} disabled={procesando} className="px-4 py-1.5 text-xs font-bold rounded-btn bg-primary text-white hover:bg-primary/90 transition-all disabled:opacity-50 flex items-center gap-1">
-                {procesando ? <RefreshCw size={12} className="animate-spin" /> : <CheckCircle2 size={12} />}
+          <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"flex items-center justify-between px-4 py-3"}}>
+            <UiBox {...{"className":"flex items-center gap-2"}}>
+              <UiBox {...{"className":"flex items-center gap-1"}}>
+                <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)"},"className":"w-2 h-2"}, {}, (datosEdit.confianza >= 80 ? {"style":{"backgroundColor":"var(--green-9)"}} : (datosEdit.confianza >= 50 ? {"style":{"backgroundColor":"var(--amber-9)"}} : {"style":{"backgroundColor":"var(--red-9)"}})))}></UiBox>
+                <UiText {...{"size":"1","color":"gray","weight":"medium"}}>Confianza: {datosEdit.confianza || seleccionada.datosExtraidos?.confianza || 0}%</UiText>
+              </UiBox>
+              <UiText {...{"size":"1","color":"gray"}}>|</UiText>
+              <UiText {...{"size":"1","color":"gray"}}>{seleccionada.nombreArchivo}</UiText>
+            </UiBox>
+            <UiBox {...{"className":"flex gap-2"}}>
+              <UiButton onClick={handleRechazar} {...{"size":"2","variant":"outline","color":"gray"}}>Rechazar</UiButton>
+              <UiButton onClick={handleConfirmar} disabled={procesando} {...{"size":"2","variant":"solid","color":"blue","className":"disabled:opacity-50 flex items-center gap-1"}}>
+                {procesando ? <RefreshCw size={12} {...{"className":"animate-spin"}} /> : <CheckCircle2 size={12} />}
                 Confirmar y Registrar
-              </button>
-            </div>
-          </div>
-        </div>
+              </UiButton>
+            </UiBox>
+          </UiBox>
+        </UiBox>
       )}
 
-      <div>
-        <h3 className="text-sm font-bold text-black mb-3 flex items-center gap-2">
-          <Clock size={14} className="text-text-secondary" />
+      <UiBox>
+        <UiHeading as="h3" {...{"size":"2","weight":"bold","color":"gray","highContrast":true,"className":"mb-3 flex items-center gap-2"}}>
+          <Clock size={14} {...{"style":{"color":"var(--gray-11)"}}} />
           Capturas Recientes
-        </h3>
+        </UiHeading>
         {capturas.length === 0 ? (
-          <div className="text-center py-10 bg-surface-sidebar rounded-card border border-border-default">
-            <Scan size={32} className="text-text-muted mx-auto mb-2" />
-            <p className="text-sm text-text-secondary">No hay capturas registradas</p>
-            <p className="text-xs text-text-muted mt-1">Sube una factura, imagen o XML para comenzar</p>
-          </div>
+          <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"text-center py-10"}}>
+            <Scan size={32} {...{"style":{"color":"var(--gray-11)"},"className":"mx-auto mb-2"}} />
+            <UiText as="p" {...{"size":"2","color":"gray"}}>No hay capturas registradas</UiText>
+            <UiText as="p" {...{"size":"1","color":"gray","className":"mt-1"}}>Sube una factura, imagen o XML para comenzar</UiText>
+          </UiBox>
         ) : (
-          <div className="border border-border-default rounded-card overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-surface-sidebar border-b border-border-default">
-                    <th className="text-left px-3 py-2 text-xs font-bold text-text-secondary uppercase tracking-wider">Tipo</th>
-                    <th className="text-left px-3 py-2 text-xs font-bold text-text-secondary uppercase tracking-wider">Archivo</th>
-                    <th className="text-left px-3 py-2 text-xs font-bold text-text-secondary uppercase tracking-wider">RUC</th>
-                    <th className="text-left px-3 py-2 text-xs font-bold text-text-secondary uppercase tracking-wider">Razon Social</th>
-                    <th className="text-right px-3 py-2 text-xs font-bold text-text-secondary uppercase tracking-wider">Monto</th>
-                    <th className="text-center px-3 py-2 text-xs font-bold text-text-secondary uppercase tracking-wider">Confianza</th>
-                    <th className="text-center px-3 py-2 text-xs font-bold text-text-secondary uppercase tracking-wider">Estado</th>
-                    <th className="text-center px-3 py-2 text-xs font-bold text-text-secondary uppercase tracking-wider">Duplicado</th>
-                    <th className="text-right px-3 py-2 text-xs font-bold text-text-secondary uppercase tracking-wider">Fecha</th>
-                    <th className="text-center px-3 py-2 text-xs font-bold text-text-secondary uppercase tracking-wider">Accion</th>
-                  </tr>
-                </thead>
-                <tbody>
+          <UiBox {...{"style":{"border":"1px solid var(--gray-a6)","borderRadius":"var(--radius-3)"},"className":"overflow-hidden"}}>
+            <UiBox {...{"className":"overflow-x-auto"}}>
+              <UiTable {...{"className":"w-full"}}>
+                <UiTableHeader>
+                  <UiTableRow {...{"style":{"backgroundColor":"var(--color-panel-solid)"}}}>
+                    <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"text-left px-3 py-2"}}>Tipo</UiTableHead>
+                    <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"text-left px-3 py-2"}}>Archivo</UiTableHead>
+                    <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"text-left px-3 py-2"}}>RUC</UiTableHead>
+                    <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"text-left px-3 py-2"}}>Razon Social</UiTableHead>
+                    <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"text-right px-3 py-2"}}>Monto</UiTableHead>
+                    <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"text-center px-3 py-2"}}>Confianza</UiTableHead>
+                    <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"text-center px-3 py-2"}}>Estado</UiTableHead>
+                    <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"text-center px-3 py-2"}}>Duplicado</UiTableHead>
+                    <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"text-right px-3 py-2"}}>Fecha</UiTableHead>
+                    <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"text-center px-3 py-2"}}>Accion</UiTableHead>
+                  </UiTableRow>
+                </UiTableHeader>
+                <UiTableBody>
                   {capturas.slice(0, 20).map(c => {
                     const TipoIcon = TIPO_ICONOS[c.tipoDocumento] || FileText;
                     const d = c.datosExtraidos || {};
                     return (
-                      <tr key={c.id} className="border-b border-border-default/50 hover:bg-surface-sidebar/50 transition-colors">
-                        <td className="px-3 py-2"><TipoIcon size={14} className="text-text-secondary" /></td>
-                        <td className="px-3 py-2 text-xs text-black max-w-[120px] truncate">{c.nombreArchivo}</td>
-                        <td className="px-3 py-2 text-xs text-text-primary font-mono">{d.ruc || '-'}</td>
-                        <td className="px-3 py-2 text-xs text-black">{d.razonSocial || '-'}</td>
-                        <td className="px-3 py-2 text-xs text-black font-semibold text-right">{formatCurrency(d.montoTotal)}</td>
-                        <td className="px-3 py-2 text-center">
-                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold ${d.confianza >= 80 ? 'bg-emerald-50 text-emerald-600' : d.confianza >= 50 ? 'bg-amber-50 text-amber-600' : 'bg-red-50 text-red-600'}`}>
+                      <UiTableRow key={c.id} {...{}}>
+                        <UiTableCell {...{"className":"px-3 py-2"}}><TipoIcon size={14} {...{"style":{"color":"var(--gray-11)"}}} /></UiTableCell>
+                        <UiTableCell {...{"style":{"color":"var(--gray-12)"},"className":"px-3 py-2 max-w-[120px] truncate"}}>{c.nombreArchivo}</UiTableCell>
+                        <UiTableCell {...{"style":{"color":"var(--gray-12)","fontFamily":"var(--code-font-family)"},"className":"px-3 py-2"}}>{d.ruc || '-'}</UiTableCell>
+                        <UiTableCell {...{"style":{"color":"var(--gray-12)"},"className":"px-3 py-2"}}>{d.razonSocial || '-'}</UiTableCell>
+                        <UiTableCell {...{"style":{"color":"var(--gray-12)"},"className":"px-3 py-2 text-right"}}>{formatCurrency(d.montoTotal)}</UiTableCell>
+                        <UiTableCell {...{"className":"px-3 py-2 text-center"}}>
+                          <UiText {...mergeThemeProps({"size":"1","weight":"bold","className":"inline-flex items-center gap-1 px-2 py-0.5"}, {}, (d.confianza >= 80 ? {"color":"green"} : (d.confianza >= 50 ? {"color":"amber"} : {"color":"red"})))}>
                             {d.confianza || 0}%
-                          </span>
-                        </td>
-                        <td className="px-3 py-2 text-center">
-                          <span className={`px-2 py-0.5 text-xs font-bold rounded border ${ESTADO_BADGES[c.estado] || ''}`}>{c.estado}</span>
-                        </td>
-                        <td className="px-3 py-2 text-center">
-                          {c.duplicado ? <AlertTriangle size={14} className="text-warning mx-auto" /> : <span className="text-text-muted text-xs">-</span>}
-                        </td>
-                        <td className="px-3 py-2 text-xs text-text-secondary text-right">{formatDate(c.createdAt)}</td>
-                        <td className="px-3 py-2 text-center">
-                          <button onClick={() => { setSeleccionada(c); setDatosEdit({...d}); }} className="btn-icon text-text-secondary hover:text-primary" title="Ver detalle">
+                          </UiText>
+                        </UiTableCell>
+                        <UiTableCell {...{"className":"px-3 py-2 text-center"}}>
+                          <UiText {...mergeThemeProps({"size":"1","weight":"bold","className":"px-2 py-0.5"}, {}, (ESTADO_BADGES[c.estado] || {}))}>{c.estado}</UiText>
+                        </UiTableCell>
+                        <UiTableCell {...{"className":"px-3 py-2 text-center"}}>
+                          {c.duplicado ? <AlertTriangle size={14} {...{"style":{"color":"var(--amber-12)"},"className":"mx-auto"}} /> : <UiText {...{"color":"gray","size":"1"}}>-</UiText>}
+                        </UiTableCell>
+                        <UiTableCell {...{"style":{"color":"var(--gray-11)"},"className":"px-3 py-2 text-right"}}>{formatDate(c.createdAt)}</UiTableCell>
+                        <UiTableCell {...{"className":"px-3 py-2 text-center"}}>
+                          <UiButton iconOnly onClick={() => { setSeleccionada(c); setDatosEdit({...d}); }} {...{"variant":"surface","color":"gray"}} title="Ver detalle">
                             <Eye size={14} />
-                          </button>
-                        </td>
-                      </tr>
+                          </UiButton>
+                        </UiTableCell>
+                      </UiTableRow>
                     );
                   })}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                </UiTableBody>
+              </UiTable>
+            </UiBox>
+          </UiBox>
         )}
-      </div>
-    </div>
+      </UiBox>
+    </UiBox>
   );
 }
 
 function CampoEdit({ label, value, onChange, type = 'text' }) {
   return (
-    <div>
-      <label className="text-xs font-bold text-text-secondary uppercase tracking-wider mb-1 block">{label}</label>
-      <input type={type} value={value ?? ''} onChange={(e) => onChange(e.target.value)} step={type === 'number' ? '0.01' : undefined} className="w-full px-3 py-2 text-sm bg-white border border-border-default rounded-btn text-black focus:border-primary focus:outline-none transition-colors" />
-    </div>
+    <UiBox>
+      <UiLabel {...{"size":"1","weight":"bold","color":"gray","className":"mb-1 block"}}>{label}</UiLabel>
+      <UiInput type={type} value={value ?? ''} onChange={(e) => onChange(e.target.value)} step={type === 'number' ? '0.01' : undefined} {...{"size":"2","color":"gray","className":"w-full"}} />
+    </UiBox>
   );
 }

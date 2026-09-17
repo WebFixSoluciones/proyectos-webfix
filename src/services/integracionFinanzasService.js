@@ -1,6 +1,7 @@
 import * as firestore from './financeStore.js';
 import { roundMoney } from './paymentModel.js';
 import { registrarAuditoria } from './auditService.js';
+import { getAppId } from '../firebase.js';
 
 function mapearMetodoPago(metodo) {
   const mapa = {
@@ -115,7 +116,7 @@ async function sincronizarDocumento(data, db, usuario, venta, api = firestore) {
   const user = usuario || { uid: '', email: '' };
   const collection = venta ? 'fin_cxc' : 'fin_cxp';
   const linkedRef = doc(db, collection, data.id);
-  const movData = venta ? mapearVentaAMovimiento(data) : mapearCompraAMovimiento(data);
+  const movData = { ...(venta ? mapearVentaAMovimiento(data) : mapearCompraAMovimiento(data)), tenantId: getAppId() };
   const total = roundMoney(data.total);
   if (!Number.isFinite(total) || total <= 0) throw new Error('El total financiero debe ser mayor a cero.');
   const result = await runTransaction(db, async tx => {
@@ -134,7 +135,7 @@ async function sincronizarDocumento(data, db, usuario, venta, api = firestore) {
     const saldoPendiente = Math.max(0, roundMoney(total - paid));
     const estado = previous?.estado === 'anulado' ? 'anulado' : saldoPendiente === 0 ? 'pagado' : paid > 0 ? 'parcial' : 'pendiente';
     const factura = { tipo: data.documentType || 'factura', numero: data.documentNumber || '', claveAcceso: data.claveAcceso || null, fecha: movData.fecha, fechaVencimiento: data.creditDueDate ? new Date(data.creditDueDate + 'T12:00:00') : movData.fechaVencimiento, montoTotal: total, baseImponible: Number(data.baseImponible || 0), iva: Number(data.ivaValor || 0), retencionFuente: Number(data.retencionFuente || 0), retencionIva: Number(data.retencionIva || 0) };
-    tx.set(linkedRef, { movimientoId: movementId, tercero: movData.tercero, factura, abonos, saldoPendiente, estado, notas: data.notas || '', creadoEn: previous?.creadoEn || serverTimestamp(), actualizadoEn: serverTimestamp() }, { merge: true });
+    tx.set(linkedRef, { tenantId: getAppId(), movimientoId: movementId, tercero: movData.tercero, factura, abonos, saldoPendiente, estado, notas: data.notas || '', creadoEn: previous?.creadoEn || serverTimestamp(), actualizadoEn: serverTimestamp() }, { merge: true });
     tx.set(movementRef, { ...movData, monto: total, pagos: abonos, saldoPendiente, estado, creadoPor: user.uid || '', creadoEn: movement.data()?.creadoEn || serverTimestamp(), actualizadoEn: serverTimestamp() }, { merge: true });
     return { movimientoId: movementId, [venta ? 'cxcId' : 'cxpId']: data.id };
   });

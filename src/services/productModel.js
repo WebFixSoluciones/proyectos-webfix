@@ -78,3 +78,9 @@ export function makeCartItem(product) {
   if (!Number.isFinite(p.price) || p.price < 0) throw new Error('El precio del producto no es válido.');
   return { productId: p.id, name: p.name, price: p.price, quantity: 1, ivaCategory: p.ivaCategory, tarifa_iva: p.tarifa_iva, tax_mode: p.tax_mode, categoryId: p.categoryId || '', id_descuento_asociado: p.id_descuento_asociado || '', id_descuento_aplicado: '', id_promocion_aplicada: '', discount_value: 0, discount_type: 'PORCENTAJE' };
 }
+
+// Ventas administrativas permiten repetir un producto en líneas distintas
+// para describir conceptos o servicios diferentes dentro del mismo comprobante.
+export function appendInvoiceLine(items = [], product) {
+  return [...items, { ...makeCartItem(product), lineId: crypto.randomUUID(), invoiceDescription: product.name }];
+}

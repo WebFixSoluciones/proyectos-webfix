@@ -1,7 +1,7 @@
 import { invoiceLineAmounts } from '../src/services/invoiceLine.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { normalizeProduct, validateCartStock, makeCartItem } from '../src/services/productModel.js';
+import { normalizeProduct, validateCartStock, makeCartItem, appendInvoiceLine } from '../src/services/productModel.js';
 import { settlePayments, cashSessionTotals } from '../src/services/paymentModel.js';
 import { calculateTransactionTotals } from '../src/services/discountCalcService.js';
 import { generarFacturaXML } from '../src/services/sriService.js';
@@ -153,4 +153,13 @@ test('manual discounts and expired promotions do not diverge from the invoice', 
 test('printed documents retain their issued amounts after a discount expires', () => {
   const line = { price: 115, quantity: 1, tax_mode: 'INCLUIDO', tarifa_iva: 0.15, precio_base_unitario: 100, monto_descuento_linea: 10, descuento_prorrateado: 5, subtotal_neto_linea_final: 85, total_linea: 97.75, descuento_objeto: { activo: false } };
   assert.deepEqual(invoiceLineAmounts(line), { unitPrice: 100, discount: 15, base: 85, total: 97.75, rate: 15 });
+});
+
+test('administrative sales keep repeated products as independent invoice lines', () => {
+  const p = product('support', 0, { type: 'SERVICE', salePrice: 10, taxRate: 0 });
+  const first = appendInvoiceLine([], p)[0];
+  const second = appendInvoiceLine([first], p)[1];
+  assert.equal(first.productId, second.productId);
+  assert.notEqual(first.lineId, second.lineId);
+  assert.equal(appendInvoiceLine([first], p).length, 2);
 });

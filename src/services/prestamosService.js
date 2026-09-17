@@ -161,6 +161,9 @@ export async function pagarCuota(db, prestamoId, cuotaNumero, montoPagado, usuar
   const totalCuota = Number(cuota.cuotaTotal);
   const pendienteCapital = Number(cuota.capital) - Number(cuota.pagadaCapital || 0);
   const pendienteInteres = Number(cuota.interes) - Number(cuota.pagadaInteres || 0);
+  if (!Number.isFinite(monto) || monto <= 0) throw new Error('El pago debe ser mayor a cero.');
+  const pendienteCuota = Math.max(0, pendienteCapital + pendienteInteres);
+  if (monto > pendienteCuota + 0.01) throw new Error(`El pago supera el saldo de la cuota ($${pendienteCuota.toFixed(2)}).`);
 
   let aplicado = monto;
   let nuevoPagadaInteres = Number(cuota.pagadaInteres || 0);

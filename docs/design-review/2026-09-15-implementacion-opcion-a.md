@@ -9,6 +9,7 @@ Capturas de los componentes reales con datos aislados de prueba:
 - [POS](screenshots/pos.png)
 - [Venta administrativa](screenshots/venta-administrativa.png)
 - [Configuración de combos](screenshots/inventario-combo.png)
+- [Precios diferenciados de servicios](screenshots/inventario-servicio-precios.png)
 - [Venta en móvil](screenshots/venta-movil.png)
 
 ## Proceso de venta
@@ -32,8 +33,15 @@ Volver de la revisión conserva el carrito. El bloqueo de procesamiento evita en
 - Traslados y ajustes del módulo nuevo usan el mismo registro de inventario; los traslados mantienen el costo de origen.
 - Alta y edición de productos sincronizan los catálogos utilizados por inventario y ventas. La baja conserva el historial mediante desactivación.
 - La sincronización financiera usa referencias estables, conserva abonos existentes y registra el desglose inicial de pagos.
+- El histórico de las colecciones financieras globales se migra una sola vez al tenant cuyo emisor tiene RUC `1754376901001`; conserva los registros originales y deja un marcador con el conteo migrado.
 - Las compras con inventario y las compras iniciales nuevas conservan una referencia para completar un registro pendiente sin duplicarlo.
 - La anulación interna de notas de venta revierte su inventario y marca los registros financieros. Una factura fiscal no se presenta como anulada solamente por cambiar un estado local.
+- El mismo producto puede repetirse en líneas independientes de venta administrativa, cada una con concepto, precio, cantidad y descuento propios.
+- Servicios incorporan unidad de cobro, disponibilidad para ventas y tres niveles de precio con modo de IVA.
+- Los abonos de CxC/CxP y movimientos actualizan la obligación, el movimiento central, el documento de origen, el banco y la auditoría dentro de una sola transacción.
+- Productos desactivados se pueden reactivar; el historial de comprobantes, combos y kardex permanece íntegro.
+- Cuentas bancarias bloquean operaciones sobre cuentas inactivas y la conciliación valida dirección, importe y vínculos duplicados.
+- Tarjetas rechazan consumos sin cupo, importes inválidos y cuotas ya pagadas; préstamos rechazan pagos que exceden la cuota.
 
 ## Verificación
 

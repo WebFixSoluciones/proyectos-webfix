@@ -1,3 +1,6 @@
+import { mergeThemeProps } from '../ui/themeProps';
+import { UiBox, UiCard, UiHeading, UiText, UiLabel } from '../ui/layout';
+import { UiButton, UiInput, UiSelect, UiTextarea } from '../ui/controls';
 import React, { useState, useEffect } from 'react';
 import { 
   Briefcase, DollarSign, Tag, Save, X, 
@@ -28,7 +31,16 @@ export default function ServiceCreationForm({
     categoryId: serviceToEdit?.categoryId || '',
     baseCost: serviceToEdit?.baseCost || 0,
     marginPercentage: serviceToEdit?.marginPercentage || 50,
-    taxRate: serviceToEdit?.taxRate || 15,
+    taxRate: serviceToEdit?.taxRate ?? 15,
+    priceA: serviceToEdit?.priceA ?? 0,
+    priceB: serviceToEdit?.priceB ?? 0,
+    priceC: serviceToEdit?.priceC ?? 0,
+    priceASinImpuesto: serviceToEdit?.priceASinImpuesto ?? 0,
+    priceBSinImpuesto: serviceToEdit?.priceBSinImpuesto ?? 0,
+    priceCSinImpuesto: serviceToEdit?.priceCSinImpuesto ?? 0,
+    tax_mode: serviceToEdit?.tax_mode || 'EXCLUIDO',
+    unit: serviceToEdit?.unit || 'servicio',
+    showInSales: serviceToEdit?.showInSales !== false,
   });
 
   const [categories, setCategories] = useState<Category[]>([]);
@@ -48,8 +60,9 @@ export default function ServiceCreationForm({
   }, []);
 
   // Derived state
-  const calculatedSalePrice = formData.baseCost * (1 + formData.marginPercentage / 100);
-  const finalPriceWithTax = calculatedSalePrice * (1 + formData.taxRate / 100);
+  const calculatedSalePrice = Number(formData.priceASinImpuesto) > 0 ? Number(formData.priceASinImpuesto) : formData.baseCost * (1 + formData.marginPercentage / 100);
+  const finalPriceWithTax = formData.tax_mode === 'INCLUIDO' ? calculatedSalePrice : calculatedSalePrice * (1 + formData.taxRate / 100);
+  const netPrice = formData.tax_mode === 'INCLUIDO' ? calculatedSalePrice / (1 + formData.taxRate / 100) : calculatedSalePrice;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -69,13 +82,35 @@ export default function ServiceCreationForm({
         await productRepository.update(serviceToEdit.id, {
           ...formData,
           type: 'SERVICE',
-          salePrice: calculatedSalePrice,
+          salePrice: netPrice,
+          priceA: finalPriceWithTax,
+          priceASinImpuesto: netPrice,
+          priceB: Number(formData.priceB) || 0,
+          priceBSinImpuesto: Number(formData.priceBSinImpuesto) || 0,
+          priceC: Number(formData.priceC) || 0,
+          priceCSinImpuesto: Number(formData.priceCSinImpuesto) || 0,
+          tax_mode: formData.tax_mode,
+          tarifa_iva: Number(formData.taxRate) / 100,
+          unit: formData.unit,
+          inventoryType: 'VIRTUAL',
+          showInSales: formData.showInSales,
         });
       } else {
         await productRepository.create({
           ...formData,
           type: 'SERVICE',
-          salePrice: calculatedSalePrice,
+          salePrice: netPrice,
+          priceA: finalPriceWithTax,
+          priceASinImpuesto: netPrice,
+          priceB: Number(formData.priceB) || 0,
+          priceBSinImpuesto: Number(formData.priceBSinImpuesto) || 0,
+          priceC: Number(formData.priceC) || 0,
+          priceCSinImpuesto: Number(formData.priceCSinImpuesto) || 0,
+          tax_mode: formData.tax_mode,
+          tarifa_iva: Number(formData.taxRate) / 100,
+          unit: formData.unit,
+          inventoryType: 'VIRTUAL',
+          showInSales: formData.showInSales,
         });
       }
       onSuccess();
@@ -91,141 +126,151 @@ export default function ServiceCreationForm({
     }
   };
 
-  const inputClass = `w-full pl-4 pr-4 py-2 rounded-card outline-none transition-all border bg-white/50 border-border-default text-text-heading focus:border-primary focus:bg-white`;
+  
 
-  const labelClass = `block text-xs font-semibold mb-1.5 uppercase tracking-wider text-text-secondary`;
+  
 
-  const iconContainerClass = `absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary`;
+  
 
   const formJSX = (
-    <div 
-      className={isInline ? `w-full rounded-card border bg-white border-border-default text-text-heading` : `relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-card border bg-white/95 border-white/40 custom-scrollbar`}
+    <UiBox 
+      {...(isInline ? mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"},"className":"w-full"}) : mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"relative w-full max-w-4xl max-h-[90vh] overflow-y-auto custom-scrollbar"}))}
     >
       {/* Header */}
-      <div className={`modal-header-std modal-header-std-dark border-border-default bg-white/80`}>
-        <div className="flex items-center gap-3">
-          <div className={`p-2 rounded-card bg-primary/10 text-primary`}>
+      <UiCard {...mergeThemeProps({"style":{"backgroundColor":"var(--color-panel-solid)"}})}>
+        <UiBox {...{"className":"flex items-center gap-3"}}>
+          <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--blue-3)","color":"var(--blue-12)"},"className":"p-2"})}>
             <Briefcase size={20} />
-          </div>
-          <div>
-            <h2 className={`text-base font-bold tracking-tight text-text-heading`}>
+          </UiBox>
+          <UiBox>
+            <UiHeading as="h2" {...mergeThemeProps({"size":"3","weight":"bold","color":"gray","highContrast":true})}>
               {serviceToEdit?.id ? 'Editar Servicio' : 'Nuevo Servicio'}
-            </h2>
-            <p className={`text-xs text-text-secondary`}>
+            </UiHeading>
+            <UiText as="p" {...mergeThemeProps({"size":"1","color":"gray"})}>
               {serviceToEdit?.id ? 'Edita los detalles del servicio seleccionado' : 'Registra un nuevo servicio intangible en el catálogo'}
-            </p>
-          </div>
-        </div>
-          <button 
+            </UiText>
+          </UiBox>
+        </UiBox>
+          <UiButton iconOnly
             onClick={onClose}
-            className={`p-2 rounded-card transition-all hover:scale-105 bg-surface-muted text-text-secondary hover:bg-surface-muted hover:text-text-heading`}
+            {...mergeThemeProps({"variant":"soft","color":"gray","className":"hover:scale-105"})}
           >
             <X size={18} />
-          </button>
-        </div>
+          </UiButton>
+        </UiCard>
 
         {/* Content */}
-        <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-5">
+        <form onSubmit={handleSubmit} {...{"className":"p-5 sm:p-6 space-y-5"}}>
           
           {error && (
-            <div className={`flex items-center gap-3 p-4 rounded-card border bg-red-50 border-red-200 text-red-600`}>
-              <AlertCircle size={20} className="shrink-0" />
-              <p className="text-sm font-medium">{error}</p>
-            </div>
+            <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--red-3)","color":"var(--red-11)"},"className":"flex items-center gap-3 p-4"})}>
+              <AlertCircle size={20} {...{"className":"shrink-0"}} />
+              <UiText as="p" {...{"size":"2","weight":"medium"}}>{error}</UiText>
+            </UiBox>
           )}
 
           {/* Información Básica */}
-          <div>
-            <h3 className={`text-sm font-bold flex items-center gap-2 mb-4 uppercase tracking-wider text-primary`}>
+          <UiBox>
+            <UiHeading as="h3" {...mergeThemeProps({"size":"2","weight":"bold","color":"blue","className":"flex items-center gap-2 mb-4"})}>
               <Briefcase size={16} /> Información del Servicio
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            </UiHeading>
+            <UiBox {...{"className":"grid grid-cols-1 md:grid-cols-2 gap-6"}}>
               
-              <div className="relative group">
-                <label className={labelClass}>Código / SKU de Servicio *</label>
-                <div className="relative">
-                  <div className={iconContainerClass}><Tag size={16} /></div>
-                  <input
+              <UiBox {...{"className":"relative group"}}>
+                <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"})}>Código / SKU de Servicio *</UiLabel>
+                <UiBox {...{"className":"relative"}}>
+                  <UiBox {...mergeThemeProps({"style":{"color":"var(--gray-11)"},"className":"absolute left-3 top-1/2 -translate-y-1/2"})}><Tag size={16} /></UiBox>
+                  <UiInput
                     type="text"
                     name="sku"
                     required
                     value={formData.sku}
                     onChange={handleInputChange}
                     placeholder="Ej. SERV-001"
-                    className={`${inputClass}`}
+                    {...mergeThemeProps({}, {}, mergeThemeProps({"color":"gray","className":"w-full"}))}
                     style={{ paddingLeft: '36px' }}
                   />
-                </div>
-              </div>
+                </UiBox>
+              </UiBox>
 
-              <div className="relative group">
-                <label className={labelClass}>Nombre del Servicio *</label>
-                <div className="relative">
-                  <div className={iconContainerClass}><Briefcase size={16} /></div>
-                  <input
+              <UiBox {...{"className":"relative group"}}>
+                <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"})}>Nombre del Servicio *</UiLabel>
+                <UiBox {...{"className":"relative"}}>
+                  <UiBox {...mergeThemeProps({"style":{"color":"var(--gray-11)"},"className":"absolute left-3 top-1/2 -translate-y-1/2"})}><Briefcase size={16} /></UiBox>
+                  <UiInput
                     type="text"
                     name="name"
                     required
                     value={formData.name}
                     onChange={handleInputChange}
                     placeholder="Ej. Consultoría TI - Por Hora"
-                    className={`${inputClass}`}
+                    {...mergeThemeProps({}, {}, mergeThemeProps({"color":"gray","className":"w-full"}))}
                     style={{ paddingLeft: '36px' }}
                   />
-                </div>
-              </div>
+                </UiBox>
+              </UiBox>
 
-              <div className="relative group">
-                <label className={labelClass}>Categoría (Opcional)</label>
-                <div className="relative">
-                  <div className={iconContainerClass}><FolderOpen size={16} /></div>
-                  <select
+              <UiBox {...{"className":"relative group"}}>
+                <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"})}>Categoría (Opcional)</UiLabel>
+                <UiBox {...{"className":"relative"}}>
+                  <UiBox {...mergeThemeProps({"style":{"color":"var(--gray-11)"},"className":"absolute left-3 top-1/2 -translate-y-1/2"})}><FolderOpen size={16} /></UiBox>
+                  <UiSelect
                     name="categoryId"
                     value={formData.categoryId}
                     onChange={handleInputChange}
-                    className={`${inputClass}`}
+                    {...mergeThemeProps({}, {}, mergeThemeProps({"color":"gray","className":"w-full"}))}
                     style={{ paddingLeft: '36px' }}
                   >
                     <option value="">Sin Categoría</option>
                     {categories.map(cat => (
                       <option key={cat.id} value={cat.id}>{cat.name}</option>
                     ))}
-                  </select>
-                </div>
-              </div>
+                  </UiSelect>
+                </UiBox>
+              </UiBox>
 
-              <div className="relative group md:col-span-2">
-                <label className={labelClass}>Descripción (Opcional)</label>
-                <div className="relative">
-                  <div className={iconContainerClass}><FileText size={16} /></div>
-                  <textarea
+              <UiBox {...{"className":"relative group md:col-span-2"}}>
+                <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"})}>Descripción (Opcional)</UiLabel>
+                <UiBox {...{"className":"relative"}}>
+                  <UiBox {...mergeThemeProps({"style":{"color":"var(--gray-11)"},"className":"absolute left-3 top-1/2 -translate-y-1/2"})}><FileText size={16} /></UiBox>
+                  <UiTextarea
                     name="description"
                     value={formData.description}
                     onChange={handleInputChange}
                     placeholder="Detalles adicionales del servicio prestado..."
                     rows={3}
-                    className={`${inputClass} resize-none`}
+                    {...mergeThemeProps({}, {"className":"resize-none"}, mergeThemeProps({"color":"gray","className":"w-full"}))}
                     style={{ paddingLeft: '36px' }}
                   />
-                </div>
-              </div>
-            </div>
-          </div>
+                </UiBox>
+              </UiBox>
+            </UiBox>
+          </UiBox>
 
-          <div className="w-full h-px bg-gradient-to-r from-transparent via-gray-500/20 to-transparent"></div>
+          <UiBox {...{"className":"grid grid-cols-1 md:grid-cols-2 gap-4"}}>
+            <UiBox>
+              <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"})}>Unidad de cobro</UiLabel>
+              <UiSelect name="unit" value={formData.unit} onChange={handleInputChange} {...mergeThemeProps({"color":"gray","className":"w-full"})}>
+                <option value="servicio">Servicio</option><option value="hora">Hora</option><option value="usuario">Usuario</option><option value="encuesta">Encuesta</option><option value="licencia">Licencia</option>
+              </UiSelect>
+            </UiBox>
+            <UiLabel {...{"size":"2","color":"gray","highContrast":true,"className":"flex items-center gap-2 mt-6"}}><UiInput type="checkbox" name="showInSales" checked={formData.showInSales} onChange={e => setFormData(prev => ({ ...prev, showInSales: e.target.checked }))} /> Disponible en POS y ventas administrativas</UiLabel>
+          </UiBox>
+
+          <UiBox {...{"style":{"backgroundColor":"var(--gray-2)"},"className":"w-full h-px"}}></UiBox>
 
           {/* Sección Precios */}
-          <div>
-            <h3 className={`text-sm font-bold flex items-center gap-2 mb-4 uppercase tracking-wider text-emerald-600`}>
+          <UiBox>
+            <UiHeading as="h3" {...mergeThemeProps({"size":"2","weight":"bold","color":"green","className":"flex items-center gap-2 mb-4"})}>
               <DollarSign size={16} /> Tarifas y Precios
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            </UiHeading>
+            <UiBox {...{"className":"grid grid-cols-1 md:grid-cols-3 gap-6"}}>
               
-              <div className="relative group">
-                <label className={labelClass}>Costo de Prestación / Base ($)</label>
-                <div className="relative">
-                  <div className={iconContainerClass}><DollarSign size={16} /></div>
-                  <input
+              <UiBox {...{"className":"relative group"}}>
+                <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"})}>Costo de Prestación / Base ($)</UiLabel>
+                <UiBox {...{"className":"relative"}}>
+                  <UiBox {...mergeThemeProps({"style":{"color":"var(--gray-11)"},"className":"absolute left-3 top-1/2 -translate-y-1/2"})}><DollarSign size={16} /></UiBox>
+                  <UiInput
                     type="number"
                     name="baseCost"
                     min="0"
@@ -233,17 +278,17 @@ export default function ServiceCreationForm({
                     required
                     value={formData.baseCost}
                     onChange={handleInputChange}
-                    className={`${inputClass}`}
+                    {...mergeThemeProps({}, {}, mergeThemeProps({"color":"gray","className":"w-full"}))}
                     style={{ paddingLeft: '36px' }}
                   />
-                </div>
-              </div>
+                </UiBox>
+              </UiBox>
 
-              <div className="relative group">
-                <label className={labelClass}>Margen de Ganancia (%)</label>
-                <div className="relative">
-                  <div className={iconContainerClass}><Percent size={16} /></div>
-                  <input
+              <UiBox {...{"className":"relative group"}}>
+                <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"})}>Margen de Ganancia (%)</UiLabel>
+                <UiBox {...{"className":"relative"}}>
+                  <UiBox {...mergeThemeProps({"style":{"color":"var(--gray-11)"},"className":"absolute left-3 top-1/2 -translate-y-1/2"})}><Percent size={16} /></UiBox>
+                  <UiInput
                     type="number"
                     name="marginPercentage"
                     min="0"
@@ -251,17 +296,17 @@ export default function ServiceCreationForm({
                     required
                     value={formData.marginPercentage}
                     onChange={handleInputChange}
-                    className={`${inputClass}`}
+                    {...mergeThemeProps({}, {}, mergeThemeProps({"color":"gray","className":"w-full"}))}
                     style={{ paddingLeft: '36px' }}
                   />
-                </div>
-              </div>
+                </UiBox>
+              </UiBox>
 
-              <div className="relative group">
-                <label className={labelClass}>Impuesto IVA (%)</label>
-                <div className="relative">
-                  <div className={iconContainerClass}><Percent size={16} /></div>
-                  <input
+              <UiBox {...{"className":"relative group"}}>
+                <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"})}>Impuesto IVA (%)</UiLabel>
+                <UiBox {...{"className":"relative"}}>
+                  <UiBox {...mergeThemeProps({"style":{"color":"var(--gray-11)"},"className":"absolute left-3 top-1/2 -translate-y-1/2"})}><Percent size={16} /></UiBox>
+                  <UiInput
                     type="number"
                     name="taxRate"
                     min="0"
@@ -269,56 +314,72 @@ export default function ServiceCreationForm({
                     required
                     value={formData.taxRate}
                     onChange={handleInputChange}
-                    className={`${inputClass}`}
+                    {...mergeThemeProps({}, {}, mergeThemeProps({"color":"gray","className":"w-full"}))}
                     style={{ paddingLeft: '36px' }}
                   />
-                </div>
-              </div>
-            </div>
+                </UiBox>
+              </UiBox>
+            </UiBox>
+
+            <UiBox {...{"className":"mt-5 grid grid-cols-1 md:grid-cols-4 gap-4"}}>
+              <UiBox>
+                <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"})}>Modo de precio</UiLabel>
+                <UiSelect name="tax_mode" value={formData.tax_mode} onChange={handleInputChange} {...mergeThemeProps({"color":"gray","className":"w-full"})}>
+                  <option value="EXCLUIDO">Precio sin IVA</option>
+                  <option value="INCLUIDO">Precio con IVA</option>
+                </UiSelect>
+              </UiBox>
+              {['A', 'B', 'C'].map(tier => (
+                <UiBox key={tier}>
+                  <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"})}>Precio {tier} {formData.tax_mode === 'INCLUIDO' ? 'con IVA' : 'sin IVA'}</UiLabel>
+                  <UiInput type="number" min="0" step="0.01" name={`price${tier}SinImpuesto`} value={formData[`price${tier}SinImpuesto`] || ''} onChange={handleInputChange} {...mergeThemeProps({"color":"gray","className":"w-full"})} placeholder="0.00" />
+                </UiBox>
+              ))}
+            </UiBox>
 
             {/* Resumen de Pricing Card */}
-            <div className={`mt-6 p-5 rounded-card border flex items-center justify-between bg-gradient-to-br from-primary/10 to-emerald-50 border-primary/25`}>
-              <div>
-                <p className={`text-xs font-bold uppercase tracking-wider mb-1 text-primary`}>
+            <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--gray-2)"},"className":"mt-6 p-5 flex items-center justify-between"})}>
+              <UiBox>
+                <UiText as="p" {...mergeThemeProps({"size":"1","weight":"bold","color":"blue","className":"mb-1"})}>
                   Precio Final del Servicio
-                </p>
-                <div className="flex items-baseline gap-2">
-                  <span className={`text-3xl font-semibold tracking-tight text-text-heading`}>
+                </UiText>
+                <UiBox {...{"className":"flex items-baseline gap-2"}}>
+                  <UiText {...mergeThemeProps({"size":"7","weight":"bold","color":"gray","highContrast":true})}>
                     ${finalPriceWithTax.toFixed(2)}
-                  </span>
-                  <span className={`text-xs font-medium text-text-secondary`}>
+                  </UiText>
+                  <UiText {...mergeThemeProps({"size":"1","weight":"medium","color":"gray"})}>
                     (Inc. IVA)
-                  </span>
-                </div>
-              </div>
-              <div className={`text-right text-xs font-medium space-y-1 text-text-secondary`}>
-                <p>Subtotal: ${calculatedSalePrice.toFixed(2)}</p>
-                <p>IVA ({formData.taxRate}%): ${(finalPriceWithTax - calculatedSalePrice).toFixed(2)}</p>
-                <p className="text-emerald-600">
+                  </UiText>
+                </UiBox>
+              </UiBox>
+              <UiBox {...mergeThemeProps({"style":{"color":"var(--gray-11)"},"className":"text-right space-y-1"})}>
+                <UiText as="p">Subtotal: ${calculatedSalePrice.toFixed(2)}</UiText>
+                <UiText as="p">IVA ({formData.taxRate}%): ${(finalPriceWithTax - calculatedSalePrice).toFixed(2)}</UiText>
+                <UiText as="p" {...{"color":"green"}}>
                   Margen Neto: ${(calculatedSalePrice - formData.baseCost).toFixed(2)}
-                </p>
-              </div>
-            </div>
-          </div>
+                </UiText>
+              </UiBox>
+            </UiBox>
+          </UiBox>
 
           {/* Submit Button */}
-          <div className="pt-4 flex justify-end gap-4">
-            <button
+          <UiBox {...{"className":"pt-4 flex justify-end gap-4"}}>
+            <UiButton
               type="button"
               onClick={onClose}
               disabled={loading}
-              className={`px-6 py-2.5 rounded-card font-bold transition-all text-sm bg-surface-muted hover:bg-surface-muted text-text-primary`}
+              {...mergeThemeProps({"size":"2","variant":"soft","color":"gray"})}
             >
               Cancelar
-            </button>
-            <button
+            </UiButton>
+            <UiButton
               type="submit"
               disabled={loading}
-              className="px-8 py-2.5 rounded-card font-bold transition-all text-sm bg-primary hover:bg-primary text-white flex items-center gap-2 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+              {...{"size":"2","variant":"solid","color":"blue","className":"flex items-center gap-2 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"}}
             >
               {loading ? (
                 <>
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <UiBox {...{"style":{"border":"1px solid var(--gray-a6)","borderRadius":"var(--radius-3)"},"className":"w-5 h-5 animate-spin"}} />
                   Guardando...
                 </>
               ) : (
@@ -327,10 +388,10 @@ export default function ServiceCreationForm({
                   Guardar Servicio
                 </>
               )}
-            </button>
-          </div>
+            </UiButton>
+          </UiBox>
         </form>
-      </div>
+      </UiBox>
     );
 
     if (isInline) {
@@ -338,8 +399,8 @@ export default function ServiceCreationForm({
     }
 
     return (
-      <div className={`fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-black/40 animate-in fade-in duration-300`}>
+      <UiBox {...mergeThemeProps({"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-300"})}>
         {formJSX}
-      </div>
+      </UiBox>
     );
 }

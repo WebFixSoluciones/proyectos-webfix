@@ -1,101 +1,11 @@
-import * as React from "react";
-import { cn } from "../../lib/utils";
-
-const Table = React.forwardRef(({ className, ...props }, ref) => (
-  <div className="relative w-full overflow-auto rounded-md border border-border-default bg-white">
-    <table
-      ref={ref}
-      className={cn("w-full caption-bottom text-xs", className)}
-      {...props}
-    />
-  </div>
-));
-Table.displayName = "Table";
-
-const TableHeader = React.forwardRef(({ className, ...props }, ref) => (
-  <thead
-    ref={ref}
-    className={cn("[&_tr]:border-b border-border-default bg-surface-sidebar", className)}
-    {...props}
-  />
-));
-TableHeader.displayName = "TableHeader";
-
-const TableBody = React.forwardRef(({ className, ...props }, ref) => (
-  <tbody
-    ref={ref}
-    className={cn("[&_tr:last-child]:border-0", className)}
-    {...props}
-  />
-));
-TableBody.displayName = "TableBody";
-
-const TableFooter = React.forwardRef(({ className, ...props }, ref) => (
-  <tfoot
-    ref={ref}
-    className={cn(
-      "border-t border-border-default bg-surface-sidebar/50 font-medium [&>tr]:last:border-b-0",
-      className
-    )}
-    {...props}
-  />
-));
-TableFooter.displayName = "TableFooter";
-
-const TableRow = React.forwardRef(({ className, ...props }, ref) => (
-  <tr
-    ref={ref}
-    className={cn(
-      "border-b border-border-default transition-colors hover:bg-surface-sidebar data-[state=selected]:bg-surface-sidebar",
-      className
-    )}
-    {...props}
-  />
-));
-TableRow.displayName = "TableRow";
-
-const TableHead = React.forwardRef(({ className, ...props }, ref) => (
-  <th
-    ref={ref}
-    className={cn(
-      "h-9 px-3 text-left align-middle text-xs font-semibold uppercase tracking-wider text-text-secondary [&:has([role=checkbox])]:pr-0",
-      className
-    )}
-    {...props}
-  />
-));
-TableHead.displayName = "TableHead";
-
-const TableCell = React.forwardRef(({ className, mono, ...props }, ref) => (
-  <td
-    ref={ref}
-    className={cn(
-      "p-3 align-middle text-xs text-text-primary [&:has([role=checkbox])]:pr-0",
-      mono && "font-mono text-xs",
-      className
-    )}
-    {...props}
-  />
-));
-TableCell.displayName = "TableCell";
-
-const TableCaption = React.forwardRef(({ className, ...props }, ref) => (
-  <caption
-    ref={ref}
-    className={cn("mt-4 text-xs text-text-muted", className)}
-    {...props}
-  />
-));
-TableCaption.displayName = "TableCaption";
-
-export {
-  Table,
-  TableHeader,
-  TableBody,
-  TableFooter,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableCaption,
-};
+import { forwardRef } from 'react';
+import { Table as RadixTable } from '@radix-ui/themes';
+export const Table = forwardRef(function Table(props, ref) { return <RadixTable.Root ref={ref} size="2" variant="surface" {...props} />; });
+export const TableHeader = forwardRef(function TableHeader(props, ref) { return <RadixTable.Header ref={ref} {...props} />; });
+export const TableBody = forwardRef(function TableBody(props, ref) { return <RadixTable.Body ref={ref} {...props} />; });
+export const TableRow = forwardRef(function TableRow(props, ref) { return <RadixTable.Row ref={ref} {...props} />; });
+export const TableHead = forwardRef(function TableHead(props, ref) { return <RadixTable.ColumnHeaderCell ref={ref} {...props} />; });
+export const TableCell = forwardRef(function TableCell({ mono, style, ...props }, ref) { return <RadixTable.Cell ref={ref} style={{ ...(mono ? { fontFamily: 'var(--code-font-family)' } : {}), ...style }} {...props} />; });
+export const TableFooter = forwardRef(function TableFooter(props, ref) { return <tfoot ref={ref} {...props} />; });
+export const TableCaption = forwardRef(function TableCaption(props, ref) { return <caption ref={ref} {...props} />; });
 export default Table;

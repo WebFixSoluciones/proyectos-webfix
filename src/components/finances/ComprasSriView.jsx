@@ -1,10 +1,13 @@
+import { mergeThemeProps } from '../ui/themeProps';
+import { UiBox, UiHeading, UiCard, UiText, UiLabel } from '../ui/layout';
+import { UiButton, UiInput, UiSelect, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell } from '../ui/controls';
 import { useState, useEffect } from 'react';
 import { 
   Download, CheckCircle2, AlertTriangle, FileText, RefreshCw, 
   Eye, Search, X, Plus, Trash2, Upload,
   Package, FileCheck, ArrowRight
 } from 'lucide-react';
-import { doc, setDoc, getDoc, getDocs, collection, deleteDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, getDocs, collection, deleteDoc } from '../../services/financeStore.js';
 import { getEcuadorDateString } from '../../services/sriService';
 import { registrarMovimientoKardex } from '../../services/inventoryService';
 import { sincronizarCompra } from '../../services/integracionFinanzasService';
@@ -498,10 +501,10 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
   };
 
   // Helpers
-  const inputClass = "w-full text-sm px-3 py-2 rounded-md border outline-none bg-white border-border-default text-black focus:border-[var(--primary-color)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--primary-color)_15%,transparent)] transition-all";
-  const labelClass = "block text-xs font-semibold mb-1.5 text-black";
+  
+  
   // eslint-disable-next-line no-unused-vars
-  const badgeClass = (status) => `inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold ${status === 'Importado' || status === 'Nuevo' && !status ? 'bg-status-authorized-bg text-status-authorized-text' : 'bg-status-pending-bg text-status-pending-text'}`;
+  const badgeClass = (status) => `inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold ${status === 'Importado' || status === 'Nuevo' && !status ? {"style":{"backgroundColor":"var(--green-3)","color":"var(--green-11)"}} : {"style":{"backgroundColor":"var(--amber-3)","color":"var(--amber-11)"}}}`;
 
   const filteredSuppliers = thirdParties.filter(t => 
     supplierSearch ? (t.name?.toLowerCase().includes(supplierSearch.toLowerCase()) || t.ruc?.includes(supplierSearch)) : true
@@ -512,461 +515,461 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
   ).slice(0, 10);
 
   return (
-    <div className="space-y-4">
+    <UiBox {...{"className":"space-y-4"}}>
       {/* Header + Tabs */}
-      <div className="flex items-center gap-4 flex-wrap">
-        <h2 className="text-md font-semibold text-black">Comprobantes SRI</h2>
-        <div className="flex rounded-md border border-border-default overflow-hidden">
-          <button onClick={() => setActiveSection('sri')} className={`px-4 py-1.5 text-sm font-medium transition-all ${activeSection === 'sri' ? 'bg-[var(--primary-color)] text-white' : 'bg-white text-black hover:bg-surface-bg'}`}>Buzon SRI</button>
-          <button onClick={() => setActiveSection('manual')} className={`px-4 py-1.5 text-sm font-medium transition-all ${activeSection === 'manual' ? 'bg-[var(--primary-color)] text-white' : 'bg-white text-black hover:bg-surface-bg'}`}>Registro Manual</button>
-        </div>
-      </div>
+      <UiBox {...{"className":"flex items-center gap-4 flex-wrap"}}>
+        <UiHeading as="h2" {...{"color":"gray","weight":"bold","highContrast":true}}>Comprobantes SRI</UiHeading>
+        <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"flex overflow-hidden"}}>
+          <UiButton onClick={() => setActiveSection('sri')} {...mergeThemeProps({"size":"2"}, {}, (activeSection === 'sri' ? {"variant":"solid","color":"gray"} : {"variant":"surface","color":"gray"}))}>Buzon SRI</UiButton>
+          <UiButton onClick={() => setActiveSection('manual')} {...mergeThemeProps({"size":"2"}, {}, (activeSection === 'manual' ? {"variant":"solid","color":"gray"} : {"variant":"surface","color":"gray"}))}>Registro Manual</UiButton>
+        </UiBox>
+      </UiBox>
 
       {/* ============ SECTION A: BUZON SRI ============ */}
       {activeSection === 'sri' && (
         <>
           {!companyRuc && (
-            <div className="p-4 rounded-md bg-surface-card border border-border-default text-base text-text-secondary flex items-center gap-2">
+            <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-11)"},"className":"p-4 flex items-center gap-2"}}>
               <AlertTriangle size={16} /> Configura el RUC de tu empresa en Ajustes para consultar el buzon SRI.
-            </div>
+            </UiCard>
           )}
 
-          <div className="flex items-center gap-3 flex-wrap">
-            <button onClick={handleFetchSriBills} disabled={loading || !companyRuc} className="btn-primary">
-              <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
-              <span>{loading ? 'Consultando...' : 'Consultar SRI'}</span>
-            </button>
-            <label className="flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium bg-white border border-border-default text-black hover:bg-surface-bg cursor-pointer transition-all">
+          <UiBox {...{"className":"flex items-center gap-3 flex-wrap"}}>
+            <UiButton onClick={handleFetchSriBills} disabled={loading || !companyRuc} {...{"variant":"solid","color":"blue"}}>
+              <RefreshCw size={14} {...(loading ? {"className":"animate-spin"} : {})} />
+              <UiText>{loading ? 'Consultando...' : 'Consultar SRI'}</UiText>
+            </UiButton>
+            <UiLabel {...{"size":"2","weight":"medium","color":"gray","highContrast":true,"className":"flex items-center gap-1.5 px-3 py-2 cursor-pointer"}}>
               <Upload size={14} />
-              <span>Subir XML</span>
-              <input type="file" accept=".xml" onChange={handleXmlUpload} className="hidden" />
-            </label>
-            <div className="relative flex-1 min-w-[200px] max-w-xs">
-              <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-primary" />
-              <input value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Buscar..." className={`${inputClass} pl-8`} />
-              {searchTerm && <button onClick={() => setSearchTerm('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-text-secondary hover:text-black"><X size={12} /></button>}
-            </div>
-            <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="text-xs font-medium px-2 py-1.5 rounded-md border border-border-default bg-white text-black">
+              <UiText>Subir XML</UiText>
+              <UiInput type="file" accept=".xml" onChange={handleXmlUpload} {...{"className":"hidden"}} />
+            </UiLabel>
+            <UiBox {...{"className":"relative flex-1 min-w-[200px] max-w-xs"}}>
+              <Search size={12} {...{"style":{"color":"var(--gray-12)"},"className":"absolute left-2.5 top-1/2 -translate-y-1/2"}} />
+              <UiInput value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Buscar..." {...mergeThemeProps({}, {}, {"size":"2","color":"gray","className":"w-full"})} />
+              {searchTerm && <UiButton iconOnly onClick={() => setSearchTerm('')} {...{"color":"gray","className":"absolute right-2 top-1/2 -translate-y-1/2"}}><X size={12} /></UiButton>}
+            </UiBox>
+            <UiSelect value={filterStatus} onChange={e => setFilterStatus(e.target.value)} {...{"size":"2","color":"gray"}}>
               <option value="all">Todos ({sriBills.length})</option><option value="nuevo">Pendientes ({sriBills.filter(b => !isBillImported(b)).length})</option><option value="importado">Ya en Compras ({sriBills.filter(b => isBillImported(b)).length})</option>
-            </select>
-            <select value={filterType} onChange={e => setFilterType(e.target.value)} className="text-xs font-medium px-2 py-1.5 rounded-md border border-border-default bg-white text-black">
+            </UiSelect>
+            <UiSelect value={filterType} onChange={e => setFilterType(e.target.value)} {...{"size":"2","color":"gray"}}>
               <option value="all">Todos los tipos</option><option value="factura">Facturas</option><option value="nota_credito">Notas de Credito</option><option value="retencion">Retenciones</option>
-            </select>
-            <div className="flex items-center gap-1.5">
-              <input type="date" value={filterDateFrom} onChange={e => setFilterDateFrom(e.target.value)} className="text-xs px-2 py-1.5 rounded-md border border-border-default bg-white text-black w-[130px]" placeholder="Desde" />
-              <span className="text-xs text-text-primary">a</span>
-              <input type="date" value={filterDateTo} onChange={e => setFilterDateTo(e.target.value)} className="text-xs px-2 py-1.5 rounded-md border border-border-default bg-white text-black w-[130px]" placeholder="Hasta" />
-            </div>
+            </UiSelect>
+            <UiBox {...{"className":"flex items-center gap-1.5"}}>
+              <UiInput type="date" value={filterDateFrom} onChange={e => setFilterDateFrom(e.target.value)} {...{"size":"2","color":"gray","className":"w-[130px]"}} placeholder="Desde" />
+              <UiText {...{"size":"1","color":"gray","highContrast":true}}>a</UiText>
+              <UiInput type="date" value={filterDateTo} onChange={e => setFilterDateTo(e.target.value)} {...{"size":"2","color":"gray","className":"w-[130px]"}} placeholder="Hasta" />
+            </UiBox>
             {sriBills.length > 0 && (
-              <button onClick={() => setConfirmClear(true)} disabled={loading} className="flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs font-medium bg-white border border-border-default text-text-secondary hover:bg-surface-card transition-all">
+              <UiButton onClick={() => setConfirmClear(true)} disabled={loading} {...{"size":"2","variant":"surface","color":"gray","className":"flex items-center gap-1"}}>
                 <Trash2 size={12} /> Limpiar Buzon
-              </button>
+              </UiButton>
             )}
-          </div>
+          </UiBox>
 
           {/* Summary bar */}
           {sriBills.length > 0 && (
-            <div className="flex items-center gap-4 text-xs text-text-primary flex-wrap">
-              <span><strong className="text-black">{filteredBills.length}</strong> de <strong className="text-black">{sriBills.length}</strong> comprobantes</span>
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-surface-card border border-border-default"></span> {sriBills.filter(b => isBillImported(b)).length} ya en compras</span>
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-surface-card border border-border-default"></span> {sriBills.filter(b => !isBillImported(b)).length} pendientes</span>
-            </div>
+            <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"flex items-center gap-4 flex-wrap"}}>
+              <UiText><strong {...{"style":{"color":"var(--gray-12)"}}}>{filteredBills.length}</strong> de <strong {...{"style":{"color":"var(--gray-12)"}}}>{sriBills.length}</strong> comprobantes</UiText>
+              <UiText {...{"className":"flex items-center gap-1"}}><UiText {...{"className":"w-2 h-2"}}></UiText> {sriBills.filter(b => isBillImported(b)).length} ya en compras</UiText>
+              <UiText {...{"className":"flex items-center gap-1"}}><UiText {...{"className":"w-2 h-2"}}></UiText> {sriBills.filter(b => !isBillImported(b)).length} pendientes</UiText>
+            </UiBox>
           )}
 
           {/* SRI Table */}
-          <div className="rounded-md border border-border-default overflow-hidden bg-white">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr>
-                    <th className="text-xs font-semibold text-black">Tipo</th>
-                    <th className="text-xs font-semibold text-black">Fecha</th>
-                    <th className="text-xs font-semibold text-black">Proveedor</th>
-                    <th className="text-xs font-semibold text-black">Nro Doc</th>
-                    <th className="text-xs font-semibold text-black text-right hidden sm:table-cell">Base</th>
-                    <th className="text-xs font-semibold text-black text-right hidden sm:table-cell">IVA</th>
-                    <th className="text-xs font-semibold text-black text-right">Total</th>
-                    <th className="text-xs font-semibold text-black">Estado</th>
-                    <th className="text-xs font-semibold text-black text-center">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
+          <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"overflow-hidden"}}>
+            <UiBox {...{"className":"overflow-x-auto"}}>
+              <UiTable {...{"className":"w-full text-left"}}>
+                <UiTableHeader>
+                  <UiTableRow>
+                    <UiTableHead {...{"style":{"color":"var(--gray-12)"}}}>Tipo</UiTableHead>
+                    <UiTableHead {...{"style":{"color":"var(--gray-12)"}}}>Fecha</UiTableHead>
+                    <UiTableHead {...{"style":{"color":"var(--gray-12)"}}}>Proveedor</UiTableHead>
+                    <UiTableHead {...{"style":{"color":"var(--gray-12)"}}}>Nro Doc</UiTableHead>
+                    <UiTableHead {...{"style":{"color":"var(--gray-12)"},"className":"text-right hidden sm:table-cell"}}>Base</UiTableHead>
+                    <UiTableHead {...{"style":{"color":"var(--gray-12)"},"className":"text-right hidden sm:table-cell"}}>IVA</UiTableHead>
+                    <UiTableHead {...{"style":{"color":"var(--gray-12)"},"className":"text-right"}}>Total</UiTableHead>
+                    <UiTableHead {...{"style":{"color":"var(--gray-12)"}}}>Estado</UiTableHead>
+                    <UiTableHead {...{"style":{"color":"var(--gray-12)"},"className":"text-center"}}>Acciones</UiTableHead>
+                  </UiTableRow>
+                </UiTableHeader>
+                <UiTableBody>
                   {filteredBills.length === 0 && !loading ? (
-                    <tr><td colSpan={9} className="text-center py-10">
-                      <div className="max-w-sm mx-auto space-y-3">
-                        <Download size={32} className="mx-auto text-text-secondary" />
-                        <p className="text-base font-semibold text-black">Buzon SRI vacio</p>
-                        <p className="text-xs text-text-primary">No tienes comprobantes electronicos sincronizados. Para empezar:</p>
-                        <div className="text-left space-y-1.5 text-xs text-text-primary">
-                          <p>1. Haz clic en <strong>"Consultar SRI"</strong> para extraer tus comprobantes del buzon electronico.</p>
-                          <p>2. O sube manualmente tus archivos <strong>XML</strong> descargados del portal SRI.</p>
-                          <p>3. Luego importa cada comprobante a tu <strong>Historial de Compras</strong>.</p>
-                        </div>
-                        <label className="btn-primary cursor-pointer">
+                    <UiTableRow><UiTableCell colSpan={9} {...{"className":"text-center py-10"}}>
+                      <UiBox {...{"className":"max-w-sm mx-auto space-y-3"}}>
+                        <Download size={32} {...{"style":{"color":"var(--gray-11)"},"className":"mx-auto"}} />
+                        <UiText as="p" {...{"size":"3","weight":"bold","color":"gray","highContrast":true}}>Buzon SRI vacio</UiText>
+                        <UiText as="p" {...{"size":"1","color":"gray","highContrast":true}}>No tienes comprobantes electronicos sincronizados. Para empezar:</UiText>
+                        <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"text-left space-y-1.5"}}>
+                          <UiText as="p">1. Haz clic en <strong>"Consultar SRI"</strong> para extraer tus comprobantes del buzon electronico.</UiText>
+                          <UiText as="p">2. O sube manualmente tus archivos <strong>XML</strong> descargados del portal SRI.</UiText>
+                          <UiText as="p">3. Luego importa cada comprobante a tu <strong>Historial de Compras</strong>.</UiText>
+                        </UiBox>
+                        <UiLabel {...{"variant":"solid","color":"blue","className":"cursor-pointer"}}>
                           <Upload size={14} />
-                          <span>Subir primer XML</span>
-                          <input type="file" accept=".xml" onChange={handleXmlUpload} className="hidden" />
-                        </label>
-                      </div>
-                    </td></tr>
+                          <UiText>Subir primer XML</UiText>
+                          <UiInput type="file" accept=".xml" onChange={handleXmlUpload} {...{"className":"hidden"}} />
+                        </UiLabel>
+                      </UiBox>
+                    </UiTableCell></UiTableRow>
                   ) : loading ? (
-                    <tr><td colSpan={9} className="text-center py-10 text-text-primary text-sm">Cargando comprobantes...</td></tr>
+                    <UiTableRow><UiTableCell colSpan={9} {...{"style":{"color":"var(--gray-12)"},"className":"text-center py-10"}}>Cargando comprobantes...</UiTableCell></UiTableRow>
                   ) : filteredBills.map(bill => {
                     const imported = isBillImported(bill);
                     return (
-                      <tr key={bill.id} className={`${imported ? 'bg-surface-card' : ''} hover:bg-surface-bg`}>
-                        <td className="text-sm">
-                          <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-semibold ${bill.tipoComprobante === 'nota_credito' ? 'bg-status-rejected-bg text-status-rejected-text' : bill.tipoComprobante === 'retencion' ? 'bg-status-pending-bg text-status-pending-text' : 'bg-surface-card text-text-secondary'}`}>
+                      <UiTableRow key={bill.id} {...mergeThemeProps({}, {}, (imported ? {"style":{"backgroundColor":"var(--color-panel-solid)"}} : {}))}>
+                        <UiTableCell {...{}}>
+                          <UiText {...mergeThemeProps({"size":"1","weight":"bold","className":"inline-flex items-center gap-1 px-1.5 py-0.5"}, {}, (bill.tipoComprobante === 'nota_credito' ? {"color":"gray"} : (bill.tipoComprobante === 'retencion' ? {"color":"gray"} : {"color":"gray"})))}>
                             {bill.tipoComprobante === 'nota_credito' ? 'NC' : bill.tipoComprobante === 'retencion' ? 'RET' : 'FAC'}
-                          </span>
-                        </td>
-                        <td className="text-sm text-black">{bill.date}</td>
-                        <td className="text-sm">
-                          <div className="font-medium text-black">{bill.razonSocial}</div>
-                          <div className="text-xs text-text-primary">{bill.ruc}</div>
-                        </td>
-                        <td className="text-sm font-mono text-black">{bill.documentNumber}</td>
-                        <td className="text-sm text-right font-mono text-black hidden sm:table-cell">${(bill.baseImponible || 0).toFixed(2)}</td>
-                        <td className="text-sm text-right font-mono text-black hidden sm:table-cell">${(bill.ivaValor || 0).toFixed(2)}</td>
-                        <td className="text-sm text-right font-bold text-black">${(bill.total || 0).toFixed(2)}</td>
-                        <td>
-                          <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-semibold ${imported ? 'bg-status-authorized-bg text-status-authorized-text border border-border-default' : 'bg-status-pending-bg text-status-pending-text border border-border-default'}`}>
+                          </UiText>
+                        </UiTableCell>
+                        <UiTableCell {...{"style":{"color":"var(--gray-12)"}}}>{bill.date}</UiTableCell>
+                        <UiTableCell {...{}}>
+                          <UiBox {...{"style":{"color":"var(--gray-12)"}}}>{bill.razonSocial}</UiBox>
+                          <UiBox {...{"style":{"color":"var(--gray-12)"}}}>{bill.ruc}</UiBox>
+                        </UiTableCell>
+                        <UiTableCell {...{"style":{"fontFamily":"var(--code-font-family)","color":"var(--gray-12)"}}}>{bill.documentNumber}</UiTableCell>
+                        <UiTableCell {...{"style":{"fontFamily":"var(--code-font-family)","color":"var(--gray-12)"},"className":"text-right hidden sm:table-cell"}}>${(bill.baseImponible || 0).toFixed(2)}</UiTableCell>
+                        <UiTableCell {...{"style":{"fontFamily":"var(--code-font-family)","color":"var(--gray-12)"},"className":"text-right hidden sm:table-cell"}}>${(bill.ivaValor || 0).toFixed(2)}</UiTableCell>
+                        <UiTableCell {...{"style":{"color":"var(--gray-12)"},"className":"text-right"}}>${(bill.total || 0).toFixed(2)}</UiTableCell>
+                        <UiTableCell>
+                          <UiText {...mergeThemeProps({"size":"1","weight":"bold","className":"inline-flex items-center gap-1 px-1.5 py-0.5"}, {}, (imported ? {"color":"gray"} : {"color":"gray"}))}>
                             {imported ? <CheckCircle2 size={10} /> : <AlertTriangle size={10} />}
                             {imported ? 'Ya en Compras' : 'Pendiente'}
-                          </span>
-                        </td>
-                        <td>
-                          <div className="flex items-center justify-center gap-1">
-                            <button onClick={() => handleViewRide(bill)} className="btn-icon text-text-secondary" title="Ver RIDE"><Eye size={13} /></button>
-                            <button onClick={() => handleDownloadXml(bill)} className="btn-icon text-text-secondary" title="Descargar XML"><Download size={13} /></button>
+                          </UiText>
+                        </UiTableCell>
+                        <UiTableCell>
+                          <UiBox {...{"className":"flex items-center justify-center gap-1"}}>
+                            <UiButton iconOnly onClick={() => handleViewRide(bill)} {...{"variant":"surface","color":"gray"}} title="Ver RIDE"><Eye size={13} /></UiButton>
+                            <UiButton iconOnly onClick={() => handleDownloadXml(bill)} {...{"variant":"surface","color":"gray"}} title="Descargar XML"><Download size={13} /></UiButton>
                             {!imported && (
-                              <button onClick={() => handleOpenImport(bill)} className="btn-icon bg-primary" title="Importar a Compras"><ArrowRight size={13} /></button>
+                              <UiButton iconOnly onClick={() => handleOpenImport(bill)} {...{"variant":"solid","color":"blue"}} title="Importar a Compras"><ArrowRight size={13} /></UiButton>
                             )}
-                            <button onClick={() => setConfirmDeleteId(bill.id)} className="btn-icon text-red-500" title="Eliminar del buzon"><Trash2 size={13} /></button>
-                          </div>
-                        </td>
-                      </tr>
+                            <UiButton iconOnly onClick={() => setConfirmDeleteId(bill.id)} {...{"variant":"surface","color":"red"}} title="Eliminar del buzon"><Trash2 size={13} /></UiButton>
+                          </UiBox>
+                        </UiTableCell>
+                      </UiTableRow>
                     );
                   })}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                </UiTableBody>
+              </UiTable>
+            </UiBox>
+          </UiBox>
         </>
       )}
 
       {/* ============ SECTION B: REGISTRO MANUAL ============ */}
       {activeSection === 'manual' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <UiBox {...{"className":"grid grid-cols-1 lg:grid-cols-3 gap-4"}}>
           {/* Left: Form */}
-          <div className="lg:col-span-2 space-y-4">
+          <UiBox {...{"className":"lg:col-span-2 space-y-4"}}>
             {/* Method selector */}
-            <div className="p-4 rounded-md border border-border-default bg-white space-y-3">
-              <label className={labelClass}>Tipo de registro</label>
-              <div className="flex gap-2">
-                <button onClick={() => setManualForm(prev => ({ ...prev, type: 'con_inventario' }))} className={`flex-1 p-3 rounded-md border text-left transition-all ${manualForm.type === 'con_inventario' ? 'border-[var(--primary-color)] bg-[color-mix(in_srgb,var(--primary-color)_6%,transparent)]' : 'border-border-default hover:bg-surface-bg'}`}>
-                  <div className="flex items-center gap-2 mb-1"><Package size={16} className="text-[var(--primary-color)]" /><span className="text-base font-semibold text-black">Con Movimiento de Inventario</span></div>
-                  <p className="text-xs text-text-primary">Actualiza stock y kardex con promedio ponderado. Ideal para compras de productos fisicos.</p>
-                </button>
-                <button onClick={() => setManualForm(prev => ({ ...prev, type: 'sin_inventario' }))} className={`flex-1 p-3 rounded-md border text-left transition-all ${manualForm.type === 'sin_inventario' ? 'border-[var(--primary-color)] bg-[color-mix(in_srgb,var(--primary-color)_6%,transparent)]' : 'border-border-default hover:bg-surface-bg'}`}>
-                  <div className="flex items-center gap-2 mb-1"><FileText size={16} className="text-[var(--primary-color)]" /><span className="text-base font-semibold text-black">Sin Movimiento de Inventario</span></div>
-                  <p className="text-xs text-text-primary">Solo registro contable. Para gastos, servicios o compras informales sin items.</p>
-                </button>
-              </div>
-            </div>
+            <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4 space-y-3"}}>
+              <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5"}}>Tipo de registro</UiLabel>
+              <UiBox {...{"className":"flex gap-2"}}>
+                <UiButton onClick={() => setManualForm(prev => ({ ...prev, type: 'con_inventario' }))} {...mergeThemeProps({"variant":"outline","className":"flex-1 text-left"}, {}, (manualForm.type === 'con_inventario' ? {"variant":"solid","color":"gray"} : {}))}>
+                  <UiBox {...{"className":"flex items-center gap-2 mb-1"}}><Package size={16} {...{}} /><UiText {...{"size":"3","weight":"bold","color":"gray","highContrast":true}}>Con Movimiento de Inventario</UiText></UiBox>
+                  <UiText as="p" {...{"size":"1","color":"gray","highContrast":true}}>Actualiza stock y kardex con promedio ponderado. Ideal para compras de productos fisicos.</UiText>
+                </UiButton>
+                <UiButton onClick={() => setManualForm(prev => ({ ...prev, type: 'sin_inventario' }))} {...mergeThemeProps({"variant":"outline","className":"flex-1 text-left"}, {}, (manualForm.type === 'sin_inventario' ? {"variant":"solid","color":"gray"} : {}))}>
+                  <UiBox {...{"className":"flex items-center gap-2 mb-1"}}><FileText size={16} {...{}} /><UiText {...{"size":"3","weight":"bold","color":"gray","highContrast":true}}>Sin Movimiento de Inventario</UiText></UiBox>
+                  <UiText as="p" {...{"size":"1","color":"gray","highContrast":true}}>Solo registro contable. Para gastos, servicios o compras informales sin items.</UiText>
+                </UiButton>
+              </UiBox>
+            </UiCard>
 
             {/* Supplier + Document Info */}
-            <div className="p-4 rounded-md border border-border-default bg-white space-y-3">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className={labelClass}>Proveedor</label>
-                  <div className="relative">
-                    <input value={manualForm.supplierName} onFocus={() => setShowSupplierSearch(true)} onBlur={() => setTimeout(() => setShowSupplierSearch(false), 200)} onChange={e => { setManualForm(prev => ({ ...prev, supplierName: e.target.value })); setSupplierSearch(e.target.value); setShowSupplierSearch(true); }} placeholder="Buscar o escribir proveedor..." className={inputClass} />
+            <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4 space-y-3"}}>
+              <UiBox {...{"className":"grid grid-cols-1 sm:grid-cols-2 gap-3"}}>
+                <UiBox>
+                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5"}}>Proveedor</UiLabel>
+                  <UiBox {...{"className":"relative"}}>
+                    <UiInput value={manualForm.supplierName} onFocus={() => setShowSupplierSearch(true)} onBlur={() => setTimeout(() => setShowSupplierSearch(false), 200)} onChange={e => { setManualForm(prev => ({ ...prev, supplierName: e.target.value })); setSupplierSearch(e.target.value); setShowSupplierSearch(true); }} placeholder="Buscar o escribir proveedor..." {...{"size":"2","color":"gray","className":"w-full"}} />
                     {showSupplierSearch && filteredSuppliers.length > 0 && (
-                      <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-border-default rounded-md max-h-40 overflow-y-auto">
+                      <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)","borderRadius":"var(--radius-3)"},"className":"absolute z-20 top-full left-0 right-0 mt-1 max-h-40 overflow-y-auto"}}>
                         {filteredSuppliers.map(t => (
-                          <button key={t.id} type="button" onMouseDown={() => { setManualForm(prev => ({ ...prev, supplierId: t.id, supplierName: t.name, supplierRuc: t.ruc || '' })); setShowSupplierSearch(false); setSupplierSearch(''); }} className="w-full text-left px-3 py-2 text-sm hover:bg-surface-bg text-black">
-                            <div className="font-medium">{t.name}</div>
-                            {t.ruc && <div className="text-xs text-text-primary">{t.ruc}</div>}
-                          </button>
+                          <UiButton key={t.id} type="button" onMouseDown={() => { setManualForm(prev => ({ ...prev, supplierId: t.id, supplierName: t.name, supplierRuc: t.ruc || '' })); setShowSupplierSearch(false); setSupplierSearch(''); }} {...{"size":"2","color":"gray","className":"w-full text-left"}}>
+                            <UiBox {...{}}>{t.name}</UiBox>
+                            {t.ruc && <UiBox {...{"style":{"color":"var(--gray-12)"}}}>{t.ruc}</UiBox>}
+                          </UiButton>
                         ))}
-                      </div>
+                      </UiBox>
                     )}
-                  </div>
-                </div>
-                <div>
-                  <label className={labelClass}>RUC Proveedor</label>
-                  <input value={manualForm.supplierRuc} onChange={e => setManualForm(prev => ({ ...prev, supplierRuc: e.target.value }))} className={inputClass} />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div>
-                  <label className={labelClass}>Tipo Documento</label>
-                  <select value={manualForm.documentType} onChange={e => setManualForm(prev => ({ ...prev, documentType: e.target.value }))} className={inputClass}>
+                  </UiBox>
+                </UiBox>
+                <UiBox>
+                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5"}}>RUC Proveedor</UiLabel>
+                  <UiInput value={manualForm.supplierRuc} onChange={e => setManualForm(prev => ({ ...prev, supplierRuc: e.target.value }))} {...{"size":"2","color":"gray","className":"w-full"}} />
+                </UiBox>
+              </UiBox>
+              <UiBox {...{"className":"grid grid-cols-2 sm:grid-cols-4 gap-3"}}>
+                <UiBox>
+                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5"}}>Tipo Documento</UiLabel>
+                  <UiSelect value={manualForm.documentType} onChange={e => setManualForm(prev => ({ ...prev, documentType: e.target.value }))} {...{"size":"2","color":"gray","className":"w-full"}}>
                     <option value="factura">Factura</option><option value="nota_venta">Nota de Venta</option><option value="liquidacion">Liquidacion</option>
-                  </select>
-                </div>
-                <div>
-                  <label className={labelClass}>Nro Documento</label>
-                  <input value={manualForm.documentNumber} onChange={e => setManualForm(prev => ({ ...prev, documentNumber: e.target.value }))} className={inputClass} />
-                </div>
-                <div>
-                  <label className={labelClass}>Fecha</label>
-                  <input type="date" value={manualForm.date} onChange={e => setManualForm(prev => ({ ...prev, date: e.target.value }))} className={inputClass} />
-                </div>
-                <div>
-                  <label className={labelClass}>Bodega</label>
-                  <select value={manualForm.bodega} onChange={e => setManualForm(prev => ({ ...prev, bodega: e.target.value }))} className={inputClass}>
+                  </UiSelect>
+                </UiBox>
+                <UiBox>
+                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5"}}>Nro Documento</UiLabel>
+                  <UiInput value={manualForm.documentNumber} onChange={e => setManualForm(prev => ({ ...prev, documentNumber: e.target.value }))} {...{"size":"2","color":"gray","className":"w-full"}} />
+                </UiBox>
+                <UiBox>
+                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5"}}>Fecha</UiLabel>
+                  <UiInput type="date" value={manualForm.date} onChange={e => setManualForm(prev => ({ ...prev, date: e.target.value }))} {...{"size":"2","color":"gray","className":"w-full"}} />
+                </UiBox>
+                <UiBox>
+                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5"}}>Bodega</UiLabel>
+                  <UiSelect value={manualForm.bodega} onChange={e => setManualForm(prev => ({ ...prev, bodega: e.target.value }))} {...{"size":"2","color":"gray","className":"w-full"}}>
                     {branches.map(b => <option key={b.id} value={b.name}>{b.name}</option>)}
-                  </select>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className={labelClass}>Clave de Acceso SRI (opcional)</label>
-                  <input value={manualForm.claveAcceso} onChange={e => setManualForm(prev => ({ ...prev, claveAcceso: e.target.value }))} className={inputClass} placeholder="49 digitos" />
-                </div>
-                <div>
-                  <label className={labelClass}>Referencia / Descripcion</label>
-                  <input value={manualForm.description} onChange={e => setManualForm(prev => ({ ...prev, description: e.target.value }))} className={inputClass} />
-                </div>
-              </div>
-            </div>
+                  </UiSelect>
+                </UiBox>
+              </UiBox>
+              <UiBox {...{"className":"grid grid-cols-1 sm:grid-cols-2 gap-3"}}>
+                <UiBox>
+                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5"}}>Clave de Acceso SRI (opcional)</UiLabel>
+                  <UiInput value={manualForm.claveAcceso} onChange={e => setManualForm(prev => ({ ...prev, claveAcceso: e.target.value }))} {...{"size":"2","color":"gray","className":"w-full"}} placeholder="49 digitos" />
+                </UiBox>
+                <UiBox>
+                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5"}}>Referencia / Descripcion</UiLabel>
+                  <UiInput value={manualForm.description} onChange={e => setManualForm(prev => ({ ...prev, description: e.target.value }))} {...{"size":"2","color":"gray","className":"w-full"}} />
+                </UiBox>
+              </UiBox>
+            </UiCard>
 
             {/* Items section (only for con_inventario) */}
             {manualForm.type === 'con_inventario' && (
-              <div className="p-4 rounded-md border border-border-default bg-white space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className={labelClass}>Productos</label>
-                  <div className="flex gap-2">
-                    <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-surface-bg border border-border-default text-black hover:bg-white cursor-pointer transition-all">
-                      <Upload size={12} /><span>Importar XML</span>
-                      <input type="file" accept=".xml" onChange={handleManualXmlUpload} className="hidden" />
-                    </label>
-                    <button onClick={() => setShowProductSearch(!showProductSearch)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-white border border-border-default text-black hover:bg-surface-bg transition-all">
-                      <Plus size={12} /><span>Agregar Producto</span>
-                    </button>
-                  </div>
-                </div>
+              <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4 space-y-3"}}>
+                <UiBox {...{"className":"flex items-center justify-between"}}>
+                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5"}}>Productos</UiLabel>
+                  <UiBox {...{"className":"flex gap-2"}}>
+                    <UiLabel {...{"size":"1","weight":"medium","color":"gray","highContrast":true,"className":"flex items-center gap-1.5 px-3 py-1.5 cursor-pointer"}}>
+                      <Upload size={12} /><UiText>Importar XML</UiText>
+                      <UiInput type="file" accept=".xml" onChange={handleManualXmlUpload} {...{"className":"hidden"}} />
+                    </UiLabel>
+                    <UiButton onClick={() => setShowProductSearch(!showProductSearch)} {...{"size":"2","variant":"surface","color":"gray","className":"flex items-center gap-1.5"}}>
+                      <Plus size={12} /><UiText>Agregar Producto</UiText>
+                    </UiButton>
+                  </UiBox>
+                </UiBox>
 
                 {showProductSearch && (
-                  <div className="relative">
-                    <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-primary" />
-                    <input autoFocus value={productSearchTerm} onChange={e => setProductSearchTerm(e.target.value)} placeholder="Buscar producto por nombre o SKU..." className={`${inputClass} pl-8`} />
+                  <UiBox {...{"className":"relative"}}>
+                    <Search size={12} {...{"style":{"color":"var(--gray-12)"},"className":"absolute left-2.5 top-1/2 -translate-y-1/2"}} />
+                    <UiInput autoFocus value={productSearchTerm} onChange={e => setProductSearchTerm(e.target.value)} placeholder="Buscar producto por nombre o SKU..." {...mergeThemeProps({}, {}, {"size":"2","color":"gray","className":"w-full"})} />
                     {productSearchTerm && filteredProducts.length > 0 && (
-                      <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-border-default rounded-md max-h-52 overflow-y-auto">
+                      <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)","borderRadius":"var(--radius-3)"},"className":"absolute z-20 top-full left-0 right-0 mt-1 max-h-52 overflow-y-auto"}}>
                         {filteredProducts.map(p => (
-                          <button key={p.id} onClick={() => handleManualAddItem(p)} className="w-full text-left px-3 py-2 text-sm hover:bg-surface-bg text-black flex justify-between items-center">
-                            <div><span className="font-medium">{p.name}</span><span className="text-xs text-text-primary ml-2">{p.sku}</span></div>
-                            <span className="text-xs font-mono text-text-primary">${(p.cost || 0).toFixed(2)}</span>
-                          </button>
+                          <UiButton key={p.id} onClick={() => handleManualAddItem(p)} {...{"size":"2","color":"gray","className":"w-full text-left flex justify-between items-center"}}>
+                            <UiBox><UiText {...{"weight":"medium"}}>{p.name}</UiText><UiText {...{"size":"1","color":"gray","highContrast":true,"className":"ml-2"}}>{p.sku}</UiText></UiBox>
+                            <UiText {...{"size":"1","weight":"regular","color":"gray","highContrast":true}}>${(p.cost || 0).toFixed(2)}</UiText>
+                          </UiButton>
                         ))}
-                      </div>
+                      </UiBox>
                     )}
-                  </div>
+                  </UiBox>
                 )}
 
                 {manualForm.items.length > 0 && (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                      <thead>
-                        <tr>
-                          <th className="text-xs font-semibold text-black">Producto</th>
-                          <th className="text-xs font-semibold text-black w-16 text-center">Cant</th>
-                          <th className="text-xs font-semibold text-black w-20 text-right">P. Unit</th>
-                          <th className="text-xs font-semibold text-black w-16 text-right">Desc</th>
-                          <th className="text-xs font-semibold text-black w-20 text-right">Subtotal</th>
-                          <th className="text-xs font-semibold text-black w-8"></th>
-                        </tr>
-                      </thead>
-                      <tbody>
+                  <UiBox {...{"className":"overflow-x-auto"}}>
+                    <UiTable {...{"className":"w-full text-left"}}>
+                      <UiTableHeader>
+                        <UiTableRow>
+                          <UiTableHead {...{"style":{"color":"var(--gray-12)"}}}>Producto</UiTableHead>
+                          <UiTableHead {...{"style":{"color":"var(--gray-12)"},"className":"w-16 text-center"}}>Cant</UiTableHead>
+                          <UiTableHead {...{"style":{"color":"var(--gray-12)"},"className":"w-20 text-right"}}>P. Unit</UiTableHead>
+                          <UiTableHead {...{"style":{"color":"var(--gray-12)"},"className":"w-16 text-right"}}>Desc</UiTableHead>
+                          <UiTableHead {...{"style":{"color":"var(--gray-12)"},"className":"w-20 text-right"}}>Subtotal</UiTableHead>
+                          <UiTableHead {...{"style":{"color":"var(--gray-12)"},"className":"w-8"}}></UiTableHead>
+                        </UiTableRow>
+                      </UiTableHeader>
+                      <UiTableBody>
                         {manualForm.items.map((item, idx) => (
-                          <tr key={idx}>
-                            <td className="text-sm text-black font-medium">{item.name}</td>
-                            <td className="text-center"><input type="number" min="1" value={item.quantity} onChange={e => handleManualItemChange(idx, 'quantity', e.target.value)} className="w-14 text-center text-sm px-1 py-1 rounded border border-border-default text-black" /></td>
-                            <td className="text-right"><input type="number" min="0" step="0.01" value={item.price} onChange={e => handleManualItemChange(idx, 'price', e.target.value)} className="w-18 text-right text-sm px-1 py-1 rounded border border-border-default text-black" /></td>
-                            <td className="text-right"><input type="number" min="0" step="0.01" value={item.discount} onChange={e => handleManualItemChange(idx, 'discount', e.target.value)} className="w-14 text-right text-sm px-1 py-1 rounded border border-border-default text-black" /></td>
-                            <td className="text-right font-mono text-sm font-bold text-black">${(item.subtotal || 0).toFixed(2)}</td>
-                            <td className="text-center"><button onClick={() => handleManualRemoveItem(idx)} className="btn-icon text-red-500"><X size={12} /></button></td>
-                          </tr>
+                          <UiTableRow key={idx}>
+                            <UiTableCell {...{"style":{"color":"var(--gray-12)"}}}>{item.name}</UiTableCell>
+                            <UiTableCell {...{"className":"text-center"}}><UiInput type="number" min="1" value={item.quantity} onChange={e => handleManualItemChange(idx, 'quantity', e.target.value)} {...{"size":"2","color":"gray","className":"w-14 text-center"}} /></UiTableCell>
+                            <UiTableCell {...{"className":"text-right"}}><UiInput type="number" min="0" step="0.01" value={item.price} onChange={e => handleManualItemChange(idx, 'price', e.target.value)} {...{"size":"2","color":"gray","className":"w-18 text-right"}} /></UiTableCell>
+                            <UiTableCell {...{"className":"text-right"}}><UiInput type="number" min="0" step="0.01" value={item.discount} onChange={e => handleManualItemChange(idx, 'discount', e.target.value)} {...{"size":"2","color":"gray","className":"w-14 text-right"}} /></UiTableCell>
+                            <UiTableCell {...{"style":{"fontFamily":"var(--code-font-family)","color":"var(--gray-12)"},"className":"text-right"}}>${(item.subtotal || 0).toFixed(2)}</UiTableCell>
+                            <UiTableCell {...{"className":"text-center"}}><UiButton iconOnly onClick={() => handleManualRemoveItem(idx)} {...{"variant":"surface","color":"red"}}><X size={12} /></UiButton></UiTableCell>
+                          </UiTableRow>
                         ))}
-                      </tbody>
-                    </table>
-                  </div>
+                      </UiTableBody>
+                    </UiTable>
+                  </UiBox>
                 )}
 
                 {/* Totals */}
-                <div className="flex justify-end gap-6 pt-3 border-t border-border-default text-sm">
-                  <div>Base Imponible: <span className="font-bold text-black">${manualForm.baseImponible.toFixed(2)}</span></div>
-                  <div>IVA 15%: <span className="font-bold text-black">${manualForm.ivaValor.toFixed(2)}</span></div>
-                  <div>Total: <span className="font-bold text-md text-black">${manualForm.total.toFixed(2)}</span></div>
-                </div>
-              </div>
+                <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"flex justify-end gap-6 pt-3"}}>
+                  <UiBox>Base Imponible: <UiText {...{"weight":"bold","color":"gray","highContrast":true}}>${manualForm.baseImponible.toFixed(2)}</UiText></UiBox>
+                  <UiBox>IVA 15%: <UiText {...{"weight":"bold","color":"gray","highContrast":true}}>${manualForm.ivaValor.toFixed(2)}</UiText></UiBox>
+                  <UiBox>Total: <UiText {...{"weight":"bold","color":"gray","highContrast":true}}>${manualForm.total.toFixed(2)}</UiText></UiBox>
+                </UiBox>
+              </UiCard>
             )}
 
             {/* Save button */}
-            <div className="flex justify-end gap-3">
-              <button onClick={handleManualSave} disabled={manualSaving} className="btn-primary">
+            <UiBox {...{"className":"flex justify-end gap-3"}}>
+              <UiButton onClick={handleManualSave} disabled={manualSaving} {...{"variant":"solid","color":"blue"}}>
                 <FileCheck size={14} />
-                <span>{manualSaving ? 'Guardando...' : 'Registrar Compra'}</span>
-              </button>
-            </div>
-          </div>
+                <UiText>{manualSaving ? 'Guardando...' : 'Registrar Compra'}</UiText>
+              </UiButton>
+            </UiBox>
+          </UiBox>
 
           {/* Right: Summary card */}
-          <div className="space-y-3">
-            <div className="p-4 rounded-md border border-border-default bg-white">
-              <h3 className="text-base font-semibold text-black mb-3">Resumen</h3>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between"><span className="text-text-primary">Modo</span><span className="font-medium text-black">{manualForm.type === 'con_inventario' ? 'Con Inventario' : 'Sin Inventario'}</span></div>
-                <div className="flex justify-between"><span className="text-text-primary">Items</span><span className="font-medium text-black">{manualForm.items.length}</span></div>
-                <div className="flex justify-between"><span className="text-text-primary">Base Imponible</span><span className="font-medium text-black">${manualForm.baseImponible.toFixed(2)}</span></div>
-                <div className="flex justify-between"><span className="text-text-primary">IVA</span><span className="font-medium text-black">${manualForm.ivaValor.toFixed(2)}</span></div>
-                <div className="flex justify-between border-t border-border-default pt-2"><span className="font-semibold text-black">Total</span><span className="font-bold text-black">${manualForm.total.toFixed(2)}</span></div>
-              </div>
-            </div>
-            <div className="p-4 rounded-md border border-border-default bg-surface-card">
-              <p className="text-xs text-text-secondary">
+          <UiBox {...{"className":"space-y-3"}}>
+            <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4"}}>
+              <UiHeading as="h3" {...{"size":"3","weight":"bold","color":"gray","highContrast":true,"className":"mb-3"}}>Resumen</UiHeading>
+              <UiBox {...{"className":"space-y-2"}}>
+                <UiBox {...{"className":"flex justify-between"}}><UiText {...{"color":"gray","highContrast":true}}>Modo</UiText><UiText {...{"weight":"medium","color":"gray","highContrast":true}}>{manualForm.type === 'con_inventario' ? 'Con Inventario' : 'Sin Inventario'}</UiText></UiBox>
+                <UiBox {...{"className":"flex justify-between"}}><UiText {...{"color":"gray","highContrast":true}}>Items</UiText><UiText {...{"weight":"medium","color":"gray","highContrast":true}}>{manualForm.items.length}</UiText></UiBox>
+                <UiBox {...{"className":"flex justify-between"}}><UiText {...{"color":"gray","highContrast":true}}>Base Imponible</UiText><UiText {...{"weight":"medium","color":"gray","highContrast":true}}>${manualForm.baseImponible.toFixed(2)}</UiText></UiBox>
+                <UiBox {...{"className":"flex justify-between"}}><UiText {...{"color":"gray","highContrast":true}}>IVA</UiText><UiText {...{"weight":"medium","color":"gray","highContrast":true}}>${manualForm.ivaValor.toFixed(2)}</UiText></UiBox>
+                <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"flex justify-between pt-2"}}><UiText {...{"weight":"bold","color":"gray","highContrast":true}}>Total</UiText><UiText {...{"weight":"bold","color":"gray","highContrast":true}}>${manualForm.total.toFixed(2)}</UiText></UiBox>
+              </UiBox>
+            </UiCard>
+            <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4"}}>
+              <UiText as="p" {...{"size":"1","color":"gray"}}>
                 <strong>Promedio Ponderado:</strong> Las compras con inventario recalculan automaticamente el costo promedio. Nuevo Costo = (Stock Actual x Costo Actual + Cantidad Comprada x Costo Compra) / (Stock Actual + Cantidad Comprada).
-              </p>
-            </div>
-          </div>
-        </div>
+              </UiText>
+            </UiCard>
+          </UiBox>
+        </UiBox>
       )}
 
       {/* ============ MODAL: RIDE Viewer ============ */}
       {selectedRide && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/40" onClick={() => setSelectedRide(null)}>
-          <div className="w-full max-w-lg bg-white rounded-md border border-border-default" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-5 py-3 border-b border-border-default">
-              <h3 className="text-md font-semibold text-black">RIDE - {selectedRide.documentNumber}</h3>
-              <button onClick={() => setSelectedRide(null)} className="btn-icon text-text-secondary"><X size={16} /></button>
-            </div>
-            <div className="p-5 space-y-2 text-sm text-black">
-              <div className="grid grid-cols-2 gap-2">
-                <div><span className="text-text-primary">Proveedor:</span> <span className="font-medium">{selectedRide.razonSocial}</span></div>
-                <div><span className="text-text-primary">RUC:</span> <span className="font-medium">{selectedRide.ruc}</span></div>
-                <div><span className="text-text-primary">Fecha:</span> <span className="font-medium">{selectedRide.date}</span></div>
-                <div><span className="text-text-primary">Tipo:</span> <span className="font-medium uppercase">{selectedRide.tipoComprobante}</span></div>
-              </div>
-              <div className="border-t border-border-default pt-2 mt-2 space-y-1">
-                <div className="flex justify-between"><span>Base Imponible:</span><span className="font-mono font-bold">${(selectedRide.baseImponible || 0).toFixed(2)}</span></div>
-                <div className="flex justify-between"><span>IVA 15%:</span><span className="font-mono font-bold">${(selectedRide.ivaValor || 0).toFixed(2)}</span></div>
-                <div className="flex justify-between text-md border-t border-border-default pt-1"><span className="font-semibold">TOTAL:</span><span className="font-bold">${(selectedRide.total || 0).toFixed(2)}</span></div>
-              </div>
-              <div className="pt-2"><span className="text-text-primary">Clave de Acceso:</span> <span className="font-mono text-xs break-all">{selectedRide.claveAcceso}</span></div>
-              <div className="pt-3 flex gap-2">
-                <button onClick={() => { handleDownloadXml(selectedRide); }} className="btn-secondary"><Download size={14} /> Descargar XML</button>
-                {!isBillImported(selectedRide) && <button onClick={() => { setSelectedRide(null); handleOpenImport(selectedRide); }} className="btn-primary"><ArrowRight size={14} /> Importar</button>}
-              </div>
-            </div>
-          </div>
-        </div>
+        <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[200] flex items-center justify-center p-4"}} onClick={() => setSelectedRide(null)}>
+          <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"w-full max-w-lg"}} onClick={e => e.stopPropagation()}>
+            <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex items-center justify-between px-5 py-3"}}>
+              <UiHeading as="h3" {...{"color":"gray","weight":"bold","highContrast":true}}>RIDE - {selectedRide.documentNumber}</UiHeading>
+              <UiButton iconOnly onClick={() => setSelectedRide(null)} {...{"variant":"surface","color":"gray"}}><X size={16} /></UiButton>
+            </UiBox>
+            <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"p-5 space-y-2"}}>
+              <UiBox {...{"className":"grid grid-cols-2 gap-2"}}>
+                <UiBox><UiText {...{"color":"gray","highContrast":true}}>Proveedor:</UiText> <UiText {...{"weight":"medium"}}>{selectedRide.razonSocial}</UiText></UiBox>
+                <UiBox><UiText {...{"color":"gray","highContrast":true}}>RUC:</UiText> <UiText {...{"weight":"medium"}}>{selectedRide.ruc}</UiText></UiBox>
+                <UiBox><UiText {...{"color":"gray","highContrast":true}}>Fecha:</UiText> <UiText {...{"weight":"medium"}}>{selectedRide.date}</UiText></UiBox>
+                <UiBox><UiText {...{"color":"gray","highContrast":true}}>Tipo:</UiText> <UiText {...{"weight":"medium"}}>{selectedRide.tipoComprobante}</UiText></UiBox>
+              </UiBox>
+              <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"pt-2 mt-2 space-y-1"}}>
+                <UiBox {...{"className":"flex justify-between"}}><UiText>Base Imponible:</UiText><UiText {...{"weight":"bold"}}>${(selectedRide.baseImponible || 0).toFixed(2)}</UiText></UiBox>
+                <UiBox {...{"className":"flex justify-between"}}><UiText>IVA 15%:</UiText><UiText {...{"weight":"bold"}}>${(selectedRide.ivaValor || 0).toFixed(2)}</UiText></UiBox>
+                <UiBox {...{"style":{"color":"var(--gray-12)","borderTop":"1px solid var(--gray-a6)"},"className":"flex justify-between pt-1"}}><UiText {...{"weight":"bold"}}>TOTAL:</UiText><UiText {...{"weight":"bold"}}>${(selectedRide.total || 0).toFixed(2)}</UiText></UiBox>
+              </UiBox>
+              <UiBox {...{"className":"pt-2"}}><UiText {...{"color":"gray","highContrast":true}}>Clave de Acceso:</UiText> <UiText {...{"weight":"regular","size":"1","className":"break-all"}}>{selectedRide.claveAcceso}</UiText></UiBox>
+              <UiBox {...{"className":"pt-3 flex gap-2"}}>
+                <UiButton onClick={() => { handleDownloadXml(selectedRide); }} {...{"variant":"surface","color":"blue"}}><Download size={14} /> Descargar XML</UiButton>
+                {!isBillImported(selectedRide) && <UiButton onClick={() => { setSelectedRide(null); handleOpenImport(selectedRide); }} {...{"variant":"solid","color":"blue"}}><ArrowRight size={14} /> Importar</UiButton>}
+              </UiBox>
+            </UiBox>
+          </UiCard>
+        </UiBox>
       )}
 
       {/* ============ MODAL: Import Method Selector ============ */}
       {importModal && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/40" onClick={() => setImportModal(null)}>
-          <div className="w-full max-w-md bg-white rounded-md border border-border-default" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-5 py-3 border-b border-border-default">
-              <h3 className="text-md font-semibold text-black">Importar a Historial de Compras</h3>
-              <button onClick={() => setImportModal(null)} className="btn-icon text-text-secondary"><X size={16} /></button>
-            </div>
-            <div className="p-5 space-y-3">
-              <p className="text-sm text-text-primary">
+        <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[200] flex items-center justify-center p-4"}} onClick={() => setImportModal(null)}>
+          <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"w-full max-w-md"}} onClick={e => e.stopPropagation()}>
+            <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex items-center justify-between px-5 py-3"}}>
+              <UiHeading as="h3" {...{"color":"gray","weight":"bold","highContrast":true}}>Importar a Historial de Compras</UiHeading>
+              <UiButton iconOnly onClick={() => setImportModal(null)} {...{"variant":"surface","color":"gray"}}><X size={16} /></UiButton>
+            </UiBox>
+            <UiBox {...{"className":"p-5 space-y-3"}}>
+              <UiText as="p" {...{"size":"2","color":"gray","highContrast":true}}>
                 <strong>{importModal.bill.razonSocial}</strong> — {importModal.bill.documentNumber}<br />
                 Total: <strong>${(importModal.bill.total || 0).toFixed(2)}</strong>
-              </p>
-              <div className="space-y-2">
+              </UiText>
+              <UiBox {...{"className":"space-y-2"}}>
                 {/* eslint-disable-next-line react-hooks/immutability */}
-                <button onClick={() => handleConfirmImport('con_inventario')} className="w-full p-3 rounded-md border border-border-default text-left hover:bg-surface-bg transition-all">
-                  <div className="flex items-center gap-2 mb-1"><Package size={16} className="text-[var(--primary-color)]" /><span className="text-base font-semibold text-black">Con Movimiento de Inventario</span></div>
-                  <p className="text-xs text-text-primary">Actualiza stock, calcula promedio ponderado y registra en kardex.</p>
-                </button>
-                <button onClick={() => handleConfirmImport('sin_inventario')} className="w-full p-3 rounded-md border border-border-default text-left hover:bg-surface-bg transition-all">
-                  <div className="flex items-center gap-2 mb-1"><FileText size={16} className="text-[var(--primary-color)]" /><span className="text-base font-semibold text-black">Sin Movimiento de Inventario</span></div>
-                  <p className="text-xs text-text-primary">Solo registro contable, no afecta stock ni kardex.</p>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+                <UiButton onClick={() => handleConfirmImport('con_inventario')} {...{"variant":"outline","className":"w-full text-left"}}>
+                  <UiBox {...{"className":"flex items-center gap-2 mb-1"}}><Package size={16} {...{}} /><UiText {...{"size":"3","weight":"bold","color":"gray","highContrast":true}}>Con Movimiento de Inventario</UiText></UiBox>
+                  <UiText as="p" {...{"size":"1","color":"gray","highContrast":true}}>Actualiza stock, calcula promedio ponderado y registra en kardex.</UiText>
+                </UiButton>
+                <UiButton onClick={() => handleConfirmImport('sin_inventario')} {...{"variant":"outline","className":"w-full text-left"}}>
+                  <UiBox {...{"className":"flex items-center gap-2 mb-1"}}><FileText size={16} {...{}} /><UiText {...{"size":"3","weight":"bold","color":"gray","highContrast":true}}>Sin Movimiento de Inventario</UiText></UiBox>
+                  <UiText as="p" {...{"size":"1","color":"gray","highContrast":true}}>Solo registro contable, no afecta stock ni kardex.</UiText>
+                </UiButton>
+              </UiBox>
+            </UiBox>
+          </UiCard>
+        </UiBox>
       )}
 
       {/* ============ MODAL: Confirmar Extraccion SRI ============ */}
       {confirmFetch && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50" onClick={() => setConfirmFetch(false)}>
-          <div className="w-full max-w-sm bg-white rounded-md border border-border-default" onClick={e => e.stopPropagation()}>
-            <div className="p-5 text-center space-y-4">
-              <div className="mx-auto w-12 h-12 rounded-full bg-surface-card flex items-center justify-center">
-                <RefreshCw size={24} className="text-[var(--primary-color)]" />
-              </div>
-              <div>
-                <h3 className="text-md font-semibold text-black">Buzon SRI vacio</h3>
-                <p className="text-sm text-text-primary mt-1">El buzon de comprobantes esta vacio. Desea extraer los comprobantes electronicos del SRI?</p>
-              </div>
-              <div className="text-left bg-surface-bg p-3 rounded-md text-xs text-text-primary">
-                <p className="font-semibold text-black mb-1">Se extraeran:</p>
-                <p>Facturas, Notas de Credito y Retenciones recibidas para el RUC <strong>{companyRuc}</strong>.</p>
-                {filterDateFrom && <p className="mt-1">Periodo: <strong>{filterDateFrom}</strong> al <strong>{filterDateTo || 'hoy'}</strong></p>}
-                <p className="mt-1">Los comprobantes ya existentes no se duplicaran.</p>
-              </div>
-              <div className="flex gap-2">
-                <button onClick={() => setConfirmFetch(false)} className="flex-1 btn-secondary">Cancelar</button>
-                <button onClick={async () => { setConfirmFetch(false); await handleExtractSri(); }} className="flex-1 btn-primary">
+        <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[200] flex items-center justify-center p-4"}} onClick={() => setConfirmFetch(false)}>
+          <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"w-full max-w-sm"}} onClick={e => e.stopPropagation()}>
+            <UiBox {...{"className":"p-5 text-center space-y-4"}}>
+              <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--color-panel-solid)"},"className":"mx-auto w-12 h-12 flex items-center justify-center"}}>
+                <RefreshCw size={24} {...{}} />
+              </UiBox>
+              <UiBox>
+                <UiHeading as="h3" {...{"color":"gray","weight":"bold","highContrast":true}}>Buzon SRI vacio</UiHeading>
+                <UiText as="p" {...{"size":"2","color":"gray","highContrast":true,"className":"mt-1"}}>El buzon de comprobantes esta vacio. Desea extraer los comprobantes electronicos del SRI?</UiText>
+              </UiBox>
+              <UiBox {...{"style":{"backgroundColor":"var(--gray-2)","borderRadius":"var(--radius-3)","color":"var(--gray-12)"},"className":"text-left p-3"}}>
+                <UiText as="p" {...{"weight":"bold","color":"gray","highContrast":true,"className":"mb-1"}}>Se extraeran:</UiText>
+                <UiText as="p">Facturas, Notas de Credito y Retenciones recibidas para el RUC <strong>{companyRuc}</strong>.</UiText>
+                {filterDateFrom && <UiText as="p" {...{"className":"mt-1"}}>Periodo: <strong>{filterDateFrom}</strong> al <strong>{filterDateTo || 'hoy'}</strong></UiText>}
+                <UiText as="p" {...{"className":"mt-1"}}>Los comprobantes ya existentes no se duplicaran.</UiText>
+              </UiBox>
+              <UiBox {...{"className":"flex gap-2"}}>
+                <UiButton onClick={() => setConfirmFetch(false)} {...{"variant":"surface","color":"blue","className":"flex-1"}}>Cancelar</UiButton>
+                <UiButton onClick={async () => { setConfirmFetch(false); await handleExtractSri(); }} {...{"variant":"solid","color":"blue","className":"flex-1"}}>
                   <Download size={14} /> Extraer del SRI
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+                </UiButton>
+              </UiBox>
+            </UiBox>
+          </UiCard>
+        </UiBox>
       )}
 
       {/* ============ MODAL: Confirmar Limpieza de Buzon ============ */}
       {confirmClear && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50" onClick={() => setConfirmClear(false)}>
-          <div className="w-full max-w-sm bg-white rounded-md border border-border-default" onClick={e => e.stopPropagation()}>
-            <div className="p-5 text-center space-y-4">
-              <div className="mx-auto w-12 h-12 rounded-full bg-surface-card flex items-center justify-center">
-                <Trash2 size={24} className="text-text-secondary" />
-              </div>
-              <div>
-                <h3 className="text-md font-semibold text-black">Limpiar buzon SRI</h3>
-                <p className="text-sm text-text-primary mt-1">Esta seguro de eliminar <strong>TODOS</strong> los comprobantes del buzon? Esta accion no se puede deshacer.</p>
-              </div>
-              <div className="flex gap-2">
-                <button onClick={() => setConfirmClear(false)} className="flex-1 btn-secondary">Cancelar</button>
-                <button onClick={handleClearBuzon} disabled={loading} className="flex-1 btn-danger">
+        <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[200] flex items-center justify-center p-4"}} onClick={() => setConfirmClear(false)}>
+          <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"w-full max-w-sm"}} onClick={e => e.stopPropagation()}>
+            <UiBox {...{"className":"p-5 text-center space-y-4"}}>
+              <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--color-panel-solid)"},"className":"mx-auto w-12 h-12 flex items-center justify-center"}}>
+                <Trash2 size={24} {...{"style":{"color":"var(--gray-11)"}}} />
+              </UiBox>
+              <UiBox>
+                <UiHeading as="h3" {...{"color":"gray","weight":"bold","highContrast":true}}>Limpiar buzon SRI</UiHeading>
+                <UiText as="p" {...{"size":"2","color":"gray","highContrast":true,"className":"mt-1"}}>Esta seguro de eliminar <strong>TODOS</strong> los comprobantes del buzon? Esta accion no se puede deshacer.</UiText>
+              </UiBox>
+              <UiBox {...{"className":"flex gap-2"}}>
+                <UiButton onClick={() => setConfirmClear(false)} {...{"variant":"surface","color":"blue","className":"flex-1"}}>Cancelar</UiButton>
+                <UiButton onClick={handleClearBuzon} disabled={loading} {...{"variant":"soft","color":"red","className":"flex-1"}}>
                   <Trash2 size={14} /> {loading ? 'Eliminando...' : 'Si, eliminar todo'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+                </UiButton>
+              </UiBox>
+            </UiBox>
+          </UiCard>
+        </UiBox>
       )}
 
       {/* ============ MODAL: Confirmar Eliminacion Individual ============ */}
       {confirmDeleteId && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50" onClick={() => setConfirmDeleteId(null)}>
-          <div className="w-full max-w-sm bg-white rounded-md border border-border-default" onClick={e => e.stopPropagation()}>
-            <div className="p-5 text-center space-y-4">
-              <div className="mx-auto w-12 h-12 rounded-full bg-surface-card flex items-center justify-center">
-                <Trash2 size={24} className="text-text-secondary" />
-              </div>
-              <div>
-                <h3 className="text-md font-semibold text-black">Eliminar comprobante</h3>
-                <p className="text-sm text-text-primary mt-1">Desea eliminar este comprobante del buzon SRI?</p>
-              </div>
-              <div className="flex gap-2">
-                <button onClick={() => setConfirmDeleteId(null)} className="flex-1 btn-secondary">Cancelar</button>
-                <button onClick={() => handleDeleteBill(confirmDeleteId)} className="flex-1 btn-danger">
+        <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[200] flex items-center justify-center p-4"}} onClick={() => setConfirmDeleteId(null)}>
+          <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"w-full max-w-sm"}} onClick={e => e.stopPropagation()}>
+            <UiBox {...{"className":"p-5 text-center space-y-4"}}>
+              <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--color-panel-solid)"},"className":"mx-auto w-12 h-12 flex items-center justify-center"}}>
+                <Trash2 size={24} {...{"style":{"color":"var(--gray-11)"}}} />
+              </UiBox>
+              <UiBox>
+                <UiHeading as="h3" {...{"color":"gray","weight":"bold","highContrast":true}}>Eliminar comprobante</UiHeading>
+                <UiText as="p" {...{"size":"2","color":"gray","highContrast":true,"className":"mt-1"}}>Desea eliminar este comprobante del buzon SRI?</UiText>
+              </UiBox>
+              <UiBox {...{"className":"flex gap-2"}}>
+                <UiButton onClick={() => setConfirmDeleteId(null)} {...{"variant":"surface","color":"blue","className":"flex-1"}}>Cancelar</UiButton>
+                <UiButton onClick={() => handleDeleteBill(confirmDeleteId)} {...{"variant":"soft","color":"red","className":"flex-1"}}>
                   <Trash2 size={14} /> Eliminar
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+                </UiButton>
+              </UiBox>
+            </UiBox>
+          </UiCard>
+        </UiBox>
       )}
-    </div>
+    </UiBox>
   );
 }

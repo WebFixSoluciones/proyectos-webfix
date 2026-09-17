@@ -1,3 +1,5 @@
+import { UiBox, UiHeading, UiText } from '../ui/layout';
+import { UiButton } from '../ui/controls';
 import { useState, useEffect, useMemo } from 'react';
 import { 
   ShoppingCart, FileText, Package, Users, Settings, 
@@ -96,218 +98,218 @@ export default function ErpDashboard({
   }, []);
 
   return (
-    <div className="w-full space-y-6 animate-in fade-in duration-300 pb-12">
+    <UiBox {...{"className":"w-full space-y-6 animate-in fade-in duration-300 pb-12"}}>
       
       {/* 1. Header de Bienvenida y Acciones Ejecutivas */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border-default pb-5">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-xl font-bold tracking-tight text-text-heading">
+      <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-5"}}>
+        <UiBox>
+          <UiBox {...{"className":"flex items-center gap-2 mb-1"}}>
+            <UiHeading as="h1" {...{"size":"5","weight":"bold","color":"gray","highContrast":true}}>
               {companyName}
-            </h1>
-            <Badge variant="success" className="gap-1 normal-case font-normal text-xs py-0.5 px-2">
-              <span className="relative flex h-1.5 w-1.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success"></span>
-              </span>
-              <span>SRI Activo</span>
+            </UiHeading>
+            <Badge variant="success" {...{"className":"gap-1 py-0.5 px-2"}}>
+              <UiText {...{"className":"relative flex h-1.5 w-1.5"}}>
+                <UiText {...{"className":"animate-ping absolute inline-flex h-full w-full opacity-75"}}></UiText>
+                <UiText {...{"className":"relative inline-flex h-1.5 w-1.5"}}></UiText>
+              </UiText>
+              <UiText>SRI Activo</UiText>
             </Badge>
-          </div>
-          <p className="text-xs text-text-secondary capitalize">
+          </UiBox>
+          <UiText as="p" {...{"size":"1","color":"gray"}}>
             {todayFormatted} • Resumen ejecutivo del negocio
-          </p>
-        </div>
+          </UiText>
+        </UiBox>
 
         {/* Botones de acción rápida */}
-        <div className="flex items-center gap-2">
+        <UiBox {...{"className":"flex items-center gap-2"}}>
           <Button 
             variant="accent" 
             size="sm"
             onClick={() => { setVentasInitialSubTab && setVentasInitialSubTab('pos'); setActivePageId('ventas'); }}
-            className="gap-1.5 "
+            {...{"className":"gap-1.5"}}
           >
             <ShoppingCart size={13} />
-            <span>Punto de Venta</span>
+            <UiText>Punto de Venta</UiText>
           </Button>
 
           <Button 
             variant="default" 
             size="sm"
             onClick={() => { setVentasInitialSubTab && setVentasInitialSubTab('ventas_preventa'); setActivePageId('ventas'); }}
-            className="gap-1.5"
+            {...{"className":"gap-1.5"}}
           >
             <Plus size={13} />
-            <span>Nueva Factura</span>
+            <UiText>Nueva Factura</UiText>
           </Button>
-        </div>
-      </div>
+        </UiBox>
+      </UiBox>
 
       {/* 2. Grid de 4 Tarjetas Métricas KPI (Shadcn Cards) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <UiBox {...{"className":"grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"}}>
         
         {/* KPI 1: Ventas del Mes */}
-        <Card className="hover:border-border-strong transition-all duration-120">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 border-b-0">
-            <CardTitle className="text-xs font-medium text-text-secondary uppercase tracking-wider">
+        <Card {...{"className":"duration-120"}}>
+          <CardHeader {...{"className":"flex flex-row items-center justify-between pb-2"}}>
+            <CardTitle {...{"style":{"color":"var(--gray-11)"}}}>
               Ventas del Mes
             </CardTitle>
-            <div className="p-1.5 rounded-md bg-black/5 text-text-heading">
+            <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--black-a7)","color":"var(--gray-12)"},"className":"p-1.5"}}>
               <DollarSign size={14} />
-            </div>
+            </UiBox>
           </CardHeader>
-          <CardContent className="pt-0">
-            <div className="text-2xl font-bold tracking-tight text-text-heading font-mono">
+          <CardContent {...{"className":"pt-0"}}>
+            <UiBox {...{"style":{"color":"var(--gray-12)","fontFamily":"var(--code-font-family)"}}}>
               ${kpis.totalVentas.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </div>
-            <p className="text-xs text-text-muted mt-1 flex items-center gap-1">
-              <span className="text-success-text font-medium">{kpis.salesCount} operaciones</span> registradas
-            </p>
+            </UiBox>
+            <UiText as="p" {...{"size":"1","color":"gray","className":"mt-1 flex items-center gap-1"}}>
+              <UiText {...{"color":"green","weight":"medium"}}>{kpis.salesCount} operaciones</UiText> registradas
+            </UiText>
           </CardContent>
         </Card>
 
         {/* KPI 2: Comprobantes SRI */}
-        <Card className="hover:border-border-strong transition-all duration-120">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 border-b-0">
-            <CardTitle className="text-xs font-medium text-text-secondary uppercase tracking-wider">
+        <Card {...{"className":"duration-120"}}>
+          <CardHeader {...{"className":"flex flex-row items-center justify-between pb-2"}}>
+            <CardTitle {...{"style":{"color":"var(--gray-11)"}}}>
               Comprobantes SRI
             </CardTitle>
-            <div className="p-1.5 rounded-md bg-black/5 text-text-heading">
+            <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--black-a7)","color":"var(--gray-12)"},"className":"p-1.5"}}>
               <FileText size={14} />
-            </div>
+            </UiBox>
           </CardHeader>
-          <CardContent className="pt-0">
-            <div className="text-2xl font-bold tracking-tight text-text-heading font-mono">
+          <CardContent {...{"className":"pt-0"}}>
+            <UiBox {...{"style":{"color":"var(--gray-12)","fontFamily":"var(--code-font-family)"}}}>
               {kpis.sriAutorizadas}
-            </div>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-xs text-success-text font-medium flex items-center gap-1">
+            </UiBox>
+            <UiBox {...{"className":"flex items-center gap-2 mt-1"}}>
+              <UiText {...{"size":"1","color":"green","weight":"medium","className":"flex items-center gap-1"}}>
                 <CheckCircle2 size={11} /> {kpis.sriAutorizadas} autorizados
-              </span>
+              </UiText>
               {kpis.sriPendientes > 0 && (
-                <span className="text-xs text-warning-text font-medium flex items-center gap-1">
+                <UiText {...{"size":"1","color":"amber","weight":"medium","className":"flex items-center gap-1"}}>
                   <AlertCircle size={11} /> {kpis.sriPendientes} pendientes
-                </span>
+                </UiText>
               )}
-            </div>
+            </UiBox>
           </CardContent>
         </Card>
 
         {/* KPI 3: Cuentas por Cobrar */}
-        <Card className="hover:border-border-strong transition-all duration-120">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 border-b-0">
-            <CardTitle className="text-xs font-medium text-text-secondary uppercase tracking-wider">
+        <Card {...{"className":"duration-120"}}>
+          <CardHeader {...{"className":"flex flex-row items-center justify-between pb-2"}}>
+            <CardTitle {...{"style":{"color":"var(--gray-11)"}}}>
               Por Cobrar (CxC)
             </CardTitle>
-            <div className="p-1.5 rounded-md bg-black/5 text-text-heading">
+            <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--black-a7)","color":"var(--gray-12)"},"className":"p-1.5"}}>
               <CreditCard size={14} />
-            </div>
+            </UiBox>
           </CardHeader>
-          <CardContent className="pt-0">
-            <div className="text-2xl font-bold tracking-tight text-text-heading font-mono">
+          <CardContent {...{"className":"pt-0"}}>
+            <UiBox {...{"style":{"color":"var(--gray-12)","fontFamily":"var(--code-font-family)"}}}>
               ${kpis.cxcPendiente.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </div>
-            <p className="text-xs text-text-muted mt-1">
+            </UiBox>
+            <UiText as="p" {...{"size":"1","color":"gray","className":"mt-1"}}>
               Saldos y créditos activos de clientes
-            </p>
+            </UiText>
           </CardContent>
         </Card>
 
         {/* KPI 4: Inventario */}
-        <Card className="hover:border-border-strong transition-all duration-120">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 border-b-0">
-            <CardTitle className="text-xs font-medium text-text-secondary uppercase tracking-wider">
+        <Card {...{"className":"duration-120"}}>
+          <CardHeader {...{"className":"flex flex-row items-center justify-between pb-2"}}>
+            <CardTitle {...{"style":{"color":"var(--gray-11)"}}}>
               Catálogo / Stock
             </CardTitle>
-            <div className="p-1.5 rounded-md bg-black/5 text-text-heading">
+            <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--black-a7)","color":"var(--gray-12)"},"className":"p-1.5"}}>
               <Package size={14} />
-            </div>
+            </UiBox>
           </CardHeader>
-          <CardContent className="pt-0">
-            <div className="text-2xl font-bold tracking-tight text-text-heading font-mono">
+          <CardContent {...{"className":"pt-0"}}>
+            <UiBox {...{"style":{"color":"var(--gray-12)","fontFamily":"var(--code-font-family)"}}}>
               {kpis.totalProductos}
-            </div>
-            <p className="text-xs text-text-muted mt-1">
+            </UiBox>
+            <UiText as="p" {...{"size":"1","color":"gray","className":"mt-1"}}>
               {kpis.lowStockCount > 0 ? (
-                <span className="text-warning-text font-medium">{kpis.lowStockCount} con stock bajo</span>
+                <UiText {...{"color":"amber","weight":"medium"}}>{kpis.lowStockCount} con stock bajo</UiText>
               ) : (
-                <span className="text-success-text font-medium">Stock en nivel óptimo</span>
+                <UiText {...{"color":"green","weight":"medium"}}>Stock en nivel óptimo</UiText>
               )}
-            </p>
+            </UiText>
           </CardContent>
         </Card>
 
-      </div>
+      </UiBox>
 
       {/* 3. Sección Principal: Tablas Recientes + Panel Lateral de Operaciones */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <UiBox {...{"className":"grid grid-cols-1 lg:grid-cols-3 gap-6"}}>
         
         {/* Columna Izquierda: Últimos Comprobantes SRI (2 de 3 cols) */}
-        <div className="lg:col-span-2 space-y-4">
+        <UiBox {...{"className":"lg:col-span-2 space-y-4"}}>
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between py-4">
-              <div>
-                <CardTitle className="text-sm font-semibold text-text-heading">
+            <CardHeader {...{"className":"flex flex-row items-center justify-between py-4"}}>
+              <UiBox>
+                <CardTitle {...{"style":{"color":"var(--gray-12)"}}}>
                   Últimos Comprobantes y Ventas
                 </CardTitle>
-                <p className="text-xs text-text-secondary mt-0.5">
+                <UiText as="p" {...{"size":"1","color":"gray","className":"mt-0.5"}}>
                   Movimientos más recientes autorizados y registrados en el SRI
-                </p>
-              </div>
+                </UiText>
+              </UiBox>
               <Button 
                 variant="outline" 
                 size="sm"
                 onClick={() => { setVentasInitialSubTab && setVentasInitialSubTab('resumen_ventas'); setActivePageId('ventas'); }}
-                className="text-xs gap-1"
+                {...{"size":"2","className":"gap-1"}}
               >
-                <span>Ver Todos</span>
+                <UiText>Ver Todos</UiText>
                 <ArrowRight size={12} />
               </Button>
             </CardHeader>
-            <CardContent className="p-0">
+            <CardContent {...{"className":"p-0"}}>
               {recentTransactions.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center text-text-muted text-xs">
-                  <FileText size={28} className="mb-2 opacity-40" />
-                  <p>No hay comprobantes recientes registrados.</p>
-                </div>
+                <UiBox {...{"style":{"color":"var(--gray-11)"},"className":"flex flex-col items-center justify-center py-12 text-center"}}>
+                  <FileText size={28} {...{"className":"mb-2 opacity-40"}} />
+                  <UiText as="p">No hay comprobantes recientes registrados.</UiText>
+                </UiBox>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-[100px]">Fecha</TableHead>
+                      <TableHead {...{"className":"w-[100px]"}}>Fecha</TableHead>
                       <TableHead>Documento</TableHead>
                       <TableHead>Cliente / Tercero</TableHead>
-                      <TableHead className="text-right">Total</TableHead>
-                      <TableHead className="text-center w-[120px]">Estado SRI</TableHead>
+                      <TableHead {...{"className":"text-right"}}>Total</TableHead>
+                      <TableHead {...{"className":"text-center w-[120px]"}}>Estado SRI</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {recentTransactions.map((tx) => {
                       const cliente = thirdParties.find(tp => tp.id === tx.thirdPartyId);
                       return (
-                        <TableRow key={tx.id} className="cursor-pointer" onClick={() => { setVentasInitialSubTab && setVentasInitialSubTab('resumen_ventas'); setActivePageId('ventas'); }}>
-                          <TableCell mono className="text-text-secondary">
+                        <TableRow key={tx.id} {...{"className":"cursor-pointer"}} onClick={() => { setVentasInitialSubTab && setVentasInitialSubTab('resumen_ventas'); setActivePageId('ventas'); }}>
+                          <TableCell mono {...{"style":{"color":"var(--gray-11)"}}}>
                             {tx.date || '-'}
                           </TableCell>
-                          <TableCell mono className="font-semibold text-text-heading">
+                          <TableCell mono {...{"style":{"color":"var(--gray-12)"}}}>
                             {tx.documentNumber || '001-001-XXXXX'}
                           </TableCell>
-                          <TableCell className="font-medium text-text-primary truncate max-w-[180px]">
+                          <TableCell {...{"style":{"color":"var(--gray-12)"},"className":"truncate max-w-[180px]"}}>
                             {cliente?.name || tx.thirdPartyName || 'Consumidor Final'}
                           </TableCell>
-                          <TableCell mono className="text-right font-bold text-text-heading">
+                          <TableCell mono {...{"style":{"color":"var(--gray-12)"},"className":"text-right"}}>
                             ${Number(tx.total || 0).toFixed(2)}
                           </TableCell>
-                          <TableCell className="text-center">
+                          <TableCell {...{"className":"text-center"}}>
                             {tx.sriStatus === 'autorizado' ? (
-                              <Badge variant="success" className="gap-1 text-xs">
+                              <Badge variant="success" {...{"className":"gap-1"}}>
                                 <CheckCircle2 size={10} /> Autorizado
                               </Badge>
                             ) : tx.sriStatus === 'pendiente' ? (
-                              <Badge variant="warning" className="gap-1 text-xs">
+                              <Badge variant="warning" {...{"className":"gap-1"}}>
                                 <AlertCircle size={10} /> Pendiente
                               </Badge>
                             ) : (
-                              <Badge variant="outline" className="text-xs">
+                              <Badge variant="outline" {...{}}>
                                 {tx.sriStatus || 'Registrado'}
                               </Badge>
                             )}
@@ -320,132 +322,132 @@ export default function ErpDashboard({
               )}
             </CardContent>
           </Card>
-        </div>
+        </UiBox>
 
         {/* Columna Derecha: Accesos Directos a Módulos + Estado SRI */}
-        <div className="space-y-6">
+        <UiBox {...{"className":"space-y-6"}}>
           
           {/* Accesos Directos a Módulos Clave */}
           <Card>
-            <CardHeader className="py-4">
-              <CardTitle className="text-sm font-semibold text-text-heading">
+            <CardHeader {...{"className":"py-4"}}>
+              <CardTitle {...{"style":{"color":"var(--gray-12)"}}}>
                 Accesos Directos
               </CardTitle>
-              <p className="text-xs text-text-secondary">
+              <UiText as="p" {...{"size":"1","color":"gray"}}>
                 Navega a los submódulos principales
-              </p>
+              </UiText>
             </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-2.5 pt-0">
+            <CardContent {...{"className":"grid grid-cols-2 gap-2.5 pt-0"}}>
               
               {/* POS */}
-              <button 
+              <UiButton
                 onClick={() => { setVentasInitialSubTab && setVentasInitialSubTab('pos'); setActivePageId('ventas'); }}
-                className="flex flex-col p-3 rounded-md border border-border-default bg-white hover:border-text-heading hover:bg-surface-sidebar transition-all duration-120 text-left cursor-pointer group"
+                {...{"variant":"surface","className":"flex flex-col duration-120 text-left cursor-pointer group"}}
               >
-                <div className="p-1.5 rounded-md bg-black/5 text-text-heading w-fit mb-2 group-hover:bg-text-heading group-hover:text-white transition-all">
+                <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--black-a7)","color":"var(--gray-12)"},"className":"p-1.5 w-fit mb-2"}}>
                   <ShoppingCart size={15} />
-                </div>
-                <span className="text-xs font-semibold text-text-heading">Punto de Venta</span>
-                <span className="text-xs text-text-secondary mt-0.5">Cobro rápido (F12)</span>
-              </button>
+                </UiBox>
+                <UiText {...{"size":"1","weight":"bold","color":"gray","highContrast":true}}>Punto de Venta</UiText>
+                <UiText {...{"size":"1","color":"gray","className":"mt-0.5"}}>Cobro rápido (F12)</UiText>
+              </UiButton>
 
               {/* Facturación */}
-              <button 
+              <UiButton
                 onClick={() => { setVentasInitialSubTab && setVentasInitialSubTab('resumen_ventas'); setActivePageId('ventas'); }}
-                className="flex flex-col p-3 rounded-md border border-border-default bg-white hover:border-text-heading hover:bg-surface-sidebar transition-all duration-120 text-left cursor-pointer group"
+                {...{"variant":"surface","className":"flex flex-col duration-120 text-left cursor-pointer group"}}
               >
-                <div className="p-1.5 rounded-md bg-black/5 text-text-heading w-fit mb-2 group-hover:bg-text-heading group-hover:text-white transition-all">
+                <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--black-a7)","color":"var(--gray-12)"},"className":"p-1.5 w-fit mb-2"}}>
                   <FileText size={15} />
-                </div>
-                <span className="text-xs font-semibold text-text-heading">Facturas SRI</span>
-                <span className="text-xs text-text-secondary mt-0.5">Emisión y RIDE</span>
-              </button>
+                </UiBox>
+                <UiText {...{"size":"1","weight":"bold","color":"gray","highContrast":true}}>Facturas SRI</UiText>
+                <UiText {...{"size":"1","color":"gray","className":"mt-0.5"}}>Emisión y RIDE</UiText>
+              </UiButton>
 
               {/* Inventario */}
-              <button 
+              <UiButton
                 onClick={() => setActivePageId('inventario')}
-                className="flex flex-col p-3 rounded-md border border-border-default bg-white hover:border-text-heading hover:bg-surface-sidebar transition-all duration-120 text-left cursor-pointer group"
+                {...{"variant":"surface","className":"flex flex-col duration-120 text-left cursor-pointer group"}}
               >
-                <div className="p-1.5 rounded-md bg-black/5 text-text-heading w-fit mb-2 group-hover:bg-text-heading group-hover:text-white transition-all">
+                <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--black-a7)","color":"var(--gray-12)"},"className":"p-1.5 w-fit mb-2"}}>
                   <Package size={15} />
-                </div>
-                <span className="text-xs font-semibold text-text-heading">Inventario</span>
-                <span className="text-xs text-text-secondary mt-0.5">Kardex y Stock</span>
-              </button>
+                </UiBox>
+                <UiText {...{"size":"1","weight":"bold","color":"gray","highContrast":true}}>Inventario</UiText>
+                <UiText {...{"size":"1","color":"gray","className":"mt-0.5"}}>Kardex y Stock</UiText>
+              </UiButton>
 
               {/* Clientes */}
-              <button 
+              <UiButton
                 onClick={() => setActivePageId('personas')}
-                className="flex flex-col p-3 rounded-md border border-border-default bg-white hover:border-text-heading hover:bg-surface-sidebar transition-all duration-120 text-left cursor-pointer group"
+                {...{"variant":"surface","className":"flex flex-col duration-120 text-left cursor-pointer group"}}
               >
-                <div className="p-1.5 rounded-md bg-black/5 text-text-heading w-fit mb-2 group-hover:bg-text-heading group-hover:text-white transition-all">
+                <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--black-a7)","color":"var(--gray-12)"},"className":"p-1.5 w-fit mb-2"}}>
                   <Users size={15} />
-                </div>
-                <span className="text-xs font-semibold text-text-heading">Clientes y Prov</span>
-                <span className="text-xs text-text-secondary mt-0.5">Directorio RUC</span>
-              </button>
+                </UiBox>
+                <UiText {...{"size":"1","weight":"bold","color":"gray","highContrast":true}}>Clientes y Prov</UiText>
+                <UiText {...{"size":"1","color":"gray","className":"mt-0.5"}}>Directorio RUC</UiText>
+              </UiButton>
 
               {/* Finanzas / Gastos */}
-              <button 
+              <UiButton
                 onClick={() => setActivePageId('gastos_creditos')}
-                className="flex flex-col p-3 rounded-md border border-border-default bg-white hover:border-text-heading hover:bg-surface-sidebar transition-all duration-120 text-left cursor-pointer group"
+                {...{"variant":"surface","className":"flex flex-col duration-120 text-left cursor-pointer group"}}
               >
-                <div className="p-1.5 rounded-md bg-black/5 text-text-heading w-fit mb-2 group-hover:bg-text-heading group-hover:text-white transition-all">
+                <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--black-a7)","color":"var(--gray-12)"},"className":"p-1.5 w-fit mb-2"}}>
                   <CreditCard size={15} />
-                </div>
-                <span className="text-xs font-semibold text-text-heading">Gastos y CxP</span>
-                <span className="text-xs text-text-secondary mt-0.5">Control de egresos</span>
-              </button>
+                </UiBox>
+                <UiText {...{"size":"1","weight":"bold","color":"gray","highContrast":true}}>Gastos y CxP</UiText>
+                <UiText {...{"size":"1","color":"gray","className":"mt-0.5"}}>Control de egresos</UiText>
+              </UiButton>
 
               {/* Configuración */}
-              <button 
+              <UiButton
                 onClick={() => setActivePageId('general_settings')}
-                className="flex flex-col p-3 rounded-md border border-border-default bg-white hover:border-text-heading hover:bg-surface-sidebar transition-all duration-120 text-left cursor-pointer group"
+                {...{"variant":"surface","className":"flex flex-col duration-120 text-left cursor-pointer group"}}
               >
-                <div className="p-1.5 rounded-md bg-black/5 text-text-heading w-fit mb-2 group-hover:bg-text-heading group-hover:text-white transition-all">
+                <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--black-a7)","color":"var(--gray-12)"},"className":"p-1.5 w-fit mb-2"}}>
                   <Settings size={15} />
-                </div>
-                <span className="text-xs font-semibold text-text-heading">Ajustes SRI</span>
-                <span className="text-xs text-text-secondary mt-0.5">Firma .p12 y datos</span>
-              </button>
+                </UiBox>
+                <UiText {...{"size":"1","weight":"bold","color":"gray","highContrast":true}}>Ajustes SRI</UiText>
+                <UiText {...{"size":"1","color":"gray","className":"mt-0.5"}}>Firma .p12 y datos</UiText>
+              </UiButton>
 
             </CardContent>
           </Card>
 
           {/* Widget de Estado del Sistema SRI */}
-          <Card className="bg-surface-sidebar/50">
-            <CardHeader className="py-3 border-b border-border-default">
-              <div className="flex items-center gap-2">
-                <ShieldCheck size={16} className="text-success-text" />
-                <CardTitle className="text-xs font-semibold text-text-heading">
+          <Card {...{"style":{"backgroundColor":"var(--color-panel-solid)"}}}>
+            <CardHeader {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"py-3"}}>
+              <UiBox {...{"className":"flex items-center gap-2"}}>
+                <ShieldCheck size={16} {...{"style":{"color":"var(--green-12)"}}} />
+                <CardTitle {...{"style":{"color":"var(--gray-12)"}}}>
                   Estado de Facturación Electrónica
                 </CardTitle>
-              </div>
+              </UiBox>
             </CardHeader>
-            <CardContent className="pt-3 space-y-2 text-xs">
-              <div className="flex items-center justify-between text-text-secondary">
-                <span>Ambiente SRI:</span>
-                <span className="font-semibold text-text-heading">
+            <CardContent {...{"className":"pt-3 space-y-2"}}>
+              <UiBox {...{"style":{"color":"var(--gray-11)"},"className":"flex items-center justify-between"}}>
+                <UiText>Ambiente SRI:</UiText>
+                <UiText {...{"weight":"bold","color":"gray","highContrast":true}}>
                   {settings?.ambiente === '2' ? 'Producción' : 'Pruebas / Certificación'}
-                </span>
-              </div>
-              <div className="flex items-center justify-between text-text-secondary">
-                <span>Firma Digital:</span>
-                <span className="font-medium text-success-text flex items-center gap-1">
+                </UiText>
+              </UiBox>
+              <UiBox {...{"style":{"color":"var(--gray-11)"},"className":"flex items-center justify-between"}}>
+                <UiText>Firma Digital:</UiText>
+                <UiText {...{"weight":"medium","color":"green","className":"flex items-center gap-1"}}>
                   <CheckCircle2 size={11} /> Configurada (.p12)
-                </span>
-              </div>
-              <div className="flex items-center justify-between text-text-secondary">
-                <span>WebServices SRI:</span>
-                <span className="font-medium text-success-text">100% En Línea</span>
-              </div>
+                </UiText>
+              </UiBox>
+              <UiBox {...{"style":{"color":"var(--gray-11)"},"className":"flex items-center justify-between"}}>
+                <UiText>WebServices SRI:</UiText>
+                <UiText {...{"weight":"medium","color":"green"}}>100% En Línea</UiText>
+              </UiBox>
             </CardContent>
           </Card>
 
-        </div>
+        </UiBox>
 
-      </div>
+      </UiBox>
 
-    </div>
+    </UiBox>
   );
 }

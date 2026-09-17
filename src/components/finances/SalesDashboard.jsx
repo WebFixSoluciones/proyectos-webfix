@@ -1,9 +1,12 @@
+import { resolveThemeProps } from '../ui/themeProps';
+import { mergeThemeProps } from '../ui/themeProps';
+import { UiBox, UiText, UiHeading } from '../ui/layout';
 import { useState, useEffect } from 'react';
 import { 
   TrendingUp, DollarSign, ShoppingCart, Package, Clock, ArrowUpRight, 
   Activity, Tag
 } from 'lucide-react';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, onSnapshot } from '../../services/financeStore.js';
 import { getEcuadorDateString } from '../../services/sriService';
 
 export default function SalesDashboard({ transactions, db, appId }) {
@@ -108,196 +111,178 @@ export default function SalesDashboard({ transactions, db, appId }) {
   const maxProductQty = topProducts.length > 0 ? Math.max(...topProducts.map(p => p.quantity)) : 1;
 
   // Clases CSS premium
-  const cardClass = `p-5 rounded-card border transition-all ${
-    'bg-white border-border-default hover:border-border-strong/80'
-  }`;
+  
 
-  const progressBgClass = 'bg-surface-bg';
+  
 
   return (
-    <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
+    <UiBox {...{"className":"space-y-6 animate-in slide-in-from-bottom-4 duration-500"}}>
       
       {/* SECCION ALERTA DE SESIÓN DE CAJA */}
       {!sessionLoading && (
-        <div className={`p-4 rounded-card border flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all ${
-          activeSession 
-            ? ('bg-emerald-50 border-emerald-300 text-emerald-950')
-            : ('bg-orange-50 border-orange-300 text-orange-950')
-        }`}>
-          <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-card shrink-0 ${
-              activeSession 
-                ? ('bg-emerald-200 text-emerald-800')
-                : ('bg-orange-200 text-orange-800')
-            }`}>
+        <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4"}, {}, (activeSession ? {"style":{"backgroundColor":"var(--green-3)","color":"var(--green-12)"}} : {"style":{"backgroundColor":"var(--orange-3)","color":"var(--orange-12)"}}))}>
+          <UiBox {...{"className":"flex items-center gap-3"}}>
+            <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)"},"className":"p-2 shrink-0"}, {}, (activeSession ? {"style":{"backgroundColor":"var(--green-3)","color":"var(--green-12)"}} : {"style":{"backgroundColor":"var(--orange-3)","color":"var(--orange-12)"}}))}>
               <Clock size={16} />
-            </div>
-            <div>
-              <p className="text-xs font-bold font-sans">
+            </UiBox>
+            <UiBox>
+              <UiText as="p" {...{"size":"1","weight":"regular"}}>
                 {activeSession 
                   ? `Caja POS Abierta - Sucursal: ${activeSession.branch}` 
                   : "Caja POS Cerrada o Inactiva"}
-              </p>
-              <p className={`text-xs mt-0.5 ${'text-text-secondary'}`}>
+              </UiText>
+              <UiText as="p" {...mergeThemeProps({"size":"1","className":"mt-0.5"}, {}, {"color":"gray"})}>
                 {activeSession 
                   ? `Responsable: ${activeSession.responsible} | Turno: ${activeSession.shift} | Fondo: $${activeSession.initialAmount.toFixed(2)}`
                   : "Es necesario abrir la caja registradora en el Punto de Venta (POS) para poder realizar ventas físicas."}
-              </p>
-            </div>
-          </div>
-          <div className="shrink-0 flex items-center gap-2">
-            <span className={`text-xs font-semibold uppercase tracking-wider px-2 py-0.5 rounded border ${
-              activeSession 
-                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' 
-                : 'bg-orange-500/10 border-orange-500/30 text-orange-400'
-            }`}>
+              </UiText>
+            </UiBox>
+          </UiBox>
+          <UiBox {...{"className":"shrink-0 flex items-center gap-2"}}>
+            <UiText {...mergeThemeProps({"size":"1","weight":"bold","className":"px-2 py-0.5"}, {}, (activeSession ? {"color":"green"} : {"color":"orange"}))}>
               {activeSession ? 'Activa' : 'Requerida'}
-            </span>
-          </div>
-        </div>
+            </UiText>
+          </UiBox>
+        </UiBox>
       )}
 
       {/* METRICAS DE VENTAS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <UiBox {...{"className":"grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"}}>
         
         {/* VENTAS DE HOY */}
-        <div className={cardClass}>
-          <div className="flex items-center justify-between mb-3">
-            <span className={`text-xs font-bold uppercase tracking-wider ${'text-text-secondary'}`}>Ventas de Hoy</span>
-            <div className={`p-1.5 rounded-md ${'bg-primary/10 text-primary'}`}>
+        <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"p-5"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)"}})}>
+          <UiBox {...{"className":"flex items-center justify-between mb-3"}}>
+            <UiText {...mergeThemeProps({"size":"1","weight":"bold"}, {}, {"color":"gray"})}>Ventas de Hoy</UiText>
+            <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)"},"className":"p-1.5"}, {}, {"style":{"backgroundColor":"var(--blue-3)","color":"var(--blue-12)"}})}>
               <ShoppingCart size={14} />
-            </div>
-          </div>
-          <p className="text-2xl font-semibold">${todaySalesTotal.toFixed(2)}</p>
-          <div className="flex items-center gap-1 mt-1 text-xs">
-            <span className="font-bold text-emerald-500 flex items-center"><ArrowUpRight size={10} /> {todaySalesCount}</span>
-            <span className={'text-text-secondary font-semibold'}>transacciones concretadas</span>
-          </div>
-        </div>
+            </UiBox>
+          </UiBox>
+          <UiText as="p" {...{"size":"6","weight":"bold"}}>${todaySalesTotal.toFixed(2)}</UiText>
+          <UiBox {...{"className":"flex items-center gap-1 mt-1"}}>
+            <UiText {...{"weight":"bold","color":"green","className":"flex items-center"}}><ArrowUpRight size={10} /> {todaySalesCount}</UiText>
+            <UiText {...{"color":"gray","weight":"bold"}}>transacciones concretadas</UiText>
+          </UiBox>
+        </UiBox>
 
         {/* VENTAS DEL MES */}
-        <div className={cardClass}>
-          <div className="flex items-center justify-between mb-3">
-            <span className={`text-xs font-bold uppercase tracking-wider ${'text-text-secondary'}`}>Ventas del Mes</span>
-            <div className={`p-1.5 rounded-md ${'bg-emerald-100 text-emerald-800'}`}>
+        <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"p-5"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)"}})}>
+          <UiBox {...{"className":"flex items-center justify-between mb-3"}}>
+            <UiText {...mergeThemeProps({"size":"1","weight":"bold"}, {}, {"color":"gray"})}>Ventas del Mes</UiText>
+            <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)"},"className":"p-1.5"}, {}, {"style":{"backgroundColor":"var(--green-3)","color":"var(--green-12)"}})}>
               <TrendingUp size={14} />
-            </div>
-          </div>
-          <p className="text-2xl font-semibold text-emerald-500">${monthlySalesTotal.toFixed(2)}</p>
-          <div className="flex items-center gap-1 mt-1 text-xs">
-            <span className="font-bold text-emerald-500 flex items-center"><ArrowUpRight size={10} /> {monthlySalesCount}</span>
-            <span className={'text-text-secondary font-semibold'}>facturas de venta</span>
-          </div>
-        </div>
+            </UiBox>
+          </UiBox>
+          <UiText as="p" {...{"size":"6","weight":"bold","color":"green"}}>${monthlySalesTotal.toFixed(2)}</UiText>
+          <UiBox {...{"className":"flex items-center gap-1 mt-1"}}>
+            <UiText {...{"weight":"bold","color":"green","className":"flex items-center"}}><ArrowUpRight size={10} /> {monthlySalesCount}</UiText>
+            <UiText {...{"color":"gray","weight":"bold"}}>facturas de venta</UiText>
+          </UiBox>
+        </UiBox>
 
         {/* TICKET PROMEDIO */}
-        <div className={cardClass}>
-          <div className="flex items-center justify-between mb-3">
-            <span className={`text-xs font-bold uppercase tracking-wider ${'text-text-secondary'}`}>Ticket Promedio</span>
-            <div className={`p-1.5 rounded-md ${'bg-purple-100 text-purple-800'}`}>
+        <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"p-5"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)"}})}>
+          <UiBox {...{"className":"flex items-center justify-between mb-3"}}>
+            <UiText {...mergeThemeProps({"size":"1","weight":"bold"}, {}, {"color":"gray"})}>Ticket Promedio</UiText>
+            <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)"},"className":"p-1.5"}, {}, {"style":{"backgroundColor":"var(--purple-3)","color":"var(--purple-12)"}})}>
               <DollarSign size={14} />
-            </div>
-          </div>
-          <p className="text-2xl font-semibold">${averageTicket.toFixed(2)}</p>
-          <div className="flex items-center gap-1 mt-1 text-xs">
-            <span className={'text-text-secondary font-semibold'}>Valor medio por compra</span>
-          </div>
-        </div>
+            </UiBox>
+          </UiBox>
+          <UiText as="p" {...{"size":"6","weight":"bold"}}>${averageTicket.toFixed(2)}</UiText>
+          <UiBox {...{"className":"flex items-center gap-1 mt-1"}}>
+            <UiText {...{"color":"gray","weight":"bold"}}>Valor medio por compra</UiText>
+          </UiBox>
+        </UiBox>
 
         {/* UNIDADES VENDIDAS */}
-        <div className={cardClass}>
-          <div className="flex items-center justify-between mb-3">
-            <span className={`text-xs font-bold uppercase tracking-wider ${'text-text-secondary'}`}>Artículos Vendidos</span>
-            <div className={`p-1.5 rounded-md ${'bg-orange-100 text-orange-800'}`}>
+        <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"p-5"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)"}})}>
+          <UiBox {...{"className":"flex items-center justify-between mb-3"}}>
+            <UiText {...mergeThemeProps({"size":"1","weight":"bold"}, {}, {"color":"gray"})}>Artículos Vendidos</UiText>
+            <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)"},"className":"p-1.5"}, {}, {"style":{"backgroundColor":"var(--orange-3)","color":"var(--orange-12)"}})}>
               <Package size={14} />
-            </div>
-          </div>
-          <p className="text-2xl font-semibold">{totalItemsSold} ud.</p>
-          <div className="flex items-center gap-1 mt-1 text-xs">
-            <span className={'text-text-secondary font-semibold'}>Productos y servicios entregados</span>
-          </div>
-        </div>
+            </UiBox>
+          </UiBox>
+          <UiText as="p" {...{"size":"6","weight":"bold"}}>{totalItemsSold} ud.</UiText>
+          <UiBox {...{"className":"flex items-center gap-1 mt-1"}}>
+            <UiText {...{"color":"gray","weight":"bold"}}>Productos y servicios entregados</UiText>
+          </UiBox>
+        </UiBox>
 
-      </div>
+      </UiBox>
 
       {/* DETALLES ANALITICOS */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+      <UiBox {...{"className":"grid grid-cols-1 lg:grid-cols-5 gap-6"}}>
         
         {/* MÉTODOS DE PAGO */}
-        <div className={`${cardClass} lg:col-span-2 space-y-4`}>
-          <div className="flex items-center gap-2 pb-2 border-b border-white/5">
-            <Activity size={15} className="text-primary" />
-            <h3 className="text-xs font-semibold uppercase tracking-wider">Desglose de Métodos de Pago</h3>
-          </div>
+        <UiBox {...mergeThemeProps({}, {"className":"lg:col-span-2 space-y-4"}, mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"p-5"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)"}}))}>
+          <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex items-center gap-2 pb-2"}}>
+            <Activity size={15} {...{"style":{"color":"var(--blue-12)"}}} />
+            <UiHeading as="h3" {...{"size":"1","weight":"bold"}}>Desglose de Métodos de Pago</UiHeading>
+          </UiBox>
 
-          <div className="space-y-4">
+          <UiBox {...{"className":"space-y-4"}}>
             {[
-              { key: 'efectivo', label: 'Efectivo en Caja', color: 'bg-emerald-500' },
-              { key: 'tarjeta', label: 'Tarjetas Débito/Crédito', color: 'bg-blue-500' },
-              { key: 'transferencia', label: 'Transferencia Bancaria', color: 'bg-purple-500' },
-              { key: 'cruce_cuentas', label: 'Cruce de Cuentas', color: 'bg-surface-sidebar' }
+              { key: 'efectivo', label: 'Efectivo en Caja', color: {"style":{"backgroundColor":"var(--green-9)"}} },
+              { key: 'tarjeta', label: 'Tarjetas Débito/Crédito', color: {"style":{"backgroundColor":"var(--blue-9)"}} },
+              { key: 'transferencia', label: 'Transferencia Bancaria', color: {"style":{"backgroundColor":"var(--purple-9)"}} },
+              { key: 'cruce_cuentas', label: 'Cruce de Cuentas', color: {"style":{"backgroundColor":"var(--gray-3)"}} }
             ].map(m => {
               const value = paymentMethods[m.key] || 0;
               const pct = (value / totalPaymentSum) * 100;
               return (
-                <div key={m.key} className="space-y-1">
-                  <div className="flex justify-between items-center text-xs">
-                    <span className={`font-bold ${'text-text-secondary'}`}>{m.label}</span>
-                    <span className="font-bold text-white">${value.toFixed(2)} ({pct.toFixed(0)}%)</span>
-                  </div>
-                  <div className={`w-full h-2 rounded-full overflow-hidden ${progressBgClass}`}>
-                    <div className={`h-full ${m.color}`} style={{ width: `${pct}%` }}></div>
-                  </div>
-                </div>
+                <UiBox key={m.key} {...{"className":"space-y-1"}}>
+                  <UiBox {...{"className":"flex justify-between items-center"}}>
+                    <UiText {...mergeThemeProps({"weight":"bold"}, {}, {"color":"gray"})}>{m.label}</UiText>
+                    <UiText {...{"weight":"bold"}}>${value.toFixed(2)} ({pct.toFixed(0)}%)</UiText>
+                  </UiBox>
+                  <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)"},"className":"w-full h-2 overflow-hidden"}, {}, {"style":{"backgroundColor":"var(--gray-2)"}})}>
+                    <UiBox {...mergeThemeProps({"className":"h-full"}, {}, resolveThemeProps(m.color))} style={{ width: `${pct}%` }}></UiBox>
+                  </UiBox>
+                </UiBox>
               );
             })}
-          </div>
-        </div>
+          </UiBox>
+        </UiBox>
 
         {/* TOP PRODUCTOS MÁS VENDIDOS */}
-        <div className={`${cardClass} lg:col-span-3 space-y-4`}>
-          <div className="flex items-center gap-2 pb-2 border-b border-white/5">
-            <Tag size={15} className="text-orange-500" />
-            <h3 className="text-xs font-semibold uppercase tracking-wider">Productos Más Vendidos (Mes)</h3>
-          </div>
+        <UiBox {...mergeThemeProps({}, {"className":"lg:col-span-3 space-y-4"}, mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"p-5"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)"}}))}>
+          <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex items-center gap-2 pb-2"}}>
+            <Tag size={15} {...{"style":{"color":"var(--orange-11)"}}} />
+            <UiHeading as="h3" {...{"size":"1","weight":"bold"}}>Productos Más Vendidos (Mes)</UiHeading>
+          </UiBox>
 
-          <div className="space-y-3.5">
+          <UiBox {...{"className":"space-y-3.5"}}>
             {topProducts.map((p, idx) => {
               const pct = (p.quantity / maxProductQty) * 100;
               return (
-                <div key={idx} className="flex items-center gap-3">
-                  <span className={`w-5 h-5 rounded-md flex items-center justify-center text-xs font-semibold shrink-0 ${
-                    idx === 0 
-                      ? 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/20' 
-                      : ('bg-surface-bg text-text-secondary')
-                  }`}>
+                <UiBox key={idx} {...{"className":"flex items-center gap-3"}}>
+                  <UiText {...mergeThemeProps({"size":"1","weight":"bold","className":"w-5 h-5 flex items-center justify-center shrink-0"}, {}, (idx === 0 ? {"color":"amber"} : {"color":"gray"}))}>
                     {idx + 1}
-                  </span>
+                  </UiText>
                   
-                  <div className="flex-1 min-w-0 space-y-1">
-                    <div className="flex justify-between items-center text-xs gap-2">
-                      <span className="font-bold truncate text-white block">{p.name}</span>
-                      <span className="font-bold shrink-0">{p.quantity} uds. | ${p.total.toFixed(2)}</span>
-                    </div>
-                    <div className={`w-full h-1.5 rounded-full overflow-hidden ${progressBgClass}`}>
-                      <div className="h-full bg-orange-500" style={{ width: `${pct}%` }}></div>
-                    </div>
-                  </div>
-                </div>
+                  <UiBox {...{"className":"flex-1 min-w-0 space-y-1"}}>
+                    <UiBox {...{"className":"flex justify-between items-center gap-2"}}>
+                      <UiText {...{"weight":"bold","className":"truncate block"}}>{p.name}</UiText>
+                      <UiText {...{"weight":"bold","className":"shrink-0"}}>{p.quantity} uds. | ${p.total.toFixed(2)}</UiText>
+                    </UiBox>
+                    <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)"},"className":"w-full h-1.5 overflow-hidden"}, {}, {"style":{"backgroundColor":"var(--gray-2)"}})}>
+                      <UiBox {...{"style":{"backgroundColor":"var(--orange-9)"},"className":"h-full"}} style={{ width: `${pct}%` }}></UiBox>
+                    </UiBox>
+                  </UiBox>
+                </UiBox>
               );
             })}
             
             {topProducts.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-10 text-text-muted">
-                <Package size={28} className="opacity-20 mb-1" />
-                <p className="text-xs italic">No hay datos de ventas registradas en el mes.</p>
-              </div>
+              <UiBox {...{"style":{"color":"var(--gray-11)"},"className":"flex flex-col items-center justify-center py-10"}}>
+                <Package size={28} {...{"className":"opacity-20 mb-1"}} />
+                <UiText as="p" {...{"size":"1","className":"italic"}}>No hay datos de ventas registradas en el mes.</UiText>
+              </UiBox>
             )}
-          </div>
-        </div>
+          </UiBox>
+        </UiBox>
 
-      </div>
+      </UiBox>
 
-    </div>
+    </UiBox>
   );
 }

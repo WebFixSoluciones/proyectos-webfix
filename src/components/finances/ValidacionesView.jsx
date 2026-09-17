@@ -1,3 +1,7 @@
+import { resolveThemeProps } from '../ui/themeProps';
+import { mergeThemeProps } from '../ui/themeProps';
+import { UiCard, UiBox, UiHeading, UiText } from '../ui/layout';
+import { UiButton } from '../ui/controls';
 import { useState } from 'react';
 import {
   Shield, CheckCircle, AlertTriangle, XCircle, RefreshCw,
@@ -64,332 +68,332 @@ export default function ValidacionesView({ db, usuario, showToast }) {
 
   const getSeveridadColor = (severidad) => {
     switch (severidad) {
-      case 'severo': return 'bg-red-50 border-red-200 text-red-800';
-      case 'advertencia': return 'bg-yellow-50 border-yellow-200 text-yellow-800';
-      case 'info': return 'bg-blue-50 border-blue-200 text-blue-800';
-      default: return 'bg-surface-bg border-border-default text-text-heading';
+      case 'severo': return {"style":{"backgroundColor":"var(--red-3)","color":"var(--red-11)"}};
+      case 'advertencia': return {"style":{"backgroundColor":"var(--amber-3)","color":"var(--amber-11)"}};
+      case 'info': return {"style":{"backgroundColor":"var(--blue-3)","color":"var(--blue-11)"}};
+      default: return {"style":{"backgroundColor":"var(--gray-3)","color":"var(--gray-11)"}};
     }
   };
 
   const getSeveridadIcon = (severidad) => {
     switch (severidad) {
-      case 'severo': return <XCircle className="w-5 h-5" />;
-      case 'advertencia': return <AlertTriangle className="w-5 h-5" />;
-      default: return <AlertTriangle className="w-5 h-5" />;
+      case 'severo': return <XCircle {...{"className":"w-5 h-5"}} />;
+      case 'advertencia': return <AlertTriangle {...{"className":"w-5 h-5"}} />;
+      default: return <AlertTriangle {...{"className":"w-5 h-5"}} />;
     }
   };
 
   if (!resultados) {
     return (
-      <div className="p-6 bg-white rounded-md  border border-border-default">
-        <div className="flex items-center justify-center h-96">
-          <div className="text-center">
-            <Shield className="w-16 h-16 mx-auto text-text-secondary mb-4" />
-            <h2 className="text-xl font-semibold text-text-heading mb-2">
+      <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-6"}}>
+        <UiBox {...{"className":"flex items-center justify-center h-96"}}>
+          <UiBox {...{"className":"text-center"}}>
+            <Shield {...{"style":{"color":"var(--gray-11)"},"className":"w-16 h-16 mx-auto mb-4"}} />
+            <UiHeading as="h2" {...{"size":"5","weight":"bold","color":"gray","highContrast":true,"className":"mb-2"}}>
               Validación de Integridad Financiera
-            </h2>
-            <p className="text-text-primary mb-6 max-w-md">
+            </UiHeading>
+            <UiText as="p" {...{"color":"gray","highContrast":true,"className":"mb-6 max-w-md"}}>
               Verifica la consistencia de datos entre movimientos, CxC, CxP y detecta duplicados o inconsistencias
-            </p>
-            <button
+            </UiText>
+            <UiButton
               onClick={ejecutarValidacion}
               disabled={loading}
-              className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-surface-sidebar disabled:cursor-not-allowed flex items-center gap-2 mx-auto"
+              {...{"variant":"solid","color":"blue","className":"disabled:cursor-not-allowed flex items-center gap-2 mx-auto"}}
             >
               {loading ? (
                 <>
-                  <RefreshCw className="w-5 h-5 animate-spin" />
+                  <RefreshCw {...{"className":"w-5 h-5 animate-spin"}} />
                   Validando...
                 </>
               ) : (
                 <>
-                  <Shield className="w-5 h-5" />
+                  <Shield {...{"className":"w-5 h-5"}} />
                   Ejecutar Validación
                 </>
               )}
-            </button>
-          </div>
-        </div>
-      </div>
+            </UiButton>
+          </UiBox>
+        </UiBox>
+      </UiCard>
     );
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <UiBox {...{"className":"p-6 space-y-6"}}>
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-text-heading flex items-center gap-2">
-            <Shield className="w-7 h-7" />
+      <UiBox {...{"className":"flex items-center justify-between"}}>
+        <UiBox>
+          <UiHeading as="h1" {...{"size":"6","weight":"bold","color":"gray","highContrast":true,"className":"flex items-center gap-2"}}>
+            <Shield {...{"className":"w-7 h-7"}} />
             Validación de Integridad
-          </h1>
-          <p className="text-sm text-text-primary mt-1">
+          </UiHeading>
+          <UiText as="p" {...{"size":"2","color":"gray","highContrast":true,"className":"mt-1"}}>
             Última ejecución: {ultimaValidacion}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <button
+          </UiText>
+        </UiBox>
+        <UiBox {...{"className":"flex gap-2"}}>
+          <UiButton
             onClick={exportarResultados}
-            className="px-4 py-2 bg-surface-muted text-text-primary rounded-md hover:bg-surface-muted flex items-center gap-2"
+            {...{"variant":"soft","color":"gray","className":"flex items-center gap-2"}}
           >
-            <Download className="w-4 h-4" />
+            <Download {...{"className":"w-4 h-4"}} />
             Exportar
-          </button>
-          <button
+          </UiButton>
+          <UiButton
             onClick={ejecutarValidacion}
             disabled={loading}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-surface-sidebar flex items-center gap-2"
+            {...{"variant":"solid","color":"blue","className":"flex items-center gap-2"}}
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw {...mergeThemeProps({"className":"w-4 h-4"}, {}, (loading ? {"className":"animate-spin"} : {}))} />
             Re-validar
-          </button>
-        </div>
-      </div>
+          </UiButton>
+        </UiBox>
+      </UiBox>
 
       {/* Resumen General */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className={`p-4 rounded-md border-2 ${resultados.resumen.valido ? 'bg-green-50 border-green-300' : 'bg-red-50 border-red-300'}`}>
-          <div className="flex items-center gap-3">
+      <UiBox {...{"className":"grid grid-cols-1 md:grid-cols-4 gap-4"}}>
+        <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"p-4"}, {}, (resultados.resumen.valido ? {"style":{"backgroundColor":"var(--green-3)"}} : {"style":{"backgroundColor":"var(--red-3)"}}))}>
+          <UiBox {...{"className":"flex items-center gap-3"}}>
             {resultados.resumen.valido ? (
-              <CheckCircle className="w-10 h-10 text-green-600" />
+              <CheckCircle {...{"style":{"color":"var(--green-11)"},"className":"w-10 h-10"}} />
             ) : (
-              <XCircle className="w-10 h-10 text-red-600" />
+              <XCircle {...{"style":{"color":"var(--red-11)"},"className":"w-10 h-10"}} />
             )}
-            <div>
-              <p className="text-sm text-text-primary">Estado General</p>
-              <p className="text-lg font-bold">
+            <UiBox>
+              <UiText as="p" {...{"size":"2","color":"gray","highContrast":true}}>Estado General</UiText>
+              <UiText as="p" {...{"size":"4","weight":"bold"}}>
                 {resultados.resumen.valido ? 'Válido' : 'Con Errores'}
-              </p>
-            </div>
-          </div>
-        </div>
+              </UiText>
+            </UiBox>
+          </UiBox>
+        </UiBox>
 
-        <div className="p-4 rounded-md bg-white border border-border-default">
-          <p className="text-sm text-text-primary">Total Errores</p>
-          <p className="text-2xl font-bold text-text-heading">{resultados.resumen.totalErrores}</p>
-        </div>
+        <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4"}}>
+          <UiText as="p" {...{"size":"2","color":"gray","highContrast":true}}>Total Errores</UiText>
+          <UiText as="p" {...{"size":"6","weight":"bold","color":"gray","highContrast":true}}>{resultados.resumen.totalErrores}</UiText>
+        </UiCard>
 
-        <div className="p-4 rounded-md bg-white border border-border-default">
-          <p className="text-sm text-text-primary">Errores Severos</p>
-          <p className="text-2xl font-bold text-red-600">{resultados.resumen.severos}</p>
-        </div>
+        <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4"}}>
+          <UiText as="p" {...{"size":"2","color":"gray","highContrast":true}}>Errores Severos</UiText>
+          <UiText as="p" {...{"size":"6","weight":"bold","color":"red"}}>{resultados.resumen.severos}</UiText>
+        </UiCard>
 
-        <div className="p-4 rounded-md bg-white border border-border-default">
-          <p className="text-sm text-text-primary">Advertencias</p>
-          <p className="text-2xl font-bold text-yellow-600">{resultados.resumen.advertencias}</p>
-        </div>
-      </div>
+        <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4"}}>
+          <UiText as="p" {...{"size":"2","color":"gray","highContrast":true}}>Advertencias</UiText>
+          <UiText as="p" {...{"size":"6","weight":"bold","color":"amber"}}>{resultados.resumen.advertencias}</UiText>
+        </UiCard>
+      </UiBox>
 
       {/* Estadísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-4 bg-white rounded-md border border-border-default">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-medium text-text-primary">Movimientos Validados</p>
-            <FileText className="w-5 h-5 text-text-secondary" />
-          </div>
-          <p className="text-2xl font-bold text-text-heading">{resultados.movimientos.total}</p>
-          <p className="text-xs text-text-secondary mt-1">
+      <UiBox {...{"className":"grid grid-cols-1 md:grid-cols-3 gap-4"}}>
+        <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4"}}>
+          <UiBox {...{"className":"flex items-center justify-between mb-2"}}>
+            <UiText as="p" {...{"size":"2","weight":"medium","color":"gray","highContrast":true}}>Movimientos Validados</UiText>
+            <FileText {...{"style":{"color":"var(--gray-11)"},"className":"w-5 h-5"}} />
+          </UiBox>
+          <UiText as="p" {...{"size":"6","weight":"bold","color":"gray","highContrast":true}}>{resultados.movimientos.total}</UiText>
+          <UiText as="p" {...{"size":"1","color":"gray","className":"mt-1"}}>
             {resultados.movimientos.errores.length} con errores
-          </p>
-        </div>
+          </UiText>
+        </UiCard>
 
-        <div className="p-4 bg-white rounded-md border border-border-default">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-medium text-text-primary">CxC / CxP</p>
-            <Users className="w-5 h-5 text-text-secondary" />
-          </div>
-          <p className="text-2xl font-bold text-text-heading">
+        <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4"}}>
+          <UiBox {...{"className":"flex items-center justify-between mb-2"}}>
+            <UiText as="p" {...{"size":"2","weight":"medium","color":"gray","highContrast":true}}>CxC / CxP</UiText>
+            <Users {...{"style":{"color":"var(--gray-11)"},"className":"w-5 h-5"}} />
+          </UiBox>
+          <UiText as="p" {...{"size":"6","weight":"bold","color":"gray","highContrast":true}}>
             {resultados.cxc.totalCxC + resultados.cxp.totalCxP}
-          </p>
-          <p className="text-xs text-text-secondary mt-1">
+          </UiText>
+          <UiText as="p" {...{"size":"1","color":"gray","className":"mt-1"}}>
             CxC: {resultados.cxc.totalCxC} | CxP: {resultados.cxp.totalCxP}
-          </p>
-        </div>
+          </UiText>
+        </UiCard>
 
-        <div className="p-4 bg-white rounded-md border border-border-default">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-medium text-text-primary">Duplicados Detectados</p>
-            <AlertTriangle className="w-5 h-5 text-text-secondary" />
-          </div>
-          <p className="text-2xl font-bold text-text-heading">{resultados.duplicados.length}</p>
-          <p className="text-xs text-text-secondary mt-1">
+        <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4"}}>
+          <UiBox {...{"className":"flex items-center justify-between mb-2"}}>
+            <UiText as="p" {...{"size":"2","weight":"medium","color":"gray","highContrast":true}}>Duplicados Detectados</UiText>
+            <AlertTriangle {...{"style":{"color":"var(--gray-11)"},"className":"w-5 h-5"}} />
+          </UiBox>
+          <UiText as="p" {...{"size":"6","weight":"bold","color":"gray","highContrast":true}}>{resultados.duplicados.length}</UiText>
+          <UiText as="p" {...{"size":"1","color":"gray","className":"mt-1"}}>
             Movimientos duplicados
-          </p>
-        </div>
-      </div>
+          </UiText>
+        </UiCard>
+      </UiBox>
 
       {/* Errores de Movimientos */}
       {resultados.movimientos.errores.length > 0 && (
-        <div className="bg-white rounded-md border border-border-default p-6">
-          <h2 className="text-lg font-semibold text-text-heading mb-4 flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-red-600" />
+        <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-6"}}>
+          <UiHeading as="h2" {...{"size":"4","weight":"bold","color":"gray","highContrast":true,"className":"mb-4 flex items-center gap-2"}}>
+            <AlertTriangle {...{"style":{"color":"var(--red-11)"},"className":"w-5 h-5"}} />
             Errores en Movimientos ({resultados.movimientos.errores.length})
-          </h2>
-          <div className="space-y-3">
+          </UiHeading>
+          <UiBox {...{"className":"space-y-3"}}>
             {resultados.movimientos.errores.slice(0, 10).map((err, idx) => (
-              <div
+              <UiBox
                 key={idx}
-                className={`p-4 rounded-md border ${getSeveridadColor(err.severidad)}`}
+                {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"p-4"}, {}, resolveThemeProps(getSeveridadColor(err.severidad)))}
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-3 flex-1">
+                <UiBox {...{"className":"flex items-start justify-between"}}>
+                  <UiBox {...{"className":"flex items-start gap-3 flex-1"}}>
                     {getSeveridadIcon(err.severidad)}
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-medium">{err.tipo}</span>
-                        <span className="text-xs opacity-75">ID: {err.id.substring(0, 8)}...</span>
-                      </div>
-                      <p className="text-sm">{err.mensaje}</p>
-                    </div>
-                  </div>
+                    <UiBox {...{"className":"flex-1"}}>
+                      <UiBox {...{"className":"flex items-center gap-2 mb-1"}}>
+                        <UiText {...{"weight":"medium"}}>{err.tipo}</UiText>
+                        <UiText {...{"size":"1","className":"opacity-75"}}>ID: {err.id.substring(0, 8)}...</UiText>
+                      </UiBox>
+                      <UiText as="p" {...{"size":"2"}}>{err.mensaje}</UiText>
+                    </UiBox>
+                  </UiBox>
                   {err.tipo === 'SALDO' && (
-                    <button
+                    <UiButton
                       onClick={() => corregirSaldo(err.id)}
                       disabled={corrigiendo === err.id}
-                      className="px-3 py-1 bg-white border border-border-strong rounded hover:bg-surface-bg disabled:bg-surface-muted text-xs font-medium flex items-center gap-1"
+                      {...{"variant":"surface","size":"2","className":"flex items-center gap-1"}}
                     >
                       {corrigiendo === err.id ? (
                         <>
-                          <RefreshCw className="w-3 h-3 animate-spin" />
+                          <RefreshCw {...{"className":"w-3 h-3 animate-spin"}} />
                           Corrigiendo...
                         </>
                       ) : (
                         <>
-                          <ArrowRight className="w-3 h-3" />
+                          <ArrowRight {...{"className":"w-3 h-3"}} />
                           Corregir
                         </>
                       )}
-                    </button>
+                    </UiButton>
                   )}
-                </div>
-              </div>
+                </UiBox>
+              </UiBox>
             ))}
             {resultados.movimientos.errores.length > 10 && (
-              <p className="text-sm text-text-secondary text-center mt-4">
+              <UiText as="p" {...{"size":"2","color":"gray","className":"text-center mt-4"}}>
                 Y {resultados.movimientos.errores.length - 10} errores más...
-              </p>
+              </UiText>
             )}
-          </div>
-        </div>
+          </UiBox>
+        </UiCard>
       )}
 
       {/* Errores CxC */}
       {!resultados.cxc.valido && (
-        <div className="bg-white rounded-md border border-border-default p-6">
-          <h2 className="text-lg font-semibold text-text-heading mb-4 flex items-center gap-2">
-            <Users className="w-5 h-5 text-blue-600" />
+        <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-6"}}>
+          <UiHeading as="h2" {...{"size":"4","weight":"bold","color":"gray","highContrast":true,"className":"mb-4 flex items-center gap-2"}}>
+            <Users {...{"style":{"color":"var(--blue-11)"},"className":"w-5 h-5"}} />
             Errores en Cuentas por Cobrar ({resultados.cxc.errores.length})
-          </h2>
-          <div className="space-y-3">
+          </UiHeading>
+          <UiBox {...{"className":"space-y-3"}}>
             {resultados.cxc.errores.slice(0, 5).map((err, idx) => (
-              <div key={idx} className="p-4 rounded-md border bg-blue-50 border-blue-200">
-                <div className="flex items-start gap-3">
-                  <AlertTriangle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-medium">{err.tipo}</span>
-                      {err.documento && <span className="text-xs opacity-75">Doc: {err.documento}</span>}
-                    </div>
-                    <p className="text-sm">{err.mensaje}</p>
+              <UiBox key={idx} {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--blue-3)"},"className":"p-4"}}>
+                <UiBox {...{"className":"flex items-start gap-3"}}>
+                  <AlertTriangle {...{"style":{"color":"var(--blue-11)"},"className":"w-5 h-5 flex-shrink-0 mt-0.5"}} />
+                  <UiBox {...{"className":"flex-1"}}>
+                    <UiBox {...{"className":"flex items-center gap-2 mb-1"}}>
+                      <UiText {...{"weight":"medium"}}>{err.tipo}</UiText>
+                      {err.documento && <UiText {...{"size":"1","className":"opacity-75"}}>Doc: {err.documento}</UiText>}
+                    </UiBox>
+                    <UiText as="p" {...{"size":"2"}}>{err.mensaje}</UiText>
                     {err.saldoCxC !== undefined && err.saldoMovimiento !== undefined && (
-                      <div className="mt-2 text-xs">
-                        <p>CxC: ${err.saldoCxC.toFixed(2)} | Movimiento: ${err.saldoMovimiento.toFixed(2)}</p>
-                        <p className="text-red-600 font-medium">Diferencia: ${err.diferencia.toFixed(2)}</p>
-                      </div>
+                      <UiBox {...{"className":"mt-2"}}>
+                        <UiText as="p">CxC: ${err.saldoCxC.toFixed(2)} | Movimiento: ${err.saldoMovimiento.toFixed(2)}</UiText>
+                        <UiText as="p" {...{"color":"red","weight":"medium"}}>Diferencia: ${err.diferencia.toFixed(2)}</UiText>
+                      </UiBox>
                     )}
-                  </div>
-                </div>
-              </div>
+                  </UiBox>
+                </UiBox>
+              </UiBox>
             ))}
-          </div>
-        </div>
+          </UiBox>
+        </UiCard>
       )}
 
       {/* Errores CxP */}
       {!resultados.cxp.valido && (
-        <div className="bg-white rounded-md border border-border-default p-6">
-          <h2 className="text-lg font-semibold text-text-heading mb-4 flex items-center gap-2">
-            <Landmark className="w-5 h-5 text-purple-600" />
+        <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-6"}}>
+          <UiHeading as="h2" {...{"size":"4","weight":"bold","color":"gray","highContrast":true,"className":"mb-4 flex items-center gap-2"}}>
+            <Landmark {...{"style":{"color":"var(--purple-11)"},"className":"w-5 h-5"}} />
             Errores en Cuentas por Pagar ({resultados.cxp.errores.length})
-          </h2>
-          <div className="space-y-3">
+          </UiHeading>
+          <UiBox {...{"className":"space-y-3"}}>
             {resultados.cxp.errores.slice(0, 5).map((err, idx) => (
-              <div key={idx} className="p-4 rounded-md border bg-purple-50 border-purple-200">
-                <div className="flex items-start gap-3">
-                  <AlertTriangle className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-medium">{err.tipo}</span>
-                      {err.documento && <span className="text-xs opacity-75">Doc: {err.documento}</span>}
-                    </div>
-                    <p className="text-sm">{err.mensaje}</p>
+              <UiBox key={idx} {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--purple-3)"},"className":"p-4"}}>
+                <UiBox {...{"className":"flex items-start gap-3"}}>
+                  <AlertTriangle {...{"style":{"color":"var(--purple-11)"},"className":"w-5 h-5 flex-shrink-0 mt-0.5"}} />
+                  <UiBox {...{"className":"flex-1"}}>
+                    <UiBox {...{"className":"flex items-center gap-2 mb-1"}}>
+                      <UiText {...{"weight":"medium"}}>{err.tipo}</UiText>
+                      {err.documento && <UiText {...{"size":"1","className":"opacity-75"}}>Doc: {err.documento}</UiText>}
+                    </UiBox>
+                    <UiText as="p" {...{"size":"2"}}>{err.mensaje}</UiText>
                     {err.saldoCxP !== undefined && err.saldoMovimiento !== undefined && (
-                      <div className="mt-2 text-xs">
-                        <p>CxP: ${err.saldoCxP.toFixed(2)} | Movimiento: ${err.saldoMovimiento.toFixed(2)}</p>
-                        <p className="text-red-600 font-medium">Diferencia: ${err.diferencia.toFixed(2)}</p>
-                      </div>
+                      <UiBox {...{"className":"mt-2"}}>
+                        <UiText as="p">CxP: ${err.saldoCxP.toFixed(2)} | Movimiento: ${err.saldoMovimiento.toFixed(2)}</UiText>
+                        <UiText as="p" {...{"color":"red","weight":"medium"}}>Diferencia: ${err.diferencia.toFixed(2)}</UiText>
+                      </UiBox>
                     )}
-                  </div>
-                </div>
-              </div>
+                  </UiBox>
+                </UiBox>
+              </UiBox>
             ))}
-          </div>
-        </div>
+          </UiBox>
+        </UiCard>
       )}
 
       {/* Duplicados */}
       {resultados.duplicados.length > 0 && (
-        <div className="bg-white rounded-md border border-border-default p-6">
-          <h2 className="text-lg font-semibold text-text-heading mb-4 flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-orange-600" />
+        <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-6"}}>
+          <UiHeading as="h2" {...{"size":"4","weight":"bold","color":"gray","highContrast":true,"className":"mb-4 flex items-center gap-2"}}>
+            <AlertTriangle {...{"style":{"color":"var(--orange-11)"},"className":"w-5 h-5"}} />
             Movimientos Duplicados ({resultados.duplicados.length})
-          </h2>
-          <div className="space-y-3">
+          </UiHeading>
+          <UiBox {...{"className":"space-y-3"}}>
             {resultados.duplicados.slice(0, 5).map((dup, idx) => (
-              <div key={idx} className="p-4 rounded-md border bg-orange-50 border-orange-200">
-                <div className="flex items-start gap-3">
-                  <AlertTriangle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
-                  <div className="flex-1">
-                    <p className="font-medium text-sm mb-1">{dup.razon}</p>
-                    <div className="grid grid-cols-2 gap-4 text-xs mt-2">
-                      <div>
-                        <p className="text-text-primary">Movimiento 1:</p>
-                        <p className="font-mono">{dup.movimiento.documento?.numero}</p>
-                        <p>{dup.movimiento.tercero?.nombre}</p>
-                        <p className="font-medium">${Number(dup.movimiento.monto || 0).toFixed(2)}</p>
-                      </div>
-                      <div>
-                        <p className="text-text-primary">Movimiento 2:</p>
-                        <p className="font-mono">{dup.duplicadoDe.documento?.numero}</p>
-                        <p>{dup.duplicadoDe.tercero?.nombre}</p>
-                        <p className="font-medium">${Number(dup.duplicadoDe.monto || 0).toFixed(2)}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <UiBox key={idx} {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--orange-3)"},"className":"p-4"}}>
+                <UiBox {...{"className":"flex items-start gap-3"}}>
+                  <AlertTriangle {...{"style":{"color":"var(--orange-11)"},"className":"w-5 h-5 flex-shrink-0 mt-0.5"}} />
+                  <UiBox {...{"className":"flex-1"}}>
+                    <UiText as="p" {...{"weight":"medium","size":"2","className":"mb-1"}}>{dup.razon}</UiText>
+                    <UiBox {...{"className":"grid grid-cols-2 gap-4 mt-2"}}>
+                      <UiBox>
+                        <UiText as="p" {...{"color":"gray","highContrast":true}}>Movimiento 1:</UiText>
+                        <UiText as="p" {...{"weight":"regular"}}>{dup.movimiento.documento?.numero}</UiText>
+                        <UiText as="p">{dup.movimiento.tercero?.nombre}</UiText>
+                        <UiText as="p" {...{"weight":"medium"}}>${Number(dup.movimiento.monto || 0).toFixed(2)}</UiText>
+                      </UiBox>
+                      <UiBox>
+                        <UiText as="p" {...{"color":"gray","highContrast":true}}>Movimiento 2:</UiText>
+                        <UiText as="p" {...{"weight":"regular"}}>{dup.duplicadoDe.documento?.numero}</UiText>
+                        <UiText as="p">{dup.duplicadoDe.tercero?.nombre}</UiText>
+                        <UiText as="p" {...{"weight":"medium"}}>${Number(dup.duplicadoDe.monto || 0).toFixed(2)}</UiText>
+                      </UiBox>
+                    </UiBox>
+                  </UiBox>
+                </UiBox>
+              </UiBox>
             ))}
             {resultados.duplicados.length > 5 && (
-              <p className="text-sm text-text-secondary text-center mt-4">
+              <UiText as="p" {...{"size":"2","color":"gray","className":"text-center mt-4"}}>
                 Y {resultados.duplicados.length - 5} duplicados más...
-              </p>
+              </UiText>
             )}
-          </div>
-        </div>
+          </UiBox>
+        </UiCard>
       )}
 
       {/* Todo OK */}
       {resultados.resumen.valido && (
-        <div className="bg-green-50 border-2 border-green-300 rounded-md p-8 text-center">
-          <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-green-800 mb-2">
+        <UiBox {...{"style":{"backgroundColor":"var(--green-3)","border":"1px solid var(--gray-a6)","borderRadius":"var(--radius-3)"},"className":"p-8 text-center"}}>
+          <CheckCircle {...{"style":{"color":"var(--green-11)"},"className":"w-16 h-16 mx-auto mb-4"}} />
+          <UiHeading as="h2" {...{"size":"5","weight":"bold","color":"green","className":"mb-2"}}>
             ¡Todo está correcto!
-          </h2>
-          <p className="text-green-700">
+          </UiHeading>
+          <UiText as="p" {...{"color":"green"}}>
             No se encontraron errores ni inconsistencias en los datos financieros.
-          </p>
-        </div>
+          </UiText>
+        </UiBox>
       )}
-    </div>
+    </UiBox>
   );
 }

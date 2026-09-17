@@ -1,3 +1,6 @@
+import { mergeThemeProps } from '../ui/themeProps';
+import { UiBox, UiCard, UiLabel, UiHeading, UiText } from '../ui/layout';
+import { UiSelect, UiButton, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell } from '../ui/controls';
 import { useState } from 'react';
 import { 
   Download, FileSpreadsheet, PieChart, TrendingUp, TrendingDown, 
@@ -232,33 +235,33 @@ export default function ReportsView({ transactions, showToast }) {
     showToast('Archivo ATS descargado con éxito', 'success');
   };
 
-  const cardClass = 'p-6 rounded-card border transition-all bg-white border-border-default text-text-heading';
+  
 
-  const inputClass = 'px-3 py-2.5 rounded-card text-xs border outline-none bg-white border-border-default text-text-heading';
+  
 
   return (
-    <div className="animate-in slide-in-from-bottom-4 duration-500 space-y-6">
+    <UiBox {...{"className":"animate-in slide-in-from-bottom-4 duration-500 space-y-6"}}>
       
       {/* SECCIÓN FILTROS Y NAVEGACIÓN */}
-      <div className="p-5 rounded-card border flex flex-col md:flex-row items-center justify-between gap-4 bg-white border-gray-250">
-        <div className="flex items-center gap-3">
-          <div>
-            <label className="block text-xs font-bold uppercase mb-1 text-text-secondary">Periodo Fiscal</label>
-            <div className="flex gap-2">
-              <select value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)} className={inputClass}>
+      <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-5 flex flex-col md:flex-row items-center justify-between gap-4"}}>
+        <UiBox {...{"className":"flex items-center gap-3"}}>
+          <UiBox>
+            <UiLabel {...{"size":"1","weight":"bold","color":"gray","className":"block mb-1"}}>Periodo Fiscal</UiLabel>
+            <UiBox {...{"className":"flex gap-2"}}>
+              <UiSelect value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)} {...{"size":"2","color":"gray"}}>
                 {['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'].map((m, i) => (
-                  <option key={i} value={i} className="text-black">{m}</option>
+                  <option key={i} value={i} {...{"style":{"color":"var(--gray-12)"}}}>{m}</option>
                 ))}
-              </select>
-              <select value={selectedYear} onChange={e => setSelectedYear(e.target.value)} className={inputClass}>
+              </UiSelect>
+              <UiSelect value={selectedYear} onChange={e => setSelectedYear(e.target.value)} {...{"size":"2","color":"gray"}}>
                 {[2023, 2024, 2025, 2026, 2027].map(y => (
-                  <option key={y} value={y} className="text-black">{y}</option>
+                  <option key={y} value={y} {...{"style":{"color":"var(--gray-12)"}}}>{y}</option>
                 ))}
-              </select>
-            </div>
-          </div>
+              </UiSelect>
+            </UiBox>
+          </UiBox>
 
-          <div className="flex items-end self-end h-[38px] p-0.5 rounded-card border border-gray-250/65 bg-surface-muted/50">
+          <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--gray-2)"},"className":"flex items-end self-end h-[38px] p-0.5"}}>
             {[
               { id: 'resumen', label: 'Resumen', icon: PieChart },
               { id: 'iva', label: 'IVA', icon: Percent },
@@ -268,320 +271,312 @@ export default function ReportsView({ transactions, showToast }) {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
               return (
-                <button
+                <UiButton
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold uppercase transition-all ${
-                    isActive 
-                      ? 'bg-white text-text-heading'
-                      : 'text-text-primary hover:text-text-heading'
-                  }`}
+                  {...mergeThemeProps({"size":"2","className":"flex items-center gap-1.5"}, {}, (isActive ? {"variant":"surface","color":"gray"} : {"color":"gray"}))}
                 >
                   <Icon size={12} />
                   {tab.label}
-                </button>
+                </UiButton>
               );
             })}
-          </div>
-        </div>
+          </UiBox>
+        </UiBox>
 
-        <div className="flex gap-2">
-          <button onClick={handleExportCSV} className="flex items-center gap-1.5 px-4 py-2.5 rounded-card text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-500 transition-transform hover:-translate-y-0.5">
+        <UiBox {...{"className":"flex gap-2"}}>
+          <UiButton onClick={handleExportCSV} {...{"size":"2","variant":"solid","color":"green","className":"flex items-center gap-1.5 transition-transform hover:-translate-y-0.5"}}>
             <FileSpreadsheet size={14} /> Exportar CSV
-          </button>
-          <button onClick={handleDownloadATS} className="flex items-center gap-1.5 px-4 py-2.5 rounded-card text-xs font-bold bg-purple-600 text-white hover:bg-purple-500 transition-transform hover:-translate-y-0.5">
+          </UiButton>
+          <UiButton onClick={handleDownloadATS} {...{"size":"2","variant":"solid","color":"purple","className":"flex items-center gap-1.5 transition-transform hover:-translate-y-0.5"}}>
             <Download size={14} /> Descargar ATS JSON
-          </button>
-        </div>
-      </div>
+          </UiButton>
+        </UiBox>
+      </UiCard>
 
       {/* CUERPO TABS */}
       
       {/* 1. RESUMEN FINANCIERO */}
       {activeTab === 'resumen' && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <UiBox {...{"className":"space-y-6"}}>
+          <UiBox {...{"className":"grid grid-cols-1 md:grid-cols-2 gap-6"}}>
             
             {/* VENTAS */}
-            <div className={cardClass}>
-              <div className="flex items-center gap-2 mb-6 pb-4 border-b border-border-default">
-                <TrendingUp size={18} className="text-emerald-500" />
-                <h3 className="text-sm font-bold uppercase tracking-wider">Ventas e Ingresos</h3>
-              </div>
-              <div className="space-y-4 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-text-secondary">Base Imponible Gravable:</span>
-                  <span className="font-semibold">${baseVentas.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-primary">
-                  <span>IVA Cobrado:</span>
-                  <span className="font-bold">${ivaVentas.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-yellow-500">
-                  <span>Retenciones en la Fuente Recibidas:</span>
-                  <span>-${retFuenteVentas.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-yellow-500">
-                  <span>Retenciones de IVA Recibidas:</span>
-                  <span>-${retIvaVentas.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between border-t border-dashed pt-3 text-sm font-bold">
-                  <span>Total Cobrado Neto:</span>
-                  <span className="text-emerald-500">${totalVentas.toFixed(2)}</span>
-                </div>
-              </div>
-            </div>
+            <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"},"className":"p-6"}}>
+              <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex items-center gap-2 mb-6 pb-4"}}>
+                <TrendingUp size={18} {...{"style":{"color":"var(--green-11)"}}} />
+                <UiHeading as="h3" {...{"size":"2","weight":"bold"}}>Ventas e Ingresos</UiHeading>
+              </UiBox>
+              <UiBox {...{"className":"space-y-4"}}>
+                <UiBox {...{"className":"flex justify-between"}}>
+                  <UiText {...{"color":"gray"}}>Base Imponible Gravable:</UiText>
+                  <UiText {...{"weight":"bold"}}>${baseVentas.toFixed(2)}</UiText>
+                </UiBox>
+                <UiBox {...{"style":{"color":"var(--blue-12)"},"className":"flex justify-between"}}>
+                  <UiText>IVA Cobrado:</UiText>
+                  <UiText {...{"weight":"bold"}}>${ivaVentas.toFixed(2)}</UiText>
+                </UiBox>
+                <UiBox {...{"style":{"color":"var(--amber-11)"},"className":"flex justify-between"}}>
+                  <UiText>Retenciones en la Fuente Recibidas:</UiText>
+                  <UiText>-${retFuenteVentas.toFixed(2)}</UiText>
+                </UiBox>
+                <UiBox {...{"style":{"color":"var(--amber-11)"},"className":"flex justify-between"}}>
+                  <UiText>Retenciones de IVA Recibidas:</UiText>
+                  <UiText>-${retIvaVentas.toFixed(2)}</UiText>
+                </UiBox>
+                <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"flex justify-between pt-3"}}>
+                  <UiText>Total Cobrado Neto:</UiText>
+                  <UiText {...{"color":"green"}}>${totalVentas.toFixed(2)}</UiText>
+                </UiBox>
+              </UiBox>
+            </UiBox>
 
             {/* COMPRAS */}
-            <div className={cardClass}>
-              <div className="flex items-center gap-2 mb-6 pb-4 border-b border-border-default">
-                <TrendingDown size={18} className="text-red-500" />
-                <h3 className="text-sm font-bold uppercase tracking-wider">Compras y Egresos</h3>
-              </div>
-              <div className="space-y-4 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-text-secondary">Base Imponible Operativa:</span>
-                  <span className="font-semibold">${baseCompras.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-primary">
-                  <span>IVA Pagado (Crédito):</span>
-                  <span className="font-bold">${ivaCompras.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-red-400">
-                  <span>Retenciones en la Fuente Emitidas:</span>
-                  <span>-${retFuenteCompras.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-red-400">
-                  <span>Retenciones de IVA Emitidas:</span>
-                  <span>-${retIvaCompras.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between border-t border-dashed pt-3 text-sm font-bold">
-                  <span>Total Pagado Neto:</span>
-                  <span className="text-red-500">${totalCompras.toFixed(2)}</span>
-                </div>
-              </div>
-            </div>
+            <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"},"className":"p-6"}}>
+              <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex items-center gap-2 mb-6 pb-4"}}>
+                <TrendingDown size={18} {...{"style":{"color":"var(--red-11)"}}} />
+                <UiHeading as="h3" {...{"size":"2","weight":"bold"}}>Compras y Egresos</UiHeading>
+              </UiBox>
+              <UiBox {...{"className":"space-y-4"}}>
+                <UiBox {...{"className":"flex justify-between"}}>
+                  <UiText {...{"color":"gray"}}>Base Imponible Operativa:</UiText>
+                  <UiText {...{"weight":"bold"}}>${baseCompras.toFixed(2)}</UiText>
+                </UiBox>
+                <UiBox {...{"style":{"color":"var(--blue-12)"},"className":"flex justify-between"}}>
+                  <UiText>IVA Pagado (Crédito):</UiText>
+                  <UiText {...{"weight":"bold"}}>${ivaCompras.toFixed(2)}</UiText>
+                </UiBox>
+                <UiBox {...{"style":{"color":"var(--red-11)"},"className":"flex justify-between"}}>
+                  <UiText>Retenciones en la Fuente Emitidas:</UiText>
+                  <UiText>-${retFuenteCompras.toFixed(2)}</UiText>
+                </UiBox>
+                <UiBox {...{"style":{"color":"var(--red-11)"},"className":"flex justify-between"}}>
+                  <UiText>Retenciones de IVA Emitidas:</UiText>
+                  <UiText>-${retIvaCompras.toFixed(2)}</UiText>
+                </UiBox>
+                <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"flex justify-between pt-3"}}>
+                  <UiText>Total Pagado Neto:</UiText>
+                  <UiText {...{"color":"red"}}>${totalCompras.toFixed(2)}</UiText>
+                </UiBox>
+              </UiBox>
+            </UiBox>
 
-          </div>
+          </UiBox>
 
-          <div className="p-5 rounded-card border flex items-center gap-3.5 bg-primary-light border-primary/25 text-primary font-semibold">
-            <AlertCircle size={20} className="shrink-0" />
-            <div className="text-xs leading-normal">
+          <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--blue-3)","color":"var(--blue-12)"},"className":"p-5 flex items-center gap-3.5"}}>
+            <AlertCircle size={20} {...{"className":"shrink-0"}} />
+            <UiBox {...{"className":"leading-normal"}}>
               Resumen del Mes Fiscal: Has facturado en ventas un total bruto de <strong>${(baseVentas + ivaVentas).toFixed(2)}</strong> y en compras un total de <strong>${(baseCompras + ivaCompras).toFixed(2)}</strong>. Tu saldo operativo neto antes de retenciones tributarias es de <strong>${(totalVentas - totalCompras).toFixed(2)}</strong>.
-            </div>
-          </div>
-        </div>
+            </UiBox>
+          </UiBox>
+        </UiBox>
       )}
 
       {/* 2. CONCILIACIÓN DE IVA */}
       {activeTab === 'iva' && (
-        <div className={cardClass}>
-          <div className="flex items-center gap-2 mb-6 pb-4 border-b border-border-default">
-            <Percent size={18} className="text-primary" />
-            <h3 className="text-sm font-bold uppercase tracking-wider">Conciliación Mensual de IVA (SRI)</h3>
-          </div>
+        <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"},"className":"p-6"}}>
+          <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex items-center gap-2 mb-6 pb-4"}}>
+            <Percent size={18} {...{"style":{"color":"var(--blue-12)"}}} />
+            <UiHeading as="h3" {...{"size":"2","weight":"bold"}}>Conciliación Mensual de IVA (SRI)</UiHeading>
+          </UiBox>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            <div className="p-4 rounded-card border bg-surface-bg border-border-default">
-              <p className="text-xs uppercase text-text-secondary font-bold">Total IVA Ventas (Cobrado)</p>
-              <p className="text-xl font-semibold mt-1">${ivaVentas.toFixed(2)}</p>
-            </div>
-            <div className="p-4 rounded-card border bg-surface-bg border-border-default">
-              <p className="text-xs uppercase text-text-secondary font-bold">Total IVA Compras (Crédito)</p>
-              <p className="text-xl font-semibold mt-1">${ivaCompras.toFixed(2)}</p>
-            </div>
-            <div className={`p-4 rounded-card border ${
-              (ivaVentas - ivaCompras) >= 0 
-                ? 'bg-red-50 border-red-200 text-red-700'
-                : 'bg-emerald-50 border-emerald-200 text-emerald-700'
-            }`}>
-              <p className="text-xs uppercase font-bold">IVA a Pagar / Crédito Tributario</p>
-              <p className="text-xl font-semibold mt-1">${(ivaVentas - ivaCompras).toFixed(2)}</p>
-            </div>
-          </div>
+          <UiBox {...{"className":"grid grid-cols-1 md:grid-cols-3 gap-6 mb-6"}}>
+            <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--gray-2)"},"className":"p-4"}}>
+              <UiText as="p" {...{"size":"1","color":"gray","weight":"bold"}}>Total IVA Ventas (Cobrado)</UiText>
+              <UiText as="p" {...{"size":"5","weight":"bold","className":"mt-1"}}>${ivaVentas.toFixed(2)}</UiText>
+            </UiBox>
+            <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--gray-2)"},"className":"p-4"}}>
+              <UiText as="p" {...{"size":"1","color":"gray","weight":"bold"}}>Total IVA Compras (Crédito)</UiText>
+              <UiText as="p" {...{"size":"5","weight":"bold","className":"mt-1"}}>${ivaCompras.toFixed(2)}</UiText>
+            </UiBox>
+            <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"p-4"}, {}, ((ivaVentas - ivaCompras) >= 0 ? {"style":{"backgroundColor":"var(--red-3)","color":"var(--red-12)"}} : {"style":{"backgroundColor":"var(--green-3)","color":"var(--green-12)"}}))}>
+              <UiText as="p" {...{"size":"1","weight":"bold"}}>IVA a Pagar / Crédito Tributario</UiText>
+              <UiText as="p" {...{"size":"5","weight":"bold","className":"mt-1"}}>${(ivaVentas - ivaCompras).toFixed(2)}</UiText>
+            </UiBox>
+          </UiBox>
 
-          <div className="rounded-card border overflow-hidden transition-all border-border-default/80 bg-white">
-            <div className="overflow-x-auto custom-scrollbar">
-              <table className="w-full text-left text-xs whitespace-nowrap">
-                <thead className="text-xs uppercase font-bold tracking-wider bg-surface-bg text-text-primary border-b border-border-default">
-                  <tr>
-                    <th className="px-6 py-3.5">Tarifa / Porcentaje</th>
-                    <th className="px-6 py-3.5 text-right">Base Ventas</th>
-                    <th className="px-6 py-3.5 text-right">IVA Ventas</th>
-                    <th className="px-6 py-3.5 text-right">Base Compras</th>
-                    <th className="px-6 py-3.5 text-right">IVA Compras</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  <tr className="transition-colors hover:bg-surface-bg/40">
-                    <td className="px-6 py-3.5 font-semibold text-black">Tarifa 15% (General)</td>
-                    <td className="px-6 py-3.5 text-right font-mono text-black">${ivaVentasBreakdown.iva15Base.toFixed(2)}</td>
-                    <td className="px-6 py-3.5 text-right font-mono text-primary">${ivaVentasBreakdown.iva15Val.toFixed(2)}</td>
-                    <td className="px-6 py-3.5 text-right font-mono text-black">${ivaComprasBreakdown.iva15Base.toFixed(2)}</td>
-                    <td className="px-6 py-3.5 text-right font-mono text-primary">${ivaComprasBreakdown.iva15Val.toFixed(2)}</td>
-                  </tr>
-                  <tr className="transition-colors hover:bg-surface-bg/40">
-                    <td className="px-6 py-3.5 font-semibold text-black">Tarifa 12% (Otros/Anterior)</td>
-                    <td className="px-6 py-3.5 text-right font-mono text-black">${ivaVentasBreakdown.iva12Base.toFixed(2)}</td>
-                    <td className="px-6 py-3.5 text-right font-mono text-primary">${ivaVentasBreakdown.iva12Val.toFixed(2)}</td>
-                    <td className="px-6 py-3.5 text-right font-mono text-black">${ivaComprasBreakdown.iva12Base.toFixed(2)}</td>
-                    <td className="px-6 py-3.5 text-right font-mono text-primary">${ivaComprasBreakdown.iva12Val.toFixed(2)}</td>
-                  </tr>
-                  <tr className="transition-colors hover:bg-surface-bg/40">
-                    <td className="px-6 py-3.5 font-semibold text-black">Tarifa 0% (Exentos)</td>
-                    <td className="px-6 py-3.5 text-right font-mono text-black">${ivaVentasBreakdown.iva0Base.toFixed(2)}</td>
-                    <td className="px-6 py-3.5 text-right font-mono text-text-secondary font-medium">$0.00</td>
-                    <td className="px-6 py-3.5 text-right font-mono text-black">${ivaComprasBreakdown.iva0Base.toFixed(2)}</td>
-                    <td className="px-6 py-3.5 text-right font-mono text-text-secondary font-medium">$0.00</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
+          <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"overflow-hidden"}}>
+            <UiBox {...{"className":"overflow-x-auto custom-scrollbar"}}>
+              <UiTable {...{"className":"w-full text-left whitespace-nowrap"}}>
+                <UiTableHeader {...{"style":{"backgroundColor":"var(--gray-2)","color":"var(--gray-12)"}}}>
+                  <UiTableRow>
+                    <UiTableHead {...{"className":"px-6 py-3.5"}}>Tarifa / Porcentaje</UiTableHead>
+                    <UiTableHead {...{"className":"px-6 py-3.5 text-right"}}>Base Ventas</UiTableHead>
+                    <UiTableHead {...{"className":"px-6 py-3.5 text-right"}}>IVA Ventas</UiTableHead>
+                    <UiTableHead {...{"className":"px-6 py-3.5 text-right"}}>Base Compras</UiTableHead>
+                    <UiTableHead {...{"className":"px-6 py-3.5 text-right"}}>IVA Compras</UiTableHead>
+                  </UiTableRow>
+                </UiTableHeader>
+                <UiTableBody {...{}}>
+                  <UiTableRow {...{}}>
+                    <UiTableCell {...{"style":{"color":"var(--gray-12)"},"className":"px-6 py-3.5"}}>Tarifa 15% (General)</UiTableCell>
+                    <UiTableCell {...{"style":{"fontFamily":"var(--code-font-family)","color":"var(--gray-12)"},"className":"px-6 py-3.5 text-right"}}>${ivaVentasBreakdown.iva15Base.toFixed(2)}</UiTableCell>
+                    <UiTableCell {...{"style":{"fontFamily":"var(--code-font-family)","color":"var(--blue-12)"},"className":"px-6 py-3.5 text-right"}}>${ivaVentasBreakdown.iva15Val.toFixed(2)}</UiTableCell>
+                    <UiTableCell {...{"style":{"fontFamily":"var(--code-font-family)","color":"var(--gray-12)"},"className":"px-6 py-3.5 text-right"}}>${ivaComprasBreakdown.iva15Base.toFixed(2)}</UiTableCell>
+                    <UiTableCell {...{"style":{"fontFamily":"var(--code-font-family)","color":"var(--blue-12)"},"className":"px-6 py-3.5 text-right"}}>${ivaComprasBreakdown.iva15Val.toFixed(2)}</UiTableCell>
+                  </UiTableRow>
+                  <UiTableRow {...{}}>
+                    <UiTableCell {...{"style":{"color":"var(--gray-12)"},"className":"px-6 py-3.5"}}>Tarifa 12% (Otros/Anterior)</UiTableCell>
+                    <UiTableCell {...{"style":{"fontFamily":"var(--code-font-family)","color":"var(--gray-12)"},"className":"px-6 py-3.5 text-right"}}>${ivaVentasBreakdown.iva12Base.toFixed(2)}</UiTableCell>
+                    <UiTableCell {...{"style":{"fontFamily":"var(--code-font-family)","color":"var(--blue-12)"},"className":"px-6 py-3.5 text-right"}}>${ivaVentasBreakdown.iva12Val.toFixed(2)}</UiTableCell>
+                    <UiTableCell {...{"style":{"fontFamily":"var(--code-font-family)","color":"var(--gray-12)"},"className":"px-6 py-3.5 text-right"}}>${ivaComprasBreakdown.iva12Base.toFixed(2)}</UiTableCell>
+                    <UiTableCell {...{"style":{"fontFamily":"var(--code-font-family)","color":"var(--blue-12)"},"className":"px-6 py-3.5 text-right"}}>${ivaComprasBreakdown.iva12Val.toFixed(2)}</UiTableCell>
+                  </UiTableRow>
+                  <UiTableRow {...{}}>
+                    <UiTableCell {...{"style":{"color":"var(--gray-12)"},"className":"px-6 py-3.5"}}>Tarifa 0% (Exentos)</UiTableCell>
+                    <UiTableCell {...{"style":{"fontFamily":"var(--code-font-family)","color":"var(--gray-12)"},"className":"px-6 py-3.5 text-right"}}>${ivaVentasBreakdown.iva0Base.toFixed(2)}</UiTableCell>
+                    <UiTableCell {...{"style":{"fontFamily":"var(--code-font-family)","color":"var(--gray-11)"},"className":"px-6 py-3.5 text-right"}}>$0.00</UiTableCell>
+                    <UiTableCell {...{"style":{"fontFamily":"var(--code-font-family)","color":"var(--gray-12)"},"className":"px-6 py-3.5 text-right"}}>${ivaComprasBreakdown.iva0Base.toFixed(2)}</UiTableCell>
+                    <UiTableCell {...{"style":{"fontFamily":"var(--code-font-family)","color":"var(--gray-11)"},"className":"px-6 py-3.5 text-right"}}>$0.00</UiTableCell>
+                  </UiTableRow>
+                </UiTableBody>
+              </UiTable>
+            </UiBox>
+          </UiBox>
+        </UiBox>
       )}
 
       {/* 3. RESUMEN DE RETENCIONES */}
       {activeTab === 'retenciones' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <UiBox {...{"className":"grid grid-cols-1 lg:grid-cols-2 gap-6"}}>
           
           {/* RETENCIONES EMITIDAS (COMPRAS) */}
-          <div className={cardClass}>
-            <div className="flex justify-between items-center mb-6 pb-4 border-b border-border-default">
-              <div className="flex items-center gap-2">
-                <Shield size={18} className="text-red-500" />
-                <h3 className="text-sm font-bold uppercase tracking-wider">Retenciones Emitidas (Gastos/Compras)</h3>
-              </div>
-              <span className="text-xs font-bold text-red-500">${totalRetsEmitidasVal.toFixed(2)}</span>
-            </div>
+          <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"},"className":"p-6"}}>
+            <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex justify-between items-center mb-6 pb-4"}}>
+              <UiBox {...{"className":"flex items-center gap-2"}}>
+                <Shield size={18} {...{"style":{"color":"var(--red-11)"}}} />
+                <UiHeading as="h3" {...{"size":"2","weight":"bold"}}>Retenciones Emitidas (Gastos/Compras)</UiHeading>
+              </UiBox>
+              <UiText {...{"size":"1","weight":"bold","color":"red"}}>${totalRetsEmitidasVal.toFixed(2)}</UiText>
+            </UiBox>
 
-            <div className="rounded-card border overflow-hidden transition-all border-border-default/80 bg-white">
-              <div className="overflow-x-auto max-h-[300px] overflow-y-auto custom-scrollbar">
-                <table className="w-full text-left text-xs whitespace-nowrap">
-                  <thead className="text-xs uppercase font-bold tracking-wider bg-surface-bg text-text-primary border-b border-border-default">
-                    <tr>
-                      <th className="px-6 py-3.5">Fecha</th>
-                      <th className="px-6 py-3.5">Tipo</th>
-                      <th className="px-6 py-3.5">Cód SRI</th>
-                      <th className="px-6 py-3.5 text-right">Base</th>
-                      <th className="px-6 py-3.5 text-right">Retenido</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
+            <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"overflow-hidden"}}>
+              <UiBox {...{"className":"overflow-x-auto max-h-[300px] overflow-y-auto custom-scrollbar"}}>
+                <UiTable {...{"className":"w-full text-left whitespace-nowrap"}}>
+                  <UiTableHeader {...{"style":{"backgroundColor":"var(--gray-2)","color":"var(--gray-12)"}}}>
+                    <UiTableRow>
+                      <UiTableHead {...{"className":"px-6 py-3.5"}}>Fecha</UiTableHead>
+                      <UiTableHead {...{"className":"px-6 py-3.5"}}>Tipo</UiTableHead>
+                      <UiTableHead {...{"className":"px-6 py-3.5"}}>Cód SRI</UiTableHead>
+                      <UiTableHead {...{"className":"px-6 py-3.5 text-right"}}>Base</UiTableHead>
+                      <UiTableHead {...{"className":"px-6 py-3.5 text-right"}}>Retenido</UiTableHead>
+                    </UiTableRow>
+                  </UiTableHeader>
+                  <UiTableBody {...{}}>
                     {retsEmitidas.map((r, i) => (
-                      <tr key={i} className="transition-colors hover:bg-surface-bg/40">
-                        <td className="px-6 py-3.5 text-text-secondary font-medium">{r.fecha}</td>
-                        <td className="px-6 py-3.5 font-bold text-black">{r.impuesto}</td>
-                        <td className="px-6 py-3.5 font-mono text-xs text-gray-550 font-bold">{r.codigo}</td>
-                        <td className="px-6 py-3.5 text-right font-mono text-black">${r.base.toFixed(2)}</td>
-                        <td className="px-6 py-3.5 text-right font-mono font-bold text-red-500">${r.valor.toFixed(2)}</td>
-                      </tr>
+                      <UiTableRow key={i} {...{}}>
+                        <UiTableCell {...{"style":{"color":"var(--gray-11)"},"className":"px-6 py-3.5"}}>{r.fecha}</UiTableCell>
+                        <UiTableCell {...{"style":{"color":"var(--gray-12)"},"className":"px-6 py-3.5"}}>{r.impuesto}</UiTableCell>
+                        <UiTableCell {...{"style":{"fontFamily":"var(--code-font-family)","color":"var(--gray-12)"},"className":"px-6 py-3.5"}}>{r.codigo}</UiTableCell>
+                        <UiTableCell {...{"style":{"fontFamily":"var(--code-font-family)","color":"var(--gray-12)"},"className":"px-6 py-3.5 text-right"}}>${r.base.toFixed(2)}</UiTableCell>
+                        <UiTableCell {...{"style":{"fontFamily":"var(--code-font-family)","color":"var(--red-11)"},"className":"px-6 py-3.5 text-right"}}>${r.valor.toFixed(2)}</UiTableCell>
+                      </UiTableRow>
                     ))}
                     {retsEmitidas.length === 0 && (
-                      <tr>
-                        <td colSpan="5" className="px-6 py-8 text-center text-text-secondary italic">No se registran retenciones emitidas en este periodo.</td>
-                      </tr>
+                      <UiTableRow>
+                        <UiTableCell colSpan="5" {...{"style":{"color":"var(--gray-11)"},"className":"px-6 py-8 text-center italic"}}>No se registran retenciones emitidas en este periodo.</UiTableCell>
+                      </UiTableRow>
                     )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
+                  </UiTableBody>
+                </UiTable>
+              </UiBox>
+            </UiBox>
+          </UiBox>
 
           {/* RETENCIONES RECIBIDAS (VENTAS) */}
-          <div className={cardClass}>
-            <div className="flex justify-between items-center mb-6 pb-4 border-b border-border-default">
-              <div className="flex items-center gap-2">
-                <Shield size={18} className="text-emerald-500" />
-                <h3 className="text-sm font-bold uppercase tracking-wider">Retenciones Recibidas (Ventas/Ingresos)</h3>
-              </div>
-              <span className="text-xs font-bold text-emerald-500">${totalRetsRecibidasVal.toFixed(2)}</span>
-            </div>
+          <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"},"className":"p-6"}}>
+            <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex justify-between items-center mb-6 pb-4"}}>
+              <UiBox {...{"className":"flex items-center gap-2"}}>
+                <Shield size={18} {...{"style":{"color":"var(--green-11)"}}} />
+                <UiHeading as="h3" {...{"size":"2","weight":"bold"}}>Retenciones Recibidas (Ventas/Ingresos)</UiHeading>
+              </UiBox>
+              <UiText {...{"size":"1","weight":"bold","color":"green"}}>${totalRetsRecibidasVal.toFixed(2)}</UiText>
+            </UiBox>
 
-            <div className="rounded-card border overflow-hidden transition-all border-border-default/80 bg-white">
-              <div className="overflow-x-auto max-h-[300px] overflow-y-auto custom-scrollbar">
-                <table className="w-full text-left text-xs whitespace-nowrap">
-                  <thead className="text-xs uppercase font-bold tracking-wider bg-surface-bg text-text-primary border-b border-border-default">
-                    <tr>
-                      <th className="px-6 py-3.5">Fecha</th>
-                      <th className="px-6 py-3.5">Factura</th>
-                      <th className="px-6 py-3.5">Impuesto</th>
-                      <th className="px-6 py-3.5 text-right">Base</th>
-                      <th className="px-6 py-3.5 text-right">Valor</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
+            <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"overflow-hidden"}}>
+              <UiBox {...{"className":"overflow-x-auto max-h-[300px] overflow-y-auto custom-scrollbar"}}>
+                <UiTable {...{"className":"w-full text-left whitespace-nowrap"}}>
+                  <UiTableHeader {...{"style":{"backgroundColor":"var(--gray-2)","color":"var(--gray-12)"}}}>
+                    <UiTableRow>
+                      <UiTableHead {...{"className":"px-6 py-3.5"}}>Fecha</UiTableHead>
+                      <UiTableHead {...{"className":"px-6 py-3.5"}}>Factura</UiTableHead>
+                      <UiTableHead {...{"className":"px-6 py-3.5"}}>Impuesto</UiTableHead>
+                      <UiTableHead {...{"className":"px-6 py-3.5 text-right"}}>Base</UiTableHead>
+                      <UiTableHead {...{"className":"px-6 py-3.5 text-right"}}>Valor</UiTableHead>
+                    </UiTableRow>
+                  </UiTableHeader>
+                  <UiTableBody {...{}}>
                     {retsRecibidas.map((r, i) => (
-                      <tr key={i} className="transition-colors hover:bg-surface-bg/40">
-                        <td className="px-6 py-3.5 text-text-secondary font-medium">{r.fecha}</td>
-                        <td className="px-6 py-3.5 font-mono text-xs font-bold">{r.comprobante}</td>
-                        <td className="px-6 py-3.5 font-bold text-black">{r.impuesto}</td>
-                        <td className="px-6 py-3.5 text-right font-mono text-black">${r.base.toFixed(2)}</td>
-                        <td className="px-6 py-3.5 text-right font-mono font-bold text-emerald-500">${r.valor.toFixed(2)}</td>
-                      </tr>
+                      <UiTableRow key={i} {...{}}>
+                        <UiTableCell {...{"style":{"color":"var(--gray-11)"},"className":"px-6 py-3.5"}}>{r.fecha}</UiTableCell>
+                        <UiTableCell {...{"style":{"fontFamily":"var(--code-font-family)"},"className":"px-6 py-3.5"}}>{r.comprobante}</UiTableCell>
+                        <UiTableCell {...{"style":{"color":"var(--gray-12)"},"className":"px-6 py-3.5"}}>{r.impuesto}</UiTableCell>
+                        <UiTableCell {...{"style":{"fontFamily":"var(--code-font-family)","color":"var(--gray-12)"},"className":"px-6 py-3.5 text-right"}}>${r.base.toFixed(2)}</UiTableCell>
+                        <UiTableCell {...{"style":{"fontFamily":"var(--code-font-family)","color":"var(--green-11)"},"className":"px-6 py-3.5 text-right"}}>${r.valor.toFixed(2)}</UiTableCell>
+                      </UiTableRow>
                     ))}
                     {retsRecibidas.length === 0 && (
-                      <tr>
-                        <td colSpan="5" className="px-6 py-8 text-center text-text-secondary italic">No se registran retenciones recibidas en este periodo.</td>
-                      </tr>
+                      <UiTableRow>
+                        <UiTableCell colSpan="5" {...{"style":{"color":"var(--gray-11)"},"className":"px-6 py-8 text-center italic"}}>No se registran retenciones recibidas en este periodo.</UiTableCell>
+                      </UiTableRow>
                     )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
+                  </UiTableBody>
+                </UiTable>
+              </UiBox>
+            </UiBox>
+          </UiBox>
 
-        </div>
+        </UiBox>
       )}
 
       {/* 4. PRE-ATS EXPORTADOR */}
       {activeTab === 'ats' && (
-        <div className={cardClass}>
-          <div className="flex items-center gap-2 mb-6 pb-4 border-b border-border-default">
-            <FileText size={18} className="text-purple-500" />
-            <h3 className="text-sm font-bold uppercase tracking-wider">Generador del Anexo Transaccional Simplificado (ATS)</h3>
-          </div>
+        <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"},"className":"p-6"}}>
+          <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex items-center gap-2 mb-6 pb-4"}}>
+            <FileText size={18} {...{"style":{"color":"var(--purple-11)"}}} />
+            <UiHeading as="h3" {...{"size":"2","weight":"bold"}}>Generador del Anexo Transaccional Simplificado (ATS)</UiHeading>
+          </UiBox>
 
-          <div className="space-y-4 text-xs leading-normal">
-            <p>
+          <UiBox {...{"className":"space-y-4 leading-normal"}}>
+            <UiText as="p">
               El **ATS** es la estructura consolidada que presentas mensualmente al SRI con el detalle de tus transacciones.
               Este módulo compila todas las facturas y retenciones ingresadas en el mes para pre-validar las transacciones y generar el archivo exportador.
-            </p>
+            </UiText>
             
-            <div className="p-4 rounded-card border grid grid-cols-2 md:grid-cols-4 gap-4 bg-surface-bg border-border-default">
-              <div>
-                <p className="text-xs uppercase text-text-secondary font-semibold">Registros Compilados</p>
-                <p className="text-base font-bold">{filteredTx.length} transacciones</p>
-              </div>
-              <div>
-                <p className="text-xs uppercase text-text-secondary font-semibold">Periodo ATS</p>
-                <p className="text-base font-bold font-mono">{selectedYear}-{String(Number(selectedMonth)+1).padStart(2, '0')}</p>
-              </div>
-              <div>
-                <p className="text-xs uppercase text-text-secondary font-semibold">Ventas Reportadas</p>
-                <p className="text-base font-bold text-emerald-500">{ventas.length} facturas</p>
-              </div>
-              <div>
-                <p className="text-xs uppercase text-text-secondary font-semibold">Compras con Retención</p>
-                <p className="text-base font-bold text-red-500">
+            <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--gray-2)"},"className":"p-4 grid grid-cols-2 md:grid-cols-4 gap-4"}}>
+              <UiBox>
+                <UiText as="p" {...{"size":"1","color":"gray","weight":"bold"}}>Registros Compilados</UiText>
+                <UiText as="p" {...{"size":"3","weight":"bold"}}>{filteredTx.length} transacciones</UiText>
+              </UiBox>
+              <UiBox>
+                <UiText as="p" {...{"size":"1","color":"gray","weight":"bold"}}>Periodo ATS</UiText>
+                <UiText as="p" {...{"size":"3","weight":"regular"}}>{selectedYear}-{String(Number(selectedMonth)+1).padStart(2, '0')}</UiText>
+              </UiBox>
+              <UiBox>
+                <UiText as="p" {...{"size":"1","color":"gray","weight":"bold"}}>Ventas Reportadas</UiText>
+                <UiText as="p" {...{"size":"3","weight":"bold","color":"green"}}>{ventas.length} facturas</UiText>
+              </UiBox>
+              <UiBox>
+                <UiText as="p" {...{"size":"1","color":"gray","weight":"bold"}}>Compras con Retención</UiText>
+                <UiText as="p" {...{"size":"3","weight":"bold","color":"red"}}>
                   {compras.filter(c => c.retenciones && c.retenciones.length > 0).length} registros
-                </p>
-              </div>
-            </div>
+                </UiText>
+              </UiBox>
+            </UiBox>
 
-            <div className="pt-4 flex gap-3">
-              <button onClick={handleDownloadATS} className="flex items-center gap-2 px-5 py-3 rounded-card text-xs font-bold bg-purple-600 text-white hover:bg-purple-500 transition-transform hover:-translate-y-0.5">
+            <UiBox {...{"className":"pt-4 flex gap-3"}}>
+              <UiButton onClick={handleDownloadATS} {...{"size":"2","variant":"solid","color":"purple","className":"flex items-center gap-2 transition-transform hover:-translate-y-0.5"}}>
                 <Download size={14} /> Descargar Archivo ATS para SRI (JSON)
-              </button>
-            </div>
+              </UiButton>
+            </UiBox>
             
-            <p className="text-xs text-text-secondary leading-normal pt-2">
+            <UiText as="p" {...{"size":"1","color":"gray","className":"leading-normal pt-2"}}>
               Nota: El archivo JSON puede convertirse a formato XML compatible con el validador DIMM de forma automática o utilizarse como sustento directo para contabilidad.
-            </p>
-          </div>
-        </div>
+            </UiText>
+          </UiBox>
+        </UiBox>
       )}
 
-    </div>
+    </UiBox>
   );
 }

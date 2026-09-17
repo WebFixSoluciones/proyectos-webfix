@@ -1,3 +1,5 @@
+import { UiBox, UiHeading, UiText, UiCard, UiLabel } from '../../components/ui/layout';
+import { UiTextarea } from '../../components/ui/controls';
 import { useState } from 'react';
 import { Mail, Phone, MapPin, CheckCircle2, Send, MessageSquare } from 'lucide-react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -53,114 +55,114 @@ export default function LandingContact() {
   };
 
   return (
-    <div className="w-full bg-white text-text-primary">
+    <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"},"className":"w-full"}}>
       
       {/* Header */}
-      <section className="pt-16 pb-12 border-b border-border-default bg-surface-sidebar/30 text-center">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 space-y-3">
-          <Badge variant="outline" className="text-xs py-0.5 px-2.5">
+      <section {...{"style":{"borderBottom":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"pt-16 pb-12 text-center"}}>
+        <UiBox {...{"className":"max-w-4xl mx-auto px-4 sm:px-6 space-y-3"}}>
+          <Badge variant="outline" {...{"className":"py-0.5 px-2.5"}}>
             Contacto & Soporte
           </Badge>
-          <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-text-heading">
+          <UiHeading as="h1" {...{"size":"7","weight":"bold","color":"gray","highContrast":true}}>
             Estamos listos para ayudarte.
-          </h1>
-          <p className="text-xs sm:text-sm text-text-secondary max-w-xl mx-auto leading-relaxed">
+          </UiHeading>
+          <UiText as="p" {...{"size":"1","color":"gray","className":"max-w-xl mx-auto leading-relaxed"}}>
             ¿Tienes preguntas sobre los planes, configuración de firma .p12 o migración de datos? Escríbenos y un asesor te responderá de inmediato.
-          </p>
-        </div>
+          </UiText>
+        </UiBox>
       </section>
 
       {/* Main Content */}
-      <section className="py-16 max-w-5xl mx-auto px-4 sm:px-6">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start text-left">
+      <section {...{"className":"py-16 max-w-5xl mx-auto px-4 sm:px-6"}}>
+        <UiBox {...{"className":"grid grid-cols-1 md:grid-cols-12 gap-8 items-start text-left"}}>
           
           {/* Contact Details */}
-          <div className="md:col-span-5 space-y-6">
-            <div>
-              <h2 className="text-lg font-bold text-text-heading mb-2">Canales de Atención</h2>
-              <p className="text-xs text-text-secondary leading-relaxed">
+          <UiBox {...{"className":"md:col-span-5 space-y-6"}}>
+            <UiBox>
+              <UiHeading as="h2" {...{"size":"4","weight":"bold","color":"gray","highContrast":true,"className":"mb-2"}}>Canales de Atención</UiHeading>
+              <UiText as="p" {...{"size":"1","color":"gray","className":"leading-relaxed"}}>
                 Nuestro equipo de soporte técnico y comercial está disponible de Lunes a Viernes de 8:30 AM a 6:00 PM (Hora Ecuador).
-              </p>
-            </div>
+              </UiText>
+            </UiBox>
 
-            <div className="space-y-3 text-xs">
-              <div className="flex items-center gap-3 p-3 rounded-md bg-surface-sidebar border border-border-default">
-                <div className="p-2 rounded bg-white text-text-heading border border-border-default">
+            <UiBox {...{"className":"space-y-3"}}>
+              <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)"},"className":"flex items-center gap-3 p-3"}}>
+                <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"},"className":"p-2"}}>
                   <Mail size={15} />
-                </div>
-                <div>
-                  <span className="text-xs text-text-muted uppercase font-semibold block">Correo Electrónico</span>
-                  <span className="font-semibold text-text-heading">soporte@webfixsoluciones.net</span>
-                </div>
-              </div>
+                </UiCard>
+                <UiBox>
+                  <UiText {...{"size":"1","color":"gray","weight":"bold","className":"block"}}>Correo Electrónico</UiText>
+                  <UiText {...{"weight":"bold","color":"gray","highContrast":true}}>soporte@webfixsoluciones.net</UiText>
+                </UiBox>
+              </UiBox>
 
               <a 
                 href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hola WebFix, deseo información sobre el ERP y facturación electrónica.')}`}
                 target="_blank" 
                 rel="noreferrer"
-                className="flex items-center gap-3 p-3 rounded-md bg-surface-sidebar border border-border-default hover:border-text-heading hover:bg-white transition-all cursor-pointer group"
+                {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)"},"className":"flex items-center gap-3 p-3 cursor-pointer group"}}
               >
-                <div className="p-2 rounded bg-white text-text-heading border border-border-default group-hover:bg-success group-hover:text-black transition-colors">
+                <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"},"className":"p-2"}}>
                   <Phone size={15} />
-                </div>
-                <div>
-                  <span className="text-xs text-text-muted uppercase font-semibold block">WhatsApp Directo</span>
-                  <span className="font-semibold text-text-heading">+593 98 492 0626</span>
-                </div>
+                </UiCard>
+                <UiBox>
+                  <UiText {...{"size":"1","color":"gray","weight":"bold","className":"block"}}>WhatsApp Directo</UiText>
+                  <UiText {...{"weight":"bold","color":"gray","highContrast":true}}>+593 98 492 0626</UiText>
+                </UiBox>
               </a>
 
-              <div className="flex items-center gap-3 p-3 rounded-md bg-surface-sidebar border border-border-default">
-                <div className="p-2 rounded bg-white text-text-heading border border-border-default">
+              <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)"},"className":"flex items-center gap-3 p-3"}}>
+                <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"},"className":"p-2"}}>
                   <MapPin size={15} />
-                </div>
-                <div>
-                  <span className="text-xs text-text-muted uppercase font-semibold block">Ubicación</span>
-                  <span className="font-semibold text-text-heading">Quito / Guayaquil, Ecuador</span>
-                </div>
-              </div>
-            </div>
-          </div>
+                </UiCard>
+                <UiBox>
+                  <UiText {...{"size":"1","color":"gray","weight":"bold","className":"block"}}>Ubicación</UiText>
+                  <UiText {...{"weight":"bold","color":"gray","highContrast":true}}>Quito / Guayaquil, Ecuador</UiText>
+                </UiBox>
+              </UiBox>
+            </UiBox>
+          </UiBox>
 
           {/* Contact Form */}
-          <div className="md:col-span-7">
-            <Card className="p-6">
+          <UiBox {...{"className":"md:col-span-7"}}>
+            <Card {...{"className":"p-6"}}>
               {submitted ? (
-                <div className="text-center py-10 space-y-3">
-                  <CheckCircle2 size={36} className="text-success mx-auto" />
-                  <h3 className="text-base font-bold text-text-heading">¡Mensaje Enviado con Éxito!</h3>
-                  <p className="text-xs text-text-secondary max-w-sm mx-auto">
+                <UiBox {...{"className":"text-center py-10 space-y-3"}}>
+                  <CheckCircle2 size={36} {...{"style":{"color":"var(--green-12)"},"className":"mx-auto"}} />
+                  <UiHeading as="h3" {...{"size":"3","weight":"bold","color":"gray","highContrast":true}}>¡Mensaje Enviado con Éxito!</UiHeading>
+                  <UiText as="p" {...{"size":"1","color":"gray","className":"max-w-sm mx-auto"}}>
                     Hemos registrado tu consulta. Uno de nuestros asesores técnicos se comunicará contigo en breve o puedes escribirnos directamente por WhatsApp.
-                  </p>
-                  <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-2">
+                  </UiText>
+                  <UiBox {...{"className":"pt-2 flex flex-col sm:flex-row items-center justify-center gap-2"}}>
                     <a
                       href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hola WebFix, acabo de enviar una consulta desde la web y deseo asesoría rápida.')}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="btn-accent text-xs h-9 px-4 inline-flex items-center gap-1.5"
+                      {...{"variant":"solid","color":"blue","className":"h-9 px-4 inline-flex items-center gap-1.5"}}
                     >
                       <MessageSquare size={13} />
-                      <span>Chatear por WhatsApp</span>
+                      <UiText>Chatear por WhatsApp</UiText>
                     </a>
                     <Button 
                       variant="outline" 
                       size="sm" 
                       onClick={() => setSubmitted(false)}
-                      className="text-xs h-9"
+                      {...{"size":"2"}}
                     >
                       Enviar otro mensaje
                     </Button>
-                  </div>
-                </div>
+                  </UiBox>
+                </UiBox>
               ) : (
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} {...{"className":"space-y-4"}}>
                   {errorMsg && (
-                    <div className="p-2.5 rounded-md bg-red-50 border border-red-200 text-xs text-red-600">
+                    <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--red-3)","border":"1px solid var(--gray-a6)","color":"var(--red-11)"},"className":"p-2.5"}}>
                       {errorMsg}
-                    </div>
+                    </UiBox>
                   )}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-semibold text-text-heading">Nombre Completo *</label>
+                  <UiBox {...{"className":"grid grid-cols-1 sm:grid-cols-2 gap-4"}}>
+                    <UiBox {...{"className":"space-y-1.5"}}>
+                      <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true}}>Nombre Completo *</UiLabel>
                       <Input 
                         type="text" 
                         required 
@@ -168,9 +170,9 @@ export default function LandingContact() {
                         value={form.name}
                         onChange={(e) => setForm({ ...form, name: e.target.value })}
                       />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-semibold text-text-heading">Correo Electrónico *</label>
+                    </UiBox>
+                    <UiBox {...{"className":"space-y-1.5"}}>
+                      <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true}}>Correo Electrónico *</UiLabel>
                       <Input 
                         type="email" 
                         required 
@@ -178,60 +180,60 @@ export default function LandingContact() {
                         value={form.email}
                         onChange={(e) => setForm({ ...form, email: e.target.value })}
                       />
-                    </div>
-                  </div>
+                    </UiBox>
+                  </UiBox>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-semibold text-text-heading">Teléfono / WhatsApp</label>
+                  <UiBox {...{"className":"grid grid-cols-1 sm:grid-cols-2 gap-4"}}>
+                    <UiBox {...{"className":"space-y-1.5"}}>
+                      <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true}}>Teléfono / WhatsApp</UiLabel>
                       <Input 
                         type="tel" 
                         placeholder="0991234567"
                         value={form.phone}
                         onChange={(e) => setForm({ ...form, phone: e.target.value })}
                       />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-semibold text-text-heading">Nombre de Empresa</label>
+                    </UiBox>
+                    <UiBox {...{"className":"space-y-1.5"}}>
+                      <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true}}>Nombre de Empresa</UiLabel>
                       <Input 
                         type="text" 
                         placeholder="Mi Negocio S.A."
                         value={form.company}
                         onChange={(e) => setForm({ ...form, company: e.target.value })}
                       />
-                    </div>
-                  </div>
+                    </UiBox>
+                  </UiBox>
 
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-text-heading">Mensaje o Consulta *</label>
-                    <textarea 
+                  <UiBox {...{"className":"space-y-1.5"}}>
+                    <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true}}>Mensaje o Consulta *</UiLabel>
+                    <UiTextarea
                       required 
                       rows={4} 
                       placeholder="Cuéntanos cómo podemos ayudarte..."
                       value={form.message}
                       onChange={(e) => setForm({ ...form, message: e.target.value })}
-                      className="flex w-full rounded-md border border-border-default bg-white px-3 py-2 text-xs text-text-primary shadow-none transition-colors placeholder:text-text-muted focus-visible:outline-none focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary"
+                      {...{"size":"2","color":"gray","className":"flex w-full"}}
                     />
-                  </div>
+                  </UiBox>
 
                   <Button 
                     type="submit" 
                     variant="default"
                     size="sm"
                     disabled={loading}
-                    className="w-full text-xs gap-1.5 h-9"
+                    {...{"size":"2","className":"w-full gap-1.5"}}
                   >
                     <Send size={13} />
-                    <span>{loading ? 'Enviando...' : 'Enviar Mensaje'}</span>
+                    <UiText>{loading ? 'Enviando...' : 'Enviar Mensaje'}</UiText>
                   </Button>
                 </form>
               )}
             </Card>
-          </div>
+          </UiBox>
 
-        </div>
+        </UiBox>
       </section>
 
-    </div>
+    </UiBox>
   );
 }

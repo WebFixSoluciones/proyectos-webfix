@@ -1,3 +1,5 @@
+import { UiBox, UiCard, UiText, UiLabel } from '../components/ui/layout';
+import { UiInput, UiButton } from '../components/ui/controls';
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from'react-router-dom';
 import { Mail, Lock, User, Building, ArrowRight, RefreshCw } from'lucide-react';
@@ -137,171 +139,171 @@ export default function RegisterPage({ showToast }) {
  };
 
  return (
- <div className="flex items-center justify-center min-h-screen w-full font-sans overflow-hidden transition-colors duration-500 relative z-0 text-text-heading">
+ <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"flex items-center justify-center min-h-screen w-full overflow-hidden duration-500 relative z-0"}}>
  
  {/* BASE BACKGROUND SOLID COLOR */}
- <div className="absolute inset-0 -z-20 transition-colors duration-500 bg-surface-bg" />
+ <UiBox {...{"style":{"backgroundColor":"var(--gray-2)"},"className":"absolute inset-0 -z-20 duration-500"}} />
 
  {/* GLOBAL BACKGROUND BLOBS (Minimalismo Líquido Puro) */}
- <div className="absolute top-[-10%] left-[-5%] w-[40rem] h-[40rem] rounded-full filter blur-[130px] pointer-events-none -z-10 transition-all duration-500 animate-liquid-1 mix-blend-multiply bg-purple-200/45 opacity-50"></div>
- <div className="absolute top-[20%] right-[-10%] w-[35rem] h-[35rem] rounded-full filter blur-[120px] pointer-events-none -z-10 transition-all duration-500 animate-liquid-2 mix-blend-multiply bg-blue-100/45 opacity-55"></div>
- <div className="absolute bottom-[-10%] left-[10%] w-[38rem] h-[38rem] rounded-full filter blur-[140px] pointer-events-none -z-10 transition-all duration-500 animate-liquid-3 mix-blend-multiply bg-rose-100/40 opacity-45"></div>
+ <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--purple-3)"},"className":"absolute top-[-10%] left-[-5%] w-[40rem] h-[40rem] pointer-events-none -z-10 duration-500 animate-liquid-1 mix-blend-multiply opacity-50"}}></UiBox>
+ <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--blue-3)"},"className":"absolute top-[20%] right-[-10%] w-[35rem] h-[35rem] pointer-events-none -z-10 duration-500 animate-liquid-2 mix-blend-multiply opacity-55"}}></UiBox>
+ <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--red-3)"},"className":"absolute bottom-[-10%] left-[10%] w-[38rem] h-[38rem] pointer-events-none -z-10 duration-500 animate-liquid-3 mix-blend-multiply opacity-45"}}></UiBox>
  
  {/* HOUDINI RING PARTICLES */}
- <div className="absolute inset-0 pointer-events-none -z-10 ring-particles-bg-1 animate-ring-particles-1 opacity-70" />
- <div className="absolute inset-0 pointer-events-none -z-10 ring-particles-bg-2 animate-ring-particles-2 opacity-70" />
+ <UiBox {...{"className":"absolute inset-0 pointer-events-none -z-10 animate-ring-particles-1 opacity-70"}} />
+ <UiBox {...{"className":"absolute inset-0 pointer-events-none -z-10 animate-ring-particles-2 opacity-70"}} />
  
  {/* Card Centrado */}
- <div className="w-full max-w-[440px] mx-4 relative group select-none">
+ <UiBox {...{"className":"w-full max-w-[440px] mx-4 relative group select-none"}}>
  {/* Subtle Backglow */}
- <div className="absolute inset-0 rounded-btn bg-gradient-to-tr from-primary/10 to-primary-muted blur-xl opacity-60 pointer-events-none"></div>
+ <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--gray-2)"},"className":"absolute inset-0 opacity-60 pointer-events-none"}}></UiBox>
  
  {/* La tarjeta principal */}
- <div className="w-full p-8 sm:p-10 rounded-btn flex flex-col border transition-all duration-500 relative z-10 bg-white/95 border-border-default/60">
+ <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"w-full p-8 sm:p-10 flex flex-col duration-500 relative z-10"}}>
  
  {/* Header */}
- <div className="text-left mb-6 select-none">
- <div className="flex items-center gap-2.5 mb-4 select-none">
- <div className="w-9 h-9 rounded-btn bg-gradient-to-br from-primary to-primary-hover flex items-center justify-center">
- <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+ <UiBox {...{"className":"text-left mb-6 select-none"}}>
+ <UiBox {...{"className":"flex items-center gap-2.5 mb-4 select-none"}}>
+ <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--gray-2)"},"className":"w-9 h-9 flex items-center justify-center"}}>
+ <svg {...{"style":{"color":"var(--color-background)"},"className":"w-5 h-5"}} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
  </svg>
- </div>
- <span className="text-2xl font-semibold tracking-tight text-black">
+ </UiBox>
+ <UiText {...{"size":"6","weight":"bold","color":"gray","highContrast":true}}>
  Web Fix ERP
- </span>
- </div>
- <span className="text-xl font-medium leading-none block text-black">
+ </UiText>
+ </UiBox>
+ <UiText {...{"size":"5","weight":"medium","color":"gray","highContrast":true,"className":"leading-none block"}}>
  Crear cuenta de empresa
- </span>
- <span className="text-xs font-semibold uppercase text-indigo-500 mt-2 block tracking-wider">
+ </UiText>
+ <UiText {...{"size":"1","weight":"bold","color":"indigo","className":"mt-2 block"}}>
  {getPlanName(planParam)} — Prueba de 14 días gratis
- </span>
- </div>
+ </UiText>
+ </UiBox>
  
- <form onSubmit={handleRegister} className="space-y-4 text-left">
- <div>
- <label className="block text-xs font-normal mb-1 text-black">
+ <form onSubmit={handleRegister} {...{"className":"space-y-4 text-left"}}>
+ <UiBox>
+ <UiLabel {...{"size":"1","weight":"regular","color":"gray","highContrast":true,"className":"block mb-1"}}>
  Nombre del Administrador
- </label>
- <div className="relative">
- <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors text-black">
+ </UiLabel>
+ <UiBox {...{"className":"relative"}}>
+ <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none"}}>
  <User size={15} />
- </div>
- <input 
+ </UiBox>
+ <UiInput
  type="text" 
  value={registerForm.name}
  onChange={(e) => setRegisterForm({...registerForm, name: e.target.value})}
- className="w-full text-xs font-medium tracking-wide pl-11 pr-3.5 py-3 rounded-btn outline-none transition-all border bg-surface-bg border-border-strong text-black focus:border-primary focus:bg-white"
+ {...{"size":"2","color":"gray","className":"w-full"}}
  placeholder="Tu Nombre" 
  required
  />
- </div>
- </div>
+ </UiBox>
+ </UiBox>
 
- <div>
- <label className="block text-xs font-normal mb-1 text-black">
+ <UiBox>
+ <UiLabel {...{"size":"1","weight":"regular","color":"gray","highContrast":true,"className":"block mb-1"}}>
  Razón Social / Nombre Comercial
- </label>
- <div className="relative">
- <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors text-black">
+ </UiLabel>
+ <UiBox {...{"className":"relative"}}>
+ <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none"}}>
  <Building size={15} />
- </div>
- <input 
+ </UiBox>
+ <UiInput
  type="text" 
  value={registerForm.companyName}
  onChange={(e) => setRegisterForm({...registerForm, companyName: e.target.value})}
- className="w-full text-xs font-medium tracking-wide pl-11 pr-3.5 py-3 rounded-btn outline-none transition-all border bg-surface-bg border-border-strong text-black focus:border-primary focus:bg-white"
+ {...{"size":"2","color":"gray","className":"w-full"}}
  placeholder="Ej. Mi Negocio S.A.S" 
  required
  />
- </div>
- </div>
+ </UiBox>
+ </UiBox>
 
- <div>
- <label className="block text-xs font-normal mb-1 text-black">
+ <UiBox>
+ <UiLabel {...{"size":"1","weight":"regular","color":"gray","highContrast":true,"className":"block mb-1"}}>
  Correo Corporativo
- </label>
- <div className="relative">
- <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors text-black">
+ </UiLabel>
+ <UiBox {...{"className":"relative"}}>
+ <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none"}}>
  <Mail size={15} />
- </div>
- <input 
+ </UiBox>
+ <UiInput
  type="email" 
  value={registerForm.email}
  onChange={(e) => setRegisterForm({...registerForm, email: e.target.value})}
- className="w-full text-xs font-medium tracking-wide pl-11 pr-3.5 py-3 rounded-btn outline-none transition-all border bg-surface-bg border-border-strong text-black focus:border-primary focus:bg-white"
+ {...{"size":"2","color":"gray","className":"w-full"}}
  placeholder="correo@empresa.com" 
  required
  />
- </div>
- </div>
+ </UiBox>
+ </UiBox>
 
- <div>
- <label className="block text-xs font-normal mb-1 text-black">
+ <UiBox>
+ <UiLabel {...{"size":"1","weight":"regular","color":"gray","highContrast":true,"className":"block mb-1"}}>
  Contraseña
- </label>
- <div className="relative">
- <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors text-black">
+ </UiLabel>
+ <UiBox {...{"className":"relative"}}>
+ <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none"}}>
  <Lock size={15} />
- </div>
- <input 
+ </UiBox>
+ <UiInput
  type="password" 
  value={registerForm.password}
  onChange={(e) => setRegisterForm({...registerForm, password: e.target.value})}
- className="w-full text-xs font-medium tracking-wide pl-11 pr-3.5 py-3 rounded-btn outline-none transition-all border bg-surface-bg border-border-strong text-black focus:border-primary focus:bg-white"
+ {...{"size":"2","color":"gray","className":"w-full"}}
  placeholder="Mínimo 6 caracteres" 
  minLength={6}
  required
  />
- </div>
- </div>
+ </UiBox>
+ </UiBox>
  
  {registerError && (
- <div className="p-3 rounded-btn text-xs font-semibold text-center border bg-red-50 text-red-750 border-red-100">
+ <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--red-3)","color":"var(--red-12)"},"className":"p-3 text-center"}}>
  {registerError}
- </div>
+ </UiBox>
  )}
  
- <button 
+ <UiButton
  type="submit" 
  disabled={isRegistering}
- className="w-full flex items-center justify-center gap-2 mt-4 py-4 rounded-btn text-xs font-bold tracking-wider uppercase bg-primary hover:bg-primary-hover text-white transition-all active:scale-98 disabled:opacity-75"
+ {...{"size":"2","variant":"solid","color":"blue","className":"w-full flex items-center justify-center gap-2 mt-4 active:scale-98 disabled:opacity-75"}}
  >
  {isRegistering ? (
  <>
- <RefreshCw size={14} className="animate-spin" /> Creando cuenta...
+ <RefreshCw size={14} {...{"className":"animate-spin"}} /> Creando cuenta...
  </>
  ) : (
  <>
  EMPEZAR PRUEBA GRATUITA <ArrowRight size={14} />
  </>
  )}
- </button>
+ </UiButton>
  </form>
  
  {/* Footer */}
- <div className="mt-6 text-center">
- <p style={{ fontSize:'12px', color:'#000000' }} className="font-normal select-none">
+ <UiBox {...{"className":"mt-6 text-center"}}>
+ <UiText as="p" style={{ fontSize:'12px', color:'#000000' }} {...{"weight":"regular","className":"select-none"}}>
  ¿Ya tienes cuenta?{''}
- <span 
+ <UiText 
  onClick={() => navigate('/login')}
- className="font-bold text-primary hover:underline cursor-pointer"
+ {...{"weight":"bold","color":"blue","className":"hover:underline cursor-pointer"}}
  >
  Inicia sesión
- </span>
- </p>
- </div>
- </div>
- </div>
+ </UiText>
+ </UiText>
+ </UiBox>
+ </UiCard>
+ </UiBox>
 
  {/* Derechos Reservados */}
- <div className="absolute bottom-6 left-0 right-0 text-center z-10 pointer-events-none">
- <p style={{ fontSize:'12px', color:'#000000' }} className="font-normal select-none pointer-events-auto">
+ <UiBox {...{"className":"absolute bottom-6 left-0 right-0 text-center z-10 pointer-events-none"}}>
+ <UiText as="p" style={{ fontSize:'12px', color:'#000000' }} {...{"weight":"regular","className":"select-none pointer-events-auto"}}>
  © WebFix 2026. Todos los derechos reservados
- </p>
- </div>
+ </UiText>
+ </UiBox>
 
- </div>
+ </UiBox>
  );
 }

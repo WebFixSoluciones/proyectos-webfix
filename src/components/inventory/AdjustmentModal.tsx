@@ -1,3 +1,6 @@
+import { mergeThemeProps } from '../ui/themeProps';
+import { UiBox, UiCard, UiHeading, UiText, UiLabel } from '../ui/layout';
+import { UiButton, UiSelect, UiInput, UiTextarea } from '../ui/controls';
 import React, { useState, useEffect } from 'react';
 import { X, Save, RefreshCw, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { productRepository } from '../../modules/inventory/repositories/ProductRepository';
@@ -128,207 +131,195 @@ export default function AdjustmentModal({ onClose, onSuccess }: AdjustmentModalP
     }
   };
 
-  const inputClass = `w-full px-3 py-2.5 rounded-card outline-none transition-all border text-sm bg-white border-border-default text-text-primary focus:border-red-500`;
+  
 
-  const labelClass = `block text-xs font-semibold mb-1.5 uppercase tracking-wider text-text-muted`;
+  
 
   const isZeroInventoryConfUnlocked = doubleConfirmationText === 'CONFIRMAR ZERO INVENTARIO';
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-black/40 animate-in fade-in duration-300">
-      <div 
-        className={`w-full max-w-2xl max-h-[90vh] flex flex-col rounded-card border overflow-hidden bg-white/95 border-white/40`}
+    <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-300"}}>
+      <UiBox 
+        {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden"})}
       >
         {/* Header */}
-        <div className={`modal-header-std modal-header-std-dark border-border-default bg-white/80`}>
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-md bg-red-100 text-red-600">
+        <UiCard {...mergeThemeProps({"style":{"backgroundColor":"var(--color-panel-solid)"}})}>
+          <UiBox {...{"className":"flex items-center gap-2.5"}}>
+            <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--red-3)","color":"var(--red-11)"},"className":"p-2"}}>
               <RefreshCw size={20} />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold text-text-primary">
+            </UiBox>
+            <UiBox>
+              <UiHeading as="h2" {...{"size":"4","weight":"bold","color":"gray","highContrast":true}}>
                 Ajuste de Inventario
-              </h2>
-              <p className="text-xs text-text-muted">
+              </UiHeading>
+              <UiText as="p" {...{"size":"1","color":"gray"}}>
                 Realiza ajustes de stock o vacía inventarios en lote
-              </p>
-            </div>
-          </div>
-          <button 
+              </UiText>
+            </UiBox>
+          </UiBox>
+          <UiButton iconOnly
             onClick={onClose}
-            className={`p-1.5 rounded-card transition-all hover:scale-105 bg-surface-muted text-text-secondary hover:text-text-heading`}
+            {...mergeThemeProps({"variant":"soft","color":"gray","className":"hover:scale-105"})}
           >
             <X size={18} />
-          </button>
-        </div>
+          </UiButton>
+        </UiCard>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-5 custom-scrollbar">
+        <form onSubmit={handleSubmit} {...{"className":"flex-1 overflow-y-auto p-6 space-y-5 custom-scrollbar"}}>
           {error && (
-            <div className={`p-4 rounded-card border text-sm font-medium bg-red-50 border-red-200 text-red-600`}>
+            <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--red-3)","color":"var(--red-11)"},"className":"p-4"})}>
               {error}
-            </div>
+            </UiBox>
           )}
 
           {/* Selector de Tipo de Ajuste */}
-          <div className="flex gap-2">
-            <button
+          <UiBox {...{"className":"flex gap-2"}}>
+            <UiButton
               type="button"
               onClick={() => { setAdjustmentType('MANUAL'); setError(null); }}
-              className={`flex-1 py-2 rounded-card text-xs font-bold transition-all border ${
-                adjustmentType === 'MANUAL'
-                  ? 'bg-red-600/20 text-red-400 border-red-500/30'
-                  : 'bg-transparent text-text-secondary border-transparent hover:bg-white/5'
-              }`}
+              {...mergeThemeProps({"size":"2","variant":"outline","className":"flex-1"}, {}, (adjustmentType === 'MANUAL' ? {"variant":"soft","color":"red"} : {"variant":"ghost","color":"gray"}))}
             >
               Ajuste Manual de Producto
-            </button>
-            <button
+            </UiButton>
+            <UiButton
               type="button"
               onClick={() => { setAdjustmentType('ZERO_INVENTORY'); setError(null); }}
-              className={`flex-1 py-2 rounded-card text-xs font-bold transition-all border ${
-                adjustmentType === 'ZERO_INVENTORY'
-                  ? 'bg-red-600 text-white border-red-600'
-                  : 'bg-transparent text-text-secondary border-transparent hover:bg-white/5'
-              }`}
+              {...mergeThemeProps({"size":"2","variant":"outline","className":"flex-1"}, {}, (adjustmentType === 'ZERO_INVENTORY' ? {"variant":"solid","color":"red"} : {"variant":"ghost","color":"gray"}))}
             >
               Cero Inventario (Destructivo)
-            </button>
-          </div>
+            </UiButton>
+          </UiBox>
 
-          <div>
-            <label className={labelClass}>Sucursal / Bodega</label>
-            <select
+          <UiBox>
+            <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"})}>Sucursal / Bodega</UiLabel>
+            <UiSelect
               value={branchId}
               onChange={(e) => setBranchId(e.target.value)}
-              className={inputClass}
+              {...mergeThemeProps({"size":"2","color":"gray","className":"w-full"})}
             >
               {BRANCHES.map(b => (
                 <option key={b.id} value={b.id}>{b.name}</option>
               ))}
-            </select>
-          </div>
+            </UiSelect>
+          </UiBox>
 
           {adjustmentType === 'MANUAL' ? (
-            <div className="space-y-4 animate-in fade-in duration-300">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className={labelClass}>Producto Físico</label>
-                  <select
+            <UiBox {...{"className":"space-y-4 animate-in fade-in duration-300"}}>
+              <UiBox {...{"className":"grid grid-cols-1 md:grid-cols-2 gap-4"}}>
+                <UiBox>
+                  <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"})}>Producto Físico</UiLabel>
+                  <UiSelect
                     value={selectedProductId}
                     onChange={(e) => setSelectedProductId(e.target.value)}
-                    className={inputClass}
+                    {...mergeThemeProps({"size":"2","color":"gray","className":"w-full"})}
                   >
                     <option value="">-- Seleccionar --</option>
                     {products.map(p => (
                       <option key={p.id} value={p.id}>{p.name} (SKU: {p.sku})</option>
                     ))}
-                  </select>
-                </div>
+                  </UiSelect>
+                </UiBox>
 
-                <div>
-                  <label className={labelClass}>Operación</label>
-                  <select
+                <UiBox>
+                  <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"})}>Operación</UiLabel>
+                  <UiSelect
                     value={operation}
                     onChange={(e) => setOperation(e.target.value as any)}
-                    className={inputClass}
+                    {...mergeThemeProps({"size":"2","color":"gray","className":"w-full"})}
                   >
                     <option value="IN">Ingreso (+) / Entrada</option>
                     <option value="OUT">Egreso (-) / Salida / Mermas</option>
-                  </select>
-                </div>
-              </div>
+                  </UiSelect>
+                </UiBox>
+              </UiBox>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className={labelClass}>Cantidad</label>
-                  <input
+              <UiBox {...{"className":"grid grid-cols-1 md:grid-cols-2 gap-4"}}>
+                <UiBox>
+                  <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"})}>Cantidad</UiLabel>
+                  <UiInput
                     type="number"
                     min="1"
                     value={quantity}
                     onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
-                    className={inputClass}
+                    {...mergeThemeProps({"size":"2","color":"gray","className":"w-full"})}
                   />
-                </div>
+                </UiBox>
 
                 {operation === 'IN' && (
-                  <div>
-                    <label className={labelClass}>Costo Unitario de Entrada ($)</label>
-                    <input
+                  <UiBox>
+                    <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"})}>Costo Unitario de Entrada ($)</UiLabel>
+                    <UiInput
                       type="number"
                       min="0"
                       step="0.01"
                       value={unitCost}
                       onChange={(e) => setUnitCost(parseFloat(e.target.value) || 0)}
-                      className={inputClass}
+                      {...mergeThemeProps({"size":"2","color":"gray","className":"w-full"})}
                     />
-                  </div>
+                  </UiBox>
                 )}
-              </div>
-            </div>
+              </UiBox>
+            </UiBox>
           ) : (
-            <div className={`p-4 rounded-card border bg-red-950/20 border-red-500/20 space-y-4 animate-in fade-in duration-300`}>
-              <div className="flex gap-2.5 text-red-400">
-                <AlertTriangle className="shrink-0" />
-                <div>
-                  <h4 className="font-bold text-sm">Operación Crítica y Destructiva</h4>
-                  <p className="text-xs text-text-secondary mt-1">
+            <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--red-3)"},"className":"p-4 space-y-4 animate-in fade-in duration-300"})}>
+              <UiBox {...{"style":{"color":"var(--red-11)"},"className":"flex gap-2.5"}}>
+                <AlertTriangle {...{"className":"shrink-0"}} />
+                <UiBox>
+                  <UiHeading as="h4" {...{"weight":"bold","size":"2"}}>Operación Crítica y Destructiva</UiHeading>
+                  <UiText as="p" {...{"size":"1","color":"gray","className":"mt-1"}}>
                     Esta opción registrará egresos automáticos para llevar a 0 unidades el stock de todos los productos físicos de esta sucursal en el Kardex.
-                  </p>
-                </div>
-              </div>
+                  </UiText>
+                </UiBox>
+              </UiBox>
 
-              <div>
-                <label className="block text-xs font-bold text-red-400 mb-1">
+              <UiBox>
+                <UiLabel {...{"size":"1","weight":"bold","color":"red","className":"block mb-1"}}>
                   Escribe "CONFIRMAR ZERO INVENTARIO" para habilitar:
-                </label>
-                <input
+                </UiLabel>
+                <UiInput
                   type="text"
                   placeholder="Escribe exactamente la frase..."
                   value={doubleConfirmationText}
                   onChange={(e) => setDoubleConfirmationText(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-card bg-black/40 text-sm border-red-500/30 text-white focus:border-red-500 outline-none"
+                  {...{"size":"2","className":"w-full"}}
                 />
-              </div>
-            </div>
+              </UiBox>
+            </UiBox>
           )}
 
-          <div>
-            <label className={labelClass}>Justificación / Motivo del Ajuste *</label>
-            <textarea
+          <UiBox>
+            <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"})}>Justificación / Motivo del Ajuste *</UiLabel>
+            <UiTextarea
               rows={3}
               required
               placeholder="Ej. Ingreso por inventario inicial, merma por rotura de empaque, auditoría anual..."
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              className={inputClass}
+              {...mergeThemeProps({"size":"2","color":"gray","className":"w-full"})}
             />
-          </div>
+          </UiBox>
 
           {/* Action buttons */}
-          <div className="pt-4 flex justify-end gap-4">
-            <button
+          <UiBox {...{"className":"pt-4 flex justify-end gap-4"}}>
+            <UiButton
               type="button"
               onClick={onClose}
               disabled={loading}
-              className={`px-6 py-2.5 rounded-card font-bold transition-all text-sm bg-surface-muted hover:bg-surface-muted text-text-primary`}
+              {...mergeThemeProps({"size":"2","variant":"soft","color":"gray"})}
             >
               Cancelar
-            </button>
-            <button
+            </UiButton>
+            <UiButton
               type="submit"
               disabled={loading || (adjustmentType === 'ZERO_INVENTORY' && !isZeroInventoryConfUnlocked)}
-              className={`px-8 py-2.5 rounded-card font-bold transition-all text-sm text-white flex items-center gap-2 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none ${
-                adjustmentType === 'ZERO_INVENTORY'
-                  ? 'bg-red-600 hover:bg-red-500'
-                  : 'bg-primary hover:bg-primary'
-              }`}
+              {...mergeThemeProps({"size":"2","className":"flex items-center gap-2 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"}, {}, (adjustmentType === 'ZERO_INVENTORY' ? {"variant":"solid","color":"red"} : {"variant":"solid","color":"blue"}))}
             >
               {loading ? "Aplicando..." : "Aplicar Ajuste"}
-            </button>
-          </div>
+            </UiButton>
+          </UiBox>
         </form>
-      </div>
-    </div>
+      </UiBox>
+    </UiBox>
   );
 }

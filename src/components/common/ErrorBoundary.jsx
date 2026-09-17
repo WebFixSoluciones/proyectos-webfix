@@ -1,3 +1,5 @@
+import { UiBox, UiHeading, UiText } from '../ui/layout';
+import { UiButton } from '../ui/controls';
 import React from 'react';
 import { AlertOctagon, RefreshCw, Copy, Check } from 'lucide-react';
 
@@ -32,48 +34,48 @@ export class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="p-6 md:p-8 m-4 rounded-card border border-red-200 bg-red-50/50  animate-in fade-in duration-300">
-          <div className="flex items-start gap-4">
-            <div className="p-3 bg-red-100 text-red-600 rounded-md shrink-0">
+        <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--red-3)"},"className":"p-6 md:p-8 m-4 animate-in fade-in duration-300"}}>
+          <UiBox {...{"className":"flex items-start gap-4"}}>
+            <UiBox {...{"style":{"backgroundColor":"var(--red-3)","color":"var(--red-11)","borderRadius":"var(--radius-3)"},"className":"p-3 shrink-0"}}>
               <AlertOctagon size={24} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="text-base font-bold text-red-900 mb-1">
+            </UiBox>
+            <UiBox {...{"className":"flex-1 min-w-0"}}>
+              <UiHeading as="h3" {...{"size":"3","weight":"bold","color":"red","className":"mb-1"}}>
                 {this.props.title || "Se produjo un error al renderizar esta sección"}
-              </h3>
-              <p className="text-xs text-red-700 font-medium mb-3">
+              </UiHeading>
+              <UiText as="p" {...{"size":"1","color":"red","weight":"medium","className":"mb-3"}}>
                 Ocurrió una excepción no controlada. Puedes revisar el detalle técnico abajo o intentar recargar la sección.
-              </p>
+              </UiText>
 
-              <div className="bg-red-950 text-red-200 p-3 rounded-md font-mono text-xs overflow-x-auto mb-4 border border-red-900/50 max-h-48 custom-scrollbar">
-                <p className="font-bold text-red-400 mb-1">
+              <UiBox {...{"style":{"backgroundColor":"var(--red-9)","color":"var(--red-12)","borderRadius":"var(--radius-3)","fontFamily":"var(--code-font-family)","border":"1px solid var(--gray-a6)"},"className":"p-3 overflow-x-auto mb-4 max-h-48 custom-scrollbar"}}>
+                <UiText as="p" {...{"weight":"bold","color":"red","className":"mb-1"}}>
                   {this.state.error?.name}: {this.state.error?.message}
-                </p>
+                </UiText>
                 {this.state.error?.stack && (
-                  <pre className="text-xs leading-relaxed opacity-80 whitespace-pre-wrap">
+                  <pre {...{"className":"leading-relaxed opacity-80 whitespace-pre-wrap"}}>
                     {this.state.error.stack}
                   </pre>
                 )}
-              </div>
+              </UiBox>
 
-              <div className="flex items-center gap-2">
-                <button
+              <UiBox {...{"className":"flex items-center gap-2"}}>
+                <UiButton
                   onClick={this.handleReset}
-                  className="flex items-center gap-1.5 px-3.5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md text-xs font-bold transition-all "
+                  {...{"variant":"solid","color":"red","size":"2","className":"flex items-center gap-1.5"}}
                 >
                   <RefreshCw size={14} /> Reintentar
-                </button>
-                <button
+                </UiButton>
+                <UiButton
                   onClick={this.handleCopy}
-                  className="flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-surface-muted text-text-primary border border-border-strong rounded-md text-xs font-bold transition-all"
+                  {...{"variant":"surface","color":"gray","size":"2","className":"flex items-center gap-1.5"}}
                 >
-                  {this.state.copied ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
+                  {this.state.copied ? <Check size={14} {...{"style":{"color":"var(--green-11)"}}} /> : <Copy size={14} />}
                   {this.state.copied ? "Copiado" : "Copiar Error"}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+                </UiButton>
+              </UiBox>
+            </UiBox>
+          </UiBox>
+        </UiBox>
       );
     }
 

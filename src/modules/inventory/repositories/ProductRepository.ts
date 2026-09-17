@@ -20,7 +20,20 @@ export class ProductRepository {
     const relatedIds = merged.type === 'COMBO' ? (merged.comboItems || []).map(item => item.productId) : merged.type === 'SUBPRODUCT' ? [merged.parentId!] : [];
     if (relatedIds.includes(id)) throw new Error('Un producto no puede contenerse a sí mismo.');
     for (const related of relatedIds) { if (!await this.findById(related)) throw new Error('Uno de los productos relacionados ya no existe.'); }
-    const data = ProductSchema.parse({ ...merged, sku: (merged.sku || '').trim().toUpperCase(), name: (merged.name || '').trim(), imageUrl: merged.imageUrl?.trim() || '/product.svg', tarifa_iva: Number(merged.taxRate ?? 15) / 100, createdAt: new Date(), updatedAt: new Date() });
+    const normalizedType = String(merged.productType || merged.type || '').toUpperCase();
+    const data = ProductSchema.parse({
+      ...merged,
+      type: normalizedType === 'PRODUCTO' ? 'STANDARD' : normalizedType === 'SERVICIO' ? 'SERVICE' : normalizedType,
+      status: String(merged.status || 'ACTIVE').toUpperCase() === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE',
+      inventoryType: String(merged.inventoryType || 'PHYSICAL').toUpperCase() === 'VIRTUAL' ? 'VIRTUAL' : 'PHYSICAL',
+      sku: (merged.sku || '').trim().toUpperCase(),
+      name: (merged.name || '').trim(),
+      imageUrl: merged.imageUrl?.trim() || '/product.svg',
+      tarifa_iva: merged.tarifa_iva !== undefined ? Number(merged.tarifa_iva) : Number(merged.taxRate ?? 15) / 100,
+      taxRate: Number(merged.taxRate ?? 15),
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
     const mirror = normalizeProduct(data);
     const skuRef = this.ref('inventory_skus', encodeURIComponent(data.sku));
     await runTransaction(db, async tx => {
@@ -43,7 +56,16 @@ export class ProductRepository {
     return { ...data, stock: existing?.stock ?? 0 };
   }
   async findById(id: string): Promise<Product | null> { const snap = await getDoc(this.ref('inventory_products', id)); return snap.exists() ? { ...snap.data(), id: snap.id } as Product : null; }
-  async findBySku(sku: string): Promise<Product | null> { if (!sku.trim()) return null; const snap = await getDocs(query(this.getCollectionRef(), where('sku', '==', sku.trim().toUpperCase()))); return snap.empty ? null : { ...snap.docs[0].data(), id: snap.docs[0].id } as Product; }
+  async findBySku(sku: string): Promise<Product | null> {
+    const normalized = sku.trim().toUpperCase();
+    if (!normalized) return null;
+    const snap = await getDocs(query(this.getCollectionRef(), where('sku', '==', normalized)));
+    if (!snap.empty) return { ...snap.docs[0].data(), id: snap.docs[0].id } as Product;
+    // Legacy SKUs were not always normalized; prevent duplicates during migration.
+    const all = await getDocs(this.getCollectionRef());
+    const legacy = all.docs.find(row => String(row.data().sku || '').trim().toUpperCase() === normalized);
+    return legacy ? { ...legacy.data(), id: legacy.id } as Product : null;
+  }
   async findAll(): Promise<Product[]> { const snap = await getDocs(this.getCollectionRef()); return snap.docs.map(d => ({ ...d.data(), id: d.id }) as Product); }
   async delete(id: string): Promise<void> {
     // Preserve references from invoices, combos and ledger history.

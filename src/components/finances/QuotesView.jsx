@@ -1,6 +1,9 @@
+import { mergeThemeProps } from '../ui/themeProps';
+import { UiText, UiBox, UiCard, UiHeading, UiLabel } from '../ui/layout';
+import { UiButton, UiInput, UiSelect, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell } from '../ui/controls';
 import { useState, useEffect } from 'react';
 import { Plus, Search, Trash2, Edit2, AlertCircle, ShoppingBag, Eye } from 'lucide-react';
-import { collection, onSnapshot, doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
+import { collection, onSnapshot, doc, getDoc, setDoc, deleteDoc } from '../../services/financeStore.js';
 import { getEcuadorDateString } from '../../services/sriService';
 import RidePreviewModal from './RidePreviewModal';
 
@@ -214,13 +217,13 @@ export default function QuotesView({ products, thirdParties,  showToast, db, app
   const getStatusBadge = (status) => {
     switch (status) {
       case 'facturado': 
-        return <span className="badge-status bg-emerald-500/20 text-emerald-500 font-bold uppercase">Facturado</span>;
+        return <UiText {...{"color":"green","weight":"bold"}}>Facturado</UiText>;
       case 'enviado': 
-        return <span className="badge-status bg-primary/20 text-primary font-bold uppercase">Enviado</span>;
+        return <UiText {...{"color":"blue","weight":"bold"}}>Enviado</UiText>;
       case 'vencido': 
-        return <span className="badge-status bg-red-500/20 text-red-500 font-bold uppercase">Vencido</span>;
+        return <UiText {...{"color":"red","weight":"bold"}}>Vencido</UiText>;
       default: 
-        return <span className="badge-status bg-gray-550/20 text-gray-550 font-bold uppercase">Borrador</span>;
+        return <UiText {...{"color":"gray","weight":"bold"}}>Borrador</UiText>;
     }
   };
 
@@ -232,30 +235,29 @@ export default function QuotesView({ products, thirdParties,  showToast, db, app
     return matchesSearch && matchesStatus;
   });
 
-  const inputClass = `w-full text-xs px-3 py-2.5 rounded-card outline-none transition-all border ${
-    'bg-white border-border-strong text-text-heading focus:border-primary focus:ring-1 focus:ring-primary/35'}`;
+  
 
   return (
-    <div className="space-y-6">
+    <UiBox {...{"className":"space-y-6"}}>
       
       {/* ALERTA DE BLOQUEO POR CONFIGURACIÓN DE EMPRESA */}
       {isBlocked && (
-        <div className="p-5 rounded-card border border-dashed border-red-500/30 bg-red-500/10 text-red-500 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-in slide-in-from-top-2 duration-300">
-          <div className="flex items-start gap-3">
-            <AlertCircle size={20} className="shrink-0 mt-0.5" />
-            <div className="text-xs">
-              <p className="font-bold">Emisión de Cotizaciones Bloqueada</p>
-              <p className="opacity-90 mt-0.5">Normativa Comercial: No se pueden emitir proformas sin configurar la Razón Social, RUC y el **Logo Corporativo** de la empresa.</p>
-            </div>
-          </div>
-          <span className="text-xs px-2.5 py-1 rounded bg-red-500 text-white font-semibold uppercase tracking-wider shrink-0">Configuración Requerida</span>
-        </div>
+        <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--red-3)","color":"var(--red-11)"},"className":"p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-in slide-in-from-top-2 duration-300"}}>
+          <UiBox {...{"className":"flex items-start gap-3"}}>
+            <AlertCircle size={20} {...{"className":"shrink-0 mt-0.5"}} />
+            <UiBox {...{}}>
+              <UiText as="p" {...{"weight":"bold"}}>Emisión de Cotizaciones Bloqueada</UiText>
+              <UiText as="p" {...{"className":"opacity-90 mt-0.5"}}>Normativa Comercial: No se pueden emitir proformas sin configurar la Razón Social, RUC y el **Logo Corporativo** de la empresa.</UiText>
+            </UiBox>
+          </UiBox>
+          <UiText {...{"size":"1","weight":"bold","className":"px-2.5 py-1 shrink-0"}}>Configuración Requerida</UiText>
+        </UiBox>
       )}
 
       {/* FILTROS Y BUSQUEDA */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 mb-6">
-        <div>
-          <button 
+      <UiBox {...{"className":"flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 mb-6"}}>
+        <UiBox>
+          <UiButton
             onClick={() => { 
               if (isBlocked) {
                 showToast("Completa la Razón Social, RUC y Logo en Configuración primero", "error");
@@ -265,238 +267,236 @@ export default function QuotesView({ products, thirdParties,  showToast, db, app
               setIsModalOpen(true); 
             }}
             disabled={isBlocked}
-            className={`btn-primary w-full sm:w-auto ${isBlocked ? 'opacity-50 cursor-not-allowed' : ''}`}
+            {...mergeThemeProps({"variant":"solid","color":"blue","className":"w-full sm:w-auto"}, {}, (isBlocked ? {"className":"opacity-50 cursor-not-allowed"} : {}))}
           >
             <Plus size={15} /> Nueva Cotización
-          </button>
-        </div>
+          </UiButton>
+        </UiBox>
 
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
-          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-card border-none w-full sm:w-64 transition-all focus-within:ring-1 focus-within:ring-primary/25 bg-surface-bg hover:bg-surface-card focus-within:bg-surface-card">
-            <Search size={14} className={'text-text-secondary'} />
-            <input 
+        <UiBox {...{"className":"flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto"}}>
+          <UiCard {...{"style":{"backgroundColor":"var(--gray-2)"},"className":"flex items-center gap-2 px-3.5 py-1.5 w-full sm:w-64"}}>
+            <Search size={14} {...{"style":{"color":"var(--gray-11)"}}} />
+            <UiInput
               type="text" 
               placeholder="Buscar por número o cliente..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="bg-transparent border-none outline-none text-xs w-full text-current placeholder-gray-500 focus:ring-0"
+              {...{"size":"2","className":"w-full"}}
               disabled={isBlocked}
             />
-          </div>
+          </UiCard>
 
-          <select 
+          <UiSelect
             value={filterStatus} 
             onChange={e => setFilterStatus(e.target.value)} 
-            className="px-3 py-1.5 rounded-card border-none text-xs font-medium outline-none transition-all cursor-pointer bg-surface-bg hover:bg-surface-card text-text-primary focus:ring-1 focus:ring-primary/25"
+            {...{"size":"2","color":"gray","className":"cursor-pointer"}}
           >
-            <option value="all" className="text-black">Todos los estados</option>
-            <option value="borrador" className="text-black">Borrador</option>
-            <option value="enviado" className="text-black">Enviado</option>
-            <option value="facturado" className="text-black">Facturado</option>
-            <option value="vencido" className="text-black">Vencido</option>
-          </select>
-        </div>
-      </div>
+            <option value="all" {...{"style":{"color":"var(--gray-12)"}}}>Todos los estados</option>
+            <option value="borrador" {...{"style":{"color":"var(--gray-12)"}}}>Borrador</option>
+            <option value="enviado" {...{"style":{"color":"var(--gray-12)"}}}>Enviado</option>
+            <option value="facturado" {...{"style":{"color":"var(--gray-12)"}}}>Facturado</option>
+            <option value="vencido" {...{"style":{"color":"var(--gray-12)"}}}>Vencido</option>
+          </UiSelect>
+        </UiBox>
+      </UiBox>
 
       {/* TABLA COTIZACIONES */}
-      <div className={`rounded-card border overflow-hidden transition-all ${
-        'border-border-default/80 bg-white'}`}>
+      <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"overflow-hidden"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)"}})}>
         {loading ? (
-          <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-          </div>
+          <UiBox {...{"className":"flex justify-center items-center py-12"}}>
+            <UiBox {...{"style":{"borderRadius":"var(--radius-3)"},"className":"animate-spin h-6 w-6"}}></UiBox>
+          </UiBox>
         ) : (
-          <div className="overflow-x-auto custom-scrollbar">
-            <table className="w-full text-left text-xs whitespace-nowrap">
-              <thead className={`text-xs uppercase font-bold tracking-wider ${
-                'bg-surface-bg text-text-primary border-b border-border-default'}`}>
-                <tr>
-                  <th className="px-6 py-3.5">Cotización</th>
-                  <th className="px-6 py-3.5">Fecha</th>
-                  <th className="px-6 py-3.5">Validez</th>
-                  <th className="px-6 py-3.5">Cliente</th>
-                  <th className="px-6 py-3.5 text-right">Items</th>
-                  <th className="px-6 py-3.5 text-right">Total</th>
-                  <th className="px-6 py-3.5">Estado</th>
-                  <th className="px-6 py-3.5 text-right">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className={`divide-y divide-slate-100`}>
+          <UiBox {...{"className":"overflow-x-auto custom-scrollbar"}}>
+            <UiTable {...{"className":"w-full text-left whitespace-nowrap"}}>
+              <UiTableHeader {...mergeThemeProps({}, {}, {"style":{"backgroundColor":"var(--gray-2)","color":"var(--gray-12)"}})}>
+                <UiTableRow>
+                  <UiTableHead {...{"className":"px-6 py-3.5"}}>Cotización</UiTableHead>
+                  <UiTableHead {...{"className":"px-6 py-3.5"}}>Fecha</UiTableHead>
+                  <UiTableHead {...{"className":"px-6 py-3.5"}}>Validez</UiTableHead>
+                  <UiTableHead {...{"className":"px-6 py-3.5"}}>Cliente</UiTableHead>
+                  <UiTableHead {...{"className":"px-6 py-3.5 text-right"}}>Items</UiTableHead>
+                  <UiTableHead {...{"className":"px-6 py-3.5 text-right"}}>Total</UiTableHead>
+                  <UiTableHead {...{"className":"px-6 py-3.5"}}>Estado</UiTableHead>
+                  <UiTableHead {...{"className":"px-6 py-3.5 text-right"}}>Acciones</UiTableHead>
+                </UiTableRow>
+              </UiTableHeader>
+              <UiTableBody {...mergeThemeProps({})}>
                 {filtered.map(q => {
                   const client = thirdParties.find(tp => tp.id === q.thirdPartyId);
                   return (
-                    <tr key={q.id} className={`transition-colors hover:bg-surface-bg/40`}>
-                      <td className={`px-6 py-3.5 font-mono text-xs text-black font-semibold`}>{q.quoteNumber}</td>
-                      <td className="px-6 py-3.5">{q.date}</td>
-                      <td className="px-6 py-3.5">{q.validUntil || '-'}</td>
-                      <td className={`px-6 py-3.5 font-bold truncate max-w-[200px] text-black`} title={client?.name}>
+                    <UiTableRow key={q.id} {...mergeThemeProps({})}>
+                      <UiTableCell {...mergeThemeProps({"style":{"fontFamily":"var(--code-font-family)","color":"var(--gray-12)"},"className":"px-6 py-3.5"})}>{q.quoteNumber}</UiTableCell>
+                      <UiTableCell {...{"className":"px-6 py-3.5"}}>{q.date}</UiTableCell>
+                      <UiTableCell {...{"className":"px-6 py-3.5"}}>{q.validUntil || '-'}</UiTableCell>
+                      <UiTableCell {...mergeThemeProps({"style":{"color":"var(--gray-12)"},"className":"px-6 py-3.5 truncate max-w-[200px]"})} title={client?.name}>
                         {client?.name || 'Desconocido'}
-                      </td>
-                      <td className="px-6 py-3.5 text-right font-medium">{q.items?.length || 0}</td>
-                      <td className={`px-6 py-3.5 text-right font-semibold text-black`}>${Number(q.total || 0).toFixed(2)}</td>
-                      <td className="px-6 py-3.5">{getStatusBadge(q.status)}</td>
-                      <td className="px-6 py-3.5 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
+                      </UiTableCell>
+                      <UiTableCell {...{"className":"px-6 py-3.5 text-right"}}>{q.items?.length || 0}</UiTableCell>
+                      <UiTableCell {...mergeThemeProps({"style":{"color":"var(--gray-12)"},"className":"px-6 py-3.5 text-right"})}>${Number(q.total || 0).toFixed(2)}</UiTableCell>
+                      <UiTableCell {...{"className":"px-6 py-3.5"}}>{getStatusBadge(q.status)}</UiTableCell>
+                      <UiTableCell {...{"className":"px-6 py-3.5 text-right"}}>
+                        <UiBox {...{"className":"flex items-center justify-end gap-1.5"}}>
                           {q.status !== 'facturado' && (
-                            <button 
+                            <UiButton
                               onClick={() => handlePromote(q)}
-                              className="btn-primary text-xs shrink-0 animate-pulse-glow"
+                              {...{"variant":"solid","color":"blue","size":"2","className":"shrink-0"}}
                               title="Promover a Factura SRI"
                             >
                               <ShoppingBag size={12} /> Facturar
-                            </button>
+                            </UiButton>
                           )}
-                          <button 
+                          <UiButton iconOnly
                             onClick={() => setSelectedQuoteTx({ ...q, documentType: 'cotizacion', documentNumber: q.quoteNumber, baseImponible: q.subtotal, ivaValor: q.ivaValor, total: q.total })} 
-                            className="btn-icon bg-amber-600 text-white hover:bg-amber-700"
+                            {...{"variant":"solid","color":"amber"}}
                             title="Ver RIDE Proforma / Imprimir"
                           >
                             <Eye size={13}/>
-                          </button>
-                          <button 
+                          </UiButton>
+                          <UiButton iconOnly
                             onClick={() => { setFormData(q); setIsModalOpen(true); }} 
-                            className="btn-icon bg-primary text-white hover:bg-primary-hover"
+                            {...{"variant":"solid","color":"blue"}}
                             title="Editar"
                           >
                             <Edit2 size={13}/>
-                          </button>
-                          <button 
+                          </UiButton>
+                          <UiButton iconOnly
                             onClick={() => handleDelete(q.id)} 
-                            className="btn-icon bg-red-600 text-white hover:bg-red-700"
+                            {...{"variant":"solid","color":"red"}}
                             title="Eliminar"
                           >
                             <Trash2 size={13}/>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
+                          </UiButton>
+                        </UiBox>
+                      </UiTableCell>
+                    </UiTableRow>
                   );
                 })}
                 {filtered.length === 0 && (
-                  <tr>
-                    <td colSpan="8" className="px-6 py-8 text-center text-text-secondary italic">No se encontraron cotizaciones registradas.</td>
-                  </tr>
+                  <UiTableRow>
+                    <UiTableCell colSpan="8" {...{"style":{"color":"var(--gray-11)"},"className":"px-6 py-8 text-center italic"}}>No se encontraron cotizaciones registradas.</UiTableCell>
+                  </UiTableRow>
                 )}
-              </tbody>
-            </table>
-          </div>
+              </UiTableBody>
+            </UiTable>
+          </UiBox>
         )}
-      </div>
+      </UiBox>
 
       {/* MODAL CREAR / EDITAR COTIZACIÓN */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 animate-in fade-in">
-          <div className={`w-full max-w-3xl p-6 rounded-card overflow-y-auto max-h-[90vh] custom-scrollbar bg-white border border-border-strong`}>
-            <h2 className="text-base font-bold mb-4">{formData.id ? 'Editar' : 'Crear'} Cotización</h2>
+        <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in"}}>
+          <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)"},"className":"w-full max-w-3xl p-6 overflow-y-auto max-h-[90vh] custom-scrollbar"})}>
+            <UiHeading as="h2" {...{"size":"3","weight":"bold","className":"mb-4"}}>{formData.id ? 'Editar' : 'Crear'} Cotización</UiHeading>
             
-            <form onSubmit={handleSave} className="space-y-4">
+            <form onSubmit={handleSave} {...{"className":"space-y-4"}}>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className={`block text-xs font-semibold mb-1 uppercase text-text-primary`}>Número</label>
-                  <input type="text" readOnly value={formData.quoteNumber} className={`${inputClass} opacity-60 font-mono`} />
-                </div>
-                <div>
-                  <label className={`block text-xs font-semibold mb-1 uppercase text-text-primary`}>Fecha Emisión</label>
-                  <input type="date" required value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} className={inputClass} />
-                </div>
-                <div>
-                  <label className={`block text-xs font-semibold mb-1 uppercase text-text-primary`}>Fecha Vencimiento</label>
-                  <input type="date" required value={formData.validUntil} onChange={e => setFormData({...formData, validUntil: e.target.value})} className={inputClass} />
-                </div>
-                <div className="md:col-span-3">
-                  <label className={`block text-xs font-semibold mb-1 uppercase text-text-primary`}>Cliente / Tercero</label>
-                  <select required value={formData.thirdPartyId} onChange={e => setFormData({...formData, thirdPartyId: e.target.value})} className={inputClass}>
-                    <option value="" disabled className="text-text-secondary">Selecciona un cliente...</option>
+              <UiBox {...{"className":"grid grid-cols-1 md:grid-cols-3 gap-4"}}>
+                <UiBox>
+                  <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1"})}>Número</UiLabel>
+                  <UiInput type="text" readOnly value={formData.quoteNumber} {...mergeThemeProps({}, {"className":"opacity-60"}, mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"}))} />
+                </UiBox>
+                <UiBox>
+                  <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1"})}>Fecha Emisión</UiLabel>
+                  <UiInput type="date" required value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})} />
+                </UiBox>
+                <UiBox>
+                  <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1"})}>Fecha Vencimiento</UiLabel>
+                  <UiInput type="date" required value={formData.validUntil} onChange={e => setFormData({...formData, validUntil: e.target.value})} {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})} />
+                </UiBox>
+                <UiBox {...{"className":"md:col-span-3"}}>
+                  <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1"})}>Cliente / Tercero</UiLabel>
+                  <UiSelect required value={formData.thirdPartyId} onChange={e => setFormData({...formData, thirdPartyId: e.target.value})} {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})}>
+                    <option value="" disabled {...{"style":{"color":"var(--gray-11)"}}}>Selecciona un cliente...</option>
                     {thirdParties.map(tp => (
-                      <option key={tp.id} value={tp.id} className="text-black">{tp.name} - RUC: {tp.ruc}</option>
+                      <option key={tp.id} value={tp.id} {...{"style":{"color":"var(--gray-12)"}}}>{tp.name} - RUC: {tp.ruc}</option>
                     ))}
-                  </select>
-                </div>
-              </div>
+                  </UiSelect>
+                </UiBox>
+              </UiBox>
 
               {/* TABLA DE PRODUCTOS (FILAS) */}
-              <div className="space-y-3">
-                <div className="flex justify-between items-center border-b border-white/5 pb-2">
-                  <h4 className="text-xs font-bold text-text-secondary uppercase">Detalle de Productos / Servicios</h4>
-                  <button type="button" onClick={handleAddItem} className="btn-secondary h-8 px-3 text-xs uppercase flex items-center gap-1">
+              <UiBox {...{"className":"space-y-3"}}>
+                <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex justify-between items-center pb-2"}}>
+                  <UiHeading as="h4" {...{"size":"1","weight":"bold","color":"gray"}}>Detalle de Productos / Servicios</UiHeading>
+                  <UiButton type="button" onClick={handleAddItem} {...{"variant":"surface","color":"blue","size":"2","className":"flex items-center gap-1"}}>
                     <Plus size={10} /> Agregar Ítem
-                  </button>
-                </div>
+                  </UiButton>
+                </UiBox>
 
-                <div className="space-y-2">
+                <UiBox {...{"className":"space-y-2"}}>
                   {formData.items.map((item, index) => (
-                    <div key={index} className="flex flex-col sm:flex-row items-center gap-2 bg-black/10 p-3 rounded-card border border-white/5">
-                      <div className="flex-1 w-full">
-                        <select 
+                    <UiBox key={index} {...{"style":{"backgroundColor":"var(--black-a7)","borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"flex flex-col sm:flex-row items-center gap-2 p-3"}}>
+                      <UiBox {...{"className":"flex-1 w-full"}}>
+                        <UiSelect
                           required 
                           value={item.productId} 
                           onChange={(e) => handleItemChange(index, 'productId', e.target.value)} 
-                          className={inputClass}
+                          {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})}
                         >
-                          <option value="" disabled className="text-text-secondary">Seleccionar Producto...</option>
+                          <option value="" disabled {...{"style":{"color":"var(--gray-11)"}}}>Seleccionar Producto...</option>
                           {products.map(p => (
-                            <option key={p.id} value={p.id} className="text-black">{p.sku} - {p.name} (${p.price})</option>
+                            <option key={p.id} value={p.id} {...{"style":{"color":"var(--gray-12)"}}}>{p.sku} - {p.name} (${p.price})</option>
                           ))}
-                        </select>
-                      </div>
+                        </UiSelect>
+                      </UiBox>
                       
-                      <div className="w-full sm:w-20">
-                        <input 
+                      <UiBox {...{"className":"w-full sm:w-20"}}>
+                        <UiInput
                           type="number" 
                           placeholder="Cant." 
                           required 
                           min={1} 
                           value={item.quantity} 
                           onChange={(e) => handleItemChange(index, 'quantity', e.target.value)} 
-                          className={inputClass} 
+                          {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})} 
                         />
-                      </div>
+                      </UiBox>
                       
-                      <div className="w-full sm:w-28">
-                        <input 
+                      <UiBox {...{"className":"w-full sm:w-28"}}>
+                        <UiInput
                           type="number" 
                           step="0.01" 
                           placeholder="Precio" 
                           required 
                           value={item.price} 
                           onChange={(e) => handleItemChange(index, 'price', e.target.value)} 
-                          className={inputClass} 
+                          {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})} 
                         />
-                      </div>
+                      </UiBox>
 
-                      <div className="text-xs font-bold w-full sm:w-20 text-center shrink-0">
+                      <UiBox {...{"className":"w-full sm:w-20 text-center shrink-0"}}>
                         ${((parseFloat(item.price) || 0) * (parseInt(item.quantity) || 1)).toFixed(2)}
-                      </div>
+                      </UiBox>
 
-                      <button type="button" onClick={() => handleRemoveItem(index)} className={`btn-icon hover:bg-red-50 text-red-650 border border-red-200 bg-white`}>
+                      <UiButton iconOnly type="button" onClick={() => handleRemoveItem(index)} {...mergeThemeProps({"variant":"surface","color":"red"})}>
                         <Trash2 size={13} />
-                      </button>
-                    </div>
+                      </UiButton>
+                    </UiBox>
                   ))}
                   {formData.items.length === 0 && (
-                    <p className="text-center text-xs text-text-secondary italic py-4">No has agregado ningún producto a la cotización.</p>
+                    <UiText as="p" {...{"size":"1","color":"gray","className":"text-center italic py-4"}}>No has agregado ningún producto a la cotización.</UiText>
                   )}
-                </div>
-              </div>
+                </UiBox>
+              </UiBox>
 
               {/* TOTALES */}
-              <div className={`p-4 rounded-card flex justify-between items-center bg-primary-light text-primary border border-primary/40`}>
-                <div className="text-xs leading-relaxed">
-                  <p>Subtotal Neto: ${formData.subtotal}</p>
-                  <p>IVA Estimado: ${formData.ivaValor}</p>
-                </div>
-                <p className={`text-xl font-semibold text-text-heading`}>Total: ${formData.total}</p>
-              </div>
+              <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--blue-3)","color":"var(--blue-12)","border":"1px solid var(--gray-a6)"},"className":"p-4 flex justify-between items-center"})}>
+                <UiBox {...{"className":"leading-relaxed"}}>
+                  <UiText as="p">Subtotal Neto: ${formData.subtotal}</UiText>
+                  <UiText as="p">IVA Estimado: ${formData.ivaValor}</UiText>
+                </UiBox>
+                <UiText as="p" {...mergeThemeProps({"size":"5","weight":"bold","color":"gray","highContrast":true})}>Total: ${formData.total}</UiText>
+              </UiBox>
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-white/5">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="btn-secondary">Cancelar</button>
-                <button type="submit" className="btn-primary">Guardar Cotización</button>
-              </div>
+              <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"flex justify-end gap-3 pt-4"}}>
+                <UiButton type="button" onClick={() => setIsModalOpen(false)} {...{"variant":"surface","color":"blue"}}>Cancelar</UiButton>
+                <UiButton type="submit" {...{"variant":"solid","color":"blue"}}>Guardar Cotización</UiButton>
+              </UiBox>
 
             </form>
-          </div>
-        </div>
+          </UiBox>
+        </UiBox>
       )}
 
       {selectedQuoteTx && (
@@ -509,6 +509,6 @@ export default function QuotesView({ products, thirdParties,  showToast, db, app
         />
       )}
 
-    </div>
+    </UiBox>
   );
 }

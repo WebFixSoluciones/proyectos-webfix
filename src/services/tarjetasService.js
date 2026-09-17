@@ -131,10 +131,15 @@ export async function getAllConsumosTarjeta(db, filtros = {}) {
 }
 
 export async function registrarConsumo(db, data, usuario) {
+  const monto = Number(data.monto);
+  if (!Number.isFinite(monto) || monto <= 0) throw new Error('El consumo debe ser mayor a cero.');
+  const tarjetaActual = await getTarjetaById(db, data.tarjetaId);
+  if (tarjetaActual.estado !== 'activa') throw new Error('La tarjeta no está activa.');
+  if (tarjetaActual.cupoDisponible < monto - 0.01) throw new Error(`Cupo insuficiente. Disponible: $${tarjetaActual.cupoDisponible.toFixed(2)}.`);
   const payload = {
     tarjetaId: data.tarjetaId,
     tipo: 'consumo',
-    monto: Number(data.monto),
+    monto,
     descripcion: data.descripcion || '',
     categoria: data.categoria || 'otro',
     fecha: data.fecha ? Timestamp.fromDate(new Date(data.fecha)) : Timestamp.now(),
@@ -147,18 +152,16 @@ export async function registrarConsumo(db, data, usuario) {
   const ref = await addDoc(collection(db, COLLECTION_CONSUMOS), payload);
   registrarAuditoria(db, { coleccion: COLLECTION_CONSUMOS, documentoId: ref.id, accion: 'crear_consumo', usuario: usuario.uid, usuarioEmail: usuario.email, cambios: { nuevo: payload }, modulo: 'finanzas' });
 
-  const tarjeta = await getTarjetaById(db, data.tarjetaId);
-  if (tarjeta.cupoDisponible < Number(data.monto)) {
-    registrarAuditoria(db, { coleccion: COLLECTION_TARJETAS, documentoId: data.tarjetaId, accion: 'alerta_cupo_insuficiente', usuario: usuario.uid, usuarioEmail: usuario.email, cambios: { alerta: 'Cupo excedido en consumo', monto: Number(data.monto), cupoDisponible: tarjeta.cupoDisponible }, modulo: 'finanzas' });
-  }
   return ref.id;
 }
 
 export async function registrarPagoTarjeta(db, data, usuario) {
+  const monto = Number(data.monto);
+  if (!Number.isFinite(monto) || monto <= 0) throw new Error('El pago debe ser mayor a cero.');
   const payload = {
     tarjetaId: data.tarjetaId,
     tipo: 'pago',
-    monto: Number(data.monto),
+    monto,
     descripcion: data.descripcion || '',
     categoria: data.categoria || 'otro',
     fecha: data.fecha ? Timestamp.fromDate(new Date(data.fecha)) : Timestamp.now(),
@@ -178,6 +181,9 @@ export async function registrarCuotaConsumo(db, consumoId, usuario) {
   const snap = await getDoc(docRef);
   if (!snap.exists()) throw new Error('Consumo no encontrado');
   const consumo = snap.data();
+  if (consumo.tipo !== 'consumo') throw new Error('Solo se pueden pagar cuotas de un consumo.');
+  if (!Number.isInteger(Number(consumo.cuotas)) || Number(consumo.cuotas) < 1) throw new Error('El consumo tiene un número de cuotas inválido.');
+  if (Number(consumo.cuotasPagadas || 0) >= Number(consumo.cuotas)) throw new Error('Este consumo ya está completamente pagado.');
   const nuevasCuotasPagadas = Math.min((consumo.cuotasPagadas || 0) + 1, consumo.cuotas);
   await updateDoc(docRef, { cuotasPagadas: nuevasCuotasPagadas, updatedAt: serverTimestamp() });
   registrarAuditoria(db, { coleccion: COLLECTION_CONSUMOS, documentoId: consumoId, accion: 'registrar_cuota', usuario: usuario.uid, usuarioEmail: usuario.email, cambios: { cuotasPagadas: nuevasCuotasPagadas }, modulo: 'finanzas' });

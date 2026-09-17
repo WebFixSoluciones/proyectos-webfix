@@ -1,6 +1,9 @@
+import { mergeThemeProps } from '../ui/themeProps';
+import { UiBox, UiText, UiCard, UiHeading, UiLabel } from '../ui/layout';
+import { UiInput, UiButton, UiSelect, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell } from '../ui/controls';
 import { useState, useRef, useEffect } from 'react';
 import { Plus, Search, Trash2, Edit2, FileText, CheckCircle2, AlertCircle, Sparkles, AlertTriangle, Eye, Mail, Loader2, Truck, Clock, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
-import { doc, deleteDoc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, deleteDoc, setDoc, getDoc } from '../../services/financeStore.js';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { analizarComprobanteConGemini, parsearXMLComprobante } from '../../services/geminiService';
 import { getEcuadorDateString, getEcuadorDateTimeString } from '../../services/sriService';
@@ -53,11 +56,11 @@ export default function TransactionsView({ transactions, thirdParties, showToast
 
   const renderSortIcon = (field) => {
     if (sortField !== field) {
-      return <ArrowUpDown size={11} className="inline ml-1 text-text-secondary opacity-60" />;
+      return <ArrowUpDown size={11} {...{"style":{"color":"var(--gray-11)"},"className":"inline ml-1 opacity-60"}} />;
     }
     return sortDirection === 'asc' 
-      ? <ArrowUp size={11} className="inline ml-1 text-primary" />
-      : <ArrowDown size={11} className="inline ml-1 text-primary" />;
+      ? <ArrowUp size={11} {...{"style":{"color":"var(--blue-12)"},"className":"inline ml-1"}} />
+      : <ArrowDown size={11} {...{"style":{"color":"var(--blue-12)"},"className":"inline ml-1"}} />;
   };
 
   const getDocumentTypeLabel = (docType, type) => {
@@ -404,76 +407,68 @@ export default function TransactionsView({ transactions, thirdParties, showToast
   ];
 
   return (
-    <div className="animate-in slide-in-from-bottom-4 duration-500 space-y-6">
+    <UiBox {...{"className":"animate-in slide-in-from-bottom-4 duration-500 space-y-6"}}>
       
       {/* DRAG AND DROP ZONE */}
       {(!forcedType || forcedType !== 'ingreso') && (
-        <div 
+        <UiBox 
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
-          className={`relative border-2 border-dashed rounded-card p-6 flex flex-col items-center justify-center transition-all cursor-pointer overflow-hidden ${
-            isDragging 
-              ? 'border-purple-500 bg-purple-500/5 scale-[1.01]' 
-              : 'border-gray-355 hover:border-border-strong bg-white'
-          }`}
+          {...mergeThemeProps({"style":{"border":"1px solid var(--gray-a6)","borderRadius":"var(--radius-3)"},"className":"relative p-6 flex flex-col items-center justify-center cursor-pointer overflow-hidden"}, {}, (isDragging ? {"style":{"backgroundColor":"var(--purple-3)"},"className":"scale-[1.01]"} : {"style":{"backgroundColor":"var(--color-panel-solid)"}}))}
         >
-          <input 
+          <UiInput
             type="file" 
             ref={fileInputRef} 
             onChange={(e) => handleFileCapture(e.target.files[0])} 
             accept=".pdf,.png,.jpg,.jpeg,.xml" 
-            className="hidden" 
+            {...{"className":"hidden"}} 
           />
           
           {isAnalyzing ? (
-            <div className="flex flex-col items-center justify-center py-4 space-y-3">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
-              <p className="text-xs font-semibold text-purple-400 animate-pulse">Gemini IA está extrayendo información del comprobante...</p>
-            </div>
+            <UiBox {...{"className":"flex flex-col items-center justify-center py-4 space-y-3"}}>
+              <UiBox {...{"style":{"borderRadius":"var(--radius-3)"},"className":"animate-spin h-8 w-8"}}></UiBox>
+              <UiText as="p" {...{"size":"1","weight":"bold","color":"purple","className":"animate-pulse"}}>Gemini IA está extrayendo información del comprobante...</UiText>
+            </UiBox>
           ) : (
-            <div className="flex flex-col items-center justify-center text-center space-y-2">
-              <div className="p-3 rounded-card bg-purple-100 text-purple-800">
+            <UiBox {...{"className":"flex flex-col items-center justify-center text-center space-y-2"}}>
+              <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--purple-3)","color":"var(--purple-12)"},"className":"p-3"}}>
                 <Sparkles size={24} />
-              </div>
-              <div>
-                <p className="text-xs font-bold text-text-heading">Captura Inteligente IA / Carga XML</p>
-                <p className="text-xs mt-1 max-w-md leading-normal text-text-primary font-medium">
+              </UiBox>
+              <UiBox>
+                <UiText as="p" {...{"size":"1","weight":"bold","color":"gray","highContrast":true}}>Captura Inteligente IA / Carga XML</UiText>
+                <UiText as="p" {...{"size":"1","color":"gray","highContrast":true,"weight":"medium","className":"mt-1 max-w-md leading-normal"}}>
                   Arrastra tu factura (PDF, XML, Imagen) aquí. Gemini la clasificará y auto-completará los campos del formulario de forma instantánea.
-                </p>
-              </div>
-            </div>
+                </UiText>
+              </UiBox>
+            </UiBox>
           )}
-        </div>
+        </UiBox>
       )}
 
       {/* TABS DE TIPO DE DOCUMENTO SRI */}
       {!forcedDocType && !isPreventaTab && (
-        <div className="inline-flex h-9 items-center justify-start rounded-md bg-surface-sidebar p-1 text-text-secondary border border-border-default gap-1 overflow-x-auto custom-scrollbar whitespace-nowrap mb-2">
+        <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--color-panel-solid)","color":"var(--gray-11)","border":"1px solid var(--gray-a6)"},"className":"inline-flex h-9 items-center justify-start p-1 gap-1 overflow-x-auto custom-scrollbar whitespace-nowrap mb-2"}}>
           {docTypeTabs.map(tab => {
             const isActive = filterDocType === tab.id;
             return (
-              <button
+              <UiButton
                 key={tab.id}
                 onClick={() => setFilterDocType(tab.id)}
-                className={`inline-flex items-center justify-center whitespace-nowrap rounded-badge px-3 py-1 text-xs font-medium tracking-tight transition-all duration-120 select-none cursor-pointer ${
-                  isActive 
-                    ? 'bg-white text-text-heading border border-border-default shadow-none font-semibold'
-                    : 'text-text-secondary hover:text-text-heading hover:bg-black/5'
-                }`}
+                {...mergeThemeProps({"size":"2","className":"inline-flex items-center justify-center whitespace-nowrap duration-120 select-none cursor-pointer"}, {}, (isActive ? {"variant":"surface","color":"gray"} : {"color":"gray"}))}
               >
                 {tab.label}
-              </button>
+              </UiButton>
             );
           })}
-        </div>
+        </UiBox>
       )}
 
       {/* FILTROS Y BUSQUEDA */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 mb-6">
-        <div>
-          <button 
+      <UiBox {...{"className":"flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 mb-6"}}>
+        <UiBox>
+          <UiButton
             onClick={() => {
               if (isPreventaTab) {
                 onOpenForm({
@@ -519,7 +514,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                 onOpenForm(null);
               }
             }}
-            className="btn-primary w-full sm:w-auto"
+            {...{"variant":"solid","color":"blue","className":"w-full sm:w-auto"}}
           >
             <Plus size={15} /> Registrar {
               isPreventaTab
@@ -532,153 +527,153 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                             : (docTypeTabs.find(t => t.id === forcedDocType)?.label || forcedDocType))) 
                     : 'Comprobante')
             }
-          </button>
-        </div>
+          </UiButton>
+        </UiBox>
 
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
-          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-card border-none w-full sm:w-64 transition-all focus-within:ring-1 focus-within:ring-primary/25 bg-surface-bg hover:bg-surface-card focus-within:bg-surface-card">
-            <Search size={14} className="text-text-secondary" />
-            <input 
+        <UiBox {...{"className":"flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto"}}>
+          <UiCard {...{"style":{"backgroundColor":"var(--gray-2)"},"className":"flex items-center gap-2 px-3.5 py-1.5 w-full sm:w-64"}}>
+            <Search size={14} {...{"style":{"color":"var(--gray-11)"}}} />
+            <UiInput
               type="text" 
               placeholder="Buscar documento o tercero..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="bg-transparent border-none outline-none text-xs w-full text-current placeholder-gray-500 focus:ring-0"
+              {...{"size":"2","className":"w-full"}}
             />
-          </div>
+          </UiCard>
 
           {!forcedType && (
-            <select 
+            <UiSelect
               value={filterType} 
               onChange={e => setFilterType(e.target.value)} 
-              className="px-3 py-1.5 rounded-card border-none text-xs font-medium outline-none transition-all cursor-pointer bg-surface-bg hover:bg-surface-card text-text-primary focus:ring-1 focus:ring-primary/25"
+              {...{"size":"2","color":"gray","className":"cursor-pointer"}}
             >
-              <option value="all" className="text-black">Todos los tipos</option>
-              <option value="ingreso" className="text-black">Ingresos (Ventas)</option>
-              <option value="egreso" className="text-black">Egresos (Compras)</option>
-            </select>
+              <option value="all" {...{"style":{"color":"var(--gray-12)"}}}>Todos los tipos</option>
+              <option value="ingreso" {...{"style":{"color":"var(--gray-12)"}}}>Ingresos (Ventas)</option>
+              <option value="egreso" {...{"style":{"color":"var(--gray-12)"}}}>Egresos (Compras)</option>
+            </UiSelect>
           )}
 
-          <select 
+          <UiSelect
             value={filterMonth} 
             onChange={e => setFilterMonth(e.target.value)} 
-            className="px-3 py-1.5 rounded-card border-none text-xs font-medium outline-none transition-all cursor-pointer bg-surface-bg hover:bg-surface-card text-text-primary focus:ring-1 focus:ring-primary/25"
+            {...{"size":"2","color":"gray","className":"cursor-pointer"}}
           >
-            <option value="all" className="text-black">Mes: Todos</option>
+            <option value="all" {...{"style":{"color":"var(--gray-12)"}}}>Mes: Todos</option>
             {['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'].map((m, i) => (
-              <option key={i} value={i} className="text-black">{m}</option>
+              <option key={i} value={i} {...{"style":{"color":"var(--gray-12)"}}}>{m}</option>
             ))}
-          </select>
+          </UiSelect>
 
-          <select 
+          <UiSelect
             value={filterYear} 
             onChange={e => setFilterYear(e.target.value)} 
-            className="px-3 py-1.5 rounded-card border-none text-xs font-medium outline-none transition-all cursor-pointer bg-surface-bg hover:bg-surface-card text-text-primary focus:ring-1 focus:ring-primary/25"
+            {...{"size":"2","color":"gray","className":"cursor-pointer"}}
           >
-            <option value="all" className="text-black">Año: Todos</option>
+            <option value="all" {...{"style":{"color":"var(--gray-12)"}}}>Año: Todos</option>
             {[2023, 2024, 2025, 2026, 2027].map(y => (
-              <option key={y} value={y} className="text-black">{y}</option>
+              <option key={y} value={y} {...{"style":{"color":"var(--gray-12)"}}}>{y}</option>
             ))}
-          </select>
-        </div>
-      </div>
+          </UiSelect>
+        </UiBox>
+      </UiBox>
 
       {/* TABLA DE COMPROBANTES */}
-      <div className="rounded-card border overflow-hidden transition-all border-border-default/80 bg-white">
-        <div className="overflow-x-auto custom-scrollbar">
-          <table className="w-full text-left text-xs whitespace-nowrap">
-            <thead className="text-xs uppercase font-bold tracking-wider bg-surface-bg text-text-primary border-b border-border-default select-none">
-              <tr>
-                <th className="px-6 py-3.5 cursor-pointer hover:bg-surface-muted/70" onClick={() => handleSort('date')}>
-                  <div className="flex items-center gap-0.5">
+      <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"overflow-hidden"}}>
+        <UiBox {...{"className":"overflow-x-auto custom-scrollbar"}}>
+          <UiTable {...{"className":"w-full text-left whitespace-nowrap"}}>
+            <UiTableHeader {...{"style":{"backgroundColor":"var(--gray-2)","color":"var(--gray-12)"},"className":"select-none"}}>
+              <UiTableRow>
+                <UiTableHead {...{"className":"px-6 py-3.5 cursor-pointer"}} onClick={() => handleSort('date')}>
+                  <UiBox {...{"className":"flex items-center gap-0.5"}}>
                     Fecha {renderSortIcon('date')}
-                  </div>
-                </th>
-                <th className="px-6 py-3.5 cursor-pointer hover:bg-surface-muted/70" onClick={() => handleSort('documentNumber')}>
-                  <div className="flex items-center gap-0.5">
+                  </UiBox>
+                </UiTableHead>
+                <UiTableHead {...{"className":"px-6 py-3.5 cursor-pointer"}} onClick={() => handleSort('documentNumber')}>
+                  <UiBox {...{"className":"flex items-center gap-0.5"}}>
                     Documento {renderSortIcon('documentNumber')}
-                  </div>
-                </th>
-                <th className="px-6 py-3.5 cursor-pointer hover:bg-surface-muted/70" onClick={() => handleSort('thirdParty')}>
-                  <div className="flex items-center gap-0.5">
+                  </UiBox>
+                </UiTableHead>
+                <UiTableHead {...{"className":"px-6 py-3.5 cursor-pointer"}} onClick={() => handleSort('thirdParty')}>
+                  <UiBox {...{"className":"flex items-center gap-0.5"}}>
                     Tercero {renderSortIcon('thirdParty')}
-                  </div>
-                </th>
-                <th className="px-6 py-3.5 cursor-pointer hover:bg-surface-muted/70" onClick={() => handleSort('total')}>
-                  <div className="flex items-center gap-0.5">
+                  </UiBox>
+                </UiTableHead>
+                <UiTableHead {...{"className":"px-6 py-3.5 cursor-pointer"}} onClick={() => handleSort('total')}>
+                  <UiBox {...{"className":"flex items-center gap-0.5"}}>
                     Total {renderSortIcon('total')}
-                  </div>
-                </th>
-                <th className="px-6 py-3.5">Estado SRI</th>
-                {isPreventaTab && <th className="px-6 py-3.5">Despacho</th>}
-                <th className="px-6 py-3.5 hidden sm:table-cell">Archivos</th>
-                <th className="px-6 py-3.5 text-right">Acciones</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
+                  </UiBox>
+                </UiTableHead>
+                <UiTableHead {...{"className":"px-6 py-3.5"}}>Estado SRI</UiTableHead>
+                {isPreventaTab && <UiTableHead {...{"className":"px-6 py-3.5"}}>Despacho</UiTableHead>}
+                <UiTableHead {...{"className":"px-6 py-3.5 hidden sm:table-cell"}}>Archivos</UiTableHead>
+                <UiTableHead {...{"className":"px-6 py-3.5 text-right"}}>Acciones</UiTableHead>
+              </UiTableRow>
+            </UiTableHeader>
+            <UiTableBody {...{}}>
               {sortedFiltered.map(tx => (
-                <tr key={tx.id} className="transition-colors hover:bg-surface-bg/40">
-                  <td className="px-6 py-2.5">
-                    <div className="text-text-heading font-bold text-xs leading-none">{tx.date}</div>
+                <UiTableRow key={tx.id} {...{}}>
+                  <UiTableCell {...{"className":"px-6 py-2.5"}}>
+                    <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"leading-none"}}>{tx.date}</UiBox>
                     {tx.time && (
-                      <div className="text-xs text-text-primary font-semibold leading-none mt-1.5">
+                      <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"leading-none mt-1.5"}}>
                         {tx.time.substring(0, 5)}
-                      </div>
+                      </UiBox>
                     )}
-                  </td>
-                  <td className="px-6 py-2.5">
-                    <div className="text-xs text-text-primary font-semibold leading-none mb-1">
+                  </UiTableCell>
+                  <UiTableCell {...{"className":"px-6 py-2.5"}}>
+                    <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"leading-none mb-1"}}>
                       {getDocumentTypeLabel(tx.documentType, tx.type)}
-                    </div>
-                    <div className="font-mono text-xs text-text-heading font-bold tracking-wider">
+                    </UiBox>
+                    <UiBox {...{"style":{"fontFamily":"var(--code-font-family)","color":"var(--gray-12)"}}}>
                       {tx.documentNumber || '-'}
-                    </div>
-                  </td>
-                  <td className="px-6 py-2.5 font-bold truncate max-w-[200px] text-text-heading" title={thirdParties.find(tp => tp.id === tx.thirdPartyId)?.name}>
+                    </UiBox>
+                  </UiTableCell>
+                  <UiTableCell {...{"style":{"color":"var(--gray-12)"},"className":"px-6 py-2.5 truncate max-w-[200px]"}} title={thirdParties.find(tp => tp.id === tx.thirdPartyId)?.name}>
                     {thirdParties.find(tp => tp.id === tx.thirdPartyId)?.name || 'Desconocido'}
-                  </td>
-                  <td className="px-6 py-2.5 font-semibold text-text-heading text-xs">${Number(tx.total || 0).toFixed(2)}</td>
-                  <td className="px-6 py-2.5">{getStatusBadge(tx.sriStatus, tx.documentType)}</td>
+                  </UiTableCell>
+                  <UiTableCell {...{"style":{"color":"var(--gray-12)"},"className":"px-6 py-2.5"}}>${Number(tx.total || 0).toFixed(2)}</UiTableCell>
+                  <UiTableCell {...{"className":"px-6 py-2.5"}}>{getStatusBadge(tx.sriStatus, tx.documentType)}</UiTableCell>
                   {isPreventaTab && (
-                    <td className="px-6 py-3.5">
+                    <UiTableCell {...{"className":"px-6 py-3.5"}}>
                       {tx.deliveryStatus === 'entregado' ? (
-                        <span 
+                        <UiText 
                           onClick={() => handleToggleDelivery(tx.id, tx.deliveryStatus)}
-                          className="px-2.5 py-1 rounded-card text-xs font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1.5 w-fit cursor-pointer hover:opacity-85 transition-all"
+                          {...{"size":"1","weight":"bold","color":"green","className":"px-2.5 py-1 flex items-center gap-1.5 w-fit cursor-pointer hover:opacity-85"}}
                         >
                           <Truck size={11} /> Entregado
-                        </span>
+                        </UiText>
                       ) : (
-                        <button
+                        <UiButton iconOnly
                           type="button"
                           onClick={() => handleToggleDelivery(tx.id, tx.deliveryStatus)}
-                          className="btn-icon bg-amber-600 text-white hover:bg-amber-700 transition-all"
+                          {...{"variant":"solid","color":"amber"}}
                           title="Marcar como Entregado / Despachado"
                         >
                           <Clock size={13} />
-                        </button>
+                        </UiButton>
                       )}
-                    </td>
+                    </UiTableCell>
                   )}
-                  <td className="px-6 py-3.5 hidden sm:table-cell">
-                    <div className="flex gap-1.5">
+                  <UiTableCell {...{"className":"px-6 py-3.5 hidden sm:table-cell"}}>
+                    <UiBox {...{"className":"flex gap-1.5"}}>
                       {tx.xmlUrl ? (
                         <a 
                           href={tx.xmlUrl} 
                           target="_blank" 
                           rel="noreferrer" 
-                          className="btn-icon bg-primary text-white hover:bg-primary-hover" 
+                          {...{"variant":"surface","color":"blue","style":{"backgroundColor":"var(--blue-9)","color":"var(--color-background)"}}} 
                           title="Ver XML"
                         >
                           <FileText size={13}/>
                         </a>
                       ) : (
-                        <span 
-                          className="btn-icon bg-surface-muted text-text-secondary opacity-60 cursor-not-allowed"
+                        <UiText 
+                          {...{"variant":"surface","color":"gray","className":"opacity-60 cursor-not-allowed"}}
                           title="XML no disponible"
                         >
                           <FileText size={13}/>
-                        </span>
+                        </UiText>
                       )}
                       
                       {tx.pdfUrl ? (
@@ -686,67 +681,67 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                           href={tx.pdfUrl} 
                           target="_blank" 
                           rel="noreferrer" 
-                          className="btn-icon bg-red-600 text-white hover:bg-red-700" 
+                          {...{"variant":"surface","color":"blue","style":{"backgroundColor":"var(--red-9)","color":"var(--color-background)"}}} 
                           title="Ver PDF"
                         >
                           <FileText size={13}/>
                         </a>
                       ) : (
-                        <span 
-                          className="btn-icon bg-surface-muted text-text-secondary opacity-60 cursor-not-allowed"
+                        <UiText 
+                          {...{"variant":"surface","color":"gray","className":"opacity-60 cursor-not-allowed"}}
                           title="PDF no disponible"
                         >
                           <FileText size={13}/>
-                        </span>
+                        </UiText>
                       )}
 
                       {tx.documentType && (
-                        <button 
+                        <UiButton iconOnly
                           type="button"
                           onClick={() => setSelectedRideTx(tx)}
-                          className="btn-icon bg-amber-600 text-white hover:bg-amber-700 transition-all"
+                          {...{"variant":"solid","color":"amber"}}
                           title={tx.documentType === 'nota_venta' ? "Ver Recibo / Imprimir" : "Ver RIDE Interactivo / Imprimir Factura"}
                         >
                           <Eye size={13}/>
-                        </button>
+                        </UiButton>
                       )}
                       
                       {(tx.sriStatus === 'autorizado' || tx.xmlUrl || tx.pdfUrl) && tx.documentType !== 'nota_venta' && (
-                        <button 
+                        <UiButton iconOnly
                           type="button"
                           onClick={() => handleOpenEmailModal(tx)}
-                          className="btn-icon bg-blue-600 text-white hover:bg-blue-700 transition-all"
+                          {...{"variant":"solid","color":"blue"}}
                           title="Enviar Comprobante al Correo"
                         >
                           <Mail size={13}/>
-                        </button>
+                        </UiButton>
                       )}
-                    </div>
-                  </td>
-                  <td className="px-6 py-3.5 text-right">
-                    <div className="flex items-center justify-end gap-1.5">
-                       <button type="button" onClick={() => onOpenForm(tx)} className="btn-icon bg-primary text-white hover:bg-primary-hover" title="Editar"><Edit2 size={13}/></button>
-                       <button 
+                    </UiBox>
+                  </UiTableCell>
+                  <UiTableCell {...{"className":"px-6 py-3.5 text-right"}}>
+                    <UiBox {...{"className":"flex items-center justify-end gap-1.5"}}>
+                       <UiButton iconOnly type="button" onClick={() => onOpenForm(tx)} {...{"variant":"solid","color":"blue"}} title="Editar"><Edit2 size={13}/></UiButton>
+                       <UiButton iconOnly
                          type="button" 
                          onClick={() => handleDelete(tx)} 
-                         className={`btn-icon ${(tx.documentType === 'factura' || (tx.sriStatus === 'autorizado' && tx.documentType !== 'nota_venta')) ? 'bg-surface-muted text-text-secondary cursor-not-allowed border-border-default' : 'bg-red-600 text-white hover:bg-red-700'}`}
+                         {...mergeThemeProps({"variant":"surface","color":"blue"}, {}, (tx.documentType === 'factura' || (tx.sriStatus === 'autorizado' && tx.documentType !== 'nota_venta') ? {"variant":"soft","color":"gray","className":"cursor-not-allowed"} : {"variant":"solid","color":"red"}))}
                          title={(tx.documentType === 'factura' || (tx.sriStatus === 'autorizado' && tx.documentType !== 'nota_venta')) ? "Comprobantes electrónicos no pueden ser eliminados" : "Eliminar"}
                        >
                          <Trash2 size={13}/>
-                       </button>
-                    </div>
-                  </td>
-                </tr>
+                       </UiButton>
+                    </UiBox>
+                  </UiTableCell>
+                </UiTableRow>
               ))}
               {sortedFiltered.length === 0 && (
-                <tr>
-                  <td colSpan={isPreventaTab ? 8 : 7} className="px-6 py-8 text-center text-text-secondary italic">No se encontraron comprobantes.</td>
-                </tr>
+                <UiTableRow>
+                  <UiTableCell colSpan={isPreventaTab ? 8 : 7} {...{"style":{"color":"var(--gray-11)"},"className":"px-6 py-8 text-center italic"}}>No se encontraron comprobantes.</UiTableCell>
+                </UiTableRow>
               )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+            </UiTableBody>
+          </UiTable>
+        </UiBox>
+      </UiBox>
 
       {selectedRideTx && (
         <RidePreviewModal 
@@ -759,62 +754,62 @@ export default function TransactionsView({ transactions, thirdParties, showToast
       )}
 
       {emailModalTx && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-          <div className="w-full max-w-md rounded-card border p-6 space-y-4 transition-all scale-100 bg-white border-border-default text-text-heading">
+        <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-50 flex items-center justify-center p-4"}}>
+          <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"},"className":"w-full max-w-md p-6 space-y-4 scale-100"}}>
             {/* Header */}
-            <div className="flex items-center gap-3 pb-2 border-b border-border-strong/10">
-              <div className="p-2 rounded-card bg-blue-100 text-blue-650">
+            <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex items-center gap-3 pb-2"}}>
+              <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--blue-3)","color":"var(--blue-12)"},"className":"p-2"}}>
                 <Mail size={18} />
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold uppercase tracking-wider">Reenviar Comprobante</h3>
-                <p className="text-xs text-text-secondary font-medium leading-none mt-1">
+              </UiBox>
+              <UiBox>
+                <UiHeading as="h3" {...{"size":"2","weight":"bold"}}>Reenviar Comprobante</UiHeading>
+                <UiText as="p" {...{"size":"1","color":"gray","weight":"medium","className":"leading-none mt-1"}}>
                   Documento N°: {emailModalTx.documentNumber || '-'}
-                </p>
-              </div>
-            </div>
+                </UiText>
+              </UiBox>
+            </UiBox>
 
             {/* Content / Form */}
-            <div className="space-y-4 py-2">
-              <p className="text-xs leading-relaxed text-text-secondary">
+            <UiBox {...{"className":"space-y-4 py-2"}}>
+              <UiText as="p" {...{"size":"1","color":"gray","className":"leading-relaxed"}}>
                 Confirma o edita el correo electrónico del cliente para realizar el envío de los archivos reglamentarios (XML y visualización del RIDE).
-              </p>
+              </UiText>
 
-              <div>
-                <label className="block text-xs font-bold uppercase mb-1.5 text-text-secondary">
+              <UiBox>
+                <UiLabel {...{"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"}}>
                   Correo Electrónico de Destino
-                </label>
-                <input 
+                </UiLabel>
+                <UiInput
                   type="email" 
                   value={emailTarget} 
                   onChange={e => setEmailTarget(e.target.value)} 
                   placeholder="ejemplo@cliente.com"
-                  className="w-full px-3.5 py-2.5 text-xs rounded-card border outline-none transition-all focus:ring-1 focus:ring-primary/25 bg-surface-bg border-border-default text-black focus:border-primary"
+                  {...{"size":"2","color":"gray","className":"w-full"}}
                   disabled={isSendingEmail}
                 />
-              </div>
-            </div>
+              </UiBox>
+            </UiBox>
 
             {/* Actions */}
-            <div className="flex items-center justify-end gap-2 pt-2">
-              <button 
+            <UiBox {...{"className":"flex items-center justify-end gap-2 pt-2"}}>
+              <UiButton
                 type="button" 
                 onClick={() => setEmailModalTx(null)}
                 disabled={isSendingEmail}
-                className="px-4 py-2 text-xs font-semibold uppercase tracking-wider rounded-card border transition-colors border-border-default hover:bg-surface-bg text-text-primary"
+                {...{"size":"2","variant":"outline","color":"gray"}}
               >
                 Cancelar
-              </button>
+              </UiButton>
               
-              <button 
+              <UiButton
                 type="button" 
                 onClick={handleSendEmail}
                 disabled={isSendingEmail}
-                className="px-4 py-2 text-xs font-semibold uppercase tracking-wider rounded-card bg-primary hover:bg-primary-hover text-white flex items-center gap-1.5 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                {...{"size":"2","variant":"solid","color":"blue","className":"flex items-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed"}}
               >
                 {isSendingEmail ? (
                   <>
-                    <Loader2 size={12} className="animate-spin" />
+                    <Loader2 size={12} {...{"className":"animate-spin"}} />
                     Enviando...
                   </>
                 ) : (
@@ -822,11 +817,11 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                     Enviar
                   </>
                 )}
-              </button>
-            </div>
-          </div>
-        </div>
+              </UiButton>
+            </UiBox>
+          </UiCard>
+        </UiBox>
       )}
-    </div>
+    </UiBox>
   );
 }

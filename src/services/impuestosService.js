@@ -1,4 +1,4 @@
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy } from './financeStore.js';
 import { validarIdentificacion } from './sriService';
 import { generateSriAtsXml, downloadSriAtsXml } from './SriAtsExporter';
 import { getAppId } from '../firebase';

@@ -20,7 +20,7 @@ export default function SupportModule({ showToast, db, appId }) {
 'Ventas y Facturas',
 'Compras y Proveedores',
 'Finanzas y Cuentas',
-'Gestión de Proyectos',
+'Personas y Equipo',
 'Ajustes del Sistema',
 'Otro Asunto'
  ];

@@ -9,6 +9,7 @@ export const ProductSchema = z.object({
   sku: z.string().min(3, "El SKU debe tener al menos 3 caracteres"),
   name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
   description: z.string().optional(),
+  unit: z.string().min(1).optional(),
   categoryId: z.string().optional(),
   brandId: z.string().optional(),
   
