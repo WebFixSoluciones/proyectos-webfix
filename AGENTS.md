@@ -68,11 +68,14 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
 - ✅ Auditoría completa de todas las operaciones
 - ✅ Build exitoso, lint limpio
 
+### 8. Radix Themes UI & Eliminación del Módulo de Proyectos (2026-09-17) — COMPLETADO
+- **Migración a Radix Themes UI**: Implementación del nuevo sistema de diseño basado en `@radix-ui/themes` con wrappers temáticos (`WebFixTheme`, `controls.jsx`, `layout.jsx`, tokens y CSS unificado).
+- **Eliminación del Módulo de Proyectos**: Removido por completo el módulo de proyectos (tablero Kanban, gestión de tareas, Notion-style doc pages, calendario de reuniones y exportador CSV). Preservación total de los módulos ERP (Ventas, Compras, Finanzas, Inventario, Personas, Ajustes, Suscripción y Soporte).
+
 ## Últimos commits
 ```
-36309da feat: implementar Reportes Especializados con exportación (Fase 11 - FINAL)
-2efd3aa feat: implementar módulo de Contabilidad con plan de cuentas y asientos (Fase 9)
-2d246d4 feat: implementar Resumen Financiero con dashboard consolidado (Fase 8)
-f064a68 feat: implementar módulo de Préstamos con tablas de amortización (Fase 6)
-f7bed6c feat: implementar módulo de Tarjetas y Créditos (Fase 5)
+5290ece feat: migrar componentes a Radix Themes UI y remover modulo legacy de proyectos
+3e55cde fix(print): ajustar clave de acceso y codigo de barras para no desbordar el encabezado
+34dee15 fix(print): reducir tamano de texto en encabezado y pie de pagina legal de la factura
+5560ca9 fix(print): quitar columna COD/BARRAS de la tabla y compactar tipografia en datos de cliente y fechas
 ```
