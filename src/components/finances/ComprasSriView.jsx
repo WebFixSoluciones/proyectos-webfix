@@ -11,6 +11,7 @@ import { doc, setDoc, getDoc, getDocs, collection, deleteDoc } from '../../servi
 import { getEcuadorDateString } from '../../services/sriService';
 import { registrarMovimientoKardex } from '../../services/inventoryService';
 import { sincronizarCompra } from '../../services/integracionFinanzasService';
+import { Badge } from '../ui/badge';
 
 export default function ComprasSriView({ transactions = [], showToast, db, appId }) {
   const [activeSection, setActiveSection] = useState('sri');
@@ -617,35 +618,35 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
                   ) : filteredBills.map(bill => {
                     const imported = isBillImported(bill);
                     return (
-                      <UiTableRow key={bill.id} {...mergeThemeProps({}, {}, (imported ? {"style":{"backgroundColor":"var(--color-panel-solid)"}} : {}))}>
-                        <UiTableCell {...{}}>
-                          <UiText {...mergeThemeProps({"size":"1","weight":"bold","className":"inline-flex items-center gap-1 px-1.5 py-0.5"}, {}, (bill.tipoComprobante === 'nota_credito' ? {"color":"gray"} : (bill.tipoComprobante === 'retencion' ? {"color":"gray"} : {"color":"gray"})))}>
+                      <UiTableRow key={bill.id}>
+                        <UiTableCell>
+                          <Badge variant="soft" color={bill.tipoComprobante === 'nota_credito' ? 'indigo' : (bill.tipoComprobante === 'retencion' ? 'purple' : 'blue')} size="1">
                             {bill.tipoComprobante === 'nota_credito' ? 'NC' : bill.tipoComprobante === 'retencion' ? 'RET' : 'FAC'}
-                          </UiText>
+                          </Badge>
                         </UiTableCell>
-                        <UiTableCell {...{"style":{"color":"var(--gray-12)"}}}>{bill.date}</UiTableCell>
-                        <UiTableCell {...{}}>
-                          <UiBox {...{"style":{"color":"var(--gray-12)"}}}>{bill.razonSocial}</UiBox>
-                          <UiBox {...{"style":{"color":"var(--gray-12)"}}}>{bill.ruc}</UiBox>
-                        </UiTableCell>
-                        <UiTableCell {...{"style":{"fontFamily":"var(--code-font-family)","color":"var(--gray-12)"}}}>{bill.documentNumber}</UiTableCell>
-                        <UiTableCell {...{"style":{"fontFamily":"var(--code-font-family)","color":"var(--gray-12)"},"className":"text-right hidden sm:table-cell"}}>${(bill.baseImponible || 0).toFixed(2)}</UiTableCell>
-                        <UiTableCell {...{"style":{"fontFamily":"var(--code-font-family)","color":"var(--gray-12)"},"className":"text-right hidden sm:table-cell"}}>${(bill.ivaValor || 0).toFixed(2)}</UiTableCell>
-                        <UiTableCell {...{"style":{"color":"var(--gray-12)"},"className":"text-right"}}>${(bill.total || 0).toFixed(2)}</UiTableCell>
+                        <UiTableCell style={{ color: "var(--gray-12)" }}>{bill.date}</UiTableCell>
                         <UiTableCell>
-                          <UiText {...mergeThemeProps({"size":"1","weight":"bold","className":"inline-flex items-center gap-1 px-1.5 py-0.5"}, {}, (imported ? {"color":"gray"} : {"color":"gray"}))}>
-                            {imported ? <CheckCircle2 size={10} /> : <AlertTriangle size={10} />}
+                          <UiBox style={{ color: "var(--gray-12)" }} className="font-medium text-xs">{bill.razonSocial}</UiBox>
+                          <UiBox style={{ color: "var(--gray-11)" }} className="text-xs">{bill.ruc}</UiBox>
+                        </UiTableCell>
+                        <UiTableCell style={{ fontFamily: "var(--code-font-family)", color: "var(--gray-12)" }}>{bill.documentNumber}</UiTableCell>
+                        <UiTableCell style={{ fontFamily: "var(--code-font-family)", color: "var(--gray-12)" }} className="text-right hidden sm:table-cell">${(bill.baseImponible || 0).toFixed(2)}</UiTableCell>
+                        <UiTableCell style={{ fontFamily: "var(--code-font-family)", color: "var(--gray-12)" }} className="text-right hidden sm:table-cell">${(bill.ivaValor || 0).toFixed(2)}</UiTableCell>
+                        <UiTableCell style={{ fontFamily: "var(--code-font-family)", color: "var(--gray-12)" }} className="text-right font-medium">${(bill.total || 0).toFixed(2)}</UiTableCell>
+                        <UiTableCell>
+                          <Badge variant="soft" color={imported ? "green" : "amber"} size="1">
+                            {imported ? <CheckCircle2 size={10} className="mr-1 inline" /> : <AlertTriangle size={10} className="mr-1 inline" />}
                             {imported ? 'Ya en Compras' : 'Pendiente'}
-                          </UiText>
+                          </Badge>
                         </UiTableCell>
                         <UiTableCell>
-                          <UiBox {...{"className":"flex items-center justify-center gap-1"}}>
-                            <UiButton iconOnly onClick={() => handleViewRide(bill)} {...{"variant":"surface","color":"gray"}} title="Ver RIDE"><Eye size={13} /></UiButton>
-                            <UiButton iconOnly onClick={() => handleDownloadXml(bill)} {...{"variant":"surface","color":"gray"}} title="Descargar XML"><Download size={13} /></UiButton>
+                          <UiBox className="flex items-center justify-center gap-1.5">
+                            <UiButton iconOnly variant="soft" color="amber" size="1" onClick={() => handleViewRide(bill)} title="Ver RIDE"><Eye size={13} /></UiButton>
+                            <UiButton iconOnly variant="soft" color="blue" size="1" onClick={() => handleDownloadXml(bill)} title="Descargar XML"><Download size={13} /></UiButton>
                             {!imported && (
-                              <UiButton iconOnly onClick={() => handleOpenImport(bill)} {...{"variant":"solid","color":"blue"}} title="Importar a Compras"><ArrowRight size={13} /></UiButton>
+                              <UiButton iconOnly variant="soft" color="green" size="1" onClick={() => handleOpenImport(bill)} title="Importar a Compras"><ArrowRight size={13} /></UiButton>
                             )}
-                            <UiButton iconOnly onClick={() => setConfirmDeleteId(bill.id)} {...{"variant":"surface","color":"red"}} title="Eliminar del buzon"><Trash2 size={13} /></UiButton>
+                            <UiButton iconOnly variant="soft" color="red" size="1" onClick={() => setConfirmDeleteId(bill.id)} title="Eliminar del buzon"><Trash2 size={13} /></UiButton>
                           </UiBox>
                         </UiTableCell>
                       </UiTableRow>

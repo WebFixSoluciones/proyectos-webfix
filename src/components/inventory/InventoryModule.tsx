@@ -8,6 +8,7 @@ import {
   Trash2, Briefcase, PlusCircle, CheckCircle, ShieldAlert,
   SlidersHorizontal, Layers, Award, Edit2, X, Box
 } from 'lucide-react';
+import { Badge } from '../ui/badge';
 import ProductCreationForm from './ProductCreationForm';
 import ServiceCreationForm from './ServiceCreationForm';
 import CategoryBrandModal from './CategoryBrandModal';
@@ -349,68 +350,72 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
                     </UiButton>
                   </UiBox>
 
-                  <UiBox {...{"className":"flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto"}}>
-                    <UiCard {...{"style":{"backgroundColor":"var(--gray-2)"},"className":"flex items-center gap-2 px-3.5 py-1.5 w-full sm:w-64"}}>
-                      <Search size={14} {...{"style":{"color":"var(--gray-11)"}}} />
+                  <UiBox className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
+                    <UiBox className="w-full sm:w-64">
                       <UiInput
                         type="text"
                         placeholder="Buscar por SKU o nombre..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        {...{"size":"2","className":"w-full"}}
+                        iconPrefix={<Search size={14} className="text-[var(--gray-10)]" />}
+                        size="2"
                       />
-                    </UiCard>
+                    </UiBox>
 
                     <UiSelect
                       value={selectedCategory}
                       onChange={(e) => setSelectedCategory(e.target.value)}
-                      {...{"size":"2","color":"gray","className":"cursor-pointer"}}
+                      size="2"
+                      color="gray"
+                      className="cursor-pointer"
                     >
-                      <option value="" {...{"style":{"color":"var(--gray-12)"}}}>Todas las Categorías</option>
+                      <option value="">Todas las Categorías</option>
                       {categories.map(c => (
-                        <option key={c.id} value={c.id} {...{"style":{"color":"var(--gray-12)"}}}>{c.name}</option>
+                        <option key={c.id} value={c.id}>{c.name}</option>
                       ))}
                     </UiSelect>
 
                     <UiSelect
                       value={selectedType}
                       onChange={(e) => setSelectedType(e.target.value)}
-                      {...{"size":"2","color":"gray","className":"cursor-pointer"}}
+                      size="2"
+                      color="gray"
+                      className="cursor-pointer"
                     >
-                      <option value="" {...{"style":{"color":"var(--gray-12)"}}}>Todos los Tipos</option>
-                      <option value="STANDARD" {...{"style":{"color":"var(--gray-12)"}}}>Estándar</option>
-                      <option value="COMBO" {...{"style":{"color":"var(--gray-12)"}}}>Combo</option>
-                      <option value="SUBPRODUCT" {...{"style":{"color":"var(--gray-12)"}}}>Subproducto</option>
-                      <option value="SERVICE" {...{"style":{"color":"var(--gray-12)"}}}>Servicio</option>
+                      <option value="">Todos los Tipos</option>
+                      <option value="STANDARD">Estándar</option>
+                      <option value="COMBO">Combo</option>
+                      <option value="SUBPRODUCT">Subproducto</option>
+                      <option value="SERVICE">Servicio</option>
                     </UiSelect>
                   </UiBox>
                 </UiBox>
                 
                 {/* Products Table */}
-                <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"overflow-hidden"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)"}})}>
-                  <UiBox {...{"className":"overflow-x-auto custom-scrollbar"}}>
-                    <UiTable {...{"className":"w-full text-left whitespace-nowrap"}}>
-                      <UiTableHeader {...mergeThemeProps({}, {}, {"style":{"backgroundColor":"var(--gray-2)","color":"var(--gray-12)"}})}>
+                <UiBox style={{ borderRadius: "var(--radius-3)", border: "1px solid var(--gray-a6)", backgroundColor: "var(--color-panel-solid)" }} className="overflow-hidden">
+                  <UiBox className="overflow-x-auto custom-scrollbar">
+                    <UiTable className="w-full text-left whitespace-nowrap">
+                      <UiTableHeader style={{ backgroundColor: "var(--gray-2)", color: "var(--gray-12)" }}>
                         <UiTableRow>
-                          <UiTableHead {...{"className":"px-6 py-3.5"}}>SKU</UiTableHead>
-                          <UiTableHead {...{"className":"px-6 py-3.5"}}>Nombre</UiTableHead>
-                          <UiTableHead {...{"className":"px-6 py-3.5"}}>Tipo</UiTableHead>
-                          <UiTableHead {...{"className":"px-6 py-3.5"}}>Categoría</UiTableHead>
-                          <UiTableHead {...{"className":"px-6 py-3.5"}}>Costo Base</UiTableHead>
-                          <UiTableHead {...{"className":"px-6 py-3.5"}}>Precio Venta</UiTableHead>
-                          <UiTableHead {...{"className":"px-6 py-3.5"}}>Impuesto</UiTableHead>
-                          <UiTableHead {...{"className":"px-6 py-3.5"}}>Stock Actual</UiTableHead>
-                          <UiTableHead {...{"className":"px-6 py-3.5 text-center"}}>Acciones</UiTableHead>
+                          <UiTableHead className="px-6 py-3.5">SKU</UiTableHead>
+                          <UiTableHead className="px-6 py-3.5">Nombre</UiTableHead>
+                          <UiTableHead className="px-6 py-3.5">Tipo</UiTableHead>
+                          <UiTableHead className="px-6 py-3.5">Categoría</UiTableHead>
+                          <UiTableHead className="px-6 py-3.5">Costo Base</UiTableHead>
+                          <UiTableHead className="px-6 py-3.5">Precio Venta</UiTableHead>
+                          <UiTableHead className="px-6 py-3.5">Impuesto</UiTableHead>
+                          <UiTableHead className="px-6 py-3.5">Stock Actual</UiTableHead>
+                          <UiTableHead className="px-6 py-3.5 text-center">Acciones</UiTableHead>
                         </UiTableRow>
                       </UiTableHeader>
-                      <UiTableBody {...mergeThemeProps({}, {}, {})}>
+                      <UiTableBody>
                         {loading ? (
                           <UiTableRow>
-                            <UiTableCell colSpan={9} {...{"style":{"color":"var(--gray-11)"},"className":"px-6 py-8 text-center"}}>Cargando catálogo...</UiTableCell>
+                            <UiTableCell colSpan={9} style={{ color: "var(--gray-11)" }} className="px-6 py-8 text-center">Cargando catálogo...</UiTableCell>
                           </UiTableRow>
                         ) : filteredProducts.length === 0 ? (
                           <UiTableRow>
-                            <UiTableCell colSpan={9} {...{"style":{"color":"var(--gray-11)"},"className":"px-6 py-8 text-center"}}>No se encontraron productos ni servicios.</UiTableCell>
+                            <UiTableCell colSpan={9} style={{ color: "var(--gray-11)" }} className="px-6 py-8 text-center">No se encontraron productos ni servicios.</UiTableCell>
                           </UiTableRow>
                         ) : (
                           filteredProducts.map(p => {
@@ -418,46 +423,48 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
                             const isService = p.type === 'SERVICE';
                             
                             return (
-                              <UiTableRow key={p.id} {...mergeThemeProps({}, {}, {})}>
-                                <UiTableCell {...mergeThemeProps({"style":{"fontFamily":"var(--code-font-family)"},"className":"px-6 py-3.5"}, {}, {"style":{"color":"var(--gray-12)"}})}>{p.sku}</UiTableCell>
-                                <UiTableCell {...{"className":"px-6 py-2.5"}}>
-                                  <UiBox {...{"className":"flex items-center gap-3"}}>
+                              <UiTableRow key={p.id}>
+                                <UiTableCell style={{ fontFamily: "var(--code-font-family)", color: "var(--gray-12)" }} className="px-6 py-3.5">{p.sku}</UiTableCell>
+                                <UiTableCell className="px-6 py-2.5">
+                                  <UiBox className="flex items-center gap-3">
                                     <img 
                                       src={p.imageUrl && !p.imageUrl.includes('placehold.co') && !p.imageUrl.includes('placehold.net') ? p.imageUrl : '/product.svg'} 
-                                      {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"w-8 h-8 object-cover"}}
+                                      style={{ borderRadius: "var(--radius-2)", border: "1px solid var(--gray-a5)" }}
+                                      className="w-8 h-8 object-cover"
                                       alt={p.name}
                                       onError={(e) => {
                                         e.currentTarget.src = '/product.svg';
                                       }}
                                     />
-                                    <UiBox {...{"className":"min-w-0"}}>
-                                      <UiText {...mergeThemeProps({"weight":"bold","className":"block truncate max-w-[220px]"}, {}, {"color":"gray","highContrast":true,"weight":"bold"})}>{p.name}</UiText>
-                                      {p.description && <UiText as="p" {...{"size":"1","color":"gray","className":"truncate max-w-[220px] mt-0.5"}}>{p.description}</UiText>}
+                                    <UiBox className="min-w-0">
+                                      <UiText weight="bold" color="gray" highContrast className="block truncate max-w-[220px]">{p.name}</UiText>
+                                      {p.description && <UiText as="p" size="1" color="gray" className="truncate max-w-[220px] mt-0.5">{p.description}</UiText>}
                                     </UiBox>
                                   </UiBox>
                                 </UiTableCell>
-                                <UiTableCell {...{"className":"px-6 py-3.5"}}>
-                                  {p.type === 'STANDARD' && <UiText {...{"size":"1","weight":"bold","color":"blue","className":"px-2 py-0.5"}}>Estándar</UiText>}
-                                  {p.type === 'COMBO' && <UiText {...{"size":"1","weight":"bold","color":"purple","className":"px-2 py-0.5"}}>Combo</UiText>}
-                                  {p.type === 'SUBPRODUCT' && <UiText {...{"size":"1","weight":"bold","color":"blue","className":"px-2 py-0.5"}}>Subproducto</UiText>}
-                                  {p.type === 'SERVICE' && <UiText {...{"size":"1","weight":"bold","color":"pink","className":"px-2 py-0.5"}}>Servicio</UiText>}
+                                <UiTableCell className="px-6 py-3.5">
+                                  {p.type === 'STANDARD' && <Badge variant="soft" color="blue" size="1">Estándar</Badge>}
+                                  {p.type === 'COMBO' && <Badge variant="soft" color="purple" size="1">Combo</Badge>}
+                                  {p.type === 'SUBPRODUCT' && <Badge variant="soft" color="indigo" size="1">Subproducto</Badge>}
+                                  {p.type === 'SERVICE' && <Badge variant="soft" color="pink" size="1">Servicio</Badge>}
                                 </UiTableCell>
-                                <UiTableCell {...{"style":{"color":"var(--gray-11)"},"className":"px-6 py-3.5"}}>{getCategoryName(p.categoryId)}</UiTableCell>
-                                <UiTableCell {...{"className":"px-6 py-3.5"}}>${(Number(p.baseCost ?? p.cost ?? 0)).toFixed(2)}</UiTableCell>
-                                <UiTableCell {...{"style":{"color":"var(--green-11)"},"className":"px-6 py-3.5"}}>${(Number(p.salePrice ?? p.price ?? 0)).toFixed(2)}</UiTableCell>
-                                <UiTableCell {...{"style":{"color":"var(--gray-11)"},"className":"px-6 py-3.5"}}>{p.taxRate ?? 15}%</UiTableCell>
-                                <UiTableCell {...{"className":"px-6 py-3.5"}}>
+                                <UiTableCell style={{ color: "var(--gray-11)" }} className="px-6 py-3.5">{getCategoryName(p.categoryId)}</UiTableCell>
+                                <UiTableCell style={{ fontFamily: "var(--code-font-family)" }} className="px-6 py-3.5">${(Number(p.baseCost ?? p.cost ?? 0)).toFixed(2)}</UiTableCell>
+                                <UiTableCell style={{ fontFamily: "var(--code-font-family)", color: "var(--green-11)" }} className="px-6 py-3.5 font-medium">${(Number(p.salePrice ?? p.price ?? 0)).toFixed(2)}</UiTableCell>
+                                <UiTableCell style={{ color: "var(--gray-11)" }} className="px-6 py-3.5">{p.taxRate ?? 15}%</UiTableCell>
+                                <UiTableCell className="px-6 py-3.5">
                                   {isService || p.inventoryType === 'VIRTUAL' ? (
-                                    <UiText {...{"color":"gray","weight":"medium","className":"italic"}}>Virtual (N/A)</UiText>
+                                    <Badge variant="soft" color="gray" size="1">Virtual (N/A)</Badge>
                                   ) : stock > 0 ? (
-                                    <UiText {...{"color":"green"}}>{stock} u.</UiText>
+                                    <Badge variant="soft" color="green" size="1">{stock} u.</Badge>
                                   ) : (
-                                    <UiText {...{"color":"red"}}>Agotado</UiText>
+                                    <Badge variant="soft" color="red" size="1">Agotado</Badge>
                                   )}
                                 </UiTableCell>
-                                <UiTableCell {...{"className":"px-6 py-3.5 text-center"}}>
-                                  <UiBox {...{"className":"flex items-center justify-center gap-2"}}>
-                                    <UiButton iconOnly
+                                <UiTableCell className="px-6 py-3.5 text-center">
+                                  <UiBox className="flex items-center justify-center gap-2">
+                                    <UiButton
+                                      iconOnly
                                       onClick={() => {
                                         if (p.id) {
                                           if (p.type === 'SERVICE') {
@@ -469,17 +476,19 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
                                           scrollToForm();
                                         }
                                       }}
-                                      {...{"color":"blue","variant":"surface"}}
+                                      variant="soft"
+                                      color="blue"
+                                      size="1"
                                       title="Editar"
                                     >
                                       <Edit2 size={13} />
                                     </UiButton>
                                     {p.status === 'INACTIVE' ? (
-                                      <UiButton iconOnly onClick={() => p.id && handleReactivateProduct(p.id)} {...{"color":"green","variant":"surface"}} title="Reactivar">
+                                      <UiButton iconOnly variant="soft" color="green" size="1" onClick={() => p.id && handleReactivateProduct(p.id)} title="Reactivar">
                                         <RefreshCw size={13} />
                                       </UiButton>
                                     ) : (
-                                      <UiButton iconOnly onClick={() => p.id && handleDeleteProduct(p.id)} {...{"color":"red","variant":"surface"}} title="Desactivar">
+                                      <UiButton iconOnly variant="soft" color="red" size="1" onClick={() => p.id && handleDeleteProduct(p.id)} title="Desactivar">
                                         <Trash2 size={13} />
                                       </UiButton>
                                     )}
