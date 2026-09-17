@@ -10,8 +10,7 @@ import { createThemedPortal as createPortal } from '../ui/themePortal';
 import { Search, ShoppingCart, Plus, Minus, Trash2, User, Sparkles, CheckCircle2, DollarSign, CreditCard, X, ShieldAlert, Tag, Bookmark, RefreshCw, LogOut, ArrowLeft, ChevronRight, Settings, Barcode, Zap, Eye, Keyboard, History, Download, FileText, Unlock, UserPlus, ChevronDown, Box, LayoutGrid, List, Percent, Sliders, SlidersHorizontal } from 'lucide-react';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, onSnapshot } from '../../services/financeStore.js';
 import { consultarRucSri, getEcuadorDateString } from '../../services/sriService';
-import { cancelInternalSale } from '../../services/cancelSale';
-import { calculateTransactionTotals } from '../../services/discountCalcService';
+import { calculateTransactionTotals, isDiscountScheduleActive } from '../../services/discountCalcService';
 
 function sanitizeData(obj) {
   if (obj === null || obj === undefined) return null;
@@ -229,7 +228,14 @@ export default function PosView({ products, thirdParties, transactions = [], dis
   // Cómputo de Totales y Descuentos con Motor Unificado
   const cartWithDiscounts = cart.map(item => {
     let disc = null;
-    if (item.id_descuento_asociado) {
+    if (item.id_descuento_aplicado === 'manual') {
+      disc = {
+        id: 'manual',
+        nombre: 'Descuento Manual',
+        tipo_valor: item.discount_type || 'PORCENTAJE',
+        valor: Number(item.discount_value || 0)
+      };
+    } else if (item.id_descuento_asociado) {
       disc = (discounts || []).find(d => d.id === item.id_descuento_asociado);
     }
     if (!disc && item.categoryId) {
@@ -240,7 +246,9 @@ export default function PosView({ products, thirdParties, transactions = [], dis
     }
     return {
       ...item,
-      descuento_objeto: item.id_descuento_aplicado ? ((discounts || []).find(d => d.id === item.id_descuento_aplicado) || item.descuento_objeto || null) : disc
+      descuento_objeto: item.id_descuento_aplicado === 'manual'
+        ? disc
+        : (item.id_descuento_aplicado ? ((discounts || []).find(d => d.id === item.id_descuento_aplicado) || item.descuento_objeto || null) : disc)
     };
   });
 
@@ -255,25 +263,25 @@ export default function PosView({ products, thirdParties, transactions = [], dis
   // Para desgloses separados
   const productDiscountsTotal = totalsResult.descuentosProducto;
 
+  const [manualLineDiscType, setManualLineDiscType] = useState('PORCENTAJE'); // 'PORCENTAJE' | 'MONTO_FIJO'
+  const [manualLineDiscValue, setManualLineDiscValue] = useState('');
+  const [manualGeneralDiscType, setManualGeneralDiscType] = useState('PORCENTAJE'); // 'PORCENTAJE' | 'MONTO_FIJO'
+  const [manualGeneralDiscValue, setManualGeneralDiscValue] = useState('');
+
   const getActiveDiscounts = (alcance) => {
-    const hoy = getEcuadorDateString();
     return (discounts || []).filter(d => {
-      return d.activo && 
-             d.alcance === alcance && 
-             d.fecha_inicio <= hoy && 
-             d.fecha_fin >= hoy;
+      const matchAlcance = (alcance === 'VENTA')
+        ? (d.alcance === 'VENTA' || d.alcance === 'GLOBAL')
+        : (d.alcance === alcance);
+      return matchAlcance && isDiscountScheduleActive(d);
     });
   };
 
   const getAvailableDiscountsForLineItem = (cartItem) => {
-    const hoy = getEcuadorDateString();
     const prod = products.find(p => p.id === cartItem.productId);
     
     const activeProductDiscounts = (discounts || []).filter(d => {
-      return d.activo && 
-             d.alcance === 'PRODUCTO' && 
-             d.fecha_inicio <= hoy && 
-             d.fecha_fin >= hoy;
+      return (d.alcance === 'PRODUCTO' || !d.alcance) && isDiscountScheduleActive(d);
     });
 
     const activeLinePromotions = (promotions || []).filter(p => {
@@ -488,8 +496,10 @@ export default function PosView({ products, thirdParties, transactions = [], dis
       if (!code) return;
       
       const matched = products.find(p => 
-        String(p.sku).toLowerCase() === code.toLowerCase() || 
-        String(p.codigoBarras || '').toLowerCase() === code.toLowerCase()
+        isSellable(p) && (
+          String(p.sku).toLowerCase() === code.toLowerCase() || 
+          String(p.codigoBarras || '').toLowerCase() === code.toLowerCase()
+        )
       );
       
       if (matched) {
@@ -1380,35 +1390,55 @@ export default function PosView({ products, thirdParties, transactions = [], dis
             
             {/* Dropdown de Clientes */}
             {isClientDropdownOpen && clientSearchTerm && (
-              <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"},"className":"absolute left-0 right-0 top-10 max-h-48 overflow-y-auto z-50 custom-scrollbar"}}>
-                <UiBox 
+              <UiBox 
+                style={{
+                  borderRadius: 'var(--radius-3)',
+                  border: '1px solid var(--gray-a6)',
+                  backgroundColor: 'var(--color-panel-solid)',
+                  boxShadow: 'var(--shadow-3)',
+                  zIndex: 50
+                }}
+                className="absolute left-0 right-0 top-11 max-h-56 overflow-y-auto z-50 custom-scrollbar divide-y divide-[var(--gray-a4)]"
+              >
+                <button
+                  type="button" 
                   onClick={() => {
                     setSelectedClientId('');
                     setClientSearchTerm('');
                     setIsClientDropdownOpen(false);
                   }}
-                  {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"px-3 py-2 cursor-pointer"}}
+                  className="w-full text-left px-3.5 py-2.5 hover:bg-[var(--accent-3)] transition-colors flex items-center justify-between cursor-pointer bg-transparent border-none outline-none"
                 >
-                  Consumidor Final (9999999999999)
-                </UiBox>
+                  <span className="font-semibold text-xs text-[var(--gray-12)]">Consumidor Final</span>
+                  <span className="text-[10px] font-mono font-medium text-[var(--blue-11)] bg-[var(--blue-3)] px-1.5 py-0.5 rounded">9999999999999</span>
+                </button>
                 {thirdParties
                   .filter(tp => tp.type !== 'proveedor' && 
                     (tp.name.toLowerCase().includes(clientSearchTerm.toLowerCase()) || 
                      String(tp.ruc || '').includes(clientSearchTerm))
                   )
                   .map(tp => (
-                    <UiBox 
+                    <button
                       key={tp.id}
+                      type="button"
                       onClick={() => {
                         setSelectedClientId(tp.id);
                         setClientSearchTerm('');
                         setIsClientDropdownOpen(false);
                       }}
-                      {...{"className":"px-3 py-2 cursor-pointer"}}
+                      className="w-full text-left px-3.5 py-2.5 hover:bg-[var(--accent-3)] transition-colors flex flex-col gap-0.5 cursor-pointer bg-transparent border-none outline-none"
                     >
-                      <UiBox {...{}}>{tp.name}</UiBox>
-                      <UiBox {...{"style":{"color":"var(--gray-12)","fontFamily":"var(--code-font-family)"}}}>CI/RUC: {tp.ruc}</UiBox>
-                    </UiBox>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-semibold text-xs text-[var(--gray-12)] truncate">{tp.name}</span>
+                        <span className="text-[10px] font-mono font-medium text-[var(--blue-11)] bg-[var(--blue-3)] px-1.5 py-0.5 rounded shrink-0">
+                          {tp.tipoIdentificacion ? tp.tipoIdentificacion.toUpperCase() : 'CI/RUC'}
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-[var(--gray-10)] flex items-center gap-2">
+                        <span className="font-mono">ID: {tp.ruc}</span>
+                        {tp.telefono && <span>• Tel: {tp.telefono}</span>}
+                      </div>
+                    </button>
                   ))
                 }
               </UiBox>
@@ -2232,11 +2262,21 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                 </UiBox>
                 <UiBox {...{"className":"space-y-2"}}>
                   <UiSelect
-                    value={selectedGeneralDiscount?.id || ''} 
+                    value={selectedGeneralDiscount?.id === 'manual' ? 'manual' : (selectedGeneralDiscount?.id || '')} 
                     onChange={e => {
                       const discId = e.target.value;
                       if (!discId) {
                         setSelectedGeneralDiscount(null);
+                        return;
+                      }
+                      if (discId === 'manual') {
+                        const val = parseFloat(manualGeneralDiscValue) || 0;
+                        setSelectedGeneralDiscount({
+                          id: 'manual',
+                          nombre: `Manual (${manualGeneralDiscType === 'PORCENTAJE' ? `${val}%` : `$${val}`})`,
+                          tipo_valor: manualGeneralDiscType,
+                          valor: val
+                        });
                         return;
                       }
                       const disc = discounts.find(d => d.id === discId);
@@ -2260,12 +2300,61 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                     {...{"size":"2","color":"gray","className":"w-full cursor-pointer"}}
                   >
                     <option value="">-- Seleccionar Descuento General --</option>
+                    <option value="manual">⚡ Descuento Manual (% o $)</option>
                     {getActiveDiscounts('VENTA').map(d => (
                       <option key={d.id} value={d.id}>
                         {d.nombre} ({d.tipo_valor === 'PORCENTAJE' ? `${d.valor}%` : `$${d.valor}`})
                       </option>
                     ))}
                   </UiSelect>
+
+                  {/* Inputs para Descuento Manual General */}
+                  {selectedGeneralDiscount?.id === 'manual' && (
+                    <UiBox className="flex items-center gap-2 pt-1">
+                      <UiSelect
+                        value={manualGeneralDiscType}
+                        onChange={e => {
+                          const newType = e.target.value;
+                          setManualGeneralDiscType(newType);
+                          const val = parseFloat(manualGeneralDiscValue) || 0;
+                          setSelectedGeneralDiscount({
+                            id: 'manual',
+                            nombre: `Manual (${newType === 'PORCENTAJE' ? `${val}%` : `$${val}`})`,
+                            tipo_valor: newType,
+                            valor: val
+                          });
+                        }}
+                        size="1"
+                        color="gray"
+                        className="w-24 cursor-pointer"
+                      >
+                        <option value="PORCENTAJE">% Porc.</option>
+                        <option value="MONTO_FIJO">$ Monto</option>
+                      </UiSelect>
+                      <UiInput
+                        type="number"
+                        min="0"
+                        step={manualGeneralDiscType === 'PORCENTAJE' ? '1' : '0.01'}
+                        value={manualGeneralDiscValue}
+                        onChange={e => {
+                          const newVal = e.target.value;
+                          setManualGeneralDiscValue(newVal);
+                          const val = parseFloat(newVal) || 0;
+                          setSelectedGeneralDiscount({
+                            id: 'manual',
+                            nombre: `Manual (${manualGeneralDiscType === 'PORCENTAJE' ? `${val}%` : `$${val}`})`,
+                            tipo_valor: manualGeneralDiscType,
+                            valor: val
+                          });
+                        }}
+                        size="1"
+                        color="gray"
+                        placeholder="0"
+                        className="flex-1 font-mono"
+                      />
+                    </UiBox>
+                  )}
+
                   {selectedGeneralDiscount && (
                     <UiBox {...{"style":{"color":"var(--gray-11)","backgroundColor":"var(--indigo-3)","borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"flex justify-between items-center p-2"}}>
                       <UiText>Aplicado: <strong>{selectedGeneralDiscount.nombre}</strong></UiText>
@@ -2473,11 +2562,16 @@ export default function PosView({ products, thirdParties, transactions = [], dis
 
       {/* APERTURA Y CIERRE DE CAJA DIALOG */}
       {isClosingOpen && (
-        <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[110] flex items-center justify-center p-4 animate-in fade-in duration-200"}}>
+        <UiBox style={{ backgroundColor: 'var(--black-a7)' }} className="fixed inset-0 z-[110] flex items-center justify-center p-4 animate-in fade-in duration-200">
           <UiCard {...mergeThemeProps({"className":"w-full max-w-md p-6 duration-300"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"}})}>
-            <UiHeading as="h3" {...{"size":"2","weight":"bold","color":"red","className":"mb-4 flex items-center gap-2"}}>
-              <ShieldAlert size={16} /> Arqueo y Cierre de Caja
-            </UiHeading>
+            <UiBox style={{ borderBottom: '1px solid var(--gray-a6)' }} className="flex justify-between items-center mb-4 pb-2">
+              <UiHeading as="h3" size="2" weight="bold" color="red" className="flex items-center gap-2">
+                <ShieldAlert size={16} /> Arqueo y Cierre de Caja
+              </UiHeading>
+              <UiButton iconOnly type="button" onClick={() => setIsClosingOpen(false)} color="gray" className="cursor-pointer">
+                <X size={15} />
+              </UiButton>
+            </UiBox>
             <UiText as="p" {...mergeThemeProps({"size":"1","color":"gray","highContrast":true,"weight":"bold","className":"mb-4 leading-normal"})}>
               Verifica los montos acumulados por ventas en esta sesión y digita los valores reales contados.
             </UiText>
@@ -3139,9 +3233,17 @@ export default function PosView({ products, thirdParties, transactions = [], dis
 
       {/* QUICK CLIENT ADD MODAL IN POS */}
       {isQuickAddOpen && (
-        <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[150] flex items-center justify-center p-4 animate-in fade-in duration-200"}}>
+        <UiBox style={{ backgroundColor: 'var(--black-a7)' }} className="fixed inset-0 z-[150] flex items-center justify-center p-4 animate-in fade-in duration-200">
           <UiCard {...mergeThemeProps({"className":"w-full max-w-md p-6 duration-300"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"}})}>
-            <UiHeading as="h3" {...{"size":"3","weight":"bold","className":"mb-4"}}>Registro Rápido de Cliente (SRI)</UiHeading>
+            <UiBox style={{ borderBottom: '1px solid var(--gray-a6)' }} className="flex justify-between items-center mb-4 pb-2">
+              <UiHeading as="h3" size="3" weight="bold" className="flex items-center gap-2">
+                <UserPlus size={17} style={{ color: 'var(--blue-11)' }} />
+                Registro Rápido de Cliente (SRI)
+              </UiHeading>
+              <UiButton iconOnly type="button" onClick={() => setIsQuickAddOpen(false)} color="gray" className="cursor-pointer">
+                <X size={15} />
+              </UiButton>
+            </UiBox>
             
             <form onSubmit={handleQuickClientSave} {...{"className":"space-y-3.5"}}>
               <UiBox {...{"className":"grid grid-cols-2 gap-3"}}>
@@ -3470,7 +3572,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
           : modalFilteredProducts;
 
         return (
-          <UiBox {...{"style":{"backgroundColor":"var(--gray-3)"},"className":"fixed inset-0 z-[150] flex items-center justify-center select-none p-4"}}>
+          <UiBox style={{ backgroundColor: 'var(--black-a7)' }} className="fixed inset-0 z-[150] flex items-center justify-center select-none p-4 animate-in fade-in duration-200">
             <UiBox {...{"className":"absolute inset-0"}} onClick={() => {
               setIsSearchModalOpen(false);
               setModalSearch('');
@@ -3480,7 +3582,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
               setModalTab('all');
             }}></UiBox>
             
-            <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"relative w-full max-w-4xl h-[85vh] max-h-[640px] flex flex-col overflow-hidden"}}>
+            <UiBox style={{ backgroundColor: 'var(--color-panel-solid)', borderRadius: 'var(--radius-3)', border: '1px solid var(--gray-a6)', boxShadow: 'var(--shadow-5)' }} className="relative w-full max-w-4xl h-[85vh] max-h-[640px] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
               
               {/* HEADER DEL MODAL: Título y Buscador */}
               <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)","backgroundColor":"var(--gray-2)"},"className":"p-4 flex items-center justify-between gap-4 shrink-0"}}>
@@ -3725,23 +3827,76 @@ export default function PosView({ products, thirdParties, transactions = [], dis
       {selectedLineItemForDiscount && (() => {
         const available = getAvailableDiscountsForLineItem(selectedLineItemForDiscount);
         return (
-          <UiBox {...{"style":{"backgroundColor":"var(--gray-2)"},"className":"fixed inset-0 z-[250] flex items-center justify-center p-4"}}>
-            <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"w-full max-w-md overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200"}}>
-              <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)","backgroundColor":"var(--gray-2)"},"className":"p-4 flex items-center justify-between"}}>
+          <UiBox style={{ backgroundColor: 'var(--black-a7)' }} className="fixed inset-0 z-[250] flex items-center justify-center p-4 animate-in fade-in duration-200">
+            <UiBox style={{ backgroundColor: 'var(--color-panel-solid)', borderRadius: 'var(--radius-3)', border: '1px solid var(--gray-a6)', boxShadow: 'var(--shadow-4)' }} className="w-full max-w-md overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
+              <UiBox style={{ borderBottom: '1px solid var(--gray-a6)', backgroundColor: 'var(--gray-2)' }} className="p-4 flex items-center justify-between">
                 <UiBox>
-                  <UiHeading as="h3" {...{"size":"1","weight":"bold","color":"gray","highContrast":true}}>
+                  <UiHeading as="h3" size="2" weight="bold" color="gray" highContrast className="flex items-center gap-2">
+                    <Tag size={15} style={{ color: 'var(--blue-11)' }} />
                     Descuento / Promo de Ítem
                   </UiHeading>
-                  <UiText as="p" {...{"size":"1","color":"gray","weight":"bold","className":"mt-0.5"}}>{selectedLineItemForDiscount.name}</UiText>
+                  <UiText as="p" size="1" color="gray" weight="bold" className="mt-0.5">{selectedLineItemForDiscount.name}</UiText>
                 </UiBox>
                 <UiButton iconOnly
                   onClick={() => setSelectedLineItemForDiscount(null)} 
-                  {...{"color":"gray","className":"cursor-pointer"}}
+                  color="gray"
+                  className="cursor-pointer"
                 >
-                  <X size={18} />
+                  <X size={16} />
                 </UiButton>
               </UiBox>
-              <UiBox {...{"className":"p-4 space-y-3 max-h-[300px] overflow-y-auto custom-scrollbar"}}>
+              <UiBox className="p-4 space-y-3 max-h-[420px] overflow-y-auto custom-scrollbar">
+                {/* Descuento Manual Directo */}
+                <UiCard style={{ backgroundColor: 'var(--gray-2)', border: '1px solid var(--gray-a6)' }} className="p-3 space-y-2">
+                  <UiText size="1" weight="bold" color="gray" highContrast>⚡ Descuento Manual Directo</UiText>
+                  <div className="flex items-center gap-2">
+                    <UiSelect
+                      value={manualLineDiscType}
+                      onChange={e => setManualLineDiscType(e.target.value)}
+                      size="2"
+                      color="gray"
+                      className="w-28 cursor-pointer"
+                    >
+                      <option value="PORCENTAJE">% Porc.</option>
+                      <option value="MONTO_FIJO">$ Monto</option>
+                    </UiSelect>
+                    <UiInput
+                      type="number"
+                      min="0"
+                      step={manualLineDiscType === 'PORCENTAJE' ? '1' : '0.01'}
+                      value={manualLineDiscValue}
+                      onChange={e => setManualLineDiscValue(e.target.value)}
+                      size="2"
+                      color="gray"
+                      placeholder="0"
+                      className="flex-1 font-mono"
+                    />
+                    <UiButton
+                      type="button"
+                      size="2"
+                      variant="solid"
+                      color="blue"
+                      onClick={() => {
+                        const val = parseFloat(manualLineDiscValue) || 0;
+                        if (val <= 0) return;
+                        setCart(cart.map(i => i.productId === selectedLineItemForDiscount.productId ? {
+                          ...i,
+                          id_descuento_aplicado: 'manual',
+                          id_promocion_aplicada: '',
+                          discount_value: val,
+                          discount_type: manualLineDiscType,
+                          itemDiscount: manualLineDiscType === 'PORCENTAJE' ? 0 : val
+                        } : i));
+                        showToast(`Descuento manual de ${manualLineDiscType === 'PORCENTAJE' ? `${val}%` : `$${val}`} aplicado`, "success");
+                        setSelectedLineItemForDiscount(null);
+                        setManualLineDiscValue('');
+                      }}
+                    >
+                      Aplicar
+                    </UiButton>
+                  </div>
+                </UiCard>
+
                 {/* Option 1: None */}
                 <UiButton
                   type="button"
@@ -3818,17 +3973,18 @@ export default function PosView({ products, thirdParties, transactions = [], dis
 
       {/* SUPERVISOR AUTHORIZATION MODAL */}
       {authDialog && (
-        <UiBox {...{"style":{"backgroundColor":"var(--gray-2)"},"className":"fixed inset-0 z-[300] flex items-center justify-center p-4"}}>
-          <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"w-full max-w-sm overflow-hidden flex flex-col animate-in zoom-in-95 duration-200"}}>
-            <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)","backgroundColor":"var(--gray-2)"},"className":"p-4 flex items-center justify-between"}}>
-              <UiText {...{"size":"1","weight":"bold","color":"red","highContrast":true,"className":"flex items-center gap-1.5"}}>
+        <UiBox style={{ backgroundColor: 'var(--black-a7)' }} className="fixed inset-0 z-[300] flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <UiBox style={{ backgroundColor: 'var(--color-panel-solid)', borderRadius: 'var(--radius-3)', border: '1px solid var(--gray-a6)', boxShadow: 'var(--shadow-4)' }} className="w-full max-w-sm overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
+            <UiBox style={{ borderBottom: '1px solid var(--gray-a6)', backgroundColor: 'var(--gray-2)' }} className="p-4 flex items-center justify-between">
+              <UiText size="1" weight="bold" color="red" highContrast className="flex items-center gap-1.5">
                 <ShieldAlert size={15} /> Autorización Requerida
               </UiText>
               <UiButton iconOnly
                 onClick={() => { authDialog.onCancel?.(); setAuthDialog(null); }} 
-                {...{"color":"gray","className":"cursor-pointer"}}
+                color="gray"
+                className="cursor-pointer"
               >
-                <X size={18} />
+                <X size={16} />
               </UiButton>
             </UiBox>
             <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"p-5 space-y-4"}}>

@@ -63,6 +63,7 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedType, setSelectedType] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'ACTIVE' | 'INACTIVE' | 'ALL'>('ACTIVE');
 
   // Kardex tab states
   const [kardexProductId, setKardexProductId] = useState('');
@@ -260,13 +261,33 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
   }
 
   const handleDeleteProduct = async (id: string) => {
-    if (!await window.confirm("¿Desactivar este producto/servicio? Se conservará su historial y dejará de estar disponible en ventas.")) return;
+    const p = products.find(prod => prod.id === id);
+    const stockQty = Number(p?.stock ?? stocks[id] ?? 0);
+    const hasHistory = stockQty > 0;
+    
+    // Preguntar modo de eliminación
+    const confirmMsg = hasHistory
+      ? `¿Desactivar "${p?.name || 'este ítem'}"?\n\nAl tener existencias o historial, se marcará como INACTIVO y dejará de mostrarse en ventas.`
+      : `¿Cómo deseas proceder con "${p?.name || 'este ítem'}"?\n\n• ACEPTAR: Continuar con el proceso de retiro.\n• CANCELAR: Volver sin hacer cambios.`;
+
+    if (!window.confirm(confirmMsg)) return;
+
+    let permanent = false;
+    if (!hasHistory) {
+      permanent = window.confirm(
+        `¿Deseas ELIMINAR DEFINITIVAMENTE "${p?.name}" de la base de datos?\n\n` +
+        `• Aceptar = Eliminar por completo de la base de datos (borrado físico).\n` +
+        `• Cancelar = Solo desactivar (conservar registro inactivo).`
+      );
+    }
+
     try {
-      await productRepository.delete(id);
+      await productRepository.delete(id, permanent);
       await loadCatalogData();
+      showToast?.(permanent ? 'Producto eliminado definitivamente.' : 'Producto desactivado y oculto de ventas.', 'success');
     } catch (err) {
       console.error(err);
-      alert("Error al desactivar el producto");
+      showToast?.('Error al procesar la eliminación del producto.', 'error');
     }
   };
 
@@ -287,13 +308,17 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
       if (seenIds.has(p.id)) return false;
       seenIds.add(p.id);
 
+      const pStatus = p.status || 'ACTIVE';
+      if (statusFilter === 'ACTIVE' && pStatus === 'INACTIVE') return false;
+      if (statusFilter === 'INACTIVE' && pStatus !== 'INACTIVE') return false;
+
       const matchesSearch = (p.name || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
                             (p.sku || '').toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCategory = selectedCategory ? p.categoryId === selectedCategory : true;
       const matchesType = selectedType ? p.type === selectedType : true;
       return matchesSearch && matchesCategory && matchesType;
     });
-  }, [products, searchQuery, selectedCategory, selectedType]);
+  }, [products, searchQuery, selectedCategory, selectedType, statusFilter]);
 
   const getCategoryName = (id?: string) => {
     return categories.find(c => c.id === id)?.name || 'Sin Categoría';
@@ -388,6 +413,18 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
                       <option value="SUBPRODUCT">Subproducto</option>
                       <option value="SERVICE">Servicio</option>
                     </UiSelect>
+
+                    <UiSelect
+                      value={statusFilter}
+                      onChange={(e) => setStatusFilter(e.target.value as 'ACTIVE' | 'INACTIVE' | 'ALL')}
+                      size="2"
+                      color="gray"
+                      className="cursor-pointer font-medium"
+                    >
+                      <option value="ACTIVE">Estado: Solo Activos</option>
+                      <option value="INACTIVE">Estado: Solo Inactivos</option>
+                      <option value="ALL">Estado: Todos</option>
+                    </UiSelect>
                   </UiBox>
                 </UiBox>
                 
@@ -443,10 +480,17 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
                                   </UiBox>
                                 </UiTableCell>
                                 <UiTableCell className="px-6 py-3.5">
-                                  {p.type === 'STANDARD' && <Badge variant="soft" color="blue" size="1">Estándar</Badge>}
-                                  {p.type === 'COMBO' && <Badge variant="soft" color="purple" size="1">Combo</Badge>}
-                                  {p.type === 'SUBPRODUCT' && <Badge variant="soft" color="indigo" size="1">Subproducto</Badge>}
-                                  {p.type === 'SERVICE' && <Badge variant="soft" color="pink" size="1">Servicio</Badge>}
+                                  <UiBox className="flex items-center gap-1.5 flex-wrap">
+                                    {p.status === 'INACTIVE' ? (
+                                      <Badge variant="soft" color="red" size="1">Inactivo</Badge>
+                                    ) : (
+                                      <Badge variant="soft" color="green" size="1">Activo</Badge>
+                                    )}
+                                    {p.type === 'STANDARD' && <Badge variant="soft" color="blue" size="1">Estándar</Badge>}
+                                    {p.type === 'COMBO' && <Badge variant="soft" color="purple" size="1">Combo</Badge>}
+                                    {p.type === 'SUBPRODUCT' && <Badge variant="soft" color="indigo" size="1">Subproducto</Badge>}
+                                    {p.type === 'SERVICE' && <Badge variant="soft" color="pink" size="1">Servicio</Badge>}
+                                  </UiBox>
                                 </UiTableCell>
                                 <UiTableCell style={{ color: "var(--gray-11)" }} className="px-6 py-3.5">{getCategoryName(p.categoryId)}</UiTableCell>
                                 <UiTableCell style={{ fontFamily: "var(--code-font-family)" }} className="px-6 py-3.5">${(Number(p.baseCost ?? p.cost ?? 0)).toFixed(2)}</UiTableCell>

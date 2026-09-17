@@ -19,8 +19,8 @@ import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { validarIdentificacion, generarFacturaXML, simularTransmisionSRI, consultarRucSri, generarRetencionXML, generarNotaCreditoXML, generarLiquidacionXML, generarGuiaRemisionXML, getEcuadorDateString, getEcuadorTimeString, getEcuadorDateTimeString } from '../../services/sriService';
 import { firmarComprobanteXML } from '../../services/xadesSigner';
 import { registerTransactionInventory } from '../../services/inventoryLedger';
-import { validateCartStock, taxRateFor } from '../../services/productModel';
-import { calculateTransactionTotals } from '../../services/discountCalcService';
+import { validateCartStock, taxRateFor, isSellable } from '../../services/productModel';
+import { calculateTransactionTotals, isDiscountScheduleActive } from '../../services/discountCalcService';
 import { sincronizarVenta, sincronizarCompra } from '../../services/integracionFinanzasService';
 import RidePreviewModal from './RidePreviewModal';
 
@@ -205,13 +205,15 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   const [supervisorPassword, setSupervisorPassword] = useState('');
   const [authError, setAuthError] = useState('');
 
+  const [manualLineDiscType, setManualLineDiscType] = useState('PORCENTAJE'); // 'PORCENTAJE' | 'MONTO_FIJO'
+  const [manualLineDiscValue, setManualLineDiscValue] = useState('');
+
   const getActiveDiscounts = (alcance) => {
-    const hoy = getEcuadorDateString();
     return (discounts || []).filter(d => {
-      return d.activo && 
-             d.alcance === alcance && 
-             d.fecha_inicio <= hoy && 
-             d.fecha_fin >= hoy;
+      const matchAlcance = (alcance === 'VENTA')
+        ? (d.alcance === 'VENTA' || d.alcance === 'GLOBAL')
+        : (d.alcance === alcance);
+      return matchAlcance && isDiscountScheduleActive(d);
     });
   };
 
@@ -220,10 +222,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     const prod = products.find(p => p.id === item.productId);
     
     const activeProductDiscounts = (discounts || []).filter(d => {
-      return d.activo && 
-             d.alcance === 'PRODUCTO' && 
-             d.fecha_inicio <= hoy && 
-             d.fecha_fin >= hoy;
+      return (d.alcance === 'PRODUCTO' || !d.alcance) && isDiscountScheduleActive(d);
     });
 
     const activeLinePromotions = (promotions || []).filter(p => {
@@ -1860,25 +1859,43 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     )}
                     
                     {clientSearchTerm.trim() !== '' && (
-                      <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"absolute z-30 w-full max-h-60 overflow-y-auto mt-1"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"}})}>
+                      <UiBox 
+                        style={{
+                          borderRadius: 'var(--radius-3)',
+                          border: '1px solid var(--gray-a6)',
+                          backgroundColor: 'var(--color-panel-solid)',
+                          boxShadow: 'var(--shadow-3)',
+                          zIndex: 50
+                        }}
+                        className="absolute left-0 right-0 top-full mt-1.5 max-h-64 overflow-y-auto custom-scrollbar divide-y divide-[var(--gray-a4)]"
+                      >
                         {filteredClients.slice(0, 10).map(tp => (
-                          <UiButton
+                          <button
                             key={tp.id}
                             type="button"
                             onClick={() => {
                               setFormData(prev => ({ ...prev, thirdPartyId: tp.id }));
                               setClientSearchTerm('');
                             }}
-                            {...mergeThemeProps({"size":"2","variant":"outline","className":"w-full text-left flex flex-col"}, {}, {"color":"gray"})}
+                            className="w-full text-left px-3.5 py-2.5 hover:bg-[var(--accent-3)] transition-colors flex flex-col gap-0.5 cursor-pointer bg-transparent border-none outline-none"
                           >
-                            <UiText {...{"weight":"bold"}}>{tp.name}</UiText>
-                            <UiText {...{"size":"1","weight":"regular","className":"opacity-80"}}>RUC/CI: {tp.ruc} | Tel: {tp.telefono || 'S/N'}</UiText>
-                          </UiButton>
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="font-semibold text-xs text-[var(--gray-12)] truncate">{tp.name}</span>
+                              <span className="text-[10px] font-mono font-medium text-[var(--blue-11)] bg-[var(--blue-3)] px-1.5 py-0.5 rounded shrink-0">
+                                {tp.tipoIdentificacion ? tp.tipoIdentificacion.toUpperCase() : 'RUC/CI'}
+                              </span>
+                            </div>
+                            <div className="text-[11px] text-[var(--gray-10)] flex items-center gap-2">
+                              <span className="font-mono">ID: {tp.ruc}</span>
+                              {tp.telefono && <span>• Tel: {tp.telefono}</span>}
+                              {tp.email && <span className="truncate max-w-[200px]">• {tp.email}</span>}
+                            </div>
+                          </button>
                         ))}
                         {filteredClients.length === 0 && (
-                          <UiBox {...{"style":{"color":"var(--gray-11)","fontFamily":"var(--code-font-family)"},"className":"p-3 text-center"}}>
-                            No se encontraron clientes. Usa (+) para crear uno.
-                          </UiBox>
+                          <div className="p-3 text-center text-xs text-[var(--gray-10)]">
+                            No se encontraron clientes. Usa <strong className="text-[var(--blue-11)]">(+)</strong> para crear uno nuevo.
+                          </div>
                         )}
                       </UiBox>
                     )}
@@ -2206,27 +2223,56 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       
                       {/* Search Results dropdown */}
                       {productSearchTerm.trim() !== '' && (
-                        <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"absolute z-30 w-full max-h-60 overflow-y-auto mt-1"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)"}})}>
+                        <UiBox 
+                          style={{
+                            borderRadius: 'var(--radius-3)',
+                            border: '1px solid var(--gray-a6)',
+                            backgroundColor: 'var(--color-panel-solid)',
+                            boxShadow: 'var(--shadow-3)',
+                            zIndex: 50
+                          }}
+                          className="absolute left-0 right-0 top-full mt-1.5 max-h-64 overflow-y-auto custom-scrollbar divide-y divide-[var(--gray-a4)]"
+                        >
                           {products.filter(p => 
-                            p.name?.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
-                            p.sku?.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
-                            p.codigoBarras?.toLowerCase().includes(productSearchTerm.toLowerCase())
+                            isSellable(p) && (
+                              p.name?.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
+                              p.sku?.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
+                              p.codigoBarras?.toLowerCase().includes(productSearchTerm.toLowerCase())
+                            )
                           ).slice(0, 10).map(p => (
-                            <UiButton
+                            <button
                               key={p.id}
                               type="button"
-                              onClick={() => handleAddProductToCart(p)}
-                              {...mergeThemeProps({"size":"2","variant":"outline","className":"w-full text-left flex justify-between items-center"}, {}, {"color":"gray"})}
+                              onClick={() => {
+                                handleAddProductToCart(p);
+                                setProductSearchTerm('');
+                              }}
+                              className="w-full text-left px-3.5 py-2.5 hover:bg-[var(--accent-3)] transition-colors flex items-center justify-between cursor-pointer bg-transparent border-none outline-none"
                             >
-                              <UiBox>
-                                <UiText as="p"  {...{"weight":"bold"}}>{p.name}</UiText>
-                                <UiText as="p"  {...{"size":"1","weight":"regular"}}>
-                                  {p.sku ? `SKU: ${p.sku}` : ''} {p.codigoBarras ? ` | EAN: ${p.codigoBarras}` : ''}
-                                </UiText>
-                              </UiBox>
-                              <UiText {...{"weight":"bold","color":"blue"}}>${Number(p.price).toFixed(2)}</UiText>
-                            </UiButton>
+                              <div className="min-w-0 pr-3">
+                                <div className="font-semibold text-xs text-[var(--gray-12)] truncate">{p.name}</div>
+                                <div className="text-[11px] text-[var(--gray-10)] flex items-center gap-2 mt-0.5">
+                                  {p.sku && <span className="font-mono">SKU: {p.sku}</span>}
+                                  {p.codigoBarras && <span className="font-mono">• EAN: {p.codigoBarras}</span>}
+                                  <span className="text-[var(--gray-9)]">• Stock: {Number(p.stock || 0)} u.</span>
+                                </div>
+                              </div>
+                              <div className="font-mono font-bold text-xs text-[var(--blue-11)] shrink-0">
+                                ${Number(p.price).toFixed(2)}
+                              </div>
+                            </button>
                           ))}
+                          {products.filter(p => 
+                            isSellable(p) && (
+                              p.name?.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
+                              p.sku?.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
+                              p.codigoBarras?.toLowerCase().includes(productSearchTerm.toLowerCase())
+                            )
+                          ).length === 0 && (
+                            <div className="p-3 text-center text-xs text-[var(--gray-10)]">
+                              No se encontraron productos o servicios activos.
+                            </div>
+                          )}
                         </UiBox>
                       )}
                     </UiBox>
@@ -2268,16 +2314,26 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   {/* Actions: discount, clear cart */}
                   <UiBox {...{"className":"flex items-center gap-[8px] mb-[8px] flex-wrap"}}>
                     {/* General Discount */}
-                    <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--gray-2)"},"className":"flex items-center gap-[4px] px-[8px] py-[4px] flex-1 min-w-[200px]"}}>
-                      <Tag size={10} {...{"style":{"color":"var(--blue-12)"},"className":"shrink-0"}} />
-                      <UiText {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"shrink-0 mr-1"}}>Descuento General:</UiText>
+                    <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--gray-2)"},"className":"flex items-center gap-[6px] px-[8px] py-[4px] flex-wrap min-w-[280px]"}}>
+                      <Tag size={12} {...{"style":{"color":"var(--blue-12)"},"className":"shrink-0"}} />
+                      <UiText {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"shrink-0"}}>Descuento General:</UiText>
                       <UiSelect
                         disabled={!isEditable}
-                        value={selectedGeneralDiscount?.id || ''}
+                        value={selectedGeneralDiscount?.id === 'manual' ? 'manual' : (selectedGeneralDiscount?.id || '')}
                         onChange={e => {
                           const discId = e.target.value;
                           if (!discId) {
                             setSelectedGeneralDiscount(null);
+                            return;
+                          }
+                          if (discId === 'manual') {
+                            setSelectedGeneralDiscount({
+                              id: 'manual',
+                              nombre: 'Descuento Manual',
+                              tipo_valor: 'PORCENTAJE',
+                              valor: 5,
+                              activo: true
+                            });
                             return;
                           }
                           const disc = discounts.find(d => d.id === discId);
@@ -2298,15 +2354,41 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                             }
                           }
                         }}
-                        {...{"size":"2","color":"gray","className":"cursor-pointer w-full"}}
+                        {...{"size":"2","color":"gray","className":"cursor-pointer flex-1 min-w-[170px]"}}
                       >
                         <option value="">-- Sin Descuento Venta --</option>
+                        <option value="manual">⚡ Descuento Manual (% o $)</option>
                         {getActiveDiscounts('VENTA').map(d => (
                           <option key={d.id} value={d.id}>
                             {d.nombre} ({d.tipo_valor === 'PORCENTAJE' ? `${d.valor}%` : `$${d.valor}`})
                           </option>
                         ))}
                       </UiSelect>
+
+                      {selectedGeneralDiscount?.id === 'manual' && isEditable && (
+                        <div className="flex items-center gap-1.5 shrink-0 animate-in fade-in">
+                          <UiSelect
+                            size="1"
+                            color="gray"
+                            className="w-20"
+                            value={selectedGeneralDiscount.tipo_valor}
+                            onChange={e => setSelectedGeneralDiscount(prev => ({ ...prev, tipo_valor: e.target.value }))}
+                          >
+                            <option value="PORCENTAJE">%</option>
+                            <option value="MONTO_FIJO">$</option>
+                          </UiSelect>
+                          <UiInput
+                            size="1"
+                            color="gray"
+                            type="number"
+                            min="0"
+                            step={selectedGeneralDiscount.tipo_valor === 'PORCENTAJE' ? '1' : '0.01'}
+                            value={selectedGeneralDiscount.valor}
+                            onChange={e => setSelectedGeneralDiscount(prev => ({ ...prev, valor: parseFloat(e.target.value) || 0 }))}
+                            className="w-16 text-right font-mono"
+                          />
+                        </div>
+                      )}
                     </UiBox>
                     
                     {/* Clear Cart */}
@@ -2368,7 +2450,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                                       {...mergeThemeProps({"size":"3","color":"gray"})}
                                     >
                                       <option value="" disabled>Seleccionar...</option>
-                                      {products.map(p => (
+                                      {products.filter(isSellable).map(p => (
                                         <option key={p.id} value={p.id}>{p.name} — ${Number(p.price).toFixed(2)}</option>
                                       ))}
                                     </UiSelect>
@@ -3192,9 +3274,15 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       {isQuickAddOpen && (
         <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[150] flex items-center justify-center p-[10px] animate-in fade-in"}}>
           <UiCard {...mergeThemeProps({"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"},"className":"w-full max-w-md p-[20px]"})}>
-            <UiHeading as="h3"  {...{"size":"3","weight":"bold","className":"mb-[12px] pb-[8px]"}}>
-              Nuevo {formData.type === 'ingreso' ? 'Cliente' : 'Proveedor'} (Rápido)
-            </UiHeading>
+            <UiBox style={{ borderBottom: '1px solid var(--gray-a6)' }} className="flex justify-between items-center mb-3 pb-2">
+              <UiHeading as="h3" size="3" weight="bold" className="flex items-center gap-2">
+                <User size={16} style={{ color: 'var(--blue-11)' }} />
+                Nuevo {formData.type === 'ingreso' ? 'Cliente' : 'Proveedor'} (Rápido)
+              </UiHeading>
+              <UiButton iconOnly type="button" onClick={() => setIsQuickAddOpen(false)} color="gray" className="cursor-pointer">
+                <X size={14} />
+              </UiButton>
+            </UiBox>
             
             <form onSubmit={handleQuickAddSave} {...{"className":"space-y-[10px]"}}>
               <UiBox {...{"className":"grid grid-cols-2 gap-[8px]"}}>
@@ -3397,7 +3485,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 )}
               </UiBox>
               {(() => {
-                const cats = ['all', ...new Set(products.map(p => p.category).filter(Boolean))];
+                const cats = ['all', ...new Set(products.filter(isSellable).map(p => p.category).filter(Boolean))];
                 if (cats.length > 1) {
                   return (
                     <UiSelect
@@ -3420,6 +3508,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
             <UiBox {...{"className":"flex-1 overflow-y-auto space-y-[6px] min-h-[250px] max-h-[50vh] pr-[2px]"}}>
               {(() => {
                 const filtered = products.filter(p => {
+                  if (!isSellable(p)) return false;
                   const matchText = !advSearchTerm || 
                     p.name?.toLowerCase().includes(advSearchTerm.toLowerCase()) ||
                     p.sku?.toLowerCase().includes(advSearchTerm.toLowerCase()) ||
@@ -3499,9 +3588,15 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       {isQuickAddProductOpen && (
         <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[150] flex items-center justify-center p-[10px] animate-in fade-in"}}>
           <UiCard {...mergeThemeProps({"className":"w-full max-w-md p-[20px]"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"}})}>
-            <UiHeading as="h3"  {...{"size":"3","weight":"bold","className":"mb-[12px] pb-[8px]"}}>
-              Nuevo Producto (Rápido)
-            </UiHeading>
+            <UiBox style={{ borderBottom: '1px solid var(--gray-a6)' }} className="flex justify-between items-center mb-3 pb-2">
+              <UiHeading as="h3" size="3" weight="bold" className="flex items-center gap-2">
+                <Layers size={16} style={{ color: 'var(--blue-11)' }} />
+                Nuevo Producto / Servicio (Rápido)
+              </UiHeading>
+              <UiButton iconOnly type="button" onClick={() => setIsQuickAddProductOpen(false)} color="gray" className="cursor-pointer">
+                <X size={14} />
+              </UiButton>
+            </UiBox>
             
             <form onSubmit={handleQuickAddProductSave} {...{"className":"space-y-[10px]"}}>
               <UiBox>
@@ -3625,23 +3720,79 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       {selectedLineItemForDiscount && (() => {
         const available = getAvailableDiscountsForLineItem(selectedLineItemForDiscount);
         return (
-          <UiBox {...{"style":{"backgroundColor":"var(--gray-2)"},"className":"fixed inset-0 z-[250] flex items-center justify-center p-4"}}>
-            <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"w-full max-w-md overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200"}}>
-              <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)","backgroundColor":"var(--gray-2)"},"className":"p-4 flex items-center justify-between"}}>
+          <UiBox style={{ backgroundColor: 'var(--black-a7)' }} className="fixed inset-0 z-[250] flex items-center justify-center p-4 animate-in fade-in duration-200">
+            <UiBox style={{ backgroundColor: 'var(--color-panel-solid)', borderRadius: 'var(--radius-3)', border: '1px solid var(--gray-a6)', boxShadow: 'var(--shadow-4)' }} className="w-full max-w-md overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
+              <UiBox style={{ borderBottom: '1px solid var(--gray-a6)', backgroundColor: 'var(--gray-2)' }} className="p-4 flex items-center justify-between">
                 <UiBox>
-                  <UiHeading as="h3" {...{"size":"1","weight":"bold","color":"gray","highContrast":true}}>
+                  <UiHeading as="h3" size="2" weight="bold" color="gray" highContrast className="flex items-center gap-2">
+                    <Tag size={15} style={{ color: 'var(--blue-11)' }} />
                     Descuento / Promo de Ítem
                   </UiHeading>
-                  <UiText as="p" {...{"size":"1","color":"gray","weight":"bold","className":"mt-0.5"}}>{selectedLineItemForDiscount.name}</UiText>
+                  <UiText as="p" size="1" color="gray" weight="bold" className="mt-0.5">{selectedLineItemForDiscount.name}</UiText>
                 </UiBox>
                 <UiButton iconOnly
                   onClick={() => setSelectedLineItemForDiscount(null)} 
-                  {...{"color":"gray","className":"cursor-pointer"}}
+                  color="gray"
+                  className="cursor-pointer"
                 >
-                  <X size={18} />
+                  <X size={16} />
                 </UiButton>
               </UiBox>
-              <UiBox {...{"className":"p-4 space-y-3 max-h-[300px] overflow-y-auto custom-scrollbar"}}>
+              <UiBox className="p-4 space-y-3 max-h-[420px] overflow-y-auto custom-scrollbar">
+                {/* Descuento Manual Directo */}
+                <UiCard style={{ backgroundColor: 'var(--gray-2)', border: '1px solid var(--gray-a6)' }} className="p-3 space-y-2">
+                  <UiText size="1" weight="bold" color="gray" highContrast>⚡ Descuento Manual Directo</UiText>
+                  <div className="flex items-center gap-2">
+                    <UiSelect
+                      value={manualLineDiscType}
+                      onChange={e => setManualLineDiscType(e.target.value)}
+                      size="2"
+                      color="gray"
+                      className="w-28 cursor-pointer"
+                    >
+                      <option value="PORCENTAJE">% Porc.</option>
+                      <option value="MONTO_FIJO">$ Monto</option>
+                    </UiSelect>
+                    <UiInput
+                      type="number"
+                      min="0"
+                      step={manualLineDiscType === 'PORCENTAJE' ? '1' : '0.01'}
+                      value={manualLineDiscValue}
+                      onChange={e => setManualLineDiscValue(e.target.value)}
+                      size="2"
+                      color="gray"
+                      placeholder="0"
+                      className="flex-1 font-mono"
+                    />
+                    <UiButton
+                      type="button"
+                      size="2"
+                      variant="solid"
+                      color="blue"
+                      onClick={() => {
+                        const val = parseFloat(manualLineDiscValue) || 0;
+                        if (val <= 0) return;
+                        const idx = selectedLineItemForDiscount.cartIndex;
+                        const updated = [...(formData.items || [])];
+                        updated[idx] = {
+                          ...updated[idx],
+                          id_descuento_aplicado: 'manual',
+                          id_promocion_aplicada: '',
+                          discount_value: val,
+                          discount_type: manualLineDiscType,
+                          itemDiscount: manualLineDiscType === 'PORCENTAJE' ? 0 : val
+                        };
+                        setFormData(prev => ({ ...prev, items: updated }));
+                        showToast(`Descuento manual de ${manualLineDiscType === 'PORCENTAJE' ? `${val}%` : `$${val}`} aplicado`, "success");
+                        setSelectedLineItemForDiscount(null);
+                        setManualLineDiscValue('');
+                      }}
+                    >
+                      Aplicar
+                    </UiButton>
+                  </div>
+                </UiCard>
+
                 {/* Option 1: None */}
                 <UiButton
                   type="button"
@@ -3726,8 +3877,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
       {/* SUPERVISOR AUTHORIZATION MODAL */}
       {authDialog && (
-        <UiBox {...{"style":{"backgroundColor":"var(--gray-2)"},"className":"fixed inset-0 z-[300] flex items-center justify-center p-4"}}>
-          <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"w-full max-w-sm overflow-hidden flex flex-col animate-in zoom-in-95 duration-200"}}>
+        <UiBox style={{ backgroundColor: 'var(--black-a7)' }} className="fixed inset-0 z-[300] flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <UiBox style={{ backgroundColor: 'var(--color-panel-solid)', borderRadius: 'var(--radius-3)', border: '1px solid var(--gray-a6)', boxShadow: 'var(--shadow-4)' }} className="w-full max-w-sm overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
             <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)","backgroundColor":"var(--gray-2)"},"className":"p-4 flex items-center justify-between"}}>
               <UiText {...{"size":"1","weight":"bold","color":"red","highContrast":true,"className":"flex items-center gap-1.5"}}>
                 <ShieldAlert size={15} /> Autorización Requerida

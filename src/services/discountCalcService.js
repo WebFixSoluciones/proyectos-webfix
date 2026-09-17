@@ -11,13 +11,16 @@ import { taxRateFor } from './productModel.js';
 
 export function isDiscountScheduleActive(discount) {
   if (!discount || discount.activo === false) return false;
+  if (discount.id === 'manual' || discount.manual === true) return true;
 
   const now = new Date();
 
   // 1. Fechas de vigencia (Formato YYYY-MM-DD en Ecuador UTC-5)
   const ecDateStr = new Intl.DateTimeFormat('sv-SE', { timeZone: 'America/Guayaquil' }).format(now);
-  if (discount.fecha_inicio && ecDateStr < discount.fecha_inicio) return false;
-  if (discount.fecha_fin && ecDateStr > discount.fecha_fin) return false;
+  const fInicio = typeof discount.fecha_inicio === 'string' ? discount.fecha_inicio.substring(0, 10) : discount.fecha_inicio;
+  const fFin = typeof discount.fecha_fin === 'string' ? discount.fecha_fin.substring(0, 10) : discount.fecha_fin;
+  if (fInicio && ecDateStr < fInicio) return false;
+  if (fFin && ecDateStr > fFin) return false;
 
   // 2. Días de la semana
   const formatterDay = new Intl.DateTimeFormat('es-EC', { weekday: 'short', timeZone: 'America/Guayaquil' });
@@ -161,12 +164,13 @@ export function calculateTransactionTotals(items = [], generalDiscount = null) {
   // Paso 6 - descuento_venta = calcular sobre subtotal_general_neto
   let montoDescuentoVenta = 0;
   if (generalDiscount && isDiscountScheduleActive(generalDiscount)) {
-    const val = Number(generalDiscount.valor) || 0;
-    if (generalDiscount.tipo_valor === 'PORCENTAJE') {
+    const val = Number(generalDiscount.valor !== undefined ? generalDiscount.valor : generalDiscount.value) || 0;
+    const typeVal = String(generalDiscount.tipo_valor || generalDiscount.type || 'PORCENTAJE').toUpperCase();
+    if (typeVal === 'PORCENTAJE' || typeVal === 'PERCENT') {
       montoDescuentoVenta = subtotalGeneralNeto * (val / 100);
-    } else if (generalDiscount.tipo_valor === 'MONTO_FIJO') {
+    } else if (typeVal === 'MONTO_FIJO' || typeVal === 'FIXED') {
       montoDescuentoVenta = val;
-    } else if (generalDiscount.tipo_valor === 'SIN_IVA') {
+    } else if (typeVal === 'SIN_IVA') {
       montoDescuentoVenta = processedItems.reduce((acc, item) => {
         return acc + item.subtotal_neto_linea * (item.tarifa_iva / (1 + item.tarifa_iva));
       }, 0);

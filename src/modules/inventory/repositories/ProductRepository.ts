@@ -1,4 +1,4 @@
-import { collection, doc, getDoc, getDocs, query, where, runTransaction } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, query, where, runTransaction, deleteDoc } from 'firebase/firestore';
 import { db, getAppId } from '../../../firebase';
 import { ProductSchema } from '../domain/schemas/product.schema';
 import type { Product } from '../domain/schemas/product.schema';
@@ -67,7 +67,25 @@ export class ProductRepository {
     return legacy ? { ...legacy.data(), id: legacy.id } as Product : null;
   }
   async findAll(): Promise<Product[]> { const snap = await getDocs(this.getCollectionRef()); return snap.docs.map(d => ({ ...d.data(), id: d.id }) as Product); }
-  async delete(id: string): Promise<void> {
+  async delete(id: string, permanent: boolean = false): Promise<void> {
+    if (permanent) {
+      const prod = await this.findById(id);
+      if (prod?.sku) {
+        try {
+          const skuRef = this.ref('inventory_skus', encodeURIComponent(prod.sku));
+          await deleteDoc(skuRef);
+        } catch {
+          // Ignorar si no existía registro previo del sku
+        }
+      }
+      await deleteDoc(this.ref('inventory_products', id));
+      try {
+        await deleteDoc(this.ref('finances_products', id));
+      } catch {
+        // Ignorar si no existía espejo
+      }
+      return;
+    }
     // Preserve references from invoices, combos and ledger history.
     await this.update(id, { status: 'INACTIVE', showInSales: false });
   }
