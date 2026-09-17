@@ -449,14 +449,17 @@ export default function TransactionsView({ transactions, thirdParties, showToast
 
       {/* TABS DE TIPO DE DOCUMENTO SRI */}
       {!forcedDocType && !isPreventaTab && (
-        <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--color-panel-solid)","color":"var(--gray-11)","border":"1px solid var(--gray-a6)"},"className":"inline-flex h-9 items-center justify-start p-1 gap-1 overflow-x-auto custom-scrollbar whitespace-nowrap mb-2"}}>
+        <UiBox style={{ borderRadius: "var(--radius-3)", backgroundColor: "var(--color-panel-solid)", border: "1px solid var(--gray-a6)" }} className="inline-flex h-9 items-center justify-start p-1 gap-1 overflow-x-auto custom-scrollbar whitespace-nowrap mb-2">
           {docTypeTabs.map(tab => {
             const isActive = filterDocType === tab.id;
             return (
               <UiButton
                 key={tab.id}
                 onClick={() => setFilterDocType(tab.id)}
-                {...mergeThemeProps({"size":"2","className":"inline-flex items-center justify-center whitespace-nowrap duration-120 select-none cursor-pointer"}, {}, (isActive ? {"variant":"surface","color":"gray"} : {"color":"gray"}))}
+                size="1"
+                variant={isActive ? "surface" : "ghost"}
+                color={isActive ? "blue" : "gray"}
+                className="whitespace-nowrap cursor-pointer select-none"
               >
                 {tab.label}
               </UiButton>
@@ -530,124 +533,137 @@ export default function TransactionsView({ transactions, thirdParties, showToast
           </UiButton>
         </UiBox>
 
-        <UiBox {...{"className":"flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto"}}>
-          <UiCard {...{"style":{"backgroundColor":"var(--gray-2)"},"className":"flex items-center gap-2 px-3.5 py-1.5 w-full sm:w-64"}}>
-            <Search size={14} {...{"style":{"color":"var(--gray-11)"}}} />
+        <UiBox className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
+          <UiBox className="w-full sm:w-64">
             <UiInput
               type="text" 
               placeholder="Buscar documento o tercero..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              {...{"size":"2","className":"w-full"}}
+              iconPrefix={<Search size={14} className="text-[var(--gray-10)]" />}
+              size="2"
             />
-          </UiCard>
+          </UiBox>
 
           {!forcedType && (
             <UiSelect
               value={filterType} 
               onChange={e => setFilterType(e.target.value)} 
-              {...{"size":"2","color":"gray","className":"cursor-pointer"}}
+              size="2"
+              color="gray"
+              className="cursor-pointer"
             >
-              <option value="all" {...{"style":{"color":"var(--gray-12)"}}}>Todos los tipos</option>
-              <option value="ingreso" {...{"style":{"color":"var(--gray-12)"}}}>Ingresos (Ventas)</option>
-              <option value="egreso" {...{"style":{"color":"var(--gray-12)"}}}>Egresos (Compras)</option>
+              <option value="all">Todos los tipos</option>
+              <option value="ingreso">Ingresos (Ventas)</option>
+              <option value="egreso">Egresos (Compras)</option>
             </UiSelect>
           )}
 
           <UiSelect
             value={filterMonth} 
             onChange={e => setFilterMonth(e.target.value)} 
-            {...{"size":"2","color":"gray","className":"cursor-pointer"}}
+            size="2"
+            color="gray"
+            className="cursor-pointer"
           >
-            <option value="all" {...{"style":{"color":"var(--gray-12)"}}}>Mes: Todos</option>
+            <option value="all">Mes: Todos</option>
             {['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'].map((m, i) => (
-              <option key={i} value={i} {...{"style":{"color":"var(--gray-12)"}}}>{m}</option>
+              <option key={i} value={i}>{m}</option>
             ))}
           </UiSelect>
 
           <UiSelect
             value={filterYear} 
             onChange={e => setFilterYear(e.target.value)} 
-            {...{"size":"2","color":"gray","className":"cursor-pointer"}}
+            size="2"
+            color="gray"
+            className="cursor-pointer"
           >
-            <option value="all" {...{"style":{"color":"var(--gray-12)"}}}>Año: Todos</option>
+            <option value="all">Año: Todos</option>
             {[2023, 2024, 2025, 2026, 2027].map(y => (
-              <option key={y} value={y} {...{"style":{"color":"var(--gray-12)"}}}>{y}</option>
+              <option key={y} value={y}>{y}</option>
             ))}
           </UiSelect>
         </UiBox>
       </UiBox>
 
       {/* TABLA DE COMPROBANTES */}
-      <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"overflow-hidden"}}>
-        <UiBox {...{"className":"overflow-x-auto custom-scrollbar"}}>
-          <UiTable {...{"className":"w-full text-left whitespace-nowrap"}}>
-            <UiTableHeader {...{"style":{"backgroundColor":"var(--gray-2)","color":"var(--gray-12)"},"className":"select-none"}}>
+      <UiBox style={{ borderRadius: "var(--radius-3)", border: "1px solid var(--gray-a6)", backgroundColor: "var(--color-panel-solid)" }} className="overflow-hidden">
+        <UiBox className="overflow-x-auto custom-scrollbar">
+          <UiTable className="w-full text-left whitespace-nowrap">
+            <UiTableHeader style={{ backgroundColor: "var(--gray-2)", color: "var(--gray-12)" }} className="select-none">
               <UiTableRow>
-                <UiTableHead {...{"className":"px-6 py-3.5 cursor-pointer"}} onClick={() => handleSort('date')}>
-                  <UiBox {...{"className":"flex items-center gap-0.5"}}>
+                <UiTableHead className="px-6 py-3.5 cursor-pointer" onClick={() => handleSort('date')}>
+                  <UiBox className="flex items-center gap-0.5">
                     Fecha {renderSortIcon('date')}
                   </UiBox>
                 </UiTableHead>
-                <UiTableHead {...{"className":"px-6 py-3.5 cursor-pointer"}} onClick={() => handleSort('documentNumber')}>
-                  <UiBox {...{"className":"flex items-center gap-0.5"}}>
+                <UiTableHead className="px-6 py-3.5 cursor-pointer" onClick={() => handleSort('documentNumber')}>
+                  <UiBox className="flex items-center gap-0.5">
                     Documento {renderSortIcon('documentNumber')}
                   </UiBox>
                 </UiTableHead>
-                <UiTableHead {...{"className":"px-6 py-3.5 cursor-pointer"}} onClick={() => handleSort('thirdParty')}>
-                  <UiBox {...{"className":"flex items-center gap-0.5"}}>
+                <UiTableHead className="px-6 py-3.5 cursor-pointer" onClick={() => handleSort('thirdParty')}>
+                  <UiBox className="flex items-center gap-0.5">
                     Tercero {renderSortIcon('thirdParty')}
                   </UiBox>
                 </UiTableHead>
-                <UiTableHead {...{"className":"px-6 py-3.5 cursor-pointer"}} onClick={() => handleSort('total')}>
-                  <UiBox {...{"className":"flex items-center gap-0.5"}}>
+                <UiTableHead className="px-6 py-3.5 cursor-pointer" onClick={() => handleSort('total')}>
+                  <UiBox className="flex items-center gap-0.5">
                     Total {renderSortIcon('total')}
                   </UiBox>
                 </UiTableHead>
-                <UiTableHead {...{"className":"px-6 py-3.5"}}>Estado SRI</UiTableHead>
-                {isPreventaTab && <UiTableHead {...{"className":"px-6 py-3.5"}}>Despacho</UiTableHead>}
-                <UiTableHead {...{"className":"px-6 py-3.5 hidden sm:table-cell"}}>Archivos</UiTableHead>
-                <UiTableHead {...{"className":"px-6 py-3.5 text-right"}}>Acciones</UiTableHead>
+                <UiTableHead className="px-6 py-3.5">Estado SRI</UiTableHead>
+                {isPreventaTab && <UiTableHead className="px-6 py-3.5">Despacho</UiTableHead>}
+                <UiTableHead className="px-6 py-3.5 hidden sm:table-cell">Archivos</UiTableHead>
+                <UiTableHead className="px-6 py-3.5 text-right">Acciones</UiTableHead>
               </UiTableRow>
             </UiTableHeader>
-            <UiTableBody {...{}}>
+            <UiTableBody>
               {sortedFiltered.map(tx => (
-                <UiTableRow key={tx.id} {...{}}>
-                  <UiTableCell {...{"className":"px-6 py-2.5"}}>
-                    <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"leading-none"}}>{tx.date}</UiBox>
+                <UiTableRow key={tx.id}>
+                  <UiTableCell className="px-6 py-2.5">
+                    <UiBox style={{ color: "var(--gray-12)" }} className="leading-none">{tx.date}</UiBox>
                     {tx.time && (
-                      <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"leading-none mt-1.5"}}>
+                      <UiBox style={{ color: "var(--gray-11)" }} className="text-xs leading-none mt-1.5">
                         {tx.time.substring(0, 5)}
                       </UiBox>
                     )}
                   </UiTableCell>
-                  <UiTableCell {...{"className":"px-6 py-2.5"}}>
-                    <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"leading-none mb-1"}}>
+                  <UiTableCell className="px-6 py-2.5">
+                    <UiBox style={{ color: "var(--gray-12)" }} className="leading-none mb-1 text-xs font-medium">
                       {getDocumentTypeLabel(tx.documentType, tx.type)}
                     </UiBox>
-                    <UiBox {...{"style":{"fontFamily":"var(--code-font-family)","color":"var(--gray-12)"}}}>
+                    <UiBox style={{ fontFamily: "var(--code-font-family)", color: "var(--gray-12)" }} className="text-xs font-mono">
                       {tx.documentNumber || '-'}
                     </UiBox>
                   </UiTableCell>
-                  <UiTableCell {...{"style":{"color":"var(--gray-12)"},"className":"px-6 py-2.5 truncate max-w-[200px]"}} title={thirdParties.find(tp => tp.id === tx.thirdPartyId)?.name}>
+                  <UiTableCell style={{ color: "var(--gray-12)" }} className="px-6 py-2.5 truncate max-w-[200px]" title={thirdParties.find(tp => tp.id === tx.thirdPartyId)?.name}>
                     {thirdParties.find(tp => tp.id === tx.thirdPartyId)?.name || 'Desconocido'}
                   </UiTableCell>
-                  <UiTableCell {...{"style":{"color":"var(--gray-12)"},"className":"px-6 py-2.5"}}>${Number(tx.total || 0).toFixed(2)}</UiTableCell>
-                  <UiTableCell {...{"className":"px-6 py-2.5"}}>{getStatusBadge(tx.sriStatus, tx.documentType)}</UiTableCell>
+                  <UiTableCell style={{ color: "var(--gray-12)", fontFamily: "var(--code-font-family)" }} className="px-6 py-2.5 font-medium">
+                    ${Number(tx.total || 0).toFixed(2)}
+                  </UiTableCell>
+                  <UiTableCell className="px-6 py-2.5">{getStatusBadge(tx.sriStatus, tx.documentType)}</UiTableCell>
                   {isPreventaTab && (
-                    <UiTableCell {...{"className":"px-6 py-3.5"}}>
+                    <UiTableCell className="px-6 py-3.5">
                       {tx.deliveryStatus === 'entregado' ? (
-                        <UiText 
+                        <Badge 
+                          variant="soft" 
+                          color="green" 
+                          size="1" 
+                          className="cursor-pointer hover:opacity-80 inline-flex items-center gap-1"
                           onClick={() => handleToggleDelivery(tx.id, tx.deliveryStatus)}
-                          {...{"size":"1","weight":"bold","color":"green","className":"px-2.5 py-1 flex items-center gap-1.5 w-fit cursor-pointer hover:opacity-85"}}
                         >
                           <Truck size={11} /> Entregado
-                        </UiText>
+                        </Badge>
                       ) : (
                         <UiButton iconOnly
                           type="button"
                           onClick={() => handleToggleDelivery(tx.id, tx.deliveryStatus)}
-                          {...{"variant":"solid","color":"amber"}}
+                          variant="soft"
+                          color="amber"
+                          size="1"
                           title="Marcar como Entregado / Despachado"
                         >
                           <Clock size={13} />
@@ -655,51 +671,68 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                       )}
                     </UiTableCell>
                   )}
-                  <UiTableCell {...{"className":"px-6 py-3.5 hidden sm:table-cell"}}>
-                    <UiBox {...{"className":"flex gap-1.5"}}>
+                  <UiTableCell className="px-6 py-3.5 hidden sm:table-cell">
+                    <UiBox className="flex items-center gap-1.5">
                       {tx.xmlUrl ? (
-                        <a 
-                          href={tx.xmlUrl} 
-                          target="_blank" 
-                          rel="noreferrer" 
-                          {...{"variant":"surface","color":"blue","style":{"backgroundColor":"var(--blue-9)","color":"var(--color-background)"}}} 
+                        <UiButton
+                          iconOnly
+                          asChild
+                          variant="soft"
+                          color="blue"
+                          size="1"
                           title="Ver XML"
                         >
-                          <FileText size={13}/>
-                        </a>
+                          <a href={tx.xmlUrl} target="_blank" rel="noreferrer">
+                            <FileText size={13}/>
+                          </a>
+                        </UiButton>
                       ) : (
-                        <UiText 
-                          {...{"variant":"surface","color":"gray","className":"opacity-60 cursor-not-allowed"}}
+                        <UiButton
+                          iconOnly
+                          variant="ghost"
+                          color="gray"
+                          size="1"
+                          disabled
                           title="XML no disponible"
                         >
-                          <FileText size={13}/>
-                        </UiText>
+                          <FileText size={13} className="opacity-40"/>
+                        </UiButton>
                       )}
                       
                       {tx.pdfUrl ? (
-                        <a 
-                          href={tx.pdfUrl} 
-                          target="_blank" 
-                          rel="noreferrer" 
-                          {...{"variant":"surface","color":"blue","style":{"backgroundColor":"var(--red-9)","color":"var(--color-background)"}}} 
+                        <UiButton
+                          iconOnly
+                          asChild
+                          variant="soft"
+                          color="red"
+                          size="1"
                           title="Ver PDF"
                         >
-                          <FileText size={13}/>
-                        </a>
+                          <a href={tx.pdfUrl} target="_blank" rel="noreferrer">
+                            <FileText size={13}/>
+                          </a>
+                        </UiButton>
                       ) : (
-                        <UiText 
-                          {...{"variant":"surface","color":"gray","className":"opacity-60 cursor-not-allowed"}}
+                        <UiButton
+                          iconOnly
+                          variant="ghost"
+                          color="gray"
+                          size="1"
+                          disabled
                           title="PDF no disponible"
                         >
-                          <FileText size={13}/>
-                        </UiText>
+                          <FileText size={13} className="opacity-40"/>
+                        </UiButton>
                       )}
 
                       {tx.documentType && (
-                        <UiButton iconOnly
+                        <UiButton
+                          iconOnly
                           type="button"
                           onClick={() => setSelectedRideTx(tx)}
-                          {...{"variant":"solid","color":"amber"}}
+                          variant="soft"
+                          color="amber"
+                          size="1"
                           title={tx.documentType === 'nota_venta' ? "Ver Recibo / Imprimir" : "Ver RIDE Interactivo / Imprimir Factura"}
                         >
                           <Eye size={13}/>
@@ -707,10 +740,13 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                       )}
                       
                       {(tx.sriStatus === 'autorizado' || tx.xmlUrl || tx.pdfUrl) && tx.documentType !== 'nota_venta' && (
-                        <UiButton iconOnly
+                        <UiButton
+                          iconOnly
                           type="button"
                           onClick={() => handleOpenEmailModal(tx)}
-                          {...{"variant":"solid","color":"blue"}}
+                          variant="soft"
+                          color="indigo"
+                          size="1"
                           title="Enviar Comprobante al Correo"
                         >
                           <Mail size={13}/>
@@ -718,13 +754,27 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                       )}
                     </UiBox>
                   </UiTableCell>
-                  <UiTableCell {...{"className":"px-6 py-3.5 text-right"}}>
-                    <UiBox {...{"className":"flex items-center justify-end gap-1.5"}}>
-                       <UiButton iconOnly type="button" onClick={() => onOpenForm(tx)} {...{"variant":"solid","color":"blue"}} title="Editar"><Edit2 size={13}/></UiButton>
-                       <UiButton iconOnly
+                  <UiTableCell className="px-6 py-3.5 text-right">
+                    <UiBox className="flex items-center justify-end gap-1.5">
+                       <UiButton
+                         iconOnly
+                         type="button"
+                         onClick={() => onOpenForm(tx)}
+                         variant="soft"
+                         color="gray"
+                         size="1"
+                         title="Editar"
+                       >
+                         <Edit2 size={13}/>
+                       </UiButton>
+                       <UiButton
+                         iconOnly
                          type="button" 
                          onClick={() => handleDelete(tx)} 
-                         {...mergeThemeProps({"variant":"surface","color":"blue"}, {}, (tx.documentType === 'factura' || (tx.sriStatus === 'autorizado' && tx.documentType !== 'nota_venta') ? {"variant":"soft","color":"gray","className":"cursor-not-allowed"} : {"variant":"solid","color":"red"}))}
+                         variant="soft"
+                         color={tx.documentType === 'factura' || (tx.sriStatus === 'autorizado' && tx.documentType !== 'nota_venta') ? "gray" : "red"}
+                         size="1"
+                         disabled={tx.documentType === 'factura' || (tx.sriStatus === 'autorizado' && tx.documentType !== 'nota_venta')}
                          title={(tx.documentType === 'factura' || (tx.sriStatus === 'autorizado' && tx.documentType !== 'nota_venta')) ? "Comprobantes electrónicos no pueden ser eliminados" : "Eliminar"}
                        >
                          <Trash2 size={13}/>
