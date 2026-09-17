@@ -159,16 +159,16 @@ export default function ThirdPartiesView({ thirdParties, showToast, db, appId, f
         </UiBox>
 
         <UiBox {...{"className":"flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto"}}>
-          <UiCard {...{"style":{"backgroundColor":"var(--gray-2)"},"className":"flex items-center gap-2 px-3.5 py-1.5 w-full sm:w-64"}}>
-            <Search size={14} {...{"style":{"color":"var(--gray-11)"}}} />
+          <UiBox className="w-full sm:w-64">
             <UiInput
               type="text" 
               placeholder={`Buscar por nombre, RUC o dirección...`} 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              {...{"size":"2","className":"w-full"}}
+              iconPrefix={<Search size={14} className="text-[var(--gray-10)]" />}
+              size="2"
             />
-          </UiCard>
+          </UiBox>
 
           <UiSelect
             value={filterIdType} 
@@ -237,14 +237,18 @@ export default function ThirdPartiesView({ thirdParties, showToast, db, appId, f
                       <UiBox {...{"className":"flex items-center justify-end gap-1.5"}}>
                         <UiButton iconOnly
                           onClick={() => { setFormData({ id: tp.id || '', name: tp.name || '', ruc: tp.ruc || '', email: tp.email || '', type: tp.type || forcedType || 'cliente', tipoIdentificacion: tp.tipoIdentificacion || 'ruc', direccion: tp.direccion || '', telefono: tp.telefono || '', tipoContribuyente: tp.tipoContribuyente || 'general', ciudad: tp.ciudad || '' }); setIsModalOpen(true); }} 
-                          {...{"variant":"solid","color":"blue"}} 
+                          variant="soft"
+                          color="gray"
+                          size="1"
                           title="Editar"
                         >
                           <Edit2 size={13}/>
                         </UiButton>
                         <UiButton iconOnly
                           onClick={() => handleDelete(tp.id)} 
-                          {...{"variant":"solid","color":"red"}} 
+                          variant="soft"
+                          color="red"
+                          size="1"
                           title="Eliminar"
                         >
                           <Trash2 size={13}/>
