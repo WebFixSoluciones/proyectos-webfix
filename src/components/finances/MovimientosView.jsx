@@ -8,6 +8,7 @@ import { getMovimientos, getResumen, anularMovimiento } from '../../services/mov
 import MovimientoForm from './MovimientoForm';
 import MovimientoAbono from './MovimientoAbono';
 import MovimientoDetalle from './MovimientoDetalle';
+import { Badge } from '../ui/badge';
 
 const ESTADO_BADGES = {
   pendiente: {"style":{"backgroundColor":"var(--amber-3)","color":"var(--amber-11)"}},
@@ -222,42 +223,46 @@ export default function MovimientosView({ db, usuario, showToast }) {
               </UiTableHeader>
               <UiTableBody>
                 {movimientos.map(mov => (
-                  <UiTableRow key={mov.id} {...{}}>
-                    <UiTableCell {...{"style":{"color":"var(--gray-12)"},"className":"px-3 py-2.5 whitespace-nowrap"}}>{formatDate(mov.fecha)}</UiTableCell>
-                    <UiTableCell {...{"className":"px-3 py-2.5"}}>
-                      <UiText {...mergeThemeProps({"size":"1","className":"inline-flex px-1.5 py-0.5"}, {}, (mov.tipo === 'ingreso' ? {"color":"gray"} : {"color":"gray"}))}>
+                  <UiTableRow key={mov.id}>
+                    <UiTableCell style={{ color: "var(--gray-12)" }} className="px-3 py-2.5 whitespace-nowrap">{formatDate(mov.fecha)}</UiTableCell>
+                    <UiTableCell className="px-3 py-2.5">
+                      <Badge variant="soft" color={mov.tipo === 'ingreso' ? 'green' : 'red'} size="1">
                         {mov.tipo === 'ingreso' ? 'Ingreso' : 'Egreso'}
-                      </UiText>
+                      </Badge>
                     </UiTableCell>
-                    <UiTableCell {...{"style":{"color":"var(--gray-12)"},"className":"px-3 py-2.5"}}>{mov.documento?.tipo}<br /><UiText {...{"color":"gray"}}>{mov.documento?.numero}</UiText></UiTableCell>
-                    <UiTableCell {...{"style":{"color":"var(--gray-12)"},"className":"px-3 py-2.5"}}>{mov.tercero?.nombre}<br /><UiText {...{"color":"gray"}}>{mov.tercero?.ruc}</UiText></UiTableCell>
-                    <UiTableCell {...{"className":"px-3 py-2.5 hidden sm:table-cell"}}>
-                      <UiText {...{"size":"1","color":"gray","className":"inline-flex px-1.5 py-0.5"}}>
-                        {mov.partidas?.[0]?.categoria?.replace(/_/g, ' ') || '-'}
-                      </UiText>
+                    <UiTableCell style={{ color: "var(--gray-12)" }} className="px-3 py-2.5 text-xs">
+                      <span className="font-medium">{mov.documento?.tipo}</span><br />
+                      <span style={{ fontFamily: "var(--code-font-family)", color: "var(--gray-11)" }}>{mov.documento?.numero}</span>
                     </UiTableCell>
-                    <UiTableCell {...{"style":{"color":"var(--gray-12)"},"className":"px-3 py-2.5 text-right"}}>{formatCurrency(mov.monto)}</UiTableCell>
-                    <UiTableCell {...{"className":"px-3 py-2.5 text-right hidden md:table-cell"}}>
-                      <UiText {...(Number(mov.saldoPendiente) > 0 ? {"color":"amber","weight":"medium"} : {"color":"gray"})}>
+                    <UiTableCell style={{ color: "var(--gray-12)" }} className="px-3 py-2.5 text-xs">
+                      <span className="font-medium">{mov.tercero?.nombre}</span><br />
+                      <span style={{ color: "var(--gray-11)" }}>{mov.tercero?.ruc}</span>
+                    </UiTableCell>
+                    <UiTableCell className="px-3 py-2.5 hidden sm:table-cell text-xs" style={{ color: "var(--gray-11)" }}>
+                      {mov.partidas?.[0]?.categoria?.replace(/_/g, ' ') || '-'}
+                    </UiTableCell>
+                    <UiTableCell style={{ fontFamily: "var(--code-font-family)", color: "var(--gray-12)" }} className="px-3 py-2.5 text-right font-medium">{formatCurrency(mov.monto)}</UiTableCell>
+                    <UiTableCell className="px-3 py-2.5 text-right hidden md:table-cell">
+                      <span style={{ fontFamily: "var(--code-font-family)", color: Number(mov.saldoPendiente) > 0 ? "var(--amber-11)" : "var(--gray-11)" }} className="font-medium">
                         {formatCurrency(mov.saldoPendiente)}
-                      </UiText>
+                      </span>
                     </UiTableCell>
-                    <UiTableCell {...{"className":"px-3 py-2.5 text-center"}}>
-                      <UiText {...mergeThemeProps({"size":"1","weight":"medium","className":"inline-flex px-1.5 py-0.5"}, {}, resolveThemeProps(ESTADO_BADGES[mov.estado]))}>
+                    <UiTableCell className="px-3 py-2.5 text-center">
+                      <Badge variant="soft" color={mov.estado === 'pagado' ? 'green' : mov.estado === 'pendiente' ? 'amber' : mov.estado === 'parcial' ? 'blue' : 'red'} size="1">
                         {mov.estado}
-                      </UiText>
+                      </Badge>
                     </UiTableCell>
-                    <UiTableCell {...{"className":"px-3 py-2.5"}}>
-                      <UiBox {...{"className":"flex items-center justify-end gap-1"}}>
-                        <UiButton iconOnly onClick={() => setShowDetalle(mov)} title="Ver detalle" {...{"variant":"surface","color":"blue","className":"w-7"}}><Eye size={14} /></UiButton>
+                    <UiTableCell className="px-3 py-2.5">
+                      <UiBox className="flex items-center justify-end gap-1">
+                        <UiButton iconOnly variant="soft" color="amber" size="1" onClick={() => setShowDetalle(mov)} title="Ver detalle"><Eye size={13} /></UiButton>
                         {mov.origen === 'finanzas' && mov.estado !== 'anulado' && (
-                          <UiButton iconOnly onClick={() => { setEditingMov(mov); setShowForm(true); }} title="Editar" {...{"variant":"surface","color":"blue","className":"w-7"}}><Edit2 size={14} /></UiButton>
+                          <UiButton iconOnly variant="soft" color="gray" size="1" onClick={() => { setEditingMov(mov); setShowForm(true); }} title="Editar"><Edit2 size={13} /></UiButton>
                         )}
                         {(mov.estado === 'pendiente' || mov.estado === 'parcial') && (
-                          <UiButton iconOnly onClick={() => setShowAbono(mov)} title="Abonar" {...{"variant":"surface","color":"blue","className":"w-7"}}><Wallet size={14} /></UiButton>
+                          <UiButton iconOnly variant="soft" color="blue" size="1" onClick={() => setShowAbono(mov)} title="Abonar"><Wallet size={13} /></UiButton>
                         )}
                         {mov.estado !== 'anulado' && (
-                          <UiButton iconOnly onClick={() => handleAnular(mov.id)} title="Anular" {...{"variant":"surface","color":"red","className":"w-7"}}><Trash2 size={14} /></UiButton>
+                          <UiButton iconOnly variant="soft" color="red" size="1" onClick={() => handleAnular(mov.id)} title="Anular"><Trash2 size={13} /></UiButton>
                         )}
                       </UiBox>
                     </UiTableCell>

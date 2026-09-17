@@ -5,6 +5,7 @@ import { UiButton, UiSelect, UiInput, UiTable, UiTableHeader, UiTableRow, UiTabl
 import { useState, useEffect, useCallback } from 'react';
 import { Download, Plus, Building2, Wallet, ArrowDownLeft, ArrowUpRight, Link2, Link2Off, Trash2, X, Filter, Sparkles, CheckCircle } from 'lucide-react';
 import { getCuentas, crearCuenta, actualizarCuenta, eliminarCuenta, getMovimientosBancarios, registrarMovimientoBancario, eliminarMovimientoBancario, conciliarMovimiento, desconciliarMovimiento, getResumenBancos, conciliacionAutomatica } from '../../services/bancosService';
+import { Badge } from '../ui/badge';
 
 const TIPO_BADGES = {
   banco: {"style":{"backgroundColor":"var(--blue-3)","color":"var(--blue-11)"}},
@@ -303,34 +304,32 @@ export default function BancosCajaView({ db, usuario, showToast }) {
                 </UiTableHeader>
                 <UiTableBody>
                   {movimientos.map(mov => (
-                    <UiTableRow key={mov.id} {...mergeThemeProps({}, {}, (mov.conciliado ? {"className":"opacity-70"} : {}))}>
-                      <UiTableCell {...{"style":{"color":"var(--gray-12)"},"className":"px-3 py-2.5 whitespace-nowrap"}}>{formatDate(mov.fecha)}</UiTableCell>
-                      <UiTableCell {...{"className":"px-3 py-2.5 text-center"}}>
-                        {mov.tipo === 'credito'
-                          ? <UiText {...{"size":"1","color":"green","weight":"medium","className":"inline-flex items-center gap-1"}}><ArrowDownLeft size={12} />Crédito</UiText>
-                          : <UiText {...{"size":"1","color":"red","weight":"medium","className":"inline-flex items-center gap-1"}}><ArrowUpRight size={12} />Débito</UiText>
-                        }
+                    <UiTableRow key={mov.id}>
+                      <UiTableCell style={{ color: "var(--gray-12)" }} className="px-3 py-2.5 whitespace-nowrap">{formatDate(mov.fecha)}</UiTableCell>
+                      <UiTableCell className="px-3 py-2.5 text-center">
+                        <Badge variant="soft" color={mov.tipo === 'credito' ? 'green' : 'red'} size="1">
+                          {mov.tipo === 'credito' ? <><ArrowDownLeft size={10} className="mr-1 inline" />Crédito</> : <><ArrowUpRight size={10} className="mr-1 inline" />Débito</>}
+                        </Badge>
                       </UiTableCell>
-                      <UiTableCell {...{"style":{"color":"var(--gray-12)"},"className":"px-3 py-2.5"}}>{mov.descripcion || '-'}</UiTableCell>
-                      <UiTableCell {...{"style":{"color":"var(--gray-11)"},"className":"px-3 py-2.5 hidden sm:table-cell"}}>{mov.referencia || '-'}</UiTableCell>
-                      <UiTableCell {...mergeThemeProps({"className":"px-3 py-2.5 text-right"}, {}, (mov.tipo === 'credito' ? {"style":{"color":"var(--green-12)"}} : {"style":{"color":"var(--red-12)"}}))}>
+                      <UiTableCell style={{ color: "var(--gray-12)" }} className="px-3 py-2.5">{mov.descripcion || '-'}</UiTableCell>
+                      <UiTableCell style={{ color: "var(--gray-11)" }} className="px-3 py-2.5 hidden sm:table-cell">{mov.referencia || '-'}</UiTableCell>
+                      <UiTableCell style={{ fontFamily: "var(--code-font-family)", color: mov.tipo === 'credito' ? "var(--green-11)" : "var(--red-11)" }} className="px-3 py-2.5 text-right font-medium">
                         {mov.tipo === 'credito' ? '+' : '-'}{formatCurrency(mov.monto)}
                       </UiTableCell>
-                      <UiTableCell {...{"className":"px-3 py-2.5 text-center"}}>
-                        {mov.conciliado
-                          ? <UiText {...{"size":"1","weight":"medium","color":"green","className":"inline-flex items-center gap-1"}}><Link2 size={10} />Sí</UiText>
-                          : <UiText {...{"size":"1","weight":"medium","color":"gray","className":"inline-flex items-center gap-1"}}><Link2Off size={10} />No</UiText>
-                        }
+                      <UiTableCell className="px-3 py-2.5 text-center">
+                        <Badge variant="soft" color={mov.conciliado ? 'green' : 'gray'} size="1">
+                          {mov.conciliado ? <><Link2 size={10} className="mr-1 inline" />Sí</> : <><Link2Off size={10} className="mr-1 inline" />No</>}
+                        </Badge>
                       </UiTableCell>
-                      <UiTableCell {...{"className":"px-3 py-2.5"}}>
-                        <UiBox {...{"className":"flex justify-end gap-1"}}>
+                      <UiTableCell className="px-3 py-2.5">
+                        <UiBox className="flex justify-end gap-1">
                           {!mov.conciliado && (
-                            <UiButton iconOnly onClick={() => handleConciliar(mov.id)} title="Conciliar" {...{"variant":"surface","color":"gray","className":"w-6"}}><Link2 size={12} /></UiButton>
+                            <UiButton iconOnly variant="soft" color="blue" size="1" onClick={() => handleConciliar(mov.id)} title="Conciliar"><Link2 size={13} /></UiButton>
                           )}
                           {mov.conciliado && (
-                            <UiButton iconOnly onClick={() => handleDesconciliar(mov.id)} title="Desconciliar" {...{"variant":"surface","color":"gray","className":"w-6"}}><Link2Off size={12} /></UiButton>
+                            <UiButton iconOnly variant="soft" color="gray" size="1" onClick={() => handleDesconciliar(mov.id)} title="Desconciliar"><Link2Off size={13} /></UiButton>
                           )}
-                          <UiButton iconOnly onClick={() => handleEliminarMov(mov.id)} title="Eliminar" {...{"variant":"surface","color":"gray","className":"w-6"}}><Trash2 size={12} /></UiButton>
+                          <UiButton iconOnly variant="soft" color="red" size="1" onClick={() => handleEliminarMov(mov.id)} title="Eliminar"><Trash2 size={13} /></UiButton>
                         </UiBox>
                       </UiTableCell>
                     </UiTableRow>

@@ -5,6 +5,7 @@ import { UiButton, UiInput, UiSelect, UiTable, UiTableHeader, UiTableRow, UiTabl
 import { useState, useEffect, useCallback } from 'react';
 import { Search, Download, FileText, Wallet, TrendingUp, AlertTriangle, Clock, BookOpen } from 'lucide-react';
 import { getCxP, getAging, registrarPago, getResumenCxP } from '../../services/cxpService';
+import { Badge } from '../ui/badge';
 
 const ESTADO_BADGES = {
   pendiente: {"style":{"backgroundColor":"var(--amber-3)","color":"var(--amber-11)"}},
@@ -173,13 +174,15 @@ export default function CuentasPorPagarView({ db, usuario, showToast }) {
                         {item.diasVencido > 0 ? item.diasVencido : '-'}
                       </UiText>
                     </UiTableCell>
-                    <UiTableCell {...{"className":"px-3 py-2.5 text-center"}}>
-                      <UiText {...mergeThemeProps({"size":"1","weight":"medium","className":"inline-flex px-1.5 py-0.5"}, {}, (ESTADO_BADGES[item.estado] || resolveThemeProps(ESTADO_BADGES.pendiente)))}>{item.estado}</UiText>
+                    <UiTableCell className="px-3 py-2.5 text-center">
+                      <Badge variant="soft" color={item.estado === 'pagado' ? 'green' : item.estado === 'pendiente' ? 'amber' : item.estado === 'vencido' ? 'red' : 'blue'} size="1">
+                        {item.estado}
+                      </Badge>
                     </UiTableCell>
-                    <UiTableCell {...{"className":"px-3 py-2.5"}}>
-                      <UiBox {...{"className":"flex justify-end"}}>
+                    <UiTableCell className="px-3 py-2.5">
+                      <UiBox className="flex justify-end">
                         {(item.estado === 'pendiente' || item.estado === 'parcial' || item.estado === 'vencido') && (
-                          <UiButton iconOnly onClick={async () => {
+                          <UiButton iconOnly variant="soft" color="blue" size="1" onClick={async () => {
                             if (!window.confirm(`¿Registrar pago a ${item.tercero?.nombre}?`)) return;
                             const monto = prompt('Monto del pago:', String(item.saldoPendiente));
                             if (!monto || Number(monto) <= 0) return;
@@ -188,8 +191,8 @@ export default function CuentasPorPagarView({ db, usuario, showToast }) {
                               showToast('Pago registrado', 'success');
                               cargar();
                             } catch (e) { showToast('Error: ' + e.message, 'error'); }
-                          }} title="Registrar pago" {...{"variant":"surface","color":"blue","className":"w-7"}}>
-                            <Wallet size={14} />
+                          }} title="Registrar pago">
+                            <Wallet size={13} />
                           </UiButton>
                         )}
                       </UiBox>
