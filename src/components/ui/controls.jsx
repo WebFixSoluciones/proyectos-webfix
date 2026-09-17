@@ -3,13 +3,25 @@ import { Button, IconButton, Checkbox, Radio, Select, TextField, TextArea, Table
 import { cn } from '../../lib/utils';
 
 // Keep native form events, names, validation and refs used by business modules.
-export const UiButton = forwardRef(function UiButton({ className, children, type = 'button', iconOnly, variant = 'soft', style, ...props }, ref) {
+export const UiButton = forwardRef(function UiButton({ className, children, type = 'button', iconOnly, variant = 'soft', style, asChild = false, ...props }, ref) {
   const Component = iconOnly ? IconButton : Button;
   const stacked = className?.split(/\s+/).includes('flex-col');
-  return <Component ref={ref} type={type} variant={variant} className={className} style={{ ...(stacked ? { height: 'auto', minHeight: 'var(--space-8)', padding: 'var(--space-3)' } : {}), ...style }} {...props}>{children}</Component>;
+  return (
+    <Component
+      ref={ref}
+      asChild={asChild}
+      type={asChild ? undefined : type}
+      variant={variant}
+      className={className}
+      style={{ ...(stacked ? { height: 'auto', minHeight: 'var(--space-8)', padding: 'var(--space-3)' } : {}), ...style }}
+      {...props}
+    >
+      {children}
+    </Component>
+  );
 });
 
-export const UiInput = forwardRef(function UiInput({ className, type = 'text', size = '2', ...props }, ref) {
+export const UiInput = forwardRef(function UiInput({ className, type = 'text', size = '2', iconPrefix, iconSuffix, children, ...props }, ref) {
   if (type === 'checkbox') {
     const { onChange, checked, defaultChecked, ...rest } = props;
     return <Checkbox ref={ref} className={className} checked={checked} defaultChecked={defaultChecked} {...rest} onCheckedChange={next => {
@@ -21,7 +33,17 @@ export const UiInput = forwardRef(function UiInput({ className, type = 'text', s
   if (['file', 'range', 'color', 'hidden', 'submit', 'reset', 'button', 'image'].includes(type)) {
     return <input ref={ref} type={type} size={size} className={cn('webfix-native-input', className)} {...props} />;
   }
-  return <TextField.Root ref={ref} type={type} size={['1', '2', '3'].includes(String(size)) ? String(size) : '2'} variant="surface" className={cn('w-full', className)} {...props} />;
+  const radixSize = ['1', '2', '3'].includes(String(size)) ? String(size) : '2';
+  if (iconPrefix || iconSuffix || children) {
+    return (
+      <TextField.Root ref={ref} type={type} size={radixSize} variant="surface" className={cn('w-full', className)} {...props}>
+        {iconPrefix && <TextField.Slot side="left">{iconPrefix}</TextField.Slot>}
+        {children}
+        {iconSuffix && <TextField.Slot side="right">{iconSuffix}</TextField.Slot>}
+      </TextField.Root>
+    );
+  }
+  return <TextField.Root ref={ref} type={type} size={radixSize} variant="surface" className={cn('w-full', className)} {...props} />;
 });
 
 export const UiTextarea = forwardRef(function UiTextarea({ className, ...props }, ref) {
