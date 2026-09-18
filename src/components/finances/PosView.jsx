@@ -2262,21 +2262,11 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                 </UiBox>
                 <UiBox {...{"className":"space-y-2"}}>
                   <UiSelect
-                    value={selectedGeneralDiscount?.id === 'manual' ? 'manual' : (selectedGeneralDiscount?.id || '')} 
+                    value={selectedGeneralDiscount?.id || ''} 
                     onChange={e => {
                       const discId = e.target.value;
                       if (!discId) {
                         setSelectedGeneralDiscount(null);
-                        return;
-                      }
-                      if (discId === 'manual') {
-                        const val = parseFloat(manualGeneralDiscValue) || 0;
-                        setSelectedGeneralDiscount({
-                          id: 'manual',
-                          nombre: `Manual (${manualGeneralDiscType === 'PORCENTAJE' ? `${val}%` : `$${val}`})`,
-                          tipo_valor: manualGeneralDiscType,
-                          valor: val
-                        });
                         return;
                       }
                       const disc = discounts.find(d => d.id === discId);
@@ -2299,61 +2289,13 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                     }} 
                     {...{"size":"2","color":"gray","className":"w-full cursor-pointer"}}
                   >
-                    <option value="">-- Seleccionar Descuento General --</option>
-                    <option value="manual">⚡ Descuento Manual (% o $)</option>
+                    <option value="">-- Sin Descuento General --</option>
                     {getActiveDiscounts('VENTA').map(d => (
                       <option key={d.id} value={d.id}>
-                        {d.nombre} ({d.tipo_valor === 'PORCENTAJE' ? `${d.valor}%` : `$${d.valor}`})
+                        {d.nombre} ({d.tipo_valor === 'PORCENTAJE' ? `${d.valor}%` : (d.tipo_valor === 'SIN_IVA' ? 'Sin IVA' : `$${d.valor}`)})
                       </option>
                     ))}
                   </UiSelect>
-
-                  {/* Inputs para Descuento Manual General */}
-                  {selectedGeneralDiscount?.id === 'manual' && (
-                    <UiBox className="flex items-center gap-2 pt-1">
-                      <UiSelect
-                        value={manualGeneralDiscType}
-                        onChange={e => {
-                          const newType = e.target.value;
-                          setManualGeneralDiscType(newType);
-                          const val = parseFloat(manualGeneralDiscValue) || 0;
-                          setSelectedGeneralDiscount({
-                            id: 'manual',
-                            nombre: `Manual (${newType === 'PORCENTAJE' ? `${val}%` : `$${val}`})`,
-                            tipo_valor: newType,
-                            valor: val
-                          });
-                        }}
-                        size="1"
-                        color="gray"
-                        className="w-24 cursor-pointer"
-                      >
-                        <option value="PORCENTAJE">% Porc.</option>
-                        <option value="MONTO_FIJO">$ Monto</option>
-                      </UiSelect>
-                      <UiInput
-                        type="number"
-                        min="0"
-                        step={manualGeneralDiscType === 'PORCENTAJE' ? '1' : '0.01'}
-                        value={manualGeneralDiscValue}
-                        onChange={e => {
-                          const newVal = e.target.value;
-                          setManualGeneralDiscValue(newVal);
-                          const val = parseFloat(newVal) || 0;
-                          setSelectedGeneralDiscount({
-                            id: 'manual',
-                            nombre: `Manual (${manualGeneralDiscType === 'PORCENTAJE' ? `${val}%` : `$${val}`})`,
-                            tipo_valor: manualGeneralDiscType,
-                            valor: val
-                          });
-                        }}
-                        size="1"
-                        color="gray"
-                        placeholder="0"
-                        className="flex-1 font-mono"
-                      />
-                    </UiBox>
-                  )}
 
                   {selectedGeneralDiscount && (
                     <UiBox {...{"style":{"color":"var(--gray-11)","backgroundColor":"var(--indigo-3)","borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"flex justify-between items-center p-2"}}>
@@ -3852,57 +3794,6 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                 </UiButton>
               </UiBox>
               <UiBox className="p-4 space-y-3 max-h-[420px] overflow-y-auto custom-scrollbar">
-                {/* Descuento Manual Directo */}
-                <UiCard style={{ backgroundColor: 'var(--gray-2)', border: '1px solid var(--gray-a6)' }} className="p-3 space-y-2">
-                  <UiText size="1" weight="bold" color="gray" highContrast>⚡ Descuento Manual Directo</UiText>
-                  <div className="flex items-center gap-2">
-                    <UiSelect
-                      value={manualLineDiscType}
-                      onChange={e => setManualLineDiscType(e.target.value)}
-                      size="2"
-                      color="gray"
-                      className="w-28 cursor-pointer"
-                    >
-                      <option value="PORCENTAJE">% Porc.</option>
-                      <option value="MONTO_FIJO">$ Monto</option>
-                    </UiSelect>
-                    <UiInput
-                      type="number"
-                      min="0"
-                      step={manualLineDiscType === 'PORCENTAJE' ? '1' : '0.01'}
-                      value={manualLineDiscValue}
-                      onChange={e => setManualLineDiscValue(e.target.value)}
-                      size="2"
-                      color="gray"
-                      placeholder="0"
-                      className="flex-1 font-mono"
-                    />
-                    <UiButton
-                      type="button"
-                      size="2"
-                      variant="solid"
-                      color="blue"
-                      onClick={() => {
-                        const val = parseFloat(manualLineDiscValue) || 0;
-                        if (val <= 0) return;
-                        setCart(cart.map(i => i.productId === selectedLineItemForDiscount.productId ? {
-                          ...i,
-                          id_descuento_aplicado: 'manual',
-                          id_promocion_aplicada: '',
-                          discount_value: val,
-                          discount_type: manualLineDiscType,
-                          itemDiscount: manualLineDiscType === 'PORCENTAJE' ? 0 : val
-                        } : i));
-                        showToast(`Descuento manual de ${manualLineDiscType === 'PORCENTAJE' ? `${val}%` : `$${val}`} aplicado`, "success");
-                        setSelectedLineItemForDiscount(null);
-                        setManualLineDiscValue('');
-                      }}
-                    >
-                      Aplicar
-                    </UiButton>
-                  </div>
-                </UiCard>
-
                 {/* Option 1: None */}
                 <UiButton
                   type="button"

@@ -142,6 +142,14 @@ export function calculateTransactionTotals(items = [], generalDiscount = null) {
     
     descuentoLinea = roundMoney(Math.max(0, Math.min(subtotalBruto, descuentoLinea)));
 
+    // Monto de descuento equivalente en PVP comercial (ej. IVA completo $30.00)
+    let descuentoPvp = descuentoLinea;
+    if (appliedDiscountType === 'SIN_IVA') {
+      descuentoPvp = roundMoney(cantidad * precioBaseUnitario * tarifaIva);
+    } else if (appliedDiscountType === 'PORCENTAJE') {
+      descuentoPvp = roundMoney(descuentoLinea * (1 + tarifaIva));
+    }
+
     // Paso 4 - Subtotal neto de línea
     const subtotalNetoLinea = roundMoney(subtotalBruto - descuentoLinea);
 
@@ -153,6 +161,7 @@ export function calculateTransactionTotals(items = [], generalDiscount = null) {
       precio_base_unitario: precioBaseUnitario,
       subtotal_bruto: subtotalBruto,
       monto_descuento_linea: descuentoLinea,
+      monto_descuento_pvp: descuentoPvp,
       subtotal_neto_linea: subtotalNetoLinea,
       tarifa_iva: tarifaIva
     };
@@ -219,6 +228,7 @@ export function calculateTransactionTotals(items = [], generalDiscount = null) {
     items: finalItems,
     subtotalBruto: processedItems.reduce((acc, item) => acc + item.subtotal_bruto, 0),
     descuentosProducto: processedItems.reduce((acc, item) => acc + item.monto_descuento_linea, 0),
+    descuentosProductoPvp: processedItems.reduce((acc, item) => acc + (item.monto_descuento_pvp || item.monto_descuento_linea), 0),
     subtotalGeneralNeto: subtotalGeneralNeto,
     descuentoVenta: montoDescuentoVenta,
     baseImponible: totalNetoFinal,

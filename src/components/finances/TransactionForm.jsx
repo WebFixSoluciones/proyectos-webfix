@@ -536,33 +536,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     const hasItems = formData.items && formData.items.length > 0;
     
     if (hasItems) {
-      // Normalizar items del carrito administrativo
-      const normalizedItems = (formData.items || []).map(item => {
-        let disc = null;
-        if (item.id_descuento_asociado) {
-          disc = (discounts || []).find(d => d.id === item.id_descuento_asociado);
-        }
-        if (!disc && item.categoryId) {
-          const cat = dbCategories.find(c => c.id === item.categoryId);
-          if (cat && cat.id_descuento_asociado) {
-            disc = (discounts || []).find(d => d.id === cat.id_descuento_asociado);
-          }
-        }
-        return {
-          ...item,
-          price: Number(item.price) || 0,
-          quantity: Number(item.quantity) || 1,
-          tax_mode: item.tax_mode || 'EXCLUIDO',
-          tarifa_iva: taxRateFor(item),
-          id_descuento_aplicado: item.id_descuento_aplicado || '',
-          id_promocion_aplicada: item.id_promocion_aplicada || '',
-          discount_value: Number(item.discount_value) || Number(item.itemDiscount) || 0,
-          discount_type: item.discount_type || 'PORCENTAJE',
-          descuento_objeto: item.id_descuento_aplicado ? ((discounts || []).find(d => d.id === item.id_descuento_aplicado) || item.descuento_objeto || null) : disc
-        };
-      });
-
-      const totals = calculateTransactionTotals(normalizedItems, selectedGeneralDiscount);
+      const normalized = normalizeCartItems(formData.items);
+      const totals = calculateTransactionTotals(normalized, selectedGeneralDiscount);
       
       const retFuente = Number(formData.retencionFuente) || 0;
       const retIva = Number(formData.retencionIva) || 0;
@@ -600,10 +575,49 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     selectedGeneralDiscount
   ]);
 
-  const invoiceItems = () => calculateTransactionTotals((formData.items || []).map(item => {
-    const id = item.id_descuento_aplicado || item.id_descuento_asociado || dbCategories.find(c => c.id === item.categoryId)?.id_descuento_asociado;
-    return { ...item, descuento_objeto: discounts.find(d => d.id === id) || item.descuento_objeto || null };
-  }), selectedGeneralDiscount).items;
+  const normalizeCartItems = (items = []) => (items || []).map(item => {
+    let disc = null;
+    if (item.id_descuento_asociado) {
+      disc = (discounts || []).find(d => d.id === item.id_descuento_asociado);
+    }
+    if (!disc && item.categoryId) {
+      const cat = dbCategories.find(c => c.id === item.categoryId);
+      if (cat && cat.id_descuento_asociado) {
+        disc = (discounts || []).find(d => d.id === cat.id_descuento_asociado);
+      }
+    }
+    let effectiveDisc = null;
+    if (item.id_descuento_aplicado === 'manual') {
+      effectiveDisc = {
+        id: 'manual',
+        manual: true,
+        nombre: item.discount_type === 'SIN_IVA' ? 'Sin IVA' : 'Manual',
+        tipo_valor: item.discount_type || 'PORCENTAJE',
+        valor: Number(item.discount_value || 0),
+        metodo: 'SIEMPRE',
+        activo: true
+      };
+    } else if (item.id_descuento_aplicado) {
+      effectiveDisc = (discounts || []).find(d => d.id === item.id_descuento_aplicado) || item.descuento_objeto || null;
+    } else {
+      effectiveDisc = disc;
+    }
+    return {
+      ...item,
+      price: Number(item.price) || 0,
+      quantity: Number(item.quantity) || 1,
+      tax_mode: item.tax_mode || 'EXCLUIDO',
+      tarifa_iva: taxRateFor(item),
+      id_descuento_aplicado: item.id_descuento_aplicado || '',
+      id_promocion_aplicada: item.id_promocion_aplicada || '',
+      discount_value: Number(item.discount_value) || Number(item.itemDiscount) || 0,
+      discount_type: item.discount_type || 'PORCENTAJE',
+      descuento_objeto: effectiveDisc
+    };
+  });
+
+  const currentCartTotals = calculateTransactionTotals(normalizeCartItems(formData.items), selectedGeneralDiscount);
+  const invoiceItems = () => currentCartTotals.items;
 
   // Métodos para el desglose de retenciones
   const handleAddRetencion = () => {
@@ -2466,23 +2480,34 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                           <UiSelect
                             size="1"
                             color="gray"
-                            className="w-20"
+                            className="w-24 cursor-pointer"
                             value={selectedGeneralDiscount.tipo_valor}
-                            onChange={e => setSelectedGeneralDiscount(prev => ({ ...prev, tipo_valor: e.target.value }))}
+                            onChange={e => setSelectedGeneralDiscount(prev => ({ 
+                              ...prev, 
+                              tipo_valor: e.target.value,
+                              valor: e.target.value === 'SIN_IVA' ? 0 : prev.valor
+                            }))}
                           >
-                            <option value="PORCENTAJE">%</option>
-                            <option value="MONTO_FIJO">$</option>
+                            <option value="PORCENTAJE">% Porc.</option>
+                            <option value="MONTO_FIJO">$ Monto</option>
+                            <option value="SIN_IVA">Sin IVA</option>
                           </UiSelect>
-                          <UiInput
-                            size="1"
-                            color="gray"
-                            type="number"
-                            min="0"
-                            step={selectedGeneralDiscount.tipo_valor === 'PORCENTAJE' ? '1' : '0.01'}
-                            value={selectedGeneralDiscount.valor}
-                            onChange={e => setSelectedGeneralDiscount(prev => ({ ...prev, valor: parseFloat(e.target.value) || 0 }))}
-                            className="w-16 text-right font-mono"
-                          />
+                          {selectedGeneralDiscount.tipo_valor !== 'SIN_IVA' ? (
+                            <UiInput
+                              size="1"
+                              color="gray"
+                              type="number"
+                              min="0"
+                              step={selectedGeneralDiscount.tipo_valor === 'PORCENTAJE' ? '1' : '0.01'}
+                              value={selectedGeneralDiscount.valor}
+                              onChange={e => setSelectedGeneralDiscount(prev => ({ ...prev, valor: parseFloat(e.target.value) || 0 }))}
+                              className="w-16 text-right font-mono"
+                            />
+                          ) : (
+                            <UiText size="1" color="red" weight="bold" className="text-xs px-1">
+                              -100% IVA
+                            </UiText>
+                          )}
                         </div>
                       )}
                     </UiBox>
@@ -2516,12 +2541,17 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         </UiTableHeader>
                         <UiTableBody {...mergeThemeProps({})}>
                           {(formData.items || []).map((item, index) => {
+                            const calcLine = currentCartTotals?.items?.[index] || item;
                             const lineBase = (parseFloat(item.price) || 0) * (parseInt(item.quantity) || 1);
-                            const discVal = Number(item.discount_value) || Number(item.itemDiscount) || 0;
-                            const lineDiscount = item.discount_type === 'PORCENTAJE' 
-                              ? lineBase * (discVal / 100) 
-                              : Math.min(lineBase, discVal);
-                            const subtotalLine = Math.max(0, lineBase - lineDiscount);
+                            const lineDiscount = calcLine.monto_descuento_linea || 0;
+                            const lineDiscountPvp = calcLine.monto_descuento_pvp || lineDiscount;
+                            const subtotalLine = calcLine.subtotal_neto_linea ?? Math.max(0, lineBase - lineDiscount);
+                            const hasDiscount = Boolean(
+                              calcLine.id_descuento_aplicado || 
+                              (calcLine.descuento_objeto && isDiscountScheduleActive(calcLine.descuento_objeto)) || 
+                              lineDiscount > 0 || 
+                              calcLine.discount_type === 'SIN_IVA'
+                            );
                             return (
                               <UiTableRow key={index}  {...{}}>
                                 <UiTableCell {...{"className":"px-[8px] py-[6px]"}}>
@@ -2574,19 +2604,23 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                                 </UiTableCell>
 
                                 {isEditable && (
-                                  <UiTableCell {...{"className":"px-[8px] py-[6px] text-center w-24 hidden sm:table-cell"}}>
+                                  <UiTableCell {...{"className":"px-[8px] py-[6px] text-center w-28 hidden sm:table-cell"}}>
                                     <UiBox {...{"className":"flex items-center justify-center gap-1.5"}}>
                                       <UiButton iconOnly
                                         type="button"
                                         onClick={() => setSelectedLineItemForDiscount({ ...item, cartIndex: index })}
-                                        {...mergeThemeProps({"variant":"outline","className":"flex items-center justify-center cursor-pointer"}, {}, (discVal > 0 ? {"variant":"solid","color":"red"} : {"variant":"surface","color":"gray"}))}
+                                        {...mergeThemeProps({"variant":"outline","className":"flex items-center justify-center cursor-pointer"}, {}, (hasDiscount ? {"variant":"solid","color":"red"} : {"variant":"surface","color":"gray"}))}
                                         title="Descuento del ítem"
                                       >
                                         <Percent size={12} />
                                       </UiButton>
-                                      {discVal > 0 && (
+                                      {hasDiscount && (
                                         <UiText {...{"size":"1","weight":"bold","color":"red"}}>
-                                          -{item.discount_type === 'PORCENTAJE' ? `${discVal}%` : `$${discVal}`}
+                                          {calcLine.discount_type === 'SIN_IVA' || calcLine.descuento_objeto?.tipo_valor === 'SIN_IVA'
+                                            ? `-IVA (-$${(lineDiscountPvp > 0 ? lineDiscountPvp : lineDiscount).toFixed(2)})`
+                                            : (calcLine.discount_type === 'PORCENTAJE' || calcLine.descuento_objeto?.tipo_valor === 'PORCENTAJE'
+                                                ? `-${calcLine.discount_value || calcLine.descuento_objeto?.valor || 0}%`
+                                                : `-$${lineDiscount.toFixed(2)}`)}
                                         </UiText>
                                       )}
                                     </UiBox>
@@ -2637,7 +2671,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     <UiText {...{"weight":"bold"}}>
                       ${formData.documentType === 'retencion' 
                         ? Number(formData.baseImponible).toFixed(2)
-                        : ((formData.items || []).reduce((a, it) => a + (parseFloat(it.price)||0)*(parseInt(it.quantity)||1), 0)).toFixed(2)
+                        : (currentCartTotals?.subtotalBruto ?? (formData.items || []).reduce((a, it) => a + (parseFloat(it.price)||0)*(parseInt(it.quantity)||1), 0)).toFixed(2)
                       }
                     </UiText>
                   </UiBox>
@@ -2645,24 +2679,17 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   {formData.documentType !== 'retencion' && (
                     <>
                       {/* Descuento por ítem */}
-                      {(formData.items || []).some(it => parseFloat(it.itemDiscount) > 0) && (
-                        <UiBox {...{"style":{"color":"var(--orange-11)"},"className":"flex justify-between"}}>
+                      {(currentCartTotals?.descuentosProducto > 0 || (currentCartTotals?.descuentosProductoPvp > 0)) && (
+                        <UiBox {...{"style":{"color":"var(--red-11)"},"className":"flex justify-between"}}>
                           <UiText {...{"weight":"bold"}}>Dto. por ítem:</UiText>
-                          <UiText {...{"weight":"bold"}}>-${(formData.items||[]).reduce((a,it) => a + Math.min((parseFloat(it.price)||0)*(parseInt(it.quantity)||1), parseFloat(it.itemDiscount)||0),0).toFixed(2)}</UiText>
+                          <UiText {...{"weight":"bold"}}>-${(currentCartTotals.descuentosProductoPvp || currentCartTotals.descuentosProducto).toFixed(2)}</UiText>
                         </UiBox>
                       )}
                       {/* Descuento general */}
-                      {parseFloat(generalDiscountValue) > 0 && (
-                        <UiBox {...{"style":{"color":"var(--orange-11)"},"className":"flex justify-between"}}>
+                      {currentCartTotals?.descuentoVenta > 0 && (
+                        <UiBox {...{"style":{"color":"var(--red-11)"},"className":"flex justify-between"}}>
                           <UiText {...{"weight":"bold"}}>Dto. general:</UiText>
-                          <UiText {...{"weight":"bold"}}>-${(() => {
-                            const rawSub = (formData.items||[]).reduce((a,it) => a+(parseFloat(it.price)||0)*(parseInt(it.quantity)||1), 0);
-                            const itemDiscs = (formData.items||[]).reduce((a,it) => a+Math.min((parseFloat(it.price)||0)*(parseInt(it.quantity)||1), parseFloat(it.itemDiscount)||0),0);
-                            const afterItem = Math.max(0, rawSub - itemDiscs);
-                            return generalDiscountType === 'percent'
-                              ? (afterItem * Math.min(100, parseFloat(generalDiscountValue)||0) / 100).toFixed(2)
-                              : Math.min(afterItem, parseFloat(generalDiscountValue)||0).toFixed(2);
-                          })()}</UiText>
+                          <UiText {...{"weight":"bold"}}>-${currentCartTotals.descuentoVenta.toFixed(2)}</UiText>
                         </UiBox>
                       )}
                       
@@ -3846,30 +3873,40 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       onChange={e => setManualLineDiscType(e.target.value)}
                       size="2"
                       color="gray"
-                      className="w-28 cursor-pointer"
+                      className="w-32 cursor-pointer"
                     >
                       <option value="PORCENTAJE">% Porc.</option>
                       <option value="MONTO_FIJO">$ Monto</option>
+                      <option value="SIN_IVA">Quitar IVA</option>
                     </UiSelect>
-                    <UiInput
-                      type="number"
-                      min="0"
-                      step={manualLineDiscType === 'PORCENTAJE' ? '1' : '0.01'}
-                      value={manualLineDiscValue}
-                      onChange={e => setManualLineDiscValue(e.target.value)}
-                      size="2"
-                      color="gray"
-                      placeholder="0"
-                      className="flex-1 font-mono"
-                    />
+                    {manualLineDiscType !== 'SIN_IVA' ? (
+                      <UiInput
+                        type="number"
+                        min="0"
+                        step={manualLineDiscType === 'PORCENTAJE' ? '1' : '0.01'}
+                        value={manualLineDiscValue}
+                        onChange={e => setManualLineDiscValue(e.target.value)}
+                        size="2"
+                        color="gray"
+                        placeholder="0"
+                        className="flex-1 font-mono"
+                      />
+                    ) : (
+                      <div className="flex-1 px-2 py-1 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 rounded text-center">
+                        <UiText size="1" weight="bold" color="red">
+                          -100% IVA del ítem
+                        </UiText>
+                      </div>
+                    )}
                     <UiButton
                       type="button"
                       size="2"
                       variant="solid"
                       color="blue"
                       onClick={() => {
-                        const val = parseFloat(manualLineDiscValue) || 0;
-                        if (val <= 0) return;
+                        const isSinIva = manualLineDiscType === 'SIN_IVA';
+                        const val = isSinIva ? 0 : (parseFloat(manualLineDiscValue) || 0);
+                        if (!isSinIva && val <= 0) return;
                         const idx = selectedLineItemForDiscount.cartIndex;
                         const updated = [...(formData.items || [])];
                         updated[idx] = {
@@ -3878,10 +3915,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                           id_promocion_aplicada: '',
                           discount_value: val,
                           discount_type: manualLineDiscType,
-                          itemDiscount: manualLineDiscType === 'PORCENTAJE' ? 0 : val
+                          itemDiscount: 0
                         };
                         setFormData(prev => ({ ...prev, items: updated }));
-                        showToast(`Descuento manual de ${manualLineDiscType === 'PORCENTAJE' ? `${val}%` : `$${val}`} aplicado`, "success");
+                        showToast(isSinIva ? "Descuento del IVA aplicado al ítem" : `Descuento manual de ${manualLineDiscType === 'PORCENTAJE' ? `${val}%` : `$${val}`} aplicado`, "success");
                         setSelectedLineItemForDiscount(null);
                         setManualLineDiscValue('');
                       }}
@@ -3936,6 +3973,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                               id_promocion_aplicada: d.promotionId || '',
                               discount_value: d.valor,
                               discount_type: d.tipo_valor,
+                              descuento_objeto: d,
                               itemDiscount: d.tipo_valor === 'PORCENTAJE' ? 0 : d.valor
                             };
                             setFormData(prev => ({ ...prev, items: updated }));

@@ -200,3 +200,51 @@ test('sequential number rollback restores configuration on emission abort', asyn
   assert.equal(data.get(configPath).secuencialFactura, 163);
 });
 
+test('volume discount A_PARTIR_DE with SIN_IVA applies on threshold and matches $200 invoice total', () => {
+  const zapatoDisc = {
+    id: 'desc_zapato_iva',
+    nombre: '2 o más pares Sin IVA',
+    activo: true,
+    metodo: 'A_PARTIR_DE',
+    cantidad_volumen: 2,
+    tipo_valor: 'SIN_IVA',
+    valor: 0
+  };
+
+  const itemUnitario = {
+    productId: 'zapato-01',
+    name: 'Zapato de Cuero',
+    price: 100,
+    quantity: 1,
+    tax_mode: 'EXCLUIDO',
+    tarifa_iva: 0.15,
+    descuento_objeto: zapatoDisc
+  };
+
+  // 1 par: no alcanza el umbral de 2 pares -> precio regular con IVA $115
+  const totals1 = calculateTransactionTotals([itemUnitario]);
+  assert.equal(totals1.subtotalBruto, 100);
+  assert.equal(totals1.descuentosProducto, 0);
+  assert.equal(totals1.ivaValor, 15);
+  assert.equal(totals1.total, 115);
+
+  // 2 pares: se activa descuento del IVA -> subtotal $200, descuento nominal $30, total factura $200
+  const itemVolumen = { ...itemUnitario, quantity: 2 };
+  const totals2 = calculateTransactionTotals([itemVolumen]);
+  assert.equal(totals2.subtotalBruto, 200);
+  assert.equal(totals2.descuentosProducto, 26.09);
+  assert.equal(totals2.items[0].monto_descuento_pvp, 30);
+  assert.equal(totals2.baseImponible, 173.91);
+  assert.equal(totals2.ivaValor, 26.09);
+  assert.equal(totals2.total, 200);
+
+  // Validación de emisión SRI para comprobante con descuento SIN_IVA
+  const emisor = { ruc: '1790012345001', ambiente: '1', establecimiento: '001', puntoEmision: '001', razonSocial: 'Empresa Test' };
+  const cliente = { name: 'Cliente Frecuente', ruc: '9999999999999', tipoIdentificacion: 'consumidor_final' };
+  const { xml } = generarFacturaXML(emisor, { date: '2026-09-17' }, cliente, [itemVolumen]);
+
+  assert.match(xml, /<precioTotalSinImpuesto>173.91<\/precioTotalSinImpuesto>/);
+  assert.match(xml, /<descuento>26.09<\/descuento>/);
+  assert.match(xml, /<importeTotal>200.00<\/importeTotal>/);
+});
+
