@@ -2210,21 +2210,29 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                   </UiBox>
 
                   {/* Subtotal, Botón Descuento e Ícono de Eliminar */}
-                  <UiBox {...{"className":"flex items-center gap-2.5 shrink-0"}}>
-                    <UiText {...{"weight":"bold","size":"1","color":"gray","highContrast":true,"className":"text-right min-w-[55px]"}}>
-                      {item.discount_value > 0 && (
-                        <UiText {...{"color":"gray","className":"line-through mr-1.5"}}>${(item.price * item.quantity).toFixed(2)}</UiText>
-                      )}
-                      ${(totalsResult.items?.[idx]?.subtotal_neto_linea || item.price * item.quantity).toFixed(2)}
-                    </UiText>
-                    <UiButton iconOnly
-                      type="button" 
-                      onClick={() => setSelectedLineItemForDiscount(item)} 
-                      {...mergeThemeProps({"variant":"outline","className":"flex items-center justify-center shrink-0 cursor-pointer"}, {}, (item.discount_value > 0 ? {"variant":"solid","color":"red"} : {"variant":"surface","color":"gray"}))}
-                      title="Descuento del ítem"
-                    >
-                      <Percent size={11} />
-                    </UiButton>
+                  {(() => {
+                    const calcLine = totalsResult.items?.[idx] || item;
+                    const lineDiscount = calcLine.monto_descuento_linea || 0;
+                    const hasDiscount = lineDiscount > 0 || calcLine.discount_type === 'SIN_IVA' || calcLine.discount_value > 0;
+                    return (
+                      <UiBox {...{"className":"flex items-center gap-2.5 shrink-0"}}>
+                        <UiText {...{"weight":"bold","size":"1","color":"gray","highContrast":true,"className":"text-right min-w-[55px]"}}>
+                          {hasDiscount && (
+                            <UiText {...{"color":"gray","className":"line-through mr-1.5"}}>${(item.price * item.quantity).toFixed(2)}</UiText>
+                          )}
+                          ${(calcLine.subtotal_neto_linea ?? (item.price * item.quantity)).toFixed(2)}
+                        </UiText>
+                        <UiButton iconOnly
+                          type="button" 
+                          onClick={() => setSelectedLineItemForDiscount(item)} 
+                          {...mergeThemeProps({"variant":"outline","className":"flex items-center justify-center shrink-0 cursor-pointer"}, {}, (hasDiscount ? {"variant":"solid","color":"red"} : {"variant":"surface","color":"gray"}))}
+                          title={hasDiscount ? `Descuento aplicado: -$${(calcLine.monto_descuento_pvp || lineDiscount).toFixed(2)}` : "Descuento del ítem"}
+                        >
+                          <Percent size={11} />
+                        </UiButton>
+                      </UiBox>
+                    );
+                  })()}
                     <UiButton iconOnly
                       type="button" 
                       onClick={() => removeFromCart(item.productId)} 
