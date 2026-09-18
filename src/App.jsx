@@ -991,7 +991,6 @@ export default function App() {
 
           {/* Right: Actions */}
           <UiBox className="flex items-center gap-2">
-
             {activeModules.ventas && (
               <UiButton
                 onClick={() => { setVentasInitialSubTab(`pos_${Date.now()}`); setActivePageId('ventas'); }} 
@@ -1010,26 +1009,13 @@ export default function App() {
               onClick={() => setIsGlobalChatOpen(!isGlobalChatOpen)} 
               size="2"
               variant={isGlobalChatOpen ? "solid" : "soft"}
-              color="gray"
+              color="indigo"
               className="flex items-center gap-1.5 duration-120 shrink-0 cursor-pointer font-medium"
-              title="Abrir Asistente AI"
+              title="Abrir Asistente IA"
             >
               <Sparkles size={14} />
-              <span className="hidden sm:inline">Asistente</span>
+              <span className="hidden sm:inline">Asistente IA</span>
             </UiButton>
-
-            <UiButton
-              iconOnly
-              variant="ghost"
-              color="gray"
-              size="2"
-              onClick={() => setActivePageId('general_settings')} 
-              className="cursor-pointer" 
-              title="Ajustes"
-            >
-              <Settings size={16} />
-            </UiButton>
-
           </UiBox>
         </UiBox>
 
