@@ -1016,6 +1016,18 @@ export default function App() {
               <Sparkles size={14} />
               <span className="hidden sm:inline">Asistente IA</span>
             </UiButton>
+
+            <UiButton
+              iconOnly
+              variant="ghost"
+              color="gray"
+              size="2"
+              onClick={() => setActivePageId('general_settings')} 
+              className="cursor-pointer" 
+              title="Configuración"
+            >
+              <Settings size={16} />
+            </UiButton>
           </UiBox>
         </UiBox>
 
