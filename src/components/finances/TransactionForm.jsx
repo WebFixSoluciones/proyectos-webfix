@@ -2429,19 +2429,51 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       <UiText {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"shrink-0"}}>Descuento General:</UiText>
                       <UiSelect
                         disabled={!isEditable}
-                        value={selectedGeneralDiscount?.id === 'manual' ? 'manual' : (selectedGeneralDiscount?.id || '')}
+                        value={(() => {
+                          if (!selectedGeneralDiscount) return '';
+                          if (selectedGeneralDiscount.id === 'manual' || selectedGeneralDiscount.manual) {
+                            if (selectedGeneralDiscount.tipo_valor === 'PORCENTAJE') return 'manual_porcentaje';
+                            if (selectedGeneralDiscount.tipo_valor === 'MONTO_FIJO') return 'manual_monto';
+                            if (selectedGeneralDiscount.tipo_valor === 'SIN_IVA') return 'manual_sin_iva';
+                            return 'manual_porcentaje';
+                          }
+                          return selectedGeneralDiscount.id || '';
+                        })()}
                         onChange={e => {
                           const discId = e.target.value;
                           if (!discId) {
                             setSelectedGeneralDiscount(null);
                             return;
                           }
-                          if (discId === 'manual') {
+                          if (discId === 'manual_porcentaje') {
                             setSelectedGeneralDiscount({
                               id: 'manual',
-                              nombre: 'Descuento Manual',
+                              manual: true,
+                              nombre: 'Descuento Manual (%)',
                               tipo_valor: 'PORCENTAJE',
-                              valor: 5,
+                              valor: selectedGeneralDiscount?.tipo_valor === 'PORCENTAJE' ? (selectedGeneralDiscount.valor ?? 5) : 5,
+                              activo: true
+                            });
+                            return;
+                          }
+                          if (discId === 'manual_monto') {
+                            setSelectedGeneralDiscount({
+                              id: 'manual',
+                              manual: true,
+                              nombre: 'Descuento Manual ($)',
+                              tipo_valor: 'MONTO_FIJO',
+                              valor: selectedGeneralDiscount?.tipo_valor === 'MONTO_FIJO' ? (selectedGeneralDiscount.valor ?? 5) : 5,
+                              activo: true
+                            });
+                            return;
+                          }
+                          if (discId === 'manual_sin_iva') {
+                            setSelectedGeneralDiscount({
+                              id: 'manual',
+                              manual: true,
+                              nombre: 'Descuento Sin IVA',
+                              tipo_valor: 'SIN_IVA',
+                              valor: 0,
                               activo: true
                             });
                             return;
@@ -2466,49 +2498,79 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         }}
                         {...{"size":"2","color":"gray","className":"cursor-pointer flex-1 min-w-[170px]"}}
                       >
-                        <option value="">-- Sin Descuento Venta --</option>
-                        <option value="manual">⚡ Descuento Manual (% o $)</option>
-                        {getActiveDiscounts('VENTA').map(d => (
-                          <option key={d.id} value={d.id}>
-                            {d.nombre} ({d.tipo_valor === 'PORCENTAJE' ? `${d.valor}%` : `$${d.valor}`})
-                          </option>
-                        ))}
+                        <option value="">-- Sin Descuento --</option>
+                        <option value="manual_porcentaje">Porcentaje (%)</option>
+                        <option value="manual_monto">Monto Fijo ($)</option>
+                        <option value="manual_sin_iva">Quitar IVA (Sin IVA)</option>
+                        {getActiveDiscounts('VENTA').length > 0 && (
+                          <optgroup label="Descuentos Predefinidos">
+                            {getActiveDiscounts('VENTA').map(d => (
+                              <option key={d.id} value={d.id}>
+                                {d.nombre} ({d.tipo_valor === 'PORCENTAJE' ? `${d.valor}%` : (d.tipo_valor === 'SIN_IVA' ? 'Sin IVA' : `$${d.valor}`)})
+                              </option>
+                            ))}
+                          </optgroup>
+                        )}
                       </UiSelect>
 
-                      {selectedGeneralDiscount?.id === 'manual' && isEditable && (
+                      {(selectedGeneralDiscount?.id === 'manual' || selectedGeneralDiscount?.manual) && isEditable && (
                         <div className="flex items-center gap-1.5 shrink-0 animate-in fade-in">
-                          <UiSelect
-                            size="1"
-                            color="gray"
-                            className="w-24 cursor-pointer"
-                            value={selectedGeneralDiscount.tipo_valor}
-                            onChange={e => setSelectedGeneralDiscount(prev => ({ 
-                              ...prev, 
-                              tipo_valor: e.target.value,
-                              valor: e.target.value === 'SIN_IVA' ? 0 : prev.valor
-                            }))}
-                          >
-                            <option value="PORCENTAJE">% Porc.</option>
-                            <option value="MONTO_FIJO">$ Monto</option>
-                            <option value="SIN_IVA">Sin IVA</option>
-                          </UiSelect>
-                          {selectedGeneralDiscount.tipo_valor !== 'SIN_IVA' ? (
-                            <UiInput
-                              size="1"
-                              color="gray"
-                              type="number"
-                              min="0"
-                              step={selectedGeneralDiscount.tipo_valor === 'PORCENTAJE' ? '1' : '0.01'}
-                              value={selectedGeneralDiscount.valor}
-                              onChange={e => setSelectedGeneralDiscount(prev => ({ ...prev, valor: parseFloat(e.target.value) || 0 }))}
-                              className="w-16 text-right font-mono"
-                            />
-                          ) : (
-                            <UiText size="1" color="red" weight="bold" className="text-xs px-1">
+                          {selectedGeneralDiscount.tipo_valor === 'PORCENTAJE' && (
+                            <div className="flex items-center gap-1">
+                              <UiInput
+                                size="1"
+                                color="gray"
+                                type="number"
+                                min="0"
+                                max="100"
+                                step="1"
+                                value={selectedGeneralDiscount.valor ?? ''}
+                                onChange={e => {
+                                  const val = e.target.value === '' ? '' : (parseFloat(e.target.value) || 0);
+                                  setSelectedGeneralDiscount(prev => ({ ...prev, valor: val }));
+                                }}
+                                className="w-16 text-right font-mono"
+                              />
+                              <UiText size="1" color="gray" weight="bold">%</UiText>
+                            </div>
+                          )}
+
+                          {selectedGeneralDiscount.tipo_valor === 'MONTO_FIJO' && (
+                            <div className="flex items-center gap-1">
+                              <UiText size="1" color="gray" weight="bold">$</UiText>
+                              <UiInput
+                                size="1"
+                                color="gray"
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={selectedGeneralDiscount.valor ?? ''}
+                                onChange={e => {
+                                  const val = e.target.value === '' ? '' : (parseFloat(e.target.value) || 0);
+                                  setSelectedGeneralDiscount(prev => ({ ...prev, valor: val }));
+                                }}
+                                className="w-20 text-right font-mono"
+                              />
+                            </div>
+                          )}
+
+                          {selectedGeneralDiscount.tipo_valor === 'SIN_IVA' && (
+                            <UiText size="1" color="red" weight="bold" className="text-xs px-2 py-0.5 rounded bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50">
                               -100% IVA
                             </UiText>
                           )}
                         </div>
+                      )}
+
+                      {selectedGeneralDiscount && isEditable && (
+                        <button
+                          type="button"
+                          onClick={() => setSelectedGeneralDiscount(null)}
+                          className="text-gray-400 hover:text-red-500 p-1 rounded cursor-pointer transition-colors"
+                          title="Quitar descuento"
+                        >
+                          <X size={13} />
+                        </button>
                       )}
                     </UiBox>
                     
