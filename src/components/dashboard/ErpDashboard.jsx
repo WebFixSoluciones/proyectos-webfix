@@ -1,12 +1,9 @@
-import { UiBox, UiHeading, UiText } from '../ui/layout';
-import { UiButton } from '../ui/controls';
+import { UiBox, UiHeading } from '../ui/layout';
 import { useState, useEffect } from 'react';
 import { 
-  ShoppingCart, FileText, ShoppingBag, Package, Users, Settings, 
-  CreditCard
+  ShoppingCart, FileText, ShoppingBag, Package, Users, CreditCard
 } from 'lucide-react';
 import { doc, onSnapshot } from 'firebase/firestore';
-import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
 
 export default function ErpDashboard({ 
   setActivePageId, 
@@ -93,75 +90,56 @@ export default function ErpDashboard({
       onClick: () => {
         setActivePageId('gastos_creditos');
       }
-    },
-    {
-      id: 'general_settings',
-      title: 'Ajustes SRI y Negocio',
-      subtitle: 'Firma electrónica .p12, datos fiscales y perfil',
-      icon: Settings,
-      onClick: () => {
-        setActivePageId('general_settings');
-      }
     }
   ];
 
   return (
-    <UiBox className="w-full max-w-6xl mx-auto py-8 px-4 sm:px-6 space-y-6 animate-in fade-in duration-300">
-      
-      {/* Bienvenida y Nombre de la Empresa configurada en Ajustes */}
-      <UiBox className="space-y-1">
-        <UiHeading as="h1" size="7" weight="bold" color="gray" highContrast className="tracking-tight">
-          Bienvenido, {companyName}
+    <UiBox className="flex flex-col items-center justify-center min-h-[72vh] w-full px-4 sm:px-6 py-10 animate-in fade-in duration-300">
+      <UiBox className="max-w-4xl w-full flex flex-col items-center text-center">
+        
+        {/* Titulo centrado */}
+        <UiHeading as="h1" size="8" weight="bold" color="gray" highContrast className="tracking-tight text-center mb-8 sm:mb-10">
+          Bienvenido, <span style={{ color: 'var(--blue-11)' }}>{companyName}</span>
         </UiHeading>
-        <UiText as="p" size="2" color="gray">
-          Selecciona un submódulo para comenzar tu jornada de trabajo
-        </UiText>
-      </UiBox>
 
-      {/* Presentación de Accesos Directos */}
-      <Card>
-        <CardHeader className="py-4 border-b border-[var(--gray-a4)]">
-          <CardTitle style={{ color: "var(--gray-12)" }} className="text-base font-semibold">
-            Accesos Directos
-          </CardTitle>
-          <UiText as="p" size="1" color="gray">
-            Navega a los submódulos principales
-          </UiText>
-        </CardHeader>
-        <CardContent className="p-6">
-          <UiBox className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-            {shortcutItems.map(item => {
-              const Icon = item.icon;
-              return (
-                <UiButton
-                  key={item.id}
-                  onClick={item.onClick}
-                  variant="surface"
-                  className="flex flex-col items-start duration-120 text-left cursor-pointer group p-4 hover:border-[var(--blue-a7)] hover:bg-[var(--gray-a2)] transition-all"
+        {/* Grid de 6 accesos directos flotantes sin contenedor exterior */}
+        <UiBox className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 w-full">
+          {shortcutItems.map(item => {
+            const Icon = item.icon;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={item.onClick}
+                style={{
+                  backgroundColor: 'var(--color-panel-solid)',
+                  border: '1px solid var(--gray-a5)',
+                  borderRadius: 'var(--radius-4)'
+                }}
+                className="group flex flex-col items-center justify-center p-6 sm:p-8 transition-all duration-200 hover:border-[var(--blue-9)] hover:shadow-md hover:-translate-y-1 cursor-pointer select-none text-center"
+              >
+                <div
+                  style={{
+                    backgroundColor: 'var(--blue-9)',
+                    color: '#ffffff',
+                    borderRadius: 'var(--radius-3)'
+                  }}
+                  className="p-3.5 sm:p-4 mb-3.5 flex items-center justify-center transition-transform duration-200 group-hover:scale-110 shadow-sm"
                 >
-                  <UiBox
-                    style={{
-                      borderRadius: "var(--radius-3)",
-                      backgroundColor: "var(--gray-a3)",
-                      color: "var(--gray-12)"
-                    }}
-                    className="p-2.5 mb-3 group-hover:bg-[var(--blue-a3)] group-hover:text-[var(--blue-11)] transition-colors"
-                  >
-                    <Icon size={18} />
-                  </UiBox>
-                  <UiText size="2" weight="bold" color="gray" highContrast className="group-hover:text-[var(--blue-11)] transition-colors">
-                    {item.title}
-                  </UiText>
-                  <UiText size="1" color="gray" className="mt-1 line-clamp-2">
-                    {item.subtitle}
-                  </UiText>
-                </UiButton>
-              );
-            })}
-          </UiBox>
-        </CardContent>
-      </Card>
+                  <Icon size={26} className="text-white" />
+                </div>
+                <span className="text-base sm:text-lg font-semibold text-[var(--gray-12)] group-hover:text-[var(--blue-11)] transition-colors">
+                  {item.title}
+                </span>
+                <span className="text-xs text-[var(--gray-10)] mt-1 line-clamp-1">
+                  {item.subtitle}
+                </span>
+              </button>
+            );
+          })}
+        </UiBox>
 
+      </UiBox>
     </UiBox>
   );
 }
