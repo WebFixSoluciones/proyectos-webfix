@@ -967,61 +967,30 @@ export default function App() {
             >
               <Menu size={18} />
             </UiButton>
-            <UiBox style={{ backgroundColor: "var(--gray-a4)" }} className="h-4 w-[1px] self-center hidden sm:block" />
-            <UiBox className="flex items-center gap-2.5">
-              <UiBox
-                style={{
-                  borderRadius: "var(--radius-2)",
-                  backgroundColor: "var(--gray-a3)",
-                  color: "var(--gray-12)"
-                }}
-                className="flex items-center justify-center p-1.5"
-              >
-                <IconRenderer name={headerDetails.icon} size={15} />
-              </UiBox>
-              <UiHeading as="h1" size="2" weight="bold" color="gray" highContrast className="leading-none text-sm">
-                {headerDetails.title}
-              </UiHeading>
-            </UiBox>
-          </UiBox>
-
-          {/* Center: Command Palette Trigger Search Pill */}
-          <UiBox 
-            onClick={() => setActivePageId('ventas')}
-            style={{
-              backgroundColor: "var(--gray-a2)",
-              border: "1px solid var(--gray-a5)",
-              borderRadius: "var(--radius-2)",
-              color: "var(--gray-11)"
-            }}
-            className="hidden md:flex items-center gap-2 px-3 py-1.5 cursor-pointer duration-120 max-w-xs w-full text-xs hover:border-[var(--gray-a7)] hover:bg-[var(--gray-a3)]"
-          >
-            <Search size={13} style={{ color: "var(--gray-10)" }} />
-            <span className="flex-1 text-left text-[13px] text-[var(--gray-11)]">Buscar comprobantes, clientes...</span>
-            <kbd
-              style={{
-                fontFamily: "var(--code-font-family)",
-                color: "var(--gray-11)",
-                backgroundColor: "var(--color-panel-solid)",
-                border: "1px solid var(--gray-a5)",
-                borderRadius: "var(--radius-1)"
-              }}
-              className="hidden lg:inline-block px-1.5 py-0.5 text-[10px]"
-            >
-              ⌘K
-            </kbd>
+            {activePageId !== 'dashboard' && (
+              <>
+                <UiBox style={{ backgroundColor: "var(--gray-a4)" }} className="h-4 w-[1px] self-center hidden sm:block" />
+                <UiBox className="flex items-center gap-2.5">
+                  <UiBox
+                    style={{
+                      borderRadius: "var(--radius-2)",
+                      backgroundColor: "var(--gray-a3)",
+                      color: "var(--gray-12)"
+                    }}
+                    className="flex items-center justify-center p-1.5"
+                  >
+                    <IconRenderer name={headerDetails.icon} size={15} />
+                  </UiBox>
+                  <UiHeading as="h1" size="2" weight="bold" color="gray" highContrast className="leading-none text-sm">
+                    {headerDetails.title}
+                  </UiHeading>
+                </UiBox>
+              </>
+            )}
           </UiBox>
 
           {/* Right: Actions */}
           <UiBox className="flex items-center gap-2">
-            {/* SRI Connection Badge */}
-            <Badge variant="soft" color="green" size="1" className="hidden lg:inline-flex items-center gap-1.5 py-1 px-2.5">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--green-9)] opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--green-9)]"></span>
-              </span>
-              <span className="font-medium text-[var(--green-11)]">Facturación electrónica</span>
-            </Badge>
 
             {activeModules.ventas && (
               <UiButton
