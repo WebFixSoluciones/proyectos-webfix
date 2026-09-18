@@ -1,7 +1,7 @@
 import { UiBox, UiHeading } from '../ui/layout';
 import { useState, useEffect } from 'react';
 import { 
-  ShoppingCart, FileText, ShoppingBag, Package, Users, CreditCard
+  ShoppingCart, FileText, Package, Users, CreditCard, Settings
 } from 'lucide-react';
 import { doc, onSnapshot } from 'firebase/firestore';
 
@@ -38,7 +38,7 @@ export default function ErpDashboard({
     {
       id: 'pos',
       title: 'Punto de Venta',
-      subtitle: 'Cobro rápido y ventas en mostrador (F12)',
+      subtitle: 'Cobro rápido (F12)',
       icon: ShoppingCart,
       onClick: () => {
         setVentasInitialSubTab && setVentasInitialSubTab('pos');
@@ -48,7 +48,7 @@ export default function ErpDashboard({
     {
       id: 'facturas_sri',
       title: 'Facturas SRI',
-      subtitle: 'Emisión, autorización y consulta de RIDE',
+      subtitle: 'Emisión y RIDE',
       icon: FileText,
       onClick: () => {
         setVentasInitialSubTab && setVentasInitialSubTab('resumen_ventas');
@@ -56,18 +56,9 @@ export default function ErpDashboard({
       }
     },
     {
-      id: 'compras',
-      title: 'Historial de Compras',
-      subtitle: 'Registro de facturas recibidas y proveedores',
-      icon: ShoppingBag,
-      onClick: () => {
-        setActivePageId('compras');
-      }
-    },
-    {
       id: 'inventario',
-      title: 'Inventario y Kardex',
-      subtitle: 'Control de existencias, productos y precios',
+      title: 'Inventario',
+      subtitle: 'Kardex y Stock',
       icon: Package,
       onClick: () => {
         setActivePageId('inventario');
@@ -75,8 +66,8 @@ export default function ErpDashboard({
     },
     {
       id: 'personas',
-      title: 'Clientes y Proveedores',
-      subtitle: 'Directorio fiscal de personas y RUC',
+      title: 'Clientes y Prov',
+      subtitle: 'Directorio RUC',
       icon: Users,
       onClick: () => {
         setActivePageId('personas');
@@ -84,11 +75,20 @@ export default function ErpDashboard({
     },
     {
       id: 'gastos_creditos',
-      title: 'Control Financiero',
-      subtitle: 'Flujo de caja, bancos, CxC y CxP',
+      title: 'Gastos y CxP',
+      subtitle: 'Control de egresos',
       icon: CreditCard,
       onClick: () => {
         setActivePageId('gastos_creditos');
+      }
+    },
+    {
+      id: 'general_settings',
+      title: 'Ajustes SRI',
+      subtitle: 'Firma .p12 y datos',
+      icon: Settings,
+      onClick: () => {
+        setActivePageId('general_settings');
       }
     }
   ];
