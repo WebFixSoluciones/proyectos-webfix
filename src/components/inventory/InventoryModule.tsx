@@ -38,12 +38,6 @@ const BRANCHES = [
 
 export default function InventoryModule({ initialSubTab, showToast }: InventoryModuleProps) {
   const [activeTab, setActiveTab] = useState('productos');
-
-  useEffect(() => {
-    if (initialSubTab) {
-      setActiveTab(initialSubTab);
-    }
-  }, [initialSubTab]);
   
   // Data lists
   const [products, setProducts] = useState<Product[]>([]);
@@ -93,6 +87,24 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
       }
     }, 100);
   };
+
+  useEffect(() => {
+    if (initialSubTab) {
+      if (typeof initialSubTab === 'string' && initialSubTab.startsWith('create_product')) {
+        setActiveTab('productos');
+        setInlineFormMode(null);
+        setShowProductTypeSelector(true);
+      } else if (typeof initialSubTab === 'string' && initialSubTab.startsWith('create_service')) {
+        setActiveTab('productos');
+        setShowProductTypeSelector(false);
+        setInlineFormMode('create_service');
+        setEditingProduct(null);
+        scrollToForm();
+      } else {
+        setActiveTab(initialSubTab);
+      }
+    }
+  }, [initialSubTab]);
 
   // Load basic catalog data
   useEffect(() => {

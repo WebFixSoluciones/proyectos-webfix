@@ -1144,6 +1144,11 @@ export default function App() {
                 <ErpDashboard 
                   setActivePageId={setActivePageId} 
                   setVentasInitialSubTab={setVentasInitialSubTab}
+                  setComprasInitialSubTab={setComprasInitialSubTab}
+                  setInventarioInitialSubTab={setInventarioInitialSubTab}
+                  setContabilidadInitialSubTab={setContabilidadInitialSubTab}
+                  setPersonasSubTab={setPersonasSubTab}
+                  showToast={showToast}
                   transactions={globalTransactions}
                   thirdParties={globalThirdParties}
                   products={globalProducts}
