@@ -86,8 +86,17 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
 - **Cobros y Pagos Formales (`FinancialPaymentModal.jsx`)**: Reemplazados los prompts nativos en CxC (`CuentasPorCobrarView`) y CxP (`CuentasPorPagarView`) por un modal formal conectado a cuentas bancarias.
 - **Pruebas y Build**: 19 tests unitarios aprobados en `tests/commerce.test.mjs`, build de producción verificado con éxito.
 
+### 10. Submódulo Dedicado de Servicios en Inventario (2026-09-19) — COMPLETADO
+- **Segregación Total**: Catálogo de Productos (`productos`) filtrado estrictamente a `type !== 'SERVICE'`. Nuevo submódulo dedicado `servicios` (`type === 'SERVICE'`).
+- **Vista Especializada (`ServicesView.tsx`)**: KPIs (Total, Activos, Digitales, Categorías), barra de filtros (búsqueda, categorías, modalidades, estados) y tabla de servicios con acciones contextuales.
+- **Formulario Mejorado (`ServiceCreationForm.tsx`)**: Modalidades (Digital, Consultoría, Presencial, Mantenimiento, Suscripción, etc.), generador inteligente de SKU (`SRV-DIG-XXXX` / `SRV-XXXX`), vinculación a categorías existentes (`inventory_categories`), unidades expandidas, tarifas SRI (0%, 5%, 15%) y PVP con desglose de IVA.
+- **Navegación e Integración Global**: Enlace dedicado en `Sidebar.jsx`, nuevo shortcut en `ShortcutCustomizerModal.jsx`, compatibilidad total en Ventas, Cotizaciones, POS y facturación electrónica SRI sin trabas de stock.
+- **Pruebas y Build**: 22 tests unitarios aprobados, compilación limpia en 5.36s.
+
 ## Últimos commits
 ```
+e3316ef feat(inventario): submodulo dedicado de servicios con segregacion de productos e integracion global
+063c6a3 fix(smtp): auto-detect default port, force STARTTLS on port 587, clean password spaces and add toggle
 b587ab5 test(finanzas): prueba automatizada de venta combinada con abono a banco y saldo a CxC
 f4702ac feat(cartera): modal profesional de pagos y cobros con impacto bancario en CxC y CxP
 7c4c235 feat(clientes): ficha completa de cliente con activacion y gestion de linea de credito
