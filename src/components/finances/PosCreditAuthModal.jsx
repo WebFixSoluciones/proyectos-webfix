@@ -148,6 +148,7 @@ export default function PosCreditAuthModal({ isOpen, onClose, client, totalAmoun
           </UiBox>
         </form>
       </UiCard>
-    </UiBox>
+    </UiBox>,
+    typeof document !== 'undefined' ? document.body : null
   );
 }

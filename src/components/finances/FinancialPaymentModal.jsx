@@ -312,6 +312,7 @@ export default function FinancialPaymentModal({
           </UiBox>
         </form>
       </UiCard>
-    </UiBox>
+    </UiBox>,
+    typeof document !== 'undefined' ? document.body : null
   );
 }

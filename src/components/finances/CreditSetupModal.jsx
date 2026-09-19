@@ -243,6 +243,7 @@ export default function CreditSetupModal({ isOpen, onClose, client, onSave, show
           </UiBox>
         </form>
       </UiCard>
-    </UiBox>
+    </UiBox>,
+    typeof document !== 'undefined' ? document.body : null
   );
 }
