@@ -22,7 +22,9 @@ import { registerTransactionInventory } from '../../services/inventoryLedger';
 import { validateCartStock, taxRateFor, isSellable } from '../../services/productModel';
 import { calculateTransactionTotals, isDiscountScheduleActive } from '../../services/discountCalcService';
 import { sincronizarVenta, sincronizarCompra } from '../../services/integracionFinanzasService';
+import { getCuentas } from '../../services/bancosService';
 import RidePreviewModal from './RidePreviewModal';
+import CreditSetupModal from './CreditSetupModal';
 
 const SRI_RENTA_CODES = [
   { code: '312', label: '312 - Transferencia de tecnología / asistencia técnica (10%)', rate: 10 },
@@ -107,7 +109,6 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     }
     async function fetchBankAccounts() {
       try {
-        const { getCuentas } = await import('../../services/bancosService.js');
         const list = await getCuentas(db, { estado: 'activo' });
         setBankAccounts(list || []);
       } catch (err) {
@@ -201,6 +202,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   });
   const [creditObservations, setCreditObservations] = useState('');
   const [isCreditModalOpen, setIsCreditModalOpen] = useState(false);
+  const [isCreditSetupOpen, setIsCreditSetupOpen] = useState(false);
   const [mobileTab, setMobileTab] = useState('cliente'); // 'cliente' | 'carrito' | 'pago'
 
   // MiniPOS Discount
@@ -2849,7 +2851,14 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                                 const cr = m.key === 'cruce_cuentas' ? 0 : Number(payments.cruce_cuentas) || 0;
                                 const remaining = Math.max(0, total - ef - tr - tj - cr);
                                 setPayments(p => ({ ...p, [m.key]: remaining > 0 ? remaining.toFixed(2) : '' }));
-                                if (m.key === 'cruce_cuentas') setIsCreditModalOpen(true);
+                                if (m.key === 'cruce_cuentas') {
+                                  const hasCred = matchedTercero?.hasCredit || (Number(matchedTercero?.creditLimit || matchedTercero?.limiteCredito || 0) > 0);
+                                  if (!hasCred) {
+                                    setIsCreditSetupOpen(true);
+                                  } else {
+                                    setIsCreditModalOpen(true);
+                                  }
+                                }
                               }
                               return updated;
                             });
@@ -3415,9 +3424,21 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   <UiText {...{"color":"gray"}}>Cliente:</UiText>
                   <UiText {...{"weight":"bold"}}>{matchedTercero?.name || 'Cliente no seleccionado'}</UiText>
                 </UiBox>
-                <UiBox {...{"className":"flex justify-between"}}>
+                <UiBox {...{"className":"flex justify-between items-center"}}>
                   <UiText {...{"color":"gray"}}>Cupo de Crédito:</UiText>
-                  <UiText {...{"weight":"bold"}}>${(Number(matchedTercero?.limiteCredito) || 1000).toFixed(2)}</UiText>
+                  <UiBox className="flex items-center gap-2">
+                    <UiText {...{"weight":"bold"}}>${(Number(matchedTercero?.creditLimit || matchedTercero?.limiteCredito) || 0).toFixed(2)}</UiText>
+                    <UiButton
+                      type="button"
+                      onClick={() => {
+                        setIsCreditModalOpen(false);
+                        setIsCreditSetupOpen(true);
+                      }}
+                      {...mergeThemeProps({"variant":"soft","size":"1","color":"blue"})}
+                    >
+                      Ajustar Cupo
+                    </UiButton>
+                  </UiBox>
                 </UiBox>
                 <UiBox {...{"style":{"color":"var(--red-12)"},"className":"flex justify-between"}}>
                   <UiText>Deuda Pendiente Actual:</UiText>
@@ -3429,7 +3450,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 </UiBox>
                 
                 {(() => {
-                  const limit = Number(matchedTercero?.limiteCredito) || 1000;
+                  const limit = Number(matchedTercero?.creditLimit || matchedTercero?.limiteCredito) || 0;
                   const totalVenta = Number(formData.total) || 0;
                   const available = limit - clientDebt - totalVenta;
                   return (
@@ -3442,7 +3463,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               </UiBox>
 
               {(() => {
-                const limit = Number(matchedTercero?.limiteCredito) || 1000;
+                const limit = Number(matchedTercero?.creditLimit || matchedTercero?.limiteCredito) || 0;
                 const totalVenta = Number(formData.total) || 0;
                 const available = limit - clientDebt - totalVenta;
                 if (available < 0) {
@@ -3503,6 +3524,31 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
             </UiBox>
           </UiCard>
         </UiBox>
+      )}
+
+      {/* MODAL CONFIGURACION DE CREDITO EN CALIENTE */}
+      {isCreditSetupOpen && matchedTercero && (
+        <CreditSetupModal
+          isOpen={isCreditSetupOpen}
+          onClose={() => setIsCreditSetupOpen(false)}
+          client={matchedTercero}
+          showToast={showToast}
+          onSave={async (creditData) => {
+            if (db && appId && matchedTercero.id) {
+              const clientRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_third_parties', matchedTercero.id);
+              await setDoc(clientRef, { ...creditData }, { merge: true });
+              Object.assign(matchedTercero, creditData);
+              const days = creditData.paymentDays || 30;
+              const d = new Date();
+              d.setDate(d.getDate() + days);
+              setCreditDueDate(d.toISOString().split('T')[0]);
+              if (creditData.creditObservations) {
+                setCreditObservations(creditData.creditObservations);
+              }
+            }
+            setIsCreditModalOpen(true);
+          }}
+        />
       )}
 
       {/* MODAL CREAR CONTACTO RAPIDO */}

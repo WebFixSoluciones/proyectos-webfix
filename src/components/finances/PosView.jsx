@@ -12,6 +12,7 @@ import { doc, getDoc, setDoc, collection, query, where, getDocs, onSnapshot } fr
 import { consultarRucSri, getEcuadorDateString } from '../../services/sriService';
 import { calculateTransactionTotals, isDiscountScheduleActive } from '../../services/discountCalcService';
 import { getCuentas } from '../../services/bancosService';
+import PosCreditAuthModal from './PosCreditAuthModal';
 
 function sanitizeData(obj) {
   if (obj === null || obj === undefined) return null;
@@ -209,6 +210,8 @@ export default function PosView({ products, thirdParties, transactions = [], dis
   const [paymentRefCode, setPaymentRefCode] = useState('');
   const [posTransferenciaBankId, setPosTransferenciaBankId] = useState('');
   const [bankAccounts, setBankAccounts] = useState([]);
+  const [isCreditAuthOpen, setIsCreditAuthOpen] = useState(false);
+  const [creditAuthData, setCreditAuthData] = useState(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -1024,6 +1027,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
         transferenciaBankId: isCheckoutOpen ? payments.transferenciaBankId : (pMethod === 'transferencia' ? posTransferenciaBankId : ''),
         cuentaBancariaId: isCheckoutOpen ? payments.transferenciaBankId : (pMethod === 'transferencia' ? posTransferenciaBankId : ''),
         transferenciaRef: isCheckoutOpen ? payments.transferenciaRef : (pMethod === 'transferencia' ? paymentRefCode : ''),
+        creditAuthData: creditAuthData || null,
         paymentReferences: {
           transferenciaRef: isCheckoutOpen ? payments.transferenciaRef : (pMethod === 'transferencia' ? paymentRefCode : ''),
           transferenciaBankId: isCheckoutOpen ? payments.transferenciaBankId : (pMethod === 'transferencia' ? posTransferenciaBankId : ''),
@@ -1044,6 +1048,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
       setReceivedAmount('');
       setPaymentRefCode('');
       setPosTransferenciaBankId('');
+      setCreditAuthData(null);
       setPayments({
         efectivo: 0,
         transferencia: 0,
@@ -2863,16 +2868,42 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                         )}
 
                         {/* Cruce de Cuentas */}
-                        {activePayments.cruce_cuentas && (
-                          <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--blue-3)"},"className":"p-3 space-y-1.5"})}>
-                            <UiBox {...{"className":"flex justify-between items-center mb-0.5"}}>
-                              <UiText {...{"size":"1","weight":"bold","className":"block"}}>Cruce Cuentas ($)</UiText>
-                              <UiText {...mergeThemeProps({"size":"1","weight":"bold","color":"gray"})}>Monto Crédito</UiText>
+                        {activePayments.cruce_cuentas && (() => {
+                          const client = thirdParties.find(t => t.id === selectedClientId);
+                          const hasCreditLine = client?.hasCredit || (Number(client?.creditLimit || client?.limiteCredito || 0) > 0);
+                          const creditLimit = Number(client?.creditLimit || client?.limiteCredito || 0);
+                          return (
+                            <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--blue-3)"},"className":"p-3 space-y-1.5"})}>
+                              <UiBox {...{"className":"flex justify-between items-center mb-0.5"}}>
+                                <UiText {...{"size":"1","weight":"bold","className":"block"}}>Crédito / CxC ($)</UiText>
+                                <UiText {...mergeThemeProps({"size":"1","weight":"bold","color":"gray"})}>
+                                  {hasCreditLine ? `Cupo: $${creditLimit.toFixed(2)}` : 'Sin Cupo'}
+                                </UiText>
+                              </UiBox>
+                              <UiInput type="number" step="0.01" value={payments.cruce_cuentas || ''} onChange={e => setPayments({...payments, cruce_cuentas: e.target.value})} {...{"size":"2","className":"w-full"}} placeholder="0.00" />
+                              <UiInput type="text" value={payments.cruceRef} onChange={e => setPayments({...payments, cruceRef: e.target.value})} {...mergeThemeProps({"size":"2","className":"w-full"})} placeholder="Nro Doc / Pagaré" />
+                              
+                              {/* Supervisor Authorization Banner / Button */}
+                              {creditAuthData ? (
+                                <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-2)","backgroundColor":"var(--green-3)","border":"1px solid var(--green-6)"},"className":"p-2 flex items-center justify-between text-xs"})}>
+                                  <UiText {...mergeThemeProps({"size":"1","weight":"bold","color":"green"})}>✓ Crédito autorizado ({creditAuthData.authorizedBy})</UiText>
+                                  <UiButton type="button" onClick={() => setCreditAuthData(null)} {...mergeThemeProps({"size":"1","variant":"ghost","color":"gray"})}>Quitar</UiButton>
+                                </UiBox>
+                              ) : !hasCreditLine ? (
+                                <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-2)","backgroundColor":"var(--amber-3)","border":"1px solid var(--amber-6)"},"className":"p-2 space-y-1"})}>
+                                  <UiText {...mergeThemeProps({"size":"1","color":"amber","weight":"bold"})}>Cliente sin línea de crédito activa.</UiText>
+                                  <UiButton
+                                    type="button"
+                                    onClick={() => setIsCreditAuthOpen(true)}
+                                    {...mergeThemeProps({"size":"1","variant":"solid","color":"amber","className":"w-full font-bold"})}
+                                  >
+                                    Solicitar Autorización de Crédito
+                                  </UiButton>
+                                </UiBox>
+                              ) : null}
                             </UiBox>
-                            <UiInput type="number" step="0.01" value={payments.cruce_cuentas || ''} onChange={e => setPayments({...payments, cruce_cuentas: e.target.value})} {...{"size":"2","className":"w-full"}} placeholder="0.00" />
-                            <UiInput type="text" value={payments.cruceRef} onChange={e => setPayments({...payments, cruceRef: e.target.value})} {...mergeThemeProps({"size":"2","className":"w-full"})} placeholder="Nro Doc" />
-                          </UiBox>
-                        )}
+                          );
+                        })()}
                       </UiBox>
                     </UiBox>
 
@@ -3109,19 +3140,45 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                           )}
 
                           {/* Cruce de Cuentas */}
-                          {activePayments.cruce_cuentas && (
-                            <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--blue-3)"},"className":"p-4 space-y-2"})}>
-                              <UiBox {...{"className":"flex justify-between items-center mb-1"}}>
-                                <UiBox {...{"className":"flex items-center gap-2"}}>
-                                  <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--blue-9)","color":"var(--color-background)"},"className":"w-6 h-6 flex items-center justify-center"}}><User size={12} /></UiBox>
-                                  <UiText {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block"})}>Cruce de Cuentas ($)</UiText>
+                          {activePayments.cruce_cuentas && (() => {
+                            const client = thirdParties.find(t => t.id === selectedClientId);
+                            const hasCreditLine = client?.hasCredit || (Number(client?.creditLimit || client?.limiteCredito || 0) > 0);
+                            const creditLimit = Number(client?.creditLimit || client?.limiteCredito || 0);
+                            return (
+                              <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--blue-3)"},"className":"p-4 space-y-2"})}>
+                                <UiBox {...{"className":"flex justify-between items-center mb-1"}}>
+                                  <UiBox {...{"className":"flex items-center gap-2"}}>
+                                    <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--blue-9)","color":"var(--color-background)"},"className":"w-6 h-6 flex items-center justify-center"}}><User size={12} /></UiBox>
+                                    <UiText {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block"})}>Cruce de Cuentas / Crédito ($)</UiText>
+                                  </UiBox>
+                                  <UiText {...mergeThemeProps({"size":"1","weight":"bold","color":"gray"})}>
+                                    {hasCreditLine ? `Cupo: $${creditLimit.toFixed(2)}` : 'Sin Cupo'}
+                                  </UiText>
                                 </UiBox>
-                                <UiText {...mergeThemeProps({"size":"1","weight":"bold","color":"gray"})}>Monto Crédito</UiText>
+                                <UiInput type="number" step="0.01" value={payments.cruce_cuentas || ''} onChange={e => setPayments({...payments, cruce_cuentas: e.target.value})} {...{"size":"2","className":"w-full"}} placeholder="0.00" />
+                                <UiInput type="text" value={payments.cruceRef} onChange={e => setPayments({...payments, cruceRef: e.target.value})} {...mergeThemeProps({"size":"2","className":"w-full mt-1.5"})} placeholder="Nro de Documento Relacionado / Pagaré" />
+
+                                {/* Supervisor Authorization Banner / Button */}
+                                {creditAuthData ? (
+                                  <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-2)","backgroundColor":"var(--green-3)","border":"1px solid var(--green-6)"},"className":"p-2 flex items-center justify-between text-xs"})}>
+                                    <UiText {...mergeThemeProps({"size":"1","weight":"bold","color":"green"})}>✓ Crédito autorizado ({creditAuthData.authorizedBy})</UiText>
+                                    <UiButton type="button" onClick={() => setCreditAuthData(null)} {...mergeThemeProps({"size":"1","variant":"ghost","color":"gray"})}>Quitar</UiButton>
+                                  </UiBox>
+                                ) : !hasCreditLine ? (
+                                  <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-2)","backgroundColor":"var(--amber-3)","border":"1px solid var(--amber-6)"},"className":"p-2 space-y-1.5"})}>
+                                    <UiText {...mergeThemeProps({"size":"1","color":"amber","weight":"bold"})}>El cliente no tiene línea de crédito activa.</UiText>
+                                    <UiButton
+                                      type="button"
+                                      onClick={() => setIsCreditAuthOpen(true)}
+                                      {...mergeThemeProps({"size":"1","variant":"solid","color":"amber","className":"w-full font-bold"})}
+                                    >
+                                      Solicitar Autorización de Crédito a Administración
+                                    </UiButton>
+                                  </UiBox>
+                                ) : null}
                               </UiBox>
-                              <UiInput type="number" step="0.01" value={payments.cruce_cuentas || ''} onChange={e => setPayments({...payments, cruce_cuentas: e.target.value})} {...{"size":"2","className":"w-full"}} placeholder="0.00" />
-                              <UiInput type="text" value={payments.cruceRef} onChange={e => setPayments({...payments, cruceRef: e.target.value})} {...mergeThemeProps({"size":"2","className":"w-full mt-1.5"})} placeholder="Nro de Documento Relacionado" />
-                            </UiBox>
-                          )}
+                            );
+                          })()}
                         </UiBox>
                       </UiBox>
 
@@ -4040,6 +4097,19 @@ export default function PosView({ products, thirdParties, transactions = [], dis
             </UiBox>
           </UiBox>
         </UiBox>
+      )}
+
+      {isCreditAuthOpen && (
+        <PosCreditAuthModal
+          isOpen={isCreditAuthOpen}
+          onClose={() => setIsCreditAuthOpen(false)}
+          client={thirdParties.find(t => t.id === selectedClientId) || { name: 'Cliente POS' }}
+          totalAmount={Number(payments.cruce_cuentas || getTotal())}
+          showToast={showToast}
+          onApprove={(auth) => {
+            setCreditAuthData(auth);
+          }}
+        />
       )}
 
     </UiBox>,
