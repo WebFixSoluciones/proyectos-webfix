@@ -8,6 +8,7 @@ import { getMovimientos, getResumen, anularMovimiento } from '../../services/mov
 import MovimientoForm from './MovimientoForm';
 import MovimientoAbono from './MovimientoAbono';
 import MovimientoDetalle from './MovimientoDetalle';
+import FinancialPageHeader from './FinancialPageHeader';
 import { Badge } from '../ui/badge';
 
 const ESTADO_BADGES = {
@@ -130,6 +131,23 @@ export default function MovimientosView({ db, usuario, showToast }) {
 
   return (
     <UiBox {...{"className":"space-y-4"}}>
+      <FinancialPageHeader
+        icon={DollarSign}
+        title="Movimientos Financieros"
+        description="Libro central de ingresos, egresos y control de tesorería general"
+        badge={`${movimientos.length} registros`}
+        badgeColor="green"
+        actions={
+          <UiBox className="flex items-center gap-2">
+            <UiButton onClick={() => { setEditingMov(null); setShowForm(true); }} {...{"variant":"solid","color":"blue","size":"2","className":"flex items-center gap-1.5"}}>
+              <Plus size={14} /> Nuevo Movimiento
+            </UiButton>
+            <UiButton onClick={handleExportCsv} {...{"variant":"outline","color":"gray","size":"2","className":"flex items-center gap-1.5"}}>
+              <Download size={14} /> Exportar CSV
+            </UiButton>
+          </UiBox>
+        }
+      />
       <UiBox {...{"className":"grid grid-cols-1 sm:grid-cols-3 gap-4"}}>
         <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4"}}>
           <UiBox {...{"style":{"color":"var(--gray-11)"},"className":"flex items-center gap-2 mb-1"}}>

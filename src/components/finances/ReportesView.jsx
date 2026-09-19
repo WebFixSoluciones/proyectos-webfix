@@ -12,6 +12,7 @@ import {
   getFlujoCaja, getAgingConsolidado, getReporteCartera, getReporteDeuda,
   getReporteImpuestos, getReporteAuditoria, exportarCSV, exportarPDF
 } from '../../services/reportesService';
+import FinancialPageHeader from './FinancialPageHeader';
 
 const TABS = [
   { id: 'flujo', label: 'Flujo de Caja', icon: BarChart3, color: {"style":{"color":"var(--green-11)"}} },
@@ -498,20 +499,23 @@ export default function ReportesView({ db, showToast }) {
 
   return (
     <UiBox {...{"className":"space-y-4"}}>
-      {/* Header */}
-      <UiBox {...{"className":"flex flex-col sm:flex-row sm:items-center justify-between gap-3"}}>
-        <UiHeading as="h3" {...{"size":"3","weight":"bold","color":"gray","highContrast":true,"className":"flex items-center gap-2"}}>
-          <FileText size={18} {...{"style":{"color":"var(--blue-12)"}}} />Reportes Especializados
-        </UiHeading>
-        <UiBox {...{"className":"flex items-center gap-2"}}>
-          <UiButton onClick={handleExportCSV} {...{"size":"2","color":"gray","variant":"outline","className":"flex items-center gap-1.5"}}>
-            <Download size={12} />CSV
-          </UiButton>
-          <UiButton onClick={handleExportPDF} {...{"size":"2","color":"gray","variant":"outline","className":"flex items-center gap-1.5"}}>
-            <Printer size={12} />PDF
-          </UiButton>
-        </UiBox>
-      </UiBox>
+      <FinancialPageHeader
+        icon={BarChart3}
+        title="Reportes Especializados y Auditoría"
+        description="Flujo de caja, aging consolidado, balance y registro de auditoría inmutable"
+        badge="Analítica"
+        badgeColor="gray"
+        actions={
+          <UiBox {...{"className":"flex items-center gap-2"}}>
+            <UiButton onClick={handleExportCSV} {...{"size":"2","color":"gray","variant":"outline","className":"flex items-center gap-1.5"}}>
+              <Download size={12} /> CSV
+            </UiButton>
+            <UiButton onClick={handleExportPDF} {...{"size":"2","color":"gray","variant":"outline","className":"flex items-center gap-1.5"}}>
+              <Printer size={12} /> PDF
+            </UiButton>
+          </UiBox>
+        }
+      />
 
       {/* Tabs */}
       <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex gap-1 overflow-x-auto scrollbar-none pb-px"}}>

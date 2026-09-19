@@ -14,6 +14,7 @@ import {
   getAsientos, confirmarAsiento, anularAsiento, deleteAsiento,
   getResumenContabilidad
 } from '../../services/contabilidadService';
+import FinancialPageHeader from './FinancialPageHeader';
 
 const TIPOS = ['activo', 'pasivo', 'patrimonio', 'ingreso', 'gasto'];
 const TIPO_BADGES = {
@@ -158,6 +159,27 @@ export default function ContabilidadView({ db, usuario, showToast }) {
 
   return (
     <UiBox {...{"className":"space-y-4"}}>
+      <FinancialPageHeader
+        icon={BookOpen}
+        title="Contabilidad Integral"
+        description="Plan de cuentas jerárquico, centros de costo y libro diario de asientos"
+        badge={`${cuentas.length} cuentas`}
+        badgeColor="green"
+        actions={
+          <UiBox className="flex items-center gap-1">
+            {TABS.map(t => (
+              <UiButton
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                {...mergeThemeProps({"size":"2"}, {}, (tab === t.id ? {"variant":"solid","color":"blue"} : {"variant":"outline","color":"gray"}))}
+              >
+                <t.icon size={14} />
+                {t.label}
+              </UiButton>
+            ))}
+          </UiBox>
+        }
+      />
       {/* KPIs */}
       <UiBox {...{"className":"grid grid-cols-2 sm:grid-cols-4 gap-4"}}>
         <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4"}}>

@@ -5,6 +5,7 @@ import { UiButton, UiSelect, UiInput, UiTable, UiTableHeader, UiTableRow, UiTabl
 import { useState, useEffect, useCallback } from 'react';
 import { Download, Plus, Building2, Wallet, ArrowDownLeft, ArrowUpRight, Link2, Link2Off, Trash2, X, Filter, Sparkles, CheckCircle } from 'lucide-react';
 import { getCuentas, crearCuenta, actualizarCuenta, eliminarCuenta, getMovimientosBancarios, registrarMovimientoBancario, eliminarMovimientoBancario, conciliarMovimiento, desconciliarMovimiento, getResumenBancos, conciliacionAutomatica } from '../../services/bancosService';
+import FinancialPageHeader from './FinancialPageHeader';
 import { Badge } from '../ui/badge';
 
 const TIPO_BADGES = {
@@ -188,6 +189,23 @@ export default function BancosCajaView({ db, usuario, showToast }) {
 
   return (
     <UiBox {...{"className":"space-y-4"}}>
+      <FinancialPageHeader
+        icon={Building2}
+        title="Bancos y Caja"
+        description="Gestión de cuentas corrientes, ahorros, caja chica y conciliación bancaria"
+        badge={`${cuentas.length} cuentas`}
+        badgeColor="blue"
+        actions={
+          <UiBox className="flex items-center gap-2">
+            <UiButton onClick={() => { setEditingCuenta(null); setShowFormCuenta(true); }} {...{"variant":"solid","color":"blue","size":"2","className":"flex items-center gap-1.5"}}>
+              <Plus size={14} /> Nueva Cuenta
+            </UiButton>
+            <UiButton onClick={handleConciliacionAutomatica} disabled={!cuentaActiva || loadingConciliacion} {...{"variant":"surface","color":"blue","size":"2","className":"flex items-center gap-1.5"}}>
+              <Sparkles size={14} /> Conciliación Inteligente
+            </UiButton>
+          </UiBox>
+        }
+      />
       <UiBox {...{"className":"grid grid-cols-2 sm:grid-cols-3 gap-4"}}>
         <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4"}}>
           <UiBox {...{"style":{"color":"var(--gray-11)"},"className":"flex items-center gap-2 mb-1"}}><Building2 size={14} {...{"style":{"color":"var(--blue-11)"}}} />Total en Bancos</UiBox>

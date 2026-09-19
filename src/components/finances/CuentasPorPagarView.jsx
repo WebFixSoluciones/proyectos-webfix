@@ -3,8 +3,9 @@ import { mergeThemeProps } from '../ui/themeProps';
 import { UiBox, UiText, UiCard, UiHeading } from '../ui/layout';
 import { UiButton, UiInput, UiSelect, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell } from '../ui/controls';
 import { useState, useEffect, useCallback } from 'react';
-import { Search, Download, FileText, Wallet, TrendingUp, AlertTriangle, Clock, BookOpen } from 'lucide-react';
+import { Search, Download, FileText, Wallet, TrendingUp, AlertTriangle, Clock, BookOpen, ArrowUpCircle } from 'lucide-react';
 import { getCxP, getAging, registrarPago, getResumenCxP } from '../../services/cxpService';
+import FinancialPageHeader from './FinancialPageHeader';
 import { Badge } from '../ui/badge';
 
 const ESTADO_BADGES = {
@@ -60,6 +61,23 @@ export default function CuentasPorPagarView({ db, usuario, showToast }) {
 
   return (
     <UiBox {...{"className":"space-y-4"}}>
+      <FinancialPageHeader
+        icon={ArrowUpCircle}
+        title="Cuentas por Pagar (CxP)"
+        description="Obligaciones comerciales con proveedores y retenciones tributarias"
+        badge={`${items.length} obligaciones`}
+        badgeColor="amber"
+        actions={
+          <UiButton onClick={() => {
+            const h = ['Fecha','Proveedor','RUC','Doc','Vence','Monto','Abonado','Saldo','Días Venc.','Estado'];
+            const r = items.map(i => [formatDate(i.factura?.fecha), i.tercero?.nombre, i.tercero?.ruc, `${i.factura?.tipo} ${i.factura?.numero}`, formatDate(i.factura?.fechaVencimiento), Number(i.factura?.montoTotal).toFixed(2), (i.abonos||[]).reduce((s,p)=>s+Number(p.monto),0).toFixed(2), Number(i.saldoPendiente).toFixed(2), i.diasVencido, i.estado]);
+            const csv = [h.join(','), ...r.map(r => r.map(c => `"${c}"`).join(','))].join('\n');
+            const b = new Blob([csv], {type:'text/csv'}); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download='cxp.csv'; a.click(); URL.revokeObjectURL(u);
+          }} {...{"size":"2","color":"gray","variant":"outline","className":"flex items-center gap-1"}}>
+            <Download size={14} /> Exportar CSV
+          </UiButton>
+        }
+      />
       {/* KPIs */}
       <UiBox {...{"className":"grid grid-cols-2 sm:grid-cols-5 gap-4"}}>
         <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4"}}>

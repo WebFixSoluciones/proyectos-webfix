@@ -11,6 +11,7 @@ import {
 import {
   getResumenImpuestos, generarAtsCompleto, descargarAtsXml, validarRuc
 } from '../../services/impuestosService';
+import FinancialPageHeader from './FinancialPageHeader';
 
 const TABS = [
   { id: 'iva', label: 'IVA', icon: Percent },
@@ -130,25 +131,28 @@ export default function ImpuestosSriView({ db, usuario, showToast, transactions 
 
   return (
     <UiBox {...{"className":"space-y-4"}}>
-      <UiBox {...{"className":"flex flex-wrap items-center justify-between gap-3"}}>
-        <UiHeading as="h2" {...{"size":"3","weight":"bold","color":"gray","highContrast":true,"className":"flex items-center gap-2"}}>
-          <Calculator size={18} {...{"style":{"color":"var(--blue-12)"}}} />
-          Impuestos y SRI
-        </UiHeading>
-        <UiBox {...{"className":"flex items-center gap-2"}}>
-          <UiSelect value={month} onChange={e => setMonth(Number(e.target.value))}
-            {...{"size":"2","color":"gray"}}>
-            {MESES.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
-          </UiSelect>
-          <UiSelect value={year} onChange={e => setYear(Number(e.target.value))}
-            {...{"size":"2","color":"gray"}}>
-            {[2024, 2025, 2026, 2027].map(y => <option key={y} value={y}>{y}</option>)}
-          </UiSelect>
-          <UiButton iconOnly onClick={cargar} {...{"variant":"surface","color":"gray","className":"w-8"}}>
-            <RefreshCw size={14} />
-          </UiButton>
-        </UiBox>
-      </UiBox>
+      <FinancialPageHeader
+        icon={Calculator}
+        title="Impuestos y SRI"
+        description="Declaración mensual de IVA, retenciones en la fuente y generación de ATS"
+        badge="Ecuador SRI"
+        badgeColor="blue"
+        actions={
+          <UiBox {...{"className":"flex items-center gap-2"}}>
+            <UiSelect value={month} onChange={e => setMonth(Number(e.target.value))}
+              {...{"size":"2","color":"gray"}}>
+              {MESES.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
+            </UiSelect>
+            <UiSelect value={year} onChange={e => setYear(Number(e.target.value))}
+              {...{"size":"2","color":"gray"}}>
+              {[2024, 2025, 2026, 2027].map(y => <option key={y} value={y}>{y}</option>)}
+            </UiSelect>
+            <UiButton iconOnly onClick={cargar} {...{"variant":"surface","color":"gray","className":"w-8"}} title="Refrescar datos">
+              <RefreshCw size={14} />
+            </UiButton>
+          </UiBox>
+        }
+      />
 
       <UiBox {...{"className":"grid grid-cols-2 sm:grid-cols-4 gap-4"}}>
         <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4"}}>

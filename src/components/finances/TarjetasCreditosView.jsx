@@ -4,6 +4,7 @@ import { UiButton, UiSelect, UiInput, UiTable, UiTableHeader, UiTableRow, UiTabl
 import { useState, useEffect, useCallback } from 'react';
 import { CreditCard, Download, Plus, Wallet, AlertTriangle, DollarSign, Clock, CalendarDays, Tag, X } from 'lucide-react';
 import { getTarjetas, getAllConsumosTarjeta, getResumenTarjetas, getAlertasProximidad, crearTarjeta, registrarConsumo, registrarPagoTarjeta } from '../../services/tarjetasService';
+import FinancialPageHeader from './FinancialPageHeader';
 
 const CATEGORIAS = [
   { value: 'gasto_operativo', label: 'Gasto Operativo' },
@@ -64,6 +65,23 @@ export default function TarjetasCreditosView({ db, usuario, showToast }) {
 
   return (
     <UiBox {...{"className":"space-y-4"}}>
+      <FinancialPageHeader
+        icon={CreditCard}
+        title="Tarjetas y Créditos"
+        description="Administración de tarjetas corporativas, cupos y consumos diferidos"
+        badge={`${tarjetas.length} tarjetas`}
+        badgeColor="purple"
+        actions={
+          <UiBox className="flex items-center gap-2">
+            <UiButton onClick={() => setShowFormTarjeta(true)} {...{"size":"2","variant":"solid","color":"blue","className":"flex items-center gap-1.5"}}>
+              <Plus size={14} /> Nueva Tarjeta
+            </UiButton>
+            <UiButton onClick={() => setShowFormConsumo(true)} disabled={tarjetas.length === 0} {...{"size":"2","variant":"surface","color":"blue","className":"flex items-center gap-1.5"}}>
+              <Plus size={14} /> Registrar Consumo
+            </UiButton>
+          </UiBox>
+        }
+      />
       <UiBox {...{"className":"grid grid-cols-2 sm:grid-cols-4 gap-4"}}>
         <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4"}}>
           <UiBox {...{"style":{"color":"var(--gray-11)"},"className":"flex items-center gap-2 mb-1"}}><DollarSign size={14} {...{"style":{"color":"var(--blue-12)"}}} />Total Cupo</UiBox>

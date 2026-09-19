@@ -5,6 +5,7 @@ import { UiButton, UiSelect, UiTable, UiTableHeader, UiTableRow, UiTableHead, Ui
 import { useState, useEffect, useCallback } from 'react';
 import { Landmark, Plus, Wallet, AlertTriangle, DollarSign, TrendingDown, CalendarDays, X, ChevronDown, ChevronUp, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 import { getPrestamos, crearPrestamo, pagarCuota, eliminarPrestamo, getResumenPrestamos, getAlertasPrestamos, generarTablaAmortizacion } from '../../services/prestamosService';
+import FinancialPageHeader from './FinancialPageHeader';
 
 const METODOS = [
   { value: 'frances', label: 'Francés (Cuota Fija)' },
@@ -71,6 +72,18 @@ export default function PrestamosView({ db, usuario, showToast }) {
 
   return (
     <UiBox {...{"className":"space-y-4"}}>
+      <FinancialPageHeader
+        icon={Landmark}
+        title="Préstamos Bancarios"
+        description="Pasivos de financiamiento, tablas de amortización y cuotas"
+        badge={`${prestamos.length} préstamos`}
+        badgeColor="red"
+        actions={
+          <UiButton onClick={() => setShowForm(true)} {...{"size":"2","variant":"solid","color":"blue","className":"flex items-center gap-1.5"}}>
+            <Plus size={14} /> Nuevo Préstamo
+          </UiButton>
+        }
+      />
       <UiBox {...{"className":"grid grid-cols-2 sm:grid-cols-4 gap-4"}}>
         <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4"}}>
           <UiBox {...{"style":{"color":"var(--gray-11)"},"className":"flex items-center gap-2 mb-1"}}><DollarSign size={14} {...{"style":{"color":"var(--red-12)"}}} />Total Deuda</UiBox>

@@ -5,6 +5,7 @@ import { UiButton, UiInput, UiSelect, UiTable, UiTableHeader, UiTableRow, UiTabl
 import { useState, useEffect, useCallback } from 'react';
 import { Search, Download, FileText, Wallet, TrendingUp, AlertTriangle, DollarSign, Clock } from 'lucide-react';
 import { getCxC, getAging, registrarCobro, getResumenCxC } from '../../services/cxcService';
+import FinancialPageHeader from './FinancialPageHeader';
 import { Badge } from '../ui/badge';
 const ESTADO_BADGES = {
   pendiente: {"style":{"backgroundColor":"var(--amber-3)","color":"var(--amber-11)"}},
@@ -58,6 +59,23 @@ export default function CuentasPorCobrarView({ db, usuario, showToast }) {
 
   return (
     <UiBox {...{"className":"space-y-4"}}>
+      <FinancialPageHeader
+        icon={TrendingUp}
+        title="Cuentas por Cobrar (CxC)"
+        description="Cartera de clientes, antigüedad de saldos y cobranzas"
+        badge={`${items.length} facturas`}
+        badgeColor="blue"
+        actions={
+          <UiButton onClick={() => {
+            const h = ['Fecha','Cliente','RUC','Doc','Vence','Monto','Abonado','Saldo','Días Venc.','Estado'];
+            const r = items.map(i => [formatDate(i.factura?.fecha), i.tercero?.nombre, i.tercero?.ruc, `${i.factura?.tipo} ${i.factura?.numero}`, formatDate(i.factura?.fechaVencimiento), Number(i.factura?.montoTotal).toFixed(2), (i.abonos||[]).reduce((s,p)=>s+Number(p.monto),0).toFixed(2), Number(i.saldoPendiente).toFixed(2), i.diasVencido, i.estado]);
+            const csv = [h.join(','), ...r.map(r => r.map(c => `"${c}"`).join(','))].join('\n');
+            const b = new Blob([csv], {type:'text/csv'}); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download='cxc.csv'; a.click(); URL.revokeObjectURL(u);
+          }} {...{"size":"2","color":"gray","variant":"outline","className":"flex items-center gap-1"}}>
+            <Download size={14} /> Exportar CSV
+          </UiButton>
+        }
+      />
       {/* KPIs */}
       <UiBox {...{"className":"grid grid-cols-2 sm:grid-cols-4 gap-4"}}>
         <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4"}}>

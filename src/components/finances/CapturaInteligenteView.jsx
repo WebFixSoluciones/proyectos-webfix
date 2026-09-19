@@ -4,6 +4,7 @@ import { UiButton, UiInput, UiSelect, UiTable, UiTableHeader, UiTableRow, UiTabl
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Scan, Upload, FileText, Image, FileCode, CheckCircle2, XCircle, AlertTriangle, Sparkles, Eye, Clock, DollarSign, ShieldAlert, TrendingUp, RefreshCw } from 'lucide-react';
 import { getCapturas, procesarArchivoCaptura, confirmarCaptura, rechazarCaptura, getResumenCapturas } from '../../services/capturaService';
+import FinancialPageHeader from './FinancialPageHeader';
 
 const TIPO_ICONOS = { pdf: FileText, imagen: Image, xml: FileCode };
 const ESTADO_BADGES = {
@@ -123,6 +124,23 @@ export default function CapturaInteligenteView({ db, storage, appId, usuario, sh
 
   return (
     <UiBox {...{"className":"space-y-4"}}>
+      <FinancialPageHeader
+        icon={Scan}
+        title="Captura Inteligente OCR"
+        description="Digitalización y lectura automatizada con IA de facturas físicas y comprobantes"
+        badge={`${capturas.length} documentos`}
+        badgeColor="blue"
+        actions={
+          <UiBox className="flex items-center gap-2">
+            <UiButton onClick={() => fileInputRef.current?.click()} disabled={procesando} {...{"variant":"solid","color":"blue","size":"2","className":"flex items-center gap-1.5"}}>
+              <Upload size={14} /> Subir Documento
+            </UiButton>
+            <UiButton iconOnly onClick={cargar} {...{"variant":"outline","color":"gray","size":"2"}} title="Actualizar">
+              <RefreshCw size={14} />
+            </UiButton>
+          </UiBox>
+        }
+      />
       <UiBox {...{"className":"grid grid-cols-2 sm:grid-cols-4 gap-4"}}>
         <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4"}}>
           <UiBox {...{"style":{"color":"var(--gray-11)"},"className":"flex items-center gap-2 mb-1"}}><Scan size={14} {...{"style":{"color":"var(--blue-12)"}}} />Capturas del Mes</UiBox>

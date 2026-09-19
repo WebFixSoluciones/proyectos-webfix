@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { getResumenFinanciero, getFlujoCajaMensual } from '../../services/resumenService';
 import { getMovimientos } from '../../services/movimientoService';
+import FinancialPageHeader from './FinancialPageHeader';
 
 const TABS_RESUMEN = [
   { id: 'general', label: 'General' },
@@ -103,27 +104,30 @@ export default function ResumenFinancieroView({ db, onNavigate }) {
 
   return (
     <UiBox {...{"className":"space-y-4"}}>
-      <UiBox {...{"className":"flex flex-wrap items-center justify-between gap-3"}}>
-        <UiHeading as="h2" {...{"size":"4","weight":"bold","color":"gray","highContrast":true,"className":"flex items-center gap-2"}}>
-          <PieChart size={20} {...{"style":{"color":"var(--blue-12)"}}} />
-          Resumen Financiero
-        </UiHeading>
-        <UiBox {...{"className":"flex items-center gap-2"}}>
-          <UiInput
-            type="month"
-            value={periodo.fechaDesde.slice(0, 7)}
-            onChange={e => {
-              const d = e.target.value + '-01';
-              const lastDay = new Date(new Date(d).getFullYear(), new Date(d).getMonth() + 1, 0).toISOString().slice(0, 10);
-              setPeriodo({ fechaDesde: d, fechaHasta: lastDay });
-            }}
-            {...{"size":"2","color":"gray"}}
-          />
-          <UiButton iconOnly onClick={cargar} {...{"variant":"outline","color":"gray"}}>
-            <RefreshCw size={16} />
-          </UiButton>
-        </UiBox>
-      </UiBox>
+      <FinancialPageHeader
+        icon={PieChart}
+        title="Resumen Financiero"
+        description="Panel ejecutivo de tesorería, liquidez y proyección de flujo de caja"
+        badge="Ecuador"
+        badgeColor="blue"
+        actions={
+          <UiBox {...{"className":"flex items-center gap-2"}}>
+            <UiInput
+              type="month"
+              value={periodo.fechaDesde.slice(0, 7)}
+              onChange={e => {
+                const d = e.target.value + '-01';
+                const lastDay = new Date(new Date(d).getFullYear(), new Date(d).getMonth() + 1, 0).toISOString().slice(0, 10);
+                setPeriodo({ fechaDesde: d, fechaHasta: lastDay });
+              }}
+              {...{"size":"2","color":"gray"}}
+            />
+            <UiButton iconOnly onClick={cargar} {...{"variant":"outline","color":"gray"}} title="Actualizar datos">
+              <RefreshCw size={16} />
+            </UiButton>
+          </UiBox>
+        }
+      />
 
       <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex gap-1"}}>
         {TABS_RESUMEN.map(t => (
