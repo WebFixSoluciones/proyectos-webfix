@@ -422,7 +422,7 @@ export default function FinanceModule({
                     {subTabVentas === 'resumen_ventas' && (
                       <TransactionsView transactions={transactions} thirdParties={thirdParties} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} forcedDocType="ventas_resumen" forcedType="ingreso" />
                     )}
-                    {(subTabVentas === 'ventas_preventa' || subTabVentas === 'preventas') && (
+                    {subTabVentas === 'ventas_preventa' && (
                       <PosView 
                         products={products} 
                         thirdParties={thirdParties} 
