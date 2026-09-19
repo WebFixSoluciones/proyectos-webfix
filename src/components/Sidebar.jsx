@@ -217,25 +217,38 @@ export default function Sidebar({
     </div>
   )}
 
- {activeModules.inventario && (
- <div className="space-y-0.5">
- <button onClick={() => { setExpandedSidebarMenu(expandedSidebarMenu ==='inventario' ? null :'inventario'); setInventarioInitialSubTab('productos'); setActivePageId('inventario'); }} className={navBtnClass(activePageId ==='inventario')}>
- <div className="flex items-center gap-3 flex-1">
- <Package size={16} className={iconClass(activePageId ==='inventario')} />
- {isSidebarOpen && <span>Inventarios</span>}
- </div>
- {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu ==='inventario' ?'rotate-180' :''} text-[var(--gray-10)]`} />}
- </button>
- {isSidebarOpen && expandedSidebarMenu ==='inventario' && (
- <div className={menuBorderClass}>
- {[{ id:'productos', label:'Catalogo de Productos' },{ id:'categorias', label:'Categorias y Marcas' },{ id:'kardex', label:'Movimientos Kardex' },{ id:'transferencias', label:'Transferencias' },{ id:'ajustes', label:'Ajustes de Inventario' }].map(sub => {
- const isActive = activePageId ==='inventario' && inventarioInitialSubTab === sub.id;
- return <button key={sub.id} onClick={() => { setInventarioInitialSubTab(sub.id); setActivePageId('inventario'); closeMobile(); }} className={subItemClass(isActive)}>{sub.label}</button>;
- })}
- </div>
- )}
- </div>
- )}
+  {activeModules.inventario && (
+  <div className="space-y-0.5">
+  <button onClick={() => { setExpandedSidebarMenu(expandedSidebarMenu ==='inventario' ? null :'inventario'); setInventarioInitialSubTab('productos'); setActivePageId('inventario'); }} className={navBtnClass(activePageId ==='inventario')}>
+  <div className="flex items-center gap-3 flex-1">
+  <Package size={16} className={iconClass(activePageId ==='inventario')} />
+  {isSidebarOpen && <span>Inventarios</span>}
+  </div>
+  {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu ==='inventario' ?'rotate-180' :''} text-[var(--gray-10)]`} />}
+  </button>
+  {isSidebarOpen && expandedSidebarMenu ==='inventario' && (
+  <div className={menuBorderClass}>
+  {[
+    { id:'productos', label:'Catálogo de Productos' },
+    { id:'servicios', label:'Servicios' },
+    { id:'categorias', label:'Categorías y Marcas' },
+    { id:'kardex', label:'Movimientos Kardex' },
+    { id:'transferencias', label:'Transferencias' },
+    { id:'ajustes', label:'Ajustes de Inventario' }
+  ].map(sub => {
+    const isActive = activePageId === 'inventario' && (
+      sub.id === 'servicios'
+        ? (inventarioInitialSubTab === 'servicios' || String(inventarioInitialSubTab).startsWith('create_service'))
+        : sub.id === 'productos'
+        ? (inventarioInitialSubTab === 'productos' || String(inventarioInitialSubTab).startsWith('create_product'))
+        : inventarioInitialSubTab === sub.id
+    );
+    return <button key={sub.id} onClick={() => { setInventarioInitialSubTab(sub.id); setActivePageId('inventario'); closeMobile(); }} className={subItemClass(isActive)}>{sub.label}</button>;
+  })}
+  </div>
+  )}
+  </div>
+  )}
 
  {activeModules.personas && (
  <div className="space-y-0.5">

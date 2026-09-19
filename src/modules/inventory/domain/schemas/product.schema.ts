@@ -54,6 +54,14 @@ export const ProductSchema = z.object({
   status: z.enum(['ACTIVE', 'INACTIVE']).default('ACTIVE'),
   id_descuento_asociado: z.string().optional(),
   
+  // Atributos específicos para escalabilidad de Servicios
+  serviceKind: z.string().optional(),
+  deliveryFormat: z.string().optional(),
+  estimatedDuration: z.string().optional(),
+  serviceTerms: z.string().optional(),
+  billingCycle: z.string().optional(),
+  isDigital: z.boolean().optional(),
+  
   createdAt: z.date().optional(),
   updatedAt: z.date().optional()
 });

@@ -341,4 +341,45 @@ test('send-email handler accepts empty smtpPort and validates required fields wi
   assert.equal(jsonResponse.success, true);
 });
 
+test('services submodule properly segregates physical products from services and allows stock-exempt sale', () => {
+  const mixedCatalog = [
+    { id: 'p1', name: 'Laptop Pro', type: 'STANDARD', stock: 5, salePrice: 800, taxRate: 15 },
+    { id: 'p2', name: 'Mouse Inalámbrico', type: 'STANDARD', stock: 20, salePrice: 25, taxRate: 15 },
+    { id: 's1', name: 'Mantenimiento Preventivo', type: 'SERVICE', serviceKind: 'PRESENCIAL', stock: 0, salePrice: 40, taxRate: 15, inventoryType: 'VIRTUAL' },
+    { id: 's2', name: 'Licencia Antivirus Cloud', type: 'SERVICE', serviceKind: 'DIGITAL', isDigital: true, stock: 0, salePrice: 30, taxRate: 15, inventoryType: 'VIRTUAL' }
+  ];
+
+  // 1. Segregación del catálogo: los productos físicos y los servicios no se mezclan
+  const physicalProducts = mixedCatalog.filter(p => p.type !== 'SERVICE');
+  const servicesList = mixedCatalog.filter(p => p.type === 'SERVICE');
+
+  assert.equal(physicalProducts.length, 2);
+  assert.equal(physicalProducts.every(p => p.type !== 'SERVICE'), true);
+  assert.equal(servicesList.length, 2);
+  assert.equal(servicesList.every(s => s.type === 'SERVICE'), true);
+
+  // 2. Normalización de producto vs servicio
+  const normalizedService = normalizeProduct(servicesList[1]);
+  assert.equal(normalizedService.productType, 'SERVICE');
+  assert.equal(normalizedService.type, 'servicio');
+
+  // 3. Carrito y validación de stock: los servicios tienen stock 0 pero se venden sin error
+  const cartItems = [
+    { productId: 's1', quantity: 2 },
+    { productId: 's2', quantity: 5 }
+  ];
+
+  // No debe lanzar excepción por stock insuficiente
+  assert.doesNotThrow(() => {
+    validateCartStock(cartItems, mixedCatalog);
+  });
+
+  // 4. Inclusión en líneas de factura administrativa
+  const invoiceLines = appendInvoiceLine([], servicesList[1]);
+  assert.equal(invoiceLines.length, 1);
+  assert.equal(invoiceLines[0].productId, 's2');
+  assert.equal(invoiceLines[0].name, 'Licencia Antivirus Cloud');
+});
+
+
 

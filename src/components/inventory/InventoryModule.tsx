@@ -11,6 +11,7 @@ import {
 import { Badge } from '../ui/badge';
 import ProductCreationForm from './ProductCreationForm';
 import ServiceCreationForm from './ServiceCreationForm';
+import ServicesView from './ServicesView';
 import CategoryBrandModal from './CategoryBrandModal';
 import TransferModal from './TransferModal';
 import AdjustmentModal from './AdjustmentModal';
@@ -95,13 +96,19 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
         setInlineFormMode(null);
         setShowProductTypeSelector(true);
       } else if (typeof initialSubTab === 'string' && initialSubTab.startsWith('create_service')) {
-        setActiveTab('productos');
+        setActiveTab('servicios');
         setShowProductTypeSelector(false);
         setInlineFormMode('create_service');
         setEditingProduct(null);
         scrollToForm();
+      } else if (initialSubTab === 'servicios') {
+        setActiveTab('servicios');
+        setShowProductTypeSelector(false);
+        setInlineFormMode(null);
+        setEditingProduct(null);
       } else {
         setActiveTab(initialSubTab);
+        setInlineFormMode(null);
       }
     }
   }, [initialSubTab]);
@@ -317,6 +324,7 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
     const seenIds = new Set<string>();
     return products.filter(p => {
       if (!p || !p.id) return false;
+      if (p.type === 'SERVICE') return false; // Segregación total: los servicios van en su propio submódulo
       if (seenIds.has(p.id)) return false;
       seenIds.add(p.id);
 
@@ -332,6 +340,10 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
     });
   }, [products, searchQuery, selectedCategory, selectedType, statusFilter]);
 
+  const servicesList = useMemo(() => {
+    return products.filter(p => p && p.type === 'SERVICE');
+  }, [products]);
+
   const getCategoryName = (id?: string) => {
     return categories.find(c => c.id === id)?.name || 'Sin Categoría';
   };
@@ -341,7 +353,8 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
   };
 
   const TABS = [
-    { id: 'productos', label: 'Catálogo de Productos y Servicios', icon: Package },
+    { id: 'productos', label: 'Catálogo de Productos', icon: Package },
+    { id: 'servicios', label: 'Servicios', icon: Briefcase },
     { id: 'categorias', label: 'Categorías y Marcas', icon: Tag },
     { id: 'kardex', label: 'Kardex (Movimientos)', icon: BarChart3 },
     { id: 'transferencias', label: 'Transferencias', icon: ArrowRightLeft },
@@ -368,16 +381,6 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
                       {...mergeThemeProps({"size":"2","variant":"solid","color":"blue","className":"flex items-center gap-1.5 hover-lift"})}
                     >
                       <Plus size={15} /> Nuevo Producto
-                    </UiButton>
-                    <UiButton
-                      onClick={() => {
-                        setInlineFormMode('create_service');
-                        setEditingProduct(null);
-                        scrollToForm();
-                      }}
-                      {...mergeThemeProps({"size":"2","variant":"solid","color":"indigo","className":"flex items-center gap-1.5 hover-lift"})}
-                    >
-                      <Briefcase size={15} /> Nuevo Servicio
                     </UiButton>
                     <UiButton
                       onClick={() => setIsCatBrandOpen(true)}
@@ -423,7 +426,6 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
                       <option value="STANDARD">Estándar</option>
                       <option value="COMBO">Combo</option>
                       <option value="SUBPRODUCT">Subproducto</option>
-                      <option value="SERVICE">Servicio</option>
                     </UiSelect>
 
                     <UiSelect
@@ -464,7 +466,7 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
                           </UiTableRow>
                         ) : filteredProducts.length === 0 ? (
                           <UiTableRow>
-                            <UiTableCell colSpan={9} style={{ color: "var(--gray-11)" }} className="px-6 py-8 text-center">No se encontraron productos ni servicios.</UiTableCell>
+                            <UiTableCell colSpan={9} style={{ color: "var(--gray-11)" }} className="px-6 py-8 text-center">No se encontraron productos en el catálogo.</UiTableCell>
                           </UiTableRow>
                         ) : (
                           filteredProducts.map(p => {
@@ -561,39 +563,67 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
               </>
             ) : (
               /* Formulario Inline */
-              <UiBox id="inline-form-container" {...{"className":"animate-in slide-in-from-bottom duration-300"}}>
-                {inlineFormMode === 'create_product' || inlineFormMode === 'edit_product' ? (
-                  <ProductCreationForm
-                    key={editingProduct?.id || editingProduct?.type || 'new-product'}
-                    isInline={true}
-                    productToEdit={editingProduct}
-                    showToast={showToast}
-                    onClose={() => {
-                      setInlineFormMode(null);
-                      setEditingProduct(null);
-                    }}
-                    onSuccess={() => {
-                      setInlineFormMode(null);
-                      setEditingProduct(null);
-                      loadCatalogData();
-                    }}
-                  />
-                ) : (
-                  <ServiceCreationForm
-                    key={editingProduct?.id || 'new-service'}
-                    isInline={true}
-                    serviceToEdit={editingProduct}
-                    onClose={() => {
-                      setInlineFormMode(null);
-                      setEditingProduct(null);
-                    }}
-                    onSuccess={() => {
-                      setInlineFormMode(null);
-                      setEditingProduct(null);
-                      loadCatalogData();
-                    }}
-                  />
-                )}
+              <UiBox id="inline-form-container" className="animate-in slide-in-from-bottom duration-300">
+                <ProductCreationForm
+                  key={editingProduct?.id || editingProduct?.type || 'new-product'}
+                  isInline={true}
+                  productToEdit={editingProduct}
+                  showToast={showToast}
+                  onClose={() => {
+                    setInlineFormMode(null);
+                    setEditingProduct(null);
+                  }}
+                  onSuccess={() => {
+                    setInlineFormMode(null);
+                    setEditingProduct(null);
+                    loadCatalogData();
+                  }}
+                />
+              </UiBox>
+            )}
+          </UiBox>
+        )}
+
+        {/* --- TAB: SERVICIOS (SUBMÓDULO DEDICADO) --- */}
+        {activeTab === 'servicios' && (
+          <UiBox className="w-full h-full flex flex-col space-y-6 animate-in fade-in duration-300">
+            {!inlineFormMode ? (
+              <ServicesView
+                services={servicesList}
+                categories={categories}
+                loading={loading}
+                onNewService={() => {
+                  setInlineFormMode('create_service');
+                  setEditingProduct(null);
+                  scrollToForm();
+                }}
+                onEditService={(service) => {
+                  setInlineFormMode('edit_service');
+                  setEditingProduct(service);
+                  scrollToForm();
+                }}
+                onDeleteService={handleDeleteProduct}
+                onReactivateService={handleReactivateProduct}
+                onOpenCategories={() => setIsCatBrandOpen(true)}
+              />
+            ) : (
+              <UiBox id="inline-form-container" className="animate-in slide-in-from-bottom duration-300">
+                <ServiceCreationForm
+                  key={editingProduct?.id || 'new-service'}
+                  isInline={true}
+                  serviceToEdit={editingProduct}
+                  onClose={() => {
+                    setInlineFormMode(null);
+                    setEditingProduct(null);
+                  }}
+                  onSuccess={() => {
+                    setInlineFormMode(null);
+                    setEditingProduct(null);
+                    loadCatalogData();
+                    showToast?.(editingProduct?.id ? 'Servicio actualizado con éxito.' : 'Servicio registrado con éxito.', 'success');
+                  }}
+                  onOpenCategories={() => setIsCatBrandOpen(true)}
+                />
               </UiBox>
             )}
           </UiBox>

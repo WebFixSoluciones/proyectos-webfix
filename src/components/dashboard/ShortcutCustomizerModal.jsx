@@ -111,6 +111,18 @@ export const AVAILABLE_SHORTCUTS = [
     }
   },
   {
+    id: 'servicios_catalogo',
+    title: 'Catálogo de Servicios',
+    subtitle: 'Gestión y tarifas de servicios',
+    category: 'Inventario',
+    icon: Briefcase,
+    color: 'var(--indigo-9)',
+    action: ({ setActivePageId, setInventarioInitialSubTab }) => {
+      setInventarioInitialSubTab?.('servicios');
+      setActivePageId('inventario');
+    }
+  },
+  {
     id: 'inventario',
     title: 'Inventario',
     subtitle: 'Kardex y Stock',
