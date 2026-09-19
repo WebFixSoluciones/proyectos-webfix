@@ -248,3 +248,47 @@ test('volume discount A_PARTIR_DE with SIN_IVA applies on threshold and matches 
   assert.match(xml, /<importeTotal>200.00<\/importeTotal>/);
 });
 
+test('split payment sale creates CxC with partial credit and records bank deposit', async () => {
+  const store = memoryStore();
+  const bankId = 'bank-prod-01';
+  store.data.set(`fin_bancos/${bankId}`, { id: bankId, nombre: 'Banco Pichincha', saldoActual: 100, estado: 'activo' });
+
+  const sale = {
+    id: 'sale-split-1',
+    total: 50,
+    paidAmount: 20,
+    paymentStatus: 'pendiente',
+    paymentsBreakdown: {
+      transferencia: 20,
+      cruce_cuentas: 30,
+      efectivo: 0,
+      tarjeta: 0
+    },
+    cuentaBancariaId: bankId,
+    transferenciaBankId: bankId,
+    transferenciaRef: 'DEP-89102',
+    thirdPartyId: 'cli-01',
+    thirdParty: { name: 'Cliente A', ruc: '1790011223001' }
+  };
+
+  await sincronizarVenta(sale, {}, null, store.api);
+
+  const cxc = store.data.get('fin_cxc/sale-split-1');
+  assert.ok(cxc, 'CxC record must exist');
+  assert.equal(cxc.saldoPendiente, 30);
+  assert.equal(cxc.estado, 'parcial');
+  assert.equal(cxc.abonos.length, 1);
+  assert.equal(cxc.abonos[0].monto, 20);
+
+  const mov = store.data.get('fin_movimientos/venta_sale-split-1');
+  assert.ok(mov, 'Financial movement must exist');
+  assert.equal(mov.saldoPendiente, 30);
+
+  const bankMov = store.data.get('fin_movimientos_bancarios/mov_doc_sale-split-1');
+  assert.ok(bankMov, 'Bank movement must exist for the transfer portion');
+  assert.equal(bankMov.monto, 20);
+  assert.equal(bankMov.tipo, 'credito');
+  assert.equal(bankMov.cuentaId, bankId);
+});
+
+

@@ -139,7 +139,7 @@ async function sincronizarDocumento(data, db, usuario, venta, api = firestore) {
     tx.set(movementRef, { ...movData, monto: total, pagos: abonos, saldoPendiente, estado, creadoPor: user.uid || '', creadoEn: movement.data()?.creadoEn || serverTimestamp(), actualizadoEn: serverTimestamp() }, { merge: true });
 
     const bankId = data.cuentaBancariaId || data.transferenciaBankId || data.bankAccountId;
-    if (bankId && initialPaid > 0 && api === firestore) {
+    if (bankId && initialPaid > 0) {
       const bankRef = doc(db, 'fin_bancos', bankId);
       const bankMovRef = doc(db, 'fin_movimientos_bancarios', `mov_doc_${data.id}`);
       const bankAmount = Number(data.paymentsBreakdown?.transferencia || (data.paymentMethod === 'transferencia' ? initialPaid : initialPaid));
