@@ -75,31 +75,38 @@ export default function Sidebar({
  </div>
  {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu ==='ventas' ?'rotate-180' :''} text-[var(--gray-10)]`} />}
  </button>
- {isSidebarOpen && expandedSidebarMenu ==='ventas' && (
- <div className={menuBorderClass}>
- {[{ id:'resumen_ventas', label:'Historial de Ventas' },{ id:'ventas_preventa', label:'Registrar Venta' },{ id:'pos', label:'Punto de Venta (POS)' },{ id:'preventas', label:'Preventas' },{ id:'quotes', label:'Cotizaciones' },{ id:'nota_credito', label:'Notas de Credito' },{ id:'retencion', label:'Retenciones de Venta' },{ id:'discounts', label:'Descuentos y Promos' }].map(sub => {
- const isActive = activePageId ==='ventas' && (
-    sub.id ==='pos' ? (ventasInitialSubTab && String(ventasInitialSubTab).startsWith('pos')) : 
-    sub.id ==='ventas_preventa' ? (ventasInitialSubTab && String(ventasInitialSubTab).startsWith('ventas_preventa')) : 
-    ventasInitialSubTab === sub.id
-  );
-  return (
-    <button 
-      key={sub.id} 
-      onClick={() => { 
-        const targetId = sub.id === 'ventas_preventa' ? `ventas_preventa_${Date.now()}` : sub.id;
-        setVentasInitialSubTab(targetId); 
-        setActivePageId('ventas'); 
-        closeMobile(); 
-      }} 
-      className={subItemClass(isActive)}
-    >
-      {sub.label}
-    </button>
-  );
- })}
- </div>
- )}
+          {isSidebarOpen && expandedSidebarMenu === 'ventas' && (
+            <div className={menuBorderClass}>
+              {[
+                { id: 'resumen_ventas', label: 'Historial de Ventas' },
+                { id: 'ventas_preventa', label: 'Registrar Venta' },
+                { id: 'preventas', label: 'Preventas' },
+                { id: 'quotes', label: 'Cotizaciones' },
+                { id: 'nota_credito', label: 'Notas de Credito' },
+                { id: 'retencion', label: 'Retenciones de Venta' },
+                { id: 'discounts', label: 'Descuentos y Promos' }
+              ].map(sub => {
+                const isActive = activePageId === 'ventas' && (
+                  sub.id === 'ventas_preventa' ? (ventasInitialSubTab && String(ventasInitialSubTab).startsWith('ventas_preventa')) : 
+                  ventasInitialSubTab === sub.id
+                );
+                return (
+                  <button 
+                    key={sub.id} 
+                    onClick={() => { 
+                      const targetId = sub.id === 'ventas_preventa' ? `ventas_preventa_${Date.now()}` : sub.id;
+                      setVentasInitialSubTab(targetId); 
+                      setActivePageId('ventas'); 
+                      closeMobile(); 
+                    }} 
+                    className={subItemClass(isActive)}
+                  >
+                    {sub.label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
  </div>
  )}
 
