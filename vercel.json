@@ -48,6 +48,14 @@
       "destination": "/api/sri-ws-prod/index.js?path=:path*"
     },
     {
+      "source": "/api/send-email",
+      "destination": "/api/send-email/index.js"
+    },
+    {
+      "source": "/api/send-email/:path*",
+      "destination": "/api/send-email/index.js"
+    },
+    {
       "source": "/((?!api/).*)",
       "destination": "/index.html"
     }

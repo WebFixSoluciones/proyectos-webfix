@@ -1239,17 +1239,18 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       return;
     }
 
-    const emitterEmail = configSRI.correoContacto || configSRI.email || configSRI.smtpUser || '';
-    const hasClientEmail = cliente?.email && !cliente.email.includes('consumidorfinal') && cliente.email.trim() !== '';
-    const recipientTo = hasClientEmail ? cliente.email.trim() : emitterEmail;
+    const emitterEmail = (configSRI?.correoContacto || configSRI?.email || configSRI?.smtpUser || '').trim();
+    const rawClientEmail = (cliente?.email || cliente?.correo || cliente?.correoElectronico || cliente?.mail || '').trim();
+    const hasClientEmail = rawClientEmail && !rawClientEmail.includes('consumidorfinal') && rawClientEmail.includes('@');
+    const recipientTo = hasClientEmail ? rawClientEmail : emitterEmail;
 
     if (!recipientTo) {
       console.log("Ni el cliente ni el emisor tienen un correo válido registrado. Omitiendo envío de correo.");
       return;
     }
 
-    if (!configSRI.smtpHost || !configSRI.smtpUser || !configSRI.smtpPass) {
-      console.log("Servidor SMTP no configurado en los ajustes. Omitiendo envío de correo.");
+    if (!configSRI?.smtpHost || !configSRI?.smtpUser || !configSRI?.smtpPass) {
+      console.log("Servidor SMTP no configurado en Ajustes. Omitiendo envío de correo.");
       return;
     }
 
@@ -1266,12 +1267,13 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         smtpSecure: configSRI.smtpSecure,
         to: recipientTo,
         emitterEmail: emitterEmail,
-        clientName: cliente?.name || 'Consumidor Final',
+        clientName: cliente?.name || cliente?.razonSocial || 'Consumidor Final',
         clientIdentification: cliente?.ruc || cliente?.identificacion || '9999999999999',
         documentNumber: txData.documentNumber,
         total: txData.total,
         pdfUrl: effectivePdf,
         xmlUrl: txData.xmlUrl || '',
+        xmlContent: txData.xml || '',
         companyName: configSRI.nombreComercial || configSRI.razonSocial || 'Facturación Electrónica',
         logoUrl: configSRI.logoUrl || '',
         companyRuc: configSRI.ruc || '',
@@ -1291,19 +1293,27 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         body: JSON.stringify(emailPayload)
       });
 
-      const data = await res.json();
-      if (res.ok) {
+      let data = null;
+      try {
+        data = await res.json();
+      } catch {
+        data = { error: `Servidor de correo no devolvió JSON válido (${res.status} ${res.statusText})` };
+      }
+
+      if (res.ok && data?.success) {
         if (hasClientEmail) {
-          showToast(`Comprobante enviado a ${cliente.email} con respaldo al emisor`, 'success');
+          showToast(`Comprobante enviado a ${rawClientEmail} con respaldo al emisor`, 'success');
         } else {
           showToast(`Copia de respaldo enviada al emisor (${emitterEmail})`, 'success');
         }
       } else {
-        console.error("Fallo al enviar correo:", data.error);
-        showToast(`No se pudo enviar el correo: ${data.error}`, 'warning');
+        const errorMsg = data?.error || 'No se pudo enviar el correo';
+        console.error("Fallo al enviar correo:", errorMsg);
+        showToast(errorMsg, 'warning');
       }
     } catch (err) {
       console.error("Error al conectar con la API de envío de correos:", err);
+      showToast(`Error al conectar con el servicio de correos: ${err.message || 'Sin conexión'}`, 'warning');
     }
   };
 

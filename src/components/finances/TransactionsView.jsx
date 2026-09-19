@@ -360,12 +360,13 @@ export default function TransactionsView({ transactions, thirdParties, showToast
         smtpSecure: configData.smtpSecure,
         to: emailTarget,
         emitterEmail: configData.correoContacto || configData.email || configData.smtpUser || '',
-        clientName: cliente?.name || 'Cliente',
+        clientName: cliente?.name || cliente?.razonSocial || 'Cliente',
         clientIdentification: cliente?.ruc || cliente?.identificacion || '',
         documentNumber: emailModalTx.documentNumber,
         total: emailModalTx.total,
         pdfUrl: effectivePdf,
         xmlUrl: emailModalTx.xmlUrl || '',
+        xmlContent: emailModalTx.xml || '',
         companyName: configData.nombreComercial || configData.razonSocial || 'Facturación Electrónica',
         logoUrl: configData.logoUrl || '',
         companyRuc: configData.ruc || '',
@@ -385,17 +386,24 @@ export default function TransactionsView({ transactions, thirdParties, showToast
         body: JSON.stringify(emailPayload)
       });
 
-      const data = await res.json();
-      if (res.ok) {
+      let data = null;
+      try {
+        data = await res.json();
+      } catch {
+        data = { error: `Servidor de correo no devolvió JSON válido (${res.status} ${res.statusText})` };
+      }
+
+      if (res.ok && data?.success) {
         showToast(`Comprobante enviado a ${emailTarget}`, 'success');
         setEmailModalTx(null);
       } else {
-        console.error("Fallo al enviar correo:", data.error);
-        showToast(`No se pudo enviar el correo: ${data.error}`, 'error');
+        const errorMsg = data?.error || 'No se pudo enviar el correo';
+        console.error("Fallo al enviar correo:", errorMsg);
+        showToast(errorMsg, 'error');
       }
     } catch (err) {
       console.error("Error al conectar con la API de envío de correos:", err);
-      showToast("Error al conectar con la API de correos.", "error");
+      showToast(`Error al conectar con la API de correos: ${err.message || 'Sin respuesta'}`, "error");
     } finally {
       setIsSendingEmail(false);
     }

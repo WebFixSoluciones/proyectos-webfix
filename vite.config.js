@@ -1,9 +1,62 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
+function localApiPlugin() {
+  return {
+    name: 'local-api-endpoints',
+    configureServer(server) {
+      server.middlewares.use(async (req, res, next) => {
+        const url = req.url ? req.url.split('?')[0] : '';
+        if (url === '/api/send-email' || url === '/api/send-email/') {
+          if (req.method === 'POST') {
+            try {
+              let body = '';
+              req.on('data', chunk => { body += chunk; });
+              req.on('end', async () => {
+                try {
+                  req.body = body ? JSON.parse(body) : {};
+                  const { default: handler } = await import('./api/send-email/index.js');
+                  if (!res.status) {
+                    res.status = (code) => {
+                      res.statusCode = code;
+                      return res;
+                    };
+                  }
+                  if (!res.json) {
+                    res.json = (data) => {
+                      res.setHeader('Content-Type', 'application/json');
+                      res.end(JSON.stringify(data));
+                      return res;
+                    };
+                  }
+                  if (!res.send) {
+                    res.send = (text) => {
+                      res.end(text);
+                      return res;
+                    };
+                  }
+                  await handler(req, res);
+                } catch (err) {
+                  res.statusCode = 500;
+                  res.setHeader('Content-Type', 'application/json');
+                  res.end(JSON.stringify({ error: err.message }));
+                }
+              });
+            } catch (err) {
+              next(err);
+            }
+            return;
+          }
+        }
+        next();
+      });
+    }
+  };
+}
+
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), localApiPlugin()],
   build: {
     sourcemap: true,
     chunkSizeWarningLimit: 2500

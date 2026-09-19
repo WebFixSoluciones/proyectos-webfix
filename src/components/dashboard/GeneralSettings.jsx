@@ -5,7 +5,7 @@ import {
   Phone, Building, ShoppingCart, DollarSign, Package, Calendar, 
   Plus, Trash2, LayoutDashboard, ToggleLeft, ToggleRight,
   CreditCard, Award, UploadCloud, X, Lock, RefreshCw, FileText,
-  AlertCircle, CheckCircle
+  AlertCircle, CheckCircle, Send
 } from'lucide-react';
 import { doc, setDoc, getDoc } from'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from'firebase/storage';
@@ -62,6 +62,8 @@ export default function GeneralSettings({
  const [isExtractingSRI, setIsExtractingSRI] = useState(false);
  const [newWarehouseName, setNewWarehouseName] = useState('');
  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+ const [isTestingSmtp, setIsTestingSmtp] = useState(false);
+ const [smtpTestResult, setSmtpTestResult] = useState(null);
 
  // States for signature configuration
  const [isFirmaOpen, setIsFirmaOpen] = useState(false);
@@ -483,6 +485,53 @@ export default function GeneralSettings({
  }));
  showToast("Logo removido. Guarde los cambios para confirmar.","info");
  };
+
+  const handleTestSmtp = async () => {
+    if (!companyProfile.smtpHost || !companyProfile.smtpUser || !companyProfile.smtpPass) {
+      showToast("Completa Servidor, Usuario y Contraseña SMTP antes de probar.", "warning");
+      return;
+    }
+    setIsTestingSmtp(true);
+    setSmtpTestResult(null);
+    try {
+      const res = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          smtpHost: companyProfile.smtpHost,
+          smtpPort: companyProfile.smtpPort || (companyProfile.smtpSecure ? 465 : 587),
+          smtpUser: companyProfile.smtpUser,
+          smtpPass: companyProfile.smtpPass,
+          smtpSecure: companyProfile.smtpSecure,
+          emitterEmail: companyProfile.smtpUser,
+          to: companyProfile.smtpUser,
+          companyName: companyProfile.nombreComercial || companyProfile.razonSocial || 'Mi Empresa',
+          isTest: true
+        })
+      });
+      let data = null;
+      try {
+        data = await res.json();
+      } catch {
+        data = { error: `Servidor devolvió código HTTP ${res.status}` };
+      }
+
+      if (res.ok && data?.success) {
+        setSmtpTestResult({ success: true, message: `¡Conexión exitosa! Correo de prueba enviado a ${companyProfile.smtpUser}.` });
+        showToast("¡Prueba exitosa! El servidor de correos funciona correctamente.", "success");
+      } else {
+        const errDesc = data?.error || "Error al conectar con el servidor SMTP.";
+        setSmtpTestResult({ success: false, message: errDesc });
+        showToast(errDesc, "error");
+      }
+    } catch (err) {
+      const errDesc = `Error de red: ${err.message || 'Sin conexión'}`;
+      setSmtpTestResult({ success: false, message: errDesc });
+      showToast(errDesc, "error");
+    } finally {
+      setIsTestingSmtp(false);
+    }
+  };
 
   // Signature verification logic (node-forge)
   function verifySignatureDetails(base64, password, emisorRuc) {
@@ -1198,6 +1247,24 @@ export default function GeneralSettings({
  className={inputClass} 
  placeholder="••••••••••••" 
  />
+ </div>
+
+ <div className="sm:col-span-2 pt-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-t border-border-default mt-2">
+ <button
+ type="button"
+ disabled={isTestingSmtp}
+ onClick={handleTestSmtp}
+ className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-primary/10 text-primary hover:bg-primary/20 transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+ >
+ {isTestingSmtp ? <RefreshCw size={13} className="animate-spin" /> : <Send size={13} />}
+ <span>{isTestingSmtp ? 'Probando conexión...' : 'Probar Envío SMTP'}</span>
+ </button>
+ {smtpTestResult && (
+ <div className={`text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 ${smtpTestResult.success ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+ {smtpTestResult.success ? <CheckCircle2 size={13} /> : <AlertTriangle size={13} />}
+ <span>{smtpTestResult.message}</span>
+ </div>
+ )}
  </div>
  </div>
  </div>
