@@ -7,6 +7,7 @@ import { calculateTransactionTotals } from '../src/services/discountCalcService.
 import { generarFacturaXML, validarIdentificacion } from '../src/services/sriService.js';
 import { registerInventoryOperations, CENTRAL_BRANCH } from '../src/services/inventoryLedger.js';
 import { sincronizarVenta } from '../src/services/integracionFinanzasService.js';
+import handler, { resolveSmtpConfig } from '../api/send-email/index.js';
 
 const product = (id, stock = 10, other = {}) => ({ id, name: id, type: 'STANDARD', stock, baseCost: 4, salePrice: 10, taxRate: 15, ...other });
 const path = (collection, id) => `artifacts/test/public/data/${collection}/${id}`;
@@ -289,6 +290,55 @@ test('split payment sale creates CxC with partial credit and records bank deposi
   assert.equal(bankMov.monto, 20);
   assert.equal(bankMov.tipo, 'credito');
   assert.equal(bankMov.cuentaId, bankId);
+});
+
+test('resolveSmtpConfig resolves default ports, corrects TLS on port 587 and cleans Gmail app passwords', () => {
+  // Test 1: Empty port defaults to 587 when smtpSecure is false
+  const cfg1 = resolveSmtpConfig({ smtpHost: 'mail.empresa.com', smtpPort: '', smtpUser: 'ventas@empresa.com', smtpPass: 'secret', smtpSecure: false });
+  assert.equal(cfg1.port, 587);
+  assert.equal(cfg1.secure, false);
+  assert.equal(cfg1.isValid, true);
+
+  // Test 2: Empty port defaults to 465 when smtpSecure is true
+  const cfg2 = resolveSmtpConfig({ smtpHost: 'smtp.gmail.com', smtpPort: '', smtpUser: 'user@gmail.com', smtpPass: 'abcd efgh ijkl mnop', smtpSecure: true });
+  assert.equal(cfg2.port, 465);
+  assert.equal(cfg2.secure, true);
+  assert.equal(cfg2.pass, 'abcdefghijklmnop', 'Gmail spaces in app password must be stripped');
+  assert.equal(cfg2.isValid, true);
+
+  // Test 3: Port 587 must NOT have secure: true even if smtpSecure is true (prevents STARTTLS handshake crash)
+  const cfg3 = resolveSmtpConfig({ smtpHost: 'smtp.office365.com', smtpPort: '587', smtpUser: 'u@o365.com', smtpPass: 'pwd', smtpSecure: true });
+  assert.equal(cfg3.port, 587);
+  assert.equal(cfg3.secure, false, 'Port 587 must use STARTTLS (secure: false)');
+
+  // Test 4: Incomplete config is detected as invalid
+  const cfg4 = resolveSmtpConfig({ smtpHost: '', smtpUser: 'u', smtpPass: '' });
+  assert.equal(cfg4.isValid, false);
+});
+
+test('send-email handler accepts empty smtpPort and validates required fields without returning 400', async () => {
+  let statusCode = 200;
+  let jsonResponse = null;
+  const mockRes = {
+    status(code) { statusCode = code; return this; },
+    json(data) { jsonResponse = data; return this; },
+    send(text) { jsonResponse = text; return this; }
+  };
+
+  await handler({
+    method: 'POST',
+    body: {
+      smtpHost: 'smtp.gmail.com',
+      smtpPort: '',
+      smtpUser: 'user@gmail.com',
+      smtpPass: 'secret',
+      to: 'cliente@correo.com',
+      documentType: 'nota_venta'
+    }
+  }, mockRes);
+
+  assert.equal(statusCode, 200);
+  assert.equal(jsonResponse.success, true);
 });
 
 

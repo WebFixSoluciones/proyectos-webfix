@@ -1,6 +1,49 @@
 /* global Buffer */
 import nodemailer from 'nodemailer';
 
+/**
+ * Normaliza y valida la configuración SMTP:
+ * - Asigna puerto predeterminado (465 para SSL, 587 para TLS/STARTTLS) si viene vacío.
+ * - Garantiza que en el puerto 587 no se fuerce secure: true (lo cual colapsa el protocolo STARTTLS).
+ * - Elimina espacios en blanco accidentales en contraseñas de aplicación de Gmail ("xxxx xxxx xxxx xxxx").
+ * - Valida campos mínimos obligatorios (host, user, pass).
+ */
+export function resolveSmtpConfig(config = {}) {
+  const { smtpHost, smtpPort, smtpUser, smtpPass, smtpSecure } = config;
+  const isSmtpSecure = smtpSecure === true || String(smtpSecure).toLowerCase() === 'true';
+  const parsedPort = parseInt(smtpPort, 10);
+  const port = parsedPort && !isNaN(parsedPort) && parsedPort > 0 ? parsedPort : (isSmtpSecure ? 465 : 587);
+
+  // En Nodemailer:
+  // - Puerto 465 requiere secure: true (SSL directo desde inicio del socket).
+  // - Puerto 587 o 25 requiere secure: false (STARTTLS). Si se pasa secure: true en 587, el handshake falla de inmediato.
+  const isSecure = port === 465;
+
+  let cleanPass = String(smtpPass ?? '').trim();
+  const hostLower = String(smtpHost ?? '').toLowerCase();
+
+  // Para cuentas de Google (smtp.gmail.com), las Contraseñas de Aplicación se generan visualmente
+  // en bloques separados por espacios: "abcd efgh ijkl mnop". Si el usuario las copia tal cual,
+  // removemos los espacios para que el servidor SMTP de Google las acepte.
+  if (hostLower.includes('gmail.com') && cleanPass.includes(' ')) {
+    cleanPass = cleanPass.replace(/\s+/g, '');
+  }
+
+  const cleanHost = String(smtpHost ?? '').trim();
+  const cleanUser = String(smtpUser ?? '').trim();
+
+  const isValid = Boolean(cleanHost && cleanUser && cleanPass);
+
+  return {
+    host: cleanHost,
+    port,
+    secure: isSecure,
+    user: cleanUser,
+    pass: cleanPass,
+    isValid
+  };
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).send('Method Not Allowed');
@@ -39,8 +82,10 @@ export default async function handler(req, res) {
     isTest
   } = req.body || {};
 
-  if (!smtpHost || !smtpPort || !smtpUser || !smtpPass) {
-    res.status(400).json({ error: 'Configuración SMTP incompleta en Ajustes (Servidor, Puerto, Usuario o Contraseña).' });
+  const smtpConfig = resolveSmtpConfig({ smtpHost, smtpPort, smtpUser, smtpPass, smtpSecure });
+
+  if (!smtpConfig.isValid) {
+    res.status(400).json({ error: 'Configuración SMTP incompleta en Ajustes (Servidor, Usuario o Contraseña).' });
     return;
   }
 
@@ -56,46 +101,47 @@ export default async function handler(req, res) {
     return;
   }
 
-  const port = parseInt(smtpPort, 10) || 587;
-  const isSecure = smtpSecure === true || String(smtpSecure).toLowerCase() === 'true' || port === 465;
-
   try {
     // 1. Configurar el transportador SMTP
     const transporter = nodemailer.createTransport({
-      host: String(smtpHost).trim(),
-      port: port,
-      secure: isSecure,
+      host: smtpConfig.host,
+      port: smtpConfig.port,
+      secure: smtpConfig.secure,
       auth: {
-        user: String(smtpUser).trim(),
-        pass: String(smtpPass),
+        user: smtpConfig.user,
+        pass: smtpConfig.pass,
       },
       tls: {
         // En Ecuador, muchos dominios cPanel/Zimbra usan certificados compartidos
         rejectUnauthorized: false
       },
-      connectionTimeout: 15000,
-      greetingTimeout: 12000,
-      socketTimeout: 25000
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 15000
     });
 
     const cleanCompanyName = String(companyName || 'Facturación Electrónica').replace(/["\r\n]/g, '').trim();
+    const fromAddress = {
+      name: cleanCompanyName,
+      address: smtpConfig.user
+    };
 
     // 2. Modo prueba de conexión
     if (isTest || documentType === 'prueba') {
       const testMailOptions = {
-        from: `"${cleanCompanyName}" <${String(smtpUser).trim()}>`,
+        from: fromAddress,
         to: recipientTo,
         subject: `[WebFix ERP] Prueba de Conexión SMTP Exitosa`,
-        text: `¡Hola!\n\nEste es un mensaje de prueba para confirmar que tu servidor SMTP (${smtpHost}:${port}) está funcionando correctamente en WebFix ERP.\n\nTus clientes ya pueden recibir comprobantes autorizados y enlaces a su RIDE por correo.\n\nFecha: ${new Date().toLocaleString('es-EC')}`,
+        text: `¡Hola!\n\nEste es un mensaje de prueba para confirmar que tu servidor SMTP (${smtpConfig.host}:${smtpConfig.port}) está funcionando correctamente en WebFix ERP.\n\nTus clientes ya pueden recibir comprobantes autorizados y enlaces a su RIDE por correo.\n\nFecha: ${new Date().toLocaleString('es-EC')}`,
         html: `
           <div style="font-family: 'Inter', sans-serif, Arial; padding: 24px; background-color: #F2F4FF;">
             <div style="max-width: 540px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; border: 1px solid #CAD1F4; padding: 30px; text-align: left;">
               <h2 style="color: #1C40F2; margin-top: 0;">¡Conexión SMTP Exitosa!</h2>
               <p style="font-size: 13px; color: #333333; line-height: 1.6;">
-                Tu servidor de correo saliente <strong>${smtpHost}</strong> en el puerto <strong>${port}</strong> (SSL/TLS: ${isSecure ? 'Sí' : 'No'}) fue configurado correctamente.
+                Tu servidor de correo saliente <strong>${smtpConfig.host}</strong> en el puerto <strong>${smtpConfig.port}</strong> (SSL/TLS: ${smtpConfig.secure ? 'Sí' : 'No'}) fue configurado correctamente.
               </p>
               <p style="font-size: 13px; color: #333333; line-height: 1.6;">
-                Desde ahora, cuando emitas facturas o comprobantes autorizados por el SRI, se enviarán automáticamente desde <strong>${smtpUser}</strong>.
+                Desde ahora, cuando emitas facturas o comprobantes autorizados por el SRI, se enviarán automáticamente desde <strong>${smtpConfig.user}</strong>.
               </p>
               <hr style="border: none; border-top: 1px solid #E2E8F0; margin: 20px 0;" />
               <p style="font-size: 11px; color: #718096; margin-bottom: 0;">
@@ -227,7 +273,7 @@ export default async function handler(req, res) {
     }
 
     const mailOptions = {
-      from: `"${cleanCompanyName}" <${String(smtpUser).trim()}>`,
+      from: fromAddress,
       to: recipientTo,
       subject: isDirectToEmitter 
         ? `[Copia Emisor] ${docTypeLabel} Electrónica: ${documentNumber || ''}`
@@ -373,11 +419,11 @@ export default async function handler(req, res) {
     if (err.code === 'EAUTH' || clientMsg.toLowerCase().includes('invalid login')) {
       clientMsg = 'Credenciales SMTP incorrectas (usuario o contraseña no válidos para el servidor de correo).';
     } else if (err.code === 'ETIMEDOUT' || err.code === 'ESOCKET' || clientMsg.toLowerCase().includes('timeout')) {
-      clientMsg = `Tiempo de espera agotado conectando a ${smtpHost}:${port}. Verifica si el puerto requiere SSL o TLS.`;
+      clientMsg = `Tiempo de espera agotado conectando a ${smtpConfig.host}:${smtpConfig.port}. Verifica si el puerto requiere SSL o TLS.`;
     } else if (err.code === 'ECONNREFUSED') {
-      clientMsg = `Conexión rechazada por el servidor ${smtpHost}:${port}. Verifica que el host y puerto sean correctos.`;
+      clientMsg = `Conexión rechazada por el servidor ${smtpConfig.host}:${smtpConfig.port}. Verifica que el host y puerto sean correctos.`;
     } else if (err.code === 'ENOTFOUND') {
-      clientMsg = `No se pudo encontrar el servidor SMTP (${smtpHost}). Verifica la dirección del host.`;
+      clientMsg = `No se pudo encontrar el servidor SMTP (${smtpConfig.host}). Verifica la dirección del host.`;
     }
 
     res.status(502).json({ error: `Fallo al enviar correo por SMTP: ${clientMsg}` });

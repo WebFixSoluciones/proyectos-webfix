@@ -56,7 +56,8 @@ export default function GeneralSettings({
  smtpPort:'',
  smtpUser:'',
  smtpPass:'',
- smtpSecure: false
+ smtpSecure: false,
+ smtpActivo: true
  });
 
  const [isExtractingSRI, setIsExtractingSRI] = useState(false);
@@ -141,7 +142,8 @@ export default function GeneralSettings({
             smtpPort: finData.smtpPort ||'',
             smtpUser: finData.smtpUser ||'',
             smtpPass: finData.smtpPass ||'',
-            smtpSecure: finData.smtpSecure || false
+            smtpSecure: finData.smtpSecure || false,
+            smtpActivo: finData.smtpActivo !== false
           }));
         } else if (snap.exists() && snap.data().companyProfile) {
           const cp = snap.data().companyProfile;
@@ -167,7 +169,8 @@ export default function GeneralSettings({
             smtpPort: cp.smtpPort ||'',
             smtpUser: cp.smtpUser ||'',
             smtpPass: cp.smtpPass ||'',
-            smtpSecure: cp.smtpSecure || false
+            smtpSecure: cp.smtpSecure || false,
+            smtpActivo: cp.smtpActivo !== false
           }));
         }
       } catch (err) {
@@ -836,7 +839,8 @@ export default function GeneralSettings({
  smtpPort: companyProfile.smtpPort ||'',
  smtpUser: companyProfile.smtpUser ||'',
  smtpPass: companyProfile.smtpPass ||'',
- smtpSecure: companyProfile.smtpSecure || false
+ smtpSecure: companyProfile.smtpSecure || false,
+ smtpActivo: companyProfile.smtpActivo !== false
  };
  await setDoc(configRef, profileToSave, { merge: true });
 
@@ -1190,20 +1194,42 @@ export default function GeneralSettings({
 
  {/* CARD 2.5: CONFIGURACIÓN DE CORREO SALIENTE (SMTP) */}
  <div className={`p-5 rounded-card border space-y-4 bg-surface-bg/50 border-border-default`}>
+ <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+ <div>
  <h4 className="text-xs font-semibold uppercase tracking-wider text-primary flex items-center gap-1.5">
  <Mail size={13} className="text-primary" /> Correo Saliente (SMTP)
  </h4>
- <p className="text-xs text-text-secondary leading-normal">
- Configura tu cuenta de correo para enviar automáticamente los comprobantes electrónicos (XML y PDF) autorizados a tus clientes.
+ <p className="text-xs text-text-secondary leading-normal mt-1">
+ Envía automáticamente comprobantes autorizados (XML y RIDE en PDF) a tus clientes al emitir facturas.
  </p>
- 
+ </div>
+ <label className="flex items-center gap-2 cursor-pointer select-none">
+ <input 
+ type="checkbox"
+ checked={companyProfile.smtpActivo !== false}
+ onChange={e => setCompanyProfile({ ...companyProfile, smtpActivo: e.target.checked })}
+ className="rounded border-border-strong text-primary focus:ring-primary h-4 w-4"
+ />
+ <span className="text-xs font-bold uppercase text-text-primary">
+ {companyProfile.smtpActivo !== false ? 'Activo' : 'Desactivado'}
+ </span>
+ </label>
+ </div>
+
+ {companyProfile.smtpActivo === false && (
+ <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg text-xs text-amber-600 flex items-center gap-2">
+ <AlertTriangle size={14} className="shrink-0" />
+ <span>El envío automático por correo está desactivado. Las facturas autorizadas por el SRI se guardarán con normalidad sin intentar envíos por correo.</span>
+ </div>
+ )}
+
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
  <div className="sm:col-span-2">
  <label className="label-field label-field-dark">Servidor SMTP (Host)</label>
  <input 
  type="text" 
- value={companyProfile.smtpHost ||''} 
- onChange={e => setCompanyProfile({...companyProfile, smtpHost: e.target.value})} 
+ value={companyProfile.smtpHost || ''} 
+ onChange={e => setCompanyProfile({ ...companyProfile, smtpHost: e.target.value })} 
  className={inputClass} 
  placeholder="smtp.gmail.com o mail.tuempresa.com" 
  />
@@ -1212,28 +1238,31 @@ export default function GeneralSettings({
  <label className="label-field label-field-dark">Puerto SMTP</label>
  <input 
  type="text" 
- value={companyProfile.smtpPort ||''} 
- onChange={e => setCompanyProfile({...companyProfile, smtpPort: e.target.value})} 
+ value={companyProfile.smtpPort || ''} 
+ onChange={e => setCompanyProfile({ ...companyProfile, smtpPort: e.target.value })} 
  className={inputClass} 
  placeholder="465 (SSL) o 587 (TLS)" 
  />
+ <span className="text-[10px] text-text-tertiary mt-1 block">Opcional: Dejar vacío para asignar automáticamente según el modo de seguridad</span>
  </div>
  <div className="flex items-center gap-2 pt-5">
  <input 
  type="checkbox" 
  id="smtpSecure"
  checked={!!companyProfile.smtpSecure} 
- onChange={e => setCompanyProfile({...companyProfile, smtpSecure: e.target.checked})} 
+ onChange={e => setCompanyProfile({ ...companyProfile, smtpSecure: e.target.checked })} 
  className="rounded border-border-strong text-primary focus:ring-primary h-3.5 w-3.5"
  />
- <label htmlFor="smtpSecure" className="text-xs font-bold uppercase text-text-secondary cursor-pointer">Usar Conexión Segura (SSL/TLS)</label>
+ <label htmlFor="smtpSecure" className="text-xs font-bold uppercase text-text-secondary cursor-pointer">
+ Usar Conexión Segura Directa (SSL - Puerto 465)
+ </label>
  </div>
  <div>
  <label className="label-field label-field-dark">Usuario / Correo SMTP</label>
  <input 
  type="email" 
- value={companyProfile.smtpUser ||''} 
- onChange={e => setCompanyProfile({...companyProfile, smtpUser: e.target.value})} 
+ value={companyProfile.smtpUser || ''} 
+ onChange={e => setCompanyProfile({ ...companyProfile, smtpUser: e.target.value })} 
  className={inputClass} 
  placeholder="facturacion@tuempresa.com" 
  />
@@ -1242,11 +1271,18 @@ export default function GeneralSettings({
  <label className="label-field label-field-dark">Contraseña SMTP</label>
  <input 
  type="password" 
- value={companyProfile.smtpPass ||''} 
- onChange={e => setCompanyProfile({...companyProfile, smtpPass: e.target.value})} 
+ value={companyProfile.smtpPass || ''} 
+ onChange={e => setCompanyProfile({ ...companyProfile, smtpPass: e.target.value })} 
  className={inputClass} 
  placeholder="••••••••••••" 
  />
+ </div>
+
+ <div className="sm:col-span-2 p-3 bg-primary/5 border border-primary/15 rounded-lg text-xs text-text-secondary flex items-start gap-2">
+ <AlertCircle size={14} className="text-primary mt-0.5 shrink-0" />
+ <div className="leading-relaxed">
+ <strong className="text-primary font-semibold">Consejo para Gmail (smtp.gmail.com):</strong> Google exige una <em>Contraseña de Aplicación de 16 letras</em> creada en la sección de Seguridad de tu cuenta Google (la contraseña habitual de inicio de sesión no es aceptada por SMTP). El sistema elimina automáticamente espacios si la pegas agrupada.
+ </div>
  </div>
 
  <div className="sm:col-span-2 pt-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-t border-border-default mt-2">

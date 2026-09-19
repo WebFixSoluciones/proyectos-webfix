@@ -1257,6 +1257,11 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       return;
     }
 
+    if (configSRI?.smtpActivo === false) {
+      console.log("Envío de correos automáticos por SMTP desactivado en Ajustes. Omitiendo envío.");
+      return;
+    }
+
     const emitterEmail = (configSRI?.correoContacto || configSRI?.email || configSRI?.smtpUser || '').trim();
     const rawClientEmail = (cliente?.email || cliente?.correo || cliente?.correoElectronico || cliente?.mail || '').trim();
     const hasClientEmail = rawClientEmail && !rawClientEmail.includes('consumidorfinal') && rawClientEmail.includes('@');
@@ -1279,7 +1284,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
       const emailPayload = {
         smtpHost: configSRI.smtpHost,
-        smtpPort: configSRI.smtpPort,
+        smtpPort: configSRI.smtpPort || (configSRI.smtpSecure ? 465 : 587),
         smtpUser: configSRI.smtpUser,
         smtpPass: configSRI.smtpPass,
         smtpSecure: configSRI.smtpSecure,
@@ -1326,12 +1331,12 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         }
       } else {
         const errorMsg = data?.error || 'No se pudo enviar el correo';
-        console.error("Fallo al enviar correo:", errorMsg);
-        showToast(errorMsg, 'warning');
+        console.warn("Comprobante autorizado en SRI, pero la notificación por correo SMTP reportó:", errorMsg);
+        showToast(`Factura autorizada en SRI. (Aviso correo: ${errorMsg})`, 'info');
       }
     } catch (err) {
-      console.error("Error al conectar con la API de envío de correos:", err);
-      showToast(`Error al conectar con el servicio de correos: ${err.message || 'Sin conexión'}`, 'warning');
+      console.warn("Error al conectar con la API de envío de correos:", err);
+      showToast(`Factura autorizada en SRI. (Aviso correo: servicio SMTP no disponible)`, 'info');
     }
   };
 
@@ -1553,6 +1558,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         codigoNumerico,
         xmlUrl: result.xmlUrl,
         pdfUrl: result.pdfUrl,
+        xml: signedXml,
         paidAmount,
         paymentStatus,
         paymentsBreakdown: payBreakdown,

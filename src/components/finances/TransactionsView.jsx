@@ -354,7 +354,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
 
       const emailPayload = {
         smtpHost: configData.smtpHost,
-        smtpPort: configData.smtpPort,
+        smtpPort: configData.smtpPort || (configData.smtpSecure ? 465 : 587),
         smtpUser: configData.smtpUser,
         smtpPass: configData.smtpPass,
         smtpSecure: configData.smtpSecure,
