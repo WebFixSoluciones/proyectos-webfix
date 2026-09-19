@@ -72,10 +72,28 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
 - **Migración a Radix Themes UI**: Implementación del nuevo sistema de diseño basado en `@radix-ui/themes` con wrappers temáticos (`WebFixTheme`, `controls.jsx`, `layout.jsx`, tokens y CSS unificado).
 - **Eliminación del Módulo de Proyectos**: Removido por completo el módulo de proyectos (tablero Kanban, gestión de tareas, Notion-style doc pages, calendario de reuniones y exportador CSV). Preservación total de los módulos ERP (Ventas, Compras, Finanzas, Inventario, Personas, Ajustes, Suscripción y Soporte).
 
+### 9. Control Financiero — Estandarización y Sincronización Integral (2026-09-19) — COMPLETADO
+**Spec:** `docs/superpowers/specs/2026-09-19-finanzas-redesign-integracion-design.md`
+**Plan:** `docs/superpowers/plans/2026-09-19-finanzas-redesign-integracion-plan.md`
+
+- **Encabezados Estandarizados**: Creado `FinancialPageHeader.jsx` e integrado de manera uniforme en las 11 pantallas de finanzas con KPIs, acciones contextuales y navegación por breadcrumb.
+- **Sincronización Bancaria Automática**: `bancosService.js` y `integracionFinanzasService.js` registran de forma atómica débitos y créditos en `fin_bancos` y `fin_movimientos_bancarios` en ventas (`TransactionForm`, `PosView`) y compras (`PurchaseForm`).
+- **Apertura de Crédito en Caliente & Autorización POS**:
+  - `CreditSetupModal.jsx`: Apertura y ajuste inmediato de líneas de crédito en ventas administrativas si el cliente no posee cupo.
+  - `PosCreditAuthModal.jsx`: Flujo de autorización con PIN de supervisor en caja POS para cuentas abiertas ("anotar a mi cuenta") o exceso de cupo.
+  - Soporte de cobro combinado (e.g. anticipo \$20 por transferencia $\rightarrow$ banco + \$30 a crédito $\rightarrow$ CxC).
+- **Ficha Completa de Cliente (`CustomerDetailView.jsx`)**: Sustituido el modal básico por una vista de pantalla completa con switch de activación de crédito, cupo, plazo, garante y balances. En el listado de `ThirdPartiesView.jsx` se añadió columna de crédito y filtros dedicados.
+- **Cobros y Pagos Formales (`FinancialPaymentModal.jsx`)**: Reemplazados los prompts nativos en CxC (`CuentasPorCobrarView`) y CxP (`CuentasPorPagarView`) por un modal formal conectado a cuentas bancarias.
+- **Pruebas y Build**: 19 tests unitarios aprobados en `tests/commerce.test.mjs`, build de producción verificado con éxito.
+
 ## Últimos commits
 ```
-5290ece feat: migrar componentes a Radix Themes UI y remover modulo legacy de proyectos
-3e55cde fix(print): ajustar clave de acceso y codigo de barras para no desbordar el encabezado
-34dee15 fix(print): reducir tamano de texto en encabezado y pie de pagina legal de la factura
-5560ca9 fix(print): quitar columna COD/BARRAS de la tabla y compactar tipografia en datos de cliente y fechas
+b587ab5 test(finanzas): prueba automatizada de venta combinada con abono a banco y saldo a CxC
+f4702ac feat(cartera): modal profesional de pagos y cobros con impacto bancario en CxC y CxP
+7c4c235 feat(clientes): ficha completa de cliente con activacion y gestion de linea de credito
+383db16 feat(credito): apertura en caliente en TransactionForm y autorizacion supervisor en PosView
+98dea7b feat(compras): integracion de cuentas bancarias y vencimiento de credito en PurchaseForm
+1e322ed feat(ventas): selector dinamico de cuentas bancarias en TransactionForm y PosView
+d0f0b02 feat(finances): soporte para sincronizacion automatica con fin_bancos en ventas y compras
+43ff54f feat(finances): crear FinancialPageHeader y estandarizar encabezados en los 11 submodulos
 ```
