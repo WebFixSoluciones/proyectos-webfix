@@ -137,6 +137,28 @@ async function sincronizarDocumento(data, db, usuario, venta, api = firestore) {
     const factura = { tipo: data.documentType || 'factura', numero: data.documentNumber || '', claveAcceso: data.claveAcceso || null, fecha: movData.fecha, fechaVencimiento: data.creditDueDate ? new Date(data.creditDueDate + 'T12:00:00') : movData.fechaVencimiento, montoTotal: total, baseImponible: Number(data.baseImponible || 0), iva: Number(data.ivaValor || 0), retencionFuente: Number(data.retencionFuente || 0), retencionIva: Number(data.retencionIva || 0) };
     tx.set(linkedRef, { tenantId: getAppId(), movimientoId: movementId, tercero: movData.tercero, factura, abonos, saldoPendiente, estado, notas: data.notas || '', creadoEn: previous?.creadoEn || serverTimestamp(), actualizadoEn: serverTimestamp() }, { merge: true });
     tx.set(movementRef, { ...movData, monto: total, pagos: abonos, saldoPendiente, estado, creadoPor: user.uid || '', creadoEn: movement.data()?.creadoEn || serverTimestamp(), actualizadoEn: serverTimestamp() }, { merge: true });
+
+    const bankId = data.cuentaBancariaId || data.transferenciaBankId || data.bankAccountId;
+    if (bankId && initialPaid > 0 && api === firestore) {
+      const bankRef = doc(db, 'fin_bancos', bankId);
+      const bankMovRef = doc(db, 'fin_movimientos_bancarios', `mov_doc_${data.id}`);
+      const bankAmount = Number(data.paymentsBreakdown?.transferencia || (data.paymentMethod === 'transferencia' ? initialPaid : initialPaid));
+      tx.set(bankMovRef, {
+        cuentaId: bankId,
+        tipo: venta ? 'credito' : 'debito',
+        monto: roundMoney(bankAmount),
+        fecha: movData.fecha,
+        descripcion: `${venta ? 'Venta' : 'Compra'} ${data.documentType || 'factura'} ${data.documentNumber || data.id}`,
+        referencia: data.transferenciaRef || data.transactionRef || '',
+        conciliado: true,
+        movimientoId: movementId,
+        origenId: data.id,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+      tx.update(bankRef, { updatedAt: serverTimestamp() });
+    }
+
     return { movimientoId: movementId, [venta ? 'cxcId' : 'cxpId']: data.id };
   });
   if (api === firestore) registrarAuditoria(db, { coleccion: collection, documentoId: data.id, accion: 'sincronizar', usuario: user.uid, usuarioEmail: user.email, cambios: result, modulo: venta ? 'ventas' : 'compras' });

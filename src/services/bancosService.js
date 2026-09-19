@@ -121,6 +121,38 @@ export async function registrarMovimientoBancario(db, data, usuario) {
   return ref.id;
 }
 
+export async function registrarOperacionBancariaDirecta(db, data, usuario = {}) {
+  positiveMoney(data.monto);
+  if (!['credito', 'debito'].includes(data.tipo)) throw new Error('Tipo de movimiento bancario inválido.');
+  const account = await getCuentaById(db, data.cuentaId);
+  if (account.estado !== 'activo') throw new Error('La cuenta bancaria no está activa.');
+  const payload = {
+    cuentaId: data.cuentaId,
+    tipo: data.tipo,
+    monto: Number(data.monto),
+    descripcion: data.descripcion || '',
+    fecha: data.fecha ? (data.fecha instanceof Date ? Timestamp.fromDate(data.fecha) : Timestamp.fromDate(new Date(data.fecha))) : Timestamp.now(),
+    referencia: data.referencia || '',
+    conciliado: !!data.movimientoId,
+    movimientoId: data.movimientoId || null,
+    pagoId: data.pagoId || null,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  };
+  const ref = await addDoc(collection(db, COLLECTION_MOV_BANCARIOS), payload);
+  await updateDoc(doc(db, COLLECTION_BANCOS, data.cuentaId), { updatedAt: serverTimestamp() });
+  registrarAuditoria(db, { 
+    coleccion: COLLECTION_MOV_BANCARIOS, 
+    documentoId: ref.id, 
+    accion: 'crear', 
+    usuario: usuario.uid || '', 
+    usuarioEmail: usuario.email || '', 
+    cambios: { nuevo: payload }, 
+    modulo: 'finanzas' 
+  });
+  return ref.id;
+}
+
 export async function eliminarMovimientoBancario(db, id, usuario) {
   const existing = (await getDoc(doc(db, COLLECTION_MOV_BANCARIOS, id))).data();
   if (existing?.conciliado || existing?.movimientoId) throw new Error('No se puede eliminar un movimiento vinculado.');
