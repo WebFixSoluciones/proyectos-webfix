@@ -13,12 +13,14 @@ import { productRepository } from '../../modules/inventory/repositories/ProductR
 import { normalizeProduct } from '../../services/productModel';
 import { getEcuadorDateString } from '../../services/sriService';
 import { sincronizarCompra } from '../../services/integracionFinanzasService';
+import { getCuentas } from '../../services/bancosService';
 
 export default function PurchaseForm({ tx, onClose, thirdParties = [], products = [], showToast, db, appId, purchaseMethod }) {
   const [step, setStep] = useState(1);
   const maxStep = purchaseMethod === 'sin_inventario' ? 2 : 3;
   const [saving, setSaving] = useState(false);
   const [branches, setBranches] = useState([{ id: 'sucursal-central-uuid', name: 'Bodega Central' }, { id: 'sucursal-sur-uuid', name: 'Bodega Sur' }, { id: 'sucursal-norte-uuid', name: 'Bodega Norte' }]);
+  const [bankAccounts, setBankAccounts] = useState([]);
 
   // Form data
   const [form, setForm] = useState({
@@ -28,6 +30,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
     supplierId: '', supplierName: '', supplierRuc: '',
     items: [], baseImponible: 0, ivaValor: 0, descuento: 0, total: 0,
     paymentMethod: 'transferencia', paymentStatus: 'pagado',
+    cuentaBancariaId: '', fechaVencimiento: '',
     category: 'compras', description: '', reference: ''
   });
 
@@ -54,6 +57,17 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
       if (!snap.empty) { const list = []; snap.forEach(d => list.push({ id: d.id, ...d.data() })); setBranches(list); }
     })();
   }, [db, appId]);
+
+  // Load bank accounts
+  useEffect(() => {
+    let isMounted = true;
+    if (db) {
+      getCuentas(db, { estado: 'activo' })
+        .then(accs => { if (isMounted) setBankAccounts(accs || []); })
+        .catch(err => console.error('Error cargando cuentas bancarias en PurchaseForm:', err));
+    }
+    return () => { isMounted = false; };
+  }, [db]);
 
   // Recalculate totals with per-product IVA
   const recalcTotals = (items) => {
@@ -228,6 +242,8 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
         baseImponible: form.baseImponible, ivaPorcentaje: 15, ivaValor: form.ivaValor, total: form.total,
         iva5: form.iva5 || 0, iva12: form.iva12 || 0, iva15: form.iva15 || 0,
       descuento: form.descuento, paymentMethod: form.paymentMethod, paymentStatus: form.paymentStatus,
+      cuentaBancariaId: form.cuentaBancariaId || '',
+      fechaVencimiento: form.fechaVencimiento || null,
       sriStatus: form.claveAcceso ? 'autorizado' : 'pendiente',
       description: form.description, reference: form.reference,
       items: form.items, bodega: form.bodega, purchaseType: form.purchaseType,
@@ -265,6 +281,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
           thirdPartyId: form.supplierId || '',
           date: form.date || new Date().toISOString(),
           fechaVencimiento: form.fechaVencimiento || null,
+          cuentaBancariaId: form.cuentaBancariaId || '',
           paymentMethod: form.paymentMethod || 'transferencia',
           paymentStatus: form.paymentStatus || 'pagado',
           sriStatus: form.claveAcceso ? 'autorizado' : 'pendiente',
@@ -623,19 +640,70 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
               </UiCard>
 
               {/* Payment */}
-              <UiBox {...{"className":"grid grid-cols-2 gap-3"}}>
-                <UiBox>
-                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5"}}>Metodo de pago</UiLabel>
-                  <UiSelect value={form.paymentMethod} onChange={e => setForm(prev => ({ ...prev, paymentMethod: e.target.value }))} {...{"size":"2","color":"gray","className":"w-full"}}>
-                    <option value="transferencia">Transferencia</option><option value="efectivo">Efectivo</option>
-                    <option value="tarjeta">Tarjeta</option><option value="credito">Credito</option>
-                  </UiSelect>
+              <UiBox {...{"className":"space-y-3"}}>
+                <UiBox {...{"className":"grid grid-cols-2 gap-3"}}>
+                  <UiBox>
+                    <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5"}}>Método de pago</UiLabel>
+                    <UiSelect value={form.paymentMethod} onChange={e => setForm(prev => ({ ...prev, paymentMethod: e.target.value }))} {...{"size":"2","color":"gray","className":"w-full"}}>
+                      <option value="transferencia">Transferencia</option>
+                      <option value="efectivo">Efectivo</option>
+                      <option value="tarjeta">Tarjeta</option>
+                      <option value="credito">Crédito</option>
+                    </UiSelect>
+                  </UiBox>
+                  <UiBox>
+                    <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5"}}>Estado del pago</UiLabel>
+                    <UiSelect value={form.paymentStatus} onChange={e => setForm(prev => ({ ...prev, paymentStatus: e.target.value }))} {...{"size":"2","color":"gray","className":"w-full"}}>
+                      <option value="pagado">Pagado</option>
+                      <option value="pendiente">Pendiente</option>
+                    </UiSelect>
+                  </UiBox>
                 </UiBox>
+
+                {/* Cuenta Bancaria / Caja Origen si el pago es inmediato */}
+                {form.paymentStatus === 'pagado' && (
+                  <UiBox>
+                    <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5"}}>
+                      {form.paymentMethod === 'efectivo' ? 'Caja / Cuenta de Origen' : 'Cuenta Bancaria de Salida'}
+                    </UiLabel>
+                    <UiSelect
+                      value={form.cuentaBancariaId || ''}
+                      onChange={e => setForm(prev => ({ ...prev, cuentaBancariaId: e.target.value }))}
+                      {...{"size":"2","color":"gray","className":"w-full"}}
+                    >
+                      <option value="">-- Seleccionar Cuenta de Salida --</option>
+                      {bankAccounts.map(b => (
+                        <option key={b.id} value={b.id}>
+                          {b.banco || b.nombre} ({b.tipoCuenta || 'Cta'} {b.numeroCuenta || ''}) - Saldo: ${Number(b.saldoActual || 0).toFixed(2)}
+                        </option>
+                      ))}
+                    </UiSelect>
+                  </UiBox>
+                )}
+
+                {/* Fecha de vencimiento si es crédito */}
+                {form.paymentMethod === 'credito' && (
+                  <UiBox>
+                    <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5"}}>Fecha de Vencimiento de Pago (CxP)</UiLabel>
+                    <UiInput
+                      type="date"
+                      value={form.fechaVencimiento || ''}
+                      onChange={e => setForm(prev => ({ ...prev, fechaVencimiento: e.target.value }))}
+                      {...{"size":"2","color":"gray","className":"w-full"}}
+                    />
+                  </UiBox>
+                )}
+
+                {/* Referencia o Nro de Comprobante */}
                 <UiBox>
-                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5"}}>Estado del pago</UiLabel>
-                  <UiSelect value={form.paymentStatus} onChange={e => setForm(prev => ({ ...prev, paymentStatus: e.target.value }))} {...{"size":"2","color":"gray","className":"w-full"}}>
-                    <option value="pagado">Pagado</option><option value="pendiente">Pendiente</option>
-                  </UiSelect>
+                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5"}}>N° Comprobante / Referencia de Pago</UiLabel>
+                  <UiInput
+                    type="text"
+                    value={form.reference || ''}
+                    onChange={e => setForm(prev => ({ ...prev, reference: e.target.value }))}
+                    placeholder="Ej: Depósito #49102 o Cheque #004"
+                    {...{"size":"2","color":"gray","className":"w-full"}}
+                  />
                 </UiBox>
               </UiBox>
             </UiBox>
