@@ -11,6 +11,7 @@ import { Search, ShoppingCart, Plus, Minus, Trash2, User, Sparkles, CheckCircle2
 import { doc, getDoc, setDoc, collection, query, where, getDocs, onSnapshot } from '../../services/financeStore.js';
 import { consultarRucSri, getEcuadorDateString } from '../../services/sriService';
 import { calculateTransactionTotals, isDiscountScheduleActive } from '../../services/discountCalcService';
+import { getCuentas } from '../../services/bancosService';
 
 function sanitizeData(obj) {
   if (obj === null || obj === undefined) return null;
@@ -189,6 +190,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
     tarjeta: 0,
     cruce_cuentas: 0,
     transferenciaRef: '',
+    transferenciaBankId: '',
     tarjetaRef: '',
     cruceRef: ''
   });
@@ -205,6 +207,20 @@ export default function PosView({ products, thirdParties, transactions = [], dis
   const [posPaymentMethod, setPosPaymentMethod] = useState('efectivo'); 
   const [receivedAmount, setReceivedAmount] = useState('');
   const [paymentRefCode, setPaymentRefCode] = useState('');
+  const [posTransferenciaBankId, setPosTransferenciaBankId] = useState('');
+  const [bankAccounts, setBankAccounts] = useState([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    if (db) {
+      getCuentas(db, { estado: 'activo' })
+        .then(accs => {
+          if (isMounted) setBankAccounts(accs || []);
+        })
+        .catch(err => console.error('Error cargando cuentas bancarias en POS:', err));
+    }
+    return () => { isMounted = false; };
+  }, [db]);
   
   // Nuevos estados para flujo Inline Bsale y encabezado compacto
   const [showPaymentScreen, setShowPaymentScreen] = useState(false);
@@ -1005,8 +1021,12 @@ export default function PosView({ products, thirdParties, transactions = [], dis
           tarjeta: pMethod === 'tarjeta' ? Number(totalToPay.toFixed(2)) : 0,
           cruce_cuentas: pMethod === 'cruce_cuentas' ? Number(totalToPay.toFixed(2)) : 0
         },
+        transferenciaBankId: isCheckoutOpen ? payments.transferenciaBankId : (pMethod === 'transferencia' ? posTransferenciaBankId : ''),
+        cuentaBancariaId: isCheckoutOpen ? payments.transferenciaBankId : (pMethod === 'transferencia' ? posTransferenciaBankId : ''),
+        transferenciaRef: isCheckoutOpen ? payments.transferenciaRef : (pMethod === 'transferencia' ? paymentRefCode : ''),
         paymentReferences: {
           transferenciaRef: isCheckoutOpen ? payments.transferenciaRef : (pMethod === 'transferencia' ? paymentRefCode : ''),
+          transferenciaBankId: isCheckoutOpen ? payments.transferenciaBankId : (pMethod === 'transferencia' ? posTransferenciaBankId : ''),
           tarjetaRef: isCheckoutOpen ? payments.tarjetaRef : (pMethod === 'tarjeta' ? paymentRefCode : ''),
           cruceRef: isCheckoutOpen ? payments.cruceRef : (pMethod === 'cruce_cuentas' ? paymentRefCode : '')
         }
@@ -1023,12 +1043,14 @@ export default function PosView({ products, thirdParties, transactions = [], dis
       setPosPaymentMethod('efectivo');
       setReceivedAmount('');
       setPaymentRefCode('');
+      setPosTransferenciaBankId('');
       setPayments({
         efectivo: 0,
         transferencia: 0,
         tarjeta: 0,
         cruce_cuentas: 0,
         transferenciaRef: '',
+        transferenciaBankId: '',
         tarjetaRef: '',
         cruceRef: ''
       });
@@ -1869,6 +1891,29 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                   ) : (
                     /* Transferencia o Tarjeta */
                     <UiBox {...{"className":"space-y-4"}}>
+                      {posPaymentMethod === 'transferencia' && (
+                        <UiBox {...{"className":"flex flex-col gap-2"}}>
+                          <UiLabel {...{"size":"1","weight":"bold","color":"gray"}}>Cuenta Bancaria Destino</UiLabel>
+                          <UiSelect
+                            value={posTransferenciaBankId}
+                            onChange={e => {
+                              setPosTransferenciaBankId(e.target.value);
+                              const selBank = bankAccounts.find(b => b.id === e.target.value);
+                              if (selBank && !paymentRefCode) {
+                                setPaymentRefCode(`${selBank.banco || selBank.nombre}`);
+                              }
+                            }}
+                            {...{"size":"2","color":"gray","className":"w-full"}}
+                          >
+                            <option value="">-- Seleccionar Cuenta Bancaria --</option>
+                            {bankAccounts.map(b => (
+                              <option key={b.id} value={b.id}>
+                                {b.banco || b.nombre} ({b.tipoCuenta || 'Cta'} {b.numeroCuenta || ''}) - Saldo: ${Number(b.saldoActual || 0).toFixed(2)}
+                              </option>
+                            ))}
+                          </UiSelect>
+                        </UiBox>
+                      )}
                       <UiBox {...{"className":"flex flex-col gap-2"}}>
                         <UiLabel {...{"size":"1","weight":"bold","color":"gray"}}>Referencia de Transacción / Voucher</UiLabel>
                         <UiInput
@@ -2794,6 +2839,25 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                               <UiText {...mergeThemeProps({"size":"1","weight":"bold","color":"gray"})}>Monto Transferido</UiText>
                             </UiBox>
                             <UiInput type="number" step="0.01" value={payments.transferencia || ''} onChange={e => setPayments({...payments, transferencia: e.target.value})} {...{"size":"2","className":"w-full"}} placeholder="0.00" />
+                            <UiSelect
+                              value={payments.transferenciaBankId || ''}
+                              onChange={e => {
+                                const selBank = bankAccounts.find(b => b.id === e.target.value);
+                                setPayments({
+                                  ...payments,
+                                  transferenciaBankId: e.target.value,
+                                  transferenciaRef: payments.transferenciaRef || (selBank ? `${selBank.banco || selBank.nombre}` : '')
+                                });
+                              }}
+                              {...mergeThemeProps({"size":"2","className":"w-full"})}
+                            >
+                              <option value="">-- Cuenta Bancaria Destino --</option>
+                              {bankAccounts.map(b => (
+                                <option key={b.id} value={b.id}>
+                                  {b.banco || b.nombre} ({b.tipoCuenta || 'Cta'} {b.numeroCuenta || ''}) - Saldo: ${Number(b.saldoActual || 0).toFixed(2)}
+                                </option>
+                              ))}
+                            </UiSelect>
                             <UiInput type="text" value={payments.transferenciaRef} onChange={e => setPayments({...payments, transferenciaRef: e.target.value})} {...mergeThemeProps({"size":"2","className":"w-full"})} placeholder="Nro Ref" />
                           </UiBox>
                         )}
@@ -3021,6 +3085,25 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                                 <UiText {...mergeThemeProps({"size":"1","weight":"bold","color":"gray"})}>Monto Transferido</UiText>
                               </UiBox>
                               <UiInput type="number" step="0.01" value={payments.transferencia || ''} onChange={e => setPayments({...payments, transferencia: e.target.value})} {...{"size":"2","className":"w-full"}} placeholder="0.00" />
+                              <UiSelect
+                                value={payments.transferenciaBankId || ''}
+                                onChange={e => {
+                                  const selBank = bankAccounts.find(b => b.id === e.target.value);
+                                  setPayments({
+                                    ...payments,
+                                    transferenciaBankId: e.target.value,
+                                    transferenciaRef: payments.transferenciaRef || (selBank ? `${selBank.banco || selBank.nombre}` : '')
+                                  });
+                                }}
+                                {...mergeThemeProps({"size":"2","className":"w-full mt-1.5"})}
+                              >
+                                <option value="">-- Cuenta Bancaria Destino --</option>
+                                {bankAccounts.map(b => (
+                                  <option key={b.id} value={b.id}>
+                                    {b.banco || b.nombre} ({b.tipoCuenta || 'Cta'} {b.numeroCuenta || ''}) - Saldo: ${Number(b.saldoActual || 0).toFixed(2)}
+                                  </option>
+                                ))}
+                              </UiSelect>
                               <UiInput type="text" value={payments.transferenciaRef} onChange={e => setPayments({...payments, transferenciaRef: e.target.value})} {...mergeThemeProps({"size":"2","className":"w-full mt-1.5"})} placeholder="Nro Referencia / Comprobante" />
                             </UiBox>
                           )}

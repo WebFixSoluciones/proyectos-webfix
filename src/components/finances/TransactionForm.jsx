@@ -94,6 +94,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   const [printFormat, setPrintFormat] = useState('ride');
   
   const [dbCategories, setDbCategories] = useState([]);
+  const [bankAccounts, setBankAccounts] = useState([]);
 
   useEffect(() => {
     async function fetchDbCategories() {
@@ -104,8 +105,18 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         console.error("Error fetching categories in TransactionForm:", err);
       }
     }
+    async function fetchBankAccounts() {
+      try {
+        const { getCuentas } = await import('../../services/bancosService.js');
+        const list = await getCuentas(db, { estado: 'activo' });
+        setBankAccounts(list || []);
+      } catch (err) {
+        console.error("Error fetching bank accounts in TransactionForm:", err);
+      }
+    }
     if (db && appId) {
       fetchDbCategories();
+      fetchBankAccounts();
     }
   }, [db, appId]);
   
@@ -162,6 +173,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     tarjeta: 0,
     cruce_cuentas: 0,
     transferenciaRef: '',
+    transferenciaBankId: '',
     tarjetaRef: '',
     cruceRef: ''
   });
@@ -451,6 +463,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
           tarjeta: breakdownTj,
           cruce_cuentas: breakdownCr,
           transferenciaRef: tx.transferenciaRef || tx.paymentReferences?.transferenciaRef || '',
+          transferenciaBankId: tx.transferenciaBankId || tx.cuentaBancariaId || '',
           tarjetaRef: tx.tarjetaRef || tx.paymentReferences?.tarjetaRef || '',
           cruceRef: tx.cruceRef || tx.paymentReferences?.cruceRef || ''
         });
@@ -467,6 +480,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
           tarjeta: breakdownTj,
           cruce_cuentas: breakdownCr,
           transferenciaRef: tx.transferenciaRef || tx.paymentReferences?.transferenciaRef || '',
+          transferenciaBankId: tx.transferenciaBankId || tx.cuentaBancariaId || '',
           tarjetaRef: tx.tarjetaRef || tx.paymentReferences?.tarjetaRef || '',
           cruceRef: tx.cruceRef || tx.paymentReferences?.cruceRef || ''
         });
@@ -1117,6 +1131,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         paymentMethod: primaryMethod,
         paymentsBreakdown: payBreakdown,
         transferenciaRef: payments.transferenciaRef || '',
+        transferenciaBankId: payments.transferenciaBankId || '',
+        cuentaBancariaId: payments.transferenciaBankId || '',
         tarjetaRef: payments.tarjetaRef || '',
         cruceRef: payments.cruceRef || '',
         creditDueDate: crVal > 0 ? creditDueDate : '',
@@ -1539,6 +1555,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         paymentStatus,
         paymentsBreakdown: payBreakdown,
         transferenciaRef: payments.transferenciaRef || '',
+        transferenciaBankId: payments.transferenciaBankId || '',
+        cuentaBancariaId: payments.transferenciaBankId || '',
         tarjetaRef: payments.tarjetaRef || '',
         cruceRef: payments.cruceRef || '',
         paymentMethod: primaryMethod,
@@ -2873,6 +2891,26 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                             <UiText {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"absolute left-[8px] top-1/2 -translate-y-1/2 opacity-60"}}>$</UiText>
                             <UiInput disabled={!isEditable} type="number" step="0.01" value={payments.transferencia || ''} onChange={e => setPayments(prev => ({ ...prev, transferencia: e.target.value }))} {...mergeThemeProps({}, {}, mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"}))} style={{ paddingLeft: '24px' }} placeholder="0.00" />
                           </UiBox>
+                          <UiSelect
+                            disabled={!isEditable}
+                            value={payments.transferenciaBankId || ''}
+                            onChange={e => {
+                              const selBank = bankAccounts.find(b => b.id === e.target.value);
+                              setPayments(prev => ({
+                                ...prev,
+                                transferenciaBankId: e.target.value,
+                                transferenciaRef: prev.transferenciaRef || (selBank ? `${selBank.banco || selBank.nombre} - ${selBank.numeroCuenta || ''}` : '')
+                              }));
+                            }}
+                            {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})}
+                          >
+                            <option value="">-- Cuenta Bancaria Destino --</option>
+                            {bankAccounts.map(b => (
+                              <option key={b.id} value={b.id}>
+                                {b.banco || b.nombre} ({b.tipoCuenta || 'Cta'} {b.numeroCuenta || ''}) - Saldo: ${Number(b.saldoActual || 0).toFixed(2)}
+                              </option>
+                            ))}
+                          </UiSelect>
                           <UiInput disabled={!isEditable} type="text" value={payments.transferenciaRef || ''} onChange={e => setPayments(prev => ({ ...prev, transferenciaRef: e.target.value }))} {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})} placeholder="Banco / Referencia" />
                         </UiBox>
                       </UiBox>
