@@ -6,6 +6,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Search, Download, FileText, Wallet, TrendingUp, AlertTriangle, Clock, BookOpen, ArrowUpCircle } from 'lucide-react';
 import { getCxP, getAging, registrarPago, getResumenCxP } from '../../services/cxpService';
 import FinancialPageHeader from './FinancialPageHeader';
+import FinancialPaymentModal from './FinancialPaymentModal';
 import { Badge } from '../ui/badge';
 
 const ESTADO_BADGES = {
@@ -21,6 +22,7 @@ export default function CuentasPorPagarView({ db, usuario, showToast }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filtros, setFiltros] = useState({ search: '', estado: 'all', fechaDesde: '', fechaHasta: '' });
+  const [selectedItemForPayment, setSelectedItemForPayment] = useState(null);
 
   const cargar = useCallback(async () => {
     setLoading(true); setError(null);
@@ -200,16 +202,14 @@ export default function CuentasPorPagarView({ db, usuario, showToast }) {
                     <UiTableCell className="px-3 py-2.5">
                       <UiBox className="flex justify-end">
                         {(item.estado === 'pendiente' || item.estado === 'parcial' || item.estado === 'vencido') && (
-                          <UiButton iconOnly variant="soft" color="blue" size="1" onClick={async () => {
-                            if (!window.confirm(`¿Registrar pago a ${item.tercero?.nombre}?`)) return;
-                            const monto = prompt('Monto del pago:', String(item.saldoPendiente));
-                            if (!monto || Number(monto) <= 0) return;
-                            try {
-                              await registrarPago(db, item.id, { monto: Number(monto), metodoPago: 'efectivo' }, usuario);
-                              showToast('Pago registrado', 'success');
-                              cargar();
-                            } catch (e) { showToast('Error: ' + e.message, 'error'); }
-                          }} title="Registrar pago">
+                          <UiButton
+                            iconOnly
+                            variant="soft"
+                            color="blue"
+                            size="1"
+                            onClick={() => setSelectedItemForPayment(item)}
+                            title="Registrar pago"
+                          >
                             <Wallet size={13} />
                           </UiButton>
                         )}
@@ -222,6 +222,22 @@ export default function CuentasPorPagarView({ db, usuario, showToast }) {
           </UiBox>
         )}
       </UiBox>
+
+      {/* MODAL PAGO FORMAL A PROVEEDOR */}
+      {selectedItemForPayment && (
+        <FinancialPaymentModal
+          isOpen={!!selectedItemForPayment}
+          onClose={() => setSelectedItemForPayment(null)}
+          item={selectedItemForPayment}
+          type="pago"
+          db={db}
+          showToast={showToast}
+          onConfirm={async (paymentData) => {
+            await registrarPago(db, selectedItemForPayment.id, paymentData, usuario);
+            cargar();
+          }}
+        />
+      )}
     </UiBox>
   );
 }

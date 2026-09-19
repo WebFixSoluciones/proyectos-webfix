@@ -6,6 +6,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Search, Download, FileText, Wallet, TrendingUp, AlertTriangle, DollarSign, Clock } from 'lucide-react';
 import { getCxC, getAging, registrarCobro, getResumenCxC } from '../../services/cxcService';
 import FinancialPageHeader from './FinancialPageHeader';
+import FinancialPaymentModal from './FinancialPaymentModal';
 import { Badge } from '../ui/badge';
 const ESTADO_BADGES = {
   pendiente: {"style":{"backgroundColor":"var(--amber-3)","color":"var(--amber-11)"}},
@@ -20,6 +21,7 @@ export default function CuentasPorCobrarView({ db, usuario, showToast }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filtros, setFiltros] = useState({ search: '', estado: 'all', fechaDesde: '', fechaHasta: '' });
+  const [selectedItemForPayment, setSelectedItemForPayment] = useState(null);
   const cargar = useCallback(async () => {
     setLoading(true); setError(null);
     try { const data = await getCxC(db, filtros); setItems(data); } catch (e) { setError(e.message); } finally { setLoading(false); }
@@ -185,16 +187,14 @@ export default function CuentasPorCobrarView({ db, usuario, showToast }) {
                     <UiTableCell className="px-3 py-2.5">
                       <UiBox className="flex justify-end">
                         {(item.estado === 'pendiente' || item.estado === 'parcial' || item.estado === 'vencido') && (
-                          <UiButton iconOnly variant="soft" color="blue" size="1" onClick={async () => {
-                            if (!window.confirm(`¿Registrar cobro para ${item.tercero?.nombre}?`)) return;
-                            const monto = prompt('Monto del cobro:', String(item.saldoPendiente));
-                            if (!monto || Number(monto) <= 0) return;
-                            try {
-                              await registrarCobro(db, item.id, { monto: Number(monto), metodoPago: 'efectivo' }, usuario);
-                              showToast('Cobro registrado', 'success');
-                              cargar();
-                            } catch (e) { showToast('Error: ' + e.message, 'error'); }
-                          }} title="Registrar cobro">
+                          <UiButton
+                            iconOnly
+                            variant="soft"
+                            color="green"
+                            size="1"
+                            onClick={() => setSelectedItemForPayment(item)}
+                            title="Registrar cobro"
+                          >
                             <Wallet size={13} />
                           </UiButton>
                         )}
@@ -207,6 +207,22 @@ export default function CuentasPorCobrarView({ db, usuario, showToast }) {
           </UiBox>
         )}
       </UiBox>
+
+      {/* MODAL COBRO FORMAL */}
+      {selectedItemForPayment && (
+        <FinancialPaymentModal
+          isOpen={!!selectedItemForPayment}
+          onClose={() => setSelectedItemForPayment(null)}
+          item={selectedItemForPayment}
+          type="cobro"
+          db={db}
+          showToast={showToast}
+          onConfirm={async (paymentData) => {
+            await registrarCobro(db, selectedItemForPayment.id, paymentData, usuario);
+            cargar();
+          }}
+        />
+      )}
     </UiBox>
   );
 }
