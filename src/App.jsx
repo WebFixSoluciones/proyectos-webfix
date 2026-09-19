@@ -606,16 +606,17 @@ export default function App() {
             icon: 'ventas'
           };
         }
-        if (subStr.startsWith('ventas_preventa')) {
+        if (subStr.startsWith('ventas_nueva') || subStr.startsWith('ventas_preventa')) {
           return {
-            title: 'Registrar Venta',
-            desc: 'Registro directo de ventas y facturación electrónica',
+            title: 'Ventas: Registrar Venta',
+            desc: 'Registro directo de ventas administrativas y facturación electrónica',
             icon: 'ventas'
           };
         }
         const subtabs = {
           resumen_ventas: { title: 'Ventas: Historial de Ventas', desc: 'Listado y métricas de comprobantes electrónicos de venta autorizados' },
-          ventas_preventa: { title: 'Registrar Venta', desc: 'Registro directo de ventas y facturación electrónica' },
+          ventas_nueva: { title: 'Ventas: Registrar Venta', desc: 'Registro directo de ventas administrativas y facturación electrónica' },
+          ventas_preventa: { title: 'Ventas: Registrar Venta', desc: 'Registro directo de ventas administrativas y facturación electrónica' },
           pos: { title: 'Punto de Venta (POS)', desc: 'Facturación rápida e intuitiva para tiendas y comercio directo' },
           preventas: { title: 'Preventas', desc: 'Gestión y despacho de ventas y pedidos realizados de forma anticipada' },
           quotes: { title: 'Cotizaciones', desc: 'Emisión y gestión de cotizaciones comerciales para clientes' },

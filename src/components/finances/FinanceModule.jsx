@@ -84,8 +84,8 @@ export default function FinanceModule({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTx, setEditingTx] = useState(null);
   const checkoutResolver = useRef(null);
-  const closeTransactionForm = () => { checkoutResolver.current?.(false); checkoutResolver.current = null; setIsModalOpen(false); };
-  const transactionSaved = data => { if (checkoutResolver.current) { checkoutResolver.current(data); checkoutResolver.current = null; } };
+  const closeTransactionForm = () => { checkoutResolver.current?.(false); checkoutResolver.current = null; setIsModalOpen(false); setEditingTx(null); setSubTabVentas('resumen_ventas'); };
+  const transactionSaved = data => { if (checkoutResolver.current) { checkoutResolver.current(data); checkoutResolver.current = null; } setIsModalOpen(false); setEditingTx(null); setSubTabVentas('resumen_ventas'); };
   useEffect(() => () => checkoutResolver.current?.(false), []);
   const [purchaseMethod, setPurchaseMethod] = useState(null);
   const [showPurchaseMethodSelect, setShowPurchaseMethodSelect] = useState(false);
@@ -95,11 +95,16 @@ export default function FinanceModule({
     if (initialSubTab) {
       if (mode === 'ventas') {
         const subStr = String(initialSubTab);
-        if (subStr.startsWith('ventas_preventa') || subStr === 'ventas_nueva') {
+        if (subStr.startsWith('ventas_nueva') || subStr.startsWith('ventas_preventa')) {
           // eslint-disable-next-line react-hooks/set-state-in-effect
-          setSubTabVentas('ventas_preventa');
-          setEditingTx(null);
+          setSubTabVentas('ventas_nueva');
+          setEditingTx({ type: 'ingreso' });
           setIsModalOpen(true);
+          setActiveTab('ventas');
+        } else if (subStr === 'preventas') {
+          setSubTabVentas('preventas');
+          setEditingTx(null);
+          setIsModalOpen(false);
           setActiveTab('ventas');
         } else {
           const targetSub = subStr.startsWith('pos') ? 'pos' : subStr;
@@ -417,7 +422,7 @@ export default function FinanceModule({
                     {subTabVentas === 'resumen_ventas' && (
                       <TransactionsView transactions={transactions} thirdParties={thirdParties} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} forcedDocType="ventas_resumen" forcedType="ingreso" />
                     )}
-                    {subTabVentas === 'ventas_preventa' && (
+                    {(subTabVentas === 'ventas_preventa' || subTabVentas === 'preventas') && (
                       <PosView 
                         products={products} 
                         thirdParties={thirdParties} 

@@ -37,78 +37,84 @@ export default function Sidebar({
  
  <div className={`flex flex-col border-r border-[var(--gray-a4)] bg-[var(--color-panel-solid)] transition-all duration-300 z-50 absolute md:relative h-full ${isSidebarOpen ? 'translate-x-0 w-[80vw] max-w-60' : '-translate-x-full md:translate-x-0 w-0 hidden md:flex md:w-16'}`}>
  
- <div className={`h-14 flex items-center ${isSidebarOpen ? 'justify-between px-4' : 'justify-center'} border-b border-[var(--gray-a4)] shrink-0 overflow-hidden`}>
- {isSidebarOpen ? (
- <div className="flex items-center gap-2.5">
- {companyProfile?.logoUrl ? (
- <img src={companyProfile.logoUrl} alt="Logo" className="max-h-8 object-contain rounded" />
- ) : (
- <span className="text-sm font-semibold text-[var(--gray-12)] tracking-tight">
- {companyProfile?.nombreComercial || companyProfile?.razonSocial || 'WebFix'}
- </span>
- )}
- </div>
- ) : (
- companyProfile?.logoUrl ? (
- <img src={companyProfile.logoUrl} alt="Logo" className="w-7 h-7 rounded object-contain" />
- ) : (
- <div className="w-7 h-7 rounded-md bg-[var(--accent-9)] text-white flex items-center justify-center font-semibold text-xs">
- {String(companyProfile?.nombreComercial || companyProfile?.razonSocial || 'W').charAt(0).toUpperCase()}
- </div>
- )
- )}
- </div>
-
- <div className="flex-1 overflow-y-auto px-2.5 space-y-1 py-2 custom-scrollbar">
+        <button 
+          type="button"
+          onClick={() => { setActivePageId('dashboard'); closeMobile(); }}
+          className={`h-14 w-full flex items-center ${isSidebarOpen ? 'justify-between px-4' : 'justify-center'} border-b border-[var(--gray-a4)] shrink-0 overflow-hidden cursor-pointer hover:bg-[var(--gray-a2)] transition-colors text-left`}
+          title="Ir al Dashboard Principal"
+        >
+          {isSidebarOpen ? (
+            <div className="flex items-center gap-2.5">
+              {companyProfile?.logoUrl ? (
+                <img src={companyProfile.logoUrl} alt="Logo" className="max-h-8 object-contain rounded" />
+              ) : (
+                <span className="text-sm font-semibold text-[var(--gray-12)] tracking-tight">
+                  {companyProfile?.nombreComercial || companyProfile?.razonSocial || 'WebFix'}
+                </span>
+              )}
+            </div>
+          ) : (
+            companyProfile?.logoUrl ? (
+              <img src={companyProfile.logoUrl} alt="Logo" className="w-7 h-7 rounded object-contain" />
+            ) : (
+              <div className="w-7 h-7 rounded-md bg-[var(--accent-9)] text-white flex items-center justify-center font-semibold text-xs">
+                {String(companyProfile?.nombreComercial || companyProfile?.razonSocial || 'W').charAt(0).toUpperCase()}
+              </div>
+            )
+          )}
+        </button>
  
- <button onClick={() => { setActivePageId('dashboard'); closeMobile(); }} className={navBtnClass(activePageId ==='dashboard')}>
- <LayoutDashboard size={16} className={iconClass(activePageId ==='dashboard')} />
- {isSidebarOpen && <span>Mi espacio</span>}
- </button>
-
- {activeModules.ventas && (
- <div className="space-y-0.5">
- <button onClick={() => { setExpandedSidebarMenu(expandedSidebarMenu ==='ventas' ? null :'ventas'); setVentasInitialSubTab('resumen_ventas'); setActivePageId('ventas'); }} className={navBtnClass(activePageId ==='ventas')}>
- <div className="flex items-center gap-3 flex-1">
- <ShoppingCart size={16} className={iconClass(activePageId ==='ventas')} />
- {isSidebarOpen && <span>Ventas</span>}
- </div>
- {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu ==='ventas' ?'rotate-180' :''} text-[var(--gray-10)]`} />}
- </button>
-          {isSidebarOpen && expandedSidebarMenu === 'ventas' && (
-            <div className={menuBorderClass}>
-              {[
-                { id: 'resumen_ventas', label: 'Historial de Ventas' },
-                { id: 'ventas_preventa', label: 'Registrar Venta' },
-                { id: 'preventas', label: 'Preventas' },
-                { id: 'quotes', label: 'Cotizaciones' },
-                { id: 'nota_credito', label: 'Notas de Credito' },
-                { id: 'retencion', label: 'Retenciones de Venta' },
-                { id: 'discounts', label: 'Descuentos y Promos' }
-              ].map(sub => {
-                const isActive = activePageId === 'ventas' && (
-                  sub.id === 'ventas_preventa' ? (ventasInitialSubTab && String(ventasInitialSubTab).startsWith('ventas_preventa')) : 
-                  ventasInitialSubTab === sub.id
-                );
-                return (
-                  <button 
-                    key={sub.id} 
-                    onClick={() => { 
-                      const targetId = sub.id === 'ventas_preventa' ? `ventas_preventa_${Date.now()}` : sub.id;
-                      setVentasInitialSubTab(targetId); 
-                      setActivePageId('ventas'); 
-                      closeMobile(); 
-                    }} 
-                    className={subItemClass(isActive)}
-                  >
-                    {sub.label}
-                  </button>
-                );
-              })}
+        <div className="flex-1 overflow-y-auto px-2.5 space-y-1 py-2 custom-scrollbar">
+ 
+          <button onClick={() => { setActivePageId('dashboard'); closeMobile(); }} className={navBtnClass(activePageId ==='dashboard')}>
+            <LayoutDashboard size={16} className={iconClass(activePageId ==='dashboard')} />
+            {isSidebarOpen && <span>Mi espacio</span>}
+          </button>
+ 
+          {activeModules.ventas && (
+            <div className="space-y-0.5">
+              <button onClick={() => { setExpandedSidebarMenu(expandedSidebarMenu ==='ventas' ? null :'ventas'); setVentasInitialSubTab('resumen_ventas'); setActivePageId('ventas'); }} className={navBtnClass(activePageId ==='ventas')}>
+                <div className="flex items-center gap-3 flex-1">
+                  <ShoppingCart size={16} className={iconClass(activePageId ==='ventas')} />
+                  {isSidebarOpen && <span>Ventas</span>}
+                </div>
+                {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu ==='ventas' ?'rotate-180' :''} text-[var(--gray-10)]`} />}
+              </button>
+              {isSidebarOpen && expandedSidebarMenu === 'ventas' && (
+                <div className={menuBorderClass}>
+                  {[
+                    { id: 'resumen_ventas', label: 'Historial de Ventas' },
+                    { id: 'ventas_nueva', label: 'Registrar Venta' },
+                    { id: 'preventas', label: 'Preventas' },
+                    { id: 'quotes', label: 'Cotizaciones' },
+                    { id: 'nota_credito', label: 'Notas de Credito' },
+                    { id: 'retencion', label: 'Retenciones de Venta' },
+                    { id: 'discounts', label: 'Descuentos y Promos' }
+                  ].map(sub => {
+                    const isActive = activePageId === 'ventas' && (
+                      sub.id === 'ventas_nueva'
+                        ? (ventasInitialSubTab && (String(ventasInitialSubTab).startsWith('ventas_nueva') || String(ventasInitialSubTab).startsWith('ventas_preventa')))
+                        : ventasInitialSubTab === sub.id
+                    );
+                    return (
+                      <button 
+                        key={sub.id} 
+                        onClick={() => { 
+                          const targetId = sub.id === 'ventas_nueva' ? `ventas_nueva_${Date.now()}` : sub.id;
+                          setVentasInitialSubTab(targetId); 
+                          setActivePageId('ventas'); 
+                          closeMobile(); 
+                        }} 
+                        className={subItemClass(isActive)}
+                      >
+                        {sub.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
- </div>
- )}
 
   {activeModules.compras && (
     <div className="space-y-0.5">
