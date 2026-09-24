@@ -9,6 +9,7 @@ test('POS lists missing client and product before opening payment without mutati
   const cart = [];
   const issues = getPosSaleIssues({ sessionReady: true, cart, selectedClientId: '', clientExists: false, total: 0, documentType: 'factura', cashier: 'Cajero' });
   assert.deepEqual(issues.map(i => i.target), ['items', 'client']);
+  assert.deepEqual(issues.map(i => i.shortMessage), ['AGREGA PRODUCTO', 'INGRESA CLIENTE']);
   assert.deepEqual(cart, []);
 });
 
@@ -23,4 +24,6 @@ test('both sale paths block invalid lines and administrative sale explains missi
   const issues = getAdministrativeSaleIssues({ clientId: 'client', client: customer, identificationValid: true, items: [product], total: 20, documentType: 'factura', paymentStatus: { isValid: false, error: 'Faltan $20.' }, payments: {} });
   assert.deepEqual(issues.map(i => i.target), ['payment']);
   assert.match(issues[0].message, /medio de pago/);
+  assert.equal(issues[0].shortMessage, 'INGRESA PAGO');
+  assert.equal(issues[0].actionLabel, 'Ingresar Pago');
 });

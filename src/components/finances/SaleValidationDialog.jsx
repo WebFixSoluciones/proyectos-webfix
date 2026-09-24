@@ -1,22 +1,27 @@
 import { AlertCircle } from 'lucide-react';
-import { Button, Callout, Dialog, Flex, Text } from '@radix-ui/themes';
+import { Button, Callout, Dialog, Flex } from '@radix-ui/themes';
 
-export default function SaleValidationDialog({ issues = [], action = 'continuar', onClose, onNavigate }) {
+const fallback = {
+  client: { shortMessage: 'INGRESA CLIENTE', actionLabel: 'Ingresar Cliente' },
+  items: { shortMessage: 'REVISA PRODUCTO', actionLabel: 'Revisar Producto' },
+  payment: { shortMessage: 'COMPLETA PAGO', actionLabel: 'Ingresar Pago' },
+  session: { shortMessage: 'REVISA CAJA', actionLabel: 'Ir a Caja' },
+  document: { shortMessage: 'REVISA COMPROBANTE', actionLabel: 'Revisar Comprobante' },
+};
+
+export default function SaleValidationDialog({ issues = [], onClose, onNavigate }) {
   const firstAction = issues.find(issue => issue.target);
 
   return (
     <Dialog.Root open={issues.length > 0} onOpenChange={open => { if (!open) onClose(); }}>
-      <Dialog.Content maxWidth="480px" aria-describedby="sale-validation-description">
-        <Dialog.Title>Antes de {action}</Dialog.Title>
-        <Dialog.Description id="sale-validation-description">
-          Completa estos datos para continuar. Tu venta permanece en pantalla.
-        </Dialog.Description>
+      <Dialog.Content maxWidth="400px" aria-describedby={undefined}>
+        <Dialog.Title>ALERTA</Dialog.Title>
         <Callout.Root color="amber" variant="soft" mt="4">
           <Callout.Icon><AlertCircle size={18} /></Callout.Icon>
           <Callout.Text>
             {issues.map((issue, index) => (
               <span className="block mb-1 last:mb-0" key={`${issue.target || 'general'}-${index}`}>
-                • {issue.message}
+                {issue.shortMessage || fallback[issue.target]?.shortMessage || issue.message}
               </span>
             ))}
           </Callout.Text>
@@ -25,7 +30,7 @@ export default function SaleValidationDialog({ issues = [], action = 'continuar'
           <Button type="button" variant="soft" color="gray" onClick={onClose}>Cerrar</Button>
           {firstAction && (
             <Button type="button" onClick={() => onNavigate(firstAction.target)}>
-              <Text>Ir a {firstAction.label}</Text>
+              {firstAction.actionLabel || fallback[firstAction.target]?.actionLabel || `Ir a ${firstAction.label}`}
             </Button>
           )}
         </Flex>
