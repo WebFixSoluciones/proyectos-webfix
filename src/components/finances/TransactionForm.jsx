@@ -16,7 +16,7 @@ import { createThemedPortal as createPortal } from '../ui/themePortal';
 import { 
   X, Calculator, FileText, CheckCircle2, AlertTriangle, Sparkles, 
   Terminal, ShieldAlert, Download, Plus, Trash2, RefreshCw, ArrowLeft, ArrowRight, 
-  User, DollarSign, CreditCard, Layers, Search, Tag, Percent
+  User, DollarSign, CreditCard, Layers, Search, Tag, Percent, ChevronDown, ShoppingCart
 } from 'lucide-react';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, runTransaction } from '../../services/financeStore.js';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
@@ -211,6 +211,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   const [isCreditModalOpen, setIsCreditModalOpen] = useState(false);
   const [isCreditSetupOpen, setIsCreditSetupOpen] = useState(false);
   const [mobileTab, setMobileTab] = useState('cliente'); // 'cliente' | 'carrito' | 'pago'
+  const [showAdditionalData, setShowAdditionalData] = useState(() => Boolean(tx?.referencia || tx?.description));
 
   // MiniPOS Discount
   // eslint-disable-next-line no-unused-vars
@@ -509,6 +510,9 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       // Si el documento ya fue autorizado o anulado, ir directo al paso 2 (vista de sólo lectura)
       if (tx.sriStatus === 'autorizado' || tx.sriStatus === 'anulado') {
         setCurrentStep(2);
+      }
+      if (tx.referencia || tx.description) {
+        setShowAdditionalData(true);
       }
 
 
@@ -1901,32 +1905,6 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   </UiBox>
                 </UiBox>
 
-                {/* Second row of info: Reference & Description */}
-                <UiBox {...{"className":"grid grid-cols-1 sm:grid-cols-2 gap-[8px] mt-[8px]"}}>
-                  <UiBox>
-                    <UiLabel {...mergeThemeProps({"size":"2","weight":"medium","className":"block mb-1.5"}, {}, {"color":"gray","highContrast":true})}>Referencia</UiLabel>
-                    <UiInput
-                      disabled={!isEditable} 
-                      type="text" 
-                      value={formData.referencia || ''} 
-                      onChange={e => setFormData({...formData, referencia: e.target.value})} 
-                      {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})} 
-                      placeholder="Ej. Pedido #1024 o Código de Compra" 
-                    />
-                  </UiBox>
-                  <UiBox>
-                    <UiLabel {...mergeThemeProps({"size":"2","weight":"medium","className":"block mb-1.5"}, {}, {"color":"gray","highContrast":true})}>Descripción</UiLabel>
-                    <UiInput
-                      disabled={!isEditable} 
-                      type="text" 
-                      value={formData.description || ''} 
-                      onChange={e => setFormData({...formData, description: e.target.value})} 
-                      {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})} 
-                      placeholder="Notas del documento..." 
-                    />
-                  </UiBox>
-                </UiBox>
-
                 {/* Extra fields for Nota Credito and Guia Remision inside the same card */}
                 {formData.documentType === 'nota_credito' && (
                   <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"grid grid-cols-2 sm:grid-cols-4 gap-[8px] mt-[8px] pt-[8px]"}}>
@@ -2079,6 +2057,20 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               ) : (
                 /* Products Table & Search card */
                 <UiBox {...mergeThemeProps({}, {}, {}, mergeThemeProps({"style":{"borderRadius":"var(--radius-3)"},"className":"p-[12px]"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)","color":"var(--gray-12)"}}), (mobileTab === 'carrito' ? {"className":"block"} : {"className":"hidden lg:block"}))}>
+                  {/* Encabezado claro de la sección de productos */}
+                  <UiBox className="flex items-center justify-between mb-3 pb-2.5 border-b border-[var(--gray-a4)]">
+                    <UiBox className="flex items-center gap-2">
+                      <UiBox style={{ color: "var(--accent-11)" }}>
+                        <ShoppingCart size={16} />
+                      </UiBox>
+                      <UiHeading as="h3" size="2" weight="bold">
+                        Productos y Servicios a Facturar
+                      </UiHeading>
+                    </UiBox>
+                    <UiText size="1" color="gray" className="hidden sm:inline">
+                      Escribe el nombre, código o escanea para añadir al carrito
+                    </UiText>
+                  </UiBox>
                   <UiBox {...{"className":"flex items-center gap-[5px] mb-[5px] flex-wrap"}}>
                     {/* Search Field */}
                     <UiBox {...{"className":"relative flex-1 min-w-[200px]"}}>
@@ -2090,7 +2082,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         onChange={e => setProductSearchTerm(e.target.value)}
                         {...mergeThemeProps({}, {}, mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"}))}
                         style={{ paddingLeft: '28px' }}
-                        placeholder="Buscar por nombre, SKU o código de barras..."
+                        placeholder="Buscar por nombre, SKU o código de barras (o escanea)..."
                       />
                       <Search {...{"style":{"color":"var(--gray-12)"},"className":"absolute left-[8px] top-1/2 -translate-y-1/2"}} size={12} />
                       {productSearchTerm && (
@@ -2481,6 +2473,83 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   </UiBox>
                 </UiBox>
               )}
+
+              {/* Card 3: Datos Adicionales del Comprobante (Plegable sutil / Opcional) */}
+              <UiBox 
+                style={{
+                  borderRadius: "var(--radius-3)",
+                  border: "1px solid var(--gray-a6)",
+                  backgroundColor: "var(--color-panel-solid)",
+                  color: "var(--gray-12)"
+                }}
+                className={`overflow-hidden ${mobileTab === 'cliente' ? 'block' : 'hidden lg:block'}`}
+              >
+                <button
+                  type="button"
+                  onClick={() => setShowAdditionalData(!showAdditionalData)}
+                  className="w-full px-3.5 py-2.5 flex items-center justify-between text-left hover:bg-[var(--gray-a2)] transition-colors cursor-pointer bg-transparent border-none"
+                >
+                  <UiBox className="flex items-center gap-2">
+                    <FileText size={14} className="text-[var(--gray-10)]" />
+                    <UiText size="2" weight="bold" color="gray" highContrast>
+                      Datos Adicionales del Comprobante (Opcional)
+                    </UiText>
+                    {(formData.referencia || formData.description) && (
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-[var(--accent-3)] text-[var(--accent-11)]">
+                        Con información
+                      </span>
+                    )}
+                  </UiBox>
+                  <UiBox className="flex items-center gap-1.5 text-xs text-[var(--gray-10)] font-medium">
+                    <span>{showAdditionalData ? 'Ocultar' : 'Nro. Pedido, Notas'}</span>
+                    <ChevronDown size={14} className={`transition-transform duration-200 ${showAdditionalData ? 'rotate-180' : ''}`} />
+                  </UiBox>
+                </button>
+
+                {showAdditionalData && (
+                  <UiBox className="p-3.5 pt-2 border-t border-[var(--gray-a4)] bg-[var(--gray-1)] space-y-3">
+                    <UiBox className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <UiBox>
+                        <UiLabel size="2" weight="medium" color="gray" highContrast className="block mb-1">
+                          Nro. Pedido / Ref. Externa (Opcional)
+                        </UiLabel>
+                        <UiInput
+                          disabled={!isEditable} 
+                          type="text" 
+                          value={formData.referencia || ''} 
+                          onChange={e => setFormData({...formData, referencia: e.target.value})} 
+                          size="2"
+                          className="w-full"
+                          color="gray"
+                          placeholder="Ej. OC-1024, Proforma #45 (Identificador comercial)" 
+                        />
+                        <UiText as="p" size="1" color="gray" className="text-[11px] text-[var(--gray-10)] mt-1">
+                          Número de orden de compra o pedido del cliente. No es para buscar productos.
+                        </UiText>
+                      </UiBox>
+
+                      <UiBox>
+                        <UiLabel size="2" weight="medium" color="gray" highContrast className="block mb-1">
+                          Notas / Observaciones del Comprobante
+                        </UiLabel>
+                        <UiInput
+                          disabled={!isEditable} 
+                          type="text" 
+                          value={formData.description || ''} 
+                          onChange={e => setFormData({...formData, description: e.target.value})} 
+                          size="2"
+                          className="w-full"
+                          color="gray"
+                          placeholder="Notas o condiciones que se imprimirán en el documento..." 
+                        />
+                        <UiText as="p" size="1" color="gray" className="text-[11px] text-[var(--gray-10)] mt-1">
+                          Información adicional para el cliente en el RIDE o factura.
+                        </UiText>
+                      </UiBox>
+                    </UiBox>
+                  </UiBox>
+                )}
+              </UiBox>
             </UiBox>
 
             {/* Right Column: lg:col-span-4 */}
