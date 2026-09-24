@@ -13,6 +13,7 @@ import RidePreviewModal from './RidePreviewModal';
 import { Badge } from '../ui/badge';
 
 export default function TransactionsView({ transactions, thirdParties, showToast, db, storage, appId, onOpenForm, forcedDocType, forcedType, isPreventaTab = false }) {
+  const getTransactionParty = (tx) => thirdParties.find(tp => tp.id === tx.thirdPartyId) || tx.thirdParty || null;
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState(forcedType || 'all');
   const [filterDocType, setFilterDocType] = useState(forcedDocType || 'all'); // Filtro por Tipo de Comprobante SRI
@@ -102,7 +103,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
     }
 
     const matchesSearch = (tx.documentNumber || '').includes(searchTerm) || 
-                          (thirdParties.find(tp => tp.id === tx.thirdPartyId)?.name || '').toLowerCase().includes(searchTerm.toLowerCase());
+                          (getTransactionParty(tx)?.name || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = filterType === 'all' || tx.type === filterType;
     
     let matchesDocType;
@@ -138,8 +139,8 @@ export default function TransactionsView({ transactions, thirdParties, showToast
     } else if (sortField === 'total') {
       comparison = Number(a.total || 0) - Number(b.total || 0);
     } else if (sortField === 'thirdParty') {
-      const nameA = thirdParties.find(tp => tp.id === a.thirdPartyId)?.name || '';
-      const nameB = thirdParties.find(tp => tp.id === b.thirdPartyId)?.name || '';
+      const nameA = getTransactionParty(a)?.name || '';
+      const nameB = getTransactionParty(b)?.name || '';
       comparison = nameA.localeCompare(nameB);
     }
     return sortDirection === 'asc' ? comparison : -comparison;
@@ -321,7 +322,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
   };
 
   const handleOpenEmailModal = (tx) => {
-    const cliente = thirdParties.find(tp => tp.id === tx.thirdPartyId);
+    const cliente = getTransactionParty(tx);
     let initialEmail = cliente?.email || '';
     if (initialEmail.includes('consumidorfinal')) {
       initialEmail = '';
@@ -353,7 +354,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
         return;
       }
 
-      const cliente = thirdParties.find(tp => tp.id === emailModalTx.thirdPartyId);
+      const cliente = getTransactionParty(emailModalTx);
 
       const effectivePdf = (emailModalTx.pdfUrl && !emailModalTx.pdfUrl.includes('srienlinea.sri.gob.ec'))
         ? emailModalTx.pdfUrl
@@ -659,8 +660,8 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                       {tx.documentNumber || (tx.sriStatus === 'borrador' ? 'Borrador' : '-')}
                     </UiBox>
                   </UiTableCell>
-                  <UiTableCell style={{ color: "var(--gray-12)" }} className="px-6 py-2.5 truncate max-w-[200px]" title={thirdParties.find(tp => tp.id === tx.thirdPartyId)?.name}>
-                    {thirdParties.find(tp => tp.id === tx.thirdPartyId)?.name || 'Desconocido'}
+                  <UiTableCell style={{ color: "var(--gray-12)" }} className="px-6 py-2.5 truncate max-w-[200px]" title={getTransactionParty(tx)?.name}>
+                    {getTransactionParty(tx)?.name || 'Desconocido'}
                   </UiTableCell>
                   <UiTableCell style={{ color: "var(--gray-12)", fontFamily: "var(--code-font-family)" }} className="px-6 py-2.5 font-medium">
                     ${Number(tx.total || 0).toFixed(2)}
