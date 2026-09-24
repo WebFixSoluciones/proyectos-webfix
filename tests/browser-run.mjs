@@ -38,11 +38,6 @@ try {
 
   await page.goto('http://127.0.0.1:5178/tests/browser/index.html?mode=pos');
   await page.getByText('Teclado USB', { exact: true }).first().waitFor();
-  await page.getByText('Para cobrar').waitFor();
-  await page.getByText('Falta producto').waitFor();
-  await page.getByText('Falta cliente').waitFor();
-  await page.getByRole('button', { name: 'Ver qué falta' }).click();
-  await page.getByRole('dialog', { name: 'ALERTA' }).getByRole('button', { name: 'Cerrar' }).click();
   await page.keyboard.press('F12');
   const posIssues = page.getByRole('dialog', { name: 'ALERTA' });
   await posIssues.getByText('AGREGA PRODUCTO').waitFor();

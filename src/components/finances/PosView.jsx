@@ -1236,9 +1236,6 @@ export default function PosView({ products, thirdParties, transactions = [], dis
 
     return matchesSearch && matchesBrand && matchesCategory && matchesWarehouse && matchesStock;
   });
-  const readinessIssues = getReadinessIssues();
-  const clientNeedsAttention = readinessIssues.some(issue => issue.target === 'client');
-  const itemsNeedAttention = readinessIssues.some(issue => issue.target === 'items');
 
   if (!isPreventaOnly) {
     if (sessionLoading) {
@@ -2400,29 +2397,6 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                 <UiText>TOTAL A PAGAR</UiText>
                 <UiText {...{"color":"blue","size":"6","className":"tabular-nums"}}>${getTotal().toFixed(2)}</UiText>
               </UiBox>
-            </UiBox>
-
-            <UiBox
-              role="status"
-              aria-live="polite"
-              style={{ backgroundColor: readinessIssues.length ? 'var(--amber-3)' : 'var(--green-3)', border: `1px solid ${readinessIssues.length ? 'var(--amber-a6)' : 'var(--green-a6)'}`, borderRadius: 'var(--radius-3)' }}
-              className="mt-3 p-3 space-y-2"
-            >
-              <UiBox className="flex items-center justify-between gap-2">
-                <UiText size="2" weight="bold">Para cobrar</UiText>
-                <UiText size="1" weight="bold" color={readinessIssues.length ? 'amber' : 'green'}>
-                  {readinessIssues.length ? `${readinessIssues.length} pendiente${readinessIssues.length === 1 ? '' : 's'}` : 'Datos completos'}
-                </UiText>
-              </UiBox>
-              <UiBox className="flex flex-wrap gap-x-3 gap-y-1">
-                <UiText size="1" color={itemsNeedAttention ? 'amber' : 'green'}>{itemsNeedAttention ? '○ Falta producto' : '✓ Producto listo'}</UiText>
-                <UiText size="1" color={clientNeedsAttention ? 'amber' : 'green'}>{clientNeedsAttention ? '○ Falta cliente' : '✓ Cliente listo'}</UiText>
-              </UiBox>
-              {readinessIssues.length > 0 && (
-                <UiButton type="button" variant="soft" color="amber" size="1" onClick={() => setValidationIssues(readinessIssues)}>
-                  Ver qué falta
-                </UiButton>
-              )}
             </UiBox>
 
             <UiBox {...{"className":"flex gap-2.5 mt-4 pt-1"}}>
