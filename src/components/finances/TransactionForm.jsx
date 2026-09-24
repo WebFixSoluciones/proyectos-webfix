@@ -2357,17 +2357,17 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   <UiBox {...{"className":"overflow-x-auto"}}>
                     {(formData.items || []).length > 0 ? (
                       <UiTable {...{"className":"w-full text-left whitespace-nowrap"}}>
-                        <UiTableHeader {...mergeThemeProps({"style":{"backgroundColor":"var(--gray-2)","color":"var(--gray-12)"}})}>
+                        <UiTableHeader style={{ backgroundColor: "var(--gray-2)", color: "var(--gray-12)" }}>
                           <UiTableRow>
-                            <UiTableHead {...{"className":"px-[8px] py-[6px]"}}>Producto / Servicio</UiTableHead>
-                            <UiTableHead {...{"className":"px-[8px] py-[6px] text-center w-20"}}>Cant.</UiTableHead>
-                            <UiTableHead {...{"className":"px-[8px] py-[6px] text-right w-24"}}>P. Unit.</UiTableHead>
-                            {isEditable && <UiTableHead {...{"className":"px-[8px] py-[6px] text-center w-24 hidden sm:table-cell"}}>Dto.</UiTableHead>}
-                            <UiTableHead {...{"className":"px-[8px] py-[6px] text-right w-20"}}>Subtotal</UiTableHead>
-                            {isEditable && <UiTableHead {...{"className":"px-[8px] py-[6px] text-center w-8"}}></UiTableHead>}
+                            <UiTableHead className="px-3 py-2 text-xs font-bold uppercase tracking-wider">Código & Descripción en Factura</UiTableHead>
+                            <UiTableHead className="px-2 py-2 text-center text-xs font-bold uppercase tracking-wider w-24">Cant.</UiTableHead>
+                            <UiTableHead className="px-2 py-2 text-right text-xs font-bold uppercase tracking-wider w-24">P. Unit.</UiTableHead>
+                            {isEditable && <UiTableHead className="px-2 py-2 text-center text-xs font-bold uppercase tracking-wider w-24 hidden sm:table-cell">Dto.</UiTableHead>}
+                            <UiTableHead className="px-3 py-2 text-right text-xs font-bold uppercase tracking-wider w-24">Subtotal</UiTableHead>
+                            {isEditable && <UiTableHead className="px-2 py-2 text-center w-10"></UiTableHead>}
                           </UiTableRow>
                         </UiTableHeader>
-                        <UiTableBody {...mergeThemeProps({})}>
+                        <UiTableBody>
                           {(formData.items || []).map((item, index) => {
                             const calcLine = currentCartTotals?.items?.[index] || item;
                             const lineBase = (parseFloat(item.price) || 0) * (parseInt(item.quantity) || 1);
@@ -2381,27 +2381,52 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                               calcLine.discount_type === 'SIN_IVA'
                             );
                             return (
-                              <UiTableRow key={index}  {...{}}>
-                                <UiTableCell {...{"className":"px-[8px] py-[6px]"}}>
+                              <UiTableRow key={index} className="hover:bg-[var(--gray-a2)] transition-colors">
+                                {/* Producto / Código & Descripción Editable en 1 Sola Línea */}
+                                <UiTableCell className="px-3 py-2">
                                   {item.productId ? (
-                                    <UiBox>
-                                      <UiBox {...{"className":"min-w-48 max-w-lg"}}>
-                                        {isEditable ? <UiLabel {...{"size":"1","color":"gray","className":"block"}}>
-                                          Descripción en factura
-                                          <UiTextarea aria-label={`Descripción en factura, línea ${index + 1}`} rows={2} maxLength={300} value={item.invoiceDescription ?? item.name ?? ''} onChange={event => handleItemChange(index, 'invoiceDescription', event.target.value)} {...{"size":"2","color":"gray","className":"mt-1 block w-full resize-y"}} />
-                                          <UiText {...{"className":"mt-1 block"}}>Producto: {item.name}</UiText>
-                                        </UiLabel> : <UiBox {...{"className":"whitespace-pre-wrap break-words"}}>{invoiceDescription(item)}</UiBox>}
+                                    <UiBox className="flex items-center gap-2 min-w-0">
+                                      {/* SKU Badge */}
+                                      <UiBox 
+                                        style={{
+                                          fontFamily: 'var(--code-font-family)',
+                                          borderRadius: 'var(--radius-2)',
+                                          backgroundColor: 'var(--gray-3)',
+                                          border: '1px solid var(--gray-a5)',
+                                          color: 'var(--gray-11)'
+                                        }}
+                                        className="px-2 py-1 text-xs font-semibold shrink-0 select-none"
+                                        title={item.sku ? `Código / SKU: ${item.sku}` : 'Sin SKU'}
+                                      >
+                                        {item.sku || 'S/C'}
                                       </UiBox>
-                                      <UiText {...{"size":"1","weight":"regular","className":"opacity-80"}}>
-                                        {item.sku ? `SKU: ${item.sku}` : ''}
-                                      </UiText>
+
+                                      {/* Editable Invoice Description (Single Line Input) */}
+                                      {isEditable ? (
+                                        <UiInput
+                                          aria-label={`Descripción en factura, línea ${index + 1}`}
+                                          type="text"
+                                          maxLength={300}
+                                          value={item.invoiceDescription ?? item.name ?? ''}
+                                          onChange={event => handleItemChange(index, 'invoiceDescription', event.target.value)}
+                                          size="2"
+                                          className="w-full text-xs font-medium"
+                                          title={`Producto base: ${item.name}. Puedes editar esta descripción para la factura.`}
+                                          placeholder="Descripción del ítem en factura..."
+                                        />
+                                      ) : (
+                                        <UiText size="2" color="gray" highContrast className="truncate block font-medium">
+                                          {invoiceDescription(item)}
+                                        </UiText>
+                                      )}
                                     </UiBox>
                                   ) : (
                                     <UiSelect
                                       disabled={!isEditable}
                                       value={item.productId} 
                                       onChange={(e) => handleItemChange(index, 'productId', e.target.value)} 
-                                      {...mergeThemeProps({"size":"3","color":"gray"})}
+                                      size="2"
+                                      className="w-full"
                                     >
                                       <option value="" disabled>Seleccionar...</option>
                                       {products.filter(isSellable).map(p => (
@@ -2411,58 +2436,133 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                                   )}
                                 </UiTableCell>
                                 
-                                <UiTableCell {...{"className":"px-[8px] py-[6px] text-center"}}>
-                                  <UiCard {...mergeThemeProps({"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"inline-flex items-center gap-[4px] p-[3px]"})}>
-                                    <UiButton type="button" disabled={!isEditable} onClick={() => {
-                                      const q = parseInt(item.quantity) || 1;
-                                      if (q > 1) handleItemChange(index, 'quantity', q - 1);
-                                    }} {...mergeThemeProps({"size":"2","variant":"soft","color":"gray","className":"w-5 flex items-center justify-center"})}>-</UiButton>
-                                    <UiInput disabled={!isEditable} type="number" value={item.quantity} min="1" onChange={(e) => handleItemChange(index, 'quantity', Math.max(1, parseInt(e.target.value) || 1))} {...mergeThemeProps({"size":"2","color":"gray","className":"w-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"})} />
-                                    <UiButton type="button" disabled={!isEditable} onClick={() => {
-                                      handleItemChange(index, 'quantity', (parseInt(item.quantity) || 1) + 1);
-                                    }} {...mergeThemeProps({"size":"2","variant":"soft","color":"gray","className":"w-5 flex items-center justify-center"})}>+</UiButton>
-                                  </UiCard>
-                                </UiTableCell>
-
-                                <UiTableCell {...{"className":"px-[8px] py-[6px] text-right"}}>
-                                  <UiBox {...{"className":"relative inline-block w-20"}}>
-                                    <UiText {...{"size":"1","weight":"bold","className":"absolute left-[5px] top-1/2 -translate-y-1/2 opacity-80"}}>$</UiText>
-                                    <UiInput disabled={!isEditable} type="number" step="0.01" required value={item.price} onChange={(e) => handleItemChange(index, 'price', e.target.value)} {...mergeThemeProps({"size":"2","color":"gray","className":"w-full text-right"})} />
+                                {/* Cantidad Stepper Homogéneo */}
+                                <UiTableCell className="px-2 py-2 text-center w-24">
+                                  <UiBox 
+                                    style={{ 
+                                      borderRadius: 'var(--radius-2)', 
+                                      border: '1px solid var(--gray-a6)',
+                                      backgroundColor: 'var(--color-panel-solid)' 
+                                    }} 
+                                    className="inline-flex items-center p-0.5"
+                                  >
+                                    <UiButton 
+                                      type="button" 
+                                      disabled={!isEditable} 
+                                      onClick={() => {
+                                        const q = parseInt(item.quantity) || 1;
+                                        if (q > 1) handleItemChange(index, 'quantity', q - 1);
+                                      }} 
+                                      size="1" 
+                                      variant="ghost" 
+                                      color="gray" 
+                                      className="w-6 h-6 p-0 flex items-center justify-center font-bold text-xs cursor-pointer"
+                                      title="Disminuir cantidad"
+                                    >
+                                      -
+                                    </UiButton>
+                                    <input 
+                                      disabled={!isEditable} 
+                                      type="number" 
+                                      value={item.quantity} 
+                                      min="1" 
+                                      onChange={(e) => handleItemChange(index, 'quantity', Math.max(1, parseInt(e.target.value) || 1))} 
+                                      className="w-8 text-center text-xs font-bold text-[var(--gray-12)] bg-transparent border-none outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
+                                    />
+                                    <UiButton 
+                                      type="button" 
+                                      disabled={!isEditable} 
+                                      onClick={() => {
+                                        handleItemChange(index, 'quantity', (parseInt(item.quantity) || 1) + 1);
+                                      }} 
+                                      size="1" 
+                                      variant="ghost" 
+                                      color="gray" 
+                                      className="w-6 h-6 p-0 flex items-center justify-center font-bold text-xs cursor-pointer"
+                                      title="Aumentar cantidad"
+                                    >
+                                      +
+                                    </UiButton>
                                   </UiBox>
                                 </UiTableCell>
 
+                                {/* Precio Unitario */}
+                                <UiTableCell className="px-2 py-2 text-right w-24">
+                                  <UiBox className="relative inline-block w-24">
+                                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-[var(--gray-9)] pointer-events-none">$</span>
+                                    <UiInput 
+                                      disabled={!isEditable} 
+                                      type="number" 
+                                      step="0.01" 
+                                      required 
+                                      value={item.price} 
+                                      onChange={(e) => handleItemChange(index, 'price', e.target.value)} 
+                                      size="2" 
+                                      color="gray" 
+                                      style={{ paddingLeft: '20px' }}
+                                      className="w-full text-right font-mono font-semibold text-xs" 
+                                    />
+                                  </UiBox>
+                                </UiTableCell>
+
+                                {/* Descuento de Línea */}
                                 {isEditable && (
-                                  <UiTableCell {...{"className":"px-[8px] py-[6px] text-center w-28 hidden sm:table-cell"}}>
-                                    <UiBox {...{"className":"flex items-center justify-center gap-1.5"}}>
-                                      <UiButton iconOnly
+                                  <UiTableCell className="px-2 py-2 text-center w-24 hidden sm:table-cell">
+                                    {hasDiscount ? (
+                                      <button
                                         type="button"
                                         onClick={() => setSelectedLineItemForDiscount({ ...item, cartIndex: index })}
-                                        {...mergeThemeProps({"variant":"outline","className":"flex items-center justify-center cursor-pointer"}, {}, (hasDiscount ? {"variant":"solid","color":"red"} : {"variant":"surface","color":"gray"}))}
-                                        title="Descuento del ítem"
+                                        className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-bold bg-[var(--red-3)] text-[var(--red-11)] border border-[var(--red-6)] hover:bg-[var(--red-4)] transition-colors cursor-pointer"
+                                        title="Modificar o quitar descuento"
                                       >
-                                        <Percent size={12} />
-                                      </UiButton>
-                                      {hasDiscount && (
-                                        <UiText {...{"size":"1","weight":"bold","color":"red"}}>
+                                        <Percent size={10} />
+                                        <span>
                                           {calcLine.discount_type === 'SIN_IVA' || calcLine.descuento_objeto?.tipo_valor === 'SIN_IVA'
-                                            ? `-IVA (-$${(lineDiscountPvp > 0 ? lineDiscountPvp : lineDiscount).toFixed(2)})`
+                                            ? `-IVA`
                                             : (calcLine.discount_type === 'PORCENTAJE' || calcLine.descuento_objeto?.tipo_valor === 'PORCENTAJE'
                                                 ? `-${calcLine.discount_value || calcLine.descuento_objeto?.valor || 0}%`
                                                 : `-$${lineDiscount.toFixed(2)}`)}
-                                        </UiText>
-                                      )}
-                                    </UiBox>
+                                        </span>
+                                      </button>
+                                    ) : (
+                                      <UiButton 
+                                        iconOnly
+                                        type="button"
+                                        onClick={() => setSelectedLineItemForDiscount({ ...item, cartIndex: index })}
+                                        variant="surface"
+                                        color="gray"
+                                        size="2"
+                                        title="Asignar descuento a este ítem"
+                                        className="cursor-pointer"
+                                      >
+                                        <Percent size={12} />
+                                      </UiButton>
+                                    )}
                                   </UiTableCell>
                                 )}
 
-                                <UiTableCell {...{"style":{"fontFamily":"var(--code-font-family)"},"className":"px-[8px] py-[6px] text-right"}}>
+                                {/* Subtotal */}
+                                <UiTableCell 
+                                  style={{ fontFamily: 'var(--code-font-family)' }} 
+                                  className="px-3 py-2 text-right font-bold text-xs text-[var(--gray-12)] w-24"
+                                >
                                   ${subtotalLine.toFixed(2)}
                                 </UiTableCell>
 
+                                {/* Eliminar */}
                                 {isEditable && (
-                                  <UiTableCell {...{"className":"px-[8px] py-[6px] text-center"}}>
-                                    <UiButton iconOnly type="button" onClick={() => handleRemoveItem(index)} {...{"variant":"surface","color":"red"}}>
-                                      <Trash2 size={10} />
+                                  <UiTableCell className="px-2 py-2 text-center w-10">
+                                    <UiButton 
+                                      iconOnly 
+                                      type="button" 
+                                      onClick={() => handleRemoveItem(index)} 
+                                      variant="soft" 
+                                      color="red"
+                                      size="1"
+                                      title="Quitar este ítem de la factura"
+                                      className="cursor-pointer"
+                                    >
+                                      <Trash2 size={12} />
                                     </UiButton>
                                   </UiTableCell>
                                 )}
