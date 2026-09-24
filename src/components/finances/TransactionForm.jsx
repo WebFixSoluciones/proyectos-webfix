@@ -16,7 +16,8 @@ import { createThemedPortal as createPortal } from '../ui/themePortal';
 import { 
   X, Calculator, FileText, CheckCircle2, AlertTriangle, Sparkles, 
   Terminal, ShieldAlert, Download, Plus, Trash2, RefreshCw, ArrowLeft, ArrowRight, 
-  User, DollarSign, CreditCard, Layers, Search, Tag, Percent, ChevronDown, ShoppingCart
+  User, DollarSign, CreditCard, Layers, Search, Tag, Percent, ChevronDown, ShoppingCart,
+  Package
 } from 'lucide-react';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, runTransaction } from '../../services/financeStore.js';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
@@ -2156,11 +2157,13 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                             setAdvSearchTerm(productSearchTerm);
                             setIsAdvancedSearchOpen(true);
                           }}
-                          {...{"variant":"surface","color":"blue"}}
-                          title="Búsqueda Avanzada de Productos"
+                          variant="surface"
+                          color="blue"
+                          title="Añadir Productos"
+                          className="cursor-pointer"
                         >
-                          <Search size={12} />
-                          <UiText>Buscar</UiText>
+                          <Search size={14} />
+                          <UiText>Añadir</UiText>
                         </UiButton>
                         
                         <UiButton
@@ -2171,11 +2174,14 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                             });
                             setIsQuickAddProductOpen(true);
                           }}
-                          {...{"variant":"solid","color":"blue"}}
-                          title="Registrar y Agregar Nuevo Producto"
+                          variant="solid"
+                          color="blue"
+                          title="Crear Producto"
+                          aria-label="Crear Producto"
+                          className="cursor-pointer"
                         >
-                          <Layers size={12} />
-                          <UiText>Añadir</UiText>
+                          <Package size={14} />
+                          <UiText>Crear</UiText>
                         </UiButton>
                       </>
                     )}
@@ -3685,8 +3691,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
           <UiCard {...mergeThemeProps({"className":"w-full max-w-md p-[20px]"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"}})}>
             <UiBox style={{ borderBottom: '1px solid var(--gray-a6)' }} className="flex justify-between items-center mb-3 pb-2">
               <UiHeading as="h3" size="3" weight="bold" className="flex items-center gap-2">
-                <Layers size={16} style={{ color: 'var(--blue-11)' }} />
-                Nuevo Producto / Servicio (Rápido)
+                <Package size={16} style={{ color: 'var(--blue-11)' }} />
+                Crear Producto (Rápido)
               </UiHeading>
               <UiButton iconOnly type="button" onClick={() => setIsQuickAddProductOpen(false)} color="gray" className="cursor-pointer">
                 <X size={14} />
