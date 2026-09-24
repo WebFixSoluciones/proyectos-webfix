@@ -118,7 +118,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
   };
 
   // Obtener datos del cliente (Receptor)
-  const client = thirdParties.find(tp => tp.id === tx.thirdPartyId) || {
+  const client = tx.thirdParty || thirdParties.find(tp => tp.id === tx.thirdPartyId) || {
     name: 'Consumidor Final',
     ruc: '9999999999999',
     direccion: 'Ecuador',
@@ -127,7 +127,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
   };
 
   // Valores predeterminados del Emisor (Fallback si no hay config)
-  const emisor = companyConfig || {
+  const emisor = tx.emisorSnapshot || companyConfig || {
     razonSocial: 'EMISOR DEMO S.A.',
     nombreComercial: 'MI NEGOCIO',
     ruc: '1790000000001',
@@ -511,7 +511,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
                         </div>
                         <p className="mt-1"><span className="font-bold">Clave Acceso/ No. Autorización:</span></p>
                         <p className="font-mono select-all tracking-normal text-black" style={{ fontSize: '8px', lineHeight: '1.25' }}>{claveAcceso}</p>
-                        <p className="mt-1"><span className="font-bold">FECHA Y HORA DE AUTORIZACIÓN:</span> {tx.fechaAutorizacion || (tx.date.split('-').reverse().join('/') + ' ' + (tx.time || '12:00:00'))}</p>
+                        <p className="mt-1"><span className="font-bold">FECHA Y HORA DE AUTORIZACIÓN:</span> {tx.fechaAutorizacion || 'No confirmada por el SRI'}</p>
                         
                         {/* Código de barras */}
                         <div className="my-1.5">

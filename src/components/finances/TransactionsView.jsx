@@ -1,3 +1,5 @@
+import SriRecoveryPanel from './SriRecoveryPanel';
+import FiscalDocuments from './FiscalDocuments';
 import { mergeThemeProps } from '../ui/themeProps';
 import { UiBox, UiText, UiCard, UiHeading, UiLabel } from '../ui/layout';
 import { UiInput, UiButton, UiSelect, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell } from '../ui/controls';
@@ -281,7 +283,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
 
   const handleDelete = async (tx) => {
     if (tx.inventarioRegistrado || tx.financialSyncStatus === 'complete') { showToast('Este documento tiene movimientos asociados. Usa la anulación para conservar la trazabilidad.', 'warning'); return; }
-    if (tx.documentType === 'factura' || (tx.sriStatus === 'autorizado' && tx.documentType !== 'nota_venta')) {
+    if (tx.claveAcceso || tx.documentType === 'factura' || (tx.sriStatus === 'autorizado' && tx.documentType !== 'nota_venta')) {
       alert("No se puede eliminar un comprobante electrónico (Factura / Retención / Nota de Crédito). Para anular la validez de este documento, se recomienda generar una Nota de Crédito o realizar la anulación directamente desde su cuenta del SRI.");
       return;
     }
@@ -302,6 +304,11 @@ export default function TransactionsView({ transactions, thirdParties, showToast
           return <Badge variant="success"><CheckCircle2 size={10}/> Registrado</Badge>;
         }
         return <Badge variant="success"><CheckCircle2 size={10}/> Autorizado</Badge>;
+      case 'pendiente_sri':
+        return <Badge variant="warning"><AlertCircle size={10}/> Por confirmar en SRI</Badge>;
+      case 'devuelto':
+      case 'no_autorizado':
+        return <Badge variant="destructive"><AlertTriangle size={10}/> {status === 'devuelto' ? 'Devuelto' : 'No autorizado'}</Badge>;
       case 'pendiente':
         return <Badge variant="warning"><AlertCircle size={10}/> Pendiente</Badge>;
       case 'anulado':
@@ -350,7 +357,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
 
       const effectivePdf = (emailModalTx.pdfUrl && !emailModalTx.pdfUrl.includes('srienlinea.sri.gob.ec'))
         ? emailModalTx.pdfUrl
-        : (emailModalTx.claveAcceso ? `/public/ride?claveAcceso=${emailModalTx.claveAcceso}&tenantId=${appId || ''}` : '');
+        : (emailModalTx.claveAcceso ? `/#/public/ride?claveAcceso=${emailModalTx.claveAcceso}&tenantId=${appId || ''}` : '');
 
       const emailPayload = {
         smtpHost: configData.smtpHost,
@@ -366,7 +373,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
         total: emailModalTx.total,
         pdfUrl: effectivePdf,
         xmlUrl: emailModalTx.xmlUrl || '',
-        xmlContent: emailModalTx.xml || '',
+        xmlContent: emailModalTx.xmlAutorizado || emailModalTx.xml || '',
         companyName: configData.nombreComercial || configData.razonSocial || 'Facturación Electrónica',
         logoUrl: configData.logoUrl || '',
         companyRuc: configData.ruc || '',
@@ -422,6 +429,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
   return (
     <UiBox {...{"className":"animate-in slide-in-from-bottom-4 duration-500 space-y-6"}}>
       
+      {forcedType !== 'egreso' && !isPreventaTab && <SriRecoveryPanel db={db} appId={appId} showToast={showToast} />}
       {/* DRAG AND DROP ZONE */}
       {(!forcedType || forcedType !== 'ingreso') && (
         <UiBox 
@@ -686,6 +694,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                   )}
                   <UiTableCell className="px-6 py-3.5 hidden sm:table-cell">
                     <UiBox className="flex items-center gap-1.5">
+                      {tx.claveAcceso ? <FiscalDocuments transaction={tx} tenantId={appId} onPreview={() => setSelectedRideTx(tx)} /> : <>
                       {tx.xmlUrl ? (
                         <UiButton
                           iconOnly
@@ -715,7 +724,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                       {(() => {
                         const effectivePdf = (tx.pdfUrl && !tx.pdfUrl.includes('srienlinea.sri.gob.ec'))
                           ? tx.pdfUrl
-                          : (tx.claveAcceso ? `/public/ride?claveAcceso=${tx.claveAcceso}&tenantId=${appId || ''}` : null);
+                          : (tx.claveAcceso ? `/#/public/ride?claveAcceso=${tx.claveAcceso}&tenantId=${appId || ''}` : null);
 
                         return effectivePdf ? (
                           <UiButton
@@ -758,6 +767,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                         </UiButton>
                       )}
                       
+                      </>}
                       {(tx.sriStatus === 'autorizado' || tx.xmlUrl || tx.pdfUrl) && tx.documentType !== 'nota_venta' && (
                         <UiButton
                           iconOnly

@@ -84,7 +84,14 @@ export default function FinanceModule({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTx, setEditingTx] = useState(null);
   const checkoutResolver = useRef(null);
-  const closeTransactionForm = () => { checkoutResolver.current?.(false); checkoutResolver.current = null; setIsModalOpen(false); setEditingTx(null); setSubTabVentas('resumen_ventas'); };
+  const closeTransactionForm = () => {
+    const fromCheckout = Boolean(checkoutResolver.current);
+    checkoutResolver.current?.(false);
+    checkoutResolver.current = null;
+    setIsModalOpen(false);
+    setEditingTx(null);
+    if (!fromCheckout) setSubTabVentas('resumen_ventas');
+  };
   const transactionSaved = data => { if (checkoutResolver.current) { checkoutResolver.current(data); checkoutResolver.current = null; } setIsModalOpen(false); setEditingTx(null); setSubTabVentas('resumen_ventas'); };
   useEffect(() => () => checkoutResolver.current?.(false), []);
   const [purchaseMethod, setPurchaseMethod] = useState(null);

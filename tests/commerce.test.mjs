@@ -174,33 +174,6 @@ test('identification validation strictly rejects invalid RUC and protects sequen
   assert.equal(validarIdentificacion('1712345678'), false); // invalid checksum
 });
 
-test('sequential number rollback restores configuration on emission abort', async () => {
-  const { data, api } = memoryStore();
-  const configPath = path('finances_settings', 'config');
-  data.set(configPath, { secuencialFactura: 163, establecimiento: '001', puntoEmision: '001' });
-
-  // Simulate atomic increment
-  let secVal;
-  await api.runTransaction(null, async (tx) => {
-    const snap = await tx.get(configPath);
-    const cfg = snap.data();
-    secVal = cfg.secuencialFactura || 1;
-    tx.update(configPath, { secuencialFactura: secVal + 1 });
-  });
-
-  assert.equal(data.get(configPath).secuencialFactura, 164);
-
-  // When emission fails before SRI authorization, rollback is executed
-  await api.runTransaction(null, async (tx) => {
-    const snap = await tx.get(configPath);
-    if (snap.data().secuencialFactura === secVal + 1) {
-      tx.update(configPath, { secuencialFactura: secVal });
-    }
-  });
-
-  assert.equal(data.get(configPath).secuencialFactura, 163);
-});
-
 test('volume discount A_PARTIR_DE with SIN_IVA applies on threshold and matches $200 invoice total', () => {
   const zapatoDisc = {
     id: 'desc_zapato_iva',

@@ -1,3 +1,4 @@
+import { cancelInternalSale } from '../../services/cancelSale';
 import { resolveThemeProps } from '../ui/themeProps';
 import { mergeThemeProps } from '../ui/themeProps';
 import PosProductCard from './PosProductCard';
@@ -282,11 +283,6 @@ export default function PosView({ products, thirdParties, transactions = [], dis
   // Para desgloses separados
   const productDiscountsTotal = totalsResult.descuentosProducto;
 
-  const [manualLineDiscType, setManualLineDiscType] = useState('PORCENTAJE'); // 'PORCENTAJE' | 'MONTO_FIJO'
-  const [manualLineDiscValue, setManualLineDiscValue] = useState('');
-  const [manualGeneralDiscType, setManualGeneralDiscType] = useState('PORCENTAJE'); // 'PORCENTAJE' | 'MONTO_FIJO'
-  const [manualGeneralDiscValue, setManualGeneralDiscValue] = useState('');
-
   const getActiveDiscounts = (alcance) => {
     return (discounts || []).filter(d => {
       const matchAlcance = (alcance === 'VENTA')
@@ -297,6 +293,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
   };
 
   const getAvailableDiscountsForLineItem = (cartItem) => {
+    const hoy = getEcuadorDateString();
     const prod = products.find(p => p.id === cartItem.productId);
     
     const activeProductDiscounts = (discounts || []).filter(d => {
@@ -1074,7 +1071,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
         if (searchInput) searchInput.focus();
       }, 350);
 
-      showToast(saved.sriStatus === 'autorizado' ? 'Venta registrada correctamente.' : 'Borrador guardado. Pendiente de finalizar la venta.', 'success');
+      showToast(saved.claveAcceso && saved.sriStatus !== 'autorizado' ? 'Comprobante guardado. Consulta su autorización en Ventas; conserva su clave y secuencial.' : saved.financialSyncStatus === 'pending' ? 'Factura autorizada. Falta completar la sincronización en Ventas.' : saved.sriStatus === 'autorizado' ? 'Venta registrada correctamente.' : 'Borrador guardado. Pendiente de finalizar la venta.', saved.claveAcceso && saved.financialSyncStatus !== 'complete' ? 'warning' : 'success');
     } catch (err) {
       console.error(err);
       showToast(err.message || "Error al procesar la venta", "error");
@@ -1247,9 +1244,6 @@ export default function PosView({ products, thirdParties, transactions = [], dis
 
     return matchesSearch && matchesBrand && matchesCategory && matchesWarehouse && matchesStock;
   });
-
-  // eslint-disable-next-line no-unused-vars
-  
 
   if (!isPreventaOnly) {
     if (sessionLoading) {

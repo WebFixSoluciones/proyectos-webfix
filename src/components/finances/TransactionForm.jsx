@@ -1,7 +1,11 @@
+import FiscalDocuments from './FiscalDocuments';
+import { downloadFiscalXml } from '../../services/sriAuthorization';
 import { mergeThemeProps } from '../ui/themeProps';
 import { UiBox, UiCard, UiHeading, UiText, UiLabel } from '../ui/layout';
 import { UiButton, UiInput, UiSelect, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell, UiTextarea } from '../ui/controls';
 import { cancelInternalSale } from '../../services/cancelSale';
+import { reserveSriEmission, saveSriResult } from '../../services/sriEmission';
+import { consultarAutorizacionSRI, reintentarDocumentoSRI } from '../../services/sriService';
 import { productRepository } from '../../modules/inventory/repositories/ProductRepository';
 import { normalizeProduct, appendInvoiceLine } from '../../services/productModel';
 import { registerInventoryOperations, CENTRAL_BRANCH } from '../../services/inventoryLedger';
@@ -415,6 +419,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
           
           if (!tx || !tx.secuencial) {
             setFormData(prev => {
+              if (prev.claveAcceso) return prev;
               // Si el RUC está inactivo y es un ingreso tipo factura, cambiar a nota_venta
               const activeDocType = (configData.rucActivo === false && !tx && prev.type === 'ingreso' && prev.documentType === 'factura')
                 ? 'nota_venta'
@@ -459,6 +464,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         breakdownTj = tx.paymentsBreakdown.tarjeta || 0;
         breakdownCr = tx.paymentsBreakdown.cruce_cuentas || tx.paymentsBreakdown.credito || 0;
 
+        // Hydrate the payment controls from the selected persisted document.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setPayments({
           efectivo: breakdownEf,
           transferencia: breakdownTr,
@@ -507,6 +514,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   // Cargar deuda del cliente de manera dinámica desde Firestore
   useEffect(() => {
     if (!formData.thirdPartyId || !db || !appId) {
+      // Reset the displayed debt when no customer is selected.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setClientDebt(0);
       return;
     }
@@ -536,12 +545,55 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   }, [formData.thirdPartyId, db, appId]);
 
   // Cálculo automático del total y desglose de items/retenciones con Motor Unificado
+  const normalizeCartItems = (items = []) => (items || []).map(item => {
+    let disc = null;
+    if (item.id_descuento_asociado) {
+      disc = (discounts || []).find(d => d.id === item.id_descuento_asociado);
+    }
+    if (!disc && item.categoryId) {
+      const cat = dbCategories.find(c => c.id === item.categoryId);
+      if (cat && cat.id_descuento_asociado) {
+        disc = (discounts || []).find(d => d.id === cat.id_descuento_asociado);
+      }
+    }
+    let effectiveDisc;
+    if (item.id_descuento_aplicado === 'manual') {
+      effectiveDisc = {
+        id: 'manual',
+        manual: true,
+        nombre: item.discount_type === 'SIN_IVA' ? 'Sin IVA' : 'Manual',
+        tipo_valor: item.discount_type || 'PORCENTAJE',
+        valor: Number(item.discount_value || 0),
+        metodo: 'SIEMPRE',
+        activo: true
+      };
+    } else if (item.id_descuento_aplicado) {
+      effectiveDisc = (discounts || []).find(d => d.id === item.id_descuento_aplicado) || item.descuento_objeto || null;
+    } else {
+      effectiveDisc = disc;
+    }
+    return {
+      ...item,
+      price: Number(item.price) || 0,
+      quantity: Number(item.quantity) || 1,
+      tax_mode: item.tax_mode || 'EXCLUIDO',
+      tarifa_iva: taxRateFor(item),
+      id_descuento_aplicado: item.id_descuento_aplicado || '',
+      id_promocion_aplicada: item.id_promocion_aplicada || '',
+      discount_value: Number(item.discount_value) || Number(item.itemDiscount) || 0,
+      discount_type: item.discount_type || 'PORCENTAJE',
+      descuento_objeto: effectiveDisc
+    };
+  });
+
   useEffect(() => {
-    if (['autorizado', 'anulado'].includes(formData.sriStatus)) return;
+    if (formData.claveAcceso || ['autorizado', 'anulado'].includes(formData.sriStatus)) return;
     if (formData.documentType === 'retencion') {
       const rets = formData.retenciones || [];
       const sumRet = rets.reduce((sum, r) => sum + (parseFloat(r.valorRetenido) || 0), 0);
       const sumBase = rets.reduce((sum, r) => sum + (parseFloat(r.baseImponible) || 0), 0);
+      // Keep the displayed retention totals consistent with the edited rows.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFormData(prev => {
         const next = { baseImponible: sumBase.toFixed(2), ivaValor: '0.00', total: sumRet.toFixed(2) };
         return prev.baseImponible === next.baseImponible && prev.ivaValor === next.ivaValor && prev.total === next.total ? prev : { ...prev, ...next };
@@ -581,6 +633,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
+    formData.claveAcceso,
+    formData.sriStatus,
     formData.baseImponible, 
     formData.ivaPorcentaje, 
     formData.retencionFuente, 
@@ -590,47 +644,6 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     formData.documentType,
     selectedGeneralDiscount
   ]);
-
-  const normalizeCartItems = (items = []) => (items || []).map(item => {
-    let disc = null;
-    if (item.id_descuento_asociado) {
-      disc = (discounts || []).find(d => d.id === item.id_descuento_asociado);
-    }
-    if (!disc && item.categoryId) {
-      const cat = dbCategories.find(c => c.id === item.categoryId);
-      if (cat && cat.id_descuento_asociado) {
-        disc = (discounts || []).find(d => d.id === cat.id_descuento_asociado);
-      }
-    }
-    let effectiveDisc = null;
-    if (item.id_descuento_aplicado === 'manual') {
-      effectiveDisc = {
-        id: 'manual',
-        manual: true,
-        nombre: item.discount_type === 'SIN_IVA' ? 'Sin IVA' : 'Manual',
-        tipo_valor: item.discount_type || 'PORCENTAJE',
-        valor: Number(item.discount_value || 0),
-        metodo: 'SIEMPRE',
-        activo: true
-      };
-    } else if (item.id_descuento_aplicado) {
-      effectiveDisc = (discounts || []).find(d => d.id === item.id_descuento_aplicado) || item.descuento_objeto || null;
-    } else {
-      effectiveDisc = disc;
-    }
-    return {
-      ...item,
-      price: Number(item.price) || 0,
-      quantity: Number(item.quantity) || 1,
-      tax_mode: item.tax_mode || 'EXCLUIDO',
-      tarifa_iva: taxRateFor(item),
-      id_descuento_aplicado: item.id_descuento_aplicado || '',
-      id_promocion_aplicada: item.id_promocion_aplicada || '',
-      discount_value: Number(item.discount_value) || Number(item.itemDiscount) || 0,
-      discount_type: item.discount_type || 'PORCENTAJE',
-      descuento_objeto: effectiveDisc
-    };
-  });
 
   const currentCartTotals = calculateTransactionTotals(normalizeCartItems(formData.items), selectedGeneralDiscount);
   const invoiceItems = () => currentCartTotals.items;
@@ -870,7 +883,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     }
 
     if (cr > 0) {
-      const matchedTercero = thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
+      const matchedTercero = formData.claveAcceso ? formData.thirdParty : thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
       const limit = Number(matchedTercero?.limiteCredito) || 1000;
       const available = limit - clientDebt;
       if (cr > available) {
@@ -936,7 +949,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       return false;
     }
 
-    const matchedTercero = thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
+    const matchedTercero = formData.claveAcceso ? formData.thirdParty : thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
     if (!matchedTercero) {
       showValidationErrorAlert('FALTA INGRESAR CLIENTE');
       return false;
@@ -992,7 +1005,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   };
 
   const completePendingSale = async () => {
-    if (operationRef.current) return;
+    if (operationRef.current || formData.sriRecoveryOnly) return;
     operationRef.current = true; setIsSaving(true);
     try {
       await registerTransactionInventory(db, appId, formData);
@@ -1125,7 +1138,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         primaryMethod = 'combinado';
       }
 
-      const finalTxData = {
+      let finalTxData = {
         ...updatedFormData,
         id: docId,
         paidAmount,
@@ -1145,13 +1158,18 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
       if (finalTxData.type === 'ingreso' && isFinalizingNotaVenta) Object.assign(finalTxData, settlePayments(finalTxData.total, payments));
       setFormData(prev => ({ ...prev, id: docId }));
-      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId), sanitizeFirestoreData(finalTxData), { merge: true });
+      await runTransaction(db, async transaction => {
+        const target = doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId);
+        const previous = await transaction.get(target);
+        if (previous.data()?.claveAcceso) throw new Error('Este comprobante ya tiene identidad fiscal. Consulte su autorización; no se puede sobrescribir como borrador.');
+        transaction.set(target, sanitizeFirestoreData(finalTxData), { merge: true });
+      });
       setFormData(finalTxData);
 
       // Si es un egreso (compra/gasto) o se está finalizando una Nota de Venta (ingreso)
       if (finalTxData.type !== 'ingreso' || isFinalizingNotaVenta) {
         await registrarInventarioTransaccion(finalTxData);
-        finalTxData.inventarioRegistrado = true;
+        finalTxData = { ...finalTxData, inventarioRegistrado: true };
       }
 
       try {
@@ -1217,7 +1235,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
       if (finalTxData.sriStatus === 'autorizado' || finalTxData.type !== 'ingreso') {
         await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId), { financialSyncStatus: 'complete' }, { merge: true });
-        finalTxData.financialSyncStatus = 'complete';
+        finalTxData = { ...finalTxData, financialSyncStatus: 'complete' };
       }
       if (isDraftFactura) {
         showToast('Borrador guardado con éxito. El secuencial se asignará al emitir la factura en el SRI.', 'success');
@@ -1280,7 +1298,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     try {
       const effectivePdf = (txData.pdfUrl && !txData.pdfUrl.includes('srienlinea.sri.gob.ec'))
         ? txData.pdfUrl
-        : (txData.claveAcceso ? `/public/ride?claveAcceso=${txData.claveAcceso}&tenantId=${appId || ''}` : '');
+        : (txData.claveAcceso ? `/#/public/ride?claveAcceso=${txData.claveAcceso}&tenantId=${appId || ''}` : '');
 
       const emailPayload = {
         smtpHost: configSRI.smtpHost,
@@ -1296,7 +1314,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         total: txData.total,
         pdfUrl: effectivePdf,
         xmlUrl: txData.xmlUrl || '',
-        xmlContent: txData.xml || '',
+        xmlContent: txData.xmlAutorizado || txData.xml || '',
         companyName: configSRI.nombreComercial || configSRI.razonSocial || 'Facturación Electrónica',
         logoUrl: configSRI.logoUrl || '',
         companyRuc: configSRI.ruc || '',
@@ -1340,286 +1358,114 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     }
   };
 
-  const executeEmitirSRI = async () => {
-    if (operationRef.current || !validateForm()) return;
-    if (formData.sriStatus === 'autorizado') { showToast('Este comprobante ya está autorizado.', 'info'); return; }
-    try { if (formData.type === 'ingreso' && formData.documentType === 'factura' && !formData.inventarioRegistrado) validateCartStock(formData.items, products); } catch (error) { showToast(error.message, 'error'); return; }
-    
-    operationRef.current = true;
+  const fiscalApi = { doc, runTransaction };
 
-    const matchedTercero = thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
-    if (!matchedTercero) {
-      operationRef.current = false;
-      showToast('Debe seleccionar un cliente antes de emitir la factura electrónica.', 'error');
-      return;
+  const finishAuthorizedEmission = async (document) => {
+    setFormData(document);
+    setCurrentStep(2);
+    if (document.sriRecoveryOnly) { showToast(document.recoveryNote, 'warning'); return; }
+    if (document.financialSyncStatus === 'complete') { onSaved?.(document); return; }
+    try {
+      await registrarInventarioTransaccion(document);
+      if (document.type === 'ingreso' && document.documentType === 'factura') await sincronizarVenta(document, db, usuario || { uid: '', email: '' });
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', document.id), { financialSyncStatus: 'complete' }, { merge: true });
+      const complete = { ...document, inventarioRegistrado: true, financialSyncStatus: 'complete' };
+      setFormData(complete);
+      showToast('Autorización SRI confirmada y venta registrada.', 'success');
+      onSaved?.(complete);
+    } catch (error) {
+      showToast('Factura AUTORIZADA y guardada. Falta sincronizar inventario o finanzas: ' + error.message, 'warning');
     }
+  };
 
+  const recoverSriEmission = async (retry = false) => {
+    if (operationRef.current || !formData.claveAcceso) return;
+    operationRef.current = true;
+    setIsEmitting(true);
+    try {
+      const persisted = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', formData.id));
+      if (!persisted.exists() || persisted.data().claveAcceso !== formData.claveAcceso) throw new Error('No se encontró la misma identidad fiscal guardada.');
+      const snapshot = { ...persisted.data(), id: formData.id };
+      const result = retry === true && snapshot.sriStatus === 'pendiente_sri'
+        ? await reintentarDocumentoSRI(snapshot, setSriLogs)
+        : await consultarAutorizacionSRI(snapshot.claveAcceso, snapshot.sriAmbiente || snapshot.claveAcceso[23]);
+      const updated = await saveSriResult({ db, appId, document: formData, result, api: fiscalApi });
+      setFormData(updated);
+      if (updated.sriStatus === 'autorizado') await finishAuthorizedEmission(updated);
+      else showToast(result.message || 'Autorización pendiente; se conserva el mismo comprobante.', 'warning');
+    } catch (error) {
+      showToast('No se pudo confirmar el estado. Se conserva la clave y el secuencial. ' + error.message, 'warning');
+    } finally { operationRef.current = false; setIsEmitting(false); }
+  };
+
+  const executeEmitirSRI = async () => {
+    if (formData.claveAcceso) { await recoverSriEmission(); return; }
+    if (operationRef.current || !validateForm()) return;
+    const receiver = thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
+    if (!receiver) { showToast('Seleccione un cliente antes de emitir.', 'error'); return; }
+    operationRef.current = true;
     setIsEmitting(true);
     setSriLogs([]);
-
-    const configRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config');
-    let secKey = 'secuencialFactura';
-    if (formData.documentType === 'factura') {
-      secKey = 'secuencialFactura';
-    } else if (formData.documentType === 'retencion') {
-      secKey = 'secuencialRetencion';
-    } else if (formData.documentType === 'nota_credito') {
-      secKey = 'secuencialNotaCredito';
-    } else if (formData.documentType === 'liquidacion') {
-      secKey = 'secuencialLiquidacion';
-    } else if (formData.documentType === 'guia_remision') {
-      secKey = 'secuencialGuiaRemision';
-    }
-
-    let secVal = null;
-
+    let reservedDocument = null;
     try {
-      // ═══════════════════════════════════════════════════════════
-      // FASE 1: PRE-VALIDACIÓN TOTAL (EN MEMORIA / ZERO-BURN)
-      // Se valida emisor, cliente, items, stock y firma digital ANTES
-      // de tocar o reservar el secuencial en la base de datos.
-      // ═══════════════════════════════════════════════════════════
-      const configSnap = await getDoc(configRef);
-      if (!configSnap.exists()) {
-        throw new Error("No se pudo obtener la configuración del emisor SRI en Ajustes.");
-      }
-      const configDataPre = configSnap.data();
-
-      if (!configDataPre.ruc || configDataPre.ruc.length !== 13) {
-        throw new Error("El RUC del emisor no está configurado o es inválido en Ajustes.");
-      }
-
-      if (configDataPre.ambiente === '2') {
-        if (!configDataPre.certificadoCargado || !configDataPre.certificadoBase64 || !configDataPre.certificadoClave) {
-          throw new Error("No se puede emitir facturas en ambiente de PRODUCCIÓN sin una firma electrónica (.p12) cargada. Configure su firma digital en Ajustes > Perfil de Empresa.");
-        }
-      }
-
-      // Validar receptor estrictamente
-      if (!validarIdentificacion(
-        matchedTercero.ruc,
-        matchedTercero.tipoIdentificacion,
-        matchedTercero.isValidated || matchedTercero.validado
-      )) {
-        throw new Error(`RUC/Cédula del cliente inválido (${matchedTercero.ruc}). Verifique la identificación según las normas del SRI.`);
-      }
-
-      if (formData.type === 'ingreso' && formData.documentType === 'factura' && String(matchedTercero.ruc || '').trim() === '9999999999999' && Number(formData.total) > 50) {
-        throw new Error('El SRI no permite facturas a Consumidor Final superiores a $50.00. Debe ingresar un cliente con RUC o Cédula.');
-      }
-
-      // Pre-verificar generación XML y consistencia criptográfica
-      const tempSec = String(configDataPre[secKey] || 1);
-      const tempDocData = {
-        ...formData,
-        items: invoiceItems(),
-        generalDiscount: selectedGeneralDiscount,
-        date: getEcuadorDateString(new Date()),
-        time: getEcuadorTimeString(new Date()),
-        secuencial: tempSec,
-        codigoNumerico: '12345678'
-      };
-
-      let testXmlObj;
-      if (formData.documentType === 'factura') {
-        testXmlObj = generarFacturaXML(configDataPre, tempDocData, matchedTercero, formData.items);
-      } else if (formData.documentType === 'retencion') {
-        testXmlObj = generarRetencionXML(configDataPre, tempDocData, matchedTercero);
-      } else if (formData.documentType === 'nota_credito') {
-        testXmlObj = generarNotaCreditoXML(configDataPre, tempDocData, matchedTercero, formData.items);
-      } else if (formData.documentType === 'liquidacion') {
-        testXmlObj = generarLiquidacionXML(configDataPre, tempDocData, matchedTercero, formData.items);
-      } else if (formData.documentType === 'guia_remision') {
-        testXmlObj = generarGuiaRemisionXML(configDataPre, tempDocData, matchedTercero, formData.items);
-      } else {
-        testXmlObj = generarFacturaXML(configDataPre, tempDocData, matchedTercero, formData.items);
-      }
-
-      if (!testXmlObj?.xml) {
-        throw new Error("Error generando estructura XML del comprobante.");
-      }
-
-      // Si tiene certificado cargado, probar validación de la clave y estructura .p12
-      if (configDataPre.certificadoCargado && configDataPre.certificadoBase64 && configDataPre.certificadoClave) {
-        try {
-          firmarComprobanteXML(testXmlObj.xml, configDataPre.certificadoBase64, configDataPre.certificadoClave);
-        } catch (testSignErr) {
-          throw new Error(`Error en la firma digital: ${testSignErr.message}. Verifique la contraseña de su archivo .p12 en Ajustes.`);
-        }
-      }
-
-      // ═══════════════════════════════════════════════════════════
-      // FASE 2: RESERVA ATÓMICA DEL SECUENCIAL
-      // Todas las validaciones pasaron con éxito. Ahora se reserva el
-      // secuencial de forma concurrente.
-      // ═══════════════════════════════════════════════════════════
-      let configData;
-      await runTransaction(db, async (tx) => {
-        const snap = await tx.get(configRef);
-        if (!snap.exists()) {
-          throw new Error("No se pudo obtener la configuración del emisor SRI");
-        }
-        configData = snap.data();
-        secVal = configData[secKey] || 1;
-        tx.update(configRef, { [secKey]: secVal + 1 });
-      });
-      setSriConfig(configData);
-
-      const sec = String(secVal);
-      const docNum = `${configData.establecimiento || '001'}-${configData.puntoEmision || '001'}-${String(sec).padStart(9, '0')}`;
-      
-      const codigoNumerico = formData.codigoNumerico || Math.floor(10000000 + Math.random() * 90000000).toString();
-      
-      const now = new Date();
-      const serverDate = getEcuadorDateString(now);
-      const serverTime = getEcuadorTimeString(now);
-
-      const docData = { ...formData, items: invoiceItems(), generalDiscount: selectedGeneralDiscount, date: serverDate, time: serverTime, secuencial: sec, codigoNumerico };
-
-      let xmlObj;
-      if (formData.documentType === 'factura') {
-        xmlObj = generarFacturaXML(configData, docData, matchedTercero, formData.items);
-      } else if (formData.documentType === 'retencion') {
-        xmlObj = generarRetencionXML(configData, docData, matchedTercero);
-      } else if (formData.documentType === 'nota_credito') {
-        xmlObj = generarNotaCreditoXML(configData, docData, matchedTercero, formData.items);
-      } else if (formData.documentType === 'liquidacion') {
-        xmlObj = generarLiquidacionXML(configData, docData, matchedTercero, formData.items);
-      } else if (formData.documentType === 'guia_remision') {
-        xmlObj = generarGuiaRemisionXML(configData, docData, matchedTercero, formData.items);
-      } else {
-        xmlObj = generarFacturaXML(configData, docData, matchedTercero, formData.items);
-      }
-
-      let { xml, claveAcceso } = xmlObj;
-      let signedXml = xml;
-
-      if (configData.certificadoCargado && configData.certificadoBase64 && configData.certificadoClave) {
-        setSriLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), message: "Firmando XML con firma digital XAdES-BES real...", status: 'info' }]);
-        signedXml = firmarComprobanteXML(xml, configData.certificadoBase64, configData.certificadoClave);
-        setSriLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), message: "XML firmado criptográficamente de manera exitosa (Real).", status: 'success' }]);
-      }
-
-      const result = await simularTransmisionSRI(
-        {
-          rucReceptor: matchedTercero.ruc,
-          tipoIdentificacion: matchedTercero.tipoIdentificacion,
-          isValidated: matchedTercero.isValidated || matchedTercero.validado,
-          validado: matchedTercero.isValidated || matchedTercero.validado,
-          total: formData.total,
-          claveAcceso,
-          xml: signedXml
-        },
-        configData,
-        (logs) => setSriLogs(logs)
-      );
-
+      if (formData.type === 'ingreso' && formData.documentType === 'factura' && !formData.inventarioRegistrado) validateCartStock(formData.items, products);
+      if (!validarIdentificacion(receiver.ruc, receiver.tipoIdentificacion, receiver.isValidated || receiver.validado)) throw new Error('Identificación del receptor inválida.');
+      if (formData.documentType === 'factura' && receiver.ruc === '9999999999999' && Number(formData.total) > 50) throw new Error('Para valores superiores a $50 se requiere identificar al cliente.');
+      const generators = { factura: generarFacturaXML, retencion: generarRetencionXML, nota_credito: generarNotaCreditoXML, liquidacion: generarLiquidacionXML, guia_remision: generarGuiaRemisionXML };
+      const sequences = { factura: 'secuencialFactura', retencion: 'secuencialRetencion', nota_credito: 'secuencialNotaCredito', liquidacion: 'secuencialLiquidacion', guia_remision: 'secuencialGuiaRemision' };
+      const generate = generators[formData.documentType];
+      if (!generate) throw new Error('Tipo de comprobante electrónico no soportado.');
       const docId = formData.id || stableIdRef.current;
-
-      const totalNum = Number(formData.total) || 0;
-      const efVal = Number(payments.efectivo) || 0;
-      const trVal = Number(payments.transferencia) || 0;
-      const tjVal = Number(payments.tarjeta) || 0;
-      const crVal = Number(payments.cruce_cuentas) || 0;
-
-      const paidAmount = efVal + trVal + tjVal;
-      const paymentStatus = (paidAmount >= totalNum - 0.01) ? 'pagado' : 'pendiente';
-
-      const payBreakdown = {
-        efectivo: efVal,
-        transferencia: trVal,
-        tarjeta: tjVal,
-        cruce_cuentas: crVal,
-        credito: crVal
-      };
-
-      let primaryMethod = 'efectivo';
-      let activeMethods = 0;
-      if (efVal > 0) { primaryMethod = 'efectivo'; activeMethods++; }
-      if (trVal > 0) { primaryMethod = 'transferencia'; activeMethods++; }
-      if (tjVal > 0) { primaryMethod = 'tarjeta'; activeMethods++; }
-      if (crVal > 0) { primaryMethod = 'credito'; activeMethods++; }
-
-      if (activeMethods > 1) {
-        primaryMethod = 'combinado';
-      }
-
-      const finalTx = {
-        ...docData,
-        id: docId,
-        date: serverDate,
-        time: serverTime,
-        secuencial: sec,
-        documentNumber: docNum,
-        sriStatus: 'autorizado',
-        claveAcceso: result.claveAcceso,
-        fechaAutorizacion: result.fechaAutorizacion || getEcuadorDateTimeString(),
-        financialSyncStatus: 'pending',
-        codigoNumerico,
-        xmlUrl: result.xmlUrl,
-        pdfUrl: result.pdfUrl,
-        xml: signedXml,
-        paidAmount,
-        paymentStatus,
-        paymentsBreakdown: payBreakdown,
-        transferenciaRef: payments.transferenciaRef || '',
-        transferenciaBankId: payments.transferenciaBankId || '',
-        cuentaBancariaId: payments.transferenciaBankId || '',
-        tarjetaRef: payments.tarjetaRef || '',
-        cruceRef: payments.cruceRef || '',
-        paymentMethod: primaryMethod,
-        creditDueDate: crVal > 0 ? creditDueDate : '',
-        creditObservations: crVal > 0 ? creditObservations : '',
-        updatedAt: now.toISOString(),
-        updatedBy: 'Servicio Fiscal SRI'
-      };
-
-      Object.assign(finalTx, settlePayments(finalTx.total, payments), { generalDiscount: selectedGeneralDiscount });
-      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId), sanitizeFirestoreData(finalTx));
-
-      setFormData(finalTx);
-
-      await registrarInventarioTransaccion(finalTx);
-      finalTx.inventarioRegistrado = true;
-      if (finalTx.type === 'ingreso' && finalTx.documentType === 'factura') await sincronizarVenta(finalTx, db, usuario || { uid: '', email: '' });
-      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId), { financialSyncStatus: 'complete' }, { merge: true });
-      finalTx.financialSyncStatus = 'complete';
-      onSaved?.(finalTx);
-
-      setFormData(finalTx);
-      showToast('Comprobante autorizado tributariamente por el SRI', 'success');
-
-      enviarCorreoComprobante(finalTx, matchedTercero, configData);
-
-      setCurrentStep(2);
-    } catch (err) {
-      console.error("Error en emisión SRI:", err);
-      if (err.logs) setSriLogs(err.logs);
-
-      // Rollback de seguridad: si se reservó el secuencial pero ocurrió un error
-      // de red o rechazo antes de autorizar, restaurar el secuencial original
-      if (secVal !== null && secKey) {
-        try {
-          await runTransaction(db, async (tx) => {
-            const snap = await tx.get(configRef);
-            if (snap.exists()) {
-              const cur = snap.data()[secKey];
-              if (cur === secVal + 1) {
-                tx.update(configRef, { [secKey]: secVal });
-                console.log(`[SRI] Rollback exitoso: Secuencial ${secVal} restaurado.`);
-              }
-            }
+      const timestamp = new Date();
+      const date = getEcuadorDateString(timestamp), time = getEcuadorTimeString(timestamp);
+      const codigoNumerico = String(crypto.getRandomValues(new Uint32Array(1))[0] % 100000000).padStart(8, '0');
+      const paymentSnapshot = settlePayments(formData.total, payments);
+      const reservation = await reserveSriEmission({
+        db, appId, docId, secKey: sequences[formData.documentType], api: fiscalApi,
+        build: (config, secuencial) => {
+          if (!/^\d{13}$/.test(String(config.ruc)) || !['1', '2'].includes(String(config.ambiente))) throw new Error('Configure RUC y ambiente del emisor.');
+          if (!config.certificadoCargado || !config.certificadoBase64 || !config.certificadoClave) throw new Error('Se requiere certificado y contraseña válidos tanto en pruebas como en producción.');
+          const invoice = { ...formData, ...paymentSnapshot, id: docId, thirdParty: receiver, items: invoiceItems(), generalDiscount: selectedGeneralDiscount, date, time, codigoNumerico, secuencial };
+          const { xml, claveAcceso } = generate(config, invoice, receiver, invoice.items);
+          const signedXml = firmarComprobanteXML(xml, config.certificadoBase64, config.certificadoClave);
+          const emitter = Object.fromEntries(['ruc', 'razonSocial', 'nombreComercial', 'direccion', 'direccionMatriz', 'dirMatriz', 'establecimiento', 'puntoEmision', 'obligadoContabilidad', 'contribuyenteEspecial', 'ambiente'].filter(key => config[key] !== undefined).map(key => [key, config[key]]));
+          return sanitizeFirestoreData({
+            ...invoice, documentNumber: `${config.establecimiento || '001'}-${config.puntoEmision || '001'}-${secuencial.padStart(9, '0')}`,
+            claveAcceso, xml: signedXml, sriStatus: 'pendiente_sri', sriAmbiente: String(config.ambiente), emisorSnapshot: emitter,
+            sriReservedAt: timestamp.toISOString(), financialSyncStatus: 'awaiting_authorization',
+            transferenciaRef: payments.transferenciaRef || '', transferenciaBankId: payments.transferenciaBankId || '', cuentaBancariaId: payments.transferenciaBankId || '',
+            tarjetaRef: payments.tarjetaRef || '', cruceRef: payments.cruceRef || '', creditDueDate, creditObservations,
           });
-        } catch (rbErr) {
-          console.error("[SRI] Error al restaurar secuencial tras fallo:", rbErr);
         }
+      });
+      reservedDocument = reservation.document;
+      setFormData(reservedDocument);
+      let result;
+      if (reservation.created) {
+        setSriConfig(reservation.config);
+        result = await simularTransmisionSRI({ ...reservedDocument, xml: reservedDocument.xml }, reservation.config, setSriLogs);
+      } else {
+        result = await consultarAutorizacionSRI(reservedDocument.claveAcceso, reservedDocument.sriAmbiente || reservedDocument.claveAcceso[23]);
       }
-
-      showToast(err.error || err.message || 'Fallo en la autorización del SRI', 'error');
-    } finally {
-      operationRef.current = false;
-      setIsEmitting(false);
-    }
+      const saved = await saveSriResult({ db, appId, document: reservedDocument, result, api: fiscalApi });
+      setFormData(saved);
+      if (saved.sriStatus === 'autorizado') {
+        await finishAuthorizedEmission(saved);
+        if (reservation.created) enviarCorreoComprobante(saved, receiver, reservation.config);
+      } else {
+        showToast(result.message || 'Comprobante guardado, pendiente de autorización.', 'warning');
+      }
+    } catch (error) {
+      const message = error.error || error.message || 'Fallo al consultar el SRI.';
+      if (reservedDocument) {
+        // Preserve a confirmed authorization even if a later operation fails.
+        try {
+          const saved = await saveSriResult({ db, appId, document: reservedDocument, result: { status: 'pendiente_sri', message }, api: fiscalApi });
+          setFormData(saved);
+        } catch { /* The pre-send document remains durable for the next consultation. */ }
+        showToast('Comprobante guardado con su clave y secuencial. Consulte su estado antes de volver a emitir. ' + message, 'warning');
+      } else showToast(message, 'error');
+    } finally { operationRef.current = false; setIsEmitting(false); }
   };
 
   const handleAnular = () => {
@@ -1653,40 +1499,9 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   };
 
   const downloadXMLFile = () => {
-    if (!formData.claveAcceso) return;
-    const element = document.createElement("a");
-    const matchedTercero = thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
-    
-    let xmlObj;
-    if (formData.documentType === 'factura') {
-      xmlObj = generarFacturaXML(sriConfig, formData, matchedTercero, formData.items);
-    } else if (formData.documentType === 'retencion') {
-      xmlObj = generarRetencionXML(sriConfig, formData, matchedTercero);
-    } else if (formData.documentType === 'nota_credito') {
-      xmlObj = generarNotaCreditoXML(sriConfig, formData, matchedTercero, formData.items);
-    } else if (formData.documentType === 'liquidacion') {
-      xmlObj = generarLiquidacionXML(sriConfig, formData, matchedTercero, formData.items);
-    } else if (formData.documentType === 'guia_remision') {
-      xmlObj = generarGuiaRemisionXML(sriConfig, formData, matchedTercero, formData.items);
-    } else {
-      xmlObj = generarFacturaXML(sriConfig, formData, matchedTercero, formData.items);
-    }
-
-    let finalXml = xmlObj.xml;
-    if (sriConfig.certificadoCargado && sriConfig.certificadoBase64 && sriConfig.certificadoClave) {
-      try {
-        finalXml = firmarComprobanteXML(finalXml, sriConfig.certificadoBase64, sriConfig.certificadoClave);
-      } catch (e) {
-        console.error("Error signing XML during download", e);
-      }
-    }
-
-    const file = new Blob([finalXml], {type: 'text/xml'});
-    element.href = URL.createObjectURL(file);
-    element.download = `${formData.claveAcceso}.xml`;
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
+    const xml = formData.xmlAutorizado || formData.xml;
+    if (!xml) { showToast('Consulte la autorización para recuperar el XML original del SRI.', 'warning'); return; }
+    downloadFiscalXml(xml, `${formData.claveAcceso}.xml`);
   };
 
   // Auto-emisión/Guardado directo para transacciones iniciadas desde el POS
@@ -1694,7 +1509,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
   const isAuthorized = formData.sriStatus === 'autorizado';
   const isAnulado = formData.sriStatus === 'anulado';
-  const isEditable = !isAuthorized && !isAnulado && !isSaving && !isEmitting;
+  const isEditable = !formData.claveAcceso && !isAuthorized && !isAnulado && !isSaving && !isEmitting;
   // Documento finalizado en paso 2 — no se puede regresar ni editar desde aquí
   const isLockedInStep2 = (isAuthorized || isAnulado) && currentStep === 2;
   // eslint-disable-next-line no-unused-vars
@@ -1777,15 +1592,12 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
   
 
-  // eslint-disable-next-line no-unused-vars
-  
-
   const steps = [
     { id: 1, name: 'Detalle y Productos' },
     { id: 2, name: 'Impresión' }
   ];
 
-  const matchedTercero = thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
+  const matchedTercero = formData.claveAcceso ? formData.thirdParty : thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
   const filteredClients = (thirdParties || [])
     .filter(tp => formData.type === 'ingreso' ? tp.type !== 'proveedor' : tp.type === 'proveedor')
     .filter(tp =>
@@ -1801,6 +1613,12 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   const crVal = Number(payments.cruce_cuentas) || 0;
   // eslint-disable-next-line no-unused-vars
   const totalPaid = efVal + tjVal + trVal + crVal;
+
+  const closeTransaction = () => {
+    // A durable fiscal attempt must leave the POS cart as a saved document, even while authorization is pending.
+    if (formData.claveAcceso && onSaved) onSaved(formData);
+    else onClose?.();
+  };
 
   const formJSX = (
     <UiBox {...mergeThemeProps({"className":"transaction-form-clean"}, {}, (isInline ? mergeThemeProps({"style":{"backgroundColor":"transparent","color":"var(--gray-12)"},"className":"w-full flex flex-col animate-in fade-in duration-300"}) : mergeThemeProps({"style":{"backgroundColor":"var(--gray-2)","color":"var(--gray-12)"},"className":"fixed inset-0 z-[100] w-screen h-screen overflow-y-auto flex flex-col"})))}>
@@ -1860,7 +1678,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
           </UiBox>
         )}
         <UiButton
-          onClick={onClose} disabled={isSaving || isEmitting}
+          onClick={closeTransaction} disabled={isSaving || isEmitting}
           {...{"variant":"surface","color":"blue"}}
         >
           <X size={12} />
@@ -1868,6 +1686,13 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         </UiButton>
       </UiCard>
 
+      {formData.claveAcceso && <UiCard className="m-4 p-4 space-y-3">
+        <UiText as="p" weight="bold">{formData.documentNumber}: {isAuthorized ? 'Autorizado por el SRI' : 'Identidad fiscal reservada — autorización por verificar'}</UiText>
+        <UiText as="p" size="2">{formData.recoveryNote || formData.sriLastError || 'La clave y el secuencial se conservan aunque falle la conexión.'}</UiText>
+        <UiButton type="button" disabled={isEmitting || isSaving} onClick={() => recoverSriEmission()}>{isEmitting ? 'Consultando…' : 'Consultar autorización SRI'}</UiButton>
+        {formData.sriStatus === 'pendiente_sri' && formData.xml && <UiButton type="button" variant="soft" disabled={isEmitting || isSaving} onClick={() => recoverSriEmission(true)}>Reintentar envío del XML guardado</UiButton>}
+        <FiscalDocuments transaction={formData} tenantId={appId} />
+      </UiCard>}
       {isAuthorized && formData.financialSyncStatus === 'pending' && <UiBox role="alert" {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--amber-3)","color":"var(--amber-12)"},"className":"m-4 flex flex-wrap items-center justify-between gap-3 p-4"}}><UiText as="p">El comprobante está registrado. Falta completar inventario o finanzas.</UiText><UiButton type="button" {...{"variant":"surface","color":"blue"}} disabled={isSaving} onClick={completePendingSale}>{isSaving ? 'Sincronizando…' : 'Reintentar sincronización'}</UiButton></UiBox>}
       {/* STATE BANNERS (Sri authorized / canceled) */}
       {isAuthorized && (
@@ -3082,7 +2907,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   ) : (
                     <UiBox  {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"p-[6px] flex items-center justify-center gap-1.5"}, {}, {"style":{"backgroundColor":"var(--green-3)"}})}>
                       <CheckCircle2 size={12} {...{"className":"shrink-0"}} />
-                      <UiText>Autorizado / registrado con éxito.</UiText>
+                      <UiText>{isAuthorized ? 'Autorizado / registrado con éxito.' : isAnulado ? 'Documento anulado.' : 'Comprobante reservado. Consulte su estado en el SRI.'}</UiText>
                     </UiBox>
                   )}
                 </UiBox>
@@ -3369,7 +3194,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
             ) : (
               <UiButton
                 type="button"
-                onClick={onClose}
+                onClick={closeTransaction}
                 {...{"variant":"solid","color":"blue"}}
               >
                 <UiText>Terminar / Salir</UiText>
@@ -3396,7 +3221,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
               <UiButton
                 type="button"
-                onClick={onClose}
+                onClick={closeTransaction}
                 {...{"variant":"solid","color":"blue"}}
               >
                 <UiText>Terminar</UiText>

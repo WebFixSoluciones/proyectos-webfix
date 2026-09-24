@@ -146,7 +146,7 @@ export default function PublicRideView() {
     );
   }
 
-  const emisor = companyConfig || {
+  const emisor = tx.emisorSnapshot || companyConfig || {
     razonSocial: 'EMISOR DEMO S.A.',
     nombreComercial: 'MI NEGOCIO',
     ruc: '1790000000001',
@@ -175,11 +175,11 @@ export default function PublicRideView() {
   };
 
   const client = {
-    name: tx.thirdPartyName || tx.thirdParty?.name || 'Consumidor Final',
-    ruc: tx.thirdPartyRuc || tx.thirdParty?.ruc || '9999999999999',
-    direccion: tx.thirdPartyDireccion || tx.thirdParty?.direccion || 'Ecuador',
-    email: tx.thirdPartyEmail || tx.thirdParty?.email || 'N/D',
-    telefono: tx.thirdPartyTelefono || tx.thirdParty?.telefono || 'N/D'
+    name: tx.thirdParty?.name || tx.thirdPartyName || 'Consumidor Final',
+    ruc: tx.thirdParty?.ruc || tx.thirdPartyRuc || '9999999999999',
+    direccion: tx.thirdParty?.direccion || tx.thirdPartyDireccion || 'Ecuador',
+    email: tx.thirdParty?.email || tx.thirdPartyEmail || 'N/D',
+    telefono: tx.thirdParty?.telefono || tx.thirdPartyTelefono || 'N/D'
   };
 
   const getPaymentsTableRows = () => {
@@ -472,7 +472,7 @@ export default function PublicRideView() {
                     </div>
                     <p className="mt-1"><span className="font-bold">Clave Acceso/ No. Autorización:</span></p>
                     <p className="font-mono select-all tracking-normal text-black" style={{ fontSize: '8px', lineHeight: '1.25' }}>{claveAcceso}</p>
-                    <p className="mt-1"><span className="font-bold">FECHA Y HORA DE AUTORIZACIÓN:</span> {tx.fechaAutorizacion || (tx.date.split('-').reverse().join('/') + ' ' + (tx.time || '12:00:00'))}</p>
+                    <p className="mt-1"><span className="font-bold">FECHA Y HORA DE AUTORIZACIÓN:</span> {tx.fechaAutorizacion || 'No confirmada por el SRI'}</p>
                     
                     {/* Código de barras */}
                     <div className="my-1.5">

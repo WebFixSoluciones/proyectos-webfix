@@ -58,6 +58,7 @@ try {
   await page.screenshot({ path: 'docs/design-review/screenshots/inventario-combo.png', fullPage: true });
   console.log('PASS: inventario permite definir componentes y cantidades de un combo');
   await page.getByRole('button', { name: /Cancelar/i }).last().click();
+  await page.goto('http://127.0.0.1:5178/tests/browser/index.html?mode=inventory-services');
   await page.getByRole('button', { name: /Nuevo Servicio/i }).click();
   await page.locator('input[name="sku"]').fill('SERV-TEST');
   await page.locator('input[name="name"]').fill('Soporte digital');
@@ -65,7 +66,7 @@ try {
   await page.locator('input[name="priceASinImpuesto"]').fill('12');
   await page.locator('input[name="priceBSinImpuesto"]').fill('18');
   await page.locator('input[name="priceCSinImpuesto"]').fill('25');
-  await page.locator('input[name="taxRate"]').fill('15');
+  await page.locator('select[name="taxRate"]').selectOption('15');
   assert.equal(await page.locator('input[name="priceBSinImpuesto"]').inputValue(), '18');
   await page.screenshot({ path: 'docs/design-review/screenshots/inventario-servicio-precios.png', fullPage: true });
   console.log('PASS: inventario permite precios diferenciados e IVA para servicios');
