@@ -104,16 +104,21 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
   - Nueva pestaña de Historial de Comprobantes con listado cronológico de comprobantes vinculados (Ventas/Compras).
 - **Cumplimiento Flat Modern**: Cero sombras, avatares con tokens Radix limpios, sin clases de degradados arbitrarios ni tamaños fijos en px. Build limpio y 40 tests unitarios aprobados.
 
+### 12. Rediseño Minimalista de Fila de Producto en Venta Administrativa (2026-09-24) — COMPLETADO
+- **Limpieza de Encabezado**: Eliminado subtítulo redundante *"Escribe el nombre, código o escanea para añadir al carrito"* de la tarjeta de ítems.
+- **Fila de Producto Unificada y Homogénea**:
+  - **Código SKU**: Tipografía mono sutil (`var(--code-font-family)`), sin burbujas ni bordes, números claros y limpios.
+  - **Nombre del Producto**: Al frente del SKU con tipografía limpia en negrita (`text-[var(--gray-12)]`).
+  - **Descripción Editable en Factura**: Input inline (`h-7`, `bg-[var(--gray-2)]`, sin bordes externos) directamente al frente del nombre para añadir detalles específicos de facturación (series, garantías, notas de entrega) sin alterar el catálogo.
+  - **Controles Unificados en Altura (`h-7`)**: Stepper de cantidad, precio unitario (`$XX.XX`), botón de descuento y botón de eliminar tienen exactamente la misma altura (28px), fondo suave sin bordes (`var(--gray-2)` / `var(--red-3)`), compactos y homogéneos.
+- **Pruebas y Build**: 40 tests unitarios aprobados, compilación limpia en 8.83s.
+
 ## Últimos commits
 ```
+4dd89ef feat(ventas): fila de producto minimalista sin bordes con sku limpio, nombre y descripcion editable al frente
+f7c241d feat(ventas): renovar botones de anadir y crear producto con iconografia semantica
+909f187 feat(clientes-proveedores): correccion de visibilidad, filtros dedicados y ficha 360 adaptativa
 e3316ef feat(inventario): submodulo dedicado de servicios con segregacion de productos e integracion global
 063c6a3 fix(smtp): auto-detect default port, force STARTTLS on port 587, clean password spaces and add toggle
 b587ab5 test(finanzas): prueba automatizada de venta combinada con abono a banco y saldo a CxC
-f4702ac feat(cartera): modal profesional de pagos y cobros con impacto bancario en CxC y CxP
-7c4c235 feat(clientes): ficha completa de cliente con activacion y gestion de linea de credito
-383db16 feat(credito): apertura en caliente en TransactionForm y autorizacion supervisor en PosView
-98dea7b feat(compras): integracion de cuentas bancarias y vencimiento de credito en PurchaseForm
-1e322ed feat(ventas): selector dinamico de cuentas bancarias en TransactionForm y PosView
-d0f0b02 feat(finances): soporte para sincronizacion automatica con fin_bancos en ventas y compras
-43ff54f feat(finances): crear FinancialPageHeader y estandarizar encabezados en los 11 submodulos
 ```
