@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, runTransaction } from '../../services/financeStore.js';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { validarIdentificacion, generarFacturaXML, simularTransmisionSRI, consultarRucSri, generarRetencionXML, generarNotaCreditoXML, generarLiquidacionXML, generarGuiaRemisionXML, getEcuadorDateString, getEcuadorTimeString, getEcuadorDateTimeString } from '../../services/sriService';
+import { validarIdentificacion, generarFacturaXML, simularTransmisionSRI, consultarRucSri, generarRetencionXML, generarNotaCreditoXML, generarLiquidacionXML, generarGuiaRemisionXML, getEcuadorDateString, getEcuadorTimeString } from '../../services/sriService';
 import { firmarComprobanteXML } from '../../services/xadesSigner';
 import { registerTransactionInventory } from '../../services/inventoryLedger';
 import { validateCartStock, taxRateFor, isSellable } from '../../services/productModel';
@@ -31,6 +31,7 @@ import RidePreviewModal from './RidePreviewModal';
 import CreditSetupModal from './CreditSetupModal';
 import SaleValidationDialog from './SaleValidationDialog';
 import { getAdministrativeSaleIssues } from '../../services/saleValidation';
+import { notifyAuthorizedInvoice } from '../../services/invoiceNotification';
 
 const SRI_RENTA_CODES = [
   { code: '312', label: '312 - Transferencia de tecnología / asistencia técnica (10%)', rate: 10 },
@@ -1223,91 +1224,25 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   };
 
   const enviarCorreoComprobante = async (txData, cliente, configSRI) => {
-    if (txData?.documentType === 'nota_venta') {
-      console.log("Los recibos (nota de venta) son de registro interno y no se envían por correo. Omitiendo envío de correo.");
-      return;
-    }
-
-    if (configSRI?.smtpActivo === false) {
-      console.log("Envío de correos automáticos por SMTP desactivado en Ajustes. Omitiendo envío.");
-      return;
-    }
-
-    const emitterEmail = (configSRI?.correoContacto || configSRI?.email || configSRI?.smtpUser || '').trim();
-    const rawClientEmail = (cliente?.email || cliente?.correo || cliente?.correoElectronico || cliente?.mail || '').trim();
-    const hasClientEmail = rawClientEmail && !rawClientEmail.includes('consumidorfinal') && rawClientEmail.includes('@');
-    const recipientTo = hasClientEmail ? rawClientEmail : emitterEmail;
-
-    if (!recipientTo) {
-      console.log("Ni el cliente ni el emisor tienen un correo válido registrado. Omitiendo envío de correo.");
-      return;
-    }
-
-    if (!configSRI?.smtpHost || !configSRI?.smtpUser || !configSRI?.smtpPass) {
-      console.log("Servidor SMTP no configurado en Ajustes. Omitiendo envío de correo.");
-      return;
-    }
-
     try {
-      const effectivePdf = (txData.pdfUrl && !txData.pdfUrl.includes('srienlinea.sri.gob.ec'))
-        ? txData.pdfUrl
-        : (txData.claveAcceso ? `/#/public/ride?claveAcceso=${txData.claveAcceso}&tenantId=${appId || ''}` : '');
-
-      const emailPayload = {
-        smtpHost: configSRI.smtpHost,
-        smtpPort: configSRI.smtpPort || (configSRI.smtpSecure ? 465 : 587),
-        smtpUser: configSRI.smtpUser,
-        smtpPass: configSRI.smtpPass,
-        smtpSecure: configSRI.smtpSecure,
-        to: recipientTo,
-        emitterEmail: emitterEmail,
-        clientName: cliente?.name || cliente?.razonSocial || 'Consumidor Final',
-        clientIdentification: cliente?.ruc || cliente?.identificacion || '9999999999999',
-        documentNumber: txData.documentNumber,
-        total: txData.total,
-        pdfUrl: effectivePdf,
-        xmlUrl: txData.xmlUrl || '',
-        xmlContent: txData.xmlAutorizado || txData.xml || '',
-        companyName: configSRI.nombreComercial || configSRI.razonSocial || 'Facturación Electrónica',
-        logoUrl: configSRI.logoUrl || '',
-        companyRuc: configSRI.ruc || '',
-        companyAddress: configSRI.direccionMatriz || '',
-        companyPhone: configSRI.telefono || configSRI.telefonoContacto || '',
-        claveAcceso: txData.claveAcceso || '',
-        fechaAutorizacion: txData.fechaAutorizacion || getEcuadorDateTimeString(),
-        documentType: txData.documentType || 'factura',
-        date: txData.date || ''
-      };
-
-      const res = await fetch('/api/send-email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(emailPayload)
+      const result = await notifyAuthorizedInvoice({
+        db, appId, document: txData, customer: cliente, config: configSRI,
+        api: { doc, getDoc, setDoc, runTransaction },
       });
-
-      let data = null;
-      try {
-        data = await res.json();
-      } catch {
-        data = { error: `Servidor de correo no devolvió JSON válido (${res.status} ${res.statusText})` };
+      if (result.status === 'sent') {
+        showToast(result.delivery.client?.status === 'sent'
+          ? 'Factura enviada al cliente y copia al emisor.'
+          : 'Copia de la factura enviada al emisor. Cliente sin correo.', 'success');
+      } else if (result.status === 'partial') {
+        showToast('Factura autorizada. Revisa el envío de correo en Ventas.', 'warning');
+      } else if (result.status === 'unconfigured') {
+        showToast('Factura autorizada. Configura el correo del emisor en Ajustes.', 'warning');
+      } else if (result.status === 'disabled') {
+        showToast('Factura autorizada. Activa el envío automático en Ajustes.', 'warning');
       }
-
-      if (res.ok && data?.success) {
-        if (hasClientEmail) {
-          showToast(`Comprobante enviado a ${rawClientEmail} con respaldo al emisor`, 'success');
-        } else {
-          showToast(`Copia de respaldo enviada al emisor (${emitterEmail})`, 'success');
-        }
-      } else {
-        const errorMsg = data?.error || 'No se pudo enviar el correo';
-        console.warn("Comprobante autorizado en SRI, pero la notificación por correo SMTP reportó:", errorMsg);
-        showToast(`Factura autorizada en SRI. (Aviso correo: ${errorMsg})`, 'info');
-      }
-    } catch (err) {
-      console.warn("Error al conectar con la API de envío de correos:", err);
-      showToast(`Factura autorizada en SRI. (Aviso correo: servicio SMTP no disponible)`, 'info');
+    } catch (error) {
+      console.warn('Factura autorizada, pero no se pudo registrar el envío de correo:', error);
+      showToast('Factura autorizada. No se pudo confirmar el envío de correo.', 'warning');
     }
   };
 
@@ -1344,7 +1279,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         : await consultarAutorizacionSRI(snapshot.claveAcceso, snapshot.sriAmbiente || snapshot.claveAcceso[23]);
       const updated = await saveSriResult({ db, appId, document: formData, result, api: fiscalApi });
       setFormData(updated);
-      if (updated.sriStatus === 'autorizado') await finishAuthorizedEmission(updated);
+      if (updated.sriStatus === 'autorizado') {
+        await finishAuthorizedEmission(updated);
+        await enviarCorreoComprobante(updated, thirdParties.find(tp => tp.id === updated.thirdPartyId) || updated.thirdParty);
+      }
       else showToast(result.message || 'Autorización pendiente; se conserva el mismo comprobante.', 'warning');
     } catch (error) {
       showToast('No se pudo confirmar el estado. Se conserva la clave y el secuencial. ' + error.message, 'warning');
@@ -1404,7 +1342,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       setFormData(saved);
       if (saved.sriStatus === 'autorizado') {
         await finishAuthorizedEmission(saved);
-        if (reservation.created) enviarCorreoComprobante(saved, receiver, reservation.config);
+        await enviarCorreoComprobante(saved, receiver, reservation.config);
       } else {
         showToast(result.message || 'Comprobante guardado, pendiente de autorización.', 'warning');
       }

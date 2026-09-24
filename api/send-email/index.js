@@ -44,6 +44,31 @@ export function resolveSmtpConfig(config = {}) {
   };
 }
 
+export function invoiceEmailRecipients(to, emitterEmail) {
+  const client = String(to || '').trim();
+  const emitter = String(emitterEmail || '').trim();
+  const recipients = [];
+  if (client && client.toLowerCase() !== emitter.toLowerCase()) recipients.push({ role: 'client', address: client });
+  if (emitter) recipients.push({ role: 'emitter', address: emitter });
+  return recipients;
+}
+
+export async function deliverInvoiceMessages(transporter, recipients, buildMailOptions) {
+  const deliveries = {};
+  await Promise.all(recipients.map(async ({ role, address }) => {
+    try {
+      const info = await transporter.sendMail(buildMailOptions(address, role === 'emitter'));
+      const accepted = !Array.isArray(info.accepted) || info.accepted.some(item => String(item).toLowerCase() === address.toLowerCase());
+      deliveries[role] = accepted
+        ? { status: 'sent', address, messageId: info.messageId || '' }
+        : { status: 'failed', address, error: 'El servidor de correo rechazó al destinatario.' };
+    } catch (error) {
+      deliveries[role] = { status: 'failed', address, error: error.message || 'Falló el envío SMTP.' };
+    }
+  }));
+  return deliveries;
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).send('Method Not Allowed');
@@ -89,8 +114,10 @@ export default async function handler(req, res) {
     return;
   }
 
-  const recipientTo = (to || emitterEmail || '').trim();
-  if (!recipientTo) {
+  const issuerAddress = String(emitterEmail || smtpConfig.user || '').trim();
+  const recipientTo = String(to || issuerAddress || '').trim();
+  const recipients = invoiceEmailRecipients(to, issuerAddress);
+  if (!recipientTo || (!isTest && documentType !== 'prueba' && !recipients.length)) {
     res.status(400).json({ error: 'No se especificó destinatario (el cliente no tiene correo registrado ni existe correo de contacto del emisor).' });
     return;
   }
@@ -247,8 +274,6 @@ export default async function handler(req, res) {
       }
     })();
 
-    const isDirectToEmitter = !to || (emitterEmail && recipientTo.trim().toLowerCase() === emitterEmail.trim().toLowerCase());
-
     // Resolver URL absoluta para el RIDE
     let originBase = '';
     if (req.headers.origin) {
@@ -272,11 +297,11 @@ export default async function handler(req, res) {
       resolvedPdfUrl = `${originBase}${resolvedPdfUrl}`;
     }
 
-    const mailOptions = {
+    const buildMailOptions = (address, isDirectToEmitter) => ({
       from: fromAddress,
-      to: recipientTo,
+      to: address,
       subject: isDirectToEmitter 
-        ? `[Copia Emisor] ${docTypeLabel} Electrónica: ${documentNumber || ''}`
+        ? `Emitiste ${docTypeLabel.toLowerCase()} electrónica: ${documentNumber || ''}`
         : `Comprobante Electrónico Autorizado: ${documentNumber || ''}`,
       html: `
         <!DOCTYPE html>
@@ -403,15 +428,12 @@ export default async function handler(req, res) {
         </html>
       `,
       attachments
-    };
+    });
 
-    if (emitterEmail && recipientTo && recipientTo.trim().toLowerCase() !== emitterEmail.trim().toLowerCase()) {
-      mailOptions.bcc = emitterEmail.trim();
-    }
-
-    // 5. Enviar el correo
-    const info = await transporter.sendMail(mailOptions);
-    res.status(200).json({ success: true, messageId: info.messageId });
+    // Cada destinatario recibe su propio correo y resultado; un fallo no oculta el otro.
+    const deliveries = await deliverInvoiceMessages(transporter, recipients, buildMailOptions);
+    const success = recipients.every(({ role }) => deliveries[role]?.status === 'sent');
+    res.status(success ? 200 : 502).json({ success, deliveries, ...(!success && { error: 'Uno o más destinatarios no aceptaron el correo.' }) });
   } catch (err) {
     console.error('Error al enviar correo SMTP:', err);
 

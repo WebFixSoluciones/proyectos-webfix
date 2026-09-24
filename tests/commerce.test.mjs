@@ -7,7 +7,8 @@ import { calculateTransactionTotals } from '../src/services/discountCalcService.
 import { generarFacturaXML, validarIdentificacion } from '../src/services/sriService.js';
 import { registerInventoryOperations, CENTRAL_BRANCH } from '../src/services/inventoryLedger.js';
 import { sincronizarVenta } from '../src/services/integracionFinanzasService.js';
-import handler, { resolveSmtpConfig } from '../api/send-email/index.js';
+import handler, { resolveSmtpConfig, invoiceEmailRecipients, deliverInvoiceMessages } from '../api/send-email/index.js';
+import nodemailer from 'nodemailer';
 
 const product = (id, stock = 10, other = {}) => ({ id, name: id, type: 'STANDARD', stock, baseCost: 4, salePrice: 10, taxRate: 15, ...other });
 const path = (collection, id) => `artifacts/test/public/data/${collection}/${id}`;
@@ -312,6 +313,53 @@ test('send-email handler accepts empty smtpPort and validates required fields wi
 
   assert.equal(statusCode, 200);
   assert.equal(jsonResponse.success, true);
+});
+
+test('invoice email sends an independent client message and issuer copy, reporting partial SMTP rejection', async () => {
+  const recipients = invoiceEmailRecipients('cliente@example.com', 'emisor@example.com');
+  assert.deepEqual(recipients.map(item => item.role), ['client', 'emitter']);
+  assert.deepEqual(invoiceEmailRecipients('emisor@example.com', 'emisor@example.com').map(item => item.role), ['emitter']);
+  const sent = [];
+  const deliveries = await deliverInvoiceMessages({
+    async sendMail(options) {
+      sent.push(options);
+      if (options.to === 'emisor@example.com') throw new Error('Buzón temporalmente no disponible');
+      return { accepted: [options.to], messageId: 'client-message' };
+    }
+  }, recipients, (address, issuer) => ({ to: address, subject: issuer ? 'Emitiste factura' : 'Factura autorizada' }));
+  assert.equal(sent.length, 2);
+  assert.equal(sent[0].bcc, undefined);
+  assert.equal(deliveries.client.status, 'sent');
+  assert.equal(deliveries.emitter.status, 'failed');
+});
+
+test('authorized invoice email gives customer and issuer the XML and RIDE link in separate messages', async () => {
+  const originalTransport = nodemailer.createTransport;
+  const sent = [];
+  nodemailer.createTransport = () => ({
+    sendMail: async options => {
+      sent.push(options);
+      return { accepted: [options.to], messageId: `mail-${sent.length}` };
+    }
+  });
+  let status = 0;
+  let result;
+  try {
+    await handler({ method: 'POST', headers: { origin: 'https://webfix.example.invalid' }, body: {
+      smtpHost: 'smtp.example.invalid', smtpUser: 'smtp@example.invalid', smtpPass: 'fixture-only',
+      to: 'cliente@example.invalid', emitterEmail: 'emisor@example.invalid', documentType: 'factura',
+      documentNumber: '001-001-000000164', xmlContent: '<autorizacion>XML autorizado</autorizacion>',
+      pdfUrl: '/#/public/ride?claveAcceso=123', companyName: 'Emisor prueba',
+    } }, { status(code) { status = code; return this; }, json(data) { result = data; return this; } });
+  } finally { nodemailer.createTransport = originalTransport; }
+  assert.equal(status, 200);
+  assert.equal(result.deliveries.client.status, 'sent');
+  assert.equal(result.deliveries.emitter.status, 'sent');
+  assert.equal(sent.length, 2);
+  assert.ok(sent.every(options => options.attachments.some(item => item.content === '<autorizacion>XML autorizado</autorizacion>')));
+  assert.ok(sent.every(options => options.html.includes('https://webfix.example.invalid/#/public/ride?claveAcceso=123')));
+  assert.match(sent.find(options => options.to === 'emisor@example.invalid').subject, /Emitiste factura electrónica/);
+  assert.ok(sent.every(options => !options.bcc));
 });
 
 test('services submodule properly segregates physical products from services and allows stock-exempt sale', () => {

@@ -11,6 +11,7 @@ const browser = await chromium.launch({ headless: true, channel: 'msedge' });
 const page = await browser.newPage({ viewport: { width: 1440, height: 1050 } });
 const errors = [];
 const requests = [];
+const emails = [];
 let responseXml = '';
 page.on('pageerror', error => errors.push(error.message));
 await page.route('**/*', route => {
@@ -19,6 +20,11 @@ await page.route('**/*', route => {
   if (url.includes('/api/sri-ws-')) {
     requests.push(url);
     return route.fulfill({ status: 200, contentType: 'text/xml', body: responseXml });
+  }
+  if (url.includes('/api/send-email')) {
+    const payload = JSON.parse(route.request().postData());
+    emails.push(payload);
+    return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, deliveries: { emitter: { status: 'sent', messageId: 'test-issuer-copy' } } }) });
   }
   return route.continue();
 });
@@ -45,9 +51,16 @@ try {
   console.log('PASS: recovery UI imports original authorization, protects sequence and downloads unchanged XML');
 
   await page.goto('http://127.0.0.1:5179/tests/browser/index.html?mode=sri-pending');
+  await page.evaluate(() => Object.assign(globalThis.__fixtureData.get('artifacts/test/public/data/finances_settings/config'), {
+    smtpHost: 'smtp.example.invalid', smtpUser: 'emisor@example.invalid', smtpPass: 'fixture-only', correoContacto: 'emisor@example.invalid',
+  }));
   await page.getByRole('button', { name: 'Consultar autorización SRI', exact: true }).click();
   await page.waitForFunction(() => globalThis.__saved?.sriStatus === 'autorizado');
+  await page.waitForFunction(() => globalThis.__fixtureData.get('artifacts/test/public/data/finances_transactions/fiscal-pending')?.emailDelivery?.emitter?.status === 'sent');
   assert.equal(await page.evaluate(() => globalThis.__saved.financialSyncStatus), 'complete');
+  assert.equal(emails.length, 1);
+  assert.equal(emails[0].to, '');
+  assert.equal(emails[0].emitterEmail, 'emisor@example.invalid');
   assert.equal(requests.length, 2);
   assert.ok(requests.every(url => url.includes('AutorizacionComprobantesOffline')), 'Recovery must never submit a new receipt');
   await page.goto('http://127.0.0.1:5179/tests/browser/index.html?mode=sri-pending');

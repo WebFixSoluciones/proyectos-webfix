@@ -6,6 +6,7 @@ import { parseSriAuthorization, sriDocumentLinks } from '../src/services/sriAuth
 import { recoverInvoiceFromSri, recoveredInvoice } from '../src/services/sriRecovery.js';
 import { generarClaveAcceso, simularTransmisionSRI, reintentarDocumentoSRI } from '../src/services/sriService.js';
 import { invoiceLineAmounts } from '../src/services/invoiceLine.js';
+import { notifyAuthorizedInvoice } from '../src/services/invoiceNotification.js';
 
 globalThis.DOMParser = DOMParser;
 globalThis.XMLSerializer = XMLSerializer;
@@ -19,6 +20,7 @@ function memoryStore() {
     doc: (_db, ...parts) => parts.join('/'), collection: (_db, ...parts) => parts.join('/'),
     where: (field, _op, value) => ({ field, value }), query: (collection, filter) => ({ collection, filter }),
     getDoc: async id => snap(id),
+    setDoc: async (id, value, options) => { data.set(id, { ...(options?.merge ? data.get(id) : {}), ...structuredClone(value) }); },
     getDocs: async q => ({ docs: [...data].filter(([k, v]) => k.startsWith(q.collection + '/') && v[q.filter.field] === q.filter.value).map(([k]) => snap(k)) }),
     runTransaction: (_db, body) => {
       const result = queue.then(async () => {
@@ -43,6 +45,54 @@ const authorized = () => parseSriAuthorization(soap(), key);
 const builder = id => (_config, seq) => ({ id, type: 'ingreso', documentType: 'factura', documentNumber: `001-001-${seq.padStart(9, '0')}`, claveAcceso: keyFor(seq), xml: signedXml, sriStatus: 'pendiente_sri', financialSyncStatus: 'awaiting_authorization' });
 const reserve = (store, id = 'sale', build = builder(id)) => reserveSriEmission({ db: {}, appId: 'test', docId: id, secKey: 'secuencialFactura', build, api: store.api });
 const save = (store, document, result) => saveSriResult({ db: {}, appId: 'test', document, result, api: store.api });
+
+test('authorization recovery notifies customer and issuer once and records both SMTP results', async () => {
+  const store = memoryStore();
+  Object.assign(store.data.get(path('finances_settings', 'config')), {
+    smtpHost: 'smtp.example.com', smtpUser: 'smtp@example.com', smtpPass: 'test',
+    correoContacto: 'emisor@example.com',
+  });
+  const document = { id: 'recovered', claveAcceso: key, documentType: 'factura', sriStatus: 'autorizado', xmlAutorizado: authorized().xmlAutorizado, documentNumber: '001-001-000000164', total: 20.70 };
+  store.data.set(path('finances_transactions', 'recovered'), document);
+  const customer = { name: 'Cliente', email: 'cliente@example.com', ruc: '1790012345001' };
+  const calls = [];
+  const fetchEmail = async (_url, request) => {
+    calls.push(JSON.parse(request.body));
+    return { ok: true, json: async () => ({ success: true, deliveries: {
+      client: { status: 'sent', messageId: 'client-1' }, emitter: { status: 'sent', messageId: 'issuer-1' },
+    } }) };
+  };
+  const send = () => notifyAuthorizedInvoice({ db: {}, appId: 'test', document, customer, api: store.api, fetchEmail });
+  assert.equal((await send()).status, 'sent');
+  assert.equal(calls[0].to, 'cliente@example.com');
+  assert.equal(calls[0].emitterEmail, 'emisor@example.com');
+  assert.equal(calls[0].xmlContent, document.xmlAutorizado);
+  assert.equal(store.data.get(path('finances_transactions', 'recovered')).emailDelivery.emitter.status, 'sent');
+  assert.equal((await send()).status, 'already_sent');
+  assert.equal(calls.length, 1);
+});
+
+test('a failed issuer copy can be retried without emailing the customer twice', async () => {
+  const store = memoryStore();
+  Object.assign(store.data.get(path('finances_settings', 'config')), {
+    smtpHost: 'smtp.example.com', smtpUser: 'emisor@example.com', smtpPass: 'test',
+  });
+  const document = { id: 'partial-mail', claveAcceso: key, documentType: 'factura', sriStatus: 'autorizado', xmlAutorizado: authorized().xmlAutorizado };
+  store.data.set(path('finances_transactions', 'partial-mail'), document);
+  const payloads = [];
+  const fetchEmail = async (_url, request) => {
+    payloads.push(JSON.parse(request.body));
+    return payloads.length === 1
+      ? { ok: false, json: async () => ({ deliveries: { client: { status: 'sent', messageId: 'client-1' }, emitter: { status: 'failed', error: 'SMTP rechazó al emisor' } } }) }
+      : { ok: true, json: async () => ({ success: true, deliveries: { emitter: { status: 'sent', messageId: 'issuer-2' } } }) };
+  };
+  const send = () => notifyAuthorizedInvoice({ db: {}, appId: 'test', document, customer: { email: 'cliente@example.com' }, api: store.api, fetchEmail });
+  assert.equal((await send()).status, 'partial');
+  assert.equal((await send()).status, 'sent');
+  assert.equal(payloads[1].to, '');
+  assert.equal(payloads[1].emitterEmail, 'emisor@example.com');
+  assert.equal(store.data.get(path('finances_transactions', 'partial-mail')).emailDelivery.client.messageId, 'client-1');
+});
 
 test('reservation persists invoice, signed XML and sequence atomically; parallel double click allocates once', async () => {
   const store = memoryStore();

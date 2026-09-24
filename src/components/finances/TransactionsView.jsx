@@ -332,11 +332,10 @@ export default function TransactionsView({ transactions, thirdParties, showToast
   };
 
   const handleSendEmail = async () => {
-    if (!emailTarget || emailTarget.trim() === '') {
-      showToast('Por favor ingrese un correo electrónico válido.', 'warning');
+    if (emailTarget.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTarget.trim())) {
+      showToast('Revisa el correo del cliente.', 'warning');
       return;
     }
-
     setIsSendingEmail(true);
     try {
       const configRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config');
@@ -354,6 +353,13 @@ export default function TransactionsView({ transactions, thirdParties, showToast
         return;
       }
 
+      const emitterEmail = [configData.correoContacto, configData.email, configData.smtpUser]
+        .map(value => String(value || '').trim()).find(value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) || '';
+      if (!emailTarget.trim() && !emitterEmail.trim()) {
+        showToast('Configura el correo del emisor o ingresa el del cliente.', 'warning');
+        return;
+      }
+
       const cliente = getTransactionParty(emailModalTx);
 
       const effectivePdf = (emailModalTx.pdfUrl && !emailModalTx.pdfUrl.includes('srienlinea.sri.gob.ec'))
@@ -366,8 +372,8 @@ export default function TransactionsView({ transactions, thirdParties, showToast
         smtpUser: configData.smtpUser,
         smtpPass: configData.smtpPass,
         smtpSecure: configData.smtpSecure,
-        to: emailTarget,
-        emitterEmail: configData.correoContacto || configData.email || configData.smtpUser || '',
+        to: emailTarget.trim(),
+        emitterEmail,
         clientName: cliente?.name || cliente?.razonSocial || 'Cliente',
         clientIdentification: cliente?.ruc || cliente?.identificacion || '',
         documentNumber: emailModalTx.documentNumber,
@@ -401,13 +407,28 @@ export default function TransactionsView({ transactions, thirdParties, showToast
         data = { error: `Servidor de correo no devolvió JSON válido (${res.status} ${res.statusText})` };
       }
 
+      let recordingError = false;
+      if (data?.deliveries && emailModalTx.id) {
+        try {
+          const txRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', emailModalTx.id);
+          const fresh = await getDoc(txRef);
+          const delivery = { ...(fresh.data()?.emailDelivery || {}), claimedAt: '', lastAttemptAt: new Date().toISOString() };
+          for (const role of ['client', 'emitter']) {
+            if (data.deliveries[role]) delivery[role] = { ...data.deliveries[role], sentAt: data.deliveries[role].status === 'sent' ? new Date().toISOString() : '' };
+          }
+          await setDoc(txRef, { emailDelivery: delivery }, { merge: true });
+        } catch (error) {
+          recordingError = true;
+          console.warn('El SMTP aceptó el correo, pero no se pudo guardar el resultado:', error);
+        }
+      }
       if (res.ok && data?.success) {
-        showToast(`Comprobante enviado a ${emailTarget}`, 'success');
+        showToast(recordingError ? 'Correo enviado; no se pudo guardar su estado en Ventas.' : emailTarget.trim() ? 'Comprobante enviado al cliente y copia al emisor.' : 'Copia enviada al emisor.', recordingError ? 'warning' : 'success');
         setEmailModalTx(null);
       } else {
-        const errorMsg = data?.error || 'No se pudo enviar el correo';
-        console.error("Fallo al enviar correo:", errorMsg);
-        showToast(errorMsg, 'error');
+        const clientSent = data?.deliveries?.client?.status === 'sent';
+        const issuerSent = data?.deliveries?.emitter?.status === 'sent';
+        showToast(clientSent && !issuerSent ? 'Cliente notificado; copia del emisor pendiente.' : issuerSent ? 'Emisor notificado; envío al cliente pendiente.' : data?.error || 'No se pudo enviar el correo.', 'warning');
       }
     } catch (err) {
       console.error("Error al conectar con la API de envío de correos:", err);
@@ -777,7 +798,11 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                           variant="soft"
                           color="indigo"
                           size="1"
-                          title="Enviar Comprobante al Correo"
+                          title={tx.emailDelivery?.emitter?.status === 'sent'
+                            ? 'Copia enviada al emisor. Reenviar comprobante'
+                            : tx.emailDelivery?.emitter?.status === 'failed'
+                              ? 'Copia del emisor pendiente. Reintentar envío'
+                              : 'Enviar comprobante y copia al emisor'}
                         >
                           <Mail size={13}/>
                         </UiButton>
@@ -852,7 +877,12 @@ export default function TransactionsView({ transactions, thirdParties, showToast
             {/* Content / Form */}
             <UiBox {...{"className":"space-y-4 py-2"}}>
               <UiText as="p" {...{"size":"1","color":"gray","className":"leading-relaxed"}}>
-                Confirma o edita el correo electrónico del cliente para realizar el envío de los archivos reglamentarios (XML y visualización del RIDE).
+                Ingresa el correo del cliente. Si lo dejas vacío, se enviará solo la copia al emisor.
+              </UiText>
+              <UiText as="p" size="1" color="gray">
+                {emailModalTx.emailDelivery
+                  ? `Último envío — cliente: ${emailModalTx.emailDelivery.client?.status === 'sent' ? 'aceptado' : emailModalTx.emailDelivery.client?.status === 'skipped' ? 'sin correo' : 'pendiente'}; emisor: ${emailModalTx.emailDelivery.emitter?.status === 'sent' ? 'aceptado' : 'pendiente'}.`
+                  : 'Sin registro de envío para este comprobante.'}
               </UiText>
 
               <UiBox>
