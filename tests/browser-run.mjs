@@ -47,6 +47,10 @@ try {
   const posIssues = page.getByRole('dialog', { name: 'ALERTA' });
   await posIssues.getByText('AGREGA PRODUCTO').waitFor();
   await posIssues.getByText('INGRESA CLIENTE').waitFor();
+  assert.equal(await posIssues.evaluate(el => {
+    const rect = el.getBoundingClientRect();
+    return el.contains(document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2));
+  }), true, 'La alerta debe quedar visualmente encima del POS');
   await posIssues.getByRole('button', { name: 'Agregar Producto' }).click();
   assert.equal(await page.locator('#pos-search-input').evaluate(el => el === document.activeElement), true);
   await page.getByText('Teclado USB', { exact: true }).first().click();

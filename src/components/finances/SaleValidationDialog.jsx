@@ -14,7 +14,7 @@ export default function SaleValidationDialog({ issues = [], onClose, onNavigate 
 
   return (
     <Dialog.Root open={issues.length > 0} onOpenChange={open => { if (!open) onClose(); }}>
-      <Dialog.Content maxWidth="400px" aria-describedby={undefined}>
+      <Dialog.Content className="sale-validation-dialog" maxWidth="400px" aria-describedby={undefined}>
         <Dialog.Title>ALERTA</Dialog.Title>
         <Callout.Root color="amber" variant="soft" mt="4">
           <Callout.Icon><AlertCircle size={18} /></Callout.Icon>
