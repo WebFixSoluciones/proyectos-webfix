@@ -493,7 +493,14 @@ export default function FinanceModule({
 
               {/* SECCIÓN PERSONAS */}
               {activeTab === 'personas' && (
-                <ThirdPartiesView thirdParties={thirdParties} showToast={showToast} db={db} appId={appId} forcedType={subTabPersonas} />
+                <ThirdPartiesView 
+                  thirdParties={thirdParties} 
+                  transactions={transactions}
+                  showToast={showToast} 
+                  db={db} 
+                  appId={appId} 
+                  forcedType={subTabPersonas} 
+                />
               )}
 
               {/* SECCIÓN CUENTAS POR COBRAR (CxC) */}

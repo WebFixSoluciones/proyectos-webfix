@@ -93,6 +93,17 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
 - **Navegación e Integración Global**: Enlace dedicado en `Sidebar.jsx`, nuevo shortcut en `ShortcutCustomizerModal.jsx`, compatibilidad total en Ventas, Cotizaciones, POS y facturación electrónica SRI sin trabas de stock.
 - **Pruebas y Build**: 22 tests unitarios aprobados, compilación limpia en 5.36s.
 
+### 11. Corrección y Modernización de Clientes y Proveedores (2026-09-24) — COMPLETADO
+- **Encabezados y KPIs Dedicados (`FinancialPageHeader`)**: Integración uniforme en `ThirdPartiesView.jsx`. Métricas contextuales en tiempo real para Clientes (Total, Con Crédito, Cupo Total Otorgado, Clientes Contado) y Proveedores (Total, Con Plazo/Crédito, Plazo Promedio, Régimen RIMPE/Especial).
+- **Corrección de Filtros y Modelado de Proveedores**: Solucionado el bug donde terceros tipo `'ambos'` no se visualizaban en la lista de proveedores. Tabla adaptada con columnas específicas según rol (Términos de Pago, Régimen Fiscal para Proveedores vs Línea de Crédito y Correo Notificación para Clientes).
+- **Ficha 360° Adaptativa (`CustomerDetailView.jsx`)**:
+  - Distinción dinámica entre Cliente y Proveedor en títulos, términos y ayudas.
+  - Sincronización precisa de cartera: consulta `fin_cxc` para clientes y `fin_cxp` para proveedores (saldo pendiente y facturas por pagar).
+  - Pestaña de Condiciones Comerciales adaptada para proveedores (Plazo de pago concedido, asesor de ventas, acuerdos comerciales) vs Línea de crédito y garante para clientes.
+  - Autocompletado SRI optimizado con asignación de nombre comercial, tipo de contribuyente y checkboxes fiscales de obligación contable y agente de retención.
+  - Nueva pestaña de Historial de Comprobantes con listado cronológico de comprobantes vinculados (Ventas/Compras).
+- **Cumplimiento Flat Modern**: Cero sombras, avatares con tokens Radix limpios, sin clases de degradados arbitrarios ni tamaños fijos en px. Build limpio y 40 tests unitarios aprobados.
+
 ## Últimos commits
 ```
 e3316ef feat(inventario): submodulo dedicado de servicios con segregacion de productos e integracion global
