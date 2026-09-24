@@ -29,6 +29,8 @@ import { sincronizarVenta, sincronizarCompra } from '../../services/integracionF
 import { getCuentas } from '../../services/bancosService';
 import RidePreviewModal from './RidePreviewModal';
 import CreditSetupModal from './CreditSetupModal';
+import SaleValidationDialog from './SaleValidationDialog';
+import { getAdministrativeSaleIssues } from '../../services/saleValidation';
 
 const SRI_RENTA_CODES = [
   { code: '312', label: '312 - Transferencia de tecnología / asistencia técnica (10%)', rate: 10 },
@@ -285,6 +287,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   };
 
   const [confirmDialog, setConfirmDialog] = useState(null);
+  const [validationIssues, setValidationIssues] = useState([]);
   // eslint-disable-next-line no-unused-vars
   const fileInputRef = useRef(null);
 
@@ -928,79 +931,29 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     }));
   };
 
-  const showValidationErrorAlert = (message) => {
-    setConfirmDialog({
-      title: "Validación de Emisión",
-      message: message.toUpperCase(),
-      type: "danger",
-      isAlert: true,
-      confirmLabel: "Aceptar",
-      onConfirm: () => setConfirmDialog(null),
-      onCancel: () => setConfirmDialog(null)
-    });
+  const showValidationIssues = (issues) => {
+    setValidationIssues(issues);
+    return false;
+  };
+
+  const navigateToValidationIssue = (target) => {
+    setValidationIssues([]);
+    setCurrentStep(1);
+    const tab = target === 'client' || target === 'document' ? 'cliente' : target === 'items' ? 'carrito' : 'pago';
+    setMobileTab(tab);
+    const inputId = target === 'client' ? 'admin-client-search' : target === 'items' ? 'admin-product-search' : 'admin-payment-section';
+    setTimeout(() => document.getElementById(inputId)?.focus(), 0);
   };
 
   const validateForm = () => {
-    if ((formData.items || []).some(item => !invoiceDescription(item) || !Number.isFinite(Number(item.quantity)) || Number(item.quantity) <= 0 || !Number.isFinite(Number(item.price)) || Number(item.price) < 0)) {
-      showToast('Revisa la descripción, cantidad y precio de cada línea.', 'error'); return false;
-    }
-    if (!formData.thirdPartyId) {
-      showValidationErrorAlert('FALTA INGRESAR CLIENTE');
-      return false;
-    }
-
     const matchedTercero = formData.claveAcceso ? formData.thirdParty : thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
-    if (!matchedTercero) {
-      showValidationErrorAlert('FALTA INGRESAR CLIENTE');
-      return false;
-    }
-
-    if (!validarIdentificacion(
-      matchedTercero.ruc,
-      matchedTercero.tipoIdentificacion,
-      matchedTercero.isValidated || matchedTercero.validado
-    )) {
-      showValidationErrorAlert(`EL RUC/CI DEL CONTACTO (${matchedTercero.ruc}) ES INCORRECTO`);
-      return false;
-    }
-
-    if (formData.type === 'ingreso' && formData.documentType === 'factura' && String(matchedTercero.ruc || '').trim() === '9999999999999' && Number(formData.total) > 50) {
-      showValidationErrorAlert('EL SRI NO PERMITE FACTURAS A CONSUMIDOR FINAL POR MONTOS MAYORES A $50.00. DEBE ASIGNAR UN CLIENTE CON RUC O CÉDULA.');
-      return false;
-    }
-
-    if (!formData.items || formData.items.length === 0) {
-      showValidationErrorAlert('FALTA AGREGAR PRODUCTOS AL COMPROBANTE');
-      return false;
-    }
-
-    if (Number(formData.total) < 0) {
-      showValidationErrorAlert('EL TOTAL LIQUIDADO NO PUEDE SER MENOR A CERO');
-      return false;
-    }
-
-    if (formData.documentNumber && !/^\d{3}-\d{3}-\d{9}$/.test(formData.documentNumber)) {
-      showValidationErrorAlert('EL NÚMERO DE COMPROBANTE DEBE TENER EL FORMATO 000-000-000000000');
-      return false;
-    }
-
-    const pStatus = calculatePaymentStatus();
-    if (!pStatus.isValid) {
-      // Determine if there's no payment at all
-      const total = Number(formData.total) || 0;
-      const ef = Number(payments.efectivo) || 0;
-      const tr = Number(payments.transferencia) || 0;
-      const tj = Number(payments.tarjeta) || 0;
-      const cr = Number(payments.cruce_cuentas) || 0;
-      const sum = ef + tr + tj + cr;
-      if (sum === 0 && total > 0) {
-        showValidationErrorAlert('FALTA INGRESAR VALOR EN MEDIO DE PAGO');
-      } else {
-        showValidationErrorAlert(pStatus.error);
-      }
-      return false;
-    }
-
+    const issues = getAdministrativeSaleIssues({
+      clientId: formData.thirdPartyId, client: matchedTercero,
+      identificationValid: matchedTercero ? validarIdentificacion(matchedTercero.ruc, matchedTercero.tipoIdentificacion, matchedTercero.isValidated || matchedTercero.validado) : false,
+      items: formData.items || [], total: formData.total, documentType: formData.documentType,
+      documentNumber: formData.documentNumber, paymentStatus: calculatePaymentStatus(), payments, isSale: formData.type === 'ingreso'
+    });
+    if (issues.length) return showValidationIssues(issues);
     return true;
   };
 
@@ -1517,6 +1470,18 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
   const handleNextStep = () => {
     if (currentStep === 1) {
+      if (formData.type === 'ingreso' && ['factura', 'nota_venta'].includes(formData.documentType)) {
+        const client = thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
+        const issues = getAdministrativeSaleIssues({
+          clientId: formData.thirdPartyId, client,
+          identificationValid: client ? validarIdentificacion(client.ruc, client.tipoIdentificacion, client.isValidated || client.validado) : false,
+          items: formData.items || [], total: formData.total, documentType: formData.documentType,
+          documentNumber: formData.documentNumber, paymentStatus: null
+        });
+        if (issues.length) return showValidationIssues(issues);
+        setCurrentStep(2);
+        return;
+      }
       if (!formData.thirdPartyId) {
         showToast('Selecciona un cliente antes de continuar', 'error');
         return;
@@ -1568,13 +1533,13 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       // Validate payment
       const pStatus = calculatePaymentStatus();
       if (!pStatus.isValid) {
-        showToast(pStatus.error, 'error');
+        showValidationIssues([{ target: 'payment', label: 'pago', message: pStatus.error }]);
         return;
       }
 
       // Must be emitted or registered before printing in Step 3
       if (isEditable && !formData.documentNumber) {
-        showToast('Debes registrar la venta o emitir el comprobante al SRI antes de continuar', 'error');
+        showValidationIssues([{ target: 'document', label: 'comprobante', message: 'Registra la venta o emite el comprobante antes de continuar.' }]);
         return;
       }
     }
@@ -1820,6 +1785,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 <UiBox {...{"className":"flex gap-[8px] items-center mb-[10px]"}}>
                   <UiBox {...{"className":"flex-1 relative"}}>
                     <UiInput
+                      id="admin-client-search"
+                      aria-invalid={validationIssues.some(issue => issue.target === 'client') && !formData.thirdPartyId}
                       disabled={!isEditable}
                       type="text"
                       value={clientSearchTerm}
@@ -2178,6 +2145,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     {/* Search Field */}
                     <UiBox {...{"className":"relative flex-1 min-w-[200px]"}}>
                       <UiInput
+                        id="admin-product-search"
+                        aria-invalid={validationIssues.some(issue => issue.target === 'items') && !(formData.items || []).length}
                         type="text" 
                         value={productSearchTerm}
                         onChange={e => setProductSearchTerm(e.target.value)}
@@ -2646,7 +2615,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
               {/* Payments Card (Omitted for retencion) */}
               {formData.documentType !== 'retencion' && (
-                <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)"},"className":"p-[12px]"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)","color":"var(--gray-12)"}})}>
+                <UiBox id="admin-payment-section" tabIndex={-1} {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)"},"className":"p-[12px]"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)","color":"var(--gray-12)"}})}>
                   <UiBox {...{"className":"flex items-center gap-[6px] mb-[10px]"}}>
                     <UiBox {...{"style":{"color":"var(--gray-11)"}}}>
                       <CreditCard size={14} />
@@ -3560,6 +3529,13 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
           </UiCard>
         </UiBox>
       )}
+
+      <SaleValidationDialog
+        issues={validationIssues}
+        action={formData.type === 'ingreso' ? 'facturar o registrar la venta' : 'registrar el comprobante'}
+        onClose={() => setValidationIssues([])}
+        onNavigate={navigateToValidationIssue}
+      />
 
       {/* POPUP BÚSQUEDA AVANZADA DE PRODUCTOS */}
       {isAdvancedSearchOpen && (

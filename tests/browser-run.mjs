@@ -19,6 +19,29 @@ page.on('console', message => {
 await page.route('**/*', route => route.request().url().startsWith('http://127.0.0.1:5178') ? route.continue() : route.abort());
 fs.mkdirSync('docs/design-review/screenshots', { recursive: true });
 try {
+  await page.goto('http://127.0.0.1:5178/tests/browser/index.html?mode=admin-empty');
+  await page.getByRole('button', { name: 'Emitir Factura Electrónica (SRI)' }).click();
+  const adminIssues = page.getByRole('dialog', { name: /Antes de facturar o registrar la venta/ });
+  await adminIssues.getByText(/Selecciona un cliente/).waitFor();
+  await adminIssues.getByText(/Agrega al menos un producto/).waitFor();
+  await adminIssues.getByRole('button', { name: 'Ir a cliente' }).click();
+  assert.equal(await page.locator('#admin-client-search').evaluate(el => el === document.activeElement), true);
+  console.log('PASS: venta administrativa explica faltantes y enfoca cliente');
+
+  await page.goto('http://127.0.0.1:5178/tests/browser/index.html?mode=pos');
+  await page.getByText('Teclado USB', { exact: true }).first().waitFor();
+  await page.keyboard.press('F12');
+  const posIssues = page.getByRole('dialog', { name: /Antes de (facturar o )?cobrar/ });
+  await posIssues.getByText(/Agrega al menos un producto/).waitFor();
+  await posIssues.getByText(/Selecciona un cliente/).waitFor();
+  await posIssues.getByRole('button', { name: 'Ir a productos' }).click();
+  assert.equal(await page.locator('#pos-search-input').evaluate(el => el === document.activeElement), true);
+  await page.getByText('Teclado USB', { exact: true }).first().click();
+  await page.getByRole('button', { name: 'Consumidor Final', exact: true }).click();
+  await page.keyboard.press('F12');
+  await page.getByText('Seleccionar Método de Pago').waitFor();
+  console.log('PASS: POS bloquea cobro incompleto y enfoca productos');
+
   await page.goto('http://127.0.0.1:5178/tests/browser/index.html?mode=admin', { timeout: 30000 });
   const description = page.getByRole('textbox', { name: 'Descripción en factura, línea 1' });
   await description.waitFor({ timeout: 30000 });

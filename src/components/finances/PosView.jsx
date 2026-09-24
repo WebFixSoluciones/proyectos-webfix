@@ -10,10 +10,12 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { createThemedPortal as createPortal } from '../ui/themePortal';
 import { Search, ShoppingCart, Plus, Minus, Trash2, User, Sparkles, CheckCircle2, DollarSign, CreditCard, X, ShieldAlert, Tag, Bookmark, RefreshCw, LogOut, ArrowLeft, ChevronRight, Settings, Barcode, Zap, Eye, Keyboard, History, Download, FileText, Unlock, UserPlus, ChevronDown, Box, LayoutGrid, List, Percent, Sliders, SlidersHorizontal } from 'lucide-react';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, onSnapshot } from '../../services/financeStore.js';
-import { consultarRucSri, getEcuadorDateString } from '../../services/sriService';
+import { consultarRucSri, getEcuadorDateString, validarIdentificacion } from '../../services/sriService';
 import { calculateTransactionTotals, isDiscountScheduleActive } from '../../services/discountCalcService';
 import { getCuentas } from '../../services/bancosService';
 import PosCreditAuthModal from './PosCreditAuthModal';
+import SaleValidationDialog from './SaleValidationDialog';
+import { getPosSaleIssues } from '../../services/saleValidation';
 
 function sanitizeData(obj) {
   if (obj === null || obj === undefined) return null;
@@ -144,6 +146,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
   const [cart, setCart] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClientId, setSelectedClientId] = useState('');
+  const [validationIssues, setValidationIssues] = useState([]);
   const [posDocType, setPosDocType] = useState('factura'); // 'factura' o 'nota_venta'
   const [sriConfig, setSriConfig] = useState(null);
   
@@ -405,53 +408,38 @@ export default function PosView({ products, thirdParties, transactions = [], dis
     };
   };
 
-  // Validación exhaustiva previa al cobro
+  const blockCheckout = (message, target = 'payment', label = 'pago') => {
+    setValidationIssues([{ target, label, message }]);
+    return false;
+  };
+
+  const navigateToIssue = (target) => {
+    setValidationIssues([]);
+    if (target === 'client') {
+      if (isCheckoutOpen) setCheckoutStep(1);
+      else setShowPaymentScreen(false);
+      setTimeout(() => document.getElementById('pos-client-search')?.focus(), 0);
+    } else if (target === 'items') {
+      setIsCheckoutOpen(false);
+      setShowPaymentScreen(false);
+      setTimeout(() => document.getElementById('pos-search-input')?.focus(), 0);
+    } else if (target === 'payment') {
+      if (isCheckoutOpen) setCheckoutStep(2);
+      else setShowPaymentScreen(true);
+    }
+  };
+
+  // La misma validación protege el botón, el atajo F12 y la emisión final.
   const validarCobro = () => {
-    if (!isPreventaOnly && (!activeSession || sessionLoading)) { showToast('Abre una caja antes de cobrar.', 'error'); return false; }
-    // 1. Validar Carrito
-    if (!cart || cart.length === 0) {
-      showToast("Alerta: El carrito está vacío. Agregue al menos un producto antes de cobrar.", "error");
-      return false;
-    }
-
-    // 2. Validar que los items del carrito tengan cantidades válidas
-    const invalidItem = cart.find(item => !item.quantity || Number(item.quantity) <= 0);
-    if (invalidItem) {
-      showToast(`Alerta: El producto "${invalidItem.name || 'en carrito'}" tiene una cantidad inválida.`, "error");
-      return false;
-    }
-
-    // 3. Validar Cliente
-    if (!selectedClientId) {
-      showToast("Alerta: Debe seleccionar o registrar un cliente antes de cobrar.", "error");
-      return false;
-    }
-
     const client = getSelectedClient();
-    if (!client || !client.name) {
-      showToast("Alerta: El cliente seleccionado no es válido.", "error");
-      return false;
-    }
-
-    // 4. Validar límite Consumidor Final (SRI Ecuador: Máximo $50.00 sin identificación)
-    if ((client.ruc === '9999999999999' || client.tipoIdentificacion === 'consumidor_final') && totalToPay > 50 && posDocType === 'factura') {
-      showToast(`Alerta SRI: Ventas a Consumidor Final superiores a $50.00 requieren identificar al cliente con RUC o Cédula (Total: $${totalToPay.toFixed(2)}).`, "error");
-      return false;
-    }
-
-    // 5. Validar Usuario / Cajero
     const cajero = activeSession?.responsible || usuario?.email || usuario?.nombre || usuario?.displayName || 'Cajero Principal';
-    if (!cajero) {
-      showToast("Alerta: Debe existir un usuario o cajero activo responsable de la venta.", "error");
-      return false;
-    }
-
-    // 6. Validar Total a cobrar
-    if (totalToPay <= 0) {
-      showToast("Alerta: El total a cobrar debe ser mayor a $0.00.", "error");
-      return false;
-    }
-
+    const issues = getPosSaleIssues({
+      sessionReady: isPreventaOnly || (!!activeSession && !sessionLoading), cart, selectedClientId,
+      clientExists: selectedClientId === 'consumidor_final' || thirdParties.some(tp => tp.id === selectedClientId),
+      client, identityValid: validarIdentificacion(client.ruc, client.tipoIdentificacion, client.isValidated || client.validado),
+      total: totalToPay, documentType: posDocType, cashier: cajero
+    });
+    if (issues.length) { setValidationIssues(issues); return false; }
     return true;
   };
 
@@ -680,7 +668,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
           if (posPaymentMethod === 'efectivo') {
             const cashVal = receivedAmount === '' ? totalToPay : Number(receivedAmount);
             if (isNaN(cashVal) || cashVal < totalToPay) {
-              showToast(`Monto insuficiente: Falta cubrir $${(totalToPay - (cashVal || 0)).toFixed(2)}`, "error");
+              blockCheckout(`El efectivo recibido no cubre el total. Faltan $${(totalToPay - (cashVal || 0)).toFixed(2)}.`);
               return;
             }
           }
@@ -941,18 +929,18 @@ export default function PosView({ products, thirdParties, transactions = [], dis
   // Checkout Finalizado
   const handleFinalCheckout = async () => {
     if (processingRef.current || !validarCobro()) return;
-    try { validateCartStock(cart, products); } catch (error) { showToast(error.message, 'error'); return; }
+    try { validateCartStock(cart, products); } catch (error) { blockCheckout(error.message, 'items', 'productos'); return; }
 
     if (showPaymentScreen && posPaymentMethod === 'efectivo') {
       const cashVal = receivedAmount === '' ? totalToPay : Number(receivedAmount);
       if (isNaN(cashVal) || cashVal < totalToPay) {
-        showToast(`Monto insuficiente: El efectivo recibido ($${(cashVal || 0).toFixed(2)}) no cubre el total ($${totalToPay.toFixed(2)})`, "error");
+        blockCheckout(`El efectivo recibido ($${(cashVal || 0).toFixed(2)}) no cubre el total ($${totalToPay.toFixed(2)}).`);
         return;
       }
     }
 
     if (isCheckoutOpen && remainingDue > 0.009) {
-      showToast(`Falta pagar $${remainingDue.toFixed(2)} para completar el total`, "error");
+      blockCheckout(`Faltan $${remainingDue.toFixed(2)} para completar el pago.`);
       return;
     }
 
@@ -962,7 +950,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
       const settlement = settlePayments(totalToPay, isCheckoutOpen ? payments : { [posPaymentMethod]: posPaymentMethod === 'efectivo' ? (receivedAmount === '' ? totalToPay : receivedAmount) : totalToPay }, isCheckoutOpen ? activePayments : null);
       const client = getSelectedClient();
       let clientDocId = selectedClientId;
-      if (!selectedClientId) {
+      if (selectedClientId === 'consumidor_final') {
         const cf = thirdParties.find(tp => tp.ruc === '9999999999999');
         if (cf) {
           clientDocId = cf.id;
@@ -1383,6 +1371,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
               <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"flex items-center gap-2 px-3.5 h-10"}}>
                 <Search size={16} {...{"style":{"color":"var(--blue-12)"},"className":"shrink-0"}} />
                 <UiInput
+                  id="pos-client-search"
                   type="text"
                   placeholder="Cliente, Nombre, RUC"
                   value={clientSearchTerm}
@@ -1424,7 +1413,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                 <button
                   type="button" 
                   onClick={() => {
-                    setSelectedClientId('');
+                    setSelectedClientId('consumidor_final');
                     setClientSearchTerm('');
                     setIsClientDropdownOpen(false);
                   }}
@@ -1465,6 +1454,19 @@ export default function PosView({ products, thirdParties, transactions = [], dis
               </UiBox>
             )}
           </UiBox>
+
+          {!selectedClientId && (
+            <UiButton
+              type="button"
+              variant="soft"
+              color="gray"
+              size="1"
+              className="shrink-0"
+              onClick={() => { setSelectedClientId('consumidor_final'); setClientSearchTerm(''); setIsClientDropdownOpen(false); }}
+            >
+              Consumidor Final
+            </UiButton>
+          )}
 
           {/* Botón Agregar Cliente */}
           <UiButton iconOnly
@@ -2680,7 +2682,8 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                             onChange={e => setSelectedClientId(e.target.value)} 
                             {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})}
                           >
-                            <option value="" {...{"style":{"color":"var(--gray-12)","backgroundColor":"var(--color-panel-solid)"}}}>Consumidor Final (9999999999999)</option>
+                            <option value="" {...{"style":{"color":"var(--gray-12)","backgroundColor":"var(--color-panel-solid)"}}}>Seleccionar cliente...</option>
+                            <option value="consumidor_final" {...{"style":{"color":"var(--gray-12)","backgroundColor":"var(--color-panel-solid)"}}}>Consumidor Final (9999999999999)</option>
                             {thirdParties.filter(tp => tp.type !== 'proveedor' && tp.type !== 'empleado').map(tp => (
                               <option key={tp.id} value={tp.id} {...{"style":{"color":"var(--gray-12)","backgroundColor":"var(--color-panel-solid)"}}}>{tp.name} - RUC: {String(tp.ruc)}</option>
                             ))}
@@ -2934,7 +2937,8 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                               onChange={e => setSelectedClientId(e.target.value)} 
                               {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})}
                             >
-                              <option value="" {...{"style":{"color":"var(--gray-12)","backgroundColor":"var(--color-panel-solid)"}}}>Consumidor Final (9999999999999)</option>
+                              <option value="" {...{"style":{"color":"var(--gray-12)","backgroundColor":"var(--color-panel-solid)"}}}>Seleccionar cliente...</option>
+                              <option value="consumidor_final" {...{"style":{"color":"var(--gray-12)","backgroundColor":"var(--color-panel-solid)"}}}>Consumidor Final (9999999999999)</option>
                               {thirdParties.filter(tp => tp.type !== 'proveedor' && tp.type !== 'empleado').map(tp => (
                                 <option key={tp.id} value={tp.id} {...{"style":{"color":"var(--gray-12)","backgroundColor":"var(--color-panel-solid)"}}}>{tp.name} - RUC: {String(tp.ruc)}</option>
                               ))}
@@ -3285,11 +3289,11 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                       type="button" 
                       onClick={() => {
                         if (checkoutStep === 1 && !selectedClientId) {
-                          showToast("Alerta: Debe seleccionar o registrar un cliente antes de continuar.", "error");
+                          blockCheckout('Selecciona un cliente o elige explícitamente Consumidor Final.', 'client', 'cliente');
                           return;
                         }
                         if (checkoutStep === 2 && remainingDue > 0.009) {
-                          showToast(`Por favor, cubra el total de la venta. Falta pagar $${remainingDue.toFixed(2)}`, "error");
+                          blockCheckout(`Faltan $${remainingDue.toFixed(2)} para completar el pago.`);
                           return;
                         }
                         setCheckoutStep(prev => prev + 1);
@@ -4105,6 +4109,13 @@ export default function PosView({ products, thirdParties, transactions = [], dis
           }}
         />
       )}
+
+      <SaleValidationDialog
+        issues={validationIssues}
+        action={isPreventaOnly ? 'registrar la preventa' : posDocType === 'factura' ? 'facturar o cobrar' : 'cobrar'}
+        onClose={() => setValidationIssues([])}
+        onNavigate={navigateToIssue}
+      />
 
     </UiBox>,
     document.body
