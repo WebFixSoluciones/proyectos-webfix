@@ -209,86 +209,62 @@ export default function LandingHome() {
   ];
 
   const segmentTabs = [
-    { id: 'comercios', label: 'Comercios & Retail (POS)' },
-    { id: 'servicios', label: 'Servicios & Profesionales' },
-    { id: 'distribuidoras', label: 'Distribuidoras & Mayoristas' },
+    { id: 'comercios', label: 'Pequeñas empresas' },
+    { id: 'servicios', label: 'Enterprise' },
+    { id: 'distribuidoras', label: 'Desarrolladores' },
   ];
 
   const commercialSegments = {
     comercios: {
-      tag: 'Comercios & Retail (POS)',
-      tagBg: 'bg-emerald-50 text-emerald-700',
-      title: 'Cobra en mostrador en 3 segundos y descuenta inventario en vivo',
-      description: 'Diseñado para tiendas, farmacias y comercios con alto flujo en caja. Agiliza la atención con atajo F12, lector de códigos de barras y emisión de tickets térmicos al instante.',
+      category: 'Para pymes y emprendedores',
+      title: 'Herramientas avanzadas, configuración simple',
+      description: 'Empieza rápido. Crece con confianza. Atiende mostrador en segundos y mantén tu inventario descargado al día, sin complicaciones.',
       bullets: [
-        'Atajos de teclado rápidos (F12) y búsqueda instantánea por SKU o código de barras.',
-        'Cobro combinado flexible en una sola venta: efectivo, transferencia bancaria y tarjeta de crédito.',
-        'Impresión directa en tickets térmicos de 80mm o 58mm y envío del comprobante RIDE por correo.',
-        'Cuadre y cierre de caja ciego con arqueo automático y control de diferencias por cajero.'
+        'Modo mostrador rápido con atajo de teclado F12',
+        'Cobro combinado: efectivo, tarjeta y transferencia',
+        'Impresión en tickets térmicos de 80mm o 58mm',
+        'Arqueo y cierre de caja ciego con control de diferencias'
       ],
-      checkColor: 'text-emerald-600',
-      metric: '-85%',
-      metricLabel: 'de tiempo en cuadre de caja al cierre del día',
-      metricSubtext: 'Antes 45 minutos manuales, hoy 5 minutos automáticos con reporte consolidado.',
-      features: [
-        { label: 'Modo mostrador F12', value: 'Ultra-rápido' },
-        { label: 'Lector de códigos', value: 'USB & Bluetooth' },
-        { label: 'Cierre de caja', value: 'Arqueo automático' }
-      ],
-      quote: 'Antes nos tomaba más de una hora cuadrar las tres cajas y conciliar transferencias. Con WebFix el arqueo es exacto y cerramos el local en minutos.',
-      author: 'Carlos Zambrano',
-      role: 'Gerente de Operaciones',
+      badgeText: 'La Estación',
+      badgeSubtext: 'Minimarket & Retail',
+      photoUrl: 'https://images.unsplash.com/photo-1556740738-b6a63e27c4df?auto=format&fit=crop&w=600&q=80',
+      quote: 'WebFix me ofrece todas las herramientas que necesito para seguir conectado con mis clientes y tener el local en orden, sin dedicar horas a aprender a usarlas.',
+      author: 'Carlos Zambrano,',
       company: 'Minimarket La Estación (Quito)'
     },
     servicios: {
-      tag: 'Servicios & Profesionales',
-      tagBg: 'bg-blue-50 text-blue-700',
-      title: 'Facturas electrónicas en 1 clic y cobranza sin hojas de cálculo',
-      description: 'Ideal para consultores, agencias y profesionales independientes. Emite con tu firma electrónica en segundos y automatiza el seguimiento de cuentas por cobrar.',
+      category: 'Para profesionales y consultoras',
+      title: 'Facturación SRI ágil, cobranza sin fricción',
+      description: 'Emite comprobantes electrónicos con firma .p12 en 1 segundo y automatiza el seguimiento de pagos desde cualquier dispositivo.',
       bullets: [
-        'Facturación electrónica SRI ilimitada: facturas, notas de crédito y retenciones autorizadas en 1.1s.',
-        'Firma digital .p12 protegida en la nube: factura desde tu laptop o celular sin instalar nada.',
-        'Control estricto de Cuentas por Cobrar (CxC) con cálculo de vencimientos y saldos en vivo.',
-        'Envío automático del PDF RIDE y XML firmado al correo del cliente al emitir.'
+        'Autorización inmediata en los servidores del SRI',
+        'Firma electrónica .p12 protegida en la nube',
+        'Envío automático de XML y RIDE al correo del cliente',
+        'Seguimiento en vivo de Cuentas por Cobrar (CxC)'
       ],
-      checkColor: 'text-blue-600',
-      metric: '1.1s',
-      metricLabel: 'promedio de autorización SRI por comprobante',
-      metricSubtext: 'Firma electrónica directa sin esperas ni caídas de servicio.',
-      features: [
-        { label: 'Firma .p12 en nube', value: 'Cifrado AES-256' },
-        { label: 'Descarga RIDE y XML', value: '1 clic / Enlace público' },
-        { label: 'Control de CxC', value: 'Alertas de vencimiento' }
-      ],
-      quote: 'Emitir honorarios a corporaciones solía ser engorroso en el portal del SRI. En WebFix emito en un segundo y la factura llega directo al departamento contable.',
-      author: 'Dra. Andrea Morales',
-      role: 'Directora Legal & Tributaria',
-      company: 'Morales & Asociados (Guayaquil)'
+      badgeText: 'Morales & Asoc.',
+      badgeSubtext: 'Consultoría Legal & Tributaria',
+      photoUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=600&q=80',
+      quote: 'Emito facturas electrónicas desde cualquier lugar y la entrega del XML y RIDE es inmediata. Mis clientes pagan más rápido y mi contabilidad siempre cuadra.',
+      author: 'Dra. Andrea Morales,',
+      company: 'Morales & Consultores (Guayaquil)'
     },
     distribuidoras: {
-      tag: 'Distribuidoras & Mayoristas',
-      tagBg: 'bg-indigo-50 text-indigo-700',
-      title: 'Control multibodega, despachos y flujo de caja en tiempo real',
-      description: 'Estructurado para empresas comerciales, importadoras y distribuidores. Coordina existencias entre almacenes, asigna cupos de crédito y concilia bancos al centavo.',
+      category: 'Para mayoristas y almacenes',
+      title: 'Control multibodega, despachos y bancos en vivo',
+      description: 'Gestiona existencias en múltiples bodegas, coordina despachos y controla límites de crédito sin riesgo de desabastecimiento.',
       bullets: [
-        'Kardex promedio ponderado multibodega con transferencias internas y alertas de mínimos.',
-        'Gestión de cupos de crédito, plazos de pago y cartera CxC/CxP conectada a bancos.',
-        'Listas de precios mayoristas diferenciadas por volumen y condiciones comerciales.',
-        'Conciliación bancaria multi-cuenta con Banco Pichincha, Guayaquil, Produbanco y Pacífico.'
+        'Kardex promedio ponderado sincronizado en vivo',
+        'Captura inteligente de facturas OCR con IA',
+        'Límites de crédito comercial y cartera CxP/CxC',
+        'Conciliación multi-cuenta bancaria al centavo'
       ],
-      checkColor: 'text-indigo-600',
-      metric: '100%',
-      metricLabel: 'sincronización en tiempo real entre sucursales',
-      metricSubtext: 'Ventas, existencias y bancos conectados en vivo sin desfases.',
-      features: [
-        { label: 'Control multibodega', value: 'Stock centralizado' },
-        { label: 'Límites de crédito', value: 'Control de cupo' },
-        { label: 'Conciliación bancaria', value: 'Matching inteligente' }
-      ],
-      quote: 'Con 3 bodegas en diferentes ciudades necesitábamos certeza absoluta del stock antes de despachar. WebFix nos dio visibilidad total de inventario y cartera.',
-      author: 'Ing. Roberto Peñafiel',
-      role: 'Gerente de Distribución',
-      company: 'Disproquim Ecuador'
+      badgeText: 'Viteri Hnos.',
+      badgeSubtext: 'Distribuidora Mayorista',
+      photoUrl: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=600&q=80',
+      quote: 'Coordinar tres almacenes solía ser un dolor de cabeza. Con WebFix cada despacho descuenta el stock en la bodega correcta y las finanzas están 100% al día.',
+      author: 'Ing. Roberto Viteri,',
+      company: 'Distribuidora Viteri Hermanos (Cuenca)'
     }
   };
 
@@ -298,7 +274,7 @@ export default function LandingHome() {
     <div className="w-full bg-white text-slate-900 overflow-hidden">
       
       {/* 1. HERO SECTION DE ALTO CONTRASTE (ESTILO BREVO & SITEGROUND) */}
-      <section className="relative w-full bg-[#EAF8EA] border-b border-emerald-100 rounded-b-[40px] md:rounded-b-[56px] border-b border-emerald-100 pt-10 pb-16 md:pt-16 md:pb-24 overflow-hidden">
+      <section className="relative w-full bg-[#EAF8EA] border-b border-emerald-100 rounded-b-[40px] md:rounded-b-[56px] pt-10 pb-16 md:pt-16 md:pb-24 overflow-hidden">
         <div ref={heroContainerRef} className="w-[90%] max-w-[1720px] mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 xl:gap-16 items-center">
             
@@ -980,18 +956,15 @@ export default function LandingHome() {
         <ScrollReveal direction="up">
           <div className="w-[90%] max-w-[1720px] mx-auto py-20 md:py-28">
             
-            {/* Título centrado limpio y sin dots ni burbujas */}
-            <div className="text-center max-w-3xl mx-auto mb-10 md:mb-12">
-              <h2 className="text-slate-950 font-bold text-3xl sm:text-4xl tracking-tight">
-                Pensado para todo negocio: de tiendas locales a grandes distribuidoras
+            {/* Título centrado limpio y sin subtítulo (Estilo Brevo) */}
+            <div className="text-center max-w-4xl mx-auto mb-10 sm:mb-12">
+              <h2 className="text-slate-950 font-extrabold text-3xl sm:text-4xl lg:text-[40px] tracking-tight leading-tight">
+                Pensado para toda empresa: del primer comprobante a grandes distribuidoras
               </h2>
-              <p className="text-slate-600 text-base sm:text-lg max-w-2xl mx-auto mt-3">
-                Elige cómo WebFix transforma la operativa diaria de tu rubro comercial.
-              </p>
             </div>
 
-            {/* Selector tipo píldora centrado */}
-            <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 mb-12 md:mb-16">
+            {/* Selector tipo píldora centrado (Estilo Brevo) */}
+            <div className="flex flex-wrap items-center justify-center gap-1 sm:gap-2 mb-14 md:mb-16">
               {segmentTabs.map((tab) => {
                 const isActive = activeSegmentTab === tab.id;
                 return (
@@ -1000,7 +973,9 @@ export default function LandingHome() {
                     type="button"
                     onClick={() => setActiveSegmentTab(tab.id)}
                     className={
-                      isActive ? 'bg-[#A3EFA2] text-slate-950 font-bold rounded-full px-6 py-2.5 text-sm cursor-pointer transition-all shadow-none select-none' : 'bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-950 rounded-full px-5 py-2.5 font-medium text-sm cursor-pointer transition-all shadow-none select-none'
+                      isActive
+                        ? 'bg-[#B3F2A9] text-slate-950 font-medium rounded-full px-6 py-2.5 text-sm cursor-pointer transition-all shadow-none select-none'
+                        : 'text-slate-700 hover:text-slate-950 font-medium px-6 py-2.5 text-sm cursor-pointer transition-all shadow-none select-none'
                     }
                   >
                     {tab.label}
@@ -1010,104 +985,85 @@ export default function LandingHome() {
             </div>
 
             {/* Contenido Dinámico de la Pestaña Activa (Split 50% / 50%) */}
-            <div key={activeSegmentTab} className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 xl:gap-16 items-stretch animate-in fade-in duration-200">
+            <div key={activeSegmentTab} className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 xl:gap-16 items-center animate-in fade-in duration-200">
               
-              {/* Lado Izquierdo (Propuesta de Valor & Viñetas Directas) */}
+              {/* Lado Izquierdo (Propuesta de Valor & Viñetas con Dots Brevo Style) */}
               <div className="lg:col-span-6 flex flex-col justify-between text-left space-y-6">
                 <div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold inline-block mb-3 w-fit ${currentSegment.tagBg}`}>
-                    {currentSegment.tag}
+                  <span className="text-sm font-semibold text-[#0B5D3A] mb-2 block tracking-tight">
+                    {currentSegment.category}
                   </span>
                   
-                  <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 tracking-tight leading-tight mb-4">
+                  <h3 className="text-3xl sm:text-4xl font-extrabold text-slate-950 tracking-tight leading-[1.18] mb-4">
                     {currentSegment.title}
                   </h3>
 
-                  <p className="text-slate-600 text-base sm:text-lg leading-relaxed mb-6">
+                  <p className="text-slate-600 text-base leading-relaxed mb-6 max-w-xl">
                     {currentSegment.description}
                   </p>
 
-                  <div className="space-y-3.5">
+                  <ul className="space-y-2.5 text-slate-800 text-sm sm:text-base font-normal mb-8">
                     {currentSegment.bullets.map((bullet, idx) => (
-                      <div key={idx} className="flex items-start gap-3">
-                        <div className="mt-0.5 rounded-full p-0.5 shrink-0">
-                          <Check className={`w-5 h-5 ${currentSegment.checkColor} stroke-[2.5]`} />
-                        </div>
-                        <span className="text-slate-700 text-sm sm:text-base font-medium leading-snug">
-                          {bullet}
-                        </span>
-                      </div>
+                      <li key={idx} className="flex items-start gap-2.5">
+                        <span className="text-slate-950 font-bold select-none">•</span>
+                        <span>{bullet}</span>
+                      </li>
                     ))}
-                  </div>
-                </div>
+                  </ul>
 
-                <div className="pt-2">
                   <button
                     type="button"
                     onClick={() => navigate('/register')}
-                    className="bg-[#0F172A] hover:bg-slate-800 text-white font-semibold px-7 py-3.5 rounded-full inline-flex items-center gap-2 cursor-pointer transition-all shadow-none select-none text-sm sm:text-base w-fit"
+                    className="bg-[#1E1E1E] hover:bg-black text-white font-medium px-6 py-3 rounded-xl text-sm transition-all cursor-pointer shadow-none select-none inline-block"
                   >
-                    <span>Probar gratis ahora</span>
-                    <ArrowRight size={16} />
+                    Saber más
                   </button>
                 </div>
               </div>
 
-              {/* Lado Derecho (Tarjeta de Impacto & Prueba Social Tangible) */}
+              {/* Lado Derecho (Tarjeta Testimonial con Foto y Comillas Gigantes Brevo Style) */}
               <div className="lg:col-span-6 flex flex-col">
-                <div className="border border-slate-200/90 rounded-3xl p-6 sm:p-8 md:p-10 bg-white flex flex-col justify-between h-full text-left">
-                  <div>
-                    <div className="border-b border-slate-100 pb-6 mb-6">
-                      <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-2">
-                        Impacto Real en Operación
-                      </span>
-                      <div className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-3">
-                        <span className="font-mono text-4xl sm:text-5xl font-extrabold text-slate-950 tracking-tight">
-                          {currentSegment.metric}
-                        </span>
-                        <span className="text-slate-700 font-bold text-lg sm:text-xl leading-snug">
-                          {currentSegment.metricLabel}
-                        </span>
+                <div className="rounded-3xl p-8 sm:p-10 bg-[#F8FAF8] border border-slate-200/60 flex flex-col justify-between h-full text-left relative">
+                  
+                  {/* Fila Superior: Emblema de la Empresa a la Izquierda y Comillas Gigantes a la Derecha */}
+                  <div className="flex items-start justify-between gap-4 mb-6">
+                    <div className="flex items-center gap-2 select-none">
+                      <div className="px-3.5 py-1.5 rounded-lg border-2 border-slate-900 bg-white font-black text-xs uppercase tracking-wider text-slate-900 shadow-[2px_2px_0px_#0F172A] rotate-[-2deg]">
+                        {currentSegment.badgeText}
                       </div>
-                      <p className="text-xs sm:text-sm text-slate-500 mt-2">
-                        {currentSegment.metricSubtext}
-                      </p>
+                      <span className="text-[11px] text-slate-500 font-semibold tracking-tight uppercase">
+                        {currentSegment.badgeSubtext}
+                      </span>
                     </div>
 
-                    {/* Micro-resumen visual de características clave */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pb-6 mb-6 border-b border-slate-100">
-                      {currentSegment.features.map((item, fIdx) => (
-                        <div key={fIdx} className="bg-slate-50 rounded-xl p-3">
-                          <span className="text-[11px] font-semibold text-slate-500 block uppercase tracking-wider">
-                            {item.label}
-                          </span>
-                          <span className="text-xs sm:text-sm font-bold text-slate-900 block mt-0.5">
-                            {item.value}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
+                    <span className="text-5xl sm:text-6xl font-serif font-black text-slate-900 leading-none select-none">
+                      “
+                    </span>
                   </div>
 
-                  {/* Testimonio / cita de cliente real de ese sector con autor y empresa */}
-                  <div className="pt-2">
-                    <blockquote className="text-slate-700 text-sm sm:text-base italic leading-relaxed mb-4">
-                      &ldquo;{currentSegment.quote}&rdquo;
-                    </blockquote>
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center font-bold text-sm text-slate-800 shrink-0">
-                        {currentSegment.author.charAt(0)}
-                      </div>
-                      <div className="flex flex-col text-left">
-                        <span className="text-xs sm:text-sm font-bold text-slate-900">
+                  {/* Contenido: Foto del Emprendedor a la Izquierda y Cita a la Derecha */}
+                  <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 pt-2">
+                    <img
+                      src={currentSegment.photoUrl}
+                      alt={currentSegment.author}
+                      className="w-44 h-44 sm:w-52 sm:h-52 rounded-2xl object-cover shadow-sm border border-slate-200/80 shrink-0"
+                    />
+
+                    <div className="flex flex-col justify-between h-full space-y-4 text-left">
+                      <p className="text-slate-800 text-sm sm:text-base leading-relaxed italic">
+                        &ldquo;{currentSegment.quote}&rdquo;
+                      </p>
+                      <div className="pt-2">
+                        <span className="font-bold text-slate-950 text-sm block">
                           {currentSegment.author}
                         </span>
-                        <span className="text-[11px] sm:text-xs text-slate-500">
-                          {currentSegment.role} • {currentSegment.company}
+                        <span className="text-xs text-slate-600 block mt-0.5">
+                          {currentSegment.company}
                         </span>
                       </div>
                     </div>
                   </div>
+
                 </div>
               </div>
 
