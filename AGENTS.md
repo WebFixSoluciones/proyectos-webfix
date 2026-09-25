@@ -264,9 +264,14 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
   - **Hero**: Bloque superior en tono menta pastel sutil (`bg-[#EAF8EA] border-b border-emerald-100 rounded-b-[40px] md:rounded-b-[56px]`), idéntico a la paleta insignia de Brevo.
   - **Pestañas por Segmento**: Selector tipo píldora con pestaña activa en verde menta sólido Brevo (`bg-[#A3EFA2] text-slate-950 font-bold`) e inactivas en texto suave.
   - **Banner Final de Conversión**: Reemplazado el antiguo bloque negro `#0F172A` por una tarjeta limpia en tono menta pastel `bg-[#EAF8EA]` con borde verde esmeralda suave, titular negro de alto impacto y botón píldora negro sólido `#0F172A`.
+  - **Sección de Pestañas Réplica Idéntica Brevo**:
+    - Título centrado sin subtítulo redundante (`text-[40px] font-extrabold tracking-tight`).
+    - Selector píldora centrado con pestaña activa en verde menta Brevo (`bg-[#B3F2A9]`) y pestañas inactivas en texto limpio sin fondos grises.
+    - Columna izquierda con categoría en texto verde plano (`text-[#0B5D3A]`), viñetas con puntos minimalistas (`•`) y botón negro sólido compacto `Saber más`.
+    - Tarjeta derecha testimonial con fondo suave `bg-[#F8FAF8]`, emblema de negocio arriba a la izquierda, comillas tipográficas gigantes `“` arriba a la derecha, fotografía del emprendedor en split horizontal y cita con autoría.
   - **Footer Réplica Idéntica Brevo**:
     - Fondo menta sutil (`bg-[#F6FAF6] border-t border-slate-200/80`).
     - Fila superior con logotipo WebFix en verde bosque (`#0B5D3A`) a la izquierda y 6 iconos de redes sociales a la derecha (X, LinkedIn, Instagram, YouTube, Facebook, TikTok).
     - Grid de 5 columnas limpias: `PRODUCTO`, `PARA EMPEZAR`, `RECURSOS`, `PARTNERS` y `EMPRESA`.
     - Barra legal inferior con enlaces horizontales a la izquierda (Cookies, Política anti-spam, Privacidad, Términos, Aviso legal, Seguridad SRI) y copyright a la derecha.
-- **Pruebas y Build**: 43/43 tests unitarios aprobados, compilación de producción exitosa en 6.99s.
+- **Pruebas y Build**: 43/43 tests unitarios aprobados, compilación de producción exitosa en 5.89s.
