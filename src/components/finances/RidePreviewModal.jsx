@@ -531,10 +531,10 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
                 <div className="mt-2.5 border border-border-strong text-black" style={{ fontSize: '10.5px', lineHeight: '1.3' }}>
                   {/* Fila 1 */}
                   <div className="grid grid-cols-12">
-                    <div className="col-span-10 py-[2px] px-1.5 truncate">
+                    <div className="col-span-8 py-[2px] px-1.5 truncate">
                       <span className="font-bold">CLIENTE:</span> {client.name}
                     </div>
-                    <div className="col-span-2 py-[2px] px-1.5">
+                    <div className="col-span-4 py-[2px] px-1.5 truncate">
                       <span className="font-bold">DOC. INTERNO:</span> {tx.docInterno || tx.quoteNumber || 'Ninguno'}
                     </div>
                   </div>
