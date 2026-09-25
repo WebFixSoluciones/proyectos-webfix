@@ -9,6 +9,7 @@ export default function LandingLayout() {
   const scrollContainerRef = useRef(null);
 
   useEffect(() => {
+    setIsMobileMenuOpen(false);
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollTop = 0;
     }
@@ -119,6 +120,8 @@ export default function LandingLayout() {
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="md:hidden p-2 rounded-lg text-slate-700 hover:text-slate-950 hover:bg-slate-100 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800 transition-colors cursor-pointer"
             aria-label={isMobileMenuOpen ? 'Cerrar menú' : 'Abrir menú'}
+            aria-expanded={isMobileMenuOpen}
+            aria-controls="mobile-nav-menu"
           >
             {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
@@ -128,7 +131,7 @@ export default function LandingLayout() {
 
       {/* 3. OVERLAY MENÚ MÓVIL */}
       {isMobileMenuOpen && (
-        <div className="fixed inset-x-0 top-16 z-40 bg-white/95 dark:bg-[#0c1017]/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 p-6 flex flex-col gap-4 md:hidden shadow-lg animate-in slide-in-from-top-2 duration-150">
+        <div id="mobile-nav-menu" className="fixed inset-x-0 top-16 z-40 bg-white/95 dark:bg-[#0c1017]/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 p-6 flex flex-col gap-4 md:hidden shadow-lg animate-in slide-in-from-top-2 duration-150">
           <div className="flex flex-col space-y-1">
             {navLinks.map((link) => {
               const isActive = location.pathname === link.path;
