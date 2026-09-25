@@ -150,13 +150,40 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
 - **Historial de Pagos de Ancho Completo**: Tabla organizada con estados visuales claros (Aprobado, Pendiente, Rechazado) y estados vacíos amigables.
 - **Pruebas y Build**: 41 tests unitarios aprobados, compilación de producción exitosa en 14.08s.
 
+### 17. Rediseño de Login y Corrección Global de Iconos Montados en Inputs (2026-09-24) — COMPLETADO
+- **Causa Raíz Diagnosticada**: `UiInput` envuelve el componente compuesto `TextField.Root` de Radix UI Themes. Al colocar iconos flotantes con posicionamiento absoluto (`absolute left-3` o `left-0 pl-3.5`) por fuera del input, el texto interno y placeholder de Radix no tenía indentación sincronizada, montando y sobreponiendo los iconos directamente sobre el texto/placeholder en todo el sistema.
+- **Estandarización Radix Slot (`iconPrefix` / `iconSuffix`)**:
+  - `controls.jsx` y `radixTheme.css`: Normalizado el uso de `TextField.Slot` nativo con `iconPrefix` e `iconSuffix`. Se configuró flex alignment, `flex-shrink: 0`, color base `var(--gray-10)` y transición a `var(--accent-9)` al hacer focus.
+  - Sanitizado automático de clases residuales `pl-*` y estilos inline de padding que antes causaban distorsiones.
+- **Rediseño Integral de Inicio de Sesión (`LoginPage.jsx`)**:
+  - Eliminados fondos antiguos de burbujas animadas y partículas líquidas estridentes.
+  - Nuevo diseño **Flat Modern**: textura sutil de cuadrícula geométrica sobre `var(--gray-1)`, tarjeta centrada limpia en `var(--color-panel-solid)` con bordes `var(--gray-a5)` y cero sombras.
+  - Cabecera con logo de empresa o WebFix, títulos claros y mensaje descriptivo.
+  - Campos de Correo y Contraseña estilizados con `iconPrefix={<Mail />}` y `iconPrefix={<Lock />}`.
+  - Toggle de visibilidad de contraseña integrado en `iconSuffix` sin solapamiento ni descuadres.
+  - Alerta de errores estilizada con `AlertCircle` y colores semánticos suaves.
+  - Botón principal con estados de verificación y enlace limpio a registro.
+- **Saneamiento en Todo el Sistema (14 Pantallas y Submódulos Corregidos - 0 Incidencias Residuales)**:
+  - `LoginPage.jsx` & `RegisterPage.jsx`: Reemplazados todos los iconos flotantes de usuario, empresa, correo y contraseña por `iconPrefix`.
+  - `CuentasPorCobrarView.jsx` & `CuentasPorPagarView.jsx`: Buscadores actualizados a `iconPrefix={<Search />}`.
+  - `ContabilidadView.jsx` & `MovimientosView.jsx`: Buscadores de asientos y transacciones actualizados a `iconPrefix={<Search />}`.
+  - `ComprasSriView.jsx`: Buscador principal y buscador de productos modal actualizados con `iconPrefix` e `iconSuffix` para limpiar texto.
+  - `PurchaseForm.jsx`: Buscador de proveedores y buscador de productos actualizados con `iconPrefix={<Search />}`.
+  - `ReportesView.jsx`: Buscadores de auditoría y cartera actualizados con `iconPrefix={<Search />}`.
+  - `TransactionForm.jsx`: Buscador de cliente, buscador de productos y montos de pago (efectivo, transferencia, tarjeta, crédito) actualizados con `iconPrefix`.
+  - `MovimientoAbono.jsx`: Input de monto actualizado con `iconPrefix={<DollarSign />}`.
+  - `ServiceCreationForm.tsx`: Campos de SKU, Nombre, Plazo, Costo y Margen actualizados con `iconPrefix`.
+  - `ProductCreationForm.tsx`: Campos de SKU, Nombre, Costo Base, Precios sin/con IVA y precio manual actualizados con `iconPrefix`.
+  - `SuperAdminPage.jsx`: Buscador general migrado a `UiInput` con `iconPrefix={<Search />}`.
+- **Pruebas y Build**: 41 tests unitarios aprobados, compilación limpia de producción en 11.63s.
+
 ## Últimos commits
 ```
+cec7a71 fix(superadmin): utilizar UiInput con iconPrefix en buscador para eliminar icono montado
+0472054 feat(billing): estandarizar diseno de suscripcion, eliminar vacios laterales y sincronizar submodulos
+b27f571 docs: actualizar hash 792350c en AGENTS.md
 792350c feat(servicios): eliminar metricas kpi de la cabecera en ServicesView
-b5c68d8 feat(personas): estandarizar espaciados, encabezado limpio sin kpis y eliminar submodulo equipo
-28547e8 feat(ventas): estandarizar titulos y tamano a Datos de Cliente y Productos y Servicios
-1d192aa fix(ventas): resolver ReferenceError de matchedTercero antes de inicializacion en TransactionForm
-83af250 feat(emision): pantalla de confirmacion, impresion directa y envio de correos para notas de venta y facturas
 ```
+
 
 
