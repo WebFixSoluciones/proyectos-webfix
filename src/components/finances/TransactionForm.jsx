@@ -3149,6 +3149,27 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       {formData.claveAcceso}
                     </div>
                   )}
+
+                  {!isAuthorized && formData.claveAcceso && formData.documentType !== 'nota_venta' && (
+                    <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 space-y-2 text-left">
+                      <div className="flex items-center gap-2">
+                        <AlertTriangle size={16} className="text-amber-600 shrink-0" />
+                        <span className="font-bold text-xs">Identidad Fiscal Reservada — Autorización Pendiente en el SRI</span>
+                      </div>
+                      <p className="text-[11.5px] text-amber-800 leading-relaxed">
+                        El comprobante y su secuencial ({formData.documentNumber || 'En proceso'}) están protegidos en la base de datos con su clave de acceso oficial. Si el SRI reportó intermitencia temporal de red, puedes volver a consultar y autorizar ahora sin perder el secuencial.
+                      </p>
+                      <button
+                        type="button"
+                        disabled={isEmitting}
+                        onClick={() => recoverSriEmission(true)}
+                        className="py-2 px-4 rounded-full bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs flex items-center gap-2 cursor-pointer transition-all disabled:opacity-50"
+                      >
+                        <RefreshCw size={13} className={isEmitting ? "animate-spin" : ""} />
+                        <span>{isEmitting ? "Consultando al SRI..." : "Verificar y Reintentar Autorización SRI"}</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 {/* 2. CARD: ESTADO DE ENVÍO POR CORREO ELECTRÓNICO */}

@@ -531,8 +531,15 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
   - Eliminado el banner azul `SriRecoveryPanel` de la parte superior del listado de ventas (`TransactionsView.jsx`), dejando la tabla de ventas limpia y despejada directamente bajo las acciones principales.
 - **Integración en Módulo de Ajustes (`GeneralSettings.jsx`)**:
   - Añadida nueva pestaña dedicada en el menú lateral de Ajustes: **"Recuperar Facturas SRI"** (`{ id: 'recovery', label: 'Recuperar Facturas SRI', icon: RefreshCw }`) con explicaciones detalladas de seguridad, no emisión y conciliación.
-  - Integrado también como tarjeta de acción dentro de la pestaña **"Facturación Electrónica"** (`activeSubTab === 'einvoicing'`), garantizando doble punto de acceso intuitivo para el usuario.
-- **Pruebas y Build**: 41 tests unitarios aprobados, compilación limpia de producción en 6.73s.
+### 44. Blindaje de Proxies SRI con Reintentos y Botón de Verificación en Paso 2 (2026-09-25) — COMPLETADO
+- **Blindaje de Proxies SRI Serverless (`api/sri-ws-prod/index.js` y `api/sri-ws-pruebas/index.js`)**:
+  - Incorporado bucle de reintento automático (hasta 3 intentos con 1000ms de backoff) para absorber intermitencias o cortes transitorios de conexión TCP con los servidores del SRI ecuatoriano.
+  - Añadidos encabezados estándar HTTP (`User-Agent` de navegador, `Accept: text/xml, */*`, y `Connection: close`) para prevenir bloqueos por WAF o reuso de sockets caídos en Lambda/Vercel.
+  - Sanitizada la ruta de destino (`cleanPath`) para evitar dobles barras (`//`) y detallado el error con `err.cause` (código de error real).
+- **Botón de Verificación en Paso 2 de Venta Administrativa (`TransactionForm.jsx`)**:
+  - En la pantalla de emisión confirmada (Paso 2), si el documento queda en estado *"Identidad fiscal reservada — autorización por verificar"*, se despliega una tarjeta de aviso amigable con el botón **"Verificar y Reintentar Autorización SRI"** (`recoverSriEmission(true)`), permitiendo al usuario re-consultar o autorizar inmediatamente sin perder el número secuencial ni tener que volver a capturar la venta.
+- **Pruebas y Build**: 41 tests unitarios aprobados, compilación limpia en 7.97s.
+
 
 
 
