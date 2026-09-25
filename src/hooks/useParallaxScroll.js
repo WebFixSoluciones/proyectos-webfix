@@ -16,12 +16,13 @@ import { useState, useEffect } from 'react';
 export function calculateParallaxOffset({
   scrollY = 0,
   elementTop = 0,
+  elementHeight = 200,
   viewportHeight = 800,
   speed = 0.1,
   min = -100,
   max = 100
 }) {
-  const elementCenter = elementTop + 100;
+  const elementCenter = elementTop + elementHeight / 2;
   const viewportCenter = scrollY + viewportHeight / 2;
   const distanceFromCenter = viewportCenter - elementCenter;
   const rawOffset = distanceFromCenter * speed;
@@ -48,6 +49,12 @@ export function useParallaxScroll(
   useEffect(() => {
     if (disabled || typeof window === 'undefined') return;
 
+    const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+    if (prefersReducedMotion) {
+      setOffsetY(0);
+      return;
+    }
+
     let rafId = null;
 
     const updateOffset = () => {
@@ -58,11 +65,13 @@ export function useParallaxScroll(
       const rect = el.getBoundingClientRect();
       const scrollY = window.scrollY ?? window.pageYOffset ?? 0;
       const elementTop = rect.top + scrollY;
+      const elementHeight = rect.height || 200;
       const viewportHeight = window.innerHeight || 800;
 
       const calculated = calculateParallaxOffset({
         scrollY,
         elementTop,
+        elementHeight,
         viewportHeight,
         speed,
         min,

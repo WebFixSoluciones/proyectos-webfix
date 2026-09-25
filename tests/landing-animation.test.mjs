@@ -1,27 +1,22 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { calculateParallaxOffset as hookCalculateParallaxOffset } from '../src/hooks/useParallaxScroll.js';
-
-export function calculateParallaxOffset({ scrollY, elementTop, viewportHeight, speed = 0.1, min = -100, max = 100 }) {
-  const elementCenter = elementTop + 100;
-  const viewportCenter = scrollY + viewportHeight / 2;
-  const distanceFromCenter = viewportCenter - elementCenter;
-  const rawOffset = distanceFromCenter * speed;
-  return Math.min(Math.max(rawOffset, min), max);
-}
+import { calculateParallaxOffset } from '../src/hooks/useParallaxScroll.js';
 
 test('calculateParallaxOffset calcula el desplazamiento proporcional y respeta limites min/max', () => {
   const offsetNormal = calculateParallaxOffset({
     scrollY: 500,
     elementTop: 600,
+    elementHeight: 200,
     viewportHeight: 800,
     speed: 0.1
   });
+  // viewportCenter = 500 + 400 = 900. elementCenter = 600 + 100 = 700. diff = 200. offset = 20
   assert.equal(offsetNormal, 20);
 
   const offsetClamped = calculateParallaxOffset({
     scrollY: 3000,
     elementTop: 200,
+    elementHeight: 200,
     viewportHeight: 800,
     speed: 0.2,
     max: 50
@@ -29,31 +24,16 @@ test('calculateParallaxOffset calcula el desplazamiento proporcional y respeta l
   assert.equal(offsetClamped, 50);
 });
 
-test('calculateParallaxOffset exportada desde useParallaxScroll coincide con la logica base', () => {
-  const offsetNormal = hookCalculateParallaxOffset({
-    scrollY: 500,
-    elementTop: 600,
-    viewportHeight: 800,
-    speed: 0.1
-  });
-  assert.equal(offsetNormal, 20);
-
-  const offsetClamped = hookCalculateParallaxOffset({
-    scrollY: 3000,
-    elementTop: 200,
-    viewportHeight: 800,
-    speed: 0.2,
-    max: 50
-  });
-  assert.equal(offsetClamped, 50);
-
-  const offsetMin = hookCalculateParallaxOffset({
+test('calculateParallaxOffset respeta clamping inferior y altura de elemento', () => {
+  const offsetMin = calculateParallaxOffset({
     scrollY: 0,
     elementTop: 1000,
+    elementHeight: 100,
     viewportHeight: 800,
     speed: 0.5,
     min: -80,
     max: 80
   });
+  // viewportCenter = 400. elementCenter = 1000 + 50 = 1050. diff = -650. raw = -325 -> clamped a -80
   assert.equal(offsetMin, -80);
 });
