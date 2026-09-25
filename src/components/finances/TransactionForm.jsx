@@ -2665,354 +2665,353 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               </div>
             </div>
 
-            {/* Right Column: lg:col-span-4 */}
-            <UiBox {...mergeThemeProps({"className":"col-span-12 lg:col-span-4 space-y-[12px]"}, {}, (mobileTab === 'pago' ? {"className":"block"} : {"className":"hidden lg:block"}))}>
+            {/* Right Column: lg:col-span-4 (Unified compact column) */}
+            <UiBox {...mergeThemeProps({"className":"col-span-12 lg:col-span-4"}, {}, (mobileTab === 'pago' ? {"className":"block"} : {"className":"hidden lg:block"}))}>
               
-              {/* Totales Card */}
-              <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-none space-y-4">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
-                    <Calculator size={16} />
-                  </div>
-                  <h3 className="text-base font-bold text-slate-900 tracking-tight">Resumen e Impuestos</h3>
-                </div>
-
-                <div className="bg-slate-50/80 border border-slate-200/80 rounded-xl p-4 space-y-2.5">
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="font-medium text-slate-600">Subtotal bruto:</span>
-                    <span className="font-semibold text-slate-900 font-mono">
-                      ${formData.documentType === 'retencion' 
-                        ? Number(formData.baseImponible).toFixed(2)
-                        : (currentCartTotals?.subtotalBruto ?? (formData.items || []).reduce((a, it) => a + (parseFloat(it.price)||0)*(parseInt(it.quantity)||1), 0)).toFixed(2)
-                      }
+              {/* Single Unified & Compact Card */}
+              <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-none space-y-3.5 sticky top-4">
+                
+                {/* 1. Resumen de Totales e Impuestos */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+                        <Calculator size={13} />
+                      </div>
+                      <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Resumen</h3>
+                    </div>
+                    <span className="text-[11px] text-slate-500 font-medium">
+                      {formData.documentType === 'factura' ? 'Factura SRI' : formData.documentType === 'nota_venta' ? 'Nota de Venta' : formData.documentType === 'retencion' ? 'Retención' : 'Comprobante'}
                     </span>
                   </div>
 
-                  {formData.documentType !== 'retencion' && (
-                    <>
-                      {/* Descuento por ítem */}
-                      {(currentCartTotals?.descuentosProducto > 0 || (currentCartTotals?.descuentosProductoPvp > 0)) && (
-                        <div className="flex justify-between items-center text-xs text-rose-600">
-                          <span className="font-medium">Dto. por ítem:</span>
-                          <span className="font-semibold font-mono">-${(currentCartTotals.descuentosProductoPvp || currentCartTotals.descuentosProducto).toFixed(2)}</span>
-                        </div>
-                      )}
-                      {/* Descuento general */}
-                      {currentCartTotals?.descuentoVenta > 0 && (
-                        <div className="flex justify-between items-center text-xs text-rose-600">
-                          <span className="font-medium">Dto. general:</span>
-                          <span className="font-semibold font-mono">-${currentCartTotals.descuentoVenta.toFixed(2)}</span>
-                        </div>
-                      )}
-                      
-                      {/* Base imponible */}
-                      <div className="flex justify-between items-center text-xs border-t border-slate-200/80 pt-2">
-                        <span className="font-medium text-slate-600">Base imponible:</span>
-                        <span className="font-semibold text-slate-900 font-mono">${Number(formData.baseImponible).toFixed(2)}</span>
-                      </div>
-
-                      {/* IVA static display */}
-                      <div className="flex justify-between items-center text-xs">
-                        <span className="font-medium text-slate-600">IVA ({formData.ivaPorcentaje}%):</span>
-                        <span className="font-semibold text-slate-900 font-mono">${Number(formData.ivaValor).toFixed(2)}</span>
-                      </div>
-                    </>
-                  )}
-
-                  {formData.documentType === 'retencion' && (
-                    <div className="flex justify-between items-center text-xs text-amber-700">
-                      <span className="font-medium">Total Retenido:</span>
-                      <span className="font-semibold font-mono">${Number(formData.total).toFixed(2)}</span>
+                  <div className="bg-slate-50/80 border border-slate-200/70 rounded-xl p-3 space-y-1.5 text-xs">
+                    <div className="flex justify-between items-center text-slate-600">
+                      <span>Subtotal:</span>
+                      <span className="font-semibold text-slate-900 font-mono">
+                        ${formData.documentType === 'retencion' 
+                          ? Number(formData.baseImponible).toFixed(2)
+                          : (currentCartTotals?.subtotalBruto ?? (formData.items || []).reduce((a, it) => a + (parseFloat(it.price)||0)*(parseInt(it.quantity)||1), 0)).toFixed(2)
+                        }
+                      </span>
                     </div>
-                  )}
 
-                  <div className="border-t border-slate-200/80 pt-3 flex justify-between items-center">
-                    <span className="text-xs font-bold text-slate-900 uppercase tracking-wide">TOTAL:</span>
-                    <span className="text-2xl sm:text-3xl font-extrabold text-[#1b1b1b] font-mono tracking-tight">${Number(formData.total).toFixed(2)}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Payments Card (Omitted for retencion) */}
-              {formData.documentType !== 'retencion' && (
-                <div id="admin-payment-section" tabIndex={-1} className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-none space-y-4">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
-                      <CreditCard size={16} />
-                    </div>
-                    <h3 className="text-base font-bold text-slate-900 tracking-tight">Medios de Pago</h3>
-                  </div>
-
-                  <div className="grid grid-cols-4 gap-2">
-                    {[
-                      { id: 'efectivo', label: 'Efectivo', icon: DollarSign, key: 'efectivo' },
-                      { id: 'transferencia', label: 'Transf.', icon: RefreshCw, key: 'transferencia' },
-                      { id: 'tarjeta', label: 'Tarjeta', icon: CreditCard, key: 'tarjeta' },
-                      { id: 'cruce_cuentas', label: 'Crédito', icon: User, key: 'cruce_cuentas' }
-                    ].map(m => {
-                      const isSelected = activePayments[m.key];
-                      const isClientSelected = !!formData.thirdPartyId;
-                      return (
-                        <button
-                          key={m.id}
-                          type="button"
-                          disabled={!isClientSelected}
-                          onClick={() => {
-                            if (!isClientSelected) return;
-                            setActivePayments(prev => {
-                              const updated = { ...prev, [m.key]: !prev[m.key] };
-                              if (!updated[m.key]) {
-                                setPayments(p => ({ ...p, [m.key]: 0 }));
-                              } else {
-                                const total = Number(formData.total) || 0;
-                                const ef = m.key === 'efectivo' ? 0 : Number(payments.efectivo) || 0;
-                                const tr = m.key === 'transferencia' ? 0 : Number(payments.transferencia) || 0;
-                                const tj = m.key === 'tarjeta' ? 0 : Number(payments.tarjeta) || 0;
-                                const cr = m.key === 'cruce_cuentas' ? 0 : Number(payments.cruce_cuentas) || 0;
-                                const remaining = Math.max(0, total - ef - tr - tj - cr);
-                                setPayments(p => ({ ...p, [m.key]: remaining > 0 ? remaining.toFixed(2) : '' }));
-                                if (m.key === 'cruce_cuentas') {
-                                  const hasCred = matchedTercero?.hasCredit || (Number(matchedTercero?.creditLimit || matchedTercero?.limiteCredito || 0) > 0);
-                                  if (!hasCred) {
-                                    setIsCreditSetupOpen(true);
-                                  } else {
-                                    setIsCreditModalOpen(true);
-                                  }
-                                }
-                              }
-                              return updated;
-                            });
-                          }}
-                          className={`flex flex-col items-center justify-center gap-1.5 p-2.5 sm:p-3 rounded-2xl border transition-all text-xs cursor-pointer ${
-                            !isClientSelected
-                              ? 'opacity-40 cursor-not-allowed bg-slate-50 border-slate-200 text-slate-400'
-                              : isSelected
-                              ? 'bg-[#c0ffa5] text-[#004227] border-[#a2f07f] font-bold'
-                              : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200/80 font-medium'
-                          }`}
-                        >
-                          <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${
-                            !isClientSelected
-                              ? 'bg-slate-200/60 text-slate-400'
-                              : isSelected
-                              ? 'bg-[#004227] text-[#c0ffa5]'
-                              : 'bg-white text-slate-700 border border-slate-200/70'
-                          }`}>
-                            <m.icon size={18} />
+                    {formData.documentType !== 'retencion' && (
+                      <>
+                        {(currentCartTotals?.descuentosProducto > 0 || (currentCartTotals?.descuentosProductoPvp > 0)) && (
+                          <div className="flex justify-between items-center text-rose-600">
+                            <span>Dto. por ítem:</span>
+                            <span className="font-semibold font-mono">-${(currentCartTotals.descuentosProductoPvp || currentCartTotals.descuentosProducto).toFixed(2)}</span>
                           </div>
-                          <span className="font-semibold text-[11px] sm:text-xs">{m.label}</span>
-                        </button>
-                      );
-                    })}
+                        )}
+                        {currentCartTotals?.descuentoVenta > 0 && (
+                          <div className="flex justify-between items-center text-rose-600">
+                            <span>Dto. general:</span>
+                            <span className="font-semibold font-mono">-${currentCartTotals.descuentoVenta.toFixed(2)}</span>
+                          </div>
+                        )}
+                        
+                        <div className="flex justify-between items-center text-slate-600 pt-1 border-t border-slate-200/60">
+                          <span>Base imponible:</span>
+                          <span className="font-semibold text-slate-900 font-mono">${Number(formData.baseImponible).toFixed(2)}</span>
+                        </div>
+
+                        <div className="flex justify-between items-center text-slate-600">
+                          <span>IVA ({formData.ivaPorcentaje}%):</span>
+                          <span className="font-semibold text-slate-900 font-mono">${Number(formData.ivaValor).toFixed(2)}</span>
+                        </div>
+                      </>
+                    )}
+
+                    {formData.documentType === 'retencion' && (
+                      <div className="flex justify-between items-center text-amber-700">
+                        <span>Total Retenido:</span>
+                        <span className="font-semibold font-mono">${Number(formData.total).toFixed(2)}</span>
+                      </div>
+                    )}
+
+                    <div className="border-t border-slate-200/80 pt-2 flex justify-between items-center">
+                      <span className="text-xs font-extrabold text-slate-900 tracking-wide uppercase">TOTAL:</span>
+                      <span className="text-xl sm:text-2xl font-extrabold text-[#1b1b1b] font-mono tracking-tight">${Number(formData.total).toFixed(2)}</span>
+                    </div>
                   </div>
-
-                  {/* Input Fields for Active Payments */}
-                  <div className="space-y-2.5">
-                    {activePayments.efectivo && (
-                      <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3 space-y-1.5">
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="font-bold text-slate-800">Efectivo</span>
-                          <span className="text-slate-500 font-medium">Recibido</span>
-                        </div>
-                        <UiInput
-                          disabled={!isEditable}
-                          type="number"
-                          step="0.01"
-                          value={payments.efectivo || ''}
-                          onChange={e => setPayments(prev => ({ ...prev, efectivo: e.target.value }))}
-                          iconPrefix={<span className="text-slate-400 font-semibold text-xs">$</span>}
-                          size="2"
-                          className="w-full bg-white rounded-xl"
-                          placeholder="0.00"
-                        />
-                      </div>
-                    )}
-
-                    {activePayments.transferencia && (
-                      <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3 space-y-2">
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="font-bold text-slate-800">Transferencia</span>
-                          <span className="text-slate-500 font-medium">Monto</span>
-                        </div>
-                        <UiInput
-                          disabled={!isEditable}
-                          type="number"
-                          step="0.01"
-                          value={payments.transferencia || ''}
-                          onChange={e => setPayments(prev => ({ ...prev, transferencia: e.target.value }))}
-                          iconPrefix={<span className="text-slate-400 font-semibold text-xs">$</span>}
-                          size="2"
-                          className="w-full bg-white rounded-xl"
-                          placeholder="0.00"
-                        />
-                        <UiSelect
-                          disabled={!isEditable}
-                          value={payments.transferenciaBankId || ''}
-                          onChange={e => {
-                            const selBank = bankAccounts.find(b => b.id === e.target.value);
-                            setPayments(prev => ({
-                              ...prev,
-                              transferenciaBankId: e.target.value,
-                              transferenciaRef: prev.transferenciaRef || (selBank ? `${selBank.banco || selBank.nombre} - ${selBank.numeroCuenta || ''}` : '')
-                            }));
-                          }}
-                          className="w-full rounded-xl"
-                        >
-                          <option value="">-- Cuenta Bancaria Destino --</option>
-                          {bankAccounts.map(b => (
-                            <option key={b.id} value={b.id}>
-                              {b.banco || b.nombre} ({b.tipoCuenta || 'Cta'} {b.numeroCuenta || ''}) - Saldo: ${Number(b.saldoActual || 0).toFixed(2)}
-                            </option>
-                          ))}
-                        </UiSelect>
-                        <UiInput
-                          disabled={!isEditable}
-                          type="text"
-                          value={payments.transferenciaRef || ''}
-                          onChange={e => setPayments(prev => ({ ...prev, transferenciaRef: e.target.value }))}
-                          className="w-full bg-white rounded-xl"
-                          placeholder="Banco / Referencia de depósito"
-                        />
-                      </div>
-                    )}
-
-                    {activePayments.tarjeta && (
-                      <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3 space-y-2">
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="font-bold text-slate-800">Tarjeta (Débito/Crédito)</span>
-                          <span className="text-slate-500 font-medium">Monto</span>
-                        </div>
-                        <UiInput
-                          disabled={!isEditable}
-                          type="number"
-                          step="0.01"
-                          value={payments.tarjeta || ''}
-                          onChange={e => setPayments(prev => ({ ...prev, tarjeta: e.target.value }))}
-                          iconPrefix={<span className="text-slate-400 font-semibold text-xs">$</span>}
-                          size="2"
-                          className="w-full bg-white rounded-xl"
-                          placeholder="0.00"
-                        />
-                        <UiInput
-                          disabled={!isEditable}
-                          type="text"
-                          value={payments.tarjetaRef || ''}
-                          onChange={e => setPayments(prev => ({ ...prev, tarjetaRef: e.target.value }))}
-                          className="w-full bg-white rounded-xl"
-                          placeholder="Nro Lote / Autorización POS"
-                        />
-                      </div>
-                    )}
-
-                    {activePayments.cruce_cuentas && (
-                      <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3 space-y-2">
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="font-bold text-slate-800">Crédito Directo (CxC)</span>
-                          <span className="text-slate-500 font-medium">Monto</span>
-                        </div>
-                        <UiInput
-                          disabled={!isEditable}
-                          type="number"
-                          step="0.01"
-                          value={payments.cruce_cuentas || ''}
-                          onChange={e => setPayments(prev => ({ ...prev, cruce_cuentas: e.target.value }))}
-                          iconPrefix={<span className="text-slate-400 font-semibold text-xs">$</span>}
-                          size="2"
-                          className="w-full bg-white rounded-xl"
-                          placeholder="0.00"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setIsCreditModalOpen(true)}
-                          className="w-full py-2 px-3 rounded-full bg-amber-500 hover:bg-amber-600 text-white font-semibold text-xs transition-colors cursor-pointer"
-                        >
-                          Configurar Plazo de Crédito
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Vuelto and Cubierto metrics */}
-                  {(() => {
-                    const totalNum = Number(formData.total) || 0;
-                    const sum = (Number(payments.efectivo) || 0) + (Number(payments.transferencia) || 0) + (Number(payments.tarjeta) || 0) + (Number(payments.cruce_cuentas) || 0);
-                    const cambio = Math.max(0, sum - totalNum);
-                    return (
-                      <div className="mt-3 grid grid-cols-2 gap-2">
-                        <div className={`p-3 rounded-xl border text-center ${
-                          sum >= totalNum - 0.01
-                            ? 'bg-[#e6fce5] border-[#ceead6] text-[#004227]'
-                            : 'bg-rose-50 border-rose-200 text-rose-700'
-                        }`}>
-                          <span className="text-[11px] font-bold block uppercase tracking-wider">Cambio / Vuelto</span>
-                          <span className="text-base font-extrabold font-mono">${cambio.toFixed(2)}</span>
-                        </div>
-                        <div className="p-3 rounded-xl border border-slate-200/80 bg-slate-50/80 text-center flex flex-col justify-center">
-                          <span className="text-[11px] font-bold block text-slate-500 uppercase tracking-wider">Cubierto</span>
-                          <span className="text-base font-extrabold font-mono text-slate-900">${sum.toFixed(2)} / ${totalNum.toFixed(2)}</span>
-                        </div>
-                      </div>
-                    );
-                  })()}
-
-                  {/* Payment Warning Banner */}
-                  {(() => {
-                    const totalNum = Number(formData.total) || 0;
-                    const sum = (Number(payments.efectivo) || 0) + (Number(payments.transferencia) || 0) + (Number(payments.tarjeta) || 0) + (Number(payments.cruce_cuentas) || 0);
-                    if (sum === 0 && totalNum > 0) {
-                      return (
-                        <div className="mt-2 p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
-                          <AlertTriangle size={14} className="text-rose-600 shrink-0" />
-                          <span className="font-medium">Falta seleccionar forma de pago.</span>
-                        </div>
-                      );
-                    }
-                    if (sum < totalNum - 0.01) {
-                      return (
-                        <div className="mt-2 p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-center gap-2">
-                          <AlertTriangle size={14} className="text-amber-600 shrink-0" />
-                          <span className="font-medium">Pago incompleto: Falta ${ (totalNum - sum).toFixed(2) }.</span>
-                        </div>
-                      );
-                    }
-                    return null;
-                  })()}
-                </div>
-              )}
-
-              {/* Sequential & Final Actions Card */}
-              <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-none space-y-4">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
-                    <Tag size={16} />
-                  </div>
-                  <h3 className="text-base font-bold text-slate-900 tracking-tight">Emisión de Comprobante</h3>
                 </div>
 
-                {/* Save & Emission buttons */}
-                <div className="space-y-2 pt-1">
+                {/* 2. Medios de Pago (Omitted for retencion) */}
+                {formData.documentType !== 'retencion' && (
+                  <>
+                    <div className="h-px bg-slate-200/80" />
+                    
+                    <div id="admin-payment-section" tabIndex={-1} className="space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+                            <CreditCard size={13} />
+                          </div>
+                          <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Forma de Pago</h3>
+                        </div>
+                        {(() => {
+                          const totalNum = Number(formData.total) || 0;
+                          const sum = (Number(payments.efectivo) || 0) + (Number(payments.transferencia) || 0) + (Number(payments.tarjeta) || 0) + (Number(payments.cruce_cuentas) || 0);
+                          return (
+                            <span className={`text-[11px] font-semibold font-mono ${sum >= totalNum - 0.01 && totalNum > 0 ? 'text-emerald-600' : 'text-slate-500'}`}>
+                              ${sum.toFixed(2)} / ${totalNum.toFixed(2)}
+                            </span>
+                          );
+                        })()}
+                      </div>
+
+                      <div className="grid grid-cols-4 gap-1.5">
+                        {[
+                          { id: 'efectivo', label: 'Efectivo', icon: DollarSign, key: 'efectivo' },
+                          { id: 'transferencia', label: 'Transf.', icon: RefreshCw, key: 'transferencia' },
+                          { id: 'tarjeta', label: 'Tarjeta', icon: CreditCard, key: 'tarjeta' },
+                          { id: 'cruce_cuentas', label: 'Crédito', icon: User, key: 'cruce_cuentas' }
+                        ].map(m => {
+                          const isSelected = activePayments[m.key];
+                          const isClientSelected = !!formData.thirdPartyId;
+                          return (
+                            <button
+                              key={m.id}
+                              type="button"
+                              disabled={!isClientSelected}
+                              onClick={() => {
+                                if (!isClientSelected) return;
+                                setActivePayments(prev => {
+                                  const updated = { ...prev, [m.key]: !prev[m.key] };
+                                  if (!updated[m.key]) {
+                                    setPayments(p => ({ ...p, [m.key]: 0 }));
+                                  } else {
+                                    const total = Number(formData.total) || 0;
+                                    const ef = m.key === 'efectivo' ? 0 : Number(payments.efectivo) || 0;
+                                    const tr = m.key === 'transferencia' ? 0 : Number(payments.transferencia) || 0;
+                                    const tj = m.key === 'tarjeta' ? 0 : Number(payments.tarjeta) || 0;
+                                    const cr = m.key === 'cruce_cuentas' ? 0 : Number(payments.cruce_cuentas) || 0;
+                                    const remaining = Math.max(0, total - ef - tr - tj - cr);
+                                    setPayments(p => ({ ...p, [m.key]: remaining > 0 ? remaining.toFixed(2) : '' }));
+                                    if (m.key === 'cruce_cuentas') {
+                                      const hasCred = matchedTercero?.hasCredit || (Number(matchedTercero?.creditLimit || matchedTercero?.limiteCredito || 0) > 0);
+                                      if (!hasCred) {
+                                        setIsCreditSetupOpen(true);
+                                      } else {
+                                        setIsCreditModalOpen(true);
+                                      }
+                                    }
+                                  }
+                                  return updated;
+                                });
+                              }}
+                              className={`flex flex-col items-center justify-center py-2 px-1 rounded-xl border transition-all cursor-pointer ${
+                                !isClientSelected
+                                  ? 'opacity-40 cursor-not-allowed bg-slate-50 border-slate-200 text-slate-400'
+                                  : isSelected
+                                  ? 'bg-[#c0ffa5] text-[#004227] border-[#a2f07f] font-bold'
+                                  : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200/80 font-medium'
+                              }`}
+                            >
+                              <div className={`w-7 h-7 rounded-lg flex items-center justify-center mb-1 transition-colors ${
+                                !isClientSelected
+                                  ? 'bg-slate-200/60 text-slate-400'
+                                  : isSelected
+                                  ? 'bg-[#004227] text-[#c0ffa5]'
+                                  : 'bg-white text-slate-700 border border-slate-200/70'
+                              }`}>
+                                <m.icon size={14} />
+                              </div>
+                              <span className="font-semibold text-[11px] leading-none">{m.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Input Fields for Active Payments */}
+                      <div className="space-y-2">
+                        {activePayments.efectivo && (
+                          <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-2.5 space-y-1">
+                            <div className="flex justify-between items-center text-xs">
+                              <span className="font-bold text-slate-800">Efectivo Recibido</span>
+                              <span className="text-[11px] text-slate-500 font-medium font-mono">${(Number(payments.efectivo) || 0).toFixed(2)}</span>
+                            </div>
+                            <UiInput
+                              disabled={!isEditable}
+                              type="number"
+                              step="0.01"
+                              value={payments.efectivo || ''}
+                              onChange={e => setPayments(prev => ({ ...prev, efectivo: e.target.value }))}
+                              iconPrefix={<span className="text-slate-400 font-semibold text-xs">$</span>}
+                              size="2"
+                              className="w-full bg-white rounded-lg h-8"
+                              placeholder="0.00"
+                            />
+                          </div>
+                        )}
+
+                        {activePayments.transferencia && (
+                          <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-2.5 space-y-1.5">
+                            <div className="flex justify-between items-center text-xs">
+                              <span className="font-bold text-slate-800">Transferencia</span>
+                              <span className="text-[11px] text-slate-500 font-medium font-mono">${(Number(payments.transferencia) || 0).toFixed(2)}</span>
+                            </div>
+                            <UiInput
+                              disabled={!isEditable}
+                              type="number"
+                              step="0.01"
+                              value={payments.transferencia || ''}
+                              onChange={e => setPayments(prev => ({ ...prev, transferencia: e.target.value }))}
+                              iconPrefix={<span className="text-slate-400 font-semibold text-xs">$</span>}
+                              size="2"
+                              className="w-full bg-white rounded-lg h-8"
+                              placeholder="0.00"
+                            />
+                            <UiSelect
+                              disabled={!isEditable}
+                              value={payments.transferenciaBankId || ''}
+                              onChange={e => {
+                                const selBank = bankAccounts.find(b => b.id === e.target.value);
+                                setPayments(prev => ({
+                                  ...prev,
+                                  transferenciaBankId: e.target.value,
+                                  transferenciaRef: prev.transferenciaRef || (selBank ? `${selBank.banco || selBank.nombre} - ${selBank.numeroCuenta || ''}` : '')
+                                }));
+                              }}
+                              className="w-full rounded-lg text-xs"
+                            >
+                              <option value="">-- Cuenta Bancaria Destino --</option>
+                              {bankAccounts.map(b => (
+                                <option key={b.id} value={b.id}>
+                                  {b.banco || b.nombre} ({b.tipoCuenta || 'Cta'} {b.numeroCuenta || ''}) - Saldo: ${Number(b.saldoActual || 0).toFixed(2)}
+                                </option>
+                              ))}
+                            </UiSelect>
+                            <UiInput
+                              disabled={!isEditable}
+                              type="text"
+                              value={payments.transferenciaRef || ''}
+                              onChange={e => setPayments(prev => ({ ...prev, transferenciaRef: e.target.value }))}
+                              className="w-full bg-white rounded-lg h-8 text-xs"
+                              placeholder="Banco / Referencia de depósito"
+                            />
+                          </div>
+                        )}
+
+                        {activePayments.tarjeta && (
+                          <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-2.5 space-y-1.5">
+                            <div className="flex justify-between items-center text-xs">
+                              <span className="font-bold text-slate-800">Tarjeta (Débito/Crédito)</span>
+                              <span className="text-[11px] text-slate-500 font-medium font-mono">${(Number(payments.tarjeta) || 0).toFixed(2)}</span>
+                            </div>
+                            <UiInput
+                              disabled={!isEditable}
+                              type="number"
+                              step="0.01"
+                              value={payments.tarjeta || ''}
+                              onChange={e => setPayments(prev => ({ ...prev, tarjeta: e.target.value }))}
+                              iconPrefix={<span className="text-slate-400 font-semibold text-xs">$</span>}
+                              size="2"
+                              className="w-full bg-white rounded-lg h-8"
+                              placeholder="0.00"
+                            />
+                            <UiInput
+                              disabled={!isEditable}
+                              type="text"
+                              value={payments.tarjetaRef || ''}
+                              onChange={e => setPayments(prev => ({ ...prev, tarjetaRef: e.target.value }))}
+                              className="w-full bg-white rounded-lg h-8 text-xs"
+                              placeholder="Nro Lote / Autorización POS"
+                            />
+                          </div>
+                        )}
+
+                        {activePayments.cruce_cuentas && (
+                          <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-2.5 space-y-1.5">
+                            <div className="flex justify-between items-center text-xs">
+                              <span className="font-bold text-slate-800">Crédito Directo (CxC)</span>
+                              <span className="text-[11px] text-slate-500 font-medium font-mono">${(Number(payments.cruce_cuentas) || 0).toFixed(2)}</span>
+                            </div>
+                            <UiInput
+                              disabled={!isEditable}
+                              type="number"
+                              step="0.01"
+                              value={payments.cruce_cuentas || ''}
+                              onChange={e => setPayments(prev => ({ ...prev, cruce_cuentas: e.target.value }))}
+                              iconPrefix={<span className="text-slate-400 font-semibold text-xs">$</span>}
+                              size="2"
+                              className="w-full bg-white rounded-lg h-8"
+                              placeholder="0.00"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setIsCreditModalOpen(true)}
+                              className="w-full py-1.5 px-3 rounded-full bg-amber-500 hover:bg-amber-600 text-white font-semibold text-[11px] transition-colors cursor-pointer"
+                            >
+                              Configurar Plazo de Crédito
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Vuelto and Cubierto metrics */}
+                      {(() => {
+                        const totalNum = Number(formData.total) || 0;
+                        const sum = (Number(payments.efectivo) || 0) + (Number(payments.transferencia) || 0) + (Number(payments.tarjeta) || 0) + (Number(payments.cruce_cuentas) || 0);
+                        const cambio = Math.max(0, sum - totalNum);
+                        return (
+                          <div className="grid grid-cols-2 gap-2 pt-0.5">
+                            <div className={`p-2 rounded-xl border text-center ${
+                              sum >= totalNum - 0.01
+                                ? 'bg-[#e6fce5] border-[#ceead6] text-[#004227]'
+                                : 'bg-rose-50 border-rose-200 text-rose-700'
+                            }`}>
+                              <span className="text-[10px] font-bold block uppercase tracking-wider">Cambio / Vuelto</span>
+                              <span className="text-sm font-extrabold font-mono">${cambio.toFixed(2)}</span>
+                            </div>
+                            <div className="p-2 rounded-xl border border-slate-200/80 bg-slate-50/80 text-center flex flex-col justify-center">
+                              <span className="text-[10px] font-bold block text-slate-500 uppercase tracking-wider">Cubierto</span>
+                              <span className="text-sm font-extrabold font-mono text-slate-900">${sum.toFixed(2)}</span>
+                            </div>
+                          </div>
+                        );
+                      })()}
+
+                      {/* Payment Warning Banner */}
+                      {(() => {
+                        const totalNum = Number(formData.total) || 0;
+                        const sum = (Number(payments.efectivo) || 0) + (Number(payments.transferencia) || 0) + (Number(payments.tarjeta) || 0) + (Number(payments.cruce_cuentas) || 0);
+                        if (sum === 0 && totalNum > 0) {
+                          return (
+                            <div className="p-2 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-[11px] flex items-center gap-1.5">
+                              <AlertTriangle size={13} className="text-rose-600 shrink-0" />
+                              <span className="font-medium">Falta seleccionar forma de pago.</span>
+                            </div>
+                          );
+                        }
+                        if (sum < totalNum - 0.01) {
+                          return (
+                            <div className="p-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-[11px] flex items-center gap-1.5">
+                              <AlertTriangle size={13} className="text-amber-600 shrink-0" />
+                              <span className="font-medium">Falta ${ (totalNum - sum).toFixed(2) } por cubrir.</span>
+                            </div>
+                          );
+                        }
+                        return null;
+                      })()}
+                    </div>
+                  </>
+                )}
+
+                {/* 3. Emisión y Acciones Finales */}
+                <div className="h-px bg-slate-200/80" />
+
+                <div className="space-y-2 pt-0.5">
                   {isEditable ? (
                     <>
-                      {/* Save Draft (Guardar Borrador) */}
-                      <button
-                        type="button" 
-                        onClick={handleSave} 
-                        disabled={isUploading || isEmitting || isSaving}
-                        className={`w-full py-2.5 px-4 rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                          isUploading || isEmitting || isSaving ? 'opacity-50 cursor-not-allowed' : ''
-                        }`}
-                      >
-                        <CheckCircle2 size={14} className="text-slate-600" />
-                        <span>Guardar Borrador</span>
-                      </button>
-
                       {/* Emit SRI (Factura Electrónica) */}
                       {formData.type === 'ingreso' && formData.documentType !== 'nota_venta' && (
                         <button
                           type="button" 
                           onClick={handleEmitirSRI} 
                           disabled={isUploading || isEmitting || isSaving}
-                          className={`w-full py-3 px-5 rounded-full bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-none ${
+                          className={`w-full py-2.5 sm:py-3 px-4 rounded-full bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-none ${
                             isUploading || isEmitting || isSaving ? 'opacity-50 cursor-not-allowed' : ''
                           }`}
                         >
@@ -3027,7 +3026,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                           type="button" 
                           onClick={() => handleSave({ isFinalizingNotaVenta: true })} 
                           disabled={isUploading || isEmitting || isSaving}
-                          className={`w-full py-3 px-5 rounded-full bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-none ${
+                          className={`w-full py-2.5 sm:py-3 px-4 rounded-full bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-none ${
                             isUploading || isEmitting || isSaving ? 'opacity-50 cursor-not-allowed' : ''
                           }`}
                         >
@@ -3042,7 +3041,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                           type="button" 
                           onClick={handleSave} 
                           disabled={isUploading || isEmitting || isSaving}
-                          className={`w-full py-3 px-5 rounded-full bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-none ${
+                          className={`w-full py-2.5 sm:py-3 px-4 rounded-full bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-none ${
                             isUploading || isEmitting || isSaving ? 'opacity-50 cursor-not-allowed' : ''
                           }`}
                         >
@@ -3050,33 +3049,46 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                           <span>Registrar Compra / Gasto</span>
                         </button>
                       )}
+
+                      {/* Save Draft (Guardar Borrador) */}
+                      <button
+                        type="button" 
+                        onClick={handleSave} 
+                        disabled={isUploading || isEmitting || isSaving}
+                        className={`w-full py-2 px-4 rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                          isUploading || isEmitting || isSaving ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
+                      >
+                        <CheckCircle2 size={13} className="text-slate-500" />
+                        <span>Guardar Borrador</span>
+                      </button>
                     </>
                   ) : (
-                    <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center justify-center gap-2 font-medium">
+                    <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center justify-center gap-2 font-medium">
                       <CheckCircle2 size={14} className="shrink-0 text-emerald-600" />
                       <span>{isAuthorized ? 'Autorizado / registrado con éxito.' : isAnulado ? 'Documento anulado.' : 'Comprobante reservado. Consulte su estado en el SRI.'}</span>
                     </div>
                   )}
                 </div>
-              </div>
 
-              {/* SRI Live Console */}
-              {(isEmitting || sriLogs.length > 0) && (
-                <div className="rounded-2xl bg-[#0c1017] border border-slate-800 text-emerald-400 font-mono text-[11px] p-3 space-y-1.5 max-h-[140px] overflow-y-auto">
-                  <div className="border-b border-slate-800 text-slate-400 flex items-center gap-1.5 pb-1 font-semibold text-[10px] uppercase tracking-wider">
-                    <Terminal size={12} className="text-emerald-400" />
-                    <span>Consola SRI (Ecuador)</span>
+                {/* SRI Live Console */}
+                {(isEmitting || sriLogs.length > 0) && (
+                  <div className="rounded-xl bg-[#0c1017] border border-slate-800 text-emerald-400 font-mono text-[10px] p-2.5 space-y-1 max-h-[120px] overflow-y-auto">
+                    <div className="border-b border-slate-800 text-slate-400 flex items-center gap-1 pb-1 font-semibold text-[9px] uppercase tracking-wider">
+                      <Terminal size={11} className="text-emerald-400" />
+                      <span>Consola SRI (Ecuador)</span>
+                    </div>
+                    <div className="space-y-0.5 pt-0.5">
+                      {sriLogs.map((log, i) => (
+                        <div key={i} className="flex gap-1.5 items-start">
+                          <span className="text-slate-500 shrink-0">{log.time}</span>
+                          <span className={log.status === 'error' ? 'text-rose-400 font-bold' : log.status === 'success' ? 'text-emerald-400' : 'text-slate-300'}>{log.message}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div className="space-y-1 pt-0.5">
-                    {sriLogs.map((log, i) => (
-                      <div key={i} className="flex gap-2 items-start">
-                        <span className="text-slate-500 shrink-0">{log.time}</span>
-                        <span className={log.status === 'error' ? 'text-rose-400 font-bold' : log.status === 'success' ? 'text-emerald-400' : 'text-slate-300'}>{log.message}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+                )}
+              </div>
             </UiBox>
           </div>
           </UiBox>

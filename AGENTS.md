@@ -517,6 +517,18 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
   - Icono `X` destacado con `size={18}` y `strokeWidth={2.2}`, sin textos adicionales, logrando una estética moderna, despejada y de rápida identificación táctil.
 - **Pruebas y Build**: 41 tests unitarios aprobados, compilación limpia de producción en 8.31s.
 
+### 42. Unificación y Compactación de Columna de Pagos y Emisión en Venta Administrativa (2026-09-25) — COMPLETADO
+- **Columna Unificada en una Sola Tarjeta Compacta (`TransactionForm.jsx`)**:
+  - Eliminada la fragmentación vertical en 3 tarjetas separadas (*Resumen e Impuestos*, *Medios de Pago* y *Emisión de Comprobante*) que forzaba al usuario a hacer scroll para alcanzar el botón de emisión.
+  - Se unificó todo el contenido en una **única tarjeta limpia y compacta** (`bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-none space-y-3.5 sticky top-4`).
+  - Separación interna mediante sutiles divisores lineales (`h-px bg-slate-200/80`):
+    1. **Resumen de Totales**: Subtotal, Descuentos por ítem/general, Base imponible, IVA y Total a Pagar en tipografía monospace de alto contraste.
+    2. **Medios de Pago**: 4 botones compactos (Efectivo, Transf., Tarjeta, Crédito) con acento menta (`#c0ffa5`), inputs ágiles, y métricas de Cambio/Vuelto y Cubierto.
+    3. **Acciones de Emisión**: Botón principal *"Emitir Factura Electrónica (SRI)"* (`bg-[#1b1b1b]`), botón secundario *"Guardar Borrador"*, y consola SRI reactiva.
+  - Al incorporar `sticky top-4` y optimizar la altura vertical (~40% menos de espacio desperdiciado en paddings y cabeceras redundantes), todos los totales, medios de pago y el botón de emisión quedan inmediatamente visibles "de primera mano" sin scroll vertical.
+- **Pruebas y Build**: 41 tests unitarios aprobados, compilación limpia en 10.44s.
+
+
 
 
 
