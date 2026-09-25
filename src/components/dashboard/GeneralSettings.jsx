@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { 
-  Link as LinkIcon, Sparkles, Users, Shield, 
+  Sparkles, Users, Shield, 
   Save, Download, CheckCircle2, AlertTriangle, Mail, 
-  Phone, Building, ShoppingCart, DollarSign, Package, Calendar, 
+  Phone, Building, ShoppingCart, ShoppingBag, DollarSign, Package, Calendar, 
   Plus, Trash2, LayoutDashboard, ToggleLeft, ToggleRight,
   CreditCard, Award, UploadCloud, X, Lock, RefreshCw, FileText,
   AlertCircle, CheckCircle, Send
-} from'lucide-react';
+} from 'lucide-react';
 import { doc, setDoc, getDoc } from'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from'firebase/storage';
 import forge from'node-forge';
@@ -894,20 +894,6 @@ export default function GeneralSettings({
  };
 
  // Save Gemini Key
- // Save Google client ID
- const handleSaveWorkspace = async (e) => {
- e.preventDefault();
- try {
- const docRef = doc(db,'artifacts', appId,'public','data','meta','info');
- await setDoc(docRef, { googleClientId }, { merge: true });
- setGoogleClientId(googleClientId);
- showToast("Google Workspace Client ID guardado","success");
- } catch (err) {
- console.error(err);
- showToast("Error al guardar Client ID","error");
- }
- };
-
  // Handle module activation toggles
  const handleToggleModule = async (moduleId) => {
  const updatedModules = {
@@ -991,14 +977,13 @@ export default function GeneralSettings({
     }
   }
 
- const inputClass =`w-full text-xs px-3 py-2.5 rounded-card outline-none transition-all border bg-white border-border-strong text-text-heading focus:border-primary focus:ring-1 focus:ring-primary/35 font-medium`;
+  const inputClass = "w-full text-xs px-3.5 py-2.5 rounded-xl outline-none transition-all border bg-white border-slate-200 text-slate-900 font-medium focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 placeholder:text-slate-400";
 
  const tabs = [
  { id:'profile', label:'Perfil de Empresa', icon: Building },
  { id:'einvoicing', label:'Facturación Electrónica', icon: FileText },
  { id:'recovery', label:'Recuperar Facturas SRI', icon: RefreshCw },
  { id:'modules', label:'Módulos ERP', icon: ToggleRight },
- { id:'workspace', label:'Google Workspace', icon: LinkIcon },
  { id:'gemini', label:'Google Gemini', icon: Sparkles },
  { id:'users', label:'Usuarios y Roles', icon: Users },
  { id:'backup', label:'Copia de Seguridad', icon: Download }
@@ -1007,36 +992,37 @@ export default function GeneralSettings({
  return (
  <div className="flex flex-col md:flex-row gap-6 h-full w-full animate-in fade-in duration-300">
  
- {/* MENU LATERAL DE PESTAÑAS */}
- <div className="md:w-64 shrink-0 flex flex-col gap-1">
- {tabs.map(tab => {
- const Icon = tab.icon;
- const isActive = activeSubTab === tab.id;
- return (
- <button
- key={tab.id}
- onClick={() => setActiveSubTab(tab.id)}
- className={`flex items-center gap-3 px-4 py-3 rounded-card text-xs font-semibold transition-all text-left ${
- isActive 
- ?'bg-primary text-white'
- :'text-black hover:text-black hover:bg-black/5'
- }`}
- >
- <Icon size={16} />
- <span>{tab.label}</span>
- </button>
- );
- })}
- </div>
+ {/* MENU LATERAL DE PESTAÑAS (ESTILO BREVO) */}
+  <div className="md:w-64 shrink-0 flex flex-col gap-1.5">
+    {tabs.map(tab => {
+      const Icon = tab.icon;
+      const isActive = activeSubTab === tab.id;
+      return (
+        <button
+          key={tab.id}
+          type="button"
+          onClick={() => setActiveSubTab(tab.id)}
+          className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all text-left cursor-pointer select-none ${
+            isActive 
+              ? 'bg-[#1b1b1b] text-white shadow-none font-bold'
+              : 'text-slate-600 hover:text-slate-950 hover:bg-slate-100/90'
+          }`}
+        >
+          <Icon size={16} strokeWidth={isActive ? 2.2 : 2} className={isActive ? 'text-white' : 'text-slate-500'} />
+          <span>{tab.label}</span>
+        </button>
+      );
+    })}
+  </div>
 
- {/* CONTENIDO DE PESTAÑA */}
- <div className={`flex-1 p-4 sm:p-6 rounded-card border bg-white border-border-default text-text-primary`}>
+  {/* CONTENIDO DE PESTAÑA */}
+ <div className="flex-1 p-5 sm:p-7 rounded-2xl border border-slate-200/90 bg-white text-slate-900 shadow-none">
  
  {/* PESTAÑA: PERFIL EMPRESA */}
  {activeSubTab ==='profile' && (
  <form onSubmit={handleSaveProfile} className="space-y-6 animate-in fade-in duration-200">
  <div className="border-b border-white/5 pb-3">
- <h3 className="text-sm font-semibold uppercase tracking-wider text-primary">Perfil de Empresa</h3>
+ <h3 className="text-base font-bold text-slate-950 tracking-tight">Perfil de Empresa</h3>
  <p className="text-xs text-text-secondary mt-1">Identidad fiscal, firma electrónica y establecimientos de su negocio. El ambiente de emisión, secuenciales y formatos se configuran en la pestaña <span className="font-bold text-primary">Facturación Electrónica</span>.</p>
  </div>
 
@@ -1595,7 +1581,7 @@ export default function GeneralSettings({
  <button 
  type="button" 
  onClick={handleAddWarehouse}
- className="px-4 py-2.5 rounded-card bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shrink-0 transition-transform active:scale-95"
+ className="px-4 py-2.5 rounded-xl bg-[#1b1b1b] hover:bg-black text-white font-bold text-xs uppercase tracking-wider shrink-0 transition-all cursor-pointer shadow-none"
  >
  Agregar Bodega
  </button>
@@ -1611,7 +1597,7 @@ export default function GeneralSettings({
  {(!companyProfile.certificadoCargado || isFirmaMatch()) ? (
  <button 
  type="submit" 
- className="flex items-center gap-1.5 px-6 py-2.5 rounded-card text-xs font-semibold bg-primary hover:bg-primary-hover text-white transition-transform hover:-translate-y-0.5 active:scale-95 animate-in fade-in duration-200"
+ className="flex items-center gap-1.5 px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider bg-[#1b1b1b] hover:bg-black text-white transition-all cursor-pointer shadow-none"
  >
  <Save size={14} /> Guardar Empresa
  </button>
@@ -1629,7 +1615,7 @@ export default function GeneralSettings({
  {activeSubTab ==='einvoicing' && (
  <div className="space-y-6 animate-in fade-in duration-200">
  <div className="border-b border-border-default pb-3 mb-4">
- <h3 className="text-sm font-semibold uppercase tracking-wider text-primary">Facturación Electrónica (SRI)</h3>
+ <h3 className="text-base font-bold text-slate-950 tracking-tight">Facturación Electrónica (SRI)</h3>
  <p className="text-xs text-text-secondary mt-1">Configure el ambiente de emisión, los secuenciales de cada comprobante y los formatos de impresión. El certificado de firma electrónica se gestiona en la pestaña Perfil de Empresa.</p>
  </div>
  <div className="bg-slate-50/70 border border-border-default rounded-card p-4 space-y-3">
@@ -1647,7 +1633,7 @@ export default function GeneralSettings({
  {activeSubTab ==='recovery' && (
  <div className="space-y-6 animate-in fade-in duration-200">
  <div className="border-b border-border-default pb-3 mb-4">
- <h3 className="text-sm font-semibold uppercase tracking-wider text-primary">Recuperación de Facturas Autorizadas (SRI)</h3>
+ <h3 className="text-base font-bold text-slate-950 tracking-tight">Recuperación de Facturas Autorizadas (SRI)</h3>
  <p className="text-xs text-text-secondary mt-1">
  Importa directamente desde los servidores del SRI cualquier comprobante autorizado que no aparezca en tu base de datos de WebFix.
  </p>
@@ -1678,237 +1664,205 @@ export default function GeneralSettings({
  )}
 
 
- {/* PESTAÑA: MODULOS ERP (ACTIVACION / DESACTIVACION) */}
- {activeSubTab ==='modules' && (
- <div className="space-y-6 animate-in fade-in duration-200">
- <div className="border-b border-white/5 pb-3">
- <h3 className="text-sm font-semibold uppercase tracking-wider text-primary">Activación y Desactivación de Módulos</h3>
- <p className="text-xs text-text-secondary mt-1">Personaliza tu espacio de trabajo desactivando los módulos que no utilices. Los cambios se reflejarán inmediatamente en el menú de navegación izquierdo.</p>
- </div>
+ {/* PESTAÑA: MODULOS ERP (ACTIVACION / DESACTIVACION - ESTILO BREVO) */}
+  {activeSubTab === 'modules' && (
+    <div className="space-y-6 animate-in fade-in duration-200">
+      <div className="border-b border-slate-100 pb-4 mb-6">
+        <h3 className="text-base font-bold text-slate-950 tracking-tight">Activación y Desactivación de Módulos</h3>
+        <p className="text-xs text-slate-500 mt-1">Personaliza tu espacio de trabajo activando o desactivando los módulos que no utilices. Los cambios se reflejarán inmediatamente en el menú de navegación izquierdo.</p>
+      </div>
 
- <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
- {/* CARD: PROYECTOS */}
- <div className={`p-4 rounded-card border flex flex-col justify-between bg-surface-bg border-border-default`}>
- <div className="space-y-2">
- <div className="flex items-center justify-between">
- <span className="p-2 rounded-card bg-primary/10 text-primary"><LayoutDashboard size={18} /></span>
- <span className="text-xs px-2 py-0.5 rounded bg-primary/15 text-primary font-bold uppercase">Núcleo</span>
- </div>
- <h4 className="text-xs font-bold font-sans">Proyectos y Tableros</h4>
- <p className="text-xs text-text-secondary leading-normal">Mi Espacio, control de tareas Kanban, priorización de sprints y bitácoras.</p>
- </div>
- <div className="flex justify-between items-center mt-6 border-t border-white/5 pt-3">
- <span className="text-xs text-text-secondary font-bold">Estado</span>
- <button type="button" onClick={() => handleToggleModule('dashboard')} className="text-emerald-500"><ToggleRight size={30} /></button>
- </div>
- </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+        
+        {/* 1. VENTAS */}
+        <div className="p-5 rounded-2xl border border-slate-200/90 bg-white hover:border-slate-300 transition-all flex flex-col justify-between">
+          <div className="space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center">
+                <ShoppingCart size={20} strokeWidth={2.2} />
+              </span>
+              <button 
+                type="button" 
+                onClick={() => handleToggleModule('ventas')}
+                className="cursor-pointer transition-transform active:scale-95"
+              >
+                {activeModules.ventas ? (
+                  <ToggleRight size={32} className="text-[#0b996e]" />
+                ) : (
+                  <ToggleLeft size={32} className="text-slate-300" />
+                )}
+              </button>
+            </div>
+            <h4 className="text-sm font-bold text-slate-900">Ventas y Facturación</h4>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Bandeja de facturas electrónicas, cotizaciones comerciales, notas de crédito y punto de venta mostrador (POS).
+            </p>
+          </div>
+          <div className="flex justify-between items-center mt-5 pt-3 border-t border-slate-100">
+            <span className="text-xs text-slate-500 font-semibold">Estado</span>
+            <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
+              activeModules.ventas 
+                ? 'bg-[#c0ffa5] text-[#004227]' 
+                : 'bg-slate-100 text-slate-500'
+            }`}>
+              {activeModules.ventas ? 'Activado' : 'Desactivado'}
+            </span>
+          </div>
+        </div>
 
- {/* CARD: VENTAS */}
- <div className={`p-4 rounded-card border flex flex-col justify-between bg-surface-bg border-border-default`}>
- <div className="space-y-2">
- <div className="flex items-center justify-between">
- <span className="p-2 rounded-card bg-orange-500/10 text-orange-500"><ShoppingCart size={18} /></span>
- <button type="button" onClick={() => handleToggleModule('ventas')}>
- {activeModules.ventas ? <ToggleRight size={28} className="text-emerald-500" /> : <ToggleLeft size={28} className="text-text-secondary" />}
- </button>
- </div>
- <h4 className="text-xs font-bold font-sans">Ventas y Facturación</h4>
- <p className="text-xs text-text-secondary leading-normal">Bandeja de facturas, Cotizaciones comerciales y Punto de venta (POS) en pantalla completa.</p>
- </div>
- <div className="flex justify-between items-center mt-6 border-t border-white/5 pt-3">
- <span className="text-xs text-text-secondary font-bold">Estado</span>
- <span className={`text-xs font-semibold uppercase ${activeModules.ventas ?'text-emerald-400' :'text-text-secondary'}`}>
- {activeModules.ventas ?'Activado' :'Desactivado'}
- </span>
- </div>
- </div>
+        {/* 2. COMPRAS */}
+        <div className="p-5 rounded-2xl border border-slate-200/90 bg-white hover:border-slate-300 transition-all flex flex-col justify-between">
+          <div className="space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                <ShoppingBag size={20} strokeWidth={2.2} />
+              </span>
+              <button 
+                type="button" 
+                onClick={() => handleToggleModule('compras')}
+                className="cursor-pointer transition-transform active:scale-95"
+              >
+                {activeModules.compras ? (
+                  <ToggleRight size={32} className="text-[#0b996e]" />
+                ) : (
+                  <ToggleLeft size={32} className="text-slate-300" />
+                )}
+              </button>
+            </div>
+            <h4 className="text-sm font-bold text-slate-900">Compras (SRI / ATS)</h4>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Gestión de facturas recibidas del SRI, gastos con categorización de IA y retenciones en compras.
+            </p>
+          </div>
+          <div className="flex justify-between items-center mt-5 pt-3 border-t border-slate-100">
+            <span className="text-xs text-slate-500 font-semibold">Estado</span>
+            <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
+              activeModules.compras 
+                ? 'bg-[#c0ffa5] text-[#004227]' 
+                : 'bg-slate-100 text-slate-500'
+            }`}>
+              {activeModules.compras ? 'Activado' : 'Desactivado'}
+            </span>
+          </div>
+        </div>
 
- {/* CARD: CONTABILIDAD */}
- <div className={`p-4 rounded-card border flex flex-col justify-between bg-surface-bg border-border-default`}>
- <div className="space-y-2">
- <div className="flex items-center justify-between">
- <span className="p-2 rounded-card bg-emerald-500/10 text-emerald-500"><DollarSign size={18} /></span>
- <button type="button" onClick={() => handleToggleModule('finances')}>
- {activeModules.finances ? <ToggleRight size={28} className="text-emerald-500" /> : <ToggleLeft size={28} className="text-text-secondary" />}
- </button>
- </div>
- <h4 className="text-xs font-bold font-sans">Contabilidad y Retenciones</h4>
- <p className="text-xs text-text-secondary leading-normal">Gestión contable, retenciones del SRI, Cuentas por Cobrar (CxC), Cuentas por Pagar (CxP) y reportes.</p>
- </div>
- <div className="flex justify-between items-center mt-6 border-t border-white/5 pt-3">
- <span className="text-xs text-text-secondary font-bold">Estado</span>
- <span className={`text-xs font-semibold uppercase ${activeModules.finances ?'text-emerald-400' :'text-text-secondary'}`}>
- {activeModules.finances ?'Activado' :'Desactivado'}
- </span>
- </div>
- </div>
+        {/* 3. FINANZAS */}
+        <div className="p-5 rounded-2xl border border-slate-200/90 bg-white hover:border-slate-300 transition-all flex flex-col justify-between">
+          <div className="space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                <DollarSign size={20} strokeWidth={2.2} />
+              </span>
+              <button 
+                type="button" 
+                onClick={() => handleToggleModule('finances')}
+                className="cursor-pointer transition-transform active:scale-95"
+              >
+                {activeModules.finances ? (
+                  <ToggleRight size={32} className="text-[#0b996e]" />
+                ) : (
+                  <ToggleLeft size={32} className="text-slate-300" />
+                )}
+              </button>
+            </div>
+            <h4 className="text-sm font-bold text-slate-900">Control Financiero & Bancos</h4>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Gestión contable, cuentas por cobrar (CxC), cuentas por pagar (CxP), bancos, tarjetas y reportes financieros.
+            </p>
+          </div>
+          <div className="flex justify-between items-center mt-5 pt-3 border-t border-slate-100">
+            <span className="text-xs text-slate-500 font-semibold">Estado</span>
+            <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
+              activeModules.finances 
+                ? 'bg-[#c0ffa5] text-[#004227]' 
+                : 'bg-slate-100 text-slate-500'
+            }`}>
+              {activeModules.finances ? 'Activado' : 'Desactivado'}
+            </span>
+          </div>
+        </div>
 
- {/* CARD: INVENTARIO */}
- <div className={`p-4 rounded-card border flex flex-col justify-between bg-surface-bg border-border-default`}>
- <div className="space-y-2">
- <div className="flex items-center justify-between">
- <span className="p-2 rounded-card bg-sky-500/10 text-sky-500"><Package size={18} /></span>
- <button type="button" onClick={() => handleToggleModule('inventario')}>
- {activeModules.inventario ? <ToggleRight size={28} className="text-emerald-500" /> : <ToggleLeft size={28} className="text-text-secondary" />}
- </button>
- </div>
- <h4 className="text-xs font-bold font-sans">Catálogo e Inventario</h4>
- <p className="text-xs text-text-secondary leading-normal">Control de stock de productos, mínimos críticos y configuración fiscal individual de IVA.</p>
- </div>
- <div className="flex justify-between items-center mt-6 border-t border-white/5 pt-3">
- <span className="text-xs text-text-secondary font-bold">Estado</span>
- <span className={`text-xs font-semibold uppercase ${activeModules.inventario ?'text-emerald-400' :'text-text-secondary'}`}>
- {activeModules.inventario ?'Activado' :'Desactivado'}
- </span>
- </div>
- </div>
+        {/* 4. INVENTARIO */}
+        <div className="p-5 rounded-2xl border border-slate-200/90 bg-white hover:border-slate-300 transition-all flex flex-col justify-between">
+          <div className="space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center">
+                <Package size={20} strokeWidth={2.2} />
+              </span>
+              <button 
+                type="button" 
+                onClick={() => handleToggleModule('inventario')}
+                className="cursor-pointer transition-transform active:scale-95"
+              >
+                {activeModules.inventario ? (
+                  <ToggleRight size={32} className="text-[#0b996e]" />
+                ) : (
+                  <ToggleLeft size={32} className="text-slate-300" />
+                )}
+              </button>
+            </div>
+            <h4 className="text-sm font-bold text-slate-900">Catálogo e Inventarios</h4>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Control de existencias de productos, catálogo de servicios, mínimos críticos y movimientos Kardex multibodega.
+            </p>
+          </div>
+          <div className="flex justify-between items-center mt-5 pt-3 border-t border-slate-100">
+            <span className="text-xs text-slate-500 font-semibold">Estado</span>
+            <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
+              activeModules.inventario 
+                ? 'bg-[#c0ffa5] text-[#004227]' 
+                : 'bg-slate-100 text-slate-500'
+            }`}>
+              {activeModules.inventario ? 'Activado' : 'Desactivado'}
+            </span>
+          </div>
+        </div>
 
- {/* CARD: PERSONAS */}
- <div className={`p-4 rounded-card border flex flex-col justify-between bg-surface-bg border-border-default`}>
- <div className="space-y-2">
- <div className="flex items-center justify-between">
- <span className="p-2 rounded-card bg-teal-500/10 text-teal-500"><Users size={18} /></span>
- <button type="button" onClick={() => handleToggleModule('personas')}>
- {activeModules.personas ? <ToggleRight size={28} className="text-emerald-500" /> : <ToggleLeft size={28} className="text-text-secondary" />}
- </button>
- </div>
- <h4 className="text-xs font-bold font-sans">Gestión de Personas</h4>
- <p className="text-xs text-text-secondary leading-normal">Directorio unificado de Clientes y Proveedores con RUC/Identificación del SRI.</p>
- </div>
- <div className="flex justify-between items-center mt-6 border-t border-white/5 pt-3">
- <span className="text-xs text-text-secondary font-bold">Estado</span>
- <span className={`text-xs font-semibold uppercase ${activeModules.personas ?'text-emerald-400' :'text-text-secondary'}`}>
- {activeModules.personas ?'Activado' :'Desactivado'}
- </span>
- </div>
- </div>
+        {/* 5. PERSONAS */}
+        <div className="p-5 rounded-2xl border border-slate-200/90 bg-white hover:border-slate-300 transition-all flex flex-col justify-between">
+          <div className="space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="w-10 h-10 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center">
+                <Users size={20} strokeWidth={2.2} />
+              </span>
+              <button 
+                type="button" 
+                onClick={() => handleToggleModule('personas')}
+                className="cursor-pointer transition-transform active:scale-95"
+              >
+                {activeModules.personas ? (
+                  <ToggleRight size={32} className="text-[#0b996e]" />
+                ) : (
+                  <ToggleLeft size={32} className="text-slate-300" />
+                )}
+              </button>
+            </div>
+            <h4 className="text-sm font-bold text-slate-900">Gestión de Personas</h4>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Directorio unificado de Clientes y Proveedores con RUC/CI del SRI, cartera y condiciones comerciales.
+            </p>
+          </div>
+          <div className="flex justify-between items-center mt-5 pt-3 border-t border-slate-100">
+            <span className="text-xs text-slate-500 font-semibold">Estado</span>
+            <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
+              activeModules.personas 
+                ? 'bg-[#c0ffa5] text-[#004227]' 
+                : 'bg-slate-100 text-slate-500'
+            }`}>
+              {activeModules.personas ? 'Activado' : 'Desactivado'}
+            </span>
+          </div>
+        </div>
 
- {/* CARD: CALENDARIO */}
- <div className={`p-4 rounded-card border flex flex-col justify-between bg-surface-bg border-border-default`}>
- <div className="space-y-2">
- <div className="flex items-center justify-between">
- <span className="p-2 rounded-card bg-purple-500/10 text-purple-500"><Calendar size={18} /></span>
- <button type="button" onClick={() => handleToggleModule('calendar')}>
- {activeModules.calendar ? <ToggleRight size={28} className="text-emerald-500" /> : <ToggleLeft size={28} className="text-text-secondary" />}
- </button>
- </div>
- <h4 className="text-xs font-bold font-sans">Calendario de Eventos</h4>
- <p className="text-xs text-text-secondary leading-normal">Planificación interna, sincronización con Google Calendar y enlaces de Google Meet.</p>
- </div>
- <div className="flex justify-between items-center mt-6 border-t border-white/5 pt-3">
- <span className="text-xs text-text-secondary font-bold">Estado</span>
- <span className={`text-xs font-semibold uppercase ${activeModules.calendar ?'text-emerald-400' :'text-text-secondary'}`}>
- {activeModules.calendar ?'Activado' :'Desactivado'}
- </span>
- </div>
- </div>
+      </div>
+    </div>
+  )}
 
- {/* CARD: EQUIPO */}
- <div className={`p-4 rounded-card border flex flex-col justify-between bg-surface-bg border-border-default`}>
- <div className="space-y-2">
- <div className="flex items-center justify-between">
- <span className="p-2 rounded-card bg-yellow-500/10 text-yellow-500"><Users size={18} /></span>
- <button type="button" onClick={() => handleToggleModule('team')}>
- {activeModules.team ? <ToggleRight size={28} className="text-emerald-500" /> : <ToggleLeft size={28} className="text-text-secondary" />}
- </button>
- </div>
- <h4 className="text-xs font-bold font-sans">Equipo de Trabajo</h4>
- <p className="text-xs text-text-secondary leading-normal">Gestión interna de colaboradores de este espacio, roles y asignación de tareas.</p>
- </div>
- <div className="flex justify-between items-center mt-6 border-t border-white/5 pt-3">
- <span className="text-xs text-text-secondary font-bold">Estado</span>
- <span className={`text-xs font-semibold uppercase ${activeModules.team ?'text-emerald-400' :'text-text-secondary'}`}>
- {activeModules.team ?'Activado' :'Desactivado'}
- </span>
- </div>
- </div>
-
- {/* CARD: COMPRAS */}
- <div className={`p-4 rounded-card border flex flex-col justify-between bg-surface-bg border-border-default`}>
- <div className="space-y-2">
- <div className="flex items-center justify-between">
- <span className="p-2 rounded-card bg-orange-500/10 text-orange-500"><ShoppingCart size={18} /></span>
- <button type="button" onClick={() => handleToggleModule('compras')}>
- {activeModules.compras ? <ToggleRight size={28} className="text-emerald-500" /> : <ToggleLeft size={28} className="text-text-secondary" />}
- </button>
- </div>
- <h4 className="text-xs font-bold font-sans">Módulo de Compras (SRI / ATS)</h4>
- <p className="text-xs text-text-secondary leading-normal">Gestión de facturas recibidas del SRI, gastos con categorización de IA y retenciones de compras.</p>
- </div>
- <div className="flex justify-between items-center mt-6 border-t border-white/5 pt-3">
- <span className="text-xs text-text-secondary font-bold">Estado</span>
- <span className={`text-xs font-semibold uppercase ${activeModules.compras ?'text-emerald-400' :'text-text-secondary'}`}>
- {activeModules.compras ?'Activado' :'Desactivado'}
- </span>
- </div>
- </div>
-
- {/* CARD: GASTOS Y CRÉDITOS */}
- <div className={`p-4 rounded-card border flex flex-col justify-between bg-surface-bg border-border-default`}>
- <div className="space-y-2">
- <div className="flex items-center justify-between">
- <span className="p-2 rounded-card bg-pink-500/10 text-pink-500"><CreditCard size={18} /></span>
- <button type="button" onClick={() => handleToggleModule('gastos_creditos')}>
- {activeModules.gastos_creditos ? <ToggleRight size={28} className="text-emerald-500" /> : <ToggleLeft size={28} className="text-text-secondary" />}
- </button>
- </div>
- <h4 className="text-xs font-bold font-sans">Gastos y Pasivos Financieros</h4>
- <p className="text-xs text-text-secondary leading-normal">Control financiero de préstamos bancarios, créditos comerciales de locales y tarjetas de crédito.</p>
- </div>
- <div className="flex justify-between items-center mt-6 border-t border-white/5 pt-3">
- <span className="text-xs text-text-secondary font-bold">Estado</span>
- <span className={`text-xs font-semibold uppercase ${activeModules.gastos_creditos ?'text-emerald-400' :'text-text-secondary'}`}>
- {activeModules.gastos_creditos ?'Activado' :'Desactivado'}
- </span>
- </div>
- </div>
- </div>
- </div>
- )}
-
- {/* PESTAÑA: GOOGLE WORKSPACE */}
- {activeSubTab ==='workspace' && (
- <form onSubmit={handleSaveWorkspace} className="space-y-6 animate-in fade-in duration-200">
- <div className="border-b border-white/5 pb-3">
- <h3 className="text-sm font-semibold uppercase tracking-wider text-primary">Integración con Google Workspace</h3>
- <p className="text-xs text-text-secondary mt-1">Conecta tu calendario de Google Calendar oficial para agendar citas directamente desde las tareas del ERP y autogenerar enlaces de Google Meet.</p>
- </div>
-
- <div>
- <label className="label-field label-field-dark">Google Client ID (OAuth 2.0)</label>
- <input 
- type="text" 
- value={googleClientId} 
- onChange={(e) => setGoogleClientId(e.target.value)} 
- className={inputClass} 
- placeholder="ej. 123456789-abcdefg.apps.googleusercontent.com" 
- />
- </div>
- 
- <div className={`p-4 rounded-card border text-xs leading-normal space-y-2 bg-primary-light border-primary/20 text-primary`}>
- <p className="font-bold uppercase tracking-wider text-xs">Instrucciones de Vinculación:</p>
- <ol className="list-decimal pl-4 space-y-1.5">
- <li>Ingresa a la consola de <a href="https://console.cloud.google.com" target="_blank" rel="noreferrer" className="underline font-bold">Google Cloud</a>.</li>
- <li>Crea un proyecto y habilita la API de <strong>Google Calendar</strong>.</li>
- <li>En la pestaña"Pantalla de consentimiento OAuth", configura los alcances de lectura y escritura de eventos.</li>
- <li>Crea las credenciales de tipo <strong>ID de cliente OAuth</strong> para una Aplicación Web.</li>
- <li>Copia el ID resultante y pégalo arriba. Guarda los cambios.</li>
- </ol>
- </div>
-
- <div className="flex justify-end pt-4 border-t border-white/5">
- <button type="submit" className="flex items-center gap-1.5 px-5 py-2.5 rounded-card text-xs font-semibold bg-primary hover:bg-primary-hover text-white transition-transform hover:-translate-y-0.5">
- <Save size={14} /> Guardar Conexión Google
- </button>
- </div>
- </form>
- )}
-
- {/* PESTAÑA: GOOGLE GEMINI (INTELIGENCIA ARTIFICIAL) */}
+  {/* PESTAÑA: GOOGLE GEMINI (INTELIGENCIA ARTIFICIAL) */}
  {activeSubTab ==='gemini' && (
  <div className="space-y-6 animate-in fade-in duration-200">
  <div className="border-b border-border-default pb-3">
- <h3 className="text-sm font-semibold uppercase tracking-wider text-primary">Inteligencia Artificial y Asistente Gemini</h3>
+ <h3 className="text-base font-bold text-slate-950 tracking-tight">Inteligencia Artificial y Asistente Gemini</h3>
  <p className="text-xs text-text-secondary mt-1">Servicios cognitivos de IA integrados para optimizar la toma de decisiones, extracción automática de documentos y planificación operativa.</p>
  </div>
 
@@ -1978,7 +1932,7 @@ export default function GeneralSettings({
  {activeSubTab ==='users' && (
  <div className="space-y-6 animate-in fade-in duration-200">
  <div className="border-b border-white/5 pb-3">
- <h3 className="text-sm font-semibold uppercase tracking-wider text-primary">Gestión de Usuarios de este Espacio</h3>
+ <h3 className="text-base font-bold text-slate-950 tracking-tight">Gestión de Usuarios y Roles</h3>
  <p className="text-xs text-text-secondary mt-1">Colaboradores registrados con acceso a este ERP. Puedes crear, asignar roles o revocar permisos.</p>
  </div>
 
@@ -2056,7 +2010,7 @@ export default function GeneralSettings({
  </div>
 
  <div className="flex justify-end pt-2">
- <button type="submit" className="flex items-center gap-1.5 px-4 py-2 rounded-card text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white">
+ <button type="submit" className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider bg-[#1b1b1b] hover:bg-black text-white cursor-pointer transition-all shadow-none">
  <Plus size={14} /> Registrar Usuario
  </button>
  </div>
@@ -2068,7 +2022,7 @@ export default function GeneralSettings({
  {activeSubTab ==='backup' && (
  <div className="space-y-6 animate-in fade-in duration-200">
  <div className="border-b border-white/5 pb-3">
- <h3 className="text-sm font-semibold uppercase tracking-wider text-primary">Copia de Seguridad y Respaldos</h3>
+ <h3 className="text-base font-bold text-slate-950 tracking-tight">Copia de Seguridad y Respaldos</h3>
  <p className="text-xs text-text-secondary mt-1">Respalda localmente toda la base de datos de tu espacio de trabajo para mayor seguridad. Descarga un archivo estructurado en JSON listo para ser restaurado.</p>
  </div>
 
@@ -2080,7 +2034,7 @@ export default function GeneralSettings({
 
  <button 
  onClick={handleDownloadBackup}
- className={`flex justify-center items-center gap-2 px-5 py-3 rounded-card text-xs font-semibold transition-all hover:-translate-y-0.5 uppercase tracking-wider shrink-0 bg-emerald-100 text-emerald-800 hover:bg-emerald-250 border border-emerald-300`}
+ className="flex justify-center items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold bg-[#1b1b1b] hover:bg-black text-white uppercase tracking-wider shrink-0 transition-all cursor-pointer shadow-none"
  >
  <Download size={14} /> Exportar Backup (JSON)
  </button>
@@ -2101,14 +2055,14 @@ export default function GeneralSettings({
  {/* MODAL CONFIGURACIÓN FIRMA ELECTRÓNICA */}
  {isFirmaOpen && (
  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 overflow-y-auto animate-in fade-in duration-300">
- <div className="relative w-full max-w-md rounded-card border border-white/10 bg-text-primary p-6 text-text-secondary animate-in zoom-in-95 duration-200">
+ <div className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 text-slate-900 shadow-2xl animate-in zoom-in-95 duration-200">
  
  {/* Cabecera */}
  <div className="flex justify-between items-start pb-4 border-b border-white/5 mb-4">
  <div className="flex items-center gap-2">
  <Award size={18} className="text-purple-400" />
  <div>
- <h3 className="text-sm font-semibold uppercase tracking-wider text-purple-400">Firma Electrónica</h3>
+ <h3 className="text-sm font-bold text-slate-950 uppercase tracking-wider">Firma Electrónica</h3>
  <p className="text-xs text-text-secondary">Cargar archivo de firma digital (.p12 / .pfx)</p>
  </div>
  </div>
@@ -2200,14 +2154,14 @@ export default function GeneralSettings({
  <button 
  type="button" 
  onClick={() => setIsFirmaOpen(false)}
- className="px-4 py-2 rounded-card text-xs font-bold bg-white/5 hover:bg-white/10 text-text-secondary transition-colors"
+ className="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer"
  >
  Cancelar
  </button>
  <button 
  type="button" 
  onClick={handleSaveFirma}
- className="px-4.5 py-2 rounded-card text-xs font-semibold bg-purple-600 hover:bg-purple-500 text-white shadow transition-transform active:scale-95"
+ className="px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider bg-[#1b1b1b] hover:bg-black text-white transition-all cursor-pointer shadow-none"
  >
  Guardar Firma
  </button>
