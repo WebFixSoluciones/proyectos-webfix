@@ -254,8 +254,15 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
   - Acordeón FAQ accesible y directo con `aria-expanded` y transiciones limpias.
   - Banner final de alta conversión en pizarra oscura `#0F172A` con botones píldora.
 - **Cero Gradientes Tipo IA**: Eliminados en su totalidad; estética sólida, nítida y profesional.
-- **Pruebas y Build**: 43 tests unitarios aprobados al 100%, compilación limpia de producción en 5.58s.
-
-
-
-
+### 23. Estandarización a Fondo Blanco Puro y Eliminación de Dark Mode Automático (2026-09-25) — COMPLETADO
+- **Causa Raíz Diagnosticada**: Tailwind CSS v4 compila por defecto la variante `dark:` usando la media query del sistema `@media (prefers-color-scheme: dark)`. Al tener el navegador o el sistema operativo del usuario en modo oscuro, la landing page renderizaba de forma no deseada fondos oscuros (`#0c1017`, `slate-950`, `#071d12`), incumpliendo el diseño de fondo blanco solicitado.
+- **Estandarización a Modo Claro Forzado (`@custom-variant dark`)**:
+  - En `src/index.css`, se configuró `@custom-variant dark (&:where(.dark, .dark *));`, asegurando que Tailwind nunca active estilos oscuros a través de preferencias del navegador u OS.
+  - Saneamiento completo de más de 390 clases `dark:` en `LandingLayout.jsx` y `LandingHome.jsx`.
+- **Fondo Blanco Puro y Estilo Brevo / SiteGround**:
+  - **Fondo General**: Todo el lienzo (`LandingLayout` y `LandingHome`) opera sobre fondo blanco inmaculado (`bg-white`), títulos en negro pizarra de alto contraste (`text-slate-950 font-bold`) y descripciones directas en `text-slate-600`.
+  - **Hero**: Bloque superior en tono menta pastel sutil (`bg-[#EAF8EA] border-b border-emerald-100 rounded-b-[40px] md:rounded-b-[56px]`), idéntico a la paleta insignia de Brevo.
+  - **Pestañas por Segmento**: Selector tipo píldora con pestaña activa en verde menta sólido Brevo (`bg-[#A3EFA2] text-slate-950 font-bold`) e inactivas en texto suave.
+  - **Banner Final de Conversión**: Reemplazado el antiguo bloque negro `#0F172A` por una tarjeta limpia en tono menta pastel `bg-[#EAF8EA]` con borde verde esmeralda suave, titular negro de alto impacto y botón píldora negro sólido `#0F172A`.
+  - **Footer Minimalista**: Fondo blanco puro (`bg-white border-t border-slate-200`) con textos y enlaces en slate nítido.
+- **Pruebas y Build**: 43/43 tests unitarios aprobados, compilación de producción exitosa en 7.31s con 0 advertencias de PostCSS.
