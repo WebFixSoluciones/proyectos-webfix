@@ -309,4 +309,20 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
   - Al desplazarse (`scrollY > 20`), el fondo del header activa glassmorphism traslúcido `backdrop-blur-md bg-[#EAF8EA]/85 border-b border-emerald-200/80 shadow-xs`, difuminando suavemente el contenido de la página que pasa por debajo con el tono menta insignia.
 - **Pruebas y Build**: 43 tests unitarios aprobados, compilación de producción exitosa en 5.58s.
 
+### 26. Beneficios de Facturación en 6 Tarjetas Minimalistas Réplica Brevo (2026-09-25) — COMPLETADO
+- **Reemplazo de Sección Multiplataforma (`LandingHome.jsx`)**:
+  - Removido el bloque contenedor antiguo de 3 dispositivos (*"Tu negocio sincronizado en PC, Móvil y Punto de Venta"*).
+  - La tabla comparativa moderna vs tradicional ahora finaliza limpiamente con `mb-0`.
+- **Nueva Sección Minimalista de 6 Tarjetas Estilo Brevo (`media_1790317678074.png`)**:
+  - **Título Centrado**: `Factura y gestiona tu negocio, a tu manera` (`text-[40px] font-extrabold text-slate-950 tracking-tight text-center`), sin subtítulos ni decoraciones secundarias.
+  - **Grid de 6 Columnas**: 6 tarjetas verticales en fondo blanco (`rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 h-[250px] sm:h-[270px]`) con títulos directos en 2 líneas y micro-ilustraciones vectoriales limpias al pie:
+    1. **Facturación electrónica SRI**: Squircle pastel con icono de documento y badge circular menta con checkmark verificado SRI.
+    2. **Punto de venta (POS)**: Mini terminal POS/móvil con reloj `12:30` y banner de ticket emitido `$18.50 Listo`.
+    3. **Firma digital .p12**: Squircle verde bosque `#0B5D3A` con llave de seguridad y badge oficial `SRI`.
+    4. **Envío por WhatsApp**: Dos burbujas apiladas con confirmación de entrega en vivo y RIDE/XML disponible en 1s.
+    5. **Inventario & Kardex**: Tarjeta de almacén con código de barras en vivo, stock actual `142 un` y badge de paquete.
+    6. **Cobros & Bancos**: Mini teclado numérico, badge de tendencia y botón circular negro con flecha `[ → ]` idéntico al componente de Brevo.
+- **Pruebas y Build**: 43 tests unitarios aprobados, compilación de producción limpia en 7.89s.
+
+
 

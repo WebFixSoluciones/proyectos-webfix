@@ -4,9 +4,9 @@ import {
   ArrowRight, Check, 
   ShoppingCart, FileText, TrendingUp, Package, 
   CheckCircle2, ChevronDown, Sparkles,
-  DollarSign, ShieldCheck,
+  DollarSign, ShieldCheck, KeyRound,
   Lock, Printer,
-  Laptop, Smartphone, Store, RefreshCw, Wifi, X
+  Store, X
 } from 'lucide-react';
 import { useParallaxScroll } from '../../hooks/useParallaxScroll';
 import { ScrollReveal } from '../../components/landing/ScrollReveal';
@@ -777,7 +777,7 @@ export default function LandingHome() {
             </div>
 
             {/* Tabla Comparativa Limpia */}
-            <div className="max-w-4xl mx-auto rounded-3xl border border-slate-200/90 overflow-hidden bg-white shadow-none mb-16">
+            <div className="max-w-4xl mx-auto rounded-3xl border border-slate-200/90 overflow-hidden bg-white shadow-none mb-0">
               <div className="grid grid-cols-2 px-6 py-4 border-b border-slate-200 bg-slate-50/80 font-bold text-sm sm:text-base">
                 <div className="text-slate-500">Sistemas Tradicionales / Antiguos</div>
                 <div className="text-blue-600 flex items-center gap-1.5">
@@ -829,99 +829,167 @@ export default function LandingHome() {
               </div>
             </div>
 
-            {/* Ecosistema Multiplataforma Integrado (PC, POS Mostrador y Móvil) */}
-            <div className="rounded-3xl border border-slate-200/90 bg-white p-8 sm:p-10 md:p-12 text-left">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-8 mb-8 border-b border-slate-100">
-                <div>
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 font-semibold text-xs mb-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-                    Ecosistema Multiplataforma Integrado
+          </div>
+        </ScrollReveal>
+      </section>
+
+      {/* 3.6. BENEFICIOS MINIMALISTAS EN 6 CARDS (RÉPLICA IDÉNTICA BREVO IMAGEN 2) */}
+      <section className="w-full bg-white border-b border-slate-100 py-16 md:py-24">
+        <ScrollReveal direction="up">
+          <div className="w-[90%] max-w-[1720px] mx-auto">
+            {/* Título de Sección estilo Brevo: Centrado, contundente, sin subtítulo */}
+            <h2 className="text-3xl sm:text-4xl lg:text-[40px] font-extrabold text-slate-950 tracking-tight text-center mb-10 sm:mb-14">
+              Factura y gestiona tu negocio, a tu manera
+            </h2>
+
+            {/* Grid de 6 Tarjetas Minimalistas */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-5">
+              
+              {/* 1. Facturación electrónica SRI */}
+              <div
+                onClick={() => navigate('/register')}
+                className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 flex flex-col justify-between items-start h-[250px] sm:h-[270px] hover:border-slate-400 hover:shadow-xs transition-all duration-200 cursor-pointer group"
+              >
+                <h3 className="font-bold text-slate-900 text-base sm:text-[17px] leading-snug">
+                  Facturación<br />electrónica SRI
+                </h3>
+                <div className="w-full flex items-center justify-center pt-2">
+                  <div className="w-16 h-16 rounded-2xl bg-[#E8F0FE] border border-blue-200/60 flex items-center justify-center relative shadow-xs group-hover:scale-105 transition-transform">
+                    <FileText size={28} className="text-blue-600 stroke-[2]" />
+                    <div className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-[#B3F2A9] border border-emerald-400 flex items-center justify-center shadow-xs">
+                      <Check size={11} className="text-slate-950 stroke-[3]" />
+                    </div>
                   </div>
-                  <h3 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-                    Tu negocio sincronizado en PC, Móvil y Punto de Venta
-                  </h3>
-                </div>
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-slate-200 bg-slate-50 text-xs font-mono font-medium text-slate-700 shrink-0 self-start sm:self-auto">
-                  <Wifi size={14} className="text-emerald-600" />
-                  <span>Cloud Sync 100% en Vivo</span>
                 </div>
               </div>
 
-              {/* 3 Dispositivos Limpios */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                
-                {/* 1. PC & Laptops */}
-                <div className="rounded-2xl border border-slate-200/80 p-6 bg-slate-50/50 flex flex-col justify-between">
-                  <div>
-                    <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-4">
-                      <Laptop size={20} />
+              {/* 2. Punto de venta POS */}
+              <div
+                onClick={() => navigate('/register')}
+                className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 flex flex-col justify-between items-start h-[250px] sm:h-[270px] hover:border-slate-400 hover:shadow-xs transition-all duration-200 cursor-pointer group"
+              >
+                <h3 className="font-bold text-slate-900 text-base sm:text-[17px] leading-snug">
+                  Punto de<br />venta (POS)
+                </h3>
+                <div className="w-full flex items-center justify-center pt-2">
+                  <div className="w-22 h-18 rounded-t-2xl border-2 border-slate-300 bg-white flex flex-col items-center pt-1.5 relative shadow-xs group-hover:scale-105 transition-transform">
+                    <span className="text-[9px] font-mono font-semibold text-slate-500">12:30</span>
+                    <div className="w-26 bg-slate-50 border border-slate-200 rounded-lg p-1.5 flex items-center justify-between shadow-sm mt-1">
+                      <div className="w-4 h-4 rounded-full bg-[#B3F2A9] flex items-center justify-center shrink-0">
+                        <Store size={9} className="text-slate-900" />
+                      </div>
+                      <div className="flex flex-col text-left pl-1">
+                        <span className="text-[9px] font-bold text-slate-800 leading-tight">Ticket #1042</span>
+                        <span className="text-[8px] font-semibold text-emerald-600 leading-tight">$18.50 Listo</span>
+                      </div>
                     </div>
-                    <h4 className="font-bold text-base text-slate-900 mb-2">
-                      PC & Laptops
-                    </h4>
-                    <p className="text-sm text-slate-600 leading-relaxed">
-                      Control administrativo completo, reportes tributarios SRI, subida de firmas .p12 y gestión de inventario multibodega.
-                    </p>
-                  </div>
-                  <div className="mt-6 pt-4 border-t border-slate-200/60 flex items-center justify-between text-xs text-slate-500 font-mono">
-                    <span>Panel Web</span>
-                    <span className="text-emerald-600 font-semibold">100% Cloud</span>
                   </div>
                 </div>
-
-                {/* 2. POS Mostrador & Tablets */}
-                <div className="rounded-2xl border border-slate-200/80 p-6 bg-slate-50/50 flex flex-col justify-between">
-                  <div>
-                    <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-4">
-                      <Store size={20} />
-                    </div>
-                    <h4 className="font-bold text-base text-slate-900 mb-2">
-                      Puntos de Venta & Tablets
-                    </h4>
-                    <p className="text-sm text-slate-600 leading-relaxed">
-                      Atención ágil en mostrador con pantalla táctil, pistolas lectoras de barras, tickets térmicos de 80mm y cobro en 3 segundos.
-                    </p>
-                  </div>
-                  <div className="mt-6 pt-4 border-t border-slate-200/60 flex items-center justify-between text-xs text-slate-500 font-mono">
-                    <span>Atajo Teclado</span>
-                    <span className="text-blue-600 font-semibold">F12 Cobro</span>
-                  </div>
-                </div>
-
-                {/* 3. Smartphones & Celulares */}
-                <div className="rounded-2xl border border-slate-200/80 p-6 bg-slate-50/50 flex flex-col justify-between">
-                  <div>
-                    <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center mb-4">
-                      <Smartphone size={20} />
-                    </div>
-                    <h4 className="font-bold text-base text-slate-900 mb-2">
-                      Smartphones & Celulares
-                    </h4>
-                    <p className="text-sm text-slate-600 leading-relaxed">
-                      Supervisa tu negocio desde cualquier lugar: emite comprobantes en ruta, consulta existencias de stock y revisa tu dinero en bancos en tiempo real.
-                    </p>
-                  </div>
-                  <div className="mt-6 pt-4 border-t border-slate-200/60 flex items-center justify-between text-xs text-slate-500 font-mono">
-                    <span>Móvil PWA</span>
-                    <span className="text-purple-600 font-semibold">En Vivo</span>
-                  </div>
-                </div>
-
               </div>
 
-              {/* Barra de sincronización continua */}
-              <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs sm:text-sm text-slate-600">
-                <div className="flex items-center gap-2">
-                  <RefreshCw size={15} className="text-blue-600 shrink-0 animate-spin" style={{ animationDuration: '6s' }} />
-                  <span className="font-semibold text-slate-900">
-                    Sincronización bidireccional automática:
-                  </span>
-                  <span>Una venta en el POS descuenta el inventario en la PC y actualiza el saldo en tu celular al segundo.</span>
+              {/* 3. Firma digital .p12 */}
+              <div
+                onClick={() => navigate('/register')}
+                className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 flex flex-col justify-between items-start h-[250px] sm:h-[270px] hover:border-slate-400 hover:shadow-xs transition-all duration-200 cursor-pointer group"
+              >
+                <h3 className="font-bold text-slate-900 text-base sm:text-[17px] leading-snug">
+                  Firma digital<br />.p12
+                </h3>
+                <div className="w-full flex items-center justify-center pt-2">
+                  <div className="w-16 h-16 rounded-2xl bg-[#0B5D3A] flex items-center justify-center relative shadow-xs group-hover:scale-105 transition-transform">
+                    <KeyRound size={28} className="text-white" />
+                    <div className="absolute -top-1.5 -right-1.5 px-1.5 py-0.5 rounded-full bg-[#B3F2A9] border border-emerald-400 flex items-center justify-center text-[8px] font-extrabold text-slate-900 shadow-xs">
+                      SRI
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 4. Envío por WhatsApp */}
+              <div
+                onClick={() => navigate('/register')}
+                className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 flex flex-col justify-between items-start h-[250px] sm:h-[270px] hover:border-slate-400 hover:shadow-xs transition-all duration-200 cursor-pointer group"
+              >
+                <h3 className="font-bold text-slate-900 text-base sm:text-[17px] leading-snug">
+                  Envío por<br />WhatsApp
+                </h3>
+                <div className="w-full flex items-center justify-center pt-2">
+                  <div className="w-26 flex flex-col gap-1.5 group-hover:scale-105 transition-transform">
+                    <div className="bg-emerald-50/80 border border-emerald-200/80 rounded-lg p-1.5 flex items-center justify-between shadow-xs">
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-4 h-4 rounded-full bg-[#25D366] text-white flex items-center justify-center text-[8px] font-bold">W</div>
+                        <span className="text-[9px] font-medium text-slate-800">Factura enviada</span>
+                      </div>
+                      <Check size={11} className="text-emerald-600 stroke-[3]" />
+                    </div>
+                    <div className="bg-slate-50 border border-slate-200 rounded-lg p-1.5 flex items-center justify-between shadow-xs">
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-4 h-4 rounded-full bg-blue-500 text-white flex items-center justify-center text-[8px] font-bold">@</div>
+                        <span className="text-[9px] font-medium text-slate-800">RIDE & XML listo</span>
+                      </div>
+                      <span className="text-[8px] font-mono text-slate-500">1s</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 5. Inventario & Kardex */}
+              <div
+                onClick={() => navigate('/register')}
+                className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 flex flex-col justify-between items-start h-[250px] sm:h-[270px] hover:border-slate-400 hover:shadow-xs transition-all duration-200 cursor-pointer group"
+              >
+                <h3 className="font-bold text-slate-900 text-base sm:text-[17px] leading-snug">
+                  Inventario &<br />Kardex
+                </h3>
+                <div className="w-full flex items-center justify-center pt-2">
+                  <div className="w-24 h-16 rounded-xl border border-slate-300 bg-white p-2 flex flex-col justify-between shadow-xs relative group-hover:scale-105 transition-transform">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[8px] font-mono font-medium text-slate-500 uppercase tracking-wider">Kardex</span>
+                      <span className="text-[8px] font-mono font-bold text-emerald-700 bg-emerald-50 px-1 rounded">142 un</span>
+                    </div>
+                    <div className="flex items-center justify-between h-4 px-1 bg-slate-50 rounded">
+                      <div className="w-0.5 h-3 bg-slate-800" />
+                      <div className="w-1 h-3 bg-slate-800" />
+                      <div className="w-0.5 h-3 bg-slate-400" />
+                      <div className="w-1.5 h-3 bg-slate-800" />
+                      <div className="w-0.5 h-3 bg-slate-700" />
+                      <div className="w-1 h-3 bg-slate-800" />
+                      <div className="w-0.5 h-3 bg-slate-400" />
+                      <div className="w-1.5 h-3 bg-slate-800" />
+                    </div>
+                    <div className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-[#B3F2A9] border border-emerald-400 flex items-center justify-center shadow-xs">
+                      <Package size={10} className="text-[#0B5D3A]" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 6. Cobros & Bancos (con botón circular negro de flecha como en Brevo) */}
+              <div
+                onClick={() => navigate('/soluciones')}
+                className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 flex flex-col justify-between items-start h-[250px] sm:h-[270px] hover:border-slate-400 hover:shadow-xs transition-all duration-200 cursor-pointer group"
+              >
+                <h3 className="font-bold text-slate-900 text-base sm:text-[17px] leading-snug">
+                  Cobros &<br />Bancos
+                </h3>
+                <div className="w-full flex items-center justify-center pt-2">
+                  <div className="w-22 h-18 rounded-xl border border-slate-200 bg-slate-50/70 p-2 flex flex-col justify-between relative shadow-xs group-hover:scale-105 transition-transform">
+                    <div className="grid grid-cols-3 gap-1 px-1 pt-1">
+                      {[1, 2, 3, 4, 5, 6].map((n) => (
+                        <div key={n} className="w-2.5 h-2.5 rounded-full bg-slate-200 mx-auto" />
+                      ))}
+                    </div>
+                    <div className="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full bg-[#B3F2A9] border border-emerald-400 flex items-center justify-center shadow-xs">
+                      <TrendingUp size={10} className="text-[#0B5D3A]" />
+                    </div>
+                    <div className="absolute -right-2 bottom-1 w-8 h-8 rounded-full bg-[#1E1E1E] group-hover:bg-black text-white flex items-center justify-center shadow-md cursor-pointer transition-transform group-hover:scale-110">
+                      <ArrowRight size={14} className="stroke-[2.5]" />
+                    </div>
+                  </div>
                 </div>
               </div>
 
             </div>
-
           </div>
         </ScrollReveal>
       </section>
