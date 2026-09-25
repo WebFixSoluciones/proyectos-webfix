@@ -144,7 +144,7 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
 
 ## Últimos commits
 ```
-7e35b71 feat(servicios): eliminar metricas kpi de la cabecera en ServicesView
+792350c feat(servicios): eliminar metricas kpi de la cabecera en ServicesView
 b5c68d8 feat(personas): estandarizar espaciados, encabezado limpio sin kpis y eliminar submodulo equipo
 28547e8 feat(ventas): estandarizar titulos y tamano a Datos de Cliente y Productos y Servicios
 1d192aa fix(ventas): resolver ReferenceError de matchedTercero antes de inicializacion en TransactionForm
