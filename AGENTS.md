@@ -432,27 +432,9 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
     - **Card 5 (Vainilla Pastel `#fef9e7`)**: *Kardex & Stock* con enlace textual minimalista *"Pruébalo Gratis ↗"* y tarjeta de producto con stock de 142 unidades y badge *"Óptimo"*.
 - **Diseño y Acabado**:
   - Bordes redondeados generosos (`rounded-[32px]`), micro-elevación suave en hover (`hover:-translate-y-1`), cero dobles bordes y tipografía bold de alto contraste.
-### 36. Rediseño Minimalista de Beneficios: Solo Títulos sin Descripciones y Maquetas Gráficas Limpias (2026-09-25) — COMPLETADO
-- **Eliminación Total de Párrafos de Descripción**:
-  - Removidos por completo todos los textos descriptivos (`<p>`) dentro de las 5 tarjetas Bento pastel, permitiendo que la tipografía de títulos y los elementos visuales respiren con total claridad y limpieza.
-- **Maquetas Gráficas Limpias y Prominentes**:
-  - **Card 1 (Facturación para Negocios - `#edf4fb`)**: Ventana de navegador con barra de URL `app.webfix.ec/sri`, cabecera azul de Comprobante SRI, badge verde de autorización SRI con checkmark, desglose de factura `FAC 001-002-8453` a SUPERMAXI S.A. por \$1,240.50 y sello de firma digital .p12 verificada.
-  - **Card 2 (Punto de Venta Mostrador - `#f5f5f7`)**: Tarjeta popover oscura flotante (`#212124`) réplica exacta de la Imagen 1 con atajo rápido F12, cobro combinado destacado en verde mint (`#c0ffa5`) con checkmark circular esmeralda, impresión de ticket 80mm y desglose de cobro listo por \$18.50.
-  - **Card 3 (Captura Inteligente OCR con IA - `#f3f0fc`)**: Ventana emergente con badge `100% IA Procesado`, cuadrícula de 4 columnas de extracción de datos (Archivo, Proveedor, Subtotal, Total IVA 15% \$483.00) y verificación de RUC y asiento contable automático.
-  - **Card 4 (Flujo de caja - `#edf8f1`)**: Widget de saldo bancario disponible (\$8,240.00) con indicador `+15.2%` y barras de progreso proporcionales para Banco Pichincha (\$5,420.00) y Banco Guayaquil (\$2,820.00).
-  - **Card 5 (Kardex & Stock - `#fef9e7`)**: Tarjeta de producto con ilustración de caja, código de barras simulado, SKU, stock de 142 unidades en bodega y píldora de estado de stock *"Óptimo"*.
-- **Pruebas y Build**: 43 tests unitarios aprobados (41 suite de comercio/SRI + 2 animaciones), compilación limpia de producción en 7.94s.
+- **Pruebas y Build**: 43 tests unitarios aprobados, compilación de producción limpia en 7.55s.
 
-### 37. Ajuste Visual de Beneficios (6 Cards): Textos y Gráficos Ampliados y Centrados (2026-09-25) — COMPLETADO
-- **Centrado Integral de Tarjetas y Tipografía**:
-  - En [`LandingHome.jsx`](file:///e:/CLOUD%20WEBFIX/WEBFIX/SISTEMAS/PROYECTOS%20WEBFIX/proyectos-webfix/src/pages/landing/LandingHome.jsx), contenedor de cada tarjeta actualizado a `items-center text-center p-6 sm:p-7` con altura incrementada a `h-[280px] sm:h-[300px]`.
-  - Títulos centrados (`text-center w-full`) con tamaño tipográfico ampliado significativamente de `text-base sm:text-[17px]` a `text-lg sm:text-xl lg:text-[21px] font-bold text-slate-900`.
-- **Ampliación de Elementos Gráficos**:
-  - **Card 1 (Facturación electrónica SRI)**: Contenedor ampliado a `w-20 h-20 sm:w-22 sm:h-22`, ícono de documento agrandado a `size={38}` y badge SRI en verde menta de `w-6 h-6`.
-  - **Card 2 (Punto de venta POS)**: Pantalla POS ampliada a `w-28 sm:w-30 h-22 sm:h-24` con tarjeta de ticket de `w-32`, ícono de tienda de `w-5 h-5` y números legibles.
-  - **Card 3 (Firma digital .p12)**: Contenedor esmeralda ampliado a `w-20 h-20 sm:w-22 sm:h-22`, ícono de llave agrandado a `size={36}` y badge circular SRI de `text-[9px]`.
-  - **Card 4 (Envío por WhatsApp)**: Píldoras de notificación ampliadas a `w-32 sm:w-34` con avatares de `w-5 h-5`, textos más claros y checkmarks de confirmación.
-  - **Card 5 (Inventario & Kardex)**: Etiqueta Kardex ampliada a `w-28 sm:w-30 h-20 sm:h-22` con badge de stock `142 un`, patrón de código de barras expandido y badge de caja en la esquina.
-  - **Card 6 (Cobros & Bancos)**: Contenedor ampliado a `w-26 sm:w-28 h-20 sm:h-22` con puntos de datos más grandes, indicador de tendencia ampliado y botón circular negro de flecha `w-9 h-9`.
-- **Pruebas y Build**: 43 tests unitarios aprobados, compilación limpia de producción en 7.03s.
+
+
+
 
