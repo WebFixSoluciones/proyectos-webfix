@@ -48,12 +48,6 @@
       ]
     }
   ],
-  "crons": [
-    {
-      "path": "/api/cron/reconcile-sri",
-      "schedule": "*/10 * * * *"
-    }
-  ],
   "rewrites": [
     {
       "source": "/api/cron/reconcile-sri",
