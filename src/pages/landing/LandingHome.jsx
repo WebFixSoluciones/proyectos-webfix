@@ -280,15 +280,6 @@ export default function LandingHome() {
             
             {/* Columna Izquierda (Texto & CTA Directo) */}
             <div className="lg:col-span-5 flex flex-col space-y-6 text-left">
-              {/* Tag sutil píldora */}
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white border border-emerald-200 text-emerald-900 w-fit select-none">
-                <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-                <span>WebFix ERP 2.0</span>
-                <span className="text-emerald-400">•</span>
-                <span>Facturación SRI 2026</span>
-                <ArrowRight size={12} className="text-emerald-700" />
-              </div>
-
               {/* Título H1 de alto impacto */}
               <h1 className="text-slate-950 font-extrabold tracking-tight text-4xl sm:text-5xl lg:text-6xl leading-[1.08] max-w-2xl">
                 El ERP y Facturación SRI más rápido del Ecuador.
@@ -319,22 +310,6 @@ export default function LandingHome() {
                 >
                   <span>Ver demostración</span>
                 </button>
-              </div>
-
-              {/* Micro confianza con checkmarks verde esmeralda */}
-              <div className="flex flex-wrap items-center gap-y-2.5 gap-x-6 pt-2 text-xs sm:text-sm font-medium text-slate-700 select-none">
-                <span className="flex items-center gap-1.5">
-                  <Check className="w-4 h-4 text-emerald-600 shrink-0 stroke-[2.5]" />
-                  Sin tarjeta de crédito
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <Check className="w-4 h-4 text-emerald-600 shrink-0 stroke-[2.5]" />
-                  Firma .p12 integrada
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <Check className="w-4 h-4 text-emerald-600 shrink-0 stroke-[2.5]" />
-                  Comprobantes SRI ilimitados
-                </span>
               </div>
             </div>
 

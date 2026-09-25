@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, ArrowUpRight } from 'lucide-react';
+import { Menu, X, Globe } from 'lucide-react';
 
 export default function LandingLayout() {
   const location = useLocation();
@@ -17,7 +17,6 @@ export default function LandingLayout() {
   }, [location.pathname]);
 
   const navLinks = [
-    { path: '/', label: 'Inicio' },
     { path: '/soluciones', label: 'Soluciones' },
     { path: '/precios', label: 'Precios' },
     { path: '/nosotros', label: 'Nosotros' },
@@ -34,61 +33,35 @@ export default function LandingLayout() {
       ref={scrollContainerRef}
       className="min-h-screen w-full flex flex-col justify-between bg-white text-slate-900 overflow-x-hidden selection:bg-[#0F172A] selection:text-white"
     >
-      {/* 1. TOP ANNOUNCEMENT BAR */}
-      <div className="w-full bg-slate-50 border-b border-slate-200/80">
-        <div className="w-[90%] max-w-[1720px] mx-auto py-1.5 flex items-center justify-between text-xs text-slate-600">
-          <div className="flex items-center gap-2 font-medium truncate">
-            <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-            <span className="truncate">
-              Cumplimiento tributario SRI 2026 activo • Facturación ilimitada con firma electrónica .p12
-            </span>
-          </div>
-          <Link
-            to="/precios"
-            className="inline-flex items-center gap-1 font-semibold text-slate-900 hover:text-emerald-600 transition-colors shrink-0 ml-3"
-          >
-            Ver planes <ArrowUpRight size={12} />
-          </Link>
-        </div>
-      </div>
-
-      {/* 2. STICKY NAVBAR GLASSMORPHISM (MENU SEGUIDO DEL LOGO A LA IZQUIERDA) */}
-      <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-white/90 border-b border-slate-200/80 transition-all">
-        <div className="w-[90%] max-w-[1720px] mx-auto h-16 flex items-center justify-between">
+      {/* 1. HEADER FLOTANTE EXACTO ESTILO BREVO */}
+      <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-[#EAF8EA]/95 border-b border-emerald-100/80 transition-all">
+        <div className="w-[90%] max-w-[1720px] mx-auto h-16 sm:h-20 flex items-center justify-between">
           
-          {/* Bloque Izquierdo: Logo WebFix ERP + Navegación seguida inmediatamente */}
-          <div className="flex items-center gap-8 md:gap-10">
-            {/* Logo WebFix ERP */}
+          {/* Bloque Izquierdo: Logo WebFix estilo Brevo + Menú seguido inmediatamente */}
+          <div className="flex items-center gap-8 lg:gap-10">
+            {/* Logo WebFix en texto verde esmeralda idéntico a Brevo */}
             <Link
               to="/"
-              className="flex items-center gap-2.5 group cursor-pointer select-none"
+              className="flex items-center select-none group cursor-pointer"
               aria-label="WebFix ERP Inicio"
             >
-              <div className="w-8 h-8 rounded-lg bg-[#0F172A] text-white flex items-center justify-center font-bold text-sm tracking-tight transition-transform duration-150 group-hover:scale-105 shadow-none">
-                W
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="font-bold text-slate-900 tracking-tight text-lg">
-                  WebFix
-                </span>
-                <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
-                  ERP
-                </span>
-              </div>
+              <span className="font-extrabold text-2xl sm:text-3xl tracking-tight text-[#0B5D3A]">
+                WebFix
+              </span>
             </Link>
 
             {/* Menú de Navegación Alineado a la Izquierda inmediatamente después del Logo */}
-            <nav className="hidden md:flex items-center gap-1">
+            <nav className="hidden md:flex items-center gap-1 sm:gap-2">
               {navLinks.map((link) => {
                 const isActive = location.pathname === link.path;
                 return (
                   <Link
                     key={link.path}
                     to={link.path}
-                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                       isActive
-                        ? 'text-slate-950 font-semibold bg-slate-100'
-                        : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
+                        ? 'text-[#0B5D3A] font-semibold'
+                        : 'text-slate-800 hover:text-slate-950'
                     }`}
                   >
                     {link.label}
@@ -98,19 +71,38 @@ export default function LandingLayout() {
             </nav>
           </div>
 
-          {/* Bloque Derecho: Iniciar Sesión + Comenzar Gratis (Estilo Brevo) */}
-          <div className="hidden md:flex items-center gap-3">
+          {/* Bloque Derecho (Exacto Brevo): Globo | Conectarse | Regístrate gratis | Hablar con Ventas */}
+          <div className="hidden md:flex items-center gap-4">
+            {/* Icono Globo */}
+            <div className="flex items-center text-slate-700 hover:text-slate-950 cursor-pointer transition-colors" title="Español (Ecuador)">
+              <Globe size={18} />
+            </div>
+
+            {/* Separador vertical */}
+            <div className="h-4 w-px bg-slate-300" />
+
+            {/* Iniciar Sesión */}
             <Link
               to="/login"
-              className="text-slate-700 hover:text-slate-950 font-medium text-sm px-3 py-2 transition-colors"
+              className="text-slate-800 hover:text-slate-950 font-medium text-sm transition-colors"
             >
               Iniciar Sesión
             </Link>
+
+            {/* Regístrate gratis (botón negro sólido redondeado) */}
             <Link
               to="/register"
-              className="px-5 py-2.5 rounded-full bg-[#0F172A] hover:bg-slate-800 text-white font-medium text-sm transition-all shadow-none"
+              className="px-4 py-2 rounded-xl bg-[#1E1E1E] hover:bg-black text-white font-semibold text-sm transition-all shadow-none"
             >
-              Comenzar Gratis
+              Regístrate gratis
+            </Link>
+
+            {/* Hablar con Ventas (botón outline redondeado) */}
+            <Link
+              to="/contacto"
+              className="px-4 py-2 rounded-xl border border-slate-900 text-slate-900 hover:bg-slate-900/5 font-semibold text-sm transition-all"
+            >
+              Hablar con Ventas
             </Link>
           </div>
 
@@ -129,7 +121,7 @@ export default function LandingLayout() {
         </div>
       </header>
 
-      {/* 3. OVERLAY MENÚ MÓVIL */}
+      {/* 2. OVERLAY MENÚ MÓVIL */}
       {isMobileMenuOpen && (
         <div id="mobile-nav-menu" className="fixed inset-x-0 top-16 z-40 bg-white/98 backdrop-blur-md border-b border-slate-200 p-6 flex flex-col gap-4 md:hidden shadow-lg animate-in slide-in-from-top-2 duration-150">
           <div className="flex flex-col space-y-1">
@@ -169,9 +161,19 @@ export default function LandingLayout() {
                 setIsMobileMenuOpen(false);
                 navigate('/register');
               }}
-              className="w-full py-2.5 px-4 rounded-full text-center text-sm font-medium bg-[#0F172A] hover:bg-slate-800 text-white transition-all shadow-none"
+              className="w-full py-2.5 px-4 rounded-xl text-center text-sm font-medium bg-[#1E1E1E] hover:bg-black text-white transition-all shadow-none"
             >
-              Comenzar Gratis
+              Regístrate gratis
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                navigate('/contacto');
+              }}
+              className="w-full py-2.5 px-4 rounded-xl text-center text-sm font-medium border border-slate-900 text-slate-900 hover:bg-slate-900/5 transition-all"
+            >
+              Hablar con Ventas
             </button>
           </div>
         </div>

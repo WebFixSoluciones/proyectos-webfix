@@ -275,3 +275,23 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
     - Grid de 5 columnas limpias: `PRODUCTO`, `PARA EMPEZAR`, `RECURSOS`, `PARTNERS` y `EMPRESA`.
     - Barra legal inferior con enlaces horizontales a la izquierda (Cookies, Política anti-spam, Privacidad, Términos, Aviso legal, Seguridad SRI) y copyright a la derecha.
 - **Pruebas y Build**: 43/43 tests unitarios aprobados, compilación de producción exitosa en 5.89s.
+
+### 24. Encabezado Réplica Idéntica Brevo y Despeje de Elementos en el Hero (2026-09-25) — COMPLETADO
+- **Eliminación de Barra Superior de Anuncios**:
+  - Removida por completo la franja superior de aviso (*"Cumplimiento tributario SRI 2026 activo..."*) en `LandingLayout.jsx`.
+- **Encabezado Réplica Brevo (`LandingLayout.jsx`)**:
+  - **Fondo Menta Translúcido**: Sincronizado en `bg-[#EAF8EA]/95 backdrop-blur-md border-b border-emerald-100/80`, logrando continuidad y fusión con el fondo del Hero.
+  - **Logotipo Tipográfico**: Removido el recuadro negro `[W]` y el badge `[ERP]`. Logotipo en texto limpio `WebFix` en verde bosque de alto contraste (`text-[#0B5D3A] font-extrabold text-2xl sm:text-3xl tracking-tight`).
+  - **Navegación Izquierda Inmediata**: Enlaces alineados a la izquierda junto al logo (`Soluciones`, `Precios`, `Nosotros`, `Contacto`).
+  - **Bloque de Acciones a la Derecha**:
+    - Icono de globo terráqueo (`<Globe size={18} />`).
+    - Línea divisora vertical sutil (`h-4 w-px bg-slate-300`).
+    - Enlace de texto `Iniciar Sesión` (`/login`).
+    - Botón negro sólido con esquinas redondeadas `Regístrate gratis` (`bg-[#1E1E1E] text-white rounded-xl px-4 py-2`).
+    - Botón outline con borde negro `Hablar con Ventas` (`border border-slate-900 text-slate-900 rounded-xl px-4 py-2`).
+    - Menú móvil sincronizado con las mismas acciones y enlaces.
+- **Despeje Minimalista del Hero (`LandingHome.jsx`)**:
+  - **Remoción de Burbuja Superior**: Eliminado el badge flotante pill sobre el H1 (*"WebFix ERP 2.0 • Facturación SRI 2026 →"*).
+  - **Remoción de Lista de Checks**: Eliminada la fila de viñetas con checks verdes inferiores (*"✓ Sin tarjeta de crédito  ✓ Firma .p12 integrada  ✓ Comprobantes SRI ilimitados"*), otorgando protagonismo al H1, subtítulo y botones de acción principales.
+- **Pruebas y Build**: 43 tests unitarios aprobados (41 de comercio/SRI + 2 de animación), compilación de producción limpia en 5.58s.
+
