@@ -412,5 +412,15 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
   - Ajustado el encabezado `<h1>` del Hero en [`LandingHome.jsx`](file:///e:/CLOUD%20WEBFIX/WEBFIX/SISTEMAS/PROYECTOS%20WEBFIX/proyectos-webfix/src/pages/landing/LandingHome.jsx) de `font-extrabold` a `font-semibold`, brindando una presencia visual más limpia, refinada y legible acorde al estilo editorial moderno.
 - **Pruebas y Build**: 43 tests unitarios aprobados, compilación de producción exitosa en 6.18s.
 
+### 34. Franja de Confianza con Logos Negros y Carrusel Continuo con Difuminado Estilo Brevo (2026-09-25) — COMPLETADO
+- **Estructura Split Idéntica a Brevo (Imagen de Referencia)**:
+  - **Bloque Izquierdo**: Texto conciso en dos líneas alineado a la izquierda: *"Más de 500 comercios en todo el Ecuador ya confían en WebFix"* en tipografía semibold sólida negra (`text-black font-semibold text-base sm:text-lg`).
+  - **Bloque Derecho (Carrusel Marquee Continuo)**:
+    - Logos corporativos y entidades financieras (SRI Ecuador, Banco Pichincha, Banco Guayaquil, Produbanco, Visa, Mastercard, Banco del Pacífico, RIMPE, Diners Club) en **color negro puro** (`text-black`, `fill-currentColor`).
+    - Animación `@keyframes marquee` fluida y suave a velocidad moderada (35s) con pausa interactiva al hover (`animation-play-state: paused`).
+    - Máscara de desvanecimiento suave en los extremos (`mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)`) para un efecto donde los logos se difuminan gradualmente al entrar y salir.
+- **Pruebas y Build**: 43 tests unitarios aprobados, compilación de producción exitosa en 10.35s.
+
+
 
 

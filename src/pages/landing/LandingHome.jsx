@@ -268,6 +268,122 @@ export default function LandingHome() {
     }
   };
 
+  const trustLogos = [
+    {
+      id: 'sri',
+      render: () => (
+        <div className="flex items-center gap-2 text-black select-none shrink-0">
+          <svg className="w-7 h-7 shrink-0 text-black" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <rect x="4" y="4" width="24" height="24" rx="4" />
+            <path d="M9 11h14M9 16h10M9 21h14" />
+          </svg>
+          <div className="flex flex-col text-left leading-none">
+            <span className="font-extrabold text-sm tracking-wider text-black">SRI</span>
+            <span className="text-[10px] tracking-tight uppercase font-bold text-black">Ecuador</span>
+          </div>
+        </div>
+      )
+    },
+    {
+      id: 'pichincha',
+      render: () => (
+        <div className="flex items-center gap-2 text-black select-none shrink-0">
+          <svg className="w-5 h-5 shrink-0 text-black" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="12,2 22,12 12,22 2,12" />
+            <polygon points="12,6 18,12 12,18 6,12" fill="white" />
+          </svg>
+          <span className="font-bold text-sm tracking-tight uppercase text-black">Banco Pichincha</span>
+        </div>
+      )
+    },
+    {
+      id: 'guayaquil',
+      render: () => (
+        <div className="flex items-center gap-2 text-black select-none shrink-0">
+          <svg className="w-5 h-5 shrink-0 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <rect x="3" y="3" width="18" height="18" rx="2" />
+            <rect x="8" y="8" width="8" height="8" rx="1" fill="currentColor" />
+          </svg>
+          <span className="font-bold text-sm tracking-tight uppercase text-black">Banco Guayaquil</span>
+        </div>
+      )
+    },
+    {
+      id: 'produbanco',
+      render: () => (
+        <div className="flex items-center gap-2 text-black select-none shrink-0">
+          <svg className="w-5 h-5 shrink-0 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 7v10M9 9h6a2 2 0 0 1 0 4H9" />
+          </svg>
+          <div className="flex flex-col text-left leading-none">
+            <span className="font-extrabold text-sm tracking-tight uppercase text-black">Produbanco</span>
+            <span className="text-[8px] uppercase tracking-wider font-semibold text-black">Grupo Promerica</span>
+          </div>
+        </div>
+      )
+    },
+    {
+      id: 'visa',
+      render: () => (
+        <div className="flex items-center text-black select-none shrink-0">
+          <svg className="h-6 w-16 text-black" viewBox="0 0 64 24" fill="currentColor">
+            <text x="0" y="19" fontFamily="system-ui, -apple-system, BlinkMacSystemFont, sans-serif" fontWeight="900" fontStyle="italic" fontSize="22" letterSpacing="1">VISA</text>
+          </svg>
+        </div>
+      )
+    },
+    {
+      id: 'mastercard',
+      render: () => (
+        <div className="flex items-center gap-1.5 text-black select-none shrink-0">
+          <svg className="h-7 w-11 text-black" viewBox="0 0 44 28" fill="none">
+            <circle cx="15" cy="14" r="12" fill="currentColor" fillOpacity="0.9" />
+            <circle cx="29" cy="14" r="12" fill="currentColor" fillOpacity="0.6" />
+          </svg>
+          <span className="font-bold text-xs tracking-tight lowercase text-black">mastercard</span>
+        </div>
+      )
+    },
+    {
+      id: 'pacifico',
+      render: () => (
+        <div className="flex items-center gap-2 text-black select-none shrink-0">
+          <svg className="w-5 h-5 shrink-0 text-black" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M4 4h7a5 5 0 0 1 0 10H4V4zm0 10h8a5 5 0 0 1 0 10H4v-10z" fillRule="evenodd" />
+          </svg>
+          <span className="font-bold text-sm tracking-tight uppercase text-black">Banco del Pacífico</span>
+        </div>
+      )
+    },
+    {
+      id: 'rimpe',
+      render: () => (
+        <div className="flex items-center gap-2 text-black select-none shrink-0">
+          <div className="w-5 h-5 rounded bg-black flex items-center justify-center font-bold text-xs text-white">
+            R
+          </div>
+          <div className="flex flex-col text-left leading-none">
+            <span className="font-bold text-sm tracking-tight uppercase text-black">RIMPE</span>
+            <span className="text-[8px] uppercase tracking-wider font-semibold text-black">Emprendedor & Popular</span>
+          </div>
+        </div>
+      )
+    },
+    {
+      id: 'diners',
+      render: () => (
+        <div className="flex items-center gap-1.5 text-black select-none shrink-0">
+          <svg className="w-6 h-6 shrink-0 text-black" viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="9" cy="12" r="7" fillOpacity="0.9" />
+            <circle cx="15" cy="12" r="7" fillOpacity="0.6" />
+          </svg>
+          <span className="font-bold text-xs tracking-tight text-black">Diners Club</span>
+        </div>
+      )
+    }
+  ];
+
   const currentSegment = commercialSegments[activeSegmentTab] || commercialSegments.comercios;
 
   return (
@@ -624,84 +740,33 @@ export default function LandingHome() {
         </div>
       </section>
 
-      {/* 2. FRANJA DE CONFIANZA (Social Proof) */}
-      <section className="w-full bg-white">
-        <div className="w-[80%] max-w-[1720px] mx-auto text-center">
-          <p className="text-xs md:text-sm font-semibold uppercase tracking-wider text-slate-500 mb-6 md:mb-8">
-            Más de 500 comercios y empresas ecuatorianas gestionan su facturación y finanzas con WebFix
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-12 md:gap-16 opacity-75 hover:opacity-100 transition-opacity duration-300">
-            
-            {/* SRI Ecuador */}
-            <div className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors cursor-default select-none">
-              <svg className="w-7 h-7 shrink-0" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="4" y="4" width="24" height="24" rx="4" />
-                <path d="M9 11h14M9 16h10M9 21h14" />
-              </svg>
-              <div className="flex flex-col text-left leading-tight">
-                <span className="font-extrabold text-sm tracking-wider">SRI</span>
-                <span className="text-[10px] tracking-tight uppercase">Ecuador</span>
-              </div>
-            </div>
-
-            {/* Banco Pichincha */}
-            <div className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors cursor-default select-none">
-              <svg className="w-6 h-6 shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                <polygon points="12,2 22,12 12,22 2,12" />
-                <polygon points="12,6 18,12 12,18 6,12" fill="white" />
-              </svg>
-              <span className="font-bold text-sm tracking-tight uppercase">Banco Pichincha</span>
-            </div>
-
-            {/* Banco Guayaquil */}
-            <div className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors cursor-default select-none">
-              <svg className="w-6 h-6 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <rect x="3" y="3" width="18" height="18" rx="2" />
-                <rect x="8" y="8" width="8" height="8" rx="1" fill="currentColor" />
-              </svg>
-              <span className="font-bold text-sm tracking-tight uppercase">Banco Guayaquil</span>
-            </div>
-
-            {/* Produbanco */}
-            <div className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors cursor-default select-none">
-              <svg className="w-6 h-6 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="9" />
-                <path d="M12 7v10M9 9h6a2 2 0 0 1 0 4H9" />
-              </svg>
-              <div className="flex flex-col text-left leading-none">
-                <span className="font-extrabold text-sm tracking-tight uppercase">Produbanco</span>
-                <span className="text-[9px] uppercase tracking-wider text-slate-400">Grupo Promerica</span>
-              </div>
-            </div>
-
-            {/* Visa */}
-            <div className="flex items-center text-slate-600 hover:text-slate-900 transition-colors cursor-default select-none">
-              <svg className="h-6 w-16" viewBox="0 0 64 24" fill="currentColor">
-                <text x="0" y="19" fontFamily="system-ui, -apple-system, BlinkMacSystemFont, sans-serif" fontWeight="900" fontStyle="italic" fontSize="22" letterSpacing="1">VISA</text>
-              </svg>
-            </div>
-
-            {/* Mastercard */}
-            <div className="flex items-center gap-1.5 text-slate-600 hover:text-slate-900 transition-colors cursor-default select-none">
-              <svg className="h-7 w-11" viewBox="0 0 44 28" fill="none">
-                <circle cx="15" cy="14" r="12" fill="currentColor" fillOpacity="0.8" />
-                <circle cx="29" cy="14" r="12" fill="currentColor" fillOpacity="0.5" />
-              </svg>
-              <span className="font-semibold text-xs tracking-tight lowercase">mastercard</span>
-            </div>
-
-            {/* RIMPE */}
-            <div className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors cursor-default select-none">
-              <div className="w-6 h-6 rounded-md bg-slate-200 flex items-center justify-center font-bold text-xs text-slate-700">
-                R
-              </div>
-              <div className="flex flex-col text-left leading-none">
-                <span className="font-bold text-sm tracking-tight uppercase">RIMPE</span>
-                <span className="text-[9px] uppercase tracking-wider text-slate-400">Emprendedor & Popular</span>
-              </div>
-            </div>
-
+      {/* 2. FRANJA DE CONFIANZA (Social Proof Marquee Estilo Brevo) */}
+      <section className="w-full bg-white py-12 md:py-16">
+        <div className="w-[90%] max-w-[1720px] mx-auto flex flex-col md:flex-row items-center justify-between gap-8 md:gap-14">
+          
+          {/* Texto a la izquierda (idéntico a la referencia de Brevo) */}
+          <div className="shrink-0 w-full md:w-64 lg:w-72 text-center md:text-left">
+            <p className="text-black font-semibold text-base sm:text-lg leading-snug">
+              Más de 500 comercios en todo el Ecuador ya confían en WebFix
+            </p>
           </div>
+
+          {/* Carrusel infinito con difuminado suave a los extremos */}
+          <div className="flex-1 w-full overflow-hidden relative [mask-image:linear-gradient(to_right,transparent_0%,black_8%,black_92%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_right,transparent_0%,black_8%,black_92%,transparent_100%)]">
+            <div className="animate-marquee items-center gap-12 sm:gap-16 py-2">
+              {trustLogos.map((item, index) => (
+                <div key={`logo-1-${index}`} className="shrink-0 flex items-center justify-center opacity-90 hover:opacity-100 transition-opacity">
+                  {item.render()}
+                </div>
+              ))}
+              {trustLogos.map((item, index) => (
+                <div key={`logo-2-${index}`} className="shrink-0 flex items-center justify-center opacity-90 hover:opacity-100 transition-opacity">
+                  {item.render()}
+                </div>
+              ))}
+            </div>
+          </div>
+
         </div>
       </section>
 
