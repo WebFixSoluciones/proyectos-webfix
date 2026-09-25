@@ -177,6 +177,11 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
   - `SuperAdminPage.jsx`: Buscador general migrado a `UiInput` con `iconPrefix={<Search />}`.
 - **Pruebas y Build**: 41 tests unitarios aprobados, compilación limpia de producción en 11.63s.
 
+### 18. Eliminación de Líneas Divisoras en Secciones de Venta Administrativa (2026-09-24) — COMPLETADO
+- **Eliminación de Bordes Inferiores**: Removidas las líneas divisoras sutiles (`border-b border-[var(--gray-a4)] pb-2.5`) ubicadas directamente debajo de los títulos "Datos de Cliente" y "Productos y Servicios" en `TransactionForm.jsx`.
+- **Acabado Limpio**: Los encabezados de sección quedan fluidos, directos e integrados sin cortes de línea, manteniendo el diseño minimalista homogéneo del formulario.
+- **Pruebas y Build**: 41 tests unitarios aprobados, compilación limpia de producción en 5.62s.
+
 ## Últimos commits
 ```
 cec7a71 fix(superadmin): utilizar UiInput con iconPrefix en buscador para eliminar icono montado
