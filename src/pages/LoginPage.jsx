@@ -1,5 +1,4 @@
-import { UiBox, UiCard, UiText, UiLabel, UiHeading } from '../components/ui/layout';
-import { UiInput, UiButton } from '../components/ui/controls';
+import { UiInput } from '../components/ui/controls';
 import { useAuth } from '../contexts/AuthContext';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -45,106 +44,114 @@ export default function LoginPage({ showToast, companyProfile }) {
   };
 
   return (
-    <UiBox className="min-h-screen w-full flex flex-col justify-between items-center bg-[var(--gray-1)] text-[var(--gray-12)] relative overflow-hidden p-4 sm:p-6 select-none">
-      {/* Background Subtle Pattern (Flat Modern Grid) */}
-      <UiBox 
+    <div className="min-h-screen w-full flex flex-col justify-between items-center bg-[#f9fff6] dark:bg-[#071d12] text-slate-900 dark:text-slate-100 relative overflow-hidden p-4 sm:p-6 select-none font-sans">
+      {/* Background Subtle Mint Pattern */}
+      <div 
         className="absolute inset-0 pointer-events-none opacity-40 -z-10" 
         style={{
-          backgroundImage: 'radial-gradient(var(--gray-a5) 1px, transparent 1px)',
+          backgroundImage: 'radial-gradient(#b3f4cb 1.2px, transparent 1.2px)',
           backgroundSize: '24px 24px'
         }}
       />
 
-      {/* Top Bar / Branding Spacer */}
-      <UiBox className="w-full max-w-[420px] flex justify-between items-center pt-2 sm:pt-4">
-        <UiBox className="flex items-center gap-2">
-          <UiBox className="w-8 h-8 rounded-lg bg-[var(--blue-9)] text-white flex items-center justify-center font-bold text-sm">
+      {/* Top Bar / Branding */}
+      <div className="w-full max-w-[440px] flex justify-between items-center pt-2 sm:pt-4">
+        <div 
+          onClick={() => navigate('/')}
+          className="flex items-center gap-2.5 cursor-pointer group"
+          title="Ir a inicio"
+        >
+          <div className="w-8 h-8 rounded-xl bg-[#006a43] text-white flex items-center justify-center font-bold text-sm tracking-tight transition-transform group-hover:scale-105 shadow-none">
             W
-          </UiBox>
-          <UiText size="2" weight="bold" color="gray" highContrast>
-            WebFix ERP
-          </UiText>
-        </UiBox>
-        <UiBox className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--gray-3)] border border-[var(--gray-a4)] text-[11px] font-semibold text-[var(--gray-11)]">
-          <ShieldCheck size={12} className="text-[var(--blue-9)]" />
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="font-extrabold text-slate-900 dark:text-white tracking-tight text-lg">
+              WebFix
+            </span>
+            <span className="text-[11px] font-bold text-[#006a43] bg-[#e8fedf] px-1.5 py-0.5 rounded-md">
+              ERP
+            </span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white dark:bg-slate-900 border border-[#b3f4cb] dark:border-emerald-900/50 text-[11px] font-semibold text-[#006a43] dark:text-emerald-400">
+          <ShieldCheck size={13} className="text-[#006a43] dark:text-emerald-400" />
           <span>SRI Ecuador</span>
-        </UiBox>
-      </UiBox>
+        </div>
+      </div>
 
       {/* Main Login Card */}
-      <UiCard className="w-full max-w-[420px] p-6 sm:p-8 bg-[var(--color-panel-solid)] rounded-2xl duration-300">
-        {/* Brand / Logo Header */}
-        <UiBox className="mb-6 text-left">
+      <div className="w-full max-w-[440px] p-7 sm:p-9 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-3xl duration-200">
+        {/* Brand / Header */}
+        <div className="mb-6 text-left">
           {companyProfile?.logoUrl ? (
             <img src={companyProfile.logoUrl} alt="Logo" className="max-h-12 object-contain mb-3" />
           ) : (
-            <UiBox className="flex items-center gap-2 mb-3">
-              <UiBox className="w-9 h-9 rounded-lg bg-[var(--blue-3)] text-[var(--blue-11)] flex items-center justify-center">
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-                </svg>
-              </UiBox>
-              <UiText size="4" weight="bold" color="gray" highContrast>
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-8 h-8 rounded-lg bg-[#e8fedf] text-[#006a43] flex items-center justify-center font-bold">
+                <ShieldCheck size={18} />
+              </div>
+              <span className="text-sm font-bold text-slate-900 dark:text-white">
                 {companyProfile?.companyName || 'Web Fix Soluciones'}
-              </UiText>
-            </UiBox>
+              </span>
+            </div>
           )}
 
-          <UiHeading as="h1" size="5" weight="bold" color="gray" highContrast className="tracking-tight">
+          <h1 className="font-extrabold text-2xl sm:text-3xl text-slate-950 dark:text-white tracking-tight">
             Iniciar sesión
-          </UiHeading>
-          <UiText size="2" color="gray" className="mt-1 block">
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1.5 leading-relaxed">
             Ingresa tus credenciales para acceder a tu plataforma empresarial.
-          </UiText>
-        </UiBox>
+          </p>
+        </div>
 
         {/* Login Form */}
         <form onSubmit={handleLogin} className="space-y-4 text-left">
           {/* Email Field */}
-          <UiBox>
-            <UiLabel size="1" weight="bold" color="gray" highContrast className="block mb-1.5 uppercase tracking-wider text-[11px]">
+          <div>
+            <label className="block mb-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200">
               Correo Electrónico
-            </UiLabel>
+            </label>
             <UiInput
               type="email"
               value={loginForm.email}
               onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
               placeholder="tu-correo@empresa.com"
-              iconPrefix={<Mail size={15} className="text-[var(--gray-10)]" />}
+              iconPrefix={<Mail size={16} className="text-slate-400" />}
               size="2"
               required
               autoFocus
               className="w-full"
             />
-          </UiBox>
+          </div>
 
           {/* Password Field */}
-          <UiBox>
-            <UiBox className="flex items-center justify-between mb-1.5">
-              <UiLabel size="1" weight="bold" color="gray" highContrast className="uppercase tracking-wider text-[11px]">
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-xs font-semibold text-slate-800 dark:text-slate-200">
                 Contraseña
-              </UiLabel>
+              </label>
               <button
                 type="button"
                 onClick={() => showToast?.('Comunícate con tu administrador para restablecer tu contraseña', 'info')}
-                className="text-[12px] font-medium text-[var(--blue-11)] hover:underline cursor-pointer focus:outline-none"
+                className="text-xs font-semibold text-[#006a43] hover:text-[#004227] hover:underline cursor-pointer focus:outline-none"
               >
                 ¿Olvidaste tu contraseña?
               </button>
-            </UiBox>
+            </div>
             <UiInput
               type={showPassword ? 'text' : 'password'}
               value={loginForm.password}
               onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
               placeholder="••••••••••••"
-              iconPrefix={<Lock size={15} className="text-[var(--gray-10)]" />}
+              iconPrefix={<Lock size={16} className="text-slate-400" />}
               iconSuffix={
                 <button
                   type="button"
                   tabIndex={-1}
                   onClick={() => setShowPassword(!showPassword)}
                   title={showPassword ? "Ocultar contraseña" : "Ver contraseña"}
-                  className="text-[var(--gray-10)] hover:text-[var(--gray-12)] p-1 cursor-pointer focus:outline-none flex items-center justify-center transition-colors"
+                  className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 cursor-pointer focus:outline-none flex items-center justify-center transition-colors"
                 >
                   {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
@@ -153,29 +160,26 @@ export default function LoginPage({ showToast, companyProfile }) {
               required
               className="w-full"
             />
-          </UiBox>
+          </div>
 
           {/* Error Alert Box */}
           {(loginError || profileError) && (
-            <UiBox className="p-3 rounded-lg bg-[var(--red-3)] border border-[var(--red-6)] text-[var(--red-11)] text-xs font-medium flex items-start gap-2.5 animate-in fade-in duration-200">
-              <AlertCircle size={15} className="shrink-0 mt-0.5 text-[var(--red-11)]" />
-              <span>{loginError || profileError}</span>
-            </UiBox>
+            <div className="p-3.5 rounded-xl bg-[#fff0f5] border border-[#fbc6d9] text-[#b22456] text-xs font-medium flex items-start gap-2.5 animate-in fade-in duration-200">
+              <AlertCircle size={16} className="shrink-0 mt-0.5 text-[#d9306b]" />
+              <span className="leading-relaxed">{loginError || profileError}</span>
+            </div>
           )}
 
           {/* Submit Button */}
-          <UiButton
+          <button
             type="submit"
             disabled={isAuthenticating}
-            variant="solid"
-            color="blue"
-            size="3"
-            className="w-full font-semibold cursor-pointer flex items-center justify-center gap-2 mt-2 transition-transform duration-150 active:scale-[0.99]"
+            className="w-full bg-[#1b1b1b] hover:bg-black text-white font-semibold py-3 px-4 rounded-xl text-sm transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed mt-2 shadow-none"
           >
             {isAuthenticating ? (
               <>
-                <RefreshCw size={14} className="animate-spin" />
-                <span>Verificando...</span>
+                <RefreshCw size={15} className="animate-spin text-white" />
+                <span>Verificando credenciales...</span>
               </>
             ) : (
               <>
@@ -183,33 +187,33 @@ export default function LoginPage({ showToast, companyProfile }) {
                 <ArrowRight size={15} />
               </>
             )}
-          </UiButton>
+          </button>
         </form>
 
         {/* Footer: Register link */}
-        <UiBox className="mt-6 pt-5 border-t border-[var(--gray-a4)] text-center">
-          <UiText size="2" color="gray">
-            ¿No tienes una cuenta?{' '}
+        <div className="mt-6 pt-5 border-t border-slate-100 dark:border-slate-800 text-center">
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+            ¿No tienes una cuenta aún?{' '}
             <button
               type="button"
               onClick={() => navigate('/register')}
-              className="font-bold text-[var(--blue-11)] hover:underline cursor-pointer focus:outline-none ml-1"
+              className="font-bold text-[#006a43] hover:text-[#004227] hover:underline cursor-pointer focus:outline-none ml-1 transition-colors"
             >
-              Regístrate aquí
+              Regístrate gratis
             </button>
-          </UiText>
-        </UiBox>
-      </UiCard>
+          </p>
+        </div>
+      </div>
 
-      {/* Footer / Copyright & Security */}
-      <UiBox className="w-full max-w-[420px] text-center pb-2 pt-4 space-y-1">
-        <UiText size="1" color="gray" className="block text-[11px]">
-          Plataforma de Facturación Electrónica y Control Empresarial
-        </UiText>
-        <UiText size="1" color="gray" className="block text-[11px] opacity-80">
+      {/* Footer / Security & Copyright */}
+      <div className="w-full max-w-[440px] text-center pb-2 pt-4 space-y-1">
+        <p className="text-xs text-slate-500 font-medium">
+          Plataforma de Facturación Electrónica y Control Empresarial SRI
+        </p>
+        <p className="text-[11px] text-slate-400">
           © {new Date().getFullYear()} WebFix. Todos los derechos reservados.
-        </UiText>
-      </UiBox>
-    </UiBox>
+        </p>
+      </div>
+    </div>
   );
 }

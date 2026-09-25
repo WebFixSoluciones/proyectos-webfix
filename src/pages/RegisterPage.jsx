@@ -1,5 +1,4 @@
-import { UiBox, UiCard, UiText, UiLabel, UiHeading } from '../components/ui/layout';
-import { UiInput, UiButton } from '../components/ui/controls';
+import { UiInput } from '../components/ui/controls';
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Mail, Lock, User, Building, ArrowRight, RefreshCw, ShieldCheck, AlertCircle } from 'lucide-react';
@@ -138,127 +137,133 @@ export default function RegisterPage({ showToast }) {
   };
 
   return (
-    <UiBox className="min-h-screen w-full flex flex-col justify-between items-center bg-[var(--gray-1)] text-[var(--gray-12)] relative overflow-hidden p-4 sm:p-6 select-none">
-      {/* Background Subtle Pattern */}
-      <UiBox 
+    <div className="min-h-screen w-full flex flex-col justify-between items-center bg-[#f9fff6] dark:bg-[#071d12] text-slate-900 dark:text-slate-100 relative overflow-hidden p-4 sm:p-6 select-none font-sans">
+      {/* Background Subtle Mint Pattern */}
+      <div 
         className="absolute inset-0 pointer-events-none opacity-40 -z-10" 
         style={{
-          backgroundImage: 'radial-gradient(var(--gray-a5) 1px, transparent 1px)',
+          backgroundImage: 'radial-gradient(#b3f4cb 1.2px, transparent 1.2px)',
           backgroundSize: '24px 24px'
         }}
       />
 
       {/* Top Bar Branding */}
-      <UiBox className="w-full max-w-[460px] flex justify-between items-center pt-2 sm:pt-4">
-        <UiBox className="flex items-center gap-2">
-          <UiBox className="w-8 h-8 rounded-lg bg-[var(--blue-9)] text-white flex items-center justify-center font-bold text-sm">
+      <div className="w-full max-w-[460px] flex justify-between items-center pt-2 sm:pt-4">
+        <div 
+          onClick={() => navigate('/')}
+          className="flex items-center gap-2.5 cursor-pointer group"
+          title="Ir a inicio"
+        >
+          <div className="w-8 h-8 rounded-xl bg-[#006a43] text-white flex items-center justify-center font-bold text-sm tracking-tight transition-transform group-hover:scale-105 shadow-none">
             W
-          </UiBox>
-          <UiText size="2" weight="bold" color="gray" highContrast>
-            WebFix ERP
-          </UiText>
-        </UiBox>
-        <UiBox className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--blue-3)] text-[var(--blue-11)] text-[11px] font-semibold">
-          <ShieldCheck size={12} />
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="font-extrabold text-slate-900 dark:text-white tracking-tight text-lg">
+              WebFix
+            </span>
+            <span className="text-[11px] font-bold text-[#006a43] bg-[#e8fedf] px-1.5 py-0.5 rounded-md">
+              ERP
+            </span>
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white dark:bg-slate-900 border border-[#b3f4cb] dark:border-emerald-900/50 text-[11px] font-semibold text-[#006a43] dark:text-emerald-400">
+          <ShieldCheck size={13} className="text-[#006a43] dark:text-emerald-400" />
           <span>Prueba 14 días gratis</span>
-        </UiBox>
-      </UiBox>
+        </div>
+      </div>
 
       {/* Main Card */}
-      <UiCard className="w-full max-w-[460px] p-6 sm:p-8 bg-[var(--color-panel-solid)] rounded-2xl duration-300">
-        <UiBox className="text-left mb-6 select-none">
-          <UiHeading as="h1" size="5" weight="bold" color="gray" highContrast className="tracking-tight">
+      <div className="w-full max-w-[460px] p-7 sm:p-9 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-3xl duration-200">
+        <div className="text-left mb-6 select-none">
+          <h1 className="font-extrabold text-2xl sm:text-3xl text-slate-950 dark:text-white tracking-tight">
             Crear cuenta de empresa
-          </UiHeading>
-          <UiText size="2" color="gray" className="mt-1 block">
-            Plan seleccionado: <span className="font-semibold text-[var(--blue-11)]">{getPlanName(planParam)}</span>
-          </UiText>
-        </UiBox>
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1.5 leading-relaxed">
+            Plan seleccionado: <span className="font-bold text-[#006a43] dark:text-emerald-400">{getPlanName(planParam)}</span>
+          </p>
+        </div>
 
         <form onSubmit={handleRegister} className="space-y-4 text-left">
-          <UiBox>
-            <UiLabel size="1" weight="bold" color="gray" highContrast className="block mb-1 text-[11px] uppercase tracking-wider">
+          <div>
+            <label className="block mb-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200">
               Nombre del Administrador
-            </UiLabel>
+            </label>
             <UiInput
               type="text"
               value={registerForm.name}
               onChange={(e) => setRegisterForm({ ...registerForm, name: e.target.value })}
               placeholder="Tu Nombre y Apellido"
-              iconPrefix={<User size={15} className="text-[var(--gray-10)]" />}
+              iconPrefix={<User size={16} className="text-slate-400" />}
               size="2"
               required
               className="w-full"
             />
-          </UiBox>
+          </div>
 
-          <UiBox>
-            <UiLabel size="1" weight="bold" color="gray" highContrast className="block mb-1 text-[11px] uppercase tracking-wider">
+          <div>
+            <label className="block mb-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200">
               Razón Social / Nombre Comercial
-            </UiLabel>
+            </label>
             <UiInput
               type="text"
               value={registerForm.companyName}
               onChange={(e) => setRegisterForm({ ...registerForm, companyName: e.target.value })}
               placeholder="Ej. Mi Negocio S.A.S"
-              iconPrefix={<Building size={15} className="text-[var(--gray-10)]" />}
+              iconPrefix={<Building size={16} className="text-slate-400" />}
               size="2"
               required
               className="w-full"
             />
-          </UiBox>
+          </div>
 
-          <UiBox>
-            <UiLabel size="1" weight="bold" color="gray" highContrast className="block mb-1 text-[11px] uppercase tracking-wider">
+          <div>
+            <label className="block mb-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200">
               Correo Corporativo
-            </UiLabel>
+            </label>
             <UiInput
               type="email"
               value={registerForm.email}
               onChange={(e) => setRegisterForm({ ...registerForm, email: e.target.value })}
               placeholder="correo@empresa.com"
-              iconPrefix={<Mail size={15} className="text-[var(--gray-10)]" />}
+              iconPrefix={<Mail size={16} className="text-slate-400" />}
               size="2"
               required
               className="w-full"
             />
-          </UiBox>
+          </div>
 
-          <UiBox>
-            <UiLabel size="1" weight="bold" color="gray" highContrast className="block mb-1 text-[11px] uppercase tracking-wider">
+          <div>
+            <label className="block mb-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200">
               Contraseña
-            </UiLabel>
+            </label>
             <UiInput
               type="password"
               value={registerForm.password}
               onChange={(e) => setRegisterForm({ ...registerForm, password: e.target.value })}
               placeholder="Mínimo 6 caracteres"
-              iconPrefix={<Lock size={15} className="text-[var(--gray-10)]" />}
+              iconPrefix={<Lock size={16} className="text-slate-400" />}
               minLength={6}
               size="2"
               required
               className="w-full"
             />
-          </UiBox>
+          </div>
 
           {registerError && (
-            <UiBox className="p-3 rounded-lg bg-[var(--red-3)] border border-[var(--red-6)] text-[var(--red-11)] text-xs font-medium flex items-center gap-2 animate-in fade-in duration-200">
-              <AlertCircle size={15} className="shrink-0 text-[var(--red-11)]" />
-              <span>{registerError}</span>
-            </UiBox>
+            <div className="p-3.5 rounded-xl bg-[#fff0f5] border border-[#fbc6d9] text-[#b22456] text-xs font-medium flex items-start gap-2.5 animate-in fade-in duration-200">
+              <AlertCircle size={16} className="shrink-0 mt-0.5 text-[#d9306b]" />
+              <span className="leading-relaxed">{registerError}</span>
+            </div>
           )}
 
-          <UiButton
+          <button
             type="submit"
             disabled={isRegistering}
-            variant="solid"
-            color="blue"
-            size="3"
-            className="w-full flex items-center justify-center gap-2 mt-4 font-semibold cursor-pointer transition-transform active:scale-[0.99]"
+            className="w-full bg-[#1b1b1b] hover:bg-black text-white font-semibold py-3 px-4 rounded-xl text-sm transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed mt-2 shadow-none"
           >
             {isRegistering ? (
               <>
-                <RefreshCw size={14} className="animate-spin" />
+                <RefreshCw size={15} className="animate-spin text-white" />
                 <span>Creando cuenta...</span>
               </>
             ) : (
@@ -267,29 +272,32 @@ export default function RegisterPage({ showToast }) {
                 <ArrowRight size={15} />
               </>
             )}
-          </UiButton>
+          </button>
         </form>
 
-        <UiBox className="mt-6 pt-5 border-t border-[var(--gray-a4)] text-center">
-          <UiText size="2" color="gray">
+        <div className="mt-6 pt-5 border-t border-slate-100 dark:border-slate-800 text-center">
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
             ¿Ya tienes una cuenta?{' '}
             <button
               type="button"
               onClick={() => navigate('/login')}
-              className="font-bold text-[var(--blue-11)] hover:underline cursor-pointer focus:outline-none ml-1"
+              className="font-bold text-[#006a43] hover:text-[#004227] hover:underline cursor-pointer focus:outline-none ml-1 transition-colors"
             >
               Inicia sesión
             </button>
-          </UiText>
-        </UiBox>
-      </UiCard>
+          </p>
+        </div>
+      </div>
 
       {/* Footer */}
-      <UiBox className="w-full max-w-[460px] text-center pb-2 pt-4">
-        <UiText size="1" color="gray" className="block text-[11px] opacity-80">
+      <div className="w-full max-w-[460px] text-center pb-2 pt-4 space-y-1">
+        <p className="text-xs text-slate-500 font-medium">
+          Facturación SRI • Multiempresa • Inventario • Bancos
+        </p>
+        <p className="text-[11px] text-slate-400">
           © {new Date().getFullYear()} WebFix. Todos los derechos reservados.
-        </UiText>
-      </UiBox>
-    </UiBox>
+        </p>
+      </div>
+    </div>
   );
 }

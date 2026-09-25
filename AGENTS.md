@@ -386,3 +386,16 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
   - Removido el borde divisor interno `border-t border-slate-200/80` sobre los enlaces legales y copyright.
   - Resultado: Un lienzo fluido, continuo y minimalista sin cortes lineales abruptos.
 - **Pruebas y Build**: 43 tests unitarios aprobados, compilación limpia de producción en 6.91s.
+
+### 31. Rediseño de Inicio de Sesión y Registro con Guía Gráfica Brevo (2026-09-25) — COMPLETADO
+- **Estética Brevo Oficial**:
+  - Lienzo fresco y luminoso con fondo menta (`#f9fff6` / `--brand-mint-green-100`) y textura de micro-patrón radial sutil (`#b3f4cb 1.2px`).
+  - Cabecera de autenticación limpia: Logotipo WebFix ERP con isotipo en verde bosque (`#006a43` / `--brand-forest-green-800`), píldora `ERP` menta y badge de seguridad `SRI Ecuador` con borde `#b3f4cb`.
+  - Tarjeta de autenticación de alto contraste (`max-w-[440px]`, `rounded-3xl`, `bg-white`, borde sutil `border-slate-200/90`, cero sombras) con tipografía Inter bold/semibold limpia.
+  - Campos de entrada: `UiInput` con `iconPrefix` (Mail, Lock) para evitar superposiciones, foco limpio y alternador de contraseña integrado.
+  - Botón principal de acción: Botón charcoal sólido estilo Brevo (`#1b1b1b` / `--brand-charcoal-grey-900` hover `bg-black`, texto blanco, esquinas redondeadas `rounded-xl`, tipografía semibold).
+  - Enlaces de navegación: "¿Olvidaste tu contraseña?" y "Regístrate gratis / Inicia sesión" en verde bosque interactivo (`#006a43` hover `#004227`).
+  - Alerta de errores: Contenedor semántico suave en tonos rosados/rojos (`bg-[#fff0f5] border-[#fbc6d9] text-[#b22456]`).
+- **Coherencia en Registro (`RegisterPage.jsx`)**: Aplicada la misma guía gráfica unificada para una transición fluida e impecable entre inicio de sesión y creación de cuenta.
+- **Pruebas y Build**: 43 tests unitarios aprobados (41 suite de comercio/SRI + 2 animaciones), compilación de producción exitosa en 7.03s.
+
