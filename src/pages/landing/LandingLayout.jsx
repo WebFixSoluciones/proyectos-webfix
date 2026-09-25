@@ -1,11 +1,6 @@
-import { mergeThemeProps } from '../../components/ui/themeProps';
-import { UiBox, UiText, UiHeading } from '../../components/ui/layout';
-import { UiButton } from '../../components/ui/controls';
 import { useState, useEffect, useRef } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, ArrowUpRight } from 'lucide-react';
-import { Button } from '../../components/ui/button';
-import { Badge } from '../../components/ui/badge';
 
 export default function LandingLayout() {
   const location = useLocation();
@@ -34,195 +29,289 @@ export default function LandingLayout() {
   };
 
   return (
-    <UiBox 
+    <div
       ref={scrollContainerRef}
-      {...{"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"},"className":"fixed inset-0 w-full h-full overflow-y-auto overflow-x-hidden flex flex-col justify-between"}}
+      className="min-h-screen w-full flex flex-col justify-between bg-white dark:bg-[#0c1017] text-slate-900 dark:text-slate-100 overflow-x-hidden selection:bg-[#0F172A] selection:text-white"
     >
-      
       {/* 1. TOP ANNOUNCEMENT BAR */}
-      <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","borderBottom":"1px solid var(--gray-a6)","color":"var(--gray-11)"},"className":"px-4 py-1.5 text-center flex items-center justify-center gap-2"}}>
-        <UiText {...{"className":"flex h-1.5 w-1.5 animate-pulse"}}></UiText>
-        <UiText>Cumplimiento tributario SRI 2026 activo • Firma electrónica .p12 y facturación ilimitada</UiText>
-        <Link to="/precios" {...{"style":{"color":"var(--gray-12)"},"className":"hover:underline inline-flex items-center gap-0.5 ml-1"}}>
-          Ver planes <ArrowUpRight size={11} />
-        </Link>
-      </UiBox>
-
-      {/* 2. STICKY NAVBAR (Vercel / Linear Minimalist Style) */}
-      <header {...{"style":{"borderBottom":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"sticky top-0 z-50 shrink-0"}}>
-        <UiBox {...{"className":"max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between"}}>
-          
-          {/* Brand Logo */}
-          <Link to="/" {...{"className":"flex items-center gap-2.5 group cursor-pointer select-none"}}>
-            <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--gray-2)","color":"var(--color-background)"},"className":"w-7 h-7 flex items-center justify-center transition-transform duration-150 group-hover:scale-105"}}>
-              W
-            </UiBox>
-            <UiBox {...{"className":"flex items-center gap-1.5"}}>
-              <UiText {...{"size":"2","weight":"bold","color":"gray","highContrast":true}}>WebFix</UiText>
-              <UiText {...{"size":"1","weight":"medium","color":"gray","className":"px-1.5 py-0.5"}}>ERP</UiText>
-            </UiBox>
+      <div className="w-full bg-slate-50 dark:bg-slate-900/60 border-b border-slate-200/70 dark:border-slate-800/70">
+        <div className="w-[90%] max-w-[1720px] mx-auto py-1.5 flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
+          <div className="flex items-center gap-2 font-medium truncate">
+            <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+            <span className="truncate">
+              Cumplimiento tributario SRI 2026 activo • Facturación ilimitada con firma electrónica .p12
+            </span>
+          </div>
+          <Link
+            to="/precios"
+            className="inline-flex items-center gap-1 font-semibold text-slate-900 dark:text-slate-100 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors shrink-0 ml-3"
+          >
+            Ver planes <ArrowUpRight size={12} />
           </Link>
+        </div>
+      </div>
 
-          {/* Desktop Navigation Links */}
-          <nav {...{"className":"hidden md:flex items-center gap-1"}}>
-            {navLinks.map(link => {
-              const isActive = location.pathname === link.path;
-              return (
-                <Link 
-                  key={link.path}
-                  to={link.path}
-                  {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)"},"className":"px-3 py-1.5 duration-120"}, {}, (isActive ? {"style":{"color":"var(--gray-12)","backgroundColor":"var(--color-panel-solid)"}} : {"style":{"color":"var(--gray-11)"}}))}
-                >
-                  {link.label}
-                </Link>
-              );
-            })}
-          </nav>
- 
-          {/* Action Buttons */}
-          <UiBox {...{"className":"hidden md:flex items-center gap-2"}}>
-            <Button 
-              variant="ghost" 
-              size="sm"
-              onClick={() => navigate('/login')} 
-              {...{"size":"2","color":"gray"}}
+      {/* 2. STICKY NAVBAR GLASSMORPHISM (MENU SEGUIDO DEL LOGO A LA IZQUIERDA) */}
+      <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-white/85 dark:bg-[#0c1017]/85 border-b border-slate-200/80 dark:border-slate-800/80 transition-all">
+        <div className="w-[90%] max-w-[1720px] mx-auto h-16 flex items-center justify-between">
+          
+          {/* Bloque Izquierdo: Logo WebFix ERP + Navegación seguida inmediatamente */}
+          <div className="flex items-center gap-8 md:gap-10">
+            {/* Logo WebFix ERP */}
+            <Link
+              to="/"
+              className="flex items-center gap-2.5 group cursor-pointer select-none"
+              aria-label="WebFix ERP Inicio"
+            >
+              <div className="w-8 h-8 rounded-lg bg-[#0F172A] text-white flex items-center justify-center font-bold text-sm tracking-tight transition-transform duration-150 group-hover:scale-105 shadow-none">
+                W
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="font-bold text-slate-900 dark:text-white tracking-tight text-lg">
+                  WebFix
+                </span>
+                <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                  ERP
+                </span>
+              </div>
+            </Link>
+
+            {/* Menú de Navegación Alineado a la Izquierda inmediatamente después del Logo */}
+            <nav className="hidden md:flex items-center gap-1">
+              {navLinks.map((link) => {
+                const isActive = location.pathname === link.path;
+                return (
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                      isActive
+                        ? 'text-slate-950 dark:text-white font-semibold bg-slate-100/80 dark:bg-slate-800/80'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/40'
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
+
+          {/* Bloque Derecho: Iniciar Sesión + Comenzar Gratis (Estilo Brevo) */}
+          <div className="hidden md:flex items-center gap-3">
+            <Link
+              to="/login"
+              className="text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white font-medium text-sm px-3 py-2 transition-colors"
             >
               Iniciar Sesión
-            </Button>
-            <Button 
-              variant="default" 
-              size="sm"
-              onClick={() => navigate('/register')} 
-              {...{"size":"2"}}
+            </Link>
+            <Link
+              to="/register"
+              className="px-5 py-2.5 rounded-full bg-[#0F172A] hover:bg-slate-800 text-white font-medium text-sm transition-all shadow-none"
             >
               Comenzar Gratis
-            </Button>
-          </UiBox>
+            </Link>
+          </div>
 
-          {/* Mobile Menu Toggle */}
-          <UiButton
+          {/* Botón Menú Móvil */}
+          <button
+            type="button"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            {...{"variant":"outline","color":"gray","className":"md:hidden cursor-pointer"}}
-            aria-label="Abrir menú"
+            className="md:hidden p-2 rounded-lg text-slate-700 hover:text-slate-950 hover:bg-slate-100 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            aria-label={isMobileMenuOpen ? 'Cerrar menú' : 'Abrir menú'}
           >
-            {isMobileMenuOpen ? <X size={16} /> : <Menu size={16} />}
-          </UiButton>
+            {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
 
-        </UiBox>
+        </div>
       </header>
 
-      {/* MOBILE NAV OVERLAY */}
+      {/* 3. OVERLAY MENÚ MÓVIL */}
       {isMobileMenuOpen && (
-        <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","borderBottom":"1px solid var(--gray-a6)"},"className":"fixed inset-0 top-20 z-40 flex flex-col p-6 space-y-4 md:hidden animate-in fade-in duration-150"}}>
-          <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex flex-col space-y-2 pb-4"}}>
-            {navLinks.map(link => {
+        <div className="fixed inset-x-0 top-16 z-40 bg-white/95 dark:bg-[#0c1017]/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 p-6 flex flex-col gap-4 md:hidden shadow-lg animate-in slide-in-from-top-2 duration-150">
+          <div className="flex flex-col space-y-1">
+            {navLinks.map((link) => {
               const isActive = location.pathname === link.path;
               return (
-                <UiButton
+                <button
                   key={link.path}
+                  type="button"
                   onClick={() => handleMobileLinkClick(link.path)}
-                  {...mergeThemeProps({"size":"2","className":"text-left"}, {}, (isActive ? {"variant":"soft","color":"gray"} : {"color":"gray"}))}
+                  className={`text-left px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                    isActive
+                      ? 'bg-slate-100 dark:bg-slate-800 text-slate-950 dark:text-white font-semibold'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                  }`}
                 >
                   {link.label}
-                </UiButton>
+                </button>
               );
             })}
-          </UiBox>
-          <UiBox {...{"className":"flex flex-col gap-2 pt-2"}}>
-            <Button 
-              variant="outline"
-              onClick={() => { setIsMobileMenuOpen(false); navigate('/login'); }}
-              {...{"size":"2","className":"w-full"}}
+          </div>
+
+          <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex flex-col gap-2.5">
+            <button
+              type="button"
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                navigate('/login');
+              }}
+              className="w-full py-2.5 px-4 rounded-lg text-center text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 transition-colors"
             >
               Iniciar Sesión
-            </Button>
-            <Button 
-              variant="default"
-              onClick={() => { setIsMobileMenuOpen(false); navigate('/register'); }}
-              {...{"size":"2","className":"w-full"}}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                navigate('/register');
+              }}
+              className="w-full py-2.5 px-4 rounded-full text-center text-sm font-medium bg-[#0F172A] hover:bg-slate-800 text-white transition-all shadow-none"
             >
               Comenzar Gratis
-            </Button>
-          </UiBox>
-        </UiBox>
+            </button>
+          </div>
+        </div>
       )}
 
-      {/* ROUTE DYNAMIC CHILDREN */}
-      <main {...{"className":"flex-1 shrink-0"}}>
+      {/* 4. CONTENIDO DINÁMICO */}
+      <main className="flex-1 w-full shrink-0">
         <Outlet />
       </main>
 
-      {/* MINIMALIST STARTUP FOOTER */}
-      <footer {...{"style":{"borderTop":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)","color":"var(--gray-11)"},"className":"py-12 shrink-0 mt-auto"}}>
-        <UiBox {...{"className":"max-w-6xl mx-auto px-4 sm:px-6"}}>
-          <UiBox {...{"className":"grid grid-cols-1 md:grid-cols-4 gap-8 mb-10 text-left"}}>
+      {/* 5. FOOTER MINIMALISTA AL 90% */}
+      <footer className="py-12 shrink-0 mt-auto border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0c1017] text-slate-600 dark:text-slate-400">
+        <div className="w-[90%] max-w-[1720px] mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-10 md:gap-8 mb-10 text-left">
             
-            {/* Brand Column */}
-            <UiBox {...{"className":"md:col-span-1 space-y-3"}}>
-              <UiBox {...{"className":"flex items-center gap-2"}}>
-                <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--gray-2)","color":"var(--color-background)"},"className":"w-6 h-6 flex items-center justify-center"}}>
+            {/* Columna 1: Marca y Estado SRI */}
+            <div className="space-y-4">
+              <Link to="/" className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-[#0F172A] text-white flex items-center justify-center font-bold text-sm tracking-tight">
                   W
-                </UiBox>
-                <UiText {...{"weight":"bold","size":"2","color":"gray","highContrast":true}}>WebFix ERP</UiText>
-              </UiBox>
-              <UiText as="p" {...{"size":"1","color":"gray","className":"leading-relaxed"}}>
+                </div>
+                <span className="font-bold text-slate-900 dark:text-white text-base tracking-tight">
+                  WebFix ERP
+                </span>
+              </Link>
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed max-w-sm">
                 Plataforma de facturación electrónica y control financiero diseñada para empresas modernas en Ecuador.
-              </UiText>
-              <UiBox {...{"className":"flex items-center gap-2 pt-1"}}>
-                <Badge variant="success" {...{"className":"gap-1 py-0.5 px-2"}}>
-                  <UiText {...{"className":"h-1.5 w-1.5"}}></UiText>
-                  SRI Online 100%
-                </Badge>
-              </UiBox>
-            </UiBox>
+              </p>
+              <div className="pt-1">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  SRI Online 100% Producción
+                </span>
+              </div>
+            </div>
 
-            {/* Product Links */}
-            <UiBox>
-              <UiHeading as="h4" {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"mb-3"}}>Producto</UiHeading>
-              <UiBox {...{"className":"flex flex-col gap-2"}}>
-                <Link to="/" {...{"style":{"color":"var(--gray-11)"}}}>Inicio</Link>
-                <Link to="/soluciones" {...{"style":{"color":"var(--gray-11)"}}}>Módulos</Link>
-                <Link to="/precios" {...{"style":{"color":"var(--gray-11)"}}}>Planes y Precios</Link>
-              </UiBox>
-            </UiBox>
+            {/* Columna 2: Producto */}
+            <div>
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-900 dark:text-white mb-4">
+                Producto
+              </h4>
+              <ul className="flex flex-col space-y-2.5 text-sm">
+                <li>
+                  <Link to="/soluciones" className="hover:text-slate-950 dark:hover:text-white transition-colors">
+                    Facturación SRI
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/soluciones" className="hover:text-slate-950 dark:hover:text-white transition-colors">
+                    Punto de Venta POS
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/soluciones" className="hover:text-slate-950 dark:hover:text-white transition-colors">
+                    Control Financiero
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/soluciones" className="hover:text-slate-950 dark:hover:text-white transition-colors">
+                    Kardex & Inventario
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/precios" className="hover:text-slate-950 dark:hover:text-white transition-colors">
+                    Planes y Precios
+                  </Link>
+                </li>
+              </ul>
+            </div>
 
-            {/* Resources Links */}
-            <UiBox>
-              <UiHeading as="h4" {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"mb-3"}}>Recursos</UiHeading>
-              <UiBox {...{"className":"flex flex-col gap-2"}}>
-                <a href="https://srienlinea.sri.gob.ec" target="_blank" rel="noopener noreferrer" {...{"style":{"color":"var(--gray-11)"},"className":"flex items-center gap-1"}}>
-                  Portal SRI Ecuador <ArrowUpRight size={10} />
-                </a>
-                <Link to="/contacto" {...{"style":{"color":"var(--gray-11)"}}}>Soporte Técnico</Link>
-                <Link to="/nosotros" {...{"style":{"color":"var(--gray-11)"}}}>Acerca de WebFix</Link>
-              </UiBox>
-            </UiBox>
+            {/* Columna 3: Empresa */}
+            <div>
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-900 dark:text-white mb-4">
+                Empresa
+              </h4>
+              <ul className="flex flex-col space-y-2.5 text-sm">
+                <li>
+                  <Link to="/nosotros" className="hover:text-slate-950 dark:hover:text-white transition-colors">
+                    Acerca de WebFix
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/contacto" className="hover:text-slate-950 dark:hover:text-white transition-colors">
+                    Soporte Técnico
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/contacto" className="hover:text-slate-950 dark:hover:text-white transition-colors">
+                    Contacto Comercial
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/precios" className="hover:text-slate-950 dark:hover:text-white transition-colors">
+                    Preguntas Frecuentes
+                  </Link>
+                </li>
+              </ul>
+            </div>
 
-            {/* Technology & Security */}
-            <UiBox>
-              <UiHeading as="h4" {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"mb-3"}}>Seguridad</UiHeading>
-              <UiText as="p" {...{"size":"1","color":"gray","className":"leading-relaxed"}}>
+            {/* Columna 4: Seguridad & SRI */}
+            <div>
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-900 dark:text-white mb-4">
+                Seguridad & SRI
+              </h4>
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-3">
                 Infraestructura cifrada en la nube con firma digital XAdES-BES y almacenamiento seguro de certificados .p12.
-              </UiText>
-            </UiBox>
+              </p>
+              <ul className="flex flex-col space-y-2 text-sm">
+                <li>
+                  <a
+                    href="https://srienlinea.sri.gob.ec"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 hover:text-slate-950 dark:hover:text-white transition-colors"
+                  >
+                    Portal SRI Ecuador <ArrowUpRight size={12} />
+                  </a>
+                </li>
+              </ul>
+            </div>
 
-          </UiBox>
-          
-          {/* Bottom Bar */}
-          <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)","color":"var(--gray-11)"},"className":"pt-6 flex flex-col sm:flex-row items-center justify-between gap-3"}}>
-            <UiText as="p">© {new Date().getFullYear()} WebFix Soluciones. Todos los derechos reservados.</UiText>
-            <UiBox {...{"className":"flex items-center gap-4"}}>
-              <Link to="/contacto" {...{}}>Contacto</Link>
-              <UiText>•</UiText>
-              <a href="#privacidad" {...{}}>Privacidad</a>
-              <UiText>•</UiText>
-              <a href="#terminos" {...{}}>Términos</a>
-            </UiBox>
-          </UiBox>
+          </div>
 
-        </UiBox>
+          {/* Barra Legal Inferior */}
+          <div className="pt-6 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 dark:text-slate-400">
+            <p>© {new Date().getFullYear()} WebFix Soluciones. Todos los derechos reservados.</p>
+            <div className="flex items-center gap-4 font-medium">
+              <Link to="/contacto" className="hover:text-slate-950 dark:hover:text-white transition-colors">
+                Contacto
+              </Link>
+              <span>•</span>
+              <a href="#privacidad" className="hover:text-slate-950 dark:hover:text-white transition-colors">
+                Privacidad
+              </a>
+              <span>•</span>
+              <a href="#terminos" className="hover:text-slate-950 dark:hover:text-white transition-colors">
+                Términos
+              </a>
+            </div>
+          </div>
+
+        </div>
       </footer>
-
-    </UiBox>
+    </div>
   );
 }
