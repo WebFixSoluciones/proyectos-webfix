@@ -41,7 +41,7 @@ export default function Sidebar({
         <button 
           type="button"
           onClick={() => { setActivePageId('dashboard'); closeMobile(); }}
-          className={`h-14 w-full flex items-center ${isSidebarOpen ? 'justify-between px-4' : 'justify-center'} border-b border-slate-200/80 shrink-0 overflow-hidden cursor-pointer hover:bg-slate-50 transition-colors text-left`}
+          className={`h-14 w-full flex items-center ${isSidebarOpen ? 'justify-between px-4' : 'justify-center'} shrink-0 overflow-hidden cursor-pointer hover:bg-slate-50 transition-colors text-left`}
           title="Ir al Inicio"
         >
           {isSidebarOpen ? (

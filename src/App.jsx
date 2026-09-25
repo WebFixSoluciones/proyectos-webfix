@@ -735,8 +735,6 @@ export default function App() {
         };
     }
   };
-
-  const headerDetails = getModuleHeaderDetails();
   
   // --- Lógica de Usuarios ---
   const openNewUserDrawer = () => {
@@ -968,7 +966,7 @@ export default function App() {
         
         {/* Topbar Stripe (Brevo Design System Header) */}
         <header className="flex items-center px-4 sm:px-6 justify-between gap-4 shrink-0 h-14 bg-white select-none z-30">
-          {/* Left: Sidebar Toggle + Contextual Breadcrumb */}
+          {/* Left: Sidebar Toggle */}
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -978,13 +976,6 @@ export default function App() {
             >
               <Menu size={18} />
             </button>
-            {activePageId !== 'dashboard' && (
-              <div className="flex items-center gap-2">
-                <span className="text-xs sm:text-sm font-semibold text-slate-800 tracking-tight">
-                  {headerDetails.title}
-                </span>
-              </div>
-            )}
           </div>
 
           {/* Right: Brevo Action Icons & User Profile */}
