@@ -1588,68 +1588,23 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   };
 
   const formJSX = (
-    <UiBox {...mergeThemeProps({"className":"transaction-form-clean"}, {}, (isInline ? mergeThemeProps({"style":{"backgroundColor":"transparent","color":"var(--gray-12)"},"className":"w-full flex flex-col animate-in fade-in duration-300"}) : mergeThemeProps({"style":{"backgroundColor":"var(--gray-2)","color":"var(--gray-12)"},"className":"fixed inset-0 z-[100] w-screen h-screen overflow-y-auto flex flex-col bg-slate-50"})))}>
+    <div className={`transaction-form-clean bg-white ${isInline ? 'w-full flex flex-col animate-in fade-in duration-300' : 'fixed inset-0 z-[100] w-screen h-screen overflow-y-auto flex flex-col bg-white'}`}>
 
-      
-      {/* TOP HEADER */}
-      <div className={`bg-white border border-slate-200/90 rounded-2xl px-5 py-4 flex items-center justify-between shadow-none mb-4 ${!isInline ? 'sticky top-0 z-20 mx-4 mt-4' : ''}`}>
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-800 flex items-center justify-center shrink-0">
-            <Calculator size={18} />
-          </div>
-          <div>
-            <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
-              {formData.type === 'ingreso' ? 'Venta Administrativa' : 'Asistente de Compras'}
-            </h2>
-            {formData.claveAcceso && (
-              <p className="text-[11px] font-mono text-slate-500 mt-0.5">Clave SRI: {formData.claveAcceso}</p>
-            )}
-          </div>
-        </div>
-
-        {/* COMPACT STEPPER */}
-        {!isInline && (
-          <div className="flex items-center gap-1.5 bg-slate-50 p-1.5 rounded-full border border-slate-200/80">
-            {steps.map((step) => {
-              const isActive = currentStep === step.id;
-              return (
-                <button
-                  key={step.id}
-                  type="button"
-                  disabled={(isEditable && step.id === 2) || (isLockedInStep2 && step.id === 1)}
-                  onClick={() => {
-                    if (step.id === 2) {
-                      if (isEditable && !formData.documentNumber) {
-                        showToast('Debes registrar la venta o emitir el comprobante antes de ver la impresión', 'error');
-                        return;
-                      }
-                    }
-                    setCurrentStep(step.id);
-                  }}
-                  className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer border-none ${
-                    isActive
-                      ? 'bg-[#1b1b1b] text-white'
-                      : 'text-slate-600 hover:text-slate-950 bg-transparent'
-                  } ${((isEditable && step.id === 2) || (isLockedInStep2 && step.id === 1)) ? 'opacity-40 cursor-not-allowed' : ''}`}
-                >
-                  <span className="w-4 h-4 rounded-full flex items-center justify-center text-[11px] font-bold">
-                    {step.id}
-                  </span>
-                  <span className="hidden sm:inline">{step.name}</span>
-                </button>
-              );
-            })}
-          </div>
-        )}
+      {/* MINIMAL TOP ACTION BAR */}
+      <div className="flex items-center justify-between max-w-[1600px] w-full mx-auto px-1 py-1 mb-2">
+        {formData.claveAcceso ? (
+          <span className="text-[11px] font-mono text-slate-500">Clave SRI: {formData.claveAcceso}</span>
+        ) : <div />}
 
         <button
           type="button"
           onClick={closeTransaction}
           disabled={isSaving || isEmitting}
-          className="rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 px-4 py-2 text-xs font-semibold flex items-center gap-1.5 shadow-none transition-all cursor-pointer disabled:opacity-50"
+          className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-950 px-2.5 py-1 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer disabled:opacity-50 border-none bg-transparent"
+          title="Cancelar y volver"
         >
-          <X size={14} />
-          <span>{isInline ? 'Cancelar' : 'Cerrar'}</span>
+          <X size={15} className="text-slate-500 hover:text-slate-950" />
+          <span>Cancelar</span>
         </button>
       </div>
 
@@ -1731,7 +1686,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       )}
 
       {/* STEP CONTAINER BODY */}
-      <UiBox {...{"className":"flex-1 p-[12px] max-w-[1600px] w-full mx-auto"}}>
+      <div className="flex-1 p-2 sm:p-3 max-w-[1600px] w-full mx-auto">
 
         {/* ═══════════════════════════════════════════════════════ */}
         {/* PASO 1: CABECERA, PRODUCTOS & PAGO (MINI POS)           */}
@@ -3525,7 +3480,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
           </div>
         )}
 
-      </UiBox>
+      </div>
 
       {/* FOOTER WIZARD BAR */}
       {!isInline && (
@@ -4556,7 +4511,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         </div>
       )}
 
-    </UiBox>
+    </div>
   );
 
   if (isInline) {

@@ -393,7 +393,7 @@ export default function FinanceModule({
 
       {/* CUERPO PRINCIPAL */}
       <UiBox {...{"style":{"backgroundColor":"transparent"},"className":"flex flex-1 overflow-hidden min-h-0"}}>
-        <UiBox {...mergeThemeProps({"className":"flex-1 min-w-0 overflow-y-auto"}, {"style":{"backgroundColor":"var(--gray-2)"},"className":"custom-scrollbar"}, (isFormActive ? {"className":"pt-0 pb-6"} : {"className":"py-4"}))}>
+        <div className={`flex-1 min-w-0 overflow-y-auto bg-white custom-scrollbar ${isFormActive ? 'pt-0 pb-6' : 'py-4'}`}>
           {isLoading ? (
             <UiBox {...{"className":"flex justify-center items-center h-64"}}>
               <UiBox {...{"style":{"borderRadius":"var(--radius-3)"},"className":"animate-spin h-8 w-8"}}></UiBox>
@@ -600,7 +600,7 @@ export default function FinanceModule({
               )}
             </>
           )}
-        </UiBox>
+        </div>
       </UiBox>
 
       {/* MODAL GLOBAL DE FACTURACIÓN (COMPARTIDO) */}

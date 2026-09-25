@@ -967,7 +967,7 @@ export default function App() {
       <UiBox {...{"className":"flex-1 flex flex-col h-full overflow-hidden relative z-10 md:z-[60]"}}>
         
         {/* Topbar Stripe (Brevo Design System Header) */}
-        <header className="flex items-center px-4 sm:px-6 justify-between gap-4 shrink-0 h-14 bg-white border-b border-slate-200/80 select-none z-30">
+        <header className="flex items-center px-4 sm:px-6 justify-between gap-4 shrink-0 h-14 bg-white select-none z-30">
           {/* Left: Sidebar Toggle + Contextual Breadcrumb */}
           <div className="flex items-center gap-3">
             <button

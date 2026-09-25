@@ -491,6 +491,18 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
   - Resultado: Barra lateral completamente despejada, minimalista y con navegación directa y fluida.
 - **Pruebas y Build**: 41 tests unitarios aprobados, compilación limpia de producción en 7.28s.
 
+### 39. Remoción de Título Redundante, Botón Cancelar Minimalista, Eliminación de Borde de Header y Fondo Blanco Puro (2026-09-25) — COMPLETADO
+- **Remoción de Título y Tarjeta Superior en Venta Administrativa (`TransactionForm.jsx`)**:
+  - Eliminada la tarjeta blanca superior que contenía el icono de calculadora y el título repetido *"Venta Administrativa"*, aprovechando que la ubicación ya se indica en el encabezado general del sistema.
+  - Diseñado un botón de cancelación sumamente minimalista con icono `X` y texto *"Cancelar"* (`flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-950 px-2.5 py-1 rounded-lg hover:bg-slate-100 transition-colors`), discreto y sin ocupar espacio vertical.
+- **Eliminación del Borde Inferior del Header (`App.jsx`)**:
+  - Removido `border-b border-slate-200/80` de la barra superior del ERP (`<header>`), eliminando la línea de separación visual y logrando una fusión limpia y fluida con el contenido del módulo.
+- **Fondo Blanco Puro en Venta Administrativa (`FinanceModule.jsx` y `TransactionForm.jsx`)**:
+  - Eliminado el fondo gris opaco (`style={{ backgroundColor: 'var(--gray-2)' }}`) del contenedor principal de scroll en `FinanceModule.jsx`.
+  - Actualizado el contenedor raíz de `TransactionForm.jsx` para usar siempre `bg-white`, garantizando un lienzo inmaculado, fresco y de alto contraste idéntico al estándar visual de Brevo.
+- **Pruebas y Build**: 41 tests unitarios aprobados, compilación limpia en 6.45s.
+
+
 
 
 
