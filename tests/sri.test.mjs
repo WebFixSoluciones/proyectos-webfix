@@ -7,6 +7,8 @@ import { recoverInvoiceFromSri, recoveredInvoice } from '../src/services/sriReco
 import { generarClaveAcceso, simularTransmisionSRI, reintentarDocumentoSRI } from '../src/services/sriService.js';
 import { invoiceLineAmounts } from '../src/services/invoiceLine.js';
 import { notifyAuthorizedInvoice } from '../src/services/invoiceNotification.js';
+import { reconcileSriDocument, batchReconcileSriDocuments, scanAllTenantsPendingSri, getDocumentTypeName } from '../src/services/sriReconciliation.js';
+import cronHandler from '../api/cron/reconcile-sri/index.js';
 
 globalThis.DOMParser = DOMParser;
 globalThis.XMLSerializer = XMLSerializer;
@@ -243,4 +245,164 @@ test('explicit retry after an interrupted first send uses the identical signed X
   });
   assert.equal((await reintentarDocumentoSRI({ claveAcceso: key, xml: signedXml })).status, 'autorizado');
   assert.equal(calls.length, 3);
+});
+
+test('getDocumentTypeName identifies all tax document types in Ecuador', () => {
+  assert.equal(getDocumentTypeName('factura'), 'Factura');
+  assert.equal(getDocumentTypeName('retencion'), 'Retención');
+  assert.equal(getDocumentTypeName('comprobante_retencion'), 'Retención');
+  assert.equal(getDocumentTypeName('nota_credito'), 'Nota de Crédito');
+  assert.equal(getDocumentTypeName('nota_debito'), 'Nota de Débito');
+  assert.equal(getDocumentTypeName('guia_remision'), 'Guía de Remisión');
+  assert.equal(getDocumentTypeName('liquidacion_compra'), 'Liquidación de Compra');
+  assert.equal(getDocumentTypeName('nota_venta'), 'Nota de Venta');
+});
+
+test('reconcileSriDocument reconciles pending document, persists xml and emits notification without altering sequence', async () => {
+  const store = memoryStore();
+  const doc = {
+    id: 'ret-001',
+    documentType: 'retencion',
+    documentNumber: '001-001-000000005',
+    claveAcceso: key,
+    sriStatus: 'pendiente_sri',
+    thirdParty: { name: 'Proveedor SA', email: 'proveedor@example.com' }
+  };
+  store.data.set(path('finances_transactions', 'ret-001'), doc);
+  
+  let notified = false;
+  const mockNotify = async () => { notified = true; return { status: 'sent' }; };
+  const result = await reconcileSriDocument({
+    db: {},
+    appId: 'test',
+    document: doc,
+    api: store.api,
+    consultSri: async () => authorized(),
+    notify: mockNotify
+  });
+
+  assert.equal(result.success, true);
+  assert.equal(result.status, 'autorizado');
+  assert.equal(notified, true);
+  const saved = store.data.get(path('finances_transactions', 'ret-001'));
+  assert.equal(saved.sriStatus, 'autorizado');
+  assert.equal(saved.documentNumber, '001-001-000000005');
+  assert.equal(saved.claveAcceso, key);
+  assert.match(saved.xmlAutorizado, /AUTORIZADO/);
+});
+
+test('scanAllTenantsPendingSri and batchReconcileSriDocuments mitigate simultaneous failures across 21 tenants', async () => {
+  const allData = new Map();
+  const multiApi = {
+    doc: (_db, ...p) => p.join('/'),
+    collection: (_db, ...p) => p.join('/'),
+    where: (field, _op, value) => ({ field, value }),
+    query: (collection, filter) => ({ collection, filter }),
+    getDocs: async q => {
+      const docs = [...allData]
+        .filter(([k, v]) => k.startsWith(q.collection + '/') && v[q.filter.field] === q.filter.value)
+        .map(([k, v]) => ({ id: k.split('/').at(-1), data: () => structuredClone(v) }));
+      return { docs };
+    },
+    runTransaction: async (_db, fn) => {
+      const writes = [];
+      const tx = {
+        get: async id => ({ exists: () => allData.has(id), data: () => structuredClone(allData.get(id)) }),
+        set: (id, val, opt) => writes.push({ id, val, merge: opt?.merge }),
+        update: (id, val) => writes.push({ id, val, merge: true })
+      };
+      const res = await fn(tx);
+      writes.forEach(({ id, val, merge }) => allData.set(id, { ...(merge ? allData.get(id) : {}), ...structuredClone(val) }));
+      return res;
+    }
+  };
+
+  const tenantsList = [];
+  const docTypes = ['factura', 'retencion', 'nota_credito', 'liquidacion_compra', 'guia_remision'];
+  const typeCodes = { factura: '01', liquidacion_compra: '03', nota_credito: '04', nota_debito: '05', guia_remision: '06', retencion: '07' };
+  for (let i = 1; i <= 21; i++) {
+    const tId = 'tenant_' + i;
+    tenantsList.push({ id: tId, companyName: 'Empresa ' + i + ' SA' });
+    const docType = docTypes[i % docTypes.length];
+    const secStr = String(i);
+    const docKey = generarClaveAcceso({
+      ...config,
+      tipoComprobante: typeCodes[docType] || '01',
+      fechaEmision: '2026-09-25',
+      secuencial: secStr,
+      codigoNumerico: '100000' + (i < 10 ? '0' + i : i)
+    });
+    const txDoc = {
+      id: 'tx_' + tId + '_01',
+      tenantId: tId,
+      documentType: docType,
+      documentNumber: '001-001-' + secStr.padStart(9, '0'),
+      claveAcceso: docKey,
+      sriStatus: 'pendiente_sri',
+      total: 50.00 + i
+    };
+    allData.set('artifacts/' + tId + '/public/data/finances_transactions/tx_' + tId + '_01', txDoc);
+  }
+
+  const scan = await scanAllTenantsPendingSri({ db: {}, tenants: tenantsList, api: multiApi });
+  assert.equal(scan.totalPendingCount, 21);
+  assert.equal(scan.affectedTenantCount, 21);
+
+  const progressEvents = [];
+  const stats = await batchReconcileSriDocuments({
+    db: {},
+    documents: scan.pendingDocs,
+    api: multiApi,
+    consultSri: async (k) => parseSriAuthorization(soap(signedXml.replace(key, k), k), k),
+    notify: async () => ({ status: 'sent' }),
+    onProgress: (prog) => progressEvents.push(prog),
+    delayMs: 0
+  });
+
+  assert.equal(stats.total, 21);
+  assert.equal(stats.authorized, 21);
+  assert.equal(stats.failed, 0);
+  assert.equal(stats.stillPending, 0);
+  assert.ok(progressEvents.length >= 21);
+
+  for (let i = 1; i <= 21; i++) {
+    const tId = 'tenant_' + i;
+    const saved = allData.get('artifacts/' + tId + '/public/data/finances_transactions/tx_' + tId + '_01');
+    assert.equal(saved.sriStatus, 'autorizado');
+    assert.equal(saved.documentNumber, '001-001-' + String(i).padStart(9, '0'));
+  }
+});
+
+test('cron reconcile-sri endpoint handles cron execution and document processing', async () => {
+  let statusCode = 0;
+  let jsonResult = null;
+  const mockRes = () => ({
+    status: (code) => { statusCode = code; return mockRes(); },
+    json: (data) => { jsonResult = data; return mockRes(); }
+  });
+
+  // 1. Rejects invalid method
+  await cronHandler({ method: 'DELETE', headers: {} }, mockRes());
+  assert.equal(statusCode, 405);
+
+  // 2. Accepts GET from Vercel Cron
+  await cronHandler({ method: 'GET', headers: { 'x-vercel-cron': '1' } }, mockRes());
+  assert.equal(statusCode, 200);
+  assert.equal(jsonResult.success, true);
+  assert.equal(jsonResult.mode, 'vercel_cron');
+
+  // 3. Flags invalid keys in document batch
+  await cronHandler({
+    method: 'POST',
+    headers: {},
+    body: {
+      documents: [
+        { id: 'bad-1', key: 'short' },
+        { id: 'bad-2' }
+      ]
+    }
+  }, mockRes());
+  assert.equal(statusCode, 200);
+  assert.equal(jsonResult.summary.failed, 2);
+  assert.equal(jsonResult.results[0].status, 'error_clave');
 });

@@ -21,8 +21,17 @@ import {
   ShieldAlert,
   Download,
   RefreshCw,
-  Eye
+  Eye,
+  Globe,
+  Copy,
+  ExternalLink,
+  CheckCircle2,
+  ShieldCheck,
+  Zap
 } from 'lucide-react';
+import { query, where, runTransaction } from 'firebase/firestore';
+import { reconcileSriDocument, batchReconcileSriDocuments, scanAllTenantsPendingSri, getDocumentTypeName } from '../services/sriReconciliation';
+import { notifyAuthorizedInvoice } from '../services/invoiceNotification';
 import { initializeApp } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 import { collection, doc, getDocs, getDoc, setDoc, updateDoc, onSnapshot, deleteDoc } from 'firebase/firestore';
@@ -67,6 +76,18 @@ export default function SuperAdminPage({ showToast }) {
     sendResetEmail: true
   });
   const [isCreatingTenant, setIsCreatingTenant] = useState(false);
+
+  // Monitor SRI Global States
+  const [pendingSriDocs, setPendingSriDocs] = useState([]);
+  const [isScanningSri, setIsScanningSri] = useState(false);
+  const [isReconcilingSri, setIsReconcilingSri] = useState(false);
+  const [reconcileProgress, setReconcileProgress] = useState({ current: 0, total: 0, currentDoc: null });
+  const [reconcileStats, setReconcileStats] = useState({ authorized: 0, stillPending: 0, failed: 0 });
+  const [sriSearchTerm, setSriSearchTerm] = useState('');
+  const [sriDocTypeFilter, setSriDocTypeFilter] = useState('all');
+  const [verifyingDocId, setVerifyingDocId] = useState(null);
+  const [lastScanDate, setLastScanDate] = useState(null);
+  const [copiedKey, setCopiedKey] = useState(null);
 
   // God Mode States
   const [godModeCollection, setGodModeCollection] = useState('finances_transactions');
@@ -566,6 +587,114 @@ export default function SuperAdminPage({ showToast }) {
       return sum + (t.billingPeriod === 'yearly' ? planPrice * 0.8 : planPrice);
     }, 0);
 
+  // Monitor SRI Global Handlers
+  const handleScanAllSri = async (silent = false) => {
+    if (!tenants || tenants.length === 0) return;
+    setIsScanningSri(true);
+    try {
+      const api = { collection, query, where, getDocs };
+      const res = await scanAllTenantsPendingSri({ db, tenants, api });
+      setPendingSriDocs(res.pendingDocs);
+      setLastScanDate(new Date());
+      if (!silent) {
+        showToast(
+          res.totalPendingCount > 0
+            ? `Escaneo finalizado: ${res.totalPendingCount} comprobantes pendientes en ${res.affectedTenantCount} empresas.`
+            : "¡Excelente! No hay comprobantes pendientes de autorización en ninguna empresa.",
+          res.totalPendingCount > 0 ? "warning" : "success"
+        );
+      }
+    } catch (err) {
+      console.error("Error al escanear comprobantes SRI:", err);
+      if (!silent) showToast(`Error al escanear comprobantes SRI: ${err.message}`, "error");
+    } finally {
+      setIsScanningSri(false);
+    }
+  };
+
+  useEffect(() => {
+    if (tenants.length > 0 && pendingSriDocs.length === 0 && !isScanningSri && !lastScanDate) {
+      handleScanAllSri(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tenants]);
+
+  const handleReconcileSingle = async (item) => {
+    setVerifyingDocId(item.id);
+    try {
+      const docLabel = getDocumentTypeName(item.documentType);
+      showToast(`Consultando ${docLabel} ${item.documentNumber || item.claveAcceso} en el SRI...`, "info");
+      const api = { doc, runTransaction, getDoc, setDoc };
+      const res = await reconcileSriDocument({
+        db,
+        appId: item.tenantId,
+        document: item,
+        api,
+        notify: notifyAuthorizedInvoice
+      });
+
+      if (res.status === 'autorizado') {
+        showToast(`¡${docLabel} ${item.documentNumber} AUTORIZADO por el SRI!`, "success");
+        setPendingSriDocs(prev => prev.filter(d => !(d.id === item.id && d.tenantId === item.tenantId)));
+        setReconcileStats(prev => ({ ...prev, authorized: prev.authorized + 1 }));
+      } else if (res.status === 'no_autorizado' || res.status === 'devuelto') {
+        showToast(`SRI devolvió comprobante: ${res.message}`, "error");
+        setPendingSriDocs(prev => prev.map(d => (d.id === item.id && d.tenantId === item.tenantId) ? { ...d, sriStatus: res.status, sriLastError: res.message } : d));
+        setReconcileStats(prev => ({ ...prev, failed: prev.failed + 1 }));
+      } else {
+        showToast(res.message || "Continúa en procesamiento en el SRI. Vuelve a consultar en unos minutos.", "warning");
+        setReconcileStats(prev => ({ ...prev, stillPending: prev.stillPending + 1 }));
+      }
+    } catch (err) {
+      showToast(`Error al reconciliar: ${err.message}`, "error");
+    } finally {
+      setVerifyingDocId(null);
+    }
+  };
+
+  const handleBatchReconcileSri = async () => {
+    if (pendingSriDocs.length === 0) return;
+    setIsReconcilingSri(true);
+    setReconcileProgress({ current: 0, total: pendingSriDocs.length, currentDoc: null });
+
+    try {
+      const api = { doc, runTransaction, getDoc, setDoc };
+      const stats = await batchReconcileSriDocuments({
+        db,
+        documents: pendingSriDocs,
+        api,
+        notify: notifyAuthorizedInvoice,
+        onProgress: (p) => setReconcileProgress(p),
+        delayMs: 350
+      });
+
+      setReconcileStats(prev => ({
+        authorized: prev.authorized + stats.authorized,
+        stillPending: prev.stillPending + stats.stillPending,
+        failed: prev.failed + stats.failed
+      }));
+
+      showToast(
+        `Reconciliación en lote completada: ${stats.authorized} autorizados, ${stats.stillPending} pendientes, ${stats.failed} devueltos.`,
+        stats.authorized > 0 ? "success" : "info"
+      );
+
+      await handleScanAllSri(true);
+    } catch (err) {
+      showToast(`Error en reconciliación en lote: ${err.message}`, "error");
+    } finally {
+      setIsReconcilingSri(false);
+      setReconcileProgress({ current: 0, total: 0, currentDoc: null });
+    }
+  };
+
+  const copyToClipboard = (text, keyId) => {
+    navigator.clipboard.writeText(text);
+    setCopiedKey(keyId);
+    setTimeout(() => setCopiedKey(null), 2000);
+    showToast("Clave de acceso copiada al portapapeles", "info");
+  };
+
   const handleLogout = () => {
     logout();
     navigate('/login');
@@ -574,6 +703,7 @@ export default function SuperAdminPage({ showToast }) {
   const sidebarLinks = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'tenants', label: 'Empresas (Tenants)', icon: Building },
+    { id: 'sri_monitor', label: 'Monitor SRI Global', icon: ShieldAlert, count: pendingSriDocs.length },
     { id: 'transfers', label: 'Aprobaciones', icon: CreditCard, count: pendingTransfers.length },
     { id: 'plans', label: 'Tarifas y Planes', icon: Sliders }
   ];
@@ -1419,6 +1549,284 @@ export default function SuperAdminPage({ showToast }) {
                     </button>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* TAB: MONITOR SRI GLOBAL MULTI-TENANT */}
+          {activeTab === 'sri_monitor' && (
+            <div className="space-y-6">
+              {/* Header Card */}
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-card border border-border-default">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="p-1.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200">
+                      <ShieldAlert size={18} />
+                    </span>
+                    <h3 className="text-sm font-bold text-slate-900">Monitor SRI Global Multi-Tenant</h3>
+                  </div>
+                  <p className="text-xs text-text-secondary">
+                    Supervisa y mitiga en tiempo real contingencias del SRI en todos los inquilinos sin pérdida de secuencial fiscal.
+                    {lastScanDate && (
+                      <span className="ml-2 text-slate-400">
+                        Último escaneo: {lastScanDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                      </span>
+                    )}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => handleScanAllSri(false)}
+                    disabled={isScanningSri || isReconcilingSri}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full border border-slate-300 hover:bg-slate-50 text-slate-800 text-xs font-semibold cursor-pointer transition-all disabled:opacity-50"
+                  >
+                    <RefreshCw size={14} className={isScanningSri ? "animate-spin" : ""} />
+                    <span>{isScanningSri ? "Escaneando inquilinos..." : "Escanear Inquilinos"}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleBatchReconcileSri}
+                    disabled={isReconcilingSri || pendingSriDocs.length === 0}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#0F172A] hover:bg-slate-800 text-white text-xs font-bold cursor-pointer transition-all shadow-none disabled:opacity-50"
+                  >
+                    <Zap size={14} className={isReconcilingSri ? "animate-bounce text-amber-400" : "text-emerald-400"} />
+                    <span>{isReconcilingSri ? "Sincronizando lote..." : `Sincronizar Todos con SRI (${pendingSriDocs.length})`}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* KPIs Widgets */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="p-5 rounded-card border bg-white border-border-default">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-bold text-text-secondary">Documentos Pendientes</span>
+                    <span className="p-1 rounded bg-amber-50 text-amber-700"><ShieldAlert size={16}/></span>
+                  </div>
+                  <div className="text-2xl font-extrabold text-amber-700">{pendingSriDocs.length}</div>
+                  <span className="text-[11px] text-text-secondary">En cola de confirmación SRI</span>
+                </div>
+
+                <div className="p-5 rounded-card border bg-white border-border-default">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-bold text-text-secondary">Empresas Afectadas</span>
+                    <span className="p-1 rounded bg-blue-50 text-blue-700"><Building size={16}/></span>
+                  </div>
+                  <div className="text-2xl font-extrabold text-blue-700">
+                    {new Set(pendingSriDocs.map(d => d.tenantId)).size}
+                  </div>
+                  <span className="text-[11px] text-text-secondary">De {tenants.length} registradas</span>
+                </div>
+
+                <div className="p-5 rounded-card border bg-white border-border-default">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-bold text-text-secondary">Reconciliados en Sesión</span>
+                    <span className="p-1 rounded bg-emerald-50 text-emerald-700"><CheckCircle2 size={16}/></span>
+                  </div>
+                  <div className="text-2xl font-extrabold text-emerald-700">{reconcileStats.authorized}</div>
+                  <span className="text-[11px] text-text-secondary">Autorizados y notificados</span>
+                </div>
+
+                <div className="p-5 rounded-card border bg-white border-border-default">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-bold text-text-secondary">Pasarela SRI WebServices</span>
+                    <span className="p-1 rounded bg-emerald-50 text-emerald-700"><Globe size={16}/></span>
+                  </div>
+                  <div className="text-sm font-bold text-emerald-700 flex items-center gap-1.5 pt-1">
+                    <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
+                    SOAP Online
+                  </div>
+                  <span className="text-[11px] text-text-secondary">Producción (cel.sri.gob.ec)</span>
+                </div>
+              </div>
+
+              {/* Batch Reconciliation Progress Bar */}
+              {isReconcilingSri && (
+                <div className="p-5 rounded-card border bg-slate-900 text-white space-y-3">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold flex items-center gap-2">
+                      <RefreshCw size={14} className="animate-spin text-amber-400" />
+                      Reconciliando en lote: {reconcileProgress.current} de {reconcileProgress.total}
+                    </span>
+                    <span className="font-mono font-bold text-amber-400">
+                      {reconcileProgress.total > 0 ? Math.round((reconcileProgress.current / reconcileProgress.total) * 100) : 0}%
+                    </span>
+                  </div>
+                  <div className="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+                    <div
+                      className="h-full bg-emerald-500 transition-all duration-300"
+                      style={{ width: `${reconcileProgress.total > 0 ? (reconcileProgress.current / reconcileProgress.total) * 100 : 0}%` }}
+                    />
+                  </div>
+                  {reconcileProgress.currentDoc && (
+                    <div className="text-[11px] text-slate-400 truncate">
+                      Procesando: <strong className="text-white">{reconcileProgress.currentDoc.tenantName}</strong> - {reconcileProgress.currentDoc.documentNumber || reconcileProgress.currentDoc.claveAcceso}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Toolbar: Search and Filters */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-card border border-border-default">
+                <div className="w-full sm:w-72">
+                  <UiInput
+                    placeholder="Buscar empresa, secuencial o clave..."
+                    value={sriSearchTerm}
+                    onChange={(e) => setSriSearchTerm(e.target.value)}
+                    iconPrefix={<Search size={14} className="text-slate-400" />}
+                    size="2"
+                  />
+                </div>
+
+                <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0 custom-scrollbar">
+                  {[
+                    { id: 'all', label: 'Todos' },
+                    { id: 'factura', label: 'Facturas' },
+                    { id: 'retencion', label: 'Retenciones' },
+                    { id: 'nota_credito', label: 'N. Crédito' },
+                    { id: 'guia_remision', label: 'Guías' },
+                    { id: 'liquidacion_compra', label: 'Liquidaciones' }
+                  ].map(tab => {
+                    const isTabActive = sriDocTypeFilter === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        type="button"
+                        onClick={() => setSriDocTypeFilter(tab.id)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap cursor-pointer transition-colors ${isTabActive ? 'bg-[#0F172A] text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}`}
+                      >
+                        {tab.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Table of Pending Documents */}
+              <div className="bg-white rounded-card border border-border-default overflow-hidden">
+                {(() => {
+                  const filtered = pendingSriDocs.filter(d => {
+                    const matchType = sriDocTypeFilter === 'all' || d.documentType === sriDocTypeFilter;
+                    const term = sriSearchTerm.toLowerCase();
+                    const matchSearch = !term ||
+                      d.documentNumber?.toLowerCase().includes(term) ||
+                      d.claveAcceso?.includes(term) ||
+                      d.tenantName?.toLowerCase().includes(term) ||
+                      d.tenantId?.toLowerCase().includes(term) ||
+                      d.thirdParty?.name?.toLowerCase().includes(term);
+                    return matchType && matchSearch;
+                  });
+
+                  if (filtered.length === 0) {
+                    return (
+                      <div className="p-12 text-center">
+                        <div className="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-3">
+                          <CheckCircle2 size={24} />
+                        </div>
+                        <h4 className="text-sm font-bold text-slate-900 mb-1">Comprobantes al día en todos los tenants</h4>
+                        <p className="text-xs text-text-secondary max-w-md mx-auto">
+                          {pendingSriDocs.length === 0
+                            ? "No existen documentos pendientes de autorización en ninguna empresa. La continuidad de secuenciales está 100% garantizada."
+                            : "No hay documentos que coincidan con los filtros aplicados."}
+                        </p>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs">
+                        <thead className="bg-slate-50 border-b border-border-default text-text-secondary uppercase text-[11px] font-bold tracking-wider">
+                          <tr>
+                            <th className="p-3.5 pl-5">Empresa / Inquilino</th>
+                            <th className="p-3.5">Tipo</th>
+                            <th className="p-3.5">Secuencial</th>
+                            <th className="p-3.5">Clave de Acceso (49 dígitos)</th>
+                            <th className="p-3.5">Receptor</th>
+                            <th className="p-3.5 text-right">Total</th>
+                            <th className="p-3.5 text-center">Estado SRI</th>
+                            <th className="p-3.5 text-right pr-5">Acciones</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border-default text-slate-800">
+                          {filtered.map((item) => {
+                            const isVerifying = verifyingDocId === item.id;
+                            const docTypeLabel = getDocumentTypeName(item.documentType);
+                            return (
+                              <tr key={`${item.tenantId}_${item.id}`} className="hover:bg-slate-50/70 transition-colors">
+                                <td className="p-3.5 pl-5">
+                                  <div className="font-bold text-slate-900">{item.tenantName}</div>
+                                  <div className="font-mono text-[11px] text-text-secondary">{item.tenantId}</div>
+                                </td>
+                                <td className="p-3.5">
+                                  <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 text-slate-700 uppercase">
+                                    {docTypeLabel}
+                                  </span>
+                                </td>
+                                <td className="p-3.5 font-mono font-bold text-slate-900">
+                                  {item.documentNumber || 'Sin número'}
+                                </td>
+                                <td className="p-3.5">
+                                  <div className="flex items-center gap-1.5 font-mono text-[11px] text-slate-600">
+                                    <span>{item.claveAcceso ? `${item.claveAcceso.slice(0, 10)}...${item.claveAcceso.slice(-10)}` : 'Sin clave'}</span>
+                                    {item.claveAcceso && (
+                                      <button
+                                        type="button"
+                                        onClick={() => copyToClipboard(item.claveAcceso, item.id)}
+                                        title="Copiar clave completa"
+                                        className="p-1 text-slate-400 hover:text-slate-800 rounded cursor-pointer"
+                                      >
+                                        <Copy size={12} className={copiedKey === item.id ? "text-emerald-600" : ""} />
+                                      </button>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className="p-3.5 max-w-[180px] truncate">
+                                  <div className="font-semibold truncate">{item.thirdParty?.name || item.thirdParty?.razonSocial || 'Consumidor Final'}</div>
+                                  <div className="text-[11px] text-text-secondary font-mono">{item.thirdParty?.ruc || ''}</div>
+                                </td>
+                                <td className="p-3.5 text-right font-mono font-bold text-slate-900">
+                                  ${Number(item.total || 0).toFixed(2)}
+                                </td>
+                                <td className="p-3.5 text-center">
+                                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
+                                    {item.sriStatus === 'pendiente_sri' ? 'Pendiente SRI' : item.sriStatus}
+                                  </span>
+                                </td>
+                                <td className="p-3.5 text-right pr-5">
+                                  <div className="flex items-center justify-end gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleReconcileSingle(item)}
+                                      disabled={isVerifying || isReconcilingSri}
+                                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 transition-colors cursor-pointer disabled:opacity-50"
+                                      title="Consultar autorización en el SRI ahora"
+                                    >
+                                      <RefreshCw size={12} className={isVerifying ? "animate-spin text-amber-600" : ""} />
+                                      <span>{isVerifying ? "Consultando..." : "Consultar SRI"}</span>
+                                    </button>
+                                    <a
+                                      href={`/#/public/ride?txId=${encodeURIComponent(item.id)}&claveAcceso=${encodeURIComponent(item.claveAcceso || '')}&tenantId=${encodeURIComponent(item.tenantId)}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="p-1.5 rounded-full text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+                                      title="Ver visor RIDE público"
+                                    >
+                                      <ExternalLink size={14} />
+                                    </a>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           )}

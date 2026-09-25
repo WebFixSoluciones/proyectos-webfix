@@ -10,6 +10,7 @@ import { analizarComprobanteConGemini, parsearXMLComprobante } from '../../servi
 import { getEcuadorDateString, getEcuadorDateTimeString, consultarAutorizacionSRI } from '../../services/sriService';
 import { saveSriResult } from '../../services/sriEmission';
 import { notifyAuthorizedInvoice } from '../../services/invoiceNotification';
+import { getDocumentTypeName } from '../../services/sriReconciliation';
 import { sincronizarVenta } from '../../services/integracionFinanzasService';
 import { registerTransactionInventory } from '../../services/inventoryLedger';
 import { auth } from '../../firebase';
@@ -308,7 +309,8 @@ export default function TransactionsView({ transactions, thirdParties, showToast
     if (!tx?.claveAcceso) return;
     setVerifyingTxId(tx.id);
     try {
-      showToast(`Consultando autorización de ${tx.documentNumber} en el SRI...`, 'info');
+      const docLabel = getDocumentTypeName(tx.documentType);
+      showToast(`Consultando autorización de ${docLabel} ${tx.documentNumber} en el SRI...`, 'info');
       const result = await consultarAutorizacionSRI(tx.claveAcceso, tx.sriAmbiente || tx.claveAcceso[23]);
       if (result.status === 'autorizado') {
         const fiscalApi = { doc, runTransaction };
@@ -328,15 +330,15 @@ export default function TransactionsView({ transactions, thirdParties, showToast
             db, appId, document: saved, customer: cliente,
             api: { doc, getDoc, setDoc, runTransaction }
           });
-          showToast(`¡Factura ${tx.documentNumber} AUTORIZADA por el SRI! Copia enviada al propietario y cliente.`, 'success');
+          showToast(`¡${docLabel} ${tx.documentNumber} AUTORIZADO por el SRI! Copia enviada al propietario y cliente.`, 'success');
         } catch (emailErr) {
-          showToast(`¡Factura ${tx.documentNumber} AUTORIZADA! No se pudo enviar copia por correo: ${emailErr.message}`, 'warning');
+          showToast(`¡${docLabel} ${tx.documentNumber} AUTORIZADO! No se pudo enviar copia por correo: ${emailErr.message}`, 'warning');
         }
       } else if (result.status === 'no_autorizado' || result.status === 'devuelto') {
         await saveSriResult({ db, appId, document: tx, result, api: { doc, runTransaction } });
         showToast(`El SRI devolvió: ${result.message || result.status}`, 'error');
       } else {
-        showToast(result.message || 'La factura sigue en procesamiento en el SRI. Vuelve a consultar en unos momentos.', 'warning');
+        showToast(result.message || `${docLabel} sigue en procesamiento en el SRI. Vuelve a consultar en unos momentos.`, 'warning');
       }
     } catch (err) {
       console.error('Error al verificar SRI:', err);
@@ -346,12 +348,12 @@ export default function TransactionsView({ transactions, thirdParties, showToast
     }
   };
 
-  // Auto-verificar facturas pendientes de forma transparente al cargar la vista
+  // Auto-verificar comprobantes pendientes de forma transparente al cargar la vista
   useEffect(() => {
     if (!transactions?.length) return;
-    const pendingFacturas = transactions.filter(t => t.sriStatus === 'pendiente_sri' && t.claveAcceso && t.documentType === 'factura');
-    if (pendingFacturas.length > 0) {
-      const target = pendingFacturas[0];
+    const pendingDocuments = transactions.filter(t => t.sriStatus === 'pendiente_sri' && t.claveAcceso);
+    if (pendingDocuments.length > 0) {
+      const target = pendingDocuments[0];
       const timer = setTimeout(() => {
         verifySriTransaction(target);
       }, 1500);

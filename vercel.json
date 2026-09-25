@@ -30,7 +30,21 @@
       ]
     }
   ],
+  "crons": [
+    {
+      "path": "/api/cron/reconcile-sri",
+      "schedule": "*/10 * * * *"
+    }
+  ],
   "rewrites": [
+    {
+      "source": "/api/cron/reconcile-sri",
+      "destination": "/api/cron/reconcile-sri/index.js"
+    },
+    {
+      "source": "/api/cron/reconcile-sri/:path*",
+      "destination": "/api/cron/reconcile-sri/index.js"
+    },
     {
       "source": "/api/cipherbyte/:path*",
       "destination": "https://aggregator.cipherbyte.ec/:path*"
