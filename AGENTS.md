@@ -134,11 +134,11 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
 
 ## Últimos commits
 ```
+1d192aa fix(ventas): resolver ReferenceError de matchedTercero antes de inicializacion en TransactionForm
+83af250 feat(emision): pantalla de confirmacion, impresion directa y envio de correos para notas de venta y facturas
+0f3567c docs: actualizar AGENTS.md con fix de impresion de ride
 af25370 fix(ride): alinear DOC. INTERNO en una sola linea asignando col-span-4 homogeneo
 9e3d4f7 feat(ventas): placeholder buscar productos, subtotal alineado con mas espacio y numeros legibles con fuente Inter semibold
 4dd89ef feat(ventas): fila de producto minimalista sin bordes con sku limpio, nombre y descripcion editable al frente
-f7c241d feat(ventas): renovar botones de anadir y crear producto con iconografia semantica
-909f187 feat(clientes-proveedores): correccion de visibilidad, filtros dedicados y ficha 360 adaptativa
-e3316ef feat(inventario): submodulo dedicado de servicios con segregacion de productos e integracion global
 ```
 
