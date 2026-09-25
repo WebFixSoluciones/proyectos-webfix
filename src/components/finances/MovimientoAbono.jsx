@@ -71,12 +71,19 @@ export default function MovimientoAbono({ movimiento, onClose, onSave, db, usuar
 
           <UiBox>
             <UiLabel {...{"size":"1","weight":"medium","color":"gray","className":"mb-1 block"}}>Monto del abono</UiLabel>
-            <UiBox {...{"className":"relative"}}>
-              <DollarSign size={16} {...{"style":{"color":"var(--gray-11)"},"className":"absolute left-3 top-1/2 -translate-y-1/2"}} />
-              <UiInput type="number" step="0.01" value={monto}
+            <UiBox className="relative">
+              <UiInput
+                type="number"
+                step="0.01"
+                value={monto}
                 onChange={e => setMonto(e.target.value)}
-                placeholder="0.00" autoFocus
-                {...{"size":"2","color":"gray","className":"w-full"}} />
+                placeholder="0.00"
+                autoFocus
+                iconPrefix={<DollarSign size={15} className="text-[var(--gray-10)]" />}
+                size="2"
+                color="gray"
+                className="w-full"
+              />
             </UiBox>
             {error && <UiText {...{"size":"1","color":"red","className":"mt-1"}}>{error}</UiText>}
           </UiBox>

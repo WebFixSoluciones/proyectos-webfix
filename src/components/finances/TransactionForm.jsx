@@ -1794,16 +1794,17 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       type="text"
                       value={clientSearchTerm}
                       onChange={e => setClientSearchTerm(e.target.value)}
-                      {...mergeThemeProps({}, {}, mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"}))}
-                      style={{ paddingLeft: '28px' }}
                       placeholder={matchedTercero ? `${matchedTercero.name} — RUC/CI: ${matchedTercero.ruc}` : "Escribe para buscar cliente..."}
+                      iconPrefix={<Search size={14} className="text-[var(--gray-10)]" />}
+                      iconSuffix={clientSearchTerm ? (
+                        <button type="button" onClick={() => setClientSearchTerm('')} className="text-[var(--gray-10)] hover:text-[var(--gray-12)] p-0.5 cursor-pointer">
+                          <X size={12} />
+                        </button>
+                      ) : undefined}
+                      size="2"
+                      color="gray"
+                      className="w-full"
                     />
-                    <Search {...{"style":{"color":"var(--gray-12)"},"className":"absolute left-[8px] top-1/2 -translate-y-1/2"}} size={12} />
-                    {clientSearchTerm && (
-                      <UiButton iconOnly type="button" onClick={() => setClientSearchTerm('')} {...{"color":"gray","className":"absolute right-[8px] top-1/2 -translate-y-1/2"}}>
-                        <X size={12} />
-                      </UiButton>
-                    )}
                     
                     {clientSearchTerm.trim() !== '' && (
                       <UiBox 
@@ -2138,16 +2139,17 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         type="text" 
                         value={productSearchTerm}
                         onChange={e => setProductSearchTerm(e.target.value)}
-                        {...mergeThemeProps({}, {}, mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"}))}
-                        style={{ paddingLeft: '28px' }}
                         placeholder="Buscar productos..."
+                        iconPrefix={<Search size={14} className="text-[var(--gray-10)]" />}
+                        iconSuffix={productSearchTerm ? (
+                          <button type="button" onClick={() => setProductSearchTerm('')} className="text-[var(--gray-10)] hover:text-[var(--gray-12)] p-0.5 cursor-pointer">
+                            <X size={12} />
+                          </button>
+                        ) : undefined}
+                        size="2"
+                        color="gray"
+                        className="w-full"
                       />
-                      <Search {...{"style":{"color":"var(--gray-12)"},"className":"absolute left-[8px] top-1/2 -translate-y-1/2"}} size={12} />
-                      {productSearchTerm && (
-                        <UiButton iconOnly type="button" onClick={() => setProductSearchTerm('')} {...{"color":"gray","className":"absolute right-[8px] top-1/2 -translate-y-1/2"}}>
-                          <X size={12} />
-                        </UiButton>
-                      )}
                       
                       {/* Search Results dropdown */}
                       {productSearchTerm.trim() !== '' && (
@@ -2828,9 +2830,19 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                           <UiText  {...{"weight":"bold"}}>Efectivo</UiText>
                           <UiText  {...{"size":"1"}}>Recibido</UiText>
                         </UiBox>
-                        <UiBox {...{"className":"relative"}}>
-                          <UiText {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"absolute left-[8px] top-1/2 -translate-y-1/2 opacity-60"}}>$</UiText>
-                          <UiInput disabled={!isEditable} type="number" step="0.01" value={payments.efectivo || ''} onChange={e => setPayments(prev => ({ ...prev, efectivo: e.target.value }))} {...mergeThemeProps({}, {}, mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"}))} style={{ paddingLeft: '24px' }} placeholder="0.00" />
+                        <UiBox className="relative">
+                          <UiInput
+                            disabled={!isEditable}
+                            type="number"
+                            step="0.01"
+                            value={payments.efectivo || ''}
+                            onChange={e => setPayments(prev => ({ ...prev, efectivo: e.target.value }))}
+                            iconPrefix={<span className="text-[var(--gray-10)] font-semibold text-xs">$</span>}
+                            size="2"
+                            color="gray"
+                            className="w-full"
+                            placeholder="0.00"
+                          />
                         </UiBox>
                       </UiBox>
                     )}
@@ -2842,9 +2854,19 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                           <UiText  {...{"size":"1"}}>Monto</UiText>
                         </UiBox>
                         <UiBox {...{"className":"space-y-[6px]"}}>
-                          <UiBox {...{"className":"relative"}}>
-                            <UiText {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"absolute left-[8px] top-1/2 -translate-y-1/2 opacity-60"}}>$</UiText>
-                            <UiInput disabled={!isEditable} type="number" step="0.01" value={payments.transferencia || ''} onChange={e => setPayments(prev => ({ ...prev, transferencia: e.target.value }))} {...mergeThemeProps({}, {}, mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"}))} style={{ paddingLeft: '24px' }} placeholder="0.00" />
+                          <UiBox className="relative">
+                            <UiInput
+                              disabled={!isEditable}
+                              type="number"
+                              step="0.01"
+                              value={payments.transferencia || ''}
+                              onChange={e => setPayments(prev => ({ ...prev, transferencia: e.target.value }))}
+                              iconPrefix={<span className="text-[var(--gray-10)] font-semibold text-xs">$</span>}
+                              size="2"
+                              color="gray"
+                              className="w-full"
+                              placeholder="0.00"
+                            />
                           </UiBox>
                           <UiSelect
                             disabled={!isEditable}
@@ -2878,9 +2900,19 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                           <UiText  {...{"size":"1"}}>Monto</UiText>
                         </UiBox>
                         <UiBox {...{"className":"space-y-[6px]"}}>
-                          <UiBox {...{"className":"relative"}}>
-                            <UiText {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"absolute left-[8px] top-1/2 -translate-y-1/2 opacity-60"}}>$</UiText>
-                            <UiInput disabled={!isEditable} type="number" step="0.01" value={payments.tarjeta || ''} onChange={e => setPayments(prev => ({ ...prev, tarjeta: e.target.value }))} {...mergeThemeProps({}, {}, mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"}))} style={{ paddingLeft: '24px' }} placeholder="0.00" />
+                          <UiBox className="relative">
+                            <UiInput
+                              disabled={!isEditable}
+                              type="number"
+                              step="0.01"
+                              value={payments.tarjeta || ''}
+                              onChange={e => setPayments(prev => ({ ...prev, tarjeta: e.target.value }))}
+                              iconPrefix={<span className="text-[var(--gray-10)] font-semibold text-xs">$</span>}
+                              size="2"
+                              color="gray"
+                              className="w-full"
+                              placeholder="0.00"
+                            />
                           </UiBox>
                           <UiInput disabled={!isEditable} type="text" value={payments.tarjetaRef || ''} onChange={e => setPayments(prev => ({ ...prev, tarjetaRef: e.target.value }))} {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})} placeholder="Nro Lote / Autorización" />
                         </UiBox>
@@ -2894,9 +2926,19 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                           <UiText  {...{"size":"1"}}>Monto</UiText>
                         </UiBox>
                         <UiBox {...{"className":"space-y-[6px]"}}>
-                          <UiBox {...{"className":"relative"}}>
-                            <UiText {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"absolute left-[8px] top-1/2 -translate-y-1/2 opacity-60"}}>$</UiText>
-                            <UiInput disabled={!isEditable} type="number" step="0.01" value={payments.cruce_cuentas || ''} onChange={e => setPayments(prev => ({ ...prev, cruce_cuentas: e.target.value }))} {...mergeThemeProps({}, {}, mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"}))} style={{ paddingLeft: '24px' }} placeholder="0.00" />
+                          <UiBox className="relative">
+                            <UiInput
+                              disabled={!isEditable}
+                              type="number"
+                              step="0.01"
+                              value={payments.cruce_cuentas || ''}
+                              onChange={e => setPayments(prev => ({ ...prev, cruce_cuentas: e.target.value }))}
+                              iconPrefix={<span className="text-[var(--gray-10)] font-semibold text-xs">$</span>}
+                              size="2"
+                              color="gray"
+                              className="w-full"
+                              placeholder="0.00"
+                            />
                           </UiBox>
                           <UiButton type="button" onClick={() => setIsCreditModalOpen(true)} {...mergeThemeProps({"variant":"solid","size":"2","color":"amber","className":"w-full"})}>
                             Configurar Plazo de Crédito

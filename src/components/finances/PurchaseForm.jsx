@@ -413,11 +413,18 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
               {/* Supplier */}
               <UiBox>
                 <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5"}}>Proveedor</UiLabel>
-                <UiBox {...{"className":"relative"}}>
-                  <Search size={12} {...{"style":{"color":"var(--gray-12)"},"className":"absolute left-2.5 top-1/2 -translate-y-1/2"}} />
-                  <UiInput value={form.supplierName || supplierSearch} onChange={e => { setSupplierSearch(e.target.value); setForm(prev => ({ ...prev, supplierName: e.target.value })); setShowSupplierResults(true); }}
-                    onFocus={() => setShowSupplierResults(true)} onBlur={() => setTimeout(() => setShowSupplierResults(false), 200)}
-                    placeholder="Buscar proveedor..." {...mergeThemeProps({}, {}, {"size":"2","color":"gray","className":"w-full"})} />
+                <UiBox className="relative">
+                  <UiInput
+                    value={form.supplierName || supplierSearch}
+                    onChange={e => { setSupplierSearch(e.target.value); setForm(prev => ({ ...prev, supplierName: e.target.value })); setShowSupplierResults(true); }}
+                    onFocus={() => setShowSupplierResults(true)}
+                    onBlur={() => setTimeout(() => setShowSupplierResults(false), 200)}
+                    placeholder="Buscar proveedor..."
+                    iconPrefix={<Search size={14} className="text-[var(--gray-10)]" />}
+                    size="2"
+                    color="gray"
+                    className="w-full"
+                  />
                   {showSupplierResults && filteredSuppliers.length > 0 && (
                     <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)","borderRadius":"var(--radius-3)"},"className":"absolute z-20 top-full left-0 right-0 mt-1 max-h-44 overflow-y-auto"}}>
                       {filteredSuppliers.map(t => (
@@ -474,11 +481,18 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
           {step === 2 && form.purchaseType === 'con_inventario' && (
             <UiBox {...{"className":"space-y-4"}}>
               {/* Product search */}
-              <UiBox {...{"className":"relative"}}>
-                <Search size={12} {...{"style":{"color":"var(--gray-12)"},"className":"absolute left-2.5 top-1/2 -translate-y-1/2"}} />
-                <UiInput value={productSearch} onChange={e => { setProductSearch(e.target.value); setShowProductResults(true); }}
-                  onFocus={() => setShowProductResults(true)} onBlur={() => setTimeout(() => setShowProductResults(false), 200)}
-                  placeholder="Buscar producto por nombre o SKU..." {...mergeThemeProps({}, {}, {"size":"2","color":"gray","className":"w-full"})} />
+              <UiBox className="relative">
+                <UiInput
+                  value={productSearch}
+                  onChange={e => { setProductSearch(e.target.value); setShowProductResults(true); }}
+                  onFocus={() => setShowProductResults(true)}
+                  onBlur={() => setTimeout(() => setShowProductResults(false), 200)}
+                  placeholder="Buscar producto por nombre o SKU..."
+                  iconPrefix={<Search size={14} className="text-[var(--gray-10)]" />}
+                  size="2"
+                  color="gray"
+                  className="w-full"
+                />
                 {showProductResults && filteredProducts.length > 0 && (
                   <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)","borderRadius":"var(--radius-3)"},"className":"absolute z-20 top-full left-0 right-0 mt-1 max-h-52 overflow-y-auto"}}>
                     {filteredProducts.map(p => (

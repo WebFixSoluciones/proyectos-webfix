@@ -1,193 +1,215 @@
-import { UiBox, UiCard, UiText, UiLabel } from '../components/ui/layout';
+import { UiBox, UiCard, UiText, UiLabel, UiHeading } from '../components/ui/layout';
 import { UiInput, UiButton } from '../components/ui/controls';
 import { useAuth } from '../contexts/AuthContext';
 import { useState } from 'react';
-import { useNavigate } from'react-router-dom';
-import { User, Lock, Eye, EyeOff, RefreshCw } from'lucide-react';
-import { signInWithEmailAndPassword } from'firebase/auth';
-import { auth } from'../firebase';
+import { useNavigate } from 'react-router-dom';
+import { Mail, Lock, Eye, EyeOff, RefreshCw, AlertCircle, ShieldCheck, ArrowRight } from 'lucide-react';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../firebase';
 
 export default function LoginPage({ showToast, companyProfile }) {
- const navigate = useNavigate();
- const { profileError } = useAuth();
- const [loginForm, setLoginForm] = useState({ email:'', password:'' });
- const [loginError, setLoginError] = useState('');
- const [isAuthenticating, setIsAuthenticating] = useState(false);
- const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
+  const { profileError } = useAuth();
+  const [loginForm, setLoginForm] = useState({ email: '', password: '' });
+  const [loginError, setLoginError] = useState('');
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
- const handleLogin = async (e) => {
- e.preventDefault();
- setIsAuthenticating(true);
- setLoginError('');
- 
- try {
- await signInWithEmailAndPassword(auth, loginForm.email.trim(), loginForm.password);
- showToast("Sesión iniciada correctamente","success");
- navigate('/app');
- } catch (error) {
- console.error('Login error:', error.code);
- const errorMessages = {
-'auth/invalid-email':'El correo electrónico no es válido.',
-'auth/user-disabled':'Esta cuenta ha sido deshabilitada.',
-'auth/user-not-found':'No existe una cuenta con ese correo.',
-'auth/wrong-password':'Contraseña incorrecta.',
-'auth/invalid-credential':'Credenciales inválidas. Verifica tu correo y contraseña.',
-'auth/too-many-requests':'Demasiados intentos. Espera un momento e intenta de nuevo.',
-'auth/network-request-failed':'Error de red. Verifica tu conexión a internet.',
- };
- setLoginError(errorMessages[error.code] ||'Error al iniciar sesión. Intenta de nuevo.');
- showToast("Error al iniciar sesión","error");
- } finally {
- setIsAuthenticating(false);
- }
- };
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    if (isAuthenticating) return;
 
- return (
- <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"flex items-center justify-center min-h-screen w-full overflow-hidden duration-500 relative z-0"}}>
- 
- {/* BASE BACKGROUND SOLID COLOR */}
- <UiBox {...{"style":{"backgroundColor":"var(--gray-2)"},"className":"absolute inset-0 -z-20 duration-500"}} />
+    setIsAuthenticating(true);
+    setLoginError('');
 
- {/* GLOBAL BACKGROUND BLOBS (Minimalismo Líquido Puro) */}
- <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--purple-3)"},"className":"absolute top-[-10%] left-[-5%] w-[40rem] h-[40rem] pointer-events-none -z-10 duration-500 animate-liquid-1 mix-blend-multiply opacity-50"}}></UiBox>
- <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--blue-3)"},"className":"absolute top-[20%] right-[-10%] w-[35rem] h-[35rem] pointer-events-none -z-10 duration-500 animate-liquid-2 mix-blend-multiply opacity-55"}}></UiBox>
- <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--red-3)"},"className":"absolute bottom-[-10%] left-[10%] w-[38rem] h-[38rem] pointer-events-none -z-10 duration-500 animate-liquid-3 mix-blend-multiply opacity-45"}}></UiBox>
- 
- {/* HOUDINI RING PARTICLES (Google Antigravity Particles Effect) */}
- <UiBox {...{"className":"absolute inset-0 pointer-events-none -z-10 animate-ring-particles-1 opacity-70"}} />
- <UiBox {...{"className":"absolute inset-0 pointer-events-none -z-10 animate-ring-particles-2 opacity-70"}} />
- 
- {/* Card Centrado (Estilo Profesional Alineado a la Izquierda) */}
- <UiBox {...{"className":"w-full max-w-[420px] mx-4 relative group select-none"}}>
- {/* Subtle Backglow */}
- <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--gray-2)"},"className":"absolute inset-0 opacity-60 pointer-events-none"}}></UiBox>
- 
- {/* La tarjeta principal */}
- <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"w-full p-8 sm:p-10 flex flex-col duration-500 relative z-10"}}>
- 
- {/* Header de la Empresa o Web Fix */}
- <UiBox {...{"className":"text-left mb-8 select-none"}}>
- {companyProfile?.logoUrl ? (
- <img src={companyProfile.logoUrl} alt="Logo de la Empresa" {...{"className":"max-h-12 object-contain mb-4"}} />
- ) : (
- <UiBox {...{"className":"flex items-center gap-2.5 mb-5 select-none"}}>
- <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--gray-2)"},"className":"w-9 h-9 flex items-center justify-center"}}>
- <svg {...{"style":{"color":"var(--color-background)"},"className":"w-5 h-5"}} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
- <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
- </svg>
- </UiBox>
- <UiText {...{"size":"6","weight":"bold","color":"gray","highContrast":true}}>
- Web Fix
- </UiText>
- </UiBox>
- )}
- <UiText {...{"size":"5","weight":"medium","color":"gray","highContrast":true,"className":"leading-none block"}}>
- Iniciar sesión
- </UiText>
- </UiBox>
- 
- <form onSubmit={handleLogin} {...{"className":"space-y-5 text-left"}}>
- <UiBox>
- <UiLabel {...{"size":"2","weight":"regular","color":"gray","highContrast":true,"className":"block mb-1.5"}}>
- Correo Electrónico
- </UiLabel>
- <UiBox {...{"className":"relative"}}>
- <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none"}}>
- <User size={16} />
- </UiBox>
- <UiInput
- type="email" 
- value={loginForm.email}
- onChange={(e) => setLoginForm({...loginForm, email: e.target.value})}
- {...{"size":"2","color":"gray","className":"w-full"}}
- placeholder="correo@ejemplo.com" 
- required
- />
- </UiBox>
- </UiBox>
- 
- <UiBox>
- <UiLabel {...{"size":"2","weight":"regular","color":"gray","highContrast":true,"className":"block mb-1.5"}}>
- Contraseña
- </UiLabel>
- <UiBox {...{"className":"relative"}}>
- <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none"}}>
- <Lock size={16} />
- </UiBox>
- <UiInput
- type={showPassword ?"text" :"password"}
- value={loginForm.password}
- onChange={(e) => setLoginForm({...loginForm, password: e.target.value})}
- {...{"size":"2","color":"gray","className":"w-full"}}
- placeholder="••••••••••••" 
- required
- />
- <UiButton
- type="button"
- onClick={() => setShowPassword(!showPassword)}
- {...{"color":"gray","className":"absolute inset-y-0 right-0 flex items-center"}}
- >
- {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
- </UiButton>
- </UiBox>
- 
- {/* Olvidaste tu contraseña */}
- <UiBox {...{"className":"flex justify-end mt-2"}}>
- <UiButton
- type="button"
- onClick={() => showToast('Comunícate con soporte para recuperar tu contraseña','info')}
- {...{"size":"2","color":"blue"}}
- >
- ¿Olvidaste tu contraseña?
- </UiButton>
- </UiBox>
- </UiBox>
- 
- {(loginError || profileError) && (
- <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--red-3)","color":"var(--red-12)"},"className":"p-3 flex items-center justify-center text-center animate-in fade-in duration-300"}}>
- {loginError}
- </UiBox>
- )}
- 
- <UiButton
- type="submit" 
- disabled={isAuthenticating}
- {...{"size":"2","variant":"solid","color":"blue","className":"w-full flex items-center justify-center gap-2 mt-6 duration-300 active:scale-98 disabled:opacity-70 disabled:hover:scale-100 hover:scale-[1.01]"}}
- >
- {isAuthenticating ? (
- <>
- <RefreshCw size={14} {...{"className":"animate-spin"}} /> Verificando...
- </>
- ) : (
- <>
- INICIAR SESIÓN
- </>
- )}
- </UiButton>
- </form>
- 
- {/* Footer con Registro */}
- <UiBox {...{"className":"mt-6 text-center"}}>
- <UiText as="p" style={{ fontSize:'12px', color:'#000000' }} {...{"weight":"regular","className":"select-none"}}>
- ¿No tienes una cuenta?{''}
- <UiText 
- onClick={() => navigate('/register')}
- {...{"weight":"bold","color":"blue","className":"hover:underline cursor-pointer"}}
- >
- Regístrate
- </UiText>
- </UiText>
- </UiBox>
- </UiCard>
- </UiBox>
+    try {
+      await signInWithEmailAndPassword(auth, loginForm.email.trim(), loginForm.password);
+      showToast?.("Sesión iniciada correctamente", "success");
+      navigate('/app');
+    } catch (error) {
+      console.error('Login error:', error.code);
+      const errorMessages = {
+        'auth/invalid-email': 'El correo electrónico no es válido.',
+        'auth/user-disabled': 'Esta cuenta ha sido deshabilitada.',
+        'auth/user-not-found': 'No existe una cuenta con ese correo.',
+        'auth/wrong-password': 'La contraseña ingresada es incorrecta.',
+        'auth/invalid-credential': 'Credenciales inválidas. Verifica tu correo y contraseña.',
+        'auth/too-many-requests': 'Demasiados intentos fallidos. Espera un momento e intenta de nuevo.',
+        'auth/network-request-failed': 'Error de red. Verifica tu conexión a internet.',
+      };
+      setLoginError(errorMessages[error.code] || 'Error al iniciar sesión. Verifica tus credenciales.');
+      showToast?.("Error al iniciar sesión", "error");
+    } finally {
+      setIsAuthenticating(false);
+    }
+  };
 
- {/* Derechos Reservados como Pie de Página */}
- <UiBox {...{"className":"absolute bottom-6 left-0 right-0 text-center z-10 pointer-events-none"}}>
- <UiText as="p" style={{ fontSize:'12px', color:'#000000' }} {...{"weight":"regular","className":"select-none pointer-events-auto"}}>
- © WebFix 2026. Todos los derechos reservados
- </UiText>
- </UiBox>
+  return (
+    <UiBox className="min-h-screen w-full flex flex-col justify-between items-center bg-[var(--gray-1)] text-[var(--gray-12)] relative overflow-hidden p-4 sm:p-6 select-none">
+      {/* Background Subtle Pattern (Flat Modern Grid) */}
+      <UiBox 
+        className="absolute inset-0 pointer-events-none opacity-40 -z-10" 
+        style={{
+          backgroundImage: 'radial-gradient(var(--gray-a5) 1px, transparent 1px)',
+          backgroundSize: '24px 24px'
+        }}
+      />
 
- </UiBox>
- );
+      {/* Top Bar / Branding Spacer */}
+      <UiBox className="w-full max-w-[420px] flex justify-between items-center pt-2 sm:pt-4">
+        <UiBox className="flex items-center gap-2">
+          <UiBox className="w-8 h-8 rounded-lg bg-[var(--blue-9)] text-white flex items-center justify-center font-bold text-sm">
+            W
+          </UiBox>
+          <UiText size="2" weight="bold" color="gray" highContrast>
+            WebFix ERP
+          </UiText>
+        </UiBox>
+        <UiBox className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--gray-3)] border border-[var(--gray-a4)] text-[11px] font-semibold text-[var(--gray-11)]">
+          <ShieldCheck size={12} className="text-[var(--blue-9)]" />
+          <span>SRI Ecuador</span>
+        </UiBox>
+      </UiBox>
+
+      {/* Main Login Card */}
+      <UiCard className="w-full max-w-[420px] p-6 sm:p-8 bg-[var(--color-panel-solid)] border border-[var(--gray-a5)] rounded-2xl duration-300">
+        {/* Brand / Logo Header */}
+        <UiBox className="mb-6 text-left">
+          {companyProfile?.logoUrl ? (
+            <img src={companyProfile.logoUrl} alt="Logo" className="max-h-12 object-contain mb-3" />
+          ) : (
+            <UiBox className="flex items-center gap-2 mb-3">
+              <UiBox className="w-9 h-9 rounded-lg bg-[var(--blue-3)] text-[var(--blue-11)] flex items-center justify-center">
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                </svg>
+              </UiBox>
+              <UiText size="4" weight="bold" color="gray" highContrast>
+                {companyProfile?.companyName || 'Web Fix Soluciones'}
+              </UiText>
+            </UiBox>
+          )}
+
+          <UiHeading as="h1" size="5" weight="bold" color="gray" highContrast className="tracking-tight">
+            Iniciar sesión
+          </UiHeading>
+          <UiText size="2" color="gray" className="mt-1 block">
+            Ingresa tus credenciales para acceder a tu plataforma empresarial.
+          </UiText>
+        </UiBox>
+
+        {/* Login Form */}
+        <form onSubmit={handleLogin} className="space-y-4 text-left">
+          {/* Email Field */}
+          <UiBox>
+            <UiLabel size="1" weight="bold" color="gray" highContrast className="block mb-1.5 uppercase tracking-wider text-[11px]">
+              Correo Electrónico
+            </UiLabel>
+            <UiInput
+              type="email"
+              value={loginForm.email}
+              onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
+              placeholder="tu-correo@empresa.com"
+              iconPrefix={<Mail size={15} className="text-[var(--gray-10)]" />}
+              size="2"
+              required
+              autoFocus
+              className="w-full"
+            />
+          </UiBox>
+
+          {/* Password Field */}
+          <UiBox>
+            <UiBox className="flex items-center justify-between mb-1.5">
+              <UiLabel size="1" weight="bold" color="gray" highContrast className="uppercase tracking-wider text-[11px]">
+                Contraseña
+              </UiLabel>
+              <button
+                type="button"
+                onClick={() => showToast?.('Comunícate con tu administrador para restablecer tu contraseña', 'info')}
+                className="text-[12px] font-medium text-[var(--blue-11)] hover:underline cursor-pointer focus:outline-none"
+              >
+                ¿Olvidaste tu contraseña?
+              </button>
+            </UiBox>
+            <UiInput
+              type={showPassword ? 'text' : 'password'}
+              value={loginForm.password}
+              onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+              placeholder="••••••••••••"
+              iconPrefix={<Lock size={15} className="text-[var(--gray-10)]" />}
+              iconSuffix={
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  onClick={() => setShowPassword(!showPassword)}
+                  title={showPassword ? "Ocultar contraseña" : "Ver contraseña"}
+                  className="text-[var(--gray-10)] hover:text-[var(--gray-12)] p-1 cursor-pointer focus:outline-none flex items-center justify-center transition-colors"
+                >
+                  {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
+              }
+              size="2"
+              required
+              className="w-full"
+            />
+          </UiBox>
+
+          {/* Error Alert Box */}
+          {(loginError || profileError) && (
+            <UiBox className="p-3 rounded-lg bg-[var(--red-3)] border border-[var(--red-6)] text-[var(--red-11)] text-xs font-medium flex items-start gap-2.5 animate-in fade-in duration-200">
+              <AlertCircle size={15} className="shrink-0 mt-0.5 text-[var(--red-11)]" />
+              <span>{loginError || profileError}</span>
+            </UiBox>
+          )}
+
+          {/* Submit Button */}
+          <UiButton
+            type="submit"
+            disabled={isAuthenticating}
+            variant="solid"
+            color="blue"
+            size="3"
+            className="w-full font-semibold cursor-pointer flex items-center justify-center gap-2 mt-2 transition-transform duration-150 active:scale-[0.99]"
+          >
+            {isAuthenticating ? (
+              <>
+                <RefreshCw size={14} className="animate-spin" />
+                <span>Verificando...</span>
+              </>
+            ) : (
+              <>
+                <span>Ingresar al Sistema</span>
+                <ArrowRight size={15} />
+              </>
+            )}
+          </UiButton>
+        </form>
+
+        {/* Footer: Register link */}
+        <UiBox className="mt-6 pt-5 border-t border-[var(--gray-a4)] text-center">
+          <UiText size="2" color="gray">
+            ¿No tienes una cuenta?{' '}
+            <button
+              type="button"
+              onClick={() => navigate('/register')}
+              className="font-bold text-[var(--blue-11)] hover:underline cursor-pointer focus:outline-none ml-1"
+            >
+              Regístrate aquí
+            </button>
+          </UiText>
+        </UiBox>
+      </UiCard>
+
+      {/* Footer / Copyright & Security */}
+      <UiBox className="w-full max-w-[420px] text-center pb-2 pt-4 space-y-1">
+        <UiText size="1" color="gray" className="block text-[11px]">
+          Plataforma de Facturación Electrónica y Control Empresarial
+        </UiText>
+        <UiText size="1" color="gray" className="block text-[11px] opacity-80">
+          © {new Date().getFullYear()} WebFix. Todos los derechos reservados.
+        </UiText>
+      </UiBox>
+    </UiBox>
+  );
 }

@@ -115,11 +115,17 @@ export default function CuentasPorCobrarView({ db, usuario, showToast }) {
       {/* Filtros */}
       <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4"}}>
         <UiBox {...{"className":"flex flex-wrap items-center gap-3"}}>
-          <UiBox {...{"className":"relative flex-1 min-w-[200px]"}}>
-            <Search size={14} {...{"style":{"color":"var(--gray-11)"},"className":"absolute left-3 top-1/2 -translate-y-1/2"}} />
-            <UiInput type="text" value={filtros.search} onChange={e => setFiltros(f => ({ ...f, search: e.target.value }))}
+          <UiBox className="flex-1 min-w-[200px]">
+            <UiInput
+              type="text"
+              value={filtros.search}
+              onChange={e => setFiltros(f => ({ ...f, search: e.target.value }))}
               placeholder="Buscar cliente, RUC, documento..."
-              {...{"size":"2","color":"gray","className":"w-full"}} />
+              iconPrefix={<Search size={14} className="text-[var(--gray-10)]" />}
+              size="2"
+              color="gray"
+              className="w-full"
+            />
           </UiBox>
           <UiSelect value={filtros.estado} onChange={e => setFiltros(f => ({ ...f, estado: e.target.value }))}
             {...{"size":"2","color":"gray"}}>

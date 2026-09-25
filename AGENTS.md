@@ -142,6 +142,14 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
 - **Eliminación de Tarjetas de Métricas**: Removidas las 4 tarjetas KPI de la cabecera en `ServicesView.tsx` (Total Servicios, Servicios Activos, Servicios Digitales, Categorías Utilizadas).
 - **Diseño Minimalista**: La vista ahora inicia directamente en la barra de herramientas y filtros rápidos, despejando el espacio visual y enfocando la interacción en el catálogo y acciones de servicios.
 
+### 16. Estandarización y Rediseño de Suscripción y Facturación SaaS (2026-09-24) — COMPLETADO
+- **Eliminación de Vacíos Laterales (`max-w-5xl`)**: Removida la restricción artificial de ancho que provocaba enormes espacios vacíos en los costados. Ahora utiliza el contenedor completo y homogéneo del ERP (`w-full space-y-4` dentro de `max-w-[1600px]`).
+- **Encabezado Homogéneo Tipo Card (`UiCard`)**: Estandarizado con tarjeta de cabecera idéntica a Clientes, Proveedores y Venta Administrativa. Muestra el título contextual del submódulo activo, descripción clara y píldora con el estado del plan actual y días de prueba restantes.
+- **Barra de Submódulos Rápida**: Barra de pestañas integrada con iconos para navegar fluidamente entre Facturación Electrónica, Páginas Web, Correos Corporativos, WhatsApp CRM e Historial de Pagos, sincronizada bidireccionalmente con el Sidebar.
+- **Grid Balanceado Catálogo y Resumen de Pago**: Distribución responsive (8 columnas para planes y 4 columnas para resumen de pago y checkout), tarjetas de planes con tipografía limpia en números Inter, badge recomendado y selección instantánea.
+- **Historial de Pagos de Ancho Completo**: Tabla organizada con estados visuales claros (Aprobado, Pendiente, Rechazado) y estados vacíos amigables.
+- **Pruebas y Build**: 41 tests unitarios aprobados, compilación de producción exitosa en 14.08s.
+
 ## Últimos commits
 ```
 792350c feat(servicios): eliminar metricas kpi de la cabecera en ServicesView
@@ -150,4 +158,5 @@ b5c68d8 feat(personas): estandarizar espaciados, encabezado limpio sin kpis y el
 1d192aa fix(ventas): resolver ReferenceError de matchedTercero antes de inicializacion en TransactionForm
 83af250 feat(emision): pantalla de confirmacion, impresion directa y envio de correos para notas de venta y facturas
 ```
+
 

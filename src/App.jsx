@@ -1065,7 +1065,11 @@ export default function App() {
                 <>
                   {/* VISTA: PORTAL DE SUSCRIPCIÓN Y PAGOS */}
                   {activePageId === 'billing' && (
-                    <BillingPortal showToast={showToast} initialSubTab={billingInitialSubTab} />
+                    <BillingPortal 
+                      showToast={showToast} 
+                      initialSubTab={billingInitialSubTab} 
+                      onSubTabChange={(tab) => setBillingInitialSubTab(tab)}
+                    />
                   )}
 
 

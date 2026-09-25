@@ -688,36 +688,30 @@ export default function ProductCreationForm({
             <UiBox {...{"className":"md:col-span-9 grid grid-cols-1 md:grid-cols-2 gap-4"}}>
               <UiBox {...{"className":"relative group"}}>
                 <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1"})}>Código / SKU / Barras *</UiLabel>
-                <UiBox {...{"className":"relative"}}>
-                  <UiBox {...mergeThemeProps({"style":{"color":"var(--gray-11)"},"className":"absolute left-3 top-1/2 -translate-y-1/2"})}><Tag size={14} /></UiBox>
-                  <UiInput
-                    type="text"
-                    name="sku"
-                    required
-                    value={formData.sku}
-                    onChange={handleInputChange}
-                    placeholder="Ej. PROD-001 o Código de Barras"
-                    {...mergeThemeProps({}, {}, mergeThemeProps({"size":"2","color":"gray","className":"w-full"}))}
-                    style={{ paddingLeft: '36px' }}
-                  />
-                </UiBox>
+                <UiInput
+                  type="text"
+                  name="sku"
+                  required
+                  value={formData.sku}
+                  onChange={handleInputChange}
+                  placeholder="Ej. PROD-001 o Código de Barras"
+                  iconPrefix={<Tag size={14} className="text-[var(--gray-10)]" />}
+                  {...mergeThemeProps({}, {}, mergeThemeProps({"size":"2","color":"gray","className":"w-full"}))}
+                />
               </UiBox>
 
               <UiBox {...{"className":"relative group"}}>
                 <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1"})}>Nombre del Producto *</UiLabel>
-                <UiBox {...{"className":"relative"}}>
-                  <UiBox {...mergeThemeProps({"style":{"color":"var(--gray-11)"},"className":"absolute left-3 top-1/2 -translate-y-1/2"})}><Package size={14} /></UiBox>
-                  <UiInput
-                    type="text"
-                    name="name"
-                    required
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    placeholder="Ej. Martillo de Acero 16oz"
-                    {...mergeThemeProps({}, {}, mergeThemeProps({"size":"2","color":"gray","className":"w-full"}))}
-                    style={{ paddingLeft: '36px' }}
-                  />
-                </UiBox>
+                <UiInput
+                  type="text"
+                  name="name"
+                  required
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  placeholder="Ej. Martillo de Acero 16oz"
+                  iconPrefix={<Package size={14} className="text-[var(--gray-10)]" />}
+                  {...mergeThemeProps({}, {}, mergeThemeProps({"size":"2","color":"gray","className":"w-full"}))}
+                />
               </UiBox>
 
               {/* Categoría Selector con Icono Popup */}
@@ -725,13 +719,11 @@ export default function ProductCreationForm({
                 <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1"})}>Categoría</UiLabel>
                 <UiBox {...{"className":"flex items-center gap-2"}}>
                   <UiBox {...{"className":"relative flex-1"}}>
-                    <UiBox {...mergeThemeProps({"style":{"color":"var(--gray-11)"},"className":"absolute left-3 top-1/2 -translate-y-1/2"})}><Tag size={14} /></UiBox>
                     <UiSelect
                       name="categoryId"
                       value={formData.categoryId}
                       onChange={handleInputChange}
                       {...mergeThemeProps({}, {}, mergeThemeProps({"size":"2","color":"gray","className":"w-full"}))}
-                      style={{ paddingLeft: '36px' }}
                     >
                       <option value="">Sin Categoría</option>
                       {categories.map(cat => (
@@ -755,13 +747,11 @@ export default function ProductCreationForm({
                 <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1"})}>Marca</UiLabel>
                 <UiBox {...{"className":"flex items-center gap-2"}}>
                   <UiBox {...{"className":"relative flex-1"}}>
-                    <UiBox {...mergeThemeProps({"style":{"color":"var(--gray-11)"},"className":"absolute left-3 top-1/2 -translate-y-1/2"})}><Tag size={14} /></UiBox>
                     <UiSelect
                       name="brandId"
                       value={formData.brandId}
                       onChange={handleInputChange}
                       {...mergeThemeProps({}, {}, mergeThemeProps({"size":"2","color":"gray","className":"w-full"}))}
-                      style={{ paddingLeft: '36px' }}
                     >
                       <option value="">Sin Marca</option>
                       {brands.map(brand => (
@@ -784,18 +774,14 @@ export default function ProductCreationForm({
             {/* Descripción */}
             <UiBox {...{"className":"md:col-span-12 relative group"}}>
               <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1"})}>Descripción (Opcional)</UiLabel>
-              <UiBox {...{"className":"relative"}}>
-                <UiBox {...mergeThemeProps({"style":{"color":"var(--gray-11)"},"className":"absolute left-3 top-1/2 -translate-y-1/2"})}><FileText size={14} /></UiBox>
-                <UiTextarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  placeholder="Detalles adicionales del producto..."
-                  rows={2}
-                  {...mergeThemeProps({}, {"className":"resize-none"}, mergeThemeProps({"size":"2","color":"gray","className":"w-full"}))}
-                  style={{ paddingLeft: '36px' }}
-                />
-              </UiBox>
+              <UiTextarea
+                name="description"
+                value={formData.description}
+                onChange={handleInputChange}
+                placeholder="Detalles adicionales del producto..."
+                rows={2}
+                {...mergeThemeProps({}, {"className":"resize-none"}, mergeThemeProps({"size":"2","color":"gray","className":"w-full"}))}
+              />
             </UiBox>
           </UiBox>
         </UiBox>
@@ -853,24 +839,21 @@ export default function ProductCreationForm({
                   <UiText {...{"size":"1","color":"gray","weight":"bold","className":"px-1.5 py-0.5"}}>Autocalculado</UiText>
                 )}
               </UiBox>
-              <UiBox {...{"className":"relative"}}>
-                <UiBox {...mergeThemeProps({"style":{"color":"var(--gray-11)"},"className":"absolute left-3 top-1/2 -translate-y-1/2"})}><DollarSign size={14} /></UiBox>
-                <UiInput
-                  type="number"
-                  min="0"
-                  step="0.0001"
-                  required
-                  disabled={formData.tax_mode === 'INCLUIDO'}
-                  value={formData.precio_sin_iva || ''}
-                  onChange={(e) => {
-                    const val = parseFloat(e.target.value) || 0;
-                    setFormData(prev => ({ ...prev, precio_sin_iva: val }));
-                    syncPrices('EXCLUIDO', formData.tarifa_iva, val, formData.precio_con_iva, formData.baseCost);
-                  }}
-                  {...mergeThemeProps({}, {}, {}, mergeThemeProps({"size":"2","color":"gray","className":"w-full"}), (formData.tax_mode === 'INCLUIDO' ? {"color":"gray"} : {}))}
-                  style={{ paddingLeft: '36px' }}
-                />
-              </UiBox>
+              <UiInput
+                type="number"
+                min="0"
+                step="0.0001"
+                required
+                disabled={formData.tax_mode === 'INCLUIDO'}
+                value={formData.precio_sin_iva || ''}
+                onChange={(e) => {
+                  const val = parseFloat(e.target.value) || 0;
+                  setFormData(prev => ({ ...prev, precio_sin_iva: val }));
+                  syncPrices('EXCLUIDO', formData.tarifa_iva, val, formData.precio_con_iva, formData.baseCost);
+                }}
+                iconPrefix={<DollarSign size={14} className="text-[var(--gray-10)]" />}
+                {...mergeThemeProps({}, {}, {}, mergeThemeProps({"size":"2","color":"gray","className":"w-full"}), (formData.tax_mode === 'INCLUIDO' ? {"color":"gray"} : {}))}
+              />
             </UiBox>
 
             {/* Precio incluido impuestos */}
@@ -881,25 +864,22 @@ export default function ProductCreationForm({
                   <UiText {...{"size":"1","color":"gray","weight":"bold","className":"px-1.5 py-0.5"}}>Autocalculado</UiText>
                 )}
               </UiBox>
-              <UiBox {...{"className":"relative"}}>
-                <UiBox {...mergeThemeProps({"style":{"color":"var(--gray-11)"},"className":"absolute left-3 top-1/2 -translate-y-1/2"})}><DollarSign size={14} /></UiBox>
-                <UiInput
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  required
-                  disabled={formData.tax_mode === 'EXCLUIDO'}
-                  value={formData.precio_con_iva || ''}
-                  onChange={(e) => {
-                    const val = parseFloat(e.target.value) || 0;
-                    setFormData(prev => ({ ...prev, precio_con_iva: val }));
-                    syncPrices('INCLUIDO', formData.tarifa_iva, formData.precio_sin_iva, val, formData.baseCost);
-                  }}
-                  placeholder="0.00"
-                  {...mergeThemeProps({}, {"color":"green"}, {}, mergeThemeProps({"size":"2","color":"gray","className":"w-full"}), (formData.tax_mode === 'EXCLUIDO' ? {"color":"gray"} : {}))}
-                  style={{ paddingLeft: '36px' }}
-                />
-              </UiBox>
+              <UiInput
+                type="number"
+                min="0"
+                step="0.01"
+                required
+                disabled={formData.tax_mode === 'EXCLUIDO'}
+                value={formData.precio_con_iva || ''}
+                onChange={(e) => {
+                  const val = parseFloat(e.target.value) || 0;
+                  setFormData(prev => ({ ...prev, precio_con_iva: val }));
+                  syncPrices('INCLUIDO', formData.tarifa_iva, formData.precio_sin_iva, val, formData.baseCost);
+                }}
+                placeholder="0.00"
+                iconPrefix={<DollarSign size={14} className="text-[var(--gray-10)]" />}
+                {...mergeThemeProps({}, {"color":"green"}, {}, mergeThemeProps({"size":"2","color":"gray","className":"w-full"}), (formData.tax_mode === 'EXCLUIDO' ? {"color":"gray"} : {}))}
+              />
             </UiBox>
           </UiBox>
           
@@ -1082,20 +1062,17 @@ export default function ProductCreationForm({
             <UiText as="p" {...mergeThemeProps({"size":"1","color":"gray"})}>
               ¿Cuánto te costó adquirir o producir este artículo? (Para calcular ganancia real)
             </UiText>
-            <UiBox {...{"className":"relative"}}>
-              <UiBox {...mergeThemeProps({"style":{"color":"var(--gray-11)"},"className":"absolute left-3 top-1/2 -translate-y-1/2"})}><DollarSign size={14} /></UiBox>
-              <UiInput
-                type="number"
-                name="baseCost"
-                min="0"
-                step="0.01"
-                value={formData.baseCost || ''}
-                onChange={handleInputChange}
-                placeholder="0.00"
-                {...mergeThemeProps({}, {}, mergeThemeProps({"size":"2","color":"gray","className":"w-full"}))}
-                style={{ paddingLeft: '36px' }}
-              />
-            </UiBox>
+            <UiInput
+              type="number"
+              name="baseCost"
+              min="0"
+              step="0.01"
+              value={formData.baseCost || ''}
+              onChange={handleInputChange}
+              placeholder="0.00"
+              iconPrefix={<DollarSign size={14} className="text-[var(--gray-10)]" />}
+              {...mergeThemeProps({}, {}, mergeThemeProps({"size":"2","color":"gray","className":"w-full"}))}
+            />
             {formData.baseCost > 0 && (
               <UiText {...{"size":"1","color":"green","weight":"bold","className":"block"}}>
                 Margen de ganancia calculado: {formData.marginPercentage.toFixed(1)}%
@@ -1641,20 +1618,17 @@ export default function ProductCreationForm({
             <UiBox {...{"className":"space-y-4"}}>
               <UiBox>
                 <UiLabel {...{"size":"1","weight":"bold","className":"block mb-1"}}>Ingresar Precio Sin Impuesto ($)</UiLabel>
-                <UiBox {...{"className":"relative"}}>
-                  <UiBox {...mergeThemeProps({"style":{"color":"var(--gray-11)"},"className":"absolute left-3 top-1/2 -translate-y-1/2"})}><DollarSign size={14} /></UiBox>
-                  <UiInput
-                    type="number" 
-                    min="0"
-                    step="0.01"
-                    required
-                    value={manualPriceInput}
-                    onChange={(e) => setManualPriceInput(e.target.value)}
-                    placeholder="0.00"
-                    {...mergeThemeProps({}, {}, mergeThemeProps({"size":"2","color":"gray","className":"w-full"}))}
-                    style={{ paddingLeft: '36px' }}
-                  />
-                </UiBox>
+                <UiInput
+                  type="number" 
+                  min="0"
+                  step="0.01"
+                  required
+                  value={manualPriceInput}
+                  onChange={(e) => setManualPriceInput(e.target.value)}
+                  placeholder="0.00"
+                  iconPrefix={<DollarSign size={14} className="text-[var(--gray-10)]" />}
+                  {...mergeThemeProps({}, {}, mergeThemeProps({"size":"2","color":"gray","className":"w-full"}))}
+                />
               </UiBox>
 
               {/* Muestra cálculo rápido */}

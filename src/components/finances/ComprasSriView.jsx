@@ -545,10 +545,21 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
               <UiText>Subir XML</UiText>
               <UiInput type="file" accept=".xml" onChange={handleXmlUpload} {...{"className":"hidden"}} />
             </UiLabel>
-            <UiBox {...{"className":"relative flex-1 min-w-[200px] max-w-xs"}}>
-              <Search size={12} {...{"style":{"color":"var(--gray-12)"},"className":"absolute left-2.5 top-1/2 -translate-y-1/2"}} />
-              <UiInput value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Buscar..." {...mergeThemeProps({}, {}, {"size":"2","color":"gray","className":"w-full"})} />
-              {searchTerm && <UiButton iconOnly onClick={() => setSearchTerm('')} {...{"color":"gray","className":"absolute right-2 top-1/2 -translate-y-1/2"}}><X size={12} /></UiButton>}
+            <UiBox className="flex-1 min-w-[200px] max-w-xs">
+              <UiInput
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                placeholder="Buscar..."
+                iconPrefix={<Search size={14} className="text-[var(--gray-10)]" />}
+                iconSuffix={searchTerm ? (
+                  <button type="button" onClick={() => setSearchTerm('')} className="text-[var(--gray-10)] hover:text-[var(--gray-12)] p-0.5 cursor-pointer">
+                    <X size={12} />
+                  </button>
+                ) : undefined}
+                size="2"
+                color="gray"
+                className="w-full"
+              />
             </UiBox>
             <UiSelect value={filterStatus} onChange={e => setFilterStatus(e.target.value)} {...{"size":"2","color":"gray"}}>
               <option value="all">Todos ({sriBills.length})</option><option value="nuevo">Pendientes ({sriBills.filter(b => !isBillImported(b)).length})</option><option value="importado">Ya en Compras ({sriBills.filter(b => isBillImported(b)).length})</option>
@@ -754,9 +765,17 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
                 </UiBox>
 
                 {showProductSearch && (
-                  <UiBox {...{"className":"relative"}}>
-                    <Search size={12} {...{"style":{"color":"var(--gray-12)"},"className":"absolute left-2.5 top-1/2 -translate-y-1/2"}} />
-                    <UiInput autoFocus value={productSearchTerm} onChange={e => setProductSearchTerm(e.target.value)} placeholder="Buscar producto por nombre o SKU..." {...mergeThemeProps({}, {}, {"size":"2","color":"gray","className":"w-full"})} />
+                  <UiBox className="relative">
+                    <UiInput
+                      autoFocus
+                      value={productSearchTerm}
+                      onChange={e => setProductSearchTerm(e.target.value)}
+                      placeholder="Buscar producto por nombre o SKU..."
+                      iconPrefix={<Search size={14} className="text-[var(--gray-10)]" />}
+                      size="2"
+                      color="gray"
+                      className="w-full"
+                    />
                     {productSearchTerm && filteredProducts.length > 0 && (
                       <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)","borderRadius":"var(--radius-3)"},"className":"absolute z-20 top-full left-0 right-0 mt-1 max-h-52 overflow-y-auto"}}>
                         {filteredProducts.map(p => (

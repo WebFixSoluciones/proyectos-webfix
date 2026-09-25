@@ -564,17 +564,31 @@ function FiltrosComunes({ filtros, setFiltros, tab }) {
       <UiInput type="date" value={filtros.fechaHasta} onChange={e => setFiltros(f => ({ ...f, fechaHasta: e.target.value }))}
         {...{"size":"2","color":"gray"}} />
       {tab === 'auditoria' && (
-        <UiBox {...{"className":"relative"}}>
-          <Search size={12} {...{"style":{"color":"var(--gray-11)"},"className":"absolute left-2 top-1/2 -translate-y-1/2"}} />
-          <UiInput type="text" value={filtros.usuario || ''} onChange={e => setFiltros(f => ({ ...f, usuario: e.target.value }))}
-            placeholder="Usuario..." {...{"size":"2","color":"gray","className":"w-32"}} />
+        <UiBox className="relative">
+          <UiInput
+            type="text"
+            value={filtros.usuario || ''}
+            onChange={e => setFiltros(f => ({ ...f, usuario: e.target.value }))}
+            placeholder="Usuario..."
+            iconPrefix={<Search size={14} className="text-[var(--gray-10)]" />}
+            size="2"
+            color="gray"
+            className="w-36"
+          />
         </UiBox>
       )}
       {tab === 'cartera' && (
-        <UiBox {...{"className":"relative"}}>
-          <Search size={12} {...{"style":{"color":"var(--gray-11)"},"className":"absolute left-2 top-1/2 -translate-y-1/2"}} />
-          <UiInput type="text" value={filtros.search || ''} onChange={e => setFiltros(f => ({ ...f, search: e.target.value }))}
-            placeholder="Cliente..." {...{"size":"2","color":"gray","className":"w-36"}} />
+        <UiBox className="relative">
+          <UiInput
+            type="text"
+            value={filtros.search || ''}
+            onChange={e => setFiltros(f => ({ ...f, search: e.target.value }))}
+            placeholder="Cliente..."
+            iconPrefix={<Search size={14} className="text-[var(--gray-10)]" />}
+            size="2"
+            color="gray"
+            className="w-40"
+          />
         </UiBox>
       )}
       <UiButton onClick={() => setFiltros({ fechaDesde: '', fechaHasta: '', estado: 'all', search: '', usuario: '' })}

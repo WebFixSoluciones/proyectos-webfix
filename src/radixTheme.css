@@ -27,3 +27,15 @@
 .rt-TextFieldInput { text-align: inherit; }
 .rt-BaseButton > svg { flex-shrink: 0; }
 .webfix-theme .rt-SelectTrigger { min-width: 0; }
+.rt-TextFieldSlot {
+  color: var(--gray-10);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.rt-TextFieldSlot > svg {
+  flex-shrink: 0;
+}
+.rt-TextFieldRoot:focus-within .rt-TextFieldSlot {
+  color: var(--accent-9);
+}

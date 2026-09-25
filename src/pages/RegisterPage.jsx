@@ -1,309 +1,295 @@
-import { UiBox, UiCard, UiText, UiLabel } from '../components/ui/layout';
+import { UiBox, UiCard, UiText, UiLabel, UiHeading } from '../components/ui/layout';
 import { UiInput, UiButton } from '../components/ui/controls';
 import { useState } from 'react';
-import { useNavigate, useSearchParams } from'react-router-dom';
-import { Mail, Lock, User, Building, ArrowRight, RefreshCw } from'lucide-react';
-import { createUserWithEmailAndPassword } from'firebase/auth';
-import { doc, writeBatch } from'firebase/firestore';
-import { auth, db, setTenantId } from'../firebase';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Mail, Lock, User, Building, ArrowRight, RefreshCw, ShieldCheck, AlertCircle } from 'lucide-react';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, writeBatch } from 'firebase/firestore';
+import { auth, db, setTenantId } from '../firebase';
 
 export default function RegisterPage({ showToast }) {
- const navigate = useNavigate();
- const [searchParams] = useSearchParams();
- const planParam = searchParams.get('plan') ||'starter';
- const periodParam = searchParams.get('period') ||'monthly';
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const planParam = searchParams.get('plan') || 'starter';
+  const periodParam = searchParams.get('period') || 'monthly';
 
- const [registerForm, setRegisterForm] = useState({
- name:'',
- email:'',
- password:'',
- companyName:''
- });
- 
- const [registerError, setRegisterError] = useState('');
- const [isRegistering, setIsRegistering] = useState(false);
+  const [registerForm, setRegisterForm] = useState({
+    name: '',
+    email: '',
+    password: '',
+    companyName: ''
+  });
 
- const getPlanName = (id) => {
- switch (id) {
- case'starter': return'Plan Starter';
- case'professional': return'Plan Profesional';
- case'enterprise': return'Plan Enterprise';
- default: return'Plan Starter';
- }
- };
+  const [registerError, setRegisterError] = useState('');
+  const [isRegistering, setIsRegistering] = useState(false);
 
- const handleRegister = async (e) => {
- e.preventDefault();
- setIsRegistering(true);
- setRegisterError('');
+  const getPlanName = (id) => {
+    switch (id) {
+      case 'starter': return 'Plan Starter';
+      case 'professional': return 'Plan Profesional';
+      case 'enterprise': return 'Plan Enterprise';
+      default: return 'Plan Starter';
+    }
+  };
 
- try {
- const email = registerForm.email.trim();
- const password = registerForm.password;
- const name = registerForm.name.trim();
- const companyName = registerForm.companyName.trim();
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    if (isRegistering) return;
+    setIsRegistering(true);
+    setRegisterError('');
 
- // 1. Crear el usuario en Firebase Auth
- const userCredential = await createUserWithEmailAndPassword(auth, email, password);
- const user = userCredential.user;
+    try {
+      const email = registerForm.email.trim();
+      const password = registerForm.password;
+      const name = registerForm.name.trim();
+      const companyName = registerForm.companyName.trim();
 
- // 2. Generar un tenantId aleatorio y único (o usar el uid + prefijo)
- const generatedTenantId =`org_${user.uid.substring(0, 10)}_${new Date().getTime().toString().substring(8)}`;
+      // 1. Crear el usuario en Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
 
- // 3. Crear el documento del inquilino (Tenant) en Firestore
- // Prueba gratuita de 14 días
- const expiresAt = new Date();
- expiresAt.setDate(expiresAt.getDate() + 14);
+      // 2. Generar un tenantId aleatorio y único
+      const generatedTenantId = `org_${user.uid.substring(0, 10)}_${new Date().getTime().toString().substring(8)}`;
 
- const batch = writeBatch(db);
- const tenantData = {
- ownerUid: user.uid,
- id: generatedTenantId,
- companyName: companyName,
- planId: planParam,
- planStatus:'trial',
- billingPeriod: periodParam,
- createdAt: new Date().toISOString(),
- expiresAt: expiresAt.toISOString()
- };
+      // 3. Crear el documento del inquilino (Tenant) en Firestore
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 14);
 
- batch.set(doc(db,'tenants', generatedTenantId), tenantData);
+      const batch = writeBatch(db);
+      const tenantData = {
+        ownerUid: user.uid,
+        id: generatedTenantId,
+        companyName: companyName,
+        planId: planParam,
+        planStatus: 'trial',
+        billingPeriod: periodParam,
+        createdAt: new Date().toISOString(),
+        expiresAt: expiresAt.toISOString()
+      };
 
- // 4. Crear el documento del usuario en Firestore
- const userData = {
- uid: user.uid,
- name: name,
- email: email,
- tenantId: generatedTenantId,
- role:'admin',
- status:'active',
- createdAt: new Date().toISOString()
- };
+      batch.set(doc(db, 'tenants', generatedTenantId), tenantData);
 
- batch.set(doc(db,'users', user.uid), userData);
+      // 4. Crear el documento del usuario en Firestore
+      const userData = {
+        uid: user.uid,
+        name: name,
+        email: email,
+        tenantId: generatedTenantId,
+        role: 'admin',
+        status: 'active',
+        createdAt: new Date().toISOString()
+      };
 
- // 5. Inicializar la base del Workspace de la empresa para evitar errores de ruteo
- // Configuración de Facturación/Perfil
- const configRef = doc(db,'artifacts', generatedTenantId,'public','data','finances_settings','config');
- batch.set(configRef, {
- razonSocial: companyName,
- nombreComercial: companyName,
- ruc:'',
- direccionMatriz:'',
- telefono:'',
- email: email,
- web:'',
- obligadoContabilidad: false,
- agenteRetencion: false,
- contribuyenteEspecial:'',
- contribuyenteRimpe:'regimen_general',
- smtpHost:'',
- smtpPort:'465',
- smtpUser:'',
- smtpPass:'',
- smtpSecure: true,
- firmaUrl:'',
- firmaPass:'',
- geminiApiKey:''
- });
+      batch.set(doc(db, 'users', user.uid), userData);
 
- // Meta Info
- const metaRef = doc(db,'artifacts', generatedTenantId,'public','data','meta','info');
- batch.set(metaRef, {
- users: [{ email: email, role:'admin' }],
- trash: [],
- googleClientId:''
- });
+      // 5. Inicializar la base del Workspace de la empresa para evitar errores de ruteo
+      const configRef = doc(db, 'artifacts', generatedTenantId, 'public', 'data', 'finances_settings', 'config');
+      batch.set(configRef, {
+        razonSocial: companyName,
+        nombreComercial: companyName,
+        ruc: '',
+        direccionMatriz: '',
+        telefono: '',
+        email: email,
+        web: '',
+        obligadoContabilidad: false,
+        agenteRetencion: false,
+        contribuyenteEspecial: '',
+        contribuyenteRimpe: 'regimen_general',
+        smtpHost: '',
+        smtpPort: '465',
+        smtpUser: '',
+        smtpPass: '',
+        smtpSecure: true,
+        firmaUrl: '',
+        firmaPass: '',
+        geminiApiKey: ''
+      });
 
- await batch.commit();
+      // Meta Info
+      const metaRef = doc(db, 'artifacts', generatedTenantId, 'public', 'data', 'meta', 'info');
+      batch.set(metaRef, {
+        users: [{ email: email, role: 'admin' }],
+        trash: [],
+        googleClientId: ''
+      });
 
- // 6. Establecer el tenantId de forma dinámica
- setTenantId(generatedTenantId);
+      await batch.commit();
 
- showToast("¡Cuenta y Empresa creada con éxito! Iniciando sesión...","success");
- navigate('/app');
- } catch (error) {
- console.error('Registration error:', error);
- const errorMessages = {
-'auth/email-already-in-use':'Este correo ya está registrado.',
-'auth/invalid-email':'El correo electrónico no es válido.',
-'auth/operation-not-allowed':'El registro de usuarios no está habilitado.',
-'auth/weak-password':'La contraseña debe tener al menos 6 caracteres.',
-'auth/network-request-failed':'Error de red. Verifica tu conexión a internet.',
- };
- setRegisterError(errorMessages[error.code] ||`Error al registrarse: ${error.message}`);
- showToast("Error en el registro","error");
- } finally {
- setIsRegistering(false);
- }
- };
+      // 6. Establecer el tenantId de forma dinámica
+      setTenantId(generatedTenantId);
 
- return (
- <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"flex items-center justify-center min-h-screen w-full overflow-hidden duration-500 relative z-0"}}>
- 
- {/* BASE BACKGROUND SOLID COLOR */}
- <UiBox {...{"style":{"backgroundColor":"var(--gray-2)"},"className":"absolute inset-0 -z-20 duration-500"}} />
+      showToast?.("¡Cuenta y Empresa creada con éxito! Iniciando sesión...", "success");
+      navigate('/app');
+    } catch (error) {
+      console.error('Registration error:', error);
+      const errorMessages = {
+        'auth/email-already-in-use': 'Este correo ya está registrado.',
+        'auth/invalid-email': 'El correo electrónico no es válido.',
+        'auth/operation-not-allowed': 'El registro de usuarios no está habilitado.',
+        'auth/weak-password': 'La contraseña debe tener al menos 6 caracteres.',
+        'auth/network-request-failed': 'Error de red. Verifica tu conexión a internet.',
+      };
+      setRegisterError(errorMessages[error.code] || `Error al registrarse: ${error.message}`);
+      showToast?.("Error en el registro", "error");
+    } finally {
+      setIsRegistering(false);
+    }
+  };
 
- {/* GLOBAL BACKGROUND BLOBS (Minimalismo Líquido Puro) */}
- <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--purple-3)"},"className":"absolute top-[-10%] left-[-5%] w-[40rem] h-[40rem] pointer-events-none -z-10 duration-500 animate-liquid-1 mix-blend-multiply opacity-50"}}></UiBox>
- <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--blue-3)"},"className":"absolute top-[20%] right-[-10%] w-[35rem] h-[35rem] pointer-events-none -z-10 duration-500 animate-liquid-2 mix-blend-multiply opacity-55"}}></UiBox>
- <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--red-3)"},"className":"absolute bottom-[-10%] left-[10%] w-[38rem] h-[38rem] pointer-events-none -z-10 duration-500 animate-liquid-3 mix-blend-multiply opacity-45"}}></UiBox>
- 
- {/* HOUDINI RING PARTICLES */}
- <UiBox {...{"className":"absolute inset-0 pointer-events-none -z-10 animate-ring-particles-1 opacity-70"}} />
- <UiBox {...{"className":"absolute inset-0 pointer-events-none -z-10 animate-ring-particles-2 opacity-70"}} />
- 
- {/* Card Centrado */}
- <UiBox {...{"className":"w-full max-w-[440px] mx-4 relative group select-none"}}>
- {/* Subtle Backglow */}
- <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--gray-2)"},"className":"absolute inset-0 opacity-60 pointer-events-none"}}></UiBox>
- 
- {/* La tarjeta principal */}
- <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"w-full p-8 sm:p-10 flex flex-col duration-500 relative z-10"}}>
- 
- {/* Header */}
- <UiBox {...{"className":"text-left mb-6 select-none"}}>
- <UiBox {...{"className":"flex items-center gap-2.5 mb-4 select-none"}}>
- <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--gray-2)"},"className":"w-9 h-9 flex items-center justify-center"}}>
- <svg {...{"style":{"color":"var(--color-background)"},"className":"w-5 h-5"}} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
- <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
- </svg>
- </UiBox>
- <UiText {...{"size":"6","weight":"bold","color":"gray","highContrast":true}}>
- Web Fix ERP
- </UiText>
- </UiBox>
- <UiText {...{"size":"5","weight":"medium","color":"gray","highContrast":true,"className":"leading-none block"}}>
- Crear cuenta de empresa
- </UiText>
- <UiText {...{"size":"1","weight":"bold","color":"indigo","className":"mt-2 block"}}>
- {getPlanName(planParam)} — Prueba de 14 días gratis
- </UiText>
- </UiBox>
- 
- <form onSubmit={handleRegister} {...{"className":"space-y-4 text-left"}}>
- <UiBox>
- <UiLabel {...{"size":"1","weight":"regular","color":"gray","highContrast":true,"className":"block mb-1"}}>
- Nombre del Administrador
- </UiLabel>
- <UiBox {...{"className":"relative"}}>
- <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none"}}>
- <User size={15} />
- </UiBox>
- <UiInput
- type="text" 
- value={registerForm.name}
- onChange={(e) => setRegisterForm({...registerForm, name: e.target.value})}
- {...{"size":"2","color":"gray","className":"w-full"}}
- placeholder="Tu Nombre" 
- required
- />
- </UiBox>
- </UiBox>
+  return (
+    <UiBox className="min-h-screen w-full flex flex-col justify-between items-center bg-[var(--gray-1)] text-[var(--gray-12)] relative overflow-hidden p-4 sm:p-6 select-none">
+      {/* Background Subtle Pattern */}
+      <UiBox 
+        className="absolute inset-0 pointer-events-none opacity-40 -z-10" 
+        style={{
+          backgroundImage: 'radial-gradient(var(--gray-a5) 1px, transparent 1px)',
+          backgroundSize: '24px 24px'
+        }}
+      />
 
- <UiBox>
- <UiLabel {...{"size":"1","weight":"regular","color":"gray","highContrast":true,"className":"block mb-1"}}>
- Razón Social / Nombre Comercial
- </UiLabel>
- <UiBox {...{"className":"relative"}}>
- <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none"}}>
- <Building size={15} />
- </UiBox>
- <UiInput
- type="text" 
- value={registerForm.companyName}
- onChange={(e) => setRegisterForm({...registerForm, companyName: e.target.value})}
- {...{"size":"2","color":"gray","className":"w-full"}}
- placeholder="Ej. Mi Negocio S.A.S" 
- required
- />
- </UiBox>
- </UiBox>
+      {/* Top Bar Branding */}
+      <UiBox className="w-full max-w-[460px] flex justify-between items-center pt-2 sm:pt-4">
+        <UiBox className="flex items-center gap-2">
+          <UiBox className="w-8 h-8 rounded-lg bg-[var(--blue-9)] text-white flex items-center justify-center font-bold text-sm">
+            W
+          </UiBox>
+          <UiText size="2" weight="bold" color="gray" highContrast>
+            WebFix ERP
+          </UiText>
+        </UiBox>
+        <UiBox className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--blue-3)] text-[var(--blue-11)] text-[11px] font-semibold">
+          <ShieldCheck size={12} />
+          <span>Prueba 14 días gratis</span>
+        </UiBox>
+      </UiBox>
 
- <UiBox>
- <UiLabel {...{"size":"1","weight":"regular","color":"gray","highContrast":true,"className":"block mb-1"}}>
- Correo Corporativo
- </UiLabel>
- <UiBox {...{"className":"relative"}}>
- <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none"}}>
- <Mail size={15} />
- </UiBox>
- <UiInput
- type="email" 
- value={registerForm.email}
- onChange={(e) => setRegisterForm({...registerForm, email: e.target.value})}
- {...{"size":"2","color":"gray","className":"w-full"}}
- placeholder="correo@empresa.com" 
- required
- />
- </UiBox>
- </UiBox>
+      {/* Main Card */}
+      <UiCard className="w-full max-w-[460px] p-6 sm:p-8 bg-[var(--color-panel-solid)] border border-[var(--gray-a5)] rounded-2xl duration-300">
+        <UiBox className="text-left mb-6 select-none">
+          <UiHeading as="h1" size="5" weight="bold" color="gray" highContrast className="tracking-tight">
+            Crear cuenta de empresa
+          </UiHeading>
+          <UiText size="2" color="gray" className="mt-1 block">
+            Plan seleccionado: <span className="font-semibold text-[var(--blue-11)]">{getPlanName(planParam)}</span>
+          </UiText>
+        </UiBox>
 
- <UiBox>
- <UiLabel {...{"size":"1","weight":"regular","color":"gray","highContrast":true,"className":"block mb-1"}}>
- Contraseña
- </UiLabel>
- <UiBox {...{"className":"relative"}}>
- <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none"}}>
- <Lock size={15} />
- </UiBox>
- <UiInput
- type="password" 
- value={registerForm.password}
- onChange={(e) => setRegisterForm({...registerForm, password: e.target.value})}
- {...{"size":"2","color":"gray","className":"w-full"}}
- placeholder="Mínimo 6 caracteres" 
- minLength={6}
- required
- />
- </UiBox>
- </UiBox>
- 
- {registerError && (
- <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--red-3)","color":"var(--red-12)"},"className":"p-3 text-center"}}>
- {registerError}
- </UiBox>
- )}
- 
- <UiButton
- type="submit" 
- disabled={isRegistering}
- {...{"size":"2","variant":"solid","color":"blue","className":"w-full flex items-center justify-center gap-2 mt-4 active:scale-98 disabled:opacity-75"}}
- >
- {isRegistering ? (
- <>
- <RefreshCw size={14} {...{"className":"animate-spin"}} /> Creando cuenta...
- </>
- ) : (
- <>
- EMPEZAR PRUEBA GRATUITA <ArrowRight size={14} />
- </>
- )}
- </UiButton>
- </form>
- 
- {/* Footer */}
- <UiBox {...{"className":"mt-6 text-center"}}>
- <UiText as="p" style={{ fontSize:'12px', color:'#000000' }} {...{"weight":"regular","className":"select-none"}}>
- ¿Ya tienes cuenta?{''}
- <UiText 
- onClick={() => navigate('/login')}
- {...{"weight":"bold","color":"blue","className":"hover:underline cursor-pointer"}}
- >
- Inicia sesión
- </UiText>
- </UiText>
- </UiBox>
- </UiCard>
- </UiBox>
+        <form onSubmit={handleRegister} className="space-y-4 text-left">
+          <UiBox>
+            <UiLabel size="1" weight="bold" color="gray" highContrast className="block mb-1 text-[11px] uppercase tracking-wider">
+              Nombre del Administrador
+            </UiLabel>
+            <UiInput
+              type="text"
+              value={registerForm.name}
+              onChange={(e) => setRegisterForm({ ...registerForm, name: e.target.value })}
+              placeholder="Tu Nombre y Apellido"
+              iconPrefix={<User size={15} className="text-[var(--gray-10)]" />}
+              size="2"
+              required
+              className="w-full"
+            />
+          </UiBox>
 
- {/* Derechos Reservados */}
- <UiBox {...{"className":"absolute bottom-6 left-0 right-0 text-center z-10 pointer-events-none"}}>
- <UiText as="p" style={{ fontSize:'12px', color:'#000000' }} {...{"weight":"regular","className":"select-none pointer-events-auto"}}>
- © WebFix 2026. Todos los derechos reservados
- </UiText>
- </UiBox>
+          <UiBox>
+            <UiLabel size="1" weight="bold" color="gray" highContrast className="block mb-1 text-[11px] uppercase tracking-wider">
+              Razón Social / Nombre Comercial
+            </UiLabel>
+            <UiInput
+              type="text"
+              value={registerForm.companyName}
+              onChange={(e) => setRegisterForm({ ...registerForm, companyName: e.target.value })}
+              placeholder="Ej. Mi Negocio S.A.S"
+              iconPrefix={<Building size={15} className="text-[var(--gray-10)]" />}
+              size="2"
+              required
+              className="w-full"
+            />
+          </UiBox>
 
- </UiBox>
- );
+          <UiBox>
+            <UiLabel size="1" weight="bold" color="gray" highContrast className="block mb-1 text-[11px] uppercase tracking-wider">
+              Correo Corporativo
+            </UiLabel>
+            <UiInput
+              type="email"
+              value={registerForm.email}
+              onChange={(e) => setRegisterForm({ ...registerForm, email: e.target.value })}
+              placeholder="correo@empresa.com"
+              iconPrefix={<Mail size={15} className="text-[var(--gray-10)]" />}
+              size="2"
+              required
+              className="w-full"
+            />
+          </UiBox>
+
+          <UiBox>
+            <UiLabel size="1" weight="bold" color="gray" highContrast className="block mb-1 text-[11px] uppercase tracking-wider">
+              Contraseña
+            </UiLabel>
+            <UiInput
+              type="password"
+              value={registerForm.password}
+              onChange={(e) => setRegisterForm({ ...registerForm, password: e.target.value })}
+              placeholder="Mínimo 6 caracteres"
+              iconPrefix={<Lock size={15} className="text-[var(--gray-10)]" />}
+              minLength={6}
+              size="2"
+              required
+              className="w-full"
+            />
+          </UiBox>
+
+          {registerError && (
+            <UiBox className="p-3 rounded-lg bg-[var(--red-3)] border border-[var(--red-6)] text-[var(--red-11)] text-xs font-medium flex items-center gap-2 animate-in fade-in duration-200">
+              <AlertCircle size={15} className="shrink-0 text-[var(--red-11)]" />
+              <span>{registerError}</span>
+            </UiBox>
+          )}
+
+          <UiButton
+            type="submit"
+            disabled={isRegistering}
+            variant="solid"
+            color="blue"
+            size="3"
+            className="w-full flex items-center justify-center gap-2 mt-4 font-semibold cursor-pointer transition-transform active:scale-[0.99]"
+          >
+            {isRegistering ? (
+              <>
+                <RefreshCw size={14} className="animate-spin" />
+                <span>Creando cuenta...</span>
+              </>
+            ) : (
+              <>
+                <span>Empezar Prueba Gratuita</span>
+                <ArrowRight size={15} />
+              </>
+            )}
+          </UiButton>
+        </form>
+
+        <UiBox className="mt-6 pt-5 border-t border-[var(--gray-a4)] text-center">
+          <UiText size="2" color="gray">
+            ¿Ya tienes una cuenta?{' '}
+            <button
+              type="button"
+              onClick={() => navigate('/login')}
+              className="font-bold text-[var(--blue-11)] hover:underline cursor-pointer focus:outline-none ml-1"
+            >
+              Inicia sesión
+            </button>
+          </UiText>
+        </UiBox>
+      </UiCard>
+
+      {/* Footer */}
+      <UiBox className="w-full max-w-[460px] text-center pb-2 pt-4">
+        <UiText size="1" color="gray" className="block text-[11px] opacity-80">
+          © {new Date().getFullYear()} WebFix. Todos los derechos reservados.
+        </UiText>
+      </UiBox>
+    </UiBox>
+  );
 }

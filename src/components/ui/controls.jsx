@@ -35,8 +35,14 @@ export const UiInput = forwardRef(function UiInput({ className, type = 'text', s
   }
   const radixSize = ['1', '2', '3'].includes(String(size)) ? String(size) : '2';
   if (iconPrefix || iconSuffix || children) {
+    const cleanClassName = className ? className.replace(/\bpl-\d+\b/g, '').replace(/\bpr-\d+\b/g, '').trim() : className;
+    let cleanProps = props;
+    if (props.style && (props.style.paddingLeft || props.style.paddingRight)) {
+      const { paddingLeft, paddingRight, ...restStyle } = props.style;
+      cleanProps = { ...props, style: restStyle };
+    }
     return (
-      <TextField.Root ref={ref} type={type} size={radixSize} variant="surface" className={cn('w-full', className)} {...props}>
+      <TextField.Root ref={ref} type={type} size={radixSize} variant="surface" className={cn('w-full', cleanClassName)} {...cleanProps}>
         {iconPrefix && <TextField.Slot side="left">{iconPrefix}</TextField.Slot>}
         {children}
         {iconSuffix && <TextField.Slot side="right">{iconSuffix}</TextField.Slot>}

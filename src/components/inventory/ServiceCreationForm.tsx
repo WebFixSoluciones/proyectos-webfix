@@ -255,41 +255,33 @@ export default function ServiceCreationForm({
                   <Sparkles size={11} /> Auto SKU
                 </button>
               </UiBox>
-              <UiBox className="relative">
-                <UiBox style={{ color: "var(--gray-10)" }} className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <Tag size={15} />
-                </UiBox>
-                <UiInput
-                  type="text"
-                  name="sku"
-                  required
-                  value={formData.sku}
-                  onChange={handleInputChange}
-                  placeholder="Ej. SERV-1024"
-                  size="2"
-                  className="w-full pl-9 font-mono uppercase text-[13px]"
-                />
-              </UiBox>
+              <UiInput
+                type="text"
+                name="sku"
+                required
+                value={formData.sku}
+                onChange={handleInputChange}
+                placeholder="Ej. SERV-1024"
+                iconPrefix={<Tag size={14} className="text-[var(--gray-10)]" />}
+                size="2"
+                className="w-full font-mono uppercase text-[13px]"
+              />
             </UiBox>
 
             {/* Nombre del Servicio */}
             <UiBox className="sm:col-span-1 lg:col-span-2">
               <UiLabel size="1" weight="bold" color="gray" className="block mb-1.5">Nombre del Servicio *</UiLabel>
-              <UiBox className="relative">
-                <UiBox style={{ color: "var(--gray-10)" }} className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <Briefcase size={15} />
-                </UiBox>
-                <UiInput
-                  type="text"
-                  name="name"
-                  required
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  placeholder="Ej. Desarrollo Web a Medida / Soporte Técnico Mensual"
-                  size="2"
-                  className="w-full pl-9 text-[13px]"
-                />
-              </UiBox>
+              <UiInput
+                type="text"
+                name="name"
+                required
+                value={formData.name}
+                onChange={handleInputChange}
+                placeholder="Ej. Desarrollo Web a Medida / Soporte Técnico Mensual"
+                iconPrefix={<Briefcase size={14} className="text-[var(--gray-10)]" />}
+                size="2"
+                className="w-full text-[13px]"
+              />
             </UiBox>
 
             {/* Categoría existente vinculada */}
@@ -306,24 +298,19 @@ export default function ServiceCreationForm({
                   </button>
                 )}
               </UiBox>
-              <UiBox className="relative">
-                <UiBox style={{ color: "var(--gray-10)" }} className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <FolderOpen size={15} />
-                </UiBox>
-                <UiSelect
-                  name="categoryId"
-                  value={formData.categoryId}
-                  onChange={handleInputChange}
-                  size="2"
-                  color="gray"
-                  className="w-full pl-9 cursor-pointer"
-                >
-                  <option value="">Sin Categoría Asignada</option>
-                  {categories.map(cat => (
-                    <option key={cat.id} value={cat.id}>{cat.name}</option>
-                  ))}
-                </UiSelect>
-              </UiBox>
+              <UiSelect
+                name="categoryId"
+                value={formData.categoryId}
+                onChange={handleInputChange}
+                size="2"
+                color="gray"
+                className="w-full cursor-pointer"
+              >
+                <option value="">Sin Categoría Asignada</option>
+                {categories.map(cat => (
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                ))}
+              </UiSelect>
             </UiBox>
 
             {/* Unidad de Cobro */}
@@ -352,20 +339,16 @@ export default function ServiceCreationForm({
             {/* Tiempo Estimado / Entrega */}
             <UiBox>
               <UiLabel size="1" weight="bold" color="gray" className="block mb-1.5">Tiempo Estimado / Plazo</UiLabel>
-              <UiBox className="relative">
-                <UiBox style={{ color: "var(--gray-10)" }} className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <Clock size={15} />
-                </UiBox>
-                <UiInput
-                  type="text"
-                  name="estimatedDuration"
-                  value={formData.estimatedDuration}
-                  onChange={handleInputChange}
-                  placeholder="Ej. Inmediato, 24-48h, 5 días"
-                  size="2"
-                  className="w-full pl-9 text-[13px]"
-                />
-              </UiBox>
+              <UiInput
+                type="text"
+                name="estimatedDuration"
+                value={formData.estimatedDuration}
+                onChange={handleInputChange}
+                placeholder="Ej. Inmediato, 24-48h, 5 días"
+                iconPrefix={<Clock size={14} className="text-[var(--gray-10)]" />}
+                size="2"
+                className="w-full text-[13px]"
+              />
             </UiBox>
 
             {/* Formato de entrega / Acceso digital */}
@@ -415,43 +398,35 @@ export default function ServiceCreationForm({
             {/* Costo de Prestación */}
             <UiBox>
               <UiLabel size="1" weight="bold" color="gray" className="block mb-1.5">Costo de Prestación / Base ($)</UiLabel>
-              <UiBox className="relative">
-                <UiBox style={{ color: "var(--gray-10)" }} className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <DollarSign size={15} />
-                </UiBox>
-                <UiInput
-                  type="number"
-                  name="baseCost"
-                  min="0"
-                  step="0.01"
-                  required
-                  value={formData.baseCost}
-                  onChange={handleInputChange}
-                  size="2"
-                  className="w-full pl-9 font-mono text-[13px]"
-                />
-              </UiBox>
+              <UiInput
+                type="number"
+                name="baseCost"
+                min="0"
+                step="0.01"
+                required
+                value={formData.baseCost}
+                onChange={handleInputChange}
+                iconPrefix={<DollarSign size={14} className="text-[var(--gray-10)]" />}
+                size="2"
+                className="w-full font-mono text-[13px]"
+              />
             </UiBox>
 
             {/* Margen de Ganancia */}
             <UiBox>
               <UiLabel size="1" weight="bold" color="gray" className="block mb-1.5">Margen de Ganancia (%)</UiLabel>
-              <UiBox className="relative">
-                <UiBox style={{ color: "var(--gray-10)" }} className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <Percent size={15} />
-                </UiBox>
-                <UiInput
-                  type="number"
-                  name="marginPercentage"
-                  min="0"
-                  step="1"
-                  required
-                  value={formData.marginPercentage}
-                  onChange={handleInputChange}
-                  size="2"
-                  className="w-full pl-9 font-mono text-[13px]"
-                />
-              </UiBox>
+              <UiInput
+                type="number"
+                name="marginPercentage"
+                min="0"
+                step="1"
+                required
+                value={formData.marginPercentage}
+                onChange={handleInputChange}
+                iconPrefix={<Percent size={14} className="text-[var(--gray-10)]" />}
+                size="2"
+                className="w-full font-mono text-[13px]"
+              />
             </UiBox>
 
             {/* Tarifa IVA SRI */}
