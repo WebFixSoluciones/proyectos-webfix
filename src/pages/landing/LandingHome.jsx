@@ -1,24 +1,30 @@
 import { mergeThemeProps } from '../../components/ui/themeProps';
 import { UiBox, UiText, UiHeading, UiCard } from '../../components/ui/layout';
 import { UiButton } from '../../components/ui/controls';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   ArrowRight, Check, 
   ShoppingCart, FileText, TrendingUp, Package, 
   CheckCircle2, ChevronDown, Sparkles,
   DollarSign, ShieldCheck,
-  Laptop, Smartphone, Store, Wifi, RefreshCw
+  Laptop, Smartphone, Store, Wifi, RefreshCw,
+  Lock, Printer
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
+import { useParallaxScroll } from '../../hooks/useParallaxScroll';
 
 export default function LandingHome() {
   const navigate = useNavigate();
   const [activeHeroTab, setActiveHeroTab] = useState('sri'); // 'sri' | 'pos' | 'finanzas' | 'inventario'
   const [billingCycle, setBillingCycle] = useState('monthly'); // 'monthly' | 'yearly'
   const [openFaqIndex, setOpenFaqIndex] = useState(null);
+
+  const heroContainerRef = useRef(null);
+  const card1Offset = useParallaxScroll(heroContainerRef, { speed: -0.15, min: -35, max: 35 });
+  const card2Offset = useParallaxScroll(heroContainerRef, { speed: 0.12, min: -30, max: 30 });
 
   const heroTabs = [
     { id: 'sri', label: 'Facturación SRI', icon: FileText },
@@ -49,275 +55,461 @@ export default function LandingHome() {
   return (
     <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"},"className":"w-full"}}>
       
-      {/* 1. HERO SECTION (Minimalist Startup Aesthetic) */}
-      <section {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"relative pt-16 pb-20 md:pt-24 md:pb-28 overflow-hidden"}}>
-        {/* Ambient Glow Lights */}
-        <UiBox {...{"style":{"backgroundColor":"var(--blue-3)","borderRadius":"var(--radius-3)"},"className":"absolute -top-24 left-1/4 w-[450px] h-[450px] pointer-events-none animate-glow-pulse"}}></UiBox>
-        <UiBox {...{"style":{"backgroundColor":"var(--green-3)","borderRadius":"var(--radius-3)"},"className":"absolute top-48 right-1/4 w-[350px] h-[350px] pointer-events-none animate-glow-pulse"}} style={{ animationDelay: '3s' }}></UiBox>
-
-        {/* Subtle background hairline grid */}
-        <UiBox 
-          {...{"style":{"backgroundColor":"var(--gray-2)"},"className":{"className":"absolute inset-0 opacity-60 pointer-events-none"}}}
-          style={{
-            maskImage: 'radial-gradient(ellipse 60% 50% at 50% 0%, #000 70%, transparent 100%)',
-            WebkitMaskImage: 'radial-gradient(ellipse 60% 50% at 50% 0%, #000 70%, transparent 100%)'
-          }}
-        ></UiBox>
-
-        <UiBox {...{"className":"max-w-5xl mx-auto px-4 sm:px-6 relative z-10 text-center space-y-6"}}>
-          
-          {/* Top Pill Tag */}
-          <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)","color":"var(--gray-11)"},"className":"inline-flex items-center gap-2 px-3 py-1 cursor-default select-none animate-in fade-in duration-200"}}>
-            <UiText {...{"className":"flex h-1.5 w-1.5"}}></UiText>
-            <UiText>WebFix ERP 2.0</UiText>
-            <UiText {...{"color":"gray"}}>•</UiText>
-            <UiText {...{"color":"gray","highContrast":true,"weight":"bold"}}>Facturación SRI & Finanzas</UiText>
-            <ArrowRight size={11} {...{"style":{"color":"var(--gray-11)"}}} />
-          </UiBox>
-
-          {/* Main Headline */}
-          <UiHeading as="h1" {...{"size":"8","weight":"bold","color":"gray","highContrast":true,"className":"max-w-4xl mx-auto leading-[1.08]"}}>
-            El sistema operativo financiero para negocios modernos.
-          </UiHeading>
-
-          {/* Subtitle */}
-          <UiText as="p" {...{"size":"2","color":"gray","weight":"regular","className":"max-w-2xl mx-auto leading-relaxed"}}>
-            Emite facturas electrónicas autorizadas por el SRI en segundos, administra tu punto de venta en mostrador y controla tu flujo de caja real sin enredos contables.
-          </UiText>
-
-          {/* Action CTAs */}
-          <UiBox {...{"className":"flex flex-col sm:flex-row items-center justify-center gap-3 pt-2"}}>
-            <Button 
-              size="lg" 
-              variant="default"
-              onClick={() => navigate('/register')}
-              {...{"size":"2","className":"w-full sm:w-auto gap-2"}}
-            >
-              <UiText>Comenzar gratis 14 días</UiText>
-              <ArrowRight size={13} />
-            </Button>
-            <Button 
-              size="lg" 
-              variant="secondary"
-              onClick={() => {
-                const el = document.getElementById('demo-preview');
-                el?.scrollIntoView({ behavior: 'smooth' });
-              }}
-              {...{"size":"2","className":"w-full sm:w-auto"}}
-            >
-              Ver Demostración
-            </Button>
-          </UiBox>
-
-          {/* Micro trust badges */}
-          <UiBox {...{"style":{"color":"var(--gray-11)"},"className":"flex flex-wrap items-center justify-center gap-6 pt-4 select-none"}}>
-            <UiText {...{"weight":"medium","color":"gray","className":"flex items-center gap-1.5"}}>
-              <Check size={12} {...{"style":{"color":"var(--green-12)"}}} /> Sin tarjeta requerida
-            </UiText>
-            <UiText {...{"weight":"medium","color":"gray","className":"flex items-center gap-1.5"}}>
-              <Check size={12} {...{"style":{"color":"var(--green-12)"}}} /> Firma .p12 digital integrada
-            </UiText>
-            <UiText {...{"weight":"medium","color":"gray","className":"flex items-center gap-1.5"}}>
-              <Check size={12} {...{"style":{"color":"var(--green-12)"}}} /> Comprobantes SRI ilimitados
-            </UiText>
-          </UiBox>
-
-        </UiBox>
-
-        {/* 2. HERO INTERACTIVE APP MOCKUP (Geist Window Frame) */}
-        <UiBox id="demo-preview" {...{"className":"max-w-5xl mx-auto px-4 sm:px-6 pt-12 relative z-10"}}>
-          <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"overflow-hidden animate-in fade-in zoom-in-95 duration-300"}}>
+      {/* 1. HERO SECTION DE ALTO CONTRASTE (ESTILO BREVO & SITEGROUND) */}
+      <section className="relative w-full bg-[#F0FDF4] dark:bg-[#071d12] rounded-b-[40px] md:rounded-b-[56px] border-b border-emerald-100 dark:border-emerald-950/50 pt-10 pb-16 md:pt-16 md:pb-24 overflow-hidden">
+        <div ref={heroContainerRef} className="w-[90%] max-w-[1720px] mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 xl:gap-16 items-center">
             
-            {/* Window Topbar */}
-            <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","borderBottom":"1px solid var(--gray-a6)"},"className":"px-4 py-2.5 flex items-center justify-between gap-4"}}>
-              <UiBox {...{"className":"flex items-center gap-2"}}>
-                <UiText {...{"className":"w-2.5 h-2.5 inline-block"}}></UiText>
-                <UiText {...{"className":"w-2.5 h-2.5 inline-block"}}></UiText>
-                <UiText {...{"className":"w-2.5 h-2.5 inline-block"}}></UiText>
-              </UiBox>
+            {/* Columna Izquierda (Texto & CTA Directo) */}
+            <div className="lg:col-span-5 flex flex-col space-y-6 text-left">
+              {/* Tag sutil píldora */}
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-800/80 text-emerald-900 dark:text-emerald-300 w-fit select-none">
+                <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                <span>WebFix ERP 2.0</span>
+                <span className="text-emerald-400 dark:text-emerald-600">•</span>
+                <span>Facturación SRI 2026</span>
+                <ArrowRight size={12} className="text-emerald-700 dark:text-emerald-400" />
+              </div>
+
+              {/* Título H1 de alto impacto */}
+              <h1 className="text-[#0F172A] dark:text-white font-extrabold tracking-tight text-4xl sm:text-5xl lg:text-6xl leading-[1.08] max-w-2xl">
+                El ERP y Facturación SRI más rápido del Ecuador.
+              </h1>
+
+              {/* Subtítulo directo a bondades */}
+              <p className="text-slate-600 dark:text-slate-300 text-lg sm:text-xl font-normal leading-relaxed max-w-2xl">
+                Emite comprobantes electrónicos autorizados en 1 segundo, gestiona tu punto de venta en mostrador y controla inventario y bancos sin hojas de cálculo.
+              </p>
+
+              {/* Acciones CTA */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => navigate('/register')}
+                  className="bg-[#0F172A] hover:bg-slate-800 text-white font-semibold px-7 py-3.5 rounded-full flex items-center justify-center gap-2 cursor-pointer transition-all shadow-none"
+                >
+                  <span>Probar 14 días gratis</span>
+                  <ArrowRight size={15} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const el = document.getElementById('demo-preview');
+                    el?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className="bg-white hover:bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:border-slate-700 font-semibold px-6 py-3.5 rounded-full border border-slate-300 cursor-pointer transition-all flex items-center justify-center gap-2"
+                >
+                  <span>Ver demostración</span>
+                </button>
+              </div>
+
+              {/* Micro confianza con checkmarks verde esmeralda */}
+              <div className="flex flex-wrap items-center gap-y-2.5 gap-x-6 pt-2 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 select-none">
+                <span className="flex items-center gap-1.5">
+                  <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 stroke-[2.5]" />
+                  Sin tarjeta de crédito
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 stroke-[2.5]" />
+                  Firma .p12 integrada
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 stroke-[2.5]" />
+                  Comprobantes SRI ilimitados
+                </span>
+              </div>
+            </div>
+
+            {/* Columna Derecha (Maqueta Viva en Capas con Parallax) */}
+            <div id="demo-preview" className="lg:col-span-7 relative pt-4 pb-6 lg:py-8">
               
-              {/* Browser Search Pill */}
-              <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)","fontFamily":"var(--code-font-family)","color":"var(--gray-11)"},"className":"flex items-center gap-1.5 px-3 py-1 max-w-xs w-full justify-center"}}>
-                <UiText {...{"color":"gray"}}>app.webfix.ec</UiText>
-                <UiText {...{"color":"gray"}}>/</UiText>
-                <UiText>dashboard</UiText>
-              </UiCard>
+              {/* Capa flotante 1: Factura autorizada en tiempo real (Parallax -0.15) */}
+              <div
+                style={{ transform: `translateY(${card1Offset}px)` }}
+                className="hidden sm:flex flex-col absolute -top-6 -right-2 lg:-right-6 z-20 w-72 md:w-80 bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200/90 dark:border-slate-800 shadow-[0_16px_36px_rgba(0,0,0,0.1)] pointer-events-none sm:pointer-events-auto transition-transform will-change-transform"
+              >
+                <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100 dark:border-slate-800">
+                  <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-[11px] font-semibold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    SRI Autorizado
+                  </div>
+                  <span className="text-[11px] text-slate-500 font-mono">1.1 seg</span>
+                </div>
+                
+                <div className="space-y-1.5 text-left">
+                  <div className="text-[11px] font-mono text-slate-500">FAC-001-002-000008453</div>
+                  <div className="font-bold text-xs text-slate-900 dark:text-white truncate">
+                    SUPERMAXI S.A.
+                  </div>
+                  <div className="text-[11px] text-slate-500">RUC: 1790016919001</div>
+                  
+                  <div className="pt-2 mt-1 border-t border-dashed border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                    <span className="text-xs text-slate-500">Total Facturado</span>
+                    <span className="font-extrabold text-sm text-slate-950 dark:text-white font-mono">$1,240.50</span>
+                  </div>
 
-              <UiBox {...{"className":"flex items-center gap-1.5"}}>
-                <Badge variant="success" {...{"className":"gap-1 py-0 px-2"}}>
-                  <UiText {...{"className":"h-1.5 w-1.5"}}></UiText>
-                  SRI Online
-                </Badge>
-              </UiBox>
-            </UiBox>
+                  <div className="flex items-center gap-1 pt-1 text-[10px] text-emerald-700 dark:text-emerald-400 font-medium">
+                    <CheckCircle2 size={12} className="shrink-0" />
+                    <span>RIDE y XML enviados al correo</span>
+                  </div>
+                </div>
+              </div>
 
-            {/* Interactive Tab Switcher inside the Window */}
-            <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"px-4 pt-3 flex items-center gap-2 overflow-x-auto custom-scrollbar"}}>
-              {heroTabs.map(tab => {
-                const Icon = tab.icon;
-                const isActive = activeHeroTab === tab.id;
-                return (
-                  <UiButton
-                    key={tab.id}
-                    onClick={() => setActiveHeroTab(tab.id)}
-                    {...mergeThemeProps({"size":"2","className":"flex items-center gap-2 cursor-pointer whitespace-nowrap"}, {}, (isActive ? {"color":"gray","variant":"soft"} : {"color":"gray"}))}
-                  >
-                    <Icon size={14} {...(isActive ? {"style":{"color":"var(--blue-12)"}} : {"style":{"color":"var(--gray-11)"}})} />
-                    <UiText>{tab.label}</UiText>
-                  </UiButton>
-                );
-              })}
-            </UiBox>
+              {/* Capa flotante 2: Cobro rápido POS (Parallax 0.12) */}
+              <div
+                style={{ transform: `translateY(${card2Offset}px)` }}
+                className="hidden sm:flex flex-col absolute -bottom-6 -left-2 lg:-left-6 z-20 w-64 md:w-72 bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200/90 dark:border-slate-800 shadow-[0_16px_36px_rgba(0,0,0,0.1)] pointer-events-none sm:pointer-events-auto transition-transform will-change-transform"
+              >
+                <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100 dark:border-slate-800">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-5 h-5 rounded bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center text-[10px] font-bold">
+                      POS
+                    </div>
+                    <span className="text-xs font-bold text-slate-900 dark:text-white">Caja Mostrador</span>
+                  </div>
+                  <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[10px] font-mono font-bold text-slate-700 dark:text-slate-300">
+                    F12
+                  </span>
+                </div>
 
-            {/* Simulated Live Viewport based on tab */}
-            <UiBox {...{"style":{"backgroundColor":"var(--gray-2)"},"className":"p-5 sm:p-6 min-h-[320px] flex flex-col justify-center"}}>
-              
-              {activeHeroTab === 'sri' && (
-                <UiBox {...{"className":"space-y-4 animate-in fade-in duration-150"}}>
-                  {/* Metric Summary Bar */}
-                  <UiBox {...{"className":"grid grid-cols-3 gap-3"}}>
-                    <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-3"}}>
-                      <UiText {...{"size":"1","color":"gray","className":"block"}}>Facturas Autorizadas</UiText>
-                      <UiText {...{"size":"4","weight":"regular","color":"gray","highContrast":true}}>142</UiText>
-                    </UiCard>
-                    <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-3"}}>
-                      <UiText {...{"size":"1","color":"gray","className":"block"}}>Total Facturado</UiText>
-                      <UiText {...{"size":"4","weight":"regular","color":"gray","highContrast":true}}>$4,850.00</UiText>
-                    </UiCard>
-                    <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-3"}}>
-                      <UiText {...{"size":"1","color":"gray","className":"block"}}>Tiempo de Firma</UiText>
-                      <UiText {...{"size":"4","weight":"regular","color":"green"}}>1.2s</UiText>
-                    </UiCard>
-                  </UiBox>
+                <div className="space-y-1.5 text-left text-xs">
+                  <div className="flex justify-between text-slate-600 dark:text-slate-400">
+                    <span>Ticket #1042</span>
+                    <span>2 artículos</span>
+                  </div>
+                  <div className="flex justify-between items-baseline pt-1">
+                    <span className="text-slate-500 font-medium">Total Cobrado</span>
+                    <span className="text-base font-extrabold text-emerald-600 dark:text-emerald-400 font-mono">$18.50</span>
+                  </div>
+                  
+                  <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500">
+                    <span className="flex items-center gap-1 text-slate-700 dark:text-slate-300 font-medium">
+                      <Printer size={12} /> Ticket Térmico 80mm
+                    </span>
+                    <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Listo</span>
+                  </div>
+                </div>
+              </div>
 
-                  {/* Simulated Table */}
-                  <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"overflow-hidden"}}>
-                    <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-11)","borderBottom":"1px solid var(--gray-a6)"},"className":"grid grid-cols-12 px-3 py-2"}}>
-                      <UiBox {...{"className":"col-span-3"}}>Comprobante</UiBox>
-                      <UiBox {...{"className":"col-span-4"}}>Cliente / RUC</UiBox>
-                      <UiBox {...{"className":"col-span-2 text-right"}}>Total</UiBox>
-                      <UiBox {...{"className":"col-span-3 text-right"}}>Estado SRI</UiBox>
-                    </UiBox>
-                    <UiBox {...{}}>
-                      <UiBox {...{"style":{"fontFamily":"var(--code-font-family)"},"className":"grid grid-cols-12 px-3 py-2.5 items-center"}}>
-                        <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"col-span-3"}}>001-002-000008452</UiBox>
-                        <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"col-span-4 truncate"}}>Corporación Favorita S.A.</UiBox>
-                        <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"col-span-2 text-right"}}>$320.00</UiBox>
-                        <UiBox {...{"className":"col-span-3 text-right"}}>
-                          <Badge variant="success" {...{"className":"gap-1"}}><CheckCircle2 size={10} /> Autorizado</Badge>
-                        </UiBox>
-                      </UiBox>
-                      <UiBox {...{"style":{"fontFamily":"var(--code-font-family)"},"className":"grid grid-cols-12 px-3 py-2.5 items-center"}}>
-                        <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"col-span-3"}}>001-002-000008451</UiBox>
-                        <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"col-span-4 truncate"}}>Juan Carlos Mendoza</UiBox>
-                        <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"col-span-2 text-right"}}>$45.50</UiBox>
-                        <UiBox {...{"className":"col-span-3 text-right"}}>
-                          <Badge variant="success" {...{"className":"gap-1"}}><CheckCircle2 size={10} /> Autorizado</Badge>
-                        </UiBox>
-                      </UiBox>
-                    </UiBox>
-                  </UiBox>
-                </UiBox>
-              )}
+              {/* Capa Base: Ventana Interactiva del ERP */}
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 overflow-hidden shadow-2xl relative z-10 text-left">
+                {/* Window Topbar */}
+                <div className="px-4 py-2.5 flex items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-rose-400 inline-block" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block" />
+                  </div>
+                  
+                  {/* Browser URL Pill */}
+                  <div className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-xs font-mono max-w-xs w-full justify-center">
+                    <Lock size={11} className="text-slate-400 shrink-0" />
+                    <span className="text-slate-500">app.webfix.ec</span>
+                    <span className="text-slate-300 dark:text-slate-600">/</span>
+                    <span className="text-slate-900 dark:text-slate-200 font-semibold">{activeHeroTab}</span>
+                  </div>
 
-              {activeHeroTab === 'pos' && (
-                <UiBox {...{"className":"grid grid-cols-1 md:grid-cols-12 gap-4 animate-in fade-in duration-150 text-left"}}>
-                  <UiBox {...{"className":"md:col-span-7 space-y-2"}}>
-                    <UiText {...{"size":"1","weight":"bold","color":"gray","highContrast":true}}>Catálogo de Productos Rápido</UiText>
-                    <UiBox {...{"className":"grid grid-cols-2 gap-2"}}>
-                      <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-3 cursor-pointer"}}>
-                        <UiText {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block"}}>Café Americano 8oz</UiText>
-                        <UiText {...{"size":"1","weight":"regular","color":"gray","className":"mt-1 block"}}>$1.50</UiText>
-                      </UiCard>
-                      <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-3 cursor-pointer"}}>
-                        <UiText {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block"}}>Sandwich Gourmet</UiText>
-                        <UiText {...{"size":"1","weight":"regular","color":"gray","className":"mt-1 block"}}>$4.50</UiText>
-                      </UiCard>
-                      <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-3 cursor-pointer"}}>
-                        <UiText {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block"}}>Licencia ERP 1 Mes</UiText>
-                        <UiText {...{"size":"1","weight":"regular","color":"gray","className":"mt-1 block"}}>$19.00</UiText>
-                      </UiCard>
-                      <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-3 cursor-pointer"}}>
-                        <UiText {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block"}}>Servicio de Asesoría</UiText>
-                        <UiText {...{"size":"1","weight":"regular","color":"gray","className":"mt-1 block"}}>$35.00</UiText>
-                      </UiCard>
-                    </UiBox>
-                  </UiBox>
-                  <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"md:col-span-5 p-4 flex flex-col justify-between"}}>
-                    <UiBox>
-                      <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex items-center justify-between pb-2 mb-2"}}>
-                        <UiText {...{"size":"1","weight":"bold","color":"gray","highContrast":true}}>Ticket Actual</UiText>
-                        <UiText {...{"size":"1","weight":"regular","color":"gray"}}>Caja 01</UiText>
-                      </UiBox>
-                      <UiBox {...{"className":"space-y-1"}}>
-                        <UiBox {...{"className":"flex justify-between"}}><UiText>2x Café Americano</UiText><UiText {...{"weight":"regular"}}>$3.00</UiText></UiBox>
-                        <UiBox {...{"className":"flex justify-between"}}><UiText>1x Sandwich Gourmet</UiText><UiText {...{"weight":"regular"}}>$4.50</UiText></UiBox>
-                      </UiBox>
-                    </UiBox>
-                    <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"pt-2 mt-4 space-y-2"}}>
-                      <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"flex justify-between"}}>
-                        <UiText>Total (IVA incl.)</UiText>
-                        <UiText {...{"weight":"regular"}}>$7.50</UiText>
-                      </UiBox>
-                      <Button variant="accent" size="sm" {...{"size":"2","className":"w-full gap-1"}}>
-                        <DollarSign size={13} /> Cobrar (F12)
-                      </Button>
-                    </UiBox>
-                  </UiCard>
-                </UiBox>
-              )}
+                  {/* SRI Online Badge */}
+                  <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-xs font-semibold border border-emerald-200 dark:border-emerald-800 shrink-0">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span>SRI Online</span>
+                  </div>
+                </div>
 
-              {activeHeroTab === 'finanzas' && (
-                <UiBox {...{"className":"space-y-3 animate-in fade-in duration-150 text-left"}}>
-                  <UiBox {...{"className":"grid grid-cols-2 gap-3"}}>
-                    <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4"}}>
-                      <UiText {...{"size":"1","color":"gray","className":"block"}}>Ingresos Totales (Mes)</UiText>
-                      <UiText {...{"size":"5","weight":"regular","color":"green"}}>+$12,450.00</UiText>
-                      <UiText {...{"size":"1","color":"gray","className":"mt-1 block"}}>+14.2% vs mes anterior</UiText>
-                    </UiCard>
-                    <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4"}}>
-                      <UiText {...{"size":"1","color":"gray","className":"block"}}>Egresos y Compras</UiText>
-                      <UiText {...{"size":"5","weight":"regular","color":"red"}}>-$4,210.00</UiText>
-                      <UiText {...{"size":"1","color":"gray","className":"mt-1 block"}}>Con retenciones aplicadas</UiText>
-                    </UiCard>
-                  </UiBox>
-                  <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)"},"className":"p-3 flex items-center justify-between"}}>
-                    <UiText {...{"weight":"medium","color":"gray","highContrast":true}}>Utilidad Neta Disponible en Bancos:</UiText>
-                    <UiText {...{"weight":"bold","size":"2","color":"gray","highContrast":true}}>$8,240.00</UiText>
-                  </UiBox>
-                </UiBox>
-              )}
+                {/* Tab Switcher inside the Window */}
+                <div className="px-4 pt-2.5 pb-2 flex items-center gap-1.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/70 overflow-x-auto">
+                  {heroTabs.map((tab) => {
+                    const Icon = tab.icon;
+                    const isActive = activeHeroTab === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        type="button"
+                        onClick={() => setActiveHeroTab(tab.id)}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
+                          isActive
+                            ? 'bg-white dark:bg-slate-800 text-slate-950 dark:text-white shadow-sm border border-slate-200 dark:border-slate-700'
+                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/50'
+                        }`}
+                      >
+                        <Icon size={14} className={isActive ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'} />
+                        <span>{tab.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
 
-              {activeHeroTab === 'inventario' && (
-                <UiBox {...{"className":"space-y-3 animate-in fade-in duration-150 text-left"}}>
-                  <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-3 space-y-2"}}>
-                    <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"flex items-center justify-between"}}>
-                      <UiText>Control de Kardex en Tiempo Real</UiText>
-                      <Badge variant="outline" {...{}}>Multibodega</Badge>
-                    </UiBox>
-                    <UiBox {...{"className":"grid grid-cols-3 gap-2 pt-1"}}>
-                      <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","borderRadius":"var(--radius-3)"},"className":"p-2"}}>
-                        <UiText {...{"size":"1","color":"gray","className":"block"}}>Items Registrados</UiText>
-                        <UiText {...{"weight":"bold","color":"gray","highContrast":true}}>248</UiText>
-                      </UiBox>
-                      <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","borderRadius":"var(--radius-3)"},"className":"p-2"}}>
-                        <UiText {...{"size":"1","color":"gray","className":"block"}}>Stock Valorizado</UiText>
-                        <UiText {...{"weight":"bold","color":"gray","highContrast":true}}>$18,920.00</UiText>
-                      </UiBox>
-                      <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","borderRadius":"var(--radius-3)"},"className":"p-2"}}>
-                        <UiText {...{"size":"1","color":"gray","className":"block"}}>Alertas Mínimas</UiText>
-                        <UiText {...{"weight":"bold","color":"amber"}}>2 por reponer</UiText>
-                      </UiBox>
-                    </UiBox>
-                  </UiCard>
-                </UiBox>
-              )}
+                {/* Simulated Live Viewport based on tab */}
+                <div className="p-4 sm:p-6 bg-slate-50/40 dark:bg-slate-950/40 min-h-[330px] flex flex-col justify-center">
+                  
+                  {activeHeroTab === 'sri' && (
+                    <div className="space-y-4 animate-in fade-in duration-150">
+                      {/* Metric Summary Bar */}
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+                          <span className="text-xs text-slate-500 block">Facturas Autorizadas</span>
+                          <span className="text-xl font-extrabold text-slate-900 dark:text-white">142</span>
+                          <span className="text-[11px] text-emerald-600 font-medium block mt-0.5">+18 hoy</span>
+                        </div>
+                        <div className="bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+                          <span className="text-xs text-slate-500 block">Total Facturado</span>
+                          <span className="text-xl font-extrabold text-slate-900 dark:text-white font-mono">$4,850.00</span>
+                          <span className="text-[11px] text-slate-500 block mt-0.5">Mes: $28.4k</span>
+                        </div>
+                        <div className="bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+                          <span className="text-xs text-slate-500 block">Tiempo de Firma</span>
+                          <span className="text-xl font-extrabold text-emerald-600 dark:text-emerald-400">1.2s</span>
+                          <span className="text-[11px] text-slate-500 block mt-0.5">Instantáneo SRI</span>
+                        </div>
+                      </div>
 
-            </UiBox>
+                      {/* Simulated Invoices Table */}
+                      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-sm">
+                        <div className="grid grid-cols-12 px-3.5 py-2 bg-slate-50 dark:bg-slate-800/60 text-[11px] font-bold text-slate-600 dark:text-slate-300 border-b border-slate-200 dark:border-slate-800">
+                          <div className="col-span-3">Comprobante</div>
+                          <div className="col-span-4">Cliente / RUC</div>
+                          <div className="col-span-2 text-right">Total</div>
+                          <div className="col-span-3 text-right">Estado SRI</div>
+                        </div>
+                        <div className="divide-y divide-slate-100 dark:divide-slate-800/80 text-xs">
+                          <div className="grid grid-cols-12 px-3.5 py-2.5 items-center font-mono">
+                            <div className="col-span-3 text-slate-700 dark:text-slate-300 font-semibold text-[11px]">001-002-000008452</div>
+                            <div className="col-span-4 font-sans text-slate-800 dark:text-slate-200 truncate font-medium">Corporación Favorita S.A.</div>
+                            <div className="col-span-2 text-right text-slate-900 dark:text-white font-bold">$320.00</div>
+                            <div className="col-span-3 text-right font-sans">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                                <CheckCircle2 size={10} /> Autorizado
+                              </span>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-12 px-3.5 py-2.5 items-center font-mono">
+                            <div className="col-span-3 text-slate-700 dark:text-slate-300 font-semibold text-[11px]">001-002-000008451</div>
+                            <div className="col-span-4 font-sans text-slate-800 dark:text-slate-200 truncate font-medium">Juan Carlos Mendoza</div>
+                            <div className="col-span-2 text-right text-slate-900 dark:text-white font-bold">$45.50</div>
+                            <div className="col-span-3 text-right font-sans">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                                <CheckCircle2 size={10} /> Autorizado
+                              </span>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-12 px-3.5 py-2.5 items-center font-mono">
+                            <div className="col-span-3 text-slate-700 dark:text-slate-300 font-semibold text-[11px]">001-002-000008450</div>
+                            <div className="col-span-4 font-sans text-slate-800 dark:text-slate-200 truncate font-medium">Distribuidora Quito Cía. Ltda.</div>
+                            <div className="col-span-2 text-right text-slate-900 dark:text-white font-bold">$890.00</div>
+                            <div className="col-span-3 text-right font-sans">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                                <CheckCircle2 size={10} /> Autorizado
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
-          </UiBox>
-        </UiBox>
+                  {activeHeroTab === 'pos' && (
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4 animate-in fade-in duration-150">
+                      <div className="md:col-span-7 space-y-2">
+                        <span className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Catálogo Rápido Mostrador</span>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-sm cursor-pointer hover:border-emerald-500 transition-colors">
+                            <span className="text-xs font-semibold text-slate-900 dark:text-white block">Café Americano 8oz</span>
+                            <span className="text-xs font-bold text-emerald-600 mt-1 block font-mono">$1.50</span>
+                          </div>
+                          <div className="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-sm cursor-pointer hover:border-emerald-500 transition-colors">
+                            <span className="text-xs font-semibold text-slate-900 dark:text-white block">Sandwich Gourmet</span>
+                            <span className="text-xs font-bold text-emerald-600 mt-1 block font-mono">$4.50</span>
+                          </div>
+                          <div className="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-sm cursor-pointer hover:border-emerald-500 transition-colors">
+                            <span className="text-xs font-semibold text-slate-900 dark:text-white block">Licencia ERP 1 Mes</span>
+                            <span className="text-xs font-bold text-emerald-600 mt-1 block font-mono">$19.00</span>
+                          </div>
+                          <div className="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-sm cursor-pointer hover:border-emerald-500 transition-colors">
+                            <span className="text-xs font-semibold text-slate-900 dark:text-white block">Servicio de Asesoría</span>
+                            <span className="text-xs font-bold text-emerald-600 mt-1 block font-mono">$35.00</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="md:col-span-5 bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100 dark:border-slate-800 text-xs">
+                            <span className="font-bold text-slate-900 dark:text-white">Ticket Actual</span>
+                            <span className="text-slate-500 font-medium">Caja 01</span>
+                          </div>
+                          <div className="space-y-1.5 text-xs">
+                            <div className="flex justify-between text-slate-700 dark:text-slate-300">
+                              <span>2x Café Americano</span>
+                              <span className="font-mono font-medium">$3.00</span>
+                            </div>
+                            <div className="flex justify-between text-slate-700 dark:text-slate-300">
+                              <span>1x Sandwich Gourmet</span>
+                              <span className="font-mono font-medium">$4.50</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="pt-2.5 mt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                          <div className="flex justify-between text-xs font-semibold text-slate-900 dark:text-white">
+                            <span>Total (IVA incl.)</span>
+                            <span className="font-extrabold text-base font-mono">$7.50</span>
+                          </div>
+                          <button
+                            type="button"
+                            className="w-full py-2 px-3 rounded-lg bg-[#0F172A] hover:bg-slate-800 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-none"
+                          >
+                            <DollarSign size={13} /> Cobrar (F12)
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
+                  {activeHeroTab === 'finanzas' && (
+                    <div className="space-y-3.5 animate-in fade-in duration-150">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+                          <span className="text-xs text-slate-500 block">Ingresos Totales (Mes)</span>
+                          <span className="text-xl font-extrabold text-emerald-600 dark:text-emerald-400 font-mono">+$12,450.00</span>
+                          <span className="text-[11px] text-slate-500 mt-1 block">+14.2% vs mes anterior</span>
+                        </div>
+                        <div className="bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+                          <span className="text-xs text-slate-500 block">Egresos y Compras</span>
+                          <span className="text-xl font-extrabold text-rose-600 dark:text-rose-400 font-mono">-$4,210.00</span>
+                          <span className="text-[11px] text-slate-500 mt-1 block">Con retenciones aplicadas</span>
+                        </div>
+                      </div>
+                      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800 p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-sm">
+                        <div>
+                          <span className="text-xs text-slate-500 block">Utilidad Neta Disponible en Bancos</span>
+                          <span className="text-base font-extrabold text-slate-900 dark:text-white font-mono">$8,240.00</span>
+                        </div>
+                        <div className="flex items-center gap-3 text-xs text-slate-600 dark:text-slate-400">
+                          <span className="flex items-center gap-1">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500" /> Pichincha: $5,420
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500" /> Guayaquil: $2,820
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {activeHeroTab === 'inventario' && (
+                    <div className="space-y-3.5 animate-in fade-in duration-150">
+                      <div className="bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-slate-900 dark:text-white">Control de Kardex en Tiempo Real</span>
+                          <span className="text-[11px] px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-semibold border border-slate-200 dark:border-slate-700">
+                            Multibodega
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2.5 pt-1">
+                          <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/50">
+                            <span className="text-[11px] text-slate-500 block">Items Registrados</span>
+                            <span className="text-sm font-extrabold text-slate-900 dark:text-white">248</span>
+                          </div>
+                          <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/50">
+                            <span className="text-[11px] text-slate-500 block">Stock Valorizado</span>
+                            <span className="text-sm font-extrabold text-slate-900 dark:text-white font-mono">$18,920.00</span>
+                          </div>
+                          <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/50">
+                            <span className="text-[11px] text-slate-500 block">Alertas Mínimas</span>
+                            <span className="text-sm font-extrabold text-amber-600 dark:text-amber-400">2 por reponer</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* 2. FRANJA DE CONFIANZA (Social Proof) */}
+      <section className="w-full bg-white dark:bg-[#0c1017] py-10 md:py-14 border-b border-slate-200/80 dark:border-slate-800/80">
+        <div className="w-[90%] max-w-[1720px] mx-auto text-center">
+          <p className="text-xs md:text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-6 md:mb-8">
+            Más de 500 comercios y empresas ecuatorianas gestionan su facturación y finanzas con WebFix
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-12 md:gap-16 opacity-75 hover:opacity-100 transition-opacity duration-300">
+            
+            {/* SRI Ecuador */}
+            <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-default select-none">
+              <svg className="w-7 h-7 shrink-0" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="4" y="4" width="24" height="24" rx="4" />
+                <path d="M9 11h14M9 16h10M9 21h14" />
+              </svg>
+              <div className="flex flex-col text-left leading-tight">
+                <span className="font-extrabold text-sm tracking-wider">SRI</span>
+                <span className="text-[10px] tracking-tight uppercase">Ecuador</span>
+              </div>
+            </div>
+
+            {/* Banco Pichincha */}
+            <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-default select-none">
+              <svg className="w-6 h-6 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                <polygon points="12,2 22,12 12,22 2,12" />
+                <polygon points="12,6 18,12 12,18 6,12" fill="white" className="dark:fill-[#0c1017]" />
+              </svg>
+              <span className="font-bold text-sm tracking-tight uppercase">Banco Pichincha</span>
+            </div>
+
+            {/* Banco Guayaquil */}
+            <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-default select-none">
+              <svg className="w-6 h-6 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <rect x="8" y="8" width="8" height="8" rx="1" fill="currentColor" />
+              </svg>
+              <span className="font-bold text-sm tracking-tight uppercase">Banco Guayaquil</span>
+            </div>
+
+            {/* Produbanco */}
+            <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-default select-none">
+              <svg className="w-6 h-6 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 7v10M9 9h6a2 2 0 0 1 0 4H9" />
+              </svg>
+              <div className="flex flex-col text-left leading-none">
+                <span className="font-extrabold text-sm tracking-tight uppercase">Produbanco</span>
+                <span className="text-[9px] uppercase tracking-wider text-slate-400">Grupo Promerica</span>
+              </div>
+            </div>
+
+            {/* Visa */}
+            <div className="flex items-center text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-default select-none">
+              <svg className="h-6 w-16" viewBox="0 0 64 24" fill="currentColor">
+                <text x="0" y="19" fontFamily="system-ui, -apple-system, BlinkMacSystemFont, sans-serif" fontWeight="900" fontStyle="italic" fontSize="22" letterSpacing="1">VISA</text>
+              </svg>
+            </div>
+
+            {/* Mastercard */}
+            <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-default select-none">
+              <svg className="h-7 w-11" viewBox="0 0 44 28" fill="none">
+                <circle cx="15" cy="14" r="12" fill="currentColor" fillOpacity="0.8" />
+                <circle cx="29" cy="14" r="12" fill="currentColor" fillOpacity="0.5" />
+              </svg>
+              <span className="font-semibold text-xs tracking-tight lowercase">mastercard</span>
+            </div>
+
+            {/* RIMPE */}
+            <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-default select-none">
+              <div className="w-6 h-6 rounded-md bg-slate-200 dark:bg-slate-700 flex items-center justify-center font-bold text-xs text-slate-700 dark:text-slate-300">
+                R
+              </div>
+              <div className="flex flex-col text-left leading-none">
+                <span className="font-bold text-sm tracking-tight uppercase">RIMPE</span>
+                <span className="text-[9px] uppercase tracking-wider text-slate-400">Emprendedor & Popular</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
       </section>
 
       {/* 3. BENTO GRID FEATURES ("Infraestructura de Grado Empresarial") */}
