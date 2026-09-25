@@ -6,7 +6,8 @@ import {
   CheckCircle2, ChevronDown, Sparkles,
   DollarSign, ShieldCheck, KeyRound,
   Lock, Printer,
-  Store, X
+  Store, X,
+  Laptop, Smartphone, Monitor
 } from 'lucide-react';
 import { useParallaxScroll } from '../../hooks/useParallaxScroll';
 import { ScrollReveal } from '../../components/landing/ScrollReveal';
@@ -858,69 +859,237 @@ export default function LandingHome() {
       {/* 3.5. COMPARATIVA MINIMALISTA & ECOSISTEMA MULTIPLATAFORMA (PC, POS, MÓVIL) */}
       <section className="w-full bg-[#F8FAFC]">
         <ScrollReveal direction="up">
-          <div className="w-[80%] max-w-[1720px] mx-auto py-20 md:py-28">
+          <div className="w-[88%] max-w-[1720px] mx-auto py-16 md:py-24">
             
-            {/* Título de Sección Limpio */}
-            <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-14">
-              <h2 className="text-slate-950 font-bold text-3xl sm:text-4xl tracking-tight">
+            {/* Título de Sección Limpio (Sin subtítulo) */}
+            <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-14">
+              <h2 className="text-slate-950 font-extrabold text-3xl sm:text-4xl lg:text-[40px] tracking-tight leading-tight">
                 Diseñado para el presente, no para el 2010.
               </h2>
-              <p className="text-slate-600 text-base sm:text-lg max-w-2xl mx-auto mt-3">
-                ¿Por qué cientos de negocios ecuatorianos están migrando de sistemas anticuados a WebFix?
-              </p>
             </div>
 
-            {/* Tabla Comparativa Limpia */}
-            <div className="max-w-4xl mx-auto rounded-3xl border border-slate-200/90 overflow-hidden bg-white shadow-none mb-0">
-              <div className="grid grid-cols-2 px-6 py-4 border-b border-slate-200 bg-slate-50/80 font-bold text-sm sm:text-base">
-                <div className="text-slate-500">Sistemas Tradicionales / Antiguos</div>
-                <div className="text-blue-600 flex items-center gap-1.5">
-                  <span>WebFix ERP Cloud</span>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-semibold uppercase tracking-wider">Moderno</span>
+            {/* Grid de 4 Cards con enfoque Brevo: Título sin descripción, gráficos, y CTA tipo texto que se transforma en botón al hover */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
+              
+              {/* 1. 100% Cloud */}
+              <div className="rounded-[28px] border border-slate-200/90 bg-white p-6 sm:p-7 flex flex-col justify-between hover:border-slate-400 hover:shadow-xs transition-all duration-200 group">
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-red-600 bg-red-50 border border-red-100 px-2 py-0.5 rounded-full">
+                      <X size={10} strokeWidth={3} />
+                      <span>2010: PC local fija</span>
+                    </span>
+                    <span className="text-[10px] font-bold text-emerald-800 bg-[#c0ffa5] px-2 py-0.5 rounded-full">
+                      Hoy: 100% Cloud
+                    </span>
+                  </div>
+                  <h3 className="text-xl sm:text-[22px] font-extrabold text-slate-950 tracking-tight leading-snug">
+                    Acceso desde cualquier navegador web
+                  </h3>
                 </div>
+
+                {/* Gráfico 1: Dispositivos en la nube */}
+                <div className="my-5">
+                  <div className="w-full bg-[#f8fafc] rounded-2xl border border-slate-200/80 p-3.5 space-y-2 pointer-events-none group-hover:scale-[1.02] transition-transform">
+                    <div className="flex items-center justify-between pb-1.5 border-b border-slate-200">
+                      <div className="flex items-center gap-1">
+                        <span className="w-2 h-2 rounded-full bg-slate-300" />
+                        <span className="w-2 h-2 rounded-full bg-slate-300" />
+                        <span className="w-2 h-2 rounded-full bg-slate-300" />
+                        <span className="text-[9px] font-mono text-slate-500 ml-1">app.webfix.ec</span>
+                      </div>
+                      <span className="flex items-center gap-1 text-[9px] font-bold text-emerald-700 bg-[#c0ffa5] px-1.5 py-0.5 rounded-full">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
+                        <span>Online</span>
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-around py-2 bg-white rounded-xl border border-slate-100">
+                      <div className="flex flex-col items-center gap-1">
+                        <Laptop size={18} className="text-[#2679c6]" />
+                        <span className="text-[9px] font-semibold text-slate-600">Laptop</span>
+                      </div>
+                      <div className="h-6 w-px bg-slate-200" />
+                      <div className="flex flex-col items-center gap-1">
+                        <Smartphone size={18} className="text-emerald-600" />
+                        <span className="text-[9px] font-semibold text-slate-600">Móvil</span>
+                      </div>
+                      <div className="h-6 w-px bg-slate-200" />
+                      <div className="flex flex-col items-center gap-1">
+                        <Monitor size={18} className="text-purple-600" />
+                        <span className="text-[9px] font-semibold text-slate-600">Mostrador</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* CTA tipo solo texto que al hover se transforma en botón */}
+                <button
+                  type="button"
+                  onClick={() => navigate('/register')}
+                  className="text-slate-900 font-bold text-xs uppercase tracking-wider px-5 py-2.5 rounded-xl border border-transparent hover:border-[#1b1b1b] hover:bg-[#1b1b1b] hover:text-white cursor-pointer transition-all duration-200 inline-flex items-center gap-1.5 self-start select-none shadow-none group/btn"
+                >
+                  <span>Probar Cloud</span>
+                  <span className="text-sm transition-transform group-hover/btn:translate-x-0.5">↗</span>
+                </button>
               </div>
-              <div className="divide-y divide-slate-100 text-sm">
-                <div className="grid grid-cols-2 px-6 py-4 items-center">
-                  <div className="text-slate-500 flex items-center gap-2">
-                    <X size={15} className="text-red-500 shrink-0" />
-                    <span>Instalaciones lentas en una sola PC física</span>
+
+              {/* 2. Facturación SRI Ilimitada */}
+              <div className="rounded-[28px] border border-slate-200/90 bg-white p-6 sm:p-7 flex flex-col justify-between hover:border-slate-400 hover:shadow-xs transition-all duration-200 group">
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-red-600 bg-red-50 border border-red-100 px-2 py-0.5 rounded-full">
+                      <X size={10} strokeWidth={3} />
+                      <span>2010: Cobro por factura</span>
+                    </span>
+                    <span className="text-[10px] font-bold text-emerald-800 bg-[#c0ffa5] px-2 py-0.5 rounded-full">
+                      Hoy: Ilimitado
+                    </span>
                   </div>
-                  <div className="text-slate-900 font-medium flex items-center gap-2">
-                    <Check size={16} className="text-emerald-600 shrink-0" />
-                    <span>100% Cloud desde cualquier navegador web</span>
+                  <h3 className="text-xl sm:text-[22px] font-extrabold text-slate-950 tracking-tight leading-snug">
+                    Facturación SRI sin límites en todos los planes
+                  </h3>
+                </div>
+
+                {/* Gráfico 2: Comprobantes ilimitados */}
+                <div className="my-5">
+                  <div className="w-full bg-[#f8fafc] rounded-2xl border border-slate-200/80 p-3.5 space-y-2 pointer-events-none group-hover:scale-[1.02] transition-transform">
+                    <div className="flex items-center justify-between text-[10px] text-slate-500">
+                      <span className="font-bold">Tarifa de emisión</span>
+                      <span className="text-[9px] font-mono font-bold text-[#004227] bg-[#c0ffa5] px-1.5 py-0.5 rounded-full">SRI 100%</span>
+                    </div>
+                    <div className="bg-white rounded-xl border border-slate-100 p-2.5 flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700 font-extrabold text-xl leading-none">
+                          ∞
+                        </div>
+                        <div className="text-left">
+                          <div className="text-xs font-bold text-slate-900 leading-tight">Comprobantes</div>
+                          <div className="text-[10px] text-slate-500 font-mono">Sin recargos</div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm font-extrabold font-mono text-emerald-600">$0.00</div>
+                        <div className="text-[9px] text-slate-400">adicional</div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 px-6 py-4 items-center">
-                  <div className="text-slate-500 flex items-center gap-2">
-                    <X size={15} className="text-red-500 shrink-0" />
-                    <span>Cobro por cantidad de facturas o comprobantes</span>
-                  </div>
-                  <div className="text-slate-900 font-medium flex items-center gap-2">
-                    <Check size={16} className="text-emerald-600 shrink-0" />
-                    <span>Facturación SRI Ilimitada en todos los planes</span>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 px-6 py-4 items-center">
-                  <div className="text-slate-500 flex items-center gap-2">
-                    <X size={15} className="text-red-500 shrink-0" />
-                    <span>Interfaces lentas con menús y ventanas viejas</span>
-                  </div>
-                  <div className="text-slate-900 font-medium flex items-center gap-2">
-                    <Check size={16} className="text-emerald-600 shrink-0" />
-                    <span>Diseño ultra-rápido con atajos de teclado (F12)</span>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 px-6 py-4 items-center">
-                  <div className="text-slate-500 flex items-center gap-2">
-                    <X size={15} className="text-red-500 shrink-0" />
-                    <span>Pérdida de información si la PC se daña</span>
-                  </div>
-                  <div className="text-slate-900 font-medium flex items-center gap-2">
-                    <Check size={16} className="text-emerald-600 shrink-0" />
-                    <span>Respaldo continuo en la nube y disponibilidad 24/7</span>
-                  </div>
-                </div>
+
+                {/* CTA tipo solo texto que al hover se transforma en botón */}
+                <button
+                  type="button"
+                  onClick={() => navigate('/register')}
+                  className="text-slate-900 font-bold text-xs uppercase tracking-wider px-5 py-2.5 rounded-xl border border-transparent hover:border-[#1b1b1b] hover:bg-[#1b1b1b] hover:text-white cursor-pointer transition-all duration-200 inline-flex items-center gap-1.5 self-start select-none shadow-none group/btn"
+                >
+                  <span>Emitir sin límite</span>
+                  <span className="text-sm transition-transform group-hover/btn:translate-x-0.5">↗</span>
+                </button>
               </div>
+
+              {/* 3. Atajos de Teclado POS F12 */}
+              <div className="rounded-[28px] border border-slate-200/90 bg-white p-6 sm:p-7 flex flex-col justify-between hover:border-slate-400 hover:shadow-xs transition-all duration-200 group">
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-red-600 bg-red-50 border border-red-100 px-2 py-0.5 rounded-full">
+                      <X size={10} strokeWidth={3} />
+                      <span>2010: Menús lentos</span>
+                    </span>
+                    <span className="text-[10px] font-bold text-emerald-800 bg-[#c0ffa5] px-2 py-0.5 rounded-full">
+                      Hoy: Atajos F12
+                    </span>
+                  </div>
+                  <h3 className="text-xl sm:text-[22px] font-extrabold text-slate-950 tracking-tight leading-snug">
+                    Cobro instantáneo con atajo de teclado F12
+                  </h3>
+                </div>
+
+                {/* Gráfico 3: Tecla F12 y cobro express */}
+                <div className="my-5">
+                  <div className="w-full bg-[#f8fafc] rounded-2xl border border-slate-200/80 p-3.5 space-y-2 pointer-events-none group-hover:scale-[1.02] transition-transform">
+                    <div className="flex items-center justify-between text-[10px] text-slate-500">
+                      <span className="font-bold">Caja mostrador</span>
+                      <span className="text-[9px] font-semibold text-[#006a43] bg-[#c0ffa5] px-1.5 py-0.5 rounded-full">⚡ 1.2 seg</span>
+                    </div>
+                    <div className="bg-white rounded-xl border border-slate-100 p-2 flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <div className="px-2.5 py-1.5 rounded-lg bg-[#0F172A] text-white font-mono font-bold text-xs shadow-xs border border-slate-700">
+                          F12
+                        </div>
+                        <div className="text-left">
+                          <span className="text-xs font-bold text-slate-900 block leading-tight">Cobro Rápido</span>
+                          <span className="text-[10px] text-slate-500">Efectivo / Tarjeta</span>
+                        </div>
+                      </div>
+                      <div className="w-7 h-7 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
+                        <Printer size={13} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* CTA tipo solo texto que al hover se transforma en botón */}
+                <button
+                  type="button"
+                  onClick={() => navigate('/register')}
+                  className="text-slate-900 font-bold text-xs uppercase tracking-wider px-5 py-2.5 rounded-xl border border-transparent hover:border-[#1b1b1b] hover:bg-[#1b1b1b] hover:text-white cursor-pointer transition-all duration-200 inline-flex items-center gap-1.5 self-start select-none shadow-none group/btn"
+                >
+                  <span>Abrir mostrador</span>
+                  <span className="text-sm transition-transform group-hover/btn:translate-x-0.5">↗</span>
+                </button>
+              </div>
+
+              {/* 4. Respaldo Continuo 24/7 */}
+              <div className="rounded-[28px] border border-slate-200/90 bg-white p-6 sm:p-7 flex flex-col justify-between hover:border-slate-400 hover:shadow-xs transition-all duration-200 group">
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-red-600 bg-red-50 border border-red-100 px-2 py-0.5 rounded-full">
+                      <X size={10} strokeWidth={3} />
+                      <span>2010: Pérdida por PC rota</span>
+                    </span>
+                    <span className="text-[10px] font-bold text-emerald-800 bg-[#c0ffa5] px-2 py-0.5 rounded-full">
+                      Hoy: Backup 24/7
+                    </span>
+                  </div>
+                  <h3 className="text-xl sm:text-[22px] font-extrabold text-slate-950 tracking-tight leading-snug">
+                    Respaldo continuo en la nube y máxima seguridad
+                  </h3>
+                </div>
+
+                {/* Gráfico 4: Cifrado y disponibilidad */}
+                <div className="my-5">
+                  <div className="w-full bg-[#f8fafc] rounded-2xl border border-slate-200/80 p-3.5 space-y-2 pointer-events-none group-hover:scale-[1.02] transition-transform">
+                    <div className="flex items-center justify-between text-[10px] text-slate-500">
+                      <span className="font-bold">Copia de seguridad</span>
+                      <span className="text-[9px] font-semibold text-[#006a43] bg-[#c0ffa5] px-1.5 py-0.5 rounded-full">Al día</span>
+                    </div>
+                    <div className="bg-white rounded-xl border border-slate-100 p-2 flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600">
+                          <ShieldCheck size={18} />
+                        </div>
+                        <div className="text-left">
+                          <div className="text-xs font-bold text-slate-900 leading-tight">Cifrado Bancario</div>
+                          <div className="text-[10px] text-slate-500">SSL 256-bit • 99.9%</div>
+                        </div>
+                      </div>
+                      <div className="w-5 h-5 rounded-full bg-[#c0ffa5] flex items-center justify-center text-[#004227]">
+                        <Check size={12} strokeWidth={3} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* CTA tipo solo texto que al hover se transforma en botón */}
+                <button
+                  type="button"
+                  onClick={() => navigate('/register')}
+                  className="text-slate-900 font-bold text-xs uppercase tracking-wider px-5 py-2.5 rounded-xl border border-transparent hover:border-[#1b1b1b] hover:bg-[#1b1b1b] hover:text-white cursor-pointer transition-all duration-200 inline-flex items-center gap-1.5 self-start select-none shadow-none group/btn"
+                >
+                  <span>Ver seguridad</span>
+                  <span className="text-sm transition-transform group-hover/btn:translate-x-0.5">↗</span>
+                </button>
+              </div>
+
             </div>
 
           </div>
