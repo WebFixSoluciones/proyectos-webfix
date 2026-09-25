@@ -511,6 +511,13 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
     2. Grid simétrico de tarjetas de accesos directos centrado (`max-w-4xl mx-auto`), sin bordes exteriores envolventes, con tarjetas individuales planas de esquinas redondeadas (`rounded-2xl border border-slate-200/90 bg-white hover:-translate-y-0.5`).
 - **Pruebas y Build**: 41 tests unitarios aprobados, compilación limpia de producción en 8.18s.
 
+### 41. Botón Circular Minimalista de Cierre en Venta Administrativa (2026-09-25) — COMPLETADO
+- **Botón Circular de Cierre (`TransactionForm.jsx`)**:
+  - Sustituido el botón con texto *"✕ Cancelar"* por un botón circular limpio y claramente visible (`w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200/90 text-slate-700 hover:text-slate-950 border border-slate-200/80 active:scale-95`).
+  - Icono `X` destacado con `size={18}` y `strokeWidth={2.2}`, sin textos adicionales, logrando una estética moderna, despejada y de rápida identificación táctil.
+- **Pruebas y Build**: 41 tests unitarios aprobados, compilación limpia de producción en 8.31s.
+
+
 
 
 

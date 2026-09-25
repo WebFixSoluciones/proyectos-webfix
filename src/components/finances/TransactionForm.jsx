@@ -1600,11 +1600,11 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
           type="button"
           onClick={closeTransaction}
           disabled={isSaving || isEmitting}
-          className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-950 px-2.5 py-1 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer disabled:opacity-50 border-none bg-transparent"
-          title="Cancelar y volver"
+          className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200/90 text-slate-700 hover:text-slate-950 flex items-center justify-center transition-all cursor-pointer disabled:opacity-50 border border-slate-200/80 shadow-none active:scale-95"
+          title="Cerrar / Cancelar"
+          aria-label="Cerrar"
         >
-          <X size={15} className="text-slate-500 hover:text-slate-950" />
-          <span>Cancelar</span>
+          <X size={18} strokeWidth={2.2} />
         </button>
       </div>
 
