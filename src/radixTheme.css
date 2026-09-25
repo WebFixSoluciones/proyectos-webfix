@@ -39,3 +39,14 @@
 .rt-TextFieldRoot:focus-within .rt-TextFieldSlot {
   color: var(--accent-9);
 }
+
+/* Flat Modern: Eliminar dobles bordes en tarjetas y tablas */
+.rt-Card {
+  border: none !important;
+}
+
+.rt-TableRoot {
+  border: none !important;
+  background-color: transparent !important;
+}
+

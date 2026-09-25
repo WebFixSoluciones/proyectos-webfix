@@ -86,8 +86,8 @@ export const UiSelect = forwardRef(function UiSelect({ className, children, valu
   </Select.Root>;
 });
 
-export const UiTable = forwardRef(function UiTable({ className, ...props }, ref) {
-  return <Table.Root ref={ref} size="2" variant="surface" className={className} {...props} />;
+export const UiTable = forwardRef(function UiTable({ className, variant = "ghost", ...props }, ref) {
+  return <Table.Root ref={ref} size="2" variant={variant} className={className} {...props} />;
 });
 export const UiTableHeader = forwardRef(function UiTableHeader(props, ref) { return <Table.Header ref={ref} {...props} />; });
 export const UiTableBody = forwardRef(function UiTableBody(props, ref) { return <Table.Body ref={ref} {...props} />; });

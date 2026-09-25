@@ -72,7 +72,7 @@ export default function LoginPage({ showToast, companyProfile }) {
       </UiBox>
 
       {/* Main Login Card */}
-      <UiCard className="w-full max-w-[420px] p-6 sm:p-8 bg-[var(--color-panel-solid)] border border-[var(--gray-a5)] rounded-2xl duration-300">
+      <UiCard className="w-full max-w-[420px] p-6 sm:p-8 bg-[var(--color-panel-solid)] rounded-2xl duration-300">
         {/* Brand / Logo Header */}
         <UiBox className="mb-6 text-left">
           {companyProfile?.logoUrl ? (

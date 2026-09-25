@@ -108,7 +108,7 @@ export default function ThirdPartiesView({
   return (
     <UiBox className="space-y-4 animate-in fade-in duration-300 pb-8">
       {/* Top Header Card */}
-      <UiCard className="flex items-center justify-between px-4 py-3 bg-[var(--color-panel-solid)] border border-[var(--gray-a6)] rounded-lg">
+      <UiCard className="flex items-center justify-between px-4 py-3 bg-[var(--color-panel-solid)] rounded-lg">
         <UiHeading as="h2" size="4" weight="bold" color="gray" highContrast>
           {isSupplierView ? 'Gestión de Proveedores' : 'Gestión de Clientes'}
         </UiHeading>

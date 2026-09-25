@@ -192,6 +192,19 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
   - Letras negras de alta legibilidad (`text-black dark:text-white font-bold`) para los datos del cliente (Razón Social, RUC/CI, Teléfono/Correo), sin checks ni títulos adicionales.
 - **Pruebas y Build**: 41 tests unitarios aprobados, compilación limpia de producción en 5.52s.
 
+### 20. Eliminación Integral de Dobles Bordes en Tablas y Tarjetas (2026-09-24) — COMPLETADO
+- **Causa Raíz Resuelta en Tablas (`UiTable` / `Table.Root`)**:
+  - `UiTable` configurado por defecto con `variant="ghost"` en `src/components/ui/controls.jsx`.
+  - En `src/radixTheme.css`, regla `.rt-TableRoot { border: none !important; background-color: transparent !important; }`.
+  - El contenedor exterior (`UiBox` o `UiCard`) actúa como el único dueño legítimo del borde (`1px solid var(--gray-a6)`), radio y scroll horizontal, eliminando de raíz el doble borde perimetral y superior en las 63 tablas del ERP (Ventas, Compras, Finanzas, Inventarios, Personas).
+- **Causa Raíz Resuelta en Tarjetas (`UiCard`)**:
+  - En `src/radixTheme.css`, regla `.rt-Card { border: none !important; }` para prevenir duplicación del borde pseudo-elemento Radix (`::after`) al aplicar clases de borde de Tailwind.
+  - Saneamiento de clases manuales `border border-[var(--gray-a6)]` en `BillingPortal.jsx`, `ThirdPartiesView.jsx`, `LoginPage.jsx`, `RegisterPage.jsx` y `TransactionForm.jsx`.
+- **Eliminación de Anidamiento en Suscripción (`BillingPortal.jsx`)**:
+  - Desempaquetada la tarjeta redundante exterior que envolvía el catálogo de planes; los planes ahora se despliegan directamente en su grid con la barra de cambio de ciclo (Mensual / Anual -20%) limpia y alineada.
+  - Removidas cabeceras duplicadas y eliminadas clases `border-b` manuales en `UiTableRow` de la tabla de historial de pagos.
+- **Pruebas y Build**: 41 tests unitarios aprobados, compilación limpia de producción en 8.60s.
+
 ## Últimos commits
 ```
 1f7c9ec fix(ventas): eliminar lineas divisoras debajo de los titulos de secciones en TransactionForm
@@ -199,6 +212,7 @@ cec7a71 fix(superadmin): utilizar UiInput con iconPrefix en buscador para elimin
 0472054 feat(billing): estandarizar diseno de suscripcion, eliminar vacios laterales y sincronizar submodulos
 b27f571 docs: actualizar hash 792350c en AGENTS.md
 ```
+
 
 
 

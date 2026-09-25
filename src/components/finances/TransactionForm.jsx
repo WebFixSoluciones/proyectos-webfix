@@ -3201,7 +3201,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                           ) : clientSent ? (
                             <span>Enviado exitosamente a <strong className="text-[var(--gray-12)]">{clientAddress}</strong></span>
                           ) : clientFailed ? (
-                            <span className="text-[var(--red-11)]">No se pudo entregar: {delivery.client?.error || 'Rechazo SMTP'}</span>
+                            <span className="text-[var(--red-11)]">No se pudo entregar: {emailDeliveryData.client?.error || 'Rechazo SMTP'}</span>
                           ) : clientAddress ? (
                             <span>Listo para enviar a: <strong className="text-[var(--gray-12)]">{clientAddress}</strong></span>
                           ) : (
@@ -3248,7 +3248,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                           ) : emitterSent ? (
                             <span>Respaldo enviado a <strong className="text-[var(--gray-12)]">{emitterAddress}</strong></span>
                           ) : emitterFailed ? (
-                            <span className="text-[var(--amber-11)]">Copia no enviada: {delivery.emitter?.error || 'Revisa servidor SMTP'}</span>
+                            <span className="text-[var(--amber-11)]">Copia no enviada: {emailDeliveryData.emitter?.error || 'Revisa servidor SMTP'}</span>
                           ) : !isSmtpConfigured ? (
                             <span className="text-[var(--amber-11)]">Configura el servidor SMTP en Ajustes para recibir copias automáticas.</span>
                           ) : !isSmtpActive ? (
@@ -4256,7 +4256,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               </UiBox>
               <UiBox className="p-4 space-y-3 max-h-[420px] overflow-y-auto custom-scrollbar">
                 {/* Descuento Manual Directo */}
-                <UiCard style={{ backgroundColor: 'var(--gray-2)', border: '1px solid var(--gray-a6)' }} className="p-3 space-y-2">
+                <UiCard style={{ backgroundColor: 'var(--gray-2)' }} className="p-3 space-y-2">
                   <UiText size="1" weight="bold" color="gray" highContrast>⚡ Descuento Manual Directo</UiText>
                   <div className="flex items-center gap-2">
                     <UiSelect

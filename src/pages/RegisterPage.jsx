@@ -165,7 +165,7 @@ export default function RegisterPage({ showToast }) {
       </UiBox>
 
       {/* Main Card */}
-      <UiCard className="w-full max-w-[460px] p-6 sm:p-8 bg-[var(--color-panel-solid)] border border-[var(--gray-a5)] rounded-2xl duration-300">
+      <UiCard className="w-full max-w-[460px] p-6 sm:p-8 bg-[var(--color-panel-solid)] rounded-2xl duration-300">
         <UiBox className="text-left mb-6 select-none">
           <UiHeading as="h1" size="5" weight="bold" color="gray" highContrast className="tracking-tight">
             Crear cuenta de empresa

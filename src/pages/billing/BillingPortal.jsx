@@ -346,7 +346,7 @@ export default function BillingPortal({ showToast, initialSubTab, onSubTabChange
     <UiBox className="space-y-4 w-full text-left">
       
       {/* Top Header Card */}
-      <UiCard className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 py-3 bg-[var(--color-panel-solid)] border border-[var(--gray-a6)] rounded-lg">
+      <UiCard className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 py-3 bg-[var(--color-panel-solid)] rounded-lg">
         <UiBox className="flex items-center gap-3">
           <UiBox className="p-2 rounded-md bg-[var(--accent-3)] text-[var(--accent-11)] shrink-0">
             <CreditCard size={18} />
@@ -403,7 +403,7 @@ export default function BillingPortal({ showToast, initialSubTab, onSubTabChange
 
       {/* Main View: Historial vs Plan Selector & Payment Form */}
       {activeCategory === 'historial' ? (
-        <UiCard className="p-5 bg-[var(--color-panel-solid)] border border-[var(--gray-a6)] rounded-lg">
+        <UiCard className="p-5 bg-[var(--color-panel-solid)] rounded-lg">
           <UiBox className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-4 border-b border-[var(--gray-a4)]">
             <UiBox>
               <UiHeading as="h3" size="3" weight="bold" color="gray" highContrast>
@@ -421,7 +421,7 @@ export default function BillingPortal({ showToast, initialSubTab, onSubTabChange
           <UiBox className="overflow-x-auto custom-scrollbar">
             <UiTable className="w-full text-left text-xs">
               <UiTableHeader>
-                <UiTableRow className="border-b border-[var(--gray-a4)]">
+                <UiTableRow>
                   <UiTableHead className="py-2.5 font-semibold text-[var(--gray-11)]">Fecha</UiTableHead>
                   <UiTableHead className="py-2.5 font-semibold text-[var(--gray-11)]">Referencia</UiTableHead>
                   <UiTableHead className="py-2.5 font-semibold text-[var(--gray-11)]">Método / Banco</UiTableHead>
@@ -442,7 +442,7 @@ export default function BillingPortal({ showToast, initialSubTab, onSubTabChange
                   </UiTableRow>
                 ) : (
                   history.map((tx) => (
-                    <UiTableRow key={tx.id} className="border-b border-[var(--gray-a3)] hover:bg-[var(--gray-2)]">
+                    <UiTableRow key={tx.id} className="hover:bg-[var(--gray-2)]">
                       <UiTableCell className="py-3 font-medium text-[var(--gray-12)]">
                         {new Date(tx.transferDate).toLocaleDateString('es-EC')}
                       </UiTableCell>
@@ -477,119 +477,111 @@ export default function BillingPortal({ showToast, initialSubTab, onSubTabChange
         <UiBox className="grid grid-cols-1 xl:grid-cols-12 gap-4 items-start">
           
           {/* Left Col: Plan Selector (8 columns) */}
-          <UiBox className="xl:col-span-8 space-y-4">
-            <UiCard className="p-5 bg-[var(--color-panel-solid)] border border-[var(--gray-a6)] rounded-lg">
-              
-              {/* Card Subheader: Module details + Billing cycle switcher */}
-              <UiBox className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 mb-4 border-b border-[var(--gray-a4)]">
-                <UiBox>
-                  <UiHeading as="h3" size="3" weight="bold" color="gray" highContrast>
-                    {PRODUCTS_CATALOG[activeCategory]?.title}
-                  </UiHeading>
-                  <UiText as="p" size="1" color="gray" className="text-xs mt-0.5">
-                    {PRODUCTS_CATALOG[activeCategory]?.desc}
-                  </UiText>
-                </UiBox>
+          <UiBox className="xl:col-span-8 space-y-3">
+            {/* Header Toolbar: Title + Billing cycle switcher */}
+            <UiBox className="flex items-center justify-between px-1">
+              <UiHeading as="h3" size="3" weight="bold" color="gray" highContrast>
+                Selecciona tu plan
+              </UiHeading>
 
-                {/* Billing Cycle Switcher */}
-                <UiBox className="flex items-center gap-1 p-1 bg-[var(--gray-3)] border border-[var(--gray-a4)] rounded-md self-start sm:self-center">
-                  <button
-                    type="button"
-                    onClick={() => setBillingPeriod('monthly')}
-                    className={`px-3 py-1.5 text-xs font-semibold rounded transition-all cursor-pointer ${
-                      billingPeriod === 'monthly'
-                        ? 'bg-[var(--color-panel-solid)] text-[var(--gray-12)] border border-[var(--gray-a4)]'
-                        : 'text-[var(--gray-11)] hover:text-[var(--gray-12)]'
-                    }`}
-                  >
-                    Mensual
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setBillingPeriod('yearly')}
-                    className={`px-3 py-1.5 text-xs font-semibold rounded transition-all cursor-pointer flex items-center gap-1.5 ${
-                      billingPeriod === 'yearly'
-                        ? 'bg-[var(--color-panel-solid)] text-[var(--gray-12)] border border-[var(--gray-a4)]'
-                        : 'text-[var(--gray-11)] hover:text-[var(--gray-12)]'
-                    }`}
-                  >
-                    <span>Anual</span>
-                    <span className="text-[10px] px-1 py-0.2 bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 rounded font-bold">-20%</span>
-                  </button>
-                </UiBox>
+              {/* Billing Cycle Switcher */}
+              <UiBox className="flex items-center gap-1 p-1 bg-[var(--gray-3)] border border-[var(--gray-a4)] rounded-md">
+                <button
+                  type="button"
+                  onClick={() => setBillingPeriod('monthly')}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded transition-all cursor-pointer ${
+                    billingPeriod === 'monthly'
+                      ? 'bg-[var(--color-panel-solid)] text-[var(--gray-12)] border border-[var(--gray-a4)]'
+                      : 'text-[var(--gray-11)] hover:text-[var(--gray-12)]'
+                  }`}
+                >
+                  Mensual
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBillingPeriod('yearly')}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded transition-all cursor-pointer flex items-center gap-1.5 ${
+                    billingPeriod === 'yearly'
+                      ? 'bg-[var(--color-panel-solid)] text-[var(--gray-12)] border border-[var(--gray-a4)]'
+                      : 'text-[var(--gray-11)] hover:text-[var(--gray-12)]'
+                  }`}
+                >
+                  <span>Anual</span>
+                  <span className="text-[10px] px-1 py-0.2 bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 rounded font-bold">-20%</span>
+                </button>
               </UiBox>
+            </UiBox>
 
-              {/* 3 Plans Grid */}
-              <UiBox className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {(PRODUCTS_CATALOG[activeCategory]?.plans || []).map((plan) => {
-                  const isSelected = selectedPlanId === plan.id;
-                  const price = getPrice(plan);
-                  return (
-                    <UiBox
-                      key={plan.id}
-                      onClick={() => setSelectedPlanId(plan.id)}
-                      className={`p-5 rounded-lg cursor-pointer transition-all flex flex-col justify-between relative border ${
-                        isSelected
-                          ? 'border-[var(--accent-9)] bg-[var(--accent-2)] ring-1 ring-[var(--accent-9)]'
-                          : 'border-[var(--gray-a6)] bg-[var(--color-panel-solid)] hover:border-[var(--gray-a8)] hover:bg-[var(--gray-2)]'
-                      }`}
-                    >
-                      {plan.isPopular && (
-                        <span className="absolute -top-2.5 right-4 px-2 py-0.5 text-[10px] font-bold tracking-wide rounded-full bg-[var(--accent-9)] text-white uppercase">
-                          Recomendado
+            {/* 3 Plans Grid */}
+            <UiBox className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {(PRODUCTS_CATALOG[activeCategory]?.plans || []).map((plan) => {
+                const isSelected = selectedPlanId === plan.id;
+                const price = getPrice(plan);
+                return (
+                  <UiBox
+                    key={plan.id}
+                    onClick={() => setSelectedPlanId(plan.id)}
+                    className={`p-5 rounded-lg cursor-pointer transition-all flex flex-col justify-between relative border ${
+                      isSelected
+                        ? 'border-[var(--accent-9)] bg-[var(--accent-2)] ring-1 ring-[var(--accent-9)]'
+                        : 'border-[var(--gray-a6)] bg-[var(--color-panel-solid)] hover:border-[var(--gray-a8)] hover:bg-[var(--gray-2)]'
+                    }`}
+                  >
+                    {plan.isPopular && (
+                      <span className="absolute -top-2.5 right-4 px-2 py-0.5 text-[10px] font-bold tracking-wide rounded-full bg-[var(--accent-9)] text-white uppercase">
+                        Recomendado
+                      </span>
+                    )}
+
+                    <UiBox>
+                      <UiHeading as="h4" size="2" weight="bold" color="gray" highContrast className="mb-1">
+                        {plan.name}
+                      </UiHeading>
+                      <UiBox className="flex items-baseline gap-1 my-3">
+                        <span className="text-sm font-semibold text-[var(--gray-11)]">$</span>
+                        <span className="text-3xl font-extrabold tracking-tight text-[var(--gray-12)] font-mono">
+                          {price}
                         </span>
+                        <span className="text-xs text-[var(--gray-11)] font-medium">/mes</span>
+                      </UiBox>
+                      {billingPeriod === 'yearly' && (
+                        <UiText as="p" size="1" color="gray" className="text-[11px] mb-3 -mt-2">
+                          ${price * 12}/año facturado anualmente
+                        </UiText>
                       )}
 
-                      <UiBox>
-                        <UiHeading as="h4" size="2" weight="bold" color="gray" highContrast className="mb-1">
-                          {plan.name}
-                        </UiHeading>
-                        <UiBox className="flex items-baseline gap-1 my-3">
-                          <span className="text-sm font-semibold text-[var(--gray-11)]">$</span>
-                          <span className="text-3xl font-extrabold tracking-tight text-[var(--gray-12)] font-mono">
-                            {price}
-                          </span>
-                          <span className="text-xs text-[var(--gray-11)] font-medium">/mes</span>
-                        </UiBox>
-                        {billingPeriod === 'yearly' && (
-                          <UiText as="p" size="1" color="gray" className="text-[11px] mb-3 -mt-2">
-                            ${price * 12}/año facturado anualmente
-                          </UiText>
-                        )}
+                      <div className="border-t border-[var(--gray-a4)] my-3" />
 
-                        <div className="border-t border-[var(--gray-a4)] my-3" />
-
-                        <ul className="space-y-2 text-xs">
-                          {plan.features.map((feat, idx) => (
-                            <li key={idx} className="flex items-start gap-2 leading-relaxed text-[var(--gray-11)]">
-                              <Check size={14} className="text-emerald-600 shrink-0 mt-0.5" />
-                              <span>{feat}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </UiBox>
-
-                      <UiBox className="mt-5 pt-3 border-t border-[var(--gray-a4)]">
-                        <UiButton
-                          type="button"
-                          size="2"
-                          variant={isSelected ? 'solid' : 'soft'}
-                          color={isSelected ? 'blue' : 'gray'}
-                          className="w-full text-xs font-semibold cursor-pointer"
-                        >
-                          {isSelected ? '✓ Seleccionado' : 'Elegir Plan'}
-                        </UiButton>
-                      </UiBox>
+                      <ul className="space-y-2 text-xs">
+                        {plan.features.map((feat, idx) => (
+                          <li key={idx} className="flex items-start gap-2 leading-relaxed text-[var(--gray-11)]">
+                            <Check size={14} className="text-emerald-600 shrink-0 mt-0.5" />
+                            <span>{feat}</span>
+                          </li>
+                        ))}
+                      </ul>
                     </UiBox>
-                  );
-                })}
-              </UiBox>
-            </UiCard>
+
+                    <UiBox className="mt-5 pt-3 border-t border-[var(--gray-a4)]">
+                      <UiButton
+                        type="button"
+                        size="2"
+                        variant={isSelected ? 'solid' : 'soft'}
+                        color={isSelected ? 'blue' : 'gray'}
+                        className="w-full text-xs font-semibold cursor-pointer"
+                      >
+                        {isSelected ? '✓ Seleccionado' : 'Elegir Plan'}
+                      </UiButton>
+                    </UiBox>
+                  </UiBox>
+                );
+              })}
+            </UiBox>
           </UiBox>
 
           {/* Right Col: Checkout & Payment details (4 columns) */}
           <UiBox className="xl:col-span-4 space-y-4">
-            <UiCard className="p-5 bg-[var(--color-panel-solid)] border border-[var(--gray-a6)] rounded-lg">
+            <UiCard className="p-5 bg-[var(--color-panel-solid)] rounded-lg">
               <UiHeading as="h3" size="3" weight="bold" color="gray" highContrast className="mb-4">
                 Resumen del Pago
               </UiHeading>
@@ -737,7 +729,7 @@ export default function BillingPortal({ showToast, initialSubTab, onSubTabChange
       {/* PAYPHONE SIMULATION MODAL */}
       {showPayPhoneSim && (
         <UiBox className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-          <UiCard className="w-full max-w-sm p-6 relative bg-[var(--color-panel-solid)] text-[var(--gray-12)] border border-[var(--gray-a6)] rounded-lg">
+          <UiCard className="w-full max-w-sm p-6 relative bg-[var(--color-panel-solid)] text-[var(--gray-12)] rounded-lg">
             <UiBox className="flex justify-between items-center mb-6">
               <UiText size="2" weight="bold" color="amber">Pasarela PayPhone (Sandbox)</UiText>
               <button 
