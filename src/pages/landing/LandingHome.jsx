@@ -126,7 +126,7 @@ export default function LandingHome() {
               {/* Capa flotante 1: Factura autorizada en tiempo real (Parallax -0.15) */}
               <div
                 style={{ transform: `translateY(${card1Offset}px)` }}
-                className="hidden sm:flex flex-col absolute -top-6 -right-2 lg:-right-6 z-20 w-72 md:w-80 bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200/90 dark:border-slate-800 shadow-[0_16px_36px_rgba(0,0,0,0.1)] pointer-events-none sm:pointer-events-auto transition-transform will-change-transform"
+                className="hidden sm:flex flex-col absolute -top-6 -right-2 lg:-right-6 z-20 w-72 md:w-80 bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200/90 dark:border-slate-800 shadow-[0_16px_36px_rgba(0,0,0,0.1)] pointer-events-none transition-transform will-change-transform"
               >
                 <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100 dark:border-slate-800">
                   <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-[11px] font-semibold">
@@ -158,7 +158,7 @@ export default function LandingHome() {
               {/* Capa flotante 2: Cobro rápido POS (Parallax 0.12) */}
               <div
                 style={{ transform: `translateY(${card2Offset}px)` }}
-                className="hidden sm:flex flex-col absolute -bottom-6 -left-2 lg:-left-6 z-20 w-64 md:w-72 bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200/90 dark:border-slate-800 shadow-[0_16px_36px_rgba(0,0,0,0.1)] pointer-events-none sm:pointer-events-auto transition-transform will-change-transform"
+                className="hidden sm:flex flex-col absolute -bottom-6 -left-2 lg:-left-6 z-20 w-64 md:w-72 bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200/90 dark:border-slate-800 shadow-[0_16px_36px_rgba(0,0,0,0.1)] pointer-events-none transition-transform will-change-transform"
               >
                 <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100 dark:border-slate-800">
                   <div className="flex items-center gap-1.5">
