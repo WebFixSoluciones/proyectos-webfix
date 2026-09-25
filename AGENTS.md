@@ -140,7 +140,7 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
 
 ## Últimos commits
 ```
-7b92f1a feat(personas): estandarizar espaciados, encabezado limpio sin kpis y eliminar submodulo equipo
+b5c68d8 feat(personas): estandarizar espaciados, encabezado limpio sin kpis y eliminar submodulo equipo
 28547e8 feat(ventas): estandarizar titulos y tamano a Datos de Cliente y Productos y Servicios
 1d192aa fix(ventas): resolver ReferenceError de matchedTercero antes de inicializacion en TransactionForm
 83af250 feat(emision): pantalla de confirmacion, impresion directa y envio de correos para notas de venta y facturas
