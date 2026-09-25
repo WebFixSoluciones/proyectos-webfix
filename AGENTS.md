@@ -264,5 +264,9 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
   - **Hero**: Bloque superior en tono menta pastel sutil (`bg-[#EAF8EA] border-b border-emerald-100 rounded-b-[40px] md:rounded-b-[56px]`), idéntico a la paleta insignia de Brevo.
   - **Pestañas por Segmento**: Selector tipo píldora con pestaña activa en verde menta sólido Brevo (`bg-[#A3EFA2] text-slate-950 font-bold`) e inactivas en texto suave.
   - **Banner Final de Conversión**: Reemplazado el antiguo bloque negro `#0F172A` por una tarjeta limpia en tono menta pastel `bg-[#EAF8EA]` con borde verde esmeralda suave, titular negro de alto impacto y botón píldora negro sólido `#0F172A`.
-  - **Footer Minimalista**: Fondo blanco puro (`bg-white border-t border-slate-200`) con textos y enlaces en slate nítido.
-- **Pruebas y Build**: 43/43 tests unitarios aprobados, compilación de producción exitosa en 7.31s con 0 advertencias de PostCSS.
+  - **Footer Réplica Idéntica Brevo**:
+    - Fondo menta sutil (`bg-[#F6FAF6] border-t border-slate-200/80`).
+    - Fila superior con logotipo WebFix en verde bosque (`#0B5D3A`) a la izquierda y 6 iconos de redes sociales a la derecha (X, LinkedIn, Instagram, YouTube, Facebook, TikTok).
+    - Grid de 5 columnas limpias: `PRODUCTO`, `PARA EMPEZAR`, `RECURSOS`, `PARTNERS` y `EMPRESA`.
+    - Barra legal inferior con enlaces horizontales a la izquierda (Cookies, Política anti-spam, Privacidad, Términos, Aviso legal, Seguridad SRI) y copyright a la derecha.
+- **Pruebas y Build**: 43/43 tests unitarios aprobados, compilación de producción exitosa en 6.99s.
