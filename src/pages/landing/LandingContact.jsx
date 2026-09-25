@@ -73,7 +73,7 @@ export default function LandingContact() {
       </section>
 
       {/* Main Content */}
-      <section {...{"className":"py-16 max-w-5xl mx-auto px-4 sm:px-6"}}>
+      <section {...{"className":"py-16 w-[80%] max-w-5xl mx-auto px-4 sm:px-6"}}>
         <UiBox {...{"className":"grid grid-cols-1 md:grid-cols-12 gap-8 items-start text-left"}}>
           
           {/* Contact Details */}

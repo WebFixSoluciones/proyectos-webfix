@@ -624,7 +624,7 @@ export default function LandingHome() {
 
       {/* 2. FRANJA DE CONFIANZA (Social Proof) */}
       <section className="w-full bg-white border-b border-slate-100">
-        <div className="w-[90%] max-w-[1720px] mx-auto text-center">
+        <div className="w-[80%] max-w-[1720px] mx-auto text-center">
           <p className="text-xs md:text-sm font-semibold uppercase tracking-wider text-slate-500 mb-6 md:mb-8">
             Más de 500 comercios y empresas ecuatorianas gestionan su facturación y finanzas con WebFix
           </p>
@@ -705,7 +705,7 @@ export default function LandingHome() {
 
       {/* 3. BONDADES EN TARJETAS PLANAS CON ACENTOS DE COLOR SÓLIDO (CERO ANIDACIONES, CERO DOTS) */}
       <section className="w-full bg-white border-b border-slate-100">
-        <div className="w-[90%] max-w-[1720px] mx-auto py-20 md:py-28">
+        <div className="w-[80%] max-w-[1720px] mx-auto py-20 md:py-28">
           
           {/* Título centrado limpio y sin dots ni burbujas */}
           <div className="text-center max-w-3xl mx-auto mb-14 md:mb-16">
@@ -764,7 +764,7 @@ export default function LandingHome() {
       {/* 3.5. COMPARATIVA MINIMALISTA & ECOSISTEMA MULTIPLATAFORMA (PC, POS, MÓVIL) */}
       <section className="w-full bg-[#F8FAFC] border-b border-slate-200/80">
         <ScrollReveal direction="up">
-          <div className="w-[90%] max-w-[1720px] mx-auto py-20 md:py-28">
+          <div className="w-[80%] max-w-[1720px] mx-auto py-20 md:py-28">
             
             {/* Título de Sección Limpio */}
             <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-14">
@@ -836,7 +836,7 @@ export default function LandingHome() {
       {/* 3.6. BENEFICIOS MINIMALISTAS EN 6 CARDS (RÉPLICA IDÉNTICA BREVO IMAGEN 2) */}
       <section className="w-full bg-white border-b border-slate-100 py-16 md:py-24">
         <ScrollReveal direction="up">
-          <div className="w-[90%] max-w-[1720px] mx-auto">
+          <div className="w-[80%] max-w-[1720px] mx-auto">
             {/* Título de Sección estilo Brevo: Centrado, contundente, sin subtítulo */}
             <h2 className="text-3xl sm:text-4xl lg:text-[40px] font-extrabold text-slate-950 tracking-tight text-center mb-10 sm:mb-14">
               Factura y gestiona tu negocio, a tu manera
@@ -997,7 +997,7 @@ export default function LandingHome() {
       {/* 4. SECCIÓN DE PESTAÑAS INTERACTIVAS POR SEGMENTO COMERCIAL (ESTILO BREVO) */}
       <section className="w-full bg-white border-b border-slate-100">
         <ScrollReveal direction="up">
-          <div className="w-[90%] max-w-[1720px] mx-auto py-20 md:py-28">
+          <div className="w-[80%] max-w-[1720px] mx-auto py-20 md:py-28">
             
             {/* Título centrado limpio y sin subtítulo (Estilo Brevo) */}
             <div className="text-center max-w-4xl mx-auto mb-10 sm:mb-12">
@@ -1119,7 +1119,7 @@ export default function LandingHome() {
       {/* 5. PRICING PREVIEW */}
       <section className="w-full bg-white border-t border-slate-100">
         <ScrollReveal>
-          <div className="w-[90%] max-w-[1720px] mx-auto py-20 md:py-28 text-center">
+          <div className="w-[80%] max-w-[1720px] mx-auto py-20 md:py-28 text-center">
             
             {/* Encabezado limpio sin dots ni burbujas */}
             <div className="max-w-3xl mx-auto space-y-3">
@@ -1303,7 +1303,7 @@ export default function LandingHome() {
       {/* 6. FAQ ACCORDION */}
       <section className="w-full bg-white">
         <ScrollReveal>
-          <div className="w-[90%] max-w-4xl mx-auto py-20 md:py-24 border-t border-slate-200/80">
+          <div className="w-[80%] max-w-4xl mx-auto py-20 md:py-24 border-t border-slate-200/80">
             
             {/* Título centrado limpio sin dots */}
             <div className="text-center mb-10 sm:mb-12 space-y-2">
@@ -1357,7 +1357,7 @@ export default function LandingHome() {
       {/* 7. FINAL CALL TO ACTION */}
       <section className="w-full bg-white">
         <ScrollReveal>
-          <div className="w-[90%] max-w-[1720px] mx-auto pb-24 md:pb-32">
+          <div className="w-[80%] max-w-[1720px] mx-auto pb-24 md:pb-32">
             <div className="rounded-3xl md:rounded-[40px] p-8 sm:p-14 lg:p-16 text-center text-slate-950 border border-emerald-200/80 relative overflow-hidden bg-[#EAF8EA]">
               
               {/* Tag píldora sutil */}

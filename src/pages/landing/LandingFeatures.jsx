@@ -198,7 +198,7 @@ export default function LandingFeatures() {
 
       {/* 2. Interactive Solutions Explorer */}
       <section {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"py-16"}}>
-        <UiBox {...{"className":"max-w-6xl mx-auto px-4 sm:px-6"}}>
+        <UiBox {...{"className":"w-[80%] max-w-6xl mx-auto px-4 sm:px-6"}}>
           
           {/* Tabs Bar */}
           <UiBox {...{"className":"flex items-center justify-center gap-2 mb-12 overflow-x-auto custom-scrollbar pb-2"}}>

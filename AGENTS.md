@@ -324,5 +324,26 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
     6. **Cobros & Bancos**: Mini teclado numérico, badge de tendencia y botón circular negro con flecha `[ → ]` idéntico al componente de Brevo.
 - **Pruebas y Build**: 43 tests unitarios aprobados, compilación de producción limpia en 7.89s.
 
+### 27. Estandarización de Ancho: 80% en Cuerpo de Página y 90% en Header, Footer y Heroes (2026-09-25) — COMPLETADO
+- **Preservación de Ancho al 90% (`w-[90%] max-w-[1720px] mx-auto`)**:
+  - Header de navegación (`LandingLayout.jsx`).
+  - Pie de página institucional (`LandingLayout.jsx`).
+  - Hero principal de bienvenida (`LandingHome.jsx`).
+  - Encabezados hero de las subpáginas (`LandingFeatures.jsx`, `LandingPricing.jsx`, `LandingAbout.jsx`, `LandingContact.jsx`).
+- **Ajuste de Ancho al 80% en el Cuerpo de Página (`w-[80%] max-w-[1720px] mx-auto`)**:
+  - **`LandingHome.jsx`**:
+    - Franja de confianza / Social proof bar (`w-[80%]`).
+    - Sección 3: Grid de bondades en tarjetas planas (`w-[80%]`).
+    - Sección 3.5: Tabla comparativa moderna vs tradicional (`w-[80%]`).
+    - Sección 3.6: Fila de 6 tarjetas de beneficios estilo Brevo (`w-[80%]`).
+    - Sección 4: Pestañas interactivas y testimoniales por segmento (`w-[80%]`).
+    - Sección 5: Catálogo de precios y selector mensual/anual (`w-[80%]`).
+    - Sección 6: Preguntas frecuentes en acordeón (`w-[80%] max-w-4xl`).
+    - Sección 7: Banner final de conversión CTA (`w-[80%]`).
+  - **Subpáginas (`LandingFeatures.jsx`, `LandingPricing.jsx`, `LandingAbout.jsx`, `LandingContact.jsx`)**:
+    - Secciones de cuerpo ajustadas con `w-[80%]` para un encuadre visual más compacto, centrado y con mayor respiración lateral.
+- **Pruebas y Build**: 43 tests unitarios aprobados, compilación de producción exitosa en 6.97s.
+
+
 
 

@@ -126,7 +126,7 @@ export default function LandingPricing() {
 
       {/* 2. Pricing Cards Grid */}
       <section {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"py-16"}}>
-        <UiBox {...{"className":"max-w-6xl mx-auto px-4 sm:px-6"}}>
+        <UiBox {...{"className":"w-[80%] max-w-6xl mx-auto px-4 sm:px-6"}}>
           <UiBox {...{"className":"grid grid-cols-1 md:grid-cols-3 gap-6 text-left max-w-5xl mx-auto"}}>
             {plans.map((plan) => (
               <Card 

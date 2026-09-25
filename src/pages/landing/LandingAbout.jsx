@@ -23,7 +23,7 @@ export default function LandingAbout() {
       </section>
 
       {/* Main Content */}
-      <section {...{"className":"py-16 max-w-5xl mx-auto px-4 sm:px-6 text-left space-y-12"}}>
+      <section {...{"className":"py-16 w-[80%] max-w-5xl mx-auto px-4 sm:px-6 text-left space-y-12"}}>
         
         {/* Mission & Vision Grid */}
         <UiBox {...{"className":"grid grid-cols-1 md:grid-cols-2 gap-8 items-start"}}>
