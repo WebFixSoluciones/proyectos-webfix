@@ -930,28 +930,28 @@ export default function LandingHome() {
       {/* 3.6. BENEFICIOS MINIMALISTAS EN 6 CARDS (RÉPLICA IDÉNTICA BREVO IMAGEN 2) */}
       <section className="w-full bg-white py-16 md:py-24">
         <ScrollReveal direction="up">
-          <div className="w-[80%] max-w-[1720px] mx-auto">
+          <div className="w-[88%] max-w-[1720px] mx-auto">
             {/* Título de Sección estilo Brevo: Centrado, contundente, sin subtítulo */}
             <h2 className="text-3xl sm:text-4xl lg:text-[40px] font-extrabold text-slate-950 tracking-tight text-center mb-10 sm:mb-14">
               Factura y gestiona tu negocio, a tu manera
             </h2>
 
             {/* Grid de 6 Tarjetas Minimalistas */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-5">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-5 sm:gap-6">
               
               {/* 1. Facturación electrónica SRI */}
               <div
                 onClick={() => navigate('/register')}
-                className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 flex flex-col justify-between items-start h-[250px] sm:h-[270px] hover:border-slate-400 hover:shadow-xs transition-all duration-200 cursor-pointer group"
+                className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 flex flex-col items-center justify-center gap-4 sm:gap-5 min-h-[220px] sm:min-h-[240px] hover:border-slate-400 hover:shadow-xs transition-all duration-200 cursor-pointer group text-center select-none"
               >
-                <h3 className="font-bold text-slate-900 text-base sm:text-[17px] leading-snug">
+                <h3 className="font-bold text-slate-900 text-base sm:text-[17px] leading-snug text-center w-full">
                   Facturación<br />electrónica SRI
                 </h3>
-                <div className="w-full flex items-center justify-center pt-2">
-                  <div className="w-16 h-16 rounded-2xl bg-[#e6f3ff] border border-[#cce7ff] flex items-center justify-center relative shadow-xs group-hover:scale-105 transition-transform">
-                    <FileText size={28} className="text-[#2679c6] stroke-[2]" />
-                    <div className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-[#c0ffa5] border border-[#7deda9] flex items-center justify-center shadow-xs">
-                      <Check size={11} className="text-[#004227] stroke-[3]" />
+                <div className="w-full flex items-center justify-center">
+                  <div className="w-20 h-20 rounded-2xl bg-[#e6f3ff] border border-[#cce7ff] flex items-center justify-center relative shadow-xs group-hover:scale-105 transition-transform">
+                    <FileText size={36} className="text-[#2679c6] stroke-[2]" />
+                    <div className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-[#c0ffa5] border border-[#7deda9] flex items-center justify-center shadow-xs">
+                      <Check size={13} className="text-[#004227] stroke-[3]" />
                     </div>
                   </div>
                 </div>
@@ -960,21 +960,21 @@ export default function LandingHome() {
               {/* 2. Punto de venta POS */}
               <div
                 onClick={() => navigate('/register')}
-                className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 flex flex-col justify-between items-start h-[250px] sm:h-[270px] hover:border-slate-400 hover:shadow-xs transition-all duration-200 cursor-pointer group"
+                className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 flex flex-col items-center justify-center gap-4 sm:gap-5 min-h-[220px] sm:min-h-[240px] hover:border-slate-400 hover:shadow-xs transition-all duration-200 cursor-pointer group text-center select-none"
               >
-                <h3 className="font-bold text-slate-900 text-base sm:text-[17px] leading-snug">
+                <h3 className="font-bold text-slate-900 text-base sm:text-[17px] leading-snug text-center w-full">
                   Punto de<br />venta (POS)
                 </h3>
-                <div className="w-full flex items-center justify-center pt-2">
-                  <div className="w-22 h-18 rounded-t-2xl border-2 border-slate-300 bg-white flex flex-col items-center pt-1.5 relative shadow-xs group-hover:scale-105 transition-transform">
-                    <span className="text-[9px] font-mono font-semibold text-slate-500">12:30</span>
-                    <div className="w-26 bg-slate-50 border border-slate-200 rounded-lg p-1.5 flex items-center justify-between shadow-sm mt-1">
-                      <div className="w-4 h-4 rounded-full bg-[#c0ffa5] flex items-center justify-center shrink-0">
-                        <Store size={9} className="text-[#004227]" />
+                <div className="w-full flex items-center justify-center">
+                  <div className="w-26 sm:w-28 h-20 sm:h-22 rounded-t-2xl border-2 border-slate-300 bg-white flex flex-col items-center pt-2 relative shadow-xs group-hover:scale-105 transition-transform">
+                    <span className="text-[10px] font-mono font-semibold text-slate-500">12:30</span>
+                    <div className="w-30 sm:w-32 bg-slate-50 border border-slate-200 rounded-lg p-1.5 sm:p-2 flex items-center justify-between shadow-sm mt-1">
+                      <div className="w-5 h-5 rounded-full bg-[#c0ffa5] flex items-center justify-center shrink-0">
+                        <Store size={10} className="text-[#004227]" />
                       </div>
-                      <div className="flex flex-col text-left pl-1">
-                        <span className="text-[9px] font-bold text-slate-800 leading-tight">Ticket #1042</span>
-                        <span className="text-[8px] font-semibold text-[#006a43] leading-tight">$18.50 Listo</span>
+                      <div className="flex flex-col text-left pl-1.5">
+                        <span className="text-[10px] font-bold text-slate-800 leading-tight">Ticket #1042</span>
+                        <span className="text-[9px] font-semibold text-[#006a43] leading-tight">$18.50 Listo</span>
                       </div>
                     </div>
                   </div>
@@ -984,15 +984,15 @@ export default function LandingHome() {
               {/* 3. Firma digital .p12 */}
               <div
                 onClick={() => navigate('/register')}
-                className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 flex flex-col justify-between items-start h-[250px] sm:h-[270px] hover:border-slate-400 hover:shadow-xs transition-all duration-200 cursor-pointer group"
+                className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 flex flex-col items-center justify-center gap-4 sm:gap-5 min-h-[220px] sm:min-h-[240px] hover:border-slate-400 hover:shadow-xs transition-all duration-200 cursor-pointer group text-center select-none"
               >
-                <h3 className="font-bold text-slate-900 text-base sm:text-[17px] leading-snug">
+                <h3 className="font-bold text-slate-900 text-base sm:text-[17px] leading-snug text-center w-full">
                   Firma digital<br />.p12
                 </h3>
-                <div className="w-full flex items-center justify-center pt-2">
-                  <div className="w-16 h-16 rounded-2xl bg-[#006a43] flex items-center justify-center relative shadow-xs group-hover:scale-105 transition-transform">
-                    <KeyRound size={28} className="text-white" />
-                    <div className="absolute -top-1.5 -right-1.5 px-1.5 py-0.5 rounded-full bg-[#c0ffa5] border border-[#7deda9] flex items-center justify-center text-[8px] font-extrabold text-[#004227] shadow-xs">
+                <div className="w-full flex items-center justify-center">
+                  <div className="w-20 h-20 rounded-2xl bg-[#006a43] flex items-center justify-center relative shadow-xs group-hover:scale-105 transition-transform">
+                    <KeyRound size={36} className="text-white" />
+                    <div className="absolute -top-1.5 -right-1.5 px-2 py-0.5 rounded-full bg-[#c0ffa5] border border-[#7deda9] flex items-center justify-center text-[9px] font-extrabold text-[#004227] shadow-xs">
                       SRI
                     </div>
                   </div>
@@ -1002,26 +1002,26 @@ export default function LandingHome() {
               {/* 4. Envío por WhatsApp */}
               <div
                 onClick={() => navigate('/register')}
-                className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 flex flex-col justify-between items-start h-[250px] sm:h-[270px] hover:border-slate-400 hover:shadow-xs transition-all duration-200 cursor-pointer group"
+                className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 flex flex-col items-center justify-center gap-4 sm:gap-5 min-h-[220px] sm:min-h-[240px] hover:border-slate-400 hover:shadow-xs transition-all duration-200 cursor-pointer group text-center select-none"
               >
-                <h3 className="font-bold text-slate-900 text-base sm:text-[17px] leading-snug">
+                <h3 className="font-bold text-slate-900 text-base sm:text-[17px] leading-snug text-center w-full">
                   Envío por<br />WhatsApp
                 </h3>
-                <div className="w-full flex items-center justify-center pt-2">
-                  <div className="w-26 flex flex-col gap-1.5 group-hover:scale-105 transition-transform">
+                <div className="w-full flex items-center justify-center">
+                  <div className="w-30 sm:w-32 flex flex-col gap-1.5 group-hover:scale-105 transition-transform">
                     <div className="bg-[#f0fdf4] border border-[#b3f4cb] rounded-lg p-1.5 flex items-center justify-between shadow-xs">
                       <div className="flex items-center gap-1.5">
-                        <div className="w-4 h-4 rounded-full bg-[#25D366] text-white flex items-center justify-center text-[8px] font-bold">W</div>
-                        <span className="text-[9px] font-medium text-slate-800">Factura enviada</span>
+                        <div className="w-4.5 h-4.5 rounded-full bg-[#25D366] text-white flex items-center justify-center text-[8px] font-bold shrink-0">W</div>
+                        <span className="text-[10px] font-medium text-slate-800 whitespace-nowrap">Factura enviada</span>
                       </div>
-                      <Check size={11} className="text-[#006a43] stroke-[3]" />
+                      <Check size={12} className="text-[#006a43] stroke-[3] shrink-0" />
                     </div>
                     <div className="bg-slate-50 border border-slate-200 rounded-lg p-1.5 flex items-center justify-between shadow-xs">
                       <div className="flex items-center gap-1.5">
-                        <div className="w-4 h-4 rounded-full bg-[#5aa3e7] text-white flex items-center justify-center text-[8px] font-bold">@</div>
-                        <span className="text-[9px] font-medium text-slate-800">RIDE & XML listo</span>
+                        <div className="w-4.5 h-4.5 rounded-full bg-[#5aa3e7] text-white flex items-center justify-center text-[8px] font-bold shrink-0">@</div>
+                        <span className="text-[10px] font-medium text-slate-800 whitespace-nowrap">RIDE & XML listo</span>
                       </div>
-                      <span className="text-[8px] font-mono text-slate-500">1s</span>
+                      <span className="text-[9px] font-mono text-slate-500 shrink-0">1s</span>
                     </div>
                   </div>
                 </div>
@@ -1030,29 +1030,29 @@ export default function LandingHome() {
               {/* 5. Inventario & Kardex */}
               <div
                 onClick={() => navigate('/register')}
-                className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 flex flex-col justify-between items-start h-[250px] sm:h-[270px] hover:border-slate-400 hover:shadow-xs transition-all duration-200 cursor-pointer group"
+                className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 flex flex-col items-center justify-center gap-4 sm:gap-5 min-h-[220px] sm:min-h-[240px] hover:border-slate-400 hover:shadow-xs transition-all duration-200 cursor-pointer group text-center select-none"
               >
-                <h3 className="font-bold text-slate-900 text-base sm:text-[17px] leading-snug">
+                <h3 className="font-bold text-slate-900 text-base sm:text-[17px] leading-snug text-center w-full">
                   Inventario &<br />Kardex
                 </h3>
-                <div className="w-full flex items-center justify-center pt-2">
-                  <div className="w-24 h-16 rounded-xl border border-slate-300 bg-white p-2 flex flex-col justify-between shadow-xs relative group-hover:scale-105 transition-transform">
+                <div className="w-full flex items-center justify-center">
+                  <div className="w-28 sm:w-30 h-18 sm:h-20 rounded-xl border border-slate-300 bg-white p-2 sm:p-2.5 flex flex-col justify-between shadow-xs relative group-hover:scale-105 transition-transform">
                     <div className="flex items-center justify-between">
-                      <span className="text-[8px] font-mono font-medium text-slate-500 uppercase tracking-wider">Kardex</span>
-                      <span className="text-[8px] font-mono font-bold text-[#006a43] bg-[#f0fdf4] px-1 rounded">142 un</span>
+                      <span className="text-[9px] font-mono font-medium text-slate-500 uppercase tracking-wider">Kardex</span>
+                      <span className="text-[9px] font-mono font-bold text-[#006a43] bg-[#f0fdf4] px-1.5 py-0.5 rounded">142 un</span>
                     </div>
-                    <div className="flex items-center justify-between h-4 px-1 bg-slate-50 rounded">
-                      <div className="w-0.5 h-3 bg-slate-800" />
-                      <div className="w-1 h-3 bg-slate-800" />
-                      <div className="w-0.5 h-3 bg-slate-400" />
-                      <div className="w-1.5 h-3 bg-slate-800" />
-                      <div className="w-0.5 h-3 bg-slate-700" />
-                      <div className="w-1 h-3 bg-slate-800" />
-                      <div className="w-0.5 h-3 bg-slate-400" />
-                      <div className="w-1.5 h-3 bg-slate-800" />
+                    <div className="flex items-center justify-between h-4.5 px-1 bg-slate-50 rounded">
+                      <div className="w-0.5 h-3.5 bg-slate-800" />
+                      <div className="w-1.5 h-3.5 bg-slate-800" />
+                      <div className="w-0.5 h-3.5 bg-slate-400" />
+                      <div className="w-2 h-3.5 bg-slate-800" />
+                      <div className="w-0.5 h-3.5 bg-slate-700" />
+                      <div className="w-1.5 h-3.5 bg-slate-800" />
+                      <div className="w-0.5 h-3.5 bg-slate-400" />
+                      <div className="w-2 h-3.5 bg-slate-800" />
                     </div>
-                    <div className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-[#c0ffa5] border border-[#7deda9] flex items-center justify-center shadow-xs">
-                      <Package size={10} className="text-[#006a43]" />
+                    <div className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-[#c0ffa5] border border-[#7deda9] flex items-center justify-center shadow-xs">
+                      <Package size={11} className="text-[#006a43]" />
                     </div>
                   </div>
                 </div>
@@ -1061,23 +1061,23 @@ export default function LandingHome() {
               {/* 6. Cobros & Bancos (con botón circular negro de flecha como en Brevo) */}
               <div
                 onClick={() => navigate('/soluciones')}
-                className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 flex flex-col justify-between items-start h-[250px] sm:h-[270px] hover:border-slate-400 hover:shadow-xs transition-all duration-200 cursor-pointer group"
+                className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 flex flex-col items-center justify-center gap-4 sm:gap-5 min-h-[220px] sm:min-h-[240px] hover:border-slate-400 hover:shadow-xs transition-all duration-200 cursor-pointer group text-center select-none"
               >
-                <h3 className="font-bold text-slate-900 text-base sm:text-[17px] leading-snug">
+                <h3 className="font-bold text-slate-900 text-base sm:text-[17px] leading-snug text-center w-full">
                   Cobros &<br />Bancos
                 </h3>
-                <div className="w-full flex items-center justify-center pt-2">
-                  <div className="w-22 h-18 rounded-xl border border-slate-200 bg-slate-50/70 p-2 flex flex-col justify-between relative shadow-xs group-hover:scale-105 transition-transform">
-                    <div className="grid grid-cols-3 gap-1 px-1 pt-1">
+                <div className="w-full flex items-center justify-center">
+                  <div className="w-26 sm:w-28 h-18 sm:h-20 rounded-xl border border-slate-200 bg-slate-50/70 p-2 sm:p-2.5 flex flex-col justify-between relative shadow-xs group-hover:scale-105 transition-transform">
+                    <div className="grid grid-cols-3 gap-1.5 px-1.5 pt-1">
                       {[1, 2, 3, 4, 5, 6].map((n) => (
-                        <div key={n} className="w-2.5 h-2.5 rounded-full bg-slate-200 mx-auto" />
+                        <div key={n} className="w-2.5 sm:w-3 h-2.5 sm:h-3 rounded-full bg-slate-200 mx-auto" />
                       ))}
                     </div>
-                    <div className="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full bg-[#c0ffa5] border border-[#7deda9] flex items-center justify-center shadow-xs">
-                      <TrendingUp size={10} className="text-[#006a43]" />
+                    <div className="absolute -top-1.5 -left-1.5 w-6 h-6 rounded-full bg-[#c0ffa5] border border-[#7deda9] flex items-center justify-center shadow-xs">
+                      <TrendingUp size={11} className="text-[#006a43]" />
                     </div>
-                    <div className="absolute -right-2 bottom-1 w-8 h-8 rounded-full bg-[#1b1b1b] group-hover:bg-black text-white flex items-center justify-center shadow-md cursor-pointer transition-transform group-hover:scale-110">
-                      <ArrowRight size={14} className="stroke-[2.5]" />
+                    <div className="absolute -right-2 bottom-1 w-9 h-9 rounded-full bg-[#1b1b1b] group-hover:bg-black text-white flex items-center justify-center shadow-md cursor-pointer transition-transform group-hover:scale-110">
+                      <ArrowRight size={15} className="stroke-[2.5]" />
                     </div>
                   </div>
                 </div>
