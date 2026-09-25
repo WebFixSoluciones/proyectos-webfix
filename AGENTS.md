@@ -502,6 +502,16 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
   - Actualizado el contenedor raíz de `TransactionForm.jsx` para usar siempre `bg-white`, garantizando un lienzo inmaculado, fresco y de alto contraste idéntico al estándar visual de Brevo.
 - **Pruebas y Build**: 41 tests unitarios aprobados, compilación limpia en 6.45s.
 
+### 40. Simplificación del Dashboard a Saludo Inicial y Accesos Directos Centrados (2026-09-25) — COMPLETADO
+- **Despeje Total del Dashboard Principal (`src/components/dashboard/ErpDashboard.jsx`)**:
+  - Removidos el widget de calendario mensual, la tarjeta *"Programado para hoy"*, las tarjetas de métricas (*"Tus contactos"* y *"Uso de tu plan"*), y los botones de acción *"Personalizar página"* y *"Nueva venta"*.
+  - Eliminado el encabezado/título *"Accesos directos"* y el contenedor envolvente tipo card con borde perimetral.
+  - El Dashboard ahora renderiza exclusivamente:
+    1. Saludo inicial en tipografía extrabold de alto impacto (`text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900`): *"Hola, [Nombre]"*, centrado horizontalmente.
+    2. Grid simétrico de tarjetas de accesos directos centrado (`max-w-4xl mx-auto`), sin bordes exteriores envolventes, con tarjetas individuales planas de esquinas redondeadas (`rounded-2xl border border-slate-200/90 bg-white hover:-translate-y-0.5`).
+- **Pruebas y Build**: 41 tests unitarios aprobados, compilación limpia de producción en 8.18s.
+
+
 
 
 
