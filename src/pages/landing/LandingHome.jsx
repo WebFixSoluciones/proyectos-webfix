@@ -963,16 +963,16 @@ export default function LandingHome() {
               {/* 1. Facturación electrónica SRI */}
               <div
                 onClick={() => navigate('/register')}
-                className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 flex flex-col justify-between items-start h-[250px] sm:h-[270px] hover:border-slate-400 hover:shadow-xs transition-all duration-200 cursor-pointer group"
+                className="rounded-2xl border border-slate-200/90 bg-white p-6 sm:p-7 flex flex-col justify-between items-center text-center h-[280px] sm:h-[300px] hover:border-slate-400 hover:shadow-xs transition-all duration-200 cursor-pointer group"
               >
-                <h3 className="font-bold text-slate-900 text-base sm:text-[17px] leading-snug">
+                <h3 className="font-bold text-slate-900 text-lg sm:text-xl lg:text-[21px] leading-snug text-center w-full">
                   Facturación<br />electrónica SRI
                 </h3>
                 <div className="w-full flex items-center justify-center pt-2">
-                  <div className="w-16 h-16 rounded-2xl bg-[#e6f3ff] border border-[#cce7ff] flex items-center justify-center relative shadow-xs group-hover:scale-105 transition-transform">
-                    <FileText size={28} className="text-[#2679c6] stroke-[2]" />
-                    <div className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-[#c0ffa5] border border-[#7deda9] flex items-center justify-center shadow-xs">
-                      <Check size={11} className="text-[#004227] stroke-[3]" />
+                  <div className="w-20 h-20 sm:w-22 sm:h-22 rounded-2xl bg-[#e6f3ff] border border-[#cce7ff] flex items-center justify-center relative shadow-xs group-hover:scale-105 transition-transform">
+                    <FileText size={38} className="text-[#2679c6] stroke-[2]" />
+                    <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-[#c0ffa5] border border-[#7deda9] flex items-center justify-center shadow-xs">
+                      <Check size={13} className="text-[#004227] stroke-[3]" />
                     </div>
                   </div>
                 </div>
@@ -981,21 +981,21 @@ export default function LandingHome() {
               {/* 2. Punto de venta POS */}
               <div
                 onClick={() => navigate('/register')}
-                className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 flex flex-col justify-between items-start h-[250px] sm:h-[270px] hover:border-slate-400 hover:shadow-xs transition-all duration-200 cursor-pointer group"
+                className="rounded-2xl border border-slate-200/90 bg-white p-6 sm:p-7 flex flex-col justify-between items-center text-center h-[280px] sm:h-[300px] hover:border-slate-400 hover:shadow-xs transition-all duration-200 cursor-pointer group"
               >
-                <h3 className="font-bold text-slate-900 text-base sm:text-[17px] leading-snug">
+                <h3 className="font-bold text-slate-900 text-lg sm:text-xl lg:text-[21px] leading-snug text-center w-full">
                   Punto de<br />venta (POS)
                 </h3>
                 <div className="w-full flex items-center justify-center pt-2">
-                  <div className="w-22 h-18 rounded-t-2xl border-2 border-slate-300 bg-white flex flex-col items-center pt-1.5 relative shadow-xs group-hover:scale-105 transition-transform">
-                    <span className="text-[9px] font-mono font-semibold text-slate-500">12:30</span>
-                    <div className="w-26 bg-slate-50 border border-slate-200 rounded-lg p-1.5 flex items-center justify-between shadow-sm mt-1">
-                      <div className="w-4 h-4 rounded-full bg-[#c0ffa5] flex items-center justify-center shrink-0">
-                        <Store size={9} className="text-[#004227]" />
+                  <div className="w-28 sm:w-30 h-22 sm:h-24 rounded-t-2xl border-2 border-slate-300 bg-white flex flex-col items-center pt-2 relative shadow-xs group-hover:scale-105 transition-transform">
+                    <span className="text-[10px] font-mono font-semibold text-slate-500">12:30</span>
+                    <div className="w-32 bg-slate-50 border border-slate-200 rounded-lg p-1.5 flex items-center justify-between shadow-sm mt-1.5">
+                      <div className="w-5 h-5 rounded-full bg-[#c0ffa5] flex items-center justify-center shrink-0">
+                        <Store size={11} className="text-[#004227]" />
                       </div>
-                      <div className="flex flex-col text-left pl-1">
-                        <span className="text-[9px] font-bold text-slate-800 leading-tight">Ticket #1042</span>
-                        <span className="text-[8px] font-semibold text-[#006a43] leading-tight">$18.50 Listo</span>
+                      <div className="flex flex-col text-left pl-1.5">
+                        <span className="text-[10px] font-bold text-slate-800 leading-tight">Ticket #1042</span>
+                        <span className="text-[9px] font-bold text-[#006a43] leading-tight">$18.50 Listo</span>
                       </div>
                     </div>
                   </div>
@@ -1005,15 +1005,15 @@ export default function LandingHome() {
               {/* 3. Firma digital .p12 */}
               <div
                 onClick={() => navigate('/register')}
-                className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 flex flex-col justify-between items-start h-[250px] sm:h-[270px] hover:border-slate-400 hover:shadow-xs transition-all duration-200 cursor-pointer group"
+                className="rounded-2xl border border-slate-200/90 bg-white p-6 sm:p-7 flex flex-col justify-between items-center text-center h-[280px] sm:h-[300px] hover:border-slate-400 hover:shadow-xs transition-all duration-200 cursor-pointer group"
               >
-                <h3 className="font-bold text-slate-900 text-base sm:text-[17px] leading-snug">
+                <h3 className="font-bold text-slate-900 text-lg sm:text-xl lg:text-[21px] leading-snug text-center w-full">
                   Firma digital<br />.p12
                 </h3>
                 <div className="w-full flex items-center justify-center pt-2">
-                  <div className="w-16 h-16 rounded-2xl bg-[#006a43] flex items-center justify-center relative shadow-xs group-hover:scale-105 transition-transform">
-                    <KeyRound size={28} className="text-white" />
-                    <div className="absolute -top-1.5 -right-1.5 px-1.5 py-0.5 rounded-full bg-[#c0ffa5] border border-[#7deda9] flex items-center justify-center text-[8px] font-extrabold text-[#004227] shadow-xs">
+                  <div className="w-20 h-20 sm:w-22 sm:h-22 rounded-2xl bg-[#006a43] flex items-center justify-center relative shadow-xs group-hover:scale-105 transition-transform">
+                    <KeyRound size={36} className="text-white" />
+                    <div className="absolute -top-2 -right-2 px-2 py-0.5 rounded-full bg-[#c0ffa5] border border-[#7deda9] flex items-center justify-center text-[9px] font-extrabold text-[#004227] shadow-xs">
                       SRI
                     </div>
                   </div>
@@ -1023,26 +1023,26 @@ export default function LandingHome() {
               {/* 4. Envío por WhatsApp */}
               <div
                 onClick={() => navigate('/register')}
-                className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 flex flex-col justify-between items-start h-[250px] sm:h-[270px] hover:border-slate-400 hover:shadow-xs transition-all duration-200 cursor-pointer group"
+                className="rounded-2xl border border-slate-200/90 bg-white p-6 sm:p-7 flex flex-col justify-between items-center text-center h-[280px] sm:h-[300px] hover:border-slate-400 hover:shadow-xs transition-all duration-200 cursor-pointer group"
               >
-                <h3 className="font-bold text-slate-900 text-base sm:text-[17px] leading-snug">
+                <h3 className="font-bold text-slate-900 text-lg sm:text-xl lg:text-[21px] leading-snug text-center w-full">
                   Envío por<br />WhatsApp
                 </h3>
                 <div className="w-full flex items-center justify-center pt-2">
-                  <div className="w-26 flex flex-col gap-1.5 group-hover:scale-105 transition-transform">
-                    <div className="bg-[#f0fdf4] border border-[#b3f4cb] rounded-lg p-1.5 flex items-center justify-between shadow-xs">
-                      <div className="flex items-center gap-1.5">
-                        <div className="w-4 h-4 rounded-full bg-[#25D366] text-white flex items-center justify-center text-[8px] font-bold">W</div>
-                        <span className="text-[9px] font-medium text-slate-800">Factura enviada</span>
+                  <div className="w-32 sm:w-34 flex flex-col gap-2 group-hover:scale-105 transition-transform">
+                    <div className="bg-[#f0fdf4] border border-[#b3f4cb] rounded-xl p-2 flex items-center justify-between shadow-xs">
+                      <div className="flex items-center gap-2">
+                        <div className="w-5 h-5 rounded-full bg-[#25D366] text-white flex items-center justify-center text-[9px] font-bold">W</div>
+                        <span className="text-[10px] font-semibold text-slate-800">Factura enviada</span>
                       </div>
-                      <Check size={11} className="text-[#006a43] stroke-[3]" />
+                      <Check size={13} className="text-[#006a43] stroke-[3]" />
                     </div>
-                    <div className="bg-slate-50 border border-slate-200 rounded-lg p-1.5 flex items-center justify-between shadow-xs">
-                      <div className="flex items-center gap-1.5">
-                        <div className="w-4 h-4 rounded-full bg-[#5aa3e7] text-white flex items-center justify-center text-[8px] font-bold">@</div>
-                        <span className="text-[9px] font-medium text-slate-800">RIDE & XML listo</span>
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-2 flex items-center justify-between shadow-xs">
+                      <div className="flex items-center gap-2">
+                        <div className="w-5 h-5 rounded-full bg-[#5aa3e7] text-white flex items-center justify-center text-[9px] font-bold">@</div>
+                        <span className="text-[10px] font-medium text-slate-800">RIDE & XML listo</span>
                       </div>
-                      <span className="text-[8px] font-mono text-slate-500">1s</span>
+                      <span className="text-[9px] font-mono font-bold text-slate-500">1s</span>
                     </div>
                   </div>
                 </div>
@@ -1051,29 +1051,29 @@ export default function LandingHome() {
               {/* 5. Inventario & Kardex */}
               <div
                 onClick={() => navigate('/register')}
-                className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 flex flex-col justify-between items-start h-[250px] sm:h-[270px] hover:border-slate-400 hover:shadow-xs transition-all duration-200 cursor-pointer group"
+                className="rounded-2xl border border-slate-200/90 bg-white p-6 sm:p-7 flex flex-col justify-between items-center text-center h-[280px] sm:h-[300px] hover:border-slate-400 hover:shadow-xs transition-all duration-200 cursor-pointer group"
               >
-                <h3 className="font-bold text-slate-900 text-base sm:text-[17px] leading-snug">
+                <h3 className="font-bold text-slate-900 text-lg sm:text-xl lg:text-[21px] leading-snug text-center w-full">
                   Inventario &<br />Kardex
                 </h3>
                 <div className="w-full flex items-center justify-center pt-2">
-                  <div className="w-24 h-16 rounded-xl border border-slate-300 bg-white p-2 flex flex-col justify-between shadow-xs relative group-hover:scale-105 transition-transform">
+                  <div className="w-28 sm:w-30 h-20 sm:h-22 rounded-2xl border border-slate-300 bg-white p-2.5 flex flex-col justify-between shadow-xs relative group-hover:scale-105 transition-transform">
                     <div className="flex items-center justify-between">
-                      <span className="text-[8px] font-mono font-medium text-slate-500 uppercase tracking-wider">Kardex</span>
-                      <span className="text-[8px] font-mono font-bold text-[#006a43] bg-[#f0fdf4] px-1 rounded">142 un</span>
+                      <span className="text-[9px] font-mono font-semibold text-slate-500 uppercase tracking-wider">Kardex</span>
+                      <span className="text-[9px] font-mono font-extrabold text-[#006a43] bg-[#f0fdf4] px-1.5 py-0.5 rounded">142 un</span>
                     </div>
-                    <div className="flex items-center justify-between h-4 px-1 bg-slate-50 rounded">
-                      <div className="w-0.5 h-3 bg-slate-800" />
-                      <div className="w-1 h-3 bg-slate-800" />
-                      <div className="w-0.5 h-3 bg-slate-400" />
-                      <div className="w-1.5 h-3 bg-slate-800" />
-                      <div className="w-0.5 h-3 bg-slate-700" />
-                      <div className="w-1 h-3 bg-slate-800" />
-                      <div className="w-0.5 h-3 bg-slate-400" />
-                      <div className="w-1.5 h-3 bg-slate-800" />
+                    <div className="flex items-center justify-between h-5 px-1 bg-slate-50 rounded">
+                      <div className="w-0.5 h-3.5 bg-slate-800" />
+                      <div className="w-1 h-3.5 bg-slate-800" />
+                      <div className="w-0.5 h-3.5 bg-slate-400" />
+                      <div className="w-1.5 h-3.5 bg-slate-800" />
+                      <div className="w-0.5 h-3.5 bg-slate-700" />
+                      <div className="w-1 h-3.5 bg-slate-800" />
+                      <div className="w-0.5 h-3.5 bg-slate-400" />
+                      <div className="w-1.5 h-3.5 bg-slate-800" />
                     </div>
-                    <div className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-[#c0ffa5] border border-[#7deda9] flex items-center justify-center shadow-xs">
-                      <Package size={10} className="text-[#006a43]" />
+                    <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-[#c0ffa5] border border-[#7deda9] flex items-center justify-center shadow-xs">
+                      <Package size={12} className="text-[#006a43]" />
                     </div>
                   </div>
                 </div>
@@ -1082,23 +1082,23 @@ export default function LandingHome() {
               {/* 6. Cobros & Bancos (con botón circular negro de flecha como en Brevo) */}
               <div
                 onClick={() => navigate('/soluciones')}
-                className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 flex flex-col justify-between items-start h-[250px] sm:h-[270px] hover:border-slate-400 hover:shadow-xs transition-all duration-200 cursor-pointer group"
+                className="rounded-2xl border border-slate-200/90 bg-white p-6 sm:p-7 flex flex-col justify-between items-center text-center h-[280px] sm:h-[300px] hover:border-slate-400 hover:shadow-xs transition-all duration-200 cursor-pointer group"
               >
-                <h3 className="font-bold text-slate-900 text-base sm:text-[17px] leading-snug">
+                <h3 className="font-bold text-slate-900 text-lg sm:text-xl lg:text-[21px] leading-snug text-center w-full">
                   Cobros &<br />Bancos
                 </h3>
                 <div className="w-full flex items-center justify-center pt-2">
-                  <div className="w-22 h-18 rounded-xl border border-slate-200 bg-slate-50/70 p-2 flex flex-col justify-between relative shadow-xs group-hover:scale-105 transition-transform">
-                    <div className="grid grid-cols-3 gap-1 px-1 pt-1">
+                  <div className="w-26 sm:w-28 h-20 sm:h-22 rounded-2xl border border-slate-200 bg-slate-50/70 p-2.5 flex flex-col justify-between relative shadow-xs group-hover:scale-105 transition-transform">
+                    <div className="grid grid-cols-3 gap-1.5 px-1 pt-1">
                       {[1, 2, 3, 4, 5, 6].map((n) => (
-                        <div key={n} className="w-2.5 h-2.5 rounded-full bg-slate-200 mx-auto" />
+                        <div key={n} className="w-3 h-3 rounded-full bg-slate-200 mx-auto" />
                       ))}
                     </div>
-                    <div className="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full bg-[#c0ffa5] border border-[#7deda9] flex items-center justify-center shadow-xs">
-                      <TrendingUp size={10} className="text-[#006a43]" />
+                    <div className="absolute -top-2 -left-2 w-6 h-6 rounded-full bg-[#c0ffa5] border border-[#7deda9] flex items-center justify-center shadow-xs">
+                      <TrendingUp size={12} className="text-[#006a43]" />
                     </div>
-                    <div className="absolute -right-2 bottom-1 w-8 h-8 rounded-full bg-[#1b1b1b] group-hover:bg-black text-white flex items-center justify-center shadow-md cursor-pointer transition-transform group-hover:scale-110">
-                      <ArrowRight size={14} className="stroke-[2.5]" />
+                    <div className="absolute -right-2.5 -bottom-1.5 w-9 h-9 rounded-full bg-[#1b1b1b] group-hover:bg-black text-white flex items-center justify-center shadow-md cursor-pointer transition-transform group-hover:scale-110">
+                      <ArrowRight size={15} className="stroke-[2.5]" />
                     </div>
                   </div>
                 </div>
