@@ -479,12 +479,9 @@ export default function TransactionsView({ transactions, thirdParties, showToast
               <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--purple-3)","color":"var(--purple-12)"},"className":"p-3"}}>
                 <Sparkles size={24} />
               </UiBox>
-              <UiBox>
-                <UiText as="p" {...{"size":"1","weight":"bold","color":"gray","highContrast":true}}>Captura Inteligente IA / Carga XML</UiText>
-                <UiText as="p" {...{"size":"1","color":"gray","highContrast":true,"weight":"medium","className":"mt-1 max-w-md leading-normal"}}>
-                  Arrastra tu factura (PDF, XML, Imagen) aquí. Gemini la clasificará y auto-completará los campos del formulario de forma instantánea.
-                </UiText>
-              </UiBox>
+              <div className="text-center">
+                <p className="text-xs font-bold text-slate-800">Cargar comprobante (PDF, XML, Imagen)</p>
+              </div>
             </UiBox>
           )}
         </UiBox>
@@ -492,29 +489,30 @@ export default function TransactionsView({ transactions, thirdParties, showToast
 
       {/* TABS DE TIPO DE DOCUMENTO SRI */}
       {!forcedDocType && !isPreventaTab && (
-        <UiBox style={{ borderRadius: "var(--radius-3)", backgroundColor: "var(--color-panel-solid)", border: "1px solid var(--gray-a6)" }} className="inline-flex h-9 items-center justify-start p-1 gap-1 overflow-x-auto custom-scrollbar whitespace-nowrap mb-2">
+        <div className="inline-flex h-9 items-center justify-start p-1 gap-1 overflow-x-auto custom-scrollbar whitespace-nowrap mb-2 bg-slate-100 rounded-full border border-slate-200/80">
           {docTypeTabs.map(tab => {
             const isActive = filterDocType === tab.id;
             return (
-              <UiButton
+              <button
                 key={tab.id}
+                type="button"
                 onClick={() => setFilterDocType(tab.id)}
-                size="1"
-                variant={isActive ? "surface" : "ghost"}
-                color={isActive ? "blue" : "gray"}
-                className="whitespace-nowrap cursor-pointer select-none"
+                className={`px-3 py-1 text-xs rounded-full transition-all cursor-pointer select-none ${
+                  isActive ? 'bg-white text-slate-900 font-semibold shadow-xs' : 'text-slate-600 hover:text-slate-900 font-medium'
+                }`}
               >
                 {tab.label}
-              </UiButton>
+              </button>
             );
           })}
-        </UiBox>
+        </div>
       )}
 
       {/* FILTROS Y BUSQUEDA */}
       <UiBox {...{"className":"flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 mb-6"}}>
         <UiBox>
-          <UiButton
+          <button
+            type="button"
             onClick={() => {
               if (isPreventaTab) {
                 onOpenForm({
@@ -560,9 +558,9 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                 onOpenForm(null);
               }
             }}
-            {...{"variant":"solid","color":"blue","className":"w-full sm:w-auto"}}
+            className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-[#1b1b1b] hover:bg-slate-800 rounded-full transition-colors cursor-pointer w-full sm:w-auto shadow-none"
           >
-            <Plus size={15} /> Registrar {
+            <Plus size={14} /> Registrar {
               isPreventaTab
                 ? 'Preventa'
                 : (forcedDocType 
@@ -573,7 +571,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                             : (docTypeTabs.find(t => t.id === forcedDocType)?.label || forcedDocType))) 
                     : 'Comprobante')
             }
-          </UiButton>
+          </button>
         </UiBox>
 
         <UiBox className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
@@ -631,7 +629,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
       </UiBox>
 
       {/* TABLA DE COMPROBANTES */}
-      <UiBox style={{ borderRadius: "var(--radius-3)", border: "1px solid var(--gray-a6)", backgroundColor: "var(--color-panel-solid)" }} className="overflow-hidden">
+      <div className="border border-slate-200/90 rounded-2xl bg-white overflow-hidden">
         <UiBox className="overflow-x-auto custom-scrollbar">
           <UiTable className="w-full text-left whitespace-nowrap">
             <UiTableHeader style={{ backgroundColor: "var(--gray-2)", color: "var(--gray-12)" }} className="select-none">
@@ -846,7 +844,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
             </UiTableBody>
           </UiTable>
         </UiBox>
-      </UiBox>
+      </div>
 
       {selectedRideTx && (
         <RidePreviewModal 

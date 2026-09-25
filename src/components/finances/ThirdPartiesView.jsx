@@ -107,24 +107,31 @@ export default function ThirdPartiesView({
 
   return (
     <UiBox className="space-y-4 animate-in fade-in duration-300 pb-8">
-      {/* Top Header Card */}
-      <UiCard className="flex items-center justify-between px-4 py-3 bg-[var(--color-panel-solid)] rounded-lg">
-        <UiHeading as="h2" size="4" weight="bold" color="gray" highContrast>
-          {isSupplierView ? 'Gestión de Proveedores' : 'Gestión de Clientes'}
-        </UiHeading>
-        <UiButton
-          onClick={() => { setSelectedClient(null); setViewMode('detail'); }}
-          variant="solid"
-          color="blue"
-          size="2"
-          className="font-medium cursor-pointer flex items-center gap-1.5"
-        >
-          <Plus size={15} /> Nuevo {isSupplierView ? 'Proveedor' : 'Cliente'}
-        </UiButton>
-      </UiCard>
+      {/* Brevo Style Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1">
+        <div className="flex items-center gap-2.5">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+            {isSupplierView ? 'Proveedores' : 'Clientes'}
+          </h1>
+          <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200/80">
+            {filteredData.length}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => { setSelectedClient(null); setViewMode('detail'); }}
+            className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-[#1b1b1b] hover:bg-slate-800 rounded-full transition-colors cursor-pointer shadow-none"
+          >
+            <Plus size={14} /> 
+            <span>Nuevo {isSupplierView ? 'Proveedor' : 'Cliente'}</span>
+          </button>
+        </div>
+      </div>
 
       {/* Filter & Search Bar */}
-      <UiBox className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 bg-[var(--color-panel-solid)] border border-[var(--gray-a5)] rounded-lg">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 bg-white border border-slate-200/90 rounded-2xl">
         <UiBox className="flex-1 max-w-md">
           <UiInput
             type="text" 
@@ -192,17 +199,10 @@ export default function ThirdPartiesView({
             </UiButton>
           )}
         </UiBox>
-      </UiBox>
+      </div>
 
       {/* Main Table */}
-      <UiBox 
-        style={{ 
-          borderRadius: "var(--radius-3)", 
-          border: "1px solid var(--gray-a6)", 
-          backgroundColor: "var(--color-panel-solid)" 
-        }} 
-        className="overflow-hidden"
-      >
+      <div className="border border-slate-200/90 rounded-2xl bg-white overflow-hidden">
         <UiBox className="overflow-x-auto custom-scrollbar">
           <UiTable className="w-full text-left whitespace-nowrap">
             <UiTableHeader style={{ backgroundColor: "var(--gray-2)", color: "var(--gray-12)" }}>
@@ -479,7 +479,7 @@ export default function ThirdPartiesView({
             </UiTableBody>
           </UiTable>
         </UiBox>
-      </UiBox>
+      </div>
     </UiBox>
   );
 }

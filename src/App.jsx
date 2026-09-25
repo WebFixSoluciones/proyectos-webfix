@@ -20,7 +20,12 @@ import {
   Calculator,
   CloudOff,
   AlertCircle,
-  Search
+  Search,
+  HelpCircle,
+  Bell,
+  ChevronDown,
+  LogOut,
+  CreditCard
 } from 'lucide-react';
 
 import { signOut, signInWithEmailAndPassword } from 'firebase/auth';
@@ -88,6 +93,27 @@ export default function App() {
   });
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const mainContentRef = useRef(null);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target)) {
+        setIsProfileMenuOpen(false);
+      }
+    };
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setIsProfileMenuOpen(false);
+    };
+    if (isProfileMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isProfileMenuOpen]);
 
   // Scroll reset al cambiar de pagina/módulo
   useEffect(() => {
@@ -908,7 +934,7 @@ export default function App() {
       <Route path="/superadmin" element={<SuperAdminPage showToast={showToast} />} />
       <Route path="/public/ride" element={<PublicRideView />} />
       <Route path="/app/*" element={
-        <UiBox {...{"style":{"backgroundColor":"var(--gray-2)","color":"var(--gray-12)"},"className":"flex h-screen w-full overflow-hidden relative z-0"}}>
+        <div className="flex h-screen w-full overflow-hidden relative z-0 bg-white text-[#1b1b1b]">
 
       <Sidebar
         isSidebarOpen={isSidebarOpen}
@@ -940,96 +966,174 @@ export default function App() {
       {/* Main Content Area */}
       <UiBox {...{"className":"flex-1 flex flex-col h-full overflow-hidden relative z-10 md:z-[60]"}}>
         
-        {/* Topbar Stripe (Radix Themes Header) */}
-        <UiBox
-          style={{
-            backgroundColor: "var(--color-panel-solid)",
-            borderBottom: "1px solid var(--gray-a4)"
-          }}
-          className="flex items-center px-4 sm:px-6 justify-between gap-4 shrink-0 h-14 select-none"
-        >
-          {/* Left: Sidebar Toggle + Title */}
-          <UiBox className="flex items-center gap-3 sm:gap-4">
-            <UiButton
-              iconOnly
-              variant="ghost"
-              color="gray"
-              size="2"
+        {/* Topbar Stripe (Brevo Design System Header) */}
+        <header className="flex items-center px-4 sm:px-6 justify-between gap-4 shrink-0 h-14 bg-white border-b border-slate-200/80 select-none z-30">
+          {/* Left: Sidebar Toggle + Contextual Breadcrumb */}
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
               onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
-              className="flex items-center justify-center cursor-pointer"
+              className="w-8 h-8 flex items-center justify-center text-slate-600 hover:text-slate-950 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
               title="Alternar Menú Lateral"
             >
               <Menu size={18} />
-            </UiButton>
+            </button>
             {activePageId !== 'dashboard' && (
-              <>
-                <UiBox style={{ backgroundColor: "var(--gray-a4)" }} className="h-4 w-[1px] self-center hidden sm:block" />
-                <UiBox className="flex items-center gap-2.5">
-                  <UiBox
-                    style={{
-                      borderRadius: "var(--radius-2)",
-                      backgroundColor: "var(--gray-a3)",
-                      color: "var(--gray-12)"
-                    }}
-                    className="flex items-center justify-center p-1.5"
-                  >
-                    <IconRenderer name={headerDetails.icon} size={15} />
-                  </UiBox>
-                  <UiHeading as="h1" size="2" weight="bold" color="gray" highContrast className="leading-none text-sm">
-                    {headerDetails.title}
-                  </UiHeading>
-                </UiBox>
-              </>
+              <div className="flex items-center gap-2">
+                <span className="text-slate-300">/</span>
+                <span className="text-xs sm:text-sm font-semibold text-slate-800 tracking-tight">
+                  {headerDetails.title}
+                </span>
+              </div>
             )}
-          </UiBox>
+          </div>
 
-          {/* Right: Actions */}
-          <UiBox className="flex items-center gap-2">
+          {/* Right: Brevo Action Icons & User Profile */}
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            {/* Direct POS button if ventas module is active */}
             {activeModules.ventas && (
-              <UiButton
-                onClick={() => { setVentasInitialSubTab(`pos_${Date.now()}`); setActivePageId('ventas'); }} 
-                size="2"
-                variant="solid"
-                color="blue"
-                className="flex items-center gap-1.5 duration-120 shrink-0 cursor-pointer font-medium"
+              <button
+                type="button"
+                onClick={() => { setVentasInitialSubTab(`pos_${Date.now()}`); setActivePageId('ventas'); }}
+                className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-full transition-colors cursor-pointer mr-1"
                 title="Abrir Punto de Venta (POS)"
               >
-                <Calculator size={14} />
-                <span className="hidden sm:inline">Punto de Venta</span>
-              </UiButton>
+                <Calculator size={13} />
+                <span>Punto de Venta</span>
+              </button>
             )}
 
-            <UiButton
-              onClick={() => setIsGlobalChatOpen(!isGlobalChatOpen)} 
-              size="2"
-              variant={isGlobalChatOpen ? "solid" : "soft"}
-              color="indigo"
-              className="flex items-center gap-1.5 duration-120 shrink-0 cursor-pointer font-medium"
-              title="Abrir Asistente IA"
+            {/* "Uso y plan" button */}
+            <button
+              type="button"
+              onClick={() => { setBillingInitialSubTab('planes'); setActivePageId('billing'); }}
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-slate-700 hover:text-slate-950 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+              title="Ver consumo y planes"
             >
-              <Sparkles size={14} />
-              <span className="hidden sm:inline">Asistente IA</span>
-            </UiButton>
+              <Sparkles size={14} className="text-amber-500 shrink-0" />
+              <span className="hidden sm:inline">Uso y plan</span>
+            </button>
 
-            <UiButton
-              iconOnly
-              variant="ghost"
-              color="gray"
-              size="2"
-              onClick={() => setActivePageId('general_settings')} 
-              className="cursor-pointer" 
+            {/* Help Icon */}
+            <button
+              type="button"
+              onClick={() => setActivePageId('soporte_tecnico')}
+              className="w-8 h-8 flex items-center justify-center text-slate-600 hover:text-slate-950 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+              title="Ayuda y Soporte"
+            >
+              <HelpCircle size={16} />
+            </button>
+
+            {/* Settings Icon */}
+            <button
+              type="button"
+              onClick={() => setActivePageId('general_settings')}
+              className="w-8 h-8 flex items-center justify-center text-slate-600 hover:text-slate-950 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
               title="Configuración"
             >
               <Settings size={16} />
-            </UiButton>
-          </UiBox>
-        </UiBox>
+            </button>
+
+            {/* Notifications Icon */}
+            <button
+              type="button"
+              onClick={() => showToast('Sin notificaciones nuevas', 'info')}
+              className="w-8 h-8 flex items-center justify-center text-slate-600 hover:text-slate-950 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer relative"
+              title="Notificaciones"
+            >
+              <Bell size={16} />
+            </button>
+
+            {/* User Profile Pill & Dropdown (Brevo Style) */}
+            <div className="relative ml-1" ref={profileMenuRef}>
+              <button
+                type="button"
+                onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                className="flex items-center gap-2 pl-1 pr-2 py-1 hover:bg-slate-100 rounded-full transition-colors cursor-pointer select-none"
+                title="Opciones de cuenta"
+              >
+                <div className="w-7 h-7 rounded-full bg-[#1b1b1b] text-white flex items-center justify-center text-xs font-bold tracking-tight shrink-0 shadow-xs">
+                  {((companyProfile?.nombreComercial || companyProfile?.razonSocial || currentUser?.displayName || 'WF').replace(/[^a-zA-Z0-9]/g, '').substring(0, 2) || 'WF').toUpperCase()}
+                </div>
+                <span className="text-xs font-semibold text-slate-800 hidden md:inline max-w-[130px] truncate uppercase tracking-tight">
+                  {companyProfile?.nombreComercial || companyProfile?.razonSocial || currentUser?.displayName || 'WebFix'}
+                </span>
+                <ChevronDown size={13} className={`text-slate-500 shrink-0 transition-transform duration-150 ${isProfileMenuOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* Profile Dropdown Menu */}
+              {isProfileMenuOpen && (
+                <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-2xl border border-slate-200/90 shadow-xl py-2 z-50 animate-in fade-in duration-150">
+                  <div className="px-4 py-2.5 flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-[#1b1b1b] text-white flex items-center justify-center text-xs font-bold tracking-tight shrink-0">
+                      {((companyProfile?.nombreComercial || companyProfile?.razonSocial || currentUser?.displayName || 'WF').replace(/[^a-zA-Z0-9]/g, '').substring(0, 2) || 'WF').toUpperCase()}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-bold text-slate-900 truncate">Mi perfil</p>
+                      <p className="text-[11px] text-slate-500 truncate">{currentUser?.email || 'admin@webfix.ec'}</p>
+                    </div>
+                  </div>
+                  <div className="h-[1px] bg-slate-100 my-1" />
+                  
+                  <button
+                    type="button"
+                    onClick={() => { setIsProfileMenuOpen(false); setBillingInitialSubTab('planes'); setActivePageId('billing'); }}
+                    className="w-full px-4 py-2 text-left text-xs font-medium text-slate-700 hover:text-slate-950 hover:bg-slate-50 flex items-center gap-2.5 transition-colors cursor-pointer"
+                  >
+                    <CreditCard size={15} className="text-slate-500" />
+                    <span>Mi plan</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => { setIsProfileMenuOpen(false); setIsGlobalChatOpen(true); }}
+                    className="w-full px-4 py-2 text-left text-xs font-medium text-slate-700 hover:text-slate-950 hover:bg-slate-50 flex items-center gap-2.5 transition-colors cursor-pointer"
+                  >
+                    <Sparkles size={15} className="text-indigo-600" />
+                    <span>Centro de control de IA</span>
+                  </button>
+
+                  <div className="h-[1px] bg-slate-100 my-1" />
+
+                  <button
+                    type="button"
+                    onClick={() => { setIsProfileMenuOpen(false); setActivePageId('general_settings'); }}
+                    className="w-full px-4 py-2 text-left text-xs font-medium text-slate-700 hover:text-slate-950 hover:bg-slate-50 flex items-center gap-2.5 transition-colors cursor-pointer"
+                  >
+                    <Settings size={15} className="text-slate-500" />
+                    <span>Configuración</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => { setIsProfileMenuOpen(false); setActivePageId('soporte_tecnico'); }}
+                    className="w-full px-4 py-2 text-left text-xs font-medium text-slate-700 hover:text-slate-950 hover:bg-slate-50 flex items-center gap-2.5 transition-colors cursor-pointer"
+                  >
+                    <HelpCircle size={15} className="text-slate-500" />
+                    <span>Soporte técnico</span>
+                  </button>
+
+                  <div className="h-[1px] bg-slate-100 my-1" />
+
+                  <button
+                    type="button"
+                    onClick={() => { setIsProfileMenuOpen(false); handleLogout(); }}
+                    className="w-full px-4 py-2 text-left text-xs font-medium text-red-600 hover:text-red-700 hover:bg-red-50 flex items-center gap-2.5 transition-colors cursor-pointer"
+                  >
+                    <LogOut size={15} className="text-red-500" />
+                    <span>Cerrar sesión</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </header>
 
         {/* Content Wrapper with AI Chat sidebar */}
-        <UiBox {...{"className":"flex-1 flex overflow-hidden min-h-0 relative"}}>
+        <UiBox {...{"className":"flex-1 flex overflow-hidden min-h-0 relative bg-white"}}>
 
           {/* Editor Area */}
-          <UiBox ref={mainContentRef} className="flex-1 overflow-y-auto scroll-smooth custom-scrollbar pb-8 pt-4 px-4 md:px-6">
+          <UiBox ref={mainContentRef} className="flex-1 overflow-y-auto scroll-smooth custom-scrollbar pb-8 pt-4 px-4 md:px-6 bg-white">
             <UiBox className="max-w-[1600px] w-full mx-auto">
               {planStatus === 'suspended' && activePageId !== 'billing' ? (
                 <UiBox {...{"className":"flex flex-col items-center justify-center p-12 text-center h-[70vh] w-full select-none animate-in fade-in duration-300"}}>
@@ -1300,7 +1404,7 @@ export default function App() {
         </UiBox>
       )}
 
-        </UiBox>
+        </div>
       } />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

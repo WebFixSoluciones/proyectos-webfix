@@ -434,6 +434,35 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
   - Bordes redondeados generosos (`rounded-[32px]`), micro-elevación suave en hover (`hover:-translate-y-1`), cero dobles bordes y tipografía bold de alto contraste.
 - **Pruebas y Build**: 43 tests unitarios aprobados, compilación de producción limpia en 7.55s.
 
+### 36. Rediseño del Entorno de Administración ERP según el Sistema de Diseño Brevo (2026-09-25) — COMPLETADO
+- **Header Superior Brevo (`src/App.jsx`)**:
+  - Fondo blanco puro `#ffffff` con borde inferior sutil `border-b border-slate-200/80`.
+  - Alternador de menú lateral minimalista con icono de panel y breadcrumb contextual (`/ [Módulo activo]`).
+  - Botón de texto/píldora "✦ Uso y plan" con icono de destello `Sparkles` dorado, acceso directo a Punto de Venta POS, y botones de icono limpios para Ayuda (`HelpCircle` -> soporte), Ajustes (`Settings` -> configuración) y Notificaciones (`Bell`).
+  - Píldora de Perfil de Usuario con avatar circular (`WF` / iniciales sobre fondo sólido `#1b1b1b`), nombre de empresa truncado con `ChevronDown` y menú desplegable interactivo con:
+    - Tarjeta de usuario con avatar, "Mi perfil" y correo electrónico.
+    - "🗂 Mi plan" (navigación a suscripción).
+    - "✦ Centro de control de IA" (abre asistente lateral de IA).
+    - "⚙ Configuración" y "🎧 Soporte técnico".
+    - "🚪 Cerrar sesión" (ejecución segura de `handleLogout()`).
+- **Sidebar de Navegación Brevo (`src/components/Sidebar.jsx`)**:
+  - Fondo blanco puro `bg-white border-r border-slate-200/90`.
+  - Logotipo WebFix en verde bosque `#0b996e` semibold con badge `ERP` esmeralda.
+  - Ítem Activo con píldora verde menta suave `bg-[#c0ffa5] text-[#004227] font-semibold rounded-xl` y barra indicadora vertical verde en el borde derecho (`border-r-2 border-[#0b996e]`).
+  - Ítems inactivos en `text-slate-700 hover:text-slate-950 hover:bg-slate-100/80 rounded-xl font-medium`.
+  - Submódulos anidados con píldoras de navegación idénticas a Brevo (`bg-[#c0ffa5]` al estar activo, `text-slate-600 hover:bg-slate-100` inactivos).
+- **Dashboard Principal Brevo (`src/components/dashboard/ErpDashboard.jsx`)**:
+  - Encabezado "Hola, [Nombre]" con botón "Personalizar página" (modal de atajos) y botón píldora negra "+ Nueva venta".
+  - **Widget de Calendario Mensual Interactivo**: vista de días del mes actual con navegación `< >`, cabeceras lun-dom y marcador de día de hoy en círculo sólido `#1b1b1b`.
+  - **Tarjeta "Programado para hoy"**: dropdown "+ Crear ▾" con accesos directos (Venta SRI, Compra, Cliente, Producto) y dos tarjetas de recomendación rápida con iconos circulares verdes.
+  - **Tarjeta "Tus contactos & ventas"**: métricas dinámicas reales de total de clientes y comprobantes emitidos en el mes con enlaces directos.
+  - **Tarjeta "Uso de tu plan"**: barras de recursos para comprobantes SRI ilimitados, firma electrónica activa y sincronización en tiempo real.
+  - **Accesos directos personalizables**: tarjetas planas de fondo blanco con acentos de color pastel, 100% compatibles con `ShortcutCustomizerModal`.
+- **Estandarización de Encabezados y Tablas de Módulos**:
+  - `FinancialPageHeader.jsx`: simplificado a título, badge numérico, icono informativo y acciones en píldora sin descripciones largas.
+  - `ThirdPartiesView.jsx` y `TransactionsView.jsx`: encabezados planos, botones de acción en píldora negra sólida `#1b1b1b`, tabs en píldora Brevo y tablas planas con `border border-slate-200/90 rounded-2xl bg-white overflow-hidden`.
+- **Pruebas y Build**: 41 tests de comercio/SRI + 2 tests de animación aprobados (43/43), compilación de producción exitosa en 5.04s.
+
 
 
 

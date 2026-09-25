@@ -1,5 +1,4 @@
-import { UiBox, UiHeading, UiText } from '../ui/layout';
-import { Badge } from '../ui/badge';
+import { Info } from 'lucide-react';
 
 export default function FinancialPageHeader({
   icon: Icon,
@@ -10,37 +9,37 @@ export default function FinancialPageHeader({
   actions
 }) {
   return (
-    <UiBox className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 mb-1 border-b border-[var(--gray-a5)]">
-      <UiBox className="flex items-center gap-3 min-w-0">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 mb-3 border-b border-slate-200/80">
+      <div className="flex items-center gap-3 min-w-0">
         {Icon && (
-          <UiBox className="w-10 h-10 rounded-lg bg-[var(--accent-3)] text-[var(--accent-11)] flex items-center justify-center shrink-0 border border-[var(--accent-6)] shadow-xs">
-            <Icon size={20} />
-          </UiBox>
+          <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-800 flex items-center justify-center shrink-0 border border-slate-200/60">
+            <Icon size={18} />
+          </div>
         )}
-        <UiBox className="min-w-0">
-          <UiBox className="flex items-center gap-2 flex-wrap">
-            <UiHeading as="h2" size="4" weight="bold" color="gray" highContrast className="tracking-tight">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight leading-none">
               {title}
-            </UiHeading>
+            </h2>
             {badge && (
-              <Badge variant="soft" color={badgeColor} size="1">
+              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200/60">
                 {badge}
-              </Badge>
+              </span>
             )}
-          </UiBox>
-          {description && (
-            <UiText as="p" size="1" color="gray" className="truncate mt-0.5">
-              {description}
-            </UiText>
-          )}
-        </UiBox>
-      </UiBox>
+            {description && (
+              <span title={description} className="text-slate-400 hover:text-slate-600 cursor-help transition-colors">
+                <Info size={14} />
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
 
       {actions && (
-        <UiBox className="flex items-center gap-2 shrink-0 flex-wrap">
+        <div className="flex items-center gap-2 shrink-0 flex-wrap">
           {actions}
-        </UiBox>
+        </div>
       )}
-    </UiBox>
+    </div>
   );
 }

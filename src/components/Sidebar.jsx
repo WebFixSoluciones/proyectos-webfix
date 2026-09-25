@@ -11,74 +11,83 @@ export default function Sidebar({
   comprasInitialSubTab, setComprasInitialSubTab,
   inventarioInitialSubTab, setInventarioInitialSubTab,
   contabilidadInitialSubTab, setContabilidadInitialSubTab,
- billingInitialSubTab, setBillingInitialSubTab,
- personasSubTab, setPersonasSubTab,
- trash, handleLogout
+  billingInitialSubTab, setBillingInitialSubTab,
+  personasSubTab, setPersonasSubTab,
+  trash, handleLogout
 }) {
- const closeMobile = () => { if(window.innerWidth < 768) setIsSidebarOpen(false); };
+  const closeMobile = () => { if(window.innerWidth < 768) setIsSidebarOpen(false); };
 
-  const navBase = "group flex items-center gap-2.5 w-full px-2.5 py-2 rounded-md transition-all text-[13px] font-medium tracking-tight";
-  const navActive = "bg-[var(--accent-3)] text-[var(--accent-11)] font-semibold";
-  const navInactive = "text-[var(--gray-11)] hover:bg-[var(--gray-a3)] hover:text-[var(--gray-12)]";
+  const navBase = "group relative flex items-center justify-between w-full px-3 py-2.5 rounded-xl transition-all text-[13px] tracking-tight cursor-pointer";
+  const navActive = "bg-[#c0ffa5] text-[#004227] font-semibold";
+  const navInactive = "text-slate-700 hover:text-slate-950 hover:bg-slate-100/80 font-medium";
   const navBtnClass = (isActive) => `${navBase} ${isActive ? navActive : navInactive}`;
 
-  const iconClass = (isActive) => `shrink-0 transition-colors ${isActive ? 'text-[var(--accent-11)]' : 'text-[var(--gray-10)] group-hover:text-[var(--gray-12)]'}`;
+  const iconClass = (isActive) => `shrink-0 transition-colors ${isActive ? 'text-[#004227]' : 'text-slate-600 group-hover:text-slate-900'}`;
 
-  const subBase = "block w-full text-left py-1.5 px-2.5 rounded-md text-xs font-medium transition-all tracking-tight";
-  const subActive = "text-[var(--accent-11)] font-semibold bg-[var(--accent-3)]";
-  const subInactive = "text-[var(--gray-11)] hover:text-[var(--gray-12)] hover:bg-[var(--gray-a3)]";
+  const subBase = "block w-full text-left py-1.5 px-3 rounded-lg text-xs tracking-tight transition-all cursor-pointer";
+  const subActive = "text-[#004227] font-semibold bg-[#c0ffa5]";
+  const subInactive = "text-slate-600 hover:text-slate-950 hover:bg-slate-100 font-medium";
   const subItemClass = (isActive) => `${subBase} ${isActive ? subActive : subInactive}`;
 
-  const menuBorderClass = "pl-6 pr-2 space-y-0.5 border-l border-[var(--gray-a4)] ml-4 mt-1 select-none";
+  const menuBorderClass = "pl-4 pr-1 space-y-0.5 border-l border-slate-200 ml-4 mt-1 select-none";
 
- return (
- <>
- {isSidebarOpen && <div className="fixed inset-0 bg-black/40 z-40 md:hidden transition-opacity duration-200" onClick={() => setIsSidebarOpen(false)} />}
- 
- <div className={`flex flex-col border-r border-[var(--gray-a4)] bg-[var(--color-panel-solid)] transition-all duration-300 z-50 absolute md:relative h-full ${isSidebarOpen ? 'translate-x-0 w-[80vw] max-w-60' : '-translate-x-full md:translate-x-0 w-0 hidden md:flex md:w-16'}`}>
- 
+  return (
+    <>
+      {isSidebarOpen && <div className="fixed inset-0 bg-black/30 z-40 md:hidden transition-opacity duration-200" onClick={() => setIsSidebarOpen(false)} />}
+      
+      <aside className={`flex flex-col border-r border-slate-200/90 bg-white transition-all duration-300 z-50 absolute md:relative h-full select-none ${isSidebarOpen ? 'translate-x-0 w-[80vw] max-w-60' : '-translate-x-full md:translate-x-0 w-0 hidden md:flex md:w-16'}`}>
+      
+        {/* Sidebar Brand Header */}
         <button 
           type="button"
           onClick={() => { setActivePageId('dashboard'); closeMobile(); }}
-          className={`h-14 w-full flex items-center ${isSidebarOpen ? 'justify-between px-4' : 'justify-center'} border-b border-[var(--gray-a4)] shrink-0 overflow-hidden cursor-pointer hover:bg-[var(--gray-a2)] transition-colors text-left`}
-          title="Ir al Dashboard Principal"
+          className={`h-14 w-full flex items-center ${isSidebarOpen ? 'justify-between px-4' : 'justify-center'} border-b border-slate-200/80 shrink-0 overflow-hidden cursor-pointer hover:bg-slate-50 transition-colors text-left`}
+          title="Ir al Inicio"
         >
           {isSidebarOpen ? (
             <div className="flex items-center gap-2.5">
               {companyProfile?.logoUrl ? (
-                <img src={companyProfile.logoUrl} alt="Logo" className="max-h-8 object-contain rounded" />
+                <img src={companyProfile.logoUrl} alt="Logo" className="max-h-7 object-contain rounded" />
               ) : (
-                <span className="text-sm font-semibold text-[var(--gray-12)] tracking-tight">
-                  {companyProfile?.nombreComercial || companyProfile?.razonSocial || 'WebFix'}
-                </span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-lg font-bold text-[#0b996e] tracking-tight">WebFix</span>
+                  <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-emerald-100 text-[#004227]">ERP</span>
+                </div>
               )}
             </div>
           ) : (
             companyProfile?.logoUrl ? (
               <img src={companyProfile.logoUrl} alt="Logo" className="w-7 h-7 rounded object-contain" />
             ) : (
-              <div className="w-7 h-7 rounded-md bg-[var(--accent-9)] text-white flex items-center justify-center font-semibold text-xs">
-                {String(companyProfile?.nombreComercial || companyProfile?.razonSocial || 'W').charAt(0).toUpperCase()}
+              <div className="w-7 h-7 rounded-lg bg-[#0b996e] text-white flex items-center justify-center font-bold text-xs">
+                W
               </div>
             )
           )}
         </button>
- 
-        <div className="flex-1 overflow-y-auto px-2.5 space-y-1 py-2 custom-scrollbar">
- 
-          <button onClick={() => { setActivePageId('dashboard'); closeMobile(); }} className={navBtnClass(activePageId ==='dashboard')}>
-            <LayoutDashboard size={16} className={iconClass(activePageId ==='dashboard')} />
-            {isSidebarOpen && <span>Mi espacio</span>}
+      
+        {/* Navigation Modules */}
+        <div className="flex-1 overflow-y-auto px-2.5 space-y-1 py-3 custom-scrollbar">
+      
+          {/* Inicio (Dashboard) */}
+          <button onClick={() => { setActivePageId('dashboard'); closeMobile(); }} className={navBtnClass(activePageId === 'dashboard')}>
+            <div className="flex items-center gap-3">
+              <LayoutDashboard size={16} className={iconClass(activePageId === 'dashboard')} />
+              {isSidebarOpen && <span>Inicio</span>}
+            </div>
+            {activePageId === 'dashboard' && <span className="absolute -right-2.5 top-1.5 bottom-1.5 w-1 bg-[#0b996e] rounded-l" />}
           </button>
- 
+      
+          {/* Ventas */}
           {activeModules.ventas && (
             <div className="space-y-0.5">
-              <button onClick={() => { setExpandedSidebarMenu(expandedSidebarMenu ==='ventas' ? null :'ventas'); setVentasInitialSubTab('resumen_ventas'); setActivePageId('ventas'); }} className={navBtnClass(activePageId ==='ventas')}>
+              <button onClick={() => { setExpandedSidebarMenu(expandedSidebarMenu === 'ventas' ? null : 'ventas'); setVentasInitialSubTab('resumen_ventas'); setActivePageId('ventas'); }} className={navBtnClass(activePageId === 'ventas')}>
                 <div className="flex items-center gap-3 flex-1">
-                  <ShoppingCart size={16} className={iconClass(activePageId ==='ventas')} />
+                  <ShoppingCart size={16} className={iconClass(activePageId === 'ventas')} />
                   {isSidebarOpen && <span>Ventas</span>}
                 </div>
-                {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu ==='ventas' ?'rotate-180' :''} text-[var(--gray-10)]`} />}
+                {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu === 'ventas' ? 'rotate-180' : ''} text-slate-500`} />}
+                {activePageId === 'ventas' && <span className="absolute -right-2.5 top-1.5 bottom-1.5 w-1 bg-[#0b996e] rounded-l" />}
               </button>
               {isSidebarOpen && expandedSidebarMenu === 'ventas' && (
                 <div className={menuBorderClass}>
@@ -87,7 +96,7 @@ export default function Sidebar({
                     { id: 'ventas_nueva', label: 'Registrar Venta' },
                     { id: 'preventas', label: 'Preventas' },
                     { id: 'quotes', label: 'Cotizaciones' },
-                    { id: 'nota_credito', label: 'Notas de Credito' },
+                    { id: 'nota_credito', label: 'Notas de Crédito' },
                     { id: 'retencion', label: 'Retenciones de Venta' },
                     { id: 'discounts', label: 'Descuentos y Promos' }
                   ].map(sub => {
@@ -116,201 +125,237 @@ export default function Sidebar({
             </div>
           )}
 
-  {activeModules.compras && (
-    <div className="space-y-0.5">
-      <button 
-        onClick={() => { 
-          setExpandedSidebarMenu(expandedSidebarMenu === 'compras' ? null : 'compras'); 
-          setComprasInitialSubTab('compras_resumen'); 
-          setActivePageId('compras'); 
-        }} 
-        className={navBtnClass(activePageId === 'compras')}
-      >
-        <div className="flex items-center gap-3 flex-1">
-          <ShoppingBag size={16} className={iconClass(activePageId === 'compras')} />
-          {isSidebarOpen && <span>Compras</span>}
-        </div>
-        {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu === 'compras' ? 'rotate-180' : ''} text-[var(--gray-10)]`} />}
-      </button>
-      {isSidebarOpen && expandedSidebarMenu === 'compras' && (
-        <div className={menuBorderClass}>
-          {[
-            { id: 'compras_resumen', label: 'Historial de Compras' },
-            { id: 'compras_preventa', label: 'Registrar Compra' },
-            { id: 'compras_nc', label: 'Notas de Credito Recibidas' },
-            { id: 'compras_nd', label: 'Notas de Debito Recibidas' },
-            { id: 'compras_retencion', label: 'Retenciones de Compras' }
-          ].map(sub => {
-            const isActive = activePageId === 'compras' && (
-              sub.id === 'compras_preventa' 
-                ? (comprasInitialSubTab && String(comprasInitialSubTab).startsWith('compras_preventa'))
-                : comprasInitialSubTab === sub.id
-            );
-            return (
+          {/* Compras */}
+          {activeModules.compras && (
+            <div className="space-y-0.5">
               <button 
-                key={sub.id} 
                 onClick={() => { 
-                  const targetId = sub.id === 'compras_preventa' ? `compras_preventa_${Date.now()}` : sub.id;
-                  setComprasInitialSubTab(targetId); 
+                  setExpandedSidebarMenu(expandedSidebarMenu === 'compras' ? null : 'compras'); 
+                  setComprasInitialSubTab('compras_resumen'); 
                   setActivePageId('compras'); 
-                  closeMobile(); 
                 }} 
-                className={subItemClass(isActive)}
+                className={navBtnClass(activePageId === 'compras')}
               >
-                {sub.label}
+                <div className="flex items-center gap-3 flex-1">
+                  <ShoppingBag size={16} className={iconClass(activePageId === 'compras')} />
+                  {isSidebarOpen && <span>Compras</span>}
+                </div>
+                {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu === 'compras' ? 'rotate-180' : ''} text-slate-500`} />}
+                {activePageId === 'compras' && <span className="absolute -right-2.5 top-1.5 bottom-1.5 w-1 bg-[#0b996e] rounded-l" />}
               </button>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  )}
+              {isSidebarOpen && expandedSidebarMenu === 'compras' && (
+                <div className={menuBorderClass}>
+                  {[
+                    { id: 'compras_resumen', label: 'Historial de Compras' },
+                    { id: 'compras_preventa', label: 'Registrar Compra' },
+                    { id: 'compras_nc', label: 'Notas de Crédito Recibidas' },
+                    { id: 'compras_nd', label: 'Notas de Débito Recibidas' },
+                    { id: 'compras_retencion', label: 'Retenciones de Compras' }
+                  ].map(sub => {
+                    const isActive = activePageId === 'compras' && (
+                      sub.id === 'compras_preventa' 
+                        ? (comprasInitialSubTab && String(comprasInitialSubTab).startsWith('compras_preventa'))
+                        : comprasInitialSubTab === sub.id
+                    );
+                    return (
+                      <button 
+                        key={sub.id} 
+                        onClick={() => { 
+                          const targetId = sub.id === 'compras_preventa' ? `compras_preventa_${Date.now()}` : sub.id;
+                          setComprasInitialSubTab(targetId); 
+                          setActivePageId('compras'); 
+                          closeMobile(); 
+                        }} 
+                        className={subItemClass(isActive)}
+                      >
+                        {sub.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
 
-  {activeModules.finances && (
-    <div className="space-y-0.5">
-      <button 
-        onClick={() => { 
-          setExpandedSidebarMenu(expandedSidebarMenu === 'finanzas' ? null : 'finanzas'); 
-          setContabilidadInitialSubTab('resumen_financiero'); 
-          setActivePageId('finances'); 
-        }} 
-        className={navBtnClass(activePageId === 'finances')}
-      >
-        <div className="flex items-center gap-3 flex-1">
-          <DollarSign size={16} className={iconClass(activePageId === 'finances')} />
-          {isSidebarOpen && <span>Control Financiero</span>}
-        </div>
-        {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu === 'finanzas' ? 'rotate-180' : ''} text-[var(--gray-10)]`} />}
-      </button>
-      {isSidebarOpen && expandedSidebarMenu === 'finanzas' && (
-        <div className={menuBorderClass}>
-          {[
-            { id: 'resumen_financiero', label: 'Resumen' },
-            { id: 'movimientos', label: 'Movimientos' },
-            { id: 'cxc', label: 'Cuentas por Cobrar' },
-            { id: 'cxp', label: 'Cuentas por Pagar' },
-            { id: 'bancos', label: 'Bancos y Caja' },
-            { id: 'tarjetas', label: 'Tarjetas y Créditos' },
-            { id: 'prestamos', label: 'Préstamos' },
-            { id: 'captura', label: 'Captura Inteligente' },
-            { id: 'contabilidad_tab', label: 'Contabilidad' },
-            { id: 'impuestos', label: 'Impuestos y SRI' },
-            { id: 'reportes', label: 'Reportes' }
-          ].map(sub => {
-            const isActive = activePageId === 'finances' && contabilidadInitialSubTab === sub.id;
-            return (
+          {/* Control Financiero */}
+          {activeModules.finances && (
+            <div className="space-y-0.5">
               <button 
-                key={sub.id} 
                 onClick={() => { 
-                  setContabilidadInitialSubTab(sub.id); 
+                  setExpandedSidebarMenu(expandedSidebarMenu === 'finanzas' ? null : 'finanzas'); 
+                  setContabilidadInitialSubTab('resumen_financiero'); 
                   setActivePageId('finances'); 
-                  closeMobile(); 
                 }} 
-                className={subItemClass(isActive)}
+                className={navBtnClass(activePageId === 'finances')}
               >
-                {sub.label}
+                <div className="flex items-center gap-3 flex-1">
+                  <DollarSign size={16} className={iconClass(activePageId === 'finances')} />
+                  {isSidebarOpen && <span>Finanzas</span>}
+                </div>
+                {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu === 'finanzas' ? 'rotate-180' : ''} text-slate-500`} />}
+                {activePageId === 'finances' && <span className="absolute -right-2.5 top-1.5 bottom-1.5 w-1 bg-[#0b996e] rounded-l" />}
               </button>
-            );
-          })}
+              {isSidebarOpen && expandedSidebarMenu === 'finanzas' && (
+                <div className={menuBorderClass}>
+                  {[
+                    { id: 'resumen_financiero', label: 'Resumen' },
+                    { id: 'movimientos', label: 'Movimientos' },
+                    { id: 'cxc', label: 'Cuentas por Cobrar' },
+                    { id: 'cxp', label: 'Cuentas por Pagar' },
+                    { id: 'bancos', label: 'Bancos y Caja' },
+                    { id: 'tarjetas', label: 'Tarjetas y Créditos' },
+                    { id: 'prestamos', label: 'Préstamos' },
+                    { id: 'captura', label: 'Captura Inteligente' },
+                    { id: 'contabilidad_tab', label: 'Contabilidad' },
+                    { id: 'impuestos', label: 'Impuestos y SRI' },
+                    { id: 'reportes', label: 'Reportes' }
+                  ].map(sub => {
+                    const isActive = activePageId === 'finances' && contabilidadInitialSubTab === sub.id;
+                    return (
+                      <button 
+                        key={sub.id} 
+                        onClick={() => { 
+                          setContabilidadInitialSubTab(sub.id); 
+                          setActivePageId('finances'); 
+                          closeMobile(); 
+                        }} 
+                        className={subItemClass(isActive)}
+                      >
+                        {sub.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Inventarios */}
+          {activeModules.inventario && (
+            <div className="space-y-0.5">
+              <button onClick={() => { setExpandedSidebarMenu(expandedSidebarMenu === 'inventario' ? null : 'inventario'); setInventarioInitialSubTab('productos'); setActivePageId('inventario'); }} className={navBtnClass(activePageId === 'inventario')}>
+                <div className="flex items-center gap-3 flex-1">
+                  <Package size={16} className={iconClass(activePageId === 'inventario')} />
+                  {isSidebarOpen && <span>Inventarios</span>}
+                </div>
+                {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu === 'inventario' ? 'rotate-180' : ''} text-slate-500`} />}
+                {activePageId === 'inventario' && <span className="absolute -right-2.5 top-1.5 bottom-1.5 w-1 bg-[#0b996e] rounded-l" />}
+              </button>
+              {isSidebarOpen && expandedSidebarMenu === 'inventario' && (
+                <div className={menuBorderClass}>
+                  {[
+                    { id: 'productos', label: 'Catálogo de Productos' },
+                    { id: 'servicios', label: 'Servicios' },
+                    { id: 'categorias', label: 'Categorías y Marcas' },
+                    { id: 'kardex', label: 'Movimientos Kardex' },
+                    { id: 'transferencias', label: 'Transferencias' },
+                    { id: 'ajustes', label: 'Ajustes de Inventario' }
+                  ].map(sub => {
+                    const isActive = activePageId === 'inventario' && (
+                      sub.id === 'servicios'
+                        ? (inventarioInitialSubTab === 'servicios' || String(inventarioInitialSubTab).startsWith('create_service'))
+                        : sub.id === 'productos'
+                        ? (inventarioInitialSubTab === 'productos' || String(inventarioInitialSubTab).startsWith('create_product'))
+                        : inventarioInitialSubTab === sub.id
+                    );
+                    return <button key={sub.id} onClick={() => { setInventarioInitialSubTab(sub.id); setActivePageId('inventario'); closeMobile(); }} className={subItemClass(isActive)}>{sub.label}</button>;
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Personas (Clientes y Proveedores) */}
+          {activeModules.personas && (
+            <div className="space-y-0.5">
+              <button onClick={() => { setExpandedSidebarMenu(expandedSidebarMenu === 'personas_menu' ? null : 'personas_menu'); setPersonasSubTab('cliente'); setActivePageId('personas'); }} className={navBtnClass(activePageId === 'personas')}>
+                <div className="flex items-center gap-3 flex-1">
+                  <Users size={16} className={iconClass(activePageId === 'personas')} />
+                  {isSidebarOpen && <span>Personas</span>}
+                </div>
+                {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu === 'personas_menu' ? 'rotate-180' : ''} text-slate-500`} />}
+                {activePageId === 'personas' && <span className="absolute -right-2.5 top-1.5 bottom-1.5 w-1 bg-[#0b996e] rounded-l" />}
+              </button>
+              {isSidebarOpen && expandedSidebarMenu === 'personas_menu' && (
+                <div className={menuBorderClass}>
+                  {[
+                    { id: 'cliente', label: 'Clientes' },
+                    { id: 'proveedor', label: 'Proveedores' }
+                  ].map(sub => {
+                    const isActive = activePageId === 'personas' && personasSubTab === sub.id;
+                    return <button key={sub.id} onClick={() => { setActivePageId('personas'); setPersonasSubTab(sub.id); closeMobile(); }} className={subItemClass(isActive)}>{sub.label}</button>;
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Ajustes */}
+          <button onClick={() => { setActivePageId('general_settings'); closeMobile(); }} className={navBtnClass(activePageId === 'general_settings')}>
+            <div className="flex items-center gap-3">
+              <Settings size={16} className={iconClass(activePageId === 'general_settings')} />
+              {isSidebarOpen && <span>Ajustes</span>}
+            </div>
+            {activePageId === 'general_settings' && <span className="absolute -right-2.5 top-1.5 bottom-1.5 w-1 bg-[#0b996e] rounded-l" />}
+          </button>
+
+          {/* Suscripción SaaS */}
+          <div className="space-y-0.5">
+            <button onClick={() => { setExpandedSidebarMenu(expandedSidebarMenu === 'billing' ? null : 'billing'); setBillingInitialSubTab('planes'); setActivePageId('billing'); }} className={navBtnClass(activePageId === 'billing')}>
+              <div className="flex items-center gap-3 flex-1">
+                <CreditCard size={16} className={iconClass(activePageId === 'billing')} />
+                {isSidebarOpen && <span>Suscripción</span>}
+              </div>
+              {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu === 'billing' ? 'rotate-180' : ''} text-slate-500`} />}
+              {activePageId === 'billing' && <span className="absolute -right-2.5 top-1.5 bottom-1.5 w-1 bg-[#0b996e] rounded-l" />}
+            </button>
+            {isSidebarOpen && expandedSidebarMenu === 'billing' && (
+              <div className={menuBorderClass}>
+                {[
+                  { id: 'facturacion', label: 'Facturación Electrónica' },
+                  { id: 'paginas', label: 'Páginas Web' },
+                  { id: 'correos', label: 'Correos Corporativos' },
+                  { id: 'whatsapp', label: 'WhatsApp CRM' },
+                  { id: 'pagos', label: 'Historial de Pagos' }
+                ].map(sub => {
+                  const isActive = activePageId === 'billing' && (sub.id === 'pagos' ? (billingInitialSubTab === 'pagos' || billingInitialSubTab === 'historial') : billingInitialSubTab === sub.id);
+                  return <button key={sub.id} onClick={() => { setBillingInitialSubTab(sub.id); setActivePageId('billing'); closeMobile(); }} className={subItemClass(isActive)}>{sub.label}</button>;
+                })}
+              </div>
+            )}
+          </div>
         </div>
-      )}
-    </div>
-  )}
 
-  {activeModules.inventario && (
-  <div className="space-y-0.5">
-  <button onClick={() => { setExpandedSidebarMenu(expandedSidebarMenu ==='inventario' ? null :'inventario'); setInventarioInitialSubTab('productos'); setActivePageId('inventario'); }} className={navBtnClass(activePageId ==='inventario')}>
-  <div className="flex items-center gap-3 flex-1">
-  <Package size={16} className={iconClass(activePageId ==='inventario')} />
-  {isSidebarOpen && <span>Inventarios</span>}
-  </div>
-  {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu ==='inventario' ?'rotate-180' :''} text-[var(--gray-10)]`} />}
-  </button>
-  {isSidebarOpen && expandedSidebarMenu ==='inventario' && (
-  <div className={menuBorderClass}>
-  {[
-    { id:'productos', label:'Catálogo de Productos' },
-    { id:'servicios', label:'Servicios' },
-    { id:'categorias', label:'Categorías y Marcas' },
-    { id:'kardex', label:'Movimientos Kardex' },
-    { id:'transferencias', label:'Transferencias' },
-    { id:'ajustes', label:'Ajustes de Inventario' }
-  ].map(sub => {
-    const isActive = activePageId === 'inventario' && (
-      sub.id === 'servicios'
-        ? (inventarioInitialSubTab === 'servicios' || String(inventarioInitialSubTab).startsWith('create_service'))
-        : sub.id === 'productos'
-        ? (inventarioInitialSubTab === 'productos' || String(inventarioInitialSubTab).startsWith('create_product'))
-        : inventarioInitialSubTab === sub.id
-    );
-    return <button key={sub.id} onClick={() => { setInventarioInitialSubTab(sub.id); setActivePageId('inventario'); closeMobile(); }} className={subItemClass(isActive)}>{sub.label}</button>;
-  })}
-  </div>
-  )}
-  </div>
-  )}
+        {/* Sidebar Footer Actions */}
+        <div className="p-2.5 border-t border-slate-200/80 space-y-1">
+          <button 
+            onClick={() => { setActivePageId('soporte_tecnico'); closeMobile(); }} 
+            className={`flex items-center gap-2.5 w-full px-3 py-2 text-xs rounded-xl transition-all cursor-pointer ${activePageId === 'soporte_tecnico' ? 'bg-[#c0ffa5] text-[#004227] font-semibold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium'}`}
+          >
+            <LifeBuoy size={14} className={activePageId === 'soporte_tecnico' ? 'text-[#004227]' : 'text-slate-500'} />
+            {isSidebarOpen && <span>Soporte Técnico</span>}
+          </button>
+          
+          <button 
+            onClick={() => { setActivePageId('trash'); closeMobile(); }} 
+            className={`flex items-center justify-between w-full px-3 py-2 text-xs rounded-xl transition-all cursor-pointer ${activePageId === 'trash' ? 'bg-red-50 text-red-700 font-semibold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium'}`}
+          >
+            <div className="flex items-center gap-2.5">
+              <Trash2 size={14} className={activePageId === 'trash' ? 'text-red-600' : 'text-slate-500'} />
+              {isSidebarOpen && <span>Papelera</span>}
+            </div>
+            {isSidebarOpen && trash.length > 0 && <span className="text-[11px] px-1.5 py-0.2 rounded-full bg-slate-100 text-slate-700 font-medium">{trash.length}</span>}
+          </button>
 
- {activeModules.personas && (
- <div className="space-y-0.5">
- <button onClick={() => { setExpandedSidebarMenu(expandedSidebarMenu ==='personas_menu' ? null :'personas_menu'); setPersonasSubTab('cliente'); setActivePageId('personas'); }} className={navBtnClass(activePageId ==='personas')}>
- <div className="flex items-center gap-3 flex-1">
- <Users size={16} className={iconClass(activePageId ==='personas')} />
- {isSidebarOpen && <span>Personas</span>}
- </div>
- {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu ==='personas_menu' ?'rotate-180' :''} text-[var(--gray-10)]`} />}
- </button>
- {isSidebarOpen && expandedSidebarMenu ==='personas_menu' && (
- <div className={menuBorderClass}>
- {[{ id:'cliente', label:'Clientes' },{ id:'proveedor', label:'Proveedores' }].map(sub => {
- const isActive = activePageId ==='personas' && personasSubTab === sub.id;
- return <button key={sub.id} onClick={() => { setActivePageId('personas'); setPersonasSubTab(sub.id); closeMobile(); }} className={subItemClass(isActive)}>{sub.label}</button>;
- })}
- </div>
- )}
- </div>
- )}
-
- <button onClick={() => { setActivePageId('general_settings'); closeMobile(); }} className={navBtnClass(activePageId ==='general_settings')}>
- <Settings size={16} className={iconClass(activePageId ==='general_settings')} />
- {isSidebarOpen && <span>Ajustes</span>}
- </button>
-
- <div className="space-y-0.5">
- <button onClick={() => { setExpandedSidebarMenu(expandedSidebarMenu ==='billing' ? null :'billing'); setBillingInitialSubTab('planes'); setActivePageId('billing'); }} className={navBtnClass(activePageId ==='billing')}>
- <div className="flex items-center gap-3 flex-1">
- <CreditCard size={16} className={iconClass(activePageId ==='billing')} />
- {isSidebarOpen && <span>Suscripcion</span>}
- </div>
- {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu ==='billing' ?'rotate-180' :''} text-[var(--gray-10)]`} />}
- </button>
- {isSidebarOpen && expandedSidebarMenu ==='billing' && (
- <div className={menuBorderClass}>
- {[{ id:'facturacion', label:'Facturacion Electronica' },{ id:'paginas', label:'Paginas Web' },{ id:'correos', label:'Correos Corporativos' },{ id:'whatsapp', label:'WhatsApp CRM' },{ id:'pagos', label:'Historial de Pagos' }].map(sub => {
- const isActive = activePageId ==='billing' && (sub.id ==='pagos' ? (billingInitialSubTab ==='pagos' || billingInitialSubTab ==='historial') : billingInitialSubTab === sub.id);
- return <button key={sub.id} onClick={() => { setBillingInitialSubTab(sub.id); setActivePageId('billing'); closeMobile(); }} className={subItemClass(isActive)}>{sub.label}</button>;
- })}
- </div>
- )}
- </div>
- </div>
-
- <div className="p-2.5 border-t border-[var(--gray-a4)] space-y-1">
- <button onClick={() => { setActivePageId('soporte_tecnico'); closeMobile(); }} className={`flex items-center gap-2.5 w-full px-2.5 py-2 text-xs rounded-md transition-all font-medium ${activePageId ==='soporte_tecnico' ?'bg-[var(--accent-3)] text-[var(--accent-11)] font-semibold' :'text-[var(--gray-11)] hover:bg-[var(--gray-a3)] hover:text-[var(--gray-12)]'}`}>
- <LifeBuoy size={14} className={activePageId ==='soporte_tecnico' ?'text-[var(--accent-11)]' :'text-[var(--gray-10)]'} />
- {isSidebarOpen && <span>Soporte Tecnico</span>}
- </button>
- <button onClick={() => { setActivePageId('trash'); closeMobile(); }} className={`flex items-center justify-between w-full px-2.5 py-2 text-xs rounded-md transition-all font-medium ${activePageId ==='trash' ?'bg-[var(--red-3)] text-[var(--red-11)] font-semibold' :'text-[var(--gray-11)] hover:bg-[var(--gray-a3)] hover:text-[var(--gray-12)]'}`}>
- <div className="flex items-center gap-2.5">
- <Trash2 size={14} className={activePageId ==='trash' ?'text-[var(--red-11)]' :'text-[var(--gray-10)]'} />
- {isSidebarOpen && <span>Papelera</span>}
- </div>
- {isSidebarOpen && trash.length > 0 && <span className="text-xs px-1.5 py-0.5 rounded-full bg-[var(--gray-a3)] text-[var(--gray-11)] font-medium">{trash.length}</span>}
- </button>
- <button onClick={() => { handleLogout(); closeMobile(); }} className="mt-1 flex items-center gap-2.5 w-full px-2.5 py-2 text-xs rounded-md transition-all font-medium text-[var(--gray-11)] hover:bg-[var(--gray-a3)] hover:text-[var(--gray-12)]">
- <LogOut size={14} className="text-[var(--gray-10)]" />{isSidebarOpen && <span>Cerrar Sesion</span>}
- </button>
- </div>
- </div>
- </>
- );
+          <button 
+            onClick={() => { handleLogout(); closeMobile(); }} 
+            className="flex items-center gap-2.5 w-full px-3 py-2 text-xs rounded-xl transition-all cursor-pointer text-slate-600 hover:text-red-700 hover:bg-red-50 font-medium"
+          >
+            <LogOut size={14} className="text-slate-500 group-hover:text-red-600" />
+            {isSidebarOpen && <span>Cerrar Sesión</span>}
+          </button>
+        </div>
+      </aside>
+    </>
+  );
 }
