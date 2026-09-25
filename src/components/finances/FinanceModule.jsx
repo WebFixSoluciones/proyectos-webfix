@@ -93,7 +93,16 @@ export default function FinanceModule({
     setEditingTx(null);
     if (!fromCheckout) setSubTabVentas('resumen_ventas');
   };
-  const transactionSaved = data => { if (checkoutResolver.current) { checkoutResolver.current(data); checkoutResolver.current = null; } setIsModalOpen(false); setEditingTx(null); setSubTabVentas('resumen_ventas'); };
+  const transactionSaved = data => { 
+    if (checkoutResolver.current) { 
+      checkoutResolver.current(data); 
+      checkoutResolver.current = null; 
+      setIsModalOpen(false); 
+      setEditingTx(null); 
+      setSubTabVentas('resumen_ventas'); 
+      return;
+    } 
+  };
   useEffect(() => () => checkoutResolver.current?.(false), []);
   const [purchaseMethod, setPurchaseMethod] = useState(null);
   const [showPurchaseMethodSelect, setShowPurchaseMethodSelect] = useState(false);

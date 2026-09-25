@@ -603,6 +603,26 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
   - Tooltip flotante estilizado *"Personalizar accesos directos"* y apertura directa del modal interactivo `ShortcutCustomizerModal`.
 - **Pruebas y Build**: 45 tests unitarios aprobados (`npm test`), compilación de producción exitosa en 7.28s (`npm run build`).
 
+### 49. Corrección de Cierre Prematuro Post-Emisión y Despliegue de Factura Lista para Imprimir (2026-09-25) — COMPLETADO
+- **Causa Raíz Diagnosticada**:
+  - En `FinanceModule.jsx`, el manejador `transactionSaved` ejecutaba incondicionalmente `setIsModalOpen(false); setEditingTx(null); setSubTabVentas('resumen_ventas');` ante cualquier llamada a `onSaved`.
+  - Al completar la autorización con éxito en `finishAuthorizedEmission` o guardar en `handleSave`, `TransactionForm.jsx` invocaba `onSaved?.(complete)`, provocando que el componente padre desmontara violentamente el formulario de inmediato, impidiendo que el usuario viera el Paso 2 (pantalla de confirmación, RIDE e impresión directa).
+- **Aislamiento de Cierre para Ventas Administrativas**:
+  - Se condicionó el cierre en `FinanceModule.jsx` exclusivamente al flujo de cobro rápido desde caja (`if (checkoutResolver.current)`).
+  - En ventas administrativas, `TransactionForm` permanece montado en **Paso 2**:
+    1. **Tarjeta de Confirmación Hero**: Estado *"¡Factura Electrónica Emitida y Autorizada!"*, número secuencial oficial, receptor, total y clave de acceso SRI.
+    2. **Notificación por Correo**: Estado en vivo de copia al cliente y emisor con botón de reintento e input para envío a correos alternativos.
+    3. **Acciones de Impresión Directa**:
+       - Botón destacado: *"Impresión Directa (Ticket 80mm / Hoja A4)"*.
+       - Botones directos: *"Imprimir Ticket (80mm)"* e *"Imprimir RIDE / Hoja (A4)"* (disparan el diálogo nativo `window.print()`).
+       - Descarga de archivo XML autorizado.
+       - Botón *"Nueva Venta / Emisión"* para limpiar el formulario y emitir otra factura de inmediato.
+    4. **Vista Previa del Comprobante (RIDE)**: Previsualización viva del comprobante con desglose de ítems, IVA y medios de pago.
+  - Se corrigió `closeTransaction` en `TransactionForm.jsx` para invocar siempre `onClose?.()`, cerrando el formulario solo cuando el usuario pulsa deliberadamente *"Terminar y Salir"* o el botón circular `X`.
+  - Añadido scroll suave automático hacia la cabecera al pasar al Paso 2 para visualización inmediata del comprobante e impresión.
+- **Pruebas y Build**: 45 tests unitarios aprobados (`npm test`), compilación de producción limpia en 7.61s (`npm run build`).
+
+
 
 
 

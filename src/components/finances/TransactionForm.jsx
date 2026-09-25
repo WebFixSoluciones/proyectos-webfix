@@ -1372,6 +1372,12 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     };
   }, [currentStep, formData.sriStatus, formData.claveAcceso]);
 
+  useEffect(() => {
+    if (currentStep === 2) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [currentStep]);
+
   const executeEmitirSRI = async () => {
     if (formData.claveAcceso) { await recoverSriEmission(); return; }
     if (operationRef.current || !validateForm()) return;
@@ -1626,7 +1632,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   const closeTransaction = () => {
     // A durable fiscal attempt must leave the POS cart as a saved document, even while authorization is pending.
     if (formData.claveAcceso && onSaved) onSaved(formData);
-    else onClose?.();
+    onClose?.();
   };
 
   const formJSX = (
