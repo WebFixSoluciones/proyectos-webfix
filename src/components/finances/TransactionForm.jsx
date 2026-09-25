@@ -1773,14 +1773,16 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 
                 {/* Card 1: Client and location details */}
                 <UiBox {...mergeThemeProps({}, {}, {}, mergeThemeProps({"style":{"borderRadius":"var(--radius-3)"},"className":"p-[12px]"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)","color":"var(--gray-12)"}}), (mobileTab === 'cliente' ? {"className":"block"} : {"className":"hidden lg:block"}))}>
-                <UiBox {...{"className":"flex items-center gap-[6px] mb-[10px]"}}>
-                  <UiBox {...{"style":{"color":"var(--gray-11)"}}}>
-                    <User size={14} />
+                  <UiBox className="flex items-center justify-between mb-3 pb-2.5 border-b border-[var(--gray-a4)]">
+                    <UiBox className="flex items-center gap-2">
+                      <UiBox style={{ color: "var(--accent-11)" }}>
+                        <User size={16} />
+                      </UiBox>
+                      <UiHeading as="h3" size="2" weight="bold">
+                        {formData.type === 'ingreso' ? 'Datos de Cliente' : 'Datos de Proveedor'}
+                      </UiHeading>
+                    </UiBox>
                   </UiBox>
-                  <UiHeading as="h4"  {...{"size":"1","weight":"bold"}}>
-                    Datos del Cliente y Emisión
-                  </UiHeading>
-                </UiBox>
                 
                 {/* Client Search + Quick Add row */}
                 <UiBox {...{"className":"flex gap-[8px] items-center mb-[10px]"}}>
@@ -2123,7 +2125,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         <ShoppingCart size={16} />
                       </UiBox>
                       <UiHeading as="h3" size="2" weight="bold">
-                        Productos y Servicios a Facturar
+                        Productos y Servicios
                       </UiHeading>
                     </UiBox>
                   </UiBox>
