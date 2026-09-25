@@ -1,7 +1,7 @@
 import { 
   LayoutDashboard, ShoppingCart, ShoppingBag, CreditCard,
   Package, Users, Settings,
-  ChevronDown, LifeBuoy, Trash2, LogOut, DollarSign
+  ChevronDown, DollarSign
 } from 'lucide-react';
 
 export default function Sidebar({
@@ -324,36 +324,6 @@ export default function Sidebar({
               </div>
             )}
           </div>
-        </div>
-
-        {/* Sidebar Footer Actions */}
-        <div className="p-2.5 border-t border-slate-200/80 space-y-1">
-          <button 
-            onClick={() => { setActivePageId('soporte_tecnico'); closeMobile(); }} 
-            className={`flex items-center gap-2.5 w-full px-3 py-2 text-xs rounded-xl transition-all cursor-pointer ${activePageId === 'soporte_tecnico' ? 'bg-[#c0ffa5] text-[#004227] font-semibold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium'}`}
-          >
-            <LifeBuoy size={14} className={activePageId === 'soporte_tecnico' ? 'text-[#004227]' : 'text-slate-500'} />
-            {isSidebarOpen && <span>Soporte Técnico</span>}
-          </button>
-          
-          <button 
-            onClick={() => { setActivePageId('trash'); closeMobile(); }} 
-            className={`flex items-center justify-between w-full px-3 py-2 text-xs rounded-xl transition-all cursor-pointer ${activePageId === 'trash' ? 'bg-red-50 text-red-700 font-semibold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium'}`}
-          >
-            <div className="flex items-center gap-2.5">
-              <Trash2 size={14} className={activePageId === 'trash' ? 'text-red-600' : 'text-slate-500'} />
-              {isSidebarOpen && <span>Papelera</span>}
-            </div>
-            {isSidebarOpen && trash.length > 0 && <span className="text-[11px] px-1.5 py-0.2 rounded-full bg-slate-100 text-slate-700 font-medium">{trash.length}</span>}
-          </button>
-
-          <button 
-            onClick={() => { handleLogout(); closeMobile(); }} 
-            className="flex items-center gap-2.5 w-full px-3 py-2 text-xs rounded-xl transition-all cursor-pointer text-slate-600 hover:text-red-700 hover:bg-red-50 font-medium"
-          >
-            <LogOut size={14} className="text-slate-500 group-hover:text-red-600" />
-            {isSidebarOpen && <span>Cerrar Sesión</span>}
-          </button>
         </div>
       </aside>
     </>

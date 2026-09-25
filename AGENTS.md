@@ -484,6 +484,14 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
 - **Preservación Total de Lógica y Validaciones**: Conservadas al 100% todas las rutinas fiscales del SRI, desglose de pagos combinados, sincronización de stock y kardex, cálculos de IVA 15% / 0%, recuperación de clave de acceso y previsualización de impresión.
 - **Pruebas y Build**: 41 tests de comercio/SRI aprobados, compilación de producción limpia en 7.52s.
 
+### 38. Eliminación de Acciones Inferiores del Menú Lateral (Sidebar) (2026-09-25) — COMPLETADO
+- **Limpieza de Barra Lateral Izquierda (`src/components/Sidebar.jsx`)**:
+  - Removidos por completo los tres botones de pie de menú lateral: `Soporte Técnico` (LifeBuoy), `Papelera` (Trash2) y `Cerrar Sesión` (LogOut), junto con su contenedor y divisores inferiores.
+  - Las funciones de Soporte Técnico y Cerrar Sesión continúan centralizadas y accesibles desde el menú de usuario del encabezado superior estilo Brevo (`App.jsx`).
+  - Resultado: Barra lateral completamente despejada, minimalista y con navegación directa y fluida.
+- **Pruebas y Build**: 41 tests unitarios aprobados, compilación limpia de producción en 7.28s.
+
+
 
 
 
