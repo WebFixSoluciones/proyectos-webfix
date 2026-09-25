@@ -568,6 +568,26 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
     - **A la DERECHA (en la misma fila)**: Buscador ágil con icono de lupa estilizado y selectores de filtrado rápido.
 - **Pruebas y Build**: 41 tests unitarios aprobados (`npm test`), compilación de producción exitosa en 18.95s (`npm run build`).
 
+### 47. Arquitectura de 3 Capas de Contingencia SRI Multi-Tenant & Monitor Global en SuperAdmin (2026-09-25) — COMPLETADO
+- **Cero Impacto al Cliente y Mitigación de Caídas Masivas del SRI (Caso 21/100 tenants con fallos simultáneos)**:
+  - **Capa 1 (Nivel Inquilino / Local Reactivo)**:
+    - Preservación estricta de secuenciales (`reserveSriEmission`): el número correlativo y la clave de acceso de 49 dígitos se asignan de forma atómica antes de cualquier solicitud de red externa y quedan asegurados en Firestore con `sriStatus: 'pendiente_sri'`.
+    - Nunca se alteran, decrementan ni reasignan secuenciales si el SRI responde con timeout, HTTP 500, o códigos transitorios (43/70).
+    - En el historial de comprobantes (`TransactionsView.jsx`), el auto-poller reactivo verifica de forma transparente todos los comprobantes en `pendiente_sri` de cualquier tipo (Facturas, Retenciones, Notas de Crédito, Notas de Débito, Guías, Liquidaciones), consultando `AutorizacionComprobantesOffline` y actualizando a `AUTORIZADO` sin intervención del usuario.
+  - **Capa 2 (Nivel SuperAdmin / Monitor SRI Global Multi-Tenant)**:
+    - Nueva pestaña en `SuperAdminPage.jsx` (`sidebarLinks` con badge en tiempo real de comprobantes pendientes): **"Monitor SRI Global"**.
+    - Escaneo concurrente de todos los inquilinos (`scanAllTenantsPendingSri` en `src/services/sriReconciliation.js`) para detectar documentos con `sriStatus === 'pendiente_sri'`.
+    - Panel con 4 KPIs en vivo: Documentos Pendientes, Empresas Afectadas, Reconciliados en Sesión y Estado del Gateway SRI WebServices.
+    - Botón masivo de un solo clic: **"Sincronizar Todos con el SRI Ahora"** (`batchReconcileSriDocuments`) con control de flujo secuencial (pausas de 350ms para evitar bloqueos por rate-limiting del SRI), barra de progreso en vivo, porcentaje y comprobante activo.
+    - Botón de consulta individual por fila + enlace directo al visor RIDE público.
+    - Notificaciones automáticas de correo al cliente y emisor disparadas al completarse la autorización.
+  - **Capa 3 (Nivel Cloud / Worker Serverless 24/7)**:
+    - Endpoint cron serverless `api/cron/reconcile-sri/index.js` configurado en `vercel.json` con frecuencia cada 10 minutos (`*/10 * * * *`).
+    - Comunicación HTTPS directa con SRI Producción (`cel.sri.gob.ec`) y Pruebas (`celcer.sri.gob.ec`) con `rejectUnauthorized: false` para evitar bloqueos CORS y SSL.
+    - Procesa lotes automáticamente en segundo plano mientras los usuarios siguen emitiendo normalmente.
+- **Pruebas y Build**: 45 tests unitarios aprobados (`npm test`), incluyendo prueba integral de contingencia simultánea para 21 tenants, compilación limpia de producción en 4.95s (`npm run build`).
+
+
 
 
 
