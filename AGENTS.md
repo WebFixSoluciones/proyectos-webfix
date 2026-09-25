@@ -421,6 +421,20 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
     - Máscara de desvanecimiento suave en los extremos (`mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)`) para un efecto donde los logos se difuminan gradualmente al entrar y salir.
 - **Pruebas y Build**: 43 tests unitarios aprobados, compilación de producción exitosa en 10.35s.
 
+### 35. Rediseño de Sección de Beneficios a Bento Grid Pastel (Réplica Imagen 1) (2026-09-25) — COMPLETADO
+- **Arquitectura Bento Grid 5 Cards (12 Columnas)**:
+  - **Fila Superior (2 Tarjetas Anchas, 6 cols c/u)**:
+    - **Card 1 (Azul Pastel `#edf4fb`)**: *Facturación para Negocios* con botón pill negro *"Comienza ahora"* y ventana browser emergente a la derecha con dashboard de comprobante autorizado SRI y total `$1,240.50`.
+    - **Card 2 (Gris Cálido `#f5f5f7`)**: *Punto de Venta Mostrador* con botón pill negro *"Comienza ahora"*, preview tenue de fondo y **tarjeta flotante oscura (*Dark Popover*)** con selector activo *"Efectivo + Transferencia"* con checkmark circular verde, atajo F12 y ticket térmico 80mm.
+  - **Fila Inferior (1 Tarjeta Ancha 6 cols + 2 Tarjetas Compactas 3 cols c/u)**:
+    - **Card 3 (Lavanda Pastel `#f3f0fc`)**: *Captura Inteligente OCR con IA* con botón pill negro *"Comienza a procesar"* y tabla de extracción inteligente de factura que emerge desde la base.
+    - **Card 4 (Menta Pastel `#edf8f1`)**: *Flujo de caja* con enlace textual minimalista *"Ver Finanzas ↗"* y widget de saldo disponible en bancos con desglose Pichincha/Guayaquil y badge `+15.2%`.
+    - **Card 5 (Vainilla Pastel `#fef9e7`)**: *Kardex & Stock* con enlace textual minimalista *"Pruébalo Gratis ↗"* y tarjeta de producto con stock de 142 unidades y badge *"Óptimo"*.
+- **Diseño y Acabado**:
+  - Bordes redondeados generosos (`rounded-[32px]`), micro-elevación suave en hover (`hover:-translate-y-1`), cero dobles bordes y tipografía bold de alto contraste.
+- **Pruebas y Build**: 43 tests unitarios aprobados, compilación de producción limpia en 7.55s.
+
+
 
 
 
