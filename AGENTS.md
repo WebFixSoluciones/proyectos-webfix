@@ -432,9 +432,13 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
     - **Card 5 (Vainilla Pastel `#fef9e7`)**: *Kardex & Stock* con enlace textual minimalista *"Pruébalo Gratis ↗"* y tarjeta de producto con stock de 142 unidades y badge *"Óptimo"*.
 - **Diseño y Acabado**:
   - Bordes redondeados generosos (`rounded-[32px]`), micro-elevación suave en hover (`hover:-translate-y-1`), cero dobles bordes y tipografía bold de alto contraste.
-- **Pruebas y Build**: 43 tests unitarios aprobados, compilación de producción limpia en 7.55s.
-
-
-
-
-
+### 36. Rediseño Minimalista de Beneficios: Solo Títulos sin Descripciones y Maquetas Gráficas Limpias (2026-09-25) — COMPLETADO
+- **Eliminación Total de Párrafos de Descripción**:
+  - Removidos por completo todos los textos descriptivos (`<p>`) dentro de las 5 tarjetas Bento pastel, permitiendo que la tipografía de títulos y los elementos visuales respiren con total claridad y limpieza.
+- **Maquetas Gráficas Limpias y Prominentes**:
+  - **Card 1 (Facturación para Negocios - `#edf4fb`)**: Ventana de navegador con barra de URL `app.webfix.ec/sri`, cabecera azul de Comprobante SRI, badge verde de autorización SRI con checkmark, desglose de factura `FAC 001-002-8453` a SUPERMAXI S.A. por \$1,240.50 y sello de firma digital .p12 verificada.
+  - **Card 2 (Punto de Venta Mostrador - `#f5f5f7`)**: Tarjeta popover oscura flotante (`#212124`) réplica exacta de la Imagen 1 con atajo rápido F12, cobro combinado destacado en verde mint (`#c0ffa5`) con checkmark circular esmeralda, impresión de ticket 80mm y desglose de cobro listo por \$18.50.
+  - **Card 3 (Captura Inteligente OCR con IA - `#f3f0fc`)**: Ventana emergente con badge `100% IA Procesado`, cuadrícula de 4 columnas de extracción de datos (Archivo, Proveedor, Subtotal, Total IVA 15% \$483.00) y verificación de RUC y asiento contable automático.
+  - **Card 4 (Flujo de caja - `#edf8f1`)**: Widget de saldo bancario disponible (\$8,240.00) con indicador `+15.2%` y barras de progreso proporcionales para Banco Pichincha (\$5,420.00) y Banco Guayaquil (\$2,820.00).
+  - **Card 5 (Kardex & Stock - `#fef9e7`)**: Tarjeta de producto con ilustración de caja, código de barras simulado, SKU, stock de 142 unidades en bodega y píldora de estado de stock *"Óptimo"*.
+- **Pruebas y Build**: 43 tests unitarios aprobados (41 suite de comercio/SRI + 2 animaciones), compilación limpia de producción en 7.94s.
