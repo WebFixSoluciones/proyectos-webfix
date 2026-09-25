@@ -274,7 +274,7 @@ export default function LandingHome() {
     <div className="w-full bg-white text-slate-900 overflow-x-clip">
       
       {/* 1. HERO SECTION DE ALTO CONTRASTE (ESTILO BREVO & SITEGROUND) */}
-      <section className="relative w-full bg-[#e8fedf] border-b border-[#b3f4cb] rounded-b-[40px] md:rounded-b-[56px] pt-10 pb-16 md:pt-16 md:pb-24 overflow-hidden">
+      <section className="relative w-full bg-[#e8fedf] rounded-b-[40px] md:rounded-b-[56px] pt-10 pb-16 md:pt-16 md:pb-24 overflow-hidden">
         <div ref={heroContainerRef} className="w-[90%] max-w-[1720px] mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 xl:gap-16 items-center">
             
@@ -625,7 +625,7 @@ export default function LandingHome() {
       </section>
 
       {/* 2. FRANJA DE CONFIANZA (Social Proof) */}
-      <section className="w-full bg-white border-b border-slate-100">
+      <section className="w-full bg-white">
         <div className="w-[80%] max-w-[1720px] mx-auto text-center">
           <p className="text-xs md:text-sm font-semibold uppercase tracking-wider text-slate-500 mb-6 md:mb-8">
             Más de 500 comercios y empresas ecuatorianas gestionan su facturación y finanzas con WebFix
@@ -706,7 +706,7 @@ export default function LandingHome() {
       </section>
 
       {/* 3. BONDADES EN TARJETAS PLANAS CON ACENTOS DE COLOR SÓLIDO (CERO ANIDACIONES, CERO DOTS) */}
-      <section className="w-full bg-white border-b border-slate-100">
+      <section className="w-full bg-white">
         <div className="w-[80%] max-w-[1720px] mx-auto py-20 md:py-28">
           
           {/* Título centrado limpio y sin dots ni burbujas */}
@@ -764,7 +764,7 @@ export default function LandingHome() {
       </section>
 
       {/* 3.5. COMPARATIVA MINIMALISTA & ECOSISTEMA MULTIPLATAFORMA (PC, POS, MÓVIL) */}
-      <section className="w-full bg-[#F8FAFC] border-b border-slate-200/80">
+      <section className="w-full bg-[#F8FAFC]">
         <ScrollReveal direction="up">
           <div className="w-[80%] max-w-[1720px] mx-auto py-20 md:py-28">
             
@@ -836,7 +836,7 @@ export default function LandingHome() {
       </section>
 
       {/* 3.6. BENEFICIOS MINIMALISTAS EN 6 CARDS (RÉPLICA IDÉNTICA BREVO IMAGEN 2) */}
-      <section className="w-full bg-white border-b border-slate-100 py-16 md:py-24">
+      <section className="w-full bg-white py-16 md:py-24">
         <ScrollReveal direction="up">
           <div className="w-[80%] max-w-[1720px] mx-auto">
             {/* Título de Sección estilo Brevo: Centrado, contundente, sin subtítulo */}
@@ -997,7 +997,7 @@ export default function LandingHome() {
       </section>
 
       {/* 4. SECCIÓN DE PESTAÑAS INTERACTIVAS POR SEGMENTO COMERCIAL (ESTILO BREVO) */}
-      <section className="w-full bg-white border-b border-slate-100">
+      <section className="w-full bg-white">
         <ScrollReveal direction="up">
           <div className="w-[80%] max-w-[1720px] mx-auto py-20 md:py-28">
             
@@ -1119,7 +1119,7 @@ export default function LandingHome() {
       </section>
 
       {/* 5. PRICING PREVIEW */}
-      <section className="w-full bg-white border-t border-slate-100">
+      <section className="w-full bg-white">
         <ScrollReveal>
           <div className="w-[80%] max-w-[1720px] mx-auto py-20 md:py-28 text-center">
             
@@ -1305,7 +1305,7 @@ export default function LandingHome() {
       {/* 6. FAQ ACCORDION */}
       <section className="w-full bg-white">
         <ScrollReveal>
-          <div className="w-[80%] max-w-4xl mx-auto py-20 md:py-24 border-t border-slate-200/80">
+          <div className="w-[80%] max-w-4xl mx-auto py-20 md:py-24">
             
             {/* Título centrado limpio sin dots */}
             <div className="text-center mb-10 sm:mb-12 space-y-2">

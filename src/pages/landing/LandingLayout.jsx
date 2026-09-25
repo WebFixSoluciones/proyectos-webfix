@@ -50,8 +50,8 @@ export default function LandingLayout() {
       <header
         className={`sticky top-0 z-50 w-full transition-all duration-300 ${
           isScrolled
-            ? 'backdrop-blur-md bg-[#e8fedf]/85 border-b border-[#b3f4cb]/80 shadow-xs'
-            : 'backdrop-blur-md bg-[#e8fedf]/95 border-b border-[#b3f4cb]/50'
+            ? 'backdrop-blur-md bg-[#e8fedf]/85 shadow-xs'
+            : 'backdrop-blur-md bg-[#e8fedf]/95'
         }`}
       >
         <div className="w-[90%] max-w-[1720px] mx-auto h-18 sm:h-20 flex items-center justify-between">
@@ -204,11 +204,11 @@ export default function LandingLayout() {
       </main>
 
       {/* 5. FOOTER ESTILO BREVO EXACTO AL 90% */}
-      <footer className="pt-16 pb-12 shrink-0 mt-auto border-t border-slate-200/80 bg-[#f9fff6] text-slate-700">
+      <footer className="pt-16 pb-12 shrink-0 mt-auto bg-[#f9fff6] text-slate-700">
         <div className="w-[90%] max-w-[1720px] mx-auto">
           
           {/* Fila Superior: Logotipo a la Izquierda y Redes Sociales a la Derecha */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 pb-10 border-b border-slate-200/70">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 pb-10">
             {/* Logotipo Brevo Style */}
             <Link to="/" className="flex items-center gap-2 group select-none">
               <span className="font-extrabold text-2xl sm:text-3xl tracking-tight text-[#006a43]">
@@ -546,7 +546,7 @@ export default function LandingLayout() {
           </div>
 
           {/* Línea Divisoria Inferior Brevo Style */}
-          <div className="pt-8 border-t border-slate-200/80 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-600">
+          <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-600">
             {/* Enlaces Legales a la Izquierda */}
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-5 sm:gap-7">
               <a href="#cookies" className="hover:text-slate-950 transition-colors">

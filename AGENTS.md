@@ -368,5 +368,21 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
   - Pestañas interactivas por segmento: Píldora activa en `#c0ffa5` con texto `#004227`, botón "Saber más" en `#1b1b1b`, tarjeta testimonial en fondo Charcoal 25 `#fafafa`.
   - Precios y Planes: Badge de descuento anual en `#c0ffa5` con texto `#004227`, botón del Plan Pro en `#1b1b1b`.
   - Banner final de conversión CTA: Contenedor en `#e8fedf` con borde `#b3f4cb`, badge en `#c0ffa5`/`#004227` y botón en `#1b1b1b`.
-- **Pruebas y Build**: 43 tests unitarios aprobados, compilación limpia de producción en 5.14s.
-
+### 30. Eliminación Integral de Bordes Divisores en Encabezado, Hero, Secciones y Footer (2026-09-25) — COMPLETADO
+- **Remoción de Bordes en Encabezado y Hero**:
+  - `LandingLayout.jsx`: Eliminado el borde inferior `border-b border-[#b3f4cb]` del `<header>`, permitiendo que el efecto glassmorphism flote de manera limpia e integrada.
+  - `LandingHome.jsx`: Eliminado el borde inferior `border-b border-[#b3f4cb]` de la `<section>` del Hero, logrando una transición curva orgánica (`rounded-b-[40px] md:rounded-b-[56px]`) hacia el cuerpo de página.
+- **Remoción de Bordes Divisores Intermedios (`LandingHome.jsx`)**:
+  - Franja de confianza / Social proof bar: Removido `border-b border-slate-100`.
+  - Sección 3 (Bondades en Tarjetas Planas): Removido `border-b border-slate-100`.
+  - Sección 3.5 (Comparativa Ecosistema Cloud): Removido `border-b border-slate-200/80`.
+  - Sección 3.6 (6 Beneficios Minimalistas Brevo): Removido `border-b border-slate-100`.
+  - Sección 4 (Pestañas por Segmento Comercial): Removido `border-b border-slate-100`.
+  - Sección 5 (Precios Transparentes): Removido `border-t border-slate-100`.
+  - Sección 6 (Preguntas Frecuentes Acordeón): Removido `border-t border-slate-200/80`.
+- **Remoción de Bordes Superior e Interno del Footer (`LandingLayout.jsx`)**:
+  - Removido `border-t border-slate-200/80` del contenedor principal `<footer>`.
+  - Removido el borde divisor interno `border-b border-slate-200/70` entre la fila del logotipo/redes sociales y las columnas de enlaces.
+  - Removido el borde divisor interno `border-t border-slate-200/80` sobre los enlaces legales y copyright.
+  - Resultado: Un lienzo fluido, continuo y minimalista sin cortes lineales abruptos.
+- **Pruebas y Build**: 43 tests unitarios aprobados, compilación limpia de producción en 6.91s.
