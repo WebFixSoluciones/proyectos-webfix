@@ -1101,7 +1101,7 @@ export default function LandingHome() {
             </div>
 
             {/* Selector tipo píldora centrado (Estilo Brevo) */}
-            <div className="flex flex-wrap items-center justify-center gap-1 sm:gap-2 mb-14 md:mb-16">
+            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mb-12 sm:mb-16">
               {segmentTabs.map((tab) => {
                 const isActive = activeSegmentTab === tab.id;
                 return (
@@ -1111,8 +1111,8 @@ export default function LandingHome() {
                     onClick={() => setActiveSegmentTab(tab.id)}
                     className={
                       isActive
-                        ? 'bg-[#c0ffa5] text-[#004227] font-semibold rounded-xl px-6 py-2.5 text-sm cursor-pointer transition-all shadow-none select-none'
-                        : 'text-slate-700 hover:text-slate-950 font-medium rounded-xl px-6 py-2.5 text-sm cursor-pointer transition-all shadow-none select-none'
+                        ? 'bg-[#c0ffa5] text-[#004227] font-bold rounded-xl px-7 sm:px-8 py-3 text-base sm:text-lg lg:text-[19px] cursor-pointer transition-all shadow-none select-none'
+                        : 'text-slate-700 hover:text-slate-950 font-semibold rounded-xl px-7 sm:px-8 py-3 text-base sm:text-lg lg:text-[19px] cursor-pointer transition-all shadow-none select-none'
                     }
                   >
                     {tab.label}
