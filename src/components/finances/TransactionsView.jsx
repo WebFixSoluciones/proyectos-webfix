@@ -3,11 +3,16 @@ import { mergeThemeProps } from '../ui/themeProps';
 import { UiBox, UiText, UiCard, UiHeading, UiLabel } from '../ui/layout';
 import { UiInput, UiButton, UiSelect, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell } from '../ui/controls';
 import { useState, useRef, useEffect } from 'react';
-import { Plus, Search, Trash2, Edit2, FileText, CheckCircle2, AlertCircle, Sparkles, AlertTriangle, Eye, Mail, Loader2, Truck, Clock, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
-import { doc, deleteDoc, setDoc, getDoc } from '../../services/financeStore.js';
+import { Plus, Search, Trash2, Edit2, FileText, CheckCircle2, AlertCircle, Sparkles, AlertTriangle, Eye, Mail, Loader2, Truck, Clock, ArrowUpDown, ArrowUp, ArrowDown, RefreshCw } from 'lucide-react';
+import { doc, deleteDoc, setDoc, getDoc, runTransaction } from '../../services/financeStore.js';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { analizarComprobanteConGemini, parsearXMLComprobante } from '../../services/geminiService';
-import { getEcuadorDateString, getEcuadorDateTimeString } from '../../services/sriService';
+import { getEcuadorDateString, getEcuadorDateTimeString, consultarAutorizacionSRI } from '../../services/sriService';
+import { saveSriResult } from '../../services/sriEmission';
+import { notifyAuthorizedInvoice } from '../../services/invoiceNotification';
+import { sincronizarVenta } from '../../services/integracionFinanzasService';
+import { registerTransactionInventory } from '../../services/inventoryLedger';
+import { auth } from '../../firebase';
 import RidePreviewModal from './RidePreviewModal';
 import { Badge } from '../ui/badge';
 
@@ -297,7 +302,64 @@ export default function TransactionsView({ transactions, thirdParties, showToast
     }
   };
 
-  const getStatusBadge = (status, documentType) => {
+  const [verifyingTxId, setVerifyingTxId] = useState(null);
+
+  const verifySriTransaction = async (tx) => {
+    if (!tx?.claveAcceso) return;
+    setVerifyingTxId(tx.id);
+    try {
+      showToast(`Consultando autorización de ${tx.documentNumber} en el SRI...`, 'info');
+      const result = await consultarAutorizacionSRI(tx.claveAcceso, tx.sriAmbiente || tx.claveAcceso[23]);
+      if (result.status === 'autorizado') {
+        const fiscalApi = { doc, runTransaction };
+        const saved = await saveSriResult({ db, appId, document: tx, result, api: fiscalApi });
+        try {
+          await registerTransactionInventory(db, appId, saved);
+          if (saved.type === 'ingreso' && saved.documentType === 'factura') {
+            await sincronizarVenta(saved, db, auth.currentUser || { uid: '', email: '' });
+          }
+          await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', saved.id), { financialSyncStatus: 'complete' }, { merge: true });
+        } catch (syncErr) {
+          console.warn('Sincronización contable/inventario:', syncErr);
+        }
+        const cliente = getTransactionParty(saved);
+        try {
+          await notifyAuthorizedInvoice({
+            db, appId, document: saved, customer: cliente,
+            api: { doc, getDoc, setDoc, runTransaction }
+          });
+          showToast(`¡Factura ${tx.documentNumber} AUTORIZADA por el SRI! Copia enviada al propietario y cliente.`, 'success');
+        } catch (emailErr) {
+          showToast(`¡Factura ${tx.documentNumber} AUTORIZADA! No se pudo enviar copia por correo: ${emailErr.message}`, 'warning');
+        }
+      } else if (result.status === 'no_autorizado' || result.status === 'devuelto') {
+        await saveSriResult({ db, appId, document: tx, result, api: { doc, runTransaction } });
+        showToast(`El SRI devolvió: ${result.message || result.status}`, 'error');
+      } else {
+        showToast(result.message || 'La factura sigue en procesamiento en el SRI. Vuelve a consultar en unos momentos.', 'warning');
+      }
+    } catch (err) {
+      console.error('Error al verificar SRI:', err);
+      showToast(`Error al consultar SRI: ${err.message}`, 'error');
+    } finally {
+      setVerifyingTxId(null);
+    }
+  };
+
+  // Auto-verificar facturas pendientes de forma transparente al cargar la vista
+  useEffect(() => {
+    if (!transactions?.length) return;
+    const pendingFacturas = transactions.filter(t => t.sriStatus === 'pendiente_sri' && t.claveAcceso && t.documentType === 'factura');
+    if (pendingFacturas.length > 0) {
+      const target = pendingFacturas[0];
+      const timer = setTimeout(() => {
+        verifySriTransaction(target);
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [transactions]);
+
+  const getStatusBadge = (status, documentType, tx = null) => {
     switch(status) {
       case 'autorizado':
         if (documentType === 'nota_venta') {
@@ -305,7 +367,18 @@ export default function TransactionsView({ transactions, thirdParties, showToast
         }
         return <Badge variant="success"><CheckCircle2 size={10}/> Autorizado</Badge>;
       case 'pendiente_sri':
-        return <Badge variant="warning"><AlertCircle size={10}/> Por confirmar en SRI</Badge>;
+        return (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); verifySriTransaction(tx); }}
+            disabled={verifyingTxId === tx?.id}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200/80 hover:bg-amber-100 transition-colors cursor-pointer"
+            title="Haga clic para consultar la autorización en el SRI ahora"
+          >
+            <RefreshCw size={10} className={verifyingTxId === tx?.id ? "animate-spin" : ""} />
+            <span>{verifyingTxId === tx?.id ? "Consultando..." : "Por confirmar en SRI"}</span>
+          </button>
+        );
       case 'devuelto':
       case 'no_autorizado':
         return <Badge variant="destructive"><AlertTriangle size={10}/> {status === 'devuelto' ? 'Devuelto' : 'No autorizado'}</Badge>;
@@ -712,7 +785,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                   <UiTableCell className="px-6 py-2.5 font-semibold font-mono text-xs text-slate-900">
                     ${Number(tx.total || 0).toFixed(2)}
                   </UiTableCell>
-                  <UiTableCell className="px-6 py-2.5">{getStatusBadge(tx.sriStatus, tx.documentType)}</UiTableCell>
+                  <UiTableCell className="px-6 py-2.5">{getStatusBadge(tx.sriStatus, tx.documentType, tx)}</UiTableCell>
                   {isPreventaTab && (
                     <UiTableCell className="px-6 py-3.5">
                       {tx.deliveryStatus === 'entregado' ? (
@@ -741,6 +814,19 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                   )}
                   <UiTableCell className="px-6 py-3.5 hidden sm:table-cell">
                     <UiBox className="flex items-center gap-1.5">
+                      {tx.claveAcceso && tx.sriStatus === 'pendiente_sri' && (
+                        <UiButton
+                          size="1"
+                          variant="soft"
+                          color="amber"
+                          onClick={() => verifySriTransaction(tx)}
+                          disabled={verifyingTxId === tx.id}
+                          title="Consultar estado de autorización en el SRI ahora"
+                        >
+                          <RefreshCw size={11} className={verifyingTxId === tx.id ? "animate-spin" : ""} />
+                          {verifyingTxId === tx.id ? "Consultando..." : "Consultar SRI"}
+                        </UiButton>
+                      )}
                       {tx.claveAcceso ? <FiscalDocuments transaction={tx} tenantId={appId} onPreview={() => setSelectedRideTx(tx)} /> : <>
                       {tx.xmlUrl ? (
                         <UiButton

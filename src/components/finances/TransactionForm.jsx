@@ -1324,15 +1324,53 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         : await consultarAutorizacionSRI(snapshot.claveAcceso, snapshot.sriAmbiente || snapshot.claveAcceso[23]);
       const updated = await saveSriResult({ db, appId, document: formData, result, api: fiscalApi });
       setFormData(updated);
+      setCurrentStep(2);
       if (updated.sriStatus === 'autorizado') {
         await finishAuthorizedEmission(updated);
-        await enviarCorreoComprobante(updated, thirdParties.find(tp => tp.id === updated.thirdPartyId) || updated.thirdParty);
+        await enviarCorreoComprobante(updated, thirdParties.find(tp => tp.id === updated.thirdPartyId) || updated.thirdParty, sriConfig);
       }
       else showToast(result.message || 'Autorización pendiente; se conserva el mismo comprobante.', 'warning');
     } catch (error) {
+      setCurrentStep(2);
       showToast('No se pudo confirmar el estado. Se conserva la clave y el secuencial. ' + error.message, 'warning');
     } finally { operationRef.current = false; setIsEmitting(false); }
   };
+
+  // Verificación reactiva en segundo plano cuando se emite y queda pendiente en Step 2
+  useEffect(() => {
+    if (currentStep !== 2 || formData.sriStatus !== 'pendiente_sri' || !formData.claveAcceso) return;
+    let cancelled = false;
+    let pollCount = 0;
+    const maxPolls = 6;
+
+    const pollInterval = setInterval(async () => {
+      if (cancelled || operationRef.current) return;
+      pollCount++;
+      if (pollCount > maxPolls) {
+        clearInterval(pollInterval);
+        return;
+      }
+      try {
+        const result = await consultarAutorizacionSRI(formData.claveAcceso, formData.sriAmbiente || formData.claveAcceso[23]);
+        if (result.status === 'autorizado' && !cancelled) {
+          clearInterval(pollInterval);
+          const updated = await saveSriResult({ db, appId, document: formData, result, api: fiscalApi });
+          setFormData(updated);
+          await finishAuthorizedEmission(updated);
+          const receiver = thirdParties.find(tp => tp.id === updated.thirdPartyId) || updated.thirdParty;
+          await enviarCorreoComprobante(updated, receiver, sriConfig);
+          showToast(`¡Factura ${updated.documentNumber} AUTORIZADA por el SRI! Copia enviada al emisor y cliente.`, 'success');
+        }
+      } catch (err) {
+        console.warn('Verificación en segundo plano SRI:', err.message);
+      }
+    }, 2500);
+
+    return () => {
+      cancelled = true;
+      clearInterval(pollInterval);
+    };
+  }, [currentStep, formData.sriStatus, formData.claveAcceso]);
 
   const executeEmitirSRI = async () => {
     if (formData.claveAcceso) { await recoverSriEmission(); return; }
@@ -1376,6 +1414,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       });
       reservedDocument = reservation.document;
       setFormData(reservedDocument);
+      // Avanzar de inmediato a la pantalla de confirmación/impresión con el comprobante reservado
+      setCurrentStep(2);
       let result;
       if (reservation.created) {
         setSriConfig(reservation.config);
@@ -1385,11 +1425,12 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       }
       const saved = await saveSriResult({ db, appId, document: reservedDocument, result, api: fiscalApi });
       setFormData(saved);
+      setCurrentStep(2);
       if (saved.sriStatus === 'autorizado') {
         await finishAuthorizedEmission(saved);
         await enviarCorreoComprobante(saved, receiver, reservation.config);
       } else {
-        showToast(result.message || 'Comprobante guardado, pendiente de autorización.', 'warning');
+        showToast(result.message || 'Comprobante emitido con clave oficial. Verificando autorización en el SRI...', 'info');
       }
     } catch (error) {
       const message = error.error || error.message || 'Fallo al consultar el SRI.';
@@ -1399,7 +1440,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
           const saved = await saveSriResult({ db, appId, document: reservedDocument, result: { status: 'pendiente_sri', message }, api: fiscalApi });
           setFormData(saved);
         } catch { /* The pre-send document remains durable for the next consultation. */ }
-        showToast('Comprobante guardado con su clave y secuencial. Consulte su estado antes de volver a emitir. ' + message, 'warning');
+        setCurrentStep(2);
+        showToast('Comprobante emitido y guardado con secuencial ' + (reservedDocument.documentNumber || '') + '. En proceso de verificación con SRI.', 'warning');
       } else showToast(message, 'error');
     } finally { operationRef.current = false; setIsEmitting(false); }
   };

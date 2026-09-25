@@ -778,8 +778,15 @@ export async function simularTransmisionSRI(documentoData, configSRI, onLogUpdat
     log('No se confirmó la recepción; consultando autorización antes de decidir cualquier reenvío.', 'warning');
   }
   for (let attempt = 0; attempt < 3; attempt++) {
-    const result = await consultarAutorizacionSRI(documentoData.claveAcceso, String(configSRI.ambiente));
-    if (result.status !== 'pendiente_sri') { log(result.status === 'autorizado' ? 'Autorización del SRI confirmada.' : result.message, result.status === 'autorizado' ? 'success' : 'warning'); return result; }
+    try {
+      const result = await consultarAutorizacionSRI(documentoData.claveAcceso, String(configSRI.ambiente));
+      if (result.status !== 'pendiente_sri') {
+        log(result.status === 'autorizado' ? 'Autorización del SRI confirmada.' : result.message, result.status === 'autorizado' ? 'success' : 'warning');
+        return result;
+      }
+    } catch (queryErr) {
+      log(`Consulta de autorización (${attempt + 1}/3): ${queryErr.message || 'consultando al SRI...'}`, 'info');
+    }
     if (attempt < 2) await new Promise(resolve => setTimeout(resolve, 2000));
   }
   return { status: 'pendiente_sri', claveAcceso: documentoData.claveAcceso, message: receptionError?.message || 'Enviado; autorización pendiente. No se reutilizará el secuencial.' };

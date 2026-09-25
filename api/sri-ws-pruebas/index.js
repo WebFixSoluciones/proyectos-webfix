@@ -1,4 +1,6 @@
 /* global Buffer */
+import https from 'https';
+
 // Función serverless de Vercel: proxy server-side de los WebServices SOAP del SRI
 // en AMBIENTE DE PRUEBAS (celcer.sri.gob.ec).
 const SRI_HOST = 'https://celcer.sri.gob.ec';
@@ -7,7 +9,42 @@ export const config = {
   api: {
     bodyParser: false,
   },
+  maxDuration: 60,
 };
+
+function postWithHttps(targetUrl, headers, body, timeoutMs = 25000) {
+  return new Promise((resolve, reject) => {
+    const urlObj = new URL(targetUrl);
+    const reqHeaders = {
+      ...headers,
+      'Content-Length': Buffer.byteLength(body),
+    };
+
+    const req = https.request({
+      protocol: urlObj.protocol,
+      hostname: urlObj.hostname,
+      port: urlObj.port || (urlObj.protocol === 'https:' ? 443 : 80),
+      path: urlObj.pathname + (urlObj.search || ''),
+      method: 'POST',
+      headers: reqHeaders,
+      rejectUnauthorized: false,
+      timeout: timeoutMs,
+    }, (res) => {
+      let data = '';
+      res.on('data', chunk => { data += chunk; });
+      res.on('end', () => {
+        resolve({ status: res.statusCode || 200, text: data });
+      });
+    });
+
+    req.on('timeout', () => {
+      req.destroy(new Error(`Timeout de ${timeoutMs}ms contactando al SRI (${urlObj.hostname})`));
+    });
+    req.on('error', reject);
+    req.write(body);
+    req.end();
+  });
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -16,6 +53,7 @@ export default async function handler(req, res) {
   }
 
   const segs = req.query?.path;
+  const path = Array.isArray(segs) ? segs.join('/') : (segs || '');
   const cleanPath = path.startsWith('/') ? path.slice(1) : path;
   const target = `${SRI_HOST}/${cleanPath}`;
 
@@ -48,22 +86,31 @@ export default async function handler(req, res) {
 
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 25000);
-      const sriRes = await fetch(target, {
-        method: 'POST',
-        headers,
-        body,
-        signal: controller.signal,
-      });
-      clearTimeout(timeoutId);
-
-      const text = await sriRes.text();
+      const result = await postWithHttps(target, headers, body, 20000);
       res.setHeader('Content-Type', 'text/xml; charset=utf-8');
-      res.status(sriRes.status).send(text);
+      res.status(result.status).send(result.text);
       return;
     } catch (err) {
       lastErr = err;
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 20000);
+        const sriRes = await fetch(target, {
+          method: 'POST',
+          headers,
+          body,
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+
+        const text = await sriRes.text();
+        res.setHeader('Content-Type', 'text/xml; charset=utf-8');
+        res.status(sriRes.status).send(text);
+        return;
+      } catch (fetchErr) {
+        lastErr = err || fetchErr;
+      }
+
       if (attempt < 3) {
         await new Promise(r => setTimeout(r, 1000));
       }
@@ -73,4 +120,3 @@ export default async function handler(req, res) {
   const cause = lastErr?.cause ? ` (${lastErr.cause.code || lastErr.cause.message || lastErr.cause})` : '';
   res.status(502).send(`<error>Fallo el proxy del SRI (pruebas): ${lastErr?.message || lastErr}${cause}</error>`);
 }
-
