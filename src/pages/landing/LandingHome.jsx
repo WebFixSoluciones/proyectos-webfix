@@ -11,10 +11,11 @@ import {
   Laptop, Smartphone, Store, Wifi, RefreshCw,
   Lock, Printer
 } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/card';
+import { Card } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { useParallaxScroll } from '../../hooks/useParallaxScroll';
+import { ScrollReveal } from '../../components/landing/ScrollReveal';
 
 export default function LandingHome() {
   const navigate = useNavigate();
@@ -50,6 +51,166 @@ export default function LandingHome() {
       q: '¿Existe límite de comprobantes en los planes?',
       a: 'No. Todos nuestros planes incluyen emisión ilimitada de comprobantes electrónicos para que tu negocio crezca sin restricciones de volumen.'
     }
+  ];
+
+  const features = [
+    {
+      id: 'sri',
+      icon: FileText,
+      iconBg: 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600',
+      title: 'Facturación SRI en 1 Clic',
+      description: 'Emite facturas, notas de crédito, retenciones y liquidaciones autorizadas al instante con firma .p12 integrada.',
+      cta: 'COMIENZA AHORA ↗',
+      renderVisual: () => (
+        <div className="my-6 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/80 space-y-2.5 font-sans">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-mono font-semibold text-slate-600 dark:text-slate-300">
+              FAC 001-002-000008453
+            </span>
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300">
+              <CheckCircle2 size={11} className="text-emerald-600 dark:text-emerald-400" />
+              SRI AUTORIZADO
+            </span>
+          </div>
+          <div className="text-xs text-slate-800 dark:text-slate-200 font-medium truncate">
+            SUPERMAXI S.A. • RUC 1790016919001
+          </div>
+          <div className="pt-2 border-t border-slate-200/80 dark:border-slate-700/60 flex items-center justify-between text-xs">
+            <span className="text-slate-500 dark:text-slate-400">Total Facturado</span>
+            <span className="font-mono font-bold text-slate-900 dark:text-white text-sm">$1,240.50</span>
+          </div>
+        </div>
+      )
+    },
+    {
+      id: 'pos',
+      icon: ShoppingCart,
+      iconBg: 'bg-blue-50 dark:bg-blue-950/60 text-blue-600',
+      title: 'Punto de Venta Ultrarrápido',
+      description: 'Diseñado para atención ágil en mostrador con atajo F12, cobro combinado (efectivo, tarjeta, transferencia) y ticket térmico 80mm.',
+      cta: 'VER PUNTO DE VENTA ↗',
+      renderVisual: () => (
+        <div className="my-6 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/80 space-y-2.5 font-sans">
+          <div className="flex items-center justify-between text-xs">
+            <div className="flex items-center gap-1.5">
+              <span className="px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-950/80 text-blue-800 dark:text-blue-300 font-mono font-bold text-[11px]">
+                F12
+              </span>
+              <span className="text-slate-700 dark:text-slate-300 font-medium">Cobro Rápido</span>
+            </div>
+            <span className="text-[11px] text-slate-500 font-mono">Ticket #1042</span>
+          </div>
+          <div className="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
+            <span>Efectivo + Transferencia</span>
+            <span className="text-slate-500 font-mono">2 artículos</span>
+          </div>
+          <div className="pt-2 border-t border-slate-200/80 dark:border-slate-700/60 flex items-center justify-between text-xs">
+            <span className="text-slate-500 dark:text-slate-400">Total Cobrado (80mm)</span>
+            <span className="font-mono font-bold text-blue-600 dark:text-blue-400 text-sm">$18.50</span>
+          </div>
+        </div>
+      )
+    },
+    {
+      id: 'finanzas',
+      icon: TrendingUp,
+      iconBg: 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600',
+      title: 'Flujo de Caja & Cartera Real',
+      description: 'Cuentas por cobrar (CxC), cuentas por pagar (CxP), conciliación bancaria automática y saldos en vivo.',
+      cta: 'EXPLORAR FINANZAS ↗',
+      renderVisual: () => (
+        <div className="my-6 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/80 space-y-2.5 font-sans">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-slate-500 dark:text-slate-400">Disponible en Bancos</span>
+            <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400 text-sm">$8,240.00</span>
+          </div>
+          <div className="text-[11px] text-slate-600 dark:text-slate-400 flex items-center justify-between">
+            <span>Pichincha $5,420 • Guayaquil $2,820</span>
+          </div>
+          <div className="pt-2 border-t border-slate-200/80 dark:border-slate-700/60 flex items-center justify-between text-xs">
+            <span className="text-slate-500 dark:text-slate-400">Cuentas por Cobrar (CxC)</span>
+            <span className="font-mono font-semibold text-slate-900 dark:text-white">$3,150.00</span>
+          </div>
+        </div>
+      )
+    },
+    {
+      id: 'inventario',
+      icon: Package,
+      iconBg: 'bg-amber-50 dark:bg-amber-950/60 text-amber-600',
+      title: 'Kardex & Stock en Tiempo Real',
+      description: 'Control de inventario promedio ponderado con descargas automáticas por ventas y alertas de existencias mínimas.',
+      cta: 'VER KARDEX ↗',
+      renderVisual: () => (
+        <div className="my-6 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/80 space-y-2.5 font-sans">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-slate-500 dark:text-slate-400">Kardex Valorizado</span>
+            <span className="font-mono font-bold text-amber-600 dark:text-amber-400 text-sm">$18,920.00</span>
+          </div>
+          <div className="text-[11px] text-slate-600 dark:text-slate-400">
+            248 ítems activos en 2 bodegas
+          </div>
+          <div className="pt-2 border-t border-slate-200/80 dark:border-slate-700/60 flex items-center justify-between text-xs">
+            <span className="text-slate-500 dark:text-slate-400">Estado de Stock</span>
+            <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300">
+              2 bajo mínimo
+            </span>
+          </div>
+        </div>
+      )
+    },
+    {
+      id: 'ocr',
+      icon: Sparkles,
+      iconBg: 'bg-purple-50 dark:bg-purple-950/60 text-purple-600',
+      title: 'Captura Inteligente OCR',
+      description: 'Arrastra facturas de proveedores en PDF, XML o foto. El motor extrae RUC, ítems, IVA y valores automáticamente.',
+      cta: 'PROBAR CAPTURA ↗',
+      renderVisual: () => (
+        <div className="my-6 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/80 space-y-2.5 font-sans">
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-mono text-[11px] text-slate-700 dark:text-slate-300 truncate max-w-[160px]">
+              factura_compra_84.pdf
+            </span>
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 dark:bg-purple-950/80 text-purple-800 dark:text-purple-300">
+              OCR 100%
+            </span>
+          </div>
+          <div className="text-[11px] text-slate-600 dark:text-slate-400 truncate">
+            RUC 1792049182001 • Base $420.00
+          </div>
+          <div className="pt-2 border-t border-slate-200/80 dark:border-slate-700/60 flex items-center justify-between text-xs">
+            <span className="text-slate-500 dark:text-slate-400">IVA 15% Calculado</span>
+            <span className="font-mono font-bold text-purple-600 dark:text-purple-400 text-sm">$63.00</span>
+          </div>
+        </div>
+      )
+    },
+    {
+      id: 'seguridad',
+      icon: ShieldCheck,
+      iconBg: 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200',
+      title: 'Seguridad & Nube 24/7',
+      description: 'Certificados digitales protegidos bajo encriptación industrial, copias de seguridad continuas y acceso seguro multiplataforma.',
+      cta: 'CONOCE MÁS ↗',
+      renderVisual: () => (
+        <div className="my-6 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/80 space-y-2.5 font-sans">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-slate-700 dark:text-slate-300 font-medium">Firma Digital .p12</span>
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200">
+              AES-256
+            </span>
+          </div>
+          <div className="text-[11px] text-slate-600 dark:text-slate-400">
+            Copias de seguridad continuas en Firebase
+          </div>
+          <div className="pt-2 border-t border-slate-200/80 dark:border-slate-700/60 flex items-center justify-between text-xs">
+            <span className="text-slate-500 dark:text-slate-400">Disponibilidad Nube</span>
+            <span className="font-mono font-bold text-slate-900 dark:text-white text-sm">99.98%</span>
+          </div>
+        </div>
+      )
+    },
   ];
 
   return (
@@ -512,120 +673,62 @@ export default function LandingHome() {
         </div>
       </section>
 
-      {/* 3. BENTO GRID FEATURES ("Infraestructura de Grado Empresarial") */}
-      <section {...{"style":{"borderBottom":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"relative py-24 overflow-hidden"}}>
-        {/* Ambient Subtle Dot Matrix */}
-        <UiBox 
-          {...{"className":"absolute inset-0 opacity-70 pointer-events-none"}}
-          style={{
-            backgroundImage: 'radial-gradient(#E5E5E5 1px, transparent 1px)',
-            backgroundSize: '24px 24px',
-            maskImage: 'radial-gradient(ellipse 60% 50% at 50% 50%, #000 70%, transparent 100%)',
-            WebkitMaskImage: 'radial-gradient(ellipse 60% 50% at 50% 50%, #000 70%, transparent 100%)'
-          }}
-        ></UiBox>
-
-        <UiBox {...{"className":"max-w-6xl mx-auto px-4 sm:px-6 relative z-10"}}>
+      {/* 3. BONDADES EN TARJETAS PLANAS CON ACENTOS DE COLOR SÓLIDO (CERO ANIDACIONES, CERO DOTS) */}
+      <section className="w-full bg-[#f8fafc]/60 dark:bg-[#070b14] border-b border-slate-200/80 dark:border-slate-800">
+        <div className="w-[90%] max-w-[1720px] mx-auto py-20 md:py-28">
           
-          <UiBox {...{"className":"text-center max-w-2xl mx-auto mb-14 space-y-2"}}>
-            <UiHeading as="h2" {...{"size":"6","weight":"bold","color":"gray","highContrast":true}}>
-              Todo lo que tu negocio necesita en un solo lugar.
-            </UiHeading>
-            <UiText as="p" {...{"size":"1","color":"gray","className":"leading-relaxed"}}>
-              Módulos modulares e interconectados para eliminar la fricción operativa y tributaria de tu empresa.
-            </UiText>
-          </UiBox>
+          {/* Título centrado limpio y sin dots ni burbujas */}
+          <div className="text-center max-w-3xl mx-auto mb-14 md:mb-16">
+            <h2 className="text-[#0F172A] dark:text-white font-bold text-3xl sm:text-4xl tracking-tight">
+              Todo lo que tu negocio necesita para operar sin fricción
+            </h2>
+            <p className="text-slate-600 dark:text-slate-400 text-base sm:text-lg max-w-2xl mx-auto mt-3">
+              Módulos modulares conectados en tiempo real para eliminar tareas manuales y cumplir con el SRI.
+            </p>
+          </div>
 
-          {/* Bento Grid with Floating Micro-Interactions */}
-          <UiBox {...{"className":"grid grid-cols-1 md:grid-cols-3 gap-4 text-left"}}>
-            
-            {/* Card 1: Facturación SRI */}
-            <Card {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"group hover:-translate-y-1 duration-300 relative overflow-hidden"}}>
-              <UiBox {...{"style":{"backgroundColor":"transparent"},"className":"absolute top-0 left-0 right-0 h-[2px] duration-300"}}></UiBox>
-              <CardHeader {...{"className":"pb-2"}}>
-                <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--black-a7)","color":"var(--gray-12)"},"className":"p-2 w-fit mb-2 group-hover:scale-110 duration-200"}}>
-                  <FileText size={18} />
-                </UiBox>
-                <CardTitle {...{"style":{"color":"var(--gray-12)"}}}>Facturación SRI en 1 Clic</CardTitle>
-              </CardHeader>
-              <CardContent {...{"style":{"color":"var(--gray-11)"},"className":"leading-relaxed pt-0"}}>
-                Emite facturas, notas de crédito, retenciones y liquidaciones autorizadas por el SRI en menos de 3 segundos con firma electrónica .p12 integrada.
-              </CardContent>
-            </Card>
+          {/* Grid de 3 columnas */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-left">
+            {features.map((feature, index) => {
+              const Icon = feature.icon;
+              return (
+                <ScrollReveal key={feature.id} delay={index * 80} className="h-full">
+                  <div className="border border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 sm:p-8 bg-white dark:bg-slate-900/90 hover:border-slate-400 dark:hover:border-slate-700 transition-all duration-300 flex flex-col justify-between h-full">
+                    <div>
+                      {/* Icono en caja sólida */}
+                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${feature.iconBg}`}>
+                        <Icon size={24} className="stroke-[2.2]" />
+                      </div>
 
-            {/* Card 2: POS */}
-            <Card {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"group hover:-translate-y-1 duration-300 relative overflow-hidden"}}>
-              <UiBox {...{"style":{"backgroundColor":"transparent"},"className":"absolute top-0 left-0 right-0 h-[2px] duration-300"}}></UiBox>
-              <CardHeader {...{"className":"pb-2"}}>
-                <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--black-a7)","color":"var(--gray-12)"},"className":"p-2 w-fit mb-2 group-hover:scale-110 duration-200"}}>
-                  <ShoppingCart size={18} />
-                </UiBox>
-                <CardTitle {...{"style":{"color":"var(--gray-12)"}}}>Punto de Venta (POS)</CardTitle>
-              </CardHeader>
-              <CardContent {...{"style":{"color":"var(--gray-11)"},"className":"leading-relaxed pt-0"}}>
-                Diseñado para mostrador y atención rápida. Atajo directo (F12), cobro múltiple (efectivo, tarjeta, transferencia) y apertura/cierre de caja.
-              </CardContent>
-            </Card>
+                      {/* Título */}
+                      <h3 className="text-xl font-bold text-slate-900 dark:text-white mt-5 tracking-tight">
+                        {feature.title}
+                      </h3>
 
-            {/* Card 3: Control Financiero */}
-            <Card {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"group hover:-translate-y-1 duration-300 relative overflow-hidden"}}>
-              <UiBox {...{"style":{"backgroundColor":"transparent"},"className":"absolute top-0 left-0 right-0 h-[2px] duration-300"}}></UiBox>
-              <CardHeader {...{"className":"pb-2"}}>
-                <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--black-a7)","color":"var(--gray-12)"},"className":"p-2 w-fit mb-2 group-hover:scale-110 duration-200"}}>
-                  <TrendingUp size={18} />
-                </UiBox>
-                <CardTitle {...{"style":{"color":"var(--gray-12)"}}}>Control Financiero & Flujo</CardTitle>
-              </CardHeader>
-              <CardContent {...{"style":{"color":"var(--gray-11)"},"className":"leading-relaxed pt-0"}}>
-                Cuentas por cobrar (CxC), cuentas por pagar (CxP), cruce de IVA automático y conciliación bancaria inteligente sin hojas de Excel.
-              </CardContent>
-            </Card>
+                      {/* Descripción */}
+                      <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed mt-2.5">
+                        {feature.description}
+                      </p>
 
-            {/* Card 4: OCR IA */}
-            <Card {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"group hover:-translate-y-1 duration-300 relative overflow-hidden"}}>
-              <UiBox {...{"style":{"backgroundColor":"transparent"},"className":"absolute top-0 left-0 right-0 h-[2px] duration-300"}}></UiBox>
-              <CardHeader {...{"className":"pb-2"}}>
-                <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--black-a7)","color":"var(--gray-12)"},"className":"p-2 w-fit mb-2 group-hover:scale-110 duration-200"}}>
-                  <Sparkles size={18} />
-                </UiBox>
-                <CardTitle {...{"style":{"color":"var(--gray-12)"}}}>Captura Inteligente OCR</CardTitle>
-              </CardHeader>
-              <CardContent {...{"style":{"color":"var(--gray-11)"},"className":"leading-relaxed pt-0"}}>
-                Arrastra facturas de proveedores en PDF, XML o foto. El motor de IA extrae RUC, ítems, IVA y valores completando el formulario automáticamente.
-              </CardContent>
-            </Card>
+                      {/* Visual plano sin anidaciones */}
+                      {feature.renderVisual()}
+                    </div>
 
-            {/* Card 5: Inventario */}
-            <Card {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"group hover:-translate-y-1 duration-300 relative overflow-hidden"}}>
-              <UiBox {...{"style":{"backgroundColor":"transparent"},"className":"absolute top-0 left-0 right-0 h-[2px] duration-300"}}></UiBox>
-              <CardHeader {...{"className":"pb-2"}}>
-                <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--black-a7)","color":"var(--gray-12)"},"className":"p-2 w-fit mb-2 group-hover:scale-110 duration-200"}}>
-                  <Package size={18} />
-                </UiBox>
-                <CardTitle {...{"style":{"color":"var(--gray-12)"}}}>Kardex & Stock en Tiempo Real</CardTitle>
-              </CardHeader>
-              <CardContent {...{"style":{"color":"var(--gray-11)"},"className":"leading-relaxed pt-0"}}>
-                Control de inventario promedio ponderado con descargas automáticas por ventas y alertas de existencias mínimas.
-              </CardContent>
-            </Card>
+                    {/* Botón CTA minimalista estilo SiteGround */}
+                    <button
+                      type="button"
+                      onClick={() => navigate('/register')}
+                      className="w-full mt-2 py-3 px-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-500 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800/80 dark:hover:bg-slate-800 text-slate-900 dark:text-white font-bold text-xs tracking-wider uppercase flex items-center justify-center gap-1.5 transition-colors cursor-pointer select-none"
+                    >
+                      <span>{feature.cta}</span>
+                    </button>
+                  </div>
+                </ScrollReveal>
+              );
+            })}
+          </div>
 
-            {/* Card 6: Seguridad Cloud */}
-            <Card {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"group hover:-translate-y-1 duration-300 relative overflow-hidden"}}>
-              <UiBox {...{"style":{"backgroundColor":"transparent"},"className":"absolute top-0 left-0 right-0 h-[2px] duration-300"}}></UiBox>
-              <CardHeader {...{"className":"pb-2"}}>
-                <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--black-a7)","color":"var(--gray-12)"},"className":"p-2 w-fit mb-2 group-hover:scale-110 duration-200"}}>
-                  <ShieldCheck size={18} />
-                </UiBox>
-                <CardTitle {...{"style":{"color":"var(--gray-12)"}}}>Seguridad & Nube 24/7</CardTitle>
-              </CardHeader>
-              <CardContent {...{"style":{"color":"var(--gray-11)"},"className":"leading-relaxed pt-0"}}>
-                Certificados digitales protegidos bajo encriptación industrial, copias de seguridad automáticas y acceso seguro desde cualquier dispositivo.
-              </CardContent>
-            </Card>
-
-          </UiBox>
-
-        </UiBox>
+        </div>
       </section>
 
       {/* 4. COMPARATIVA MINIMALISTA & ECOSISTEMA MULTIPLATAFORMA (PC, POS, MÓVIL) */}
