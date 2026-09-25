@@ -4,6 +4,8 @@
 @import "./designTokens.css";
 @import "./radixTheme.css";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   /* Colors */
   --color-primary: var(--primary);
