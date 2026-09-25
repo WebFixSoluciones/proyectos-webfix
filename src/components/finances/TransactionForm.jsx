@@ -2080,7 +2080,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         onChange={e => setProductSearchTerm(e.target.value)}
                         {...mergeThemeProps({}, {}, mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"}))}
                         style={{ paddingLeft: '28px' }}
-                        placeholder="Buscar por nombre, SKU o código de barras (o escanea)..."
+                        placeholder="Buscar productos..."
                       />
                       <Search {...{"style":{"color":"var(--gray-12)"},"className":"absolute left-[8px] top-1/2 -translate-y-1/2"}} size={12} />
                       {productSearchTerm && (
@@ -2353,15 +2353,15 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   {/* Cart Table */}
                   <UiBox {...{"className":"overflow-x-auto"}}>
                     {(formData.items || []).length > 0 ? (
-                      <UiTable {...{"className":"w-full text-left whitespace-nowrap"}}>
+                      <UiTable className="w-full whitespace-nowrap">
                         <UiTableHeader style={{ backgroundColor: "var(--gray-2)", color: "var(--gray-12)" }}>
                           <UiTableRow>
-                            <UiTableHead className="px-3 py-2 text-xs font-bold uppercase tracking-wider">Código & Descripción en Factura</UiTableHead>
-                            <UiTableHead className="px-1.5 py-2 text-center text-xs font-bold uppercase tracking-wider w-20">Cant.</UiTableHead>
-                            <UiTableHead className="px-1.5 py-2 text-right text-xs font-bold uppercase tracking-wider w-20">P. Unit.</UiTableHead>
-                            {isEditable && <UiTableHead className="px-1 py-2 text-center text-xs font-bold uppercase tracking-wider w-14 hidden sm:table-cell">Dto.</UiTableHead>}
-                            <UiTableHead className="px-2 py-2 text-right text-xs font-bold uppercase tracking-wider w-20">Subtotal</UiTableHead>
-                            {isEditable && <UiTableHead className="px-1 py-2 text-center w-8"></UiTableHead>}
+                            <UiTableHead className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-left">Código & Producto / Detalle</UiTableHead>
+                            <UiTableHead justify="center" className="px-2 py-2 text-center text-xs font-bold uppercase tracking-wider w-24">Cant.</UiTableHead>
+                            <UiTableHead justify="end" className="px-2 py-2 text-right text-xs font-bold uppercase tracking-wider w-24">P. Unit.</UiTableHead>
+                            {isEditable && <UiTableHead justify="center" className="px-2 py-2 text-center text-xs font-bold uppercase tracking-wider w-20 hidden sm:table-cell">Dto.</UiTableHead>}
+                            <UiTableHead justify="end" className="px-3 py-2 text-right text-xs font-bold uppercase tracking-wider w-28">Subtotal</UiTableHead>
+                            {isEditable && <UiTableHead justify="center" className="px-1 py-2 text-center w-10"></UiTableHead>}
                           </UiTableRow>
                         </UiTableHeader>
                         <UiTableBody>
@@ -2379,14 +2379,13 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                             );
                             return (
                               <UiTableRow key={index} className="hover:bg-[var(--gray-a2)] transition-colors">
-                                {/* Producto: Código pequeño sin burbuja + Nombre del producto + Descripción editable al frente */}
-                                <UiTableCell className="px-3 py-1.5">
+                                {/* Producto: Código pequeño sin burbuja + Nombre del producto + Descripción editable al frente reducida */}
+                                <UiTableCell className="px-3 py-1.5 text-left">
                                   {item.productId ? (
-                                    <UiBox className="flex items-center gap-2.5 min-w-0">
-                                      {/* Código de producto: pequeño, números claros, sin burbuja */}
+                                    <UiBox className="flex items-center gap-2 min-w-0">
+                                      {/* Código de producto: números claros, font-sans */}
                                       <span 
-                                        style={{ fontFamily: 'var(--code-font-family)' }}
-                                        className="text-xs font-semibold text-[var(--gray-10)] shrink-0 select-none tracking-normal"
+                                        className="text-xs font-semibold text-[var(--gray-10)] shrink-0 select-none tracking-normal font-sans"
                                         title={item.sku ? `Código / SKU: ${item.sku}` : 'Sin SKU'}
                                       >
                                         {item.sku || 'S/C'}
@@ -2394,13 +2393,13 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
                                       {/* Nombre del producto */}
                                       <span 
-                                        className="text-xs font-bold text-[var(--gray-12)] shrink-0 truncate max-w-[180px]" 
+                                        className="text-xs font-bold text-[var(--gray-12)] shrink-0 truncate max-w-[150px] font-sans" 
                                         title={item.name}
                                       >
                                         {item.name}
                                       </span>
 
-                                      {/* Descripción editable al frente */}
+                                      {/* Descripción editable reducida al frente */}
                                       {isEditable ? (
                                         <input
                                           aria-label={`Descripción en factura, línea ${index + 1}`}
@@ -2408,12 +2407,12 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                                           maxLength={300}
                                           value={item.invoiceDescription ?? ''}
                                           onChange={event => handleItemChange(index, 'invoiceDescription', event.target.value)}
-                                          className="flex-1 min-w-[130px] h-7 text-xs px-2.5 rounded bg-[var(--gray-2)] hover:bg-[var(--gray-3)] focus:bg-[var(--color-panel-solid)] border border-transparent focus:border-[var(--blue-7)] text-[var(--gray-12)] outline-none transition-colors"
-                                          title={`Detalle o especificación para la factura (opcional)`}
+                                          className="w-44 sm:w-56 max-w-[220px] h-7 text-xs px-2.5 rounded bg-[var(--gray-2)] hover:bg-[var(--gray-3)] focus:bg-[var(--color-panel-solid)] border border-transparent focus:border-[var(--blue-7)] text-[var(--gray-12)] font-sans outline-none transition-colors"
+                                          title="Detalle o especificación para la factura (opcional)"
                                           placeholder="Detalle editable en factura..."
                                         />
                                       ) : (
-                                        <span className="text-xs text-[var(--gray-11)] truncate block font-normal">
+                                        <span className="text-xs text-[var(--gray-11)] truncate block font-normal font-sans">
                                           {invoiceDescription(item)}
                                         </span>
                                       )}
@@ -2434,8 +2433,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                                   )}
                                 </UiTableCell>
                                 
-                                {/* Cantidad Stepper: Sin bordes, fondo sutil, misma altura h-7 */}
-                                <UiTableCell className="px-1.5 py-1.5 text-center w-20">
+                                {/* Cantidad Stepper: Sin bordes, fondo sutil, fuente Inter semibold */}
+                                <UiTableCell justify="center" className="px-2 py-1.5 text-center w-24">
                                   <div className="inline-flex items-center h-7 bg-[var(--gray-2)] rounded px-1">
                                     <button 
                                       type="button" 
@@ -2444,7 +2443,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                                         const q = parseInt(item.quantity) || 1;
                                         if (q > 1) handleItemChange(index, 'quantity', q - 1);
                                       }} 
-                                      className="w-5 h-5 flex items-center justify-center rounded hover:bg-[var(--gray-4)] text-[var(--gray-11)] text-xs font-bold transition-colors cursor-pointer disabled:opacity-40 border-none bg-transparent"
+                                      className="w-5 h-5 flex items-center justify-center rounded hover:bg-[var(--gray-4)] text-[var(--gray-11)] text-xs font-semibold transition-colors cursor-pointer disabled:opacity-40 border-none bg-transparent"
                                       title="Disminuir"
                                     >
                                       -
@@ -2455,7 +2454,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                                       value={item.quantity} 
                                       min="1" 
                                       onChange={(e) => handleItemChange(index, 'quantity', Math.max(1, parseInt(e.target.value) || 1))} 
-                                      className="w-7 text-center text-xs font-bold text-[var(--gray-12)] bg-transparent border-none outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
+                                      className="w-8 text-center text-xs font-semibold text-[var(--gray-12)] bg-transparent border-none outline-none font-sans [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
                                     />
                                     <button 
                                       type="button" 
@@ -2463,7 +2462,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                                       onClick={() => {
                                         handleItemChange(index, 'quantity', (parseInt(item.quantity) || 1) + 1);
                                       }} 
-                                      className="w-5 h-5 flex items-center justify-center rounded hover:bg-[var(--gray-4)] text-[var(--gray-11)] text-xs font-bold transition-colors cursor-pointer disabled:opacity-40 border-none bg-transparent"
+                                      className="w-5 h-5 flex items-center justify-center rounded hover:bg-[var(--gray-4)] text-[var(--gray-11)] text-xs font-semibold transition-colors cursor-pointer disabled:opacity-40 border-none bg-transparent"
                                       title="Aumentar"
                                     >
                                       +
@@ -2471,10 +2470,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                                   </div>
                                 </UiTableCell>
 
-                                {/* Precio Unitario: Sin bordes, fondo sutil, legible, misma altura h-7 */}
-                                <UiTableCell className="px-1.5 py-1.5 text-right w-20">
-                                  <div className="relative inline-flex items-center h-7 bg-[var(--gray-2)] rounded px-1.5">
-                                    <span className="text-xs font-bold text-[var(--gray-9)] pointer-events-none mr-0.5">$</span>
+                                {/* Precio Unitario: Sin bordes, fondo sutil, fuente Inter semibold */}
+                                <UiTableCell justify="end" className="px-2 py-1.5 text-right w-24">
+                                  <div className="relative inline-flex items-center justify-end h-7 bg-[var(--gray-2)] rounded px-2">
+                                    <span className="text-xs font-semibold text-[var(--gray-9)] pointer-events-none mr-0.5">$</span>
                                     <input 
                                       disabled={!isEditable} 
                                       type="number" 
@@ -2482,23 +2481,23 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                                       required 
                                       value={item.price} 
                                       onChange={(e) => handleItemChange(index, 'price', e.target.value)} 
-                                      className="w-14 text-right font-mono font-bold text-xs text-[var(--gray-12)] bg-transparent border-none outline-none" 
+                                      className="w-16 text-right font-sans font-semibold text-xs text-[var(--gray-12)] bg-transparent border-none outline-none" 
                                     />
                                   </div>
                                 </UiTableCell>
 
-                                {/* Descuento: Sin bordes, fondo sutil, misma altura h-7 */}
+                                {/* Descuento: Sin bordes, fondo sutil, fuente Inter semibold */}
                                 {isEditable && (
-                                  <UiTableCell className="px-1 py-1.5 text-center w-14 hidden sm:table-cell">
+                                  <UiTableCell justify="center" className="px-2 py-1.5 text-center w-20 hidden sm:table-cell">
                                     {hasDiscount ? (
                                       <button
                                         type="button"
                                         onClick={() => setSelectedLineItemForDiscount({ ...item, cartIndex: index })}
-                                        className="inline-flex items-center justify-center gap-0.5 px-1.5 h-7 rounded text-xs font-bold bg-[var(--red-3)] hover:bg-[var(--red-4)] text-[var(--red-11)] transition-colors cursor-pointer border-none"
+                                        className="inline-flex items-center justify-center gap-1 px-2 h-7 rounded text-xs font-semibold font-sans bg-[var(--red-3)] hover:bg-[var(--red-4)] text-[var(--red-11)] transition-colors cursor-pointer border-none"
                                         title="Modificar o quitar descuento"
                                       >
-                                        <Percent size={10} />
-                                        <span>
+                                        <Percent size={11} />
+                                        <span className="font-semibold font-sans">
                                           {calcLine.discount_type === 'SIN_IVA' || calcLine.descuento_objeto?.tipo_valor === 'SIN_IVA'
                                             ? `-IVA`
                                             : (calcLine.discount_type === 'PORCENTAJE' || calcLine.descuento_objeto?.tipo_valor === 'PORCENTAJE'
@@ -2510,30 +2509,30 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                                       <button 
                                         type="button"
                                         onClick={() => setSelectedLineItemForDiscount({ ...item, cartIndex: index })}
-                                        className="w-7 h-7 flex items-center justify-center rounded bg-[var(--gray-2)] hover:bg-[var(--gray-3)] text-[var(--gray-11)] transition-colors cursor-pointer border-none"
+                                        className="h-7 px-2.5 flex items-center justify-center rounded bg-[var(--gray-2)] hover:bg-[var(--gray-3)] text-[var(--gray-11)] hover:text-[var(--gray-12)] transition-colors cursor-pointer border-none text-xs font-semibold font-sans"
                                         title="Asignar descuento a este ítem"
                                       >
-                                        <Percent size={12} />
+                                        <span>0%</span>
                                       </button>
                                     )}
                                   </UiTableCell>
                                 )}
 
-                                {/* Subtotal: Legible, font-mono, negrita */}
+                                {/* Subtotal: Alineado, fuente Inter semibold */}
                                 <UiTableCell 
-                                  style={{ fontFamily: 'var(--code-font-family)' }} 
-                                  className="px-2 py-1.5 text-right font-bold text-xs text-[var(--gray-12)] w-20"
+                                  justify="end"
+                                  className="px-3 py-1.5 text-right font-sans font-semibold text-xs text-[var(--gray-12)] w-28"
                                 >
                                   ${subtotalLine.toFixed(2)}
                                 </UiTableCell>
 
                                 {/* Eliminar: Sin bordes, fondo sutil rojo, w-7 h-7 */}
                                 {isEditable && (
-                                  <UiTableCell className="px-1 py-1.5 text-center w-8">
+                                  <UiTableCell justify="center" className="px-1 py-1.5 text-center w-10">
                                     <button 
                                       type="button" 
                                       onClick={() => handleRemoveItem(index)} 
-                                      className="w-7 h-7 flex items-center justify-center rounded bg-[var(--red-3)] hover:bg-[var(--red-4)] text-[var(--red-11)] transition-colors cursor-pointer border-none"
+                                      className="w-7 h-7 flex items-center justify-center rounded bg-[var(--red-3)] hover:bg-[var(--red-4)] text-[var(--red-11)] transition-colors cursor-pointer border-none mx-auto"
                                       title="Quitar este ítem de la factura"
                                     >
                                       <Trash2 size={12} />
