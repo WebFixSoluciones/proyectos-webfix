@@ -16,7 +16,7 @@ import { createThemedPortal as createPortal } from '../ui/themePortal';
 import { 
   X, Calculator, FileText, CheckCircle2, AlertTriangle, Sparkles, 
   Terminal, ShieldAlert, Download, Plus, Trash2, RefreshCw, ArrowLeft, ArrowRight, 
-  User, DollarSign, CreditCard, Layers, Search, Tag, Percent, ChevronDown, ShoppingCart,
+  User, UserCheck, DollarSign, CreditCard, Layers, Search, Tag, Percent, ChevronDown, ShoppingCart,
   Package, Printer, Mail, Send, Check, Clock, ExternalLink
 } from 'lucide-react';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, runTransaction } from '../../services/financeStore.js';
@@ -106,6 +106,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   const [emailSending, setEmailSending] = useState(false);
   const [emailDeliveryResult, setEmailDeliveryResult] = useState(null);
   const [customClientEmail, setCustomClientEmail] = useState('');
+  const [hasSelectedDocType, setHasSelectedDocType] = useState(() => Boolean(tx?.documentType || tx?.claveAcceso));
   
   const [dbCategories, setDbCategories] = useState([]);
   const [bankAccounts, setBankAccounts] = useState([]);
@@ -1867,22 +1868,47 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   )}
                 </UiBox>
 
-                {/* Client detail card (extremely compact) */}
+                {/* Client detail card (Green diffused background & dark text) */}
                 {matchedTercero ? (
-                  <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--gray-2)","border":"1px solid var(--gray-a6)"},"className":"grid grid-cols-1 sm:grid-cols-3 gap-[10px] p-[8px] mb-[8px]"})}>
-                    <UiBox>
-                      <UiText as="p" {...mergeThemeProps({"size":"1","weight":"bold","color":"gray"})}>Razón Social</UiText>
-                      <UiText as="p"  {...{"weight":"bold","size":"1","className":"truncate"}}>{matchedTercero.name}</UiText>
+                  <UiBox className="p-3 mb-2 rounded-lg bg-emerald-50/90 dark:bg-emerald-950/40 border border-emerald-300/80 dark:border-emerald-800/60 transition-colors">
+                    <UiBox className="flex items-center justify-between gap-2 mb-2 pb-1.5 border-b border-emerald-200/70 dark:border-emerald-800/40">
+                      <UiBox className="flex items-center gap-1.5">
+                        <UserCheck size={14} className="text-emerald-700 dark:text-emerald-400" />
+                        <span className="text-xs font-extrabold text-emerald-900 dark:text-emerald-200">
+                          {formData.type === 'ingreso' ? 'Datos de Cliente' : 'Datos de Proveedor'}
+                        </span>
+                      </UiBox>
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-200 text-[11px] font-bold border border-emerald-300 dark:border-emerald-700 shadow-none">
+                        <CheckCircle2 size={12} className="text-emerald-700 dark:text-emerald-400" />
+                        <span>Registrado</span>
+                      </span>
                     </UiBox>
-                    <UiBox>
-                      <UiText as="p" {...mergeThemeProps({"size":"1","weight":"bold","color":"gray"})}>RUC / CI</UiText>
-                      <UiText as="p"  {...{"weight":"bold","size":"1"}}>{matchedTercero.ruc}</UiText>
-                    </UiBox>
-                    <UiBox>
-                      <UiText as="p" {...mergeThemeProps({"size":"1","weight":"bold","color":"gray"})}>Teléfono / Correo</UiText>
-                      <UiText as="p"  {...{"weight":"bold","size":"1","className":"truncate"}}>
-                        {matchedTercero.telefono || 'S/N'} {matchedTercero.email ? `| ${matchedTercero.email}` : ''}
-                      </UiText>
+
+                    <UiBox className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+                      <UiBox className="min-w-0">
+                        <span className="block text-[10px] font-bold uppercase tracking-wider text-emerald-800/80 dark:text-emerald-400/90 mb-0.5">
+                          Razón Social / Nombre
+                        </span>
+                        <p className="font-extrabold text-sm text-emerald-950 dark:text-emerald-100 truncate" title={matchedTercero.name}>
+                          {matchedTercero.name}
+                        </p>
+                      </UiBox>
+                      <UiBox className="min-w-0">
+                        <span className="block text-[10px] font-bold uppercase tracking-wider text-emerald-800/80 dark:text-emerald-400/90 mb-0.5">
+                          RUC / Cédula
+                        </span>
+                        <p className="font-bold font-mono text-xs text-emerald-950 dark:text-emerald-100">
+                          {matchedTercero.ruc}
+                        </p>
+                      </UiBox>
+                      <UiBox className="min-w-0">
+                        <span className="block text-[10px] font-bold uppercase tracking-wider text-emerald-800/80 dark:text-emerald-400/90 mb-0.5">
+                          Contacto
+                        </span>
+                        <p className="font-semibold text-xs text-emerald-900 dark:text-emerald-200 truncate" title={`${matchedTercero.telefono || 'S/N'} ${matchedTercero.email ? `| ${matchedTercero.email}` : ''}`}>
+                          {matchedTercero.telefono || 'S/N'} {matchedTercero.email ? `• ${matchedTercero.email}` : ''}
+                        </p>
+                      </UiBox>
                     </UiBox>
                   </UiBox>
                 ) : (
@@ -1899,7 +1925,12 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     <UiSelect
                       disabled={!isEditable} 
                       value={formData.documentType} 
+                      variant={hasSelectedDocType ? "solid" : "surface"}
+                      color="blue"
+                      onClick={() => setHasSelectedDocType(true)}
+                      onFocus={() => setHasSelectedDocType(true)}
                       onChange={e => {
+                        setHasSelectedDocType(true);
                         const newDocType = e.target.value;
                         if (sriConfig?.rucActivo === false && newDocType === 'factura') {
                           showToast("El RUC de la empresa está inactivo. Solo puede emitir Notas de Venta.", "error");
@@ -1908,7 +1939,19 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         const nextSec = newDocType === 'nota_venta' ? String(sriConfig?.secuencialNotaVenta || 1) : '';
                         setFormData(prev => ({ ...prev, documentType: newDocType, secuencial: nextSec }));
                       }} 
-                      {...mergeThemeProps({}, {}, mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"}))}
+                      style={hasSelectedDocType ? {
+                        backgroundColor: 'var(--accent-9)',
+                        color: '#ffffff',
+                        borderColor: 'var(--accent-9)'
+                      } : {
+                        backgroundColor: 'var(--blue-2)',
+                        color: 'var(--blue-11)',
+                        borderColor: 'var(--blue-7)'
+                      }}
+                      className={hasSelectedDocType 
+                        ? "w-full font-bold !text-white !bg-[var(--accent-9)] border-[var(--accent-9)] cursor-pointer shadow-sm transition-all"
+                        : "w-full font-semibold !text-[var(--blue-11)] !bg-[var(--blue-2)] border border-[var(--blue-7)] cursor-pointer hover:bg-[var(--blue-3)] transition-all"
+                      }
                     >
                       {formData.documentType === 'nota_credito' ? (
                         <option value="nota_credito">NOTA DE CRÉDITO</option>

@@ -182,12 +182,23 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
 - **Acabado Limpio**: Los encabezados de sección quedan fluidos, directos e integrados sin cortes de línea, manteniendo el diseño minimalista homogéneo del formulario.
 - **Pruebas y Build**: 41 tests unitarios aprobados, compilación limpia de producción en 5.62s.
 
+### 19. Resaltado de Tipo de Documento y Ficha de Cliente en Verde Difuminado (2026-09-24) — COMPLETADO
+- **Selector de Tipo de Documento Dinámico**:
+  - **Estado inicial / reposo**: Resaltado suave con estilo superficial azul idéntico al botón *Añadir* (`variant="surface"` con fondo `var(--blue-2)`, borde `var(--blue-7)` y texto `var(--blue-11)` semibold).
+  - **Al seleccionar**: Se transforma y permanece (`se quede`) con fondo azul sólido vibrante (`var(--accent-9)`), texto blanco brillante en negrita (`!text-white font-bold`) y chevron blanco.
+- **Ficha de Cliente Seleccionado en Verde Difuminado**:
+  - Eliminado el fondo gris opaco (`var(--gray-2)`).
+  - Nuevo contenedor en verde difuminado suave (`bg-emerald-50/90 dark:bg-emerald-950/40 border-emerald-300/80`).
+  - Cabecera con píldora idéntica al diseño solicitado: `(✓) Registrado` con icono `CheckCircle2` y fondo verde pastel.
+  - Tipografía oscura de alto contraste (*letras más oscuras*): `text-emerald-950 dark:text-white font-extrabold` para Razón Social y RUC, y etiquetas verdes legibles en mayúsculas (`text-emerald-800`).
+- **Pruebas y Build**: 41 tests unitarios aprobados, compilación limpia de producción en 6.71s.
+
 ## Últimos commits
 ```
+1f7c9ec fix(ventas): eliminar lineas divisoras debajo de los titulos de secciones en TransactionForm
 cec7a71 fix(superadmin): utilizar UiInput con iconPrefix en buscador para eliminar icono montado
 0472054 feat(billing): estandarizar diseno de suscripcion, eliminar vacios laterales y sincronizar submodulos
 b27f571 docs: actualizar hash 792350c en AGENTS.md
-792350c feat(servicios): eliminar metricas kpi de la cabecera en ServicesView
 ```
 
 
