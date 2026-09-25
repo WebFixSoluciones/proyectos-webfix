@@ -89,42 +89,52 @@ export default function ServicesView({
   };
 
   return (
-    <UiBox className="w-full h-full flex flex-col space-y-5 animate-in fade-in duration-300">
+    <UiBox className="w-full h-full flex flex-col space-y-4 animate-in fade-in duration-300 pb-8">
+      {/* Header sin slash con contador */}
+      <div className="flex items-center gap-2.5 pb-1">
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+          Servicios
+        </h1>
+        <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200/80">
+          {filteredServices.length}
+        </span>
+      </div>
       
-      {/* Toolbar & Filters */}
-      <UiBox className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
-        <UiBox className="flex flex-wrap items-center gap-2">
-          <UiButton
+      {/* Toolbar: Botón de acción a la IZQ y Filtros a la DERECHA en la misma fila */}
+      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 p-3 bg-white border border-slate-200/90 rounded-2xl">
+        {/* IZQUIERDA: Botones de acción */}
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
             onClick={onNewService}
-            variant="solid"
-            color="blue"
-            size="2"
-            className="flex items-center gap-1.5 cursor-pointer"
+            className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-[#1b1b1b] hover:bg-slate-800 rounded-xl transition-colors cursor-pointer shadow-none"
           >
-            <Plus size={15} /> Nuevo Servicio
-          </UiButton>
-          <UiButton
+            <Plus size={14} /> 
+            <span>Nuevo Servicio</span>
+          </button>
+          <button
+            type="button"
             onClick={onOpenCategories}
-            variant="soft"
-            color="gray"
-            size="2"
-            className="flex items-center gap-1.5 cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200/90 rounded-xl transition-colors cursor-pointer"
           >
-            <Tag size={14} /> Categorías
-          </UiButton>
-        </UiBox>
+            <Tag size={14} /> 
+            <span>Categorías</span>
+          </button>
+        </div>
 
-        <UiBox className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
-          <UiBox className="w-full sm:w-60">
+        {/* DERECHA: Búsqueda y Filtros */}
+        <div className="flex flex-wrap items-center gap-2 md:justify-end flex-1">
+          <div className="w-full sm:w-60">
             <UiInput
               type="text"
-              placeholder="Buscar por código, nombre o detalle..."
+              placeholder="Buscar por código o nombre..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              iconPrefix={<Search size={14} className="text-[var(--gray-10)]" />}
+              iconPrefix={<Search size={14} className="text-slate-400" />}
               size="2"
+              className="w-full"
             />
-          </UiBox>
+          </div>
 
           <UiSelect
             value={selectedCategory}
@@ -166,11 +176,11 @@ export default function ServicesView({
             <option value="INACTIVE">Solo Inactivos</option>
             <option value="ALL">Todos los Estados</option>
           </UiSelect>
-        </UiBox>
-      </UiBox>
+        </div>
+      </div>
 
       {/* Services Table */}
-      <UiBox style={{ borderRadius: "var(--radius-3)", border: "1px solid var(--gray-a6)", backgroundColor: "var(--color-panel-solid)" }} className="overflow-hidden">
+      <div className="border border-slate-200/90 rounded-2xl bg-white overflow-hidden">
         <UiBox className="overflow-x-auto custom-scrollbar">
           <UiTable className="w-full text-left whitespace-nowrap">
             <UiTableHeader style={{ backgroundColor: "var(--gray-2)", color: "var(--gray-12)" }}>
@@ -321,7 +331,7 @@ export default function ServicesView({
             </UiTableBody>
           </UiTable>
         </UiBox>
-      </UiBox>
+      </div>
     </UiBox>
   );
 }

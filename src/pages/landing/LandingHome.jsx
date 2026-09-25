@@ -251,7 +251,7 @@ export default function LandingHome() {
                 <button
                   type="button"
                   onClick={() => navigate('/register')}
-                  className="bg-[#1b1b1b] hover:bg-black text-white font-semibold px-7 py-3.5 rounded-full flex items-center justify-center gap-2 cursor-pointer transition-all shadow-none"
+                  className="bg-[#1b1b1b] hover:bg-black text-white font-semibold px-7 py-3.5 rounded-2xl flex items-center justify-center gap-2 cursor-pointer transition-all shadow-none"
                 >
                   <span>Probar 14 días gratis</span>
                   <ArrowRight size={15} />
@@ -262,7 +262,7 @@ export default function LandingHome() {
                     const el = document.getElementById('demo-preview');
                     el?.scrollIntoView({ behavior: 'smooth' });
                   }}
-                  className="bg-white hover:bg-slate-50 text-[#1b1b1b] font-semibold px-6 py-3.5 rounded-full border border-slate-300 cursor-pointer transition-all flex items-center justify-center gap-2"
+                  className="bg-white hover:bg-slate-50 text-[#1b1b1b] font-semibold px-6 py-3.5 rounded-2xl border border-slate-300 cursor-pointer transition-all flex items-center justify-center gap-2"
                 >
                   <span>Ver demostración</span>
                 </button>
@@ -375,7 +375,7 @@ export default function LandingHome() {
                         key={tab.id}
                         type="button"
                         onClick={() => setActiveHeroTab(tab.id)}
-                        className={`flex items-center gap-2 rounded-full px-5 py-2 text-xs sm:text-sm font-semibold transition-all whitespace-nowrap cursor-pointer select-none ${
+                        className={`flex items-center gap-2 rounded-xl px-5 py-2 text-xs sm:text-sm font-semibold transition-all whitespace-nowrap cursor-pointer select-none ${
                           isActive
                             ? 'bg-[#c0ffa5] text-[#004227] font-bold shadow-none'
                             : 'bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-950 font-medium'
@@ -637,7 +637,7 @@ export default function LandingHome() {
                   <button
                     type="button"
                     onClick={() => navigate('/register')}
-                    className="inline-flex items-center justify-center bg-[#1b1b1b] hover:bg-black text-white text-xs font-bold uppercase tracking-wider px-6 py-3 rounded-full cursor-pointer transition-all shadow-none"
+                    className="inline-flex items-center justify-center bg-[#1b1b1b] hover:bg-black text-white text-xs font-bold uppercase tracking-wider px-6 py-3 rounded-xl cursor-pointer transition-all shadow-none"
                   >
                     Comienza ahora
                   </button>
@@ -683,7 +683,7 @@ export default function LandingHome() {
                   <button
                     type="button"
                     onClick={() => navigate('/register')}
-                    className="inline-flex items-center justify-center bg-[#1b1b1b] hover:bg-black text-white text-xs font-bold uppercase tracking-wider px-6 py-3 rounded-full cursor-pointer transition-all shadow-none"
+                    className="inline-flex items-center justify-center bg-[#1b1b1b] hover:bg-black text-white text-xs font-bold uppercase tracking-wider px-6 py-3 rounded-xl cursor-pointer transition-all shadow-none"
                   >
                     Comienza ahora
                   </button>
@@ -734,7 +734,7 @@ export default function LandingHome() {
                   <button
                     type="button"
                     onClick={() => navigate('/register')}
-                    className="inline-flex items-center justify-center bg-[#1b1b1b] hover:bg-black text-white text-xs font-bold uppercase tracking-wider px-6 py-3 rounded-full cursor-pointer transition-all shadow-none mb-6"
+                    className="inline-flex items-center justify-center bg-[#1b1b1b] hover:bg-black text-white text-xs font-bold uppercase tracking-wider px-6 py-3 rounded-xl cursor-pointer transition-all shadow-none mb-6"
                   >
                     Comienza a procesar
                   </button>
@@ -1111,8 +1111,8 @@ export default function LandingHome() {
                     onClick={() => setActiveSegmentTab(tab.id)}
                     className={
                       isActive
-                        ? 'bg-[#c0ffa5] text-[#004227] font-semibold rounded-full px-6 py-2.5 text-sm cursor-pointer transition-all shadow-none select-none'
-                        : 'text-slate-700 hover:text-slate-950 font-medium px-6 py-2.5 text-sm cursor-pointer transition-all shadow-none select-none'
+                        ? 'bg-[#c0ffa5] text-[#004227] font-semibold rounded-xl px-6 py-2.5 text-sm cursor-pointer transition-all shadow-none select-none'
+                        : 'text-slate-700 hover:text-slate-950 font-medium rounded-xl px-6 py-2.5 text-sm cursor-pointer transition-all shadow-none select-none'
                     }
                   >
                     {tab.label}
@@ -1226,11 +1226,11 @@ export default function LandingHome() {
 
               {/* Selector Mensual / Anual (-20%) */}
               <div className="pt-4 flex justify-center">
-                <div className="inline-flex items-center p-1.5 rounded-full bg-slate-100 border border-slate-200/80 select-none">
+                <div className="inline-flex items-center p-1.5 rounded-xl bg-slate-100 border border-slate-200/80 select-none">
                   <button
                     type="button"
                     onClick={() => setBillingCycle('monthly')}
-                    className={`px-5 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                    className={`px-5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
                       billingCycle === 'monthly'
                         ? 'bg-white text-[#1b1b1b] shadow-sm'
                         : 'text-slate-600 hover:text-slate-900'
@@ -1241,14 +1241,14 @@ export default function LandingHome() {
                   <button
                     type="button"
                     onClick={() => setBillingCycle('yearly')}
-                    className={`px-5 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                    className={`px-5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
                       billingCycle === 'yearly'
                         ? 'bg-white text-[#1b1b1b] shadow-sm'
                         : 'text-slate-600 hover:text-slate-900'
                     }`}
                   >
                     <span>Anual</span>
-                    <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#c0ffa5] text-[#004227]">
+                    <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-[#c0ffa5] text-[#004227]">
                       -20%
                     </span>
                   </button>
@@ -1297,7 +1297,7 @@ export default function LandingHome() {
                 <button
                   type="button"
                   onClick={() => navigate('/register')}
-                  className="w-full mt-8 py-3 px-5 rounded-full font-semibold text-sm border border-slate-300 text-slate-800 hover:bg-slate-50 transition-colors text-center cursor-pointer"
+                  className="w-full mt-8 py-3 px-5 rounded-xl font-semibold text-sm border border-slate-300 text-slate-800 hover:bg-slate-50 transition-colors text-center cursor-pointer"
                 >
                   Probar Gratis
                 </button>
@@ -1341,7 +1341,7 @@ export default function LandingHome() {
                 <button
                   type="button"
                   onClick={() => navigate('/register')}
-                  className="w-full mt-8 py-3 px-5 rounded-full font-bold text-sm bg-[#1b1b1b] hover:bg-black text-white transition-colors text-center cursor-pointer shadow-none"
+                  className="w-full mt-8 py-3 px-5 rounded-xl font-bold text-sm bg-[#1b1b1b] hover:bg-black text-white transition-colors text-center cursor-pointer shadow-none"
                 >
                   Comenzar con Pro
                 </button>
@@ -1382,7 +1382,7 @@ export default function LandingHome() {
                 <button
                   type="button"
                   onClick={() => navigate('/register')}
-                  className="w-full mt-8 py-3 px-5 rounded-full font-semibold text-sm border border-slate-300 text-slate-800 hover:bg-slate-50 transition-colors text-center cursor-pointer"
+                  className="w-full mt-8 py-3 px-5 rounded-xl font-semibold text-sm border border-slate-300 text-slate-800 hover:bg-slate-50 transition-colors text-center cursor-pointer"
                 >
                   Probar Empresarial
                 </button>
@@ -1474,7 +1474,7 @@ export default function LandingHome() {
                 <button
                   type="button"
                   onClick={() => navigate('/register')}
-                  className="w-full sm:w-auto bg-[#1b1b1b] hover:bg-black text-white font-bold px-8 py-4 rounded-full text-base flex items-center justify-center gap-2 cursor-pointer transition-transform hover:scale-[1.02]"
+                  className="w-full sm:w-auto bg-[#1b1b1b] hover:bg-black text-white font-bold px-8 py-4 rounded-2xl text-base flex items-center justify-center gap-2 cursor-pointer transition-transform hover:scale-[1.02]"
                 >
                   <span>Crear Cuenta Gratis</span>
                   <ArrowRight size={18} />
@@ -1482,7 +1482,7 @@ export default function LandingHome() {
                 <button
                   type="button"
                   onClick={() => navigate('/contacto')}
-                  className="w-full sm:w-auto bg-white hover:bg-slate-50 text-[#1b1b1b] font-semibold px-8 py-4 rounded-full text-base border border-slate-300 cursor-pointer transition-colors"
+                  className="w-full sm:w-auto bg-white hover:bg-slate-50 text-[#1b1b1b] font-semibold px-8 py-4 rounded-2xl text-base border border-slate-300 cursor-pointer transition-colors"
                 >
                   Hablar con un Asesor
                 </button>

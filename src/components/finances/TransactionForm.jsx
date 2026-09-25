@@ -1621,7 +1621,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               type="button"
               disabled={isEmitting || isSaving}
               onClick={() => recoverSriEmission()}
-              className="rounded-full bg-[#1b1b1b] hover:bg-slate-800 text-white px-4 py-2 text-xs font-semibold shadow-none cursor-pointer transition-all disabled:opacity-50"
+              className="rounded-xl bg-[#1b1b1b] hover:bg-slate-800 text-white px-4 py-2 text-xs font-semibold shadow-none cursor-pointer transition-all disabled:opacity-50"
             >
               {isEmitting ? 'Consultando…' : 'Consultar autorización SRI'}
             </button>
@@ -1630,7 +1630,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 type="button"
                 disabled={isEmitting || isSaving}
                 onClick={() => recoverSriEmission(true)}
-                className="rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 px-4 py-2 text-xs font-semibold shadow-none cursor-pointer transition-all disabled:opacity-50"
+                className="rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 px-4 py-2 text-xs font-semibold shadow-none cursor-pointer transition-all disabled:opacity-50"
               >
                 Reintentar envío del XML guardado
               </button>
@@ -1647,7 +1647,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
             type="button"
             disabled={isSaving}
             onClick={completePendingSale}
-            className="rounded-full bg-amber-600 hover:bg-amber-700 text-white px-4 py-1.5 text-xs font-semibold shadow-none cursor-pointer"
+            className="rounded-xl bg-amber-600 hover:bg-amber-700 text-white px-4 py-1.5 text-xs font-semibold shadow-none cursor-pointer"
           >
             {isSaving ? 'Sincronizando…' : 'Reintentar sincronización'}
           </button>
@@ -2197,7 +2197,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                             setIsAdvancedSearchOpen(true);
                           }}
                           title="Añadir Productos"
-                          className="rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 px-4 py-2 text-xs font-semibold flex items-center gap-1.5 shadow-none transition-all cursor-pointer"
+                          className="rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 px-4 py-2 text-xs font-semibold flex items-center gap-1.5 shadow-none transition-all cursor-pointer"
                         >
                           <Search size={14} />
                           <span>Añadir</span>
@@ -2213,7 +2213,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                           }}
                           title="Crear Producto"
                           aria-label="Crear Producto"
-                          className="rounded-full bg-[#1b1b1b] hover:bg-slate-800 text-white px-4 py-2 text-xs font-semibold flex items-center gap-1.5 shadow-none transition-all cursor-pointer border-none"
+                          className="rounded-xl bg-[#1b1b1b] hover:bg-slate-800 text-white px-4 py-2 text-xs font-semibold flex items-center gap-1.5 shadow-none transition-all cursor-pointer border-none"
                         >
                           <Package size={14} />
                           <span>Crear</span>
@@ -2380,7 +2380,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       <button
                         type="button"
                         onClick={handleClearItems}
-                        className="rounded-full border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 px-3.5 py-1.5 text-xs font-semibold flex items-center gap-1 shadow-none transition-all cursor-pointer"
+                        className="rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 px-3.5 py-1.5 text-xs font-semibold flex items-center gap-1 shadow-none transition-all cursor-pointer"
                       >
                         <Trash2 size={12} />
                         <span>Limpiar</span>
@@ -2942,7 +2942,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                             <button
                               type="button"
                               onClick={() => setIsCreditModalOpen(true)}
-                              className="w-full py-1.5 px-3 rounded-full bg-amber-500 hover:bg-amber-600 text-white font-semibold text-[11px] transition-colors cursor-pointer"
+                              className="w-full py-1.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-semibold text-[11px] transition-colors cursor-pointer"
                             >
                               Configurar Plazo de Crédito
                             </button>
@@ -3011,7 +3011,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                           type="button" 
                           onClick={handleEmitirSRI} 
                           disabled={isUploading || isEmitting || isSaving}
-                          className={`w-full py-2.5 sm:py-3 px-4 rounded-full bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-none ${
+                          className={`w-full py-2.5 sm:py-3 px-4 rounded-xl bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-none ${
                             isUploading || isEmitting || isSaving ? 'opacity-50 cursor-not-allowed' : ''
                           }`}
                         >
@@ -3026,7 +3026,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                           type="button" 
                           onClick={() => handleSave({ isFinalizingNotaVenta: true })} 
                           disabled={isUploading || isEmitting || isSaving}
-                          className={`w-full py-2.5 sm:py-3 px-4 rounded-full bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-none ${
+                          className={`w-full py-2.5 sm:py-3 px-4 rounded-xl bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-none ${
                             isUploading || isEmitting || isSaving ? 'opacity-50 cursor-not-allowed' : ''
                           }`}
                         >
@@ -3041,7 +3041,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                           type="button" 
                           onClick={handleSave} 
                           disabled={isUploading || isEmitting || isSaving}
-                          className={`w-full py-2.5 sm:py-3 px-4 rounded-full bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-none ${
+                          className={`w-full py-2.5 sm:py-3 px-4 rounded-xl bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-none ${
                             isUploading || isEmitting || isSaving ? 'opacity-50 cursor-not-allowed' : ''
                           }`}
                         >
@@ -3055,7 +3055,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         type="button" 
                         onClick={handleSave} 
                         disabled={isUploading || isEmitting || isSaving}
-                        className={`w-full py-2 px-4 rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                        className={`w-full py-2 px-4 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                           isUploading || isEmitting || isSaving ? 'opacity-50 cursor-not-allowed' : ''
                         }`}
                       >
@@ -3163,7 +3163,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         type="button"
                         disabled={isEmitting}
                         onClick={() => recoverSriEmission(true)}
-                        className="py-2 px-4 rounded-full bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs flex items-center gap-2 cursor-pointer transition-all disabled:opacity-50"
+                        className="py-2 px-4 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs flex items-center gap-2 cursor-pointer transition-all disabled:opacity-50"
                       >
                         <RefreshCw size={13} className={isEmitting ? "animate-spin" : ""} />
                         <span>{isEmitting ? "Consultando al SRI..." : "Verificar y Reintentar Autorización SRI"}</span>
@@ -3221,7 +3221,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     {!emailSending && (clientFailed || !clientSent) && clientAddress && (
                       <button
                         type="button"
-                        className="shrink-0 text-xs py-1.5 px-3 rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold flex items-center gap-1.5 cursor-pointer"
+                        className="shrink-0 text-xs py-1.5 px-3 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold flex items-center gap-1.5 cursor-pointer"
                         onClick={() => {
                           const receiver = thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
                           enviarCorreoComprobante(formData, receiver, sriConfig, clientAddress);
@@ -3276,7 +3276,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     />
                     <button
                       type="button"
-                      className="w-full sm:w-auto h-9 px-4 rounded-full bg-[#1b1b1b] hover:bg-slate-800 text-white text-xs font-semibold flex items-center justify-center gap-1.5 shrink-0 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="w-full sm:w-auto h-9 px-4 rounded-xl bg-[#1b1b1b] hover:bg-slate-800 text-white text-xs font-semibold flex items-center justify-center gap-1.5 shrink-0 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                       disabled={emailSending || !customClientEmail || !customClientEmail.includes('@')}
                       onClick={() => {
                         const receiver = thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
@@ -3302,7 +3302,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   <button
                     type="button"
                     onClick={() => handleDirectPrint(printFormat || 'ride')}
-                    className="w-full py-3 px-5 rounded-full bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-sm flex items-center justify-center gap-2 cursor-pointer shadow-none transition-all"
+                    className="w-full py-3 px-5 rounded-xl bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-sm flex items-center justify-center gap-2 cursor-pointer shadow-none transition-all"
                   >
                     <Printer size={16} />
                     <span>Impresión Directa ({printFormat === 'ticket' ? 'Ticket 80mm' : 'Hoja A4'})</span>
@@ -3314,7 +3314,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     <button
                       type="button" 
                       onClick={() => handleDirectPrint('ticket')}
-                      className="w-full py-2.5 px-4 rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center justify-center gap-2 cursor-pointer transition-all"
+                      className="w-full py-2.5 px-4 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center justify-center gap-2 cursor-pointer transition-all"
                     >
                       <Calculator size={13} className="text-slate-600" />
                       <span>Imprimir Ticket (80mm)</span>
@@ -3324,7 +3324,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     <button
                       type="button" 
                       onClick={() => handleDirectPrint('ride')}
-                      className="w-full py-2.5 px-4 rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center justify-center gap-2 cursor-pointer transition-all"
+                      className="w-full py-2.5 px-4 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center justify-center gap-2 cursor-pointer transition-all"
                     >
                       <FileText size={13} className="text-slate-600" />
                       <span>Imprimir RIDE / Hoja (A4)</span>
@@ -3335,7 +3335,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       <button
                         type="button" 
                         onClick={downloadXMLFile}
-                        className="w-full sm:col-span-2 py-2.5 px-4 rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center justify-center gap-2 cursor-pointer transition-all"
+                        className="w-full sm:col-span-2 py-2.5 px-4 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center justify-center gap-2 cursor-pointer transition-all"
                       >
                         <Download size={13} className="text-slate-600" />
                         <span>Descargar Archivo XML Autorizado</span>
@@ -3347,7 +3347,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   <div className="pt-3 border-t border-slate-200/80 flex items-center justify-between gap-3">
                     <button
                       type="button"
-                      className="flex-1 py-2.5 px-4 rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-all"
+                      className="flex-1 py-2.5 px-4 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-all"
                       onClick={() => {
                         stableIdRef.current = crypto.randomUUID();
                         setFormData({
@@ -3395,7 +3395,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
                     <button
                       type="button"
-                      className="flex-1 py-2.5 px-4 rounded-full bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-all"
+                      className="flex-1 py-2.5 px-4 rounded-xl bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-all"
                       onClick={closeTransaction}
                     >
                       <Check size={13} />
@@ -3409,7 +3409,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       <button
                         type="button" 
                         onClick={handleAnular}
-                        className="w-full py-2 px-4 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-semibold text-xs flex items-center justify-center gap-2 cursor-pointer transition-all"
+                        className="w-full py-2 px-4 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-semibold text-xs flex items-center justify-center gap-2 cursor-pointer transition-all"
                       >
                         <ShieldAlert size={13} />
                         <span>{isNotaVenta ? 'Anular Nota de Venta' : 'Anular Documento ante el SRI'}</span>
@@ -3526,7 +3526,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 <button
                   type="button"
                   onClick={() => setMobileTab(mobileTab === 'pago' ? 'carrito' : 'cliente')}
-                  className="py-1.5 px-3 rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center gap-1.5 cursor-pointer"
+                  className="py-1.5 px-3 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center gap-1.5 cursor-pointer"
                 >
                   <ArrowLeft size={13} />
                   <span>Atrás</span>
@@ -3544,7 +3544,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 <button
                   type="button"
                   onClick={() => setMobileTab(mobileTab === 'cliente' ? 'carrito' : 'pago')}
-                  className="py-1.5 px-4 rounded-full bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs flex items-center gap-1.5 cursor-pointer"
+                  className="py-1.5 px-4 rounded-xl bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs flex items-center gap-1.5 cursor-pointer"
                 >
                   <span>Siguiente</span>
                   <ArrowRight size={13} />
@@ -3561,7 +3561,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               type="button"
               onClick={handlePrevStep}
               disabled={currentStep === 1 || isLockedInStep2}
-              className={`py-2 px-4 rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center gap-1.5 cursor-pointer transition-all ${
+              className={`py-2 px-4 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center gap-1.5 cursor-pointer transition-all ${
                 currentStep === 1 || isLockedInStep2 ? 'opacity-0 pointer-events-none' : ''
               }`}
             >
@@ -3578,7 +3578,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 type="button"
                 disabled={currentStep === 1 && isEditable && !formData.documentNumber}
                 onClick={handleNextStep}
-                className={`py-2 px-5 rounded-full bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs flex items-center gap-1.5 cursor-pointer shadow-none transition-all ${
+                className={`py-2 px-5 rounded-xl bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs flex items-center gap-1.5 cursor-pointer shadow-none transition-all ${
                   currentStep === 1 && isEditable && !formData.documentNumber ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
               >
@@ -3589,7 +3589,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               <button
                 type="button"
                 onClick={closeTransaction}
-                className="py-2 px-5 rounded-full bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs flex items-center gap-1.5 cursor-pointer shadow-none transition-all"
+                className="py-2 px-5 rounded-xl bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs flex items-center gap-1.5 cursor-pointer shadow-none transition-all"
               >
                 <span>Terminar / Salir</span>
               </button>
@@ -3603,7 +3603,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 type="button"
                 onClick={handlePrevStep}
                 disabled={isLockedInStep2}
-                className={`py-1.5 px-3 rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center gap-1.5 cursor-pointer ${
+                className={`py-1.5 px-3 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center gap-1.5 cursor-pointer ${
                   isLockedInStep2 ? 'opacity-0 pointer-events-none' : ''
                 }`}
               >
@@ -3618,7 +3618,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               <button
                 type="button"
                 onClick={closeTransaction}
-                className="py-1.5 px-4 rounded-full bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs flex items-center gap-1.5 cursor-pointer"
+                className="py-1.5 px-4 rounded-xl bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs flex items-center gap-1.5 cursor-pointer"
               >
                 <span>Terminar</span>
               </button>
@@ -3742,14 +3742,14 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     setIsCreditModalOpen(false);
                     setFormData(prev => ({ ...prev, paymentMethod: 'efectivo' }));
                   }} 
-                  className="py-2 px-4 rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs cursor-pointer transition-all"
+                  className="py-2 px-4 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs cursor-pointer transition-all"
                 >
                   Cancelar
                 </button>
                 <button
                   type="button" 
                   onClick={() => setIsCreditModalOpen(false)}
-                  className="py-2 px-5 rounded-full bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs cursor-pointer shadow-none transition-all"
+                  className="py-2 px-5 rounded-xl bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs cursor-pointer shadow-none transition-all"
                 >
                   Confirmar Crédito
                 </button>
@@ -3905,13 +3905,13 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 <button
                   type="button" 
                   onClick={() => setIsQuickAddOpen(false)} 
-                  className="py-2 px-4 rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs cursor-pointer transition-all"
+                  className="py-2 px-4 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs cursor-pointer transition-all"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit" 
-                  className="py-2 px-5 rounded-full bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs cursor-pointer shadow-none transition-all"
+                  className="py-2 px-5 rounded-xl bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs cursor-pointer shadow-none transition-all"
                 >
                   Guardar y Seleccionar
                 </button>
@@ -3960,7 +3960,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 <button
                   type="button"
                   onClick={confirmDialog.onCancel}
-                  className="py-2 px-4 rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs cursor-pointer transition-all"
+                  className="py-2 px-4 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs cursor-pointer transition-all"
                 >
                   Cancelar
                 </button>
@@ -3968,7 +3968,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               <button
                 type="button"
                 onClick={confirmDialog.onConfirm}
-                className={`py-2 px-5 rounded-full font-semibold text-xs cursor-pointer shadow-none transition-all ${
+                className={`py-2 px-5 rounded-xl font-semibold text-xs cursor-pointer shadow-none transition-all ${
                   confirmDialog.type === 'danger'
                     ? 'bg-rose-600 hover:bg-rose-700 text-white'
                     : 'bg-[#1b1b1b] hover:bg-slate-800 text-white'
@@ -4106,7 +4106,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         <button
                           type="button"
                           onClick={() => handleAddProductToCart(p)}
-                          className="py-1.5 px-3 rounded-full bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs cursor-pointer shadow-none transition-all"
+                          className="py-1.5 px-3 rounded-xl bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs cursor-pointer shadow-none transition-all"
                         >
                           + Añadir
                         </button>
@@ -4122,7 +4122,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               <button
                 type="button"
                 onClick={() => setIsAdvancedSearchOpen(false)}
-                className="py-2 px-4 rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs cursor-pointer transition-all"
+                className="py-2 px-4 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs cursor-pointer transition-all"
               >
                 Volver a la Consola
               </button>
@@ -4243,13 +4243,13 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 <button
                   type="button" 
                   onClick={() => setIsQuickAddProductOpen(false)} 
-                  className="py-2 px-4 rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs cursor-pointer transition-all"
+                  className="py-2 px-4 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs cursor-pointer transition-all"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit" 
-                  className="py-2 px-5 rounded-full bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs cursor-pointer shadow-none transition-all flex items-center gap-1.5"
+                  className="py-2 px-5 rounded-xl bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs cursor-pointer shadow-none transition-all flex items-center gap-1.5"
                 >
                   <Plus size={13} />
                   <span>Añadir</span>
@@ -4356,7 +4356,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         setSelectedLineItemForDiscount(null);
                         setManualLineDiscValue('');
                       }}
-                      className="py-2 px-4 rounded-full bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs cursor-pointer shadow-none transition-all shrink-0"
+                      className="py-2 px-4 rounded-xl bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs cursor-pointer shadow-none transition-all shrink-0"
                     >
                       Aplicar
                     </button>
@@ -4519,7 +4519,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               <button
                 type="button" 
                 onClick={() => { authDialog.onCancel?.(); setAuthDialog(null); }} 
-                className="py-2 px-4 rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs cursor-pointer transition-all"
+                className="py-2 px-4 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs cursor-pointer transition-all"
               >
                 Cancelar
               </button>
@@ -4535,7 +4535,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     setAuthError('Clave incorrecta. Solicite al supervisor.');
                   }
                 }} 
-                className="py-2 px-5 rounded-full bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs cursor-pointer shadow-none transition-all"
+                className="py-2 px-5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs cursor-pointer shadow-none transition-all"
               >
                 Autorizar
               </button>

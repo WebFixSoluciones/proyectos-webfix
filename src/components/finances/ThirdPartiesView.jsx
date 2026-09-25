@@ -107,53 +107,53 @@ export default function ThirdPartiesView({
 
   return (
     <UiBox className="space-y-4 animate-in fade-in duration-300 pb-8">
-      {/* Brevo Style Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1">
-        <div className="flex items-center gap-2.5">
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-            {isSupplierView ? 'Proveedores' : 'Clientes'}
-          </h1>
-          <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200/80">
-            {filteredData.length}
-          </span>
-        </div>
+      {/* Header sin slash con contador */}
+      <div className="flex items-center gap-2.5 pb-1">
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+          {isSupplierView ? 'Proveedores' : 'Clientes'}
+        </h1>
+        <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200/80">
+          {filteredData.length}
+        </span>
+      </div>
 
+      {/* Toolbar: Botón de acción a la IZQ y Filtros a la DERECHA en la misma fila */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 bg-white border border-slate-200/90 rounded-2xl">
+        {/* IZQUIERDA: Botón de acción */}
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => { setSelectedClient(null); setViewMode('detail'); }}
-            className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-[#1b1b1b] hover:bg-slate-800 rounded-full transition-colors cursor-pointer shadow-none"
+            className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-[#1b1b1b] hover:bg-slate-800 rounded-xl transition-colors cursor-pointer shadow-none"
           >
             <Plus size={14} /> 
             <span>Nuevo {isSupplierView ? 'Proveedor' : 'Cliente'}</span>
           </button>
         </div>
-      </div>
 
-      {/* Filter & Search Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 bg-white border border-slate-200/90 rounded-2xl">
-        <UiBox className="flex-1 max-w-md">
-          <UiInput
-            type="text" 
-            placeholder={
-              isSupplierView 
-                ? "Buscar proveedor por razón social, nombre o RUC..." 
-                : "Buscar cliente por razón social, nombre o RUC..."
-            } 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            iconPrefix={<Search size={14} className="text-[var(--gray-10)]" />}
-            size="2"
-            className="w-full"
-          />
-        </UiBox>
+        {/* DERECHA: Búsqueda y Filtros */}
+        <div className="flex flex-wrap items-center gap-2 sm:justify-end flex-1">
+          <div className="w-full sm:w-64">
+            <UiInput
+              type="text" 
+              placeholder={
+                isSupplierView 
+                  ? "Buscar proveedor o RUC..." 
+                  : "Buscar cliente o RUC..."
+              } 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              iconPrefix={<Search size={14} className="text-slate-400" />}
+              size="2"
+              className="w-full"
+            />
+          </div>
 
-        <UiBox className="flex items-center gap-2 flex-wrap">
           <UiSelect
             value={filterIdType} 
             onChange={e => setFilterIdType(e.target.value)} 
             size="2"
-            className="cursor-pointer min-w-[150px]"
+            className="cursor-pointer min-w-[140px]"
           >
             <option value="all">Identificación: Todos</option>
             <option value="ruc">RUC</option>
@@ -166,7 +166,7 @@ export default function ThirdPartiesView({
             value={filterCredit} 
             onChange={e => setFilterCredit(e.target.value)} 
             size="2"
-            className="cursor-pointer min-w-[160px]"
+            className="cursor-pointer min-w-[150px]"
           >
             {isSupplierView ? (
               <>
@@ -198,7 +198,7 @@ export default function ThirdPartiesView({
               <X size={14} /> Limpiar
             </UiButton>
           )}
-        </UiBox>
+        </div>
       </div>
 
       {/* Main Table */}
@@ -208,7 +208,7 @@ export default function ThirdPartiesView({
             <UiTableHeader style={{ backgroundColor: "var(--gray-2)", color: "var(--gray-12)" }}>
               <UiTableRow>
                 <UiTableHead className="px-5 py-3 text-xs font-bold uppercase tracking-wider">
-                  {isSupplierView ? 'Proveedor / Razón Social' : 'Cliente / Razón Social'}
+                  {isSupplierView ? 'Proveedor' : 'Cliente'}
                 </UiTableHead>
                 <UiTableHead className="px-5 py-3 text-xs font-bold uppercase tracking-wider">Identificación</UiTableHead>
                 <UiTableHead className="px-5 py-3 text-xs font-bold uppercase tracking-wider hidden sm:table-cell">Contacto</UiTableHead>

@@ -17,16 +17,16 @@ export default function Sidebar({
 }) {
   const closeMobile = () => { if(window.innerWidth < 768) setIsSidebarOpen(false); };
 
-  const navBase = "group relative flex items-center justify-between w-full px-3 py-2.5 rounded-xl transition-all text-[13px] tracking-tight cursor-pointer";
+  const navBase = "group relative flex items-center justify-between w-full px-3.5 py-2.5 rounded-xl transition-all text-sm tracking-tight cursor-pointer";
   const navActive = "bg-[#c0ffa5] text-[#004227] font-semibold";
-  const navInactive = "text-slate-700 hover:text-slate-950 hover:bg-slate-100/80 font-medium";
+  const navInactive = "text-slate-800 hover:text-slate-950 hover:bg-slate-100 font-medium";
   const navBtnClass = (isActive) => `${navBase} ${isActive ? navActive : navInactive}`;
 
-  const iconClass = (isActive) => `shrink-0 transition-colors ${isActive ? 'text-[#004227]' : 'text-slate-600 group-hover:text-slate-900'}`;
+  const iconClass = (isActive) => `shrink-0 transition-colors ${isActive ? 'text-[#004227]' : 'text-slate-800 group-hover:text-slate-950'}`;
 
-  const subBase = "block w-full text-left py-1.5 px-3 rounded-lg text-xs tracking-tight transition-all cursor-pointer";
+  const subBase = "block w-full text-left py-2 px-3 rounded-lg text-xs tracking-tight transition-all cursor-pointer font-medium";
   const subActive = "text-[#004227] font-semibold bg-[#c0ffa5]";
-  const subInactive = "text-slate-600 hover:text-slate-950 hover:bg-slate-100 font-medium";
+  const subInactive = "text-slate-700 hover:text-slate-950 hover:bg-slate-100";
   const subItemClass = (isActive) => `${subBase} ${isActive ? subActive : subInactive}`;
 
   const menuBorderClass = "pl-4 pr-1 space-y-0.5 border-l border-slate-200 ml-4 mt-1 select-none";
@@ -35,7 +35,7 @@ export default function Sidebar({
     <>
       {isSidebarOpen && <div className="fixed inset-0 bg-black/30 z-40 md:hidden transition-opacity duration-200" onClick={() => setIsSidebarOpen(false)} />}
       
-      <aside className={`flex flex-col border-r border-slate-200/90 bg-white transition-all duration-300 z-50 absolute md:relative h-full select-none ${isSidebarOpen ? 'translate-x-0 w-[80vw] max-w-60' : '-translate-x-full md:translate-x-0 w-0 hidden md:flex md:w-16'}`}>
+      <aside className={`flex flex-col border-r border-slate-200/90 bg-white transition-all duration-300 z-50 absolute md:relative h-full select-none ${isSidebarOpen ? 'translate-x-0 w-[80vw] max-w-64' : '-translate-x-full md:translate-x-0 w-0 hidden md:flex md:w-16'}`}>
       
         {/* Sidebar Brand Header */}
         <button 
@@ -72,7 +72,7 @@ export default function Sidebar({
           {/* Inicio (Dashboard) */}
           <button onClick={() => { setActivePageId('dashboard'); closeMobile(); }} className={navBtnClass(activePageId === 'dashboard')}>
             <div className="flex items-center gap-3">
-              <LayoutDashboard size={16} className={iconClass(activePageId === 'dashboard')} />
+              <LayoutDashboard size={18} strokeWidth={2.2} className={iconClass(activePageId === 'dashboard')} />
               {isSidebarOpen && <span>Inicio</span>}
             </div>
             {activePageId === 'dashboard' && <span className="absolute -right-2.5 top-1.5 bottom-1.5 w-1 bg-[#0b996e] rounded-l" />}
@@ -83,10 +83,10 @@ export default function Sidebar({
             <div className="space-y-0.5">
               <button onClick={() => { setExpandedSidebarMenu(expandedSidebarMenu === 'ventas' ? null : 'ventas'); setVentasInitialSubTab('resumen_ventas'); setActivePageId('ventas'); }} className={navBtnClass(activePageId === 'ventas')}>
                 <div className="flex items-center gap-3 flex-1">
-                  <ShoppingCart size={16} className={iconClass(activePageId === 'ventas')} />
+                  <ShoppingCart size={18} strokeWidth={2.2} className={iconClass(activePageId === 'ventas')} />
                   {isSidebarOpen && <span>Ventas</span>}
                 </div>
-                {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu === 'ventas' ? 'rotate-180' : ''} text-slate-500`} />}
+                {isSidebarOpen && <ChevronDown size={14} strokeWidth={2.2} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu === 'ventas' ? 'rotate-180' : ''} text-slate-500`} />}
                 {activePageId === 'ventas' && <span className="absolute -right-2.5 top-1.5 bottom-1.5 w-1 bg-[#0b996e] rounded-l" />}
               </button>
               {isSidebarOpen && expandedSidebarMenu === 'ventas' && (
@@ -137,10 +137,10 @@ export default function Sidebar({
                 className={navBtnClass(activePageId === 'compras')}
               >
                 <div className="flex items-center gap-3 flex-1">
-                  <ShoppingBag size={16} className={iconClass(activePageId === 'compras')} />
+                  <ShoppingBag size={18} strokeWidth={2.2} className={iconClass(activePageId === 'compras')} />
                   {isSidebarOpen && <span>Compras</span>}
                 </div>
-                {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu === 'compras' ? 'rotate-180' : ''} text-slate-500`} />}
+                {isSidebarOpen && <ChevronDown size={14} strokeWidth={2.2} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu === 'compras' ? 'rotate-180' : ''} text-slate-500`} />}
                 {activePageId === 'compras' && <span className="absolute -right-2.5 top-1.5 bottom-1.5 w-1 bg-[#0b996e] rounded-l" />}
               </button>
               {isSidebarOpen && expandedSidebarMenu === 'compras' && (
@@ -189,10 +189,10 @@ export default function Sidebar({
                 className={navBtnClass(activePageId === 'finances')}
               >
                 <div className="flex items-center gap-3 flex-1">
-                  <DollarSign size={16} className={iconClass(activePageId === 'finances')} />
+                  <DollarSign size={18} strokeWidth={2.2} className={iconClass(activePageId === 'finances')} />
                   {isSidebarOpen && <span>Finanzas</span>}
                 </div>
-                {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu === 'finanzas' ? 'rotate-180' : ''} text-slate-500`} />}
+                {isSidebarOpen && <ChevronDown size={14} strokeWidth={2.2} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu === 'finanzas' ? 'rotate-180' : ''} text-slate-500`} />}
                 {activePageId === 'finances' && <span className="absolute -right-2.5 top-1.5 bottom-1.5 w-1 bg-[#0b996e] rounded-l" />}
               </button>
               {isSidebarOpen && expandedSidebarMenu === 'finanzas' && (
@@ -235,10 +235,10 @@ export default function Sidebar({
             <div className="space-y-0.5">
               <button onClick={() => { setExpandedSidebarMenu(expandedSidebarMenu === 'inventario' ? null : 'inventario'); setInventarioInitialSubTab('productos'); setActivePageId('inventario'); }} className={navBtnClass(activePageId === 'inventario')}>
                 <div className="flex items-center gap-3 flex-1">
-                  <Package size={16} className={iconClass(activePageId === 'inventario')} />
+                  <Package size={18} strokeWidth={2.2} className={iconClass(activePageId === 'inventario')} />
                   {isSidebarOpen && <span>Inventarios</span>}
                 </div>
-                {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu === 'inventario' ? 'rotate-180' : ''} text-slate-500`} />}
+                {isSidebarOpen && <ChevronDown size={14} strokeWidth={2.2} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu === 'inventario' ? 'rotate-180' : ''} text-slate-500`} />}
                 {activePageId === 'inventario' && <span className="absolute -right-2.5 top-1.5 bottom-1.5 w-1 bg-[#0b996e] rounded-l" />}
               </button>
               {isSidebarOpen && expandedSidebarMenu === 'inventario' && (
@@ -270,10 +270,10 @@ export default function Sidebar({
             <div className="space-y-0.5">
               <button onClick={() => { setExpandedSidebarMenu(expandedSidebarMenu === 'personas_menu' ? null : 'personas_menu'); setPersonasSubTab('cliente'); setActivePageId('personas'); }} className={navBtnClass(activePageId === 'personas')}>
                 <div className="flex items-center gap-3 flex-1">
-                  <Users size={16} className={iconClass(activePageId === 'personas')} />
+                  <Users size={18} strokeWidth={2.2} className={iconClass(activePageId === 'personas')} />
                   {isSidebarOpen && <span>Personas</span>}
                 </div>
-                {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu === 'personas_menu' ? 'rotate-180' : ''} text-slate-500`} />}
+                {isSidebarOpen && <ChevronDown size={14} strokeWidth={2.2} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu === 'personas_menu' ? 'rotate-180' : ''} text-slate-500`} />}
                 {activePageId === 'personas' && <span className="absolute -right-2.5 top-1.5 bottom-1.5 w-1 bg-[#0b996e] rounded-l" />}
               </button>
               {isSidebarOpen && expandedSidebarMenu === 'personas_menu' && (
@@ -293,7 +293,7 @@ export default function Sidebar({
           {/* Ajustes */}
           <button onClick={() => { setActivePageId('general_settings'); closeMobile(); }} className={navBtnClass(activePageId === 'general_settings')}>
             <div className="flex items-center gap-3">
-              <Settings size={16} className={iconClass(activePageId === 'general_settings')} />
+              <Settings size={18} strokeWidth={2.2} className={iconClass(activePageId === 'general_settings')} />
               {isSidebarOpen && <span>Ajustes</span>}
             </div>
             {activePageId === 'general_settings' && <span className="absolute -right-2.5 top-1.5 bottom-1.5 w-1 bg-[#0b996e] rounded-l" />}
@@ -303,10 +303,10 @@ export default function Sidebar({
           <div className="space-y-0.5">
             <button onClick={() => { setExpandedSidebarMenu(expandedSidebarMenu === 'billing' ? null : 'billing'); setBillingInitialSubTab('planes'); setActivePageId('billing'); }} className={navBtnClass(activePageId === 'billing')}>
               <div className="flex items-center gap-3 flex-1">
-                <CreditCard size={16} className={iconClass(activePageId === 'billing')} />
+                <CreditCard size={18} strokeWidth={2.2} className={iconClass(activePageId === 'billing')} />
                 {isSidebarOpen && <span>Suscripción</span>}
               </div>
-              {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu === 'billing' ? 'rotate-180' : ''} text-slate-500`} />}
+              {isSidebarOpen && <ChevronDown size={14} strokeWidth={2.2} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu === 'billing' ? 'rotate-180' : ''} text-slate-500`} />}
               {activePageId === 'billing' && <span className="absolute -right-2.5 top-1.5 bottom-1.5 w-1 bg-[#0b996e] rounded-l" />}
             </button>
             {isSidebarOpen && expandedSidebarMenu === 'billing' && (

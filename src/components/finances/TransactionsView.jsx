@@ -451,11 +451,11 @@ export default function TransactionsView({ transactions, thirdParties, showToast
     if (isPreventaTab) return 'Historial de Preventas';
     if (forcedDocType === 'ventas_resumen') return 'Historial de Ventas';
     if (forcedDocType === 'compras_resumen') return 'Historial de Compras';
-    if (forcedDocType === 'nota_credito') return forcedType === 'egreso' ? 'Notas de Crédito (Compras)' : 'Notas de Crédito (Ventas)';
-    if (forcedDocType === 'nota_debito') return forcedType === 'egreso' ? 'Notas de Débito (Compras)' : 'Notas de Débito (Ventas)';
-    if (forcedDocType === 'retencion') return forcedType === 'egreso' ? 'Retenciones (Compras)' : 'Retenciones (Ventas)';
+    if (forcedDocType === 'nota_credito') return forcedType === 'egreso' ? 'Notas de Crédito Compras' : 'Notas de Crédito';
+    if (forcedDocType === 'nota_debito') return forcedType === 'egreso' ? 'Notas de Débito Compras' : 'Notas de Débito';
+    if (forcedDocType === 'retencion') return forcedType === 'egreso' ? 'Retenciones Compras' : 'Retenciones';
     if (forcedDocType === 'liquidacion') return 'Liquidaciones de Compra';
-    return forcedType === 'egreso' ? 'Historial de Compras' : (forcedType === 'ingreso' ? 'Historial de Ventas' : 'Comprobantes y Transacciones');
+    return forcedType === 'egreso' ? 'Historial de Compras' : (forcedType === 'ingreso' ? 'Historial de Ventas' : 'Comprobantes');
   };
 
   const getRegisterLabel = () => {
@@ -517,27 +517,14 @@ export default function TransactionsView({ transactions, thirdParties, showToast
 
   return (
     <UiBox className="animate-in fade-in duration-300 space-y-4 pb-8">
-      {/* Brevo Style Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1">
-        <div className="flex items-center gap-2.5">
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-            {getHeaderTitle()}
-          </h1>
-          <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200/80">
-            {sortedFiltered.length}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={handleOpenRegister}
-            className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-[#1b1b1b] hover:bg-slate-800 rounded-full transition-colors cursor-pointer shadow-none"
-          >
-            <Plus size={14} /> 
-            <span>Registrar {getRegisterLabel()}</span>
-          </button>
-        </div>
+      {/* Encabezado sin slash con contador */}
+      <div className="flex items-center gap-2.5 pb-1">
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+          {getHeaderTitle()}
+        </h1>
+        <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200/80">
+          {sortedFiltered.length}
+        </span>
       </div>
 
       {/* DRAG AND DROP ZONE */}
@@ -580,7 +567,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
 
       {/* TABS DE TIPO DE DOCUMENTO SRI */}
       {!forcedDocType && !isPreventaTab && (
-        <div className="inline-flex h-9 items-center justify-start p-1 gap-1 overflow-x-auto custom-scrollbar whitespace-nowrap bg-slate-100 rounded-full border border-slate-200/80">
+        <div className="inline-flex h-9 items-center justify-start p-1 gap-1 overflow-x-auto custom-scrollbar whitespace-nowrap bg-slate-100 rounded-xl border border-slate-200/80">
           {docTypeTabs.map(tab => {
             const isActive = filterDocType === tab.id;
             return (
@@ -588,7 +575,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                 key={tab.id}
                 type="button"
                 onClick={() => setFilterDocType(tab.id)}
-                className={`px-3 py-1 text-xs rounded-full transition-all cursor-pointer select-none ${
+                className={`px-3 py-1 text-xs rounded-lg transition-all cursor-pointer select-none ${
                   isActive ? 'bg-white text-slate-900 font-semibold shadow-xs' : 'text-slate-600 hover:text-slate-900 font-medium'
                 }`}
               >
@@ -599,20 +586,33 @@ export default function TransactionsView({ transactions, thirdParties, showToast
         </div>
       )}
 
-      {/* FILTROS Y BUSQUEDA */}
+      {/* FILA DE ACCIONES A LA IZQ Y FILTROS A LA DERECHA (MISMA FILA) */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 bg-white border border-slate-200/90 rounded-2xl">
-        <UiBox className="flex-1 max-w-md">
-          <UiInput
-            type="text" 
-            placeholder="Buscar por documento o tercero..." 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            iconPrefix={<Search size={14} className="text-slate-400" />}
-            size="2"
-          />
-        </UiBox>
+        {/* IZQUIERDA: Botón de acciones */}
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleOpenRegister}
+            className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-[#1b1b1b] hover:bg-slate-800 rounded-xl transition-colors cursor-pointer shadow-none"
+          >
+            <Plus size={14} /> 
+            <span>Registrar {getRegisterLabel()}</span>
+          </button>
+        </div>
 
-        <UiBox className="flex flex-wrap items-center gap-2">
+        {/* DERECHA: Búsqueda y Filtros en la misma fila */}
+        <div className="flex flex-wrap items-center gap-2 sm:justify-end flex-1">
+          <div className="w-full sm:w-60">
+            <UiInput
+              type="text" 
+              placeholder="Buscar documento o tercero..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              iconPrefix={<Search size={14} className="text-slate-400" />}
+              size="2"
+            />
+          </div>
+
           {!forcedType && (
             <UiSelect
               value={filterType} 
@@ -652,7 +652,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
               <option key={y} value={y}>{y}</option>
             ))}
           </UiSelect>
-        </UiBox>
+        </div>
       </div>
 
       {/* TABLA DE COMPROBANTES */}

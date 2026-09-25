@@ -373,34 +373,51 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
           <UiBox {...{"className":"w-full h-full flex flex-col space-y-6 animate-in fade-in duration-300"}}>
             {!inlineFormMode ? (
               <>
-                {/* FILTROS Y ACCIONES */}
-                <UiBox {...{"className":"flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 mb-6"}}>
-                  <UiBox {...{"className":"flex flex-wrap items-center gap-2 w-full md:w-auto"}}>
-                    <UiButton
-                      onClick={() => setShowProductTypeSelector(true)}
-                      {...mergeThemeProps({"size":"2","variant":"solid","color":"blue","className":"flex items-center gap-1.5 hover-lift"})}
-                    >
-                      <Plus size={15} /> Nuevo Producto
-                    </UiButton>
-                    <UiButton
-                      onClick={() => setIsCatBrandOpen(true)}
-                      {...mergeThemeProps({"size":"2","variant":"outline","className":"flex items-center gap-1.5"}, {}, {"variant":"soft","color":"gray"})}
-                    >
-                      <Tag size={15} /> Categorías/Marcas
-                    </UiButton>
-                  </UiBox>
+                {/* Header sin slash con contador */}
+                <div className="flex items-center gap-2.5 pb-1">
+                  <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+                    Catálogo de Productos
+                  </h1>
+                  <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200/80">
+                    {filteredProducts.length}
+                  </span>
+                </div>
 
-                  <UiBox className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
-                    <UiBox className="w-full sm:w-64">
+                {/* Toolbar: Botón de acción a la IZQ y Filtros a la DERECHA en la misma fila */}
+                <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 p-3 bg-white border border-slate-200/90 rounded-2xl">
+                  {/* IZQUIERDA: Botones de acción */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowProductTypeSelector(true)}
+                      className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-[#1b1b1b] hover:bg-slate-800 rounded-xl transition-colors cursor-pointer shadow-none"
+                    >
+                      <Plus size={14} /> 
+                      <span>Nuevo Producto</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsCatBrandOpen(true)}
+                      className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200/90 rounded-xl transition-colors cursor-pointer"
+                    >
+                      <Tag size={14} /> 
+                      <span>Categorías y Marcas</span>
+                    </button>
+                  </div>
+
+                  {/* DERECHA: Búsqueda y Filtros */}
+                  <div className="flex flex-wrap items-center gap-2 md:justify-end flex-1">
+                    <div className="w-full sm:w-60">
                       <UiInput
                         type="text"
                         placeholder="Buscar por SKU o nombre..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        iconPrefix={<Search size={14} className="text-[var(--gray-10)]" />}
+                        iconPrefix={<Search size={14} className="text-slate-400" />}
                         size="2"
+                        className="w-full"
                       />
-                    </UiBox>
+                    </div>
 
                     <UiSelect
                       value={selectedCategory}
@@ -439,11 +456,11 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
                       <option value="INACTIVE">Estado: Solo Inactivos</option>
                       <option value="ALL">Estado: Todos</option>
                     </UiSelect>
-                  </UiBox>
-                </UiBox>
+                  </div>
+                </div>
                 
                 {/* Products Table */}
-                <UiBox style={{ borderRadius: "var(--radius-3)", border: "1px solid var(--gray-a6)", backgroundColor: "var(--color-panel-solid)" }} className="overflow-hidden">
+                <div className="border border-slate-200/90 rounded-2xl bg-white overflow-hidden">
                   <UiBox className="overflow-x-auto custom-scrollbar">
                     <UiTable className="w-full text-left whitespace-nowrap">
                       <UiTableHeader style={{ backgroundColor: "var(--gray-2)", color: "var(--gray-12)" }}>
@@ -559,7 +576,7 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
                       </UiTableBody>
                     </UiTable>
                   </UiBox>
-                </UiBox>
+                </div>
               </>
             ) : (
               /* Formulario Inline */

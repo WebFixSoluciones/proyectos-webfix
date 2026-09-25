@@ -549,6 +549,25 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
   - Tipografía `h1` en negrita con badge numérico redondeado y acciones contextuales en píldoras, logrando una estética sin separación rígida en los 11 submódulos de finanzas.
 - **Pruebas y Build**: 41 tests unitarios aprobados, compilación limpia de producción en 11.84s.
 
+### 46. Rediseño del Sistema de Botones Brevo, Sidebar Grueso y Toolbars Unificadas en Todos los Módulos (2026-09-25) — COMPLETADO
+- **Sistema de Botones según CSS de Brevo (`border-radius: 1rem / rounded-xl`)**:
+  - **Eliminación Total de `rounded-full` en Botones de Acción**: Erradicado el uso de cápsula/píldora al 100% en botones de acción y CTAs tanto en la Landing Page como en todos los módulos del ERP (`TransactionForm.jsx`, `ThirdPartiesView.jsx`, `TransactionsView.jsx`, `InventoryModule.tsx`, `ServicesView.tsx`, `LandingHome.jsx`).
+  - **Estandarización en 4 Categorías Brevo**:
+    1. *Sólidos primarios*: `bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold rounded-xl px-4 py-2 text-xs`.
+    2. *Lineales / Outlines*: `border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold rounded-xl px-4 py-2 text-xs`.
+    3. *Text / Ghost buttons*: `text-slate-700 hover:text-slate-950 hover:bg-slate-100 rounded-xl px-3 py-2 text-xs`.
+    4. *Toolbar Action / Dropdowns*: `bg-white border border-slate-200/90 text-slate-700 font-medium rounded-xl`.
+  - **Preservación Estricta**: Los botones circulares de cierre 'X' (`w-8 h-8 rounded-full flex items-center justify-center`) y los badges de conteo numérico (`rounded-full px-2 py-0.5`) se mantienen circulares según especificación.
+- **Sidebar Renovado: Mayor Tamaño e Iconos Más Oscuros y Gruesos**:
+  - Ajustado padding y tipografía de navegación (`px-3.5 py-2.5 rounded-xl text-sm font-medium`).
+  - Iconos actualizados con mayor grosor y color profundo: `size={18}`, `strokeWidth={2.2}` y color `text-slate-800` (hover `text-slate-950`), eliminando el aspecto lineal débil o pálido.
+- **Estandarización de Encabezados y Toolbars Unificadas en una Sola Fila**:
+  - **Encabezados Sin Slashes (`/`)**: Títulos limpios sin caracteres divisores superfluos (e.g. `Historial de Ventas`, `Historial de Compras`, `Clientes`, `Proveedores`, `Servicios`, `Catálogo de Productos`), acompañados de su contador numérico badge.
+  - **Arquitectura de Toolbar en la Misma Fila**:
+    - **A la IZQUIERDA**: Botón de acción principal (`+ Registrar Venta`, `+ Registrar Compra`, `+ Nuevo Cliente`, `+ Nuevo Producto`, `+ Nuevo Servicio`) estilizado en negro sólido con `rounded-xl`.
+    - **A la DERECHA (en la misma fila)**: Buscador ágil con icono de lupa estilizado y selectores de filtrado rápido.
+- **Pruebas y Build**: 41 tests unitarios aprobados (`npm test`), compilación de producción exitosa en 18.95s (`npm run build`).
+
 
 
 
