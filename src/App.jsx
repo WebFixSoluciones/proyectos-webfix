@@ -418,8 +418,10 @@ export default function App() {
     }
   }, [activePageId]);
 
-  // Bloquear de forma reactiva cualquier intento de scroll en la ventana del navegador (evita que el layout se desplace)
+  // Bloquear de forma reactiva el scroll en la ventana SOLO dentro del panel /app (evita desajustes del viewport en el ERP)
   useEffect(() => {
+    if (!location.pathname.startsWith('/app')) return;
+
     const preventWindowScroll = () => {
       if (window.scrollY !== 0 || window.scrollX !== 0) {
         window.scrollTo(0, 0);
@@ -429,7 +431,7 @@ export default function App() {
     return () => {
       window.removeEventListener('scroll', preventWindowScroll);
     };
-  }, []);
+  }, [location.pathname]);
 
   useEffect(() => {
     if (!isAuthenticated || !auth.currentUser) return;

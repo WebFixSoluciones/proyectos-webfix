@@ -5,7 +5,8 @@ import {
   ShoppingCart, FileText, TrendingUp, Package, 
   CheckCircle2, ChevronDown, Sparkles,
   DollarSign, ShieldCheck,
-  Lock, Printer
+  Lock, Printer,
+  Laptop, Smartphone, Store, RefreshCw, Wifi, X
 } from 'lucide-react';
 import { useParallaxScroll } from '../../hooks/useParallaxScroll';
 import { ScrollReveal } from '../../components/landing/ScrollReveal';
@@ -809,6 +810,171 @@ export default function LandingHome() {
           </div>
 
         </div>
+      </section>
+
+      {/* 3.5. COMPARATIVA MINIMALISTA & ECOSISTEMA MULTIPLATAFORMA (PC, POS, MÓVIL) */}
+      <section className="w-full bg-slate-50/70 dark:bg-slate-900/30 border-b border-slate-200/80 dark:border-slate-800">
+        <ScrollReveal direction="up">
+          <div className="w-[90%] max-w-[1720px] mx-auto py-20 md:py-28">
+            
+            {/* Título de Sección Limpio */}
+            <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-14">
+              <h2 className="text-[#0F172A] dark:text-white font-bold text-3xl sm:text-4xl tracking-tight">
+                Diseñado para el presente, no para el 2010.
+              </h2>
+              <p className="text-slate-600 dark:text-slate-400 text-base sm:text-lg max-w-2xl mx-auto mt-3">
+                ¿Por qué cientos de negocios ecuatorianos están migrando de sistemas anticuados a WebFix?
+              </p>
+            </div>
+
+            {/* Tabla Comparativa Limpia */}
+            <div className="max-w-4xl mx-auto rounded-3xl border border-slate-200/90 dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-900/90 shadow-none mb-16">
+              <div className="grid grid-cols-2 px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/50 font-bold text-sm sm:text-base">
+                <div className="text-slate-500 dark:text-slate-400">Sistemas Tradicionales / Antiguos</div>
+                <div className="text-blue-600 dark:text-blue-400 flex items-center gap-1.5">
+                  <span>WebFix ERP Cloud</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 font-semibold uppercase tracking-wider">Moderno</span>
+                </div>
+              </div>
+              <div className="divide-y divide-slate-100 dark:divide-slate-800/60 text-sm">
+                <div className="grid grid-cols-2 px-6 py-4 items-center">
+                  <div className="text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                    <X size={15} className="text-red-500 shrink-0" />
+                    <span>Instalaciones lentas en una sola PC física</span>
+                  </div>
+                  <div className="text-slate-900 dark:text-white font-medium flex items-center gap-2">
+                    <Check size={16} className="text-emerald-600 shrink-0" />
+                    <span>100% Cloud desde cualquier navegador web</span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 px-6 py-4 items-center">
+                  <div className="text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                    <X size={15} className="text-red-500 shrink-0" />
+                    <span>Cobro por cantidad de facturas o comprobantes</span>
+                  </div>
+                  <div className="text-slate-900 dark:text-white font-medium flex items-center gap-2">
+                    <Check size={16} className="text-emerald-600 shrink-0" />
+                    <span>Facturación SRI Ilimitada en todos los planes</span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 px-6 py-4 items-center">
+                  <div className="text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                    <X size={15} className="text-red-500 shrink-0" />
+                    <span>Interfaces lentas con menús y ventanas viejas</span>
+                  </div>
+                  <div className="text-slate-900 dark:text-white font-medium flex items-center gap-2">
+                    <Check size={16} className="text-emerald-600 shrink-0" />
+                    <span>Diseño ultra-rápido con atajos de teclado (F12)</span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 px-6 py-4 items-center">
+                  <div className="text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                    <X size={15} className="text-red-500 shrink-0" />
+                    <span>Pérdida de información si la PC se daña</span>
+                  </div>
+                  <div className="text-slate-900 dark:text-white font-medium flex items-center gap-2">
+                    <Check size={16} className="text-emerald-600 shrink-0" />
+                    <span>Respaldo continuo en la nube y disponibilidad 24/7</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Ecosistema Multiplataforma Integrado (PC, POS Mostrador y Móvil) */}
+            <div className="rounded-3xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-8 sm:p-10 md:p-12 text-left">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-8 mb-8 border-b border-slate-100 dark:border-slate-800">
+                <div>
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-semibold text-xs mb-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                    Ecosistema Multiplataforma Integrado
+                  </div>
+                  <h3 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
+                    Tu negocio sincronizado en PC, Móvil y Punto de Venta
+                  </h3>
+                </div>
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-mono font-medium text-slate-700 dark:text-slate-300 shrink-0 self-start sm:self-auto">
+                  <Wifi size={14} className="text-emerald-600" />
+                  <span>Cloud Sync 100% en Vivo</span>
+                </div>
+              </div>
+
+              {/* 3 Dispositivos Limpios */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                
+                {/* 1. PC & Laptops */}
+                <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800 p-6 bg-slate-50/50 dark:bg-slate-800/30 flex flex-col justify-between">
+                  <div>
+                    <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 flex items-center justify-center mb-4">
+                      <Laptop size={20} />
+                    </div>
+                    <h4 className="font-bold text-base text-slate-900 dark:text-white mb-2">
+                      PC & Laptops
+                    </h4>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                      Control administrativo completo, reportes tributarios SRI, subida de firmas .p12 y gestión de inventario multibodega.
+                    </p>
+                  </div>
+                  <div className="mt-6 pt-4 border-t border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between text-xs text-slate-500 font-mono">
+                    <span>Panel Web</span>
+                    <span className="text-emerald-600 font-semibold">100% Cloud</span>
+                  </div>
+                </div>
+
+                {/* 2. POS Mostrador & Tablets */}
+                <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800 p-6 bg-slate-50/50 dark:bg-slate-800/30 flex flex-col justify-between">
+                  <div>
+                    <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 flex items-center justify-center mb-4">
+                      <Store size={20} />
+                    </div>
+                    <h4 className="font-bold text-base text-slate-900 dark:text-white mb-2">
+                      Puntos de Venta & Tablets
+                    </h4>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                      Atención ágil en mostrador con pantalla táctil, pistolas lectoras de barras, tickets térmicos de 80mm y cobro en 3 segundos.
+                    </p>
+                  </div>
+                  <div className="mt-6 pt-4 border-t border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between text-xs text-slate-500 font-mono">
+                    <span>Atajo Teclado</span>
+                    <span className="text-blue-600 font-semibold">F12 Cobro</span>
+                  </div>
+                </div>
+
+                {/* 3. Smartphones & Celulares */}
+                <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800 p-6 bg-slate-50/50 dark:bg-slate-800/30 flex flex-col justify-between">
+                  <div>
+                    <div className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 flex items-center justify-center mb-4">
+                      <Smartphone size={20} />
+                    </div>
+                    <h4 className="font-bold text-base text-slate-900 dark:text-white mb-2">
+                      Smartphones & Celulares
+                    </h4>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                      Supervisa tu negocio desde cualquier lugar: emite comprobantes en ruta, consulta existencias de stock y revisa tu dinero en bancos en tiempo real.
+                    </p>
+                  </div>
+                  <div className="mt-6 pt-4 border-t border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between text-xs text-slate-500 font-mono">
+                    <span>Móvil PWA</span>
+                    <span className="text-purple-600 font-semibold">En Vivo</span>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Barra de sincronización continua */}
+              <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+                <div className="flex items-center gap-2">
+                  <RefreshCw size={15} className="text-blue-600 shrink-0 animate-spin" style={{ animationDuration: '6s' }} />
+                  <span className="font-semibold text-slate-900 dark:text-white">
+                    Sincronización bidireccional automática:
+                  </span>
+                  <span>Una venta en el POS descuenta el inventario en la PC y actualiza el saldo en tu celular al segundo.</span>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </ScrollReveal>
       </section>
 
       {/* 4. SECCIÓN DE PESTAÑAS INTERACTIVAS POR SEGMENTO COMERCIAL (ESTILO BREVO) */}
