@@ -1442,6 +1442,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   // Auto-emisión/Guardado directo para transacciones iniciadas desde el POS
 
 
+  const matchedTercero = formData.claveAcceso ? formData.thirdParty : thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
   const isAuthorized = formData.sriStatus === 'autorizado';
   const isAnulado = formData.sriStatus === 'anulado';
   const isNotaVenta = formData.documentType === 'nota_venta';
@@ -1563,7 +1564,6 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     { id: 2, name: 'Impresión' }
   ];
 
-  const matchedTercero = formData.claveAcceso ? formData.thirdParty : thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
   const filteredClients = (thirdParties || [])
     .filter(tp => formData.type === 'ingreso' ? tp.type !== 'proveedor' : tp.type === 'proveedor')
     .filter(tp =>
