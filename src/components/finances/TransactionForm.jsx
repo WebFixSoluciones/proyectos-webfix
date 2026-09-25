@@ -1588,108 +1588,146 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   };
 
   const formJSX = (
-    <UiBox {...mergeThemeProps({"className":"transaction-form-clean"}, {}, (isInline ? mergeThemeProps({"style":{"backgroundColor":"transparent","color":"var(--gray-12)"},"className":"w-full flex flex-col animate-in fade-in duration-300"}) : mergeThemeProps({"style":{"backgroundColor":"var(--gray-2)","color":"var(--gray-12)"},"className":"fixed inset-0 z-[100] w-screen h-screen overflow-y-auto flex flex-col"})))}>
+    <UiBox {...mergeThemeProps({"className":"transaction-form-clean"}, {}, (isInline ? mergeThemeProps({"style":{"backgroundColor":"transparent","color":"var(--gray-12)"},"className":"w-full flex flex-col animate-in fade-in duration-300"}) : mergeThemeProps({"style":{"backgroundColor":"var(--gray-2)","color":"var(--gray-12)"},"className":"fixed inset-0 z-[100] w-screen h-screen overflow-y-auto flex flex-col bg-slate-50"})))}>
 
       
       {/* TOP HEADER */}
-      <UiCard {...mergeThemeProps({"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"sticky top-0 z-20 flex items-center justify-between px-4 py-3"})}>
-        <UiBox {...{"className":"flex items-center gap-[5px]"}}>
-          {!isInline && (
-            <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)"},"className":"p-[5px]"}, {}, (formData.type === 'ingreso' ? {"style":{"backgroundColor":"var(--green-3)","color":"var(--green-11)"}} : {"style":{"backgroundColor":"var(--red-3)","color":"var(--red-11)"}}))}>
-              <Calculator size={16} />
-            </UiBox>
-          )}
-          <UiBox>
-            {/* Desktop / Tablet Header Title */}
-            <UiHeading as="h2" {...{"size":"4","weight":"bold","color":"gray","highContrast":true,"className":"hidden sm:block"}}>
+      <div className={`bg-white border border-slate-200/90 rounded-2xl px-5 py-4 flex items-center justify-between shadow-none mb-4 ${!isInline ? 'sticky top-0 z-20 mx-4 mt-4' : ''}`}>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-800 flex items-center justify-center shrink-0">
+            <Calculator size={18} />
+          </div>
+          <div>
+            <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
               {formData.type === 'ingreso' ? 'Venta Administrativa' : 'Asistente de Compras'}
-            </UiHeading>
-            {/* Mobile Header Title */}
-            <UiHeading as="h2" {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"sm:hidden"}}>
-              {formData.type === 'ingreso' ? 'Venta Administrativa' : 'Compras'}
-            </UiHeading>
-            {formData.claveAcceso && <UiText as="p" {...{"size":"1","weight":"regular","color":"gray","highContrast":true,"className":"mt-[1px]"}}>Clave SRI: {formData.claveAcceso}</UiText>}
-          </UiBox>
-        </UiBox>
+            </h2>
+            {formData.claveAcceso && (
+              <p className="text-[11px] font-mono text-slate-500 mt-0.5">Clave SRI: {formData.claveAcceso}</p>
+            )}
+          </div>
+        </div>
 
-        {/* COMPACT STEPPER (Clean, non-button indicators) */}
+        {/* COMPACT STEPPER */}
         {!isInline && (
-          <UiBox {...{"className":"flex items-center gap-[5px]"}}>
-            {steps.map((step, idx) => (
-              <UiButton
-                key={step.id}
-                type="button"
-                disabled={(isEditable && step.id === 2) || (isLockedInStep2 && step.id === 1)}
-                onClick={() => {
-                  if (step.id === 2) {
-                    if (isEditable && !formData.documentNumber) {
-                      showToast('Debes registrar la venta o emitir el comprobante antes de ver la impresión', 'error');
-                      return;
+          <div className="flex items-center gap-1.5 bg-slate-50 p-1.5 rounded-full border border-slate-200/80">
+            {steps.map((step) => {
+              const isActive = currentStep === step.id;
+              return (
+                <button
+                  key={step.id}
+                  type="button"
+                  disabled={(isEditable && step.id === 2) || (isLockedInStep2 && step.id === 1)}
+                  onClick={() => {
+                    if (step.id === 2) {
+                      if (isEditable && !formData.documentNumber) {
+                        showToast('Debes registrar la venta o emitir el comprobante antes de ver la impresión', 'error');
+                        return;
+                      }
                     }
-                  }
-                  setCurrentStep(step.id);
-                }}
-                {...mergeThemeProps({"className":"flex items-center gap-[3px]"}, {}, (currentStep === step.id ? {"className":"opacity-100"} : {"className":"opacity-60 hover:opacity-100"}))}
-              >
-                <UiText {...mergeThemeProps({"size":"1","weight":"bold","className":"w-4 h-4 flex items-center justify-center"}, {}, (currentStep === step.id ? {} : {"color":"gray","highContrast":true}))}>
-                  {step.id}
-                </UiText>
-                <UiText {...mergeThemeProps({"size":"1","weight":"bold","className":"hidden sm:inline"}, {}, (currentStep === step.id ? {"color":"gray"} : {"color":"gray"}))}>
-                  {step.name}
-                </UiText>
-                {idx < steps.length - 1 && (
-                  <UiText {...{"color":"gray","weight":"regular","className":"ml-1"}}>/</UiText>
-                )}
-              </UiButton>
-            ))}
-          </UiBox>
+                    setCurrentStep(step.id);
+                  }}
+                  className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer border-none ${
+                    isActive
+                      ? 'bg-[#1b1b1b] text-white'
+                      : 'text-slate-600 hover:text-slate-950 bg-transparent'
+                  } ${((isEditable && step.id === 2) || (isLockedInStep2 && step.id === 1)) ? 'opacity-40 cursor-not-allowed' : ''}`}
+                >
+                  <span className="w-4 h-4 rounded-full flex items-center justify-center text-[11px] font-bold">
+                    {step.id}
+                  </span>
+                  <span className="hidden sm:inline">{step.name}</span>
+                </button>
+              );
+            })}
+          </div>
         )}
-        <UiButton
-          onClick={closeTransaction} disabled={isSaving || isEmitting}
-          {...{"variant":"surface","color":"blue"}}
-        >
-          <X size={12} />
-          <UiText>{isInline ? 'Cancelar' : 'Cerrar'}</UiText>
-        </UiButton>
-      </UiCard>
 
-      {formData.claveAcceso && <UiCard className="m-4 p-4 space-y-3">
-        <UiText as="p" weight="bold">{formData.documentNumber}: {isAuthorized ? 'Autorizado por el SRI' : 'Identidad fiscal reservada — autorización por verificar'}</UiText>
-        <UiText as="p" size="2">{formData.recoveryNote || formData.sriLastError || 'La clave y el secuencial se conservan aunque falle la conexión.'}</UiText>
-        <UiButton type="button" disabled={isEmitting || isSaving} onClick={() => recoverSriEmission()}>{isEmitting ? 'Consultando…' : 'Consultar autorización SRI'}</UiButton>
-        {formData.sriStatus === 'pendiente_sri' && formData.xml && <UiButton type="button" variant="soft" disabled={isEmitting || isSaving} onClick={() => recoverSriEmission(true)}>Reintentar envío del XML guardado</UiButton>}
-        <FiscalDocuments transaction={formData} tenantId={appId} />
-      </UiCard>}
-      {isAuthorized && formData.financialSyncStatus === 'pending' && <UiBox role="alert" {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--amber-3)","color":"var(--amber-12)"},"className":"m-4 flex flex-wrap items-center justify-between gap-3 p-4"}}><UiText as="p">El comprobante está registrado. Falta completar inventario o finanzas.</UiText><UiButton type="button" {...{"variant":"surface","color":"blue"}} disabled={isSaving} onClick={completePendingSale}>{isSaving ? 'Sincronizando…' : 'Reintentar sincronización'}</UiButton></UiBox>}
+        <button
+          type="button"
+          onClick={closeTransaction}
+          disabled={isSaving || isEmitting}
+          className="rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 px-4 py-2 text-xs font-semibold flex items-center gap-1.5 shadow-none transition-all cursor-pointer disabled:opacity-50"
+        >
+          <X size={14} />
+          <span>{isInline ? 'Cancelar' : 'Cerrar'}</span>
+        </button>
+      </div>
+
+      {formData.claveAcceso && (
+        <div className="mb-4 p-5 bg-white border border-slate-200/90 rounded-2xl shadow-none space-y-3">
+          <p className="font-bold text-slate-900 text-sm">
+            {formData.documentNumber}: {isAuthorized ? 'Autorizado por el SRI' : 'Identidad fiscal reservada — autorización por verificar'}
+          </p>
+          <p className="text-xs text-slate-600">
+            {formData.recoveryNote || formData.sriLastError || 'La clave y el secuencial se conservan aunque falle la conexión.'}
+          </p>
+          <div className="flex flex-wrap gap-2 pt-1">
+            <button
+              type="button"
+              disabled={isEmitting || isSaving}
+              onClick={() => recoverSriEmission()}
+              className="rounded-full bg-[#1b1b1b] hover:bg-slate-800 text-white px-4 py-2 text-xs font-semibold shadow-none cursor-pointer transition-all disabled:opacity-50"
+            >
+              {isEmitting ? 'Consultando…' : 'Consultar autorización SRI'}
+            </button>
+            {formData.sriStatus === 'pendiente_sri' && formData.xml && (
+              <button
+                type="button"
+                disabled={isEmitting || isSaving}
+                onClick={() => recoverSriEmission(true)}
+                className="rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 px-4 py-2 text-xs font-semibold shadow-none cursor-pointer transition-all disabled:opacity-50"
+              >
+                Reintentar envío del XML guardado
+              </button>
+            )}
+          </div>
+          <FiscalDocuments transaction={formData} tenantId={appId} />
+        </div>
+      )}
+
+      {isAuthorized && formData.financialSyncStatus === 'pending' && (
+        <div role="alert" className="mb-4 flex flex-wrap items-center justify-between gap-3 p-4 bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl">
+          <p className="text-xs font-medium">El comprobante está registrado. Falta completar inventario o finanzas.</p>
+          <button
+            type="button"
+            disabled={isSaving}
+            onClick={completePendingSale}
+            className="rounded-full bg-amber-600 hover:bg-amber-700 text-white px-4 py-1.5 text-xs font-semibold shadow-none cursor-pointer"
+          >
+            {isSaving ? 'Sincronizando…' : 'Reintentar sincronización'}
+          </button>
+        </div>
+      )}
+
       {/* STATE BANNERS (Sri authorized / canceled) */}
       {isAuthorized && (
-        <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--green-3)","color":"var(--green-11)"},"className":"m-[5px] mb-0 p-[5px] flex items-center gap-[3px]"}}>
-          <CheckCircle2 size={16} {...{"className":"shrink-0"}} />
-          <UiBox {...{}}>
-            <UiText as="p" {...{"weight":"bold","color":"gray","highContrast":true}}>
+        <div className="mb-4 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 flex items-center gap-3">
+          <CheckCircle2 size={18} className="shrink-0 text-emerald-600" />
+          <div>
+            <p className="font-bold text-xs sm:text-sm text-emerald-950">
               {formData.documentType === 'nota_venta' ? 'Comprobante de Venta Guardado' : 'Comprobante Autorizado por el SRI'}
-            </UiText>
-            <UiText as="p" {...{"color":"gray","highContrast":true,"weight":"regular","className":"opacity-80"}}>
+            </p>
+            <p className="text-xs text-emerald-800 opacity-90 mt-0.5">
               {formData.documentType === 'nota_venta' 
                 ? 'Este documento ha sido guardado para control interno y no puede ser editado ni eliminado. Para corregirlo, anule este comprobante.' 
                 : 'Este documento tiene efectos fiscales y no puede ser editado ni eliminado. Para corregirlo, emita una Nota de Crédito.'}
-            </UiText>
-          </UiBox>
-        </UiBox>
+            </p>
+          </div>
+        </div>
       )}
 
       {isAnulado && (
-        <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--red-3)","color":"var(--red-11)"},"className":"m-[5px] mb-0 p-[5px] flex items-center gap-[3px]"}}>
-          <ShieldAlert size={16} {...{"className":"shrink-0"}} />
-          <UiBox {...{}}>
-            <UiText as="p" {...{"weight":"bold","color":"gray","highContrast":true}}>Comprobante Anulado</UiText>
-            <UiText as="p" {...{"color":"gray","highContrast":true,"weight":"regular","className":"opacity-80"}}>
+        <div className="mb-4 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 flex items-center gap-3">
+          <ShieldAlert size={18} className="shrink-0 text-rose-600" />
+          <div>
+            <p className="font-bold text-xs sm:text-sm text-rose-950">Comprobante Anulado</p>
+            <p className="text-xs text-rose-800 opacity-90 mt-0.5">
               {formData.documentType === 'nota_venta'
                 ? 'Este documento ha sido anulado de forma definitiva.'
                 : 'Este documento ya no tiene validez tributaria ante el SRI.'}
-            </UiText>
-          </UiBox>
-        </UiBox>
+            </p>
+          </div>
+        </div>
       )}
 
       {/* STEP CONTAINER BODY */}
@@ -1701,21 +1739,16 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         {currentStep === 1 && (
           <UiBox {...{"className":"space-y-[12px]"}}>
             {/* Mobile Navigation Tabs */}
-            <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--gray-2)","border":"1px solid var(--gray-a6)"},"className":"flex lg:hidden w-full p-[3px] gap-[3px] mb-[4px]"}}>
+            <div className="flex lg:hidden w-full p-1.5 gap-1.5 mb-3 bg-slate-100 rounded-2xl border border-slate-200/80">
               {[
                 { 
                   id: 'cliente', 
                   label: 'Cliente', 
                   icon: User,
                   badge: formData.thirdPartyId ? (
-                    <UiText {...{"size":"1","weight":"bold","color":"green","className":"px-2 py-0.5"}}>Listo</UiText>
+                    <span className="text-[10px] font-bold text-emerald-800 bg-[#c0ffa5] px-2 py-0.5 rounded-full">Listo</span>
                   ) : (
-                    <UiText {...{"size":"1","weight":"bold","color":"amber","className":"px-2 py-0.5"}}>Pendiente</UiText>
-                  ),
-                  activeBadge: formData.thirdPartyId ? (
-                    <UiText {...{"size":"1","weight":"bold","color":"gray","className":"px-2 py-0.5"}}>Listo</UiText>
-                  ) : (
-                    <UiText {...{"size":"1","weight":"bold","color":"gray","className":"px-2 py-0.5"}}>Pendiente</UiText>
+                    <span className="text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full">Pendiente</span>
                   )
                 },
                 { 
@@ -1723,14 +1756,9 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   label: 'Carrito', 
                   icon: Layers,
                   badge: (
-                    <UiText {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"px-2 py-0.5"}}>
+                    <span className="text-[10px] font-bold text-slate-700 bg-white px-2 py-0.5 rounded-full border border-slate-200">
                       {formData.items?.length || 0}
-                    </UiText>
-                  ),
-                  activeBadge: (
-                    <UiText {...{"size":"1","weight":"bold","color":"gray","className":"px-2 py-0.5"}}>
-                      {formData.items?.length || 0}
-                    </UiText>
+                    </span>
                   )
                 },
                 { 
@@ -1738,56 +1766,53 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   label: 'Pago', 
                   icon: CreditCard,
                   badge: (
-                    <UiText {...{"size":"1","weight":"bold","color":"green","className":"px-2 py-0.5"}}>
+                    <span className="text-[10px] font-bold text-emerald-800 bg-[#c0ffa5] px-2 py-0.5 rounded-full">
                       ${Number(formData.total).toFixed(2)}
-                    </UiText>
-                  ),
-                  activeBadge: (
-                    <UiText {...{"size":"1","weight":"bold","color":"gray","className":"px-2 py-0.5"}}>
-                      ${Number(formData.total).toFixed(2)}
-                    </UiText>
+                    </span>
                   )
                 }
               ].map(tab => {
                 const isActive = mobileTab === tab.id;
                 const IconComponent = tab.icon;
                 return (
-                  <UiButton
+                  <button
                     key={tab.id}
                     type="button"
                     onClick={() => setMobileTab(tab.id)}
-                    {...mergeThemeProps({"className":"flex-1 flex flex-col items-center justify-center"}, {}, (isActive ? {"variant":"solid","color":"blue"} : {"color":"gray"}))}
+                    className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-xl text-xs transition-all cursor-pointer border-none ${
+                      isActive ? 'bg-white text-slate-900 shadow-sm font-bold' : 'text-slate-600 hover:text-slate-900 bg-transparent font-medium'
+                    }`}
                   >
-                    <UiBox {...{"className":"flex items-center gap-[3px] mb-[2px]"}}>
-                      <IconComponent size={11} {...{"className":"shrink-0"}} />
-                      <UiText {...{"size":"1","weight":"bold"}}>{tab.label}</UiText>
-                    </UiBox>
-                    {isActive ? tab.activeBadge : tab.badge}
-                  </UiButton>
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      <IconComponent size={13} className="shrink-0" />
+                      <span>{tab.label}</span>
+                    </div>
+                    {tab.badge}
+                  </button>
                 );
               })}
-            </UiBox>
+            </div>
 
-            <UiBox {...{"className":"grid grid-cols-12 gap-[12px] animate-in fade-in slide-in-from-bottom duration-300"}}>
+            <div className="grid grid-cols-12 gap-4 animate-in fade-in slide-in-from-bottom duration-300">
               {/* Left Column: lg:col-span-8 */}
-              <UiBox {...{"className":"col-span-12 lg:col-span-8 space-y-[12px]"}}>
+              <div className="col-span-12 lg:col-span-8 space-y-4">
                 
                 {/* Card 1: Client and location details */}
-                <UiBox {...mergeThemeProps({}, {}, {}, mergeThemeProps({"style":{"borderRadius":"var(--radius-3)"},"className":"p-[12px]"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)","color":"var(--gray-12)"}}), (mobileTab === 'cliente' ? {"className":"block"} : {"className":"hidden lg:block"}))}>
-                  <UiBox className="flex items-center justify-between mb-3">
-                    <UiBox className="flex items-center gap-2">
-                      <UiBox style={{ color: "var(--accent-11)" }}>
+                <div className={`bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-none space-y-4 ${mobileTab === 'cliente' ? 'block' : 'hidden lg:block'}`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
                         <User size={16} />
-                      </UiBox>
-                      <UiHeading as="h3" size="2" weight="bold">
+                      </div>
+                      <h3 className="text-base font-bold text-slate-900 tracking-tight">
                         {formData.type === 'ingreso' ? 'Datos de Cliente' : 'Datos de Proveedor'}
-                      </UiHeading>
-                    </UiBox>
-                  </UiBox>
+                      </h3>
+                    </div>
+                  </div>
                 
                 {/* Client Search + Quick Add row */}
-                <UiBox {...{"className":"flex gap-[8px] items-center mb-[10px]"}}>
-                  <UiBox {...{"className":"flex-1 relative"}}>
+                <div className="flex gap-2 items-center">
+                  <div className="flex-1 relative">
                     <UiInput
                       id="admin-client-search"
                       aria-invalid={validationIssues.some(issue => issue.target === 'client') && !formData.thirdPartyId}
@@ -1808,16 +1833,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     />
                     
                     {clientSearchTerm.trim() !== '' && (
-                      <UiBox 
-                        style={{
-                          borderRadius: 'var(--radius-3)',
-                          border: '1px solid var(--gray-a6)',
-                          backgroundColor: 'var(--color-panel-solid)',
-                          boxShadow: 'var(--shadow-3)',
-                          zIndex: 50
-                        }}
-                        className="absolute left-0 right-0 top-full mt-1.5 max-h-64 overflow-y-auto custom-scrollbar divide-y divide-[var(--gray-a4)]"
-                      >
+                      <div className="absolute left-0 right-0 top-full mt-1.5 max-h-64 overflow-y-auto custom-scrollbar divide-y divide-slate-100 bg-white border border-slate-200/90 rounded-2xl shadow-xl z-50">
                         {filteredClients.slice(0, 10).map(tp => (
                           <button
                             key={tp.id}
@@ -1826,15 +1842,15 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                               setFormData(prev => ({ ...prev, thirdPartyId: tp.id }));
                               setClientSearchTerm('');
                             }}
-                            className="w-full text-left px-3.5 py-2.5 hover:bg-[var(--accent-3)] transition-colors flex flex-col gap-0.5 cursor-pointer bg-transparent border-none outline-none"
+                            className="w-full text-left px-4 py-2.5 hover:bg-slate-50 transition-colors flex flex-col gap-0.5 cursor-pointer bg-transparent border-none outline-none"
                           >
                             <div className="flex items-center justify-between gap-2">
-                              <span className="font-semibold text-xs text-[var(--gray-12)] truncate">{tp.name}</span>
-                              <span className="text-[10px] font-mono font-medium text-[var(--blue-11)] bg-[var(--blue-3)] px-1.5 py-0.5 rounded shrink-0">
+                              <span className="font-semibold text-xs text-slate-900 truncate">{tp.name}</span>
+                              <span className="text-[10px] font-mono font-medium text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full shrink-0">
                                 {tp.tipoIdentificacion ? tp.tipoIdentificacion.toUpperCase() : 'RUC/CI'}
                               </span>
                             </div>
-                            <div className="text-[11px] text-[var(--gray-10)] flex items-center gap-2">
+                            <div className="text-[11px] text-slate-500 flex items-center gap-2">
                               <span className="font-mono">ID: {tp.ruc}</span>
                               {tp.telefono && <span>• Tel: {tp.telefono}</span>}
                               {tp.email && <span className="truncate max-w-[200px]">• {tp.email}</span>}
@@ -1842,16 +1858,16 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                           </button>
                         ))}
                         {filteredClients.length === 0 && (
-                          <div className="p-3 text-center text-xs text-[var(--gray-10)]">
-                            No se encontraron clientes. Usa <strong className="text-[var(--blue-11)]">(+)</strong> para crear uno nuevo.
+                          <div className="p-3 text-center text-xs text-slate-500">
+                            No se encontraron clientes. Usa <strong className="text-blue-600">(+)</strong> para crear uno nuevo.
                           </div>
                         )}
-                      </UiBox>
+                      </div>
                     )}
-                  </UiBox>
+                  </div>
                   
                   {isEditable && (
-                    <UiButton iconOnly
+                    <button
                       type="button"
                       onClick={() => {
                         setQuickAddFormData({
@@ -1860,43 +1876,43 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         });
                         setIsQuickAddOpen(true);
                       }}
-                      {...{"variant":"solid","color":"blue","className":"shrink-0"}}
+                      className="w-9 h-9 rounded-xl bg-[#1b1b1b] hover:bg-slate-800 text-white flex items-center justify-center shrink-0 cursor-pointer transition-all border-none"
                       title="Crear Contacto Rápido"
                     >
-                      <Plus size={14} />
-                    </UiButton>
+                      <Plus size={16} />
+                    </button>
                   )}
-                </UiBox>
+                </div>
 
-                {/* Client detail card (extremely compact, green diffused background with black text) */}
+                {/* Client detail card (compact, green diffused background with black text) */}
                 {matchedTercero ? (
-                  <UiBox className="grid grid-cols-1 sm:grid-cols-3 gap-[10px] p-[8px] mb-[8px] rounded-md bg-[#e6f4ea] border border-[#ceead6] dark:bg-emerald-950/40 dark:border-emerald-800/60">
-                    <UiBox>
-                      <UiText as="p" size="1" weight="bold" className="text-gray-600 dark:text-gray-300">Razón Social</UiText>
-                      <UiText as="p" weight="bold" size="1" className="truncate text-black dark:text-white font-bold">{matchedTercero.name}</UiText>
-                    </UiBox>
-                    <UiBox>
-                      <UiText as="p" size="1" weight="bold" className="text-gray-600 dark:text-gray-300">RUC / CI</UiText>
-                      <UiText as="p" weight="bold" size="1" className="text-black dark:text-white font-bold font-mono">{matchedTercero.ruc}</UiText>
-                    </UiBox>
-                    <UiBox>
-                      <UiText as="p" size="1" weight="bold" className="text-gray-600 dark:text-gray-300">Teléfono / Correo</UiText>
-                      <UiText as="p" weight="bold" size="1" className="truncate text-black dark:text-white font-bold">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 rounded-xl bg-[#e6f4ea] border border-[#ceead6] dark:bg-emerald-950/40 dark:border-emerald-800/60">
+                    <div>
+                      <span className="text-[11px] font-bold text-gray-600 dark:text-gray-300 block mb-0.5">Razón Social</span>
+                      <span className="truncate text-black dark:text-white font-bold text-xs block">{matchedTercero.name}</span>
+                    </div>
+                    <div>
+                      <span className="text-[11px] font-bold text-gray-600 dark:text-gray-300 block mb-0.5">RUC / CI</span>
+                      <span className="text-black dark:text-white font-bold text-xs font-mono block">{matchedTercero.ruc}</span>
+                    </div>
+                    <div>
+                      <span className="text-[11px] font-bold text-gray-600 dark:text-gray-300 block mb-0.5">Teléfono / Correo</span>
+                      <span className="truncate text-black dark:text-white font-bold text-xs block">
                         {matchedTercero.telefono || 'S/N'} {matchedTercero.email ? `| ${matchedTercero.email}` : ''}
-                      </UiText>
-                    </UiBox>
-                  </UiBox>
+                      </span>
+                    </div>
+                  </div>
                 ) : (
-                  <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--red-3)","color":"var(--red-11)"},"className":"p-[8px] flex items-center justify-center gap-1.5 mb-[8px]"})}>
-                    <AlertTriangle size={12} {...{"className":"shrink-0"}} />
-                    <UiText>Selecciona un cliente para habilitar la facturación.</UiText>
-                  </UiBox>
+                  <div className="p-3 rounded-xl bg-amber-50/80 border border-amber-200/80 text-amber-900 flex items-center justify-center gap-2 text-xs font-medium">
+                    <AlertTriangle size={14} className="shrink-0 text-amber-600" />
+                    <span>Selecciona un cliente para habilitar la facturación.</span>
+                  </div>
                 )}
 
                 {/* Document Type, Establishment, Bodega, Reference in a compact grid */}
-                <UiBox {...{"className":"grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[8px]"}}>
-                  <UiBox>
-                    <UiLabel {...mergeThemeProps({"size":"2","weight":"medium","className":"block mb-1.5"}, {}, {"color":"gray","highContrast":true})}>Tipo Documento</UiLabel>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div>
+                    <label className="text-xs font-semibold text-slate-700 block mb-1.5">Tipo Documento</label>
                     <UiSelect
                       disabled={!isEditable} 
                       value={formData.documentType} 
@@ -1915,17 +1931,17 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         setFormData(prev => ({ ...prev, documentType: newDocType, secuencial: nextSec }));
                       }} 
                       style={hasSelectedDocType ? {
-                        backgroundColor: 'var(--accent-9)',
+                        backgroundColor: '#1C40F2',
                         color: '#ffffff',
-                        borderColor: 'var(--accent-9)'
+                        borderColor: '#1C40F2'
                       } : {
-                        backgroundColor: 'var(--blue-2)',
-                        color: 'var(--blue-11)',
-                        borderColor: 'var(--blue-7)'
+                        backgroundColor: '#eff6ff',
+                        color: '#1d4ed8',
+                        borderColor: '#bfdbfe'
                       }}
                       className={hasSelectedDocType 
-                        ? "w-full font-bold !text-white !bg-[var(--accent-9)] border-[var(--accent-9)] cursor-pointer shadow-sm transition-all"
-                        : "w-full font-semibold !text-[var(--blue-11)] !bg-[var(--blue-2)] border border-[var(--blue-7)] cursor-pointer hover:bg-[var(--blue-3)] transition-all"
+                        ? "w-full font-bold !text-white !bg-[#1C40F2] border-[#1C40F2] cursor-pointer shadow-none rounded-xl text-xs h-9 transition-all"
+                        : "w-full font-semibold !text-blue-700 !bg-blue-50 border border-blue-200 cursor-pointer hover:bg-blue-100 shadow-none rounded-xl text-xs h-9 transition-all"
                       }
                     >
                       {formData.documentType === 'nota_credito' ? (
@@ -1947,110 +1963,110 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         </>
                       )}
                     </UiSelect>
-                  </UiBox>
+                  </div>
                   
-                  <UiBox>
-                    <UiLabel {...mergeThemeProps({"size":"2","weight":"medium","className":"block mb-1.5"}, {}, {"color":"gray","highContrast":true})}>Fecha Emisión</UiLabel>
+                  <div>
+                    <label className="text-xs font-semibold text-slate-700 block mb-1.5">Fecha Emisión</label>
                     <UiInput
                       disabled={true} 
                       type="text" 
                       value={formData.date ? formData.date.split('-').reverse().join('/') : ''} 
-                      {...mergeThemeProps({}, {"className":"text-center cursor-not-allowed"}, mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"}))} 
+                      className="w-full text-center cursor-not-allowed rounded-xl text-xs h-9 bg-slate-50 border-slate-200" 
                     />
-                  </UiBox>
+                  </div>
 
-                  <UiBox>
-                    <UiLabel {...mergeThemeProps({"size":"2","weight":"medium","className":"block mb-1.5"}, {}, {"color":"gray","highContrast":true})}>Establecimiento</UiLabel>
+                  <div>
+                    <label className="text-xs font-semibold text-slate-700 block mb-1.5">Establecimiento</label>
                     <UiSelect
                       disabled={!isEditable} 
                       value={formData.establecimiento || sriConfig?.establecimiento || '001'} 
                       onChange={e => setFormData({...formData, establecimiento: e.target.value})} 
-                      {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})}
+                      className="w-full rounded-xl text-xs h-9 border-slate-200"
                     >
                       <option value={sriConfig?.establecimiento || '001'}>{sriConfig?.establecimiento || '001'} - Sucursal Matriz</option>
                     </UiSelect>
-                  </UiBox>
+                  </div>
 
-                  <UiBox>
-                    <UiLabel {...mergeThemeProps({"size":"2","weight":"medium","className":"block mb-1.5"}, {}, {"color":"gray","highContrast":true})}>Bodega</UiLabel>
+                  <div>
+                    <label className="text-xs font-semibold text-slate-700 block mb-1.5">Bodega</label>
                     <UiSelect
                       disabled={!isEditable} 
                       value={formData.bodega || 'Bodega Central'} 
                       onChange={e => setFormData({...formData, bodega: e.target.value})} 
-                      {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})}
+                      className="w-full rounded-xl text-xs h-9 border-slate-200"
                     >
                       <option value="Bodega Central">Bodega Central</option>
                       <option value="Bodega de Exhibición">Bodega de Exhibición</option>
                     </UiSelect>
-                  </UiBox>
-                </UiBox>
+                  </div>
+                </div>
 
                 {/* Extra fields for Nota Credito and Guia Remision inside the same card */}
                 {formData.documentType === 'nota_credito' && (
-                  <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"grid grid-cols-2 sm:grid-cols-4 gap-[8px] mt-[8px] pt-[8px]"}}>
-                    <UiBox>
-                      <UiLabel {...mergeThemeProps({"size":"2","weight":"medium","className":"block mb-1.5"}, {}, {"color":"gray","highContrast":true})}>Doc Modificado</UiLabel>
-                      <UiSelect disabled={!isEditable} value={formData.codDocModificado || '01'} onChange={e => setFormData({...formData, codDocModificado: e.target.value})} {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})}>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-2 pt-3 border-t border-slate-100">
+                    <div>
+                      <label className="text-xs font-semibold text-slate-700 block mb-1.5">Doc Modificado</label>
+                      <UiSelect disabled={!isEditable} value={formData.codDocModificado || '01'} onChange={e => setFormData({...formData, codDocModificado: e.target.value})} className="w-full rounded-xl text-xs h-9 border-slate-200">
                         <option value="01">Factura</option>
                         <option value="03">Liquidación de Compra</option>
                       </UiSelect>
-                    </UiBox>
-                    <UiBox>
-                      <UiLabel {...mergeThemeProps({"size":"2","weight":"medium","className":"block mb-1.5"}, {}, {"color":"gray","highContrast":true})}>Nro. Doc Modificado</UiLabel>
-                      <UiInput disabled={!isEditable} type="text" required value={formData.numDocModificado || ''} onChange={e => setFormData({...formData, numDocModificado: e.target.value})} {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})} placeholder="001-001-000000123" />
-                    </UiBox>
-                    <UiBox>
-                      <UiLabel {...mergeThemeProps({"size":"2","weight":"medium","className":"block mb-1.5"}, {}, {"color":"gray","highContrast":true})}>Fecha Emisión Doc</UiLabel>
-                      <UiInput disabled={!isEditable} type="date" required value={formData.fechaEmisionDocSustento || ''} onChange={e => setFormData({...formData, fechaEmisionDocSustento: e.target.value})} {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})} />
-                    </UiBox>
-                    <UiBox>
-                      <UiLabel {...mergeThemeProps({"size":"2","weight":"medium","className":"block mb-1.5"}, {}, {"color":"gray","highContrast":true})}>Motivo</UiLabel>
-                      <UiInput disabled={!isEditable} type="text" required value={formData.motivo || ''} onChange={e => setFormData({...formData, motivo: e.target.value})} {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})} placeholder="Devolución" />
-                    </UiBox>
-                  </UiBox>
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-slate-700 block mb-1.5">Nro. Doc Modificado</label>
+                      <UiInput disabled={!isEditable} type="text" required value={formData.numDocModificado || ''} onChange={e => setFormData({...formData, numDocModificado: e.target.value})} className="w-full rounded-xl text-xs h-9 border-slate-200" placeholder="001-001-000000123" />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-slate-700 block mb-1.5">Fecha Emisión Doc</label>
+                      <UiInput disabled={!isEditable} type="date" required value={formData.fechaEmisionDocSustento || ''} onChange={e => setFormData({...formData, fechaEmisionDocSustento: e.target.value})} className="w-full rounded-xl text-xs h-9 border-slate-200" />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-slate-700 block mb-1.5">Motivo</label>
+                      <UiInput disabled={!isEditable} type="text" required value={formData.motivo || ''} onChange={e => setFormData({...formData, motivo: e.target.value})} className="w-full rounded-xl text-xs h-9 border-slate-200" placeholder="Devolución" />
+                    </div>
+                  </div>
                 )}
 
                 {formData.documentType === 'guia_remision' && (
-                  <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"grid grid-cols-2 sm:grid-cols-5 gap-[8px] mt-[8px] pt-[8px]"}}>
-                    <UiBox>
-                      <UiLabel {...mergeThemeProps({"size":"2","weight":"medium","className":"block mb-1.5"}, {}, {"color":"gray","highContrast":true})}>Placa</UiLabel>
-                      <UiInput disabled={!isEditable} type="text" required value={formData.placa || ''} onChange={e => setFormData({...formData, placa: e.target.value.toUpperCase()})} {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})} placeholder="PBA1234" />
-                    </UiBox>
-                    <UiBox>
-                      <UiLabel {...mergeThemeProps({"size":"2","weight":"medium","className":"block mb-1.5"}, {}, {"color":"gray","highContrast":true})}>Motivo Traslado</UiLabel>
-                      <UiInput disabled={!isEditable} type="text" required value={formData.motivoTraslado || ''} onChange={e => setFormData({...formData, motivoTraslado: e.target.value})} {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})} placeholder="Venta" />
-                    </UiBox>
-                    <UiBox>
-                      <UiLabel {...mergeThemeProps({"size":"2","weight":"medium","className":"block mb-1.5"}, {}, {"color":"gray","highContrast":true})}>Partida</UiLabel>
-                      <UiInput disabled={!isEditable} type="text" required value={formData.dirPartida || ''} onChange={e => setFormData({...formData, dirPartida: e.target.value})} {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})} placeholder="Origen" />
-                    </UiBox>
-                    <UiBox>
-                      <UiLabel {...mergeThemeProps({"size":"2","weight":"medium","className":"block mb-1.5"}, {}, {"color":"gray","highContrast":true})}>Destino</UiLabel>
-                      <UiInput disabled={!isEditable} type="text" value={formData.dirDestino || ''} onChange={e => setFormData({...formData, dirDestino: e.target.value})} {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})} placeholder="Destino" />
-                    </UiBox>
-                    <UiBox>
-                      <UiLabel {...mergeThemeProps({"size":"2","weight":"medium","className":"block mb-1.5"}, {}, {"color":"gray","highContrast":true})}>Ruta</UiLabel>
-                      <UiInput disabled={!isEditable} type="text" value={formData.ruta || ''} onChange={e => setFormData({...formData, ruta: e.target.value})} {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})} placeholder="Quito - Guayaquil" />
-                    </UiBox>
-                    <UiBox>
-                      <UiLabel {...mergeThemeProps({"size":"2","weight":"medium","className":"block mb-1.5"}, {}, {"color":"gray","highContrast":true})}>Fecha Inicio</UiLabel>
-                      <UiInput disabled={!isEditable} type="date" required value={formData.fechaIniTransporte || ''} onChange={e => setFormData({...formData, fechaIniTransporte: e.target.value})} {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})} />
-                    </UiBox>
-                    <UiBox>
-                      <UiLabel {...mergeThemeProps({"size":"2","weight":"medium","className":"block mb-1.5"}, {}, {"color":"gray","highContrast":true})}>Fecha Fin</UiLabel>
-                      <UiInput disabled={!isEditable} type="date" required value={formData.fechaFinTransporte || ''} onChange={e => setFormData({...formData, fechaFinTransporte: e.target.value})} {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})} />
-                    </UiBox>
-                    <UiBox>
-                      <UiLabel {...mergeThemeProps({"size":"2","weight":"medium","className":"block mb-1.5"}, {}, {"color":"gray","highContrast":true})}>RUC Transportista</UiLabel>
-                      <UiInput disabled={!isEditable} type="text" value={formData.rucTransportista || ''} onChange={e => setFormData({...formData, rucTransportista: e.target.value})} {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})} placeholder="RUC" />
-                    </UiBox>
-                    <UiBox {...{"className":"sm:col-span-2"}}>
-                      <UiLabel {...mergeThemeProps({"size":"2","weight":"medium","className":"block mb-1.5"}, {}, {"color":"gray","highContrast":true})}>Nro. Doc Sustento</UiLabel>
-                      <UiInput disabled={!isEditable} type="text" value={formData.numDocSustento || ''} onChange={e => setFormData({...formData, numDocSustento: e.target.value})} {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})} placeholder="001-001-000000123" />
-                    </UiBox>
-                  </UiBox>
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-2 pt-3 border-t border-slate-100">
+                    <div>
+                      <label className="text-xs font-semibold text-slate-700 block mb-1.5">Placa</label>
+                      <UiInput disabled={!isEditable} type="text" required value={formData.placa || ''} onChange={e => setFormData({...formData, placa: e.target.value.toUpperCase()})} className="w-full rounded-xl text-xs h-9 border-slate-200" placeholder="PBA1234" />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-slate-700 block mb-1.5">Motivo Traslado</label>
+                      <UiInput disabled={!isEditable} type="text" required value={formData.motivoTraslado || ''} onChange={e => setFormData({...formData, motivoTraslado: e.target.value})} className="w-full rounded-xl text-xs h-9 border-slate-200" placeholder="Venta" />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-slate-700 block mb-1.5">Partida</label>
+                      <UiInput disabled={!isEditable} type="text" required value={formData.dirPartida || ''} onChange={e => setFormData({...formData, dirPartida: e.target.value})} className="w-full rounded-xl text-xs h-9 border-slate-200" placeholder="Origen" />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-slate-700 block mb-1.5">Destino</label>
+                      <UiInput disabled={!isEditable} type="text" value={formData.dirDestino || ''} onChange={e => setFormData({...formData, dirDestino: e.target.value})} className="w-full rounded-xl text-xs h-9 border-slate-200" placeholder="Destino" />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-slate-700 block mb-1.5">Ruta</label>
+                      <UiInput disabled={!isEditable} type="text" value={formData.ruta || ''} onChange={e => setFormData({...formData, ruta: e.target.value})} className="w-full rounded-xl text-xs h-9 border-slate-200" placeholder="Quito - Guayaquil" />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-slate-700 block mb-1.5">Fecha Inicio</label>
+                      <UiInput disabled={!isEditable} type="date" required value={formData.fechaIniTransporte || ''} onChange={e => setFormData({...formData, fechaIniTransporte: e.target.value})} className="w-full rounded-xl text-xs h-9 border-slate-200" />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-slate-700 block mb-1.5">Fecha Fin</label>
+                      <UiInput disabled={!isEditable} type="date" required value={formData.fechaFinTransporte || ''} onChange={e => setFormData({...formData, fechaFinTransporte: e.target.value})} className="w-full rounded-xl text-xs h-9 border-slate-200" />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-slate-700 block mb-1.5">RUC Transportista</label>
+                      <UiInput disabled={!isEditable} type="text" value={formData.rucTransportista || ''} onChange={e => setFormData({...formData, rucTransportista: e.target.value})} className="w-full rounded-xl text-xs h-9 border-slate-200" placeholder="RUC" />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="text-xs font-semibold text-slate-700 block mb-1.5">Nro. Doc Sustento</label>
+                      <UiInput disabled={!isEditable} type="text" value={formData.numDocSustento || ''} onChange={e => setFormData({...formData, numDocSustento: e.target.value})} className="w-full rounded-xl text-xs h-9 border-slate-200" placeholder="001-001-000000123" />
+                    </div>
+                  </div>
                 )}
-              </UiBox>
+                </div>
 
               {/* Card 2: Product selector + Cart table */}
               {formData.documentType === 'retencion' ? (
@@ -2136,21 +2152,21 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 </UiBox>
               ) : (
                 /* Products Table & Search card */
-                <UiBox {...mergeThemeProps({}, {}, {}, mergeThemeProps({"style":{"borderRadius":"var(--radius-3)"},"className":"p-[12px]"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)","color":"var(--gray-12)"}}), (mobileTab === 'carrito' ? {"className":"block"} : {"className":"hidden lg:block"}))}>
+                <div className={`bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-none space-y-4 ${mobileTab === 'carrito' ? 'block' : 'hidden lg:block'}`}>
                   {/* Encabezado claro de la sección de productos */}
-                  <UiBox className="flex items-center justify-between mb-3">
-                    <UiBox className="flex items-center gap-2">
-                      <UiBox style={{ color: "var(--accent-11)" }}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center shrink-0">
                         <ShoppingCart size={16} />
-                      </UiBox>
-                      <UiHeading as="h3" size="2" weight="bold">
+                      </div>
+                      <h3 className="text-base font-bold text-slate-900 tracking-tight">
                         Productos y Servicios
-                      </UiHeading>
-                    </UiBox>
-                  </UiBox>
-                  <UiBox {...{"className":"flex items-center gap-[5px] mb-[5px] flex-wrap"}}>
+                      </h3>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2.5 flex-wrap">
                     {/* Search Field */}
-                    <UiBox {...{"className":"relative flex-1 min-w-[200px]"}}>
+                    <div className="relative flex-1 min-w-[200px]">
                       <UiInput
                         id="admin-product-search"
                         aria-invalid={validationIssues.some(issue => issue.target === 'items') && !(formData.items || []).length}
@@ -2171,16 +2187,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       
                       {/* Search Results dropdown */}
                       {productSearchTerm.trim() !== '' && (
-                        <UiBox 
-                          style={{
-                            borderRadius: 'var(--radius-3)',
-                            border: '1px solid var(--gray-a6)',
-                            backgroundColor: 'var(--color-panel-solid)',
-                            boxShadow: 'var(--shadow-3)',
-                            zIndex: 50
-                          }}
-                          className="absolute left-0 right-0 top-full mt-1.5 max-h-64 overflow-y-auto custom-scrollbar divide-y divide-[var(--gray-a4)]"
-                        >
+                        <div className="absolute left-0 right-0 top-full mt-1.5 max-h-64 overflow-y-auto custom-scrollbar divide-y divide-slate-100 bg-white border border-slate-200/90 rounded-2xl shadow-xl z-50">
                           {products.filter(p => 
                             isSellable(p) && (
                               p.name?.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
@@ -2195,17 +2202,17 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                                 handleAddProductToCart(p);
                                 setProductSearchTerm('');
                               }}
-                              className="w-full text-left px-3.5 py-2.5 hover:bg-[var(--accent-3)] transition-colors flex items-center justify-between cursor-pointer bg-transparent border-none outline-none"
+                              className="w-full text-left px-4 py-2.5 hover:bg-slate-50 transition-colors flex items-center justify-between cursor-pointer bg-transparent border-none outline-none"
                             >
                               <div className="min-w-0 pr-3">
-                                <div className="font-semibold text-xs text-[var(--gray-12)] truncate">{p.name}</div>
-                                <div className="text-[11px] text-[var(--gray-10)] flex items-center gap-2 mt-0.5">
+                                <div className="font-semibold text-xs text-slate-900 truncate">{p.name}</div>
+                                <div className="text-[11px] text-slate-500 flex items-center gap-2 mt-0.5">
                                   {p.sku && <span className="font-mono">SKU: {p.sku}</span>}
                                   {p.codigoBarras && <span className="font-mono">• EAN: {p.codigoBarras}</span>}
-                                  <span className="text-[var(--gray-9)]">• Stock: {Number(p.stock || 0)} u.</span>
+                                  <span className="text-slate-400">• Stock: {Number(p.stock || 0)} u.</span>
                                 </div>
                               </div>
-                              <div className="font-mono font-bold text-xs text-[var(--blue-11)] shrink-0">
+                              <div className="font-mono font-bold text-xs text-blue-700 shrink-0">
                                 ${Number(p.price).toFixed(2)}
                               </div>
                             </button>
@@ -2217,33 +2224,31 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                               p.codigoBarras?.toLowerCase().includes(productSearchTerm.toLowerCase())
                             )
                           ).length === 0 && (
-                            <div className="p-3 text-center text-xs text-[var(--gray-10)]">
+                            <div className="p-3 text-center text-xs text-slate-500">
                               No se encontraron productos o servicios activos.
                             </div>
                           )}
-                        </UiBox>
+                        </div>
                       )}
-                    </UiBox>
+                    </div>
 
                     {/* Search action buttons */}
                     {isEditable && (
                       <>
-                        <UiButton
+                        <button
                           type="button"
                           onClick={() => {
                             setAdvSearchTerm(productSearchTerm);
                             setIsAdvancedSearchOpen(true);
                           }}
-                          variant="surface"
-                          color="blue"
                           title="Añadir Productos"
-                          className="cursor-pointer"
+                          className="rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 px-4 py-2 text-xs font-semibold flex items-center gap-1.5 shadow-none transition-all cursor-pointer"
                         >
                           <Search size={14} />
-                          <UiText>Añadir</UiText>
-                        </UiButton>
+                          <span>Añadir</span>
+                        </button>
                         
-                        <UiButton
+                        <button
                           type="button" 
                           onClick={() => {
                             setQuickAddProductFormData({
@@ -2251,25 +2256,23 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                             });
                             setIsQuickAddProductOpen(true);
                           }}
-                          variant="solid"
-                          color="blue"
                           title="Crear Producto"
                           aria-label="Crear Producto"
-                          className="cursor-pointer"
+                          className="rounded-full bg-[#1b1b1b] hover:bg-slate-800 text-white px-4 py-2 text-xs font-semibold flex items-center gap-1.5 shadow-none transition-all cursor-pointer border-none"
                         >
                           <Package size={14} />
-                          <UiText>Crear</UiText>
-                        </UiButton>
+                          <span>Crear</span>
+                        </button>
                       </>
                     )}
-                  </UiBox>
+                  </div>
 
                   {/* Actions: discount, clear cart */}
-                  <UiBox {...{"className":"flex items-center gap-[8px] mb-[8px] flex-wrap"}}>
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
                     {/* General Discount */}
-                    <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--gray-2)"},"className":"flex items-center gap-[6px] px-[8px] py-[4px] flex-wrap min-w-[280px]"}}>
-                      <Tag size={12} {...{"style":{"color":"var(--blue-12)"},"className":"shrink-0"}} />
-                      <UiText {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"shrink-0"}}>Descuento General:</UiText>
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200/80 bg-slate-50/70 flex-wrap min-w-[280px]">
+                      <Tag size={13} className="text-slate-600 shrink-0" />
+                      <span className="text-xs font-bold text-slate-700 shrink-0">Descuento General:</span>
                       <UiSelect
                         disabled={!isEditable}
                         value={(() => {
@@ -2415,23 +2418,23 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                           <X size={13} />
                         </button>
                       )}
-                    </UiBox>
+                    </div>
                     
                     {/* Clear Cart */}
                     {isEditable && (formData.items || []).length > 0 && (
-                      <UiButton
+                      <button
                         type="button"
                         onClick={handleClearItems}
-                        {...{"variant":"soft","color":"red"}}
+                        className="rounded-full border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 px-3.5 py-1.5 text-xs font-semibold flex items-center gap-1 shadow-none transition-all cursor-pointer"
                       >
-                        <Trash2 size={10} />
-                        Limpiar
-                      </UiButton>
+                        <Trash2 size={12} />
+                        <span>Limpiar</span>
+                      </button>
                     )}
-                  </UiBox>
+                  </div>
 
                   {/* Cart Table */}
-                  <UiBox {...{"className":"overflow-x-auto"}}>
+                  <div className="overflow-x-auto border border-slate-200/80 rounded-2xl">
                     {(formData.items || []).length > 0 ? (
                       <UiTable className="w-full whitespace-nowrap">
                         <UiTableHeader style={{ backgroundColor: "var(--gray-2)", color: "var(--gray-12)" }}>
@@ -2587,7 +2590,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                                       </button>
                                     ) : (
                                       <button 
-                                        type="button"
+                                        type="button" 
                                         onClick={() => setSelectedLineItemForDiscount({ ...item, cartIndex: index })}
                                         className="h-7 px-2.5 flex items-center justify-center rounded bg-[var(--gray-2)] hover:bg-[var(--gray-3)] text-[var(--gray-11)] hover:text-[var(--gray-12)] transition-colors cursor-pointer border-none text-xs font-semibold font-sans"
                                         title="Asignar descuento a este ítem"
@@ -2625,171 +2628,167 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         </UiTableBody>
                       </UiTable>
                     ) : (
-                      <UiBox  {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"py-8 text-center italic"}}>
-                        No hay productos en el carrito. Utiliza el buscador.
-                      </UiBox>
+                      <div className="py-12 text-center text-xs text-slate-500 bg-slate-50/50">
+                        No hay productos en el carrito. Utiliza el buscador para añadir ítems.
+                      </div>
                     )}
-                  </UiBox>
-                </UiBox>
+                  </div>
+                </div>
               )}
 
               {/* Card 3: Datos Adicionales del Comprobante (Plegable sutil / Opcional) */}
-              <UiBox 
-                style={{
-                  borderRadius: "var(--radius-3)",
-                  border: "1px solid var(--gray-a6)",
-                  backgroundColor: "var(--color-panel-solid)",
-                  color: "var(--gray-12)"
-                }}
-                className={`overflow-hidden ${mobileTab === 'cliente' ? 'block' : 'hidden lg:block'}`}
-              >
+              <div className={`bg-white border border-slate-200/90 rounded-2xl overflow-hidden shadow-none ${mobileTab === 'cliente' ? 'block' : 'hidden lg:block'}`}>
                 <button
                   type="button"
                   onClick={() => setShowAdditionalData(!showAdditionalData)}
-                  className="w-full px-3.5 py-2.5 flex items-center justify-between text-left hover:bg-[var(--gray-a2)] transition-colors cursor-pointer bg-transparent border-none"
+                  className="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-slate-50 transition-colors cursor-pointer bg-transparent border-none"
                 >
-                  <UiBox className="flex items-center gap-2">
-                    <FileText size={14} className="text-[var(--gray-10)]" />
-                    <UiText size="2" weight="bold" color="gray" highContrast>
-                      Datos Adicionales del Comprobante (Opcional)
-                    </UiText>
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+                      <FileText size={16} />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-900 tracking-tight">
+                        Datos Adicionales del Comprobante (Opcional)
+                      </h4>
+                    </div>
                     {(formData.referencia || formData.description) && (
-                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-[var(--accent-3)] text-[var(--accent-11)]">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
                         Con información
                       </span>
                     )}
-                  </UiBox>
-                  <UiBox className="flex items-center gap-1.5 text-xs text-[var(--gray-10)] font-medium">
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
                     <span>{showAdditionalData ? 'Ocultar' : 'Nro. Pedido, Notas'}</span>
                     <ChevronDown size={14} className={`transition-transform duration-200 ${showAdditionalData ? 'rotate-180' : ''}`} />
-                  </UiBox>
+                  </div>
                 </button>
 
                 {showAdditionalData && (
-                  <UiBox className="p-3.5 pt-2 border-t border-[var(--gray-a4)] bg-[var(--gray-1)] space-y-3">
-                    <UiBox className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <UiBox>
-                        <UiLabel size="2" weight="medium" color="gray" highContrast className="block mb-1">
+                  <div className="p-5 pt-3 border-t border-slate-200/80 bg-slate-50/50 space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-xs font-semibold text-slate-700 block mb-1">
                           Nro. Pedido / Ref. Externa (Opcional)
-                        </UiLabel>
+                        </label>
                         <UiInput
                           disabled={!isEditable} 
                           type="text" 
                           value={formData.referencia || ''} 
                           onChange={e => setFormData({...formData, referencia: e.target.value})} 
                           size="2"
-                          className="w-full"
+                          className="w-full rounded-xl"
                           color="gray"
                           placeholder="Ej. OC-1024, Proforma #45 (Identificador comercial)" 
                         />
-                        <UiText as="p" size="1" color="gray" className="text-[11px] text-[var(--gray-10)] mt-1">
+                        <p className="text-[11px] text-slate-500 mt-1">
                           Número de orden de compra o pedido del cliente. No es para buscar productos.
-                        </UiText>
-                      </UiBox>
+                        </p>
+                      </div>
 
-                      <UiBox>
-                        <UiLabel size="2" weight="medium" color="gray" highContrast className="block mb-1">
+                      <div>
+                        <label className="text-xs font-semibold text-slate-700 block mb-1">
                           Notas / Observaciones del Comprobante
-                        </UiLabel>
+                        </label>
                         <UiInput
                           disabled={!isEditable} 
                           type="text" 
                           value={formData.description || ''} 
                           onChange={e => setFormData({...formData, description: e.target.value})} 
                           size="2"
-                          className="w-full"
+                          className="w-full rounded-xl"
                           color="gray"
                           placeholder="Notas o condiciones que se imprimirán en el documento..." 
                         />
-                        <UiText as="p" size="1" color="gray" className="text-[11px] text-[var(--gray-10)] mt-1">
+                        <p className="text-[11px] text-slate-500 mt-1">
                           Información adicional para el cliente en el RIDE o factura.
-                        </UiText>
-                      </UiBox>
-                    </UiBox>
-                  </UiBox>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 )}
-              </UiBox>
-            </UiBox>
+              </div>
+            </div>
 
             {/* Right Column: lg:col-span-4 */}
             <UiBox {...mergeThemeProps({"className":"col-span-12 lg:col-span-4 space-y-[12px]"}, {}, (mobileTab === 'pago' ? {"className":"block"} : {"className":"hidden lg:block"}))}>
               
               {/* Totales Card */}
-              <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)"},"className":"p-[12px]"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)","color":"var(--gray-12)"}})}>
-                <UiBox {...{"className":"flex items-center gap-[6px] mb-[10px]"}}>
-                  <UiBox {...{"style":{"color":"var(--gray-11)"}}}>
-                    <Calculator size={14} />
-                  </UiBox>
-                  <UiHeading as="h3"  {...{"size":"1","weight":"bold"}}>Resumen e Impuestos</UiHeading>
-                </UiBox>
+              <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-none space-y-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+                    <Calculator size={16} />
+                  </div>
+                  <h3 className="text-base font-bold text-slate-900 tracking-tight">Resumen e Impuestos</h3>
+                </div>
 
-                <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--gray-2)","color":"var(--gray-12)"},"className":"p-[10px] space-y-[6px]"})}>
-                  <UiBox {...{"className":"flex justify-between"}}>
-                    <UiText {...{"weight":"bold"}}>Subtotal bruto:</UiText>
-                    <UiText {...{"weight":"bold"}}>
+                <div className="bg-slate-50/80 border border-slate-200/80 rounded-xl p-4 space-y-2.5">
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="font-medium text-slate-600">Subtotal bruto:</span>
+                    <span className="font-semibold text-slate-900 font-mono">
                       ${formData.documentType === 'retencion' 
                         ? Number(formData.baseImponible).toFixed(2)
                         : (currentCartTotals?.subtotalBruto ?? (formData.items || []).reduce((a, it) => a + (parseFloat(it.price)||0)*(parseInt(it.quantity)||1), 0)).toFixed(2)
                       }
-                    </UiText>
-                  </UiBox>
+                    </span>
+                  </div>
 
                   {formData.documentType !== 'retencion' && (
                     <>
                       {/* Descuento por ítem */}
                       {(currentCartTotals?.descuentosProducto > 0 || (currentCartTotals?.descuentosProductoPvp > 0)) && (
-                        <UiBox {...{"style":{"color":"var(--red-11)"},"className":"flex justify-between"}}>
-                          <UiText {...{"weight":"bold"}}>Dto. por ítem:</UiText>
-                          <UiText {...{"weight":"bold"}}>-${(currentCartTotals.descuentosProductoPvp || currentCartTotals.descuentosProducto).toFixed(2)}</UiText>
-                        </UiBox>
+                        <div className="flex justify-between items-center text-xs text-rose-600">
+                          <span className="font-medium">Dto. por ítem:</span>
+                          <span className="font-semibold font-mono">-${(currentCartTotals.descuentosProductoPvp || currentCartTotals.descuentosProducto).toFixed(2)}</span>
+                        </div>
                       )}
                       {/* Descuento general */}
                       {currentCartTotals?.descuentoVenta > 0 && (
-                        <UiBox {...{"style":{"color":"var(--red-11)"},"className":"flex justify-between"}}>
-                          <UiText {...{"weight":"bold"}}>Dto. general:</UiText>
-                          <UiText {...{"weight":"bold"}}>-${currentCartTotals.descuentoVenta.toFixed(2)}</UiText>
-                        </UiBox>
+                        <div className="flex justify-between items-center text-xs text-rose-600">
+                          <span className="font-medium">Dto. general:</span>
+                          <span className="font-semibold font-mono">-${currentCartTotals.descuentoVenta.toFixed(2)}</span>
+                        </div>
                       )}
                       
                       {/* Base imponible */}
-                      <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"flex justify-between pt-[4px]"}}>
-                        <UiText {...{"weight":"bold"}}>Base imponible:</UiText>
-                        <UiText {...{"weight":"bold"}}>${Number(formData.baseImponible).toFixed(2)}</UiText>
-                      </UiBox>
+                      <div className="flex justify-between items-center text-xs border-t border-slate-200/80 pt-2">
+                        <span className="font-medium text-slate-600">Base imponible:</span>
+                        <span className="font-semibold text-slate-900 font-mono">${Number(formData.baseImponible).toFixed(2)}</span>
+                      </div>
 
                       {/* IVA static display */}
-                      <UiBox {...{"className":"flex justify-between"}}>
-                        <UiText {...{"weight":"bold"}}>IVA ({formData.ivaPorcentaje}%):</UiText>
-                        <UiText {...{"weight":"bold"}}>${Number(formData.ivaValor).toFixed(2)}</UiText>
-                      </UiBox>
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="font-medium text-slate-600">IVA ({formData.ivaPorcentaje}%):</span>
+                        <span className="font-semibold text-slate-900 font-mono">${Number(formData.ivaValor).toFixed(2)}</span>
+                      </div>
                     </>
                   )}
 
                   {formData.documentType === 'retencion' && (
-                    <UiBox {...{"style":{"color":"var(--amber-11)"},"className":"flex justify-between"}}>
-                      <UiText {...{"weight":"bold"}}>Total Retenido:</UiText>
-                      <UiText {...{"weight":"bold"}}>${Number(formData.total).toFixed(2)}</UiText>
-                    </UiBox>
+                    <div className="flex justify-between items-center text-xs text-amber-700">
+                      <span className="font-medium">Total Retenido:</span>
+                      <span className="font-semibold font-mono">${Number(formData.total).toFixed(2)}</span>
+                    </div>
                   )}
 
-                  <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"flex justify-between items-center pt-[8px]"}}>
-                    <UiText  {...{"weight":"bold","size":"3"}}>TOTAL:</UiText>
-                    <UiText style={{ color: '#1C40F2' }} {...{"weight":"bold","size":"6"}}>${Number(formData.total).toFixed(2)}</UiText>
-                  </UiBox>
-                </UiBox>
-              </UiBox>
+                  <div className="border-t border-slate-200/80 pt-3 flex justify-between items-center">
+                    <span className="text-xs font-bold text-slate-900 uppercase tracking-wide">TOTAL:</span>
+                    <span className="text-2xl sm:text-3xl font-extrabold text-[#1b1b1b] font-mono tracking-tight">${Number(formData.total).toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
 
               {/* Payments Card (Omitted for retencion) */}
               {formData.documentType !== 'retencion' && (
-                <UiBox id="admin-payment-section" tabIndex={-1} {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)"},"className":"p-[12px]"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)","color":"var(--gray-12)"}})}>
-                  <UiBox {...{"className":"flex items-center gap-[6px] mb-[10px]"}}>
-                    <UiBox {...{"style":{"color":"var(--gray-11)"}}}>
-                      <CreditCard size={14} />
-                    </UiBox>
-                    <UiHeading as="h3"  {...{"size":"1","weight":"bold"}}>Medios de Pago</UiHeading>
-                  </UiBox>
+                <div id="admin-payment-section" tabIndex={-1} className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-none space-y-4">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+                      <CreditCard size={16} />
+                    </div>
+                    <h3 className="text-base font-bold text-slate-900 tracking-tight">Medios de Pago</h3>
+                  </div>
 
-                  <UiBox {...{"className":"grid grid-cols-4 gap-[8px] mb-[10px]"}}>
+                  <div className="grid grid-cols-4 gap-2">
                     {[
                       { id: 'efectivo', label: 'Efectivo', icon: DollarSign, key: 'efectivo' },
                       { id: 'transferencia', label: 'Transf.', icon: RefreshCw, key: 'transferencia' },
@@ -2799,7 +2798,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       const isSelected = activePayments[m.key];
                       const isClientSelected = !!formData.thirdPartyId;
                       return (
-                        <UiButton
+                        <button
                           key={m.id}
                           type="button"
                           disabled={!isClientSelected}
@@ -2829,142 +2828,154 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                               return updated;
                             });
                           }}
-                          {...mergeThemeProps({"variant":"outline","className":"flex flex-col items-center justify-center gap-[6px]"}, {}, (!isClientSelected ? {"variant":"soft","color":"gray","className":"opacity-40 cursor-not-allowed"} : (isSelected ? {"variant":"solid","color":"blue"} : {"variant":"soft","color":"gray"})))}
+                          className={`flex flex-col items-center justify-center gap-1.5 p-2.5 sm:p-3 rounded-2xl border transition-all text-xs cursor-pointer ${
+                            !isClientSelected
+                              ? 'opacity-40 cursor-not-allowed bg-slate-50 border-slate-200 text-slate-400'
+                              : isSelected
+                              ? 'bg-[#c0ffa5] text-[#004227] border-[#a2f07f] font-bold'
+                              : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200/80 font-medium'
+                          }`}
                         >
-                          <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)"},"className":"w-10 h-10 flex items-center justify-center"}, {}, (!isClientSelected ? {"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-11)"}} : (isSelected ? {"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-11)"}} : {"style":{"backgroundColor":"var(--blue-9)","color":"var(--color-background)"}})))}>
+                          <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${
+                            !isClientSelected
+                              ? 'bg-slate-200/60 text-slate-400'
+                              : isSelected
+                              ? 'bg-[#004227] text-[#c0ffa5]'
+                              : 'bg-white text-slate-700 border border-slate-200/70'
+                          }`}>
                             <m.icon size={18} />
-                          </UiBox>
-                          <UiText {...{"size":"1","weight":"bold"}}>{m.label}</UiText>
-                        </UiButton>
+                          </div>
+                          <span className="font-semibold text-[11px] sm:text-xs">{m.label}</span>
+                        </button>
                       );
                     })}
-                  </UiBox>
+                  </div>
 
-                  {/* Input Fields for Active Payments (very compact) */}
-                  <UiBox {...{"className":"space-y-[8px]"}}>
+                  {/* Input Fields for Active Payments */}
+                  <div className="space-y-2.5">
                     {activePayments.efectivo && (
-                      <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--gray-2)"},"className":"p-[8px]"})}>
-                        <UiBox {...{"className":"flex justify-between items-center mb-[4px]"}}>
-                          <UiText  {...{"weight":"bold"}}>Efectivo</UiText>
-                          <UiText  {...{"size":"1"}}>Recibido</UiText>
-                        </UiBox>
-                        <UiBox className="relative">
-                          <UiInput
-                            disabled={!isEditable}
-                            type="number"
-                            step="0.01"
-                            value={payments.efectivo || ''}
-                            onChange={e => setPayments(prev => ({ ...prev, efectivo: e.target.value }))}
-                            iconPrefix={<span className="text-[var(--gray-10)] font-semibold text-xs">$</span>}
-                            size="2"
-                            color="gray"
-                            className="w-full"
-                            placeholder="0.00"
-                          />
-                        </UiBox>
-                      </UiBox>
+                      <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3 space-y-1.5">
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="font-bold text-slate-800">Efectivo</span>
+                          <span className="text-slate-500 font-medium">Recibido</span>
+                        </div>
+                        <UiInput
+                          disabled={!isEditable}
+                          type="number"
+                          step="0.01"
+                          value={payments.efectivo || ''}
+                          onChange={e => setPayments(prev => ({ ...prev, efectivo: e.target.value }))}
+                          iconPrefix={<span className="text-slate-400 font-semibold text-xs">$</span>}
+                          size="2"
+                          className="w-full bg-white rounded-xl"
+                          placeholder="0.00"
+                        />
+                      </div>
                     )}
 
                     {activePayments.transferencia && (
-                      <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--gray-2)"},"className":"p-[8px]"})}>
-                        <UiBox {...{"className":"flex justify-between items-center mb-[4px]"}}>
-                          <UiText  {...{"weight":"bold"}}>Transferencia</UiText>
-                          <UiText  {...{"size":"1"}}>Monto</UiText>
-                        </UiBox>
-                        <UiBox {...{"className":"space-y-[6px]"}}>
-                          <UiBox className="relative">
-                            <UiInput
-                              disabled={!isEditable}
-                              type="number"
-                              step="0.01"
-                              value={payments.transferencia || ''}
-                              onChange={e => setPayments(prev => ({ ...prev, transferencia: e.target.value }))}
-                              iconPrefix={<span className="text-[var(--gray-10)] font-semibold text-xs">$</span>}
-                              size="2"
-                              color="gray"
-                              className="w-full"
-                              placeholder="0.00"
-                            />
-                          </UiBox>
-                          <UiSelect
-                            disabled={!isEditable}
-                            value={payments.transferenciaBankId || ''}
-                            onChange={e => {
-                              const selBank = bankAccounts.find(b => b.id === e.target.value);
-                              setPayments(prev => ({
-                                ...prev,
-                                transferenciaBankId: e.target.value,
-                                transferenciaRef: prev.transferenciaRef || (selBank ? `${selBank.banco || selBank.nombre} - ${selBank.numeroCuenta || ''}` : '')
-                              }));
-                            }}
-                            {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})}
-                          >
-                            <option value="">-- Cuenta Bancaria Destino --</option>
-                            {bankAccounts.map(b => (
-                              <option key={b.id} value={b.id}>
-                                {b.banco || b.nombre} ({b.tipoCuenta || 'Cta'} {b.numeroCuenta || ''}) - Saldo: ${Number(b.saldoActual || 0).toFixed(2)}
-                              </option>
-                            ))}
-                          </UiSelect>
-                          <UiInput disabled={!isEditable} type="text" value={payments.transferenciaRef || ''} onChange={e => setPayments(prev => ({ ...prev, transferenciaRef: e.target.value }))} {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})} placeholder="Banco / Referencia" />
-                        </UiBox>
-                      </UiBox>
+                      <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3 space-y-2">
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="font-bold text-slate-800">Transferencia</span>
+                          <span className="text-slate-500 font-medium">Monto</span>
+                        </div>
+                        <UiInput
+                          disabled={!isEditable}
+                          type="number"
+                          step="0.01"
+                          value={payments.transferencia || ''}
+                          onChange={e => setPayments(prev => ({ ...prev, transferencia: e.target.value }))}
+                          iconPrefix={<span className="text-slate-400 font-semibold text-xs">$</span>}
+                          size="2"
+                          className="w-full bg-white rounded-xl"
+                          placeholder="0.00"
+                        />
+                        <UiSelect
+                          disabled={!isEditable}
+                          value={payments.transferenciaBankId || ''}
+                          onChange={e => {
+                            const selBank = bankAccounts.find(b => b.id === e.target.value);
+                            setPayments(prev => ({
+                              ...prev,
+                              transferenciaBankId: e.target.value,
+                              transferenciaRef: prev.transferenciaRef || (selBank ? `${selBank.banco || selBank.nombre} - ${selBank.numeroCuenta || ''}` : '')
+                            }));
+                          }}
+                          className="w-full rounded-xl"
+                        >
+                          <option value="">-- Cuenta Bancaria Destino --</option>
+                          {bankAccounts.map(b => (
+                            <option key={b.id} value={b.id}>
+                              {b.banco || b.nombre} ({b.tipoCuenta || 'Cta'} {b.numeroCuenta || ''}) - Saldo: ${Number(b.saldoActual || 0).toFixed(2)}
+                            </option>
+                          ))}
+                        </UiSelect>
+                        <UiInput
+                          disabled={!isEditable}
+                          type="text"
+                          value={payments.transferenciaRef || ''}
+                          onChange={e => setPayments(prev => ({ ...prev, transferenciaRef: e.target.value }))}
+                          className="w-full bg-white rounded-xl"
+                          placeholder="Banco / Referencia de depósito"
+                        />
+                      </div>
                     )}
 
                     {activePayments.tarjeta && (
-                      <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--gray-2)"},"className":"p-[8px]"})}>
-                        <UiBox {...{"className":"flex justify-between items-center mb-[4px]"}}>
-                          <UiText  {...{"weight":"bold"}}>Tarjeta</UiText>
-                          <UiText  {...{"size":"1"}}>Monto</UiText>
-                        </UiBox>
-                        <UiBox {...{"className":"space-y-[6px]"}}>
-                          <UiBox className="relative">
-                            <UiInput
-                              disabled={!isEditable}
-                              type="number"
-                              step="0.01"
-                              value={payments.tarjeta || ''}
-                              onChange={e => setPayments(prev => ({ ...prev, tarjeta: e.target.value }))}
-                              iconPrefix={<span className="text-[var(--gray-10)] font-semibold text-xs">$</span>}
-                              size="2"
-                              color="gray"
-                              className="w-full"
-                              placeholder="0.00"
-                            />
-                          </UiBox>
-                          <UiInput disabled={!isEditable} type="text" value={payments.tarjetaRef || ''} onChange={e => setPayments(prev => ({ ...prev, tarjetaRef: e.target.value }))} {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})} placeholder="Nro Lote / Autorización" />
-                        </UiBox>
-                      </UiBox>
+                      <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3 space-y-2">
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="font-bold text-slate-800">Tarjeta (Débito/Crédito)</span>
+                          <span className="text-slate-500 font-medium">Monto</span>
+                        </div>
+                        <UiInput
+                          disabled={!isEditable}
+                          type="number"
+                          step="0.01"
+                          value={payments.tarjeta || ''}
+                          onChange={e => setPayments(prev => ({ ...prev, tarjeta: e.target.value }))}
+                          iconPrefix={<span className="text-slate-400 font-semibold text-xs">$</span>}
+                          size="2"
+                          className="w-full bg-white rounded-xl"
+                          placeholder="0.00"
+                        />
+                        <UiInput
+                          disabled={!isEditable}
+                          type="text"
+                          value={payments.tarjetaRef || ''}
+                          onChange={e => setPayments(prev => ({ ...prev, tarjetaRef: e.target.value }))}
+                          className="w-full bg-white rounded-xl"
+                          placeholder="Nro Lote / Autorización POS"
+                        />
+                      </div>
                     )}
 
                     {activePayments.cruce_cuentas && (
-                      <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--gray-2)"},"className":"p-[8px]"})}>
-                        <UiBox {...{"className":"flex justify-between items-center mb-[4px]"}}>
-                          <UiText  {...{"weight":"bold"}}>Crédito / CxC</UiText>
-                          <UiText  {...{"size":"1"}}>Monto</UiText>
-                        </UiBox>
-                        <UiBox {...{"className":"space-y-[6px]"}}>
-                          <UiBox className="relative">
-                            <UiInput
-                              disabled={!isEditable}
-                              type="number"
-                              step="0.01"
-                              value={payments.cruce_cuentas || ''}
-                              onChange={e => setPayments(prev => ({ ...prev, cruce_cuentas: e.target.value }))}
-                              iconPrefix={<span className="text-[var(--gray-10)] font-semibold text-xs">$</span>}
-                              size="2"
-                              color="gray"
-                              className="w-full"
-                              placeholder="0.00"
-                            />
-                          </UiBox>
-                          <UiButton type="button" onClick={() => setIsCreditModalOpen(true)} {...mergeThemeProps({"variant":"solid","size":"2","color":"amber","className":"w-full"})}>
-                            Configurar Plazo de Crédito
-                          </UiButton>
-                        </UiBox>
-                      </UiBox>
+                      <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3 space-y-2">
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="font-bold text-slate-800">Crédito Directo (CxC)</span>
+                          <span className="text-slate-500 font-medium">Monto</span>
+                        </div>
+                        <UiInput
+                          disabled={!isEditable}
+                          type="number"
+                          step="0.01"
+                          value={payments.cruce_cuentas || ''}
+                          onChange={e => setPayments(prev => ({ ...prev, cruce_cuentas: e.target.value }))}
+                          iconPrefix={<span className="text-slate-400 font-semibold text-xs">$</span>}
+                          size="2"
+                          className="w-full bg-white rounded-xl"
+                          placeholder="0.00"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setIsCreditModalOpen(true)}
+                          className="w-full py-2 px-3 rounded-full bg-amber-500 hover:bg-amber-600 text-white font-semibold text-xs transition-colors cursor-pointer"
+                        >
+                          Configurar Plazo de Crédito
+                        </button>
+                      </div>
                     )}
-                  </UiBox>
+                  </div>
 
                   {/* Vuelto and Cubierto metrics */}
                   {(() => {
@@ -2972,18 +2983,20 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     const sum = (Number(payments.efectivo) || 0) + (Number(payments.transferencia) || 0) + (Number(payments.tarjeta) || 0) + (Number(payments.cruce_cuentas) || 0);
                     const cambio = Math.max(0, sum - totalNum);
                     return (
-                      <UiBox {...{"className":"mt-[8px] grid grid-cols-2 gap-[8px]"}}>
-                        <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"p-[8px] text-center"}, {}, (sum >= totalNum - 0.01 ? {"style":{"backgroundColor":"var(--green-3)","color":"var(--green-12)"}} : {"style":{"backgroundColor":"var(--red-3)","color":"var(--red-12)"}}))}>
-                          <UiText  {...{"size":"1","weight":"bold","className":"block"}}>Cambio / Vuelto</UiText>
-                          <UiText {...{"size":"3","weight":"bold"}}>${cambio.toFixed(2)}</UiText>
-                        </UiBox>
-                        <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"p-[8px] text-center flex items-center justify-center"}, {}, {"style":{"backgroundColor":"var(--gray-2)","color":"var(--gray-12)"}})}>
-                          <UiBox>
-                            <UiText as="p"  {...{"size":"1","weight":"bold"}}>Cubierto</UiText>
-                            <UiText as="p" {...{"size":"3","weight":"bold"}}>${sum.toFixed(2)} / ${totalNum.toFixed(2)}</UiText>
-                          </UiBox>
-                        </UiBox>
-                      </UiBox>
+                      <div className="mt-3 grid grid-cols-2 gap-2">
+                        <div className={`p-3 rounded-xl border text-center ${
+                          sum >= totalNum - 0.01
+                            ? 'bg-[#e6fce5] border-[#ceead6] text-[#004227]'
+                            : 'bg-rose-50 border-rose-200 text-rose-700'
+                        }`}>
+                          <span className="text-[11px] font-bold block uppercase tracking-wider">Cambio / Vuelto</span>
+                          <span className="text-base font-extrabold font-mono">${cambio.toFixed(2)}</span>
+                        </div>
+                        <div className="p-3 rounded-xl border border-slate-200/80 bg-slate-50/80 text-center flex flex-col justify-center">
+                          <span className="text-[11px] font-bold block text-slate-500 uppercase tracking-wider">Cubierto</span>
+                          <span className="text-base font-extrabold font-mono text-slate-900">${sum.toFixed(2)} / ${totalNum.toFixed(2)}</span>
+                        </div>
+                      </div>
                     );
                   })()}
 
@@ -2993,120 +3006,124 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     const sum = (Number(payments.efectivo) || 0) + (Number(payments.transferencia) || 0) + (Number(payments.tarjeta) || 0) + (Number(payments.cruce_cuentas) || 0);
                     if (sum === 0 && totalNum > 0) {
                       return (
-                        <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--red-3)","color":"var(--red-12)"},"className":"mt-[6px] p-[8px] flex items-center gap-[4px]"})}>
-                          <AlertTriangle size={12} {...{"style":{"color":"var(--red-11)"},"className":"shrink-0"}} />
-                          <UiText>Falta seleccionar forma de pago.</UiText>
-                        </UiBox>
+                        <div className="mt-2 p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
+                          <AlertTriangle size={14} className="text-rose-600 shrink-0" />
+                          <span className="font-medium">Falta seleccionar forma de pago.</span>
+                        </div>
                       );
                     }
                     if (sum < totalNum - 0.01) {
                       return (
-                        <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--amber-3)","color":"var(--amber-12)"},"className":"mt-[6px] p-[8px] flex items-center gap-[4px]"})}>
-                          <AlertTriangle size={12} {...{"style":{"color":"var(--amber-11)"},"className":"shrink-0"}} />
-                          <UiText>Pago incompleto: Falta ${ (totalNum - sum).toFixed(2) }.</UiText>
-                        </UiBox>
+                        <div className="mt-2 p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-center gap-2">
+                          <AlertTriangle size={14} className="text-amber-600 shrink-0" />
+                          <span className="font-medium">Pago incompleto: Falta ${ (totalNum - sum).toFixed(2) }.</span>
+                        </div>
                       );
                     }
                     return null;
                   })()}
-                </UiBox>
+                </div>
               )}
 
               {/* Sequential & Final Actions Card */}
-              <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)"},"className":"p-[12px]"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)","color":"var(--gray-12)"}})}>
-                <UiBox {...{"className":"flex items-center gap-[6px] mb-[10px]"}}>
-                  <UiBox {...{"style":{"color":"var(--gray-11)"}}}>
-                    <Tag size={14} />
-                  </UiBox>
-                  <UiHeading as="h3"  {...{"size":"1","weight":"bold"}}>
-                    Emisión de Comprobante
-                  </UiHeading>
-                </UiBox>
-
-                {/* Sequencial preview eliminated per request */}
+              <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-none space-y-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+                    <Tag size={16} />
+                  </div>
+                  <h3 className="text-base font-bold text-slate-900 tracking-tight">Emisión de Comprobante</h3>
+                </div>
 
                 {/* Save & Emission buttons */}
-                <UiBox {...{"className":"space-y-[6px]"}}>
+                <div className="space-y-2 pt-1">
                   {isEditable ? (
                     <>
                       {/* Save Draft (Guardar Borrador) */}
-                      <UiButton
+                      <button
                         type="button" 
                         onClick={handleSave} 
                         disabled={isUploading || isEmitting || isSaving}
-                        {...mergeThemeProps({"variant":"surface","color":"blue","className":"w-full"}, {}, (isUploading || isEmitting ? {"className":"opacity-50 cursor-not-allowed"} : {}))}
+                        className={`w-full py-2.5 px-4 rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                          isUploading || isEmitting || isSaving ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
                       >
-                        <CheckCircle2 size={12} />
-                        <UiText>Guardar Borrador</UiText>
-                      </UiButton>
+                        <CheckCircle2 size={14} className="text-slate-600" />
+                        <span>Guardar Borrador</span>
+                      </button>
 
                       {/* Emit SRI (Factura Electrónica) */}
                       {formData.type === 'ingreso' && formData.documentType !== 'nota_venta' && (
-                        <UiButton
+                        <button
                           type="button" 
                           onClick={handleEmitirSRI} 
                           disabled={isUploading || isEmitting || isSaving}
-                          {...mergeThemeProps({"variant":"solid","color":"blue","className":"w-full"}, {}, (isUploading || isEmitting ? {"className":"opacity-50 cursor-not-allowed"} : {}))}
+                          className={`w-full py-3 px-5 rounded-full bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-none ${
+                            isUploading || isEmitting || isSaving ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
                         >
-                          <Sparkles size={12} />
-                          <UiText>Emitir Factura Electrónica (SRI)</UiText>
-                        </UiButton>
+                          <Sparkles size={15} className="text-[#c0ffa5]" />
+                          <span>Emitir Factura Electrónica (SRI)</span>
+                        </button>
                       )}
 
                       {/* Register Nota de Venta / Recibo */}
                       {formData.type === 'ingreso' && formData.documentType === 'nota_venta' && (
-                        <UiButton
+                        <button
                           type="button" 
                           onClick={() => handleSave({ isFinalizingNotaVenta: true })} 
                           disabled={isUploading || isEmitting || isSaving}
-                          {...mergeThemeProps({"variant":"solid","color":"blue","className":"w-full"}, {}, (isUploading || isEmitting ? {"className":"opacity-50 cursor-not-allowed"} : {}))}
+                          className={`w-full py-3 px-5 rounded-full bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-none ${
+                            isUploading || isEmitting || isSaving ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
                         >
-                          <CheckCircle2 size={12} />
-                          <UiText>Registrar Nota de Venta</UiText>
-                        </UiButton>
+                          <CheckCircle2 size={15} className="text-[#c0ffa5]" />
+                          <span>Registrar Nota de Venta</span>
+                        </button>
                       )}
 
                       {/* Register Purchase / Gasto */}
                       {formData.type !== 'ingreso' && (
-                        <UiButton
+                        <button
                           type="button" 
                           onClick={handleSave} 
                           disabled={isUploading || isEmitting || isSaving}
-                          {...mergeThemeProps({"variant":"solid","color":"blue","className":"w-full"}, {}, (isUploading || isEmitting ? {"className":"opacity-50 cursor-not-allowed"} : {}))}
+                          className={`w-full py-3 px-5 rounded-full bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-none ${
+                            isUploading || isEmitting || isSaving ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
                         >
-                          <CheckCircle2 size={12} />
-                          <UiText>Registrar Compra / Gasto</UiText>
-                        </UiButton>
+                          <CheckCircle2 size={15} className="text-[#c0ffa5]" />
+                          <span>Registrar Compra / Gasto</span>
+                        </button>
                       )}
                     </>
                   ) : (
-                    <UiBox  {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"p-[6px] flex items-center justify-center gap-1.5"}, {}, {"style":{"backgroundColor":"var(--green-3)"}})}>
-                      <CheckCircle2 size={12} {...{"className":"shrink-0"}} />
-                      <UiText>{isAuthorized ? 'Autorizado / registrado con éxito.' : isAnulado ? 'Documento anulado.' : 'Comprobante reservado. Consulte su estado en el SRI.'}</UiText>
-                    </UiBox>
+                    <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center justify-center gap-2 font-medium">
+                      <CheckCircle2 size={14} className="shrink-0 text-emerald-600" />
+                      <span>{isAuthorized ? 'Autorizado / registrado con éxito.' : isAnulado ? 'Documento anulado.' : 'Comprobante reservado. Consulte su estado en el SRI.'}</span>
+                    </div>
                   )}
-                </UiBox>
-              </UiBox>
+                </div>
+              </div>
 
               {/* SRI Live Console */}
               {(isEmitting || sriLogs.length > 0) && (
-                <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--gray-12)","border":"1px solid var(--gray-a6)","color":"var(--color-background)","fontFamily":"var(--code-font-family)"},"className":"p-[4px] space-y-[2px] max-h-[120px] overflow-y-auto"}}>
-                  <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)","color":"var(--gray-11)"},"className":"flex items-center gap-[3px] pb-[2px]"}}>
-                    <Terminal size={10} />
-                    <UiText>Consola SRI (Ecuador)</UiText>
-                  </UiBox>
-                  <UiBox {...{"className":"space-y-[1px]"}}>
+                <div className="rounded-2xl bg-[#0c1017] border border-slate-800 text-emerald-400 font-mono text-[11px] p-3 space-y-1.5 max-h-[140px] overflow-y-auto">
+                  <div className="border-b border-slate-800 text-slate-400 flex items-center gap-1.5 pb-1 font-semibold text-[10px] uppercase tracking-wider">
+                    <Terminal size={12} className="text-emerald-400" />
+                    <span>Consola SRI (Ecuador)</span>
+                  </div>
+                  <div className="space-y-1 pt-0.5">
                     {sriLogs.map((log, i) => (
-                      <UiBox key={i} {...{"className":"flex gap-[5px] items-start"}}>
-                        <UiText {...{"color":"gray","className":"shrink-0"}}>{log.time}</UiText>
-                        <UiText {...(log.status === 'error' ? {"color":"red","weight":"bold"} : (log.status === 'success' ? {"color":"green"} : {"color":"gray"}))}>{log.message}</UiText>
-                      </UiBox>
+                      <div key={i} className="flex gap-2 items-start">
+                        <span className="text-slate-500 shrink-0">{log.time}</span>
+                        <span className={log.status === 'error' ? 'text-rose-400 font-bold' : log.status === 'success' ? 'text-emerald-400' : 'text-slate-300'}>{log.message}</span>
+                      </div>
                     ))}
-                  </UiBox>
-                </UiBox>
+                  </div>
+                </div>
               )}
             </UiBox>
-          </UiBox>
+          </div>
           </UiBox>
         )}
 
@@ -3114,96 +3131,98 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         {/* PASO 2: IMPRESIÓN DEL DOCUMENTO                        */}
         {/* ═══════════════════════════════════════════════════════ */}
         {currentStep === 2 && (
-          <UiBox className="grid grid-cols-12 gap-[14px] animate-in fade-in slide-in-from-bottom duration-300">
+          <div className="grid grid-cols-12 gap-4 sm:gap-6 animate-in fade-in slide-in-from-bottom duration-300">
             {/* Left Column (col-span-12 lg:col-span-7): Estado de Emisión, Correos y Acciones */}
-            <UiBox className="col-span-12 lg:col-span-7 space-y-[12px]">
+            <div className="col-span-12 lg:col-span-7 space-y-4">
                 
                 {/* 1. HERO EMISSION CONFIRMATION CARD */}
-                <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)","color":"var(--gray-12)"},"className":"p-4 space-y-3 text-center sm:text-left"})}>
-                  <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3">
-                    <div className="w-11 h-11 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: 'var(--green-3)', color: 'var(--green-11)', border: '1px solid var(--green-6)' }}>
+                <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-none space-y-4">
+                  <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3.5">
+                    <div className="w-12 h-12 rounded-2xl bg-[#c0ffa5] text-[#004227] flex items-center justify-center shrink-0">
                       <CheckCircle2 size={24} />
                     </div>
-                    <div className="space-y-1 flex-1">
-                      <UiHeading as="h3" size="3" weight="bold" style={{ color: 'var(--gray-12)' }}>
+                    <div className="space-y-1 text-center sm:text-left flex-1">
+                      <h3 className="text-lg font-bold text-slate-900 tracking-tight">
                         {docConfirmationTitle}
-                      </UiHeading>
-                      <UiText as="p" size="1" style={{ color: 'var(--gray-11)' }}>
+                      </h3>
+                      <p className="text-xs text-slate-500">
                         El comprobante ha sido registrado y asentado en el sistema comercial e inventario.
-                      </UiText>
+                      </p>
                     </div>
                   </div>
 
                   {/* Summary key badges */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2 border-t" style={{ borderColor: 'var(--gray-a4)' }}>
-                    <div className="p-2 rounded bg-[var(--gray-2)] text-left">
-                      <UiText as="p" size="1" weight="medium" style={{ color: 'var(--gray-10)' }}>Comprobante</UiText>
-                      <UiText as="p" size="2" weight="bold" className="font-mono" style={{ color: 'var(--blue-11)' }}>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 border-t border-slate-200/80">
+                    <div className="p-3 rounded-xl bg-slate-50/80 border border-slate-200/80 text-left">
+                      <span className="text-[11px] font-semibold text-slate-500 block uppercase tracking-wider">Comprobante</span>
+                      <span className="text-sm font-bold font-mono text-slate-900 mt-0.5 block">
                         {formData.documentNumber || (formData.secuencial ? `001-001-${String(formData.secuencial).padStart(9, '0')}` : 'En proceso')}
-                      </UiText>
+                      </span>
                     </div>
-                    <div className="p-2 rounded bg-[var(--gray-2)] text-left">
-                      <UiText as="p" size="1" weight="medium" style={{ color: 'var(--gray-10)' }}>Cliente</UiText>
-                      <UiText as="p" size="1" weight="bold" className="truncate" style={{ color: 'var(--gray-12)' }} title={matchedTercero?.name}>
+                    <div className="p-3 rounded-xl bg-slate-50/80 border border-slate-200/80 text-left">
+                      <span className="text-[11px] font-semibold text-slate-500 block uppercase tracking-wider">Cliente</span>
+                      <span className="text-xs font-bold text-slate-900 truncate mt-0.5 block" title={matchedTercero?.name}>
                         {matchedTercero?.name || 'CONSUMIDOR FINAL'}
-                      </UiText>
-                      <UiText as="p" size="1" className="font-mono text-[10px]" style={{ color: 'var(--gray-10)' }}>
+                      </span>
+                      <span className="font-mono text-[10px] text-slate-500 block">
                         {matchedTercero?.ruc || '9999999999999'}
-                      </UiText>
+                      </span>
                     </div>
-                    <div className="p-2 rounded bg-[var(--gray-2)] text-left">
-                      <UiText as="p" size="1" weight="medium" style={{ color: 'var(--gray-10)' }}>Total Facturado</UiText>
-                      <UiText as="p" size="3" weight="bold" className="font-semibold" style={{ color: 'var(--green-11)' }}>
+                    <div className="p-3 rounded-xl bg-slate-50/80 border border-slate-200/80 text-left">
+                      <span className="text-[11px] font-semibold text-slate-500 block uppercase tracking-wider">Total Facturado</span>
+                      <span className="text-base font-extrabold font-mono text-[#1b1b1b] mt-0.5 block">
                         ${Number(formData.total || 0).toFixed(2)}
-                      </UiText>
+                      </span>
                     </div>
                   </div>
 
                   {formData.claveAcceso && (
-                    <div className="p-2 rounded text-left break-all font-mono text-[11px]" style={{ backgroundColor: 'var(--gray-2)', border: '1px solid var(--gray-a4)', color: 'var(--gray-12)' }}>
-                      <span className="font-semibold block mb-0.5 text-[10px] uppercase tracking-wider" style={{ color: 'var(--gray-11)' }}>Clave de Acceso SRI (49 dígitos):</span>
+                    <div className="p-3 rounded-xl text-left break-all font-mono text-[11px] bg-slate-50/80 border border-slate-200/80 text-slate-700">
+                      <span className="font-semibold block mb-1 text-[10px] uppercase tracking-wider text-slate-500">Clave de Acceso SRI (49 dígitos):</span>
                       {formData.claveAcceso}
                     </div>
                   )}
-                </UiBox>
+                </div>
 
                 {/* 2. CARD: ESTADO DE ENVÍO POR CORREO ELECTRÓNICO */}
-                <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)","color":"var(--gray-12)"},"className":"p-4 space-y-3"})}>
+                <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-none space-y-4">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Mail size={15} style={{ color: 'var(--blue-11)' }} />
-                      <UiHeading as="h4" size="2" weight="bold">Notificación por Correo Electrónico</UiHeading>
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+                        <Mail size={16} />
+                      </div>
+                      <h4 className="text-base font-bold text-slate-900 tracking-tight">Notificación por Correo Electrónico</h4>
                     </div>
                     {emailSending && (
-                      <span className="inline-flex items-center gap-1.5 text-xs text-[var(--blue-11)] font-medium">
+                      <span className="inline-flex items-center gap-1.5 text-xs text-blue-600 font-medium">
                         <RefreshCw size={12} className="animate-spin" /> Enviando...
                       </span>
                     )}
                   </div>
 
                   {/* Fila: Cliente */}
-                  <div className="p-2.5 rounded text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2" style={{ backgroundColor: 'var(--gray-2)', border: '1px solid var(--gray-a4)' }}>
-                    <div className="flex items-start gap-2">
+                  <div className="p-3 rounded-xl bg-slate-50/70 border border-slate-200/80 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                    <div className="flex items-start gap-2.5">
                       {emailSending ? (
-                        <RefreshCw size={14} className="animate-spin text-[var(--blue-11)] shrink-0 mt-0.5" />
+                        <RefreshCw size={15} className="animate-spin text-blue-600 shrink-0 mt-0.5" />
                       ) : clientSent ? (
-                        <CheckCircle2 size={14} className="text-[var(--green-11)] shrink-0 mt-0.5" />
+                        <CheckCircle2 size={15} className="text-emerald-600 shrink-0 mt-0.5" />
                       ) : clientFailed ? (
-                        <AlertTriangle size={14} className="text-[var(--red-11)] shrink-0 mt-0.5" />
+                        <AlertTriangle size={15} className="text-rose-600 shrink-0 mt-0.5" />
                       ) : (
-                        <Clock size={14} className="text-[var(--gray-10)] shrink-0 mt-0.5" />
+                        <Clock size={15} className="text-slate-400 shrink-0 mt-0.5" />
                       )}
                       <div>
-                        <div className="font-semibold text-[var(--gray-12)]">Copia para el Cliente:</div>
-                        <div className="text-[var(--gray-11)] text-[11.5px]">
+                        <div className="font-bold text-slate-800">Copia para el Cliente:</div>
+                        <div className="text-slate-600 text-[11.5px] mt-0.5">
                           {emailSending ? (
                             'Enviando documento al correo del cliente...'
                           ) : clientSent ? (
-                            <span>Enviado exitosamente a <strong className="text-[var(--gray-12)]">{clientAddress}</strong></span>
+                            <span>Enviado exitosamente a <strong className="text-slate-900 font-semibold">{clientAddress}</strong></span>
                           ) : clientFailed ? (
-                            <span className="text-[var(--red-11)]">No se pudo entregar: {emailDeliveryData.client?.error || 'Rechazo SMTP'}</span>
+                            <span className="text-rose-600">No se pudo entregar: {emailDeliveryData.client?.error || 'Rechazo SMTP'}</span>
                           ) : clientAddress ? (
-                            <span>Listo para enviar a: <strong className="text-[var(--gray-12)]">{clientAddress}</strong></span>
+                            <span>Listo para enviar a: <strong className="text-slate-900 font-semibold">{clientAddress}</strong></span>
                           ) : (
                             <span>El cliente no tiene correo registrado en su ficha.</span>
                           )}
@@ -3212,49 +3231,46 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     </div>
 
                     {!emailSending && (clientFailed || !clientSent) && clientAddress && (
-                      <UiButton
+                      <button
                         type="button"
-                        size="1"
-                        variant="surface"
-                        color="blue"
-                        className="shrink-0 text-xs py-1 px-2.5"
+                        className="shrink-0 text-xs py-1.5 px-3 rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold flex items-center gap-1.5 cursor-pointer"
                         onClick={() => {
                           const receiver = thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
                           enviarCorreoComprobante(formData, receiver, sriConfig, clientAddress);
                         }}
                       >
                         <RefreshCw size={11} /> Reintentar
-                      </UiButton>
+                      </button>
                     )}
                   </div>
 
                   {/* Fila: Emisor (Copia de Respaldo) */}
-                  <div className="p-2.5 rounded text-xs flex items-center justify-between gap-2" style={{ backgroundColor: 'var(--gray-2)', border: '1px solid var(--gray-a4)' }}>
-                    <div className="flex items-start gap-2">
+                  <div className="p-3 rounded-xl bg-slate-50/70 border border-slate-200/80 text-xs flex items-center justify-between gap-2">
+                    <div className="flex items-start gap-2.5">
                       {emailSending ? (
-                        <RefreshCw size={14} className="animate-spin text-[var(--blue-11)] shrink-0 mt-0.5" />
+                        <RefreshCw size={15} className="animate-spin text-blue-600 shrink-0 mt-0.5" />
                       ) : emitterSent ? (
-                        <CheckCircle2 size={14} className="text-[var(--green-11)] shrink-0 mt-0.5" />
+                        <CheckCircle2 size={15} className="text-emerald-600 shrink-0 mt-0.5" />
                       ) : emitterFailed ? (
-                        <AlertTriangle size={14} className="text-[var(--amber-11)] shrink-0 mt-0.5" />
+                        <AlertTriangle size={15} className="text-amber-600 shrink-0 mt-0.5" />
                       ) : (
-                        <Clock size={14} className="text-[var(--gray-10)] shrink-0 mt-0.5" />
+                        <Clock size={15} className="text-slate-400 shrink-0 mt-0.5" />
                       )}
                       <div>
-                        <div className="font-semibold text-[var(--gray-12)]">Copia de Respaldo al Emisor:</div>
-                        <div className="text-[var(--gray-11)] text-[11.5px]">
+                        <div className="font-bold text-slate-800">Copia de Respaldo al Emisor:</div>
+                        <div className="text-slate-600 text-[11.5px] mt-0.5">
                           {emailSending ? (
                             'Enviando copia de respaldo a tu correo...'
                           ) : emitterSent ? (
-                            <span>Respaldo enviado a <strong className="text-[var(--gray-12)]">{emitterAddress}</strong></span>
+                            <span>Respaldo enviado a <strong className="text-slate-900 font-semibold">{emitterAddress}</strong></span>
                           ) : emitterFailed ? (
-                            <span className="text-[var(--amber-11)]">Copia no enviada: {emailDeliveryData.emitter?.error || 'Revisa servidor SMTP'}</span>
+                            <span className="text-amber-700">Copia no enviada: {emailDeliveryData.emitter?.error || 'Revisa servidor SMTP'}</span>
                           ) : !isSmtpConfigured ? (
-                            <span className="text-[var(--amber-11)]">Configura el servidor SMTP en Ajustes para recibir copias automáticas.</span>
+                            <span className="text-amber-700">Configura el servidor SMTP en Ajustes para recibir copias automáticas.</span>
                           ) : !isSmtpActive ? (
-                            <span className="text-[var(--amber-11)]">Envío de correo desactivado en Ajustes.</span>
+                            <span className="text-amber-700">Envío de correo desactivado en Ajustes.</span>
                           ) : (
-                            <span>Copia configurada para: <strong className="text-[var(--gray-12)]">{emitterAddress}</strong></span>
+                            <span>Copia configurada para: <strong className="text-slate-900 font-semibold">{emitterAddress}</strong></span>
                           )}
                         </div>
                       </div>
@@ -3262,19 +3278,17 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   </div>
 
                   {/* Input rápido para enviar o reenviar a cualquier correo */}
-                  <div className="pt-2 border-t flex flex-col sm:flex-row items-center gap-2" style={{ borderColor: 'var(--gray-a4)' }}>
+                  <div className="pt-2 border-t border-slate-200/80 flex flex-col sm:flex-row items-center gap-2">
                     <UiInput 
                       type="email"
                       value={customClientEmail} 
                       onChange={e => setCustomClientEmail(e.target.value)}
                       placeholder="Enviar copia a otro correo (ej: cliente@correo.com)"
-                      className="w-full sm:flex-1 h-8 text-xs"
+                      className="w-full sm:flex-1 h-9 text-xs rounded-xl bg-white"
                     />
-                    <UiButton
+                    <button
                       type="button"
-                      variant="solid"
-                      color="blue"
-                      className="w-full sm:w-auto h-8 px-3 text-xs flex items-center justify-center gap-1.5 shrink-0"
+                      className="w-full sm:w-auto h-9 px-4 rounded-full bg-[#1b1b1b] hover:bg-slate-800 text-white text-xs font-semibold flex items-center justify-center gap-1.5 shrink-0 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                       disabled={emailSending || !customClientEmail || !customClientEmail.includes('@')}
                       onClick={() => {
                         const receiver = thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
@@ -3282,78 +3296,70 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       }}
                     >
                       <Send size={12} />
-                      <UiText>Enviar Correo</UiText>
-                    </UiButton>
+                      <span>Enviar Correo</span>
+                    </button>
                   </div>
-                </UiBox>
+                </div>
 
                 {/* 3. CARD: ACCIONES DE IMPRESIÓN Y DESCARGAS */}
-                <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)","color":"var(--gray-12)"},"className":"p-4 space-y-3"})}>
-                  <div className="flex items-center gap-2">
-                    <Printer size={15} style={{ color: 'var(--blue-11)' }} />
-                    <UiHeading as="h4" size="2" weight="bold">Impresión Directa y Descargas</UiHeading>
+                <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-none space-y-4">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+                      <Printer size={16} />
+                    </div>
+                    <h4 className="text-base font-bold text-slate-900 tracking-tight">Impresión Directa y Descargas</h4>
                   </div>
 
                   {/* BOTÓN DESTACADO: IMPRESIÓN DIRECTA */}
-                  <UiButton
+                  <button
                     type="button"
                     onClick={() => handleDirectPrint(printFormat || 'ride')}
-                    variant="solid"
-                    color="blue"
-                    className="w-full h-11 flex items-center justify-center gap-2 text-sm font-semibold"
+                    className="w-full py-3 px-5 rounded-full bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-sm flex items-center justify-center gap-2 cursor-pointer shadow-none transition-all"
                   >
                     <Printer size={16} />
-                    <UiText>Impresión Directa ({printFormat === 'ticket' ? 'Ticket 80mm' : 'Hoja A4'})</UiText>
-                  </UiButton>
+                    <span>Impresión Directa ({printFormat === 'ticket' ? 'Ticket 80mm' : 'Hoja A4'})</span>
+                  </button>
 
                   {/* BOTONES SECUNDARIOS DE FORMATO */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
                     {/* Imprimir Ticket 80mm */}
-                    <UiButton
+                    <button
                       type="button" 
                       onClick={() => handleDirectPrint('ticket')}
-                      variant="surface"
-                      color="blue"
-                      className="w-full flex items-center justify-center gap-2 h-9 text-xs"
+                      className="w-full py-2.5 px-4 rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center justify-center gap-2 cursor-pointer transition-all"
                     >
-                      <Calculator size={13} />
-                      <UiText>Imprimir Ticket (80mm)</UiText>
-                    </UiButton>
+                      <Calculator size={13} className="text-slate-600" />
+                      <span>Imprimir Ticket (80mm)</span>
+                    </button>
 
                     {/* Imprimir RIDE A4 */}
-                    <UiButton
+                    <button
                       type="button" 
                       onClick={() => handleDirectPrint('ride')}
-                      variant="surface"
-                      color="blue"
-                      className="w-full flex items-center justify-center gap-2 h-9 text-xs"
+                      className="w-full py-2.5 px-4 rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center justify-center gap-2 cursor-pointer transition-all"
                     >
-                      <FileText size={13} />
-                      <UiText>Imprimir RIDE / Hoja (A4)</UiText>
-                    </UiButton>
+                      <FileText size={13} className="text-slate-600" />
+                      <span>Imprimir RIDE / Hoja (A4)</span>
+                    </button>
 
                     {/* Download XML (si es factura electrónica autorizada) */}
                     {formData.claveAcceso && (
-                      <UiButton
+                      <button
                         type="button" 
                         onClick={downloadXMLFile}
-                        variant="surface"
-                        color="gray"
-                        className="w-full sm:col-span-2 flex items-center justify-center gap-2 h-9 text-xs"
+                        className="w-full sm:col-span-2 py-2.5 px-4 rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center justify-center gap-2 cursor-pointer transition-all"
                       >
-                        <Download size={13} />
-                        <UiText>Descargar Archivo XML Autorizado</UiText>
-                      </UiButton>
+                        <Download size={13} className="text-slate-600" />
+                        <span>Descargar Archivo XML Autorizado</span>
+                      </button>
                     )}
                   </div>
 
                   {/* Botones de navegación adicionales */}
-                  <div className="pt-2 border-t flex items-center justify-between gap-2" style={{ borderColor: 'var(--gray-a4)' }}>
-                    <UiButton
+                  <div className="pt-3 border-t border-slate-200/80 flex items-center justify-between gap-3">
+                    <button
                       type="button"
-                      variant="surface"
-                      color="blue"
-                      className="flex-1 h-9 text-xs flex items-center justify-center gap-1.5"
+                      className="flex-1 py-2.5 px-4 rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-all"
                       onClick={() => {
                         stableIdRef.current = crypto.randomUUID();
                         setFormData({
@@ -3396,295 +3402,310 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       }}
                     >
                       <Plus size={13} />
-                      <UiText>Nueva Venta / Emisión</UiText>
-                    </UiButton>
+                      <span>Nueva Venta / Emisión</span>
+                    </button>
 
-                    <UiButton
+                    <button
                       type="button"
-                      variant="solid"
-                      color="blue"
-                      className="flex-1 h-9 text-xs flex items-center justify-center gap-1.5"
+                      className="flex-1 py-2.5 px-4 rounded-full bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-all"
                       onClick={closeTransaction}
                     >
                       <Check size={13} />
-                      <UiText>Terminar y Salir</UiText>
-                    </UiButton>
+                      <span>Terminar y Salir</span>
+                    </button>
                   </div>
 
                   {/* SRI Anulación if authorized */}
                   {isAuthorized && (
-                    <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"mt-[8px] pt-[8px]"}}>
-                      <UiButton
+                    <div className="mt-2 pt-2 border-t border-slate-200/80">
+                      <button
                         type="button" 
                         onClick={handleAnular}
-                        {...{"variant":"soft","color":"red","className":"w-full flex items-center justify-center gap-[6px] text-xs h-8"}}
+                        className="w-full py-2 px-4 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-semibold text-xs flex items-center justify-center gap-2 cursor-pointer transition-all"
                       >
-                        <ShieldAlert size={12} />
-                        <UiText>{isNotaVenta ? 'Anular Nota de Venta' : 'Anular Documento ante el SRI'}</UiText>
-                      </UiButton>
-                    </UiBox>
+                        <ShieldAlert size={13} />
+                        <span>{isNotaVenta ? 'Anular Nota de Venta' : 'Anular Documento ante el SRI'}</span>
+                      </button>
+                    </div>
                   )}
-                </UiBox>
+                </div>
 
-              </UiBox>
+              </div>
 
             {/* Right Column (col-span-12 lg:col-span-5): Vista Previa del Documento */}
-            <UiBox {...{"className":"col-span-12 lg:col-span-5"}}>
-              <UiBox {...mergeThemeProps({}, {"className":"space-y-[8px]"}, mergeThemeProps({"style":{"borderRadius":"var(--radius-3)"},"className":"p-[12px]"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)","color":"var(--gray-12)"}}))}>
-                <UiHeading as="h4"  {...{"size":"1","weight":"bold"}}>Vista Previa del Comprobante</UiHeading>
+            <div className="col-span-12 lg:col-span-5">
+              <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-none space-y-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+                    <FileText size={16} />
+                  </div>
+                  <h4 className="text-base font-bold text-slate-900 tracking-tight">Vista Previa del Comprobante</h4>
+                </div>
 
-                <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)","fontFamily":"var(--code-font-family)"},"className":"p-[10px] space-y-[8px] max-h-[60vh] overflow-y-auto"})}>
-                  <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"text-center pb-[8px]"}}>
-                    <UiText as="p" {...{"weight":"bold","size":"1"}}>{sriConfig.nombreComercial || 'WEBFIX ERP'}</UiText>
-                    <UiText as="p" {...{"size":"1","weight":"bold"}}>{sriConfig.razonSocial}</UiText>
-                    <UiText as="p" {...{"size":"1","color":"gray","highContrast":true,"className":"mt-[2px]"}}>{sriConfig.direccionMatriz}</UiText>
-                    <UiText as="p" {...{"size":"1","weight":"bold","className":"mt-[4px]"}}>RUC: {sriConfig.ruc}</UiText>
-                  </UiBox>
+                <div className="rounded-xl border border-slate-200/80 bg-slate-50/80 p-4 space-y-3 font-mono text-xs max-h-[65vh] overflow-y-auto">
+                  <div className="border-b border-slate-200/80 text-center pb-2.5">
+                    <p className="font-bold text-slate-900 text-sm">{sriConfig.nombreComercial || 'WEBFIX ERP'}</p>
+                    <p className="font-semibold text-slate-800 mt-0.5">{sriConfig.razonSocial}</p>
+                    <p className="text-slate-500 text-[11px] mt-0.5">{sriConfig.direccionMatriz}</p>
+                    <p className="font-bold text-slate-900 mt-1">RUC: {sriConfig.ruc}</p>
+                  </div>
 
-                  <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"space-y-[4px] pb-[8px]"}}>
-                    <UiText as="p" {...{"weight":"bold","color":"gray","highContrast":true,"className":"text-center py-[2px]"}}>
+                  <div className="border-b border-slate-200/80 space-y-1 pb-2.5 text-slate-700">
+                    <p className="font-bold text-slate-900 text-center py-0.5 uppercase">
                       {formData.documentType === 'nota_venta' ? 'NOTA DE VENTA' : 'FACTURA ELECTRÓNICA'}
-                    </UiText>
-                    <UiText as="p" {...{"color":"gray","highContrast":true}}>
+                    </p>
+                    <p>
                       <b>Número:</b> {formData.documentNumber || (formData.documentType === 'factura' ? 'Borrador (Secuencial se asigna al emitir en SRI)' : (formData.secuencial ? `001-001-${String(formData.secuencial).padStart(9, '0')}` : 'Por asignar al emitir'))}
-                    </UiText>
-                    <UiText as="p" {...{"color":"gray","highContrast":true}}><b>Fecha:</b> {formData.date} {formData.time || ''}</UiText>
-                    <UiText as="p" {...{"color":"gray","highContrast":true}}>
+                    </p>
+                    <p><b>Fecha:</b> {formData.date} {formData.time || ''}</p>
+                    <p>
                       <b>{formData.documentType === 'nota_venta' ? 'Estado:' : 'Estado SRI:'}</b>{' '}
-                      <UiText {...mergeThemeProps({}, {"weight":"bold"}, (formData.sriStatus === 'anulado' ? {"color":"red"} : {"color":"green"}))}>
+                      <span className={formData.sriStatus === 'anulado' ? 'text-rose-600 font-bold' : 'text-emerald-600 font-bold'}>
                         {formData.documentType === 'nota_venta' 
                           ? (formData.sriStatus === 'anulado' ? 'ANULADO' : 'REGISTRADO') 
                           : formData.sriStatus}
-                      </UiText>
-                    </UiText>
-                  </UiBox>
+                      </span>
+                    </p>
+                  </div>
 
-                  <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)","color":"var(--gray-12)"},"className":"space-y-[4px] pb-[8px]"}}>
-                    <UiText as="p"><b>Cliente:</b> {matchedTercero?.name || 'CONSUMIDOR FINAL'}</UiText>
-                    <UiText as="p"><b>RUC/CI:</b> {matchedTercero?.ruc || '9999999999999'}</UiText>
-                    <UiText as="p"><b>Dirección:</b> {matchedTercero?.direccion || 'S/N'}</UiText>
-                  </UiBox>
+                  <div className="border-b border-slate-200/80 space-y-1 pb-2.5 text-slate-700">
+                    <p><b>Cliente:</b> {matchedTercero?.name || 'CONSUMIDOR FINAL'}</p>
+                    <p><b>RUC/CI:</b> {matchedTercero?.ruc || '9999999999999'}</p>
+                    <p><b>Dirección:</b> {matchedTercero?.direccion || 'S/N'}</p>
+                  </div>
 
                   {/* Detalle items */}
                   {formData.documentType !== 'retencion' && (
-                    <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)","color":"var(--gray-12)"},"className":"pb-[8px]"}}>
-                      <UiTable {...{"className":"w-full text-left"}}>
-                        <UiTableHeader>
-                          <UiTableRow {...{}}>
-                            <UiTableHead {...{"className":"pb-[2px]"}}>Cant</UiTableHead>
-                            <UiTableHead {...{"className":"pb-[2px]"}}>Detalle</UiTableHead>
-                            <UiTableHead {...{"className":"pb-[2px] text-right"}}>Unit</UiTableHead>
-                            <UiTableHead {...{"className":"pb-[2px] text-right"}}>Total</UiTableHead>
-                          </UiTableRow>
-                        </UiTableHeader>
-                        <UiTableBody>
+                    <div className="border-b border-slate-200/80 pb-2.5">
+                      <table className="w-full text-left">
+                        <thead>
+                          <tr className="text-slate-500 border-b border-slate-200/60 text-[11px]">
+                            <th className="pb-1 font-semibold">Cant</th>
+                            <th className="pb-1 font-semibold">Detalle</th>
+                            <th className="pb-1 font-semibold text-right">Unit</th>
+                            <th className="pb-1 font-semibold text-right">Total</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
                           {(formData.items || []).map((item, idx) => (
-                            <UiTableRow key={idx} {...{"style":{"color":"var(--gray-12)"}}}>
-                              <UiTableCell {...{"className":"py-[2px] align-top"}}>{item.quantity}</UiTableCell>
-                              <UiTableCell {...{"className":"py-[2px] pr-[5px]"}}>{invoiceDescription(item)}</UiTableCell>
-                              <UiTableCell {...{"className":"py-[2px] text-right align-top"}}>${Number(item.price).toFixed(2)}</UiTableCell>
-                              <UiTableCell {...{"className":"py-[2px] text-right align-top"}}>${(Number(item.price) * Number(item.quantity)).toFixed(2)}</UiTableCell>
-                            </UiTableRow>
+                            <tr key={idx} className="text-slate-800">
+                              <td className="py-1 align-top">{item.quantity}</td>
+                              <td className="py-1 pr-2">{invoiceDescription(item)}</td>
+                              <td className="py-1 text-right align-top">${Number(item.price).toFixed(2)}</td>
+                              <td className="py-1 text-right align-top">${(Number(item.price) * Number(item.quantity)).toFixed(2)}</td>
+                            </tr>
                           ))}
-                        </UiTableBody>
-                      </UiTable>
-                    </UiBox>
+                        </tbody>
+                      </table>
+                    </div>
                   )}
 
                   {/* Totales */}
-                  <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"space-y-[2px] text-right"}}>
-                    <UiText as="p">Subtotal: ${Number(formData.baseImponible).toFixed(2)}</UiText>
+                  <div className="space-y-1 text-right text-slate-700">
+                    <p>Subtotal: ${Number(formData.baseImponible).toFixed(2)}</p>
                     {formData.documentType !== 'retencion' && (
-                      <UiText as="p">IVA ({formData.ivaPorcentaje}%): ${Number(formData.ivaValor).toFixed(2)}</UiText>
+                      <p>IVA ({formData.ivaPorcentaje}%): ${Number(formData.ivaValor).toFixed(2)}</p>
                     )}
-                    <UiText as="p" {...{"weight":"bold","size":"1","color":"gray","highContrast":true,"className":"pt-[4px]"}}>
+                    <p className="font-bold text-sm text-slate-900 pt-1">
                       TOTAL: ${Number(formData.total).toFixed(2)}
-                    </UiText>
-                  </UiBox>
+                    </p>
+                  </div>
 
                   {/* Pagos desglosados */}
-                  <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)","color":"var(--gray-12)"},"className":"pt-[6px] space-y-[2px]"}}>
-                    <UiText as="p" {...{"weight":"bold","size":"1","color":"gray","highContrast":true}}>Forma de Pago:</UiText>
-                    {Number(payments.efectivo) > 0 && <UiText as="p">Efectivo: ${Number(payments.efectivo).toFixed(2)}</UiText>}
-                    {Number(payments.transferencia) > 0 && <UiText as="p">Transferencia: ${Number(payments.transferencia).toFixed(2)}</UiText>}
-                    {Number(payments.tarjeta) > 0 && <UiText as="p">Tarjeta: ${Number(payments.tarjeta).toFixed(2)}</UiText>}
-                    {Number(payments.cruce_cuentas) > 0 && <UiText as="p">Crédito CxC: ${Number(payments.cruce_cuentas).toFixed(2)}</UiText>}
-                  </UiBox>
-                </UiBox>
-              </UiBox>
-            </UiBox>
-          </UiBox>
+                  <div className="border-t border-slate-200/80 pt-2 space-y-0.5 text-slate-700">
+                    <p className="font-bold text-slate-900">Forma de Pago:</p>
+                    {Number(payments.efectivo) > 0 && <p>Efectivo: ${Number(payments.efectivo).toFixed(2)}</p>}
+                    {Number(payments.transferencia) > 0 && <p>Transferencia: ${Number(payments.transferencia).toFixed(2)}</p>}
+                    {Number(payments.tarjeta) > 0 && <p>Tarjeta: ${Number(payments.tarjeta).toFixed(2)}</p>}
+                    {Number(payments.cruce_cuentas) > 0 && <p>Crédito CxC: ${Number(payments.cruce_cuentas).toFixed(2)}</p>}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
 
       </UiBox>
 
       {/* FOOTER WIZARD BAR */}
       {!isInline && (
-        <UiCard {...mergeThemeProps({"className":"sticky bottom-0 z-20 px-[12px] py-[10px] flex justify-between items-center"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)"}})}>
+        <div className="sticky bottom-0 z-20 bg-white/95 backdrop-blur-sm border-t border-slate-200/90 px-4 md:px-6 py-3 flex justify-between items-center">
           {/* Mobile Navigation Buttons (Step 1) */}
           {currentStep === 1 && (
-            <UiBox {...{"className":"flex lg:hidden items-center justify-between w-full"}}>
+            <div className="flex lg:hidden items-center justify-between w-full">
               {/* Atrás (Mobile) */}
               {mobileTab !== 'cliente' ? (
-                <UiButton
+                <button
                   type="button"
                   onClick={() => setMobileTab(mobileTab === 'pago' ? 'carrito' : 'cliente')}
-                  {...{"variant":"surface","color":"blue"}}
+                  className="py-1.5 px-3 rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center gap-1.5 cursor-pointer"
                 >
-                  <ArrowLeft size={12} />
-                  <UiText>Atrás</UiText>
-                </UiButton>
+                  <ArrowLeft size={13} />
+                  <span>Atrás</span>
+                </button>
               ) : (
-                <UiBox {...{"className":"w-[60px]"}} />
+                <div className="w-[60px]" />
               )}
 
-              <UiText {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","highContrast":true})}>
+              <span className="text-xs font-bold text-slate-800">
                 {mobileTab === 'cliente' ? '1. Cliente' : mobileTab === 'carrito' ? '2. Carrito' : '3. Pago'}
-              </UiText>
+              </span>
 
               {/* Siguiente (Mobile) */}
               {mobileTab !== 'pago' ? (
-                <UiButton
+                <button
                   type="button"
                   onClick={() => setMobileTab(mobileTab === 'cliente' ? 'carrito' : 'pago')}
-                  {...{"variant":"solid","color":"blue"}}
+                  className="py-1.5 px-4 rounded-full bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs flex items-center gap-1.5 cursor-pointer"
                 >
-                  <UiText>Siguiente</UiText>
-                  <ArrowRight size={14} />
-                </UiButton>
+                  <span>Siguiente</span>
+                  <ArrowRight size={13} />
+                </button>
               ) : (
-                <UiBox {...{"className":"w-[75px]"}} />
+                <div className="w-[75px]" />
               )}
-            </UiBox>
+            </div>
           )}
 
           {/* Desktop Navigation (original) */}
-          <UiBox {...mergeThemeProps({"className":"hidden lg:flex justify-between items-center w-full"})}>
-            <UiButton
+          <div className="hidden lg:flex justify-between items-center w-full">
+            <button
               type="button"
               onClick={handlePrevStep}
               disabled={currentStep === 1 || isLockedInStep2}
-              {...mergeThemeProps({"variant":"surface","color":"blue"}, {}, (currentStep === 1 || isLockedInStep2 ? {"className":"opacity-0 pointer-events-none"} : {}))}
+              className={`py-2 px-4 rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center gap-1.5 cursor-pointer transition-all ${
+                currentStep === 1 || isLockedInStep2 ? 'opacity-0 pointer-events-none' : ''
+              }`}
             >
-              <ArrowLeft size={12} />
-              <UiText>Atrás</UiText>
-            </UiButton>
+              <ArrowLeft size={14} />
+              <span>Atrás</span>
+            </button>
 
-            <UiText {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","highContrast":true})}>
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
               Paso {currentStep} de 2
-            </UiText>
+            </span>
 
             {currentStep < 2 ? (
-              <UiButton
+              <button
                 type="button"
                 disabled={currentStep === 1 && isEditable && !formData.documentNumber}
                 onClick={handleNextStep}
-                {...mergeThemeProps({"variant":"solid","color":"blue"}, {}, (currentStep === 1 && isEditable && !formData.documentNumber ? {"className":"opacity-50 cursor-not-allowed"} : {}))}
+                className={`py-2 px-5 rounded-full bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs flex items-center gap-1.5 cursor-pointer shadow-none transition-all ${
+                  currentStep === 1 && isEditable && !formData.documentNumber ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
               >
-                <UiText>Siguiente</UiText>
+                <span>Siguiente</span>
                 <ArrowRight size={14} />
-              </UiButton>
+              </button>
             ) : (
-              <UiButton
+              <button
                 type="button"
                 onClick={closeTransaction}
-                {...{"variant":"solid","color":"blue"}}
+                className="py-2 px-5 rounded-full bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs flex items-center gap-1.5 cursor-pointer shadow-none transition-all"
               >
-                <UiText>Terminar / Salir</UiText>
-              </UiButton>
+                <span>Terminar / Salir</span>
+              </button>
             )}
-          </UiBox>
+          </div>
 
           {/* Mobile Navigation when in Step 2 */}
           {currentStep === 2 && (
-            <UiBox {...{"className":"flex lg:hidden justify-between items-center w-full"}}>
-              <UiButton
+            <div className="flex lg:hidden justify-between items-center w-full">
+              <button
                 type="button"
                 onClick={handlePrevStep}
                 disabled={isLockedInStep2}
-                {...mergeThemeProps({"variant":"surface","color":"blue"}, {}, (isLockedInStep2 ? {"className":"opacity-0 pointer-events-none"} : {}))}
+                className={`py-1.5 px-3 rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center gap-1.5 cursor-pointer ${
+                  isLockedInStep2 ? 'opacity-0 pointer-events-none' : ''
+                }`}
               >
-                <ArrowLeft size={12} />
-                <UiText>Atrás</UiText>
-              </UiButton>
+                <ArrowLeft size={13} />
+                <span>Atrás</span>
+              </button>
               
-              <UiText {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","highContrast":true})}>
+              <span className="text-xs font-bold text-slate-800">
                 Paso 2 de 2
-              </UiText>
+              </span>
 
-              <UiButton
+              <button
                 type="button"
                 onClick={closeTransaction}
-                {...{"variant":"solid","color":"blue"}}
+                className="py-1.5 px-4 rounded-full bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs flex items-center gap-1.5 cursor-pointer"
               >
-                <UiText>Terminar</UiText>
-              </UiButton>
-            </UiBox>
+                <span>Terminar</span>
+              </button>
+            </div>
           )}
-        </UiCard>
+        </div>
       )}
 
       {/* MODAL SEGUIMIENTO DE CRÉDITO / CXC */}
       {isCreditModalOpen && (
-        <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[150] flex items-center justify-center p-[10px] animate-in fade-in"}}>
-          <UiCard {...mergeThemeProps({"className":"w-full max-w-md p-[20px]"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"}})}>
-            <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex justify-between items-center mb-[12px] pb-[8px]"}}>
-              <UiHeading as="h3" {...{"size":"3","weight":"bold","color":"gray","highContrast":true,"className":"flex items-center gap-[4px]"}}>
-                <User {...{"style":{"color":"var(--gray-11)"}}} size={14} />
-                Seguimiento de Cuenta por Cobrar
-              </UiHeading>
-              <UiButton iconOnly
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in">
+          <div className="w-full max-w-md bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xl space-y-4">
+            <div className="flex justify-between items-center pb-3 border-b border-slate-200/80">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+                  <User size={16} />
+                </div>
+                <h3 className="text-base font-bold text-slate-900 tracking-tight">
+                  Seguimiento de Cuenta por Cobrar
+                </h3>
+              </div>
+              <button
                 type="button" 
                 onClick={() => setIsCreditModalOpen(false)}
-                {...{}}
+                className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
               >
-                <X size={12} />
-              </UiButton>
-            </UiBox>
+                <X size={15} />
+              </button>
+            </div>
 
-            <UiBox {...{"className":"space-y-[10px]"}}>
-              <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"p-[10px] space-y-[4px]"}, {}, {"style":{"backgroundColor":"var(--gray-2)","color":"var(--gray-12)"}})}>
-                <UiBox {...{"className":"flex justify-between"}}>
-                  <UiText {...{"color":"gray"}}>Cliente:</UiText>
-                  <UiText {...{"weight":"bold"}}>{matchedTercero?.name || 'Cliente no seleccionado'}</UiText>
-                </UiBox>
-                <UiBox {...{"className":"flex justify-between items-center"}}>
-                  <UiText {...{"color":"gray"}}>Cupo de Crédito:</UiText>
-                  <UiBox className="flex items-center gap-2">
-                    <UiText {...{"weight":"bold"}}>${(Number(matchedTercero?.creditLimit || matchedTercero?.limiteCredito) || 0).toFixed(2)}</UiText>
-                    <UiButton
+            <div className="space-y-3">
+              <div className="bg-slate-50/80 border border-slate-200/80 rounded-xl p-3.5 space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-slate-500 font-medium">Cliente:</span>
+                  <span className="font-bold text-slate-900">{matchedTercero?.name || 'Cliente no seleccionado'}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-500 font-medium">Cupo de Crédito:</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-slate-900 font-mono">${(Number(matchedTercero?.creditLimit || matchedTercero?.limiteCredito) || 0).toFixed(2)}</span>
+                    <button
                       type="button"
                       onClick={() => {
                         setIsCreditModalOpen(false);
                         setIsCreditSetupOpen(true);
                       }}
-                      {...mergeThemeProps({"variant":"soft","size":"1","color":"blue"})}
+                      className="text-[11px] font-semibold text-blue-600 hover:text-blue-700 underline cursor-pointer"
                     >
                       Ajustar Cupo
-                    </UiButton>
-                  </UiBox>
-                </UiBox>
-                <UiBox {...{"style":{"color":"var(--red-12)"},"className":"flex justify-between"}}>
-                  <UiText>Deuda Pendiente Actual:</UiText>
-                  <UiText {...{"weight":"bold"}}>${clientDebt.toFixed(2)}</UiText>
-                </UiBox>
-                <UiBox {...{"style":{"color":"var(--gray-11)","borderTop":"1px solid var(--gray-a6)"},"className":"flex justify-between pt-[4px]"}}>
-                  <UiText>Monto Venta Actual:</UiText>
-                  <UiText {...{"weight":"bold"}}>${Number(formData.total).toFixed(2)}</UiText>
-                </UiBox>
+                    </button>
+                  </div>
+                </div>
+                <div className="flex justify-between text-rose-600">
+                  <span className="font-medium">Deuda Pendiente Actual:</span>
+                  <span className="font-bold font-mono">${clientDebt.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between border-t border-slate-200/80 pt-2 text-slate-600">
+                  <span className="font-medium">Monto Venta Actual:</span>
+                  <span className="font-bold text-slate-900 font-mono">${Number(formData.total).toFixed(2)}</span>
+                </div>
                 
                 {(() => {
                   const limit = Number(matchedTercero?.creditLimit || matchedTercero?.limiteCredito) || 0;
                   const totalVenta = Number(formData.total) || 0;
                   const available = limit - clientDebt - totalVenta;
                   return (
-                    <UiBox {...mergeThemeProps({"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"flex justify-between pt-[4px]"}, {}, (available < 0 ? {"style":{"color":"var(--red-11)"}} : {"style":{"color":"var(--green-12)"}}))}>
-                      <UiText>Cupo Disponible Resultante:</UiText>
-                      <UiText>${available.toFixed(2)}</UiText>
-                    </UiBox>
+                    <div className={`flex justify-between border-t border-slate-200/80 pt-2 font-bold ${
+                      available < 0 ? 'text-rose-600' : 'text-emerald-700'
+                    }`}>
+                      <span>Cupo Disponible Resultante:</span>
+                      <span className="font-mono">${available.toFixed(2)}</span>
+                    </div>
                   );
                 })()}
-              </UiBox>
+              </div>
 
               {(() => {
                 const limit = Number(matchedTercero?.creditLimit || matchedTercero?.limiteCredito) || 0;
@@ -3692,62 +3713,62 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 const available = limit - clientDebt - totalVenta;
                 if (available < 0) {
                   return (
-                    <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--red-3)","border":"1px solid var(--gray-a6)","color":"var(--red-11)"},"className":"p-[8px] leading-normal flex items-start gap-[4px]"}}>
-                      <AlertTriangle size={12} {...{"className":"shrink-0 mt-[1px]"}} />
-                      <UiBox>
-                        <UiText as="p" {...{"weight":"bold"}}>Límite de Crédito Superado</UiText>
-                        <UiText as="p" {...{"weight":"regular","className":"opacity-90"}}>La deuda actual más esta venta superan el cupo disponible del cliente en ${(Math.abs(available)).toFixed(2)}.</UiText>
-                      </UiBox>
-                    </UiBox>
+                    <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2">
+                      <AlertTriangle size={15} className="text-rose-600 shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-bold">Límite de Crédito Superado</p>
+                        <p className="text-[11.5px] text-rose-700 mt-0.5">La deuda actual más esta venta superan el cupo disponible del cliente en ${(Math.abs(available)).toFixed(2)}.</p>
+                      </div>
+                    </div>
                   );
                 }
                 return null;
               })()}
 
-              <UiBox {...{"className":"space-y-[8px]"}}>
-                <UiBox>
-                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-[4px]"}}>Fecha de Vencimiento de la Deuda</UiLabel>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Fecha de Vencimiento de la Deuda</label>
                   <UiInput
                     type="date" 
                     value={creditDueDate} 
                     onChange={e => setCreditDueDate(e.target.value)} 
-                    {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})} 
+                    className="w-full rounded-xl bg-white" 
                   />
-                </UiBox>
-                <UiBox>
-                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-[4px]"}}>Observaciones / Comentario de Crédito</UiLabel>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Observaciones / Comentario de Crédito</label>
                   <UiTextarea
                     rows={3}
                     value={creditObservations} 
                     onChange={e => setCreditObservations(e.target.value)} 
-                    {...mergeThemeProps({}, {"className":"resize-none"}, mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"}))} 
+                    className="resize-none w-full rounded-xl bg-white" 
                     placeholder="Ej. Crédito autorizado por gerencia..."
                   />
-                </UiBox>
-              </UiBox>
+                </div>
+              </div>
 
-              <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"flex justify-end gap-[8px] mt-[10px] pt-[10px]"}}>
-                <UiButton
+              <div className="flex justify-end gap-2.5 pt-3 border-t border-slate-200/80">
+                <button
                   type="button" 
                   onClick={() => {
                     setIsCreditModalOpen(false);
                     setFormData(prev => ({ ...prev, paymentMethod: 'efectivo' }));
                   }} 
-                  {...{"variant":"surface","color":"blue"}}
+                  className="py-2 px-4 rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs cursor-pointer transition-all"
                 >
                   Cancelar
-                </UiButton>
-                <UiButton
+                </button>
+                <button
                   type="button" 
                   onClick={() => setIsCreditModalOpen(false)}
-                  {...{"variant":"solid","color":"blue"}}
+                  className="py-2 px-5 rounded-full bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs cursor-pointer shadow-none transition-all"
                 >
                   Confirmar Crédito
-                </UiButton>
-              </UiBox>
-            </UiBox>
-          </UiCard>
-        </UiBox>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* MODAL CONFIGURACION DE CREDITO EN CALIENTE */}
@@ -3777,181 +3798,199 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
       {/* MODAL CREAR CONTACTO RAPIDO */}
       {isQuickAddOpen && (
-        <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[150] flex items-center justify-center p-[10px] animate-in fade-in"}}>
-          <UiCard {...mergeThemeProps({"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"},"className":"w-full max-w-md p-[20px]"})}>
-            <UiBox style={{ borderBottom: '1px solid var(--gray-a6)' }} className="flex justify-between items-center mb-3 pb-2">
-              <UiHeading as="h3" size="3" weight="bold" className="flex items-center gap-2">
-                <User size={16} style={{ color: 'var(--blue-11)' }} />
-                Nuevo {formData.type === 'ingreso' ? 'Cliente' : 'Proveedor'} (Rápido)
-              </UiHeading>
-              <UiButton iconOnly type="button" onClick={() => setIsQuickAddOpen(false)} color="gray" className="cursor-pointer">
-                <X size={14} />
-              </UiButton>
-            </UiBox>
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in">
+          <div className="w-full max-w-md bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xl space-y-4">
+            <div className="flex justify-between items-center pb-3 border-b border-slate-200/80">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+                  <User size={16} />
+                </div>
+                <h3 className="text-base font-bold text-slate-900 tracking-tight">
+                  Nuevo {formData.type === 'ingreso' ? 'Cliente' : 'Proveedor'} (Rápido)
+                </h3>
+              </div>
+              <button 
+                type="button" 
+                onClick={() => setIsQuickAddOpen(false)} 
+                className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                <X size={15} />
+              </button>
+            </div>
             
-            <form onSubmit={handleQuickAddSave} {...{"className":"space-y-[10px]"}}>
-              <UiBox {...{"className":"grid grid-cols-2 gap-[8px]"}}>
-                <UiBox>
-                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-[4px]"}}>Identificación</UiLabel>
+            <form onSubmit={handleQuickAddSave} className="space-y-3.5">
+              <div className="grid grid-cols-2 gap-2.5">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Identificación</label>
                   <UiSelect
                     value={quickAddFormData.tipoIdentificacion || 'ruc'} 
                     onChange={e => setQuickAddFormData({...quickAddFormData, tipoIdentificacion: e.target.value})} 
-                    {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})}
+                    className="w-full rounded-xl"
                   >
                     <option value="ruc">RUC</option>
                     <option value="cedula">Cédula</option>
                     <option value="pasaporte">Pasaporte</option>
                   </UiSelect>
-                </UiBox>
-                <UiBox>
-                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-[4px]"}}>Número</UiLabel>
-                  <UiBox {...{"className":"flex gap-[8px]"}}>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Número</label>
+                  <div className="flex gap-1.5">
                     <UiInput
                       type="text" 
                       required 
                       value={quickAddFormData.ruc} 
                       onChange={e => setQuickAddFormData({...quickAddFormData, ruc: e.target.value})} 
-                      {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})} 
+                      className="w-full rounded-xl bg-white" 
                       placeholder="1790000000001" 
                     />
-                    <UiButton
+                    <button
                       type="button"
                       disabled={isQueryingSri}
                       onClick={queryQuickAddSRI}
-                      {...{"variant":"soft","color":"purple","className":"shrink-0"}}
+                      className="px-2.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 text-xs font-semibold shrink-0 cursor-pointer flex items-center justify-center"
                       title="Consultar SRI"
                     >
-                      {isQueryingSri ? <RefreshCw size={13} {...{"className":"animate-spin"}} /> : <Sparkles size={13} />}
-                    </UiButton>
-                  </UiBox>
-                </UiBox>
-              </UiBox>
+                      {isQueryingSri ? <RefreshCw size={13} className="animate-spin" /> : <Sparkles size={13} />}
+                    </button>
+                  </div>
+                </div>
+              </div>
 
-              <UiBox>
-                <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-[4px]"}}>Razón Social / Nombres</UiLabel>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">Razón Social / Nombres</label>
                 <UiInput
                   type="text" 
                   required 
                   value={quickAddFormData.name} 
                   onChange={e => setQuickAddFormData({...quickAddFormData, name: e.target.value})} 
-                  {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})} 
+                  className="w-full rounded-xl bg-white" 
                   placeholder="Ej. Juan Pérez" 
                 />
-              </UiBox>
+              </div>
 
-              <UiBox>
-                <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-[4px]"}}>Teléfono</UiLabel>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">Teléfono</label>
                 <UiInput
                   type="text" 
                   value={quickAddFormData.telefono || ''} 
                   onChange={e => setQuickAddFormData({...quickAddFormData, telefono: e.target.value})} 
-                  {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})} 
+                  className="w-full rounded-xl bg-white" 
                   placeholder="0998765432" 
                 />
-              </UiBox>
+              </div>
 
-              <UiBox {...{"className":"grid grid-cols-2 gap-[8px]"}}>
-                <UiBox>
-                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-[4px]"}}>Dirección</UiLabel>
+              <div className="grid grid-cols-2 gap-2.5">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Dirección</label>
                   <UiInput
                     type="text" 
                     value={quickAddFormData.direccion || ''} 
                     onChange={e => setQuickAddFormData({...quickAddFormData, direccion: e.target.value})} 
-                    {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})} 
+                    className="w-full rounded-xl bg-white" 
                     placeholder="Av. de los Shyris" 
                   />
-                </UiBox>
-                <UiBox>
-                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-[4px]"}}>Ciudad</UiLabel>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Ciudad</label>
                   <UiInput
                     type="text" 
                     value={quickAddFormData.ciudad || ''} 
                     onChange={e => setQuickAddFormData({...quickAddFormData, ciudad: e.target.value})} 
-                    {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})} 
+                    className="w-full rounded-xl bg-white" 
                     placeholder="Quito" 
                   />
-                </UiBox>
-              </UiBox>
+                </div>
+              </div>
 
-              <UiBox>
-                <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-[4px]"}}>Correo Electrónico</UiLabel>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">Correo Electrónico</label>
                 <UiInput
                   type="email" 
                   value={quickAddFormData.email || ''} 
                   onChange={e => setQuickAddFormData({...quickAddFormData, email: e.target.value})} 
-                  {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})} 
+                  className="w-full rounded-xl bg-white" 
                   placeholder="correo@ejemplo.com" 
                 />
-              </UiBox>
+              </div>
 
-              <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"flex justify-end gap-[8px] mt-[10px] pt-[10px]"}}>
-                <UiButton
+              <div className="flex justify-end gap-2.5 pt-3 border-t border-slate-200/80">
+                <button
                   type="button" 
                   onClick={() => setIsQuickAddOpen(false)} 
-                  {...{"variant":"surface","color":"blue"}}
+                  className="py-2 px-4 rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs cursor-pointer transition-all"
                 >
                   Cancelar
-                </UiButton>
-                <UiButton
+                </button>
+                <button
                   type="submit" 
-                  {...{"variant":"solid","color":"blue"}}
+                  className="py-2 px-5 rounded-full bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs cursor-pointer shadow-none transition-all"
                 >
                   Guardar y Seleccionar
-                </UiButton>
-              </UiBox>
+                </button>
+              </div>
             </form>
-          </UiCard>
-        </UiBox>
+          </div>
+        </div>
       )}
 
       {/* CUSTOM CONFIRMATION DIALOG MODAL */}
       {confirmDialog && (
-        <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[200] flex items-center justify-center p-[10px] animate-in fade-in duration-200"}}>
-          <UiCard {...mergeThemeProps({"className":"w-full max-w-md p-[20px]"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"}})}>
-            <UiBox {...{"className":"flex items-center gap-[8px] mb-[10px]"}}>
-              <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)"},"className":"p-[8px] shrink-0"}, {}, (confirmDialog.type === 'danger' ? {"style":{"backgroundColor":"var(--red-3)","color":"var(--red-11)"}} : (confirmDialog.type === 'warning' ? {"style":{"backgroundColor":"var(--amber-3)","color":"var(--amber-11)"}} : {"style":{"backgroundColor":"var(--blue-3)","color":"var(--gray-11)"}})))}>
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="w-full max-w-md bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xl space-y-4">
+            <div className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                confirmDialog.type === 'danger'
+                  ? 'bg-rose-50 text-rose-600 border border-rose-200'
+                  : confirmDialog.type === 'warning'
+                  ? 'bg-amber-50 text-amber-600 border border-amber-200'
+                  : 'bg-slate-100 text-slate-700'
+              }`}>
                 {confirmDialog.type === 'danger' ? (
-                  <ShieldAlert size={16} />
+                  <ShieldAlert size={18} />
                 ) : confirmDialog.type === 'warning' ? (
-                  <AlertTriangle size={16} />
+                  <AlertTriangle size={18} />
                 ) : (
-                  <FileText size={16} />
+                  <FileText size={18} />
                 )}
-              </UiBox>
-              <UiBox>
-                <UiHeading as="h3"  {...{"size":"3","weight":"bold"}}>
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-slate-900 tracking-tight">
                   {confirmDialog.title}
-                </UiHeading>
-                <UiText as="p" {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"mt-[2px]"}}>
+                </h3>
+                <p className="text-xs text-slate-500 font-medium">
                   Acción de Seguridad Requerida
-                </UiText>
-              </UiBox>
-            </UiBox>
+                </p>
+              </div>
+            </div>
 
-            <UiBox  {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"p-[10px] leading-normal mb-[12px]"}, {}, {"style":{"backgroundColor":"var(--gray-2)"}})}>
+            <div className="p-3.5 rounded-xl bg-slate-50/80 border border-slate-200/80 text-xs text-slate-700 leading-relaxed">
               {confirmDialog.message}
-            </UiBox>
+            </div>
 
-            <UiBox {...{"className":"flex justify-end gap-[8px]"}}>
+            <div className="flex justify-end gap-2.5 pt-2">
               {!confirmDialog.isAlert && (
-                <UiButton
+                <button
                   type="button"
                   onClick={confirmDialog.onCancel}
-                  {...{"variant":"surface","color":"blue"}}
+                  className="py-2 px-4 rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs cursor-pointer transition-all"
                 >
                   Cancelar
-                </UiButton>
+                </button>
               )}
-              <UiButton
+              <button
                 type="button"
                 onClick={confirmDialog.onConfirm}
-                {...(confirmDialog.type === 'danger' ? {"variant":"soft","color":"red"} : {"variant":"solid","color":"blue"})}
+                className={`py-2 px-5 rounded-full font-semibold text-xs cursor-pointer shadow-none transition-all ${
+                  confirmDialog.type === 'danger'
+                    ? 'bg-rose-600 hover:bg-rose-700 text-white'
+                    : 'bg-[#1b1b1b] hover:bg-slate-800 text-white'
+                }`}
               >
                 {confirmDialog.confirmLabel || 'Aceptar / Confirmar'}
-              </UiButton>
-            </UiBox>
-          </UiCard>
-        </UiBox>
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       <SaleValidationDialog
@@ -3963,39 +4002,47 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
       {/* POPUP BÚSQUEDA AVANZADA DE PRODUCTOS */}
       {isAdvancedSearchOpen && (
-        <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[160] flex items-center justify-center p-[10px] animate-in fade-in"}}>
-          <UiCard {...mergeThemeProps({"className":"w-full max-w-2xl p-[20px] flex flex-col max-h-[85vh]"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"}})}>
+        <div className="fixed inset-0 z-[160] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in">
+          <div className="w-full max-w-2xl bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xl flex flex-col max-h-[85vh] space-y-4">
             {/* Header */}
-            <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex justify-between items-center mb-[12px] pb-[8px]"}}>
-              <UiHeading as="h3" {...{"size":"3","weight":"bold","color":"gray","highContrast":true,"className":"flex items-center gap-[4px]"}}>
-                <Search {...{"style":{"color":"var(--gray-11)"}}} size={14} />
-                Búsqueda Avanzada de Productos
-              </UiHeading>
-              <UiButton iconOnly
+            <div className="flex justify-between items-center pb-3 border-b border-slate-200/80">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+                  <Search size={16} />
+                </div>
+                <h3 className="text-base font-bold text-slate-900 tracking-tight">
+                  Búsqueda Avanzada de Productos
+                </h3>
+              </div>
+              <button 
                 type="button" 
                 onClick={() => setIsAdvancedSearchOpen(false)}
-                {...{}}
+                className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
               >
-                <X size={12} />
-              </UiButton>
-            </UiBox>
+                <X size={15} />
+              </button>
+            </div>
 
             {/* Search and category filter row */}
-            <UiBox {...{"className":"flex gap-[8px] mb-[10px]"}}>
-              <UiBox {...{"className":"relative flex-1"}}>
+            <div className="flex gap-2">
+              <div className="relative flex-1">
                 <UiInput
                   type="text" 
                   value={advSearchTerm} 
                   onChange={e => setAdvSearchTerm(e.target.value)} 
-                  {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})}
+                  className="w-full rounded-xl bg-white"
                   placeholder="Buscar por nombre, SKU, barra..."
                 />
                 {advSearchTerm && (
-                  <UiButton iconOnly type="button" onClick={() => setAdvSearchTerm('')} {...{"color":"gray","className":"absolute right-[8px] top-1/2 -translate-y-1/2"}}>
-                    <X size={10} />
-                  </UiButton>
+                  <button 
+                    type="button" 
+                    onClick={() => setAdvSearchTerm('')} 
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                  >
+                    <X size={13} />
+                  </button>
                 )}
-              </UiBox>
+              </div>
               {(() => {
                 const cats = ['all', ...new Set(products.filter(isSellable).map(p => p.category).filter(Boolean))];
                 if (cats.length > 1) {
@@ -4003,7 +4050,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     <UiSelect
                       value={selectedCategory}
                       onChange={e => setSelectedCategory(e.target.value)}
-                      {...mergeThemeProps({}, {"className":"w-auto"}, mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"}))}
+                      className="w-auto rounded-xl"
                     >
                       <option value="all">Todas las Categorías</option>
                       {cats.filter(c => c !== 'all').map(c => (
@@ -4014,10 +4061,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 }
                 return null;
               })()}
-            </UiBox>
+            </div>
 
             {/* Products scrollable list */}
-            <UiBox {...{"className":"flex-1 overflow-y-auto space-y-[6px] min-h-[250px] max-h-[50vh] pr-[2px]"}}>
+            <div className="flex-1 overflow-y-auto space-y-2 min-h-[250px] max-h-[50vh] pr-1">
               {(() => {
                 const filtered = products.filter(p => {
                   if (!isSellable(p)) return false;
@@ -4031,9 +4078,9 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
                 if (filtered.length === 0) {
                   return (
-                    <UiBox  {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"py-8 text-center italic"}}>
+                    <div className="py-12 text-center text-slate-400 text-xs italic rounded-xl border border-slate-200/80 bg-slate-50/50">
                       No se encontraron productos coincidentes.
-                    </UiBox>
+                    </div>
                   );
                 }
 
@@ -4042,179 +4089,187 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   const cartQty = (formData.items || []).find(it => it.productId === p.id)?.quantity || 0;
 
                   return (
-                    <UiBox 
+                    <div 
                       key={p.id} 
-                      {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"p-[8px] flex justify-between items-center"}, {}, {"style":{"backgroundColor":"var(--gray-2)","color":"var(--gray-12)"}})}
+                      className="p-3 rounded-xl border border-slate-200/80 bg-slate-50/70 hover:bg-slate-100/70 transition-colors flex justify-between items-center"
                     >
-                      <UiBox>
-                        <UiBox {...{"className":"flex items-center gap-[6px]"}}>
-                          <UiText as="p" {...{"weight":"bold","size":"1"}}>{p.name}</UiText>
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <p className="font-bold text-xs text-slate-900">{p.name}</p>
                           {p.category && (
-                            <UiText {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"px-[5px] py-[2px]"}}>
+                            <span className="text-[10px] font-semibold text-slate-600 bg-slate-200/80 rounded-md px-1.5 py-0.5">
                               {p.category}
-                            </UiText>
+                            </span>
                           )}
-                        </UiBox>
-                        <UiText as="p" {...{"size":"1","weight":"regular","className":"opacity-85"}}>
+                        </div>
+                        <p className="text-[11px] text-slate-500 font-mono">
                           {p.sku ? `SKU: ${p.sku}` : ''} {p.codigoBarras ? ` | Barra: ${p.codigoBarras}` : ''}
                           {p.stock !== undefined ? ` | Stock: ${p.stock}` : ''}
-                        </UiText>
-                      </UiBox>
+                        </p>
+                      </div>
 
-                      <UiBox {...{"className":"flex items-center gap-[8px] shrink-0"}}>
-                        <UiText style={{ color: '#1C40F2' }} {...{"weight":"bold","size":"1","className":"mr-[4px]"}}>${Number(p.price).toFixed(2)}</UiText>
+                      <div className="flex items-center gap-2.5 shrink-0">
+                        <span className="font-extrabold text-sm text-[#1b1b1b] font-mono">${Number(p.price).toFixed(2)}</span>
                         {isAlreadyInCart && (
-                          <UiText {...{"size":"1","weight":"bold","color":"green","className":"px-[6px] py-[3px]"}}>
+                          <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 rounded-md px-2 py-0.5">
                             En Carrito ({cartQty})
-                          </UiText>
+                          </span>
                         )}
-                        <UiButton
+                        <button
                           type="button"
                           onClick={() => handleAddProductToCart(p)}
-                          {...{"variant":"solid","color":"blue"}}
+                          className="py-1.5 px-3 rounded-full bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs cursor-pointer shadow-none transition-all"
                         >
                           + Añadir
-                        </UiButton>
-                      </UiBox>
-                    </UiBox>
+                        </button>
+                      </div>
+                    </div>
                   );
                 });
               })()}
-            </UiBox>
+            </div>
 
             {/* Footer */}
-            <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"flex justify-end mt-[10px] pt-[10px]"}}>
-              <UiButton
+            <div className="flex justify-end pt-3 border-t border-slate-200/80">
+              <button
                 type="button"
                 onClick={() => setIsAdvancedSearchOpen(false)}
-                {...{"variant":"surface","color":"blue"}}
+                className="py-2 px-4 rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs cursor-pointer transition-all"
               >
                 Volver a la Consola
-              </UiButton>
-            </UiBox>
-          </UiCard>
-        </UiBox>
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* MODAL CREAR PRODUCTO RAPIDO */}
       {isQuickAddProductOpen && (
-        <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[150] flex items-center justify-center p-[10px] animate-in fade-in"}}>
-          <UiCard {...mergeThemeProps({"className":"w-full max-w-md p-[20px]"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"}})}>
-            <UiBox style={{ borderBottom: '1px solid var(--gray-a6)' }} className="flex justify-between items-center mb-3 pb-2">
-              <UiHeading as="h3" size="3" weight="bold" className="flex items-center gap-2">
-                <Package size={16} style={{ color: 'var(--blue-11)' }} />
-                Crear Producto (Rápido)
-              </UiHeading>
-              <UiButton iconOnly type="button" onClick={() => setIsQuickAddProductOpen(false)} color="gray" className="cursor-pointer">
-                <X size={14} />
-              </UiButton>
-            </UiBox>
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in">
+          <div className="w-full max-w-md bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xl space-y-4">
+            <div className="flex justify-between items-center pb-3 border-b border-slate-200/80">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+                  <Package size={16} />
+                </div>
+                <h3 className="text-base font-bold text-slate-900 tracking-tight">
+                  Crear Producto (Rápido)
+                </h3>
+              </div>
+              <button 
+                type="button" 
+                onClick={() => setIsQuickAddProductOpen(false)} 
+                className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                <X size={15} />
+              </button>
+            </div>
             
-            <form onSubmit={handleQuickAddProductSave} {...{"className":"space-y-[10px]"}}>
-              <UiBox>
-                <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-[4px]"}}>Nombre del Producto / Servicio</UiLabel>
+            <form onSubmit={handleQuickAddProductSave} className="space-y-3.5">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">Nombre del Producto / Servicio</label>
                 <UiInput
                   type="text" 
                   required 
                   value={quickAddProductFormData.name} 
                   onChange={e => setQuickAddProductFormData({...quickAddProductFormData, name: e.target.value})} 
-                  {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})} 
+                  className="w-full rounded-xl bg-white" 
                   placeholder="Ej. Servicio de Mantenimiento PC" 
                 />
-              </UiBox>
+              </div>
 
-              <UiBox {...{"className":"grid grid-cols-2 gap-[8px]"}}>
-                <UiBox>
-                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-[4px]"}}>SKU / Código</UiLabel>
+              <div className="grid grid-cols-2 gap-2.5">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">SKU / Código</label>
                   <UiInput
                     type="text" 
                     value={quickAddProductFormData.sku} 
                     onChange={e => setQuickAddProductFormData({...quickAddProductFormData, sku: e.target.value})} 
-                    {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})} 
+                    className="w-full rounded-xl bg-white" 
                     placeholder="SKU-100" 
                   />
-                </UiBox>
-                <UiBox>
-                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-[4px]"}}>Código de Barras</UiLabel>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Código de Barras</label>
                   <UiInput
                     type="text" 
                     value={quickAddProductFormData.codigoBarras} 
                     onChange={e => setQuickAddProductFormData({...quickAddProductFormData, codigoBarras: e.target.value})} 
-                    {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})} 
+                    className="w-full rounded-xl bg-white" 
                     placeholder="7861000..." 
                   />
-                </UiBox>
-              </UiBox>
+                </div>
+              </div>
 
-              <UiBox {...{"className":"grid grid-cols-3 gap-[8px]"}}>
-                <UiBox>
-                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-[4px]"}}>P. Venta ($)</UiLabel>
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">P. Venta ($)</label>
                   <UiInput
                     type="number" 
                     step="0.0001"
                     required 
                     value={quickAddProductFormData.price} 
                     onChange={e => setQuickAddProductFormData({...quickAddProductFormData, price: e.target.value})} 
-                    {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})} 
+                    className="w-full rounded-xl bg-white" 
                     placeholder="10.00" 
                   />
-                </UiBox>
-                <UiBox>
-                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-[4px]"}}>Costo ($)</UiLabel>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Costo ($)</label>
                   <UiInput
                     type="number" 
                     step="0.0001" 
                     value={quickAddProductFormData.baseCost} 
                     onChange={e => setQuickAddProductFormData({...quickAddProductFormData, baseCost: e.target.value})} 
-                    {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})} 
+                    className="w-full rounded-xl bg-white" 
                     placeholder="6.50" 
                   />
-                </UiBox>
-                <UiBox>
-                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-[4px]"}}>Stock Inicial</UiLabel>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Stock Inicial</label>
                   <UiInput
                     type="number" 
                     value={quickAddProductFormData.stock} 
                     onChange={e => setQuickAddProductFormData({...quickAddProductFormData, stock: e.target.value})} 
-                    {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})} 
+                    className="w-full rounded-xl bg-white" 
                     placeholder="10" 
                   />
-                </UiBox>
-              </UiBox>
+                </div>
+              </div>
 
-              <UiBox>
-                <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-[4px]"}}>Categoría IVA</UiLabel>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">Categoría IVA</label>
                 <UiSelect
                   value={quickAddProductFormData.ivaCategory} 
                   onChange={e => setQuickAddProductFormData({...quickAddProductFormData, ivaCategory: Number(e.target.value)})} 
-                  {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})}
+                  className="w-full rounded-xl"
                 >
                   <option value={15}>15% IVA</option>
                   <option value={12}>12% IVA</option>
                   <option value={5}>5% IVA</option>
                   <option value={0}>0% IVA</option>
                 </UiSelect>
-              </UiBox>
+              </div>
 
-              <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"flex justify-end gap-[8px] mt-[10px] pt-[10px]"}}>
-                <UiButton
+              <div className="flex justify-end gap-2.5 pt-3 border-t border-slate-200/80">
+                <button
                   type="button" 
                   onClick={() => setIsQuickAddProductOpen(false)} 
-                  {...{"variant":"surface","color":"blue"}}
+                  className="py-2 px-4 rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs cursor-pointer transition-all"
                 >
                   Cancelar
-                </UiButton>
-                <UiButton
+                </button>
+                <button
                   type="submit" 
-                  {...{"variant":"solid","color":"blue"}}
+                  className="py-2 px-5 rounded-full bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs cursor-pointer shadow-none transition-all flex items-center gap-1.5"
                 >
-                  <Plus size={12} />
-                  <UiText>Añadir</UiText>
-                </UiButton>
-              </UiBox>
+                  <Plus size={13} />
+                  <span>Añadir</span>
+                </button>
+              </div>
             </form>
-          </UiCard>
-        </UiBox>
+          </div>
+        </div>
       )}
 
       {printTx && (
@@ -4236,35 +4291,40 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       {selectedLineItemForDiscount && (() => {
         const available = getAvailableDiscountsForLineItem(selectedLineItemForDiscount);
         return (
-          <UiBox style={{ backgroundColor: 'var(--black-a7)' }} className="fixed inset-0 z-[250] flex items-center justify-center p-4 animate-in fade-in duration-200">
-            <UiBox style={{ backgroundColor: 'var(--color-panel-solid)', borderRadius: 'var(--radius-3)', border: '1px solid var(--gray-a6)', boxShadow: 'var(--shadow-4)' }} className="w-full max-w-md overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
-              <UiBox style={{ borderBottom: '1px solid var(--gray-a6)', backgroundColor: 'var(--gray-2)' }} className="p-4 flex items-center justify-between">
-                <UiBox>
-                  <UiHeading as="h3" size="2" weight="bold" color="gray" highContrast className="flex items-center gap-2">
-                    <Tag size={15} style={{ color: 'var(--blue-11)' }} />
-                    Descuento / Promo de Ítem
-                  </UiHeading>
-                  <UiText as="p" size="1" color="gray" weight="bold" className="mt-0.5">{selectedLineItemForDiscount.name}</UiText>
-                </UiBox>
-                <UiButton iconOnly
+          <div className="fixed inset-0 z-[250] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-200">
+            <div className="w-full max-w-md bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xl flex flex-col animate-in zoom-in-95 duration-200 space-y-4">
+              <div className="flex justify-between items-center pb-3 border-b border-slate-200/80">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center shrink-0">
+                    <Tag size={16} />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-slate-900 tracking-tight">
+                      Descuento / Promo de Ítem
+                    </h3>
+                    <p className="text-xs text-slate-500 font-medium truncate max-w-[240px]">
+                      {selectedLineItemForDiscount.name}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
                   onClick={() => setSelectedLineItemForDiscount(null)} 
-                  color="gray"
-                  className="cursor-pointer"
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
                 >
-                  <X size={16} />
-                </UiButton>
-              </UiBox>
-              <UiBox className="p-4 space-y-3 max-h-[420px] overflow-y-auto custom-scrollbar">
+                  <X size={15} />
+                </button>
+              </div>
+
+              <div className="space-y-3 max-h-[420px] overflow-y-auto pr-1">
                 {/* Descuento Manual Directo */}
-                <UiCard style={{ backgroundColor: 'var(--gray-2)' }} className="p-3 space-y-2">
-                  <UiText size="1" weight="bold" color="gray" highContrast>⚡ Descuento Manual Directo</UiText>
+                <div className="p-3.5 rounded-xl border border-slate-200/80 bg-slate-50/70 space-y-2.5">
+                  <span className="text-xs font-bold text-slate-800 block">⚡ Descuento Manual Directo</span>
                   <div className="flex items-center gap-2">
                     <UiSelect
                       value={manualLineDiscType}
                       onChange={e => setManualLineDiscType(e.target.value)}
-                      size="2"
-                      color="gray"
-                      className="w-32 cursor-pointer"
+                      className="w-32 rounded-xl"
                     >
                       <option value="PORCENTAJE">% Porc.</option>
                       <option value="MONTO_FIJO">$ Monto</option>
@@ -4277,23 +4337,18 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         step={manualLineDiscType === 'PORCENTAJE' ? '1' : '0.01'}
                         value={manualLineDiscValue}
                         onChange={e => setManualLineDiscValue(e.target.value)}
-                        size="2"
-                        color="gray"
                         placeholder="0"
-                        className="flex-1 font-mono"
+                        className="flex-1 font-mono rounded-xl bg-white"
                       />
                     ) : (
-                      <div className="flex-1 px-2 py-1 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 rounded text-center">
-                        <UiText size="1" weight="bold" color="red">
+                      <div className="flex-1 px-2.5 py-1.5 bg-rose-50 border border-rose-200 rounded-xl text-center">
+                        <span className="text-xs font-bold text-rose-700">
                           -100% IVA del ítem
-                        </UiText>
+                        </span>
                       </div>
                     )}
-                    <UiButton
+                    <button
                       type="button"
-                      size="2"
-                      variant="solid"
-                      color="blue"
                       onClick={() => {
                         const isSinIva = manualLineDiscType === 'SIN_IVA';
                         const val = isSinIva ? 0 : (parseFloat(manualLineDiscValue) || 0);
@@ -4313,14 +4368,15 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         setSelectedLineItemForDiscount(null);
                         setManualLineDiscValue('');
                       }}
+                      className="py-2 px-4 rounded-full bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs cursor-pointer shadow-none transition-all shrink-0"
                     >
                       Aplicar
-                    </UiButton>
+                    </button>
                   </div>
-                </UiCard>
+                </div>
 
                 {/* Option 1: None */}
-                <UiButton
+                <button
                   type="button"
                   onClick={() => {
                     const idx = selectedLineItemForDiscount.cartIndex;
@@ -4337,21 +4393,27 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     showToast("Descuento removido", "success");
                     setSelectedLineItemForDiscount(null);
                   }}
-                  {...mergeThemeProps({"variant":"outline","className":"w-full text-left flex justify-between items-center cursor-pointer"}, {}, (!selectedLineItemForDiscount.id_descuento_aplicado ? {"variant":"soft","color":"blue"} : {"variant":"surface","color":"gray"}))}
+                  className={`w-full p-3 rounded-xl border text-left flex justify-between items-center cursor-pointer transition-all ${
+                    !selectedLineItemForDiscount.id_descuento_aplicado
+                      ? 'border-[#a2f07f] bg-[#c0ffa5]/30 text-[#004227]'
+                      : 'border-slate-200/80 bg-white hover:bg-slate-50 text-slate-800'
+                  }`}
                 >
-                  <UiText {...{"size":"1","weight":"bold"}}>Sin Descuento</UiText>
-                  <CheckCircle2 size={14} {...(!selectedLineItemForDiscount.id_descuento_aplicado ? {"className":"opacity-100"} : {"className":"opacity-0"})} />
-                </UiButton>
+                  <span className="text-xs font-bold">Sin Descuento</span>
+                  {!selectedLineItemForDiscount.id_descuento_aplicado && (
+                    <CheckCircle2 size={15} className="text-emerald-700" />
+                  )}
+                </button>
 
                 {/* Available Discounts/Promos */}
                 {available.length === 0 ? (
-                  <UiText as="p" {...{"size":"1","color":"gray","className":"italic text-center py-4"}}>No hay descuentos o promociones de producto vigentes hoy.</UiText>
+                  <p className="text-xs text-slate-500 italic text-center py-4">No hay descuentos o promociones de producto vigentes hoy.</p>
                 ) : (
                   available.map(d => {
                     const isSelected = selectedLineItemForDiscount.id_descuento_aplicado === d.id && 
                                        (d.promotionId ? selectedLineItemForDiscount.id_promocion_aplicada === d.promotionId : true);
                     return (
-                      <UiButton
+                      <button
                         key={d.promotionId ? `${d.id}_${d.promotionId}` : d.id}
                         type="button"
                         onClick={() => {
@@ -4382,88 +4444,71 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                             apply();
                           }
                         }}
-                        {...mergeThemeProps({"variant":"outline","className":"w-full text-left flex justify-between items-center cursor-pointer"}, {}, (isSelected ? {"variant":"soft","color":"blue"} : {"variant":"surface","color":"gray"}))}
+                        className={`w-full p-3 rounded-xl border text-left flex justify-between items-center cursor-pointer transition-all ${
+                          isSelected
+                            ? 'border-[#a2f07f] bg-[#c0ffa5]/30 text-[#004227]'
+                            : 'border-slate-200/80 bg-white hover:bg-slate-50 text-slate-800'
+                        }`}
                       >
-                        <UiBox {...{"className":"flex flex-col"}}>
-                          <UiText {...{"size":"1","weight":"bold"}}>{d.nombre}</UiText>
-                          <UiText {...{"size":"1","color":"gray","className":"mt-0.5"}}>
+                        <div className="flex flex-col">
+                          <span className="text-xs font-bold text-slate-900">{d.nombre}</span>
+                          <span className="text-[11px] text-slate-500 mt-0.5 font-medium">
                             Valor: {d.tipo_valor === 'PORCENTAJE' ? `${d.valor}%` : `$${d.valor}`}
                             {d.requiere_autorizacion && ' • [Clave Supervisor]'}
-                          </UiText>
-                        </UiBox>
-                        <CheckCircle2 size={14} {...(isSelected ? {"className":"opacity-100"} : {"className":"opacity-0"})} />
-                      </UiButton>
+                          </span>
+                        </div>
+                        {isSelected && (
+                          <CheckCircle2 size={15} className="text-emerald-700" />
+                        )}
+                      </button>
                     );
                   })
                 )}
-              </UiBox>
-            </UiBox>
-          </UiBox>
+              </div>
+            </div>
+          </div>
         );
       })()}
 
       {/* SUPERVISOR AUTHORIZATION MODAL */}
       {authDialog && (
-        <UiBox style={{ backgroundColor: 'var(--black-a7)' }} className="fixed inset-0 z-[300] flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <UiBox style={{ backgroundColor: 'var(--color-panel-solid)', borderRadius: 'var(--radius-3)', border: '1px solid var(--gray-a6)', boxShadow: 'var(--shadow-4)' }} className="w-full max-w-sm overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
-            <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)","backgroundColor":"var(--gray-2)"},"className":"p-4 flex items-center justify-between"}}>
-              <UiText {...{"size":"1","weight":"bold","color":"red","highContrast":true,"className":"flex items-center gap-1.5"}}>
-                <ShieldAlert size={15} /> Autorización Requerida
-              </UiText>
-              <UiButton iconOnly
+        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="w-full max-w-sm bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xl flex flex-col animate-in zoom-in-95 duration-200 space-y-4">
+            <div className="flex justify-between items-center pb-3 border-b border-slate-200/80">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+                  <ShieldAlert size={16} />
+                </div>
+                <h3 className="text-base font-bold text-slate-900 tracking-tight">
+                  Autorización Requerida
+                </h3>
+              </div>
+              <button
+                type="button"
                 onClick={() => { authDialog.onCancel?.(); setAuthDialog(null); }} 
-                {...{"color":"gray","className":"cursor-pointer"}}
+                className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
               >
-                <X size={18} />
-              </UiButton>
-            </UiBox>
-            <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"p-5 space-y-4"}}>
-              <UiText as="p" {...{"color":"gray","className":"leading-relaxed"}}>
-                El descuento <strong>{authDialog.discount.nombre}</strong> requiere clave de autorización de supervisor para ser aplicado.
-              </UiText>
-              
-              <UiBox>
-                <UiLabel {...{"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"}}>Clave de Supervisor</UiLabel>
-                <UiInput
-                  type="password"
-                  required
-                  placeholder="Ingrese clave..."
-                  value={supervisorPassword}
-                  onChange={e => {
-                    setSupervisorPassword(e.target.value);
-                    setAuthError('');
-                  }}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter') {
-                      if (supervisorPassword === 'SUPERVISOR123') {
-                        authDialog.onConfirm();
-                        setAuthDialog(null);
-                        setSupervisorPassword('');
-                        setAuthError('');
-                      } else {
-                        setAuthError('Clave incorrecta. Solicite al supervisor.');
-                      }
-                    }
-                  }}
-                  {...{"color":"gray","size":"2","className":"w-full text-center"}}
-                  autoFocus
-                />
-                {authError && (
-                  <UiText as="p" {...{"color":"red","weight":"bold","size":"1","className":"mt-1.5 animate-pulse"}}>{authError}</UiText>
-                )}
-              </UiBox>
-
-              <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"pt-3 flex justify-end gap-2"}}>
-                <UiButton
-                  type="button" 
-                  onClick={() => { authDialog.onCancel?.(); setAuthDialog(null); }} 
-                  {...{"variant":"surface","color":"blue","className":"cursor-pointer"}}
-                >
-                  Cancelar
-                </UiButton>
-                <UiButton
-                  type="button" 
-                  onClick={() => {
+                <X size={15} />
+              </button>
+            </div>
+            
+            <p className="text-xs text-slate-600 leading-relaxed">
+              El descuento <strong>{authDialog.discount.nombre}</strong> requiere clave de autorización de supervisor para ser aplicado.
+            </p>
+            
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-slate-700">Clave de Supervisor</label>
+              <UiInput
+                type="password"
+                required
+                placeholder="Ingrese clave..."
+                value={supervisorPassword}
+                onChange={e => {
+                  setSupervisorPassword(e.target.value);
+                  setAuthError('');
+                }}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
                     if (supervisorPassword === 'SUPERVISOR123') {
                       authDialog.onConfirm();
                       setAuthDialog(null);
@@ -4472,15 +4517,43 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     } else {
                       setAuthError('Clave incorrecta. Solicite al supervisor.');
                     }
-                  }} 
-                  {...{"variant":"solid","color":"red","className":"cursor-pointer"}}
-                >
-                  Autorizar
-                </UiButton>
-              </UiBox>
-            </UiBox>
-          </UiBox>
-        </UiBox>
+                  }
+                }}
+                className="w-full text-center rounded-xl bg-white"
+                autoFocus
+              />
+              {authError && (
+                <p className="text-xs font-bold text-rose-600 mt-1.5 animate-pulse">{authError}</p>
+              )}
+            </div>
+
+            <div className="pt-3 border-t border-slate-200/80 flex justify-end gap-2.5">
+              <button
+                type="button" 
+                onClick={() => { authDialog.onCancel?.(); setAuthDialog(null); }} 
+                className="py-2 px-4 rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs cursor-pointer transition-all"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button" 
+                onClick={() => {
+                  if (supervisorPassword === 'SUPERVISOR123') {
+                    authDialog.onConfirm();
+                    setAuthDialog(null);
+                    setSupervisorPassword('');
+                    setAuthError('');
+                  } else {
+                    setAuthError('Clave incorrecta. Solicite al supervisor.');
+                  }
+                }} 
+                className="py-2 px-5 rounded-full bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs cursor-pointer shadow-none transition-all"
+              >
+                Autorizar
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
     </UiBox>

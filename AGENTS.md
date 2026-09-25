@@ -463,6 +463,28 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
   - `ThirdPartiesView.jsx` y `TransactionsView.jsx`: encabezados planos, botones de acción en píldora negra sólida `#1b1b1b`, tabs en píldora Brevo y tablas planas con `border border-slate-200/90 rounded-2xl bg-white overflow-hidden`.
 - **Pruebas y Build**: 41 tests de comercio/SRI + 2 tests de animación aprobados (43/43), compilación de producción exitosa en 5.04s.
 
+### 37. Rediseño de Pantalla de Venta Administrativa al Sistema de Diseño Brevo (2026-09-25) — COMPLETADO
+- **Estética Brevo Aplicada Integralmente (`src/components/finances/TransactionForm.jsx`)**:
+  - **Barra Superior Limpia**: Encabezado en tarjeta plana de fondo blanco (`bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-none`), isotipo con icono `Calculator` en pastilla neutra, título semibold `Nueva Venta / Emisión de Comprobante`, stepper de 2 pasos con píldoras redondeadas e indicador activo en verde menta Brevo (`bg-[#c0ffa5] text-[#004227]`), y botón outline redondeado *"Cancelar / Cerrar"*.
+  - **Banners de Estado y Recuperación**: Rediseñados como tarjetas suaves `rounded-2xl` con bordes nítidos (esmeralda para autorizados SRI, ámbar para pendientes y rose para cancelados) y botones píldora.
+  - **Navegación Móvil por Pestañas**: Pestañas redondeadas tipo cápsula (`bg-slate-100 rounded-2xl p-1.5`) con badges mint y contadores dinámicos.
+  - **Ficha de Cliente y Ubicación (Card 1)**: Tarjeta `rounded-2xl p-5 sm:p-6 shadow-none` con icono `User` en verde esmeralda. Buscador con botón `X` de limpieza rápida, botón de creación rápida en negro carbón `#1b1b1b`, ficha de cliente seleccionado en verde difuminado suave (`bg-[#e6f4ea] border border-[#ceead6]`) con tipografía semibold de alta legibilidad sin duplicidades ni dobles bordes. Selector de Tipo de Documento dinámico con resaltado activo.
+  - **Catálogo y Carrito de Productos (Card 2)**: Encabezado minimalista sin líneas divisorias, buscador con autocompletado y botones píldora (*"Añadir"* y *"Crear"* rápido). Barra de descuento general en contenedor sutil `bg-slate-50/70 border border-slate-200/80 rounded-xl`, botón de vaciar carrito en rose suave y tabla de carrito en contenedor `rounded-2xl border border-slate-200/80` preservando la fila de producto unificada (SKU limpio, nombre bold, descripción editable en factura `h-7`, steppers y subtotales en fuente Inter `font-semibold`).
+  - **Datos Adicionales (Card 3)**: Desplegable en tarjeta limpia `rounded-2xl` para número de pedido y notas de comprobante.
+  - **Resumen e Impuestos (Columna Derecha)**: Tarjeta plana `rounded-2xl` con desglose de Subtotales (0%, 15%), Descuentos, IVA e importe Total en tipografía monospace de alto contraste `#1b1b1b`.
+  - **Medios de Pago y Cobro Dividido**: Selector de métodos en cuadrícula 4x con selección activa en verde menta Brevo (`bg-[#c0ffa5] text-[#004227] border-[#a2f07f] font-bold`), inputs numéricos `rounded-xl`, cajas de vuelto / cubierto y alertas suaves de consistencia.
+  - **Emisión SRI y Consola en Vivo**: Botón principal en píldora negra sólida `#1b1b1b` hover `bg-slate-800` y terminal de eventos de autorización con esquinas redondeadas `rounded-2xl bg-[#0c1017] border border-slate-800 text-emerald-400`.
+  - **Pantalla de Confirmación Post-Emisión (Paso 2)**:
+    - Tarjeta hero de confirmación con badge de éxito verde menta, secuencial en tipografía legible, métricas de comprobante y clave de acceso SRI.
+    - Tarjeta de entrega y notificaciones de correo con estados de envío al cliente y copia al emisor en tarjetas independientes, reintento rápido e input de copia adicional.
+    - Tarjeta de acciones rápidas con botón principal de "Impresión Directa", accesos rápidos a Ticket 80mm y Hoja A4 RIDE, descargas y navegación.
+    - Previsualización del ticket en tarjeta Brevo limpia con tipografía mono sobre `bg-slate-50/80 border border-slate-200/80 rounded-xl`.
+  - **Barra de Asistente Inferior (Wizard Bar)**: Barra fijada `sticky bottom-0 z-20 bg-white/95 backdrop-blur-sm border-t border-slate-200/90` con botones de navegación desktop y móvil con esquinas redondeadas.
+  - **Modales y Diálogos**: Todos los diálogos modales (Seguimiento de CxC, Creación Rápida de Cliente, Creación Rápida de Producto, Búsqueda Avanzada de Catálogo, Descuento de Ítem, Autorización de Supervisor y Confirmaciones de Seguridad) homogeneizados con contenedor `rounded-2xl bg-white border border-slate-200/90 shadow-xl` y botones píldora.
+- **Preservación Total de Lógica y Validaciones**: Conservadas al 100% todas las rutinas fiscales del SRI, desglose de pagos combinados, sincronización de stock y kardex, cálculos de IVA 15% / 0%, recuperación de clave de acceso y previsualización de impresión.
+- **Pruebas y Build**: 41 tests de comercio/SRI aprobados, compilación de producción limpia en 7.52s.
+
+
 
 
 
