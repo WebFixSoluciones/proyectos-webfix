@@ -138,12 +138,16 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
 - **Eliminación de Tarjetas de Métricas**: Removidas las 4 tarjetas KPI de la cabecera (Total Clientes, Con Línea de Crédito, Cupo Total Otorgado, Clientes Contado) para un diseño minimalista, despejado y enfocado en la tabla de datos.
 - **Eliminación del Submódulo Equipo**: Removido por completo el submódulo "Equipo" del menú lateral `Personas` en `Sidebar.jsx` y sus rutas de navegación en `App.jsx`.
 
+### 15. Eliminación de Métricas en Submódulo de Servicios (2026-09-24) — COMPLETADO
+- **Eliminación de Tarjetas de Métricas**: Removidas las 4 tarjetas KPI de la cabecera en `ServicesView.tsx` (Total Servicios, Servicios Activos, Servicios Digitales, Categorías Utilizadas).
+- **Diseño Minimalista**: La vista ahora inicia directamente en la barra de herramientas y filtros rápidos, despejando el espacio visual y enfocando la interacción en el catálogo y acciones de servicios.
+
 ## Últimos commits
 ```
+7e35b71 feat(servicios): eliminar metricas kpi de la cabecera en ServicesView
 b5c68d8 feat(personas): estandarizar espaciados, encabezado limpio sin kpis y eliminar submodulo equipo
 28547e8 feat(ventas): estandarizar titulos y tamano a Datos de Cliente y Productos y Servicios
 1d192aa fix(ventas): resolver ReferenceError de matchedTercero antes de inicializacion en TransactionForm
 83af250 feat(emision): pantalla de confirmacion, impresion directa y envio de correos para notas de venta y facturas
-0f3567c docs: actualizar AGENTS.md con fix de impresion de ride
 ```
 

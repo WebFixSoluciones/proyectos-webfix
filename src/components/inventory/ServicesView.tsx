@@ -1,10 +1,10 @@
 import { useState, useMemo } from 'react';
 import { 
-  Briefcase, Plus, Search, Tag, Globe, Clock, ShieldCheck, 
-  Layers, Edit2, Trash2, RefreshCw, AlertCircle, FolderOpen,
-  DollarSign, Sparkles, CheckCircle, SlidersHorizontal
+  Briefcase, Plus, Search, Tag, Clock, ShieldCheck, 
+  Layers, Edit2, Trash2, RefreshCw, AlertCircle,
+  DollarSign, Sparkles, SlidersHorizontal
 } from 'lucide-react';
-import { UiBox, UiCard, UiHeading, UiText } from '../ui/layout';
+import { UiBox, UiText } from '../ui/layout';
 import { UiButton, UiInput, UiSelect, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell } from '../ui/controls';
 import { Badge } from '../ui/badge';
 import { Product } from '../../modules/inventory/domain/schemas/product.schema';
@@ -36,14 +36,6 @@ export default function ServicesView({
   const [selectedKind, setSelectedKind] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ACTIVE' | 'INACTIVE' | 'ALL'>('ACTIVE');
 
-  // KPI calculations
-  const stats = useMemo(() => {
-    const total = services.length;
-    const active = services.filter(s => s.status !== 'INACTIVE').length;
-    const digital = services.filter(s => s.isDigital || s.serviceKind === 'DIGITAL').length;
-    const categoryIds = new Set(services.map(s => s.categoryId).filter(Boolean));
-    return { total, active, digital, categoriesCount: categoryIds.size };
-  }, [services]);
 
   // Filtered services
   const filteredServices = useMemo(() => {
@@ -99,49 +91,6 @@ export default function ServicesView({
   return (
     <UiBox className="w-full h-full flex flex-col space-y-5 animate-in fade-in duration-300">
       
-      {/* KPI Cards Grid */}
-      <UiBox className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <UiCard className="p-3.5 flex items-center gap-3 border border-[var(--gray-a4)] bg-[var(--color-panel-solid)]">
-          <UiBox style={{ borderRadius: "var(--radius-2)", backgroundColor: "var(--indigo-3)", color: "var(--indigo-11)" }} className="p-2 shrink-0">
-            <Briefcase size={18} />
-          </UiBox>
-          <UiBox>
-            <UiText size="1" color="gray" weight="medium">Total Servicios</UiText>
-            <UiHeading size="4" weight="bold" color="gray" highContrast>{stats.total}</UiHeading>
-          </UiBox>
-        </UiCard>
-
-        <UiCard className="p-3.5 flex items-center gap-3 border border-[var(--gray-a4)] bg-[var(--color-panel-solid)]">
-          <UiBox style={{ borderRadius: "var(--radius-2)", backgroundColor: "var(--green-3)", color: "var(--green-11)" }} className="p-2 shrink-0">
-            <CheckCircle size={18} />
-          </UiBox>
-          <UiBox>
-            <UiText size="1" color="gray" weight="medium">Servicios Activos</UiText>
-            <UiHeading size="4" weight="bold" color="gray" highContrast>{stats.active}</UiHeading>
-          </UiBox>
-        </UiCard>
-
-        <UiCard className="p-3.5 flex items-center gap-3 border border-[var(--gray-a4)] bg-[var(--color-panel-solid)]">
-          <UiBox style={{ borderRadius: "var(--radius-2)", backgroundColor: "var(--blue-3)", color: "var(--blue-11)" }} className="p-2 shrink-0">
-            <Globe size={18} />
-          </UiBox>
-          <UiBox>
-            <UiText size="1" color="gray" weight="medium">Servicios Digitales</UiText>
-            <UiHeading size="4" weight="bold" color="gray" highContrast>{stats.digital}</UiHeading>
-          </UiBox>
-        </UiCard>
-
-        <UiCard className="p-3.5 flex items-center gap-3 border border-[var(--gray-a4)] bg-[var(--color-panel-solid)]">
-          <UiBox style={{ borderRadius: "var(--radius-2)", backgroundColor: "var(--purple-3)", color: "var(--purple-11)" }} className="p-2 shrink-0">
-            <FolderOpen size={18} />
-          </UiBox>
-          <UiBox>
-            <UiText size="1" color="gray" weight="medium">Categorías Utilizadas</UiText>
-            <UiHeading size="4" weight="bold" color="gray" highContrast>{stats.categoriesCount}</UiHeading>
-          </UiBox>
-        </UiCard>
-      </UiBox>
-
       {/* Toolbar & Filters */}
       <UiBox className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
         <UiBox className="flex flex-wrap items-center gap-2">
