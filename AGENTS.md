@@ -188,10 +188,9 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
   - **Al seleccionar**: Se transforma y permanece (`se quede`) con fondo azul sólido vibrante (`var(--accent-9)`), texto blanco brillante en negrita (`!text-white font-bold`) y chevron blanco.
 - **Ficha de Cliente Seleccionado en Verde Difuminado**:
   - Eliminado el fondo gris opaco (`var(--gray-2)`).
-  - Nuevo contenedor en verde difuminado suave (`bg-emerald-50/90 dark:bg-emerald-950/40 border-emerald-300/80`).
-  - Cabecera con píldora idéntica al diseño solicitado: `(✓) Registrado` con icono `CheckCircle2` y fondo verde pastel.
-  - Tipografía oscura de alto contraste (*letras más oscuras*): `text-emerald-950 dark:text-white font-extrabold` para Razón Social y RUC, y etiquetas verdes legibles en mayúsculas (`text-emerald-800`).
-- **Pruebas y Build**: 41 tests unitarios aprobados, compilación limpia de producción en 6.71s.
+  - Contenedor compacto en verde difuminado suave (`bg-[#e6f4ea] border border-[#ceead6] dark:bg-emerald-950/40 dark:border-emerald-800/60`).
+  - Letras negras de alta legibilidad (`text-black dark:text-white font-bold`) para los datos del cliente (Razón Social, RUC/CI, Teléfono/Correo), sin checks ni títulos adicionales.
+- **Pruebas y Build**: 41 tests unitarios aprobados, compilación limpia de producción en 5.52s.
 
 ## Últimos commits
 ```

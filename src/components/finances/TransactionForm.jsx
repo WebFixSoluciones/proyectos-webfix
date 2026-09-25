@@ -16,7 +16,7 @@ import { createThemedPortal as createPortal } from '../ui/themePortal';
 import { 
   X, Calculator, FileText, CheckCircle2, AlertTriangle, Sparkles, 
   Terminal, ShieldAlert, Download, Plus, Trash2, RefreshCw, ArrowLeft, ArrowRight, 
-  User, UserCheck, DollarSign, CreditCard, Layers, Search, Tag, Percent, ChevronDown, ShoppingCart,
+  User, DollarSign, CreditCard, Layers, Search, Tag, Percent, ChevronDown, ShoppingCart,
   Package, Printer, Mail, Send, Check, Clock, ExternalLink
 } from 'lucide-react';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, runTransaction } from '../../services/financeStore.js';
@@ -1868,47 +1868,22 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   )}
                 </UiBox>
 
-                {/* Client detail card (Green diffused background & dark text) */}
+                {/* Client detail card (extremely compact, green diffused background with black text) */}
                 {matchedTercero ? (
-                  <UiBox className="p-3 mb-2 rounded-lg bg-emerald-50/90 dark:bg-emerald-950/40 border border-emerald-300/80 dark:border-emerald-800/60 transition-colors">
-                    <UiBox className="flex items-center justify-between gap-2 mb-2 pb-1.5 border-b border-emerald-200/70 dark:border-emerald-800/40">
-                      <UiBox className="flex items-center gap-1.5">
-                        <UserCheck size={14} className="text-emerald-700 dark:text-emerald-400" />
-                        <span className="text-xs font-extrabold text-emerald-900 dark:text-emerald-200">
-                          {formData.type === 'ingreso' ? 'Datos de Cliente' : 'Datos de Proveedor'}
-                        </span>
-                      </UiBox>
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-200 text-[11px] font-bold border border-emerald-300 dark:border-emerald-700 shadow-none">
-                        <CheckCircle2 size={12} className="text-emerald-700 dark:text-emerald-400" />
-                        <span>Registrado</span>
-                      </span>
+                  <UiBox className="grid grid-cols-1 sm:grid-cols-3 gap-[10px] p-[8px] mb-[8px] rounded-md bg-[#e6f4ea] border border-[#ceead6] dark:bg-emerald-950/40 dark:border-emerald-800/60">
+                    <UiBox>
+                      <UiText as="p" size="1" weight="bold" className="text-gray-600 dark:text-gray-300">Razón Social</UiText>
+                      <UiText as="p" weight="bold" size="1" className="truncate text-black dark:text-white font-bold">{matchedTercero.name}</UiText>
                     </UiBox>
-
-                    <UiBox className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
-                      <UiBox className="min-w-0">
-                        <span className="block text-[10px] font-bold uppercase tracking-wider text-emerald-800/80 dark:text-emerald-400/90 mb-0.5">
-                          Razón Social / Nombre
-                        </span>
-                        <p className="font-extrabold text-sm text-emerald-950 dark:text-emerald-100 truncate" title={matchedTercero.name}>
-                          {matchedTercero.name}
-                        </p>
-                      </UiBox>
-                      <UiBox className="min-w-0">
-                        <span className="block text-[10px] font-bold uppercase tracking-wider text-emerald-800/80 dark:text-emerald-400/90 mb-0.5">
-                          RUC / Cédula
-                        </span>
-                        <p className="font-bold font-mono text-xs text-emerald-950 dark:text-emerald-100">
-                          {matchedTercero.ruc}
-                        </p>
-                      </UiBox>
-                      <UiBox className="min-w-0">
-                        <span className="block text-[10px] font-bold uppercase tracking-wider text-emerald-800/80 dark:text-emerald-400/90 mb-0.5">
-                          Contacto
-                        </span>
-                        <p className="font-semibold text-xs text-emerald-900 dark:text-emerald-200 truncate" title={`${matchedTercero.telefono || 'S/N'} ${matchedTercero.email ? `| ${matchedTercero.email}` : ''}`}>
-                          {matchedTercero.telefono || 'S/N'} {matchedTercero.email ? `• ${matchedTercero.email}` : ''}
-                        </p>
-                      </UiBox>
+                    <UiBox>
+                      <UiText as="p" size="1" weight="bold" className="text-gray-600 dark:text-gray-300">RUC / CI</UiText>
+                      <UiText as="p" weight="bold" size="1" className="text-black dark:text-white font-bold font-mono">{matchedTercero.ruc}</UiText>
+                    </UiBox>
+                    <UiBox>
+                      <UiText as="p" size="1" weight="bold" className="text-gray-600 dark:text-gray-300">Teléfono / Correo</UiText>
+                      <UiText as="p" weight="bold" size="1" className="truncate text-black dark:text-white font-bold">
+                        {matchedTercero.telefono || 'S/N'} {matchedTercero.email ? `| ${matchedTercero.email}` : ''}
+                      </UiText>
                     </UiBox>
                   </UiBox>
                 ) : (
