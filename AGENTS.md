@@ -622,6 +622,22 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
   - Añadido scroll suave automático hacia la cabecera al pasar al Paso 2 para visualización inmediata del comprobante e impresión.
 - **Pruebas y Build**: 45 tests unitarios aprobados (`npm test`), compilación de producción limpia en 7.61s (`npm run build`).
 
+### 50. Filtro de Facturas Electrónicas y Notas de Venta en Historial de Comprobantes (2026-09-25) — COMPLETADO
+- **Selector de Tipo de Comprobante en Barra de Herramientas (`TransactionsView.jsx`)**:
+  - Incorporado selector `UiSelect` estilizado en el toolbar junto al buscador (`Mes: Todos`, `Año: Todos`) cuando la vista está en Historial de Ventas (`forcedDocType="ventas_resumen"`) o Historial de Compras (`forcedDocType="compras_resumen"`).
+  - Opciones claras y legibles:
+    - **`Comprobante: Todos`**: Visualiza la totalidad de comprobantes de ventas o compras.
+    - **`Facturas Electrónicas`**: Filtra estrictamente comprobantes emitidos ante el SRI con clave de acceso/factura electrónica.
+    - **`Notas de Venta`**: Filtra exclusivamente comprobantes internos / notas de venta (régimen RIMPE Negocio Popular o comprobantes simplificados).
+    - En compras, se añade además la opción **`Liquidaciones`** (`liquidacion`).
+- **Pestaña Nativa en Pestañas Generales SRI (`docTypeTabs`)**:
+  - Añadida la pestaña `{ id: 'nota_venta', label: 'Notas de Venta' }` a la barra general de comprobantes para consistencia en todas las vistas de auditoría y reportes.
+- **Sincronización Reactiva de Contadores y Búsqueda Combinada**:
+  - El contador dinámico del encabezado (`sortedFiltered.length`) refleja al instante la cantidad exacta de documentos según el tipo seleccionado.
+  - El filtro coexiste armoniosamente con la búsqueda por texto (nombre, RUC, número), filtro de mes y filtro de año.
+- **Pruebas y Build**: 46 tests unitarios aprobados (`npm test`), incluyendo prueba de filtrado de comprobantes en `tests/commerce.test.mjs`, compilación de producción exitosa en 11.34s (`npm run build`).
+
+
 
 
 

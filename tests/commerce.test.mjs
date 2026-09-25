@@ -461,5 +461,41 @@ test('nota de venta email sends internal receipt notification without requiring 
   assert.ok(!sent[0].html.includes('Clave de Acceso:'));
 });
 
+test('sales history filters correctly distinguish facturas electronicas and notas de venta', () => {
+  const transactions = [
+    { id: 'tx-1', type: 'ingreso', documentType: 'factura', documentNumber: '001-001-000000100', total: 100 },
+    { id: 'tx-2', type: 'ingreso', documentType: 'nota_venta', documentNumber: '001-001-000000001', total: 25 },
+    { id: 'tx-3', type: 'ingreso', documentType: 'factura', documentNumber: '001-001-000000101', total: 75 },
+    { id: 'tx-4', type: 'ingreso', documentType: 'nota_venta', documentNumber: '001-001-000000002', total: 50 },
+    { id: 'tx-5', type: 'egreso', documentType: 'factura', documentNumber: '002-001-000000500', total: 200 }
+  ];
+
+  function filterSales(list, subDocTypeFilter = 'all') {
+    return list.filter(tx => {
+      const docType = tx.documentType || 'factura';
+      const matchesDocType = tx.type === 'ingreso' && (docType === 'factura' || docType === 'nota_venta');
+      if (!matchesDocType) return false;
+
+      if (subDocTypeFilter !== 'all') {
+        const currentDocType = tx.documentType || (tx.type === 'ingreso' ? 'factura' : '');
+        if (subDocTypeFilter === 'factura') return currentDocType === 'factura';
+        if (subDocTypeFilter === 'nota_venta') return currentDocType === 'nota_venta';
+      }
+      return true;
+    });
+  }
+
+  const allSales = filterSales(transactions, 'all');
+  assert.equal(allSales.length, 4);
+
+  const facturasOnly = filterSales(transactions, 'factura');
+  assert.equal(facturasOnly.length, 2);
+  assert.deepEqual(facturasOnly.map(f => f.id), ['tx-1', 'tx-3']);
+
+  const notasVentaOnly = filterSales(transactions, 'nota_venta');
+  assert.equal(notasVentaOnly.length, 2);
+  assert.deepEqual(notasVentaOnly.map(n => n.id), ['tx-2', 'tx-4']);
+});
+
 
 

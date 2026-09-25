@@ -22,6 +22,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState(forcedType || 'all');
   const [filterDocType, setFilterDocType] = useState(forcedDocType || 'all'); // Filtro por Tipo de Comprobante SRI
+  const [subDocTypeFilter, setSubDocTypeFilter] = useState('all'); // Filtro específico: Facturas vs Notas de Venta
   const [filterMonth, setFilterMonth] = useState('all');
   const [filterYear, setFilterYear] = useState('all');
 
@@ -29,6 +30,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
     if (forcedDocType) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setFilterDocType(forcedDocType);
+      setSubDocTypeFilter('all');
     }
       
   }, [forcedDocType]);
@@ -115,11 +117,27 @@ export default function TransactionsView({ transactions, thirdParties, showToast
     if (filterDocType === 'all') {
       matchesDocType = true;
     } else if (filterDocType === 'ventas_resumen') {
-      matchesDocType = tx.type === 'ingreso' && (tx.documentType === 'factura' || tx.documentType === 'nota_venta');
+      const docType = tx.documentType || 'factura';
+      matchesDocType = tx.type === 'ingreso' && (docType === 'factura' || docType === 'nota_venta');
     } else if (filterDocType === 'compras_resumen') {
-      matchesDocType = tx.type === 'egreso' && (tx.documentType === 'factura' || tx.documentType === 'nota_venta' || tx.documentType === 'liquidacion');
+      const docType = tx.documentType || 'factura';
+      matchesDocType = tx.type === 'egreso' && (docType === 'factura' || docType === 'nota_venta' || docType === 'liquidacion');
     } else {
       matchesDocType = tx.documentType === filterDocType;
+    }
+
+    let matchesSubDocType = true;
+    if (subDocTypeFilter !== 'all') {
+      const currentDocType = tx.documentType || (tx.type === 'ingreso' ? 'factura' : '');
+      if (subDocTypeFilter === 'factura') {
+        matchesSubDocType = currentDocType === 'factura';
+      } else if (subDocTypeFilter === 'nota_venta') {
+        matchesSubDocType = currentDocType === 'nota_venta';
+      } else if (subDocTypeFilter === 'liquidacion') {
+        matchesSubDocType = currentDocType === 'liquidacion';
+      } else {
+        matchesSubDocType = currentDocType === subDocTypeFilter;
+      }
     }
     
     let matchesMonth = true;
@@ -130,7 +148,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
       if (filterYear !== 'all') matchesYear = d.getFullYear().toString() === filterYear;
     }
 
-    return matchesSearch && matchesType && matchesDocType && matchesMonth && matchesYear;
+    return matchesSearch && matchesType && matchesDocType && matchesSubDocType && matchesMonth && matchesYear;
   });
 
   const sortedFiltered = [...filtered].sort((a, b) => {
@@ -515,6 +533,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
   const docTypeTabs = [
     { id: 'all', label: 'Todos' },
     { id: 'factura', label: 'Facturas' },
+    { id: 'nota_venta', label: 'Notas de Venta' },
     { id: 'retencion', label: 'Retenciones' },
     { id: 'nota_credito', label: 'N. Crédito' },
     { id: 'nota_debito', label: 'N. Débito' },
@@ -687,6 +706,23 @@ export default function TransactionsView({ transactions, thirdParties, showToast
               size="2"
             />
           </div>
+
+          {(forcedDocType === 'ventas_resumen' || forcedDocType === 'compras_resumen') && (
+            <UiSelect
+              value={subDocTypeFilter} 
+              onChange={e => setSubDocTypeFilter(e.target.value)} 
+              size="2"
+              color="gray"
+              className="cursor-pointer"
+            >
+              <option value="all">Comprobante: Todos</option>
+              <option value="factura">{forcedDocType === 'ventas_resumen' ? 'Facturas Electrónicas' : 'Facturas'}</option>
+              <option value="nota_venta">Notas de Venta</option>
+              {forcedDocType === 'compras_resumen' && (
+                <option value="liquidacion">Liquidaciones</option>
+              )}
+            </UiSelect>
+          )}
 
           {!forcedType && (
             <UiSelect
