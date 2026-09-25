@@ -225,13 +225,17 @@ export function fechaSRI(f) {
   return f;
 }
 
-// Mapea la forma de pago interna al código oficial del SRI
+// Mapea la forma de pago interna al código oficial del SRI (Tabla 24: Formas de Pago SRI)
 export function mapearFormaPagoSRI(method) {
-  const m = String(method || '').toLowerCase();
-  if (m === 'tarjeta_credito' || m === 'credito' || m === 'tarjeta') return '19';
-  if (m === 'tarjeta_debito' || m === 'debito') return '16';
-  if (m === 'transferencia' || m === 'banco' || m === 'deposito' || m === 'cheque') return '20';
-  if (m === 'endoso' || m === 'compensacion') return '15';
+  const m = String(method || '').toLowerCase().trim();
+  if (m === 'tarjeta_credito' || m === 'tarjeta') return '19'; // Tarjeta de crédito
+  if (m === 'tarjeta_debito' || m === 'debito') return '16';   // Tarjeta de débito
+  if (m === 'transferencia' || m === 'banco' || m === 'deposito' || m === 'cheque') return '20'; // Otros con utilización del sistema financiero
+  if (m === 'cruce_cuentas' || m === 'compensacion') return '15'; // Compensación de deudas
+  if (m === 'endoso') return '21'; // Endoso de títulos
+  if (m === 'dinero_electronico') return '17'; // Dinero electrónico
+  if (m === 'tarjeta_prepago') return '18'; // Tarjeta prepago
+  if (m === 'credito' || m === 'credito_directo') return '20'; // Otros con utilización del sistema financiero (crédito comercial)
   return '01'; // Sin utilización del sistema financiero (Efectivo)
 }
 
@@ -344,11 +348,23 @@ export function generarFacturaXML(emisorConfig, facturaData, terceroData, items 
     <propina>0.00</propina>
     <importeTotal>${importeTotal.toFixed(2)}</importeTotal>
     <moneda>DOLAR</moneda>
-    <pagos>
+    <pagos>${(() => {
+      if (facturaData.paymentsBreakdown) {
+        const valid = Object.entries(facturaData.paymentsBreakdown).filter(([_, m]) => Number(m) > 0);
+        if (valid.length > 0) {
+          return valid.map(([metodo, monto]) => `
+      <pago>
+        <formaPago>${mapearFormaPagoSRI(metodo)}</formaPago>
+        <total>${round2(monto).toFixed(2)}</total>
+      </pago>`).join('');
+        }
+      }
+      return `
       <pago>
         <formaPago>${mapearFormaPagoSRI(facturaData.paymentMethod)}</formaPago>
         <total>${importeTotal.toFixed(2)}</total>
-      </pago>
+      </pago>`;
+    })()}
     </pagos>
   </infoFactura>
   <detalles>${detallesXml}

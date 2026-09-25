@@ -3569,7 +3569,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                           {(() => {
                             const effectivePdf = (tx.pdfUrl && !tx.pdfUrl.includes('srienlinea.sri.gob.ec'))
                               ? tx.pdfUrl
-                              : (tx.claveAcceso ? `/public/ride?claveAcceso=${tx.claveAcceso}&tenantId=${appId || ''}` : null);
+                              : (tx.claveAcceso ? `/public/ride?txId=${tx.id}&claveAcceso=${tx.claveAcceso}&tenantId=${appId || ''}` : null);
 
                             return effectivePdf ? (
                               <a 

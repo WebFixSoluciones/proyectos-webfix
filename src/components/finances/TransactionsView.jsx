@@ -364,7 +364,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
 
       const effectivePdf = (emailModalTx.pdfUrl && !emailModalTx.pdfUrl.includes('srienlinea.sri.gob.ec'))
         ? emailModalTx.pdfUrl
-        : (emailModalTx.claveAcceso ? `/#/public/ride?claveAcceso=${emailModalTx.claveAcceso}&tenantId=${appId || ''}` : '');
+        : (emailModalTx.claveAcceso ? `/#/public/ride?txId=${emailModalTx.id}&claveAcceso=${emailModalTx.claveAcceso}&tenantId=${appId || ''}` : '');
 
       const emailPayload = {
         smtpHost: configData.smtpHost,
@@ -746,7 +746,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                       {(() => {
                         const effectivePdf = (tx.pdfUrl && !tx.pdfUrl.includes('srienlinea.sri.gob.ec'))
                           ? tx.pdfUrl
-                          : (tx.claveAcceso ? `/#/public/ride?claveAcceso=${tx.claveAcceso}&tenantId=${appId || ''}` : null);
+                          : (tx.claveAcceso ? `/#/public/ride?txId=${tx.id}&claveAcceso=${tx.claveAcceso}&tenantId=${appId || ''}` : null);
 
                         return effectivePdf ? (
                           <UiButton

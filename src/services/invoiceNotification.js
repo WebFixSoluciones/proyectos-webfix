@@ -51,7 +51,7 @@ export async function notifyAuthorizedInvoice({ db, appId, document, customer, c
     ? document.pdfUrl
     : isNotaVenta
       ? `/#/public/ride?txId=${encodeURIComponent(document.id)}&tenantId=${encodeURIComponent(appId)}`
-      : `/#/public/ride?claveAcceso=${encodeURIComponent(document.claveAcceso || '')}&tenantId=${encodeURIComponent(appId)}`;
+      : `/#/public/ride?txId=${encodeURIComponent(document.id)}&claveAcceso=${encodeURIComponent(document.claveAcceso || '')}&tenantId=${encodeURIComponent(appId)}`;
   const rawXml = isNotaVenta ? '' : (document.xmlAutorizado || document.xml || (typeof document.xmlUrl === 'string' && document.xmlUrl.startsWith('data:') ? document.xmlUrl : ''));
   const payload = {
     smtpHost: settings.smtpHost, smtpPort: settings.smtpPort || (settings.smtpSecure ? 465 : 587),

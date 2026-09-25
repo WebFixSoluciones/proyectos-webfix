@@ -3,6 +3,30 @@ import { roundMoney } from './paymentModel.js';
 import { registrarAuditoria } from './auditService.js';
 import { getAppId } from '../firebase.js';
 
+export function parsearFecha(fechaStr) {
+  if (!fechaStr) return new Date();
+  if (fechaStr instanceof Date) {
+    return isNaN(fechaStr.getTime()) ? new Date() : fechaStr;
+  }
+  if (typeof fechaStr === 'string') {
+    const trimmed = fechaStr.trim();
+    // DD/MM/YYYY o DD-MM-YYYY
+    const dmy = trimmed.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})(.*)$/);
+    if (dmy) {
+      const day = dmy[1].padStart(2, '0');
+      const month = dmy[2].padStart(2, '0');
+      const year = dmy[3];
+      const rest = dmy[4] ? dmy[4].trim() : 'T12:00:00';
+      const iso = `${year}-${month}-${day}${rest.startsWith('T') || rest.startsWith(' ') ? rest.trim() : 'T12:00:00'}`;
+      const d = new Date(iso);
+      if (!isNaN(d.getTime())) return d;
+    }
+    const standard = new Date(trimmed);
+    if (!isNaN(standard.getTime())) return standard;
+  }
+  return new Date();
+}
+
 function mapearMetodoPago(metodo) {
   const mapa = {
     'efectivo': 'efectivo',
@@ -10,8 +34,8 @@ function mapearMetodoPago(metodo) {
     'tarjeta': 'tarjeta_credito',
     'tarjeta_credito': 'tarjeta_credito',
     'tarjeta_debito': 'tarjeta_debito',
-    'credito': 'efectivo',
-    'combinado': 'efectivo',
+    'credito': 'credito',
+    'combinado': 'combinado',
     'cruce_cuentas': 'cruce_cuentas',
     'cheque': 'cheque',
   };
@@ -19,11 +43,11 @@ function mapearMetodoPago(metodo) {
 }
 
 function mapearVentaAMovimiento(venta) {
-  const fecha = venta.date ? new Date(venta.date) : new Date();
+  const fecha = parsearFecha(venta.date);
   return {
     tipo: 'ingreso',
     fecha: fecha,
-    fechaVencimiento: venta.fechaVencimiento ? new Date(venta.fechaVencimiento) : null,
+    fechaVencimiento: venta.fechaVencimiento ? parsearFecha(venta.fechaVencimiento) : null,
     monto: Number(venta.total) || 0,
     metodoPago: mapearMetodoPago(venta.paymentMethod),
     documento: {
@@ -64,11 +88,11 @@ function mapearVentaAMovimiento(venta) {
 }
 
 function mapearCompraAMovimiento(compra) {
-  const fecha = compra.date ? new Date(compra.date) : new Date();
+  const fecha = parsearFecha(compra.date);
   return {
     tipo: 'egreso',
     fecha: fecha,
-    fechaVencimiento: compra.fechaVencimiento ? new Date(compra.fechaVencimiento) : null,
+    fechaVencimiento: compra.fechaVencimiento ? parsearFecha(compra.fechaVencimiento) : null,
     monto: Number(compra.total) || 0,
     metodoPago: mapearMetodoPago(compra.paymentMethod),
     documento: {
@@ -134,7 +158,7 @@ async function sincronizarDocumento(data, db, usuario, venta, api = firestore) {
     if (paid > total + 0.01) throw new Error('El total no puede ser inferior a los abonos ya registrados.');
     const saldoPendiente = Math.max(0, roundMoney(total - paid));
     const estado = previous?.estado === 'anulado' ? 'anulado' : saldoPendiente === 0 ? 'pagado' : paid > 0 ? 'parcial' : 'pendiente';
-    const factura = { tipo: data.documentType || 'factura', numero: data.documentNumber || '', claveAcceso: data.claveAcceso || null, fecha: movData.fecha, fechaVencimiento: data.creditDueDate ? new Date(data.creditDueDate + 'T12:00:00') : movData.fechaVencimiento, montoTotal: total, baseImponible: Number(data.baseImponible || 0), iva: Number(data.ivaValor || 0), retencionFuente: Number(data.retencionFuente || 0), retencionIva: Number(data.retencionIva || 0) };
+    const factura = { tipo: data.documentType || 'factura', numero: data.documentNumber || '', claveAcceso: data.claveAcceso || null, fecha: movData.fecha, fechaVencimiento: data.creditDueDate ? parsearFecha(data.creditDueDate) : movData.fechaVencimiento, montoTotal: total, baseImponible: Number(data.baseImponible || 0), iva: Number(data.ivaValor || 0), retencionFuente: Number(data.retencionFuente || 0), retencionIva: Number(data.retencionIva || 0) };
     tx.set(linkedRef, { tenantId: getAppId(), movimientoId: movementId, tercero: movData.tercero, factura, abonos, saldoPendiente, estado, notas: data.notas || '', creadoEn: previous?.creadoEn || serverTimestamp(), actualizadoEn: serverTimestamp() }, { merge: true });
     tx.set(movementRef, { ...movData, monto: total, pagos: abonos, saldoPendiente, estado, creadoPor: user.uid || '', creadoEn: movement.data()?.creadoEn || serverTimestamp(), actualizadoEn: serverTimestamp() }, { merge: true });
 

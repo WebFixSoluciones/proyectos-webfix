@@ -8,6 +8,7 @@ service cloud.firestore {
         && request.auth.token.firebase.sign_in_provider == 'password';
     }
 
+    // Superadmin raíz (por correo) o por rol verificado en colección users
     function esSuperAdmin() {
       return request.auth != null 
         && (request.auth.token.email == 'aurresta@webfixsoluciones.net' 
@@ -15,85 +16,114 @@ service cloud.firestore {
                 && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'superadmin'));
     }
 
+    // Valida si el usuario autenticado pertenece a un tenant determinado
+    function userBelongsToTenant(tenantId) {
+      return esPersonalAutorizado() && (
+        esSuperAdmin() ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.tenantId == tenantId)
+      );
+    }
+
     // 1. Sandbox de Inquilinos (Aislamiento Multi-tenant)
     match /artifacts/{appId}/public/data/finances_transactions/{docId} {
-      allow read: if true;
-      allow write: if esPersonalAutorizado() && (
-        esSuperAdmin() || 
-        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.tenantId == appId)
-      );
+      // Permitir get de un documento individual para el visor RIDE público con id/clave
+      allow get: if true;
+      // Listado permitido solo para personal del tenant, superadmin, o consulta pública unitaria
+      allow list: if userBelongsToTenant(appId) || (request.query.limit <= 1);
+      // Escritura restringida estrictamente al tenant correspondiente o superadmin
+      allow write: if userBelongsToTenant(appId);
     }
 
+    // Configuración fiscal y certificados digitales (.p12, contraseñas, SMTP)
+    // NUNCA pública: sólo accesible por el personal autorizado del tenant o superadmin
     match /artifacts/{appId}/public/data/finances_settings/config {
-      allow read: if true;
-      allow write: if esPersonalAutorizado() && (
-        esSuperAdmin() || 
-        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.tenantId == appId)
-      );
+      allow read, write: if userBelongsToTenant(appId);
     }
 
+    // Resto de datos del tenant (inventario, cotizaciones, ajustes)
     match /artifacts/{appId}/public/data/{document=**} {
-      allow read, write: if esPersonalAutorizado() && (
-        esSuperAdmin() || 
-        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.tenantId == appId)
-      );
+      allow read, write: if userBelongsToTenant(appId);
     }
 
     // Colecciones del Módulo de Control Financiero (fin_*)
+    // Aislamiento multi-tenant estricto: cada documento pertenece a un tenantId
+    function canAccessFinDocument() {
+      return esSuperAdmin() || (
+        esPersonalAutorizado() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) && (
+          (resource != null && 'tenantId' in resource.data && resource.data.tenantId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.tenantId) ||
+          (request.resource != null && 'tenantId' in request.resource.data && request.resource.data.tenantId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.tenantId)
+        )
+      );
+    }
+
     match /fin_movimientos/{id} {
-      allow read, write: if esPersonalAutorizado();
+      allow read, write: if canAccessFinDocument();
     }
     match /fin_movimientos_bancarios/{id} {
-      allow read, write: if esPersonalAutorizado();
+      allow read, write: if canAccessFinDocument();
     }
     match /fin_bancos/{id} {
-      allow read, write: if esPersonalAutorizado();
+      allow read, write: if canAccessFinDocument();
     }
     match /fin_tarjetas/{id} {
-      allow read, write: if esPersonalAutorizado();
+      allow read, write: if canAccessFinDocument();
     }
     match /fin_consumos_tarjeta/{id} {
-      allow read, write: if esPersonalAutorizado();
+      allow read, write: if canAccessFinDocument();
     }
     match /fin_prestamos/{id} {
-      allow read, write: if esPersonalAutorizado();
+      allow read, write: if canAccessFinDocument();
     }
     match /fin_capturas/{id} {
-      allow read, write: if esPersonalAutorizado();
+      allow read, write: if canAccessFinDocument();
     }
     match /fin_cuentas/{id} {
-      allow read, write: if esPersonalAutorizado();
+      allow read, write: if canAccessFinDocument();
     }
     match /fin_centros_costo/{id} {
-      allow read, write: if esPersonalAutorizado();
+      allow read, write: if canAccessFinDocument();
     }
     match /fin_asientos/{id} {
-      allow read, write: if esPersonalAutorizado();
+      allow read, write: if canAccessFinDocument();
     }
     match /fin_auditoria/{id} {
-      allow read, write: if esPersonalAutorizado();
+      allow read, write: if canAccessFinDocument();
     }
     match /fin_cxc/{id} {
-      allow read, write: if esPersonalAutorizado();
+      allow read, write: if canAccessFinDocument();
     }
     match /fin_cxp/{id} {
-      allow read, write: if esPersonalAutorizado();
+      allow read, write: if canAccessFinDocument();
     }
 
-    // 2. Colección de Usuarios
+    // 2. Colección de Usuarios (Cierre de escalada de privilegios)
     match /users/{uid} {
-      allow read, write: if (request.auth != null && request.auth.uid == uid) || esSuperAdmin();
+      allow read: if (request.auth != null && request.auth.uid == uid) || esSuperAdmin();
+      // Un usuario solo puede crearse a sí mismo sin auto-asignarse rol 'superadmin'
+      allow create: if esSuperAdmin() || (
+        request.auth != null && request.auth.uid == uid &&
+        (!('role' in request.resource.data) || request.resource.data.role != 'superadmin')
+      );
+      // Un usuario solo puede actualizar su propio perfil sin modificar su 'role' a superadmin ni cambiar su 'tenantId'
+      allow update: if esSuperAdmin() || (
+        request.auth != null && request.auth.uid == uid &&
+        (!('role' in request.resource.data) || request.resource.data.role == resource.data.role) &&
+        (!('tenantId' in request.resource.data) || request.resource.data.tenantId == resource.data.tenantId)
+      );
+      allow delete: if esSuperAdmin();
     }
 
-    // 3. Colección de Inquilinos (Tenants)
+    // 3. Colección de Inquilinos (Tenants) - Aislamiento multi-tenant
     match /tenants/{tenantId} {
-      allow read, write: if request.auth != null;
+      allow read: if userBelongsToTenant(tenantId);
+      allow create: if request.auth != null;
+      allow update: if userBelongsToTenant(tenantId);
+      allow delete: if esSuperAdmin();
     }
 
-    // 4. Colección de Planes
+    // 4. Colección de Planes (Lectura pública para catálogo de suscripción en landing/portal)
     match /plans/{planId} {
       allow read: if true;
       allow write: if esSuperAdmin();
@@ -101,7 +131,17 @@ service cloud.firestore {
 
     // 5. Comprobantes de Transferencias Bancarias (Payment Vouchers)
     match /payment_vouchers/{voucherId} {
-      allow read, write: if request.auth != null;
+      allow create: if esPersonalAutorizado() && (
+        esSuperAdmin() ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         request.resource.data.tenantId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.tenantId)
+      );
+      allow read, update: if esSuperAdmin() || (
+        esPersonalAutorizado() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        resource.data.tenantId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.tenantId
+      );
+      allow delete: if esSuperAdmin();
     }
 
     // 6. Contact Leads desde la Landing Page

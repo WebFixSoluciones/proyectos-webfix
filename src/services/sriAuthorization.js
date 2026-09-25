@@ -21,8 +21,9 @@ export function parseSriAuthorization(responseXml, claveAcceso, Parser = DOMPars
 
 export function sriDocumentLinks(document, tenantId) {
   const clave = document.claveAcceso || '';
+  const txId = document.id || '';
   return {
-    ride: `${typeof location === 'undefined' ? '' : location.origin}/#/public/ride?claveAcceso=${encodeURIComponent(clave)}&tenantId=${encodeURIComponent(tenantId)}`,
+    ride: `${typeof location === 'undefined' ? '' : location.origin}/#/public/ride?${txId ? `txId=${encodeURIComponent(txId)}&` : ''}claveAcceso=${encodeURIComponent(clave)}&tenantId=${encodeURIComponent(tenantId)}`,
     xml: document.xmlAutorizado || document.xml || '',
     sri: 'https://srienlinea.sri.gob.ec/sri-en-linea/',
   };

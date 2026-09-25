@@ -203,7 +203,26 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
 - **Eliminación de Anidamiento en Suscripción (`BillingPortal.jsx`)**:
   - Desempaquetada la tarjeta redundante exterior que envolvía el catálogo de planes; los planes ahora se despliegan directamente en su grid con la barra de cambio de ciclo (Mensual / Anual -20%) limpia y alineada.
   - Removidas cabeceras duplicadas y eliminadas clases `border-b` manuales en `UiTableRow` de la tabla de historial de pagos.
-- **Pruebas y Build**: 41 tests unitarios aprobados, compilación limpia de producción en 8.60s.
+### 21. Fase 1: Blindaje Crítico de Seguridad Firestore y Correcciones Fiscales SRI (2026-09-24) — COMPLETADO
+- **Blindaje Total de Firestore Rules (`firestore.rules`)**:
+  - **Eliminación de Lecturas Mundiales en Configuración**: Suprimido `allow read: if true;` en `finances_settings/config`. Solo accesible por personal autenticado del tenant o superadmin, protegiendo certificados digitales `.p12`, contraseñas privadas y credenciales SMTP.
+  - **Protección de Transacciones Financieras**: Separado `allow get: if true;` (para consulta RIDE pública de comprobante individual por ID/clave) de `allow list:`, restringiendo listados de transacciones a usuarios del tenant o consultas unitarias (`limit <= 1`), impidiendo el raspado masivo de transacciones ajenas.
+  - **Aislamiento Multi-Tenant Estricto en Colecciones `fin_*`**: Todas las 13 colecciones financieras (`fin_movimientos`, `fin_bancos`, `fin_cxc`, `fin_cxp`, `fin_asientos`, etc.) validan que `tenantId` coincida con el usuario autenticado vía `userBelongsToTenant()`.
+  - **Cierre de Escalada de Privilegios (`/users/{uid}`)**: Reglas estrictas impiden que un usuario común se auto-asigne `role: 'superadmin'` o altere su `tenantId`.
+  - **Aislamiento en Inquilinos (`/tenants/{tenantId}`)**: Lectura y actualización restringida al tenant correspondiente o superadmin.
+  - **Validación Sintáctica Oficial**: Validado exitosamente con compilador oficial Firebase Security Rules (0 errores).
+- **Correcciones Fiscales y Visor RIDE (`PublicRideView.jsx`)**:
+  - **Segregación Precisa de IVA 12% vs 15%**: Desacoplado `rate === 12` de la base imponible del 15%. Cálculo independiente de `subtotal12` e `iva12`, renderizado dinámico en la tabla de totales cuando existan comprobantes con tarifa histórica del 12%.
+  - **Lectura Pública Resiliente**: Se eliminó la dependencia bloqueante de `finances_settings/config`, utilizando con prioridad `tx.emisorSnapshot` e ignorando de forma segura fallos de permisos sin sesión.
+- **Mapeo de Formas de Pago SRI (`sriService.js`)**:
+  - `cruce_cuentas` y `compensacion` mapeados a `'15'` (Compensación de deudas según Tabla 24 SRI).
+  - `credito` y `credito_directo` mapeados a `'20'` (Otros con utilización del sistema financiero - crédito comercial).
+  - Soporte de pagos desglosados en XML: generación de múltiples etiquetas `<pago>` según `paymentsBreakdown` con cuadre exacto al importe total.
+- **Normalización de Fechas Robusta (`integracionFinanzasService.js`)**:
+  - Creado `parsearFecha()` para soportar fechas en formato `DD/MM/YYYY`, `DD-MM-YYYY`, `YYYY-MM-DD` e ISO sin lanzar `Invalid Date` ni desfasar mes por día.
+- **Identificadores Seguros en Enlaces RIDE**:
+  - URLs en correos de notificación (`invoiceNotification.js`), enlaces del SRI (`sriAuthorization.js`), vistas POS (`PosView.jsx`) e historial de comprobantes (`TransactionsView.jsx`) ahora incorporan `txId`, asegurando acceso directo por documento `getDoc`.
+- **Pruebas y Build**: 45 tests unitarios aprobados (4 nuevos tests en `tests/phase1-security-fiscal.test.mjs`), compilación limpia de producción en 18.76s.
 
 ## Últimos commits
 ```

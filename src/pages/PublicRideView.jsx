@@ -3,7 +3,7 @@ import { invoiceDescription, invoiceLineAmounts } from '../services/invoiceLine'
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Printer, FileText, AlertCircle, RefreshCw } from 'lucide-react';
-import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { db, getAppId } from '../firebase';
 
 function numeroALetras(num) {
@@ -99,7 +99,8 @@ export default function PublicRideView() {
         if (!txData && claveAcceso) {
           const q = query(
             collection(db, 'artifacts', effectiveTenantId, 'public', 'data', 'finances_transactions'),
-            where('claveAcceso', '==', claveAcceso)
+            where('claveAcceso', '==', claveAcceso),
+            limit(1)
           );
           const querySnap = await getDocs(q);
           if (!querySnap.empty) {
@@ -115,12 +116,18 @@ export default function PublicRideView() {
 
         setTx(txData);
 
-        // 2. Cargar configuración de la empresa (Emisor)
-        const configSnap = await getDoc(
-          doc(db, 'artifacts', effectiveTenantId, 'public', 'data', 'finances_settings', 'config')
-        );
-        if (configSnap.exists()) {
-          setCompanyConfig(configSnap.data());
+        // 2. Cargar configuración de la empresa (Emisor) si no viene en el snapshot del documento
+        if (!txData.emisorSnapshot) {
+          try {
+            const configSnap = await getDoc(
+              doc(db, 'artifacts', effectiveTenantId, 'public', 'data', 'finances_settings', 'config')
+            );
+            if (configSnap.exists()) {
+              setCompanyConfig(configSnap.data());
+            }
+          } catch (configErr) {
+            console.warn('Configuración de emisor no disponible públicamente; usando snapshot del documento.', configErr);
+          }
         }
       } catch (err) {
         console.error('Error al cargar comprobante público:', err);
@@ -238,6 +245,7 @@ export default function PublicRideView() {
   const calculateTaxDetails = () => {
     const items = tx.items || [];
     let subtotal15 = 0;
+    let subtotal12 = 0;
     let subtotal5 = 0;
     let subtotal0 = 0;
     let subtotalNoObjeto = 0;
@@ -248,8 +256,10 @@ export default function PublicRideView() {
       items.forEach(item => {
         const { discount: itemDisc, base: lineBase, rate } = invoiceLineAmounts(item);
 
-        if (rate === 15 || rate === 12) {
+        if (rate === 15) {
           subtotal15 += lineBase;
+        } else if (rate === 12) {
+          subtotal12 += lineBase;
         } else if (rate === 5) {
           subtotal5 += lineBase;
         } else if (rate === 0) {
@@ -270,37 +280,54 @@ export default function PublicRideView() {
       });
     } else {
       const base = Number(tx.baseImponible) || 0;
-      if (Number(tx.ivaValor) > 0) {
-        subtotal15 = base;
+      const iva = Number(tx.ivaValor) || 0;
+      if (iva > 0) {
+        if (base > 0 && Math.abs(iva / base - 0.12) < 0.015) {
+          subtotal12 = base;
+        } else {
+          subtotal15 = base;
+        }
       } else {
         subtotal0 = base;
       }
       totalDiscount = Number(tx.descuentoValor) || 0;
     }
 
-    const subtotalSinImpuestos = subtotal15 + subtotal5 + subtotal0 + subtotalNoObjeto + subtotalExento;
-    const iva15 = subtotal15 * 0.15;
+    const subtotalSinImpuestos = subtotal15 + subtotal12 + subtotal5 + subtotal0 + subtotalNoObjeto + subtotalExento;
+    const calcIva15 = subtotal15 * 0.15;
+    const calcIva12 = subtotal12 * 0.12;
     const iva5 = subtotal5 * 0.05;
-    const finalIva15 = Math.abs(iva15 - Number(tx.ivaValor)) < 0.1 ? Number(tx.ivaValor) : iva15;
+
+    let iva15 = calcIva15;
+    let iva12 = calcIva12;
+    const txIva = Number(tx.ivaValor || 0);
+    if (subtotal12 === 0 && Math.abs(calcIva15 - txIva) < 0.1) {
+      iva15 = txIva;
+    } else if (subtotal15 === 0 && Math.abs(calcIva12 - txIva) < 0.1) {
+      iva12 = txIva;
+    }
 
     return {
       subtotal15,
+      subtotal12,
       subtotal5,
       subtotal0,
       subtotalNoObjeto,
       subtotalExento,
       subtotalSinImpuestos,
       totalDiscount,
-      iva15: finalIva15,
+      iva15,
+      iva12,
       iva5,
-      total: Number(tx.total) || (subtotalSinImpuestos + finalIva15 + iva5)
+      total: Number(tx.total) || (subtotalSinImpuestos + iva15 + iva12 + iva5)
     };
   };
   const taxDetails = calculateTaxDetails();
 
-  const hasIva15 = (Number(taxDetails.subtotal15) > 0) || (Number(taxDetails.iva15) > 0) || (Number(tx.ivaValor) > 0);
+  const hasIva15 = (Number(taxDetails.subtotal15) > 0) || (Number(taxDetails.iva15) > 0);
+  const hasIva12 = (Number(taxDetails.subtotal12) > 0) || (Number(taxDetails.iva12) > 0);
   const hasIva5 = (Number(taxDetails.subtotal5) > 0) || (Number(taxDetails.iva5) > 0);
-  const hasIva0 = (Number(taxDetails.subtotal0) > 0) || (!hasIva15 && !hasIva5 && Number(taxDetails.subtotalNoObjeto || 0) === 0 && Number(taxDetails.subtotalExento || 0) === 0);
+  const hasIva0 = (Number(taxDetails.subtotal0) > 0) || (!hasIva15 && !hasIva12 && !hasIva5 && Number(taxDetails.subtotalNoObjeto || 0) === 0 && Number(taxDetails.subtotalExento || 0) === 0);
   const hasNoObjeto = Number(taxDetails.subtotalNoObjeto) > 0;
   const hasExento = Number(taxDetails.subtotalExento) > 0;
   const hasDiscount = Number(taxDetails.totalDiscount) > 0 || Number(tx.descuentoValor) > 0;
@@ -670,6 +697,12 @@ export default function PublicRideView() {
                         <td className="px-2 py-0.5 font-bold">${Number(taxDetails.subtotal15 || 0).toFixed(2)}</td>
                       </tr>
                     )}
+                    {hasIva12 && (
+                      <tr>
+                        <td className="px-2 py-0.5 bg-surface-bg border-r border-border-strong text-left">Subtotal 12%</td>
+                        <td className="px-2 py-0.5 font-bold">${Number(taxDetails.subtotal12 || 0).toFixed(2)}</td>
+                      </tr>
+                    )}
                     {hasIva5 && (
                       <tr>
                         <td className="px-2 py-0.5 bg-surface-bg border-r border-border-strong text-left">Subtotal 5%</td>
@@ -716,13 +749,19 @@ export default function PublicRideView() {
                         <td className="px-2 py-0.5 font-bold">${Number(taxDetails.iva15 || tx.ivaValor || 0).toFixed(2)}</td>
                       </tr>
                     )}
+                    {hasIva12 && (
+                      <tr>
+                        <td className="px-2 py-0.5 bg-surface-bg border-r border-border-strong text-left">IVA 12%</td>
+                        <td className="px-2 py-0.5 font-bold">${Number(taxDetails.iva12 || 0).toFixed(2)}</td>
+                      </tr>
+                    )}
                     {hasIva5 && (
                       <tr>
                         <td className="px-2 py-0.5 bg-surface-bg border-r border-border-strong text-left">IVA 5%</td>
                         <td className="px-2 py-0.5 font-bold">${Number(taxDetails.iva5 || 0).toFixed(2)}</td>
                       </tr>
                     )}
-                    {!hasIva15 && !hasIva5 && (
+                    {!hasIva15 && !hasIva12 && !hasIva5 && (
                       <tr>
                         <td className="px-2 py-0.5 bg-surface-bg border-r border-border-strong text-left">IVA 0%</td>
                         <td className="px-2 py-0.5 font-bold">$0.00</td>
