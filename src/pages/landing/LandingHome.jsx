@@ -998,6 +998,9 @@ export default function LandingHome() {
                     </span>
                   </button>
                 </div>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-2 select-none">
+                  Precios en dólares estadounidenses (USD) + IVA aplicable en Ecuador
+                </p>
               </div>
             </div>
 
@@ -1155,11 +1158,14 @@ export default function LandingHome() {
             <div>
               {faqs.map((faq, index) => {
                 const isOpen = openFaqIndex === index;
+                const answerId = `faq-answer-${index}`;
                 return (
                   <div key={index}>
                     <button
                       type="button"
                       onClick={() => setOpenFaqIndex(isOpen ? null : index)}
+                      aria-expanded={isOpen}
+                      aria-controls={answerId}
                       className="w-full py-4 text-left flex items-center justify-between font-semibold text-base sm:text-lg text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-800 cursor-pointer group"
                     >
                       <span className="pr-4">{faq.q}</span>
@@ -1171,7 +1177,10 @@ export default function LandingHome() {
                       />
                     </button>
                     {isOpen && (
-                      <div className="text-slate-600 dark:text-slate-400 text-sm sm:text-base leading-relaxed py-3 border-b border-slate-200/80 dark:border-slate-800/80 animate-in fade-in duration-150">
+                      <div 
+                        id={answerId}
+                        className="text-slate-600 dark:text-slate-400 text-sm sm:text-base leading-relaxed py-3 border-b border-slate-200/80 dark:border-slate-800/80 animate-in fade-in duration-150"
+                      >
                         {faq.a}
                       </div>
                     )}
