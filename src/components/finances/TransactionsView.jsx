@@ -447,8 +447,99 @@ export default function TransactionsView({ transactions, thirdParties, showToast
     { id: 'liquidacion', label: 'Liquidaciones' }
   ];
 
+  const getHeaderTitle = () => {
+    if (isPreventaTab) return 'Historial de Preventas';
+    if (forcedDocType === 'ventas_resumen') return 'Historial de Ventas';
+    if (forcedDocType === 'compras_resumen') return 'Historial de Compras';
+    if (forcedDocType === 'nota_credito') return forcedType === 'egreso' ? 'Notas de Crédito (Compras)' : 'Notas de Crédito (Ventas)';
+    if (forcedDocType === 'nota_debito') return forcedType === 'egreso' ? 'Notas de Débito (Compras)' : 'Notas de Débito (Ventas)';
+    if (forcedDocType === 'retencion') return forcedType === 'egreso' ? 'Retenciones (Compras)' : 'Retenciones (Ventas)';
+    if (forcedDocType === 'liquidacion') return 'Liquidaciones de Compra';
+    return forcedType === 'egreso' ? 'Historial de Compras' : (forcedType === 'ingreso' ? 'Historial de Ventas' : 'Comprobantes y Transacciones');
+  };
+
+  const getRegisterLabel = () => {
+    if (isPreventaTab) return 'Preventa';
+    if (forcedDocType === 'ventas_resumen') return 'Venta';
+    if (forcedDocType === 'compras_resumen') return 'Compra';
+    if (forcedDocType) {
+      const match = docTypeTabs.find(t => t.id === forcedDocType);
+      return match ? match.label : forcedDocType;
+    }
+    return 'Comprobante';
+  };
+
+  const handleOpenRegister = () => {
+    if (isPreventaTab) {
+      onOpenForm({
+        id: '',
+        type: 'ingreso',
+        documentType: 'factura',
+        date: getEcuadorDateString(),
+        currency: 'USD',
+        baseImponible: 0,
+        ivaPorcentaje: 15,
+        ivaValor: 0,
+        retencionFuente: 0,
+        retencionIva: 0,
+        total: 0,
+        paymentMethod: 'transferencia',
+        paymentStatus: 'pendiente',
+        sriStatus: 'pendiente',
+        isPreventa: true,
+        deliveryStatus: 'pendiente',
+        items: []
+      });
+    } else if (forcedDocType) {
+      const defaultDocType = (forcedDocType === 'ventas_resumen' || forcedDocType === 'compras_resumen') ? 'factura' : forcedDocType;
+      const defaultType = forcedType || (forcedDocType === 'liquidacion' || forcedDocType === 'retencion' ? 'egreso' : 'ingreso');
+      onOpenForm({
+        id: '',
+        type: defaultType,
+        documentType: defaultDocType,
+        date: getEcuadorDateString(),
+        currency: 'USD',
+        baseImponible: 0,
+        ivaPorcentaje: 15,
+        ivaValor: 0,
+        retencionFuente: 0,
+        retencionIva: 0,
+        total: 0,
+        paymentMethod: 'transferencia',
+        paymentStatus: 'pendiente',
+        sriStatus: 'pendiente',
+        items: []
+      });
+    } else {
+      onOpenForm(null);
+    }
+  };
+
   return (
-    <UiBox {...{"className":"animate-in slide-in-from-bottom-4 duration-500 space-y-6"}}>
+    <UiBox className="animate-in fade-in duration-300 space-y-4 pb-8">
+      {/* Brevo Style Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1">
+        <div className="flex items-center gap-2.5">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+            {getHeaderTitle()}
+          </h1>
+          <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200/80">
+            {sortedFiltered.length}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleOpenRegister}
+            className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-[#1b1b1b] hover:bg-slate-800 rounded-full transition-colors cursor-pointer shadow-none"
+          >
+            <Plus size={14} /> 
+            <span>Registrar {getRegisterLabel()}</span>
+          </button>
+        </div>
+      </div>
+
       {/* DRAG AND DROP ZONE */}
       {(!forcedType || forcedType !== 'ingreso') && (
         <UiBox 
@@ -456,29 +547,32 @@ export default function TransactionsView({ transactions, thirdParties, showToast
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
-          {...mergeThemeProps({"style":{"border":"1px solid var(--gray-a6)","borderRadius":"var(--radius-3)"},"className":"relative p-6 flex flex-col items-center justify-center cursor-pointer overflow-hidden"}, {}, (isDragging ? {"style":{"backgroundColor":"var(--purple-3)"},"className":"scale-[1.01]"} : {"style":{"backgroundColor":"var(--color-panel-solid)"}}))}
+          className={`relative p-5 flex flex-col items-center justify-center cursor-pointer overflow-hidden border border-dashed rounded-2xl transition-all ${
+            isDragging 
+              ? 'border-indigo-400 bg-indigo-50/50 scale-[1.01]' 
+              : 'border-slate-200 hover:border-slate-300 bg-slate-50/50 hover:bg-slate-50'
+          }`}
         >
           <UiInput
             type="file" 
             ref={fileInputRef} 
             onChange={(e) => handleFileCapture(e.target.files[0])} 
             accept=".pdf,.png,.jpg,.jpeg,.xml" 
-            {...{"className":"hidden"}} 
+            className="hidden" 
           />
           
           {isAnalyzing ? (
-            <UiBox {...{"className":"flex flex-col items-center justify-center py-4 space-y-3"}}>
-              <UiBox {...{"style":{"borderRadius":"var(--radius-3)"},"className":"animate-spin h-8 w-8"}}></UiBox>
-              <UiText as="p" {...{"size":"1","weight":"bold","color":"purple","className":"animate-pulse"}}>Gemini IA está extrayendo información del comprobante...</UiText>
+            <UiBox className="flex flex-col items-center justify-center py-3 space-y-2">
+              <div className="animate-spin h-7 w-7 border-2 border-indigo-600 border-t-transparent rounded-full" />
+              <p className="text-xs font-bold text-indigo-600 animate-pulse">Gemini IA está extrayendo información del comprobante...</p>
             </UiBox>
           ) : (
-            <UiBox {...{"className":"flex flex-col items-center justify-center text-center space-y-2"}}>
-              <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--purple-3)","color":"var(--purple-12)"},"className":"p-3"}}>
-                <Sparkles size={24} />
-              </UiBox>
-              <div className="text-center">
-                <p className="text-xs font-bold text-slate-800">Cargar comprobante (PDF, XML, Imagen)</p>
+            <UiBox className="flex flex-col items-center justify-center text-center space-y-1.5 py-1">
+              <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100">
+                <Sparkles size={20} />
               </div>
+              <p className="text-xs font-bold text-slate-800">Cargar comprobante (PDF, XML, Imagen)</p>
+              <p className="text-[11px] text-slate-500">Arrastra tu archivo aquí o haz clic para seleccionarlo</p>
             </UiBox>
           )}
         </UiBox>
@@ -486,7 +580,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
 
       {/* TABS DE TIPO DE DOCUMENTO SRI */}
       {!forcedDocType && !isPreventaTab && (
-        <div className="inline-flex h-9 items-center justify-start p-1 gap-1 overflow-x-auto custom-scrollbar whitespace-nowrap mb-2 bg-slate-100 rounded-full border border-slate-200/80">
+        <div className="inline-flex h-9 items-center justify-start p-1 gap-1 overflow-x-auto custom-scrollbar whitespace-nowrap bg-slate-100 rounded-full border border-slate-200/80">
           {docTypeTabs.map(tab => {
             const isActive = filterDocType === tab.id;
             return (
@@ -506,83 +600,19 @@ export default function TransactionsView({ transactions, thirdParties, showToast
       )}
 
       {/* FILTROS Y BUSQUEDA */}
-      <UiBox {...{"className":"flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 mb-6"}}>
-        <UiBox>
-          <button
-            type="button"
-            onClick={() => {
-              if (isPreventaTab) {
-                onOpenForm({
-                  id: '',
-                  type: 'ingreso',
-                  documentType: 'factura',
-                  date: getEcuadorDateString(),
-                  currency: 'USD',
-                  baseImponible: 0,
-                  ivaPorcentaje: 15,
-                  ivaValor: 0,
-                  retencionFuente: 0,
-                  retencionIva: 0,
-                  total: 0,
-                  paymentMethod: 'transferencia',
-                  paymentStatus: 'pendiente',
-                  sriStatus: 'pendiente',
-                  isPreventa: true,
-                  deliveryStatus: 'pendiente',
-                  items: []
-                });
-              } else if (forcedDocType) {
-                const defaultDocType = (forcedDocType === 'ventas_resumen' || forcedDocType === 'compras_resumen') ? 'factura' : forcedDocType;
-                const defaultType = forcedType || (forcedDocType === 'liquidacion' || forcedDocType === 'retencion' ? 'egreso' : 'ingreso');
-                onOpenForm({
-                  id: '',
-                  type: defaultType,
-                  documentType: defaultDocType,
-                  date: getEcuadorDateString(),
-                  currency: 'USD',
-                  baseImponible: 0,
-                  ivaPorcentaje: 15,
-                  ivaValor: 0,
-                  retencionFuente: 0,
-                  retencionIva: 0,
-                  total: 0,
-                  paymentMethod: 'transferencia',
-                  paymentStatus: 'pendiente',
-                  sriStatus: 'pendiente',
-                  items: []
-                });
-              } else {
-                onOpenForm(null);
-              }
-            }}
-            className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-[#1b1b1b] hover:bg-slate-800 rounded-full transition-colors cursor-pointer w-full sm:w-auto shadow-none"
-          >
-            <Plus size={14} /> Registrar {
-              isPreventaTab
-                ? 'Preventa'
-                : (forcedDocType 
-                    ? (forcedDocType === 'ventas_resumen' 
-                        ? 'Venta Administrativa' 
-                        : (forcedDocType === 'compras_resumen'
-                            ? 'Compra'
-                            : (docTypeTabs.find(t => t.id === forcedDocType)?.label || forcedDocType))) 
-                    : 'Comprobante')
-            }
-          </button>
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 bg-white border border-slate-200/90 rounded-2xl">
+        <UiBox className="flex-1 max-w-md">
+          <UiInput
+            type="text" 
+            placeholder="Buscar por documento o tercero..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            iconPrefix={<Search size={14} className="text-slate-400" />}
+            size="2"
+          />
         </UiBox>
 
-        <UiBox className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
-          <UiBox className="w-full sm:w-64">
-            <UiInput
-              type="text" 
-              placeholder="Buscar documento o tercero..." 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              iconPrefix={<Search size={14} className="text-[var(--gray-10)]" />}
-              size="2"
-            />
-          </UiBox>
-
+        <UiBox className="flex flex-wrap items-center gap-2">
           {!forcedType && (
             <UiSelect
               value={filterType} 
@@ -623,63 +653,63 @@ export default function TransactionsView({ transactions, thirdParties, showToast
             ))}
           </UiSelect>
         </UiBox>
-      </UiBox>
+      </div>
 
       {/* TABLA DE COMPROBANTES */}
       <div className="border border-slate-200/90 rounded-2xl bg-white overflow-hidden">
         <UiBox className="overflow-x-auto custom-scrollbar">
           <UiTable className="w-full text-left whitespace-nowrap">
-            <UiTableHeader style={{ backgroundColor: "var(--gray-2)", color: "var(--gray-12)" }} className="select-none">
+            <UiTableHeader className="bg-slate-50/80 border-b border-slate-200/80 text-slate-500 uppercase tracking-wider text-[11px] select-none">
               <UiTableRow>
-                <UiTableHead className="px-6 py-3.5 cursor-pointer" onClick={() => handleSort('date')}>
+                <UiTableHead className="px-6 py-3.5 cursor-pointer font-semibold" onClick={() => handleSort('date')}>
                   <UiBox className="flex items-center gap-0.5">
                     Fecha {renderSortIcon('date')}
                   </UiBox>
                 </UiTableHead>
-                <UiTableHead className="px-6 py-3.5 cursor-pointer" onClick={() => handleSort('documentNumber')}>
+                <UiTableHead className="px-6 py-3.5 cursor-pointer font-semibold" onClick={() => handleSort('documentNumber')}>
                   <UiBox className="flex items-center gap-0.5">
                     Documento {renderSortIcon('documentNumber')}
                   </UiBox>
                 </UiTableHead>
-                <UiTableHead className="px-6 py-3.5 cursor-pointer" onClick={() => handleSort('thirdParty')}>
+                <UiTableHead className="px-6 py-3.5 cursor-pointer font-semibold" onClick={() => handleSort('thirdParty')}>
                   <UiBox className="flex items-center gap-0.5">
                     Tercero {renderSortIcon('thirdParty')}
                   </UiBox>
                 </UiTableHead>
-                <UiTableHead className="px-6 py-3.5 cursor-pointer" onClick={() => handleSort('total')}>
+                <UiTableHead className="px-6 py-3.5 cursor-pointer font-semibold" onClick={() => handleSort('total')}>
                   <UiBox className="flex items-center gap-0.5">
                     Total {renderSortIcon('total')}
                   </UiBox>
                 </UiTableHead>
-                <UiTableHead className="px-6 py-3.5">Estado SRI</UiTableHead>
-                {isPreventaTab && <UiTableHead className="px-6 py-3.5">Despacho</UiTableHead>}
-                <UiTableHead className="px-6 py-3.5 hidden sm:table-cell">Archivos</UiTableHead>
-                <UiTableHead className="px-6 py-3.5 text-right">Acciones</UiTableHead>
+                <UiTableHead className="px-6 py-3.5 font-semibold">Estado SRI</UiTableHead>
+                {isPreventaTab && <UiTableHead className="px-6 py-3.5 font-semibold">Despacho</UiTableHead>}
+                <UiTableHead className="px-6 py-3.5 font-semibold hidden sm:table-cell">Archivos</UiTableHead>
+                <UiTableHead className="px-6 py-3.5 font-semibold text-right">Acciones</UiTableHead>
               </UiTableRow>
             </UiTableHeader>
             <UiTableBody>
               {sortedFiltered.map(tx => (
-                <UiTableRow key={tx.id}>
+                <UiTableRow key={tx.id} className="hover:bg-slate-50/60 transition-colors">
                   <UiTableCell className="px-6 py-2.5">
-                    <UiBox style={{ color: "var(--gray-12)" }} className="leading-none">{tx.date}</UiBox>
+                    <div className="leading-none text-xs font-medium text-slate-900">{tx.date}</div>
                     {tx.time && (
-                      <UiBox style={{ color: "var(--gray-11)" }} className="text-xs leading-none mt-1.5">
+                      <div className="text-[11px] text-slate-400 leading-none mt-1">
                         {tx.time.substring(0, 5)}
-                      </UiBox>
+                      </div>
                     )}
                   </UiTableCell>
                   <UiTableCell className="px-6 py-2.5">
-                    <UiBox style={{ color: "var(--gray-12)" }} className="leading-none mb-1 text-xs font-medium">
+                    <div className="leading-none mb-1 text-xs font-semibold text-slate-800">
                       {getDocumentTypeLabel(tx.documentType, tx.type)}
-                    </UiBox>
-                    <UiBox style={{ fontFamily: "var(--code-font-family)", color: "var(--gray-12)" }} className="text-xs font-mono">
+                    </div>
+                    <div className="text-xs font-mono text-slate-500">
                       {tx.documentNumber || (tx.sriStatus === 'borrador' ? 'Borrador' : '-')}
-                    </UiBox>
+                    </div>
                   </UiTableCell>
-                  <UiTableCell style={{ color: "var(--gray-12)" }} className="px-6 py-2.5 truncate max-w-[200px]" title={getTransactionParty(tx)?.name}>
+                  <UiTableCell className="px-6 py-2.5 truncate max-w-[200px] text-xs font-medium text-slate-900" title={getTransactionParty(tx)?.name}>
                     {getTransactionParty(tx)?.name || 'Desconocido'}
                   </UiTableCell>
-                  <UiTableCell style={{ color: "var(--gray-12)", fontFamily: "var(--code-font-family)" }} className="px-6 py-2.5 font-medium">
+                  <UiTableCell className="px-6 py-2.5 font-semibold font-mono text-xs text-slate-900">
                     ${Number(tx.total || 0).toFixed(2)}
                   </UiTableCell>
                   <UiTableCell className="px-6 py-2.5">{getStatusBadge(tx.sriStatus, tx.documentType)}</UiTableCell>
@@ -835,7 +865,9 @@ export default function TransactionsView({ transactions, thirdParties, showToast
               ))}
               {sortedFiltered.length === 0 && (
                 <UiTableRow>
-                  <UiTableCell colSpan={isPreventaTab ? 8 : 7} {...{"style":{"color":"var(--gray-11)"},"className":"px-6 py-8 text-center italic"}}>No se encontraron comprobantes.</UiTableCell>
+                  <UiTableCell colSpan={isPreventaTab ? 8 : 7} className="px-6 py-12 text-center text-slate-400 italic text-xs">
+                    No se encontraron comprobantes registrados.
+                  </UiTableCell>
                 </UiTableRow>
               )}
             </UiTableBody>

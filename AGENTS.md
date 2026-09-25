@@ -538,7 +538,16 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
   - Sanitizada la ruta de destino (`cleanPath`) para evitar dobles barras (`//`) y detallado el error con `err.cause` (código de error real).
 - **Botón de Verificación en Paso 2 de Venta Administrativa (`TransactionForm.jsx`)**:
   - En la pantalla de emisión confirmada (Paso 2), si el documento queda en estado *"Identidad fiscal reservada — autorización por verificar"*, se despliega una tarjeta de aviso amigable con el botón **"Verificar y Reintentar Autorización SRI"** (`recoverSriEmission(true)`), permitiendo al usuario re-consultar o autorizar inmediatamente sin perder el número secuencial ni tener que volver a capturar la venta.
-- **Pruebas y Build**: 41 tests unitarios aprobados, compilación limpia en 7.97s.
+### 45. Estandarización Visual Brevo en Historial de Comprobantes y Encabezados Financieros (2026-09-25) — COMPLETADO
+- **Encabezado Brevo en Historial de Ventas y Compras (`TransactionsView.jsx`)**:
+  - Incorporado encabezado minimalista consistente con Brevo y Clientes/Proveedores: título contundente (`h1` en `text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight`), badge numérico redondeado con total de comprobantes filtrados, y botón píldora negro carbón (`#1b1b1b`) a la derecha con acción dinámica (*"Registrar Venta"*, *"Registrar Compra"*, *"Registrar Preventa"*, etc.).
+  - Barra de filtros y búsqueda encapsulada en tarjeta plana blanca con bordes redondeados (`bg-white border border-slate-200/90 rounded-2xl p-3`).
+  - Cabecera de tabla modernizada: sustituido el gris `var(--gray-2)` por `bg-slate-50/80 border-b border-slate-200/80 text-slate-500 uppercase tracking-wider text-[11px]` y celdas estilizadas con tipografía limpia en números monospace y estados visuales claros.
+  - Zona de carga y drag-and-drop de comprobantes (Compras / Captura) adaptada a estética moderna Brevo con borde punteado suave y realce al arrastrar.
+- **Estandarización de Encabezados Financieros (`FinancialPageHeader.jsx`)**:
+  - Eliminado el borde inferior perimetral (`border-b border-slate-200/80`) para evitar cortes abruptos entre la cabecera y el contenido.
+  - Tipografía `h1` en negrita con badge numérico redondeado y acciones contextuales en píldoras, logrando una estética sin separación rígida en los 11 submódulos de finanzas.
+- **Pruebas y Build**: 41 tests unitarios aprobados, compilación limpia de producción en 11.84s.
 
 
 
