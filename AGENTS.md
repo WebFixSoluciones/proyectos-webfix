@@ -224,12 +224,37 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
   - URLs en correos de notificación (`invoiceNotification.js`), enlaces del SRI (`sriAuthorization.js`), vistas POS (`PosView.jsx`) e historial de comprobantes (`TransactionsView.jsx`) ahora incorporan `txId`, asegurando acceso directo por documento `getDoc`.
 - **Pruebas y Build**: 45 tests unitarios aprobados (4 nuevos tests en `tests/phase1-security-fiscal.test.mjs`), compilación limpia de producción en 18.76s.
 
-## Últimos commits
-```
-68a85d0 fix(ui): eliminar dobles bordes en tablas, tarjetas y anidamiento en modulos
-57e5f5e feat(landing): agregar hook useParallaxScroll y componente ScrollReveal para animaciones fluidas
-86d0c52 docs(plans): agregar plan de implementacion para rediseno de landing page estilo Brevo y SiteGround
-```
+### 22. Rediseño Integral de Landing Page — Estilo Brevo & SiteGround (2026-09-24) — COMPLETADO
+**Spec:** `docs/superpowers/specs/2026-09-24-landing-page-redesign.md`
+**Plan:** `docs/superpowers/plans/2026-09-24-landing-page-redesign-plan.md`
+
+- **Header Glassmorphism & Menú a la Izquierda (`LandingLayout.jsx`)**:
+  - Barra fijada con efecto cristal real `backdrop-blur-md bg-white/85 border-b border-slate-200/80`.
+  - Logotipo WebFix ERP y menú de navegación agrupados de forma continua **a la izquierda** (`flex items-center gap-8 md:gap-10`).
+  - Extremo derecho con botón de texto `Iniciar Sesión` y botón píldora negro sólido `#0F172A` `Comenzar Gratis`.
+  - Drawer móvil responsivo con `aria-expanded` y cierre automático al navegar.
+- **Ancho Estandarizado al 90% (`w-[90%] max-w-[1720px] mx-auto`)**:
+  - Eliminadas las restricciones estrechas (`max-w-5xl`); todas las secciones (Header, Hero, Bondades, Pestañas, Precios, FAQ, CTA y Footer) aprovechan el 90% de pantalla con respiración visual de grado internacional.
+- **Animaciones Parallax & Revelado de Entrada/Salida Nativos**:
+  - `useParallaxScroll.js`: Hook reactivo nativo a 60fps con `requestAnimationFrame` pasivo, soporte para `prefers-reduced-motion` y límites `min`/`max`.
+  - `ScrollReveal.jsx`: Componente wrapper con `IntersectionObserver` para transiciones suaves de entrada y salida (`opacity`, `translateY`, `scale`) y soporte escalonado (`stagger`).
+- **Hero de Alto Contraste con Capas Parallax (`LandingHome.jsx`)**:
+  - Fondo sólido fresco `bg-[#F0FDF4]` con curvatura inferior `rounded-b-[40px] md:rounded-b-[56px]`.
+  - H1 contundente sin marketing fluff, subtítulo de 2 líneas directo a las bondades y micro-insignias con checkmarks en verde esmeralda.
+  - Maqueta viva interactiva del ERP con conmutador de módulos y dos tarjetas flotantes con efecto parallax independiente (Factura SRI Autorizada y Cobro Express POS con F12).
+  - Franja de confianza monocromática con entidades ecuatorianas (SRI, Pichincha, Guayaquil, Produbanco, Visa, Mastercard, RIMPE).
+- **Bondades en Tarjetas Planas (Estilo SiteGround Imagen 3 y Brevo Imagen 4)**:
+  - Cero cards anidadas y títulos de sección limpios sin burbujas ni dots parpadeantes.
+  - 6 tarjetas planas con borde nítido, acentos de color sólidos (Verde Esmeralda, Azul Eléctrico, Índigo, Ámbar, Violeta y Slate) y botón CTA `COMIENZA AHORA ↗`.
+- **Pestañas Interactivas por Segmento Comercial (Estilo Brevo Imagen 5)**:
+  - Selector píldora central con 3 segmentos: `[Comercios & Retail (POS)]`, `[Servicios & Profesionales]`, `[Distribuidoras & Mayoristas]`.
+  - Split 50/50: propuesta de valor en viñetas directas a la izquierda, y tarjeta de impacto con métrica grande (`-85%`, `1.1s`, `100%`) y testimonio real a la derecha.
+- **Precios, FAQ Acordeón y Banner Final CTA al 90%**:
+  - Selector Mensual / Anual (-20%) con tipografía monospace/Inter en números.
+  - Acordeón FAQ accesible y directo con `aria-expanded` y transiciones limpias.
+  - Banner final de alta conversión en pizarra oscura `#0F172A` con botones píldora.
+- **Cero Gradientes Tipo IA**: Eliminados en su totalidad; estética sólida, nítida y profesional.
+- **Pruebas y Build**: 43 tests unitarios aprobados al 100%, compilación limpia de producción en 5.58s.
 
 
 
