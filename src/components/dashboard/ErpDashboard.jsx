@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { Pencil, ArrowUpRight } from 'lucide-react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import ShortcutCustomizerModal, { 
   AVAILABLE_SHORTCUTS, 
@@ -31,7 +32,9 @@ export default function ErpDashboard({
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed;
+          // Migrar facturas_sri a generar_venta para ir directo a la venta administrativa
+          const migrated = parsed.map(id => id === 'facturas_sri' ? 'generar_venta' : id);
+          return [...new Set(migrated)];
         }
       }
     } catch (e) {
@@ -101,8 +104,8 @@ export default function ErpDashboard({
         </h1>
       </div>
 
-      {/* Grid de Accesos Directos Centrados (Sin card de fondo, sin título) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full">
+      {/* Grid de Accesos Directos Centrados (Sin descripción, con altura balanceada y flecha de acción directa) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5 sm:gap-4 w-full">
         {activeShortcuts.map(item => {
           const Icon = item.icon;
           return (
@@ -110,25 +113,49 @@ export default function ErpDashboard({
               key={item.id}
               type="button"
               onClick={() => handleShortcutClick(item)}
-              className="group flex flex-col text-left p-5 rounded-2xl border border-slate-200/90 bg-white hover:border-slate-300 hover:bg-slate-50/70 hover:-translate-y-0.5 transition-all cursor-pointer select-none"
+              className="group flex items-center justify-between p-4 sm:p-4.5 rounded-2xl border border-slate-200/90 bg-white hover:border-slate-300 hover:bg-slate-50/80 hover:-translate-y-0.5 transition-all cursor-pointer select-none shadow-none text-left"
             >
-              <div className="flex items-center gap-3.5 mb-2.5">
+              <div className="flex items-center gap-3.5 min-w-0">
                 <div
-                  style={{ backgroundColor: item.color || '#0b996e' }}
-                  className="w-10 h-10 rounded-xl flex items-center justify-center text-white shrink-0 group-hover:scale-105 transition-transform"
+                  style={{ backgroundColor: item.color || '#1b1b1b' }}
+                  className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center text-white shrink-0 group-hover:scale-105 transition-transform shadow-none"
                 >
-                  <Icon size={20} />
+                  <Icon size={20} strokeWidth={2.2} />
                 </div>
-                <span className="text-base font-bold text-slate-900 group-hover:text-emerald-700 transition-colors">
+                <span className="text-sm sm:text-base font-bold text-slate-900 group-hover:text-slate-950 transition-colors truncate">
                   {item.title}
                 </span>
               </div>
-              <span className="text-xs text-slate-500 line-clamp-1">
-                {item.subtitle}
-              </span>
+              <div className="text-slate-400 group-hover:text-slate-900 group-hover:translate-x-0.5 transition-all shrink-0 ml-2">
+                <ArrowUpRight size={18} strokeWidth={2.2} />
+              </div>
             </button>
           );
         })}
+      </div>
+
+      {/* Botón Circular Centrado ("La Esfera") para personalizar accesos directos */}
+      <div className="mt-8 flex flex-col items-center justify-center relative">
+        <div className="relative group">
+          <button
+            type="button"
+            onClick={() => setIsCustomizeOpen(true)}
+            className="w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 shadow-sm hover:shadow-md hover:scale-110 active:scale-95 cursor-pointer bg-white border border-slate-300 hover:border-slate-800 text-slate-700 hover:text-slate-950"
+            aria-label="Personalizar accesos directos"
+            title="Personalizar accesos directos"
+          >
+            <Pencil size={19} strokeWidth={2.2} className="transition-transform duration-200 group-hover:rotate-12 text-slate-800 group-hover:text-black" />
+          </button>
+
+          {/* Tooltip flotante al pasar el mouse */}
+          <div 
+            role="tooltip"
+            className="absolute -top-10 left-1/2 -translate-x-1/2 px-3 py-1.5 text-xs font-semibold text-white bg-slate-900 rounded-xl shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-150 pointer-events-none whitespace-nowrap z-30"
+          >
+            Personalizar accesos directos
+            <span className="absolute top-full left-1/2 -translate-x-1/2 -mt-0.5 border-4 border-transparent border-t-slate-900" />
+          </div>
+        </div>
       </div>
 
       {/* Modal para personalizar accesos directos */}

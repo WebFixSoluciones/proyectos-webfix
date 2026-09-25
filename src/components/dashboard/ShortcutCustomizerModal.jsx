@@ -250,7 +250,7 @@ export const AVAILABLE_SHORTCUTS = [
   // --- General y Ajustes ---
   {
     id: 'personas',
-    title: 'Clientes y Prov',
+    title: 'Clientes y Proveedores',
     subtitle: 'Directorio RUC',
     category: 'General',
     icon: Users,
@@ -274,8 +274,8 @@ export const AVAILABLE_SHORTCUTS = [
 ];
 
 export const DEFAULT_SHORTCUT_IDS = [
+  'generar_venta', 
   'pos', 
-  'facturas_sri', 
   'inventario', 
   'personas', 
   'gastos_creditos', 
@@ -392,17 +392,14 @@ export default function ShortcutCustomizerModal({
             >
               {selectedIds.length} / 9 activos
             </span>
-            <UiButton
-              iconOnly
+            <button
+              type="button"
               onClick={onClose}
-              variant="surface"
-              color="gray"
-              size="2"
-              className="cursor-pointer"
+              className="w-8 h-8 rounded-full flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-950 transition-colors cursor-pointer"
               title="Cerrar"
             >
-              <X size={16} />
-            </UiButton>
+              <X size={16} strokeWidth={2.2} />
+            </button>
           </UiBox>
         </UiBox>
 

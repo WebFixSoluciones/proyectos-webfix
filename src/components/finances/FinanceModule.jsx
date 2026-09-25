@@ -76,13 +76,14 @@ export default function FinanceModule({
   }, [mode]);
 
   // Estados de sub-navegación ERP
-  const [subTabVentas, setSubTabVentas] = useState(() => (mode === 'ventas' && initialSubTab) ? (String(initialSubTab).startsWith('pos') ? 'pos' : initialSubTab) : 'resumen_ventas');
+  const isVentasNuevaInitial = mode === 'ventas' && initialSubTab && (String(initialSubTab).startsWith('ventas_nueva') || String(initialSubTab).startsWith('ventas_preventa'));
+  const [subTabVentas, setSubTabVentas] = useState(() => (mode === 'ventas' && initialSubTab) ? (String(initialSubTab).startsWith('pos') ? 'pos' : (isVentasNuevaInitial ? 'ventas_nueva' : initialSubTab)) : 'resumen_ventas');
   const [subTabSri, setSubTabSri] = useState('nota_credito');
   const [subTabPersonas, setSubTabPersonas] = useState(() => (mode === 'personas' && initialSubTab) ? initialSubTab : 'cliente');
 
   // Estados centralizados para el modal de Facturación / SRI
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingTx, setEditingTx] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(() => Boolean(isVentasNuevaInitial));
+  const [editingTx, setEditingTx] = useState(() => isVentasNuevaInitial ? { type: 'ingreso' } : null);
   const checkoutResolver = useRef(null);
   const closeTransactionForm = () => {
     const fromCheckout = Boolean(checkoutResolver.current);

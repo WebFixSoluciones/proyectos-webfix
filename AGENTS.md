@@ -587,6 +587,23 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
     - Procesa lotes automáticamente en segundo plano mientras los usuarios siguen emitiendo normalmente.
 - **Pruebas y Build**: 45 tests unitarios aprobados (`npm test`), incluyendo prueba integral de contingencia simultánea para 21 tenants, compilación limpia de producción en 4.95s (`npm run build`).
 
+### 48. Rediseño Minimalista de Accesos Directos sin Descripción, Acción Directa y Esfera de Edición (2026-09-25) — COMPLETADO
+- **Eliminación Total de Descripciones en Cards de Inicio (`ErpDashboard.jsx`)**:
+  - Removidos los subtítulos/descripciones secundarias que dejaban vacíos incómodos en las tarjetas.
+  - Diseño horizontal compacto (`p-4 sm:p-4.5 rounded-2xl border border-slate-200/90 bg-white hover:border-slate-300 hover:bg-slate-50/80 hover:-translate-y-0.5`):
+    - A la izquierda: Icono en caja redondeada con color de módulo (`w-11 h-11 rounded-xl`) + Título en negrita (`text-sm sm:text-base font-bold text-slate-900`).
+    - A la derecha: Icono flecha de acción directa (`ArrowUpRight size={18}`) con micro-interacción en hover.
+  - Altura balanceada y armónica en cuadrícula de 2 filas x 3 columnas.
+- **Acción Directa a Funcionalidades Operativas (Ej. Generar Venta $\rightarrow$ Venta Administrativa)**:
+  - `DEFAULT_SHORTCUT_IDS` actualizado para ubicar como primer acceso directo **"Generar Venta"** (`generar_venta`), pasando directamente a la pantalla de emisión administrativa (`TransactionForm`) en lugar del historial.
+  - Migración transparente en `localStorage`: usuarios que tenían `facturas_sri` migran automáticamente a `generar_venta`.
+  - Inicialización inmediata de `isModalOpen` y `editingTx` en `FinanceModule.jsx` para apertura instantánea en el primer render sin parpadeos.
+- **Restauración de la Esfera Circular de Personalización (`Pencil`)**:
+  - Reincorporado el botón circular centrado ("la esfera") directamente bajo el grid de accesos directos (`w-12 h-12 rounded-full border border-slate-300 hover:border-slate-800 bg-white text-slate-700 hover:scale-110 active:scale-95`).
+  - Tooltip flotante estilizado *"Personalizar accesos directos"* y apertura directa del modal interactivo `ShortcutCustomizerModal`.
+- **Pruebas y Build**: 45 tests unitarios aprobados (`npm test`), compilación de producción exitosa en 7.28s (`npm run build`).
+
+
 
 
 
