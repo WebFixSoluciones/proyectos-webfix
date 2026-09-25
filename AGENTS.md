@@ -207,10 +207,9 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
 
 ## Últimos commits
 ```
-1f7c9ec fix(ventas): eliminar lineas divisoras debajo de los titulos de secciones en TransactionForm
-cec7a71 fix(superadmin): utilizar UiInput con iconPrefix en buscador para eliminar icono montado
-0472054 feat(billing): estandarizar diseno de suscripcion, eliminar vacios laterales y sincronizar submodulos
-b27f571 docs: actualizar hash 792350c en AGENTS.md
+68a85d0 fix(ui): eliminar dobles bordes en tablas, tarjetas y anidamiento en modulos
+57e5f5e feat(landing): agregar hook useParallaxScroll y componente ScrollReveal para animaciones fluidas
+86d0c52 docs(plans): agregar plan de implementacion para rediseno de landing page estilo Brevo y SiteGround
 ```
 
 
