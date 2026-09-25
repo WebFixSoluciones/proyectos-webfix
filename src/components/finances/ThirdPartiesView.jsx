@@ -113,7 +113,7 @@ export default function ThirdPartiesView({
           {isSupplierView ? 'Proveedores' : 'Clientes'}
         </h1>
         <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200/80">
-          {filteredData.length}
+          {filtered.length}
         </span>
       </div>
 

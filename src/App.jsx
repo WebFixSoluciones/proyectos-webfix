@@ -635,15 +635,15 @@ export default function App() {
         }
         if (subStr.startsWith('ventas_nueva') || subStr.startsWith('ventas_preventa')) {
           return {
-            title: 'Ventas: Registrar Venta',
+            title: 'Registrar Venta',
             desc: 'Registro directo de ventas administrativas y facturación electrónica',
             icon: 'ventas'
           };
         }
         const subtabs = {
-          resumen_ventas: { title: 'Ventas: Historial de Ventas', desc: 'Listado y métricas de comprobantes electrónicos de venta autorizados' },
-          ventas_nueva: { title: 'Ventas: Registrar Venta', desc: 'Registro directo de ventas administrativas y facturación electrónica' },
-          ventas_preventa: { title: 'Ventas: Registrar Venta', desc: 'Registro directo de ventas administrativas y facturación electrónica' },
+          resumen_ventas: { title: 'Historial de Ventas', desc: 'Listado y métricas de comprobantes electrónicos de venta autorizados' },
+          ventas_nueva: { title: 'Registrar Venta', desc: 'Registro directo de ventas administrativas y facturación electrónica' },
+          ventas_preventa: { title: 'Registrar Venta', desc: 'Registro directo de ventas administrativas y facturación electrónica' },
           pos: { title: 'Punto de Venta (POS)', desc: 'Facturación rápida e intuitiva para tiendas y comercio directo' },
           preventas: { title: 'Preventas', desc: 'Gestión y despacho de ventas y pedidos realizados de forma anticipada' },
           quotes: { title: 'Cotizaciones', desc: 'Emisión y gestión de cotizaciones comerciales para clientes' },
@@ -656,39 +656,39 @@ export default function App() {
       }
       case 'inventario': {
         const subtabs = {
-          productos: { title: 'Inventario: Productos', desc: 'Catálogo de artículos en stock, precios, imágenes y parametrización de IVA' },
-          servicios: { title: 'Inventario: Servicios', desc: 'Catálogo de servicios profesionales, consultorías e intangibles facturables' },
-          categorias: { title: 'Inventario: Categorías', desc: 'Clasificación de productos y servicios para reportes y filtros rápidos' }
+          productos: { title: 'Productos', desc: 'Catálogo de artículos en stock, precios, imágenes y parametrización de IVA' },
+          servicios: { title: 'Servicios', desc: 'Catálogo de servicios profesionales, consultorías e intangibles facturables' },
+          categorias: { title: 'Categorías', desc: 'Clasificación de productos y servicios para reportes y filtros rápidos' }
         };
-        const current = subtabs[inventarioInitialSubTab] || { title: 'Módulo de Inventario', desc: 'Catálogo de productos y servicios con parametrización de IVA del SRI' };
+        const current = subtabs[inventarioInitialSubTab] || { title: 'Inventario', desc: 'Catálogo de productos y servicios con parametrización de IVA del SRI' };
         return { ...current, icon: 'inventario' };
       }
       case 'personas': {
         const subtabs = {
-          cliente: { title: 'Personas: Clientes', desc: 'Directorio de clientes registrados con validación SRI y base de datos' },
-          proveedor: { title: 'Personas: Proveedores', desc: 'Directorio de proveedores registrados, RUC y clasificación comercial' }
+          cliente: { title: 'Clientes', desc: 'Directorio de clientes registrados con validación SRI y base de datos' },
+          proveedor: { title: 'Proveedores', desc: 'Directorio de proveedores registrados, RUC y clasificación comercial' }
         };
-        const current = subtabs[personasSubTab] || { title: 'Gestión de Personas', desc: 'Base de datos unificada de clientes y proveedores con validación de datos SRI' };
+        const current = subtabs[personasSubTab] || { title: 'Personas', desc: 'Base de datos unificada de clientes y proveedores con validación de datos SRI' };
         return { ...current, icon: 'personas' };
       }
       case 'compras': {
         const subtabs = {
-          compras_resumen: { title: 'Compras: Historial de Compras', desc: 'Listado y registro de facturas recibidas de tus proveedores' },
+          compras_resumen: { title: 'Historial de Compras', desc: 'Listado y registro de facturas recibidas de tus proveedores' },
           compras_sri: { title: 'Facturas Recibidas SRI', desc: 'Sincroniza y concilia facturas emitidas por tus proveedores en el SRI' },
           compras_gastos: { title: 'Gastos con IA', desc: 'Clasificación y registro automático de gastos mediante inteligencia artificial' },
           compras_nc: { title: 'Notas de Crédito Recibidas', desc: 'Registro de devoluciones y descuentos aplicados por tus proveedores' },
           compras_retencion: { title: 'Retenciones Emitidas', desc: 'Genera y autoriza retenciones a tus proveedores autorizadas por el SRI' }
         };
-        const current = subtabs[comprasInitialSubTab] || { title: 'Compras y Facturas Recibidas', desc: 'Registro de facturas de proveedores y control de compras electrónicas' };
+        const current = subtabs[comprasInitialSubTab] || { title: 'Compras', desc: 'Registro de facturas de proveedores y control de compras electrónicas' };
         return { ...current, icon: 'compras' };
       }
       case 'gastos_creditos': {
         const subtabs = {
-          resumen: { title: 'Finanzas: Resumen', desc: 'Visualización consolidada de flujos de caja y estados financieros' },
-          gastos: { title: 'Finanzas: Gastos', desc: 'Registro detallado y control de egresos operacionales de la empresa' },
-          creditos: { title: 'Finanzas: Cuentas de Crédito', desc: 'Monitoreo de deudas, plazos de pago y líneas de crédito abiertas' }
+          resumen: { title: 'Resumen Financiero', desc: 'Visualización consolidada de flujos de caja y estados financieros' },
+          gastos: { title: 'Gastos', desc: 'Registro detallado y control de egresos operacionales de la empresa' },
+          creditos: { title: 'Cuentas de Crédito', desc: 'Monitoreo de deudas, plazos de pago y líneas de crédito abiertas' }
         };
-        const current = subtabs[gastosInitialSubTab] || { title: 'Módulo de Finanzas', desc: 'Control y registro de gastos de la empresa y cuentas de crédito por pagar/cobrar' };
+        const current = subtabs[gastosInitialSubTab] || { title: 'Finanzas', desc: 'Control y registro de gastos de la empresa y cuentas de crédito por pagar/cobrar' };
         return { ...current, icon: 'gastos_creditos' };
       }
       case 'general_settings':
@@ -705,24 +705,24 @@ export default function App() {
         };
       case 'contratar_servicios':
         return {
-          title: 'Servicios de Crecimiento Web Fix',
+          title: 'Servicios de Crecimiento',
           desc: 'Adquiere y gestiona servicios de diseño, correo corporativo y marketing digital para potenciar tu marca',
           icon: 'rocket'
         };
       case 'soporte_tecnico':
         return {
-          title: 'Soporte Técnico Especializado',
+          title: 'Soporte Técnico',
           desc: 'Envía tus solicitudes de ayuda técnica y reportes de incidencias directamente a nuestro equipo',
           icon: 'life-buoy'
         };
       case 'billing': {
         const subtabs = {
-          facturacion: { title: 'Suscripción: Facturación Electrónica', desc: 'Planes de emisión de comprobantes electrónicos del SRI para tu negocio' },
-          paginas: { title: 'Suscripción: Páginas Web', desc: 'Elige o actualiza tu plan de hosting, landing page o tienda en línea' },
-          correos: { title: 'Suscripción: Correos Corporativos', desc: 'Administra cuentas de correo empresarial y espacio de almacenamiento' },
-          whatsapp: { title: 'Suscripción: WhatsApp CRM', desc: 'Planes de integración para automatización y chat multiagente con WhatsApp' },
+          facturacion: { title: 'Facturación Electrónica', desc: 'Planes de emisión de comprobantes electrónicos del SRI para tu negocio' },
+          paginas: { title: 'Páginas Web', desc: 'Elige o actualiza tu plan de hosting, landing page o tienda en línea' },
+          correos: { title: 'Correos Corporativos', desc: 'Administra cuentas de correo empresarial y espacio de almacenamiento' },
+          whatsapp: { title: 'WhatsApp CRM', desc: 'Planes de integración para automatización y chat multiagente con WhatsApp' },
           pagos: { title: 'Historial de Pagos', desc: 'Historial de facturas cobradas y estado de tu cuenta SaaS' },
-          planes: { title: 'Suscripción: Planes SaaS', desc: 'Catálogo completo de planes y módulos para el crecimiento de tu negocio' }
+          planes: { title: 'Planes SaaS', desc: 'Catálogo completo de planes y módulos para el crecimiento de tu negocio' }
         };
         const current = subtabs[billingInitialSubTab] || { title: 'Suscripción y Facturación SaaS', desc: 'Gestiona tu plan contratado, revisa tus consumos y reporta tus pagos por transferencia o PayPhone' };
         return { ...current, icon: 'credit-card' };
@@ -980,7 +980,6 @@ export default function App() {
             </button>
             {activePageId !== 'dashboard' && (
               <div className="flex items-center gap-2">
-                <span className="text-slate-300">/</span>
                 <span className="text-xs sm:text-sm font-semibold text-slate-800 tracking-tight">
                   {headerDetails.title}
                 </span>
