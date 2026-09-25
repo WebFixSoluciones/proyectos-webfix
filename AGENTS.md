@@ -350,7 +350,23 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
   - Proporciona un acabado sumamente suave, fresco y homogéneo con la identidad de marca, integrándose en armonía con el resto del lienzo y el borde superior.
 - **Pruebas y Build**: 43 tests unitarios aprobados, compilación de producción limpia en 7.50s.
 
-
-
-
+### 29. Integración de la Paleta de Tokens Oficiales de Brevo (:root) en CSS y Landing Page (2026-09-25) — COMPLETADO
+- **Tokens Oficiales de Brevo (`src/brevoTokens.css` & `src/index.css`)**:
+  - Declaradas todas las variables `:root` extraídas del sitio web de Brevo: paleta Mint Green (`#f9fff6`, `#e8fedf`, `#c0ffa5`), Forest Green (`#f0fdf4`, `#b3f4cb`, `#0b996f`, `#02835c`, `#006a43`, `#004227`), Charcoal Grey (`#fafafa`, `#f5f5f5`, `#f0f0f0`, `#1b1b1b`), Sky Blue, Iris Purple, Aqua Teal, Coral Orange y Electric Yellow.
+  - Vinculación en `src/index.css` vía `@import "./brevoTokens.css";` y mapeo de tokens utilitarios en `@theme` de Tailwind 4 (`--color-brand-mint-*`, `--color-brand-forest-*`, `--color-brand-charcoal-*`, etc.).
+- **Estandarización en `LandingLayout.jsx`**:
+  - Fondo del Header y Overlay móvil: `--brand-mint-green-200: #e8fedf` con bordes `--brand-forest-green-200: #b3f4cb`.
+  - Logotipo WebFix y enlaces activos: `--brand-forest-green-800: #006a43`.
+  - Botones principales ("Regístrate gratis"): `--brand-charcoal-grey-900: #1b1b1b` con hover en negro sólido.
+  - Botones outline ("Hablar con Ventas"): borde y texto en `#1b1b1b`.
+  - Fondo del Footer: `--brand-mint-green-100: #f9fff6`, logotipo en `#006a43` y redes sociales con hover en `#006a43`.
+- **Estandarización en `LandingHome.jsx`**:
+  - Fondo del Hero: `--brand-mint-green-200: #e8fedf` con borde inferior `#b3f4cb`.
+  - Botón CTA principal del Hero: `#1b1b1b` hover `bg-black`.
+  - Maqueta interactiva ERP: Píldora activa en `--brand-mint-green-300: #c0ffa5` con texto `--brand-forest-green-900: #004227`. Badge SRI Online y tarjeta flotante con verde bosque `#006a43` y dot `#0b996f`.
+  - 6 Tarjetas de Beneficios Minimalistas: Cajas y badges con tokens oficiales de Brevo (Sky Blue `#e6f3ff`/`#2679c6`, Mint Green `#c0ffa5`, Forest Green `#006a43`, Charcoal `#1b1b1b`).
+  - Pestañas interactivas por segmento: Píldora activa en `#c0ffa5` con texto `#004227`, botón "Saber más" en `#1b1b1b`, tarjeta testimonial en fondo Charcoal 25 `#fafafa`.
+  - Precios y Planes: Badge de descuento anual en `#c0ffa5` con texto `#004227`, botón del Plan Pro en `#1b1b1b`.
+  - Banner final de conversión CTA: Contenedor en `#e8fedf` con borde `#b3f4cb`, badge en `#c0ffa5`/`#004227` y botón en `#1b1b1b`.
+- **Pruebas y Build**: 43 tests unitarios aprobados, compilación limpia de producción en 5.14s.
 

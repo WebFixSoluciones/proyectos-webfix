@@ -1,0 +1,168 @@
+:root {
+  /* ==========================================================================
+     BREVO OFFICIAL DESIGN TOKENS
+     Exact brand tokens extracted from brevo.com
+     ========================================================================== */
+
+  /* Brand Charts */
+  --brand-charts-data-1: #6459de;
+  --brand-charts-data-1-hovered: #4f46b4;
+  --brand-charts-data-1-pressed: #463f9d;
+  --brand-charts-data-2: #159e9e;
+  --brand-charts-data-2-hovered: #116a6a;
+  --brand-charts-data-2-pressed: #0b5656;
+  --brand-charts-data-3: #eb4280;
+  --brand-charts-data-3-hovered: #d9306b;
+  --brand-charts-data-3-pressed: #b22456;
+  --brand-charts-data-4: #5aa3e7;
+  --brand-charts-data-4-hovered: #2679c6;
+  --brand-charts-data-4-pressed: #1d61a0;
+  --brand-charts-data-5: #f48043;
+  --brand-charts-data-5-hovered: #d65512;
+  --brand-charts-data-5-pressed: #a5410e;
+  --brand-charts-data-6: #139f49;
+  --brand-charts-data-6-hovered: #0a7332;
+  --brand-charts-data-6-pressed: #075424;
+  --brand-charts-data-7: #dca718;
+  --brand-charts-data-7-hovered: #ab7f0a;
+  --brand-charts-data-7-pressed: #866308;
+  --brand-charts-data-8: #904bee;
+  --brand-charts-data-8-hovered: #7226d9;
+  --brand-charts-data-8-pressed: #5b1dad;
+  --brand-charts-data-9: #089d81;
+  --brand-charts-data-9-hovered: #046e5a;
+  --brand-charts-data-9-pressed: #035243;
+  --brand-charts-data-10: #f67b8a;
+  --brand-charts-data-10-hovered: #d94254;
+  --brand-charts-data-10-pressed: #a82e3d;
+  --brand-charts-data-11: #7864f7;
+  --brand-charts-data-11-hovered: #553de3;
+  --brand-charts-data-11-pressed: #3d25ce;
+  --brand-charts-data-12: #2cb7b7;
+  --brand-charts-data-12-hovered: #188a8a;
+  --brand-charts-data-12-pressed: #126e6e;
+
+  /* Aqua Teal */
+  --brand-aqua-teal-50: #f0fdfd;
+  --brand-aqua-teal-100: #d6fafa;
+  --brand-aqua-teal-200: #b1f6f6;
+  --brand-aqua-teal-300: #7aeeee;
+  --brand-aqua-teal-400: #3de3e3;
+  --brand-aqua-teal-500: #159e9e;
+  --brand-aqua-teal-600: #116a6a;
+  --brand-aqua-teal-700: #0b5656;
+  --brand-aqua-teal-800: #083c3c;
+  --brand-aqua-teal-900: #052a2a;
+
+  /* Charcoal Grey */
+  --brand-charcoal-grey-25: #fafafa;
+  --brand-charcoal-grey-50: #f5f5f5;
+  --brand-charcoal-grey-100: #f0f0f0;
+  --brand-charcoal-grey-200: #e3e3e3;
+  --brand-charcoal-grey-300: #cccccc;
+  --brand-charcoal-grey-400: #ababab;
+  --brand-charcoal-grey-500: #8a8a8a;
+  --brand-charcoal-grey-600: #696969;
+  --brand-charcoal-grey-700: #474747;
+  --brand-charcoal-grey-800: #2c2c2c;
+  --brand-charcoal-grey-900: #1b1b1b;
+
+  /* Coral Orange */
+  --brand-coral-orange-50: #fff4f0;
+  --brand-coral-orange-100: #ffe6dd;
+  --brand-coral-orange-200: #ffd4c4;
+  --brand-coral-orange-300: #ffb89e;
+  --brand-coral-orange-400: #fa9766;
+  --brand-coral-orange-500: #f48043;
+  --brand-coral-orange-600: #d65512;
+  --brand-coral-orange-700: #a5410e;
+  --brand-coral-orange-800: #752e0a;
+  --brand-coral-orange-900: #4a1d06;
+
+  /* Electric Yellow */
+  --brand-electric-yellow-50: #fcfbe7;
+  --brand-electric-yellow-100: #faf7c4;
+  --brand-electric-yellow-200: #f7f29b;
+  --brand-electric-yellow-300: #f1e961;
+  --brand-electric-yellow-400: #e8de32;
+  --brand-electric-yellow-500: #dca718;
+  --brand-electric-yellow-600: #ab7f0a;
+  --brand-electric-yellow-700: #866308;
+  --brand-electric-yellow-800: #574005;
+  --brand-electric-yellow-900: #382903;
+
+  /* Forest Green */
+  --brand-forest-green-50: #f0fdf4;
+  --brand-forest-green-100: #d8fae4;
+  --brand-forest-green-200: #b3f4cb;
+  --brand-forest-green-300: #7deda9;
+  --brand-forest-green-400: #43df83;
+  --brand-forest-green-500: #1abf60;
+  --brand-forest-green-600: #0b996f;
+  --brand-forest-green-700: #02835c;
+  --brand-forest-green-800: #006a43;
+  --brand-forest-green-900: #004227;
+
+  /* Hot Pink */
+  --brand-hot-pink-50: #fff0f5;
+  --brand-hot-pink-100: #fde0eb;
+  --brand-hot-pink-200: #fbc6d9;
+  --brand-hot-pink-300: #f79fc1;
+  --brand-hot-pink-400: #f26fa1;
+  --brand-hot-pink-500: #eb4280;
+  --brand-hot-pink-600: #d9306b;
+  --brand-hot-pink-700: #b22456;
+  --brand-hot-pink-800: #851b40;
+  --brand-hot-pink-900: #5c132c;
+
+  /* Iris Purple */
+  --brand-iris-purple-50: #f7f6fd;
+  --brand-iris-purple-100: #efeefc;
+  --brand-iris-purple-200: #e2e0fb;
+  --brand-iris-purple-300: #cbc7f8;
+  --brand-iris-purple-400: #aca6f3;
+  --brand-iris-purple-500: #6459de;
+  --brand-iris-purple-600: #4f46b4;
+  --brand-iris-purple-700: #463f9d;
+  --brand-iris-purple-800: #36307a;
+  --brand-iris-purple-900: #252154;
+
+  /* Mint Green */
+  --brand-mint-green-50: #ffffff;
+  --brand-mint-green-100: #f9fff6;
+  --brand-mint-green-200: #e8fedf;
+  --brand-mint-green-300: #c0ffa5;
+  --brand-mint-green-400: #8aff5e;
+  --brand-mint-green-500: #55eb1e;
+  --brand-mint-green-600: #3db811;
+  --brand-mint-green-700: #2e8b0d;
+  --brand-mint-green-800: #205e09;
+  --brand-mint-green-900: #143b06;
+
+  /* Pure White */
+  --brand-pure-white: #ffffff;
+
+  /* Sky Blue */
+  --brand-sky-blue-50: #f5f9ff;
+  --brand-sky-blue-100: #e6f3ff;
+  --brand-sky-blue-200: #cce7ff;
+  --brand-sky-blue-300: #a8d5ff;
+  --brand-sky-blue-400: #7ebfff;
+  --brand-sky-blue-500: #5aa3e7;
+  --brand-sky-blue-600: #2679c6;
+  --brand-sky-blue-700: #1d61a0;
+  --brand-sky-blue-800: #164878;
+  --brand-sky-blue-900: #0f3050;
+
+  /* Violet */
+  --brand-violet-50: #faf6fe;
+  --brand-violet-100: #f2eafd;
+  --brand-violet-200: #e7dafb;
+  --brand-violet-300: #d4bdf8;
+  --brand-violet-400: #bb96f3;
+  --brand-violet-500: #904bee;
+  --brand-violet-600: #7226d9;
+  --brand-violet-700: #5b1dad;
+  --brand-violet-800: #431680;
+  --brand-violet-900: #2c0e54;
+}

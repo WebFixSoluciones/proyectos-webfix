@@ -44,27 +44,27 @@ export default function LandingLayout() {
   return (
     <div
       ref={scrollContainerRef}
-      className="min-h-screen w-full flex flex-col justify-between bg-white text-slate-900 overflow-x-clip selection:bg-[#0F172A] selection:text-white"
+      className="min-h-screen w-full flex flex-col justify-between bg-white text-slate-900 overflow-x-clip selection:bg-[#1b1b1b] selection:text-white"
     >
       {/* 1. HEADER FLOTANTE EXACTO ESTILO BREVO CON GLASSMORPHISM AL DESPLAZARSE */}
       <header
         className={`sticky top-0 z-50 w-full transition-all duration-300 ${
           isScrolled
-            ? 'backdrop-blur-md bg-[#EAF8EA]/85 border-b border-emerald-200/80 shadow-xs'
-            : 'backdrop-blur-md bg-[#EAF8EA]/95 border-b border-emerald-100/80'
+            ? 'backdrop-blur-md bg-[#e8fedf]/85 border-b border-[#b3f4cb]/80 shadow-xs'
+            : 'backdrop-blur-md bg-[#e8fedf]/95 border-b border-[#b3f4cb]/50'
         }`}
       >
         <div className="w-[90%] max-w-[1720px] mx-auto h-18 sm:h-20 flex items-center justify-between">
           
           {/* Bloque Izquierdo: Logo WebFix estilo Brevo + Menú con tipografía aumentada */}
           <div className="flex items-center gap-8 lg:gap-12">
-            {/* Logo WebFix en texto verde esmeralda idéntico a Brevo */}
+            {/* Logo WebFix en texto verde bosque profundo idéntico a Brevo */}
             <Link
               to="/"
               className="flex items-center select-none group cursor-pointer"
               aria-label="WebFix ERP Inicio"
             >
-              <span className="font-extrabold text-2xl sm:text-3xl tracking-tight text-[#0B5D3A]">
+              <span className="font-extrabold text-2xl sm:text-3xl tracking-tight text-[#006a43]">
                 WebFix
               </span>
             </Link>
@@ -79,8 +79,8 @@ export default function LandingLayout() {
                     to={link.path}
                     className={`px-3.5 py-2 rounded-lg text-[15px] lg:text-base font-semibold transition-colors ${
                       isActive
-                        ? 'text-[#0B5D3A] font-bold'
-                        : 'text-slate-800 hover:text-[#0B5D3A]'
+                        ? 'text-[#006a43] font-bold'
+                        : 'text-slate-800 hover:text-[#006a43]'
                     }`}
                   >
                     {link.label}
@@ -103,7 +103,7 @@ export default function LandingLayout() {
             {/* Iniciar Sesión con tamaño aumentado */}
             <Link
               to="/login"
-              className="text-slate-800 hover:text-[#0B5D3A] font-semibold text-[15px] lg:text-base px-2 py-1 transition-colors"
+              className="text-slate-800 hover:text-[#006a43] font-semibold text-[15px] lg:text-base px-2 py-1 transition-colors"
             >
               Iniciar Sesión
             </Link>
@@ -111,7 +111,7 @@ export default function LandingLayout() {
             {/* Regístrate gratis (botón negro sólido redondeado con fuentes aumentadas) */}
             <Link
               to="/register"
-              className="px-5 py-2.5 rounded-xl bg-[#1E1E1E] hover:bg-black text-white font-semibold text-[15px] lg:text-base transition-all shadow-none"
+              className="px-5 py-2.5 rounded-xl bg-[#1b1b1b] hover:bg-black text-white font-semibold text-[15px] lg:text-base transition-all shadow-none"
             >
               Regístrate gratis
             </Link>
@@ -119,7 +119,7 @@ export default function LandingLayout() {
             {/* Hablar con Ventas (botón outline redondeado con fuentes aumentadas) */}
             <Link
               to="/contacto"
-              className="px-5 py-2.5 rounded-xl border border-slate-900 text-slate-900 hover:bg-slate-900/5 font-semibold text-[15px] lg:text-base transition-all"
+              className="px-5 py-2.5 rounded-xl border border-[#1b1b1b] text-[#1b1b1b] hover:bg-[#1b1b1b]/5 font-semibold text-[15px] lg:text-base transition-all"
             >
               Hablar con Ventas
             </Link>
@@ -142,7 +142,7 @@ export default function LandingLayout() {
 
       {/* 2. OVERLAY MENÚ MÓVIL */}
       {isMobileMenuOpen && (
-        <div id="mobile-nav-menu" className="fixed inset-x-0 top-18 sm:top-20 z-40 bg-[#EAF8EA]/98 backdrop-blur-md border-b border-emerald-200/80 p-6 flex flex-col gap-4 md:hidden shadow-lg animate-in slide-in-from-top-2 duration-150">
+        <div id="mobile-nav-menu" className="fixed inset-x-0 top-18 sm:top-20 z-40 bg-[#e8fedf]/98 backdrop-blur-md border-b border-[#b3f4cb]/80 p-6 flex flex-col gap-4 md:hidden shadow-lg animate-in slide-in-from-top-2 duration-150">
           <div className="flex flex-col space-y-1">
             {navLinks.map((link) => {
               const isActive = location.pathname === link.path;
@@ -153,8 +153,8 @@ export default function LandingLayout() {
                   onClick={() => handleMobileLinkClick(link.path)}
                   className={`text-left px-4 py-3 rounded-lg text-base font-semibold transition-colors ${
                     isActive
-                      ? 'bg-emerald-900/10 text-[#0B5D3A] font-bold'
-                      : 'text-slate-800 hover:text-slate-950 hover:bg-emerald-900/5'
+                      ? 'bg-[#006a43]/10 text-[#006a43] font-bold'
+                      : 'text-slate-800 hover:text-[#006a43] hover:bg-[#006a43]/5'
                   }`}
                 >
                   {link.label}
@@ -163,14 +163,14 @@ export default function LandingLayout() {
             })}
           </div>
 
-          <div className="pt-3 border-t border-emerald-200/80 flex flex-col gap-3">
+          <div className="pt-3 border-t border-[#b3f4cb]/80 flex flex-col gap-3">
             <button
               type="button"
               onClick={() => {
                 setIsMobileMenuOpen(false);
                 navigate('/login');
               }}
-              className="w-full py-3 px-4 rounded-xl text-center text-base font-semibold text-slate-800 hover:bg-emerald-900/5 border border-slate-300 transition-colors"
+              className="w-full py-3 px-4 rounded-xl text-center text-base font-semibold text-slate-800 hover:bg-[#006a43]/5 border border-slate-300 transition-colors"
             >
               Iniciar Sesión
             </button>
@@ -180,7 +180,7 @@ export default function LandingLayout() {
                 setIsMobileMenuOpen(false);
                 navigate('/register');
               }}
-              className="w-full py-3 px-4 rounded-xl text-center text-base font-semibold bg-[#1E1E1E] hover:bg-black text-white transition-all shadow-none"
+              className="w-full py-3 px-4 rounded-xl text-center text-base font-semibold bg-[#1b1b1b] hover:bg-black text-white transition-all shadow-none"
             >
               Regístrate gratis
             </button>
@@ -190,7 +190,7 @@ export default function LandingLayout() {
                 setIsMobileMenuOpen(false);
                 navigate('/contacto');
               }}
-              className="w-full py-3 px-4 rounded-xl text-center text-base font-semibold border border-slate-900 text-slate-900 hover:bg-slate-900/5 transition-all"
+              className="w-full py-3 px-4 rounded-xl text-center text-base font-semibold border border-[#1b1b1b] text-[#1b1b1b] hover:bg-[#1b1b1b]/5 transition-all"
             >
               Hablar con Ventas
             </button>
@@ -211,7 +211,7 @@ export default function LandingLayout() {
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 pb-10 border-b border-slate-200/70">
             {/* Logotipo Brevo Style */}
             <Link to="/" className="flex items-center gap-2 group select-none">
-              <span className="font-extrabold text-2xl sm:text-3xl tracking-tight text-[#0B5D3A]">
+              <span className="font-extrabold text-2xl sm:text-3xl tracking-tight text-[#006a43]">
                 WebFix
               </span>
             </Link>
@@ -224,7 +224,7 @@ export default function LandingLayout() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="X (Twitter)"
-                className="hover:text-[#0B5D3A] transition-colors"
+                className="hover:text-[#006a43] transition-colors"
               >
                 <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
                   <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
@@ -237,7 +237,7 @@ export default function LandingLayout() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="LinkedIn"
-                className="hover:text-[#0B5D3A] transition-colors"
+                className="hover:text-[#006a43] transition-colors"
               >
                 <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
                   <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/>
@@ -250,7 +250,7 @@ export default function LandingLayout() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram"
-                className="hover:text-[#0B5D3A] transition-colors"
+                className="hover:text-[#006a43] transition-colors"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
@@ -265,7 +265,7 @@ export default function LandingLayout() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="YouTube"
-                className="hover:text-[#0B5D3A] transition-colors"
+                className="hover:text-[#006a43] transition-colors"
               >
                 <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
                   <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
@@ -278,7 +278,7 @@ export default function LandingLayout() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Facebook"
-                className="hover:text-[#0B5D3A] transition-colors"
+                className="hover:text-[#006a43] transition-colors"
               >
                 <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
                   <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
@@ -291,7 +291,7 @@ export default function LandingLayout() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="TikTok"
-                className="hover:text-[#0B5D3A] transition-colors"
+                className="hover:text-[#006a43] transition-colors"
               >
                 <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
                   <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.04-.1z"/>
@@ -399,7 +399,7 @@ export default function LandingLayout() {
                   </Link>
                 </li>
                 <li>
-                  <Link to="/register" className="hover:text-[#0B5D3A] font-semibold transition-colors">
+                  <Link to="/register" className="hover:text-[#006a43] font-semibold transition-colors">
                     Crear Cuenta Gratis
                   </Link>
                 </li>

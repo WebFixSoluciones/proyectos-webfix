@@ -2,11 +2,35 @@
 @import "tailwindcss";
 @import "@radix-ui/themes/styles.css" layer(radix);
 @import "./designTokens.css";
+@import "./brevoTokens.css";
 @import "./radixTheme.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
+  /* Brevo Brand Tokens */
+  --color-brand-mint-100: var(--brand-mint-green-100);
+  --color-brand-mint-200: var(--brand-mint-green-200);
+  --color-brand-mint-300: var(--brand-mint-green-300);
+  --color-brand-forest-50: var(--brand-forest-green-50);
+  --color-brand-forest-600: var(--brand-forest-green-600);
+  --color-brand-forest-700: var(--brand-forest-green-700);
+  --color-brand-forest-800: var(--brand-forest-green-800);
+  --color-brand-forest-900: var(--brand-forest-green-900);
+  --color-brand-charcoal-25: var(--brand-charcoal-grey-25);
+  --color-brand-charcoal-50: var(--brand-charcoal-grey-50);
+  --color-brand-charcoal-100: var(--brand-charcoal-grey-100);
+  --color-brand-charcoal-200: var(--brand-charcoal-grey-200);
+  --color-brand-charcoal-700: var(--brand-charcoal-grey-700);
+  --color-brand-charcoal-800: var(--brand-charcoal-grey-800);
+  --color-brand-charcoal-900: var(--brand-charcoal-grey-900);
+  --color-brand-sky-100: var(--brand-sky-blue-100);
+  --color-brand-sky-500: var(--brand-sky-blue-500);
+  --color-brand-sky-600: var(--brand-sky-blue-600);
+  --color-brand-iris-100: var(--brand-iris-purple-100);
+  --color-brand-iris-500: var(--brand-iris-purple-500);
+  --color-brand-aqua-100: var(--brand-aqua-teal-100);
+  --color-brand-coral-100: var(--brand-coral-orange-100);
   /* Colors */
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
