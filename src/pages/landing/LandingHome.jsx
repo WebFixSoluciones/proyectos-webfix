@@ -274,7 +274,7 @@ export default function LandingHome() {
     <div className="w-full bg-white text-slate-900 overflow-x-clip">
       
       {/* 1. HERO SECTION DE ALTO CONTRASTE (ESTILO BREVO & SITEGROUND) */}
-      <section className="relative w-full bg-[#e8fedf] rounded-b-[40px] md:rounded-b-[56px] pt-10 pb-16 md:pt-16 md:pb-24 overflow-hidden">
+      <section className="relative w-full bg-[#c0ffa5] rounded-b-[40px] md:rounded-b-[56px] pt-10 pb-16 md:pt-16 md:pb-24 overflow-hidden">
         <div ref={heroContainerRef} className="w-[90%] max-w-[1720px] mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 xl:gap-16 items-center">
             

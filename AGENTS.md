@@ -399,3 +399,10 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
 - **Coherencia en Registro (`RegisterPage.jsx`)**: Aplicada la misma guía gráfica unificada para una transición fluida e impecable entre inicio de sesión y creación de cuenta.
 - **Pruebas y Build**: 43 tests unitarios aprobados (41 suite de comercio/SRI + 2 animaciones), compilación de producción exitosa en 7.03s.
 
+### 32. Color de Marca Menta Vibrante en Hero y Header (2026-09-25) — COMPLETADO
+- **Aplicación de Token Brevo `brand-mint-green-300: #c0ffa5`**:
+  - **Header Flotante (`LandingLayout.jsx`)**: Actualizado el fondo del header tanto en estado estático (`bg-[#c0ffa5]/95`) como al desplazarse con glassmorphism reactivo (`bg-[#c0ffa5]/85 backdrop-blur-md`), así como en el overlay móvil (`bg-[#c0ffa5]/98`).
+  - **Hero Section (`LandingHome.jsx`)**: Actualizado el bloque curvo superior del Hero (`rounded-b-[40px] md:rounded-b-[56px]`) al fondo sólido menta vibrante `bg-[#c0ffa5]`, logrando continuidad cromática uniforme y de alto impacto con el header.
+- **Pruebas y Build**: 43 tests unitarios aprobados, compilación limpia de producción en 14.13s.
+
+

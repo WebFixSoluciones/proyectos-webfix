@@ -50,8 +50,8 @@ export default function LandingLayout() {
       <header
         className={`sticky top-0 z-50 w-full transition-all duration-300 ${
           isScrolled
-            ? 'backdrop-blur-md bg-[#e8fedf]/85 shadow-xs'
-            : 'backdrop-blur-md bg-[#e8fedf]/95'
+            ? 'backdrop-blur-md bg-[#c0ffa5]/85 shadow-xs'
+            : 'backdrop-blur-md bg-[#c0ffa5]/95'
         }`}
       >
         <div className="w-[90%] max-w-[1720px] mx-auto h-18 sm:h-20 flex items-center justify-between">
@@ -142,7 +142,7 @@ export default function LandingLayout() {
 
       {/* 2. OVERLAY MENÚ MÓVIL */}
       {isMobileMenuOpen && (
-        <div id="mobile-nav-menu" className="fixed inset-x-0 top-18 sm:top-20 z-40 bg-[#e8fedf]/98 backdrop-blur-md border-b border-[#b3f4cb]/80 p-6 flex flex-col gap-4 md:hidden shadow-lg animate-in slide-in-from-top-2 duration-150">
+        <div id="mobile-nav-menu" className="fixed inset-x-0 top-18 sm:top-20 z-40 bg-[#c0ffa5]/98 backdrop-blur-md border-b border-[#b3f4cb]/80 p-6 flex flex-col gap-4 md:hidden shadow-lg animate-in slide-in-from-top-2 duration-150">
           <div className="flex flex-col space-y-1">
             {navLinks.map((link) => {
               const isActive = location.pathname === link.path;
