@@ -295,3 +295,18 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
   - **Remoción de Lista de Checks**: Eliminada la fila de viñetas con checks verdes inferiores (*"✓ Sin tarjeta de crédito  ✓ Firma .p12 integrada  ✓ Comprobantes SRI ilimitados"*), otorgando protagonismo al H1, subtítulo y botones de acción principales.
 - **Pruebas y Build**: 43 tests unitarios aprobados (41 de comercio/SRI + 2 de animación), compilación de producción limpia en 5.58s.
 
+### 25. Tipografías Aumentadas en Encabezado, Desplazamiento Fluido y Glassmorphism en Scroll (2026-09-25) — COMPLETADO
+- **Tipografía Aumentada en Navegación y Botones (`LandingLayout.jsx`)**:
+  - Enlaces del menú (`Soluciones`, `Precios`, `Nosotros`, `Contacto`) escalados a `text-[15px] lg:text-base font-semibold` con padding aumentado (`px-3.5 py-2`), mejorando su legibilidad y balance jerárquico.
+  - Enlace `Iniciar Sesión` escalado a `text-[15px] lg:text-base font-semibold`.
+  - Botón principal `Regístrate gratis` escalado a `text-[15px] lg:text-base font-semibold` con padding `px-5 py-2.5 rounded-xl`.
+  - Botón secundario `Hablar con Ventas` escalado a `text-[15px] lg:text-base font-semibold` con padding `px-5 py-2.5 rounded-xl`.
+  - Icono de globo terráqueo ampliado a `size={20}`.
+- **Desplazamiento Fluido y Fijado del Menú (Sticky Navbar)**:
+  - Reemplazado `overflow-x-hidden` por `overflow-x-clip` en `LandingLayout.jsx` y `LandingHome.jsx`. Esto elimina la causa raíz que impedía que `position: sticky` se anclara a la ventana durante el scroll.
+- **Glassmorphism Dinámico al Desplazarse**:
+  - Integrado listener de scroll reactivo pasivo sobre `window.scrollY`.
+  - Al desplazarse (`scrollY > 20`), el fondo del header activa glassmorphism traslúcido `backdrop-blur-md bg-[#EAF8EA]/85 border-b border-emerald-200/80 shadow-xs`, difuminando suavemente el contenido de la página que pasa por debajo con el tono menta insignia.
+- **Pruebas y Build**: 43 tests unitarios aprobados, compilación de producción exitosa en 5.58s.
+
+

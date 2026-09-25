@@ -271,7 +271,7 @@ export default function LandingHome() {
   const currentSegment = commercialSegments[activeSegmentTab] || commercialSegments.comercios;
 
   return (
-    <div className="w-full bg-white text-slate-900 overflow-hidden">
+    <div className="w-full bg-white text-slate-900 overflow-x-clip">
       
       {/* 1. HERO SECTION DE ALTO CONTRASTE (ESTILO BREVO & SITEGROUND) */}
       <section className="relative w-full bg-[#EAF8EA] border-b border-emerald-100 rounded-b-[40px] md:rounded-b-[56px] pt-10 pb-16 md:pt-16 md:pb-24 overflow-hidden">

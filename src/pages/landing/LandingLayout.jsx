@@ -6,6 +6,7 @@ export default function LandingLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const scrollContainerRef = useRef(null);
 
   useEffect(() => {
@@ -15,6 +16,18 @@ export default function LandingLayout() {
     }
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   }, [location.pathname]);
+
+  // Listener de scroll para activar glassmorphism reactivo al desplazarse
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY || document.documentElement.scrollTop || 0;
+      setIsScrolled(scrollY > 20);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const navLinks = [
     { path: '/soluciones', label: 'Soluciones' },
@@ -31,14 +44,20 @@ export default function LandingLayout() {
   return (
     <div
       ref={scrollContainerRef}
-      className="min-h-screen w-full flex flex-col justify-between bg-white text-slate-900 overflow-x-hidden selection:bg-[#0F172A] selection:text-white"
+      className="min-h-screen w-full flex flex-col justify-between bg-white text-slate-900 overflow-x-clip selection:bg-[#0F172A] selection:text-white"
     >
-      {/* 1. HEADER FLOTANTE EXACTO ESTILO BREVO */}
-      <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-[#EAF8EA]/95 border-b border-emerald-100/80 transition-all">
-        <div className="w-[90%] max-w-[1720px] mx-auto h-16 sm:h-20 flex items-center justify-between">
+      {/* 1. HEADER FLOTANTE EXACTO ESTILO BREVO CON GLASSMORPHISM AL DESPLAZARSE */}
+      <header
+        className={`sticky top-0 z-50 w-full transition-all duration-300 ${
+          isScrolled
+            ? 'backdrop-blur-md bg-[#EAF8EA]/85 border-b border-emerald-200/80 shadow-xs'
+            : 'backdrop-blur-md bg-[#EAF8EA]/95 border-b border-emerald-100/80'
+        }`}
+      >
+        <div className="w-[90%] max-w-[1720px] mx-auto h-18 sm:h-20 flex items-center justify-between">
           
-          {/* Bloque Izquierdo: Logo WebFix estilo Brevo + Menú seguido inmediatamente */}
-          <div className="flex items-center gap-8 lg:gap-10">
+          {/* Bloque Izquierdo: Logo WebFix estilo Brevo + Menú con tipografía aumentada */}
+          <div className="flex items-center gap-8 lg:gap-12">
             {/* Logo WebFix en texto verde esmeralda idéntico a Brevo */}
             <Link
               to="/"
@@ -50,18 +69,18 @@ export default function LandingLayout() {
               </span>
             </Link>
 
-            {/* Menú de Navegación Alineado a la Izquierda inmediatamente después del Logo */}
-            <nav className="hidden md:flex items-center gap-1 sm:gap-2">
+            {/* Menú de Navegación Alineado a la Izquierda con tamaño aumentado */}
+            <nav className="hidden md:flex items-center gap-1.5 lg:gap-2.5">
               {navLinks.map((link) => {
                 const isActive = location.pathname === link.path;
                 return (
                   <Link
                     key={link.path}
                     to={link.path}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                    className={`px-3.5 py-2 rounded-lg text-[15px] lg:text-base font-semibold transition-colors ${
                       isActive
-                        ? 'text-[#0B5D3A] font-semibold'
-                        : 'text-slate-800 hover:text-slate-950'
+                        ? 'text-[#0B5D3A] font-bold'
+                        : 'text-slate-800 hover:text-[#0B5D3A]'
                     }`}
                   >
                     {link.label}
@@ -71,36 +90,36 @@ export default function LandingLayout() {
             </nav>
           </div>
 
-          {/* Bloque Derecho (Exacto Brevo): Globo | Conectarse | Regístrate gratis | Hablar con Ventas */}
-          <div className="hidden md:flex items-center gap-4">
+          {/* Bloque Derecho (Exacto Brevo): Globo | Conectarse | Regístrate gratis | Hablar con Ventas con tamaño aumentado */}
+          <div className="hidden md:flex items-center gap-4 lg:gap-5">
             {/* Icono Globo */}
-            <div className="flex items-center text-slate-700 hover:text-slate-950 cursor-pointer transition-colors" title="Español (Ecuador)">
-              <Globe size={18} />
+            <div className="flex items-center text-slate-800 hover:text-slate-950 cursor-pointer transition-colors p-1" title="Español (Ecuador)">
+              <Globe size={20} />
             </div>
 
             {/* Separador vertical */}
-            <div className="h-4 w-px bg-slate-300" />
+            <div className="h-5 w-px bg-slate-300" />
 
-            {/* Iniciar Sesión */}
+            {/* Iniciar Sesión con tamaño aumentado */}
             <Link
               to="/login"
-              className="text-slate-800 hover:text-slate-950 font-medium text-sm transition-colors"
+              className="text-slate-800 hover:text-[#0B5D3A] font-semibold text-[15px] lg:text-base px-2 py-1 transition-colors"
             >
               Iniciar Sesión
             </Link>
 
-            {/* Regístrate gratis (botón negro sólido redondeado) */}
+            {/* Regístrate gratis (botón negro sólido redondeado con fuentes aumentadas) */}
             <Link
               to="/register"
-              className="px-4 py-2 rounded-xl bg-[#1E1E1E] hover:bg-black text-white font-semibold text-sm transition-all shadow-none"
+              className="px-5 py-2.5 rounded-xl bg-[#1E1E1E] hover:bg-black text-white font-semibold text-[15px] lg:text-base transition-all shadow-none"
             >
               Regístrate gratis
             </Link>
 
-            {/* Hablar con Ventas (botón outline redondeado) */}
+            {/* Hablar con Ventas (botón outline redondeado con fuentes aumentadas) */}
             <Link
               to="/contacto"
-              className="px-4 py-2 rounded-xl border border-slate-900 text-slate-900 hover:bg-slate-900/5 font-semibold text-sm transition-all"
+              className="px-5 py-2.5 rounded-xl border border-slate-900 text-slate-900 hover:bg-slate-900/5 font-semibold text-[15px] lg:text-base transition-all"
             >
               Hablar con Ventas
             </Link>
@@ -115,7 +134,7 @@ export default function LandingLayout() {
             aria-expanded={isMobileMenuOpen}
             aria-controls="mobile-nav-menu"
           >
-            {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
 
         </div>
@@ -123,7 +142,7 @@ export default function LandingLayout() {
 
       {/* 2. OVERLAY MENÚ MÓVIL */}
       {isMobileMenuOpen && (
-        <div id="mobile-nav-menu" className="fixed inset-x-0 top-16 z-40 bg-white/98 backdrop-blur-md border-b border-slate-200 p-6 flex flex-col gap-4 md:hidden shadow-lg animate-in slide-in-from-top-2 duration-150">
+        <div id="mobile-nav-menu" className="fixed inset-x-0 top-18 sm:top-20 z-40 bg-[#EAF8EA]/98 backdrop-blur-md border-b border-emerald-200/80 p-6 flex flex-col gap-4 md:hidden shadow-lg animate-in slide-in-from-top-2 duration-150">
           <div className="flex flex-col space-y-1">
             {navLinks.map((link) => {
               const isActive = location.pathname === link.path;
@@ -132,10 +151,10 @@ export default function LandingLayout() {
                   key={link.path}
                   type="button"
                   onClick={() => handleMobileLinkClick(link.path)}
-                  className={`text-left px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                  className={`text-left px-4 py-3 rounded-lg text-base font-semibold transition-colors ${
                     isActive
-                      ? 'bg-slate-100 text-slate-950 font-semibold'
-                      : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
+                      ? 'bg-emerald-900/10 text-[#0B5D3A] font-bold'
+                      : 'text-slate-800 hover:text-slate-950 hover:bg-emerald-900/5'
                   }`}
                 >
                   {link.label}
@@ -144,14 +163,14 @@ export default function LandingLayout() {
             })}
           </div>
 
-          <div className="pt-3 border-t border-slate-200 flex flex-col gap-2.5">
+          <div className="pt-3 border-t border-emerald-200/80 flex flex-col gap-3">
             <button
               type="button"
               onClick={() => {
                 setIsMobileMenuOpen(false);
                 navigate('/login');
               }}
-              className="w-full py-2.5 px-4 rounded-lg text-center text-sm font-medium text-slate-700 hover:bg-slate-100 border border-slate-200 transition-colors"
+              className="w-full py-3 px-4 rounded-xl text-center text-base font-semibold text-slate-800 hover:bg-emerald-900/5 border border-slate-300 transition-colors"
             >
               Iniciar Sesión
             </button>
@@ -161,7 +180,7 @@ export default function LandingLayout() {
                 setIsMobileMenuOpen(false);
                 navigate('/register');
               }}
-              className="w-full py-2.5 px-4 rounded-xl text-center text-sm font-medium bg-[#1E1E1E] hover:bg-black text-white transition-all shadow-none"
+              className="w-full py-3 px-4 rounded-xl text-center text-base font-semibold bg-[#1E1E1E] hover:bg-black text-white transition-all shadow-none"
             >
               Regístrate gratis
             </button>
@@ -171,7 +190,7 @@ export default function LandingLayout() {
                 setIsMobileMenuOpen(false);
                 navigate('/contacto');
               }}
-              className="w-full py-2.5 px-4 rounded-xl text-center text-sm font-medium border border-slate-900 text-slate-900 hover:bg-slate-900/5 transition-all"
+              className="w-full py-3 px-4 rounded-xl text-center text-base font-semibold border border-slate-900 text-slate-900 hover:bg-slate-900/5 transition-all"
             >
               Hablar con Ventas
             </button>
