@@ -1,6 +1,3 @@
-import { mergeThemeProps } from '../../components/ui/themeProps';
-import { UiBox, UiText, UiHeading, UiCard } from '../../components/ui/layout';
-import { UiButton } from '../../components/ui/controls';
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -10,9 +7,6 @@ import {
   DollarSign, ShieldCheck,
   Lock, Printer
 } from 'lucide-react';
-import { Card } from '../../components/ui/card';
-import { Badge } from '../../components/ui/badge';
-import { Button } from '../../components/ui/button';
 import { useParallaxScroll } from '../../hooks/useParallaxScroll';
 import { ScrollReveal } from '../../components/landing/ScrollReveal';
 
@@ -300,7 +294,7 @@ export default function LandingHome() {
   const currentSegment = commercialSegments[activeSegmentTab] || commercialSegments.comercios;
 
   return (
-    <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"},"className":"w-full"}}>
+    <div className="w-full bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 overflow-hidden">
       
       {/* 1. HERO SECTION DE ALTO CONTRASTE (ESTILO BREVO & SITEGROUND) */}
       <section className="relative w-full bg-[#F0FDF4] dark:bg-[#071d12] rounded-b-[40px] md:rounded-b-[56px] border-b border-emerald-100 dark:border-emerald-950/50 pt-10 pb-16 md:pt-16 md:pb-24 overflow-hidden">
@@ -962,223 +956,279 @@ export default function LandingHome() {
       </section>
 
       {/* 5. PRICING PREVIEW */}
-      <section {...{"style":{"borderBottom":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"py-20"}}>
-        <UiBox {...{"className":"max-w-5xl mx-auto px-4 sm:px-6 text-center space-y-8"}}>
-          
-          <UiBox {...{"className":"space-y-2"}}>
-            <UiHeading as="h2" {...{"size":"6","weight":"bold","color":"gray","highContrast":true}}>
-              Precios simples y transparentes.
-            </UiHeading>
-            <UiText as="p" {...{"size":"1","color":"gray"}}>
-              Sin costos ocultos ni cobros por factura emitida. Comienza con 14 días gratis.
-            </UiText>
-
-            {/* Toggle Mensual / Anual */}
-            <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)"},"className":"inline-flex items-center p-1 gap-1 mt-4"}}>
-              <UiButton
-                onClick={() => setBillingCycle('monthly')}
-                {...mergeThemeProps({"size":"2","className":"cursor-pointer"}, {}, (billingCycle === 'monthly' ? {"variant":"surface","color":"gray"} : {"color":"gray"}))}
-              >
-                Mensual
-              </UiButton>
-              <UiButton
-                onClick={() => setBillingCycle('yearly')}
-                {...mergeThemeProps({"size":"2","className":"cursor-pointer flex items-center gap-1"}, {}, (billingCycle === 'yearly' ? {"variant":"surface","color":"gray"} : {"color":"gray"}))}
-              >
-                <UiText>Anual</UiText>
-                <UiText {...{"size":"1","color":"green","weight":"regular","className":"px-1"}}>-20%</UiText>
-              </UiButton>
-            </UiBox>
-          </UiBox>
-
-          <UiBox {...{"className":"grid grid-cols-1 md:grid-cols-3 gap-6 text-left max-w-4xl mx-auto"}}>
+      <section className="w-full bg-white dark:bg-slate-950 border-t border-slate-200/80 dark:border-slate-800">
+        <ScrollReveal>
+          <div className="w-[90%] max-w-[1720px] mx-auto py-20 md:py-28 text-center">
             
-            {/* Plan Starter */}
-            <Card {...{"className":"p-5 flex flex-col justify-between"}}>
-              <UiBox>
-                <UiBox {...{"className":"mb-4"}}>
-                  <UiHeading as="h3" {...{"size":"2","weight":"bold","color":"gray","highContrast":true}}>Emprendedor</UiHeading>
-                  <UiText as="p" {...{"size":"1","color":"gray","className":"mt-0.5"}}>Para negocios que inician con el SRI</UiText>
-                </UiBox>
-                <UiBox {...{"className":"mb-6"}}>
-                  <UiText {...{"size":"7","weight":"regular","color":"gray","highContrast":true}}>
-                    ${billingCycle === 'monthly' ? '15' : '12'}
-                  </UiText>
-                  <UiText {...{"size":"1","color":"gray"}}> / mes</UiText>
-                </UiBox>
-                <ul {...{"style":{"color":"var(--gray-11)"},"className":"space-y-2"}}>
-                  <li {...{"className":"flex items-center gap-2"}}><Check size={12} {...{"style":{"color":"var(--green-12)"}}} /> Facturas SRI Ilimitadas</li>
-                  <li {...{"className":"flex items-center gap-2"}}><Check size={12} {...{"style":{"color":"var(--green-12)"}}} /> Punto de Venta (POS)</li>
-                  <li {...{"className":"flex items-center gap-2"}}><Check size={12} {...{"style":{"color":"var(--green-12)"}}} /> Directorio de Clientes</li>
-                  <li {...{"className":"flex items-center gap-2"}}><Check size={12} {...{"style":{"color":"var(--green-12)"}}} /> 1 Usuario</li>
-                </ul>
-              </UiBox>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => navigate('/register')}
-                {...{"size":"2","className":"w-full mt-6"}}
-              >
-                Probar Gratis
-              </Button>
-            </Card>
+            {/* Encabezado limpio sin dots ni burbujas */}
+            <div className="max-w-3xl mx-auto space-y-3">
+              <h2 className="text-3xl sm:text-4xl font-bold text-[#0F172A] dark:text-white tracking-tight">
+                Precios transparentes y sin sorpresas
+              </h2>
+              <p className="text-slate-600 dark:text-slate-400 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
+                Sin costos ocultos ni cobros por factura emitida. Comienza hoy con 14 días de prueba gratis.
+              </p>
 
-            {/* Plan Profesional (Destacado) */}
-            <Card {...{"className":"p-5 flex flex-col justify-between relative"}}>
-              <Badge variant="default" {...{"className":"absolute -top-2.5 right-4 py-0.5 px-2"}}>
-                Más Popular
-              </Badge>
-              <UiBox>
-                <UiBox {...{"className":"mb-4"}}>
-                  <UiHeading as="h3" {...{"size":"2","weight":"bold","color":"gray","highContrast":true}}>Negocio Pro</UiHeading>
-                  <UiText as="p" {...{"size":"1","color":"gray","className":"mt-0.5"}}>Para comercios con inventario y POS</UiText>
-                </UiBox>
-                <UiBox {...{"className":"mb-6"}}>
-                  <UiText {...{"size":"7","weight":"regular","color":"gray","highContrast":true}}>
-                    ${billingCycle === 'monthly' ? '29' : '23'}
-                  </UiText>
-                  <UiText {...{"size":"1","color":"gray"}}> / mes</UiText>
-                </UiBox>
-                <ul {...{"style":{"color":"var(--gray-11)"},"className":"space-y-2"}}>
-                  <li {...{"className":"flex items-center gap-2"}}><Check size={12} {...{"style":{"color":"var(--green-12)"}}} /> Todo lo de Emprendedor</li>
-                  <li {...{"className":"flex items-center gap-2"}}><Check size={12} {...{"style":{"color":"var(--green-12)"}}} /> Inventario & Kardex Multibodega</li>
-                  <li {...{"className":"flex items-center gap-2"}}><Check size={12} {...{"style":{"color":"var(--green-12)"}}} /> Control de Cuentas por Cobrar (CxC)</li>
-                  <li {...{"className":"flex items-center gap-2"}}><Check size={12} {...{"style":{"color":"var(--green-12)"}}} /> Hasta 3 Usuarios y Cajeros</li>
-                </ul>
-              </UiBox>
-              <Button 
-                variant="default" 
-                size="sm" 
-                onClick={() => navigate('/register')}
-                {...{"size":"2","className":"w-full mt-6"}}
-              >
-                Comenzar con Pro
-              </Button>
-            </Card>
+              {/* Selector Mensual / Anual (-20%) */}
+              <div className="pt-4 flex justify-center">
+                <div className="inline-flex items-center p-1.5 rounded-full bg-slate-100 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 select-none">
+                  <button
+                    type="button"
+                    onClick={() => setBillingCycle('monthly')}
+                    className={`px-5 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                      billingCycle === 'monthly'
+                        ? 'bg-white dark:bg-slate-900 text-slate-950 dark:text-white shadow-sm'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                  >
+                    Mensual
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBillingCycle('yearly')}
+                    className={`px-5 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                      billingCycle === 'yearly'
+                        ? 'bg-white dark:bg-slate-900 text-slate-950 dark:text-white shadow-sm'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                  >
+                    <span>Anual</span>
+                    <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300">
+                      -20%
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </div>
 
-            {/* Plan Empresa */}
-            <Card {...{"className":"p-5 flex flex-col justify-between"}}>
-              <UiBox>
-                <UiBox {...{"className":"mb-4"}}>
-                  <UiHeading as="h3" {...{"size":"2","weight":"bold","color":"gray","highContrast":true}}>Empresarial</UiHeading>
-                  <UiText as="p" {...{"size":"1","color":"gray","className":"mt-0.5"}}>Para empresas con gestión completa</UiText>
-                </UiBox>
-                <UiBox {...{"className":"mb-6"}}>
-                  <UiText {...{"size":"7","weight":"regular","color":"gray","highContrast":true}}>
-                    ${billingCycle === 'monthly' ? '59' : '47'}
-                  </UiText>
-                  <UiText {...{"size":"1","color":"gray"}}> / mes</UiText>
-                </UiBox>
-                <ul {...{"style":{"color":"var(--gray-11)"},"className":"space-y-2"}}>
-                  <li {...{"className":"flex items-center gap-2"}}><Check size={12} {...{"style":{"color":"var(--green-12)"}}} /> Todo lo de Negocio Pro</li>
-                  <li {...{"className":"flex items-center gap-2"}}><Check size={12} {...{"style":{"color":"var(--green-12)"}}} /> Captura OCR con IA ilimitada</li>
-                  <li {...{"className":"flex items-center gap-2"}}><Check size={12} {...{"style":{"color":"var(--green-12)"}}} /> Contabilidad & Asientos Automáticos</li>
-                  <li {...{"className":"flex items-center gap-2"}}><Check size={12} {...{"style":{"color":"var(--green-12)"}}} /> Usuarios y Cajeros Ilimitados</li>
-                </ul>
-              </UiBox>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => navigate('/register')}
-                {...{"size":"2","className":"w-full mt-6"}}
-              >
-                Probar Empresarial
-              </Button>
-            </Card>
+            {/* 3 Tarjetas de Planes al 90% */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto mt-12 sm:mt-14 text-left items-stretch">
+              
+              {/* Plan Emprendedor */}
+              <div className="rounded-3xl border border-slate-200/90 dark:border-slate-800 p-6 sm:p-8 flex flex-col justify-between bg-white dark:bg-slate-900/90">
+                <div>
+                  <div className="mb-6">
+                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">Emprendedor</h3>
+                    <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Para negocios que inician con el SRI</p>
+                  </div>
+                  <div className="mb-6 flex items-baseline gap-1.5">
+                    <span className="font-mono text-4xl sm:text-5xl font-extrabold text-slate-950 dark:text-white">
+                      ${billingCycle === 'monthly' ? '15' : '12'}
+                    </span>
+                    <span className="text-sm font-medium text-slate-500 dark:text-slate-400">/ mes</span>
+                  </div>
+                  <ul className="space-y-3.5 text-sm text-slate-700 dark:text-slate-300">
+                    <li className="flex items-center gap-2.5">
+                      <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 stroke-[2.5]" />
+                      <span>Facturas SRI ilimitadas</span>
+                    </li>
+                    <li className="flex items-center gap-2.5">
+                      <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 stroke-[2.5]" />
+                      <span>Punto de Venta POS</span>
+                    </li>
+                    <li className="flex items-center gap-2.5">
+                      <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 stroke-[2.5]" />
+                      <span>Directorio de Clientes</span>
+                    </li>
+                    <li className="flex items-center gap-2.5">
+                      <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 stroke-[2.5]" />
+                      <span>1 Usuario</span>
+                    </li>
+                  </ul>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => navigate('/register')}
+                  className="w-full mt-8 py-3 px-5 rounded-full font-semibold text-sm border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-center cursor-pointer"
+                >
+                  Probar Gratis
+                </button>
+              </div>
 
-          </UiBox>
+              {/* Plan Negocio Pro (Más Popular) */}
+              <div className="rounded-3xl border-2 border-blue-600 dark:border-blue-500 shadow-sm relative bg-white dark:bg-slate-900 p-6 sm:p-8 flex flex-col justify-between">
+                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full text-xs font-bold bg-blue-600 text-white tracking-wide uppercase select-none">
+                  Más Popular
+                </div>
+                <div>
+                  <div className="mb-6">
+                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">Negocio Pro</h3>
+                    <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Para comercios con inventario y POS</p>
+                  </div>
+                  <div className="mb-6 flex items-baseline gap-1.5">
+                    <span className="font-mono text-4xl sm:text-5xl font-extrabold text-slate-950 dark:text-white">
+                      ${billingCycle === 'monthly' ? '29' : '23'}
+                    </span>
+                    <span className="text-sm font-medium text-slate-500 dark:text-slate-400">/ mes</span>
+                  </div>
+                  <ul className="space-y-3.5 text-sm text-slate-700 dark:text-slate-300">
+                    <li className="flex items-center gap-2.5">
+                      <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 stroke-[2.5]" />
+                      <span className="font-medium text-slate-900 dark:text-white">Todo lo de Emprendedor</span>
+                    </li>
+                    <li className="flex items-center gap-2.5">
+                      <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 stroke-[2.5]" />
+                      <span>Inventario & Kardex Multibodega</span>
+                    </li>
+                    <li className="flex items-center gap-2.5">
+                      <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 stroke-[2.5]" />
+                      <span>Cuentas por Cobrar (CxC)</span>
+                    </li>
+                    <li className="flex items-center gap-2.5">
+                      <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 stroke-[2.5]" />
+                      <span>Hasta 3 Usuarios</span>
+                    </li>
+                  </ul>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => navigate('/register')}
+                  className="w-full mt-8 py-3 px-5 rounded-full font-bold text-sm bg-[#0F172A] hover:bg-slate-800 text-white dark:bg-blue-600 dark:hover:bg-blue-700 transition-colors text-center cursor-pointer shadow-none"
+                >
+                  Comenzar con Pro
+                </button>
+              </div>
 
-        </UiBox>
+              {/* Plan Empresarial */}
+              <div className="rounded-3xl border border-slate-200/90 dark:border-slate-800 p-6 sm:p-8 flex flex-col justify-between bg-white dark:bg-slate-900/90">
+                <div>
+                  <div className="mb-6">
+                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">Empresarial</h3>
+                    <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Para empresas con gestión completa</p>
+                  </div>
+                  <div className="mb-6 flex items-baseline gap-1.5">
+                    <span className="font-mono text-4xl sm:text-5xl font-extrabold text-slate-950 dark:text-white">
+                      ${billingCycle === 'monthly' ? '59' : '47'}
+                    </span>
+                    <span className="text-sm font-medium text-slate-500 dark:text-slate-400">/ mes</span>
+                  </div>
+                  <ul className="space-y-3.5 text-sm text-slate-700 dark:text-slate-300">
+                    <li className="flex items-center gap-2.5">
+                      <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 stroke-[2.5]" />
+                      <span className="font-medium text-slate-900 dark:text-white">Todo lo de Pro</span>
+                    </li>
+                    <li className="flex items-center gap-2.5">
+                      <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 stroke-[2.5]" />
+                      <span>Captura OCR con IA ilimitada</span>
+                    </li>
+                    <li className="flex items-center gap-2.5">
+                      <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 stroke-[2.5]" />
+                      <span>Contabilidad & Asientos automáticos</span>
+                    </li>
+                    <li className="flex items-center gap-2.5">
+                      <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 stroke-[2.5]" />
+                      <span>Usuarios ilimitados</span>
+                    </li>
+                  </ul>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => navigate('/register')}
+                  className="w-full mt-8 py-3 px-5 rounded-full font-semibold text-sm border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-center cursor-pointer"
+                >
+                  Probar Empresarial
+                </button>
+              </div>
+
+            </div>
+
+          </div>
+        </ScrollReveal>
       </section>
 
       {/* 6. FAQ ACCORDION */}
-      <section {...{"style":{"borderBottom":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"py-20"}}>
-        <UiBox {...{"className":"max-w-3xl mx-auto px-4 sm:px-6 text-left"}}>
-          
-          <UiBox {...{"className":"text-center mb-12 space-y-2"}}>
-            <UiHeading as="h2" {...{"size":"6","weight":"bold","color":"gray","highContrast":true}}>
-              Preguntas Frecuentes
-            </UiHeading>
-            <UiText as="p" {...{"size":"1","color":"gray"}}>
-              Todo lo que necesitas saber para comenzar hoy mismo.
-            </UiText>
-          </UiBox>
-
-          <UiBox {...{"className":"space-y-2"}}>
-            {faqs.map((faq, index) => {
-              const isOpen = openFaqIndex === index;
-              return (
-                <UiBox 
-                  key={index} 
-                  {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"overflow-hidden"}}
-                >
-                  <UiButton
-                    onClick={() => setOpenFaqIndex(isOpen ? null : index)}
-                    {...{"size":"2","color":"gray","className":"w-full text-left flex items-center justify-between gap-4 cursor-pointer"}}
-                  >
-                    <UiText>{faq.q}</UiText>
-                    <ChevronDown size={14} {...mergeThemeProps({"className":"shrink-0 transition-transform duration-150"}, {}, (isOpen ? {"className":"rotate-180"} : {}))} />
-                  </UiButton>
-                  {isOpen && (
-                    <UiBox {...{"style":{"color":"var(--gray-11)","borderTop":"1px solid var(--gray-a6)"},"className":"px-4 pb-3.5 pt-1 leading-relaxed animate-in fade-in duration-100"}}>
-                      {faq.a}
-                    </UiBox>
-                  )}
-                </UiBox>
-              );
-            })}
-          </UiBox>
-
-        </UiBox>
-      </section>
-
-      {/* 7. FINAL CALL TO ACTION (Minimalist High-Contrast Banner with Ambient Glow) */}
-      <section {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"relative py-24 overflow-hidden"}}>
-        {/* Ambient Glow Lights */}
-        <UiBox {...{"style":{"backgroundColor":"var(--blue-3)","borderRadius":"var(--radius-3)"},"className":"absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[350px] pointer-events-none animate-glow-pulse"}}></UiBox>
-
-        <UiBox {...{"className":"max-w-4xl mx-auto px-4 sm:px-6 text-center relative z-10"}}>
-          <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--gray-2)"},"className":"p-8 sm:p-14 space-y-5 relative overflow-hidden"}}>
+      <section className="w-full bg-white dark:bg-slate-950">
+        <ScrollReveal>
+          <div className="w-[90%] max-w-4xl mx-auto py-20 md:py-24 border-t border-slate-200/80 dark:border-slate-800">
             
-            {/* Top decorative laser line */}
-            <UiBox {...{"style":{"backgroundColor":"var(--gray-2)"},"className":"absolute top-0 left-0 right-0 h-[2px] overflow-hidden"}}>
-              <UiBox {...{"style":{"backgroundColor":"var(--gray-2)"},"className":"h-full w-1/3 animate-beam-slide"}} style={{ animationDuration: '4s' }}></UiBox>
-            </UiBox>
+            {/* Título centrado limpio sin dots */}
+            <div className="text-center mb-10 sm:mb-12 space-y-2">
+              <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white tracking-tight">
+                Preguntas Frecuentes
+              </h2>
+              <p className="text-slate-600 dark:text-slate-400 text-base sm:text-lg">
+                Todo lo que necesitas saber para comenzar hoy mismo.
+              </p>
+            </div>
 
-            <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-11)"},"className":"inline-flex items-center gap-2 px-3 py-1 select-none"}}>
-              <UiText {...{"className":"flex h-1.5 w-1.5 animate-pulse"}}></UiText>
-              <UiText>14 Días Gratis • Sin Tarjeta</UiText>
-            </UiCard>
+            {/* Acordeón directo y plano sin tarjetas anidadas ni bordes pesados */}
+            <div>
+              {faqs.map((faq, index) => {
+                const isOpen = openFaqIndex === index;
+                return (
+                  <div key={index}>
+                    <button
+                      type="button"
+                      onClick={() => setOpenFaqIndex(isOpen ? null : index)}
+                      className="w-full py-4 text-left flex items-center justify-between font-semibold text-base sm:text-lg text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-800 cursor-pointer group"
+                    >
+                      <span className="pr-4">{faq.q}</span>
+                      <ChevronDown 
+                        size={18} 
+                        className={`shrink-0 text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-transform duration-200 ${
+                          isOpen ? 'rotate-180' : ''
+                        }`} 
+                      />
+                    </button>
+                    {isOpen && (
+                      <div className="text-slate-600 dark:text-slate-400 text-sm sm:text-base leading-relaxed py-3 border-b border-slate-200/80 dark:border-slate-800/80 animate-in fade-in duration-150">
+                        {faq.a}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
 
-            <UiHeading as="h2" {...{"size":"6","weight":"bold","color":"gray","highContrast":true}}>
-              Comienza a facturar y controlar tu negocio hoy.
-            </UiHeading>
-            <UiText as="p" {...{"size":"1","color":"gray","className":"max-w-lg mx-auto leading-relaxed"}}>
-              Únete a cientos de emprendedores ecuatorianos que ya modernizaron su gestión tributaria y comercial con WebFix.
-            </UiText>
-            <UiBox {...{"className":"pt-3 flex flex-col sm:flex-row items-center justify-center gap-3"}}>
-              <Button 
-                size="lg" 
-                variant="default"
-                onClick={() => navigate('/register')}
-                {...{"size":"2","className":"w-full sm:w-auto gap-2 group hover:scale-[1.02]"}}
-              >
-                <UiText>Crear Cuenta Gratis</UiText>
-                <ArrowRight size={13} {...{"className":"group-hover:translate-x-0.5 transition-transform"}} />
-              </Button>
-              <Button 
-                size="lg" 
-                variant="secondary"
-                onClick={() => navigate('/contacto')}
-                {...{"size":"2","className":"w-full sm:w-auto"}}
-              >
-                Hablar con un Asesor
-              </Button>
-            </UiBox>
-          </UiBox>
-        </UiBox>
+          </div>
+        </ScrollReveal>
       </section>
 
-    </UiBox>
+      {/* 7. FINAL CALL TO ACTION */}
+      <section className="w-full bg-white dark:bg-slate-950">
+        <ScrollReveal>
+          <div className="w-[90%] max-w-[1720px] mx-auto pb-24 md:pb-32">
+            <div className="rounded-3xl md:rounded-[40px] p-8 sm:p-14 lg:p-16 text-center text-white border border-slate-800 relative overflow-hidden bg-[#0F172A]">
+              
+              {/* Tag píldora sutil */}
+              <div className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-semibold bg-white/10 text-white/90 border border-white/20 select-none mb-6">
+                14 Días de Prueba Gratis • Sin Tarjeta de Crédito
+              </div>
+
+              {/* H2 de alta conversión */}
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white mb-4">
+                Comienza a facturar y controlar tu negocio hoy.
+              </h2>
+
+              {/* Subtítulo de 2 líneas */}
+              <p className="text-slate-300 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed mb-8">
+                Únete a cientos de emprendedores ecuatorianos que ya modernizaron su gestión tributaria y comercial con WebFix.
+              </p>
+
+              {/* Acciones */}
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <button
+                  type="button"
+                  onClick={() => navigate('/register')}
+                  className="w-full sm:w-auto bg-white hover:bg-slate-100 text-[#0F172A] font-bold px-8 py-4 rounded-full text-base flex items-center justify-center gap-2 cursor-pointer transition-transform hover:scale-[1.02]"
+                >
+                  <span>Crear Cuenta Gratis</span>
+                  <ArrowRight size={18} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate('/contacto')}
+                  className="w-full sm:w-auto bg-transparent hover:bg-white/10 text-white font-semibold px-8 py-4 rounded-full text-base border border-white/30 cursor-pointer transition-colors"
+                >
+                  Hablar con un Asesor
+                </button>
+              </div>
+
+            </div>
+          </div>
+        </ScrollReveal>
+      </section>
+
+    </div>
   );
 }
