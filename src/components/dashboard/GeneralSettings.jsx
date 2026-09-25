@@ -978,6 +978,7 @@ export default function GeneralSettings({
   }
 
   const inputClass = "w-full text-xs px-3.5 py-2.5 rounded-xl outline-none transition-all border bg-white border-slate-200 text-slate-900 font-medium focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 placeholder:text-slate-400";
+  const readonlyInputClass = "w-full text-xs px-3.5 py-2.5 rounded-xl border bg-slate-50 border-slate-200 text-slate-700 font-medium cursor-default select-text";
 
  const tabs = [
  { id:'profile', label:'Perfil de Empresa', icon: Building },
@@ -1021,597 +1022,646 @@ export default function GeneralSettings({
  {/* PESTAÑA: PERFIL EMPRESA */}
  {activeSubTab ==='profile' && (
  <form onSubmit={handleSaveProfile} className="space-y-6 animate-in fade-in duration-200">
- <div className="border-b border-white/5 pb-3">
- <h3 className="text-base font-bold text-slate-950 tracking-tight">Perfil de Empresa</h3>
- <p className="text-xs text-text-secondary mt-1">Identidad fiscal, firma electrónica y establecimientos de su negocio. El ambiente de emisión, secuenciales y formatos se configuran en la pestaña <span className="font-bold text-primary">Facturación Electrónica</span>.</p>
- </div>
+  {/* BARRA SUPERIOR DE ACCIONES */}
+  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+    <div>
+      <h2 className="text-base font-bold text-slate-900 tracking-tight">
+        {companyProfile.nombreComercial || companyProfile.razonSocial || 'Perfil de Empresa'}
+      </h2>
+      <p className="text-xs text-slate-500 mt-0.5">
+        Identidad fiscal, firma electrónica y parámetros operativos para facturación electrónica ante el SRI.
+      </p>
+    </div>
+
+    <div className="flex items-center gap-2">
+      {(!companyProfile.certificadoCargado || isFirmaMatch()) ? (
+        <button 
+          type="submit" 
+          className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold bg-[#1b1b1b] hover:bg-slate-800 text-white transition-all cursor-pointer shadow-none"
+        >
+          <Save size={14} />
+          <span>Guardar Empresa</span>
+        </button>
+      ) : (
+        <div className="text-xs text-rose-600 font-semibold bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
+          <AlertTriangle size={13} className="shrink-0" />
+          <span>Firma incompatible con RUC</span>
+        </div>
+      )}
+    </div>
+  </div>
 
  {/* ALERTA RUC INACTIVO */}
- {!companyProfile.rucActivo && (
- <div className="p-3.5 rounded-card border border-red-500/20 bg-red-500/5 text-red-500  text-xs flex items-center gap-2 animate-pulse">
- <AlertTriangle size={16} className="shrink-0" />
- <span className="font-bold">Facturación Electrónica Deshabilitada: El RUC de la empresa está suspendido o inactivo. El sistema solo emitirá recibos contables.</span>
- </div>
- )}
+  {!companyProfile.rucActivo && (
+    <div className="p-3.5 rounded-xl border border-rose-200 bg-rose-50 text-rose-800 text-xs flex items-center gap-2.5">
+      <AlertTriangle size={16} className="text-rose-600 shrink-0" />
+      <span className="font-medium">El RUC de la empresa está inactivo o suspendido en el SRI. La facturación electrónica permanecerá deshabilitada.</span>
+    </div>
+  )}
 
- {/* ALERTA FIRMA INCOMPATIBLE */}
- {companyProfile.certificadoCargado && !isFirmaMatch() && (
- <div className="p-3.5 rounded-card border border-red-500/20 bg-red-500/5 text-red-500  text-xs flex items-center gap-2">
- <AlertTriangle size={16} className="shrink-0" />
- <span className="font-bold">Error de Validación: La firma electrónica activa pertenece al RUC {companyProfile.certificadoRuc} ({getPersonaTipoStr(companyProfile.certificadoRuc)}), el cual no coincide con el RUC de la empresa ({companyProfile.ruc}). Por favor, ingrese una firma que coincida o elimine la firma actual.</span>
- </div>
- )}
+  {/* ALERTA FIRMA INCOMPATIBLE */}
+  {companyProfile.certificadoCargado && !isFirmaMatch() && (
+    <div className="p-3.5 rounded-xl border border-rose-200 bg-rose-50 text-rose-800 text-xs flex items-center gap-2.5">
+      <AlertTriangle size={16} className="text-rose-600 shrink-0" />
+      <span className="font-medium">La firma electrónica activa pertenece al RUC {companyProfile.certificadoRuc} ({getPersonaTipoStr(companyProfile.certificadoRuc)}), el cual no coincide con el RUC configurado ({companyProfile.ruc}).</span>
+    </div>
+  )}
 
- <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
- 
- {/* COLUMNA 1 (IZQUIERDA) */}
- <div className="space-y-6">
- 
- {/* CARD 1: DATOS FISCALES DE LA EMPRESA */}
- <div className={`p-5 rounded-card border space-y-4 bg-surface-bg/50 border-border-default`}>
- <h4 className="text-xs font-semibold uppercase tracking-wider text-primary flex items-center gap-1.5">
- <Building size={14} className="text-primary" /> Identificación Fiscal
- </h4>
- 
- {/* RUC CON BUSCADOR SRI */}
- <div className="flex gap-2 items-end">
- <div className="flex-1">
- <label className="label-field label-field-dark flex items-center gap-1">
- <Lock size={10} className="text-text-secondary" /> RUC Emisor (13 dígitos)
- </label>
- <input 
- type="text" 
- maxLength={13}
- value={companyProfile.ruc} 
- onChange={e => setCompanyProfile({...companyProfile, ruc: e.target.value})} 
- className={inputClass} 
- placeholder="1790000000001" 
- />
- </div>
- <button
- type="button"
- onClick={handleSRIExtraction}
- disabled={isExtractingSRI}
- className={`px-4 py-2.5 rounded-card text-xs font-semibold transition-all border flex items-center gap-1.5 shrink-0 bg-primary hover:bg-primary text-white`}
- >
- {isExtractingSRI && <RefreshCw size={12} className="animate-spin" />}
- {isExtractingSRI ?'Consultando...' :'Configurar Empresa'}
- </button>
- </div>
+  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+    
+    {/* COLUMNA 1 (IZQUIERDA) */}
+    <div className="space-y-6">
+      
+      {/* CARD 1: IDENTIFICACIÓN FISCAL Y RÉGIMEN */}
+      <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 space-y-4 shadow-none">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+              <Building size={14} />
+            </div>
+            <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Identificación Fiscal</h4>
+          </div>
+          {companyProfile.ruc && companyProfile.ruc.length === 13 && (
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
+              companyProfile.rucActivo
+                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                : 'bg-rose-50 text-rose-700 border border-rose-200'
+            }`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${companyProfile.rucActivo ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+              {companyProfile.rucEstado || 'ACTIVO'} ({companyProfile.rucRegimen || 'Régimen General'})
+            </span>
+          )}
+        </div>
 
- <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
- <div>
- <label className="label-field label-field-dark flex items-center gap-1">
- <Lock size={10} className="text-text-secondary" /> Razón Social (Bloqueado)
- </label>
- <input 
- type="text" 
- readOnly
- disabled
- value={companyProfile.razonSocial} 
- className={`${inputClass} opacity-60 bg-surface-sidebar/5 cursor-not-allowed`}
- placeholder="Razón Social cargada desde el SRI" 
- />
- </div>
- <div>
- <label className="label-field label-field-dark flex items-center gap-1">
- <Lock size={10} className="text-text-secondary" /> Nombre Comercial (Bloqueado)
- </label>
- <input 
- type="text" 
- readOnly
- disabled
- value={companyProfile.nombreComercial} 
- className={`${inputClass} opacity-60 bg-surface-sidebar/5 cursor-not-allowed`}
- placeholder="Nombre Comercial cargado desde el SRI" 
- />
- </div>
+        {/* RUC con Buscador SRI */}
+        <div className="space-y-1.5">
+          <label className="block text-xs font-semibold text-slate-700">RUC del Emisor (13 dígitos)</label>
+          <div className="flex gap-2">
+            <input 
+              type="text" 
+              maxLength={13}
+              value={companyProfile.ruc} 
+              onChange={e => setCompanyProfile({...companyProfile, ruc: e.target.value})} 
+              className={inputClass} 
+              placeholder="1790000000001" 
+            />
+            <button
+              type="button"
+              onClick={handleSRIExtraction}
+              disabled={isExtractingSRI}
+              className="px-4 py-2.5 rounded-xl text-xs font-semibold bg-[#1b1b1b] hover:bg-slate-800 text-white flex items-center gap-1.5 shrink-0 cursor-pointer transition-all disabled:opacity-50 shadow-none"
+            >
+              {isExtractingSRI && <RefreshCw size={12} className="animate-spin" />}
+              <span>{isExtractingSRI ? 'Consultando...' : 'Consultar SRI'}</span>
+            </button>
+          </div>
+        </div>
 
- <div className="sm:col-span-2">
- <label className="label-field label-field-dark flex items-center gap-1">
- <Lock size={10} className="text-text-secondary" /> Dirección Matriz (Bloqueado)
- </label>
- <input 
- type="text" 
- readOnly
- disabled
- value={companyProfile.direccionMatriz} 
- className={`${inputClass} opacity-60 bg-surface-sidebar/5 cursor-not-allowed`}
- placeholder="Dirección Matriz cargada desde el SRI" 
- />
- </div>
+        {/* Razón Social y Nombre Comercial */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-slate-700">Razón Social</label>
+            <input 
+              type="text" 
+              readOnly
+              disabled
+              value={companyProfile.razonSocial} 
+              className={readonlyInputClass}
+              placeholder="Razón Social oficial SRI" 
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-slate-700">Nombre Comercial</label>
+            <input 
+              type="text" 
+              readOnly
+              disabled
+              value={companyProfile.nombreComercial} 
+              className={readonlyInputClass}
+              placeholder="Nombre Comercial oficial SRI" 
+            />
+          </div>
 
- {/* ESTADO DEL RUC */}
- {companyProfile.ruc && companyProfile.ruc.length === 13 && (
- <div className={`sm:col-span-2 p-3 rounded-card flex items-center justify-between text-xs border ${
- companyProfile.rucActivo
- ?'bg-emerald-500/5 border-emerald-500/15 text-emerald-600 '
- :'bg-red-500/5 border-red-500/15 text-red-500 '
- }`}>
- <span className="font-bold flex items-center gap-1">
- <Lock size={11} /> Estado del Contribuyente:
- </span>
- <div className="flex items-center gap-2 font-semibold">
- <span className={`w-2 h-2 rounded-full ${companyProfile.rucActivo ?'bg-emerald-500' :'bg-red-500'}`}></span>
- {companyProfile.rucEstado} ({companyProfile.rucRegimen})
- </div>
- </div>
- )}
- </div>
- </div>
+          <div className="sm:col-span-2 space-y-1.5">
+            <label className="block text-xs font-semibold text-slate-700">Dirección Matriz</label>
+            <input 
+              type="text" 
+              readOnly
+              disabled
+              value={companyProfile.direccionMatriz} 
+              className={readonlyInputClass}
+              placeholder="Dirección Matriz oficial SRI" 
+            />
+          </div>
+        </div>
 
- {/* CARD 2: INFORMACIÓN DE CONTACTO */}
- <div className={`p-5 rounded-card border space-y-4 bg-surface-bg/50 border-border-default`}>
- <h4 className="text-xs font-semibold uppercase tracking-wider text-primary flex items-center gap-1.5">
- <Phone size={13} className="text-primary" /> Información de Contacto
- </h4>
- 
- <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
- <div>
- <label className="label-field label-field-dark">Teléfono Corporativo</label>
- <input 
- type="text" 
- value={companyProfile.telefono} 
- onChange={e => setCompanyProfile({...companyProfile, telefono: e.target.value})} 
- className={inputClass} 
- placeholder="0999999999" 
- />
- </div>
- <div>
- <label className="label-field label-field-dark">Correo Electrónico de Contacto</label>
- <input 
- type="email" 
- value={companyProfile.email} 
- onChange={e => setCompanyProfile({...companyProfile, email: e.target.value})} 
- className={inputClass} 
- placeholder="contacto@empresa.com" 
- />
- </div>
- <div className="sm:col-span-2">
- <label className="label-field label-field-dark">Sitio Web Corporativo</label>
- <input 
- type="text" 
- value={companyProfile.web} 
- onChange={e => setCompanyProfile({...companyProfile, web: e.target.value})} 
- className={inputClass} 
- placeholder="www.empresa.com" 
- />
- </div>
- </div>
- </div>
+        {/* Parámetros Tributarios Integrados */}
+        <div className="pt-3 border-t border-slate-100 space-y-3.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 items-end">
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-slate-700">Régimen / Tipo de Contribuyente</label>
+              <select 
+                value={companyProfile.contribuyenteTipo} 
+                onChange={e => setCompanyProfile({...companyProfile, contribuyenteTipo: e.target.value, rucRegimen: e.target.value.replace('_',' ').toUpperCase()})} 
+                className={inputClass}
+              >
+                <option value="general">Régimen General</option>
+                <option value="rimpe_popular">RIMPE Negocio Popular</option>
+                <option value="rimpe_emprendedor">RIMPE Emprendedor</option>
+                <option value="microempresas">Microempresas</option>
+              </select>
+            </div>
 
- {/* CARD 2.5: CONFIGURACIÓN DE CORREO SALIENTE (SMTP) */}
- <div className={`p-5 rounded-card border space-y-4 bg-surface-bg/50 border-border-default`}>
- <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
- <div>
- <h4 className="text-xs font-semibold uppercase tracking-wider text-primary flex items-center gap-1.5">
- <Mail size={13} className="text-primary" /> Correo Saliente (SMTP)
- </h4>
- <p className="text-xs text-text-secondary leading-normal mt-1">
- Envía automáticamente comprobantes autorizados (XML y RIDE en PDF) a tus clientes al emitir facturas.
- </p>
- </div>
- <label className="flex items-center gap-2 cursor-pointer select-none">
- <input 
- type="checkbox"
- checked={companyProfile.smtpActivo !== false}
- onChange={e => setCompanyProfile({ ...companyProfile, smtpActivo: e.target.checked })}
- className="rounded border-border-strong text-primary focus:ring-primary h-4 w-4"
- />
- <span className="text-xs font-bold uppercase text-text-primary">
- {companyProfile.smtpActivo !== false ? 'Activo' : 'Desactivado'}
- </span>
- </label>
- </div>
+            <div className="flex items-center gap-2.5 pb-2">
+              <input 
+                type="checkbox" 
+                id="obligadoCont" 
+                checked={companyProfile.obligadoContabilidad} 
+                onChange={e => setCompanyProfile({...companyProfile, obligadoContabilidad: e.target.checked})} 
+                className="rounded border-slate-300 text-slate-900 focus:ring-slate-900 h-4 w-4 cursor-pointer"
+              />
+              <label htmlFor="obligadoCont" className="text-xs font-semibold text-slate-700 cursor-pointer">
+                Obligado a llevar contabilidad
+              </label>
+            </div>
+          </div>
 
- {companyProfile.smtpActivo === false && (
- <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg text-xs text-amber-600 flex items-center gap-2">
- <AlertTriangle size={14} className="shrink-0" />
- <span>El envío automático por correo está desactivado. Las facturas autorizadas por el SRI se guardarán con normalidad sin intentar envíos por correo.</span>
- </div>
- )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2.5">
+                <input 
+                  type="checkbox" 
+                  id="agenteRet" 
+                  checked={companyProfile.agenteRetencion} 
+                  onChange={e => setCompanyProfile({...companyProfile, agenteRetencion: e.target.checked})} 
+                  className="rounded border-slate-300 text-slate-900 focus:ring-slate-900 h-4 w-4 cursor-pointer"
+                />
+                <label htmlFor="agenteRet" className="text-xs font-semibold text-slate-700 cursor-pointer">
+                  Agente de Retención
+                </label>
+              </div>
+              {companyProfile.agenteRetencion && (
+                <input 
+                  type="text" 
+                  value={companyProfile.agenteResolucion} 
+                  onChange={e => setCompanyProfile({...companyProfile, agenteResolucion: e.target.value})} 
+                  className={inputClass} 
+                  placeholder="Resolución Nro. NAC-..." 
+                />
+              )}
+            </div>
 
- <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
- <div className="sm:col-span-2">
- <label className="label-field label-field-dark">Servidor SMTP (Host)</label>
- <input 
- type="text" 
- value={companyProfile.smtpHost || ''} 
- onChange={e => setCompanyProfile({ ...companyProfile, smtpHost: e.target.value })} 
- className={inputClass} 
- placeholder="smtp.gmail.com o mail.tuempresa.com" 
- />
- </div>
- <div>
- <label className="label-field label-field-dark">Puerto SMTP</label>
- <input 
- type="text" 
- value={companyProfile.smtpPort || ''} 
- onChange={e => setCompanyProfile({ ...companyProfile, smtpPort: e.target.value })} 
- className={inputClass} 
- placeholder="465 (SSL) o 587 (TLS)" 
- />
- <span className="text-[10px] text-text-tertiary mt-1 block">Opcional: Dejar vacío para asignar automáticamente según el modo de seguridad</span>
- </div>
- <div className="flex items-center gap-2 pt-5">
- <input 
- type="checkbox" 
- id="smtpSecure"
- checked={!!companyProfile.smtpSecure} 
- onChange={e => setCompanyProfile({ ...companyProfile, smtpSecure: e.target.checked })} 
- className="rounded border-border-strong text-primary focus:ring-primary h-3.5 w-3.5"
- />
- <label htmlFor="smtpSecure" className="text-xs font-bold uppercase text-text-secondary cursor-pointer">
- Usar Conexión Segura Directa (SSL - Puerto 465)
- </label>
- </div>
- <div>
- <label className="label-field label-field-dark">Usuario / Correo SMTP</label>
- <input 
- type="email" 
- value={companyProfile.smtpUser || ''} 
- onChange={e => setCompanyProfile({ ...companyProfile, smtpUser: e.target.value })} 
- className={inputClass} 
- placeholder="facturacion@tuempresa.com" 
- />
- </div>
- <div>
- <label className="label-field label-field-dark">Contraseña SMTP</label>
- <input 
- type="password" 
- value={companyProfile.smtpPass || ''} 
- onChange={e => setCompanyProfile({ ...companyProfile, smtpPass: e.target.value })} 
- className={inputClass} 
- placeholder="••••••••••••" 
- />
- </div>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2.5">
+                <input 
+                  type="checkbox" 
+                  id="contEspecial" 
+                  checked={companyProfile.contribuyenteEspecial} 
+                  onChange={e => setCompanyProfile({...companyProfile, contribuyenteEspecial: e.target.checked})} 
+                  className="rounded border-slate-300 text-slate-900 focus:ring-slate-900 h-4 w-4 cursor-pointer"
+                />
+                <label htmlFor="contEspecial" className="text-xs font-semibold text-slate-700 cursor-pointer">
+                  Contribuyente Especial
+                </label>
+              </div>
+              {companyProfile.contribuyenteEspecial && (
+                <input 
+                  type="text" 
+                  value={companyProfile.especialResolucion} 
+                  onChange={e => setCompanyProfile({...companyProfile, especialResolucion: e.target.value})} 
+                  className={inputClass} 
+                  placeholder="Resolución Nro. ..." 
+                />
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
 
- <div className="sm:col-span-2 p-3 bg-primary/5 border border-primary/15 rounded-lg text-xs text-text-secondary flex items-start gap-2">
- <AlertCircle size={14} className="text-primary mt-0.5 shrink-0" />
- <div className="leading-relaxed">
- <strong className="text-primary font-semibold">Consejo para Gmail (smtp.gmail.com):</strong> Google exige una <em>Contraseña de Aplicación de 16 letras</em> creada en la sección de Seguridad de tu cuenta Google (la contraseña habitual de inicio de sesión no es aceptada por SMTP). El sistema elimina automáticamente espacios si la pegas agrupada.
- </div>
- </div>
+      {/* CARD 2: INFORMACIÓN DE CONTACTO */}
+      <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 space-y-4 shadow-none">
+        <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
+          <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+            <Phone size={14} />
+          </div>
+          <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Información de Contacto</h4>
+        </div>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-slate-700">Teléfono Corporativo</label>
+            <input 
+              type="text" 
+              value={companyProfile.telefono} 
+              onChange={e => setCompanyProfile({...companyProfile, telefono: e.target.value})} 
+              className={inputClass} 
+              placeholder="0999999999" 
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-slate-700">Correo Electrónico de Contacto</label>
+            <input 
+              type="email" 
+              value={companyProfile.email} 
+              onChange={e => setCompanyProfile({...companyProfile, email: e.target.value})} 
+              className={inputClass} 
+              placeholder="contacto@empresa.com" 
+            />
+          </div>
+          <div className="sm:col-span-2 space-y-1.5">
+            <label className="block text-xs font-semibold text-slate-700">Sitio Web Corporativo</label>
+            <input 
+              type="text" 
+              value={companyProfile.web} 
+              onChange={e => setCompanyProfile({...companyProfile, web: e.target.value})} 
+              className={inputClass} 
+              placeholder="www.empresa.com" 
+            />
+          </div>
+        </div>
+      </div>
 
- <div className="sm:col-span-2 pt-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-t border-border-default mt-2">
- <button
- type="button"
- disabled={isTestingSmtp}
- onClick={handleTestSmtp}
- className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-primary/10 text-primary hover:bg-primary/20 transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
- >
- {isTestingSmtp ? <RefreshCw size={13} className="animate-spin" /> : <Send size={13} />}
- <span>{isTestingSmtp ? 'Probando conexión...' : 'Probar Envío SMTP'}</span>
- </button>
- {smtpTestResult && (
- <div className={`text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 ${smtpTestResult.success ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
- {smtpTestResult.success ? <CheckCircle2 size={13} /> : <AlertTriangle size={13} />}
- <span>{smtpTestResult.message}</span>
- </div>
- )}
- </div>
- </div>
- </div>
+      {/* CARD 3: CORREO SALIENTE (SMTP) */}
+      <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 space-y-4 shadow-none">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+              <Mail size={14} />
+            </div>
+            <div>
+              <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Correo Saliente (SMTP)</h4>
+            </div>
+          </div>
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input 
+              type="checkbox"
+              checked={companyProfile.smtpActivo !== false}
+              onChange={e => setCompanyProfile({ ...companyProfile, smtpActivo: e.target.checked })}
+              className="rounded border-slate-300 text-slate-900 focus:ring-slate-900 h-4 w-4"
+            />
+            <span className="text-xs font-bold text-slate-800">
+              {companyProfile.smtpActivo !== false ? 'Activo' : 'Desactivado'}
+            </span>
+          </label>
+        </div>
 
- {/* CARD 3: PARÁMETROS TRIBUTARIOS CONTABLES */}
- <div className={`p-5 rounded-card border space-y-4 bg-surface-bg/50 border-border-default`}>
- <h4 className="text-xs font-semibold uppercase tracking-wider text-primary flex items-center gap-1.5">
- <Shield size={13} className="text-primary" /> Parámetros Tributarios
- </h4>
- <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
- <div className="flex items-center gap-2 py-1">
- <input 
- type="checkbox" 
- id="obligadoCont" 
- checked={companyProfile.obligadoContabilidad} 
- onChange={e => setCompanyProfile({...companyProfile, obligadoContabilidad: e.target.checked})} 
- className="rounded text-primary focus:ring-primary h-4 w-4 bg-transparent border-border-strong cursor-pointer"
- />
- <label htmlFor="obligadoCont" className="text-xs font-semibold text-text-secondary cursor-pointer">Obligado a llevar contabilidad</label>
- </div>
+        <p className="text-xs text-slate-500 leading-normal">
+          Envía comprobantes autorizados (XML y PDF) automáticamente al emitir facturas y entrega copias al emisor.
+        </p>
 
- <div>
- <label className="label-field label-field-dark">Tipo de Contribuyente</label>
- <select 
- value={companyProfile.contribuyenteTipo} 
- onChange={e => setCompanyProfile({...companyProfile, contribuyenteTipo: e.target.value, rucRegimen: e.target.value.replace('_','').toUpperCase()})} 
- className={inputClass}
- >
- <option value="general" className="text-black">Régimen General</option>
- <option value="rimpe_popular" className="text-black">RIMPE Popular</option>
- <option value="rimpe_emprendedor" className="text-black">RIMPE Emprendedor</option>
- <option value="microempresas" className="text-black">Microempresas</option>
- </select>
- </div>
+        {companyProfile.smtpActivo === false && (
+          <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 flex items-center gap-2">
+            <AlertTriangle size={14} className="text-amber-600 shrink-0" />
+            <span>Envío automático por correo desactivado. Los comprobantes se autorizarán sin emitir correos.</span>
+          </div>
+        )}
 
- <div className="space-y-2">
- <div className="flex items-center gap-2">
- <input 
- type="checkbox" 
- id="agenteRet" 
- checked={companyProfile.agenteRetencion} 
- onChange={e => setCompanyProfile({...companyProfile, agenteRetencion: e.target.checked})} 
- className="rounded text-primary focus:ring-primary h-4 w-4 bg-transparent border-border-strong cursor-pointer"
- />
- <label htmlFor="agenteRet" className="text-xs font-semibold text-text-secondary cursor-pointer">Agente de Retención</label>
- </div>
- {companyProfile.agenteRetencion && (
- <input 
- type="text" 
- value={companyProfile.agenteResolucion} 
- onChange={e => setCompanyProfile({...companyProfile, agenteResolucion: e.target.value})} 
- className={inputClass} 
- placeholder="Resolución Nro. NAC-..." 
- />
- )}
- </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <div className="sm:col-span-2 space-y-1.5">
+            <label className="block text-xs font-semibold text-slate-700">Servidor SMTP (Host)</label>
+            <input 
+              type="text" 
+              value={companyProfile.smtpHost || ''} 
+              onChange={e => setCompanyProfile({ ...companyProfile, smtpHost: e.target.value })} 
+              className={inputClass} 
+              placeholder="smtp.gmail.com o mail.tuempresa.com" 
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-slate-700">Puerto SMTP</label>
+            <input 
+              type="text" 
+              value={companyProfile.smtpPort || ''} 
+              onChange={e => setCompanyProfile({ ...companyProfile, smtpPort: e.target.value })} 
+              className={inputClass} 
+              placeholder="465 (SSL) o 587 (TLS)" 
+            />
+          </div>
+          <div className="flex items-center gap-2 pt-6">
+            <input 
+              type="checkbox" 
+              id="smtpSecure"
+              checked={!!companyProfile.smtpSecure} 
+              onChange={e => setCompanyProfile({ ...companyProfile, smtpSecure: e.target.checked })} 
+              className="rounded border-slate-300 text-slate-900 focus:ring-slate-900 h-4 w-4 cursor-pointer"
+            />
+            <label htmlFor="smtpSecure" className="text-xs font-semibold text-slate-700 cursor-pointer">
+              Conexión Segura SSL (Puerto 465)
+            </label>
+          </div>
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-slate-700">Usuario / Correo SMTP</label>
+            <input 
+              type="email" 
+              value={companyProfile.smtpUser || ''} 
+              onChange={e => setCompanyProfile({ ...companyProfile, smtpUser: e.target.value })} 
+              className={inputClass} 
+              placeholder="facturacion@tuempresa.com" 
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-slate-700">Contraseña SMTP</label>
+            <input 
+              type="password" 
+              value={companyProfile.smtpPass || ''} 
+              onChange={e => setCompanyProfile({ ...companyProfile, smtpPass: e.target.value })} 
+              className={inputClass} 
+              placeholder="••••••••••••" 
+            />
+          </div>
 
- <div className="space-y-2">
- <div className="flex items-center gap-2">
- <input 
- type="checkbox" 
- id="contEspecial" 
- checked={companyProfile.contribuyenteEspecial} 
- onChange={e => setCompanyProfile({...companyProfile, contribuyenteEspecial: e.target.checked})} 
- className="rounded text-primary focus:ring-primary h-4 w-4 bg-transparent border-border-strong cursor-pointer"
- />
- <label htmlFor="contEspecial" className="text-xs font-semibold text-text-secondary cursor-pointer">Contribuyente Especial</label>
- </div>
- {companyProfile.contribuyenteEspecial && (
- <input 
- type="text" 
- value={companyProfile.especialResolucion} 
- onChange={e => setCompanyProfile({...companyProfile, especialResolucion: e.target.value})} 
- className={inputClass} 
- placeholder="Resolución Nro. ..." 
- />
- )}
- </div>
- </div>
- </div>
+          <div className="sm:col-span-2 p-3 bg-slate-50 border border-slate-200/80 rounded-xl text-xs text-slate-600 flex items-start gap-2">
+            <AlertCircle size={14} className="text-slate-500 mt-0.5 shrink-0" />
+            <span className="leading-relaxed">
+              <strong>Para Gmail:</strong> Utiliza una <em>Contraseña de Aplicación de 16 letras</em> generada en la configuración de seguridad de tu cuenta Google.
+            </span>
+          </div>
 
- </div>
+          <div className="sm:col-span-2 pt-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-t border-slate-100">
+            <button
+              type="button"
+              disabled={isTestingSmtp}
+              onClick={handleTestSmtp}
+              className="px-4 py-2 rounded-xl text-xs font-semibold border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            >
+              {isTestingSmtp ? <RefreshCw size={13} className="animate-spin" /> : <Send size={13} />}
+              <span>{isTestingSmtp ? 'Probando conexión...' : 'Probar Envío SMTP'}</span>
+            </button>
+            {smtpTestResult && (
+              <div className={`text-xs px-3 py-1.5 rounded-xl flex items-center gap-1.5 ${smtpTestResult.success ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-rose-50 text-rose-800 border border-rose-200'}`}>
+                {smtpTestResult.success ? <CheckCircle2 size={13} className="text-emerald-600" /> : <AlertTriangle size={13} className="text-rose-600" />}
+                <span>{smtpTestResult.message}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
- {/* COLUMNA 2 (DERECHA) */}
- <div className="space-y-6">
+    </div>
 
- {/* FIRMA ELECTRÓNICA CARD */}
- <div className={`p-5 rounded-card border space-y-4 ${
- companyProfile.certificadoCargado
- ? !isFirmaMatch()
- ?'bg-red-500/5 border-red-500/20 text-red-900 '
- :'bg-emerald-50/50 border-emerald-200 text-emerald-900'
- :'bg-surface-bg/50 border-border-default'
- }`}>
- <div className="flex justify-between items-center">
- <h4 className="text-xs font-semibold uppercase tracking-wider text-primary flex items-center gap-1.5">
- <Award size={14} className="text-purple-500" /> Firma Electrónica (.p12 / .pfx)
- </h4>
- </div>
+    {/* COLUMNA 2 (DERECHA) */}
+    <div className="space-y-6">
 
- {companyProfile.certificadoCargado ? (
- <div className="space-y-3">
- <div className="flex gap-3 items-start text-xs">
- {!isFirmaMatch() ? (
- <AlertCircle size={18} className="shrink-0 mt-0.5 text-red-500 animate-pulse" />
- ) : (
- <CheckCircle2 size={18} className="shrink-0 mt-0.5 text-emerald-500" />
- )}
- <div className="flex-1 min-w-0">
- <p className="font-bold text-xs uppercase tracking-wider">
- {!isFirmaMatch() ?'Firma Incompatible con RUC' :'Firma Electrónica Activa'}
- </p>
- <p className="text-xs opacity-80 mt-1 truncate font-mono">Archivo: {companyProfile.certificadoNombre}</p>
- <p className="text-xs opacity-80 mt-0.5 font-semibold">Vence: {companyProfile.certificadoVence}</p>
- {companyProfile.certificadoRuc && (
- <p className="text-xs opacity-80 mt-0.5">RUC/CI Firma: {companyProfile.certificadoRuc}</p>
- )}
- {companyProfile.certificadoSujeto && (
- <p className="text-xs opacity-80 mt-0.5 truncate font-medium">Sujeto: {companyProfile.certificadoSujeto}</p>
- )}
- </div>
- </div>
+      {/* CARD 4: FIRMA ELECTRÓNICA (.p12 / .pfx) */}
+      <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 space-y-4 shadow-none">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+              <Award size={14} />
+            </div>
+            <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Firma Electrónica</h4>
+          </div>
+          {companyProfile.certificadoCargado && (
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
+              isFirmaMatch()
+                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                : 'bg-rose-50 text-rose-700 border border-rose-200'
+            }`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${isFirmaMatch() ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+              {isFirmaMatch() ? 'Firma Activa' : 'Incompatible'}
+            </span>
+          )}
+        </div>
 
- {/* Advertencia / Info detallada */}
- <p className={`text-xs p-2.5 rounded-card border leading-relaxed ${
- !isFirmaMatch()
- ?'bg-red-500/10 border-red-500/20 text-red-500 '
- :'bg-emerald-100/50 border-emerald-200 text-emerald-800'
- }`}>
- {!isFirmaMatch()
- ?`El RUC/CI de la firma (${companyProfile.certificadoRuc}) no coincide con el RUC de la empresa (${companyProfile.ruc}) por identificación (cédula/RUC) ni Razón Social.`
- :'Firma electrónica verificada y lista para facturar en el SRI.'}
- </p>
+        {companyProfile.certificadoCargado ? (
+          <div className="space-y-3.5">
+            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2 text-xs">
+              <div className="flex justify-between items-start">
+                <span className="text-slate-500 font-medium">Archivo:</span>
+                <span className="font-mono font-semibold text-slate-900 text-right truncate max-w-[200px]" title={companyProfile.certificadoNombre}>
+                  {companyProfile.certificadoNombre}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-500 font-medium">Fecha de Vencimiento:</span>
+                <span className="font-semibold text-slate-900">{companyProfile.certificadoVence}</span>
+              </div>
+              {companyProfile.certificadoRuc && (
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-500 font-medium">RUC / CI Firma:</span>
+                  <span className="font-mono font-semibold text-slate-900">{companyProfile.certificadoRuc}</span>
+                </div>
+              )}
+              {companyProfile.certificadoSujeto && (
+                <div className="flex justify-between items-start">
+                  <span className="text-slate-500 font-medium">Sujeto:</span>
+                  <span className="font-semibold text-slate-900 text-right truncate max-w-[200px]" title={companyProfile.certificadoSujeto}>
+                    {companyProfile.certificadoSujeto}
+                  </span>
+                </div>
+              )}
+            </div>
 
- <div className="flex justify-end pt-1">
- <button
- type="button"
- onClick={() => setIsFirmaOpen(true)}
- className="px-3.5 py-1.5 rounded-card text-xs font-bold border border-purple-500/30 hover:bg-purple-500/10 text-purple-400 transition-colors"
- >
- Actualizar Firma
- </button>
- </div>
- </div>
- ) : (
- <div className="space-y-3 text-center py-2">
- <p className="text-xs text-text-secondary leading-normal">
- Configure su firma digital (.p12 / .pfx) para firmar comprobantes autorizados del SRI.
- </p>
- <button
- type="button"
- onClick={() => setIsFirmaOpen(true)}
- disabled={!companyProfile.ruc}
- className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-card text-xs font-semibold transition-all ${
- companyProfile.ruc
- ?'bg-purple-600 hover:bg-purple-500 text-white'
- :'bg-surface-sidebar/10 border border-white/5 text-text-secondary cursor-not-allowed'
- }`}
- >
- <Award size={13} /> Ingresar Firma
- </button>
- {!companyProfile.ruc && (
- <p className="text-xs text-text-secondary italic">Debe ingresar y configurar su RUC primero.</p>
- )}
- </div>
- )}
- </div>
+            <p className={`text-xs p-3 rounded-xl border leading-relaxed ${
+              !isFirmaMatch()
+                ? 'bg-rose-50 border-rose-200 text-rose-800'
+                : 'bg-emerald-50 border-emerald-200 text-emerald-800'
+            }`}>
+              {!isFirmaMatch()
+                ? `El RUC/CI de la firma (${companyProfile.certificadoRuc}) no coincide con el RUC de la empresa (${companyProfile.ruc}).`
+                : 'Firma electrónica verificada y lista para facturar en el SRI.'}
+            </p>
 
- {/* LOGOTIPO OFICIAL */}
- <div className={`p-5 rounded-card border space-y-4 bg-surface-bg/50 border-border-default`}>
- <label className="block text-xs font-bold uppercase mb-1.5 text-text-secondary text-center">Logotipo Oficial de la Empresa</label>
+            <div className="flex justify-end pt-1">
+              <button
+                type="button"
+                onClick={() => setIsFirmaOpen(true)}
+                className="px-4 py-2 rounded-xl text-xs font-semibold border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 transition-colors cursor-pointer"
+              >
+                Actualizar Firma
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-3 text-center py-4">
+            <p className="text-xs text-slate-500 leading-normal">
+              Configure su firma digital (.p12 / .pfx) para emitir facturas electrónicas válidas ante el SRI.
+            </p>
+            <button
+              type="button"
+              onClick={() => setIsFirmaOpen(true)}
+              disabled={!companyProfile.ruc}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-[#1b1b1b] hover:bg-slate-800 text-white transition-all cursor-pointer disabled:opacity-40"
+            >
+              <Award size={13} /> Cargar Firma Electrónica
+            </button>
+            {!companyProfile.ruc && (
+              <p className="text-[11px] text-slate-400 italic">Configure el RUC primero para cargar la firma.</p>
+            )}
+          </div>
+        )}
+      </div>
 
- {companyProfile.logoUrl ? (
- <div className="flex flex-col items-center justify-center gap-3 p-4 rounded-card border border-dashed border-emerald-500/30 bg-emerald-500/5">
- <div className="w-32 h-32 flex items-center justify-center bg-white rounded-card p-2 border border-border-default">
- <img src={companyProfile.logoUrl} alt="Logo" className="max-h-full max-w-full object-contain" />
- </div>
- <div className="text-center">
- <p className="text-xs font-bold text-emerald-450">Logotipo Guardado</p>
- <button
- type="button"
- onClick={handleRemoveLogo}
- className="text-xs text-red-500 hover:text-red-700 hover:underline font-bold mt-1.5 flex items-center justify-center gap-1 m-auto"
- >
- <Trash2 size={10} /> Eliminar Logotipo
- </button>
- </div>
- </div>
- ) : (
- <div>
- <label className={`w-full flex flex-col items-center justify-center gap-3 p-8 rounded-card border border-dashed cursor-pointer transition-all border-border-strong hover:border-primary/40 hover:bg-surface-muted/50 text-text-primary`}>
- <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} disabled={isUploadingLogo} />
- <UploadCloud size={28} className={isUploadingLogo ?'animate-bounce text-primary' :'text-gray-450'} />
- <span className="text-xs font-semibold text-center leading-normal">
- {isUploadingLogo ?'Subiendo imagen...' :'Subir Logotipo\n(PNG, JPG, SVG)'}
- </span>
- </label>
- <p className="text-xs text-text-secondary mt-2.5 text-center leading-relaxed">
- Este logotipo se insertará en el encabezado de todas las Facturas, Notas de Crédito, Guías de Remisión y Cotizaciones.
- </p>
- </div>
- )}
- </div>
+      {/* CARD 5: LOGOTIPO DE LA EMPRESA */}
+      <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 space-y-4 shadow-none">
+        <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
+          <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+            <UploadCloud size={14} />
+          </div>
+          <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Logotipo Oficial</h4>
+        </div>
 
- {/* CARD 3: ESTABLECIMIENTOS DEL SRI (Bloqueado) */}
- <div className={`p-5 rounded-card border space-y-4 bg-surface-bg/50 border-border-default`}>
- <h4 className="text-xs font-semibold uppercase tracking-wider text-primary flex items-center gap-1.5">
- <Lock size={12} className="text-text-secondary" /> Establecimientos del SRI (Bloqueado)
- </h4>
+        {companyProfile.logoUrl ? (
+          <div className="flex flex-col items-center justify-center gap-3 p-4 rounded-xl border border-slate-200 bg-slate-50/50">
+            <div className="w-36 h-24 flex items-center justify-center bg-white rounded-xl p-2 border border-slate-200">
+              <img src={companyProfile.logoUrl} alt="Logo" className="max-h-full max-w-full object-contain" />
+            </div>
+            <div className="flex items-center gap-2 pt-1">
+              <label className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 cursor-pointer transition-colors">
+                <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} disabled={isUploadingLogo} />
+                {isUploadingLogo ? 'Subiendo...' : 'Cambiar Imagen'}
+              </label>
+              <button
+                type="button"
+                onClick={handleRemoveLogo}
+                className="text-xs font-semibold px-3 py-1.5 rounded-lg text-rose-600 hover:bg-rose-50 border border-rose-200 cursor-pointer transition-colors flex items-center gap-1"
+              >
+                <Trash2 size={12} /> Eliminar
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div>
+            <label className="w-full flex flex-col items-center justify-center gap-2.5 p-6 rounded-xl border border-dashed border-slate-300 hover:border-slate-500 hover:bg-slate-50 cursor-pointer transition-all text-slate-600">
+              <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} disabled={isUploadingLogo} />
+              <UploadCloud size={24} className={isUploadingLogo ? 'animate-bounce text-slate-900' : 'text-slate-400'} />
+              <span className="text-xs font-semibold text-center">
+                {isUploadingLogo ? 'Subiendo imagen...' : 'Seleccionar imagen de logotipo (PNG, JPG, SVG)'}
+              </span>
+            </label>
+            <p className="text-[11px] text-slate-400 mt-2 text-center">
+              Se mostrará en la cabecera del RIDE (PDF), cotizaciones y correos al cliente.
+            </p>
+          </div>
+        )}
+      </div>
 
- <div className="space-y-3 max-h-[180px] overflow-y-auto pr-1">
- {companyProfile.sucursales && companyProfile.sucursales.map(branch => (
- <div key={branch.codigo} className={`p-3 rounded-card border space-y-2 bg-white border-border-default opacity-85`}>
- <div className="flex justify-between items-start">
- <div>
- <p className="text-xs font-semibold flex items-center gap-1 text-text-primary ">
- <Building size={11} className="text-text-secondary" /> {branch.codigo} - {branch.nombre}
- </p>
- <p className="text-xs text-text-secondary mt-0.5">{branch.direccion}</p>
- </div>
- <span className={`text-xs font-semibold uppercase px-1.5 py-0.5 rounded ${
- branch.activa 
- ?'bg-emerald-500/10 text-emerald-450 border border-emerald-500/20' 
- :'bg-red-500/10 text-red-450 border border-red-500/20'
- }`}>
- {branch.activa ?'Activo' :'Inactivo'}
- </span>
- </div>
+      {/* CARD 6: ESTABLECIMIENTOS DEL SRI */}
+      <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 space-y-4 shadow-none">
+        <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
+          <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+            <Building size={14} />
+          </div>
+          <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Establecimientos del SRI</h4>
+        </div>
 
- {/* Checkboxes de bodegas asociadas a esta sucursal */}
- <div className="pt-2 border-t border-border-default  space-y-1">
- <p className="text-xs font-bold uppercase tracking-wider text-text-secondary">Bodegas Asignadas:</p>
- <div className="flex flex-wrap gap-x-3 gap-y-1">
- {companyProfile.customBodegas || companyProfile.bodegas ? (companyProfile.bodegas.map(whName => {
- const isAssoc = branch.bodegas && branch.bodegas.includes(whName);
- return (
- <label key={whName} className="flex items-center gap-1 text-xs text-text-secondary  cursor-pointer hover:text-white ">
- <input 
- type="checkbox" 
- checked={isAssoc}
- onChange={() => handleToggleWarehouseForBranch(branch.codigo, whName)}
- className="rounded text-primary h-3.5 w-3.5 bg-transparent border-border-strong cursor-pointer"
- />
- {whName}
- </label>
- );
- })) : null}
- </div>
- </div>
- </div>
- ))}
- {(!companyProfile.sucursales || companyProfile.sucursales.length === 0) && (
- <p className="text-xs text-text-secondary italic">No hay establecimientos cargados. Ingrese su RUC arriba y pulse configurar.</p>
- )}
- </div>
- </div>
+        <div className="space-y-2.5 max-h-[220px] overflow-y-auto pr-1">
+          {companyProfile.sucursales && companyProfile.sucursales.map(branch => (
+            <div key={branch.codigo} className="p-3 rounded-xl border border-slate-200/80 bg-slate-50/70 space-y-2">
+              <div className="flex justify-between items-start gap-2">
+                <div>
+                  <p className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                    <span>{branch.codigo} — {branch.nombre}</span>
+                  </p>
+                  <p className="text-[11px] text-slate-500 mt-0.5">{branch.direccion}</p>
+                </div>
+                <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${
+                  branch.activa 
+                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
+                    : 'bg-rose-50 text-rose-700 border border-rose-200'
+                }`}>
+                  {branch.activa ? 'Activo' : 'Inactivo'}
+                </span>
+              </div>
 
- {/* CARD 4: BODEGAS DE INVENTARIO (Manual) */}
- <div className={`p-5 rounded-card border space-y-4 bg-surface-bg/50 border-border-default`}>
- <h4 className="text-xs font-semibold uppercase tracking-wider text-primary flex items-center gap-1.5">
- <Package size={14} className="text-emerald-500" /> Bodegas de Inventario (Manual)
- </h4>
+              {/* Checkboxes de bodegas asociadas */}
+              <div className="pt-2 border-t border-slate-200/60 space-y-1">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Bodegas Asignadas:</p>
+                <div className="flex flex-wrap gap-x-3 gap-y-1">
+                  {companyProfile.customBodegas || companyProfile.bodegas ? (companyProfile.bodegas.map(whName => {
+                    const isAssoc = branch.bodegas && branch.bodegas.includes(whName);
+                    return (
+                      <label key={whName} className="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          checked={isAssoc} 
+                          onChange={() => handleToggleWarehouseForBranch(branch.codigo, whName)} 
+                          className="rounded border-slate-300 text-slate-900 focus:ring-slate-900 h-3.5 w-3.5 cursor-pointer"
+                        />
+                        <span>{whName}</span>
+                      </label>
+                    );
+                  })) : null}
+                </div>
+              </div>
+            </div>
+          ))}
+          {(!companyProfile.sucursales || companyProfile.sucursales.length === 0) && (
+            <p className="text-xs text-slate-400 italic">No hay establecimientos cargados. Ingrese el RUC y pulse Consultar SRI.</p>
+          )}
+        </div>
+      </div>
 
- <div className={`flex flex-wrap gap-2 min-h-[60px] p-3 rounded-card border border-dashed border-border-strong bg-white align-middle`}>
- {companyProfile.bodegas.map(wh => (
- <div key={wh} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-card text-xs font-bold bg-white text-text-heading border border-border-default`}>
- <span>{wh}</span>
- {wh !=='Bodega Central' && (
- <button 
- type="button" 
- onClick={() => handleRemoveWarehouse(wh)}
- className="text-red-500 hover:text-red-700 font-semibold ml-1 text-sm leading-none"
- >
- ×
- </button>
- )}
- </div>
- ))}
- </div>
+      {/* CARD 7: BODEGAS DE INVENTARIO */}
+      <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 space-y-4 shadow-none">
+        <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
+          <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+            <Package size={14} />
+          </div>
+          <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Bodegas de Inventario</h4>
+        </div>
 
- {/* Agregar Bodega */}
- <div className="flex gap-2">
- <input 
- type="text" 
- placeholder="Nombre de Bodega (ej. Almacén Central)" 
- value={newWarehouseName} 
- onChange={e => setNewWarehouseName(e.target.value)} 
- className={inputClass} 
- />
- <button 
- type="button" 
- onClick={handleAddWarehouse}
- className="px-4 py-2.5 rounded-xl bg-[#1b1b1b] hover:bg-black text-white font-bold text-xs uppercase tracking-wider shrink-0 transition-all cursor-pointer shadow-none"
- >
- Agregar Bodega
- </button>
- </div>
- </div>
+        <div className="flex flex-wrap gap-2 min-h-[50px] p-3 rounded-xl border border-dashed border-slate-200 bg-slate-50/50 items-center">
+          {companyProfile.bodegas.map(wh => (
+            <div key={wh} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white text-slate-800 border border-slate-200 shadow-none">
+              <span>{wh}</span>
+              {wh !== 'Bodega Central' && (
+                <button 
+                  type="button" 
+                  onClick={() => handleRemoveWarehouse(wh)} 
+                  className="text-slate-400 hover:text-rose-600 font-bold ml-1 text-sm leading-none cursor-pointer"
+                  title="Eliminar bodega"
+                >
+                  ×
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
 
- </div>
+        <div className="flex gap-2">
+          <input 
+            type="text" 
+            placeholder="Nombre de bodega (ej. Bodega Norte)" 
+            value={newWarehouseName} 
+            onChange={e => setNewWarehouseName(e.target.value)} 
+            className={inputClass} 
+          />
+          <button 
+            type="button" 
+            onClick={handleAddWarehouse} 
+            className="px-4 py-2.5 rounded-xl bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs shrink-0 transition-all cursor-pointer shadow-none"
+          >
+            Agregar
+          </button>
+        </div>
+      </div>
 
- </div>
+    </div>
 
- {/* BOTONES DE ACCIÓN PRINCIPALES */}
- <div className="flex justify-end items-center pt-6 border-t border-white/5 mt-8">
- {(!companyProfile.certificadoCargado || isFirmaMatch()) ? (
- <button 
- type="submit" 
- className="flex items-center gap-1.5 px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider bg-[#1b1b1b] hover:bg-black text-white transition-all cursor-pointer shadow-none"
- >
- <Save size={14} /> Guardar Empresa
- </button>
- ) : (
- <div className="text-xs text-red-500 font-bold bg-red-500/10 border border-red-500/25 px-4 py-2.5 rounded-card flex items-center gap-2">
- <AlertTriangle size={14} className="shrink-0" />
- <span>Firma no coincide con RUC/Razón Social. Corrija para habilitar Guardar Empresa.</span>
- </div>
- )}
- </div>
- </form>
- )}
+  </div>
 
- {/* PESTAÑA: FACTURACIÓN ELECTRÓNICA */}
+  {/* BOTONES DE ACCIÓN PRINCIPALES AL PIE */}
+  <div className="flex justify-end items-center pt-6 border-t border-slate-100 mt-6">
+    {(!companyProfile.certificadoCargado || isFirmaMatch()) ? (
+      <button 
+        type="submit" 
+        className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-semibold bg-[#1b1b1b] hover:bg-slate-800 text-white transition-all cursor-pointer shadow-none"
+      >
+        <Save size={14} />
+        <span>Guardar Empresa</span>
+      </button>
+    ) : (
+      <div className="text-xs text-rose-600 font-semibold bg-rose-50 border border-rose-200 px-4 py-2 rounded-xl flex items-center gap-2">
+        <AlertTriangle size={14} className="shrink-0" />
+        <span>Firma no coincide con RUC/Razón Social. Corrija para habilitar Guardar Empresa.</span>
+      </div>
+    )}
+  </div>
+  </form>
+  )}
+
+  {/* PESTAÑA: FACTURACIÓN ELECTRÓNICA */}
  {activeSubTab ==='einvoicing' && (
  <div className="space-y-6 animate-in fade-in duration-200">
  <div className="border-b border-border-default pb-3 mb-4">
@@ -2053,123 +2103,125 @@ export default function GeneralSettings({
  </div>
 
  {/* MODAL CONFIGURACIÓN FIRMA ELECTRÓNICA */}
- {isFirmaOpen && (
- <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 overflow-y-auto animate-in fade-in duration-300">
- <div className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 text-slate-900 shadow-2xl animate-in zoom-in-95 duration-200">
- 
- {/* Cabecera */}
- <div className="flex justify-between items-start pb-4 border-b border-white/5 mb-4">
- <div className="flex items-center gap-2">
- <Award size={18} className="text-purple-400" />
- <div>
- <h3 className="text-sm font-bold text-slate-950 uppercase tracking-wider">Firma Electrónica</h3>
- <p className="text-xs text-text-secondary">Cargar archivo de firma digital (.p12 / .pfx)</p>
- </div>
- </div>
- <button 
- type="button" 
- onClick={() => setIsFirmaOpen(false)}
- className="text-text-secondary hover:text-white transition-colors"
- >
- <X size={16} />
- </button>
- </div>
+  {isFirmaOpen && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-200">
+  <div className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 text-slate-900 shadow-xl animate-in zoom-in-95 duration-200">
+  
+  {/* Cabecera */}
+  <div className="flex justify-between items-start pb-4 border-b border-slate-100 mb-4">
+    <div className="flex items-center gap-2.5">
+      <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-800 flex items-center justify-center shrink-0">
+        <Award size={16} />
+      </div>
+      <div>
+        <h3 className="text-sm font-bold text-slate-900">Firma Electrónica</h3>
+        <p className="text-xs text-slate-500">Cargar archivo de firma digital (.p12 / .pfx)</p>
+      </div>
+    </div>
+    <button 
+      type="button" 
+      onClick={() => setIsFirmaOpen(false)}
+      className="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center transition-colors cursor-pointer"
+    >
+      <X size={16} />
+    </button>
+  </div>
 
- {/* Contenido */}
- <div className="space-y-4">
- 
- {tempFirma.certificadoCargado ? (
- <div className="space-y-3.5">
- <div className={`p-4 rounded-card border space-y-2.5 transition-all duration-300 ${
- certValidation.tipo ==='success' 
- ?'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
- : certValidation.tipo ==='warning'
- ?'bg-amber-500/10 border-amber-500/20 text-amber-450' 
- :'bg-red-500/10 border-red-500/20 text-red-400'
- }`}>
- <div className="flex justify-between items-start">
- <div className="truncate pr-2">
- <p className="text-xs font-semibold truncate">{tempFirma.certificadoNombre}</p>
- {certValidation.sujeto && <p className="text-xs font-bold mt-1.5 text-text-secondary">Sujeto: <span className="font-semibold text-text-secondary">{certValidation.sujeto}</span></p>}
- {certValidation.emisor && <p className="text-xs opacity-80 mt-0.5">Emisor: {certValidation.emisor}</p>}
- {certValidation.vence && <p className="text-xs opacity-80 mt-0.5 font-mono">Expira: {certValidation.vence}</p>}
- {certValidation.ruc && <p className="text-xs opacity-85 mt-0.5 font-bold">RUC Firma: {certValidation.ruc}</p>}
- </div>
- <button 
- type="button" 
- onClick={removeCertificate} 
- className="text-xs font-bold text-red-500 hover:text-red-400 hover:underline shrink-0"
- >
- Quitar
- </button>
- </div>
+  {/* Contenido */}
+  <div className="space-y-4">
+  
+  {tempFirma.certificadoCargado ? (
+    <div className="space-y-3.5">
+      <div className={`p-4 rounded-xl border space-y-2.5 transition-all duration-200 ${
+        certValidation.tipo === 'success' 
+          ? 'bg-emerald-50 border-emerald-200 text-emerald-900' 
+          : certValidation.tipo === 'warning'
+          ? 'bg-amber-50 border-amber-200 text-amber-900' 
+          : 'bg-rose-50 border-rose-200 text-rose-900'
+      }`}>
+        <div className="flex justify-between items-start">
+          <div className="truncate pr-2 text-xs">
+            <p className="font-bold truncate text-slate-900">{tempFirma.certificadoNombre}</p>
+            {certValidation.sujeto && <p className="mt-1 text-slate-700"><span className="text-slate-500">Sujeto:</span> {certValidation.sujeto}</p>}
+            {certValidation.emisor && <p className="mt-0.5 text-slate-700"><span className="text-slate-500">Emisor:</span> {certValidation.emisor}</p>}
+            {certValidation.vence && <p className="mt-0.5 text-slate-700 font-mono"><span className="text-slate-500 font-sans">Expira:</span> {certValidation.vence}</p>}
+            {certValidation.ruc && <p className="mt-0.5 text-slate-700 font-mono"><span className="text-slate-500 font-sans">RUC Firma:</span> {certValidation.ruc}</p>}
+          </div>
+          <button 
+            type="button" 
+            onClick={removeCertificate} 
+            className="text-xs font-semibold text-rose-600 hover:text-rose-800 hover:underline shrink-0 cursor-pointer"
+          >
+            Quitar
+          </button>
+        </div>
 
- <div className="flex items-start gap-1.5 border-t border-current/10 pt-2.5">
- {certValidation.tipo ==='success' && <CheckCircle size={14} className="shrink-0 mt-0.5 text-emerald-500" />}
- {certValidation.tipo ==='warning' && <AlertCircle size={14} className="shrink-0 mt-0.5 text-amber-500" />}
- {certValidation.tipo ==='error' && <AlertCircle size={14} className="shrink-0 mt-0.5 text-red-500" />}
- <p className="text-xs leading-relaxed font-semibold">
- {certValidation.mensaje}
- </p>
- </div>
- </div>
+        <div className="flex items-start gap-1.5 border-t border-current/10 pt-2.5 text-xs">
+          {certValidation.tipo === 'success' && <CheckCircle size={14} className="shrink-0 mt-0.5 text-emerald-600" />}
+          {certValidation.tipo === 'warning' && <AlertCircle size={14} className="shrink-0 mt-0.5 text-amber-600" />}
+          {certValidation.tipo === 'error' && <AlertCircle size={14} className="shrink-0 mt-0.5 text-rose-600" />}
+          <p className="leading-relaxed font-medium">
+            {certValidation.mensaje}
+          </p>
+        </div>
+      </div>
 
- <div className="space-y-1.5">
- <label className="block text-xs font-bold uppercase text-text-secondary">Contraseña de la Firma</label>
- <div className="flex gap-2">
- <input 
- type="password" 
- value={tempFirma.certificadoClave} 
- onChange={e => setTempFirma({...tempFirma, certificadoClave: e.target.value})} 
- className={inputClass} 
- placeholder="Ingrese la contraseña" 
- />
- <button 
- type="button" 
- onClick={() => verifySignatureDetails(tempFirma.certificadoBase64, tempFirma.certificadoClave, companyProfile.ruc ||'')}
- className="px-3.5 py-2.5 rounded-card text-xs font-bold transition-all border bg-primary/10 hover:bg-primary/20 border-primary/30 text-primary active:scale-95"
- >
- Verificar
- </button>
- </div>
- </div>
- </div>
- ) : (
- <div className="space-y-3">
- <label className="w-full flex flex-col items-center justify-center gap-2 p-6 rounded-card border border-dashed border-white/20 hover:bg-white/5 hover:border-purple-500/40 text-text-secondary cursor-pointer transition-all">
- <input type="file" accept=".p12,.pfx" className="hidden" onChange={handleCertificateUpload} />
- <Award size={24} className="text-text-secondary" />
- <span className="text-xs font-semibold">Seleccionar Firma (.p12 / .pfx)</span>
- </label>
- <p className="text-xs text-text-secondary leading-relaxed text-center">
- Su archivo de firma electrónica se almacena de forma segura en la base de datos para realizar la firma en el servidor al emitir comprobantes autorizados por el SRI.
- </p>
- </div>
- )}
+      <div className="space-y-1.5">
+        <label className="block text-xs font-semibold text-slate-700">Contraseña de la Firma</label>
+        <div className="flex gap-2">
+          <input 
+            type="password" 
+            value={tempFirma.certificadoClave} 
+            onChange={e => setTempFirma({...tempFirma, certificadoClave: e.target.value})} 
+            className={inputClass} 
+            placeholder="Ingrese la contraseña del certificado" 
+          />
+          <button 
+            type="button" 
+            onClick={() => verifySignatureDetails(tempFirma.certificadoBase64, tempFirma.certificadoClave, companyProfile.ruc || '')}
+            className="px-4 py-2.5 rounded-xl text-xs font-semibold border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 transition-colors shrink-0 cursor-pointer"
+          >
+            Verificar
+          </button>
+        </div>
+      </div>
+    </div>
+  ) : (
+    <div className="space-y-3">
+      <label className="w-full flex flex-col items-center justify-center gap-2 p-6 rounded-xl border border-dashed border-slate-300 hover:border-slate-500 hover:bg-slate-50 text-slate-600 cursor-pointer transition-all">
+        <input type="file" accept=".p12,.pfx" className="hidden" onChange={handleCertificateUpload} />
+        <Award size={24} className="text-slate-400" />
+        <span className="text-xs font-semibold">Seleccionar Firma (.p12 / .pfx)</span>
+      </label>
+      <p className="text-xs text-slate-500 leading-relaxed text-center">
+        Su archivo de firma electrónica se almacena de forma segura para firmar comprobantes autorizados por el SRI.
+      </p>
+    </div>
+  )}
 
- </div>
+  </div>
 
- {/* Footer */}
- <div className="flex justify-end gap-2.5 pt-4 border-t border-white/5 mt-5">
- <button 
- type="button" 
- onClick={() => setIsFirmaOpen(false)}
- className="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer"
- >
- Cancelar
- </button>
- <button 
- type="button" 
- onClick={handleSaveFirma}
- className="px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider bg-[#1b1b1b] hover:bg-black text-white transition-all cursor-pointer shadow-none"
- >
- Guardar Firma
- </button>
- </div>
+  {/* Footer */}
+  <div className="flex justify-end gap-2.5 pt-4 border-t border-slate-100 mt-5">
+    <button 
+      type="button" 
+      onClick={() => setIsFirmaOpen(false)}
+      className="px-4 py-2 rounded-xl text-xs font-semibold border border-slate-200 hover:bg-slate-50 text-slate-700 transition-colors cursor-pointer"
+    >
+      Cancelar
+    </button>
+    <button 
+      type="button" 
+      onClick={handleSaveFirma}
+      className="px-5 py-2.5 rounded-xl text-xs font-semibold bg-[#1b1b1b] hover:bg-slate-800 text-white transition-all cursor-pointer shadow-none"
+    >
+      Guardar Firma
+    </button>
+  </div>
 
- </div>
- </div>
- )}
+  </div>
+  </div>
+  )}
 
   </div>
   );
