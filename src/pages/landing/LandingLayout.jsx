@@ -204,7 +204,7 @@ export default function LandingLayout() {
       </main>
 
       {/* 5. FOOTER ESTILO BREVO EXACTO AL 90% */}
-      <footer className="pt-16 pb-12 shrink-0 mt-auto border-t border-slate-200/80 bg-[#F6FAF6] text-slate-700">
+      <footer className="pt-16 pb-12 shrink-0 mt-auto border-t border-slate-200/80 bg-[#f9fff6] text-slate-700">
         <div className="w-[90%] max-w-[1720px] mx-auto">
           
           {/* Fila Superior: Logotipo a la Izquierda y Redes Sociales a la Derecha */}

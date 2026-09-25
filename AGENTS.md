@@ -344,6 +344,13 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
     - Secciones de cuerpo ajustadas con `w-[80%]` para un encuadre visual más compacto, centrado y con mayor respiración lateral.
 - **Pruebas y Build**: 43 tests unitarios aprobados, compilación de producción exitosa en 6.97s.
 
+### 28. Ajuste de Fondo del Pie de Página a Verde Suave (#f9fff6) (2026-09-25) — COMPLETADO
+- **Color de Fondo del Footer (`LandingLayout.jsx`)**:
+  - Actualizado el contenedor `<footer>` con el tono `bg-[#f9fff6]`.
+  - Proporciona un acabado sumamente suave, fresco y homogéneo con la identidad de marca, integrándose en armonía con el resto del lienzo y el borde superior.
+- **Pruebas y Build**: 43 tests unitarios aprobados, compilación de producción limpia en 7.50s.
+
+
 
 
 
