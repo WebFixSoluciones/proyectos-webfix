@@ -526,7 +526,14 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
     2. **Medios de Pago**: 4 botones compactos (Efectivo, Transf., Tarjeta, Crédito) con acento menta (`#c0ffa5`), inputs ágiles, y métricas de Cambio/Vuelto y Cubierto.
     3. **Acciones de Emisión**: Botón principal *"Emitir Factura Electrónica (SRI)"* (`bg-[#1b1b1b]`), botón secundario *"Guardar Borrador"*, y consola SRI reactiva.
   - Al incorporar `sticky top-4` y optimizar la altura vertical (~40% menos de espacio desperdiciado en paddings y cabeceras redundantes), todos los totales, medios de pago y el botón de emisión quedan inmediatamente visibles "de primera mano" sin scroll vertical.
-- **Pruebas y Build**: 41 tests unitarios aprobados, compilación limpia en 10.44s.
+### 43. Reubicación de Recuperación de Facturas SRI en Ajustes (2026-09-25) — COMPLETADO
+- **Remoción del Banner de Ventas (`TransactionsView.jsx`)**:
+  - Eliminado el banner azul `SriRecoveryPanel` de la parte superior del listado de ventas (`TransactionsView.jsx`), dejando la tabla de ventas limpia y despejada directamente bajo las acciones principales.
+- **Integración en Módulo de Ajustes (`GeneralSettings.jsx`)**:
+  - Añadida nueva pestaña dedicada en el menú lateral de Ajustes: **"Recuperar Facturas SRI"** (`{ id: 'recovery', label: 'Recuperar Facturas SRI', icon: RefreshCw }`) con explicaciones detalladas de seguridad, no emisión y conciliación.
+  - Integrado también como tarjeta de acción dentro de la pestaña **"Facturación Electrónica"** (`activeSubTab === 'einvoicing'`), garantizando doble punto de acceso intuitivo para el usuario.
+- **Pruebas y Build**: 41 tests unitarios aprobados, compilación limpia de producción en 6.73s.
+
 
 
 

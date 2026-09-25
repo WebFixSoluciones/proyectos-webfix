@@ -12,6 +12,7 @@ import { ref, uploadBytesResumable, getDownloadURL } from'firebase/storage';
 import forge from'node-forge';
 import { consultarRucSri } from'../../services/sriService';
 import FinanceSettings from'../finances/FinanceSettings';
+import SriRecoveryPanel from '../finances/SriRecoveryPanel';
 
 export default function GeneralSettings({ 
  showToast, db, appId, storage,
@@ -995,6 +996,7 @@ export default function GeneralSettings({
  const tabs = [
  { id:'profile', label:'Perfil de Empresa', icon: Building },
  { id:'einvoicing', label:'Facturación Electrónica', icon: FileText },
+ { id:'recovery', label:'Recuperar Facturas SRI', icon: RefreshCw },
  { id:'modules', label:'Módulos ERP', icon: ToggleRight },
  { id:'workspace', label:'Google Workspace', icon: LinkIcon },
  { id:'gemini', label:'Google Gemini', icon: Sparkles },
@@ -1625,12 +1627,53 @@ export default function GeneralSettings({
 
  {/* PESTAÑA: FACTURACIÓN ELECTRÓNICA */}
  {activeSubTab ==='einvoicing' && (
- <div className="animate-in fade-in duration-200">
- <div className="border-b border-white/5 pb-3 mb-6">
+ <div className="space-y-6 animate-in fade-in duration-200">
+ <div className="border-b border-border-default pb-3 mb-4">
  <h3 className="text-sm font-semibold uppercase tracking-wider text-primary">Facturación Electrónica (SRI)</h3>
  <p className="text-xs text-text-secondary mt-1">Configure el ambiente de emisión, los secuenciales de cada comprobante y los formatos de impresión. El certificado de firma electrónica se gestiona en la pestaña Perfil de Empresa.</p>
  </div>
+ <div className="bg-slate-50/70 border border-border-default rounded-card p-4 space-y-3">
+ <div className="flex items-center gap-2 pb-2 border-b border-border-default">
+ <RefreshCw size={15} className="text-primary" />
+ <h4 className="text-xs font-bold text-text-primary uppercase tracking-wider">Recuperación de Facturas Autorizadas</h4>
+ </div>
+ <SriRecoveryPanel db={db} appId={appId} showToast={showToast} />
+ </div>
  <FinanceSettings showToast={showToast} db={db} storage={storage} appId={appId} />
+ </div>
+ )}
+
+ {/* PESTAÑA: RECUPERACIÓN SRI */}
+ {activeSubTab ==='recovery' && (
+ <div className="space-y-6 animate-in fade-in duration-200">
+ <div className="border-b border-border-default pb-3 mb-4">
+ <h3 className="text-sm font-semibold uppercase tracking-wider text-primary">Recuperación de Facturas Autorizadas (SRI)</h3>
+ <p className="text-xs text-text-secondary mt-1">
+ Importa directamente desde los servidores del SRI cualquier comprobante autorizado que no aparezca en tu base de datos de WebFix.
+ </p>
+ </div>
+ <div className="bg-white border border-border-default rounded-card p-5 sm:p-6 space-y-4">
+ <div className="flex items-start gap-3.5 pb-3 border-b border-border-default">
+ <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+ <RefreshCw size={20} />
+ </div>
+ <div>
+ <h4 className="text-sm font-bold text-text-primary">Consulta e Importación Directa del SRI</h4>
+ <p className="text-xs text-text-secondary mt-0.5 leading-relaxed">
+ Ingresa la clave de acceso de 49 dígitos del comprobante. WebFix consultará los servidores del SRI, descargará el XML autorizado oficial, protegerá el secuencial para evitar duplicidad y registrará la factura en el sistema.
+ </p>
+ </div>
+ </div>
+ <SriRecoveryPanel db={db} appId={appId} showToast={showToast} />
+ <div className="pt-3 border-t border-border-default text-xs text-text-secondary space-y-1">
+ <p className="font-semibold text-text-primary">Información importante:</p>
+ <ul className="list-disc pl-4 space-y-0.5 text-[11px] text-text-secondary">
+ <li>No vuelve a emitir ni reenviar comprobantes al SRI (operación segura de solo lectura e importación).</li>
+ <li>Los cobros bancarios y el inventario de documentos nuevos quedan listos para conciliación manual.</li>
+ <li>Si el documento ya existía previamente, conserva los registros y movimientos asociados.</li>
+ </ul>
+ </div>
+ </div>
  </div>
  )}
 

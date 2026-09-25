@@ -1,4 +1,3 @@
-import SriRecoveryPanel from './SriRecoveryPanel';
 import FiscalDocuments from './FiscalDocuments';
 import { mergeThemeProps } from '../ui/themeProps';
 import { UiBox, UiText, UiCard, UiHeading, UiLabel } from '../ui/layout';
@@ -450,8 +449,6 @@ export default function TransactionsView({ transactions, thirdParties, showToast
 
   return (
     <UiBox {...{"className":"animate-in slide-in-from-bottom-4 duration-500 space-y-6"}}>
-      
-      {forcedType !== 'egreso' && !isPreventaTab && <SriRecoveryPanel db={db} appId={appId} showToast={showToast} />}
       {/* DRAG AND DROP ZONE */}
       {(!forcedType || forcedType !== 'ingreso') && (
         <UiBox 
