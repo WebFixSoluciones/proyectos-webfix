@@ -281,7 +281,7 @@ export default function LandingHome() {
             {/* Columna Izquierda (Texto & CTA Directo) */}
             <div className="lg:col-span-5 flex flex-col space-y-6 text-left">
               {/* Título H1 de alto impacto */}
-              <h1 className="text-slate-950 font-extrabold tracking-tight text-4xl sm:text-5xl lg:text-6xl leading-[1.08] max-w-2xl">
+              <h1 className="text-slate-950 font-semibold tracking-tight text-4xl sm:text-5xl lg:text-6xl leading-[1.08] max-w-2xl">
                 El ERP y Facturación SRI más rápido del Ecuador.
               </h1>
 

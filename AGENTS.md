@@ -405,4 +405,12 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
   - **Hero Section (`LandingHome.jsx`)**: Actualizado el bloque curvo superior del Hero (`rounded-b-[40px] md:rounded-b-[56px]`) al fondo sólido menta vibrante `bg-[#c0ffa5]`, logrando continuidad cromática uniforme y de alto impacto con el header.
 - **Pruebas y Build**: 43 tests unitarios aprobados, compilación limpia de producción en 14.13s.
 
+### 33. Color Esmeralda #0b996e y Tipografía Semibold en Logo y Título Hero (2026-09-25) — COMPLETADO
+- **Color y Peso del Logo**:
+  - Actualizado el logotipo `WebFix` a color verde esmeralda exacto `#0b996e` y peso tipográfico `font-semibold` en el header y footer de [`LandingLayout.jsx`](file:///e:/CLOUD%20WEBFIX/WEBFIX/SISTEMAS/PROYECTOS%20WEBFIX/proyectos-webfix/src/pages/landing/LandingLayout.jsx), así como en [`LoginPage.jsx`](file:///e:/CLOUD%20WEBFIX/WEBFIX/SISTEMAS/PROYECTOS%20WEBFIX/proyectos-webfix/src/pages/LoginPage.jsx) y [`RegisterPage.jsx`](file:///e:/CLOUD%20WEBFIX/WEBFIX/SISTEMAS/PROYECTOS%20WEBFIX/proyectos-webfix/src/pages/RegisterPage.jsx).
+- **Tipografía del Título Principal Hero**:
+  - Ajustado el encabezado `<h1>` del Hero en [`LandingHome.jsx`](file:///e:/CLOUD%20WEBFIX/WEBFIX/SISTEMAS/PROYECTOS%20WEBFIX/proyectos-webfix/src/pages/landing/LandingHome.jsx) de `font-extrabold` a `font-semibold`, brindando una presencia visual más limpia, refinada y legible acorde al estilo editorial moderno.
+- **Pruebas y Build**: 43 tests unitarios aprobados, compilación de producción exitosa en 6.18s.
+
+
 

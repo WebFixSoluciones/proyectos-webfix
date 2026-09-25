@@ -58,13 +58,13 @@ export default function LandingLayout() {
           
           {/* Bloque Izquierdo: Logo WebFix estilo Brevo + Menú con tipografía aumentada */}
           <div className="flex items-center gap-8 lg:gap-12">
-            {/* Logo WebFix en texto verde bosque profundo idéntico a Brevo */}
+            {/* Logo WebFix en texto verde esmeralda con peso semibold */}
             <Link
               to="/"
               className="flex items-center select-none group cursor-pointer"
               aria-label="WebFix ERP Inicio"
             >
-              <span className="font-extrabold text-2xl sm:text-3xl tracking-tight text-[#006a43]">
+              <span className="font-semibold text-2xl sm:text-3xl tracking-tight text-[#0b996e]">
                 WebFix
               </span>
             </Link>
@@ -211,7 +211,7 @@ export default function LandingLayout() {
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 pb-10">
             {/* Logotipo Brevo Style */}
             <Link to="/" className="flex items-center gap-2 group select-none">
-              <span className="font-extrabold text-2xl sm:text-3xl tracking-tight text-[#006a43]">
+              <span className="font-semibold text-2xl sm:text-3xl tracking-tight text-[#0b996e]">
                 WebFix
               </span>
             </Link>

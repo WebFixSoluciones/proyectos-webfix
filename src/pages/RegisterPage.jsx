@@ -154,14 +154,14 @@ export default function RegisterPage({ showToast }) {
           className="flex items-center gap-2.5 cursor-pointer group"
           title="Ir a inicio"
         >
-          <div className="w-8 h-8 rounded-xl bg-[#006a43] text-white flex items-center justify-center font-bold text-sm tracking-tight transition-transform group-hover:scale-105 shadow-none">
+          <div className="w-8 h-8 rounded-xl bg-[#0b996e] text-white flex items-center justify-center font-semibold text-sm tracking-tight transition-transform group-hover:scale-105 shadow-none">
             W
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="font-extrabold text-slate-900 dark:text-white tracking-tight text-lg">
+            <span className="font-semibold text-slate-900 dark:text-white tracking-tight text-lg">
               WebFix
             </span>
-            <span className="text-[11px] font-bold text-[#006a43] bg-[#e8fedf] px-1.5 py-0.5 rounded-md">
+            <span className="text-[11px] font-semibold text-[#0b996e] bg-[#e8fedf] px-1.5 py-0.5 rounded-md">
               ERP
             </span>
           </div>
