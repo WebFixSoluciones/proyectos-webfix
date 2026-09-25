@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { UiInput } from '../components/ui/controls';
 import { 
   Building, 
   CreditCard, 
@@ -788,14 +789,15 @@ export default function SuperAdminPage({ showToast }) {
               {viewMode === 'list' && (
                 <div className="space-y-6">
                   <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-                    <div className="relative w-full sm:max-w-md">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" size={15} />
-                      <input 
+                    <div className="w-full sm:max-w-md">
+                      <UiInput 
                         type="text" 
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
                         placeholder="Buscar empresa por Razón Social o ID..."
-                        className={`w-full pl-10 pr-4 py-2.5 text-xs rounded-card outline-none border ${'bg-white border-border-default text-black'}`}
+                        iconPrefix={<Search size={14} className="text-[var(--gray-10)]" />}
+                        size="2"
+                        className="w-full"
                       />
                     </div>
                     
