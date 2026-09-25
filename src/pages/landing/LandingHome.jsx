@@ -612,51 +612,51 @@ export default function LandingHome() {
 
       {/* 3. SERVICIOS DE GESTIÓN RÁPIDOS, SEGUROS E INTELIGENTES (BENTO GRID ESTILO IMAGEN 1) */}
       <section className="w-full bg-white">
-        <div className="w-[80%] max-w-[1720px] mx-auto py-20 md:py-28">
+        <div className="w-[80%] max-w-[1720px] mx-auto py-14 md:py-20">
           
           {/* Título centrado limpio de alto impacto estilo Imagen 1 */}
-          <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
+          <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-12">
             <h2 className="text-slate-950 font-bold text-3xl sm:text-4xl lg:text-5xl tracking-tight leading-tight">
               Servicios de gestión rápidos, seguros e inteligentes impulsados por IA
             </h2>
           </div>
 
           {/* Bento Grid: 2 cards arriba + 3 cards abajo (1 ancha y 2 compactas) */}
-          <div className="grid grid-cols-12 gap-6 sm:gap-8">
+          <div className="grid grid-cols-12 gap-5 sm:gap-6">
             
             {/* 1. Facturación para Negocios (Top-Left: Sky Blue) */}
             <ScrollReveal delay={0} className="col-span-12 lg:col-span-6 h-full">
-              <div className="rounded-[32px] bg-[#edf4fb] p-8 sm:p-10 relative overflow-hidden flex flex-col justify-between min-h-[380px] sm:min-h-[420px] transition-transform duration-300 hover:-translate-y-1 h-full select-none">
-                <div className="max-w-[280px] sm:max-w-[320px] z-10 text-left">
+              <div className="rounded-[28px] bg-[#edf4fb] p-6 sm:p-7 lg:p-8 relative overflow-hidden flex flex-col justify-between min-h-[290px] sm:min-h-[310px] md:min-h-[320px] transition-transform duration-300 hover:-translate-y-1 h-full select-none">
+                <div className="max-w-[270px] sm:max-w-[310px] z-10 text-left">
                   <h3 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight leading-tight">
                     Facturación para Negocios
                   </h3>
-                  <p className="text-slate-600 text-sm sm:text-base leading-relaxed mt-3 mb-6">
+                  <p className="text-slate-600 text-sm sm:text-base leading-relaxed mt-2.5 mb-4">
                     Emite o migra tu facturación al instante con nuestro motor SRI ultrarrápido.
                   </p>
                   <button
                     type="button"
                     onClick={() => navigate('/register')}
-                    className="inline-flex items-center justify-center bg-[#1b1b1b] hover:bg-black text-white text-xs font-bold uppercase tracking-wider px-6 py-3 rounded-xl cursor-pointer transition-all shadow-none"
+                    className="inline-flex items-center justify-center bg-[#1b1b1b] hover:bg-black text-white text-xs font-bold uppercase tracking-wider px-5 py-2.5 rounded-xl cursor-pointer transition-all shadow-none"
                   >
                     Comienza ahora
                   </button>
                 </div>
 
                 {/* Mockup de ventana Browser asomándose a la derecha */}
-                <div className="absolute -right-4 sm:-right-2 bottom-0 sm:bottom-4 w-[280px] sm:w-[320px] bg-white rounded-xl shadow-lg border border-slate-200/90 overflow-hidden text-left pointer-events-none">
-                  <div className="px-3 py-2 bg-slate-50 border-b border-slate-200 flex items-center gap-1.5">
+                <div className="absolute -right-4 sm:-right-2 -bottom-2 sm:bottom-0 w-[270px] sm:w-[310px] bg-white rounded-xl shadow-lg border border-slate-200/90 overflow-hidden text-left pointer-events-none">
+                  <div className="px-3 py-1.5 bg-slate-50 border-b border-slate-200 flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-slate-300" />
                     <span className="w-2 h-2 rounded-full bg-slate-300" />
                     <span className="w-2 h-2 rounded-full bg-slate-300" />
                     <span className="ml-2 text-[9px] font-mono text-slate-400">https://app.webfix.ec/sri</span>
                   </div>
-                  <div className="bg-[#2679c6] text-white p-3">
+                  <div className="bg-[#2679c6] text-white p-2.5">
                     <span className="text-[10px] font-semibold text-blue-100 uppercase tracking-wider block">Panel de control</span>
-                    <span className="text-sm font-bold">Bienvenido a Facturación SRI</span>
+                    <span className="text-xs sm:text-sm font-bold">Bienvenido a Facturación SRI</span>
                   </div>
-                  <div className="p-3 space-y-2 bg-white">
-                    <div className="p-2 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-between text-[11px]">
+                  <div className="p-2.5 space-y-1.5 bg-white">
+                    <div className="p-1.5 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-between text-[11px]">
                       <span className="font-mono text-slate-600">FAC-001-002-8453</span>
                       <span className="px-1.5 py-0.5 rounded-full bg-[#c0ffa5] text-[#004227] font-bold text-[9px]">AUTORIZADO</span>
                     </div>
@@ -672,48 +672,48 @@ export default function LandingHome() {
 
             {/* 2. Punto de Venta POS con Dark Popover Card (Top-Right: Warm Stone) */}
             <ScrollReveal delay={80} className="col-span-12 lg:col-span-6 h-full">
-              <div className="rounded-[32px] bg-[#f5f5f7] p-8 sm:p-10 relative overflow-hidden flex flex-col justify-between min-h-[380px] sm:min-h-[420px] transition-transform duration-300 hover:-translate-y-1 h-full select-none">
-                <div className="max-w-[280px] sm:max-w-[320px] z-10 text-left">
+              <div className="rounded-[28px] bg-[#f5f5f7] p-6 sm:p-7 lg:p-8 relative overflow-hidden flex flex-col justify-between min-h-[290px] sm:min-h-[310px] md:min-h-[320px] transition-transform duration-300 hover:-translate-y-1 h-full select-none">
+                <div className="max-w-[270px] sm:max-w-[310px] z-10 text-left">
                   <h3 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight leading-tight">
                     Punto de Venta Mostrador
                   </h3>
-                  <p className="text-slate-600 text-sm sm:text-base leading-relaxed mt-3 mb-6">
+                  <p className="text-slate-600 text-sm sm:text-base leading-relaxed mt-2.5 mb-4">
                     Cobra en segundos de forma fácil y rápida con soporte para atajos de teclado y ticket térmico.
                   </p>
                   <button
                     type="button"
                     onClick={() => navigate('/register')}
-                    className="inline-flex items-center justify-center bg-[#1b1b1b] hover:bg-black text-white text-xs font-bold uppercase tracking-wider px-6 py-3 rounded-xl cursor-pointer transition-all shadow-none"
+                    className="inline-flex items-center justify-center bg-[#1b1b1b] hover:bg-black text-white text-xs font-bold uppercase tracking-wider px-5 py-2.5 rounded-xl cursor-pointer transition-all shadow-none"
                   >
                     Comienza ahora
                   </button>
                 </div>
 
                 {/* Fondo de mockup tenue */}
-                <div className="absolute right-0 bottom-4 w-72 h-64 rounded-l-2xl border-l-2 border-t-2 border-slate-200 bg-white/70 p-4 opacity-50 pointer-events-none" />
+                <div className="absolute right-0 bottom-2 w-64 h-56 rounded-l-2xl border-l-2 border-t-2 border-slate-200 bg-white/70 p-4 opacity-40 pointer-events-none" />
 
-                {/* Floating Dark Card réplica idéntica a la Imagen 1 */}
-                <div className="absolute right-4 sm:right-8 top-10 sm:top-12 w-64 sm:w-72 bg-[#212124] text-white rounded-2xl p-4 shadow-2xl border border-white/10 z-20 space-y-2.5 text-left pointer-events-none">
-                  <div className="bg-white/10 rounded-xl p-3 flex items-center gap-3 text-xs font-medium text-slate-200">
-                    <div className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center">
-                      <ShoppingCart size={13} className="text-white" />
+                {/* Floating Dark Card centrada verticalmente */}
+                <div className="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 w-60 sm:w-68 bg-[#212124] text-white rounded-2xl p-3 sm:p-3.5 shadow-xl border border-white/10 z-20 space-y-2 text-left pointer-events-none">
+                  <div className="bg-white/10 rounded-xl p-2.5 flex items-center gap-2.5 text-xs font-medium text-slate-200">
+                    <div className="w-5 h-5 rounded-lg bg-white/10 flex items-center justify-center">
+                      <ShoppingCart size={12} className="text-white" />
                     </div>
                     <span>Cobra con atajo F12</span>
                   </div>
                   
-                  <div className="bg-white/20 border border-emerald-500/40 rounded-xl p-3 flex items-center justify-between text-xs font-semibold text-white relative">
-                    <div className="flex items-center gap-2.5">
-                      <Sparkles size={14} className="text-[#c0ffa5]" />
+                  <div className="bg-white/20 border border-emerald-500/40 rounded-xl p-2.5 flex items-center justify-between text-xs font-semibold text-white relative">
+                    <div className="flex items-center gap-2">
+                      <Sparkles size={13} className="text-[#c0ffa5]" />
                       <span>Efectivo + Transferencia</span>
                     </div>
-                    <div className="w-5 h-5 rounded-full bg-[#0b996e] text-white flex items-center justify-center">
-                      <Check size={12} strokeWidth={3} />
+                    <div className="w-4 h-4 rounded-full bg-[#0b996e] text-white flex items-center justify-center">
+                      <Check size={10} strokeWidth={3} />
                     </div>
                   </div>
 
-                  <div className="bg-white/10 rounded-xl p-3 flex items-center gap-3 text-xs font-medium text-slate-200">
-                    <div className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center">
-                      <Printer size={13} className="text-white" />
+                  <div className="bg-white/10 rounded-xl p-2.5 flex items-center gap-2.5 text-xs font-medium text-slate-200">
+                    <div className="w-5 h-5 rounded-lg bg-white/10 flex items-center justify-center">
+                      <Printer size={12} className="text-white" />
                     </div>
                     <span>Ticket térmico 80mm</span>
                   </div>
@@ -723,26 +723,26 @@ export default function LandingHome() {
 
             {/* 3. Captura Inteligente con IA (Bottom-Left: Lavender Wide) */}
             <ScrollReveal delay={160} className="col-span-12 lg:col-span-6 h-full">
-              <div className="rounded-[32px] bg-[#f3f0fc] p-8 sm:p-10 relative overflow-hidden flex flex-col justify-between min-h-[380px] sm:min-h-[440px] transition-transform duration-300 hover:-translate-y-1 h-full select-none">
+              <div className="rounded-[28px] bg-[#f3f0fc] p-6 sm:p-7 lg:p-8 relative overflow-hidden flex flex-col justify-between min-h-[290px] sm:min-h-[310px] md:min-h-[320px] transition-transform duration-300 hover:-translate-y-1 h-full select-none">
                 <div className="z-10 text-left">
                   <h3 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight leading-tight">
                     Captura Inteligente OCR con IA
                   </h3>
-                  <p className="text-slate-600 text-sm sm:text-base leading-relaxed mt-2.5 mb-6 max-w-md">
+                  <p className="text-slate-600 text-sm sm:text-base leading-relaxed mt-2 mb-3.5 max-w-md">
                     Crea compras y gastos chateando con la IA o subiendo facturas en PDF. Extracción automática sin digitación manual.
                   </p>
                   <button
                     type="button"
                     onClick={() => navigate('/register')}
-                    className="inline-flex items-center justify-center bg-[#1b1b1b] hover:bg-black text-white text-xs font-bold uppercase tracking-wider px-6 py-3 rounded-xl cursor-pointer transition-all shadow-none mb-6"
+                    className="inline-flex items-center justify-center bg-[#1b1b1b] hover:bg-black text-white text-xs font-bold uppercase tracking-wider px-5 py-2.5 rounded-xl cursor-pointer transition-all shadow-none mb-3 sm:mb-4"
                   >
                     Comienza a procesar
                   </button>
                 </div>
 
                 {/* Mockup de tabla que emerge desde abajo */}
-                <div className="w-full bg-white rounded-t-2xl shadow-lg border border-slate-200/90 overflow-hidden pt-3 px-4 pb-4 -mb-8 text-left pointer-events-none">
-                  <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100">
+                <div className="w-full bg-white rounded-t-2xl shadow-lg border border-slate-200/90 overflow-hidden pt-2.5 px-3.5 pb-3 -mb-6 text-left pointer-events-none">
+                  <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-slate-100">
                     <div className="flex items-center gap-1.5">
                       <span className="w-2 h-2 rounded-full bg-slate-300" />
                       <span className="w-2 h-2 rounded-full bg-slate-300" />
@@ -753,21 +753,21 @@ export default function LandingHome() {
                       100% IA Procesado
                     </span>
                   </div>
-                  <div className="grid grid-cols-4 gap-2 text-[11px] font-medium text-slate-700 pt-1">
+                  <div className="grid grid-cols-4 gap-2 text-[11px] font-medium text-slate-700 pt-0.5">
                     <div>
-                      <span className="text-[10px] text-slate-400 block uppercase">Archivo</span>
+                      <span className="text-[9px] text-slate-400 block uppercase">Archivo</span>
                       <span className="font-mono text-slate-800 truncate block">factura_84.pdf</span>
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-400 block uppercase">Proveedor</span>
+                      <span className="text-[9px] text-slate-400 block uppercase">Proveedor</span>
                       <span className="font-semibold text-slate-900 truncate block">Favorita S.A.</span>
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-400 block uppercase">Subtotal</span>
+                      <span className="text-[9px] text-slate-400 block uppercase">Subtotal</span>
                       <span className="font-mono text-slate-800">$420.00</span>
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-400 block uppercase">Total + IVA</span>
+                      <span className="text-[9px] text-slate-400 block uppercase">Total + IVA</span>
                       <span className="font-mono font-bold text-emerald-600">$483.00</span>
                     </div>
                   </div>
@@ -777,18 +777,18 @@ export default function LandingHome() {
 
             {/* 4. Flujo de Caja & Bancos (Bottom-Center: Soft Mint) */}
             <ScrollReveal delay={240} className="col-span-12 sm:col-span-6 lg:col-span-3 h-full">
-              <div className="rounded-[32px] bg-[#edf8f1] p-7 sm:p-8 relative overflow-hidden flex flex-col justify-between min-h-[380px] sm:min-h-[440px] transition-transform duration-300 hover:-translate-y-1 h-full select-none">
+              <div className="rounded-[28px] bg-[#edf8f1] p-5 sm:p-6 relative overflow-hidden flex flex-col justify-between min-h-[290px] sm:min-h-[310px] md:min-h-[320px] transition-transform duration-300 hover:-translate-y-1 h-full select-none">
                 <div className="text-left">
                   <h3 className="text-2xl font-bold text-slate-900 tracking-tight leading-tight">
                     Flujo de caja
                   </h3>
-                  <p className="text-slate-600 text-xs sm:text-sm leading-relaxed mt-2.5 mb-4">
+                  <p className="text-slate-600 text-xs sm:text-sm leading-relaxed mt-1.5 mb-2.5">
                     Controla y haz crecer tu liquidez con cuentas por cobrar y bancos al centavo.
                   </p>
                   <button
                     type="button"
                     onClick={() => navigate('/register')}
-                    className="inline-flex items-center gap-1 text-xs font-bold text-slate-900 hover:text-black uppercase tracking-wider cursor-pointer transition-colors mb-6"
+                    className="inline-flex items-center gap-1 text-xs font-bold text-slate-900 hover:text-black uppercase tracking-wider cursor-pointer transition-colors mb-2.5 sm:mb-3"
                   >
                     <span>Ver Finanzas</span>
                     <span className="text-sm">↗</span>
@@ -796,13 +796,13 @@ export default function LandingHome() {
                 </div>
 
                 {/* Widget Bancos */}
-                <div className="w-full bg-white rounded-2xl shadow-md border border-slate-200/80 p-3.5 text-left space-y-2 pointer-events-none">
+                <div className="w-full bg-white rounded-2xl shadow-sm border border-slate-200/80 p-3 text-left space-y-1.5 pointer-events-none">
                   <div className="flex justify-between items-center text-[10px] text-slate-500">
                     <span className="font-bold text-slate-700">Disponible en Bancos</span>
                     <span className="text-emerald-700 font-bold bg-[#c0ffa5] px-1.5 py-0.5 rounded">+15.2%</span>
                   </div>
                   <div className="font-mono text-base font-extrabold text-slate-900">$8,240.00</div>
-                  <div className="space-y-1 pt-1.5 border-t border-slate-100 text-[10px] text-slate-600">
+                  <div className="space-y-0.5 pt-1 border-t border-slate-100 text-[10px] text-slate-600">
                     <div className="flex justify-between">
                       <span>Pichincha</span>
                       <span className="font-mono font-semibold">$5,420.00</span>
@@ -818,18 +818,18 @@ export default function LandingHome() {
 
             {/* 5. Kardex & Stock (Bottom-Right: Warm Vanilla) */}
             <ScrollReveal delay={320} className="col-span-12 sm:col-span-6 lg:col-span-3 h-full">
-              <div className="rounded-[32px] bg-[#fef9e7] p-7 sm:p-8 relative overflow-hidden flex flex-col justify-between min-h-[380px] sm:min-h-[440px] transition-transform duration-300 hover:-translate-y-1 h-full select-none">
+              <div className="rounded-[28px] bg-[#fef9e7] p-5 sm:p-6 relative overflow-hidden flex flex-col justify-between min-h-[290px] sm:min-h-[310px] md:min-h-[320px] transition-transform duration-300 hover:-translate-y-1 h-full select-none">
                 <div className="text-left">
                   <h3 className="text-2xl font-bold text-slate-900 tracking-tight leading-tight">
                     Kardex & Stock
                   </h3>
-                  <p className="text-slate-600 text-xs sm:text-sm leading-relaxed mt-2.5 mb-4">
+                  <p className="text-slate-600 text-xs sm:text-sm leading-relaxed mt-1.5 mb-2.5">
                     Controla tu inventario multibodega y empieza a despachar con precisión.
                   </p>
                   <button
                     type="button"
                     onClick={() => navigate('/register')}
-                    className="inline-flex items-center gap-1 text-xs font-bold text-slate-900 hover:text-black uppercase tracking-wider cursor-pointer transition-colors mb-6"
+                    className="inline-flex items-center gap-1 text-xs font-bold text-slate-900 hover:text-black uppercase tracking-wider cursor-pointer transition-colors mb-2.5 sm:mb-3"
                   >
                     <span>Pruébalo Gratis</span>
                     <span className="text-sm">↗</span>
@@ -837,12 +837,12 @@ export default function LandingHome() {
                 </div>
 
                 {/* Widget Producto / Stock */}
-                <div className="w-full bg-white rounded-2xl shadow-md border border-slate-200/80 p-3.5 text-left pointer-events-none">
-                  <div className="w-full h-16 bg-[#fdf5db] rounded-xl flex items-center justify-center mb-2.5">
-                    <Package size={24} className="text-[#ab7f0a]" />
+                <div className="w-full bg-white rounded-2xl shadow-sm border border-slate-200/80 p-3 text-left pointer-events-none">
+                  <div className="w-full h-12 sm:h-14 bg-[#fdf5db] rounded-xl flex items-center justify-center mb-2">
+                    <Package size={22} className="text-[#ab7f0a]" />
                   </div>
                   <div className="text-xs font-bold text-slate-900 truncate">Monitor LG 27'' UltraGear</div>
-                  <div className="flex justify-between items-center text-[10px] text-slate-500 pt-1">
+                  <div className="flex justify-between items-center text-[10px] text-slate-500 pt-0.5">
                     <span className="font-mono">142 un. en bodega</span>
                     <span className="text-amber-800 font-bold bg-[#faf7c4] px-1.5 py-0.5 rounded">Óptimo</span>
                   </div>
