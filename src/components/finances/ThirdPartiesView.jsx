@@ -8,7 +8,6 @@ import {
 } from 'lucide-react';
 import { doc, deleteDoc } from '../../services/financeStore.js';
 import CustomerDetailView from './CustomerDetailView';
-import FinancialPageHeader from './FinancialPageHeader';
 
 export default function ThirdPartiesView({ 
   thirdParties = [], 
@@ -69,45 +68,6 @@ export default function ThirdPartiesView({
     });
   }, [thirdParties, searchTerm, forcedType, isSupplierView, filterIdType, filterCredit]);
 
-  // Statistics for KPIs
-  const stats = useMemo(() => {
-    const relevant = (thirdParties || []).filter(tp => 
-      isSupplierView 
-        ? (tp.type === 'proveedor' || tp.type === 'ambos')
-        : (tp.type === 'cliente' || tp.type === 'ambos' || !tp.type || tp.type !== 'proveedor')
-    );
-
-    const total = relevant.length;
-
-    if (isSupplierView) {
-      const conCredito = relevant.filter(tp => 
-        tp.hasCredit || Number(tp.paymentDays || tp.diasCredito || 0) > 0
-      ).length;
-      const contado = total - conCredito;
-      const plazos = relevant
-        .map(tp => Number(tp.paymentDays || tp.diasCredito || 0))
-        .filter(d => d > 0);
-      const avgPlazo = plazos.length > 0 
-        ? Math.round(plazos.reduce((a, b) => a + b, 0) / plazos.length) 
-        : 30;
-      const rimpeOrEspecial = relevant.filter(tp => 
-        tp.tipoContribuyente && tp.tipoContribuyente !== 'general'
-      ).length;
-
-      return { total, conCredito, contado, avgPlazo, rimpeOrEspecial };
-    } else {
-      const conCredito = relevant.filter(tp => 
-        tp.hasCredit || Number(tp.creditLimit || tp.limiteCredito || tp.cupoCredito || 0) > 0
-      );
-      const cupoTotal = conCredito.reduce((acc, tp) => 
-        acc + Number(tp.creditLimit || tp.limiteCredito || tp.cupoCredito || 0), 0
-      );
-      const contado = total - conCredito.length;
-
-      return { total, conCredito: conCredito.length, cupoTotal, contado };
-    }
-  }, [thirdParties, isSupplierView]);
-
   const handleDelete = async (id, name) => {
     const targetLabel = isSupplierView ? 'este proveedor' : 'este cliente';
     if (window.confirm(`¿Seguro que deseas eliminar el registro de "${name || targetLabel}"?`)) {
@@ -146,119 +106,22 @@ export default function ThirdPartiesView({
   const hasActiveFilters = searchTerm !== '' || filterIdType !== 'all' || filterCredit !== 'all';
 
   return (
-    <UiBox className="space-y-5 animate-in fade-in duration-300 pb-8">
-      {/* Unified Financial Page Header */}
-      <FinancialPageHeader
-        icon={isSupplierView ? Building2 : Users}
-        title={isSupplierView ? "Gestión de Proveedores" : "Gestión de Clientes"}
-        description={
-          isSupplierView 
-            ? "Catálogo de proveedores comerciales, plazos de pago y datos de facturación SRI" 
-            : "Directorio de clientes registrados, líneas de crédito y validación tributaria SRI"
-        }
-        badge={`${filtered.length} ${isSupplierView ? 'Proveedores' : 'Clientes'}`}
-        badgeColor={isSupplierView ? "purple" : "blue"}
-        actions={
-          <UiButton
-            onClick={() => { setSelectedClient(null); setViewMode('detail'); }}
-            variant="solid"
-            color="blue"
-            size="2"
-            className="font-semibold cursor-pointer"
-          >
-            <Plus size={15} /> Nuevo {isSupplierView ? 'Proveedor' : 'Cliente'}
-          </UiButton>
-        }
-      />
-
-      {/* KPI Cards Grid */}
-      <UiBox className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {isSupplierView ? (
-          <>
-            <UiCard className="p-3.5 flex items-center gap-3 border border-[var(--gray-a4)] bg-[var(--color-panel-solid)]">
-              <UiBox style={{ borderRadius: "var(--radius-2)", backgroundColor: "var(--purple-3)", color: "var(--purple-11)" }} className="p-2 shrink-0">
-                <Building2 size={18} />
-              </UiBox>
-              <UiBox>
-                <UiText size="1" color="gray" weight="medium">Total Proveedores</UiText>
-                <UiHeading size="4" weight="bold" color="gray" highContrast>{stats.total}</UiHeading>
-              </UiBox>
-            </UiCard>
-
-            <UiCard className="p-3.5 flex items-center gap-3 border border-[var(--gray-a4)] bg-[var(--color-panel-solid)]">
-              <UiBox style={{ borderRadius: "var(--radius-2)", backgroundColor: "var(--blue-3)", color: "var(--blue-11)" }} className="p-2 shrink-0">
-                <Clock size={18} />
-              </UiBox>
-              <UiBox>
-                <UiText size="1" color="gray" weight="medium">Con Plazo / Crédito</UiText>
-                <UiHeading size="4" weight="bold" color="gray" highContrast>{stats.conCredito}</UiHeading>
-              </UiBox>
-            </UiCard>
-
-            <UiCard className="p-3.5 flex items-center gap-3 border border-[var(--gray-a4)] bg-[var(--color-panel-solid)]">
-              <UiBox style={{ borderRadius: "var(--radius-2)", backgroundColor: "var(--green-3)", color: "var(--green-11)" }} className="p-2 shrink-0">
-                <CheckCircle2 size={18} />
-              </UiBox>
-              <UiBox>
-                <UiText size="1" color="gray" weight="medium">Plazo Promedio</UiText>
-                <UiHeading size="4" weight="bold" color="gray" highContrast>{stats.avgPlazo} días</UiHeading>
-              </UiBox>
-            </UiCard>
-
-            <UiCard className="p-3.5 flex items-center gap-3 border border-[var(--gray-a4)] bg-[var(--color-panel-solid)]">
-              <UiBox style={{ borderRadius: "var(--radius-2)", backgroundColor: "var(--amber-3)", color: "var(--amber-11)" }} className="p-2 shrink-0">
-                <CreditCard size={18} />
-              </UiBox>
-              <UiBox>
-                <UiText size="1" color="gray" weight="medium">Pago Contado</UiText>
-                <UiHeading size="4" weight="bold" color="gray" highContrast>{stats.contado}</UiHeading>
-              </UiBox>
-            </UiCard>
-          </>
-        ) : (
-          <>
-            <UiCard className="p-3.5 flex items-center gap-3 border border-[var(--gray-a4)] bg-[var(--color-panel-solid)]">
-              <UiBox style={{ borderRadius: "var(--radius-2)", backgroundColor: "var(--blue-3)", color: "var(--blue-11)" }} className="p-2 shrink-0">
-                <Users size={18} />
-              </UiBox>
-              <UiBox>
-                <UiText size="1" color="gray" weight="medium">Total Clientes</UiText>
-                <UiHeading size="4" weight="bold" color="gray" highContrast>{stats.total}</UiHeading>
-              </UiBox>
-            </UiCard>
-
-            <UiCard className="p-3.5 flex items-center gap-3 border border-[var(--gray-a4)] bg-[var(--color-panel-solid)]">
-              <UiBox style={{ borderRadius: "var(--radius-2)", backgroundColor: "var(--green-3)", color: "var(--green-11)" }} className="p-2 shrink-0">
-                <ShieldCheck size={18} />
-              </UiBox>
-              <UiBox>
-                <UiText size="1" color="gray" weight="medium">Con Línea de Crédito</UiText>
-                <UiHeading size="4" weight="bold" color="gray" highContrast>{stats.conCredito}</UiHeading>
-              </UiBox>
-            </UiCard>
-
-            <UiCard className="p-3.5 flex items-center gap-3 border border-[var(--gray-a4)] bg-[var(--color-panel-solid)]">
-              <UiBox style={{ borderRadius: "var(--radius-2)", backgroundColor: "var(--indigo-3)", color: "var(--indigo-11)" }} className="p-2 shrink-0">
-                <CreditCard size={18} />
-              </UiBox>
-              <UiBox>
-                <UiText size="1" color="gray" weight="medium">Cupo Total Otorgado</UiText>
-                <UiHeading size="4" weight="bold" color="gray" highContrast>${stats.cupoTotal.toFixed(2)}</UiHeading>
-              </UiBox>
-            </UiCard>
-
-            <UiCard className="p-3.5 flex items-center gap-3 border border-[var(--gray-a4)] bg-[var(--color-panel-solid)]">
-              <UiBox style={{ borderRadius: "var(--radius-2)", backgroundColor: "var(--gray-3)", color: "var(--gray-11)" }} className="p-2 shrink-0">
-                <Clock size={18} />
-              </UiBox>
-              <UiBox>
-                <UiText size="1" color="gray" weight="medium">Clientes Contado</UiText>
-                <UiHeading size="4" weight="bold" color="gray" highContrast>{stats.contado}</UiHeading>
-              </UiBox>
-            </UiCard>
-          </>
-        )}
-      </UiBox>
+    <UiBox className="space-y-4 animate-in fade-in duration-300 pb-8">
+      {/* Top Header Card */}
+      <UiCard className="flex items-center justify-between px-4 py-3 bg-[var(--color-panel-solid)] border border-[var(--gray-a6)] rounded-lg">
+        <UiHeading as="h2" size="4" weight="bold" color="gray" highContrast>
+          {isSupplierView ? 'Gestión de Proveedores' : 'Gestión de Clientes'}
+        </UiHeading>
+        <UiButton
+          onClick={() => { setSelectedClient(null); setViewMode('detail'); }}
+          variant="solid"
+          color="blue"
+          size="2"
+          className="font-medium cursor-pointer flex items-center gap-1.5"
+        >
+          <Plus size={15} /> Nuevo {isSupplierView ? 'Proveedor' : 'Cliente'}
+        </UiButton>
+      </UiCard>
 
       {/* Filter & Search Bar */}
       <UiBox className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 bg-[var(--color-panel-solid)] border border-[var(--gray-a5)] rounded-lg">

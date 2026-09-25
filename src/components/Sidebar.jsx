@@ -252,18 +252,18 @@ export default function Sidebar({
 
  {activeModules.personas && (
  <div className="space-y-0.5">
- <button onClick={() => { setExpandedSidebarMenu(expandedSidebarMenu ==='personas_menu' ? null :'personas_menu'); setPersonasSubTab('cliente'); setActivePageId('personas'); }} className={navBtnClass(activePageId ==='personas' || activePageId ==='team')}>
+ <button onClick={() => { setExpandedSidebarMenu(expandedSidebarMenu ==='personas_menu' ? null :'personas_menu'); setPersonasSubTab('cliente'); setActivePageId('personas'); }} className={navBtnClass(activePageId ==='personas')}>
  <div className="flex items-center gap-3 flex-1">
- <Users size={16} className={iconClass(activePageId ==='personas' || activePageId ==='team')} />
+ <Users size={16} className={iconClass(activePageId ==='personas')} />
  {isSidebarOpen && <span>Personas</span>}
  </div>
  {isSidebarOpen && <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu ==='personas_menu' ?'rotate-180' :''} text-[var(--gray-10)]`} />}
  </button>
  {isSidebarOpen && expandedSidebarMenu ==='personas_menu' && (
  <div className={menuBorderClass}>
- {[{ id:'cliente', label:'Clientes' },{ id:'proveedor', label:'Proveedores' },{ id:'team', label:'Equipo' }].map(sub => {
- const isActive = sub.id ==='team' ? activePageId ==='team' : (activePageId ==='personas' && personasSubTab === sub.id);
- return <button key={sub.id} onClick={() => { if (sub.id ==='team') { setActivePageId('team'); } else { setActivePageId('personas'); setPersonasSubTab(sub.id); } closeMobile(); }} className={subItemClass(isActive)}>{sub.label}</button>;
+ {[{ id:'cliente', label:'Clientes' },{ id:'proveedor', label:'Proveedores' }].map(sub => {
+ const isActive = activePageId ==='personas' && personasSubTab === sub.id;
+ return <button key={sub.id} onClick={() => { setActivePageId('personas'); setPersonasSubTab(sub.id); closeMobile(); }} className={subItemClass(isActive)}>{sub.label}</button>;
  })}
  </div>
  )}

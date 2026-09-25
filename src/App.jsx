@@ -45,6 +45,7 @@ import PublicRideView from './pages/PublicRideView';
 import { PLANS } from './config/plans';
 
 import FinanceModule from './components/finances/FinanceModule';
+import ThirdPartiesView from './components/finances/ThirdPartiesView';
 
 import ErpDashboard from './components/dashboard/ErpDashboard';
 import GeneralSettings from './components/dashboard/GeneralSettings';
@@ -555,8 +556,6 @@ export default function App() {
     activePage = { id: 'inventario', title: 'Inventario', icon: 'inventario', type: 'inventario' };
   } else if (activePageId === 'personas') {
     activePage = { id: 'personas', title: 'Personas', icon: 'personas', type: 'personas' };
-  } else if (activePageId === 'team') {
-    activePage = { id: 'team', title: 'Equipo y Roles', icon: 'team', type: 'team' };
   } else if (activePageId === 'general_settings') {
     activePage = { id: 'general_settings', title: 'Ajustes', icon: 'settings', type: 'general_settings' };
   } else if (activePageId === 'billing') {
@@ -644,12 +643,6 @@ export default function App() {
         const current = subtabs[personasSubTab] || { title: 'Gestión de Personas', desc: 'Base de datos unificada de clientes y proveedores con validación de datos SRI' };
         return { ...current, icon: 'personas' };
       }
-      case 'team':
-        return {
-          title: 'Directorio del Equipo',
-          desc: 'Gestiona roles y miembros del equipo',
-          icon: 'team'
-        };
       case 'compras': {
         const subtabs = {
           compras_resumen: { title: 'Compras: Historial de Compras', desc: 'Listado y registro de facturas recibidas de tus proveedores' },
@@ -899,8 +892,6 @@ export default function App() {
     }
     return !activeModules[activePageId];
   })();
-
-  const isPersonasActive = activePageId === 'personas' || activePageId === 'team';
   return (
     <Routes>
       <Route element={<LandingLayout />}>
@@ -1036,8 +1027,8 @@ export default function App() {
         <UiBox {...{"className":"flex-1 flex overflow-hidden min-h-0 relative"}}>
 
           {/* Editor Area */}
-          <UiBox ref={mainContentRef} {...mergeThemeProps({"className":"flex-1 overflow-y-auto scroll-smooth custom-scrollbar"}, {}, (isPersonasActive ? {"className":"pb-0 pt-0"} : {"className":"pb-8 pt-4 px-4 md:px-6"}))}>
-            <UiBox {...(isPersonasActive ? {"className":"w-full h-full"} : {"className":"max-w-[1600px] w-full mx-auto"})}>
+          <UiBox ref={mainContentRef} className="flex-1 overflow-y-auto scroll-smooth custom-scrollbar pb-8 pt-4 px-4 md:px-6">
+            <UiBox className="max-w-[1600px] w-full mx-auto">
               {planStatus === 'suspended' && activePageId !== 'billing' ? (
                 <UiBox {...{"className":"flex flex-col items-center justify-center p-12 text-center h-[70vh] w-full select-none animate-in fade-in duration-300"}}>
                   <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--red-3)","color":"var(--red-11)","border":"1px solid var(--gray-a6)"},"className":"p-5 mb-6"}}>
@@ -1159,63 +1150,18 @@ export default function App() {
                 />
               )}
 
-              {/* MÓDULO UNIFICADO: PERSONAS */}
-              {isPersonasActive && (
-                <UiBox {...{"className":"flex flex-col h-full w-full overflow-hidden animate-in fade-in duration-500"}}>
-                  {/* Contenido de Personas */}
-                  <UiBox {...{"style":{"backgroundColor":"transparent"},"className":"flex flex-1 overflow-hidden min-h-0"}}>
-                    <UiBox {...mergeThemeProps({"className":"flex-1 overflow-y-auto px-0 py-0 custom-scrollbar"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)"}})}>
-                      {activePageId === 'personas' && (
-                        <FinanceModule 
-                          mode="personas" 
-                          initialSubTab={personasSubTab} 
-                          showToast={showToast} 
-                          transactions={globalTransactions} 
-                          thirdParties={globalThirdParties} 
-                          products={globalProducts} 
-                          discounts={globalDiscounts}
-                          promotions={globalPromotions}
-                          isLoading={isLoadingFinances} 
-                        />
-                      )}
-                      {activePageId === 'team' && (
-                        <UiBox {...{"className":"animate-in fade-in duration-500 px-8 py-6"}}>
-                          <UiBox {...{"className":"flex justify-end mb-6"}}>
-                            <UiButton onClick={openNewUserDrawer} {...mergeThemeProps({"size":"2","className":"flex items-center gap-1.5 transition-transform hover:-translate-y-0.5"}, {}, {"variant":"solid","color":"blue"})}>
-                              <UserPlus size={16} /> Invitar Miembro
-                            </UiButton>
-                          </UiBox>
-
-                          <UiBox {...{"className":"grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"}}>
-                            {users.map(user => (
-                              <UiBox key={user.id} {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)"},"className":"p-5 flex flex-col justify-between"}, {"className":"hover:-translate-y-1 transition-transform duration-300"}, resolveThemeProps(currentGlassPanel))}>
-                                <UiBox {...{"className":"flex items-start gap-4 mb-4"}}>
-                                  <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","color":"var(--color-background)","backgroundColor":"var(--gray-2)"},"className":"w-12 h-12 flex items-center justify-center"}, {}, resolveThemeProps(user.color))}>
-                                    {user.initials}
-                                  </UiBox>
-                                  <UiBox>
-                                    <UiHeading as="h3" {...{"weight":"bold","size":"3"}}>{user.name}</UiHeading>
-                                    <UiText as="p" {...mergeThemeProps({"size":"1","weight":"medium","className":"mt-0.5"}, {}, {"color":"gray"})}>{user.job}</UiText>
-                                  </UiBox>
-                                </UiBox>
-                                <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"flex items-center justify-between mt-auto pt-3"}}>
-                                  <UiBox {...{"className":"flex items-center gap-1.5"}}>
-                                    <Shield size={14} {...(user.role === 'Admin' ? {"style":{"color":"var(--red-11)"}} : (user.role === 'Miembro' ? {"style":{"color":"var(--blue-12)"}} : {"style":{"color":"var(--gray-11)"}}))} />
-                                    <UiText {...mergeThemeProps({"size":"1","weight":"bold"}, {}, {"color":"gray","highContrast":true})}>{user.role}</UiText>
-                                  </UiBox>
-                                  <UiBox {...{"className":"flex items-center gap-1"}}>
-                                    <UiButton iconOnly onClick={() => setDrawerUser(user)} {...mergeThemeProps({}, {}, {"color":"gray"})} title="Editar Usuario"><Pencil size={14} /></UiButton>
-                                    <UiButton iconOnly onClick={(e) => deleteUser(user.id, e)} {...mergeThemeProps({}, {}, {"color":"gray"})} title="Eliminar Usuario"><Trash2 size={14} /></UiButton>
-                                  </UiBox>
-                                </UiBox>
-                              </UiBox>
-                            ))}
-                          </UiBox>
-                        </UiBox>
-                      )}
-                    </UiBox>
-                  </UiBox>
-                </UiBox>
+              {/* MÓDULO PERSONAS (CLIENTES Y PROVEEDORES) */}
+              {activePageId === 'personas' && (
+                <ErrorBoundary title="Error en el módulo de Personas">
+                  <ThirdPartiesView 
+                    thirdParties={globalThirdParties} 
+                    transactions={globalTransactions} 
+                    showToast={showToast} 
+                    db={db} 
+                    appId={appId} 
+                    forcedType={personasSubTab} 
+                  />
+                </ErrorBoundary>
               )}
                 </>
               )}

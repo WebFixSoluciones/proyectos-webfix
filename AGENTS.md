@@ -132,12 +132,18 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
   - **Acciones Rápidas**: Impresión directa, descarga de XML autorizado, botón de "Nueva Venta / Emisión" para reiniciar el formulario de inmediato y "Terminar y Salir".
 - **Pruebas y Build**: 41 tests unitarios aprobados, compilación de producción exitosa en 12.67s.
 
+### 14. Estandarización de Espaciados, Encabezado Limpio y Eliminación de Submódulo Equipo en Personas (2026-09-24) — COMPLETADO
+- **Espaciados y Márgenes Estandarizados**: Eliminado el wrapper `isPersonasActive` en `App.jsx` que forzaba `pb-0 pt-0` y `px-0 py-0` sin márgenes laterales. El módulo de Personas ahora hereda el layout estándar idéntico a Ventas e Inventario (`pb-8 pt-4 px-4 md:px-6` y `max-w-[1600px] mx-auto` con `space-y-4`).
+- **Encabezado Homogéneo Tipo Card**: Reemplazado el banner `FinancialPageHeader` por una tarjeta de encabezado estándar (`UiCard`) idéntica a Venta Administrativa, con título a la izquierda (`Gestión de Clientes` / `Gestión de Proveedores`) y botón de acción principal a la derecha (`+ Nuevo Cliente` / `+ Nuevo Proveedor`).
+- **Eliminación de Tarjetas de Métricas**: Removidas las 4 tarjetas KPI de la cabecera (Total Clientes, Con Línea de Crédito, Cupo Total Otorgado, Clientes Contado) para un diseño minimalista, despejado y enfocado en la tabla de datos.
+- **Eliminación del Submódulo Equipo**: Removido por completo el submódulo "Equipo" del menú lateral `Personas` en `Sidebar.jsx` y sus rutas de navegación en `App.jsx`.
+
 ## Últimos commits
 ```
+7b92f1a feat(personas): estandarizar espaciados, encabezado limpio sin kpis y eliminar submodulo equipo
 28547e8 feat(ventas): estandarizar titulos y tamano a Datos de Cliente y Productos y Servicios
 1d192aa fix(ventas): resolver ReferenceError de matchedTercero antes de inicializacion en TransactionForm
 83af250 feat(emision): pantalla de confirmacion, impresion directa y envio de correos para notas de venta y facturas
 0f3567c docs: actualizar AGENTS.md con fix de impresion de ride
-af25370 fix(ride): alinear DOC. INTERNO en una sola linea asignando col-span-4 homogeneo
 ```
 
