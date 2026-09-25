@@ -299,17 +299,26 @@ test('send-email handler accepts empty smtpPort and validates required fields wi
     send(text) { jsonResponse = text; return this; }
   };
 
-  await handler({
-    method: 'POST',
-    body: {
-      smtpHost: 'smtp.gmail.com',
-      smtpPort: '',
-      smtpUser: 'user@gmail.com',
-      smtpPass: 'secret',
-      to: 'cliente@correo.com',
-      documentType: 'nota_venta'
-    }
-  }, mockRes);
+  const originalTransport = nodemailer.createTransport;
+  nodemailer.createTransport = () => ({
+    sendMail: async options => ({ accepted: [options.to], messageId: 'mock-msg-1' })
+  });
+
+  try {
+    await handler({
+      method: 'POST',
+      body: {
+        smtpHost: 'smtp.gmail.com',
+        smtpPort: '',
+        smtpUser: 'user@gmail.com',
+        smtpPass: 'secret',
+        to: 'cliente@correo.com',
+        documentType: 'nota_venta'
+      }
+    }, mockRes);
+  } finally {
+    nodemailer.createTransport = originalTransport;
+  }
 
   assert.equal(statusCode, 200);
   assert.equal(jsonResponse.success, true);
@@ -400,6 +409,56 @@ test('services submodule properly segregates physical products from services and
   assert.equal(invoiceLines.length, 1);
   assert.equal(invoiceLines[0].productId, 's2');
   assert.equal(invoiceLines[0].name, 'Licencia Antivirus Cloud');
+});
+
+test('nota de venta email sends internal receipt notification without requiring claveAcceso', async () => {
+  const originalTransport = nodemailer.createTransport;
+  const sent = [];
+  nodemailer.createTransport = () => ({
+    sendMail: async options => {
+      sent.push(options);
+      return { accepted: [options.to], messageId: `msg-nv-${sent.length}` };
+    }
+  });
+
+  let status = 0;
+  let result = null;
+  const mockRes = {
+    status(code) { status = code; return this; },
+    json(data) { result = data; return this; }
+  };
+
+  try {
+    await handler({
+      method: 'POST',
+      headers: { origin: 'https://erp.webfix.ec' },
+      body: {
+        smtpHost: 'mail.webfix.ec',
+        smtpPort: 465,
+        smtpUser: 'ventas@webfix.ec',
+        smtpPass: 'secret',
+        to: 'cliente@ejemplo.com',
+        emitterEmail: 'emisor@webfix.ec',
+        documentType: 'nota_venta',
+        documentNumber: '001-001-000000018',
+        total: 45.00,
+        pdfUrl: '/#/public/ride?txId=tx-nv-123&tenantId=tenant-1',
+        companyName: 'WebFix Soluciones'
+      }
+    }, mockRes);
+  } finally {
+    nodemailer.createTransport = originalTransport;
+  }
+
+  assert.equal(status, 200);
+  assert.equal(result.success, true);
+  assert.equal(result.deliveries.client.status, 'sent');
+  assert.equal(result.deliveries.emitter.status, 'sent');
+  assert.equal(sent.length, 2);
+  assert.match(sent.find(s => s.to === 'cliente@ejemplo.com').subject, /Comprobante de Venta: 001-001-000000018/);
+  assert.match(sent.find(s => s.to === 'emisor@webfix.ec').subject, /Emitiste comprobante de venta: 001-001-000000018/);
+  assert.ok(sent[0].html.includes('https://erp.webfix.ec/#/public/ride?txId=tx-nv-123&tenantId=tenant-1'));
+  assert.ok(!sent[0].html.includes('Clave de Acceso:'));
 });
 
 

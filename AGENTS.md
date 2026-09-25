@@ -114,6 +114,24 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
   - **Alineación y Tipografía Inter Semibold**: Input de descripción acotado (`w-44 sm:w-56`), subtotal ampliado a `w-28` con alineación vertical perfecta con la cabecera `SUBTOTAL`, números en fuente Inter `font-semibold` en cantidad, precio unitario, descuento (`0%` o `-${x}%`) y subtotal. Placeholder del buscador simplificado a *"Buscar productos..."*.
 - **Pruebas y Build**: 40 tests unitarios aprobados, compilación limpia en 9.83s.
 
+### 13. Pantalla de Confirmación de Emisión, Notificaciones por Correo Electrónico e Impresión Directa (2026-09-24) — COMPLETADO
+- **Desbloqueo de Notificaciones para Notas de Venta y Facturas**:
+  - Eliminado bloqueo en `api/send-email/index.js` y `invoiceNotification.js` que impedía el envío de correos en Notas de Venta (Recibos Internos).
+  - Eliminado requerimiento estricto de `xmlAutorizado` previo para disparar correos en facturas autorizadas (usando enlaces directos al RIDE / comprobante).
+  - Normalizado el remitente y destinatarios: soporte transparente cuando cliente y emisor comparten el mismo buzón para pruebas sin saltar la notificación del cliente.
+  - Asuntos y contenidos personalizados: `Comprobante de Venta: N° XXX` (cliente) y `Emitiste comprobante de venta: N° XXX` (emisor) con enlace directo al visor RIDE público por `txId`/`id` sin requerir clave de acceso de 49 dígitos.
+- **Visor Público RIDE (`PublicRideView.jsx`)**:
+  - Soporte de consulta tanto por `claveAcceso` (SRI electrónico) como por `txId`/`id` (comprobantes internos y notas de venta).
+- **Impresión Directa (`RidePreviewModal.jsx` y `TransactionForm.jsx`)**:
+  - Nuevo prop `autoPrint`: lanza inmediatamente el diálogo nativo de impresión del navegador (`window.print()`).
+  - Botón principal de **"Impresión Directa"** en la pantalla de confirmación.
+  - Accesos rápidos en un solo clic para **Ticket Térmico (80mm)** y **Hoja A4 (RIDE)**.
+- **Pantalla Integral de Confirmación Post-Emisión (Paso 2 en `TransactionForm.jsx`)**:
+  - **Tarjeta Hero de Emisión**: Indicador visual de éxito, secuencial en tipografía monospace/Inter semibold legible, nombre y RUC/CI del cliente, total facturado y clave de acceso SRI.
+  - **Tarjeta de Notificaciones por Correo**: Estado en vivo de entrega al cliente y copia de respaldo al emisor (enviando, entregado, fallido o sin correo registrado), con botón para reintentar e input rápido para enviar copia a cualquier correo alternativo en caliente.
+  - **Acciones Rápidas**: Impresión directa, descarga de XML autorizado, botón de "Nueva Venta / Emisión" para reiniciar el formulario de inmediato y "Terminar y Salir".
+- **Pruebas y Build**: 41 tests unitarios aprobados, compilación de producción exitosa en 12.67s.
+
 ## Últimos commits
 ```
 af25370 fix(ride): alinear DOC. INTERNO en una sola linea asignando col-span-4 homogeneo
@@ -123,3 +141,4 @@ f7c241d feat(ventas): renovar botones de anadir y crear producto con iconografia
 909f187 feat(clientes-proveedores): correccion de visibilidad, filtros dedicados y ficha 360 adaptativa
 e3316ef feat(inventario): submodulo dedicado de servicios con segregacion de productos e integracion global
 ```
+

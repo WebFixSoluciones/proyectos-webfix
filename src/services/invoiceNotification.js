@@ -6,8 +6,11 @@ const emailAddress = value => {
 const firstEmail = (...values) => values.map(emailAddress).find(Boolean) || '';
 
 export async function notifyAuthorizedInvoice({ db, appId, document, customer, config, api, fetchEmail = fetch }) {
-  if (document?.sriStatus !== 'autorizado' || !document.xmlAutorizado || document.documentType === 'nota_venta') {
-    return { status: 'not_authorized' };
+  const isNotaVenta = (document?.documentType === 'nota_venta');
+  if (isNotaVenta) {
+    if (!document?.documentNumber) return { status: 'not_authorized' };
+  } else {
+    if (document?.sriStatus !== 'autorizado') return { status: 'not_authorized' };
   }
 
   const documentRef = api.doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', document.id);
@@ -17,13 +20,21 @@ export async function notifyAuthorizedInvoice({ db, appId, document, customer, c
 
   const emitterEmail = firstEmail(settings.correoContacto, settings.email, settings.smtpUser);
   const customerEmail = firstEmail(customer?.email, customer?.correo, customer?.correoElectronico, customer?.mail);
-  const clientEmail = customerEmail.includes('consumidorfinal') || customerEmail.toLowerCase() === emitterEmail.toLowerCase() ? '' : customerEmail;
+  const clientEmail = customerEmail.includes('consumidorfinal') ? '' : customerEmail;
   if (!emitterEmail) return { status: 'unconfigured' };
 
   const now = new Date();
   const claim = await api.runTransaction(db, async transaction => {
     const snapshot = await transaction.get(documentRef);
-    if (!snapshot.exists() || snapshot.data().claveAcceso !== document.claveAcceso || snapshot.data().sriStatus !== 'autorizado') return { status: 'not_authorized' };
+    if (!snapshot.exists()) return { status: 'not_authorized' };
+    const docData = snapshot.data();
+    const isDocNotaVenta = document.documentType === 'nota_venta' || docData.documentType === 'nota_venta';
+    if (!isDocNotaVenta) {
+      if (docData.claveAcceso !== document.claveAcceso || docData.sriStatus !== 'autorizado') return { status: 'not_authorized' };
+    } else {
+      if (!docData.documentNumber && !document.documentNumber) return { status: 'not_authorized' };
+    }
+
     const previous = snapshot.data().emailDelivery || {};
     const claimedAt = Date.parse(previous.claimedAt || '');
     if (Number.isFinite(claimedAt) && now.getTime() - claimedAt < 120000) return { status: 'in_progress' };
@@ -38,7 +49,10 @@ export async function notifyAuthorizedInvoice({ db, appId, document, customer, c
   const receiver = customer || document.thirdParty || {};
   const effectivePdf = document.pdfUrl && !document.pdfUrl.includes('srienlinea.sri.gob.ec')
     ? document.pdfUrl
-    : `/#/public/ride?claveAcceso=${encodeURIComponent(document.claveAcceso)}&tenantId=${encodeURIComponent(appId)}`;
+    : isNotaVenta
+      ? `/#/public/ride?txId=${encodeURIComponent(document.id)}&tenantId=${encodeURIComponent(appId)}`
+      : `/#/public/ride?claveAcceso=${encodeURIComponent(document.claveAcceso || '')}&tenantId=${encodeURIComponent(appId)}`;
+  const rawXml = isNotaVenta ? '' : (document.xmlAutorizado || document.xml || (typeof document.xmlUrl === 'string' && document.xmlUrl.startsWith('data:') ? document.xmlUrl : ''));
   const payload = {
     smtpHost: settings.smtpHost, smtpPort: settings.smtpPort || (settings.smtpSecure ? 465 : 587),
     smtpUser: settings.smtpUser, smtpPass: settings.smtpPass, smtpSecure: settings.smtpSecure,
@@ -46,12 +60,12 @@ export async function notifyAuthorizedInvoice({ db, appId, document, customer, c
     clientName: receiver.name || receiver.razonSocial || 'Consumidor Final',
     clientIdentification: receiver.ruc || receiver.identificacion || '9999999999999',
     documentNumber: document.documentNumber, total: document.total, pdfUrl: effectivePdf,
-    xmlUrl: document.xmlUrl || '', xmlContent: document.xmlAutorizado,
+    xmlUrl: isNotaVenta ? '' : (document.xmlUrl || ''), xmlContent: rawXml,
     companyName: settings.nombreComercial || settings.razonSocial || 'Facturación Electrónica',
     logoUrl: settings.logoUrl || '', companyRuc: settings.ruc || '',
     companyAddress: settings.direccionMatriz || '', companyPhone: settings.telefono || settings.telefonoContacto || '',
-    claveAcceso: document.claveAcceso, fechaAutorizacion: document.fechaAutorizacion || '',
-    documentType: document.documentType || 'factura', date: document.date || '',
+    claveAcceso: document.claveAcceso || '', fechaAutorizacion: document.fechaAutorizacion || '',
+    documentType: document.documentType || (isNotaVenta ? 'nota_venta' : 'factura'), date: document.date || '',
   };
 
   let responseData = {};

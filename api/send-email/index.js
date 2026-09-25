@@ -122,12 +122,6 @@ export default async function handler(req, res) {
     return;
   }
 
-  // Short-circuit nota_venta (recibos) since they are only internal registration documents
-  if (String(documentType || '').toLowerCase() === 'nota_venta') {
-    res.status(200).json({ success: true, message: 'Los recibos (nota de venta) son solo de registro interno y no se envían por correo.' });
-    return;
-  }
-
   try {
     // 1. Configurar el transportador SMTP
     const transporter = nodemailer.createTransport({
@@ -275,20 +269,21 @@ export default async function handler(req, res) {
     })();
 
     // Resolver URL absoluta para el RIDE
+    const headers = req.headers || {};
     let originBase = '';
-    if (req.headers.origin) {
-      originBase = req.headers.origin;
-    } else if (req.headers.referer) {
+    if (headers.origin) {
+      originBase = headers.origin;
+    } else if (headers.referer) {
       try {
-        const refUrl = new URL(req.headers.referer);
+        const refUrl = new URL(headers.referer);
         originBase = refUrl.origin;
       } catch {
         // fallback
       }
     }
     if (!originBase) {
-      const proto = req.headers['x-forwarded-proto'] || (req.headers.host?.includes('localhost') ? 'http' : 'https');
-      const host = req.headers['x-forwarded-host'] || req.headers.host || 'localhost:5173';
+      const proto = headers['x-forwarded-proto'] || (headers.host?.includes('localhost') ? 'http' : 'https');
+      const host = headers['x-forwarded-host'] || headers.host || 'localhost:5173';
       originBase = `${proto}://${host}`;
     }
 
@@ -297,12 +292,18 @@ export default async function handler(req, res) {
       resolvedPdfUrl = `${originBase}${resolvedPdfUrl}`;
     }
 
+    const isNotaVenta = String(documentType || '').toLowerCase() === 'nota_venta';
+
     const buildMailOptions = (address, isDirectToEmitter) => ({
       from: fromAddress,
       to: address,
       subject: isDirectToEmitter 
-        ? `Emitiste ${docTypeLabel.toLowerCase()} electrónica: ${documentNumber || ''}`
-        : `Comprobante Electrónico Autorizado: ${documentNumber || ''}`,
+        ? (isNotaVenta 
+            ? `Emitiste comprobante de venta: ${documentNumber || ''}`
+            : `Emitiste ${docTypeLabel.toLowerCase()} electrónica: ${documentNumber || ''}`)
+        : (isNotaVenta 
+            ? `Comprobante de Venta: ${documentNumber || ''}`
+            : `Comprobante Electrónico Autorizado: ${documentNumber || ''}`),
       html: `
         <!DOCTYPE html>
         <html>
@@ -330,14 +331,14 @@ export default async function handler(req, res) {
                       ${isDirectToEmitter ? `¡Hola, ${String(cleanCompanyName || 'Emisor').toUpperCase()}!` : `¡Hola, ${String(clientName || 'Cliente').toUpperCase()}!`}
                     </h1>
                     <p style="font-family: 'Inter', sans-serif; font-size: 13.5px; font-weight: 400; color: #ffffff; margin: 0; line-height: 1.2;">
-                      ${isDirectToEmitter ? 'Copia de Respaldo - Nuevo Comprobante Emitido' : 'Nuevo Comprobante Electrónico Autorizado'}
+                      ${isDirectToEmitter ? 'Copia de Respaldo - Nuevo Comprobante Emitido' : (isNotaVenta ? 'Nuevo Comprobante de Venta' : 'Nuevo Comprobante Electrónico Autorizado')}
                     </p>
                   </div>
 
                   <!-- Body Content -->
                   <div style="padding: 30px 24px; background-color: #ffffff;">
                     <p style="font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700; color: #000000; margin: 0 0 24px 0; line-height: 1.5; text-transform: uppercase;">
-                      ${isDirectToEmitter ? `Has emitido un comprobante electrónico para ${String(clientName || 'Consumidor Final').toUpperCase()}.` : `${String(cleanCompanyName || 'EMISOR').toUpperCase()} ha emitido un comprobante electrónico a su nombre.`}
+                      ${isDirectToEmitter ? `Has emitido un comprobante ${isNotaVenta ? 'de venta' : 'electrónico'} para ${String(clientName || 'Consumidor Final').toUpperCase()}.` : `${String(cleanCompanyName || 'EMISOR').toUpperCase()} ha emitido un comprobante ${isNotaVenta ? 'de venta' : 'electrónico'} a su nombre.`}
                     </p>
 
                     <table style="width: 100%; border-collapse: collapse; border: none;">
@@ -352,10 +353,12 @@ export default async function handler(req, res) {
                         <td style="vertical-align: top; border: none;">
                           <div style="font-family: 'Inter', sans-serif; font-size: 11.5px; color: #000000; line-height: 1.6; text-align: left;">
                             
-                            <div style="margin-bottom: 12px;">
-                              <strong style="font-weight: 700; display: block; color: #000000;">Clave de Acceso:</strong>
-                              <span style="font-weight: 400; display: block; color: #000000; word-break: break-all; margin-top: 2px;">${claveAcceso || ''}</span>
-                            </div>
+                            ${claveAcceso ? `
+                              <div style="margin-bottom: 12px;">
+                                <strong style="font-weight: 700; display: block; color: #000000;">Clave de Acceso:</strong>
+                                <span style="font-weight: 400; display: block; color: #000000; word-break: break-all; margin-top: 2px;">${claveAcceso}</span>
+                              </div>
+                            ` : ''}
 
                             <div style="margin-bottom: 12px;">
                               <strong style="font-weight: 700; display: block; color: #000000;">${docTypeLabel}:</strong>
@@ -399,10 +402,10 @@ export default async function handler(req, res) {
                   <div style="border-top: 1px solid #CAD1F4; padding: 24px; text-align: center; background-color: #ffffff;">
                     ${resolvedPdfUrl ? `
                       <a href="${resolvedPdfUrl}" target="_blank" style="background-color: #1C40F2; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: 700; font-size: 11px; text-transform: uppercase; font-family: 'Inter', sans-serif; display: inline-block; margin-right: 12px;">
-                        VER / DESCARGAR RIDE (PDF)
+                        ${isNotaVenta ? 'VER / DESCARGAR COMPROBANTE (PDF)' : 'VER / DESCARGAR RIDE (PDF)'}
                       </a>
                     ` : ''}
-                    ${xmlUrl && !xmlUrl.startsWith('data:') ? `
+                    ${!isNotaVenta && xmlUrl && !xmlUrl.startsWith('data:') ? `
                       <a href="${xmlUrl}" target="_blank" style="background-color: #000000; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: 700; font-size: 11px; text-transform: uppercase; font-family: 'Inter', sans-serif; display: inline-block;">
                         DESCARGAR XML
                       </a>
@@ -413,7 +416,7 @@ export default async function handler(req, res) {
 
                 <!-- Outside text (Validity) -->
                 <p style="font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 400; color: #000000; text-align: center; max-width: 500px; margin: 20px auto 0 auto; line-height: 1.4; padding: 0 10px;">
-                  Le recordamos que este documento digital tiene validez tributaria, por lo que le sugerimos conservarlo para los fines fiscales pertinentes.
+                  Le recordamos que este documento digital tiene validez ${isNotaVenta ? 'comercial' : 'tributaria'}, por lo que le sugerimos conservarlo para los fines pertinentes.
                 </p>
 
                 <!-- Outside footer -->
@@ -432,6 +435,9 @@ export default async function handler(req, res) {
 
     // Cada destinatario recibe su propio correo y resultado; un fallo no oculta el otro.
     const deliveries = await deliverInvoiceMessages(transporter, recipients, buildMailOptions);
+    if (to && issuerAddress && to.trim().toLowerCase() === issuerAddress.trim().toLowerCase() && deliveries.emitter && !deliveries.client) {
+      deliveries.client = { ...deliveries.emitter, note: 'Entregado a la dirección compartida con el emisor.' };
+    }
     const success = recipients.every(({ role }) => deliveries[role]?.status === 'sent');
     res.status(success ? 200 : 502).json({ success, deliveries, ...(!success && { error: 'Uno o más destinatarios no aceptaron el correo.' }) });
   } catch (err) {

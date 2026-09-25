@@ -68,6 +68,7 @@ function MockBarcode({ claveAcceso }) {
 export default function PublicRideView() {
   const [searchParams] = useSearchParams();
   const claveAcceso = searchParams.get('claveAcceso');
+  const txId = searchParams.get('txId') || searchParams.get('id');
   const tenantId = searchParams.get('tenantId');
   const effectiveTenantId = tenantId || getAppId();
 
@@ -77,29 +78,41 @@ export default function PublicRideView() {
   const [companyConfig, setCompanyConfig] = useState(null);
 
   useEffect(() => {
-    if (!claveAcceso) {
+    if (!claveAcceso && !txId) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setError('Enlace inválido. Falta el parámetro de clave de acceso.');
+      setError('Enlace inválido. Falta el parámetro de clave de acceso o identificador del comprobante.');
       setLoading(false);
       return;
     }
 
     async function loadPublicData() {
       try {
-        // 1. Buscar la transacción en Firestore usando claveAcceso
-        const q = query(
-          collection(db, 'artifacts', effectiveTenantId, 'public', 'data', 'finances_transactions'),
-          where('claveAcceso', '==', claveAcceso)
-        );
-        const querySnap = await getDocs(q);
+        let txData = null;
+        if (txId) {
+          const docSnap = await getDoc(
+            doc(db, 'artifacts', effectiveTenantId, 'public', 'data', 'finances_transactions', txId)
+          );
+          if (docSnap.exists()) {
+            txData = { ...docSnap.data(), id: docSnap.id };
+          }
+        }
+        if (!txData && claveAcceso) {
+          const q = query(
+            collection(db, 'artifacts', effectiveTenantId, 'public', 'data', 'finances_transactions'),
+            where('claveAcceso', '==', claveAcceso)
+          );
+          const querySnap = await getDocs(q);
+          if (!querySnap.empty) {
+            txData = { ...querySnap.docs[0].data(), id: querySnap.docs[0].id };
+          }
+        }
 
-        if (querySnap.empty) {
-          setError(`No se encontró ningún comprobante autorizado con la clave de acceso especificada.`);
+        if (!txData) {
+          setError('No se encontró ningún comprobante con los parámetros especificados.');
           setLoading(false);
           return;
         }
 
-        const txData = querySnap.docs[0].data();
         setTx(txData);
 
         // 2. Cargar configuración de la empresa (Emisor)
@@ -118,7 +131,7 @@ export default function PublicRideView() {
     }
 
     loadPublicData();
-  }, [claveAcceso, effectiveTenantId]);
+  }, [claveAcceso, txId, effectiveTenantId]);
 
   if (loading) {
     return (

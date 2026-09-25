@@ -64,18 +64,25 @@ function MockBarcode({ claveAcceso }) {
   );
 }
 
-export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId, initialFormat = 'ride' }) {
+export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId, initialFormat = 'ride', autoPrint = false }) {
   const [companyConfig, setCompanyConfig] = useState(null);
   const [viewFormat, setViewFormat] = useState(initialFormat);
-
-
-
 
   // Sync format if initialFormat changes
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setViewFormat(initialFormat);
   }, [initialFormat]);
+
+  // Auto-lanzar diálogo de impresión si se solicita impresión directa
+  useEffect(() => {
+    if (autoPrint) {
+      const timer = setTimeout(() => {
+        window.print();
+      }, 400);
+      return () => clearTimeout(timer);
+    }
+  }, [autoPrint]);
 
   // Cargar configuración de la empresa (Emisor)
   useEffect(() => {

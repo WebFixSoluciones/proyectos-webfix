@@ -17,7 +17,7 @@ import {
   X, Calculator, FileText, CheckCircle2, AlertTriangle, Sparkles, 
   Terminal, ShieldAlert, Download, Plus, Trash2, RefreshCw, ArrowLeft, ArrowRight, 
   User, DollarSign, CreditCard, Layers, Search, Tag, Percent, ChevronDown, ShoppingCart,
-  Package
+  Package, Printer, Mail, Send, Check, Clock, ExternalLink
 } from 'lucide-react';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, runTransaction } from '../../services/financeStore.js';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
@@ -102,6 +102,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   const [currentStep, setCurrentStep] = useState(1);
   const [printTx, setPrintTx] = useState(null);
   const [printFormat, setPrintFormat] = useState('ride');
+  const [autoPrintDirect, setAutoPrintDirect] = useState(false);
+  const [emailSending, setEmailSending] = useState(false);
+  const [emailDeliveryResult, setEmailDeliveryResult] = useState(null);
+  const [customClientEmail, setCustomClientEmail] = useState('');
   
   const [dbCategories, setDbCategories] = useState([]);
   const [bankAccounts, setBankAccounts] = useState([]);
@@ -1205,6 +1209,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       onSaved?.(finalTxData);
       if (!isDraftFactura) {
         setCurrentStep(2);
+        if (formData.documentType === 'nota_venta' && isFinalizingNotaVenta) {
+          const receiver = thirdParties.find(tp => tp.id === finalTxData.thirdPartyId) || finalTxData.thirdParty;
+          enviarCorreoComprobante(finalTxData, receiver, sriConfig);
+        }
       }
     } catch (err) {
       console.error(err);
@@ -1228,26 +1236,57 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     });
   };
 
-  const enviarCorreoComprobante = async (txData, cliente, configSRI) => {
+  const handleDirectPrint = (format = 'ride') => {
+    setPrintFormat(format);
+    setAutoPrintDirect(true);
+    setPrintTx(formData);
+  };
+
+  const enviarCorreoComprobante = async (txData, cliente, configSRI, overrideEmail = null) => {
+    setEmailSending(true);
     try {
+      const isNotaVenta = txData?.documentType === 'nota_venta';
+      const docLabel = isNotaVenta ? 'Recibo' : 'Factura';
+      const effectiveClient = overrideEmail
+        ? { ...(cliente || {}), email: overrideEmail, correo: overrideEmail }
+        : cliente;
+
       const result = await notifyAuthorizedInvoice({
-        db, appId, document: txData, customer: cliente, config: configSRI,
+        db, appId, document: txData, customer: effectiveClient, config: configSRI,
         api: { doc, getDoc, setDoc, runTransaction },
       });
-      if (result.status === 'sent') {
-        showToast(result.delivery.client?.status === 'sent'
-          ? 'Factura enviada al cliente y copia al emisor.'
-          : 'Copia de la factura enviada al emisor. Cliente sin correo.', 'success');
-      } else if (result.status === 'partial') {
-        showToast('Factura autorizada. Revisa el envío de correo en Ventas.', 'warning');
-      } else if (result.status === 'unconfigured') {
-        showToast('Factura autorizada. Configura el correo del emisor en Ajustes.', 'warning');
-      } else if (result.status === 'disabled') {
-        showToast('Factura autorizada. Activa el envío automático en Ajustes.', 'warning');
+      setEmailDeliveryResult(result);
+      if (result.delivery) {
+        setFormData(prev => ({ ...prev, emailDelivery: result.delivery }));
       }
+      if (result.status === 'sent') {
+        const clientSent = result.delivery?.client?.status === 'sent';
+        const clientSkipped = result.delivery?.client?.status === 'skipped';
+        const emitterSent = result.delivery?.emitter?.status === 'sent';
+
+        if (clientSent && emitterSent) {
+          showToast(`${docLabel} enviada al cliente y copia al emisor.`, 'success');
+        } else if (clientSent) {
+          showToast(`${docLabel} enviada al cliente exitosamente.`, 'success');
+        } else if (clientSkipped && emitterSent) {
+          showToast(`Copia de ${docLabel.toLowerCase()} enviada al emisor. Cliente sin correo.`, 'success');
+        } else if (emitterSent) {
+          showToast(`Copia de ${docLabel.toLowerCase()} enviada al emisor.`, 'success');
+        }
+      } else if (result.status === 'partial') {
+        showToast(`${docLabel} emitida. Se envió a uno de los destinatarios.`, 'warning');
+      } else if (result.status === 'unconfigured') {
+        showToast(`${docLabel} emitida. Configura el correo emisor en Ajustes.`, 'warning');
+      } else if (result.status === 'disabled') {
+        showToast(`${docLabel} emitida. Activa el envío automático en Ajustes.`, 'warning');
+      }
+      return result;
     } catch (error) {
-      console.warn('Factura autorizada, pero no se pudo registrar el envío de correo:', error);
-      showToast('Factura autorizada. No se pudo confirmar el envío de correo.', 'warning');
+      console.warn('Error al notificar comprobante por correo:', error);
+      showToast('Comprobante emitido, pero ocurrió un problema al enviar por correo.', 'warning');
+      setEmailDeliveryResult({ status: 'error', error: error.message });
+    } finally {
+      setEmailSending(false);
     }
   };
 
@@ -1405,6 +1444,25 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
   const isAuthorized = formData.sriStatus === 'autorizado';
   const isAnulado = formData.sriStatus === 'anulado';
+  const isNotaVenta = formData.documentType === 'nota_venta';
+  const emailDeliveryData = emailDeliveryResult?.delivery || formData.emailDelivery || {};
+  const clientSent = emailDeliveryData.client?.status === 'sent';
+  const clientFailed = emailDeliveryData.client?.status === 'failed';
+  const clientAddress = emailDeliveryData.client?.address || matchedTercero?.email || matchedTercero?.correo || '';
+
+  const emitterSent = emailDeliveryData.emitter?.status === 'sent';
+  const emitterFailed = emailDeliveryData.emitter?.status === 'failed';
+  const emitterAddress = emailDeliveryData.emitter?.address || sriConfig?.correoContacto || sriConfig?.email || sriConfig?.smtpUser || '';
+
+  const isSmtpConfigured = Boolean(sriConfig?.smtpHost && sriConfig?.smtpUser && sriConfig?.smtpPass);
+  const isSmtpActive = sriConfig?.smtpActivo !== false;
+
+  const docConfirmationTitle = isNotaVenta
+    ? (isAnulado ? '¡Nota de Venta Anulada!' : '¡Recibo Interno / Nota de Venta Emitido!')
+    : isAuthorized 
+      ? '¡Factura Electrónica Emitida y Autorizada!' 
+      : '¡Transacción Guardada con Éxito!';
+
   const isEditable = !formData.claveAcceso && !isAuthorized && !isAnulado && !isSaving && !isEmitting;
   // Documento finalizado en paso 2 — no se puede regresar ni editar desde aquí
   const isLockedInStep2 = (isAuthorized || isAnulado) && currentStep === 2;
@@ -2994,101 +3052,319 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         {/* PASO 2: IMPRESIÓN DEL DOCUMENTO                        */}
         {/* ═══════════════════════════════════════════════════════ */}
         {currentStep === 2 && (
-          <UiBox {...{"className":"grid grid-cols-12 gap-[12px] animate-in fade-in slide-in-from-bottom duration-300"}}>
-            {/* Left Column (col-span-12 lg:col-span-7): Estado de Emisión y Acciones de Impresión */}
-            <UiBox {...{"className":"col-span-12 lg:col-span-7 space-y-[12px]"}}>
-              {/* Banner Success */}
-              <UiBox {...mergeThemeProps({}, {"className":"text-center p-[12px] space-y-[8px]"}, mergeThemeProps({"style":{"borderRadius":"var(--radius-3)"},"className":"p-[12px]"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)","color":"var(--gray-12)"}}))}>
-                <UiBox {...{"className":"flex justify-center"}}>
-                  <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--green-3)","border":"1px solid var(--gray-a6)","color":"var(--green-11)"},"className":"w-10 h-10 flex items-center justify-center animate-bounce"}}>
-                    <CheckCircle2 size={20} />
-                  </UiBox>
-                </UiBox>
-                <UiBox>
-                  <UiHeading as="h3"  {...{"size":"3","weight":"bold"}}>
-                    {formData.documentType === 'nota_venta'
-                      ? (formData.sriStatus === 'anulado' ? '¡Nota de Venta Anulada!' : '¡Venta Registrada Exitosamente!')
-                      : formData.sriStatus === 'autorizado' 
-                        ? '¡Comprobante Autorizado por el SRI!' 
-                        : '¡Transacción Guardada con Éxito!'}
-                  </UiHeading>
-                  <UiText as="p"  {...{"size":"1","weight":"regular"}}>
-                    El documento ha sido guardado e ingresado en los registros financieros de forma satisfactoria.
-                  </UiText>
-                </UiBox>
+          <UiBox className="grid grid-cols-12 gap-[14px] animate-in fade-in slide-in-from-bottom duration-300">
+            {/* Left Column (col-span-12 lg:col-span-7): Estado de Emisión, Correos y Acciones */}
+            <UiBox className="col-span-12 lg:col-span-7 space-y-[12px]">
+                
+                {/* 1. HERO EMISSION CONFIRMATION CARD */}
+                <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)","color":"var(--gray-12)"},"className":"p-4 space-y-3 text-center sm:text-left"})}>
+                  <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3">
+                    <div className="w-11 h-11 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: 'var(--green-3)', color: 'var(--green-11)', border: '1px solid var(--green-6)' }}>
+                      <CheckCircle2 size={24} />
+                    </div>
+                    <div className="space-y-1 flex-1">
+                      <UiHeading as="h3" size="3" weight="bold" style={{ color: 'var(--gray-12)' }}>
+                        {docConfirmationTitle}
+                      </UiHeading>
+                      <UiText as="p" size="1" style={{ color: 'var(--gray-11)' }}>
+                        El comprobante ha sido registrado y asentado en el sistema comercial e inventario.
+                      </UiText>
+                    </div>
+                  </div>
 
-                {formData.claveAcceso && (
-                  <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","fontFamily":"var(--code-font-family)","backgroundColor":"var(--gray-2)","color":"var(--gray-12)"},"className":"p-[8px] text-left break-all"})}>
-                    <UiText  {...{"weight":"bold","size":"1","className":"block mb-[4px]"}}>Clave de Acceso SRI:</UiText>
-                    {formData.claveAcceso}
-                  </UiBox>
-                )}
-              </UiBox>
+                  {/* Summary key badges */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2 border-t" style={{ borderColor: 'var(--gray-a4)' }}>
+                    <div className="p-2 rounded bg-[var(--gray-2)] text-left">
+                      <UiText as="p" size="1" weight="medium" style={{ color: 'var(--gray-10)' }}>Comprobante</UiText>
+                      <UiText as="p" size="2" weight="bold" className="font-mono" style={{ color: 'var(--blue-11)' }}>
+                        {formData.documentNumber || (formData.secuencial ? `001-001-${String(formData.secuencial).padStart(9, '0')}` : 'En proceso')}
+                      </UiText>
+                    </div>
+                    <div className="p-2 rounded bg-[var(--gray-2)] text-left">
+                      <UiText as="p" size="1" weight="medium" style={{ color: 'var(--gray-10)' }}>Cliente</UiText>
+                      <UiText as="p" size="1" weight="bold" className="truncate" style={{ color: 'var(--gray-12)' }} title={matchedTercero?.name}>
+                        {matchedTercero?.name || 'CONSUMIDOR FINAL'}
+                      </UiText>
+                      <UiText as="p" size="1" className="font-mono text-[10px]" style={{ color: 'var(--gray-10)' }}>
+                        {matchedTercero?.ruc || '9999999999999'}
+                      </UiText>
+                    </div>
+                    <div className="p-2 rounded bg-[var(--gray-2)] text-left">
+                      <UiText as="p" size="1" weight="medium" style={{ color: 'var(--gray-10)' }}>Total Facturado</UiText>
+                      <UiText as="p" size="3" weight="bold" className="font-semibold" style={{ color: 'var(--green-11)' }}>
+                        ${Number(formData.total || 0).toFixed(2)}
+                      </UiText>
+                    </div>
+                  </div>
 
-              {/* Botones de Impresión */}
-              <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)"},"className":"p-[12px]"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)","color":"var(--gray-12)"}})}>
-                <UiBox {...{"className":"flex items-center gap-[6px] mb-[10px]"}}>
-                  <UiBox {...{"style":{"color":"var(--gray-11)"}}}>
-                    <Download size={12} />
-                  </UiBox>
-                  <UiHeading as="h4"  {...{"size":"1","weight":"bold"}}>Opciones de Impresión / Descarga</UiHeading>
-                </UiBox>
-
-                <UiBox {...{"className":"grid grid-cols-1 sm:grid-cols-2 gap-[8px]"}}>
-                  {/* Print Ticket 80mm */}
-                  <UiButton
-                    type="button" 
-                    onClick={() => {
-                      setPrintFormat('ticket');
-                      setPrintTx(formData);
-                    }}
-                    {...{"variant":"solid","color":"blue","className":"w-full flex items-center justify-center gap-[6px]"}}
-                  >
-                    <Calculator size={12} />
-                    <UiText>Imprimir Ticket (80mm)</UiText>
-                  </UiButton>
-
-                  {/* Print RIDE A4 */}
-                  <UiButton
-                    type="button" 
-                    onClick={() => {
-                      setPrintFormat('ride');
-                      setPrintTx(formData);
-                    }}
-                    {...{"variant":"surface","color":"blue","className":"w-full flex items-center justify-center gap-[6px]"}}
-                  >
-                    <FileText size={12} />
-                    <UiText>Imprimir RIDE (A4)</UiText>
-                  </UiButton>
-
-                  {/* Download XML */}
                   {formData.claveAcceso && (
-                    <UiButton
-                      type="button" 
-                      onClick={downloadXMLFile}
-                      {...{"variant":"surface","color":"blue","className":"w-full sm:col-span-2 flex items-center justify-center gap-[6px]"}}
-                    >
-                      <Download size={12} />
-                      <UiText>Descargar XML Autorizado</UiText>
-                    </UiButton>
+                    <div className="p-2 rounded text-left break-all font-mono text-[11px]" style={{ backgroundColor: 'var(--gray-2)', border: '1px solid var(--gray-a4)', color: 'var(--gray-12)' }}>
+                      <span className="font-semibold block mb-0.5 text-[10px] uppercase tracking-wider" style={{ color: 'var(--gray-11)' }}>Clave de Acceso SRI (49 dígitos):</span>
+                      {formData.claveAcceso}
+                    </div>
                   )}
                 </UiBox>
 
-                {/* SRI Anulación if authorized */}
-                {isAuthorized && (
-                  <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"mt-[8px] pt-[8px]"}}>
+                {/* 2. CARD: ESTADO DE ENVÍO POR CORREO ELECTRÓNICO */}
+                <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)","color":"var(--gray-12)"},"className":"p-4 space-y-3"})}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Mail size={15} style={{ color: 'var(--blue-11)' }} />
+                      <UiHeading as="h4" size="2" weight="bold">Notificación por Correo Electrónico</UiHeading>
+                    </div>
+                    {emailSending && (
+                      <span className="inline-flex items-center gap-1.5 text-xs text-[var(--blue-11)] font-medium">
+                        <RefreshCw size={12} className="animate-spin" /> Enviando...
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Fila: Cliente */}
+                  <div className="p-2.5 rounded text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2" style={{ backgroundColor: 'var(--gray-2)', border: '1px solid var(--gray-a4)' }}>
+                    <div className="flex items-start gap-2">
+                      {emailSending ? (
+                        <RefreshCw size={14} className="animate-spin text-[var(--blue-11)] shrink-0 mt-0.5" />
+                      ) : clientSent ? (
+                        <CheckCircle2 size={14} className="text-[var(--green-11)] shrink-0 mt-0.5" />
+                      ) : clientFailed ? (
+                        <AlertTriangle size={14} className="text-[var(--red-11)] shrink-0 mt-0.5" />
+                      ) : (
+                        <Clock size={14} className="text-[var(--gray-10)] shrink-0 mt-0.5" />
+                      )}
+                      <div>
+                        <div className="font-semibold text-[var(--gray-12)]">Copia para el Cliente:</div>
+                        <div className="text-[var(--gray-11)] text-[11.5px]">
+                          {emailSending ? (
+                            'Enviando documento al correo del cliente...'
+                          ) : clientSent ? (
+                            <span>Enviado exitosamente a <strong className="text-[var(--gray-12)]">{clientAddress}</strong></span>
+                          ) : clientFailed ? (
+                            <span className="text-[var(--red-11)]">No se pudo entregar: {delivery.client?.error || 'Rechazo SMTP'}</span>
+                          ) : clientAddress ? (
+                            <span>Listo para enviar a: <strong className="text-[var(--gray-12)]">{clientAddress}</strong></span>
+                          ) : (
+                            <span>El cliente no tiene correo registrado en su ficha.</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {!emailSending && (clientFailed || !clientSent) && clientAddress && (
+                      <UiButton
+                        type="button"
+                        size="1"
+                        variant="surface"
+                        color="blue"
+                        className="shrink-0 text-xs py-1 px-2.5"
+                        onClick={() => {
+                          const receiver = thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
+                          enviarCorreoComprobante(formData, receiver, sriConfig, clientAddress);
+                        }}
+                      >
+                        <RefreshCw size={11} /> Reintentar
+                      </UiButton>
+                    )}
+                  </div>
+
+                  {/* Fila: Emisor (Copia de Respaldo) */}
+                  <div className="p-2.5 rounded text-xs flex items-center justify-between gap-2" style={{ backgroundColor: 'var(--gray-2)', border: '1px solid var(--gray-a4)' }}>
+                    <div className="flex items-start gap-2">
+                      {emailSending ? (
+                        <RefreshCw size={14} className="animate-spin text-[var(--blue-11)] shrink-0 mt-0.5" />
+                      ) : emitterSent ? (
+                        <CheckCircle2 size={14} className="text-[var(--green-11)] shrink-0 mt-0.5" />
+                      ) : emitterFailed ? (
+                        <AlertTriangle size={14} className="text-[var(--amber-11)] shrink-0 mt-0.5" />
+                      ) : (
+                        <Clock size={14} className="text-[var(--gray-10)] shrink-0 mt-0.5" />
+                      )}
+                      <div>
+                        <div className="font-semibold text-[var(--gray-12)]">Copia de Respaldo al Emisor:</div>
+                        <div className="text-[var(--gray-11)] text-[11.5px]">
+                          {emailSending ? (
+                            'Enviando copia de respaldo a tu correo...'
+                          ) : emitterSent ? (
+                            <span>Respaldo enviado a <strong className="text-[var(--gray-12)]">{emitterAddress}</strong></span>
+                          ) : emitterFailed ? (
+                            <span className="text-[var(--amber-11)]">Copia no enviada: {delivery.emitter?.error || 'Revisa servidor SMTP'}</span>
+                          ) : !isSmtpConfigured ? (
+                            <span className="text-[var(--amber-11)]">Configura el servidor SMTP en Ajustes para recibir copias automáticas.</span>
+                          ) : !isSmtpActive ? (
+                            <span className="text-[var(--amber-11)]">Envío de correo desactivado en Ajustes.</span>
+                          ) : (
+                            <span>Copia configurada para: <strong className="text-[var(--gray-12)]">{emitterAddress}</strong></span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Input rápido para enviar o reenviar a cualquier correo */}
+                  <div className="pt-2 border-t flex flex-col sm:flex-row items-center gap-2" style={{ borderColor: 'var(--gray-a4)' }}>
+                    <UiInput 
+                      type="email"
+                      value={customClientEmail} 
+                      onChange={e => setCustomClientEmail(e.target.value)}
+                      placeholder="Enviar copia a otro correo (ej: cliente@correo.com)"
+                      className="w-full sm:flex-1 h-8 text-xs"
+                    />
+                    <UiButton
+                      type="button"
+                      variant="solid"
+                      color="blue"
+                      className="w-full sm:w-auto h-8 px-3 text-xs flex items-center justify-center gap-1.5 shrink-0"
+                      disabled={emailSending || !customClientEmail || !customClientEmail.includes('@')}
+                      onClick={() => {
+                        const receiver = thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
+                        enviarCorreoComprobante(formData, receiver, sriConfig, customClientEmail);
+                      }}
+                    >
+                      <Send size={12} />
+                      <UiText>Enviar Correo</UiText>
+                    </UiButton>
+                  </div>
+                </UiBox>
+
+                {/* 3. CARD: ACCIONES DE IMPRESIÓN Y DESCARGAS */}
+                <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)","color":"var(--gray-12)"},"className":"p-4 space-y-3"})}>
+                  <div className="flex items-center gap-2">
+                    <Printer size={15} style={{ color: 'var(--blue-11)' }} />
+                    <UiHeading as="h4" size="2" weight="bold">Impresión Directa y Descargas</UiHeading>
+                  </div>
+
+                  {/* BOTÓN DESTACADO: IMPRESIÓN DIRECTA */}
+                  <UiButton
+                    type="button"
+                    onClick={() => handleDirectPrint(printFormat || 'ride')}
+                    variant="solid"
+                    color="blue"
+                    className="w-full h-11 flex items-center justify-center gap-2 text-sm font-semibold"
+                  >
+                    <Printer size={16} />
+                    <UiText>Impresión Directa ({printFormat === 'ticket' ? 'Ticket 80mm' : 'Hoja A4'})</UiText>
+                  </UiButton>
+
+                  {/* BOTONES SECUNDARIOS DE FORMATO */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                    {/* Imprimir Ticket 80mm */}
                     <UiButton
                       type="button" 
-                      onClick={handleAnular}
-                      {...{"variant":"soft","color":"red","className":"w-full flex items-center justify-center gap-[6px]"}}
+                      onClick={() => handleDirectPrint('ticket')}
+                      variant="surface"
+                      color="blue"
+                      className="w-full flex items-center justify-center gap-2 h-9 text-xs"
                     >
-                      <ShieldAlert size={12} />
-                      <UiText>{formData.documentType === 'nota_venta' ? 'Anular Nota de Venta' : 'Anular Documento ante el SRI'}</UiText>
+                      <Calculator size={13} />
+                      <UiText>Imprimir Ticket (80mm)</UiText>
                     </UiButton>
-                  </UiBox>
-                )}
+
+                    {/* Imprimir RIDE A4 */}
+                    <UiButton
+                      type="button" 
+                      onClick={() => handleDirectPrint('ride')}
+                      variant="surface"
+                      color="blue"
+                      className="w-full flex items-center justify-center gap-2 h-9 text-xs"
+                    >
+                      <FileText size={13} />
+                      <UiText>Imprimir RIDE / Hoja (A4)</UiText>
+                    </UiButton>
+
+                    {/* Download XML (si es factura electrónica autorizada) */}
+                    {formData.claveAcceso && (
+                      <UiButton
+                        type="button" 
+                        onClick={downloadXMLFile}
+                        variant="surface"
+                        color="gray"
+                        className="w-full sm:col-span-2 flex items-center justify-center gap-2 h-9 text-xs"
+                      >
+                        <Download size={13} />
+                        <UiText>Descargar Archivo XML Autorizado</UiText>
+                      </UiButton>
+                    )}
+                  </div>
+
+                  {/* Botones de navegación adicionales */}
+                  <div className="pt-2 border-t flex items-center justify-between gap-2" style={{ borderColor: 'var(--gray-a4)' }}>
+                    <UiButton
+                      type="button"
+                      variant="surface"
+                      color="blue"
+                      className="flex-1 h-9 text-xs flex items-center justify-center gap-1.5"
+                      onClick={() => {
+                        stableIdRef.current = crypto.randomUUID();
+                        setFormData({
+                          id: stableIdRef.current,
+                          type: 'ingreso',
+                          documentType: formData.documentType || 'factura',
+                          documentNumber: '',
+                          date: getEcuadorDateString(new Date()),
+                          time: getEcuadorTimeString(new Date()),
+                          items: [],
+                          subtotal: 0,
+                          baseImponible: 0,
+                          ivaPorcentaje: 15,
+                          ivaValor: 0,
+                          total: 0,
+                          thirdPartyId: '',
+                          thirdPartyName: '',
+                          thirdPartyRuc: '',
+                          paymentMethod: 'efectivo',
+                          paymentStatus: 'pagado',
+                          sriStatus: 'borrador',
+                          category: 'ventas',
+                          claveAcceso: '',
+                          xml: '',
+                          xmlAutorizado: '',
+                        });
+                        setPayments({
+                          efectivo: 0,
+                          transferencia: 0,
+                          tarjeta: 0,
+                          cruce_cuentas: 0,
+                          transferenciaRef: '',
+                          transferenciaBankId: '',
+                          tarjetaRef: '',
+                          cruceRef: ''
+                        });
+                        setEmailDeliveryResult(null);
+                        setPrintTx(null);
+                        setCurrentStep(1);
+                      }}
+                    >
+                      <Plus size={13} />
+                      <UiText>Nueva Venta / Emisión</UiText>
+                    </UiButton>
+
+                    <UiButton
+                      type="button"
+                      variant="solid"
+                      color="blue"
+                      className="flex-1 h-9 text-xs flex items-center justify-center gap-1.5"
+                      onClick={closeTransaction}
+                    >
+                      <Check size={13} />
+                      <UiText>Terminar y Salir</UiText>
+                    </UiButton>
+                  </div>
+
+                  {/* SRI Anulación if authorized */}
+                  {isAuthorized && (
+                    <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"mt-[8px] pt-[8px]"}}>
+                      <UiButton
+                        type="button" 
+                        onClick={handleAnular}
+                        {...{"variant":"soft","color":"red","className":"w-full flex items-center justify-center gap-[6px] text-xs h-8"}}
+                      >
+                        <ShieldAlert size={12} />
+                        <UiText>{isNotaVenta ? 'Anular Nota de Venta' : 'Anular Documento ante el SRI'}</UiText>
+                      </UiButton>
+                    </UiBox>
+                  )}
+                </UiBox>
+
               </UiBox>
-            </UiBox>
 
             {/* Right Column (col-span-12 lg:col-span-5): Vista Previa del Documento */}
             <UiBox {...{"className":"col-span-12 lg:col-span-5"}}>
@@ -3882,11 +4158,15 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       {printTx && (
         <RidePreviewModal 
           tx={printTx} 
-          onClose={() => setPrintTx(null)} 
+          onClose={() => {
+            setPrintTx(null);
+            setAutoPrintDirect(false);
+          }} 
           thirdParties={thirdParties} 
           db={db} 
           appId={appId}
           initialFormat={printFormat}
+          autoPrint={autoPrintDirect}
         />
       )}
 
