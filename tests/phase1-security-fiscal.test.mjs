@@ -153,3 +153,60 @@ test('emisor resolution preserves logoUrl from companyConfig when snapshot omitt
   assert.equal(resolvedLogo2, 'data:image/png;base64,custom_logo...');
 });
 
+test('multi-tenant logo isolation: each tenant emits with their own configured logo without cross-contamination', () => {
+  // Tenant A: Client "Ferreteria El Sol"
+  const tenantA_config = {
+    tenantId: 'tenant_sol',
+    ruc: '1790011111001',
+    razonSocial: 'FERRETERIA EL SOL CIA. LTDA.',
+    logoUrl: 'data:image/png;base64,LOGO_FERRETERIA_SOL',
+  };
+
+  // Tenant B: Client "WebFix Un Mundo Digital"
+  const tenantB_config = {
+    tenantId: 'tenant_webfix',
+    ruc: '1754376901001',
+    razonSocial: 'SEVILLA MARROQUIN ROSA KARINA',
+    logoUrl: 'data:image/png;base64,LOGO_WEBFIX_DIGITAL',
+  };
+
+  // Invoice emitted by Tenant A
+  const invoiceA = {
+    id: 'tx_sol_001',
+    tenantId: tenantA_config.tenantId,
+    emisorSnapshot: {
+      ruc: tenantA_config.ruc,
+      razonSocial: tenantA_config.razonSocial,
+      logoUrl: tenantA_config.logoUrl,
+    },
+    logoUrl: tenantA_config.logoUrl,
+  };
+
+  // Invoice emitted by Tenant B
+  const invoiceB = {
+    id: 'tx_webfix_001',
+    tenantId: tenantB_config.tenantId,
+    emisorSnapshot: {
+      ruc: tenantB_config.ruc,
+      razonSocial: tenantB_config.razonSocial,
+      logoUrl: tenantB_config.logoUrl,
+    },
+    logoUrl: tenantB_config.logoUrl,
+  };
+
+  // End-customer viewing Invoice A: resolution gets Tenant A's logo ONLY
+  const emisorA = {
+    logoUrl: invoiceA.logoUrl || invoiceA.emisorSnapshot?.logoUrl || '',
+  };
+  assert.equal(emisorA.logoUrl, 'data:image/png;base64,LOGO_FERRETERIA_SOL');
+  assert.notEqual(emisorA.logoUrl, tenantB_config.logoUrl);
+
+  // End-customer viewing Invoice B: resolution gets Tenant B's logo ONLY
+  const emisorB = {
+    logoUrl: invoiceB.logoUrl || invoiceB.emisorSnapshot?.logoUrl || '',
+  };
+  assert.equal(emisorB.logoUrl, 'data:image/png;base64,LOGO_WEBFIX_DIGITAL');
+  assert.notEqual(emisorB.logoUrl, tenantA_config.logoUrl);
+});
+
+

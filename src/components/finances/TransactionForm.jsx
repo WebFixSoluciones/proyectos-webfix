@@ -1128,6 +1128,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       let finalTxData = {
         ...updatedFormData,
         id: docId,
+        tenantId: appId,
+        appId: appId,
         ...(emisorSnapshotData ? { emisorSnapshot: emisorSnapshotData } : {}),
         logoUrl: sriConfig?.logoUrl || sriConfig?.logo || updatedFormData.logoUrl || '',
         paidAmount,
@@ -1464,6 +1466,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
             ...invoice, documentNumber: `${config.establecimiento || '001'}-${config.puntoEmision || '001'}-${secuencial.padStart(9, '0')}`,
             claveAcceso, xml: signedXml, sriStatus: 'pendiente_sri', sriAmbiente: String(config.ambiente), emisorSnapshot: emitter,
             logoUrl: emitter.logoUrl || '',
+            tenantId: appId,
+            appId: appId,
             sriReservedAt: timestamp.toISOString(), financialSyncStatus: 'awaiting_authorization',
             transferenciaRef: payments.transferenciaRef || '', transferenciaBankId: payments.transferenciaBankId || '', cuentaBancariaId: payments.transferenciaBankId || '',
             tarjetaRef: payments.tarjetaRef || '', cruceRef: payments.cruceRef || '', creditDueDate, creditObservations,

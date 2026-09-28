@@ -65,8 +65,8 @@ export async function recoverInvoiceFromSri(db, appId, key, store = api, consult
       ...(logoUrl ? { logoUrl } : {}),
     };
     const document = current.exists()
-      ? { ...current.data(), id, sriStatus: 'autorizado', claveAcceso: key, fechaAutorizacion: recovered.fechaAutorizacion, xmlAutorizado: recovered.xmlAutorizado, xml: recovered.xml, sriLastCheckedAt: new Date().toISOString(), sriAuthorizationResponse: recovered.sriAuthorizationResponse, sriAmbiente: recovered.sriAmbiente, emisorSnapshot, logoUrl, financialSyncStatus: current.data().financialSyncStatus === 'complete' ? 'complete' : current.data().sriRecoveryOnly ? 'review_required' : 'pending' }
-      : { ...recovered, id, emisorSnapshot, logoUrl };
+      ? { ...current.data(), id, tenantId: appId, appId: appId, sriStatus: 'autorizado', claveAcceso: key, fechaAutorizacion: recovered.fechaAutorizacion, xmlAutorizado: recovered.xmlAutorizado, xml: recovered.xml, sriLastCheckedAt: new Date().toISOString(), sriAuthorizationResponse: recovered.sriAuthorizationResponse, sriAmbiente: recovered.sriAmbiente, emisorSnapshot, logoUrl, financialSyncStatus: current.data().financialSyncStatus === 'complete' ? 'complete' : current.data().sriRecoveryOnly ? 'review_required' : 'pending' }
+      : { ...recovered, id, tenantId: appId, appId: appId, emisorSnapshot, logoUrl };
     transaction.set(target, document);
     const next = Number(recovered.secuencial) + 1;
     transaction.set(seqRef, { next: Math.max(next, Number(sequence.data()?.next || 1)), lastRecoveredKey: key }, { merge: true });
