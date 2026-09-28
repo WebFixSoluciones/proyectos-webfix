@@ -673,6 +673,30 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
   - En la cabecera del visor interactivo de comprobante, se incorporó el botón destacado **"XML"** (`<FileCode size={13} />`), descargando de inmediato el archivo XML oficial firmado o autorizado (`downloadFiscalXml`) al revisar la factura.
 - **Pruebas y Build**: 52/52 tests unitarios aprobados (`npm test`), compilación de producción exitosa en 11.89s (`npm run build`).
 
+### 53. Pantalla Completa de Resumen y Detalle de Factura Post-Emisión y desde Historial (2026-09-28) — COMPLETADO
+- **Navegación sin Popups a Pantalla Completa**:
+  - Transformado el flujo de "Ver detalles de la factura": al hacer clic en el icono del ojo (`<Eye />`) en el Historial de Comprobantes (`TransactionsView.jsx`), el sistema navega a pantalla completa integrada sin popups modales superpuestos.
+  - Sincronización idéntica post-emisión: la misma pantalla de detalle y resumen se despliega de inmediato tras emitir una Factura Electrónica o Nota de Venta desde el asistente (`TransactionForm.jsx` en Paso 2).
+- **Depuración de Iconos en la Tabla de Comprobantes (`TransactionsView.jsx`)**:
+  - Suprimidos los iconos de descarga `XML` y `PDF / RIDE` (`<FileDown />`) de la columna de acciones en la tabla de comprobantes, dejando la descarga concentrada en la vista de detalle.
+  - Mantenidos los iconos clave: **Impresión Directa** (`<Printer />`, lanza el diálogo de impresión de Windows/navegador), **Nota de Crédito** (`<FileMinus />`), **Guía de Remisión** (`<Truck />`), **Enviar por Correo** (`<Mail />`), **Enviar por WhatsApp** (`<MessageCircle />`) y **Ver Detalles** (`<Eye />`).
+- **Diseño Flat Modern de Detalle y Resumen (`TransactionForm.jsx`)**:
+  - **Tarjeta Superior de Cabecera**:
+    - Indicador de tipo de comprobante con barra de acento azul (`Factura`, `Nota de Venta`, etc.).
+    - Código secuencial destacado (`CÓDIGO: 001-010-000000XXX`) en tipografía mono.
+    - Clave de Acceso SRI (49 dígitos) con botón interactivo de 1 clic para copiar al portapapeles.
+    - Enlace RIDE público para compartir (`https://...#/public/ride?txId=...`) con botón de 1 clic para copiar y acceso directo.
+    - Barra de acciones rápida: **[XML]**, **[PDF / RIDE]**, **[Imprimir]**, **[WhatsApp]**, **[+ Nueva Venta]** y **[Volver al Historial]**.
+  - **Tarjeta Central de Factura**:
+    - Columna izquierda con ficha limpia del cliente: Razón Social, Identificación (RUC/CI), Correo, Teléfono y Dirección física.
+    - Columna derecha con fecha y hora de emisión, badge de estado vibrante (`AUTORIZADO` en verde esmeralda, `REGISTRADO` para notas de venta, o `PENDIENTE SRI`), fecha de autorización SRI y botón de consulta o anulación según aplique.
+    - Tabla estructurada de ítems: `#`, `Producto / Servicio` (con descripción personalizada si aplica), `Cantidad`, `Precio Unitario`, `Descuento`, `IVA` y `SubTotal`.
+  - **Sección Inferior de Liquidación**:
+    - Desglose de formas de pago aplicadas (Efectivo, Transferencia con banco/referencia, Tarjeta con ref, Crédito CxC).
+    - Estado de notificación por correo en tiempo real (entrega a cliente, respaldo a emisor) e input para reenviar copia a cualquier correo alternativo.
+    - Cuadro de totales exacto: Subtotal 15%, Subtotal 0%, Descuentos, IVA 15% y **TOTAL Facturado** en tipografía `#1b1b1b` de alto contraste.
+- **Pruebas y Build**: 52 tests unitarios aprobados, compilación limpia de producción en 6.01s.
+
 
 
 
