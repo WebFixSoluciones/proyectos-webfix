@@ -17,7 +17,7 @@ import {
   X, Calculator, FileText, CheckCircle2, AlertTriangle, Sparkles, 
   Terminal, ShieldAlert, Download, Plus, Trash2, RefreshCw, ArrowLeft, ArrowRight, 
   User, DollarSign, CreditCard, Layers, Search, Tag, Percent, ChevronDown, ShoppingCart,
-  Package, Printer, Mail, Send, Check, Clock, ExternalLink
+  Package, Printer, Mail, Send, Check, Clock, ExternalLink, Copy, FileDown, MessageCircle
 } from 'lucide-react';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, runTransaction } from '../../services/financeStore.js';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
@@ -106,6 +106,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   const [emailSending, setEmailSending] = useState(false);
   const [emailDeliveryResult, setEmailDeliveryResult] = useState(null);
   const [customClientEmail, setCustomClientEmail] = useState('');
+  const [hasCopiedClave, setHasCopiedClave] = useState(false);
+  const [hasCopiedUrl, setHasCopiedUrl] = useState(false);
   const [hasSelectedDocType, setHasSelectedDocType] = useState(() => Boolean(tx?.documentType || tx?.claveAcceso));
   
   const [dbCategories, setDbCategories] = useState([]);
@@ -513,8 +515,16 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         cruce_cuentas: Number(breakdownCr) > 0 || tx.paymentMethod === 'cruce_cuentas' || tx.paymentMethod === 'credito'
       });
 
-      // Si el documento ya fue autorizado o anulado, ir directo al paso 2 (vista de sólo lectura)
-      if (tx.sriStatus === 'autorizado' || tx.sriStatus === 'anulado') {
+      // Si el documento ya fue emitido/autorizado o anulado, o si se visualiza detalle de venta emitida, ir directo al paso 2
+      const isEmittedOrDetail = tx.sriStatus === 'autorizado' || 
+        tx.sriStatus === 'anulado' || 
+        tx.sriStatus === 'emitido' || 
+        tx.sriStatus === 'registrado' ||
+        Boolean(tx.claveAcceso) || 
+        Boolean(tx.documentNumber && tx.sriStatus !== 'borrador') ||
+        Boolean(tx.viewDetails);
+
+      if (isEmittedOrDetail) {
         setCurrentStep(2);
       }
       if (tx.referencia || tx.description) {
@@ -1541,7 +1551,86 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   const downloadXMLFile = () => {
     const xml = formData.xmlAutorizado || formData.xml;
     if (!xml) { showToast('Consulte la autorización para recuperar el XML original del SRI.', 'warning'); return; }
-    downloadFiscalXml(xml, `${formData.claveAcceso}.xml`);
+    downloadFiscalXml(xml, `${formData.claveAcceso || formData.documentNumber || 'comprobante'}.xml`);
+  };
+
+  const handleCopyClave = () => {
+    if (!formData.claveAcceso) return;
+    navigator.clipboard.writeText(formData.claveAcceso);
+    setHasCopiedClave(true);
+    showToast('Clave de acceso copiada al portapapeles', 'success');
+    setTimeout(() => setHasCopiedClave(false), 2000);
+  };
+
+  const currentRideUrl = `${typeof window !== 'undefined' ? (window.location.origin + window.location.pathname) : ''}#/public/ride?txId=${formData.id || ''}&claveAcceso=${formData.claveAcceso || ''}&tenantId=${appId || ''}`;
+
+  const handleCopyRideUrl = () => {
+    navigator.clipboard.writeText(currentRideUrl);
+    setHasCopiedUrl(true);
+    showToast('Enlace para compartir RIDE copiado al portapapeles', 'success');
+    setTimeout(() => setHasCopiedUrl(false), 2000);
+  };
+
+  const handleOpenRide = () => {
+    if (formData.pdfUrl && !formData.pdfUrl.includes('srienlinea.sri.gob.ec')) {
+      window.open(formData.pdfUrl, '_blank');
+    } else {
+      window.open(currentRideUrl, '_blank');
+    }
+  };
+
+  const handleStartNewSale = () => {
+    stableIdRef.current = crypto.randomUUID();
+    setFormData({
+      id: stableIdRef.current,
+      type: 'ingreso',
+      documentType: formData.documentType || 'factura',
+      documentNumber: '',
+      date: getEcuadorDateString(new Date()),
+      time: getEcuadorTimeString(new Date()),
+      items: [],
+      subtotal: 0,
+      baseImponible: 0,
+      ivaPorcentaje: 15,
+      ivaValor: 0,
+      total: 0,
+      thirdPartyId: '',
+      thirdPartyName: '',
+      thirdPartyRuc: '',
+      paymentMethod: 'efectivo',
+      paymentStatus: 'pagado',
+      sriStatus: 'borrador',
+      category: 'ventas',
+      claveAcceso: '',
+      xml: '',
+      xmlAutorizado: '',
+    });
+    setPayments({
+      efectivo: 0,
+      transferencia: 0,
+      tarjeta: 0,
+      cruce_cuentas: 0,
+      transferenciaRef: '',
+      transferenciaBankId: '',
+      tarjetaRef: '',
+      cruceRef: ''
+    });
+    setEmailDeliveryResult(null);
+    setPrintTx(null);
+    setCurrentStep(1);
+  };
+
+  const getDocTypeLabel = () => {
+    switch (formData.documentType) {
+      case 'nota_venta': return 'Nota de Venta';
+      case 'factura': return 'Factura';
+      case 'nota_credito': return 'Nota de Crédito';
+      case 'nota_debito': return 'Nota de Débito';
+      case 'guia_remision': return 'Guía de Remisión';
+      case 'liquidacion': return 'Liquidación de Compra';
+      case 'retencion': return 'Comprobante de Retención';
+      default: return formData.documentType?.toUpperCase() || 'Factura';
+    }
   };
 
   // Auto-emisión/Guardado directo para transacciones iniciadas desde el POS
@@ -1694,25 +1783,27 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   const formJSX = (
     <div className={`transaction-form-clean bg-white ${isInline ? 'w-full flex flex-col animate-in fade-in duration-300' : 'fixed inset-0 z-[100] w-screen h-screen overflow-y-auto flex flex-col bg-white'}`}>
 
-      {/* MINIMAL TOP ACTION BAR */}
-      <div className="flex items-center justify-between max-w-[1600px] w-full mx-auto px-1 py-1 mb-2">
-        {formData.claveAcceso ? (
-          <span className="text-[11px] font-mono text-slate-500">Clave SRI: {formData.claveAcceso}</span>
-        ) : <div />}
+      {/* MINIMAL TOP ACTION BAR (Solo en Paso 1) */}
+      {currentStep === 1 && (
+        <div className="flex items-center justify-between max-w-[1600px] w-full mx-auto px-1 py-1 mb-2">
+          {formData.claveAcceso ? (
+            <span className="text-[11px] font-mono text-slate-500">Clave SRI: {formData.claveAcceso}</span>
+          ) : <div />}
 
-        <button
-          type="button"
-          onClick={closeTransaction}
-          disabled={isSaving || isEmitting}
-          className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200/90 text-slate-700 hover:text-slate-950 flex items-center justify-center transition-all cursor-pointer disabled:opacity-50 border border-slate-200/80 shadow-none active:scale-95"
-          title="Cerrar / Cancelar"
-          aria-label="Cerrar"
-        >
-          <X size={18} strokeWidth={2.2} />
-        </button>
-      </div>
+          <button
+            type="button"
+            onClick={closeTransaction}
+            disabled={isSaving || isEmitting}
+            className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200/90 text-slate-700 hover:text-slate-950 flex items-center justify-center transition-all cursor-pointer disabled:opacity-50 border border-slate-200/80 shadow-none active:scale-95"
+            title="Cerrar / Cancelar"
+            aria-label="Cerrar"
+          >
+            <X size={18} strokeWidth={2.2} />
+          </button>
+        </div>
+      )}
 
-      {formData.claveAcceso && (
+      {currentStep === 1 && formData.claveAcceso && (
         <div className="mb-4 p-5 bg-white border border-slate-200/90 rounded-2xl shadow-none space-y-3">
           <p className="font-bold text-slate-900 text-sm">
             {formData.documentNumber}: {isAuthorized ? 'Autorizado por el SRI' : 'Identidad fiscal reservada — autorización por verificar'}
@@ -1744,7 +1835,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         </div>
       )}
 
-      {isAuthorized && formData.financialSyncStatus === 'pending' && (
+      {currentStep === 1 && isAuthorized && formData.financialSyncStatus === 'pending' && (
         <div role="alert" className="mb-4 flex flex-wrap items-center justify-between gap-3 p-4 bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl">
           <p className="text-xs font-medium">El comprobante está registrado. Falta completar inventario o finanzas.</p>
           <button
@@ -1758,8 +1849,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         </div>
       )}
 
-      {/* STATE BANNERS (Sri authorized / canceled) */}
-      {isAuthorized && (
+      {/* STATE BANNERS (Sri authorized / canceled) (Solo en Paso 1) */}
+      {currentStep === 1 && isAuthorized && (
         <div className="mb-4 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 flex items-center gap-3">
           <CheckCircle2 size={18} className="shrink-0 text-emerald-600" />
           <div>
@@ -1775,7 +1866,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         </div>
       )}
 
-      {isAnulado && (
+      {currentStep === 1 && isAnulado && (
         <div className="mb-4 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 flex items-center gap-3">
           <ShieldAlert size={18} className="shrink-0 text-rose-600" />
           <div>
@@ -3199,417 +3290,444 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         )}
 
         {/* ═══════════════════════════════════════════════════════ */}
-        {/* PASO 2: IMPRESIÓN DEL DOCUMENTO                        */}
-        {/* ═══════════════════════════════════════════════════════ */}
+        {/* PASO 2: PANTALLA COMPLETA DE DETALLE Y RESUMEN DE VENTA   */}
+        {/* ══════════════════════════════════════════════════════════ */}
         {currentStep === 2 && (
-          <div className="grid grid-cols-12 gap-4 sm:gap-6 animate-in fade-in slide-in-from-bottom duration-300">
-            {/* Left Column (col-span-12 lg:col-span-7): Estado de Emisión, Correos y Acciones */}
-            <div className="col-span-12 lg:col-span-7 space-y-4">
-                
-                {/* 1. HERO EMISSION CONFIRMATION CARD */}
-                <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-none space-y-4">
-                  <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3.5">
-                    <div className="w-12 h-12 rounded-2xl bg-[#c0ffa5] text-[#004227] flex items-center justify-center shrink-0">
-                      <CheckCircle2 size={24} />
-                    </div>
-                    <div className="space-y-1 text-center sm:text-left flex-1">
-                      <h3 className="text-lg font-bold text-slate-900 tracking-tight">
-                        {docConfirmationTitle}
-                      </h3>
-                      <p className="text-xs text-slate-500">
-                        El comprobante ha sido registrado y asentado en el sistema comercial e inventario.
-                      </p>
-                    </div>
+          <div className="space-y-4 animate-in fade-in duration-300">
+            {/* 1. TOP HEADER / ACTION BAR */}
+            <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 space-y-4">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                {/* Left: Document type, code, clave de acceso, enlace RIDE */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-1.5 h-4 bg-blue-600 rounded-full inline-block" />
+                    <span className="text-xs font-bold text-slate-800 uppercase tracking-wide">
+                      Tipo de Documento: <strong className="text-blue-600">{getDocTypeLabel()}</strong>
+                    </span>
+                  </div>
+                  
+                  <div className="flex flex-wrap items-baseline gap-2">
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">CÓDIGO:</span>
+                    <span className="text-lg sm:text-xl font-extrabold font-mono text-slate-900 tracking-tight">
+                      {formData.documentNumber || (formData.secuencial ? `001-001-${String(formData.secuencial).padStart(9, '0')}` : 'En proceso')}
+                    </span>
                   </div>
 
-                  {/* Summary key badges */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 border-t border-slate-200/80">
-                    <div className="p-3 rounded-xl bg-slate-50/80 border border-slate-200/80 text-left">
-                      <span className="text-[11px] font-semibold text-slate-500 block uppercase tracking-wider">Comprobante</span>
-                      <span className="text-sm font-bold font-mono text-slate-900 mt-0.5 block">
-                        {formData.documentNumber || (formData.secuencial ? `001-001-${String(formData.secuencial).padStart(9, '0')}` : 'En proceso')}
-                      </span>
-                    </div>
-                    <div className="p-3 rounded-xl bg-slate-50/80 border border-slate-200/80 text-left">
-                      <span className="text-[11px] font-semibold text-slate-500 block uppercase tracking-wider">Cliente</span>
-                      <span className="text-xs font-bold text-slate-900 truncate mt-0.5 block" title={matchedTercero?.name}>
-                        {matchedTercero?.name || 'CONSUMIDOR FINAL'}
-                      </span>
-                      <span className="font-mono text-[10px] text-slate-500 block">
-                        {matchedTercero?.ruc || '9999999999999'}
-                      </span>
-                    </div>
-                    <div className="p-3 rounded-xl bg-slate-50/80 border border-slate-200/80 text-left">
-                      <span className="text-[11px] font-semibold text-slate-500 block uppercase tracking-wider">Total Facturado</span>
-                      <span className="text-base font-extrabold font-mono text-[#1b1b1b] mt-0.5 block">
-                        ${Number(formData.total || 0).toFixed(2)}
-                      </span>
-                    </div>
-                  </div>
-
+                  {/* CLAVE DE ACCESO (con botón para copiar) */}
                   {formData.claveAcceso && (
-                    <div className="p-3 rounded-xl text-left break-all font-mono text-[11px] bg-slate-50/80 border border-slate-200/80 text-slate-700">
-                      <span className="font-semibold block mb-1 text-[10px] uppercase tracking-wider text-slate-500">Clave de Acceso SRI (49 dígitos):</span>
-                      {formData.claveAcceso}
-                    </div>
-                  )}
-
-                  {!isAuthorized && formData.claveAcceso && formData.documentType !== 'nota_venta' && (
-                    <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 space-y-2 text-left">
-                      <div className="flex items-center gap-2">
-                        <AlertTriangle size={16} className="text-amber-600 shrink-0" />
-                        <span className="font-bold text-xs">Identidad Fiscal Reservada — Autorización Pendiente en el SRI</span>
-                      </div>
-                      <p className="text-[11.5px] text-amber-800 leading-relaxed">
-                        El comprobante y su secuencial ({formData.documentNumber || 'En proceso'}) están protegidos en la base de datos con su clave de acceso oficial. Si el SRI reportó intermitencia temporal de red, puedes volver a consultar y autorizar ahora sin perder el secuencial.
-                      </p>
-                      <button
-                        type="button"
-                        disabled={isEmitting}
-                        onClick={() => recoverSriEmission(true)}
-                        className="py-2 px-4 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs flex items-center gap-2 cursor-pointer transition-all disabled:opacity-50"
-                      >
-                        <RefreshCw size={13} className={isEmitting ? "animate-spin" : ""} />
-                        <span>{isEmitting ? "Consultando al SRI..." : "Verificar y Reintentar Autorización SRI"}</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* 2. CARD: ESTADO DE ENVÍO POR CORREO ELECTRÓNICO */}
-                <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-none space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
-                        <Mail size={16} />
-                      </div>
-                      <h4 className="text-base font-bold text-slate-900 tracking-tight">Notificación por Correo Electrónico</h4>
-                    </div>
-                    {emailSending && (
-                      <span className="inline-flex items-center gap-1.5 text-xs text-blue-600 font-medium">
-                        <RefreshCw size={12} className="animate-spin" /> Enviando...
+                    <div className="flex flex-wrap items-center gap-2 text-xs">
+                      <span className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">CLAVE DE ACCESO:</span>
+                      <span className="font-mono text-slate-800 break-all bg-slate-50 border border-slate-200/80 px-2 py-0.5 rounded-lg select-all">
+                        {formData.claveAcceso}
                       </span>
-                    )}
-                  </div>
-
-                  {/* Fila: Cliente */}
-                  <div className="p-3 rounded-xl bg-slate-50/70 border border-slate-200/80 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-                    <div className="flex items-start gap-2.5">
-                      {emailSending ? (
-                        <RefreshCw size={15} className="animate-spin text-blue-600 shrink-0 mt-0.5" />
-                      ) : clientSent ? (
-                        <CheckCircle2 size={15} className="text-emerald-600 shrink-0 mt-0.5" />
-                      ) : clientFailed ? (
-                        <AlertTriangle size={15} className="text-rose-600 shrink-0 mt-0.5" />
-                      ) : (
-                        <Clock size={15} className="text-slate-400 shrink-0 mt-0.5" />
-                      )}
-                      <div>
-                        <div className="font-bold text-slate-800">Copia para el Cliente:</div>
-                        <div className="text-slate-600 text-[11.5px] mt-0.5">
-                          {emailSending ? (
-                            'Enviando documento al correo del cliente...'
-                          ) : clientSent ? (
-                            <span>Enviado exitosamente a <strong className="text-slate-900 font-semibold">{clientAddress}</strong></span>
-                          ) : clientFailed ? (
-                            <span className="text-rose-600">No se pudo entregar: {emailDeliveryData.client?.error || 'Rechazo SMTP'}</span>
-                          ) : clientAddress ? (
-                            <span>Listo para enviar a: <strong className="text-slate-900 font-semibold">{clientAddress}</strong></span>
-                          ) : (
-                            <span>El cliente no tiene correo registrado en su ficha.</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    {!emailSending && (clientFailed || !clientSent) && clientAddress && (
                       <button
                         type="button"
-                        className="shrink-0 text-xs py-1.5 px-3 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold flex items-center gap-1.5 cursor-pointer"
-                        onClick={() => {
-                          const receiver = thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
-                          enviarCorreoComprobante(formData, receiver, sriConfig, clientAddress);
-                        }}
+                        onClick={handleCopyClave}
+                        className="p-1 rounded-md text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition-colors cursor-pointer"
+                        title="Copiar Clave de Acceso"
                       >
-                        <RefreshCw size={11} /> Reintentar
+                        {hasCopiedClave ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
                       </button>
-                    )}
-                  </div>
-
-                  {/* Fila: Emisor (Copia de Respaldo) */}
-                  <div className="p-3 rounded-xl bg-slate-50/70 border border-slate-200/80 text-xs flex items-center justify-between gap-2">
-                    <div className="flex items-start gap-2.5">
-                      {emailSending ? (
-                        <RefreshCw size={15} className="animate-spin text-blue-600 shrink-0 mt-0.5" />
-                      ) : emitterSent ? (
-                        <CheckCircle2 size={15} className="text-emerald-600 shrink-0 mt-0.5" />
-                      ) : emitterFailed ? (
-                        <AlertTriangle size={15} className="text-amber-600 shrink-0 mt-0.5" />
-                      ) : (
-                        <Clock size={15} className="text-slate-400 shrink-0 mt-0.5" />
-                      )}
-                      <div>
-                        <div className="font-bold text-slate-800">Copia de Respaldo al Emisor:</div>
-                        <div className="text-slate-600 text-[11.5px] mt-0.5">
-                          {emailSending ? (
-                            'Enviando copia de respaldo a tu correo...'
-                          ) : emitterSent ? (
-                            <span>Respaldo enviado a <strong className="text-slate-900 font-semibold">{emitterAddress}</strong></span>
-                          ) : emitterFailed ? (
-                            <span className="text-amber-700">Copia no enviada: {emailDeliveryData.emitter?.error || 'Revisa servidor SMTP'}</span>
-                          ) : !isSmtpConfigured ? (
-                            <span className="text-amber-700">Configura el servidor SMTP en Ajustes para recibir copias automáticas.</span>
-                          ) : !isSmtpActive ? (
-                            <span className="text-amber-700">Envío de correo desactivado en Ajustes.</span>
-                          ) : (
-                            <span>Copia configurada para: <strong className="text-slate-900 font-semibold">{emitterAddress}</strong></span>
-                          )}
-                        </div>
-                      </div>
                     </div>
-                  </div>
+                  )}
 
-                  {/* Input rápido para enviar o reenviar a cualquier correo */}
-                  <div className="pt-2 border-t border-slate-200/80 flex flex-col sm:flex-row items-center gap-2">
-                    <UiInput 
-                      type="email"
-                      value={customClientEmail} 
-                      onChange={e => setCustomClientEmail(e.target.value)}
-                      placeholder="Enviar copia a otro correo (ej: cliente@correo.com)"
-                      className="w-full sm:flex-1 h-9 text-xs rounded-xl bg-white"
-                    />
+                  {/* COMPARTIR ENLACE RIDE PÚBLICO (con botón para copiar) */}
+                  <div className="flex flex-wrap items-center gap-2 text-xs">
+                    <span className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">Compartir:</span>
+                    <a 
+                      href={currentRideUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="text-blue-600 hover:text-blue-700 underline truncate max-w-xs sm:max-w-md font-mono"
+                    >
+                      {currentRideUrl}
+                    </a>
                     <button
                       type="button"
-                      className="w-full sm:w-auto h-9 px-4 rounded-xl bg-[#1b1b1b] hover:bg-slate-800 text-white text-xs font-semibold flex items-center justify-center gap-1.5 shrink-0 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                      disabled={emailSending || !customClientEmail || !customClientEmail.includes('@')}
-                      onClick={() => {
-                        const receiver = thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
-                        enviarCorreoComprobante(formData, receiver, sriConfig, customClientEmail);
-                      }}
+                      onClick={handleCopyRideUrl}
+                      className="p-1 rounded-md text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition-colors cursor-pointer"
+                      title="Copiar enlace de comprobante"
                     >
-                      <Send size={12} />
-                      <span>Enviar Correo</span>
+                      {hasCopiedUrl ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
                     </button>
                   </div>
+
+                  <p className="text-[11px] text-slate-400">
+                    Emitido mediante WEBFIX ERP • {sriConfig.nombreComercial || sriConfig.razonSocial || 'Sistema de Facturación'}
+                  </p>
                 </div>
 
-                {/* 3. CARD: ACCIONES DE IMPRESIÓN Y DESCARGAS */}
-                <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-none space-y-4">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
-                      <Printer size={16} />
-                    </div>
-                    <h4 className="text-base font-bold text-slate-900 tracking-tight">Impresión Directa y Descargas</h4>
-                  </div>
+                {/* Right: Quick Action Buttons */}
+                <div className="flex flex-wrap items-center gap-2 shrink-0 self-start lg:self-center">
+                  {/* Descarga XML oficial */}
+                  {(formData.claveAcceso || formData.xml || formData.xmlAutorizado) && (
+                    <button
+                      type="button"
+                      onClick={downloadXMLFile}
+                      className="py-2 px-3 sm:px-3.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center gap-1.5 cursor-pointer transition-all"
+                      title="Descargar archivo XML oficial"
+                    >
+                      <Download size={14} className="text-slate-600" />
+                      <span>XML</span>
+                    </button>
+                  )}
 
-                  {/* BOTÓN DESTACADO: IMPRESIÓN DIRECTA */}
+                  {/* Ver / Descargar PDF RIDE */}
+                  <button
+                    type="button"
+                    onClick={handleOpenRide}
+                    className="py-2 px-3 sm:px-3.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center gap-1.5 cursor-pointer transition-all"
+                    title="Ver o descargar PDF / RIDE oficial"
+                  >
+                    <FileDown size={14} className="text-rose-600" />
+                    <span>PDF / RIDE</span>
+                  </button>
+
+                  {/* Impresión Directa */}
                   <button
                     type="button"
                     onClick={() => handleDirectPrint(printFormat || 'ride')}
-                    className="w-full py-3 px-5 rounded-xl bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-sm flex items-center justify-center gap-2 cursor-pointer shadow-none transition-all"
+                    className="py-2 px-3 sm:px-3.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center gap-1.5 cursor-pointer transition-all"
+                    title="Impresión directa (Asistente del navegador / Windows)"
                   >
-                    <Printer size={16} />
-                    <span>Impresión Directa ({printFormat === 'ticket' ? 'Ticket 80mm' : 'Hoja A4'})</span>
+                    <Printer size={14} className="text-amber-600" />
+                    <span>Imprimir</span>
                   </button>
 
-                  {/* BOTONES SECUNDARIOS DE FORMATO */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                    {/* Imprimir Ticket 80mm */}
-                    <button
-                      type="button" 
-                      onClick={() => handleDirectPrint('ticket')}
-                      className="w-full py-2.5 px-4 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center justify-center gap-2 cursor-pointer transition-all"
-                    >
-                      <Calculator size={13} className="text-slate-600" />
-                      <span>Imprimir Ticket (80mm)</span>
-                    </button>
+                  {/* Enviar WhatsApp */}
+                  <button
+                    type="button"
+                    onClick={handleShareWhatsApp}
+                    className="py-2 px-3 sm:px-3.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center gap-1.5 cursor-pointer transition-all"
+                    title="Compartir comprobante por WhatsApp"
+                  >
+                    <MessageCircle size={14} className="text-emerald-600" />
+                    <span>WhatsApp</span>
+                  </button>
 
-                    {/* Imprimir RIDE A4 */}
-                    <button
-                      type="button" 
-                      onClick={() => handleDirectPrint('ride')}
-                      className="w-full py-2.5 px-4 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center justify-center gap-2 cursor-pointer transition-all"
-                    >
-                      <FileText size={13} className="text-slate-600" />
-                      <span>Imprimir RIDE / Hoja (A4)</span>
-                    </button>
+                  {/* Nueva Venta */}
+                  <button
+                    type="button"
+                    onClick={handleStartNewSale}
+                    className="py-2 px-3 sm:px-3.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center gap-1.5 cursor-pointer transition-all"
+                    title="Registrar una nueva venta"
+                  >
+                    <Plus size={14} className="text-blue-600" />
+                    <span>Nueva Venta</span>
+                  </button>
 
-                    {/* Download XML (si es factura electrónica autorizada) */}
-                    {formData.claveAcceso && (
-                      <button
-                        type="button" 
-                        onClick={downloadXMLFile}
-                        className="w-full sm:col-span-2 py-2.5 px-4 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center justify-center gap-2 cursor-pointer transition-all"
-                      >
-                        <Download size={13} className="text-slate-600" />
-                        <span>Descargar Archivo XML Autorizado</span>
-                      </button>
+                  {/* Volver al Historial */}
+                  <button
+                    type="button"
+                    onClick={closeTransaction}
+                    className="py-2 px-4 rounded-xl bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs flex items-center gap-1.5 cursor-pointer shadow-none transition-all"
+                    title="Volver al historial de comprobantes"
+                  >
+                    <ArrowLeft size={14} />
+                    <span>Volver al Historial</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* 2. MAIN INVOICE SUMMARY CARD */}
+            <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 space-y-6">
+              {/* Header Info: Client Data (Left) & Fiscal Status / Dates (Right) */}
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-6 pb-6 border-b border-slate-200/80">
+                {/* Left Column: Cliente */}
+                <div className="md:col-span-7 space-y-1.5 text-xs text-slate-700">
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="font-bold text-slate-900">Cliente:</span>
+                    <span className="font-bold text-slate-900 text-sm">{matchedTercero?.name || formData.thirdPartyName || 'CONSUMIDOR FINAL'}</span>
+                  </div>
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="font-bold text-slate-900">Identificación:</span>
+                    <span className="font-mono text-slate-800">{matchedTercero?.ruc || formData.thirdPartyRuc || '9999999999999'}</span>
+                  </div>
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="font-bold text-slate-900">Correo:</span>
+                    <span className="text-slate-600">{clientAddress || 'No registrado'}</span>
+                  </div>
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="font-bold text-slate-900">Teléfono:</span>
+                    <span className="text-slate-600">{matchedTercero?.telefono || matchedTercero?.phone || matchedTercero?.telefonoContacto || formData.telefono || 'No registrado'}</span>
+                  </div>
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="font-bold text-slate-900">Dirección:</span>
+                    <span className="text-slate-600">{matchedTercero?.direccion || matchedTercero?.address || formData.direccion || 'S/N'}</span>
+                  </div>
+                </div>
+
+                {/* Right Column: Emission date & Status badges */}
+                <div className="md:col-span-5 flex flex-col items-start md:items-end justify-start space-y-2 text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-slate-900">Fecha:</span>
+                    <span className="text-slate-700">{formData.date} {formData.time || ''}</span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-slate-900">Estado:</span>
+                    {isNotaVenta ? (
+                      <span className={`px-2.5 py-0.5 rounded-md text-[11px] font-bold ${
+                        formData.sriStatus === 'anulado'
+                          ? 'bg-rose-100 text-rose-800 border border-rose-200'
+                          : 'bg-emerald-600 text-white'
+                      }`}>
+                        {formData.sriStatus === 'anulado' ? 'ANULADO' : 'REGISTRADO'}
+                      </span>
+                    ) : isAuthorized ? (
+                      <span className="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-emerald-600 text-white">
+                        AUTORIZADO
+                      </span>
+                    ) : isAnulado ? (
+                      <span className="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-rose-600 text-white">
+                        ANULADO
+                      </span>
+                    ) : (
+                      <span className="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-amber-500 text-white">
+                        PENDIENTE SRI
+                      </span>
                     )}
                   </div>
 
-                  {/* Botones de navegación adicionales */}
-                  <div className="pt-3 border-t border-slate-200/80 flex items-center justify-between gap-3">
-                    <button
-                      type="button"
-                      className="flex-1 py-2.5 px-4 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-all"
-                      onClick={() => {
-                        stableIdRef.current = crypto.randomUUID();
-                        setFormData({
-                          id: stableIdRef.current,
-                          type: 'ingreso',
-                          documentType: formData.documentType || 'factura',
-                          documentNumber: '',
-                          date: getEcuadorDateString(new Date()),
-                          time: getEcuadorTimeString(new Date()),
-                          items: [],
-                          subtotal: 0,
-                          baseImponible: 0,
-                          ivaPorcentaje: 15,
-                          ivaValor: 0,
-                          total: 0,
-                          thirdPartyId: '',
-                          thirdPartyName: '',
-                          thirdPartyRuc: '',
-                          paymentMethod: 'efectivo',
-                          paymentStatus: 'pagado',
-                          sriStatus: 'borrador',
-                          category: 'ventas',
-                          claveAcceso: '',
-                          xml: '',
-                          xmlAutorizado: '',
-                        });
-                        setPayments({
-                          efectivo: 0,
-                          transferencia: 0,
-                          tarjeta: 0,
-                          cruce_cuentas: 0,
-                          transferenciaRef: '',
-                          transferenciaBankId: '',
-                          tarjetaRef: '',
-                          cruceRef: ''
-                        });
-                        setEmailDeliveryResult(null);
-                        setPrintTx(null);
-                        setCurrentStep(1);
-                      }}
-                    >
-                      <Plus size={13} />
-                      <span>Nueva Venta / Emisión</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      className="flex-1 py-2.5 px-4 rounded-xl bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-all"
-                      onClick={closeTransaction}
-                    >
-                      <Check size={13} />
-                      <span>Terminar y Salir</span>
-                    </button>
-                  </div>
-
-                  {/* SRI Anulación if authorized */}
+                  {/* Fecha Autorizado (si es SRI autorizado) */}
                   {isAuthorized && (
-                    <div className="mt-2 pt-2 border-t border-slate-200/80">
-                      <button
-                        type="button" 
-                        onClick={handleAnular}
-                        className="w-full py-2 px-4 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-semibold text-xs flex items-center justify-center gap-2 cursor-pointer transition-all"
-                      >
-                        <ShieldAlert size={13} />
-                        <span>{isNotaVenta ? 'Anular Nota de Venta' : 'Anular Documento ante el SRI'}</span>
-                      </button>
+                    <div className="flex items-center gap-2 text-[11px] text-slate-600">
+                      <span className="font-bold text-slate-900">Fecha autorizado:</span>
+                      <span>{formData.fechaAutorizacion || `${formData.date} ${formData.time || ''}`}</span>
                     </div>
                   )}
-                </div>
 
+                  {/* Botón para consultar autorización si está pendiente */}
+                  {!isAuthorized && formData.claveAcceso && formData.documentType !== 'nota_venta' && (
+                    <button
+                      type="button"
+                      disabled={isEmitting}
+                      onClick={() => recoverSriEmission(true)}
+                      className="mt-1 py-1.5 px-3 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-semibold text-xs flex items-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer"
+                    >
+                      <RefreshCw size={12} className={isEmitting ? "animate-spin" : ""} />
+                      <span>{isEmitting ? "Consultando..." : "Consultar SRI"}</span>
+                    </button>
+                  )}
+
+                  {/* Botón para anular si está autorizado o registrado */}
+                  {(isAuthorized || (isNotaVenta && !isAnulado)) && (
+                    <button
+                      type="button"
+                      onClick={handleAnular}
+                      className="text-[11px] text-rose-600 hover:text-rose-800 underline mt-1 cursor-pointer"
+                    >
+                      {isNotaVenta ? 'Anular Nota de Venta' : 'Anular Documento ante SRI'}
+                    </button>
+                  )}
+                </div>
               </div>
 
-            {/* Right Column (col-span-12 lg:col-span-5): Vista Previa del Documento */}
-            <div className="col-span-12 lg:col-span-5">
-              <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-none space-y-4">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
-                    <FileText size={16} />
-                  </div>
-                  <h4 className="text-base font-bold text-slate-900 tracking-tight">Vista Previa del Comprobante</h4>
-                </div>
+              {/* Table of items */}
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                      <th className="py-2.5 px-2 text-center w-12">#</th>
+                      <th className="py-2.5 px-3">Producto / Servicio</th>
+                      <th className="py-2.5 px-3 text-right">Cantidad</th>
+                      <th className="py-2.5 px-3 text-right">Precio Unitario</th>
+                      <th className="py-2.5 px-3 text-right">Descuento</th>
+                      <th className="py-2.5 px-3 text-right">IVA</th>
+                      <th className="py-2.5 px-3 text-right">SubTotal</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 text-xs">
+                    {(formData.items || []).map((item, idx) => {
+                      const customDesc = invoiceDescription(item);
+                      const hasDifferentDesc = customDesc && customDesc !== (item.name || item.sku);
+                      const qty = Number(item.quantity || 1);
+                      const price = Number(item.price || 0);
+                      const disc = Number(item.discount || 0);
+                      const lineSub = (qty * price) - disc;
+                      const ivaRate = item.ivaPorcentaje !== undefined ? item.ivaPorcentaje : (formData.ivaPorcentaje || 15);
+                      
+                      return (
+                        <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                          <td className="py-3 px-2 text-center text-slate-400 font-mono text-[11px]">{idx + 1}</td>
+                          <td className="py-3 px-3">
+                            <div className="font-bold text-slate-900">{item.name || item.description || 'Producto'}</div>
+                            {hasDifferentDesc && (
+                              <div className="text-[11px] text-slate-500 mt-0.5 leading-snug">
+                                ({customDesc})
+                              </div>
+                            )}
+                            {item.sku && (
+                              <div className="text-[10px] font-mono text-slate-400 mt-0.5">
+                                SKU: {item.sku}
+                              </div>
+                            )}
+                          </td>
+                          <td className="py-3 px-3 text-right font-mono text-slate-800">
+                            {qty.toFixed(qty % 1 === 0 ? 1 : 2)}
+                          </td>
+                          <td className="py-3 px-3 text-right font-mono text-slate-800">
+                            ${price.toFixed(2)}
+                          </td>
+                          <td className="py-3 px-3 text-right font-mono text-slate-600">
+                            ${disc.toFixed(2)}
+                          </td>
+                          <td className="py-3 px-3 text-right font-mono text-slate-600">
+                            {ivaRate}%
+                          </td>
+                          <td className="py-3 px-3 text-right font-mono font-bold text-slate-900">
+                            ${lineSub.toFixed(2)}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
 
-                <div className="rounded-xl border border-slate-200/80 bg-slate-50/80 p-4 space-y-3 font-mono text-xs max-h-[65vh] overflow-y-auto">
-                  <div className="border-b border-slate-200/80 text-center pb-2.5">
-                    <p className="font-bold text-slate-900 text-sm">{sriConfig.nombreComercial || 'WEBFIX ERP'}</p>
-                    <p className="font-semibold text-slate-800 mt-0.5">{sriConfig.razonSocial}</p>
-                    <p className="text-slate-500 text-[11px] mt-0.5">{sriConfig.direccionMatriz}</p>
-                    <p className="font-bold text-slate-900 mt-1">RUC: {sriConfig.ruc}</p>
+              {/* Lower Summary: Left (Payments & Email status) + Right (Totals) */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-4 border-t border-slate-200/80">
+                {/* Left Column: Formas de Pago & Notificaciones */}
+                <div className="lg:col-span-7 space-y-4 text-xs">
+                  {/* Formas de Pago */}
+                  <div className="p-3.5 rounded-xl bg-slate-50/80 border border-slate-200/80 space-y-2">
+                    <span className="font-bold text-slate-900 block text-xs uppercase tracking-wider">
+                      Formas de Pago Aplicadas:
+                    </span>
+                    <div className="space-y-1 text-slate-700">
+                      {Number(payments.efectivo) > 0 && (
+                        <div className="flex items-center justify-between">
+                          <span>Efectivo:</span>
+                          <strong className="font-mono">${Number(payments.efectivo).toFixed(2)}</strong>
+                        </div>
+                      )}
+                      {Number(payments.transferencia) > 0 && (
+                        <div className="flex items-center justify-between">
+                          <span>Transferencia {payments.transferenciaRef ? `(Ref: ${payments.transferenciaRef})` : ''}:</span>
+                          <strong className="font-mono">${Number(payments.transferencia).toFixed(2)}</strong>
+                        </div>
+                      )}
+                      {Number(payments.tarjeta) > 0 && (
+                        <div className="flex items-center justify-between">
+                          <span>Tarjeta {payments.tarjetaRef ? `(Ref: ${payments.tarjetaRef})` : ''}:</span>
+                          <strong className="font-mono">${Number(payments.tarjeta).toFixed(2)}</strong>
+                        </div>
+                      )}
+                      {Number(payments.cruce_cuentas) > 0 && (
+                        <div className="flex items-center justify-between">
+                          <span>Crédito Directo (CxC):</span>
+                          <strong className="font-mono">${Number(payments.cruce_cuentas).toFixed(2)}</strong>
+                        </div>
+                      )}
+                      {!Number(payments.efectivo) && !Number(payments.transferencia) && !Number(payments.tarjeta) && !Number(payments.cruce_cuentas) && (
+                        <div className="flex items-center justify-between">
+                          <span className="capitalize">{formData.paymentMethod || 'Efectivo'}:</span>
+                          <strong className="font-mono">${Number(formData.total || 0).toFixed(2)}</strong>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
-                  <div className="border-b border-slate-200/80 space-y-1 pb-2.5 text-slate-700">
-                    <p className="font-bold text-slate-900 text-center py-0.5 uppercase">
-                      {formData.documentType === 'nota_venta' ? 'NOTA DE VENTA' : 'FACTURA ELECTRÓNICA'}
-                    </p>
-                    <p>
-                      <b>Número:</b> {formData.documentNumber || (formData.documentType === 'factura' ? 'Borrador (Secuencial se asigna al emitir en SRI)' : (formData.secuencial ? `001-001-${String(formData.secuencial).padStart(9, '0')}` : 'Por asignar al emitir'))}
-                    </p>
-                    <p><b>Fecha:</b> {formData.date} {formData.time || ''}</p>
-                    <p>
-                      <b>{formData.documentType === 'nota_venta' ? 'Estado:' : 'Estado SRI:'}</b>{' '}
-                      <span className={formData.sriStatus === 'anulado' ? 'text-rose-600 font-bold' : 'text-emerald-600 font-bold'}>
-                        {formData.documentType === 'nota_venta' 
-                          ? (formData.sriStatus === 'anulado' ? 'ANULADO' : 'REGISTRADO') 
-                          : formData.sriStatus}
+                  {/* Observaciones adicionales si existen */}
+                  {(formData.referencia || formData.description) && (
+                    <div className="p-3.5 rounded-xl bg-slate-50/80 border border-slate-200/80 space-y-1">
+                      <span className="font-bold text-slate-900 block text-xs uppercase tracking-wider">
+                        Observaciones / Referencia:
                       </span>
-                    </p>
-                  </div>
-
-                  <div className="border-b border-slate-200/80 space-y-1 pb-2.5 text-slate-700">
-                    <p><b>Cliente:</b> {matchedTercero?.name || 'CONSUMIDOR FINAL'}</p>
-                    <p><b>RUC/CI:</b> {matchedTercero?.ruc || '9999999999999'}</p>
-                    <p><b>Dirección:</b> {matchedTercero?.direccion || 'S/N'}</p>
-                  </div>
-
-                  {/* Detalle items */}
-                  {formData.documentType !== 'retencion' && (
-                    <div className="border-b border-slate-200/80 pb-2.5">
-                      <table className="w-full text-left">
-                        <thead>
-                          <tr className="text-slate-500 border-b border-slate-200/60 text-[11px]">
-                            <th className="pb-1 font-semibold">Cant</th>
-                            <th className="pb-1 font-semibold">Detalle</th>
-                            <th className="pb-1 font-semibold text-right">Unit</th>
-                            <th className="pb-1 font-semibold text-right">Total</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100">
-                          {(formData.items || []).map((item, idx) => (
-                            <tr key={idx} className="text-slate-800">
-                              <td className="py-1 align-top">{item.quantity}</td>
-                              <td className="py-1 pr-2">{invoiceDescription(item)}</td>
-                              <td className="py-1 text-right align-top">${Number(item.price).toFixed(2)}</td>
-                              <td className="py-1 text-right align-top">${(Number(item.price) * Number(item.quantity)).toFixed(2)}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                      <p className="text-slate-600 text-[11.5px] leading-relaxed">
+                        {formData.referencia || formData.description}
+                      </p>
                     </div>
                   )}
 
-                  {/* Totales */}
-                  <div className="space-y-1 text-right text-slate-700">
-                    <p>Subtotal: ${Number(formData.baseImponible).toFixed(2)}</p>
-                    {formData.documentType !== 'retencion' && (
-                      <p>IVA ({formData.ivaPorcentaje}%): ${Number(formData.ivaValor).toFixed(2)}</p>
-                    )}
-                    <p className="font-bold text-sm text-slate-900 pt-1">
-                      TOTAL: ${Number(formData.total).toFixed(2)}
-                    </p>
-                  </div>
+                  {/* Estado de Notificación por Correo & Input rápido */}
+                  <div className="p-3.5 rounded-xl bg-slate-50/80 border border-slate-200/80 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Mail size={14} className="text-slate-600" />
+                        <span className="font-bold text-slate-900 text-xs">Notificación por Correo Electrónico</span>
+                      </div>
+                      {emailSending && (
+                        <span className="text-[11px] text-blue-600 flex items-center gap-1 font-medium">
+                          <RefreshCw size={11} className="animate-spin" /> Enviando...
+                        </span>
+                      )}
+                    </div>
 
-                  {/* Pagos desglosados */}
-                  <div className="border-t border-slate-200/80 pt-2 space-y-0.5 text-slate-700">
-                    <p className="font-bold text-slate-900">Forma de Pago:</p>
-                    {Number(payments.efectivo) > 0 && <p>Efectivo: ${Number(payments.efectivo).toFixed(2)}</p>}
-                    {Number(payments.transferencia) > 0 && <p>Transferencia: ${Number(payments.transferencia).toFixed(2)}</p>}
-                    {Number(payments.tarjeta) > 0 && <p>Tarjeta: ${Number(payments.tarjeta).toFixed(2)}</p>}
-                    {Number(payments.cruce_cuentas) > 0 && <p>Crédito CxC: ${Number(payments.cruce_cuentas).toFixed(2)}</p>}
+                    <div className="text-[11.5px] text-slate-600 space-y-1">
+                      <div>
+                        Cliente: {clientSent ? (
+                          <span className="text-emerald-700 font-medium">Entregado a {clientAddress}</span>
+                        ) : clientAddress ? (
+                          <span>Registrado: {clientAddress}</span>
+                        ) : (
+                          <span className="text-slate-400">Sin correo en ficha</span>
+                        )}
+                      </div>
+                      <div>
+                        Emisor: {emitterSent ? (
+                          <span className="text-emerald-700 font-medium">Copia de respaldo enviada</span>
+                        ) : emitterAddress ? (
+                          <span>Copia configurada ({emitterAddress})</span>
+                        ) : (
+                          <span className="text-slate-400">Sin correo configurado</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Input para reenviar a correo alternativo */}
+                    <div className="flex items-center gap-2 pt-1">
+                      <UiInput
+                        type="email"
+                        value={customClientEmail}
+                        onChange={e => setCustomClientEmail(e.target.value)}
+                        placeholder="Enviar copia a otro correo..."
+                        className="flex-1 h-8 text-xs bg-white rounded-lg"
+                      />
+                      <button
+                        type="button"
+                        disabled={emailSending || !customClientEmail || !customClientEmail.includes('@')}
+                        onClick={() => {
+                          const receiver = thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
+                          enviarCorreoComprobante(formData, receiver, sriConfig, customClientEmail);
+                        }}
+                        className="h-8 px-3 rounded-lg bg-[#1b1b1b] hover:bg-slate-800 text-white text-xs font-semibold flex items-center gap-1 shrink-0 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                      >
+                        <Send size={11} />
+                        <span>Enviar</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Column: Totales */}
+                <div className="lg:col-span-5 flex flex-col justify-start">
+                  <div className="space-y-2 text-xs text-slate-700 border-t lg:border-t-0 pt-3 lg:pt-0">
+                    {Number(formData.ivaValor) > 0 && (
+                      <div className="flex justify-between items-center py-1">
+                        <span className="text-slate-500">Sub-total 15%:</span>
+                        <span className="font-mono text-slate-800">${Number(formData.baseImponible || (Number(formData.total || 0) / 1.15)).toFixed(2)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-slate-500">Sub-total:</span>
+                      <span className="font-mono text-slate-800">${Number(formData.subtotal || formData.baseImponible || 0).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-slate-500">Descuento:</span>
+                      <span className="font-mono text-slate-800">${Number(formData.totalDiscount || formData.discount || 0).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-slate-500">IVA 15%:</span>
+                      <span className="font-mono text-slate-800">${Number(formData.ivaValor || 0).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center pt-2.5 mt-2 border-t border-slate-300">
+                      <span className="text-sm font-bold text-slate-900">TOTAL:</span>
+                      <span className="text-xl font-extrabold font-mono text-[#1b1b1b]">
+                        ${Number(formData.total || 0).toFixed(2)}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>

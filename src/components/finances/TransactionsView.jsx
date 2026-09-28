@@ -947,27 +947,23 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                         </button>
                       )}
 
-                      {/* 1. Ver Detalles de Factura */}
+                      {/* 1. Ver Detalles de Factura / Comprobante */}
                       <button
                         type="button"
-                        onClick={() => setSelectedRideTx(tx)}
+                        onClick={() => {
+                          if (onOpenForm) {
+                            onOpenForm({ ...tx, type: tx.type || 'ingreso', viewDetails: true });
+                          } else {
+                            setSelectedRideTx(tx);
+                          }
+                        }}
                         className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-600 hover:text-blue-600 hover:bg-blue-50 transition-colors"
                         title={tx.documentType === 'nota_venta' ? "Ver detalles del Recibo" : "Ver detalles de la Factura"}
                       >
                         <Eye size={14} />
                       </button>
 
-                      {/* 2. Descargar PDF / RIDE Oficial */}
-                      <button
-                        type="button"
-                        onClick={() => handleOpenRide(tx)}
-                        className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-600 hover:text-red-600 hover:bg-red-50 transition-colors"
-                        title="Ver / Descargar PDF (RIDE)"
-                      >
-                        <FileDown size={14} />
-                      </button>
-
-                      {/* 3. Impresión Directa (asistente de Windows / navegador) */}
+                      {/* 2. Impresión Directa (asistente de Windows / navegador) */}
                       <button
                         type="button"
                         onClick={() => handleDirectPrint(tx)}

@@ -420,7 +420,7 @@ export default function FinanceModule({
               
               {/* SECCIÓN VENTAS */}
               {activeTab === 'ventas' && (
-                isModalOpen && editingTx?.type === 'ingreso' && !editingTx?.posCheckoutOrigin && !editingTx?.isPOS ? (
+                isModalOpen && (editingTx?.type === 'ingreso' || !editingTx?.type) && !editingTx?.posCheckoutOrigin && !editingTx?.isPOS ? (
                   <TransactionForm onSaved={transactionSaved} usuario={usuario}
                     tx={editingTx} 
                     onClose={closeTransactionForm}
@@ -493,7 +493,23 @@ export default function FinanceModule({
 
               {/* SECCIÓN DOCUMENTOS SRI */}
               {activeTab === 'sri_docs' && (
-                <TransactionsView transactions={transactions} thirdParties={thirdParties} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} forcedDocType={subTabSri} />
+                isModalOpen && (editingTx?.type === 'ingreso' || !editingTx?.type) ? (
+                  <TransactionForm onSaved={transactionSaved} usuario={usuario}
+                    tx={editingTx} 
+                    onClose={closeTransactionForm}
+                    thirdParties={thirdParties} 
+                    products={products}
+                    discounts={discounts}
+                    promotions={promotions}
+                    showToast={showToast} 
+                    db={db} 
+                    storage={storage} 
+                    appId={appId} 
+                    isInline={true}
+                  />
+                ) : (
+                  <TransactionsView transactions={transactions} thirdParties={thirdParties} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} forcedDocType={subTabSri} />
+                )
               )}
 
               {/* SECCIÓN INVENTARIO */}
